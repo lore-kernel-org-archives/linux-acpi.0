@@ -1,117 +1,190 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 2/2] x86, kexec_file_load: make it work with
- efi=noruntime or efi=old_map
-Date: Thu, 17 Jan 2019 10:39:57 +0100
-Message-ID: <CAJZ5v0hb6Lz0knzNFTZKNb863bvDx2a1EFjTjOG2NdvyyyhniQ@mail.gmail.com>
-References: <20190115095834.22617-1-kasong@redhat.com> <20190115095834.22617-3-kasong@redhat.com>
- <20190115231005.GF6596@zn.tnic> <CACPcB9dYD2zR7ssXFibkefo3EZuvVnLegovwTMA8MaaLP1UsYQ@mail.gmail.com>
- <20190116094619.GB15409@zn.tnic> <CACPcB9d0dKLPmZ=b++m5LYRjFUCFyLL3deDBcS4m3N-UWZ_Hyw@mail.gmail.com>
- <20190117085316.GA17940@dhcp-128-65.nay.redhat.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: [RFC PATCH] cpufreq / cppc: Work around for Hisilicon CPPC cpufreq
+Date: Thu, 17 Jan 2019 19:00:11 +0800
+Message-ID: <1547722811-18052-1-git-send-email-wangxiongfeng2@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190117085316.GA17940@dhcp-128-65.nay.redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Young <dyoung@redhat.com>
-Cc: Kairui Song <kasong@redhat.com>, Borislav Petkov <bp@alien8.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Baoquan He <bhe@redhat.com>, kexec@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: viresh.kumar@linaro.org, robert.moore@intel.com, lenb@kernel.org, rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, guohanjun@huawei.com, wangxiongfeng2@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 17, 2019 at 9:53 AM Dave Young <dyoung@redhat.com> wrote:
->
-> Add linux-acpi list
+Hisilicon chips do not support delivered performance counter register
+and reference performance counter register. But the platform can
+calculate the real performance using its own method. This patch provide
+a workaround for this problem, and other platforms can also use this
+workaround framework. We reuse the desired performance register to
+store the real performance calculated by the platform. After the
+platform finished the frequency adjust, it gets the real performance and
+writes it into desired performance register. OS can use it to calculate
+the real frequency.
 
-Well, thanks, but please resend the patches with a CC to linux-acpi.
+Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+---
+ drivers/acpi/cppc_acpi.c       | 29 ++++++++++++++++++++
+ drivers/cpufreq/Kconfig.arm    |  7 +++++
+ drivers/cpufreq/cppc_cpufreq.c | 62 ++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/cppc_acpi.h       |  4 +++
+ 4 files changed, 102 insertions(+)
 
-> On 01/17/19 at 03:41pm, Kairui Song wrote:
-> > On Wed, Jan 16, 2019 at 5:46 PM Borislav Petkov <bp@alien8.de> wrote:
-> > >
-> > > On Wed, Jan 16, 2019 at 03:08:42PM +0800, Kairui Song wrote:
-> > > > I didn't see a way to reuse things in that patch series, situation is
-> > > > different, in that patch it needs to get RSDP in very early boot stage
-> > > > so it did everything from scratch, in this patch kexec_file_load need
-> > > > to get RSDP too, but everything is well setup so things are a lot
-> > > > easier, just read from current boot_prams, efi and fallback to
-> > > > acpi_find_root_pointer should be good.
-> > >
-> > > No no. Early code should find out that venerable RSDP thing once and
-> > > will save it somewhere for further use. No gazillion parsings of it.
-> > > Just once and share it with the rest of the code that needs it.
-> > >
-> >
-> > How about we refill the boot_params.acpi_rsdp_addr if it is not valid
-> > in early code, so it could be used as a reliable RSDP address source?
-> > That should make things easier.
-> >
-> > But if early code should parse it and store it should be done in
-> > Chao's patch, or I can post another patch to do it if Chao's patch is
-> > merged.
-> >
-> > For now I think good to have something like this in this patch series
-> > to always keep storing acpi_rsdp in late code,
-> > acpi_os_get_root_pointer_late (maybe comeup with a better name later)
-> > could be used anytime to get RSDP and no extra parsing:
-> >
-> > --- a/drivers/acpi/osl.c
-> > +++ b/drivers/acpi/osl.c
-> > @@ -180,8 +180,8 @@ void acpi_os_vprintf(const char *fmt, va_list args)
-> >  #endif
-> >  }
-> >
-> > -#ifdef CONFIG_KEXEC
-> >  static unsigned long acpi_rsdp;
-> > +#ifdef CONFIG_KEXEC
-> >  static int __init setup_acpi_rsdp(char *arg)
-> >  {
-> >         return kstrtoul(arg, 16, &acpi_rsdp);
-> > @@ -189,28 +189,38 @@ static int __init setup_acpi_rsdp(char *arg)
-> >  early_param("acpi_rsdp", setup_acpi_rsdp);
-> >  #endif
-> >
-> > +acpi_physical_address acpi_os_get_root_pointer_late(void) {
-> > +       return acpi_rsdp;
-> > +}
-> > +
-> >  acpi_physical_address __init acpi_os_get_root_pointer(void)
-> >  {
-> >         acpi_physical_address pa;
-> >
-> > -#ifdef CONFIG_KEXEC
-> >         if (acpi_rsdp)
-> >                 return acpi_rsdp;
-> > -#endif
-> > +
-> >         pa = acpi_arch_get_root_pointer();
-> > -       if (pa)
-> > +       if (pa) {
-> > +               acpi_rsdp = pa;
-> >                 return pa;
-> > +       }
-> >
-> >         if (efi_enabled(EFI_CONFIG_TABLES)) {
-> > -               if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
-> > +               if (efi.acpi20 != EFI_INVALID_TABLE_ADDR) {
-> > +                       acpi_rsdp = efi.acpi20;
-> >                         return efi.acpi20;
-> > -               if (efi.acpi != EFI_INVALID_TABLE_ADDR)
-> > +               }
-> > +               if (efi.acpi != EFI_INVALID_TABLE_ADDR) {
-> > +                       acpi_rsdp = efi.acpi;
-> >                         return efi.acpi;
-> > +               }
-> >                 pr_err(PREFIX "System description tables not found\n");
-> >         } else if (IS_ENABLED(CONFIG_ACPI_LEGACY_TABLES_LOOKUP)) {
-> >                 acpi_find_root_pointer(&pa);
-> >         }
-> >
-> >  +       acpi_rsdp = pa;
-> >         return pa;
-> >  }
-> >
-> > > --
-> > > Regards/Gruss,
-> > >     Boris.
-> > >
-> > > Good mailing practices for 400: avoid top-posting and trim the reply.
-> > --
-> > Best Regards,
-> > Kairui Song
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 217a782..0cdaf7e 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -1050,6 +1050,35 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+ 	return ret_val;
+ }
+ 
++#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
++/*
++ * We reuse the desired performance register to store the real performance
++ * calculated by the platform.
++ */
++u64 hisi_cppc_get_real_perf(unsigned int cpunum)
++{
++	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
++	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
++	struct cpc_register_resource *desired_reg;
++	u64 desired_perf;
++	int ret;
++
++	/*
++	 * Make sure the platform has finished the frequency adjust
++	 * and wrote the real performance in desired performance register
++	 */
++	ret = check_pcc_chan(pcc_ss_id, false);
++	if (ret)
++		return 0;
++
++	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
++	cpc_read(cpunum, desired_reg, &desired_perf);
++
++	return desired_perf;
++}
++EXPORT_SYMBOL_GPL(hisi_cppc_get_real_perf);
++#endif
++
+ /**
+  * cppc_get_perf_caps - Get a CPUs performance capabilities.
+  * @cpunum: CPU from which to get capabilities info.
+diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+index 688f102..236bd07 100644
+--- a/drivers/cpufreq/Kconfig.arm
++++ b/drivers/cpufreq/Kconfig.arm
+@@ -18,6 +18,13 @@ config ACPI_CPPC_CPUFREQ
+ 
+ 	  If in doubt, say N.
+ 
++config HISILICON_CPPC_CPUFREQ_WORKAROUND
++	bool "Workaround for Hisilicon CPPC Cpufreq"
++	default y
++	depends on ACPI_CPPC_CPUFREQ && ARM64
++	help
++	  This option enables a workaround for Hisilicon CPPC Cpufreq.
++
+ config ARM_ARMADA_37XX_CPUFREQ
+ 	tristate "Armada 37xx CPUFreq support"
+ 	depends on ARCH_MVEBU && CPUFREQ_DT
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index fd25c21c..b910e84 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -33,6 +33,13 @@
+ /* Offest in the DMI processor structure for the max frequency */
+ #define DMI_PROCESSOR_MAX_SPEED  0x14
+ 
++struct cppc_get_rate_workaround_info {
++	char oem_id[ACPI_OEM_ID_SIZE +1];
++	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
++	u32 oem_revision;
++	unsigned int (*get)(unsigned int cpu);
++};
++
+ /*
+  * These structs contain information parsed from per CPU
+  * ACPI _CPC structures.
+@@ -357,6 +364,59 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpunum)
+ 	.name = "cppc_cpufreq",
+ };
+ 
++#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
++/*
++ * When the platform does not support delivered performance counter or
++ * reference performance counter, it can calculate the performance using the
++ * platform specific mechanism. We reuse the desired performance register to
++ * store the real performance calculated by the platform.
++ */
++static unsigned int hisi_cppc_cpufreq_get_rate(unsigned int cpunum)
++{
++	struct cppc_cpudata *cpu = all_cpu_data[cpunum];
++	u64 desired_perf = hisi_cppc_get_real_perf(cpunum);
++
++	return cppc_cpufreq_perf_to_khz(cpu, desired_perf);
++}
++#endif
++
++static struct cppc_get_rate_workaround_info wa_info[] = {
++#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
++	{
++		.oem_id		= "HISI  ",
++		.oem_table_id	= "HIP07   ",
++		.oem_revision	= 0,
++		.get = hisi_cppc_cpufreq_get_rate,
++	},
++	{
++		.oem_id		= "HISI  ",
++		.oem_table_id	= "HIP08   ",
++		.oem_revision	= 0,
++		.get = hisi_cppc_cpufreq_get_rate,
++	},
++#endif
++	{},
++};
++
++static void cppc_check_get_rate_workaround(struct cpufreq_driver *cppc_cpufreq_driver)
++{
++	struct acpi_table_header *tbl;
++	acpi_status status = AE_OK;
++	int i;
++
++	status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
++	if (ACPI_FAILURE(status) || !tbl)
++		return;
++
++	for (i = 0; i < ARRAY_SIZE(wa_info) - 1; i++) {
++		if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
++		    !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
++		    wa_info[i].oem_revision == tbl->oem_revision) {
++			cppc_cpufreq_driver->get = wa_info[i].get;
++			return;
++		}
++	}
++}
+ static int __init cppc_cpufreq_init(void)
+ {
+ 	int i, ret = 0;
+@@ -386,6 +446,8 @@ static int __init cppc_cpufreq_init(void)
+ 		goto out;
+ 	}
+ 
++	cppc_check_get_rate_workaround(&cppc_cpufreq_driver);
++
+ 	ret = cpufreq_register_driver(&cppc_cpufreq_driver);
+ 	if (ret)
+ 		goto out;
+diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+index 4f34734..be7400b 100644
+--- a/include/acpi/cppc_acpi.h
++++ b/include/acpi/cppc_acpi.h
+@@ -146,4 +146,8 @@ struct cppc_cpudata {
+ extern int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val);
+ extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
+ 
++#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
++u64 hisi_cppc_get_real_perf(unsigned int cpunum);
++#endif
++
+ #endif /* _CPPC_ACPI_H*/
+-- 
+1.7.12.4
