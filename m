@@ -1,12 +1,12 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCHv4 03/13] acpi/hmat: Parse and report heterogeneous memory
-Date: Thu, 17 Jan 2019 12:00:53 +0100
-Message-ID: <CAJZ5v0hEg3V7FoE6arwTTodVQ4uUZNLpwdOpjzh7PjqB3jguGw@mail.gmail.com>
-References: <20190116175804.30196-1-keith.busch@intel.com> <20190116175804.30196-4-keith.busch@intel.com>
+Subject: Re: [PATCHv4 04/13] node: Link memory nodes to their compute nodes
+Date: Thu, 17 Jan 2019 12:26:16 +0100
+Message-ID: <CAJZ5v0hRsW037B1uPMYj=UO6TWDX9CWVyhYYjVjnvKQ=4ZaU5w@mail.gmail.com>
+References: <20190116175804.30196-1-keith.busch@intel.com> <20190116175804.30196-5-keith.busch@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190116175804.30196-4-keith.busch@intel.com>
+In-Reply-To: <20190116175804.30196-5-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keith Busch <keith.busch@intel.com>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
@@ -14,286 +14,103 @@ List-Id: linux-acpi@vger.kernel.org
 
 On Wed, Jan 16, 2019 at 6:59 PM Keith Busch <keith.busch@intel.com> wrote:
 >
-> Systems may provide different memory types and export this information
-> in the ACPI Heterogeneous Memory Attribute Table (HMAT). Parse these
-> tables provided by the platform and report the memory access and caching
-> attributes.
+> Systems may be constructed with various specialized nodes. Some nodes
+> may provide memory, some provide compute devices that access and use
+> that memory, and others may provide both. Nodes that provide memory are
+> referred to as memory targets, and nodes that can initiate memory access
+> are referred to as memory initiators.
+>
+> Memory targets will often have varying access characteristics from
+> different initiators, and platforms may have ways to express those
+> relationships. In preparation for these systems, provide interfaces
+> for the kernel to export the memory relationship among different nodes
+> memory targets and their initiators with symlinks to each other's nodes,
+> and export node lists showing the same relationship.
+>
+> If a system provides access locality for each initiator-target pair, nodes
+> may be grouped into ranked access classes relative to other nodes. The new
+> interface allows a subsystem to register relationships of varying classes
+> if available and desired to be exported. A lower class number indicates
+> a higher performing tier, with 0 being the best performing class.
+>
+> A memory initiator may have multiple memory targets in the same access
+> class. The initiator's memory targets in given class indicate the node's
+> access characteristics perform better relative to other initiator nodes
+> either unreported or in lower class numbers. The targets within an
+> initiator's class, though, do not necessarily perform the same as each
+> other.
+>
+> A memory target node may have multiple memory initiators. All linked
+> initiators in a target's class have the same access characteristics to
+> that target.
+>
+> The following example show the nodes' new sysfs hierarchy for a memory
+> target node 'Y' with class 0 access from initiator node 'X':
+>
+>   # symlinks -v /sys/devices/system/node/nodeX/class0/
+>   relative: /sys/devices/system/node/nodeX/class0/targetY -> ../../nodeY
+
+If you added one more directory level and had "targets" and
+"initiators" under "class0", the names of the symlinks could be the
+same as the names of the nodes themselves, that is
+
+/sys/devices/system/node/nodeX/class0/targets/nodeY -> ../../../nodeY
+
+and the whole "nodelist" part wouldn't be necessary any more.
+
+Also, it looks like "class0" is just a name at this point, but it will
+represent an access class going forward.  Maybe it would be better to
+use the word "access" in the directory name to indicate that (so there
+would be "access0" instead of "class0").
+
+>
+>   # symlinks -v /sys/devices/system/node/nodeY/class0/
+>   relative: /sys/devices/system/node/nodeY/class0/initiatorX -> ../../nodeX
+>
+> And the same information is reflected in the nodelist:
+>
+>   # cat /sys/devices/system/node/nodeX/class0/target_nodelist
+>   Y
+>
+>   # cat /sys/devices/system/node/nodeY/class0/initiator_nodelist
+>   X
 >
 > Signed-off-by: Keith Busch <keith.busch@intel.com>
 > ---
->  drivers/acpi/Kconfig       |   1 +
->  drivers/acpi/Makefile      |   1 +
->  drivers/acpi/hmat/Kconfig  |   8 ++
->  drivers/acpi/hmat/Makefile |   1 +
->  drivers/acpi/hmat/hmat.c   | 180 +++++++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 191 insertions(+)
->  create mode 100644 drivers/acpi/hmat/Kconfig
->  create mode 100644 drivers/acpi/hmat/Makefile
->  create mode 100644 drivers/acpi/hmat/hmat.c
+>  drivers/base/node.c  | 127 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  include/linux/node.h |   6 ++-
+>  2 files changed, 131 insertions(+), 2 deletions(-)
 >
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 90ff0a47c12e..b377f970adfd 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -465,6 +465,7 @@ config ACPI_REDUCED_HARDWARE_ONLY
->           If you are unsure what to do, do not enable this option.
+> diff --git a/drivers/base/node.c b/drivers/base/node.c
+> index 86d6cd92ce3d..1da5072116ab 100644
+> --- a/drivers/base/node.c
+> +++ b/drivers/base/node.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/nodemask.h>
+>  #include <linux/cpu.h>
+>  #include <linux/device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/swap.h>
+>  #include <linux/slab.h>
 >
->  source "drivers/acpi/nfit/Kconfig"
-> +source "drivers/acpi/hmat/Kconfig"
+> @@ -59,6 +60,91 @@ static inline ssize_t node_read_cpulist(struct device *dev,
+>  static DEVICE_ATTR(cpumap,  S_IRUGO, node_read_cpumask, NULL);
+>  static DEVICE_ATTR(cpulist, S_IRUGO, node_read_cpulist, NULL);
 >
->  source "drivers/acpi/apei/Kconfig"
->  source "drivers/acpi/dptf/Kconfig"
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 7c6afc111d76..bff8fbe5a6ab 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -79,6 +79,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)  += processor.o
->  obj-$(CONFIG_ACPI)             += container.o
->  obj-$(CONFIG_ACPI_THERMAL)     += thermal.o
->  obj-$(CONFIG_ACPI_NFIT)                += nfit/
-> +obj-$(CONFIG_ACPI_HMAT)                += hmat/
 
-Yes, I prefer it to go into a separate directory.
+A kerneldoc describing the struct type, please.
 
-Who do you want to maintain it, me or Dan?
+> +struct node_class_nodes {
+> +       struct device           dev;
+> +       struct list_head        list_node;
+> +       unsigned                class;
+> +       nodemask_t              initiator_nodes;
+> +       nodemask_t              target_nodes;
+> +};
+> +#define to_class_nodes(dev) container_of(dev, struct node_class_nodes, dev)
+> +
 
->  obj-$(CONFIG_ACPI)             += acpi_memhotplug.o
->  obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
->  obj-$(CONFIG_ACPI_BATTERY)     += battery.o
-> diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/hmat/Kconfig
-> new file mode 100644
-> index 000000000000..a4034d37a311
-> --- /dev/null
-> +++ b/drivers/acpi/hmat/Kconfig
-> @@ -0,0 +1,8 @@
-> +# SPDX-License-Identifier: GPL-2.0
-> +config ACPI_HMAT
-> +       bool "ACPI Heterogeneous Memory Attribute Table Support"
-> +       depends on ACPI_NUMA
-> +       help
-> +        Parses representation of the ACPI Heterogeneous Memory Attributes
-> +        Table (HMAT) and set the memory node relationships and access
-> +        attributes.
+Generally speaking, your code is devoid of comments.
 
-What about:
-
-"If set, this option causes the kernel to set the memory NUMA node
-relationships and access attributes in accordance with ACPI HMAT
-(Heterogeneous Memory Attributes Table)."
-
-> diff --git a/drivers/acpi/hmat/Makefile b/drivers/acpi/hmat/Makefile
-> new file mode 100644
-> index 000000000000..e909051d3d00
-> --- /dev/null
-> +++ b/drivers/acpi/hmat/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_ACPI_HMAT) := hmat.o
-> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-> new file mode 100644
-> index 000000000000..833a783868d5
-> --- /dev/null
-> +++ b/drivers/acpi/hmat/hmat.c
-> @@ -0,0 +1,180 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Heterogeneous Memory Attributes Table (HMAT) representation
-> + *
-> + * Copyright (c) 2018, Intel Corporation.
-
-Can you put a comment describing the code somewhat in here?
-
-> + */
-> +
-> +#include <acpi/acpi_numa.h>
-> +#include <linux/acpi.h>
-> +#include <linux/bitops.h>
-> +#include <linux/cpu.h>
-> +#include <linux/device.h>
-> +#include <linux/init.h>
-> +#include <linux/list.h>
-> +#include <linux/module.h>
-> +#include <linux/node.h>
-> +#include <linux/slab.h>
-> +#include <linux/sysfs.h>
-
-Are all of the headers above really necessary to build the code?
-
-> +
-> +static __init const char *hmat_data_type(u8 type)
-> +{
-> +       switch (type) {
-> +       case ACPI_HMAT_ACCESS_LATENCY:
-> +               return "Access Latency";
-> +       case ACPI_HMAT_READ_LATENCY:
-> +               return "Read Latency";
-> +       case ACPI_HMAT_WRITE_LATENCY:
-> +               return "Write Latency";
-> +       case ACPI_HMAT_ACCESS_BANDWIDTH:
-> +               return "Access Bandwidth";
-> +       case ACPI_HMAT_READ_BANDWIDTH:
-> +               return "Read Bandwidth";
-> +       case ACPI_HMAT_WRITE_BANDWIDTH:
-> +               return "Write Bandwidth";
-> +       default:
-> +               return "Reserved";
-> +       };
-> +}
-> +
-> +static __init const char *hmat_data_type_suffix(u8 type)
-> +{
-> +       switch (type) {
-> +       case ACPI_HMAT_ACCESS_LATENCY:
-> +       case ACPI_HMAT_READ_LATENCY:
-> +       case ACPI_HMAT_WRITE_LATENCY:
-> +               return " nsec";
-> +       case ACPI_HMAT_ACCESS_BANDWIDTH:
-> +       case ACPI_HMAT_READ_BANDWIDTH:
-> +       case ACPI_HMAT_WRITE_BANDWIDTH:
-> +               return " MB/s";
-> +       default:
-> +               return "";
-> +       };
-> +}
-> +
-> +static __init int hmat_parse_locality(union acpi_subtable_headers *header,
-> +                                     const unsigned long end)
-> +{
-> +       struct acpi_hmat_locality *loc = (void *)header;
-> +       unsigned int init, targ, total_size, ipds, tpds;
-> +       u32 *inits, *targs, value;
-> +       u16 *entries;
-> +       u8 type;
-> +
-> +       if (loc->header.length < sizeof(*loc)) {
-> +               pr_err("HMAT: Unexpected locality header length: %d\n",
-> +                       loc->header.length);
-
-Why pr_err()?  Is the error really high-prio?
-
-Same below.
-
-> +               return -EINVAL;
-> +       }
-> +
-> +       type = loc->data_type;
-> +       ipds = loc->number_of_initiator_Pds;
-> +       tpds = loc->number_of_target_Pds;
-> +       total_size = sizeof(*loc) + sizeof(*entries) * ipds * tpds +
-> +                    sizeof(*inits) * ipds + sizeof(*targs) * tpds;
-> +       if (loc->header.length < total_size) {
-> +               pr_err("HMAT: Unexpected locality header length:%d, minimum required:%d\n",
-> +                       loc->header.length, total_size);
-> +               return -EINVAL;
-> +       }
-> +
-> +       pr_info("HMAT: Locality: Flags:%02x Type:%s Initiator Domains:%d Target Domains:%d Base:%lld\n",
-> +               loc->flags, hmat_data_type(type), ipds, tpds,
-> +               loc->entry_base_unit);
-> +
-> +       inits = (u32 *)(loc + 1);
-> +       targs = &inits[ipds];
-> +       entries = (u16 *)(&targs[tpds]);
-> +       for (targ = 0; targ < tpds; targ++) {
-> +               for (init = 0; init < ipds; init++) {
-> +                       value = entries[init * tpds + targ];
-> +                       value = (value * loc->entry_base_unit) / 10;
-> +                       pr_info("  Initiator-Target[%d-%d]:%d%s\n",
-> +                               inits[init], targs[targ], value,
-> +                               hmat_data_type_suffix(type));
-> +               }
-> +       }
-> +       return 0;
-> +}
-
-The format and meaning of what is printed into the log should be
-documented somewhere IMO.
-
-Of course, that applies to the functions below as well.
-
-> +
-> +static __init int hmat_parse_cache(union acpi_subtable_headers *header,
-> +                                  const unsigned long end)
-> +{
-> +       struct acpi_hmat_cache *cache = (void *)header;
-> +       u32 attrs;
-> +
-> +       if (cache->header.length < sizeof(*cache)) {
-> +               pr_err("HMAT: Unexpected cache header length: %d\n",
-> +                       cache->header.length);
-> +               return -EINVAL;
-> +       }
-> +
-> +       attrs = cache->cache_attributes;
-> +       pr_info("HMAT: Cache: Domain:%d Size:%llu Attrs:%08x SMBIOS Handles:%d\n",
-> +               cache->memory_PD, cache->cache_size, attrs,
-> +               cache->number_of_SMBIOShandles);
-> +
-> +       return 0;
-> +}
-> +
-> +static int __init hmat_parse_address_range(union acpi_subtable_headers *header,
-> +                                          const unsigned long end)
-> +{
-> +       struct acpi_hmat_address_range *spa = (void *)header;
-> +
-> +       if (spa->header.length != sizeof(*spa)) {
-> +               pr_err("HMAT: Unexpected address range header length: %d\n",
-> +                       spa->header.length);
-> +               return -EINVAL;
-> +       }
-> +       pr_info("HMAT: Memory (%#llx length %#llx) Flags:%04x Processor Domain:%d Memory Domain:%d\n",
-> +               spa->physical_address_base, spa->physical_address_length,
-> +               spa->flags, spa->processor_PD, spa->memory_PD);
-> +       return 0;
-> +}
-> +
-> +static int __init hmat_parse_subtable(union acpi_subtable_headers *header,
-> +                                     const unsigned long end)
-> +{
-> +       struct acpi_hmat_structure *hdr = (void *)header;
-> +
-> +       if (!hdr)
-> +               return -EINVAL;
-> +
-> +       switch (hdr->type) {
-> +       case ACPI_HMAT_TYPE_ADDRESS_RANGE:
-> +               return hmat_parse_address_range(header, end);
-> +       case ACPI_HMAT_TYPE_LOCALITY:
-> +               return hmat_parse_locality(header, end);
-> +       case ACPI_HMAT_TYPE_CACHE:
-> +               return hmat_parse_cache(header, end);
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +}
-> +
-> +static __init int hmat_init(void)
-> +{
-> +       struct acpi_table_header *tbl;
-> +       enum acpi_hmat_type i;
-> +       acpi_status status;
-> +
-> +       if (srat_disabled())
-> +               return 0;
-> +
-> +       status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
-> +       if (ACPI_FAILURE(status))
-> +               return 0;
-> +
-> +       for (i = ACPI_HMAT_TYPE_ADDRESS_RANGE; i < ACPI_HMAT_TYPE_RESERVED; i++) {
-> +               if (acpi_table_parse_entries(ACPI_SIG_HMAT,
-> +                                            sizeof(struct acpi_table_hmat), i,
-> +                                            hmat_parse_subtable, 0) < 0)
-> +                       goto out_put;
-> +       }
-> +out_put:
-> +       acpi_put_table(tbl);
-> +       return 0;
-> +}
-> +subsys_initcall(hmat_init);
-> --
-
-It looks like this particular patch only causes some extra messages to
-be printed into the log, no attributes setting etc yet.
-
-I would like the changelog to mention that.
+To a minimum, there should be kerneldoc comments for non-static
+functions to explain what they are for.
