@@ -1,23 +1,37 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [for-next][PATCH] x86/Kconfig: Select PCI_LOCKLESS_CONFIG if PCI
- is enabled
-Date: Thu, 17 Jan 2019 11:42:39 -0500
-Message-ID: <c0fa174a-2e7b-2ef2-4913-167934c68c06@kernel.org>
-References: <20190117161722.3945-1-okaya@kernel.org>
- <20190117163722.GE5023@zn.tnic>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCHv4 06/13] acpi/hmat: Register processor domain to its memory
+Date: Thu, 17 Jan 2019 09:01:27 -0800
+Message-ID: <CAPcyv4i9Doi_cE8KkB-PjzPyU2GoscvJbKTJzaX1esVQQ=dxMA@mail.gmail.com>
+References: <20190116175804.30196-1-keith.busch@intel.com> <20190116175804.30196-7-keith.busch@intel.com>
+ <CAJZ5v0jg24sNVQiA1AvVwP-uCCq1Uo9rxkAERyb_zDL_W8AATA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190117163722.GE5023@zn.tnic>
-Content-Language: en-US
+In-Reply-To: <CAJZ5v0jg24sNVQiA1AvVwP-uCCq1Uo9rxkAERyb_zDL_W8AATA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
-Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Hansen <dave.hansen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/17/2019 11:37 AM, Borislav Petkov wrote:
-> Also, I see a lot of build failures when doing randconfig builds for the
-> stuff in drivers/platform/x86/Kconfig. Is someone picking those up too?
+On Thu, Jan 17, 2019 at 4:11 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+>     On Wed, Jan 16, 2019 at 6:59 PM Keith Busch <keith.busch@intel.com> wrote:
+> >
+> > If the HMAT Subsystem Address Range provides a valid processor proximity
+> > domain for a memory domain, or a processor domain with the highest
+> > performing access exists, register the memory target with that initiator
+> > so this relationship will be visible under the node's sysfs directory.
+> >
+> > Since HMAT requires valid address ranges have an equivalent SRAT entry,
+> > verify each memory target satisfies this requirement.
+>
+> What exactly will happen after this patch?
+>
+> There will be some new directories under
+> /sys/devices/system/node/nodeX/ if all goes well.  Anything else?
 
-Can you share the build failures you are seeing?
+When / if the memory randomization series [1] makes its way upstream
+there will be a follow-on patch to enable that randomization based on
+the presence of a memory-side cache published in the HMAT.
+
+[1]: https://lwn.net/Articles/767614/
