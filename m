@@ -1,44 +1,70 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [for-next][PATCH] x86/Kconfig: Select PCI_LOCKLESS_CONFIG if PCI is enabled
-Date: Thu, 17 Jan 2019 16:17:22 +0000
-Message-ID: <20190117161722.3945-1-okaya@kernel.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCHv4 11/13] Documentation/ABI: Add node cache attributes
+Date: Thu, 17 Jan 2019 17:25:30 +0100
+Message-ID: <CAJZ5v0hYx_fG6UW+MXfLtdBAyWc_qi4A0h5xVTpTSAbo4ntz7g@mail.gmail.com>
+References: <20190116175804.30196-1-keith.busch@intel.com> <20190116175804.30196-12-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190116175804.30196-12-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE 32-BIT AND 64-BIT" <x86@kernel.org>, "open list:X86 ARCHITECTURE 32-BIT AND
-        64-BIT" <linux-kernel@vger.kernel.org>
+To: Keith Busch <keith.busch@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-satisfied implicitly through dependencies on CONFIG_ACPI have to be
-specified directly.
+On Wed, Jan 16, 2019 at 6:59 PM Keith Busch <keith.busch@intel.com> wrote:
+>
+> Add the attributes for the system memory side caches.
 
-PCI_LOCKLESS_CONFIG depends on PCI but this dependency has not been
-mentioned in the Kconfig.
+I really would combine this with the previous one.
 
-Add an explicit dependency here.
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  Documentation/ABI/stable/sysfs-devices-node | 34 +++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+>
+> diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
+> index 2217557f29d3..613d51fb52a3 100644
+> --- a/Documentation/ABI/stable/sysfs-devices-node
+> +++ b/Documentation/ABI/stable/sysfs-devices-node
+> @@ -142,3 +142,37 @@ Contact:   Keith Busch <keith.busch@intel.com>
+>  Description:
+>                 This node's write latency in nanoseconds available to memory
+>                 initiators in nodes found in this class's initiators_nodelist.
+> +
+> +What:          /sys/devices/system/node/nodeX/side_cache/indexY/associativity
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               The caches associativity: 0 for direct mapped, non-zero if
+> +               indexed.
+> +
+> +What:          /sys/devices/system/node/nodeX/side_cache/indexY/level
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               This cache's level in the memory hierarchy. Matches 'Y' in the
+> +               directory name.
+> +
+> +What:          /sys/devices/system/node/nodeX/side_cache/indexY/line_size
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               The number of bytes accessed from the next cache level on a
+> +               cache miss.
+> +
+> +What:          /sys/devices/system/node/nodeX/side_cache/indexY/size
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               The size of this memory side cache in bytes.
+> +
+> +What:          /sys/devices/system/node/nodeX/side_cache/indexY/write_policy
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               The cache write policy: 0 for write-back, 1 for write-through,
+> +               2 for other or unknown.
+> --
 
-Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
----
- arch/x86/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 568f339595ed..0519da6f8ee4 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -199,7 +199,7 @@ config X86
- 	select IRQ_FORCED_THREADING
- 	select NEED_SG_DMA_LENGTH
- 	select PCI_DOMAINS			if PCI
--	select PCI_LOCKLESS_CONFIG
-+	select PCI_LOCKLESS_CONFIG		if PCI
- 	select PERF_EVENTS
- 	select RTC_LIB
- 	select RTC_MC146818_LIB
--- 
-2.19.0
+It would be good to document the meaning of indexY itself too.
