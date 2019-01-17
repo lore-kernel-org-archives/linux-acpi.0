@@ -1,55 +1,115 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv4 05/13] Documentation/ABI: Add new node sysfs attributes
-Date: Wed, 16 Jan 2019 10:57:56 -0700
-Message-ID: <20190116175804.30196-6-keith.busch@intel.com>
-References: <20190116175804.30196-1-keith.busch@intel.com>
+From: Dave Young <dyoung@redhat.com>
+Subject: Re: [PATCH v2 2/2] x86, kexec_file_load: make it work with
+ efi=noruntime or efi=old_map
+Date: Thu, 17 Jan 2019 16:53:16 +0800
+Message-ID: <20190117085316.GA17940@dhcp-128-65.nay.redhat.com>
+References: <20190115095834.22617-1-kasong@redhat.com>
+ <20190115095834.22617-3-kasong@redhat.com>
+ <20190115231005.GF6596@zn.tnic>
+ <CACPcB9dYD2zR7ssXFibkefo3EZuvVnLegovwTMA8MaaLP1UsYQ@mail.gmail.com>
+ <20190116094619.GB15409@zn.tnic>
+ <CACPcB9d0dKLPmZ=b++m5LYRjFUCFyLL3deDBcS4m3N-UWZ_Hyw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190116175804.30196-1-keith.busch@intel.com>
+Content-Disposition: inline
+In-Reply-To: <CACPcB9d0dKLPmZ=b++m5LYRjFUCFyLL3deDBcS4m3N-UWZ_Hyw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
+To: Kairui Song <kasong@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, Baoquan He <bhe@redhat.com>, kexec@lists.infradead.org, akpm@linux-foundation.org, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, Len Brown <lenb@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add entries for memory initiator and target node class attributes.
-
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- Documentation/ABI/stable/sysfs-devices-node | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
-index 3e90e1f3bf0a..a9c47b4b0eee 100644
---- a/Documentation/ABI/stable/sysfs-devices-node
-+++ b/Documentation/ABI/stable/sysfs-devices-node
-@@ -90,4 +90,27 @@ Date:		December 2009
- Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
- Description:
- 		The node's huge page size control/query attributes.
--		See Documentation/admin-guide/mm/hugetlbpage.rst
-\ No newline at end of file
-+		See Documentation/admin-guide/mm/hugetlbpage.rst
-+
-+What:		/sys/devices/system/node/nodeX/classY/
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		The node's relationship to other nodes for access class "Y".
-+
-+What:		/sys/devices/system/node/nodeX/classY/initiator_nodelist
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		The node list of memory initiators that have class "Y" access
-+		to this node's memory. CPUs and other memory initiators in
-+		nodes not in the list accessing this node's memory may have
-+		different performance.
-+
-+What:		/sys/devices/system/node/nodeX/classY/target_nodelist
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		The node list of memory targets that this initiator node has
-+		class "Y" access. Memory accesses from this node to nodes not
-+		in this list may have differet performance.
--- 
-2.14.4
+Add linux-acpi list
+On 01/17/19 at 03:41pm, Kairui Song wrote:
+> On Wed, Jan 16, 2019 at 5:46 PM Borislav Petkov <bp@alien8.de> wrote:
+> >
+> > On Wed, Jan 16, 2019 at 03:08:42PM +0800, Kairui Song wrote:
+> > > I didn't see a way to reuse things in that patch series, situation is
+> > > different, in that patch it needs to get RSDP in very early boot stage
+> > > so it did everything from scratch, in this patch kexec_file_load need
+> > > to get RSDP too, but everything is well setup so things are a lot
+> > > easier, just read from current boot_prams, efi and fallback to
+> > > acpi_find_root_pointer should be good.
+> >
+> > No no. Early code should find out that venerable RSDP thing once and
+> > will save it somewhere for further use. No gazillion parsings of it.
+> > Just once and share it with the rest of the code that needs it.
+> >
+> 
+> How about we refill the boot_params.acpi_rsdp_addr if it is not valid
+> in early code, so it could be used as a reliable RSDP address source?
+> That should make things easier.
+> 
+> But if early code should parse it and store it should be done in
+> Chao's patch, or I can post another patch to do it if Chao's patch is
+> merged.
+> 
+> For now I think good to have something like this in this patch series
+> to always keep storing acpi_rsdp in late code,
+> acpi_os_get_root_pointer_late (maybe comeup with a better name later)
+> could be used anytime to get RSDP and no extra parsing:
+> 
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -180,8 +180,8 @@ void acpi_os_vprintf(const char *fmt, va_list args)
+>  #endif
+>  }
+> 
+> -#ifdef CONFIG_KEXEC
+>  static unsigned long acpi_rsdp;
+> +#ifdef CONFIG_KEXEC
+>  static int __init setup_acpi_rsdp(char *arg)
+>  {
+>         return kstrtoul(arg, 16, &acpi_rsdp);
+> @@ -189,28 +189,38 @@ static int __init setup_acpi_rsdp(char *arg)
+>  early_param("acpi_rsdp", setup_acpi_rsdp);
+>  #endif
+> 
+> +acpi_physical_address acpi_os_get_root_pointer_late(void) {
+> +       return acpi_rsdp;
+> +}
+> +
+>  acpi_physical_address __init acpi_os_get_root_pointer(void)
+>  {
+>         acpi_physical_address pa;
+> 
+> -#ifdef CONFIG_KEXEC
+>         if (acpi_rsdp)
+>                 return acpi_rsdp;
+> -#endif
+> +
+>         pa = acpi_arch_get_root_pointer();
+> -       if (pa)
+> +       if (pa) {
+> +               acpi_rsdp = pa;
+>                 return pa;
+> +       }
+> 
+>         if (efi_enabled(EFI_CONFIG_TABLES)) {
+> -               if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
+> +               if (efi.acpi20 != EFI_INVALID_TABLE_ADDR) {
+> +                       acpi_rsdp = efi.acpi20;
+>                         return efi.acpi20;
+> -               if (efi.acpi != EFI_INVALID_TABLE_ADDR)
+> +               }
+> +               if (efi.acpi != EFI_INVALID_TABLE_ADDR) {
+> +                       acpi_rsdp = efi.acpi;
+>                         return efi.acpi;
+> +               }
+>                 pr_err(PREFIX "System description tables not found\n");
+>         } else if (IS_ENABLED(CONFIG_ACPI_LEGACY_TABLES_LOOKUP)) {
+>                 acpi_find_root_pointer(&pa);
+>         }
+> 
+>  +       acpi_rsdp = pa;
+>         return pa;
+>  }
+> 
+> > --
+> > Regards/Gruss,
+> >     Boris.
+> >
+> > Good mailing practices for 400: avoid top-posting and trim the reply.
+> --
+> Best Regards,
+> Kairui Song
