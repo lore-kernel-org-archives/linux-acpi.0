@@ -1,75 +1,24 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCHv4 05/13] Documentation/ABI: Add new node sysfs attributes
-Date: Fri, 18 Jan 2019 08:35:50 -0800
-Message-ID: <CAPcyv4jo20LkXnVuLcvxFOOSGhx7yGN1vy4jv3N33ubk0q0nOg@mail.gmail.com>
-References: <20190116175804.30196-1-keith.busch@intel.com> <20190116175804.30196-6-keith.busch@intel.com>
- <20190118112134.00003b65@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL] ACPI fixes for v5.0-rc3
+Date: Fri, 18 Jan 2019 18:05:03 +0000
+Message-ID: <154783470310.23992.1452854172956846260.pr-tracker-bot@kernel.org>
+References: <CAJZ5v0jiK=zLP4cUsw=y9ea7PLHHgy=xshAsHFhTgyDJH+kOiQ@mail.gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190118112134.00003b65@huawei.com>
+In-Reply-To: <CAJZ5v0jiK=zLP4cUsw=y9ea7PLHHgy=xshAsHFhTgyDJH+kOiQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 18, 2019 at 3:22 AM Jonathan Cameron
-<jonathan.cameron@huawei.com> wrote:
->
-> On Wed, 16 Jan 2019 10:57:56 -0700
-> Keith Busch <keith.busch@intel.com> wrote:
->
-> > Add entries for memory initiator and target node class attributes.
-> >
-> > Signed-off-by: Keith Busch <keith.busch@intel.com>
-> > ---
-> >  Documentation/ABI/stable/sysfs-devices-node | 25 ++++++++++++++++++++++++-
-> >  1 file changed, 24 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
-> > index 3e90e1f3bf0a..a9c47b4b0eee 100644
-> > --- a/Documentation/ABI/stable/sysfs-devices-node
-> > +++ b/Documentation/ABI/stable/sysfs-devices-node
-> > @@ -90,4 +90,27 @@ Date:              December 2009
-> >  Contact:     Lee Schermerhorn <lee.schermerhorn@hp.com>
-> >  Description:
-> >               The node's huge page size control/query attributes.
-> > -             See Documentation/admin-guide/mm/hugetlbpage.rst
-> > \ No newline at end of file
-> > +             See Documentation/admin-guide/mm/hugetlbpage.rst
-> > +
-> > +What:                /sys/devices/system/node/nodeX/classY/
-> > +Date:                December 2018
-> > +Contact:     Keith Busch <keith.busch@intel.com>
-> > +Description:
-> > +             The node's relationship to other nodes for access class "Y".
-> > +
-> > +What:                /sys/devices/system/node/nodeX/classY/initiator_nodelist
-> > +Date:                December 2018
-> > +Contact:     Keith Busch <keith.busch@intel.com>
-> > +Description:
-> > +             The node list of memory initiators that have class "Y" access
-> > +             to this node's memory. CPUs and other memory initiators in
-> > +             nodes not in the list accessing this node's memory may have
-> > +             different performance.
-> > +
-> > +What:                /sys/devices/system/node/nodeX/classY/target_nodelist
-> > +Date:                December 2018
-> > +Contact:     Keith Busch <keith.busch@intel.com>
-> > +Description:
-> > +             The node list of memory targets that this initiator node has
-> > +             class "Y" access. Memory accesses from this node to nodes not
-> > +             in this list may have differet performance.
->
-> Different performance from what?  In the other thread we established that
-> these target_nodelists are kind of a backwards reference, they all have
-> their characteristics anyway.  Perhaps this just needs to say:
-> "Memory access from this node to these targets may have different performance"?
->
-> i.e. Don't make the assumption I did that they should all be the same!
+The pull request you sent on Fri, 18 Jan 2019 12:24:25 +0100:
 
-I think a clarification of "class" is needed in this context. A
-"class" is the the set of initiators that have the same rated
-performance to a given target set. In other words "class" is a tuple
-of (performance profile, initiator set, target set). Different
-performance creates a different tuple / class.
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.0-rc3
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/6e434bf2e36b8a111c4dea6c1d1e355ad39ec01b
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
