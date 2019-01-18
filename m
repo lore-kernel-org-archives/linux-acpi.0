@@ -1,67 +1,68 @@
-From: Kairui Song <kasong@redhat.com>
-Subject: [PATCH v3 3/3] x86, kexec_file_load: make it work with efi=noruntime or efi=old_map
-Date: Fri, 18 Jan 2019 19:13:10 +0800
-Message-ID: <20190118111310.29589-4-kasong@redhat.com>
-References: <20190118111310.29589-1-kasong@redhat.com>
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+Subject: Re: [PATCHv4 05/13] Documentation/ABI: Add new node sysfs
+ attributes
+Date: Fri, 18 Jan 2019 11:21:34 +0000
+Message-ID: <20190118112134.00003b65@huawei.com>
+References: <20190116175804.30196-1-keith.busch@intel.com>
+        <20190116175804.30196-6-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190118111310.29589-1-kasong@redhat.com>
+In-Reply-To: <20190116175804.30196-6-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, x86@kernel.org, dyoung@redhat.com, bhe@redhat.com, kexec@lists.infradead.org, akpm@linux-foundation.org, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, fanc.fnst@cn.fujitsu.com, linux-acpi@vger.kernel.org, Kairui Song <kasong@redhat.com>
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-When efi=noruntime or efi=oldmap is used, EFI services won't be available
-in the second kernel, therefore the second kernel will not be able to get
-the ACPI RSDP address from firmware by calling EFI services and won't
-boot. Previously we are expecting the user to set the acpi_rsdp=<addr>
-on kernel command line for second kernel as there was no way to pass RSDP
-address to second kernel.
+On Wed, 16 Jan 2019 10:57:56 -0700
+Keith Busch <keith.busch@intel.com> wrote:
 
-After commit e6e094e053af ('x86/acpi, x86/boot: Take RSDP address from
-boot params if available'), now it's possible to set an acpi_rsdp_addr
-parameter in the boot_params passed to second kernel, this commit makes
-use of it, detect and set the RSDP address when it's required for second
-kernel to boot.
+> Add entries for memory initiator and target node class attributes.
+> 
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  Documentation/ABI/stable/sysfs-devices-node | 25 ++++++++++++++++++++++++-
+>  1 file changed, 24 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
+> index 3e90e1f3bf0a..a9c47b4b0eee 100644
+> --- a/Documentation/ABI/stable/sysfs-devices-node
+> +++ b/Documentation/ABI/stable/sysfs-devices-node
+> @@ -90,4 +90,27 @@ Date:		December 2009
+>  Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
+>  Description:
+>  		The node's huge page size control/query attributes.
+> -		See Documentation/admin-guide/mm/hugetlbpage.rst
+> \ No newline at end of file
+> +		See Documentation/admin-guide/mm/hugetlbpage.rst
+> +
+> +What:		/sys/devices/system/node/nodeX/classY/
+> +Date:		December 2018
+> +Contact:	Keith Busch <keith.busch@intel.com>
+> +Description:
+> +		The node's relationship to other nodes for access class "Y".
+> +
+> +What:		/sys/devices/system/node/nodeX/classY/initiator_nodelist
+> +Date:		December 2018
+> +Contact:	Keith Busch <keith.busch@intel.com>
+> +Description:
+> +		The node list of memory initiators that have class "Y" access
+> +		to this node's memory. CPUs and other memory initiators in
+> +		nodes not in the list accessing this node's memory may have
+> +		different performance.
+> +
+> +What:		/sys/devices/system/node/nodeX/classY/target_nodelist
+> +Date:		December 2018
+> +Contact:	Keith Busch <keith.busch@intel.com>
+> +Description:
+> +		The node list of memory targets that this initiator node has
+> +		class "Y" access. Memory accesses from this node to nodes not
+> +		in this list may have differet performance.
 
-Tested with an EFI enabled KVM VM with efi=noruntime.
+Different performance from what?  In the other thread we established that
+these target_nodelists are kind of a backwards reference, they all have
+their characteristics anyway.  Perhaps this just needs to say:
+"Memory access from this node to these targets may have different performance"?
 
-Suggested-by: Dave Young <dyoung@redhat.com>
-Signed-off-by: Kairui Song <kasong@redhat.com>
----
- arch/x86/kernel/kexec-bzimage64.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
-index 097f52fb02e3..63101b2194fb 100644
---- a/arch/x86/kernel/kexec-bzimage64.c
-+++ b/arch/x86/kernel/kexec-bzimage64.c
-@@ -20,6 +20,7 @@
- #include <linux/mm.h>
- #include <linux/efi.h>
- #include <linux/verification.h>
-+#include <linux/acpi.h>
- 
- #include <asm/bootparam.h>
- #include <asm/setup.h>
-@@ -255,8 +256,17 @@ setup_boot_parameters(struct kimage *image, struct boot_params *params,
- 	/* Setup EFI state */
- 	setup_efi_state(params, params_load_addr, efi_map_offset, efi_map_sz,
- 			efi_setup_data_offset);
-+
-+#ifdef CONFIG_ACPI
-+	/* Setup ACPI RSDP pointer in case EFI is not available in second kernel */
-+	if (!acpi_disabled && (!efi_enabled(EFI_RUNTIME_SERVICES) || efi_enabled(EFI_OLD_MEMMAP))) {
-+		params->acpi_rsdp_addr = acpi_os_get_root_pointer_late();
-+		if (!params->acpi_rsdp_addr)
-+			pr_warn("RSDP is not available for second kernel\n");
-+	}
- #endif
- 
-+#endif
- 	/* Setup EDD info */
- 	memcpy(params->eddbuf, boot_params.eddbuf,
- 				EDDMAXNR * sizeof(struct edd_info));
--- 
-2.20.1
+i.e. Don't make the assumption I did that they should all be the same!
