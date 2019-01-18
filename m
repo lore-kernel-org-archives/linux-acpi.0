@@ -1,29 +1,42 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [for-next][PATCH] x86/Kconfig: Select PCI_LOCKLESS_CONFIG if PCI
- is enabled
-Date: Fri, 18 Jan 2019 12:45:12 +0100
-Message-ID: <CAJZ5v0iR=0ZoS_=KpTRefZ+fdZOKAAH1PSxfS0cfyS+zx39Hgw@mail.gmail.com>
-References: <20190117161722.3945-1-okaya@kernel.org> <20190117163722.GE5023@zn.tnic>
- <c0fa174a-2e7b-2ef2-4913-167934c68c06@kernel.org> <20190117215631.GF5023@zn.tnic>
- <CAJZ5v0hHFASeJb8z8QwQkh-tCs409pnaywtWcqLP5K5ZDGhTsw@mail.gmail.com> <20190117220959.GG5023@zn.tnic>
+From: Balbir Singh <bsingharora@gmail.com>
+Subject: Re: [PATCHv4 00/13] Heterogeneuos memory node attributes
+Date: Sat, 19 Jan 2019 00:16:11 +1100
+Message-ID: <20190118131611.GG26056@350D>
+References: <20190116175804.30196-1-keith.busch@intel.com>
+ <20190117125821.GF26056@350D>
+ <20190117154436.GB31543@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190117220959.GG5023@zn.tnic>
+Content-Disposition: inline
+In-Reply-To: <20190117154436.GB31543@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 17, 2019 at 11:10 PM Borislav Petkov <bp@alien8.de> wrote:
->
-> On Thu, Jan 17, 2019 at 11:05:43PM +0100, Rafael J. Wysocki wrote:
-> > I have patches for intel_ips and intel_pmc_ipc queued up (will be
-> > pushed for -rc3), plus some others.
->
-> Yeah, I saw the patchset and applied some of them locally so that I be
-> able to do randconfig builds. Do you have a branch somewhere which I can
-> merge locally for testing?
+On Thu, Jan 17, 2019 at 08:44:37AM -0700, Keith Busch wrote:
+> On Thu, Jan 17, 2019 at 11:58:21PM +1100, Balbir Singh wrote:
+> > On Wed, Jan 16, 2019 at 10:57:51AM -0700, Keith Busch wrote:
+> > > It had previously been difficult to describe these setups as memory
+> > > rangers were generally lumped into the NUMA node of the CPUs. New
+> > > platform attributes have been created and in use today that describe
+> > > the more complex memory hierarchies that can be created.
+> > > 
+> > 
+> > Could you please expand on this text -- how are these attributes
+> > exposed/consumed by both the kernel and user space?
+> > 
+> > > This series' objective is to provide the attributes from such systems
+> > > that are useful for applications to know about, and readily usable with
+> > > existing tools and libraries.
+> > 
+> > I presume these tools and libraries are numactl and mbind()?
+> 
+> Yes, and numactl is used the examples provided in both changelogs and
+> documentation in this series. Do you want to see those in the cover
+> letter as well?
 
-You can pull the tag I've just pushed to Linus:
-https://lore.kernel.org/lkml/CAJZ5v0jiK=zLP4cUsw=y9ea7PLHHgy=xshAsHFhTgyDJH+kOiQ@mail.gmail.com/T/#u
+Not really, I was just reading through the cover letter and was curious
+
+Balbir Singh.
