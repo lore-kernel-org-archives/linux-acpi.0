@@ -1,78 +1,74 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v5.0-rc3
-Date: Fri, 18 Jan 2019 12:24:25 +0100
-Message-ID: <CAJZ5v0jiK=zLP4cUsw=y9ea7PLHHgy=xshAsHFhTgyDJH+kOiQ@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 2/3] acpi: store acpi_rsdp address for later kexec
+ usage
+Date: Fri, 18 Jan 2019 12:26:28 +0100
+Message-ID: <20190118112628.GC622@zn.tnic>
+References: <20190118111310.29589-1-kasong@redhat.com>
+ <20190118111310.29589-3-kasong@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190118111310.29589-3-kasong@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+To: Kairui Song <kasong@redhat.com>
+Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, dyoung@redhat.com, bhe@redhat.com, kexec@lists.infradead.org, akpm@linux-foundation.org, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, fanc.fnst@cn.fujitsu.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Fri, Jan 18, 2019 at 07:13:09PM +0800, Kairui Song wrote:
+> Currently we have acpi_os_get_root_pointer as the universal function
+> to get RSDP address. But the function itself and some functions it
+> depends on are in .init section and make it not easy to retrieve the
+> RSDP value once kernel is initialized.
+> 
+> And for kexec, it need to retrive RSDP again if EFI is disabled, because
+> the second kernel will not be able get the RSDP value in such case, so
+> it expects either the user specify the RSDP value using kernel cmdline,
+> or kexec could retrive and pass the RSDP value using boot_params.
+> 
+> This patch stores the RSDP address when initialized is done, and
+> introduce an acpi_os_get_root_pointer_late for later kexec usage.
+> 
+> Signed-off-by: Kairui Song <kasong@redhat.com>
+> ---
+>  drivers/acpi/osl.c   | 10 ++++++++++
+>  include/linux/acpi.h |  3 +++
+>  2 files changed, 13 insertions(+)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index f29e427d0d1d..6340d34d0df1 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -187,6 +187,16 @@ static int __init setup_acpi_rsdp(char *arg)
+>  	return kstrtoul(arg, 16, &acpi_rsdp);
+>  }
+>  early_param("acpi_rsdp", setup_acpi_rsdp);
+> +
+> +acpi_physical_address acpi_os_get_root_pointer_late(void) {
+> +	return acpi_rsdp;
+> +}
+> +
+> +static int __init acpi_store_root_pointer(void) {
+> +	acpi_rsdp = acpi_os_get_root_pointer();
+> +	return 0;
+> +}
 
-Please pull from the tag
+No, this is getting completely nuts: there's a bunch of functions which
+all end up returning boot_params's field except pvh_get_root_pointer().
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.0-rc3
+And now you're adding a late variant. And the cmdline paramater
+acpi_rsdp is in a CONFIG_KEXEC wrapper, and and...
 
-with top-most commit 11ee2a3808aebbec73096551a716dea03d417fcb
+Wait until Chao Fan's stuff is applied, then do your changes ontop
+an drop all that ifdeffery. We will make this RDSP thing enabled
+unconditionally so that there's no need for ifdeffery and function
+wrappers.
 
- Merge branch 'acpi-pci'
+Also, after Chao's stuff, you won't need to call
+acpi_os_get_root_pointer() because the early code would've done that.
 
-on top of commit 1c7fc5cbc33980acd13d668f1c8f0313d6ae9fd8
+-- 
+Regards/Gruss,
+    Boris.
 
- Linux 5.0-rc2
-
-to receive ACPI fixes for 5.0-rc3.
-
-These fix an ACPI initialization ordering issue introduced in
-the 4.17 time frame and causing functional problems to appear on
-multiple systems and fix some fallout of the recent change to
-enable building kernels with ACPI support and without PCI.
-
-Specifics:
-
- - Restore the ACPI initialization ordering changed implicitly by the
-   module-level AML handling rework during the 4.17 development cycle
-   that caused the EC address space handler based on information from
-   ECDT to be set up before loading AML definition blocks, making it
-   effectively not accessible by AML on some systems that don't work
-   as expected any more (Rafael Wysocki).
-
- - Add direct dependencies on PCI to Kconfig in multiple places for
-   code that depends on both ACPI and PCI, but the PCI dependency
-   was implicitly satisfied by the ACPI dependency before, to prevent
-   invalid configurations from being created, for example by
-   randconfig (Sinan Kaya).
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (1):
-      ACPI: EC: Look for ECDT EC after calling acpi_load_tables()
-
-Sinan Kaya (8):
-      ACPI / LPSS: Make PCI dependency explicit
-      ata: pata_acpi: Make PCI dependency explicit
-      vga-switcheroo: make PCI dependency explicit
-      platform/x86: intel_ips: make PCI dependency explicit
-      platform/x86: intel_pmc: Make PCI dependency explicit
-      platform/x86: apple-gmux: Make PCI dependency explicit
-      x86/intel/lpss: Make PCI dependency explicit
-      drivers: thermal: int340x_thermal: Make PCI dependency explicit
-
----------------
-
- arch/x86/Kconfig                              |  2 +-
- drivers/acpi/Makefile                         |  3 ++-
- drivers/acpi/bus.c                            | 24 ++++++++++++------------
- drivers/acpi/internal.h                       |  4 ++++
- drivers/ata/Kconfig                           |  2 +-
- drivers/gpu/vga/Kconfig                       |  1 +
- drivers/platform/x86/Kconfig                  |  6 +++---
- drivers/thermal/intel/int340x_thermal/Kconfig |  2 +-
- 8 files changed, 25 insertions(+), 19 deletions(-)
+Good mailing practices for 400: avoid top-posting and trim the reply.
