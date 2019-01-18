@@ -1,33 +1,131 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [for-next][PATCH] x86/Kconfig: Select PCI_LOCKLESS_CONFIG if PCI
- is enabled
-Date: Thu, 17 Jan 2019 18:02:42 -0500
-Message-ID: <b92f439e-b95c-56e3-6960-52ae1e1afe71@kernel.org>
-References: <20190117161722.3945-1-okaya@kernel.org>
- <20190117163722.GE5023@zn.tnic>
- <c0fa174a-2e7b-2ef2-4913-167934c68c06@kernel.org>
- <20190117215631.GF5023@zn.tnic>
- <CAJZ5v0hHFASeJb8z8QwQkh-tCs409pnaywtWcqLP5K5ZDGhTsw@mail.gmail.com>
- <20190117220959.GG5023@zn.tnic>
+From: Kairui Song <kasong@redhat.com>
+Subject: Re: [PATCH v2 2/2] x86, kexec_file_load: make it work with
+ efi=noruntime or efi=old_map
+Date: Fri, 18 Jan 2019 12:47:29 +0800
+Message-ID: <CACPcB9eomuBPmxCEWEutt1gxO3=nrFFuYtKeANd0+h8DsN7M3A@mail.gmail.com>
+References: <20190115095834.22617-1-kasong@redhat.com> <20190115095834.22617-3-kasong@redhat.com>
+ <20190115231005.GF6596@zn.tnic> <CACPcB9dYD2zR7ssXFibkefo3EZuvVnLegovwTMA8MaaLP1UsYQ@mail.gmail.com>
+ <20190116094619.GB15409@zn.tnic> <CACPcB9d0dKLPmZ=b++m5LYRjFUCFyLL3deDBcS4m3N-UWZ_Hyw@mail.gmail.com>
+ <20190117085316.GA17940@dhcp-128-65.nay.redhat.com> <CAJZ5v0hb6Lz0knzNFTZKNb863bvDx2a1EFjTjOG2NdvyyyhniQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190117220959.GG5023@zn.tnic>
-Content-Language: en-US
+In-Reply-To: <CAJZ5v0hb6Lz0knzNFTZKNb863bvDx2a1EFjTjOG2NdvyyyhniQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Dave Young <dyoung@redhat.com>, Borislav Petkov <bp@alien8.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Baoquan He <bhe@redhat.com>, kexec@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/17/2019 5:09 PM, Borislav Petkov wrote:
-> On Thu, Jan 17, 2019 at 11:05:43PM +0100, Rafael J. Wysocki wrote:
->> I have patches for intel_ips and intel_pmc_ipc queued up (will be
->> pushed for -rc3), plus some others.
-> 
-> Yeah, I saw the patchset and applied some of them locally so that I be
-> able to do randconfig builds. Do you have a branch somewhere which I can
-> merge locally for testing?
+On Thu, Jan 17, 2019 at 5:40 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Thu, Jan 17, 2019 at 9:53 AM Dave Young <dyoung@redhat.com> wrote:
+> >
+> > Add linux-acpi list
+>
+> Well, thanks, but please resend the patches with a CC to linux-acpi.
 >
 
-You can use this tag (next-20190116) for local test.
+Hi, sure will do.
+Any thought on adding an acpi_os_get_root_pointer_late and store rsdp
+pointer as mentioned? Will updat the patch and post V2, and cc
+linux-acpi as well later.
+
+> > On 01/17/19 at 03:41pm, Kairui Song wrote:
+> > > On Wed, Jan 16, 2019 at 5:46 PM Borislav Petkov <bp@alien8.de> wrote:
+> > > >
+> > > > On Wed, Jan 16, 2019 at 03:08:42PM +0800, Kairui Song wrote:
+> > > > > I didn't see a way to reuse things in that patch series, situation is
+> > > > > different, in that patch it needs to get RSDP in very early boot stage
+> > > > > so it did everything from scratch, in this patch kexec_file_load need
+> > > > > to get RSDP too, but everything is well setup so things are a lot
+> > > > > easier, just read from current boot_prams, efi and fallback to
+> > > > > acpi_find_root_pointer should be good.
+> > > >
+> > > > No no. Early code should find out that venerable RSDP thing once and
+> > > > will save it somewhere for further use. No gazillion parsings of it.
+> > > > Just once and share it with the rest of the code that needs it.
+> > > >
+> > >
+> > > How about we refill the boot_params.acpi_rsdp_addr if it is not valid
+> > > in early code, so it could be used as a reliable RSDP address source?
+> > > That should make things easier.
+> > >
+> > > But if early code should parse it and store it should be done in
+> > > Chao's patch, or I can post another patch to do it if Chao's patch is
+> > > merged.
+> > >
+> > > For now I think good to have something like this in this patch series
+> > > to always keep storing acpi_rsdp in late code,
+> > > acpi_os_get_root_pointer_late (maybe comeup with a better name later)
+> > > could be used anytime to get RSDP and no extra parsing:
+> > >
+> > > --- a/drivers/acpi/osl.c
+> > > +++ b/drivers/acpi/osl.c
+> > > @@ -180,8 +180,8 @@ void acpi_os_vprintf(const char *fmt, va_list args)
+> > >  #endif
+> > >  }
+> > >
+> > > -#ifdef CONFIG_KEXEC
+> > >  static unsigned long acpi_rsdp;
+> > > +#ifdef CONFIG_KEXEC
+> > >  static int __init setup_acpi_rsdp(char *arg)
+> > >  {
+> > >         return kstrtoul(arg, 16, &acpi_rsdp);
+> > > @@ -189,28 +189,38 @@ static int __init setup_acpi_rsdp(char *arg)
+> > >  early_param("acpi_rsdp", setup_acpi_rsdp);
+> > >  #endif
+> > >
+> > > +acpi_physical_address acpi_os_get_root_pointer_late(void) {
+> > > +       return acpi_rsdp;
+> > > +}
+> > > +
+> > >  acpi_physical_address __init acpi_os_get_root_pointer(void)
+> > >  {
+> > >         acpi_physical_address pa;
+> > >
+> > > -#ifdef CONFIG_KEXEC
+> > >         if (acpi_rsdp)
+> > >                 return acpi_rsdp;
+> > > -#endif
+> > > +
+> > >         pa = acpi_arch_get_root_pointer();
+> > > -       if (pa)
+> > > +       if (pa) {
+> > > +               acpi_rsdp = pa;
+> > >                 return pa;
+> > > +       }
+> > >
+> > >         if (efi_enabled(EFI_CONFIG_TABLES)) {
+> > > -               if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
+> > > +               if (efi.acpi20 != EFI_INVALID_TABLE_ADDR) {
+> > > +                       acpi_rsdp = efi.acpi20;
+> > >                         return efi.acpi20;
+> > > -               if (efi.acpi != EFI_INVALID_TABLE_ADDR)
+> > > +               }
+> > > +               if (efi.acpi != EFI_INVALID_TABLE_ADDR) {
+> > > +                       acpi_rsdp = efi.acpi;
+> > >                         return efi.acpi;
+> > > +               }
+> > >                 pr_err(PREFIX "System description tables not found\n");
+> > >         } else if (IS_ENABLED(CONFIG_ACPI_LEGACY_TABLES_LOOKUP)) {
+> > >                 acpi_find_root_pointer(&pa);
+> > >         }
+> > >
+> > >  +       acpi_rsdp = pa;
+> > >         return pa;
+> > >  }
+> > >
+> > > > --
+> > > > Regards/Gruss,
+> > > >     Boris.
+> > > >
+> > > > Good mailing practices for 400: avoid top-posting and trim the reply.
+> > > --
+> > > Best Regards,
+> > > Kairui Song
+
+
+
+-- 
+Best Regards,
+Kairui Song
