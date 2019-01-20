@@ -1,7 +1,7 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCHv4 05/13] Documentation/ABI: Add new node sysfs attributes
-Date: Sat, 19 Jan 2019 08:56:02 -0800
-Message-ID: <CAPcyv4jijnkW6E=0gpT3-qy5uOgTV-D7AN+CAu7mmdrRKGHvFg@mail.gmail.com>
+Date: Sun, 20 Jan 2019 17:16:05 +0100
+Message-ID: <CAJZ5v0jxuLPUvwr-hYstgC-7BKDwqkJpep94rnnUFvFhKG4W3g@mail.gmail.com>
 References: <20190116175804.30196-1-keith.busch@intel.com> <20190116175804.30196-6-keith.busch@intel.com>
  <CAJZ5v0jmkyrNBHzqHsOuWjLXF34tq83VnEhdBWrdFqxyiXC=cw@mail.gmail.com>
  <CAPcyv4gH0_e_NFJNOFH4XXarSs7+TOj4nT0r-D33ZGNCfqBdxg@mail.gmail.com> <20190119090129.GC10836@kroah.com>
@@ -11,10 +11,10 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190119090129.GC10836@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jan 19, 2019 at 1:01 AM Greg Kroah-Hartman
+On Sat, Jan 19, 2019 at 10:01 AM Greg Kroah-Hartman
 <gregkh@linuxfoundation.org> wrote:
 >
 > On Fri, Jan 18, 2019 at 01:08:02PM -0800, Dan Williams wrote:
@@ -87,16 +87,10 @@ On Sat, Jan 19, 2019 at 1:01 AM Greg Kroah-Hartman
 > > the /sys/devices/system hierarchy.
 >
 > If you do a subdirectory "correctly" (i.e. a name for an attribute
-> group), that's fine.  Just do not ever create a kobject just for a
-> subdir, that will mess up userspace.
->
-> And I hate the "multi-value" sysfs files, where at all possible, please
-> do not copy past bad mistakes there.  If you can make them individual
-> files, please do that, it makes it easier to maintain and code the
-> kernel for.
+> group), that's fine.
 
-I agree in general about multi-value sysfs, but in this case we're
-talking about a mask. Masks are a single value. That said I can get on
-board with calling what 'cpulist' does a design mistake (human
-readable mask), but otherwise switching to one file per item in the
-mask is a mess for userspace to consume.
+Yes, that's what I was thinking about: along the lines of the "power"
+group under device kobjects.
+
+Cheers,
+Rafael
