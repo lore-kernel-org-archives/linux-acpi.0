@@ -1,112 +1,40 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 22/25] ACPI / APEI: Kick the memory_failure() queue
- for synchronous errors
-Date: Mon, 21 Jan 2019 18:58:50 +0100
-Message-ID: <20190121175850.GO29166@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-23-james.morse@arm.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: [for next][PATCH 1/2] platform/x86: Fix unmet dependency warning for ACPI_CMPC
+Date: Mon, 21 Jan 2019 22:46:43 +0000
+Message-ID: <20190121224644.26903-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-23-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-next@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:06:10PM +0000, James Morse wrote:
-> memory_failure() offlines or repairs pages of memory that have been
-> discovered to be corrupt. These may be detected by an external
-> component, (e.g. the memory controller), and notified via an IRQ.
-> In this case the work is queued as not all of memory_failure()s work
-> can happen in IRQ context.
-> 
-> If the error was detected as a result of user-space accessing a
-> corrupt memory location the CPU may take an abort instead. On arm64
-> this is a 'synchronous external abort', and on a firmware first
-> system it is replayed using NOTIFY_SEA.
-> 
-> This notification has NMI like properties, (it can interrupt
-> IRQ-masked code), so the memory_failure() work is queued. If we
-> return to user-space before the queued memory_failure() work is
-> processed, we will take the fault again. This loop may cause platform
-> firmware to exceed some threshold and reboot when Linux could have
-> recovered from this error.
-> 
-> If a ghes notification type indicates that it may be triggered again
-> when we return to user-space, use the task-work and notify-resume
-> hooks to kick the relevant memory_failure() queue before returning
-> to user-space.
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> 
-> ---
-> current->mm == &init_mm ? I couldn't find a helper for this.
-> The intent is not to set TIF flags on kernel threads. What happens
-> if a kernel-thread takes on of these? Its just one of the many
-> not-handled-very-well cases we have already, as memory_failure()
-> puts it: "try to be lucky".
-> 
-> I assume that if NOTIFY_NMI is coming from SMM it must suffer from
-> this problem too.
+Add BACKLIGHT_LCD_SUPPORT for ACPI_CMPC to fix the
+warning: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE.
 
-Good question.
+ACPI_CMPC selects BACKLIGHT_LCD_SUPPORT but BACKLIGHT_LCD_SUPPORT
+depends on BACKLIGHT_LCD_SUPPORT.
 
-I'm guessing all those things should be queued on a normal struct
-work_struct queue, no?
+Copy this dependency into ACPI_CMPC.
 
-Now, memory_failure_queue() does that and can run from IRQ context so
-you need only an irq_work which can queue from NMI context. We do it
-this way in the MCA code:
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/platform/x86/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-We queue in an irq_work in NMI context and work through the items in
-process context.
-
-> ---
->  drivers/acpi/apei/ghes.c | 65 ++++++++++++++++++++++++++++++++++++----
->  1 file changed, 60 insertions(+), 5 deletions(-)
-
-...
-
-> @@ -407,7 +447,22 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
->  
->  	if (flags != -1)
->  		memory_failure_queue(pfn, flags);
-> -#endif
-> +
-> +	/*
-> +	 * If the notification indicates that it was the interrupted
-> +	 * instruction that caused the error, try to kick the
-> +	 * memory_failure() queue before returning to user-space.
-> +	 */
-> +	if (ghes_is_synchronous(ghes) && current->mm != &init_mm) {
-> +		callback = kzalloc(sizeof(*callback), GFP_ATOMIC);
-
-Can we avoid that GFP_ATOMIC allocation and kfree() in
-ghes_kick_memory_failure()?
-
-I mean, that struct ghes_memory_failure_work is small enough and we
-already do lockless allocation:
-
-	estatus_node = (void *)gen_pool_alloc(ghes_estatus_pool, node_len);
-
-so I guess we could add that ghes_memory_failure_work struct to that
-estatus_node, hand it into ghes_do_proc() and then free it.
-
-No?
-
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 5e2109c54c7c..b84c2c5b6684 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -904,7 +904,7 @@ config TOSHIBA_WMI
+ 
+ config ACPI_CMPC
+ 	tristate "CMPC Laptop Extras"
+-	depends on ACPI && INPUT
++	depends on ACPI && INPUT && BACKLIGHT_LCD_SUPPORT
+ 	depends on RFKILL || RFKILL=n
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	help
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.19.0
