@@ -1,97 +1,423 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 20/25] ACPI / APEI: Use separate fixmap pages for
- arm64 NMI-like notifications
-Date: Mon, 21 Jan 2019 18:27:43 +0100
-Message-ID: <20190121172743.GN29166@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-21-james.morse@arm.com>
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [RFC v2] PCI / ACPI: Implementing Type 3 _HPX records
+Date: Mon, 21 Jan 2019 11:42:23 -0600
+Message-ID: <20190121174225.15835-1-mr.nuke.me@gmail.com>
+References: <20190114200120.GA33971@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-21-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190114200120.GA33971@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:06:08PM +0000, James Morse wrote:
-> Now that ghes notification helpers provide the fixmap slots and
-> take the lock themselves, multiple NMI-like notifications can
-> be used on arm64.
-> 
-> These should be named after their notification method as they can't
-> all be called 'NMI'. x86's NOTIFY_NMI already is, change the SEA
-> fixmap entry to be called FIX_APEI_GHES_SEA.
-> 
-> Future patches can add support for FIX_APEI_GHES_SEI and
-> FIX_APEI_GHES_SDEI_{NORMAL,CRITICAL}.
-> 
-> Because all of ghes.c builds on both architectures, provide a
-> constant for each fixmap entry that the architecture will never
-> use.
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> 
-> ---
-> Changes since v6:
->  * Added #ifdef definitions of each missing fixmap entry.
-> 
-> Changes since v3:
->  * idx/lock are now in a separate struct.
->  * Add to the comment above ghes_fixmap_lock_irq so that it makes more
->    sense in isolation.
-> 
-> fixup for split fixmap
-> ---
->  arch/arm64/include/asm/fixmap.h |  2 +-
->  drivers/acpi/apei/ghes.c        | 10 +++++++++-
->  2 files changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm64/include/asm/fixmap.h b/arch/arm64/include/asm/fixmap.h
-> index ec1e6d6fa14c..966dd4bb23f2 100644
-> --- a/arch/arm64/include/asm/fixmap.h
-> +++ b/arch/arm64/include/asm/fixmap.h
-> @@ -55,7 +55,7 @@ enum fixed_addresses {
->  #ifdef CONFIG_ACPI_APEI_GHES
->  	/* Used for GHES mapping from assorted contexts */
->  	FIX_APEI_GHES_IRQ,
-> -	FIX_APEI_GHES_NMI,
-> +	FIX_APEI_GHES_SEA,
->  #endif /* CONFIG_ACPI_APEI_GHES */
->  
->  #ifdef CONFIG_UNMAP_KERNEL_AT_EL0
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 849da0d43a21..6cbf9471b2a2 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -85,6 +85,14 @@
->  	((struct acpi_hest_generic_status *)				\
->  	 ((struct ghes_estatus_node *)(estatus_node) + 1))
->  
-> +/* NMI-like notifications vary by architecture. Fill in the fixmap gaps */
-> +#ifndef CONFIG_HAVE_ACPI_APEI_NMI
-> +#define FIX_APEI_GHES_NMI	-1
-> +#endif
-> +#ifndef CONFIG_ACPI_APEI_SEA
-> +#define FIX_APEI_GHES_SEA	-1
+_HPX Type 3 is intended to be more generic and allow configuration of
+settings not possible with Type 2 tables. For example, FW could ensure
+that the completion timeout value is set accordingly throughout the PCI
+tree.
 
-I'm guessing those -1 are going to cause __set_fixmap() to fail, right?
+Type 3 can come in an arbitrary number of ACPI packages. With the older
+types we only ever had one descriptor. We could get lazy and store it
+on the stack. The current flow is to parse the HPX table
+--pci_get_hp_params()-- and then program the PCIe device registers.
 
-I'm wondering if we could catch that situation in ghes_map() already to
-protect ourselves against future changes in the fixmap code...
+In the current flow, we'll need to malloc(). Here's what I tried:
+ 1) devm_kmalloc() on the pci_dev
+  This ended up giving me NULL dereference at boot time.
+ 2) Add a cleanup function to be called after writing the PCIe registers
+  More complicated than it's worth
+ 3) Intertwine parsing and programming registers
 
+This RFC implements method 3. The HPX3 stuff is still NDA'd, but the
+housekeeping parts are in here. This is 3 changes squashed into one.
+I've chosen to _ops approach to avoid moving the programming code to
+pci-acpi.c. If it is deemed that it's better to move it, I have
+nothing against it.
+---
+ drivers/pci/pci-acpi.c      | 164 +++++++++++++++++++++++++-----------
+ drivers/pci/probe.c         |  34 +++++---
+ include/linux/pci_hotplug.h |  23 +++--
+ 3 files changed, 152 insertions(+), 69 deletions(-)
+
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index e1949f7efd9c..034676c71916 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -119,7 +119,7 @@ phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
+ }
+ 
+ static acpi_status decode_type0_hpx_record(union acpi_object *record,
+-					   struct hotplug_params *hpx)
++					   struct hpp_type0 *hpx0)
+ {
+ 	int i;
+ 	union acpi_object *fields = record->package.elements;
+@@ -132,12 +132,11 @@ static acpi_status decode_type0_hpx_record(union acpi_object *record,
+ 		for (i = 2; i < 6; i++)
+ 			if (fields[i].type != ACPI_TYPE_INTEGER)
+ 				return AE_ERROR;
+-		hpx->t0 = &hpx->type0_data;
+-		hpx->t0->revision        = revision;
+-		hpx->t0->cache_line_size = fields[2].integer.value;
+-		hpx->t0->latency_timer   = fields[3].integer.value;
+-		hpx->t0->enable_serr     = fields[4].integer.value;
+-		hpx->t0->enable_perr     = fields[5].integer.value;
++		hpx0->revision        = revision;
++		hpx0->cache_line_size = fields[2].integer.value;
++		hpx0->latency_timer   = fields[3].integer.value;
++		hpx0->enable_serr     = fields[4].integer.value;
++		hpx0->enable_perr     = fields[5].integer.value;
+ 		break;
+ 	default:
+ 		printk(KERN_WARNING
+@@ -149,7 +148,7 @@ static acpi_status decode_type0_hpx_record(union acpi_object *record,
+ }
+ 
+ static acpi_status decode_type1_hpx_record(union acpi_object *record,
+-					   struct hotplug_params *hpx)
++					   struct hpp_type1 *hpx1)
+ {
+ 	int i;
+ 	union acpi_object *fields = record->package.elements;
+@@ -162,11 +161,10 @@ static acpi_status decode_type1_hpx_record(union acpi_object *record,
+ 		for (i = 2; i < 5; i++)
+ 			if (fields[i].type != ACPI_TYPE_INTEGER)
+ 				return AE_ERROR;
+-		hpx->t1 = &hpx->type1_data;
+-		hpx->t1->revision      = revision;
+-		hpx->t1->max_mem_read  = fields[2].integer.value;
+-		hpx->t1->avg_max_split = fields[3].integer.value;
+-		hpx->t1->tot_max_split = fields[4].integer.value;
++		hpx1->revision      = revision;
++		hpx1->max_mem_read  = fields[2].integer.value;
++		hpx1->avg_max_split = fields[3].integer.value;
++		hpx1->tot_max_split = fields[4].integer.value;
+ 		break;
+ 	default:
+ 		printk(KERN_WARNING
+@@ -178,7 +176,7 @@ static acpi_status decode_type1_hpx_record(union acpi_object *record,
+ }
+ 
+ static acpi_status decode_type2_hpx_record(union acpi_object *record,
+-					   struct hotplug_params *hpx)
++					   struct hpp_type2 *hpx2)
+ {
+ 	int i;
+ 	union acpi_object *fields = record->package.elements;
+@@ -191,24 +189,23 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
+ 		for (i = 2; i < 18; i++)
+ 			if (fields[i].type != ACPI_TYPE_INTEGER)
+ 				return AE_ERROR;
+-		hpx->t2 = &hpx->type2_data;
+-		hpx->t2->revision      = revision;
+-		hpx->t2->unc_err_mask_and      = fields[2].integer.value;
+-		hpx->t2->unc_err_mask_or       = fields[3].integer.value;
+-		hpx->t2->unc_err_sever_and     = fields[4].integer.value;
+-		hpx->t2->unc_err_sever_or      = fields[5].integer.value;
+-		hpx->t2->cor_err_mask_and      = fields[6].integer.value;
+-		hpx->t2->cor_err_mask_or       = fields[7].integer.value;
+-		hpx->t2->adv_err_cap_and       = fields[8].integer.value;
+-		hpx->t2->adv_err_cap_or        = fields[9].integer.value;
+-		hpx->t2->pci_exp_devctl_and    = fields[10].integer.value;
+-		hpx->t2->pci_exp_devctl_or     = fields[11].integer.value;
+-		hpx->t2->pci_exp_lnkctl_and    = fields[12].integer.value;
+-		hpx->t2->pci_exp_lnkctl_or     = fields[13].integer.value;
+-		hpx->t2->sec_unc_err_sever_and = fields[14].integer.value;
+-		hpx->t2->sec_unc_err_sever_or  = fields[15].integer.value;
+-		hpx->t2->sec_unc_err_mask_and  = fields[16].integer.value;
+-		hpx->t2->sec_unc_err_mask_or   = fields[17].integer.value;
++		hpx2->revision      = revision;
++		hpx2->unc_err_mask_and      = fields[2].integer.value;
++		hpx2->unc_err_mask_or       = fields[3].integer.value;
++		hpx2->unc_err_sever_and     = fields[4].integer.value;
++		hpx2->unc_err_sever_or      = fields[5].integer.value;
++		hpx2->cor_err_mask_and      = fields[6].integer.value;
++		hpx2->cor_err_mask_or       = fields[7].integer.value;
++		hpx2->adv_err_cap_and       = fields[8].integer.value;
++		hpx2->adv_err_cap_or        = fields[9].integer.value;
++		hpx2->pci_exp_devctl_and    = fields[10].integer.value;
++		hpx2->pci_exp_devctl_or     = fields[11].integer.value;
++		hpx2->pci_exp_lnkctl_and    = fields[12].integer.value;
++		hpx2->pci_exp_lnkctl_or     = fields[13].integer.value;
++		hpx2->sec_unc_err_sever_and = fields[14].integer.value;
++		hpx2->sec_unc_err_sever_or  = fields[15].integer.value;
++		hpx2->sec_unc_err_mask_and  = fields[16].integer.value;
++		hpx2->sec_unc_err_mask_or   = fields[17].integer.value;
+ 		break;
+ 	default:
+ 		printk(KERN_WARNING
+@@ -219,17 +216,68 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
+ 	return AE_OK;
+ }
+ 
+-static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
++static acpi_status parse_hpx3_register(struct hpp_type3 *hpx3,
++				       union acpi_object *reg_fields)
++{
++	/* Parse fields blurb */
++
++	return AE_OK;
++}
++
++static acpi_status program_type3_hpx_record(struct pci_dev *dev,
++					   union acpi_object *record,
++					   const struct hotplug_program_ops *hp_ops)
++{
++	union acpi_object *fields = record->package.elements;
++	u32 desc_count, expected_length, revision;
++	union acpi_object *reg_fields;
++	struct hpp_type3 hpx3;
++	acpi_status ret;
++	int i;
++
++	revision = fields[1].integer.value;
++	switch (revision) {
++	case 1:
++		desc_count = fields[2].integer.value;
++		expected_length = 3 + desc_count * 14;
++
++		if (record->package.count != expected_length)
++			return AE_ERROR;
++
++		for (i = 2; i < expected_length; i++)
++			if (fields[i].type != ACPI_TYPE_INTEGER)
++				return AE_ERROR;
++
++		for (i = 0; i < desc_count; i++) {
++			reg_fields = fields + 3 + i * 14;
++			ret = parse_hpx3_register(&hpx3, reg_fields);
++			if (ret != AE_OK)
++				return ret;
++			hp_ops->program_type3(dev, &hpx3);
++		}
++
++		break;
++	default:
++		printk(KERN_WARNING
++			"%s: Type 3 Revision %d record not supported\n",
++			__func__, revision);
++		return AE_ERROR;
++	}
++	return AE_OK;
++}
++
++static acpi_status acpi_run_hpx(struct pci_dev *dev, acpi_handle handle,
++				const struct hotplug_program_ops *hp_ops)
+ {
+ 	acpi_status status;
+ 	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	union acpi_object *package, *record, *fields;
++	struct hpp_type0 hpx0;
++	struct hpp_type1 hpx1;
++	struct hpp_type2 hpx2;
+ 	u32 type;
+ 	int i;
+ 
+-	/* Clear the return buffer with zeros */
+-	memset(hpx, 0, sizeof(struct hotplug_params));
+-
+ 	status = acpi_evaluate_object(handle, "_HPX", NULL, &buffer);
+ 	if (ACPI_FAILURE(status))
+ 		return status;
+@@ -257,17 +305,28 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
+ 		type = fields[0].integer.value;
+ 		switch (type) {
+ 		case 0:
+-			status = decode_type0_hpx_record(record, hpx);
++			memset(&hpx0, 0, sizeof(hpx0));
++			status = decode_type0_hpx_record(record, &hpx0);
+ 			if (ACPI_FAILURE(status))
+ 				goto exit;
++			hp_ops->program_type0(dev, &hpx0);
+ 			break;
+ 		case 1:
+-			status = decode_type1_hpx_record(record, hpx);
++			memset(&hpx1, 0, sizeof(hpx1));
++			status = decode_type1_hpx_record(record, &hpx1);
+ 			if (ACPI_FAILURE(status))
+ 				goto exit;
++			hp_ops->program_type1(dev, &hpx1);
+ 			break;
+ 		case 2:
+-			status = decode_type2_hpx_record(record, hpx);
++			memset(&hpx2, 0, sizeof(hpx2));
++			status = decode_type2_hpx_record(record, &hpx2);
++			if (ACPI_FAILURE(status))
++				goto exit;
++			hp_ops->program_type2(dev, &hpx2);
++			break;
++		case 3:
++			status = program_type3_hpx_record(dev, record, hp_ops);
+ 			if (ACPI_FAILURE(status))
+ 				goto exit;
+ 			break;
+@@ -283,14 +342,16 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
+ 	return status;
+ }
+ 
+-static acpi_status acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
++static acpi_status acpi_run_hpp(struct pci_dev *dev, acpi_handle handle,
++				const struct hotplug_program_ops *hp_ops)
+ {
+ 	acpi_status status;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *package, *fields;
++	struct hpp_type0 hpp0;
+ 	int i;
+ 
+-	memset(hpp, 0, sizeof(struct hotplug_params));
++	memset(&hpp0, 0, sizeof(hpp0));
+ 
+ 	status = acpi_evaluate_object(handle, "_HPP", NULL, &buffer);
+ 	if (ACPI_FAILURE(status))
+@@ -311,12 +372,13 @@ static acpi_status acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
+ 		}
+ 	}
+ 
+-	hpp->t0 = &hpp->type0_data;
+-	hpp->t0->revision        = 1;
+-	hpp->t0->cache_line_size = fields[0].integer.value;
+-	hpp->t0->latency_timer   = fields[1].integer.value;
+-	hpp->t0->enable_serr     = fields[2].integer.value;
+-	hpp->t0->enable_perr     = fields[3].integer.value;
++	hpp0.revision        = 1;
++	hpp0.cache_line_size = fields[0].integer.value;
++	hpp0.latency_timer   = fields[1].integer.value;
++	hpp0.enable_serr     = fields[2].integer.value;
++	hpp0.enable_perr     = fields[3].integer.value;
++
++	hp_ops->program_type0(dev, &hpp0);
+ 
+ exit:
+ 	kfree(buffer.pointer);
+@@ -328,7 +390,8 @@ static acpi_status acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
+  * @dev - the pci_dev for which we want parameters
+  * @hpp - allocated by the caller
+  */
+-int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
++int pci_acpi_program_hp_params(struct pci_dev *dev,
++			       const struct hotplug_program_ops *hp_ops)
+ {
+ 	acpi_status status;
+ 	acpi_handle handle, phandle;
+@@ -351,10 +414,10 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+ 	 * this pci dev.
+ 	 */
+ 	while (handle) {
+-		status = acpi_run_hpx(handle, hpp);
++		status = acpi_run_hpx(dev, handle, hp_ops);
+ 		if (ACPI_SUCCESS(status))
+ 			return 0;
+-		status = acpi_run_hpp(handle, hpp);
++		status = acpi_run_hpp(dev, handle, hp_ops);
+ 		if (ACPI_SUCCESS(status))
+ 			return 0;
+ 		if (acpi_is_root_bridge(handle))
+@@ -366,7 +429,6 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+ 	}
+ 	return -ENODEV;
+ }
+-EXPORT_SYMBOL_GPL(pci_get_hp_params);
+ 
+ /**
+  * pciehp_is_native - Check whether a hotplug port is handled by the OS
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 257b9f6f2ebb..de4394421f70 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1979,6 +1979,23 @@ static void program_hpp_type2(struct pci_dev *dev, struct hpp_type2 *hpp)
+ 	 */
+ }
+ 
++static void program_hpp_type3_register(struct pci_dev *dev,
++				       const struct hpp_type3 *hpx3)
++{
++	/* Complicated ACPI-mandated blurb */
++}
++
++static void program_hpp_type3(struct pci_dev *dev, struct hpp_type3 *hpx3)
++{
++	if (!hpx3)
++		return;
++
++	if (!pci_is_pcie(dev))
++		return;
++
++	program_hpp_type3_register(dev, hpx3);
++}
++
+ int pci_configure_extended_tags(struct pci_dev *dev, void *ign)
+ {
+ 	struct pci_host_bridge *host;
+@@ -2131,8 +2148,12 @@ static void pci_configure_eetlp_prefix(struct pci_dev *dev)
+ 
+ static void pci_configure_device(struct pci_dev *dev)
+ {
+-	struct hotplug_params hpp;
+-	int ret;
++	static const struct hotplug_program_ops hp_ops = {
++		.program_type0 = program_hpp_type0,
++		.program_type1 = program_hpp_type1,
++		.program_type2 = program_hpp_type2,
++		.program_type3 = program_hpp_type3,
++	};
+ 
+ 	pci_configure_mps(dev);
+ 	pci_configure_extended_tags(dev, NULL);
+@@ -2140,14 +2161,7 @@ static void pci_configure_device(struct pci_dev *dev)
+ 	pci_configure_ltr(dev);
+ 	pci_configure_eetlp_prefix(dev);
+ 
+-	memset(&hpp, 0, sizeof(hpp));
+-	ret = pci_get_hp_params(dev, &hpp);
+-	if (ret)
+-		return;
+-
+-	program_hpp_type2(dev, hpp.t2);
+-	program_hpp_type1(dev, hpp.t1);
+-	program_hpp_type0(dev, hpp.t0);
++	pci_acpi_program_hp_params(dev, &hp_ops);
+ }
+ 
+ static void pci_release_capabilities(struct pci_dev *dev)
+diff --git a/include/linux/pci_hotplug.h b/include/linux/pci_hotplug.h
+index 7acc9f91e72b..9487abddaa69 100644
+--- a/include/linux/pci_hotplug.h
++++ b/include/linux/pci_hotplug.h
+@@ -124,18 +124,25 @@ struct hpp_type2 {
+ 	u32 sec_unc_err_mask_or;
+ };
+ 
+-struct hotplug_params {
+-	struct hpp_type0 *t0;		/* Type0: NULL if not available */
+-	struct hpp_type1 *t1;		/* Type1: NULL if not available */
+-	struct hpp_type2 *t2;		/* Type2: NULL if not available */
+-	struct hpp_type0 type0_data;
+-	struct hpp_type1 type1_data;
+-	struct hpp_type2 type2_data;
++/*
++ * PCI Express Setting Record (Type 3)
++ * The ACPI overlords can never get enough
++ */
++struct hpp_type3 {
++	u32 crap_describing_entry_contents;
++};
++
++struct hotplug_program_ops {
++	void (*program_type0)(struct pci_dev *dev, struct hpp_type0 *hpp);
++	void (*program_type1)(struct pci_dev *dev, struct hpp_type1 *hpp);
++	void (*program_type2)(struct pci_dev *dev, struct hpp_type2 *hpp);
++	void (*program_type3)(struct pci_dev *dev, struct hpp_type3 *hpp);
+ };
+ 
+ #ifdef CONFIG_ACPI
+ #include <linux/acpi.h>
+-int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp);
++int pci_acpi_program_hp_params(struct pci_dev *dev,
++			       const struct hotplug_program_ops *hp_ops);
+ bool pciehp_is_native(struct pci_dev *bridge);
+ int acpi_get_hp_hw_control_from_firmware(struct pci_dev *bridge);
+ bool shpchp_is_native(struct pci_dev *bridge);
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.19.2
