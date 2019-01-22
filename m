@@ -1,71 +1,94 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] acpi: bgrt: parse BGRT to obtain BMP address before it
- gets clobbered
-Date: Tue, 22 Jan 2019 18:56:52 +0000
-Message-ID: <20190122185652.GC13206@e107981-ln.cambridge.arm.com>
-References: <20190122150616.850-1-ard.biesheuvel@linaro.org>
- <20190122173222.GB11720@e107981-ln.cambridge.arm.com>
- <CAKv+Gu9-tDRbmt+T3or9pMs78-pU-9BpKorhB60N_=Bxo78A1g@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has
+ unreliable ACPI wake
+Date: Tue, 22 Jan 2019 17:51:34 -0600
+Message-ID: <20190122235134.GE14636@google.com>
+References: <20190122064544.27426-1-kai.heng.feng@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKv+Gu9-tDRbmt+T3or9pMs78-pU-9BpKorhB60N_=Bxo78A1g@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: linux-efi <linux-efi@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Al Stone <astone@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Peter Jones <pjones@redhat.com>, "Hsiung, Harry L" <harry.l.hsiung@intel.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+In-Reply-To: <20190122064544.27426-1-kai.heng.feng@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 22, 2019 at 07:07:30PM +0100, Ard Biesheuvel wrote:
-> On Tue, 22 Jan 2019 at 18:32, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> >
-> > On Tue, Jan 22, 2019 at 04:06:16PM +0100, Ard Biesheuvel wrote:
-> > > The bitmap left in the framebuffer by the firmware is described by an
-> > > ACPI table called "BGRT", which describes the size, pixel format and
-> > > the address of a BMP image in memory. While the BGRT ACPI table is
-> > > guaranteed to reside in a "ACPI reclaim" memory region, which is
-> > > never touched by Linux. The BMP image, however, typically resides
-> > > in EFI Boot Services Memory, which may have been overwritten by the
-> > > time the BGRT discovery routine runs.
-> > >
-> > > So instead, drop the handling from the ACPI init code, and call the
-> > > BGRT parsing code immediately after going over the EFI configuration
-> > > table array, at which time no memory has been touched yet except for
-> > > the .data/.bss regions covered by the static kernel image.
-> > >
-> > > Unfortunately, this involves a non-trivial amount of ACPI entry
-> > > point and root table parsing, but we cannot rely on the normal
-> > > ACPI infrastructure yet this early in the boot.
-> > >
-> > > Also note that we cannot take the 'acpi_disabled' global variable
-> > > into account, since it may not have assumed the correct value yet
-> > > (on arm64, the default value is '1' which is overridden to '0' if
-> > > no DT description has been made available by the firmware)
-> > >
-> > > Cc: Peter Jones <pjones@redhat.com>
-> > > Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> >
-> > Technically this is a fix, right ?
-> >
+On Tue, Jan 22, 2019 at 02:45:44PM +0800, Kai-Heng Feng wrote:
+> There are some e1000e devices can only be woken up from D3 one time, by
+> plugging ethernet cable. Subsequent cable plugging does set PME bit
+> correctly, but it still doesn't get woken up.
 > 
-> I would argue that it is a hack to work around a deficiency in the
-> ACPI spec, i.e., that the BGRT table but not the image are passed in
-> ACPI reclaim memory.
+> Since e1000e connects to the root complex directly, we rely on ACPI to
+> wake it up. In this case, the GPE from _PRW only works once and stops
+> working after that.
+> 
+> So introduce a new PCI quirk, to avoid clearing pme_poll flag for buggy
+> platform firmwares that have unreliable GPE wake.
 
-I assume there are designs out there that this patch is fixing (I
-understand it is hackish but there is not much else you can do,
-especially so with firmware already in the field), I was wondering
-if we want to update older kernels too.
+This quirk applies to all 0x15bb (E1000_DEV_ID_PCH_CNP_I219_LM7) and
+0x15bd (E1000_DEV_ID_PCH_CNP_I219_LM6) devices.  The e1000e driver
+claims about a zillion different device IDs.
 
-Cheers,
-Lorenzo
+I would be surprised if these two devices are defective but all the
+others work correctly.  Could it be that there is a problem with the
+wiring on this particular motherboard or with the ACPI _PRW methods
+(or the way Linux interprets them) in this firmware?
+
+Would you mind attaching a complete dmesg log and "sudo lspci -vvv"
+output to the bugzilla, please?
+
+> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> ---
+>  drivers/pci/pci-acpi.c | 2 +-
+>  drivers/pci/quirks.c   | 8 ++++++++
+>  include/linux/pci.h    | 1 +
+>  3 files changed, 10 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index e1949f7efd9c..184e2fc8a294 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -430,7 +430,7 @@ static void pci_acpi_wake_dev(struct acpi_device_wakeup_context *context)
+>  
+>  	pci_dev = to_pci_dev(context->dev);
+>  
+> -	if (pci_dev->pme_poll)
+> +	if (pci_dev->pme_poll && !pci_dev->unreliable_acpi_wake)
+>  		pci_dev->pme_poll = false;
+>  
+>  	if (pci_dev->current_state == PCI_D3cold) {
+> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+> index b0a413f3f7ca..ed4863496fa8 100644
+> --- a/drivers/pci/quirks.c
+> +++ b/drivers/pci/quirks.c
+> @@ -4948,6 +4948,14 @@ DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_AMD, PCI_ANY_ID,
+>  DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
+>  			      PCI_CLASS_MULTIMEDIA_HD_AUDIO, 8, quirk_gpu_hda);
+>  
+> +static void quirk_unreliable_acpi_wake(struct pci_dev *pdev)
+> +{
+> +	pci_info(pdev, "ACPI Wake unreliable, always poll PME\n");
+> +	pdev->unreliable_acpi_wake = 1;
+> +}
+> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bb, quirk_unreliable_acpi_wake);
+> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bd, quirk_unreliable_acpi_wake);
+> +
+>  /*
+>   * Some IDT switches incorrectly flag an ACS Source Validation error on
+>   * completions for config read requests even though PCIe r4.0, sec
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 65f1d8c2f082..d22065c1576f 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -331,6 +331,7 @@ struct pci_dev {
+>  	unsigned int	pme_support:5;	/* Bitmask of states from which PME#
+>  					   can be generated */
+>  	unsigned int	pme_poll:1;	/* Poll device's PME status bit */
+> +	unsigned int	unreliable_acpi_wake:1;	/* ACPI Wake doesn't always work */
+>  	unsigned int	d1_support:1;	/* Low power state D1 is supported */
+>  	unsigned int	d2_support:1;	/* Low power state D2 is supported */
+>  	unsigned int	no_d1d2:1;	/* D1 and D2 are forbidden */
+> -- 
+> 2.17.1
+> 
