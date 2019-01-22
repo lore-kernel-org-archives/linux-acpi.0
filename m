@@ -1,46 +1,74 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [for next][PATCH 2/2] x86/Kconfig: Select PCI_LOCKLESS_CONFIG if PCI is enabled
-Date: Mon, 21 Jan 2019 23:19:58 +0000
-Message-ID: <20190121231958.28255-2-okaya@kernel.org>
-References: <20190121231958.28255-1-okaya@kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190121231958.28255-1-okaya@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE 32-BIT AND 64-BIT" <x86@kernel.org>, "open list:X86 ARCHITECTURE 32-BIT AND
-        64-BIT" <linux-kernel@vger.kernel.org>
+From: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Subject: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has unreliable ACPI wake
+Date: Tue, 22 Jan 2019 14:45:44 +0800
+Message-ID: <20190122064544.27426-1-kai.heng.feng@canonical.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, bhelgaas@google.com, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>
 List-Id: linux-acpi@vger.kernel.org
 
-After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-satisfied implicitly through dependencies on CONFIG_ACPI have to be
-specified directly.
+There are some e1000e devices can only be woken up from D3 one time, by
+plugging ethernet cable. Subsequent cable plugging does set PME bit
+correctly, but it still doesn't get woken up.
 
-PCI_LOCKLESS_CONFIG depends on PCI but this dependency has not been
-mentioned in the Kconfig.
+Since e1000e connects to the root complex directly, we rely on ACPI to
+wake it up. In this case, the GPE from _PRW only works once and stops
+working after that.
 
-Add an explicit dependency here.
+So introduce a new PCI quirk, to avoid clearing pme_poll flag for buggy
+platform firmwares that have unreliable GPE wake.
 
-Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
+Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
 ---
- arch/x86/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/pci-acpi.c | 2 +-
+ drivers/pci/quirks.c   | 8 ++++++++
+ include/linux/pci.h    | 1 +
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 568f339595ed..0519da6f8ee4 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -199,7 +199,7 @@ config X86
- 	select IRQ_FORCED_THREADING
- 	select NEED_SG_DMA_LENGTH
- 	select PCI_DOMAINS			if PCI
--	select PCI_LOCKLESS_CONFIG
-+	select PCI_LOCKLESS_CONFIG		if PCI
- 	select PERF_EVENTS
- 	select RTC_LIB
- 	select RTC_MC146818_LIB
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index e1949f7efd9c..184e2fc8a294 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -430,7 +430,7 @@ static void pci_acpi_wake_dev(struct acpi_device_wakeup_context *context)
+ 
+ 	pci_dev = to_pci_dev(context->dev);
+ 
+-	if (pci_dev->pme_poll)
++	if (pci_dev->pme_poll && !pci_dev->unreliable_acpi_wake)
+ 		pci_dev->pme_poll = false;
+ 
+ 	if (pci_dev->current_state == PCI_D3cold) {
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index b0a413f3f7ca..ed4863496fa8 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -4948,6 +4948,14 @@ DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_AMD, PCI_ANY_ID,
+ DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
+ 			      PCI_CLASS_MULTIMEDIA_HD_AUDIO, 8, quirk_gpu_hda);
+ 
++static void quirk_unreliable_acpi_wake(struct pci_dev *pdev)
++{
++	pci_info(pdev, "ACPI Wake unreliable, always poll PME\n");
++	pdev->unreliable_acpi_wake = 1;
++}
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bb, quirk_unreliable_acpi_wake);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bd, quirk_unreliable_acpi_wake);
++
+ /*
+  * Some IDT switches incorrectly flag an ACS Source Validation error on
+  * completions for config read requests even though PCIe r4.0, sec
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 65f1d8c2f082..d22065c1576f 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -331,6 +331,7 @@ struct pci_dev {
+ 	unsigned int	pme_support:5;	/* Bitmask of states from which PME#
+ 					   can be generated */
+ 	unsigned int	pme_poll:1;	/* Poll device's PME status bit */
++	unsigned int	unreliable_acpi_wake:1;	/* ACPI Wake doesn't always work */
+ 	unsigned int	d1_support:1;	/* Low power state D1 is supported */
+ 	unsigned int	d2_support:1;	/* Low power state D2 is supported */
+ 	unsigned int	no_d1d2:1;	/* D1 and D2 are forbidden */
 -- 
-2.19.0
+2.17.1
