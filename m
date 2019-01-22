@@ -1,82 +1,57 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/2] ACPI: EC: Simplify boot EC checks in acpi_ec_add()
-Date: Tue, 22 Jan 2019 13:03:55 +0100
-Message-ID: <CAJZ5v0hpR2rVnzKUqzEB=vTWsZ6uGDrKrwsc=w_uPRF65TRQ_Q@mail.gmail.com>
-References: <2897234.rJkq6cDEjt@aspire.rjw.lan> <6098592.dL5p0bd45o@aspire.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [for next][PATCH 2/2] x86/Kconfig: Select PCI_LOCKLESS_CONFIG if
+ PCI is enabled
+Date: Tue, 22 Jan 2019 13:54:41 +0100
+Message-ID: <20190122125440.GG26587@zn.tnic>
+References: <20190121231958.28255-1-okaya@kernel.org>
+ <20190121231958.28255-2-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6098592.dL5p0bd45o@aspire.rjw.lan>
+Content-Disposition: inline
+In-Reply-To: <20190121231958.28255-2-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Erik Schmauss <erik.schmauss@intel.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 22, 2019 at 1:01 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Consolidate boot EC checks in acpi_ec_add(), put the acpi_is_boot_ec()
-> checks directly into it and drop the latter.
->
-> No intentional functional impact.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-This is the second patch in the series, the numbering in the subject
-is incorrect.  Sorry about that.
-
+On Mon, Jan 21, 2019 at 11:19:58PM +0000, Sinan Kaya wrote:
+> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+> specified directly.
+> 
+> PCI_LOCKLESS_CONFIG depends on PCI but this dependency has not been
+> mentioned in the Kconfig.
+> 
+> Add an explicit dependency here.
+> 
+> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
 > ---
->  drivers/acpi/ec.c |   20 +++++---------------
->  1 file changed, 5 insertions(+), 15 deletions(-)
->
-> Index: linux-pm/drivers/acpi/ec.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/ec.c
-> +++ linux-pm/drivers/acpi/ec.c
-> @@ -1558,16 +1558,6 @@ static bool acpi_ec_ecdt_get_handle(acpi
->         return true;
->  }
->
-> -static bool acpi_is_boot_ec(struct acpi_ec *ec)
-> -{
-> -       if (!boot_ec)
-> -               return false;
-> -       if (ec->command_addr == boot_ec->command_addr &&
-> -           ec->data_addr == boot_ec->data_addr)
-> -               return true;
-> -       return false;
-> -}
-> -
->  static int acpi_ec_add(struct acpi_device *device)
->  {
->         struct acpi_ec *ec = NULL;
-> @@ -1579,22 +1569,22 @@ static int acpi_ec_add(struct acpi_devic
->         strcpy(acpi_device_class(device), ACPI_EC_CLASS);
->
->         if (!strcmp(acpi_device_hid(device), ACPI_ECDT_HID)) {
-> -               is_ecdt = true;
->                 ec = boot_ec;
-> +               boot_ec_is_ecdt = true;
-> +               is_ecdt = true;
->         } else {
->                 ec = acpi_ec_alloc();
->                 if (!ec)
->                         return -ENOMEM;
-> +
->                 status = ec_parse_device(device->handle, 0, ec, NULL);
->                 if (status != AE_CTRL_TERMINATE) {
->                         ret = -EINVAL;
->                         goto err_alloc;
->                 }
-> -       }
->
-> -       if (acpi_is_boot_ec(ec)) {
-> -               boot_ec_is_ecdt = is_ecdt;
-> -               if (!is_ecdt) {
-> +               if (boot_ec && ec->command_addr == boot_ec->command_addr &&
-> +                   ec->data_addr == boot_ec->data_addr) {
->                         /*
->                          * Trust PNP0C09 namespace location rather than
->                          * ECDT ID. But trust ECDT GPE rather than _GPE
->
+>  arch/x86/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 568f339595ed..0519da6f8ee4 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -199,7 +199,7 @@ config X86
+>  	select IRQ_FORCED_THREADING
+>  	select NEED_SG_DMA_LENGTH
+>  	select PCI_DOMAINS			if PCI
+> -	select PCI_LOCKLESS_CONFIG
+> +	select PCI_LOCKLESS_CONFIG		if PCI
+>  	select PERF_EVENTS
+>  	select RTC_LIB
+>  	select RTC_MC146818_LIB
+> -- 
+
+AFAICT, this is not really fixing a random config build issue but only
+correcting the dependency, right?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
