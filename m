@@ -1,256 +1,283 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH] acpi: bgrt: parse BGRT to obtain BMP address before it gets
- clobbered
-Date: Tue, 22 Jan 2019 16:06:16 +0100
-Message-ID: <20190122150616.850-1-ard.biesheuvel@linaro.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH] acpi: no need to check return value of debugfs_create functions
+Date: Tue, 22 Jan 2019 16:21:03 +0100
+Message-ID: <20190122152151.16139-4-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, graeme.gregory@linaro.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Jones <pjones@redhat.com>, rjw@rjwysocki.net, leif.lindholm@linaro.org, astone@redhat.com, linux-efi@vger.kernel.org, harry.l.hsiung@intel.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Yangtao Li <tiny.windzz@gmail.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The bitmap left in the framebuffer by the firmware is described by an
-ACPI table called "BGRT", which describes the size, pixel format and
-the address of a BMP image in memory. While the BGRT ACPI table is
-guaranteed to reside in a "ACPI reclaim" memory region, which is
-never touched by Linux. The BMP image, however, typically resides
-in EFI Boot Services Memory, which may have been overwritten by the
-time the BGRT discovery routine runs.
+When calling debugfs functions, there is no need to ever check the
+return value.  The function can work or not, but the code logic should
+never do something different based on this.
 
-So instead, drop the handling from the ACPI init code, and call the
-BGRT parsing code immediately after going over the EFI configuration
-table array, at which time no memory has been touched yet except for
-the .data/.bss regions covered by the static kernel image.
-
-Unfortunately, this involves a non-trivial amount of ACPI entry
-point and root table parsing, but we cannot rely on the normal
-ACPI infrastructure yet this early in the boot.
-
-Also note that we cannot take the 'acpi_disabled' global variable
-into account, since it may not have assumed the correct value yet
-(on arm64, the default value is '1' which is overridden to '0' if
-no DT description has been made available by the firmware)
-
-Cc: Peter Jones <pjones@redhat.com>
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Yangtao Li <tiny.windzz@gmail.com>
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm64/kernel/acpi.c        |  2 -
- arch/x86/kernel/acpi/boot.c     |  2 -
- drivers/acpi/bgrt.c             |  6 --
- drivers/firmware/efi/efi-bgrt.c | 80 ++++++++++++++++++--
- drivers/firmware/efi/efi.c      | 13 ++++
- include/linux/efi-bgrt.h        |  4 +-
- 6 files changed, 89 insertions(+), 18 deletions(-)
+ drivers/acpi/acpi_dbg.c      | 15 +------
+ drivers/acpi/apei/einj.c     | 86 +++++++++---------------------------
+ drivers/acpi/custom_method.c |  6 ---
+ drivers/acpi/ec_sys.c        | 36 ++++-----------
+ 4 files changed, 32 insertions(+), 111 deletions(-)
 
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 44e3c351e1ea..7429a811f76d 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -230,8 +230,6 @@ void __init acpi_boot_table_init(void)
- 			early_init_dt_scan_chosen_stdout();
- 	} else {
- 		acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
--		if (IS_ENABLED(CONFIG_ACPI_BGRT))
--			acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
+index a2dcd62ea32f..f3bca448b305 100644
+--- a/drivers/acpi/acpi_dbg.c
++++ b/drivers/acpi/acpi_dbg.c
+@@ -752,11 +752,6 @@ int __init acpi_aml_init(void)
+ {
+ 	int ret = 0;
+ 
+-	if (!acpi_debugfs_dir) {
+-		ret = -ENOENT;
+-		goto err_exit;
+-	}
+-
+ 	/* Initialize AML IO interface */
+ 	mutex_init(&acpi_aml_io.lock);
+ 	init_waitqueue_head(&acpi_aml_io.wait);
+@@ -766,10 +761,6 @@ int __init acpi_aml_init(void)
+ 					      S_IFREG | S_IRUGO | S_IWUSR,
+ 					      acpi_debugfs_dir, NULL,
+ 					      &acpi_aml_operations);
+-	if (acpi_aml_dentry == NULL) {
+-		ret = -ENODEV;
+-		goto err_exit;
+-	}
+ 	ret = acpi_register_debugger(THIS_MODULE, &acpi_aml_debugger);
+ 	if (ret)
+ 		goto err_fs;
+@@ -788,10 +779,8 @@ void __exit acpi_aml_exit(void)
+ {
+ 	if (acpi_aml_initialized) {
+ 		acpi_unregister_debugger(&acpi_aml_debugger);
+-		if (acpi_aml_dentry) {
+-			debugfs_remove(acpi_aml_dentry);
+-			acpi_aml_dentry = NULL;
+-		}
++		debugfs_remove(acpi_aml_dentry);
++		acpi_aml_dentry = NULL;
+ 		acpi_aml_initialized = false;
  	}
  }
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index fcccbfdbdd1a..c42299e048e4 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -679,7 +679,6 @@ static int __init einj_init(void)
+ {
+ 	int rc;
+ 	acpi_status status;
+-	struct dentry *fentry;
+ 	struct apei_exec_context ctx;
  
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 2624de16cd7a..2d3535b62752 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1633,8 +1633,6 @@ int __init acpi_boot_init(void)
- 	acpi_process_madt();
+ 	if (acpi_disabled) {
+@@ -707,25 +706,13 @@ static int __init einj_init(void)
  
- 	acpi_table_parse(ACPI_SIG_HPET, acpi_parse_hpet);
--	if (IS_ENABLED(CONFIG_ACPI_BGRT))
--		acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+ 	rc = -ENOMEM;
+ 	einj_debug_dir = debugfs_create_dir("einj", apei_get_debugfs_dir());
+-	if (!einj_debug_dir) {
+-		pr_err("Error creating debugfs node.\n");
+-		goto err_cleanup;
+-	}
  
- 	if (!acpi_noirq)
- 		x86_init.pci.init = pci_acpi_init;
-diff --git a/drivers/acpi/bgrt.c b/drivers/acpi/bgrt.c
-index 75af78361ce5..048413e06898 100644
---- a/drivers/acpi/bgrt.c
-+++ b/drivers/acpi/bgrt.c
-@@ -81,12 +81,6 @@ static const struct attribute_group bgrt_attribute_group = {
- 	.bin_attrs = bgrt_bin_attributes,
+-	fentry = debugfs_create_file("available_error_type", S_IRUSR,
+-				     einj_debug_dir, NULL,
+-				     &available_error_type_fops);
+-	if (!fentry)
+-		goto err_cleanup;
+-
+-	fentry = debugfs_create_file("error_type", S_IRUSR | S_IWUSR,
+-				     einj_debug_dir, NULL, &error_type_fops);
+-	if (!fentry)
+-		goto err_cleanup;
+-	fentry = debugfs_create_file("error_inject", S_IWUSR,
+-				     einj_debug_dir, NULL, &error_inject_fops);
+-	if (!fentry)
+-		goto err_cleanup;
++	debugfs_create_file("available_error_type", S_IRUSR, einj_debug_dir,
++			    NULL, &available_error_type_fops);
++	debugfs_create_file("error_type", S_IRUSR | S_IWUSR, einj_debug_dir,
++			    NULL, &error_type_fops);
++	debugfs_create_file("error_inject", S_IWUSR, einj_debug_dir,
++			    NULL, &error_inject_fops);
+ 
+ 	apei_resources_init(&einj_resources);
+ 	einj_exec_ctx_init(&ctx);
+@@ -750,66 +737,37 @@ static int __init einj_init(void)
+ 	rc = -ENOMEM;
+ 	einj_param = einj_get_parameter_address();
+ 	if ((param_extension || acpi5) && einj_param) {
+-		fentry = debugfs_create_x32("flags", S_IRUSR | S_IWUSR,
+-					    einj_debug_dir, &error_flags);
+-		if (!fentry)
+-			goto err_unmap;
+-		fentry = debugfs_create_x64("param1", S_IRUSR | S_IWUSR,
+-					    einj_debug_dir, &error_param1);
+-		if (!fentry)
+-			goto err_unmap;
+-		fentry = debugfs_create_x64("param2", S_IRUSR | S_IWUSR,
+-					    einj_debug_dir, &error_param2);
+-		if (!fentry)
+-			goto err_unmap;
+-		fentry = debugfs_create_x64("param3", S_IRUSR | S_IWUSR,
+-					    einj_debug_dir, &error_param3);
+-		if (!fentry)
+-			goto err_unmap;
+-		fentry = debugfs_create_x64("param4", S_IRUSR | S_IWUSR,
+-					    einj_debug_dir, &error_param4);
+-		if (!fentry)
+-			goto err_unmap;
+-
+-		fentry = debugfs_create_x32("notrigger", S_IRUSR | S_IWUSR,
+-					    einj_debug_dir, &notrigger);
+-		if (!fentry)
+-			goto err_unmap;
++		debugfs_create_x32("flags", S_IRUSR | S_IWUSR, einj_debug_dir,
++				   &error_flags);
++		debugfs_create_x64("param1", S_IRUSR | S_IWUSR, einj_debug_dir,
++				   &error_param1);
++		debugfs_create_x64("param2", S_IRUSR | S_IWUSR, einj_debug_dir,
++				   &error_param2);
++		debugfs_create_x64("param3", S_IRUSR | S_IWUSR, einj_debug_dir,
++				   &error_param3);
++		debugfs_create_x64("param4", S_IRUSR | S_IWUSR, einj_debug_dir,
++				   &error_param4);
++		debugfs_create_x32("notrigger", S_IRUSR | S_IWUSR,
++				   einj_debug_dir, &notrigger);
+ 	}
+ 
+ 	if (vendor_dev[0]) {
+ 		vendor_blob.data = vendor_dev;
+ 		vendor_blob.size = strlen(vendor_dev);
+-		fentry = debugfs_create_blob("vendor", S_IRUSR,
+-					     einj_debug_dir, &vendor_blob);
+-		if (!fentry)
+-			goto err_unmap;
+-		fentry = debugfs_create_x32("vendor_flags", S_IRUSR | S_IWUSR,
+-					    einj_debug_dir, &vendor_flags);
+-		if (!fentry)
+-			goto err_unmap;
++		debugfs_create_blob("vendor", S_IRUSR, einj_debug_dir,
++				    &vendor_blob);
++		debugfs_create_x32("vendor_flags", S_IRUSR | S_IWUSR,
++				   einj_debug_dir, &vendor_flags);
+ 	}
+ 
+ 	pr_info("Error INJection is initialized.\n");
+ 
+ 	return 0;
+ 
+-err_unmap:
+-	if (einj_param) {
+-		acpi_size size = (acpi5) ?
+-			sizeof(struct set_error_type_with_address) :
+-			sizeof(struct einj_parameter);
+-
+-		acpi_os_unmap_iomem(einj_param, size);
+-		pr_err("Error creating param extension debugfs nodes.\n");
+-	}
+-	apei_exec_post_unmap_gars(&ctx);
+ err_release:
+ 	apei_resources_release(&einj_resources);
+ err_fini:
+ 	apei_resources_fini(&einj_resources);
+-err_cleanup:
+-	pr_err("Error creating primary debugfs nodes.\n");
+ 	debugfs_remove_recursive(einj_debug_dir);
+ 
+ 	return rc;
+diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
+index 4451877f83b6..aa972dc5cb7e 100644
+--- a/drivers/acpi/custom_method.c
++++ b/drivers/acpi/custom_method.c
+@@ -79,14 +79,8 @@ static const struct file_operations cm_fops = {
+ 
+ static int __init acpi_custom_method_init(void)
+ {
+-	if (acpi_debugfs_dir == NULL)
+-		return -ENOENT;
+-
+ 	cm_dentry = debugfs_create_file("custom_method", S_IWUSR,
+ 					acpi_debugfs_dir, NULL, &cm_fops);
+-	if (cm_dentry == NULL)
+-		return -ENODEV;
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
+index dd70d6c2bca0..23faa66ea772 100644
+--- a/drivers/acpi/ec_sys.c
++++ b/drivers/acpi/ec_sys.c
+@@ -108,52 +108,32 @@ static const struct file_operations acpi_ec_io_ops = {
+ 	.llseek = default_llseek,
  };
  
--int __init acpi_parse_bgrt(struct acpi_table_header *table)
--{
--	efi_bgrt_init(table);
--	return 0;
--}
+-static int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_count)
++static void acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_count)
+ {
+ 	struct dentry *dev_dir;
+ 	char name[64];
+ 	umode_t mode = 0400;
+ 
+-	if (ec_device_count == 0) {
++	if (ec_device_count == 0)
+ 		acpi_ec_debugfs_dir = debugfs_create_dir("ec", NULL);
+-		if (!acpi_ec_debugfs_dir)
+-			return -ENOMEM;
+-	}
+ 
+ 	sprintf(name, "ec%u", ec_device_count);
+ 	dev_dir = debugfs_create_dir(name, acpi_ec_debugfs_dir);
+-	if (!dev_dir) {
+-		if (ec_device_count != 0)
+-			goto error;
+-		return -ENOMEM;
+-	}
+ 
+-	if (!debugfs_create_x32("gpe", 0444, dev_dir, &first_ec->gpe))
+-		goto error;
+-	if (!debugfs_create_bool("use_global_lock", 0444, dev_dir,
+-				 &first_ec->global_lock))
+-		goto error;
++	debugfs_create_x32("gpe", 0444, dev_dir, &first_ec->gpe);
++	debugfs_create_bool("use_global_lock", 0444, dev_dir,
++			    &first_ec->global_lock);
+ 
+ 	if (write_support)
+ 		mode = 0600;
+-	if (!debugfs_create_file("io", mode, dev_dir, ec, &acpi_ec_io_ops))
+-		goto error;
 -
- static int __init bgrt_init(void)
- {
- 	int ret;
-diff --git a/drivers/firmware/efi/efi-bgrt.c b/drivers/firmware/efi/efi-bgrt.c
-index b22ccfb0c991..8bd9b96942d2 100644
---- a/drivers/firmware/efi/efi-bgrt.c
-+++ b/drivers/firmware/efi/efi-bgrt.c
-@@ -27,24 +27,92 @@ struct bmp_header {
- 	u32 size;
- } __packed;
- 
--void __init efi_bgrt_init(struct acpi_table_header *table)
-+void __init efi_bgrt_init(unsigned long rsdp_phys)
- {
- 	void *image;
- 	struct bmp_header bmp_header;
- 	struct acpi_table_bgrt *bgrt = &bgrt_tab;
-+	struct acpi_table_bgrt *table = NULL;
-+	struct acpi_table_rsdp *rsdp;
-+	struct acpi_table_header *hdr;
-+	u64 xsdt_phys;
-+	u32 rsdt_phys;
-+	unsigned int len;
- 
--	if (acpi_disabled)
-+	if (!efi_enabled(EFI_MEMMAP))
- 		return;
- 
--	if (!efi_enabled(EFI_MEMMAP))
-+	/* map the root pointer table to find the xsdt/rsdt values */
-+	rsdp = early_memremap(rsdp_phys, sizeof(*rsdp));
-+	if (rsdp && ACPI_VALIDATE_RSDP_SIG(rsdp->signature)) {
-+		xsdt_phys = rsdp->xsdt_physical_address;
-+		rsdt_phys = rsdp->rsdt_physical_address;
-+	} else {
-+		WARN_ON(1);
-+		return;
-+	}
-+	early_memunmap(rsdp, sizeof(*rsdp));
-+
-+	/* obtain the length of whichever table we will be using */
-+	hdr = early_memremap(xsdt_phys ?: rsdt_phys, sizeof(*hdr));
-+	if (WARN_ON(!hdr))
-+		return;
-+	len = hdr->length;
-+	early_memunmap(hdr, sizeof(*hdr));
-+
-+	if (xsdt_phys) {
-+		struct acpi_table_xsdt *xsdt = early_memremap(xsdt_phys, len);
-+		int i;
-+
-+		if (WARN_ON(!xsdt))
-+			return;
-+
-+		for (i = 0; i < (len - sizeof(*hdr)) / sizeof(u64); i++) {
-+			table = early_memremap(xsdt->table_offset_entry[i],
-+					       sizeof(*table));
-+			if (WARN_ON(!table))
-+				break;
-+
-+			if (ACPI_COMPARE_NAME(table->header.signature,
-+					      ACPI_SIG_BGRT))
-+				break;
-+			early_memunmap(table, sizeof(*table));
-+			table = NULL;
-+		}
-+		early_memunmap(xsdt, len);
-+	} else if (rsdt_phys) {
-+		struct acpi_table_rsdt *rsdt = early_memremap(rsdt_phys, len);
-+		int i;
-+
-+		if (WARN_ON(!rsdt))
-+			return;
-+
-+		for (i = 0; i < (len - sizeof(*hdr)) / sizeof(u32); i++) {
-+			table = early_memremap(rsdt->table_offset_entry[i],
-+					       sizeof(*table));
-+			if (WARN_ON(!table))
-+				break;
-+
-+			if (ACPI_COMPARE_NAME(table->header.signature,
-+					      ACPI_SIG_BGRT))
-+				break;
-+			early_memunmap(table, sizeof(*table));
-+			table = NULL;
-+		}
-+		early_memunmap(rsdt, len);
-+	}
-+
-+	if (!table)
- 		return;
- 
--	if (table->length < sizeof(bgrt_tab)) {
-+	if (table->header.length < sizeof(bgrt_tab)) {
- 		pr_notice("Ignoring BGRT: invalid length %u (expected %zu)\n",
--		       table->length, sizeof(bgrt_tab));
-+		       table->header.length, sizeof(bgrt_tab));
- 		return;
- 	}
--	*bgrt = *(struct acpi_table_bgrt *)table;
-+	*bgrt = *table;
-+	early_memunmap(table, sizeof(*table));
-+
- 	if (bgrt->version != 1) {
- 		pr_notice("Ignoring BGRT: invalid version %u (expected 1)\n",
- 		       bgrt->version);
-diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
-index 4c46ff6f2242..e5ef5c0eacc1 100644
---- a/drivers/firmware/efi/efi.c
-+++ b/drivers/firmware/efi/efi.c
-@@ -20,6 +20,7 @@
- #include <linux/init.h>
- #include <linux/device.h>
- #include <linux/efi.h>
-+#include <linux/efi-bgrt.h>
- #include <linux/of.h>
- #include <linux/of_fdt.h>
- #include <linux/io.h>
-@@ -592,6 +593,18 @@ int __init efi_config_parse_tables(void *config_tables, int count, int sz,
- 
- 		early_memunmap(tbl, sizeof(*tbl));
- 	}
-+
-+	/*
-+	 * We need to parse the BGRT table (which is an ACPI table not a UEFI
-+	 * configuration table) by hand and figure out where the bitmap it
-+	 * describes lives in memory so we can reserve it early on. Otherwise,
-+	 * it may be clobbered by the time we get to it during the ordinary ACPI
-+	 * table init sequence.
-+	 */
-+	if (IS_ENABLED(CONFIG_ACPI_BGRT) &&
-+	    efi.acpi20 != EFI_INVALID_TABLE_ADDR)
-+		efi_bgrt_init(efi.acpi20);
-+
- 	return 0;
+-	return 0;
+-
+-error:
+-	debugfs_remove_recursive(acpi_ec_debugfs_dir);
+-	return -ENOMEM;
++	debugfs_create_file("io", mode, dev_dir, ec, &acpi_ec_io_ops);
  }
  
-diff --git a/include/linux/efi-bgrt.h b/include/linux/efi-bgrt.h
-index e6cd51005633..528ea62d99ec 100644
---- a/include/linux/efi-bgrt.h
-+++ b/include/linux/efi-bgrt.h
-@@ -6,7 +6,7 @@
- 
- #ifdef CONFIG_ACPI_BGRT
- 
--void efi_bgrt_init(struct acpi_table_header *table);
-+void efi_bgrt_init(unsigned long rsdp_phys);
- int __init acpi_parse_bgrt(struct acpi_table_header *table);
- 
- /* The BGRT data itself; only valid if bgrt_image != NULL. */
-@@ -15,7 +15,7 @@ extern struct acpi_table_bgrt bgrt_tab;
- 
- #else /* !CONFIG_ACPI_BGRT */
- 
--static inline void efi_bgrt_init(struct acpi_table_header *table) {}
-+static inline void efi_bgrt_init(unsigned long rsdp_phys) {}
- static inline int __init acpi_parse_bgrt(struct acpi_table_header *table)
+ static int __init acpi_ec_sys_init(void)
  {
- 	return 0;
+-	int err = 0;
+ 	if (first_ec)
+-		err = acpi_ec_add_debugfs(first_ec, 0);
+-	else
+-		err = -ENODEV;
+-	return err;
++		acpi_ec_add_debugfs(first_ec, 0);
++	return 0;
+ }
+ 
+ static void __exit acpi_ec_sys_exit(void)
 -- 
 2.20.1
