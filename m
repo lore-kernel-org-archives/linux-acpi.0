@@ -1,59 +1,76 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 22/25] ACPI / APEI: Kick the memory_failure() queue
- for synchronous errors
-Date: Tue, 22 Jan 2019 11:51:43 +0100
-Message-ID: <20190122105143.GB26587@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-23-james.morse@arm.com>
- <9d153a07-aa7a-6e0c-3bd3-994a66f9639a@huawei.com>
- <5c775aa9-ea57-dea7-6083-c1e3fc160b29@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 1/2] ACPI: EC: Simplify boot EC checks in acpi_ec_add()
+Date: Tue, 22 Jan 2019 12:57:28 +0100
+Message-ID: <6098592.dL5p0bd45o@aspire.rjw.lan>
+References: <2897234.rJkq6cDEjt@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <5c775aa9-ea57-dea7-6083-c1e3fc160b29@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, Wang Xiongfeng <wangxiongfeng2@huawei.com>, linux-mm@kvack.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2897234.rJkq6cDEjt@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Erik Schmauss <erik.schmauss@intel.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 07:15:13PM +0000, James Morse wrote:
-> What happens if we miss MF_ACTION_REQUIRED?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-AFAICU, the logic is to force-send a signal to the user process, i.e.,
-force_sig_info() which cannot be ignored. IOW, an "enlightened" process
-would know how to do recovery action from a memory error.
+Consolidate boot EC checks in acpi_ec_add(), put the acpi_is_boot_ec()
+checks directly into it and drop the latter.
 
-VS the action optional thing which you can handle at your leisure.
+No intentional functional impact.
 
-So the question boils down to what kind of severity do the errors
-reported through SEA have? I mean, if the hw would go the trouble to do
-the synchronous reporting, then something important must've happened and
-it wants us to know about it and handle it.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/ec.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-> Surely the page still gets unmapped as its PG_Poisoned, an AO signal
-> may be pending, but if user-space touches the page it will get an AR
-> signal. Is this just about removing an extra AO signal to user-space?
->
-> If we do need this, I'd like to pick it up from the CPER records, as x86's
-> NOTIFY_NMI looks like it covers both AO/AR cases. (as does NOTIFY_SDEI). The
-> Master/Target abort or Invalid-address types in the memory-error-section CPER
-> records look like the best bet.
-
-Right, and we do all kinds of severity mapping there aka ghes_severity()
-so that'll be a good start, methinks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Index: linux-pm/drivers/acpi/ec.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/ec.c
++++ linux-pm/drivers/acpi/ec.c
+@@ -1558,16 +1558,6 @@ static bool acpi_ec_ecdt_get_handle(acpi
+ 	return true;
+ }
+ 
+-static bool acpi_is_boot_ec(struct acpi_ec *ec)
+-{
+-	if (!boot_ec)
+-		return false;
+-	if (ec->command_addr == boot_ec->command_addr &&
+-	    ec->data_addr == boot_ec->data_addr)
+-		return true;
+-	return false;
+-}
+-
+ static int acpi_ec_add(struct acpi_device *device)
+ {
+ 	struct acpi_ec *ec = NULL;
+@@ -1579,22 +1569,22 @@ static int acpi_ec_add(struct acpi_devic
+ 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
+ 
+ 	if (!strcmp(acpi_device_hid(device), ACPI_ECDT_HID)) {
+-		is_ecdt = true;
+ 		ec = boot_ec;
++		boot_ec_is_ecdt = true;
++		is_ecdt = true;
+ 	} else {
+ 		ec = acpi_ec_alloc();
+ 		if (!ec)
+ 			return -ENOMEM;
++
+ 		status = ec_parse_device(device->handle, 0, ec, NULL);
+ 		if (status != AE_CTRL_TERMINATE) {
+ 			ret = -EINVAL;
+ 			goto err_alloc;
+ 		}
+-	}
+ 
+-	if (acpi_is_boot_ec(ec)) {
+-		boot_ec_is_ecdt = is_ecdt;
+-		if (!is_ecdt) {
++		if (boot_ec && ec->command_addr == boot_ec->command_addr &&
++		    ec->data_addr == boot_ec->data_addr) {
+ 			/*
+ 			 * Trust PNP0C09 namespace location rather than
+ 			 * ECDT ID. But trust ECDT GPE rather than _GPE
