@@ -1,147 +1,112 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v7 22/25] ACPI / APEI: Kick the memory_failure() queue for
- synchronous errors
-Date: Wed, 23 Jan 2019 18:40:08 +0000
-Message-ID: <58053f17-5f03-8408-7252-a38ed3d448a9@arm.com>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-23-james.morse@arm.com>
- <20190121175850.GO29166@zn.tnic>
+From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
+Date: Wed, 23 Jan 2019 20:51:13 +0000
+Message-ID: <PU1P153MB0169DF967C5BAAC8334FCC42BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20190121175850.GO29166@zn.tnic>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Borislav Petkov <bp@alien8.de>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Josh Poulson <jopoulso-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Boris,
 
-On 21/01/2019 17:58, Borislav Petkov wrote:
-> On Mon, Dec 03, 2018 at 06:06:10PM +0000, James Morse wrote:
->> memory_failure() offlines or repairs pages of memory that have been
->> discovered to be corrupt. These may be detected by an external
->> component, (e.g. the memory controller), and notified via an IRQ.
->> In this case the work is queued as not all of memory_failure()s work
->> can happen in IRQ context.
->>
->> If the error was detected as a result of user-space accessing a
->> corrupt memory location the CPU may take an abort instead. On arm64
->> this is a 'synchronous external abort', and on a firmware first
->> system it is replayed using NOTIFY_SEA.
->>
->> This notification has NMI like properties, (it can interrupt
->> IRQ-masked code), so the memory_failure() work is queued. If we
->> return to user-space before the queued memory_failure() work is
->> processed, we will take the fault again. This loop may cause platform
->> firmware to exceed some threshold and reboot when Linux could have
->> recovered from this error.
->>
->> If a ghes notification type indicates that it may be triggered again
->> when we return to user-space, use the task-work and notify-resume
->> hooks to kick the relevant memory_failure() queue before returning
->> to user-space.
+Add the Hyper-V _DSM command set to the white list of NVDIMM command
+sets.
 
->> ---
+This command set is documented at http://www.uefi.org/RFIC_LIST
+(see the link to "Virtual NVDIMM 0x1901" on the page).
 
->> I assume that if NOTIFY_NMI is coming from SMM it must suffer from
->> this problem too.
-> 
-> Good question.
-> 
-> I'm guessing all those things should be queued on a normal struct
-> work_struct queue, no?
+Signed-off-by: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+---
 
-ghes_notify_nmi() does this today with its:
-|	irq_work_queue(&ghes_proc_irq_work);
+I'm going to change the user-space utility "ndctl" to support Hyper-V Virtual NVDIMM.
+This kernel patch is required first.
 
-Once its in IRQ context, the irq_work pokes memory_failure_queue(), which
-schedule_work_on()s.
+ drivers/acpi/nfit/core.c   | 5 ++++-
+ drivers/acpi/nfit/nfit.h   | 6 +++++-
+ include/uapi/linux/ndctl.h | 1 +
+ 3 files changed, 10 insertions(+), 2 deletions(-)
 
-Finally we schedule() in process context, and can unmap the affected memory.
-
-
-The problem is between each of these steps we might return to user-space and run
-the instruction that tripped all this to begin with.
-
-
-My SMM comment was because the CPU must jump from user-space->SMM, which injects
-an NMI into the kernel. The kernel's EIP must point into user-space, so
-returning from the NMI without doing the memory_failure() work puts us back the
-same position we started in.
-
-
-> Now, memory_failure_queue() does that and can run from IRQ context so
-> you need only an irq_work which can queue from NMI context. We do it
-> this way in the MCA code:
-> 
-
-(was there something missing here?)
-
-> We queue in an irq_work in NMI context and work through the items in
-> process context.
-
-How are you getting from NMI to process context in one go?
-
-This patch causes the IRQ->process transition.
-The arch specific bit of this gives the irq work queue a kick if returning from
-the NMI would unmask IRQs. This makes it look like we moved from NMI to IRQ
-context without returning to user-space.
-
-Once ghes_handle_memory_failure() runs in IRQ context, it task_work_add()s the
-call to ghes_kick_memory_failure().
-
-Finally on the way out of the kernel to user-space that task_work runs and the
-memory_failure() work happens in process context.
-
-During all this the user-space program counter can point at a poisoned location,
-but we don't return there until the memory_failure() work has been done.
-
-
->> @@ -407,7 +447,22 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
->>  
->>  	if (flags != -1)
->>  		memory_failure_queue(pfn, flags);
->> -#endif
->> +
->> +	/*
->> +	 * If the notification indicates that it was the interrupted
->> +	 * instruction that caused the error, try to kick the
->> +	 * memory_failure() queue before returning to user-space.
->> +	 */
->> +	if (ghes_is_synchronous(ghes) && current->mm != &init_mm) {
->> +		callback = kzalloc(sizeof(*callback), GFP_ATOMIC);
-> 
-> Can we avoid that GFP_ATOMIC allocation and kfree() in
-> ghes_kick_memory_failure()?
-> 
-> I mean, that struct ghes_memory_failure_work is small enough and we
-> already do lockless allocation:
-> 
-> 	estatus_node = (void *)gen_pool_alloc(ghes_estatus_pool, node_len);
-> 
-> so I guess we could add that ghes_memory_failure_work struct to that
-> estatus_node, hand it into ghes_do_proc() and then free it.
-
-I forget estatus_node is a linux thing, not an ACPI-spec thing!
-
-Hmmm, ghes_handle_memory_failure() runs for POLLED and irq error sources too,
-they don't have an estatus_node. We don't care about this ret_to_user() problem
-as they are all asynchronous, this is why we have ghes_is_synchronous()...
-
-It feels like there should be a way to do this, let me have a go...
-
-
-Thanks,
-
-James
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 011d3db19c80..fb48cb17a519 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1840,7 +1840,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
+ 
+ 	/*
+-	 * Until standardization materializes we need to consider 4
++	 * Until standardization materializes we need to consider 5
+ 	 * different command sets.  Note, that checking for function0 (bit0)
+ 	 * tells us if any commands are reachable through this GUID.
+ 	 */
+@@ -1865,6 +1865,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 			dsm_mask &= ~(1 << 8);
+ 	} else if (nfit_mem->family == NVDIMM_FAMILY_MSFT) {
+ 		dsm_mask = 0xffffffff;
++	} else if (nfit_mem->family == NVDIMM_FAMILY_HYPERV) {
++		dsm_mask = 0x1f;
+ 	} else {
+ 		dev_dbg(dev, "unknown dimm command family\n");
+ 		nfit_mem->family = -1;
+@@ -3707,6 +3709,7 @@ static __init int nfit_init(void)
+ 	guid_parse(UUID_NFIT_DIMM_N_HPE1, &nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
+ 	guid_parse(UUID_NFIT_DIMM_N_HPE2, &nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
+ 	guid_parse(UUID_NFIT_DIMM_N_MSFT, &nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
++	guid_parse(UUID_NFIT_DIMM_N_HYPERV, &nfit_uuid[NFIT_DEV_DIMM_N_HYPERV]);
+ 
+ 	nfit_wq = create_singlethread_workqueue("nfit");
+ 	if (!nfit_wq)
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 33691aecfcee..9194022f29f3 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -34,11 +34,14 @@
+ /* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
+ #define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
+ 
++/* http://www.uefi.org/RFIC_LIST */
++#define UUID_NFIT_DIMM_N_HYPERV "5746c5f2-a9a2-4264-ad0e-e4ddc9e09e80"
++
+ #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
+ 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+ 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
+ 
+-#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
++#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
+ 
+ #define NVDIMM_STANDARD_CMDMASK \
+ (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
+@@ -94,6 +97,7 @@ enum nfit_uuids {
+ 	NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
+ 	NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
+ 	NFIT_DEV_DIMM_N_MSFT = NVDIMM_FAMILY_MSFT,
++	NFIT_DEV_DIMM_N_HYPERV = NVDIMM_FAMILY_HYPERV,
+ 	NFIT_SPA_VOLATILE,
+ 	NFIT_SPA_PM,
+ 	NFIT_SPA_DCR,
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index f57c9e434d2d..de5d90212409 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -243,6 +243,7 @@ struct nd_cmd_pkg {
+ #define NVDIMM_FAMILY_HPE1 1
+ #define NVDIMM_FAMILY_HPE2 2
+ #define NVDIMM_FAMILY_MSFT 3
++#define NVDIMM_FAMILY_HYPERV 4
+ 
+ #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
+ 					struct nd_cmd_pkg)
+-- 
+2.19.1
