@@ -1,56 +1,46 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [for next][PATCH 1/2] mfd: Fix unmet dependency warning for MFD_TPS68470
-Date: Thu, 24 Jan 2019 11:51:43 +0100
-Message-ID: <2222147.2pZxjFhHIY@aspire.rjw.lan>
-References: <20190121231958.28255-1-okaya@kernel.org>
+Subject: Re: [for next][PATCH 1/2] platform/x86: Fix unmet dependency warning for ACPI_CMPC
+Date: Thu, 24 Jan 2019 11:52:57 +0100
+Message-ID: <3681650.SPxszaOeRQ@aspire.rjw.lan>
+References: <20190121224644.26903-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190121231958.28255-1-okaya@kernel.org>
+In-Reply-To: <20190121224644.26903-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, open list <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
+Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, January 22, 2019 12:19:57 AM CET Sinan Kaya wrote:
-> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> specified directly.
+On Monday, January 21, 2019 11:46:43 PM CET Sinan Kaya wrote:
+> Add BACKLIGHT_LCD_SUPPORT for ACPI_CMPC to fix the
+> warning: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE.
 > 
-> WARNING: unmet direct dependencies detected for I2C_DESIGNWARE_PLATFORM
->   Depends on [n]: I2C [=y] && HAS_IOMEM [=y] && (ACPI [=y] && COMMON_CLK [=n] || !ACPI [=y])
->   Selected by [y]:
->   - MFD_TPS68470 [=y] && HAS_IOMEM [=y] && ACPI [=y] && I2C [=y]=y
+> ACPI_CMPC selects BACKLIGHT_LCD_SUPPORT but BACKLIGHT_LCD_SUPPORT
+> depends on BACKLIGHT_LCD_SUPPORT.
 > 
-> MFD_TPS68470 is an ACPI only device and selects I2C_DESIGNWARE_PLATFORM.
-> I2C_DESIGNWARE_PLATFORM does not have any configuration today for ACPI
-> support without CONFIG_PCI set.
+> Copy this dependency into ACPI_CMPC.
 > 
-> For sake of a quick fix this introduces a new mandatory dependency to the
-> driver which may survive without it. Otherwise we need to revisit the
-> driver architecture to address this properly.
-> 
-> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
 > Signed-off-by: Sinan Kaya <okaya@kernel.org>
 > ---
->  drivers/mfd/Kconfig | 2 +-
+>  drivers/platform/x86/Kconfig | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index f461460a2aeb..76f9909cf396 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -1419,7 +1419,7 @@ config MFD_TPS65217
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 5e2109c54c7c..b84c2c5b6684 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -904,7 +904,7 @@ config TOSHIBA_WMI
 >  
->  config MFD_TPS68470
->  	bool "TI TPS68470 Power Management / LED chips"
-> -	depends on ACPI && I2C=y
-> +	depends on ACPI && PCI && I2C=y
->  	select MFD_CORE
->  	select REGMAP_I2C
->  	select I2C_DESIGNWARE_PLATFORM
+>  config ACPI_CMPC
+>  	tristate "CMPC Laptop Extras"
+> -	depends on ACPI && INPUT
+> +	depends on ACPI && INPUT && BACKLIGHT_LCD_SUPPORT
+>  	depends on RFKILL || RFKILL=n
+>  	select BACKLIGHT_CLASS_DEVICE
+>  	help
 > 
 
-Is anyone taking this or should I?
+Andy/Darren, these two seem to be for you, but I can take them too as
+related to ACPI tagentially, so please let me know.
