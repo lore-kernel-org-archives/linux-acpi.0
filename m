@@ -1,70 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI: debug: Clean up acpi_aml_init()
-Date: Thu, 24 Jan 2019 11:25:59 +0100
-Message-ID: <2715517.7WDaClUie6@aspire.rjw.lan>
+Subject: Re: [for next][PATCH 2/2] x86/Kconfig: Select PCI_LOCKLESS_CONFIG if PCI is enabled
+Date: Thu, 24 Jan 2019 11:51:19 +0100
+Message-ID: <37767989.Gns3VtERSa@aspire.rjw.lan>
+References: <20190121231958.28255-1-okaya@kernel.org> <20190121231958.28255-2-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190121231958.28255-2-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tuesday, January 22, 2019 12:19:58 AM CET Sinan Kaya wrote:
+> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+> specified directly.
+> 
+> PCI_LOCKLESS_CONFIG depends on PCI but this dependency has not been
+> mentioned in the Kconfig.
+> 
+> Add an explicit dependency here.
+> 
+> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> ---
+>  arch/x86/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 568f339595ed..0519da6f8ee4 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -199,7 +199,7 @@ config X86
+>  	select IRQ_FORCED_THREADING
+>  	select NEED_SG_DMA_LENGTH
+>  	select PCI_DOMAINS			if PCI
+> -	select PCI_LOCKLESS_CONFIG
+> +	select PCI_LOCKLESS_CONFIG		if PCI
+>  	select PERF_EVENTS
+>  	select RTC_LIB
+>  	select RTC_MC146818_LIB
+> 
 
-The err_exit label in acpi_aml_init() is not used any more after
-commit 9ec6dbfbdc0a ("ACPI: no need to check return value of
-debugfs_create functions"), but the other label in there is not
-necessary too, so rearrange the code to get rid of them both.
-
-No intentional functional impact.
-
-Fixes: 9ec6dbfbdc0a ("ACPI: no need to check return value of debugfs_create functions")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpi_dbg.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
-
-Index: linux-pm/drivers/acpi/acpi_dbg.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_dbg.c
-+++ linux-pm/drivers/acpi/acpi_dbg.c
-@@ -750,29 +750,28 @@ static const struct acpi_debugger_ops ac
- 
- int __init acpi_aml_init(void)
- {
--	int ret = 0;
-+	int ret;
- 
- 	/* Initialize AML IO interface */
- 	mutex_init(&acpi_aml_io.lock);
- 	init_waitqueue_head(&acpi_aml_io.wait);
- 	acpi_aml_io.out_crc.buf = acpi_aml_io.out_buf;
- 	acpi_aml_io.in_crc.buf = acpi_aml_io.in_buf;
-+
- 	acpi_aml_dentry = debugfs_create_file("acpidbg",
- 					      S_IFREG | S_IRUGO | S_IWUSR,
- 					      acpi_debugfs_dir, NULL,
- 					      &acpi_aml_operations);
--	ret = acpi_register_debugger(THIS_MODULE, &acpi_aml_debugger);
--	if (ret)
--		goto err_fs;
--	acpi_aml_initialized = true;
- 
--err_fs:
-+	ret = acpi_register_debugger(THIS_MODULE, &acpi_aml_debugger);
- 	if (ret) {
- 		debugfs_remove(acpi_aml_dentry);
- 		acpi_aml_dentry = NULL;
-+		return ret;
- 	}
--err_exit:
--	return ret;
-+
-+	acpi_aml_initialized = true;
-+	return 0;
- }
- 
- void __exit acpi_aml_exit(void)
+Is anyone taking this or should I?
