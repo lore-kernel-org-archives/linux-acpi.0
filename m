@@ -1,7 +1,7 @@
 From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv5 10/10] doc/mm: New documentation for memory performance
-Date: Thu, 24 Jan 2019 16:07:24 -0700
-Message-ID: <20190124230724.10022-11-keith.busch@intel.com>
+Subject: [PATCHv5 06/10] node: Add heterogenous memory access attributes
+Date: Thu, 24 Jan 2019 16:07:20 -0700
+Message-ID: <20190124230724.10022-7-keith.busch@intel.com>
 References: <20190124230724.10022-1-keith.busch@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190124230724.10022-1-keith.busch@intel.com>
@@ -10,192 +10,206 @@ To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Platforms may provide system memory where some physical address ranges
-perform differently than others, or is side cached by the system.
+Heterogeneous memory systems provide memory nodes with different latency
+and bandwidth performance attributes. Provide a new kernel interface
+for subsystems to register the attributes under the memory target
+node's initiator access class. If the system provides this information,
+applications may query these attributes when deciding which node to
+request memory.
 
-Add documentation describing a high level overview of such systems and the
-perforamnce and caching attributes the kernel provides for applications
-wishing to query this information.
+The following example shows the new sysfs hierarchy for a node exporting
+performance attributes:
 
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+  # tree -P "read*|write*"/sys/devices/system/node/nodeY/accessZ/initiators/
+  /sys/devices/system/node/nodeY/accessZ/initiators/
+  |-- read_bandwidth
+  |-- read_latency
+  |-- write_bandwidth
+  `-- write_latency
+
+The bandwidth is exported as MB/s and latency is reported in
+nanoseconds. The values are taken from the platform as reported by the
+manufacturer.
+
+Memory accesses from an initiator node that is not one of the memory's
+access "Z" initiator nodes linked in the same directory may observe
+different performance than reported here. When a subsystem makes use
+of this interface, initiators of a different access number may not have
+the same performance relative to initiators in other access numbers, or
+omitted from the any access class' initiators.
+
+Descriptions for memory access initiator performance access attributes
+are added to sysfs stable documentation.
+
 Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- Documentation/admin-guide/mm/numaperf.rst | 167 ++++++++++++++++++++++++++++++
- 1 file changed, 167 insertions(+)
- create mode 100644 Documentation/admin-guide/mm/numaperf.rst
+ Documentation/ABI/stable/sysfs-devices-node | 28 ++++++++++++++
+ drivers/base/Kconfig                        |  8 ++++
+ drivers/base/node.c                         | 59 +++++++++++++++++++++++++++++
+ include/linux/node.h                        | 19 ++++++++++
+ 4 files changed, 114 insertions(+)
 
-diff --git a/Documentation/admin-guide/mm/numaperf.rst b/Documentation/admin-guide/mm/numaperf.rst
-new file mode 100644
-index 000000000000..52999336a8ed
---- /dev/null
-+++ b/Documentation/admin-guide/mm/numaperf.rst
-@@ -0,0 +1,167 @@
-+.. _numaperf:
+diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
+index fb843222a281..41cb9345e1e0 100644
+--- a/Documentation/ABI/stable/sysfs-devices-node
++++ b/Documentation/ABI/stable/sysfs-devices-node
+@@ -114,3 +114,31 @@ Contact:	Keith Busch <keith.busch@intel.com>
+ Description:
+ 		The directory containing symlinks to memory targets that
+ 		this initiator node has class "Y" access.
 +
-+=============
-+NUMA Locality
-+=============
++What:		/sys/devices/system/node/nodeX/accessY/initiators/read_bandwidth
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		This node's read bandwidth in MB/s when accessed from
++		nodes found in this access class's linked initiators.
 +
-+Some platforms may have multiple types of memory attached to a single
-+CPU. These disparate memory ranges share some characteristics, such as
-+CPU cache coherence, but may have different performance. For example,
-+different media types and buses affect bandwidth and latency.
++What:		/sys/devices/system/node/nodeX/accessY/initiators/read_latency
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		This node's read latency in nanoseconds when accessed
++		from nodes found in this access class's linked initiators.
 +
-+A system supporting such heterogeneous memory by grouping each memory
-+type under different "nodes" based on similar CPU locality and performance
-+characteristics.  Some memory may share the same node as a CPU, and others
-+are provided as memory only nodes. While memory only nodes do not provide
-+CPUs, they may still be directly accessible, or local, to one or more
-+compute nodes. The following diagram shows one such example of two compute
-+nodes with local memory and a memory only node for each of compute node:
++What:		/sys/devices/system/node/nodeX/accessY/initiators/write_bandwidth
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		This node's write bandwidth in MB/s when accessed from
++		found in this access class's linked initiators.
 +
-+ +------------------+     +------------------+
-+ | Compute Node 0   +-----+ Compute Node 1   |
-+ | Local Node0 Mem  |     | Local Node1 Mem  |
-+ +--------+---------+     +--------+---------+
-+          |                        |
-+ +--------+---------+     +--------+---------+
-+ | Slower Node2 Mem |     | Slower Node3 Mem |
-+ +------------------+     +--------+---------+
++What:		/sys/devices/system/node/nodeX/accessY/initiators/write_latency
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		This node's write latency in nanoseconds when access
++		from nodes found in this class's linked initiators.
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index 3e63a900b330..32dc81bd7056 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -149,6 +149,14 @@ config DEBUG_TEST_DRIVER_REMOVE
+ 	  unusable. You should say N here unless you are explicitly looking to
+ 	  test this functionality.
+ 
++config HMEM_REPORTING
++	bool
++	default n
++	depends on NUMA
++	help
++	  Enable reporting for heterogenous memory access attributes under
++	  their non-uniform memory nodes.
 +
-+A "memory initiator" is a node containing one or more devices such as
-+CPUs or separate memory I/O devices that can initiate memory requests.
-+A "memory target" is a node containing one or more physical address
-+ranges accessible from one or more memory initiators.
+ source "drivers/base/test/Kconfig"
+ 
+ config SYS_HYPERVISOR
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index 6f4097680580..2de546a040a5 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -71,6 +71,9 @@ struct node_access_nodes {
+ 	struct device		dev;
+ 	struct list_head	list_node;
+ 	unsigned		access;
++#ifdef CONFIG_HMEM_REPORTING
++	struct node_hmem_attrs	hmem_attrs;
++#endif
+ };
+ #define to_access_nodes(dev) container_of(dev, struct node_access_nodes, dev)
+ 
+@@ -148,6 +151,62 @@ static struct node_access_nodes *node_init_node_access(struct node *node,
+ 	return NULL;
+ }
+ 
++#ifdef CONFIG_HMEM_REPORTING
++#define ACCESS_ATTR(name) 						   \
++static ssize_t name##_show(struct device *dev,				   \
++			   struct device_attribute *attr,		   \
++			   char *buf)					   \
++{									   \
++	return sprintf(buf, "%u\n", to_access_nodes(dev)->hmem_attrs.name); \
++}									   \
++static DEVICE_ATTR_RO(name);
 +
-+When multiple memory initiators exist, they may not all have the same
-+performance when accessing a given memory target. Each initiator-target
-+pair may be organized into different ranked access classes to represent
-+this relationship. The highest performing initiator to a given target
-+is considered to be one of that target's local initiators, and given
-+the highest access class, 0. Any given target may have one or more
-+local initiators, and any given initiator may have multiple local
-+memory targets.
++ACCESS_ATTR(read_bandwidth)
++ACCESS_ATTR(read_latency)
++ACCESS_ATTR(write_bandwidth)
++ACCESS_ATTR(write_latency)
 +
-+To aid applications matching memory targets with their initiators, the
-+kernel provides symlinks to each other. The following example lists the
-+relationship for the access class "0" memory initiators and targets, which is
-+the of nodes with the highest performing access relationship::
++static struct attribute *access_attrs[] = {
++	&dev_attr_read_bandwidth.attr,
++	&dev_attr_read_latency.attr,
++	&dev_attr_write_bandwidth.attr,
++	&dev_attr_write_latency.attr,
++	NULL,
++};
 +
-+	# symlinks -v /sys/devices/system/node/nodeX/access0/targets/
-+	relative: /sys/devices/system/node/nodeX/access0/targets/nodeY -> ../../nodeY
++/**
++ * node_set_perf_attrs - Set the performance values for given access class
++ * @nid: Node identifier to be set
++ * @hmem_attrs: Heterogeneous memory performance attributes
++ * @access: The access class the for the given attributes
++ */
++void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
++			 unsigned access)
++{
++	struct node_access_nodes *c;
++	struct node *node;
++	int i;
 +
-+	# symlinks -v /sys/devices/system/node/nodeY/access0/initiators/
-+	relative: /sys/devices/system/node/nodeY/access0/initiators/nodeX -> ../../nodeX
++	if (WARN_ON_ONCE(!node_online(nid)))
++		return;
 +
-+================
-+NUMA Performance
-+================
++	node = node_devices[nid];
++	c = node_init_node_access(node, access);
++	if (!c)
++		return;
 +
-+Applications may wish to consider which node they want their memory to
-+be allocated from based on the node's performance characteristics. If
-+the system provides these attributes, the kernel exports them under the
-+node sysfs hierarchy by appending the attributes directory under the
-+memory node's access class 0 initiators as follows::
++	c->hmem_attrs = *hmem_attrs;
++	for (i = 0; access_attrs[i] != NULL; i++) {
++		if (sysfs_add_file_to_group(&c->dev.kobj, access_attrs[i],
++					    "initiators")) {
++			pr_info("failed to add performance attribute to node %d\n",
++				nid);
++			break;
++		}
++	}
++}
++#endif
 +
-+	/sys/devices/system/node/nodeY/access0/initiators/
+ #define K(x) ((x) << (PAGE_SHIFT - 10))
+ static ssize_t node_read_meminfo(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+diff --git a/include/linux/node.h b/include/linux/node.h
+index f34688a203c1..2db077363d9c 100644
+--- a/include/linux/node.h
++++ b/include/linux/node.h
+@@ -20,6 +20,25 @@
+ #include <linux/list.h>
+ #include <linux/workqueue.h>
+ 
++#ifdef CONFIG_HMEM_REPORTING
++/**
++ * struct node_hmem_attrs - heterogeneous memory performance attributes
++ *
++ * @read_bandwidth:	Read bandwidth in MB/s
++ * @write_bandwidth:	Write bandwidth in MB/s
++ * @read_latency:	Read latency in nanoseconds
++ * @write_latency:	Write latency in nanoseconds
++ */
++struct node_hmem_attrs {
++	unsigned int read_bandwidth;
++	unsigned int write_bandwidth;
++	unsigned int read_latency;
++	unsigned int write_latency;
++};
++void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
++			 unsigned access);
++#endif
 +
-+These attributes apply only when accessed from nodes that have the
-+are linked under the this access's inititiators.
-+
-+The performance characteristics the kernel provides for the local initiators
-+are exported are as follows::
-+
-+	# tree -P "read*|write*" /sys/devices/system/node/nodeY/access0/
-+	/sys/devices/system/node/nodeY/access0/
-+	|-- read_bandwidth
-+	|-- read_latency
-+	|-- write_bandwidth
-+	`-- write_latency
-+
-+The bandwidth attributes are provided in MiB/second.
-+
-+The latency attributes are provided in nanoseconds.
-+
-+The values reported here correspond to the rated latency and bandwidth
-+for the platform.
-+
-+==========
-+NUMA Cache
-+==========
-+
-+System memory may be constructed in a hierarchy of elements with various
-+performance characteristics in order to provide large address space of
-+slower performing memory side-cached by a smaller higher performing
-+memory. The system physical addresses that initiators are aware of
-+are provided by the last memory level in the hierarchy. The system
-+meanwhile uses higher performing memory to transparently cache access
-+to progressively slower levels.
-+
-+The term "far memory" is used to denote the last level memory in the
-+hierarchy. Each increasing cache level provides higher performing
-+initiator access, and the term "near memory" represents the fastest
-+cache provided by the system.
-+
-+This numbering is different than CPU caches where the cache level (ex:
-+L1, L2, L3) uses a CPU centric view with each increased level is lower
-+performing. In contrast, the memory cache level is centric to the last
-+level memory, so the higher numbered cache level denotes memory nearer
-+to the CPU, and further from far memory.
-+
-+The memory side caches are not directly addressable by software. When
-+software accesses a system address, the system will return it from the
-+near memory cache if it is present. If it is not present, the system
-+accesses the next level of memory until there is either a hit in that
-+cache level, or it reaches far memory.
-+
-+An application does not need to know about caching attributes in order
-+to use the system. Software may optionally query the memory cache
-+attributes in order to maximize the performance out of such a setup.
-+If the system provides a way for the kernel to discover this information,
-+for example with ACPI HMAT (Heterogeneous Memory Attribute Table),
-+the kernel will append these attributes to the NUMA node memory target.
-+
-+When the kernel first registers a memory cache with a node, the kernel
-+will create the following directory::
-+
-+	/sys/devices/system/node/nodeX/side_cache/
-+
-+If that directory is not present, the system either does not not provide
-+a memory side cache, or that information is not accessible to the kernel.
-+
-+The attributes for each level of cache is provided under its cache
-+level index::
-+
-+	/sys/devices/system/node/nodeX/side_cache/indexA/
-+	/sys/devices/system/node/nodeX/side_cache/indexB/
-+	/sys/devices/system/node/nodeX/side_cache/indexC/
-+
-+Each cache level's directory provides its attributes. For example, the
-+following shows a single cache level and the attributes available for
-+software to query::
-+
-+	# tree sys/devices/system/node/node0/side_cache/
-+	/sys/devices/system/node/node0/side_cache/
-+	|-- index1
-+	|   |-- associativity
-+	|   |-- level
-+	|   |-- line_size
-+	|   |-- size
-+	|   `-- write_policy
-+
-+The "associativity" will be 0 if it is a direct-mapped cache, and non-zero
-+for any other indexed based, multi-way associativity.
-+
-+The "level" is the distance from the far memory, and matches the number
-+appended to its "index" directory.
-+
-+The "line_size" is the number of bytes accessed on a cache miss.
-+
-+The "size" is the number of bytes provided by this cache level.
-+
-+The "write_policy" will be 0 for write-back, and non-zero for
-+write-through caching.
-+
-+========
-+See Also
-+========
-+.. [1] https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
-+       Section 5.2.27
+ struct node {
+ 	struct device	dev;
+ 	struct list_head access_list;
 -- 
 2.14.4
