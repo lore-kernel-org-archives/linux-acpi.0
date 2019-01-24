@@ -1,60 +1,34 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [for next][PATCH v3 1/2] platform/x86: Fix unmet dependency
- warning for ACPI_CMPC
-Date: Thu, 24 Jan 2019 23:32:56 +0200
-Message-ID: <CAHp75VerwCxYqozQmaJZL8tcbfDFLBp+nTheP0Ran4qWPqTcLw@mail.gmail.com>
-References: <20190124193101.24519-1-okaya@kernel.org>
+Subject: Re: [alsa-devel] [RFT][PATCH v2] gpiolib: acpi: Introduce ACPI_GPIO_QUIRK_ONLY_GPIOIO
+Date: Fri, 25 Jan 2019 00:52:56 +0200
+Message-ID: <CAHp75VfHTiPnOqT3ONq_bW8=ceCRFebuogsH9xVOc=S4nKdnOw@mail.gmail.com>
+References: <20190109105245.25954-1-andriy.shevchenko@linux.intel.com> <e5e54be2-7be1-9496-b455-336e9edfb406@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190124193101.24519-1-okaya@kernel.org>
+In-Reply-To: <e5e54be2-7be1-9496-b455-336e9edfb406@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-next <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 24, 2019 at 9:31 PM Sinan Kaya <okaya@kernel.org> wrote:
+On Thu, Jan 24, 2019 at 2:20 PM Hans de Goede <hdegoede@redhat.com> wrote:
+> On 09-01-19 11:52, Andy Shevchenko wrote:
+> > New quirk enforces search for GPIO based on its type,
+> > i.e. iterate over GpioIo resources only.
+> >
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > ---
+> >
+> > - it was sent few weeks ago to Hans for testing, but better to re-test
 >
-> Add BACKLIGHT_LCD_SUPPORT for ACPI_CMPC to fix the
-> warning: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE.
+> I've just re-tested this on a device which uses the speaker-enable
+> GPIO with a rt5651 codec, still works as advertised:
 >
-> ACPI_CMPC selects BACKLIGHT_CLASS_DEVICE but BACKLIGHT_CLASS_DEVICE
-> depends on BACKLIGHT_LCD_SUPPORT.
->
-> Copy BACKLIGHT_LCD_SUPPORT dependency into ACPI_CMPC to fix
->
-> WARNING: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE
->   Depends on [n]: HAS_IOMEM [=y] && BACKLIGHT_LCD_SUPPORT [=n]
->   Selected by [y]:
->   - ACPI_CMPC [=y] && X86 [=y] && X86_PLATFORM_DEVICES [=y] && ACPI [=y] && INPUT [=y] && (RFKILL [=n] || RFKILL [=n]=n)
->
+> Tested-by: Hans de Goede <hdegoede@redhat.com>
 
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-
-for both patches in case Rafael takes care of them.
-
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> ---
->  drivers/platform/x86/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 5e2109c54c7c..11810591840d 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -905,6 +905,7 @@ config TOSHIBA_WMI
->  config ACPI_CMPC
->         tristate "CMPC Laptop Extras"
->         depends on ACPI && INPUT
-> +       depends on BACKLIGHT_LCD_SUPPORT
->         depends on RFKILL || RFKILL=n
->         select BACKLIGHT_CLASS_DEVICE
->         help
-> --
-> 2.19.0
->
-
-
+Thanks, Hans, I will resend it rebased and with tags tomorow.
 -- 
 With Best Regards,
 Andy Shevchenko
