@@ -1,112 +1,211 @@
-From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
-Date: Wed, 23 Jan 2019 20:51:13 +0000
-Message-ID: <PU1P153MB0169DF967C5BAAC8334FCC42BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [RFC PATCH] cpufreq / cppc: Work around for Hisilicon CPPC
+ cpufreq
+Date: Thu, 24 Jan 2019 12:26:14 +0530
+Message-ID: <20190124065614.gnnwd6lhbyjiph2e@vireshk-i7>
+References: <1547722811-18052-1-git-send-email-wangxiongfeng2@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Josh Poulson <jopoulso-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1547722811-18052-1-git-send-email-wangxiongfeng2@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xiongfeng Wang <wangxiongfeng2@huawei.com>, George Cherian <george.cherian@cavium.com>, Prashanth Prakash <pprakash@codeaurora.org>
+Cc: robert.moore@intel.com, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, guohanjun@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
++George/Prashanth.
 
-Add the Hyper-V _DSM command set to the white list of NVDIMM command
-sets.
+Guys please see if you have any objections to this patch. I am not
+very familiar with this stuff and it would be good to get some
+feedback from you guys.
 
-This command set is documented at http://www.uefi.org/RFIC_LIST
-(see the link to "Virtual NVDIMM 0x1901" on the page).
+@Rafael: Do you have any comments on this ?
 
-Signed-off-by: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
----
+On 17-01-19, 19:00, Xiongfeng Wang wrote:
+> Hisilicon chips do not support delivered performance counter register
+> and reference performance counter register. But the platform can
+> calculate the real performance using its own method. This patch provide
+> a workaround for this problem, and other platforms can also use this
+> workaround framework. We reuse the desired performance register to
+> store the real performance calculated by the platform. After the
+> platform finished the frequency adjust, it gets the real performance and
+> writes it into desired performance register. OS can use it to calculate
+> the real frequency.
+> 
+> Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+> ---
+>  drivers/acpi/cppc_acpi.c       | 29 ++++++++++++++++++++
+>  drivers/cpufreq/Kconfig.arm    |  7 +++++
+>  drivers/cpufreq/cppc_cpufreq.c | 62 ++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/cppc_acpi.h       |  4 +++
+>  4 files changed, 102 insertions(+)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 217a782..0cdaf7e 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -1050,6 +1050,35 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+>  	return ret_val;
+>  }
+>  
+> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+> +/*
+> + * We reuse the desired performance register to store the real performance
+> + * calculated by the platform.
+> + */
+> +u64 hisi_cppc_get_real_perf(unsigned int cpunum)
+> +{
+> +	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+> +	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+> +	struct cpc_register_resource *desired_reg;
+> +	u64 desired_perf;
+> +	int ret;
+> +
+> +	/*
+> +	 * Make sure the platform has finished the frequency adjust
+> +	 * and wrote the real performance in desired performance register
+> +	 */
+> +	ret = check_pcc_chan(pcc_ss_id, false);
+> +	if (ret)
+> +		return 0;
+> +
+> +	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+> +	cpc_read(cpunum, desired_reg, &desired_perf);
+> +
+> +	return desired_perf;
+> +}
+> +EXPORT_SYMBOL_GPL(hisi_cppc_get_real_perf);
+> +#endif
+> +
+>  /**
+>   * cppc_get_perf_caps - Get a CPUs performance capabilities.
+>   * @cpunum: CPU from which to get capabilities info.
+> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+> index 688f102..236bd07 100644
+> --- a/drivers/cpufreq/Kconfig.arm
+> +++ b/drivers/cpufreq/Kconfig.arm
+> @@ -18,6 +18,13 @@ config ACPI_CPPC_CPUFREQ
+>  
+>  	  If in doubt, say N.
+>  
+> +config HISILICON_CPPC_CPUFREQ_WORKAROUND
+> +	bool "Workaround for Hisilicon CPPC Cpufreq"
+> +	default y
+> +	depends on ACPI_CPPC_CPUFREQ && ARM64
+> +	help
+> +	  This option enables a workaround for Hisilicon CPPC Cpufreq.
+> +
+>  config ARM_ARMADA_37XX_CPUFREQ
+>  	tristate "Armada 37xx CPUFreq support"
+>  	depends on ARCH_MVEBU && CPUFREQ_DT
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index fd25c21c..b910e84 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -33,6 +33,13 @@
+>  /* Offest in the DMI processor structure for the max frequency */
+>  #define DMI_PROCESSOR_MAX_SPEED  0x14
+>  
+> +struct cppc_get_rate_workaround_info {
+> +	char oem_id[ACPI_OEM_ID_SIZE +1];
+> +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+> +	u32 oem_revision;
+> +	unsigned int (*get)(unsigned int cpu);
+> +};
+> +
+>  /*
+>   * These structs contain information parsed from per CPU
+>   * ACPI _CPC structures.
+> @@ -357,6 +364,59 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpunum)
+>  	.name = "cppc_cpufreq",
+>  };
+>  
+> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+> +/*
+> + * When the platform does not support delivered performance counter or
+> + * reference performance counter, it can calculate the performance using the
+> + * platform specific mechanism. We reuse the desired performance register to
+> + * store the real performance calculated by the platform.
+> + */
+> +static unsigned int hisi_cppc_cpufreq_get_rate(unsigned int cpunum)
+> +{
+> +	struct cppc_cpudata *cpu = all_cpu_data[cpunum];
+> +	u64 desired_perf = hisi_cppc_get_real_perf(cpunum);
+> +
+> +	return cppc_cpufreq_perf_to_khz(cpu, desired_perf);
+> +}
+> +#endif
+> +
+> +static struct cppc_get_rate_workaround_info wa_info[] = {
+> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+> +	{
+> +		.oem_id		= "HISI  ",
+> +		.oem_table_id	= "HIP07   ",
+> +		.oem_revision	= 0,
+> +		.get = hisi_cppc_cpufreq_get_rate,
+> +	},
+> +	{
 
-I'm going to change the user-space utility "ndctl" to support Hyper-V Virtual NVDIMM.
-This kernel patch is required first.
+This should be:
 
- drivers/acpi/nfit/core.c   | 5 ++++-
- drivers/acpi/nfit/nfit.h   | 6 +++++-
- include/uapi/linux/ndctl.h | 1 +
- 3 files changed, 10 insertions(+), 2 deletions(-)
+        }, {
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 011d3db19c80..fb48cb17a519 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1840,7 +1840,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
- 
- 	/*
--	 * Until standardization materializes we need to consider 4
-+	 * Until standardization materializes we need to consider 5
- 	 * different command sets.  Note, that checking for function0 (bit0)
- 	 * tells us if any commands are reachable through this GUID.
- 	 */
-@@ -1865,6 +1865,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 			dsm_mask &= ~(1 << 8);
- 	} else if (nfit_mem->family == NVDIMM_FAMILY_MSFT) {
- 		dsm_mask = 0xffffffff;
-+	} else if (nfit_mem->family == NVDIMM_FAMILY_HYPERV) {
-+		dsm_mask = 0x1f;
- 	} else {
- 		dev_dbg(dev, "unknown dimm command family\n");
- 		nfit_mem->family = -1;
-@@ -3707,6 +3709,7 @@ static __init int nfit_init(void)
- 	guid_parse(UUID_NFIT_DIMM_N_HPE1, &nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
- 	guid_parse(UUID_NFIT_DIMM_N_HPE2, &nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
- 	guid_parse(UUID_NFIT_DIMM_N_MSFT, &nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
-+	guid_parse(UUID_NFIT_DIMM_N_HYPERV, &nfit_uuid[NFIT_DEV_DIMM_N_HYPERV]);
- 
- 	nfit_wq = create_singlethread_workqueue("nfit");
- 	if (!nfit_wq)
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 33691aecfcee..9194022f29f3 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -34,11 +34,14 @@
- /* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
- #define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
- 
-+/* http://www.uefi.org/RFIC_LIST */
-+#define UUID_NFIT_DIMM_N_HYPERV "5746c5f2-a9a2-4264-ad0e-e4ddc9e09e80"
-+
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
- 
--#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
-+#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
- 
- #define NVDIMM_STANDARD_CMDMASK \
- (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
-@@ -94,6 +97,7 @@ enum nfit_uuids {
- 	NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
- 	NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
- 	NFIT_DEV_DIMM_N_MSFT = NVDIMM_FAMILY_MSFT,
-+	NFIT_DEV_DIMM_N_HYPERV = NVDIMM_FAMILY_HYPERV,
- 	NFIT_SPA_VOLATILE,
- 	NFIT_SPA_PM,
- 	NFIT_SPA_DCR,
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index f57c9e434d2d..de5d90212409 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -243,6 +243,7 @@ struct nd_cmd_pkg {
- #define NVDIMM_FAMILY_HPE1 1
- #define NVDIMM_FAMILY_HPE2 2
- #define NVDIMM_FAMILY_MSFT 3
-+#define NVDIMM_FAMILY_HYPERV 4
- 
- #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
- 					struct nd_cmd_pkg)
+> +		.oem_id		= "HISI  ",
+> +		.oem_table_id	= "HIP08   ",
+> +		.oem_revision	= 0,
+> +		.get = hisi_cppc_cpufreq_get_rate,
+> +	},
+> +#endif
+> +	{},
+> +};
+> +
+> +static void cppc_check_get_rate_workaround(struct cpufreq_driver *cppc_cpufreq_driver)
+> +{
+> +	struct acpi_table_header *tbl;
+> +	acpi_status status = AE_OK;
+> +	int i;
+> +
+> +	status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
+> +	if (ACPI_FAILURE(status) || !tbl)
+> +		return;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(wa_info) - 1; i++) {
+> +		if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
+> +		    !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
+> +		    wa_info[i].oem_revision == tbl->oem_revision) {
+> +			cppc_cpufreq_driver->get = wa_info[i].get;
+> +			return;
+> +		}
+> +	}
+> +}
+>  static int __init cppc_cpufreq_init(void)
+>  {
+>  	int i, ret = 0;
+> @@ -386,6 +446,8 @@ static int __init cppc_cpufreq_init(void)
+>  		goto out;
+>  	}
+>  
+> +	cppc_check_get_rate_workaround(&cppc_cpufreq_driver);
+> +
+>  	ret = cpufreq_register_driver(&cppc_cpufreq_driver);
+>  	if (ret)
+>  		goto out;
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 4f34734..be7400b 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -146,4 +146,8 @@ struct cppc_cpudata {
+>  extern int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val);
+>  extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
+>  
+> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+> +u64 hisi_cppc_get_real_perf(unsigned int cpunum);
+> +#endif
+> +
+>  #endif /* _CPPC_ACPI_H*/
+> -- 
+> 1.7.12.4
+
 -- 
-2.19.1
+viresh
