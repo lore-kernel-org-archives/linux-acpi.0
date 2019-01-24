@@ -1,26 +1,45 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [for next][PATCH 1/2] platform/x86: Fix unmet dependency warning
- for ACPI_CMPC
-Date: Thu, 24 Jan 2019 12:44:14 -0500
-Message-ID: <2157aaa0-cf23-cd4c-7ea2-ec03e86cbdc2@kernel.org>
-References: <20190121224644.26903-1-okaya@kernel.org>
- <3681650.SPxszaOeRQ@aspire.rjw.lan>
+Subject: [for next][PATCH v2 1/2] platform/x86: Fix unmet dependency warning for ACPI_CMPC
+Date: Thu, 24 Jan 2019 17:57:01 +0000
+Message-ID: <20190124175702.4801-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3681650.SPxszaOeRQ@aspire.rjw.lan>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
-Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: linux-next@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/24/2019 5:52 AM, Rafael J. Wysocki wrote:
-> Andy/Darren, these two seem to be for you, but I can take them too as
-> related to ACPI tagentially, so please let me know.
+Add BACKLIGHT_LCD_SUPPORT for ACPI_CMPC to fix the
+warning: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE.
 
-I'll post V2 to fix a "fat-finger" in summary. I was hoping to receive a
-feedback until now.
+ACPI_CMPC selects BACKLIGHT_CLASS_DEVICE but BACKLIGHT_CLASS_DEVICE
+depends on BACKLIGHT_LCD_SUPPORT.
 
-I'll get the V2 out.
+Copy BACKLIGHT_LCD_SUPPORT dependency into ACPI_CMPC to fix
+
+WARNING: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE
+  Depends on [n]: HAS_IOMEM [=y] && BACKLIGHT_LCD_SUPPORT [=n]
+  Selected by [y]:
+  - ACPI_CMPC [=y] && X86 [=y] && X86_PLATFORM_DEVICES [=y] && ACPI [=y] && INPUT [=y] && (RFKILL [=n] || RFKILL [=n]=n)
+
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/platform/x86/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 5e2109c54c7c..b84c2c5b6684 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -904,7 +904,7 @@ config TOSHIBA_WMI
+ 
+ config ACPI_CMPC
+ 	tristate "CMPC Laptop Extras"
+-	depends on ACPI && INPUT
++	depends on ACPI && INPUT && BACKLIGHT_LCD_SUPPORT
+ 	depends on RFKILL || RFKILL=n
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	help
+-- 
+2.19.0
