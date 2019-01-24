@@ -1,199 +1,187 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [alsa-devel] [RFT][PATCH v2] gpiolib: acpi: Introduce
- ACPI_GPIO_QUIRK_ONLY_GPIOIO
-Date: Thu, 24 Jan 2019 13:18:40 +0100
-Message-ID: <e5e54be2-7be1-9496-b455-336e9edfb406@redhat.com>
-References: <20190109105245.25954-1-andriy.shevchenko@linux.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has
+ unreliable ACPI wake
+Date: Thu, 24 Jan 2019 09:15:24 -0600
+Message-ID: <20190124151524.GF14636@google.com>
+References: <20190122064544.27426-1-kai.heng.feng@canonical.com>
+ <20190122235134.GE14636@google.com>
+ <91E74111-5BB6-4604-A1D7-B537AB42C317@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190109105245.25954-1-andriy.shevchenko@linux.intel.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <91E74111-5BB6-4604-A1D7-B537AB42C317@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+To: Kai Heng Feng <kai.heng.feng@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 09-01-19 11:52, Andy Shevchenko wrote:
-> New quirk enforces search for GPIO based on its type,
-> i.e. iterate over GpioIo resources only.
+On Wed, Jan 23, 2019 at 03:17:37PM +0800, Kai Heng Feng wrote:
+> > On Jan 23, 2019, at 7:51 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > On Tue, Jan 22, 2019 at 02:45:44PM +0800, Kai-Heng Feng wrote:
+> >> There are some e1000e devices can only be woken up from D3 one time, by
+> >> plugging ethernet cable. Subsequent cable plugging does set PME bit
+> >> correctly, but it still doesn't get woken up.
+> >> 
+> >> Since e1000e connects to the root complex directly, we rely on ACPI to
+> >> wake it up. In this case, the GPE from _PRW only works once and stops
+> >> working after that.
+> >> 
+> >> So introduce a new PCI quirk, to avoid clearing pme_poll flag for buggy
+> >> platform firmwares that have unreliable GPE wake.
+> > 
+> > This quirk applies to all 0x15bb (E1000_DEV_ID_PCH_CNP_I219_LM7) and
+> > 0x15bd (E1000_DEV_ID_PCH_CNP_I219_LM6) devices.  The e1000e driver
+> > claims about a zillion different device IDs.
+> > 
+> > I would be surprised if these two devices are defective but all the
+> > others work correctly.  Could it be that there is a problem with the
+> > wiring on this particular motherboard or with the ACPI _PRW methods
+> > (or the way Linux interprets them) in this firmware?
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
+> If this is a motherboard issue or platform specific, do you prefer to use
+> DMI matches here?
+
+I'm not sure what the problem is yet, so let's hold off on the exact
+structure of the fix.
+
+If I understand correctly, e1000e wakeup works once, but doesn't work
+after that.  Your lspci (from after that first wakeup, from
+https://bugzilla.kernel.org/attachment.cgi?id=280691) shows this:
+
+  00:14.0 XHC  XHCI USB
+    Flags: PMEClk- DSI- D1- D2- ... PME(D0-,D1-,D2-,D3hot+,D3cold+)
+    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=0 PME-
+  00:1f.3 HDAS audio
+    Flags: PMEClk- DSI- D1- D2- ... PME(D0-,D1-,D2-,D3hot+,D3cold+)
+    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=0 PME-
+  00:1f.6 GLAN e1000e
+    Flags: PMEClk- DSI+ D1- D2- ... PME(D0+,D1-,D2-,D3hot+,D3cold+)
+    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=1 PME+
+
+So the e1000e PME_Status bit is still set, which means it probably
+won't generate another PME interrupt, which would explain why wakeup
+doesn't work.  To test this theory, can you try this:
+
+  - sleep
+  - wakeup via e1000e
+  # DEV=00:1f.6
+  # lspci -vvs $DEV
+  # setpci -s $DEV CAP_PM+4.W
+  # setpci -s $DEV CAP_PM+4.W=0x8100
+  - sleep
+  - attempt another wakeup via e1000e
+
+If this second wakeup works, it would suggest that PME_Status isn't
+being cleared correctly.  I see code, e.g., in
+acpi_setup_gpe_for_wake(), that *looks* like it would arrange to clear
+it, but I'm not very familiar with it.  Maybe there's some issue with
+multiple devices sharing an "implicit notification" situation like
+this.
+
+> As for _PRW, it’s shared by USB controller, Audio controller and ethernet.
+> Only the ethernet (e1000e) has this issue.
 > 
-> - it was sent few weeks ago to Hans for testing, but better to re-test
-
-I've just re-tested this on a device which uses the speaker-enable
-GPIO with a rt5651 codec, still works as advertised:
-
-Tested-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
-
-
-
-> - it's supposed to go via ASoC subsystem due to recent changes made for
->    sound driver
+> When this issue happens, the e1000e doesn’t get woken up by ethernet cable
+> plugging, but inserting a USB device or plugging audio jack can wake up all
+> three devices. So I think Linux interprets ACPI correctly here.
 > 
-> v2:
-> - Expand explanation why this quirk might be needed (Mika)
+> Their _PRW here:
+> USB controller:
+>     Scope (_SB.PCI0)                       
+>     {                                      
+>         Device (XDCI)                            
+>         {                    
+>             Method (_PRW, 0, NotSerialized)  // _PRW: Power Resources for Wake
+>             {            
+>                 Return (GPRW (0x6D, 0x04))
+>             } 
 > 
->   drivers/gpio/gpiolib-acpi.c           | 15 ++++--
->   include/linux/acpi.h                  |  7 +++
->   sound/soc/intel/boards/bytcr_rt5651.c | 74 ++++-----------------------
->   3 files changed, 27 insertions(+), 69 deletions(-)
+> Audio controller:
+> Scope (_SB.PCI0)                                                                                           
+>     {                                                                                                          
+>         Device (HDAS)                                  
+>         {                                                                             
+>             …         
+>             Method (_PRW, 0, NotSerialized)  // _PRW: Power Resources for Wake                 
+>             {                                        
+>                 Return (GPRW (0x6D, 0x04))           
+>             }                                  
 > 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 259cf6ab969b..4d291b75cb9f 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -530,17 +530,24 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
->   	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
->   		return 1;
->   
-> -	if (lookup->n++ == lookup->index && !lookup->desc) {
-> +	if (!lookup->desc) {
->   		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
-> -		int pin_index = lookup->pin_index;
-> +		bool gpioint = agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-> +		int pin_index;
->   
-> +		if (lookup->info.quirks & ACPI_GPIO_QUIRK_ONLY_GPIOIO && gpioint)
-> +			lookup->index++;
-> +
-> +		if (lookup->n++ != lookup->index)
-> +			return 1;
-> +
-> +		pin_index = lookup->pin_index;
->   		if (pin_index >= agpio->pin_table_length)
->   			return 1;
->   
->   		lookup->desc = acpi_get_gpiod(agpio->resource_source.string_ptr,
->   					      agpio->pin_table[pin_index]);
-> -		lookup->info.gpioint =
-> -			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-> +		lookup->info.gpioint = gpioint;
->   
->   		/*
->   		 * Polarity and triggering are only specified for GpioInt
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 1e89c688139f..430fd0b6df7b 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1020,6 +1020,13 @@ struct acpi_gpio_mapping {
->   
->   /* Ignore IoRestriction field */
->   #define ACPI_GPIO_QUIRK_NO_IO_RESTRICTION	BIT(0)
-> +/*
-> + * When ACPI GPIO mapping table is in use the index parameter inside it
-> + * refers to the GPIO resource in _CRS method. That index has no
-> + * distinction of actual type of the resource. When consumer wants to
-> + * get GpioIo type explicitly, this quirk may be used.
-> + */
-> +#define ACPI_GPIO_QUIRK_ONLY_GPIOIO		BIT(1)
->   
->   	unsigned int quirks;
->   };
-> diff --git a/sound/soc/intel/boards/bytcr_rt5651.c b/sound/soc/intel/boards/bytcr_rt5651.c
-> index b618d984e2d5..99d0c01a1bec 100644
-> --- a/sound/soc/intel/boards/bytcr_rt5651.c
-> +++ b/sound/soc/intel/boards/bytcr_rt5651.c
-> @@ -844,74 +844,18 @@ static const struct x86_cpu_id cherrytrail_cpu_ids[] = {
->   	{}
->   };
->   
-> -static const struct acpi_gpio_params first_gpio = { 0, 0, false };
-> -static const struct acpi_gpio_params second_gpio = { 1, 0, false };
-> +static const struct acpi_gpio_params ext_amp_enable_gpios = { 0, 0, false };
->   
-> -static const struct acpi_gpio_mapping byt_rt5651_amp_en_first[] = {
-> -	{ "ext-amp-enable-gpios", &first_gpio, 1 },
-> -	{ },
-> -};
-> -
-> -static const struct acpi_gpio_mapping byt_rt5651_amp_en_second[] = {
-> -	{ "ext-amp-enable-gpios", &second_gpio, 1 },
-> +static const struct acpi_gpio_mapping cht_rt5651_gpios[] = {
-> +	/*
-> +	 * Some boards have I2cSerialBusV2, GpioIo, GpioInt as ACPI resources,
-> +	 * other boards may  have I2cSerialBusV2, GpioInt, GpioIo instead.
-> +	 * We want the GpioIo one for the ext-amp-enable-gpio.
-> +	 */
-> +	{ "ext-amp-enable-gpios", &ext_amp_enable_gpios, 1, ACPI_GPIO_QUIRK_ONLY_GPIOIO },
->   	{ },
->   };
->   
-> -/*
-> - * Some boards have I2cSerialBusV2, GpioIo, GpioInt as ACPI resources, other
-> - * boards may  have I2cSerialBusV2, GpioInt, GpioIo instead. We want the
-> - * GpioIo one for the ext-amp-enable-gpio and both count for the index in
-> - * acpi_gpio_params index.  So we have 2 different mappings and the code
-> - * below figures out which one to use.
-> - */
-> -struct byt_rt5651_acpi_resource_data {
-> -	int gpio_count;
-> -	int gpio_int_idx;
-> -};
-> -
-> -static int snd_byt_rt5651_acpi_resource(struct acpi_resource *ares, void *arg)
-> -{
-> -	struct byt_rt5651_acpi_resource_data *data = arg;
-> -
-> -	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
-> -		return 0;
-> -
-> -	if (ares->data.gpio.connection_type == ACPI_RESOURCE_GPIO_TYPE_INT)
-> -		data->gpio_int_idx = data->gpio_count;
-> -
-> -	data->gpio_count++;
-> -	return 0;
-> -}
-> -
-> -static void snd_byt_rt5651_mc_pick_amp_en_gpio_mapping(struct device *codec)
-> -{
-> -	struct byt_rt5651_acpi_resource_data data = { 0, -1 };
-> -	LIST_HEAD(resources);
-> -	int ret;
-> -
-> -	ret = acpi_dev_get_resources(ACPI_COMPANION(codec), &resources,
-> -				     snd_byt_rt5651_acpi_resource, &data);
-> -	if (ret < 0) {
-> -		dev_warn(codec, "Failed to get ACPI resources, not adding external amplifier GPIO mapping\n");
-> -		return;
-> -	}
-> -
-> -	/* All info we need is gathered during the walk */
-> -	acpi_dev_free_resource_list(&resources);
-> -
-> -	switch (data.gpio_int_idx) {
-> -	case 0:
-> -		byt_rt5651_gpios = byt_rt5651_amp_en_second;
-> -		break;
-> -	case 1:
-> -		byt_rt5651_gpios = byt_rt5651_amp_en_first;
-> -		break;
-> -	default:
-> -		dev_warn(codec, "Unknown GpioInt index %d, not adding external amplifier GPIO mapping\n",
-> -			 data.gpio_int_idx);
-> -	}
-> -}
-> -
->   struct acpi_chan_package {   /* ACPICA seems to require 64 bit integers */
->   	u64 aif_value;       /* 1: AIF1, 2: AIF2 */
->   	u64 mclock_value;    /* usually 25MHz (0x17d7940), ignored */
-> @@ -1037,7 +981,7 @@ static int snd_byt_rt5651_mc_probe(struct platform_device *pdev)
->   
->   	/* Cherry Trail devices use an external amplifier enable gpio */
->   	if (x86_match_cpu(cherrytrail_cpu_ids) && !byt_rt5651_gpios)
-> -		snd_byt_rt5651_mc_pick_amp_en_gpio_mapping(codec_dev);
-> +		byt_rt5651_gpios = cht_rt5651_gpios;
->   
->   	if (byt_rt5651_gpios) {
->   		devm_acpi_dev_add_driver_gpios(codec_dev, byt_rt5651_gpios);
+> Ethernet controller:
+>     Scope (_SB.PCI0)                                                                     
+>     {                                                                     
+>         Device (GLAN)                                                  
+>         {                                                                            
+>            …
+>             Method (_PRW, 0, NotSerialized)  // _PRW: Power Resources for Wake                 
+>             {                                        
+>                 Return (GPRW (0x6D, 0x04))                       
+>             }                                                              
+>         }                                                             
+>     }  
 > 
+> 
+> > 
+> > Would you mind attaching a complete dmesg log and "sudo lspci -vvv"
+> > output to the bugzilla, please?
+> 
+> Sure.
+> 
+> Kai-Heng
+> 
+> > 
+> >> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> >> ---
+> >> drivers/pci/pci-acpi.c | 2 +-
+> >> drivers/pci/quirks.c   | 8 ++++++++
+> >> include/linux/pci.h    | 1 +
+> >> 3 files changed, 10 insertions(+), 1 deletion(-)
+> >> 
+> >> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> >> index e1949f7efd9c..184e2fc8a294 100644
+> >> --- a/drivers/pci/pci-acpi.c
+> >> +++ b/drivers/pci/pci-acpi.c
+> >> @@ -430,7 +430,7 @@ static void pci_acpi_wake_dev(struct acpi_device_wakeup_context *context)
+> >> 
+> >> 	pci_dev = to_pci_dev(context->dev);
+> >> 
+> >> -	if (pci_dev->pme_poll)
+> >> +	if (pci_dev->pme_poll && !pci_dev->unreliable_acpi_wake)
+> >> 		pci_dev->pme_poll = false;
+> >> 
+> >> 	if (pci_dev->current_state == PCI_D3cold) {
+> >> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+> >> index b0a413f3f7ca..ed4863496fa8 100644
+> >> --- a/drivers/pci/quirks.c
+> >> +++ b/drivers/pci/quirks.c
+> >> @@ -4948,6 +4948,14 @@ DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_AMD, PCI_ANY_ID,
+> >> DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
+> >> 			      PCI_CLASS_MULTIMEDIA_HD_AUDIO, 8, quirk_gpu_hda);
+> >> 
+> >> +static void quirk_unreliable_acpi_wake(struct pci_dev *pdev)
+> >> +{
+> >> +	pci_info(pdev, "ACPI Wake unreliable, always poll PME\n");
+> >> +	pdev->unreliable_acpi_wake = 1;
+> >> +}
+> >> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bb, quirk_unreliable_acpi_wake);
+> >> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bd, quirk_unreliable_acpi_wake);
+> >> +
+> >> /*
+> >>  * Some IDT switches incorrectly flag an ACS Source Validation error on
+> >>  * completions for config read requests even though PCIe r4.0, sec
+> >> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> >> index 65f1d8c2f082..d22065c1576f 100644
+> >> --- a/include/linux/pci.h
+> >> +++ b/include/linux/pci.h
+> >> @@ -331,6 +331,7 @@ struct pci_dev {
+> >> 	unsigned int	pme_support:5;	/* Bitmask of states from which PME#
+> >> 					   can be generated */
+> >> 	unsigned int	pme_poll:1;	/* Poll device's PME status bit */
+> >> +	unsigned int	unreliable_acpi_wake:1;	/* ACPI Wake doesn't always work */
+> >> 	unsigned int	d1_support:1;	/* Low power state D1 is supported */
+> >> 	unsigned int	d2_support:1;	/* Low power state D2 is supported */
+> >> 	unsigned int	no_d1d2:1;	/* D1 and D2 are forbidden */
+> >> -- 
+> >> 2.17.1
