@@ -1,203 +1,234 @@
-From: Kai Heng Feng <kai.heng.feng@canonical.com>
-Subject: Re: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has
- unreliable ACPI wake
-Date: Thu, 24 Jan 2019 23:29:37 +0800
-Message-ID: <FFC6EC3F-3608-41FC-8B14-815D1747C4B6@canonical.com>
-References: <20190122064544.27426-1-kai.heng.feng@canonical.com>
- <20190122235134.GE14636@google.com>
- <91E74111-5BB6-4604-A1D7-B537AB42C317@canonical.com>
- <20190124151524.GF14636@google.com>
-Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v5 1/4] acpi: arm64: add iort support for PMCG
+Date: Thu, 24 Jan 2019 17:31:23 +0000
+Message-ID: <0f7d81a3-58d3-b7c9-cf72-0583191fa536@arm.com>
+References: <20181130154751.28580-1-shameerali.kolothum.thodi@huawei.com>
+ <20181130154751.28580-2-shameerali.kolothum.thodi@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190124151524.GF14636@google.com>
+In-Reply-To: <20181130154751.28580-2-shameerali.kolothum.thodi@huawei.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com
+Cc: jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-> On Jan 24, 2019, at 11:15 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+On 30/11/2018 15:47, Shameer Kolothum wrote:
+> From: Neil Leeder <nleeder@codeaurora.org>
 > 
-> On Wed, Jan 23, 2019 at 03:17:37PM +0800, Kai Heng Feng wrote:
->>> On Jan 23, 2019, at 7:51 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->>> On Tue, Jan 22, 2019 at 02:45:44PM +0800, Kai-Heng Feng wrote:
->>>> There are some e1000e devices can only be woken up from D3 one time, by
->>>> plugging ethernet cable. Subsequent cable plugging does set PME bit
->>>> correctly, but it still doesn't get woken up.
->>>> 
->>>> Since e1000e connects to the root complex directly, we rely on ACPI to
->>>> wake it up. In this case, the GPE from _PRW only works once and stops
->>>> working after that.
->>>> 
->>>> So introduce a new PCI quirk, to avoid clearing pme_poll flag for buggy
->>>> platform firmwares that have unreliable GPE wake.
->>> 
->>> This quirk applies to all 0x15bb (E1000_DEV_ID_PCH_CNP_I219_LM7) and
->>> 0x15bd (E1000_DEV_ID_PCH_CNP_I219_LM6) devices.  The e1000e driver
->>> claims about a zillion different device IDs.
->>> 
->>> I would be surprised if these two devices are defective but all the
->>> others work correctly.  Could it be that there is a problem with the
->>> wiring on this particular motherboard or with the ACPI _PRW methods
->>> (or the way Linux interprets them) in this firmware?
->> 
->> If this is a motherboard issue or platform specific, do you prefer to use
->> DMI matches here?
+> Add support for the SMMU Performance Monitor Counter Group
+> information from ACPI. This is in preparation for its use
+> in the SMMUv3 PMU driver.
 > 
-> I'm not sure what the problem is yet, so let's hold off on the exact
-> structure of the fix.
+> Signed-off-by: Neil Leeder <nleeder@codeaurora.org>
+> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> ---
+>   drivers/acpi/arm64/iort.c | 97 +++++++++++++++++++++++++++++++++++++----------
+>   1 file changed, 76 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 2a361e2..2da08e1 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -356,7 +356,8 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>   	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>   		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+>   		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
+> -		    node->type == ACPI_IORT_NODE_SMMU_V3) {
+> +		    node->type == ACPI_IORT_NODE_SMMU_V3 ||
+> +		    node->type == ACPI_IORT_NODE_PMCG) {
+>   			*id_out = map->output_base;
+>   			return parent;
+>   		}
+> @@ -394,6 +395,8 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+>   		}
+>   
+>   		return smmu->id_mapping_index;
+> +	case ACPI_IORT_NODE_PMCG:
+> +		return 0;
+>   	default:
+>   		return -EINVAL;
+>   	}
+> @@ -1216,14 +1219,23 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
+>   	}
+>   }
+>   
+> -static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+> +static void __init arm_smmu_v3_dma_configure(struct device *dev,
+> +					     struct acpi_iort_node *node)
+>   {
+>   	struct acpi_iort_smmu_v3 *smmu;
+> +	enum dev_dma_attr attr;
+>   
+>   	/* Retrieve SMMUv3 specific data */
+>   	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>   
+> -	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+> +	attr = (smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE) ?
+> +			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
+> +
+> +	/* We expect the dma masks to be equivalent for all SMMUv3 set-ups */
+> +	dev->dma_mask = &dev->coherent_dma_mask;
+> +
+> +	/* Configure DMA for the page table walker */
+> +	acpi_dma_configure(dev, attr);
+>   }
+>   
+>   #if defined(CONFIG_ACPI_NUMA)
+> @@ -1299,20 +1311,64 @@ static void __init arm_smmu_init_resources(struct resource *res,
+>   	}
+>   }
+>   
+> -static bool __init arm_smmu_is_coherent(struct acpi_iort_node *node)
+> +static void __init arm_smmu_dma_configure(struct device *dev,
+> +					  struct acpi_iort_node *node)
+>   {
+>   	struct acpi_iort_smmu *smmu;
+> +	enum dev_dma_attr attr;
+>   
+>   	/* Retrieve SMMU specific data */
+>   	smmu = (struct acpi_iort_smmu *)node->node_data;
+>   
+> -	return smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK;
+> +	attr = (smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK) ?
+> +			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
+> +
+> +	/* We expect the dma masks to be equivalent for SMMU set-ups */
+> +	dev->dma_mask = &dev->coherent_dma_mask;
+> +
+> +	/* Configure DMA for the page table walker */
+> +	acpi_dma_configure(dev, attr);
+> +}
+> +
+> +static int __init arm_smmu_v3_pmcg_count_resources(struct acpi_iort_node *node)
+> +{
+> +	struct acpi_iort_pmcg *pmcg;
+> +
+> +	/* Retrieve PMCG specific data */
+> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
+> +
+> +	/*
+> +	 * There are always 2 memory resources.
+> +	 * If the overflow_gsiv is present then add that for a total of 3.
+> +	 */
+> +	return pmcg->overflow_gsiv ? 3 : 2;
+> +}
+> +
+> +static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
+> +					       struct acpi_iort_node *node)
+> +{
+> +	struct acpi_iort_pmcg *pmcg;
+> +
+> +	/* Retrieve PMCG specific data */
+> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
+> +
+> +	res[0].start = pmcg->page0_base_address;
+> +	res[0].end = pmcg->page0_base_address + SZ_4K - 1;
+> +	res[0].flags = IORESOURCE_MEM;
+> +	res[1].start = pmcg->page1_base_address;
+> +	res[1].end = pmcg->page1_base_address + SZ_4K - 1;
+> +	res[1].flags = IORESOURCE_MEM;
+> +
+> +	if (pmcg->overflow_gsiv)
+> +		acpi_iort_register_irq(pmcg->overflow_gsiv, "overflow",
+> +				       ACPI_EDGE_SENSITIVE, &res[2]);
+>   }
+>   
+>   struct iort_dev_config {
+>   	const char *name;
+>   	int (*dev_init)(struct acpi_iort_node *node);
+> -	bool (*dev_is_coherent)(struct acpi_iort_node *node);
+> +	void (*dev_dma_configure)(struct device *dev,
+> +				    struct acpi_iort_node *node);
+>   	int (*dev_count_resources)(struct acpi_iort_node *node);
+>   	void (*dev_init_resources)(struct resource *res,
+>   				     struct acpi_iort_node *node);
+> @@ -1322,7 +1378,7 @@ struct iort_dev_config {
+>   
+>   static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
+>   	.name = "arm-smmu-v3",
+> -	.dev_is_coherent = arm_smmu_v3_is_coherent,
+> +	.dev_dma_configure = arm_smmu_v3_dma_configure,
+>   	.dev_count_resources = arm_smmu_v3_count_resources,
+>   	.dev_init_resources = arm_smmu_v3_init_resources,
+>   	.dev_set_proximity = arm_smmu_v3_set_proximity,
+> @@ -1330,19 +1386,28 @@ static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
+>   
+>   static const struct iort_dev_config iort_arm_smmu_cfg __initconst = {
+>   	.name = "arm-smmu",
+> -	.dev_is_coherent = arm_smmu_is_coherent,
+> +	.dev_dma_configure = arm_smmu_dma_configure,
+>   	.dev_count_resources = arm_smmu_count_resources,
+> -	.dev_init_resources = arm_smmu_init_resources
+> +	.dev_init_resources = arm_smmu_init_resources,
+> +};
+> +
+> +static const struct iort_dev_config iort_arm_smmu_v3_pmcg_cfg __initconst = {
+> +	.name = "arm-smmu-v3-pmu",
 
-I think DMI table can put in e1000e driver instead of PCI quirk.
+Nit: s/pmu/pmcg/ for consistency, I think.
 
-> 
-> If I understand correctly, e1000e wakeup works once, but doesn't work
-> after that.  Your lspci (from after that first wakeup, from
-> https://bugzilla.kernel.org/attachment.cgi?id=280691) shows this:
-> 
->  00:14.0 XHC  XHCI USB
->    Flags: PMEClk- DSI- D1- D2- ... PME(D0-,D1-,D2-,D3hot+,D3cold+)
->    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=0 PME-
->  00:1f.3 HDAS audio
->    Flags: PMEClk- DSI- D1- D2- ... PME(D0-,D1-,D2-,D3hot+,D3cold+)
->    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=0 PME-
->  00:1f.6 GLAN e1000e
->    Flags: PMEClk- DSI+ D1- D2- ... PME(D0+,D1-,D2-,D3hot+,D3cold+)
->    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=1 PME+
-> 
-> So the e1000e PME_Status bit is still set, which means it probably
-> won't generate another PME interrupt, which would explain why wakeup
-> doesn't work.  To test this theory, can you try this:
-> 
->  - sleep
->  - wakeup via e1000e
->  # DEV=00:1f.6
->  # lspci -vvs $DEV
->  # setpci -s $DEV CAP_PM+4.W
->  # setpci -s $DEV CAP_PM+4.W=0x8100
->  - sleep
->  - attempt another wakeup via e1000e
-> 
-> If this second wakeup works, it would suggest that PME_Status isn't
-> being cleared correctly.  I see code, e.g., in
-> acpi_setup_gpe_for_wake(), that *looks* like it would arrange to clear
-> it, but I'm not very familiar with it.  Maybe there's some issue with
-> multiple devices sharing an "implicit notification" situation like
-> this.
+> +	.dev_count_resources = arm_smmu_v3_pmcg_count_resources,
+> +	.dev_init_resources = arm_smmu_v3_pmcg_init_resources,
+>   };
+>   
+>   static __init const struct iort_dev_config *iort_get_dev_cfg(
+>   			struct acpi_iort_node *node)
+>   {
+> +
 
-The PME status is being cleared correctly.
+Nit: spurious newline.
 
-The lspci is captured after I plugged the ethernet cable second time,
-i.e. PME is set but not being woken up.
+Otherwise,
 
-Kai-Heng
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
 
+>   	switch (node->type) {
+>   	case ACPI_IORT_NODE_SMMU_V3:
+>   		return &iort_arm_smmu_v3_cfg;
+>   	case ACPI_IORT_NODE_SMMU:
+>   		return &iort_arm_smmu_cfg;
+> +	case ACPI_IORT_NODE_PMCG:
+> +		return &iort_arm_smmu_v3_pmcg_cfg;
+>   	default:
+>   		return NULL;
+>   	}
+> @@ -1360,7 +1425,6 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>   	struct fwnode_handle *fwnode;
+>   	struct platform_device *pdev;
+>   	struct resource *r;
+> -	enum dev_dma_attr attr;
+>   	int ret, count;
+>   
+>   	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
+> @@ -1398,12 +1462,6 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>   	if (ret)
+>   		goto dev_put;
+>   
+> -	/*
+> -	 * We expect the dma masks to be equivalent for
+> -	 * all SMMUs set-ups
+> -	 */
+> -	pdev->dev.dma_mask = &pdev->dev.coherent_dma_mask;
+> -
+>   	fwnode = iort_get_fwnode(node);
+>   
+>   	if (!fwnode) {
+> @@ -1413,11 +1471,8 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>   
+>   	pdev->dev.fwnode = fwnode;
+>   
+> -	attr = ops->dev_is_coherent && ops->dev_is_coherent(node) ?
+> -			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
+> -
+> -	/* Configure DMA for the page table walker */
+> -	acpi_dma_configure(&pdev->dev, attr);
+> +	if (ops->dev_dma_configure)
+> +		ops->dev_dma_configure(&pdev->dev, node);
+>   
+>   	iort_set_device_domain(&pdev->dev, node);
+>   
 > 
->> As for _PRW, it’s shared by USB controller, Audio controller and ethernet.
->> Only the ethernet (e1000e) has this issue.
->> 
->> When this issue happens, the e1000e doesn’t get woken up by ethernet cable
->> plugging, but inserting a USB device or plugging audio jack can wake up all
->> three devices. So I think Linux interprets ACPI correctly here.
->> 
->> Their _PRW here:
->> USB controller:
->>    Scope (_SB.PCI0)                       
->>    {                                      
->>        Device (XDCI)                            
->>        {                    
->>            Method (_PRW, 0, NotSerialized)  // _PRW: Power Resources for Wake
->>            {            
->>                Return (GPRW (0x6D, 0x04))
->>            } 
->> 
->> Audio controller:
->> Scope (_SB.PCI0)                                                                                           
->>    {                                                                                                          
->>        Device (HDAS)                                  
->>        {                                                                             
->>            …         
->>            Method (_PRW, 0, NotSerialized)  // _PRW: Power Resources for Wake                 
->>            {                                        
->>                Return (GPRW (0x6D, 0x04))           
->>            }                                  
->> 
->> Ethernet controller:
->>    Scope (_SB.PCI0)                                                                     
->>    {                                                                     
->>        Device (GLAN)                                                  
->>        {                                                                            
->>           …
->>            Method (_PRW, 0, NotSerialized)  // _PRW: Power Resources for Wake                 
->>            {                                        
->>                Return (GPRW (0x6D, 0x04))                       
->>            }                                                              
->>        }                                                             
->>    }  
->> 
->> 
->>> 
->>> Would you mind attaching a complete dmesg log and "sudo lspci -vvv"
->>> output to the bugzilla, please?
->> 
->> Sure.
->> 
->> Kai-Heng
->> 
->>> 
->>>> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
->>>> ---
->>>> drivers/pci/pci-acpi.c | 2 +-
->>>> drivers/pci/quirks.c   | 8 ++++++++
->>>> include/linux/pci.h    | 1 +
->>>> 3 files changed, 10 insertions(+), 1 deletion(-)
->>>> 
->>>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->>>> index e1949f7efd9c..184e2fc8a294 100644
->>>> --- a/drivers/pci/pci-acpi.c
->>>> +++ b/drivers/pci/pci-acpi.c
->>>> @@ -430,7 +430,7 @@ static void pci_acpi_wake_dev(struct acpi_device_wakeup_context *context)
->>>> 
->>>> 	pci_dev = to_pci_dev(context->dev);
->>>> 
->>>> -	if (pci_dev->pme_poll)
->>>> +	if (pci_dev->pme_poll && !pci_dev->unreliable_acpi_wake)
->>>> 		pci_dev->pme_poll = false;
->>>> 
->>>> 	if (pci_dev->current_state == PCI_D3cold) {
->>>> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
->>>> index b0a413f3f7ca..ed4863496fa8 100644
->>>> --- a/drivers/pci/quirks.c
->>>> +++ b/drivers/pci/quirks.c
->>>> @@ -4948,6 +4948,14 @@ DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_AMD, PCI_ANY_ID,
->>>> DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
->>>> 			      PCI_CLASS_MULTIMEDIA_HD_AUDIO, 8, quirk_gpu_hda);
->>>> 
->>>> +static void quirk_unreliable_acpi_wake(struct pci_dev *pdev)
->>>> +{
->>>> +	pci_info(pdev, "ACPI Wake unreliable, always poll PME\n");
->>>> +	pdev->unreliable_acpi_wake = 1;
->>>> +}
->>>> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bb, quirk_unreliable_acpi_wake);
->>>> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x15bd, quirk_unreliable_acpi_wake);
->>>> +
->>>> /*
->>>> * Some IDT switches incorrectly flag an ACS Source Validation error on
->>>> * completions for config read requests even though PCIe r4.0, sec
->>>> diff --git a/include/linux/pci.h b/include/linux/pci.h
->>>> index 65f1d8c2f082..d22065c1576f 100644
->>>> --- a/include/linux/pci.h
->>>> +++ b/include/linux/pci.h
->>>> @@ -331,6 +331,7 @@ struct pci_dev {
->>>> 	unsigned int	pme_support:5;	/* Bitmask of states from which PME#
->>>> 					   can be generated */
->>>> 	unsigned int	pme_poll:1;	/* Poll device's PME status bit */
->>>> +	unsigned int	unreliable_acpi_wake:1;	/* ACPI Wake doesn't always work */
->>>> 	unsigned int	d1_support:1;	/* Low power state D1 is supported */
->>>> 	unsigned int	d2_support:1;	/* Low power state D2 is supported */
->>>> 	unsigned int	no_d1d2:1;	/* D1 and D2 are forbidden */
->>>> -- 
->>>> 2.17.1
