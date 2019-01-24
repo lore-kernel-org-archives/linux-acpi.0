@@ -1,194 +1,46 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has
- unreliable ACPI wake
-Date: Thu, 24 Jan 2019 14:05:09 -0600
-Message-ID: <20190124200508.GH14636@google.com>
-References: <20190122064544.27426-1-kai.heng.feng@canonical.com>
- <20190122235134.GE14636@google.com>
- <91E74111-5BB6-4604-A1D7-B537AB42C317@canonical.com>
- <20190124151524.GF14636@google.com>
- <FFC6EC3F-3608-41FC-8B14-815D1747C4B6@canonical.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: [for next][PATCH v3 2/2] platform/x86: Fix unmet dependency warning for SAMSUNG_Q10
+Date: Thu, 24 Jan 2019 19:31:01 +0000
+Message-ID: <20190124193101.24519-2-okaya@kernel.org>
+References: <20190124193101.24519-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <FFC6EC3F-3608-41FC-8B14-815D1747C4B6@canonical.com>
+In-Reply-To: <20190124193101.24519-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kai Heng Feng <kai.heng.feng@canonical.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-next@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 24, 2019 at 11:29:37PM +0800, Kai Heng Feng wrote:
-> > On Jan 24, 2019, at 11:15 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Wed, Jan 23, 2019 at 03:17:37PM +0800, Kai Heng Feng wrote:
-> >>> On Jan 23, 2019, at 7:51 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> >>> On Tue, Jan 22, 2019 at 02:45:44PM +0800, Kai-Heng Feng wrote:
-> >>>> There are some e1000e devices can only be woken up from D3 one time, by
-> >>>> plugging ethernet cable. Subsequent cable plugging does set PME bit
-> >>>> correctly, but it still doesn't get woken up.
-> >>>> 
-> >>>> Since e1000e connects to the root complex directly, we rely on ACPI to
-> >>>> wake it up. In this case, the GPE from _PRW only works once and stops
-> >>>> working after that.
-> >>>> 
-> >>>> So introduce a new PCI quirk, to avoid clearing pme_poll flag for buggy
-> >>>> platform firmwares that have unreliable GPE wake.
-> >>> 
-> >>> This quirk applies to all 0x15bb (E1000_DEV_ID_PCH_CNP_I219_LM7) and
-> >>> 0x15bd (E1000_DEV_ID_PCH_CNP_I219_LM6) devices.  The e1000e driver
-> >>> claims about a zillion different device IDs.
-> >>> 
-> >>> I would be surprised if these two devices are defective but all the
-> >>> others work correctly.  Could it be that there is a problem with the
-> >>> wiring on this particular motherboard or with the ACPI _PRW methods
-> >>> (or the way Linux interprets them) in this firmware?
-> >> 
-> >> If this is a motherboard issue or platform specific, do you prefer to use
-> >> DMI matches here?
-> > 
-> > I'm not sure what the problem is yet, so let's hold off on the exact
-> > structure of the fix.
-> 
-> I think DMI table can put in e1000e driver instead of PCI quirk.
+Add BACKLIGHT_LCD_SUPPORT for SAMSUNG_Q10 to fix the
+warning: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE.
 
-I don't think we should add a quirk or DMI table yet because we
-haven't gotten to the root cause of this problem.  If the root cause
-is a problem in the Linux code, adding a quirk will mask the problem
-for this specific system, but will leave other systems with similar
-problems.
+SAMSUNG_Q10 selects BACKLIGHT_CLASS_DEVICE but BACKLIGHT_CLASS_DEVICE
+depends on BACKLIGHT_LCD_SUPPORT.
 
-> > If I understand correctly, e1000e wakeup works once, but doesn't work
-> > after that.  Your lspci (from after that first wakeup, from
-> > https://bugzilla.kernel.org/attachment.cgi?id=280691) shows this:
-> > 
-> >  00:14.0 XHC  XHCI USB
-> >    Flags: PMEClk- DSI- D1- D2- ... PME(D0-,D1-,D2-,D3hot+,D3cold+)
-> >    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=0 PME-
-> >  00:1f.3 HDAS audio
-> >    Flags: PMEClk- DSI- D1- D2- ... PME(D0-,D1-,D2-,D3hot+,D3cold+)
-> >    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=0 PME-
-> >  00:1f.6 GLAN e1000e
-> >    Flags: PMEClk- DSI+ D1- D2- ... PME(D0+,D1-,D2-,D3hot+,D3cold+)
-> >    Status: D3 NoSoftRst+ PME-Enable+ DSel=0 DScale=1 PME+
-> > 
-> > So the e1000e PME_Status bit is still set, which means it probably
-> > won't generate another PME interrupt, which would explain why wakeup
-> > doesn't work.  To test this theory, can you try this:
-> > 
-> >  - sleep
-> >  - wakeup via e1000e
-> >  # DEV=00:1f.6
-> >  # lspci -vvs $DEV
-> >  # setpci -s $DEV CAP_PM+4.W
-> >  # setpci -s $DEV CAP_PM+4.W=0x8100
-> >  - sleep
-> >  - attempt another wakeup via e1000e
-> > 
-> > If this second wakeup works, it would suggest that PME_Status isn't
-> > being cleared correctly.  I see code, e.g., in
-> > acpi_setup_gpe_for_wake(), that *looks* like it would arrange to clear
-> > it, but I'm not very familiar with it.  Maybe there's some issue with
-> > multiple devices sharing an "implicit notification" situation like
-> > this.
-> 
-> The PME status is being cleared correctly.
+Copy BACKLIGHT_LCD_SUPPORT dependency into SAMSUNG_Q10 to fix:
 
-I was hoping to understand this better via the experiment above, but
-I'm still confused.  Here's the scenario as I understand it:
+WARNING: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE
+  Depends on [n]: HAS_IOMEM [=y] && BACKLIGHT_LCD_SUPPORT [=n]
+  Selected by [y]:
+  - SAMSUNG_Q10 [=y] && X86 [=y] && X86_PLATFORM_DEVICES [=y] && ACPI [=y]
 
-  0) fresh boot
-  1) e1000e PME_Status should be 0
-  2) sleep
-  3) wakeup via e1000e succeeds
-  4) e1000e PME_Status should be 0
-  5) sleep
-  6) wakeup via e1000e fails
-  7) wakeup via USB succeeds
-  8) e1000e PME_Status should be 0, but is actually 1
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/platform/x86/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-If I understand correctly, the bugzilla lspci
-(https://bugzilla.kernel.org/attachment.cgi?id=280691) was collected
-at point 8, and it shows PME_Status=1 when it should be 0.
-
-If we write a 1 to PME_Status to clear it, and it remains set, that's
-obviously a hardware defect, and Intel should document that in an
-erratum, and a quirk would be the appropriate way to work around it.
-But I doubt that's what's happening.
-
-If e1000e changes PME_Status from 0 to 1 and we don't get an interrupt
-(in this case, an SCI triggering GPE 0x6d), the problem is something
-in the path outside e1000e.  Since the wakeup works the first time, we
-know e1000e is *capable* of generating an interrupt, and the problem
-is probably something in the way we acknowledge it.
-
-I want to make sure we're executing the code that clears
-PCI_PM_CTRL_PME_STATUS.  Would you mind applying the patch below,
-turning on CONFIG_ACPI_DEBUG, booting with
-
-  acpi.debug_layer=0x00000004 acpi.debug_level=0x00000004
-
-and collecting the dmesg log?  I think you can also set these debug
-flags via /sys/module/acpi/parameters/debug_* if that's easier.
-
-> The lspci is captured after I plugged the ethernet cable second time,
-> i.e. PME is set but not being woken up.
-> 
-> Kai-Heng
-
-Bjorn
-
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index c9d8e3c837de..91a70ffdd3a1 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -1927,7 +1927,7 @@ void pcie_clear_root_pme_status(struct pci_dev *dev)
- bool pci_check_pme_status(struct pci_dev *dev)
- {
- 	int pmcsr_pos;
--	u16 pmcsr;
-+	u16 pmcsr, pmcsr_orig;
- 	bool ret = false;
- 
- 	if (!dev->pm_cap)
-@@ -1939,6 +1939,7 @@ bool pci_check_pme_status(struct pci_dev *dev)
- 		return false;
- 
- 	/* Clear PME status. */
-+	pmcsr_orig = pmcsr;
- 	pmcsr |= PCI_PM_CTRL_PME_STATUS;
- 	if (pmcsr & PCI_PM_CTRL_PME_ENABLE) {
- 		/* Disable PME to avoid interrupt flood. */
-@@ -1948,6 +1949,9 @@ bool pci_check_pme_status(struct pci_dev *dev)
- 
- 	pci_write_config_word(dev, pmcsr_pos, pmcsr);
- 
-+	pci_read_config_word(dev, pmcsr_pos, &pmcsr);
-+	pci_info(dev, "%s PM_CTRL %#06x -> %#06x\n", __func__, pmcsr_orig, pmcsr);
-+
- 	return ret;
- }
- 
-@@ -2027,18 +2031,22 @@ static void pci_pme_list_scan(struct work_struct *work)
- 
- static void __pci_pme_active(struct pci_dev *dev, bool enable)
- {
--	u16 pmcsr;
-+	u16 pmcsr, pmcsr_orig;
- 
- 	if (!dev->pme_support)
- 		return;
- 
- 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
-+	pmcsr_orig = pmcsr;
- 	/* Clear PME_Status by writing 1 to it and enable PME# */
- 	pmcsr |= PCI_PM_CTRL_PME_STATUS | PCI_PM_CTRL_PME_ENABLE;
- 	if (!enable)
- 		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
- 
- 	pci_write_config_word(dev, dev->pm_cap + PCI_PM_CTRL, pmcsr);
-+
-+	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
-+	pci_info(dev, "%s PM_CTRL %#06x -> %#06x\n", __func__, pmcsr_orig, pmcsr);
- }
- 
- /**
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 11810591840d..b5e9db85e881 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -1129,6 +1129,7 @@ config INTEL_OAKTRAIL
+ config SAMSUNG_Q10
+ 	tristate "Samsung Q10 Extras"
+ 	depends on ACPI
++	depends on BACKLIGHT_LCD_SUPPORT
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	---help---
+ 	  This driver provides support for backlight control on Samsung Q10
+-- 
+2.19.0
