@@ -1,229 +1,92 @@
-From: George Cherian <gcherianv@gmail.com>
-Subject: Re: [RFC PATCH] cpufreq / cppc: Work around for Hisilicon CPPC cpufreq
-Date: Fri, 25 Jan 2019 12:37:34 +0530
-Message-ID: <CABYS093CQdhNBb8KqfV+3FfNCGcgW7DE+KsQ=DAJnRFQq74Piw@mail.gmail.com>
-References: <1547722811-18052-1-git-send-email-wangxiongfeng2@huawei.com> <20190124065614.gnnwd6lhbyjiph2e@vireshk-i7>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v5 2/4] perf: add arm64 smmuv3 pmu driver
+Date: Fri, 25 Jan 2019 09:22:23 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83929A9FE@lhreml524-mbs.china.huawei.com>
+References: <20181130154751.28580-1-shameerali.kolothum.thodi@huawei.com>
+ <20181130154751.28580-3-shameerali.kolothum.thodi@huawei.com>
+ <20190122162351.GE8120@e119886-lin.cambridge.arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA83929855B@lhreml524-mbs.china.huawei.com>
+ <20190123121406.GH8120@e119886-lin.cambridge.arm.com>
+ <f83054eb-3fe3-0041-7a9f-6f7e58cea5c8@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190124065614.gnnwd6lhbyjiph2e@vireshk-i7>
+In-Reply-To: <f83054eb-3fe3-0041-7a9f-6f7e58cea5c8@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Xiongfeng Wang <wangxiongfeng2@huawei.com>, George Cherian <george.cherian@cavium.com>, Prashanth Prakash <pprakash@codeaurora.org>, robert.moore@intel.com, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, guohanjun@huawei.com
+To: Robin Murphy <robin.murphy@arm.com>, Andrew Murray <andrew.murray@arm.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, John Garry <john.garry@huawei.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Wang,
-
-On Thu, Jan 24, 2019 at 12:27 PM Viresh Kumar <viresh.kumar@linaro.org> wrote:
->
-> +George/Prashanth.
->
-> Guys please see if you have any objections to this patch. I am not
-> very familiar with this stuff and it would be good to get some
-> feedback from you guys.
->
-> @Rafael: Do you have any comments on this ?
->
-> On 17-01-19, 19:00, Xiongfeng Wang wrote:
-> > Hisilicon chips do not support delivered performance counter register
-> > and reference performance counter register. But the platform can
-> > calculate the real performance using its own method. This patch provide
-> > a workaround for this problem, and other platforms can also use this
-> > workaround framework. We reuse the desired performance register to
-> > store the real performance calculated by the platform. After the
-> > platform finished the frequency adjust, it gets the real performance and
-> > writes it into desired performance register. OS can use it to calculate
-> > the real frequency.
-Does your platform support Autonomous Selection mode?
-This register is not valid when autonomous mode is enabled. In such case
-how are you calculating the frequency?
-> >
-> > Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-> > ---
-> >  drivers/acpi/cppc_acpi.c       | 29 ++++++++++++++++++++
-> >  drivers/cpufreq/Kconfig.arm    |  7 +++++
-> >  drivers/cpufreq/cppc_cpufreq.c | 62 ++++++++++++++++++++++++++++++++++++++++++
-> >  include/acpi/cppc_acpi.h       |  4 +++
-> >  4 files changed, 102 insertions(+)
-> >
-> > diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> > index 217a782..0cdaf7e 100644
-> > --- a/drivers/acpi/cppc_acpi.c
-> > +++ b/drivers/acpi/cppc_acpi.c
-> > @@ -1050,6 +1050,35 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
-> >       return ret_val;
-> >  }
-> >
-> > +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
-> > +/*
-> > + * We reuse the desired performance register to store the real performance
-> > + * calculated by the platform.
-> > + */
-> > +u64 hisi_cppc_get_real_perf(unsigned int cpunum)
-> > +{
-> > +     int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
-> > +     struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
-> > +     struct cpc_register_resource *desired_reg;
-> > +     u64 desired_perf;
-> > +     int ret;
-> > +
-> > +     /*
-> > +      * Make sure the platform has finished the frequency adjust
-> > +      * and wrote the real performance in desired performance register
-> > +      */
-> > +     ret = check_pcc_chan(pcc_ss_id, false);
-> > +     if (ret)
-> > +             return 0;
-If there is a pending command in the channel then returning zero
-will give bogus frequency value. You may return the previous written value.
-> > +
-> > +     desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
-> > +     cpc_read(cpunum, desired_reg, &desired_perf);
-> > +
-> > +     return desired_perf;
-> > +}
-> > +EXPORT_SYMBOL_GPL(hisi_cppc_get_real_perf);
-> > +#endif
-> > +
-> >  /**
-> >   * cppc_get_perf_caps - Get a CPUs performance capabilities.
-> >   * @cpunum: CPU from which to get capabilities info.
-> > diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
-> > index 688f102..236bd07 100644
-> > --- a/drivers/cpufreq/Kconfig.arm
-> > +++ b/drivers/cpufreq/Kconfig.arm
-> > @@ -18,6 +18,13 @@ config ACPI_CPPC_CPUFREQ
-> >
-> >         If in doubt, say N.
-> >
-> > +config HISILICON_CPPC_CPUFREQ_WORKAROUND
-> > +     bool "Workaround for Hisilicon CPPC Cpufreq"
-> > +     default y
-> > +     depends on ACPI_CPPC_CPUFREQ && ARM64
-Do you really want this to be applied to all ARM64? or just only
-for affected HISI platforms?
-> > +     help
-> > +       This option enables a workaround for Hisilicon CPPC Cpufreq.
-> > +
-> >  config ARM_ARMADA_37XX_CPUFREQ
-> >       tristate "Armada 37xx CPUFreq support"
-> >       depends on ARCH_MVEBU && CPUFREQ_DT
-> > diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> > index fd25c21c..b910e84 100644
-> > --- a/drivers/cpufreq/cppc_cpufreq.c
-> > +++ b/drivers/cpufreq/cppc_cpufreq.c
-> > @@ -33,6 +33,13 @@
-> >  /* Offest in the DMI processor structure for the max frequency */
-> >  #define DMI_PROCESSOR_MAX_SPEED  0x14
-> >
-> > +struct cppc_get_rate_workaround_info {
-If your intention is to make a generic framework for future extensions
-then you might need to name it differently. Something like
-struct cppc_workaround_info, so that you can extend the same for any
-future workarounds.
-> > +     char oem_id[ACPI_OEM_ID_SIZE +1];
-> > +     char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-> > +     u32 oem_revision;
-> > +     unsigned int (*get)(unsigned int cpu);
-This can be  unsigned int (*get_rate)(unsigned int cpu);
-> > +};
-> > +
-> >  /*
-> >   * These structs contain information parsed from per CPU
-> >   * ACPI _CPC structures.
-> > @@ -357,6 +364,59 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpunum)
-> >       .name = "cppc_cpufreq",
-> >  };
-> >
-> > +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
-> > +/*
-> > + * When the platform does not support delivered performance counter or
-> > + * reference performance counter, it can calculate the performance using the
-> > + * platform specific mechanism. We reuse the desired performance register to
-> > + * store the real performance calculated by the platform.
-> > + */
-> > +static unsigned int hisi_cppc_cpufreq_get_rate(unsigned int cpunum)
-> > +{
-> > +     struct cppc_cpudata *cpu = all_cpu_data[cpunum];
-> > +     u64 desired_perf = hisi_cppc_get_real_perf(cpunum);
-> > +
-> > +     return cppc_cpufreq_perf_to_khz(cpu, desired_perf);
-> > +}
-> > +#endif
-> > +
-> > +static struct cppc_get_rate_workaround_info wa_info[] = {
-> > +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
-> > +     {
-> > +             .oem_id         = "HISI  ",
-> > +             .oem_table_id   = "HIP07   ",
-> > +             .oem_revision   = 0,
-> > +             .get = hisi_cppc_cpufreq_get_rate,
-> > +     },
-> > +     {
->
-> This should be:
->
->         }, {
->
-> > +             .oem_id         = "HISI  ",
-> > +             .oem_table_id   = "HIP08   ",
-> > +             .oem_revision   = 0,
-> > +             .get = hisi_cppc_cpufreq_get_rate,
-> > +     },
-> > +#endif
-> > +     {},
-> > +};
-> > +
-> > +static void cppc_check_get_rate_workaround(struct cpufreq_driver *cppc_cpufreq_driver)
-This function can be renamed to cppc_check_workaround to make it
-generic also can have a
-proper return value so that the caller can validate.
-> > +{
-> > +     struct acpi_table_header *tbl;
-> > +     acpi_status status = AE_OK;
-> > +     int i;
-> > +
-> > +     status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
-> > +     if (ACPI_FAILURE(status) || !tbl)
-> > +             return;
-> > +
-> > +     for (i = 0; i < ARRAY_SIZE(wa_info) - 1; i++) {
-> > +             if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
-> > +                 !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
-> > +                 wa_info[i].oem_revision == tbl->oem_revision) {
-> > +                     cppc_cpufreq_driver->get = wa_info[i].get;
-> > +                     return;
-> > +             }
-> > +     }
-> > +}
-> >  static int __init cppc_cpufreq_init(void)
-> >  {
-> >       int i, ret = 0;
-> > @@ -386,6 +446,8 @@ static int __init cppc_cpufreq_init(void)
-> >               goto out;
-> >       }
-> >
-> > +     cppc_check_get_rate_workaround(&cppc_cpufreq_driver);
-> > +
-> >       ret = cpufreq_register_driver(&cppc_cpufreq_driver);
-> >       if (ret)
-> >               goto out;
-> > diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> > index 4f34734..be7400b 100644
-> > --- a/include/acpi/cppc_acpi.h
-> > +++ b/include/acpi/cppc_acpi.h
-> > @@ -146,4 +146,8 @@ struct cppc_cpudata {
-> >  extern int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val);
-> >  extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
-> >
-> > +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
-> > +u64 hisi_cppc_get_real_perf(unsigned int cpunum);
-> > +#endif
-> > +
-> >  #endif /* _CPPC_ACPI_H*/
-> > --
-> > 1.7.12.4
->
-> --
-> viresh
--George
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
+YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDI0IEphbnVhcnkgMjAxOSAxODoy
+NQ0KPiBUbzogQW5kcmV3IE11cnJheSA8YW5kcmV3Lm11cnJheUBhcm0uY29tPjsgU2hhbWVlcmFs
+aSBLb2xvdGh1bSBUaG9kaQ0KPiA8c2hhbWVlcmFsaS5rb2xvdGh1bS50aG9kaUBodWF3ZWkuY29t
+Pg0KPiBDYzogbG9yZW56by5waWVyYWxpc2lAYXJtLmNvbTsgbWFyay5ydXRsYW5kQGFybS5jb207
+DQo+IHZraWxhcmlAY29kZWF1cm9yYS5vcmc7IG5laWwubS5sZWVkZXJAZ21haWwuY29tOw0KPiBq
+ZWFuLXBoaWxpcHBlLmJydWNrZXJAYXJtLmNvbTsgcGFiYmFAY29kZWF1cm9yYS5vcmc7IEpvaG4g
+R2FycnkNCj4gPGpvaG4uZ2FycnlAaHVhd2VpLmNvbT47IHdpbGwuZGVhY29uQGFybS5jb207IHJy
+dWlncm9rQGNvZGVhdXJvcmEub3JnOw0KPiBMaW51eGFybSA8bGludXhhcm1AaHVhd2VpLmNvbT47
+IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
+b3JnOyBHdW9oYW5qdW4gKEhhbmp1biBHdW8pDQo+IDxndW9oYW5qdW5AaHVhd2VpLmNvbT47IGxp
+bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENI
+IHY1IDIvNF0gcGVyZjogYWRkIGFybTY0IHNtbXV2MyBwbXUgZHJpdmVyDQo+IA0KPiBPbiAyMy8w
+MS8yMDE5IDEyOjE0LCBBbmRyZXcgTXVycmF5IHdyb3RlOg0KPiBbLi4uXQ0KPiA+Pj4+ICtzdGF0
+aWMgaW5saW5lIHZvaWQgc21tdV9wbXVfY291bnRlcl9zZXRfdmFsdWUoc3RydWN0IHNtbXVfcG11
+DQo+ID4+PiAqc21tdV9wbXUsDQo+ID4+Pj4gKwkJCQkJICAgICAgdTMyIGlkeCwgdTY0IHZhbHVl
+KQ0KPiA+Pj4+ICt7DQo+ID4+Pj4gKwlpZiAoc21tdV9wbXUtPmNvdW50ZXJfbWFzayAmIEJJVCgz
+MikpDQo+ID4+Pj4gKwkJd3JpdGVxKHZhbHVlLCBzbW11X3BtdS0+cmVsb2NfYmFzZSArDQo+IFNN
+TVVfUE1DR19FVkNOVFIoaWR4LA0KPiA+Pj4gOCkpOw0KPiA+Pj4+ICsJZWxzZQ0KPiA+Pj4+ICsJ
+CXdyaXRlbCh2YWx1ZSwgc21tdV9wbXUtPnJlbG9jX2Jhc2UgKw0KPiBTTU1VX1BNQ0dfRVZDTlRS
+KGlkeCwNCj4gPj4+IDQpKTsNCj4gPj4+DQo+ID4+PiBUaGUgYXJtNjQgSU8gbWFjcm9zIHVzZSBf
+X2ZvcmNlIHUzMiBhbmQgc28gaXQncyBwcm9iYWJseSBPSyB0byBwcm92aWRlIGENCj4gNjQNCj4g
+Pj4+IGJpdA0KPiA+Pj4gdmFsdWUgdG8gd3JpdGVsLiBCdXQgeW91IGNvdWxkIHVzZSBzb21ldGhp
+bmcgbGlrZSBsb3dlcl8zMl9iaXRzIGZvciBjbGFyaXR5Lg0KPiA+Pg0KPiA+PiBZZXMsIG1hY3Jv
+IHVzZXMgX19mb3JjZSB1MzIuIEkgd2lsbCBjaGFuZ2UgaXQgdG8gbWFrZSBpdCBtb3JlIGNsZWFy
+IHRob3VnaC4NCj4gDQo+IFRvIGJlIHBlZGFudGljLCB0aGUgZmlyc3QgY2FzdCB3aGljaCB0aGUg
+dmFsdWUgYWN0dWFsbHkgdW5kZXJnb2VzIGlzIHRvDQo+IChfX3UzMikgOykNCj4gDQo+IFVsdGlt
+YXRlbHksIF9fcmF3X3dyaXRlbCgpIHRha2VzIGEgdTMyLCBzbyBpbiB0aGF0IHNlbnNlIGl0J3Mg
+bmV2ZXIgYQ0KPiBwcm9ibGVtIHRvIHBhc3MgYSB1NjQsIHNpbmNlIHVuc2lnbmVkIHRydW5jYXRp
+b24gaXMgd2VsbC1kZWZpbmVkIGluIHRoZQ0KPiBDIHN0YW5kYXJkLiBUaGUgY2FzdGluZyBpbnZv
+bHZlZCBpbiB0aGUgSS9PIGFjY2Vzc29ycyBpcyBtb3N0bHkgYWJvdXQNCj4gZ29pbmcgdG8gYW4g
+ZW5kaWFuLXNwZWNpZmljIHR5cGUgYW5kIGJhY2sgYWdhaW4uDQo+IA0KPiBbLi4uXQ0KPiA+Pj4+
+ICtzdGF0aWMgdm9pZCBzbW11X3BtdV9ldmVudF9zdGFydChzdHJ1Y3QgcGVyZl9ldmVudCAqZXZl
+bnQsIGludCBmbGFncykNCj4gPj4+PiArew0KPiA+Pj4+ICsJc3RydWN0IHNtbXVfcG11ICpzbW11
+X3BtdSA9IHRvX3NtbXVfcG11KGV2ZW50LT5wbXUpOw0KPiA+Pj4+ICsJc3RydWN0IGh3X3BlcmZf
+ZXZlbnQgKmh3YyA9ICZldmVudC0+aHc7DQo+ID4+Pj4gKwlpbnQgaWR4ID0gaHdjLT5pZHg7DQo+
+ID4+Pj4gKwl1MzIgZmlsdGVyX3NwYW4sIGZpbHRlcl9zaWQ7DQo+ID4+Pj4gKwl1MzIgZXZ0eXBl
+cjsNCj4gPj4+PiArDQo+ID4+Pj4gKwlod2MtPnN0YXRlID0gMDsNCj4gPj4+PiArDQo+ID4+Pj4g
+KwlzbW11X3BtdV9zZXRfcGVyaW9kKHNtbXVfcG11LCBod2MpOw0KPiA+Pj4+ICsNCj4gPj4+PiAr
+CXNtbXVfcG11X2dldF9ldmVudF9maWx0ZXIoZXZlbnQsICZmaWx0ZXJfc3BhbiwgJmZpbHRlcl9z
+aWQpOw0KPiA+Pj4+ICsNCj4gPj4+PiArCWV2dHlwZXIgPSBnZXRfZXZlbnQoZXZlbnQpIHwNCj4g
+Pj4+PiArCQkgIGZpbHRlcl9zcGFuIDw8IFNNTVVfUE1DR19TSURfU1BBTl9TSElGVDsNCj4gPj4+
+PiArDQo+ID4+Pj4gKwlzbW11X3BtdV9zZXRfZXZ0eXBlcihzbW11X3BtdSwgaWR4LCBldnR5cGVy
+KTsNCj4gPj4+PiArCXNtbXVfcG11X3NldF9zbXIoc21tdV9wbXUsIGlkeCwgZmlsdGVyX3NpZCk7
+DQo+ID4+Pj4gKwlzbW11X3BtdV9pbnRlcnJ1cHRfZW5hYmxlKHNtbXVfcG11LCBpZHgpOw0KPiA+
+Pj4+ICsJc21tdV9wbXVfY291bnRlcl9lbmFibGUoc21tdV9wbXUsIGlkeCk7DQo+ID4+Pj4gK30N
+Cj4gPj4+PiArDQo+ID4+Pj4gK3N0YXRpYyB2b2lkIHNtbXVfcG11X2V2ZW50X3N0b3Aoc3RydWN0
+IHBlcmZfZXZlbnQgKmV2ZW50LCBpbnQgZmxhZ3MpDQo+ID4+Pj4gK3sNCj4gPj4+PiArCXN0cnVj
+dCBzbW11X3BtdSAqc21tdV9wbXUgPSB0b19zbW11X3BtdShldmVudC0+cG11KTsNCj4gPj4+PiAr
+CXN0cnVjdCBod19wZXJmX2V2ZW50ICpod2MgPSAmZXZlbnQtPmh3Ow0KPiA+Pj4+ICsJaW50IGlk
+eCA9IGh3Yy0+aWR4Ow0KPiA+Pj4+ICsNCj4gPj4+PiArCWlmIChod2MtPnN0YXRlICYgUEVSRl9I
+RVNfU1RPUFBFRCkNCj4gPj4+PiArCQlyZXR1cm47DQo+ID4+Pj4gKw0KPiA+Pj4+ICsJc21tdV9w
+bXVfY291bnRlcl9kaXNhYmxlKHNtbXVfcG11LCBpZHgpOw0KPiA+Pj4NCj4gPj4+IElzIGl0IGlu
+dGVudGlvbmFsIG5vdCB0byBjYWxsIHNtbXVfcG11X2ludGVycnVwdF9kaXNhYmxlIGhlcmU/DQo+
+ID4+DQo+ID4+IFllcywgaXQgaXMuIEVhcmxpZXIgcGF0Y2ggaGFkIHRoZSBpbnRlcnJ1cHQgdG9n
+Z2xpbmcgYW5kIFJvYmluIHBvaW50ZWQgb3V0IHRoYXQNCj4gPj4gaXQgaXMgbm90IHJlYWxseSBu
+ZWVkZWQgYXMgY291bnRlcnMgYXJlIGFueXdheSBzdG9wcGVkIGFuZCBleHBsaWNpdGx5DQo+IGRp
+c2FibGluZw0KPiA+PiBtYXkgbm90IHNvbHZlIHRoZSBzcHVyaW91cyBpbnRlcnJ1cHQgY2FzZSBh
+cyB3ZWxsLg0KPiA+Pg0KPiA+DQo+ID4gQWggYXBvbG9naWVzIGZvciBub3Qgc2VlaW5nIHRoYXQg
+aW4gZWFybGllciByZXZpZXdzLg0KPiANCj4gSG1tLCBJIGRpZG4ndCBleGFjdGx5IG1lYW4gImtl
+ZXAgZW5hYmxpbmcgaXQgZXZlcnkgdGltZSBhbiBldmVudCBpcw0KPiByZXN0YXJ0ZWQgYW5kIG5l
+dmVyIGRpc2FibGUgaXQgYW55d2hlcmUiLCB0aG91Z2guIEkgd2FzIHRoaW5raW5nIG1vcmUNCj4g
+YWxvbmcgdGhlIGxpbmVzIG9mIGVuYWJsaW5nIGluIGV2ZW50X2FkZCgpIGFuZCBkaXNhYmxpbmcg
+aW4gZXZlbnRfZGVsKCkNCj4gKGkuZS4gZWZmZWN0aXZlbHkgdHlpbmcgaXQgdG8gYWxsb2NhdGlv
+biBhbmQgZGVhbGxvY2F0aW9uIG9mIHRoZSBjb3VudGVyKS4NCj4gDQoNClJpZ2h0LiBJIG1pc3Nl
+ZCB0aGUgcG9pbnQgdGhhdCBpdCB3YXMgbm90IGRpc2FibGVkIGF0IGFsbCEuIEkgd2lsbCByZWFy
+cmFuZ2UgaXQgDQp0byBfYWRkL19kZWwgcGF0aC4gDQoNClRoYW5rcyBmb3IgYWxsIHRoZSBjb21t
+ZW50cy4gSSBhbSBwbGFubmluZyB0byBzZW5kIG91dCBhIHY2IHNvb24uIA0KQmV0d2VlbiwgZGlk
+IHlvdSBnZXQgYSBjaGFuY2UgdG8gdGFrZSBhIGxvb2sgYXQgcGF0Y2ggIzQgKEhpU2lsaWNvbiBl
+cnJhdHVtIG9uZSkgPyANCkFwcHJlY2lhdGUgaWYgeW91IGNvdWxkIHRha2UgYSBsb29rIGFuZCBs
+ZXQgbWUga25vdyBiZWZvcmUgdjYuDQoNClRoYW5rcywNClNoYW1lZXINCg0KIA0K
