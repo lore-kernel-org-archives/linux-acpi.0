@@ -1,92 +1,57 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v5 2/4] perf: add arm64 smmuv3 pmu driver
-Date: Fri, 25 Jan 2019 09:22:23 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83929A9FE@lhreml524-mbs.china.huawei.com>
-References: <20181130154751.28580-1-shameerali.kolothum.thodi@huawei.com>
- <20181130154751.28580-3-shameerali.kolothum.thodi@huawei.com>
- <20190122162351.GE8120@e119886-lin.cambridge.arm.com>
- <5FC3163CFD30C246ABAA99954A238FA83929855B@lhreml524-mbs.china.huawei.com>
- <20190123121406.GH8120@e119886-lin.cambridge.arm.com>
- <f83054eb-3fe3-0041-7a9f-6f7e58cea5c8@arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] device property: Fix the length used in
+ PROPERTY_ENTRY_STRING
+Date: Fri, 25 Jan 2019 16:32:05 +0200
+Message-ID: <20190125143205.GP9224@smile.fi.intel.com>
+References: <20190123144416.51859-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f83054eb-3fe3-0041-7a9f-6f7e58cea5c8@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190123144416.51859-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Andrew Murray <andrew.murray@arm.com>
-Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, John Garry <john.garry@huawei.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
-YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDI0IEphbnVhcnkgMjAxOSAxODoy
-NQ0KPiBUbzogQW5kcmV3IE11cnJheSA8YW5kcmV3Lm11cnJheUBhcm0uY29tPjsgU2hhbWVlcmFs
-aSBLb2xvdGh1bSBUaG9kaQ0KPiA8c2hhbWVlcmFsaS5rb2xvdGh1bS50aG9kaUBodWF3ZWkuY29t
-Pg0KPiBDYzogbG9yZW56by5waWVyYWxpc2lAYXJtLmNvbTsgbWFyay5ydXRsYW5kQGFybS5jb207
-DQo+IHZraWxhcmlAY29kZWF1cm9yYS5vcmc7IG5laWwubS5sZWVkZXJAZ21haWwuY29tOw0KPiBq
-ZWFuLXBoaWxpcHBlLmJydWNrZXJAYXJtLmNvbTsgcGFiYmFAY29kZWF1cm9yYS5vcmc7IEpvaG4g
-R2FycnkNCj4gPGpvaG4uZ2FycnlAaHVhd2VpLmNvbT47IHdpbGwuZGVhY29uQGFybS5jb207IHJy
-dWlncm9rQGNvZGVhdXJvcmEub3JnOw0KPiBMaW51eGFybSA8bGludXhhcm1AaHVhd2VpLmNvbT47
-IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
-b3JnOyBHdW9oYW5qdW4gKEhhbmp1biBHdW8pDQo+IDxndW9oYW5qdW5AaHVhd2VpLmNvbT47IGxp
-bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENI
-IHY1IDIvNF0gcGVyZjogYWRkIGFybTY0IHNtbXV2MyBwbXUgZHJpdmVyDQo+IA0KPiBPbiAyMy8w
-MS8yMDE5IDEyOjE0LCBBbmRyZXcgTXVycmF5IHdyb3RlOg0KPiBbLi4uXQ0KPiA+Pj4+ICtzdGF0
-aWMgaW5saW5lIHZvaWQgc21tdV9wbXVfY291bnRlcl9zZXRfdmFsdWUoc3RydWN0IHNtbXVfcG11
-DQo+ID4+PiAqc21tdV9wbXUsDQo+ID4+Pj4gKwkJCQkJICAgICAgdTMyIGlkeCwgdTY0IHZhbHVl
-KQ0KPiA+Pj4+ICt7DQo+ID4+Pj4gKwlpZiAoc21tdV9wbXUtPmNvdW50ZXJfbWFzayAmIEJJVCgz
-MikpDQo+ID4+Pj4gKwkJd3JpdGVxKHZhbHVlLCBzbW11X3BtdS0+cmVsb2NfYmFzZSArDQo+IFNN
-TVVfUE1DR19FVkNOVFIoaWR4LA0KPiA+Pj4gOCkpOw0KPiA+Pj4+ICsJZWxzZQ0KPiA+Pj4+ICsJ
-CXdyaXRlbCh2YWx1ZSwgc21tdV9wbXUtPnJlbG9jX2Jhc2UgKw0KPiBTTU1VX1BNQ0dfRVZDTlRS
-KGlkeCwNCj4gPj4+IDQpKTsNCj4gPj4+DQo+ID4+PiBUaGUgYXJtNjQgSU8gbWFjcm9zIHVzZSBf
-X2ZvcmNlIHUzMiBhbmQgc28gaXQncyBwcm9iYWJseSBPSyB0byBwcm92aWRlIGENCj4gNjQNCj4g
-Pj4+IGJpdA0KPiA+Pj4gdmFsdWUgdG8gd3JpdGVsLiBCdXQgeW91IGNvdWxkIHVzZSBzb21ldGhp
-bmcgbGlrZSBsb3dlcl8zMl9iaXRzIGZvciBjbGFyaXR5Lg0KPiA+Pg0KPiA+PiBZZXMsIG1hY3Jv
-IHVzZXMgX19mb3JjZSB1MzIuIEkgd2lsbCBjaGFuZ2UgaXQgdG8gbWFrZSBpdCBtb3JlIGNsZWFy
-IHRob3VnaC4NCj4gDQo+IFRvIGJlIHBlZGFudGljLCB0aGUgZmlyc3QgY2FzdCB3aGljaCB0aGUg
-dmFsdWUgYWN0dWFsbHkgdW5kZXJnb2VzIGlzIHRvDQo+IChfX3UzMikgOykNCj4gDQo+IFVsdGlt
-YXRlbHksIF9fcmF3X3dyaXRlbCgpIHRha2VzIGEgdTMyLCBzbyBpbiB0aGF0IHNlbnNlIGl0J3Mg
-bmV2ZXIgYQ0KPiBwcm9ibGVtIHRvIHBhc3MgYSB1NjQsIHNpbmNlIHVuc2lnbmVkIHRydW5jYXRp
-b24gaXMgd2VsbC1kZWZpbmVkIGluIHRoZQ0KPiBDIHN0YW5kYXJkLiBUaGUgY2FzdGluZyBpbnZv
-bHZlZCBpbiB0aGUgSS9PIGFjY2Vzc29ycyBpcyBtb3N0bHkgYWJvdXQNCj4gZ29pbmcgdG8gYW4g
-ZW5kaWFuLXNwZWNpZmljIHR5cGUgYW5kIGJhY2sgYWdhaW4uDQo+IA0KPiBbLi4uXQ0KPiA+Pj4+
-ICtzdGF0aWMgdm9pZCBzbW11X3BtdV9ldmVudF9zdGFydChzdHJ1Y3QgcGVyZl9ldmVudCAqZXZl
-bnQsIGludCBmbGFncykNCj4gPj4+PiArew0KPiA+Pj4+ICsJc3RydWN0IHNtbXVfcG11ICpzbW11
-X3BtdSA9IHRvX3NtbXVfcG11KGV2ZW50LT5wbXUpOw0KPiA+Pj4+ICsJc3RydWN0IGh3X3BlcmZf
-ZXZlbnQgKmh3YyA9ICZldmVudC0+aHc7DQo+ID4+Pj4gKwlpbnQgaWR4ID0gaHdjLT5pZHg7DQo+
-ID4+Pj4gKwl1MzIgZmlsdGVyX3NwYW4sIGZpbHRlcl9zaWQ7DQo+ID4+Pj4gKwl1MzIgZXZ0eXBl
-cjsNCj4gPj4+PiArDQo+ID4+Pj4gKwlod2MtPnN0YXRlID0gMDsNCj4gPj4+PiArDQo+ID4+Pj4g
-KwlzbW11X3BtdV9zZXRfcGVyaW9kKHNtbXVfcG11LCBod2MpOw0KPiA+Pj4+ICsNCj4gPj4+PiAr
-CXNtbXVfcG11X2dldF9ldmVudF9maWx0ZXIoZXZlbnQsICZmaWx0ZXJfc3BhbiwgJmZpbHRlcl9z
-aWQpOw0KPiA+Pj4+ICsNCj4gPj4+PiArCWV2dHlwZXIgPSBnZXRfZXZlbnQoZXZlbnQpIHwNCj4g
-Pj4+PiArCQkgIGZpbHRlcl9zcGFuIDw8IFNNTVVfUE1DR19TSURfU1BBTl9TSElGVDsNCj4gPj4+
-PiArDQo+ID4+Pj4gKwlzbW11X3BtdV9zZXRfZXZ0eXBlcihzbW11X3BtdSwgaWR4LCBldnR5cGVy
-KTsNCj4gPj4+PiArCXNtbXVfcG11X3NldF9zbXIoc21tdV9wbXUsIGlkeCwgZmlsdGVyX3NpZCk7
-DQo+ID4+Pj4gKwlzbW11X3BtdV9pbnRlcnJ1cHRfZW5hYmxlKHNtbXVfcG11LCBpZHgpOw0KPiA+
-Pj4+ICsJc21tdV9wbXVfY291bnRlcl9lbmFibGUoc21tdV9wbXUsIGlkeCk7DQo+ID4+Pj4gK30N
-Cj4gPj4+PiArDQo+ID4+Pj4gK3N0YXRpYyB2b2lkIHNtbXVfcG11X2V2ZW50X3N0b3Aoc3RydWN0
-IHBlcmZfZXZlbnQgKmV2ZW50LCBpbnQgZmxhZ3MpDQo+ID4+Pj4gK3sNCj4gPj4+PiArCXN0cnVj
-dCBzbW11X3BtdSAqc21tdV9wbXUgPSB0b19zbW11X3BtdShldmVudC0+cG11KTsNCj4gPj4+PiAr
-CXN0cnVjdCBod19wZXJmX2V2ZW50ICpod2MgPSAmZXZlbnQtPmh3Ow0KPiA+Pj4+ICsJaW50IGlk
-eCA9IGh3Yy0+aWR4Ow0KPiA+Pj4+ICsNCj4gPj4+PiArCWlmIChod2MtPnN0YXRlICYgUEVSRl9I
-RVNfU1RPUFBFRCkNCj4gPj4+PiArCQlyZXR1cm47DQo+ID4+Pj4gKw0KPiA+Pj4+ICsJc21tdV9w
-bXVfY291bnRlcl9kaXNhYmxlKHNtbXVfcG11LCBpZHgpOw0KPiA+Pj4NCj4gPj4+IElzIGl0IGlu
-dGVudGlvbmFsIG5vdCB0byBjYWxsIHNtbXVfcG11X2ludGVycnVwdF9kaXNhYmxlIGhlcmU/DQo+
-ID4+DQo+ID4+IFllcywgaXQgaXMuIEVhcmxpZXIgcGF0Y2ggaGFkIHRoZSBpbnRlcnJ1cHQgdG9n
-Z2xpbmcgYW5kIFJvYmluIHBvaW50ZWQgb3V0IHRoYXQNCj4gPj4gaXQgaXMgbm90IHJlYWxseSBu
-ZWVkZWQgYXMgY291bnRlcnMgYXJlIGFueXdheSBzdG9wcGVkIGFuZCBleHBsaWNpdGx5DQo+IGRp
-c2FibGluZw0KPiA+PiBtYXkgbm90IHNvbHZlIHRoZSBzcHVyaW91cyBpbnRlcnJ1cHQgY2FzZSBh
-cyB3ZWxsLg0KPiA+Pg0KPiA+DQo+ID4gQWggYXBvbG9naWVzIGZvciBub3Qgc2VlaW5nIHRoYXQg
-aW4gZWFybGllciByZXZpZXdzLg0KPiANCj4gSG1tLCBJIGRpZG4ndCBleGFjdGx5IG1lYW4gImtl
-ZXAgZW5hYmxpbmcgaXQgZXZlcnkgdGltZSBhbiBldmVudCBpcw0KPiByZXN0YXJ0ZWQgYW5kIG5l
-dmVyIGRpc2FibGUgaXQgYW55d2hlcmUiLCB0aG91Z2guIEkgd2FzIHRoaW5raW5nIG1vcmUNCj4g
-YWxvbmcgdGhlIGxpbmVzIG9mIGVuYWJsaW5nIGluIGV2ZW50X2FkZCgpIGFuZCBkaXNhYmxpbmcg
-aW4gZXZlbnRfZGVsKCkNCj4gKGkuZS4gZWZmZWN0aXZlbHkgdHlpbmcgaXQgdG8gYWxsb2NhdGlv
-biBhbmQgZGVhbGxvY2F0aW9uIG9mIHRoZSBjb3VudGVyKS4NCj4gDQoNClJpZ2h0LiBJIG1pc3Nl
-ZCB0aGUgcG9pbnQgdGhhdCBpdCB3YXMgbm90IGRpc2FibGVkIGF0IGFsbCEuIEkgd2lsbCByZWFy
-cmFuZ2UgaXQgDQp0byBfYWRkL19kZWwgcGF0aC4gDQoNClRoYW5rcyBmb3IgYWxsIHRoZSBjb21t
-ZW50cy4gSSBhbSBwbGFubmluZyB0byBzZW5kIG91dCBhIHY2IHNvb24uIA0KQmV0d2VlbiwgZGlk
-IHlvdSBnZXQgYSBjaGFuY2UgdG8gdGFrZSBhIGxvb2sgYXQgcGF0Y2ggIzQgKEhpU2lsaWNvbiBl
-cnJhdHVtIG9uZSkgPyANCkFwcHJlY2lhdGUgaWYgeW91IGNvdWxkIHRha2UgYSBsb29rIGFuZCBs
-ZXQgbWUga25vdyBiZWZvcmUgdjYuDQoNClRoYW5rcywNClNoYW1lZXINCg0KIA0K
+On Wed, Jan 23, 2019 at 05:44:16PM +0300, Heikki Krogerus wrote:
+> With string type property entries we need to use
+> sizeof(const char *) instead of the number of characters as
+> the length of the entry.
+> 
+> If the string was shorter then sizeof(const char *),
+> attempts to read it would have failed with -EOVERFLOW. The
+> problem has been hidden because all build-in string
+> properties have had a string longer then 8 characters until
+> now.
+> 
+
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+> Fixes: a85f42047533 ("device property: helper macros for property entry creation")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  include/linux/property.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index 3789ec755fb6..65d3420dd5d1 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -258,7 +258,7 @@ struct property_entry {
+>  #define PROPERTY_ENTRY_STRING(_name_, _val_)		\
+>  (struct property_entry) {				\
+>  	.name = _name_,					\
+> -	.length = sizeof(_val_),			\
+> +	.length = sizeof(const char *),			\
+>  	.type = DEV_PROP_STRING,			\
+>  	{ .value = { .str = _val_ } },			\
+>  }
+> -- 
+> 2.20.1
+> 
+
+-- 
+With Best Regards,
+Andy Shevchenko
