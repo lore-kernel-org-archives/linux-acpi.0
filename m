@@ -1,209 +1,266 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v5 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
- 162001800 quirk
-Date: Fri, 25 Jan 2019 18:32:40 +0000
-Message-ID: <bfb957ad-ab5d-1848-7aec-a486476f8be6@arm.com>
-References: <20181130154751.28580-1-shameerali.kolothum.thodi@huawei.com>
- <20181130154751.28580-5-shameerali.kolothum.thodi@huawei.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [RFC PATCH] cpufreq / cppc: Work around for Hisilicon CPPC
+ cpufreq
+Date: Sat, 26 Jan 2019 17:44:53 +0800
+Message-ID: <930bc3a8-2076-0923-7968-81001c90db8a@huawei.com>
+References: <1547722811-18052-1-git-send-email-wangxiongfeng2@huawei.com>
+ <20190124065614.gnnwd6lhbyjiph2e@vireshk-i7>
+ <CABYS093CQdhNBb8KqfV+3FfNCGcgW7DE+KsQ=DAJnRFQq74Piw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181130154751.28580-5-shameerali.kolothum.thodi@huawei.com>
-Content-Language: en-GB
+In-Reply-To: <CABYS093CQdhNBb8KqfV+3FfNCGcgW7DE+KsQ=DAJnRFQq74Piw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com
-Cc: jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: George Cherian <gcherianv@gmail.com>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: George Cherian <george.cherian@cavium.com>, Prashanth Prakash <pprakash@codeaurora.org>, robert.moore@intel.com, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, guohanjun@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 30/11/2018 15:47, Shameer Kolothum wrote:
-> HiSilicon erratum 162001800 describes the limitation of
-> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
+Hi George,
+
+Thanks for your reply !
+
+On 2019/1/25 15:07, George Cherian wrote:
+> Hi Wang,
 > 
-> On these platforms, the PMCG event counter registers
-> (SMMU_PMCG_EVCNTRn) are read only and as a result it
-> is not possible to set the initial counter period value
-> on event monitor start.
+> On Thu, Jan 24, 2019 at 12:27 PM Viresh Kumar <viresh.kumar@linaro.org> wrote:
+>>
+>> +George/Prashanth.
+>>
+>> Guys please see if you have any objections to this patch. I am not
+>> very familiar with this stuff and it would be good to get some
+>> feedback from you guys.
+>>
+>> @Rafael: Do you have any comments on this ?
+>>
+>> On 17-01-19, 19:00, Xiongfeng Wang wrote:
+>>> Hisilicon chips do not support delivered performance counter register
+>>> and reference performance counter register. But the platform can
+>>> calculate the real performance using its own method. This patch provide
+>>> a workaround for this problem, and other platforms can also use this
+>>> workaround framework. We reuse the desired performance register to
+>>> store the real performance calculated by the platform. After the
+>>> platform finished the frequency adjust, it gets the real performance and
+>>> writes it into desired performance register. OS can use it to calculate
+>>> the real frequency.
+> Does your platform support Autonomous Selection mode?
+> This register is not valid when autonomous mode is enabled. In such case
+> how are you calculating the frequency?
+
+Our platform does not support Autonomous Selection mode.
+When it's enabled, this method won't work. But I think the current doesn't support
+Autonomous Selection mode. I only found a defition 'AUTO_SEL_ENABLE' in enum cppc_regs
+and there is no one using it.
+
+>>>
+>>> Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+>>> ---
+>>>  drivers/acpi/cppc_acpi.c       | 29 ++++++++++++++++++++
+>>>  drivers/cpufreq/Kconfig.arm    |  7 +++++
+>>>  drivers/cpufreq/cppc_cpufreq.c | 62 ++++++++++++++++++++++++++++++++++++++++++
+>>>  include/acpi/cppc_acpi.h       |  4 +++
+>>>  4 files changed, 102 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>>> index 217a782..0cdaf7e 100644
+>>> --- a/drivers/acpi/cppc_acpi.c
+>>> +++ b/drivers/acpi/cppc_acpi.c
+>>> @@ -1050,6 +1050,35 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+>>>       return ret_val;
+>>>  }
+>>>
+>>> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+>>> +/*
+>>> + * We reuse the desired performance register to store the real performance
+>>> + * calculated by the platform.
+>>> + */
+>>> +u64 hisi_cppc_get_real_perf(unsigned int cpunum)
+>>> +{
+>>> +     int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+>>> +     struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+>>> +     struct cpc_register_resource *desired_reg;
+>>> +     u64 desired_perf;
+>>> +     int ret;
+>>> +
+>>> +     /*
+>>> +      * Make sure the platform has finished the frequency adjust
+>>> +      * and wrote the real performance in desired performance register
+>>> +      */
+>>> +     ret = check_pcc_chan(pcc_ss_id, false);
+>>> +     if (ret)
+>>> +             return 0;
+> If there is a pending command in the channel then returning zero
+> will give bogus frequency value. You may return the previous written value.
+
+How about returning a error code here ?
+In current kernel, when 'cppc_cpufreq_get_rate' returns -EFAULT, 'cpuinfo_cur_freq'
+shows a very big value. I was thinking about writing a patch to fix it.
+
+>>> +
+>>> +     desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+>>> +     cpc_read(cpunum, desired_reg, &desired_perf);
+>>> +
+>>> +     return desired_perf;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(hisi_cppc_get_real_perf);
+>>> +#endif
+>>> +
+>>>  /**
+>>>   * cppc_get_perf_caps - Get a CPUs performance capabilities.
+>>>   * @cpunum: CPU from which to get capabilities info.
+>>> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+>>> index 688f102..236bd07 100644
+>>> --- a/drivers/cpufreq/Kconfig.arm
+>>> +++ b/drivers/cpufreq/Kconfig.arm
+>>> @@ -18,6 +18,13 @@ config ACPI_CPPC_CPUFREQ
+>>>
+>>>         If in doubt, say N.
+>>>
+>>> +config HISILICON_CPPC_CPUFREQ_WORKAROUND
+>>> +     bool "Workaround for Hisilicon CPPC Cpufreq"
+>>> +     default y
+>>> +     depends on ACPI_CPPC_CPUFREQ && ARM64
+> Do you really want this to be applied to all ARM64? or just only
+> for affected HISI platforms?
+
+I was thinking about applying the framwork to all ARM64.
+CONF_HISILICON_CPPC_CPUFREQ_WORKAROUND adds the OEM ID for HISI.
+
+>>> +     help
+>>> +       This option enables a workaround for Hisilicon CPPC Cpufreq.
+>>> +
+>>>  config ARM_ARMADA_37XX_CPUFREQ
+>>>       tristate "Armada 37xx CPUFreq support"
+>>>       depends on ARCH_MVEBU && CPUFREQ_DT
+>>> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+>>> index fd25c21c..b910e84 100644
+>>> --- a/drivers/cpufreq/cppc_cpufreq.c
+>>> +++ b/drivers/cpufreq/cppc_cpufreq.c
+>>> @@ -33,6 +33,13 @@
+>>>  /* Offest in the DMI processor structure for the max frequency */
+>>>  #define DMI_PROCESSOR_MAX_SPEED  0x14
+>>>
+>>> +struct cppc_get_rate_workaround_info {
+> If your intention is to make a generic framework for future extensions
+> then you might need to name it differently. Something like
+> struct cppc_workaround_info, so that you can extend the same for any
+> future workarounds.
+
+Thanks for your advice. I will change it in the next version.
+
+>>> +     char oem_id[ACPI_OEM_ID_SIZE +1];
+>>> +     char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+>>> +     u32 oem_revision;
+>>> +     unsigned int (*get)(unsigned int cpu);
+> This can be  unsigned int (*get_rate)(unsigned int cpu);
+>>> +};
+>>> +
+>>>  /*
+>>>   * These structs contain information parsed from per CPU
+>>>   * ACPI _CPC structures.
+>>> @@ -357,6 +364,59 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpunum)
+>>>       .name = "cppc_cpufreq",
+>>>  };
+>>>
+>>> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+>>> +/*
+>>> + * When the platform does not support delivered performance counter or
+>>> + * reference performance counter, it can calculate the performance using the
+>>> + * platform specific mechanism. We reuse the desired performance register to
+>>> + * store the real performance calculated by the platform.
+>>> + */
+>>> +static unsigned int hisi_cppc_cpufreq_get_rate(unsigned int cpunum)
+>>> +{
+>>> +     struct cppc_cpudata *cpu = all_cpu_data[cpunum];
+>>> +     u64 desired_perf = hisi_cppc_get_real_perf(cpunum);
+>>> +
+>>> +     return cppc_cpufreq_perf_to_khz(cpu, desired_perf);
+>>> +}
+>>> +#endif
+>>> +
+>>> +static struct cppc_get_rate_workaround_info wa_info[] = {
+>>> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+>>> +     {
+>>> +             .oem_id         = "HISI  ",
+>>> +             .oem_table_id   = "HIP07   ",
+>>> +             .oem_revision   = 0,
+>>> +             .get = hisi_cppc_cpufreq_get_rate,
+>>> +     },
+>>> +     {
+>>
+>> This should be:
+>>
+>>         }, {
+>>
+>>> +             .oem_id         = "HISI  ",
+>>> +             .oem_table_id   = "HIP08   ",
+>>> +             .oem_revision   = 0,
+>>> +             .get = hisi_cppc_cpufreq_get_rate,
+>>> +     },
+>>> +#endif
+>>> +     {},
+>>> +};
+>>> +
+>>> +static void cppc_check_get_rate_workaround(struct cpufreq_driver *cppc_cpufreq_driver)
+> This function can be renamed to cppc_check_workaround to make it
+> generic also can have a
+> proper return value so that the caller can validate.
+
+Thanks, I will change it and all above.
+If I want to apply it to ARM64, I think I will need a CONFIG_ARM64 here.
+
+>>> +{
+>>> +     struct acpi_table_header *tbl;
+>>> +     acpi_status status = AE_OK;
+>>> +     int i;
+>>> +
+>>> +     status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
+>>> +     if (ACPI_FAILURE(status) || !tbl)
+>>> +             return;
+>>> +
+>>> +     for (i = 0; i < ARRAY_SIZE(wa_info) - 1; i++) {
+>>> +             if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
+>>> +                 !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
+>>> +                 wa_info[i].oem_revision == tbl->oem_revision) {
+>>> +                     cppc_cpufreq_driver->get = wa_info[i].get;
+>>> +                     return;
+>>> +             }
+>>> +     }
+>>> +}
+>>>  static int __init cppc_cpufreq_init(void)
+>>>  {
+>>>       int i, ret = 0;
+>>> @@ -386,6 +446,8 @@ static int __init cppc_cpufreq_init(void)
+>>>               goto out;
+>>>       }
+>>>
+>>> +     cppc_check_get_rate_workaround(&cppc_cpufreq_driver);
+>>> +
+>>>       ret = cpufreq_register_driver(&cppc_cpufreq_driver);
+>>>       if (ret)
+>>>               goto out;
+>>> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+>>> index 4f34734..be7400b 100644
+>>> --- a/include/acpi/cppc_acpi.h
+>>> +++ b/include/acpi/cppc_acpi.h
+>>> @@ -146,4 +146,8 @@ struct cppc_cpudata {
+>>>  extern int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val);
+>>>  extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
+>>>
+>>> +#ifdef CONFIG_HISILICON_CPPC_CPUFREQ_WORKAROUND
+>>> +u64 hisi_cppc_get_real_perf(unsigned int cpunum);
+>>> +#endif
+>>> +
+>>>  #endif /* _CPPC_ACPI_H*/
+>>> --
+>>> 1.7.12.4
+>>
+>> --
+>> viresh
+> -George
 > 
-> To work around this, the current value of the counter
-> is read and used for delta calculations. OEM information
-> from ACPI header is used to identify the affected hardware
-> platforms.
+> .
 > 
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> ---
->   drivers/acpi/arm64/iort.c     | 30 +++++++++++++++++++++++++++---
->   drivers/perf/arm_smmuv3_pmu.c | 35 +++++++++++++++++++++++++++++------
->   include/linux/acpi_iort.h     |  3 +++
->   3 files changed, 59 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 2da08e1..d174379 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1364,6 +1364,22 @@ static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
->   				       ACPI_EDGE_SENSITIVE, &res[2]);
->   }
->   
-> +static struct acpi_platform_list pmcg_evcntr_rdonly_list[] __initdata = {
-> +	/* HiSilicon Erratum 162001800 */
-> +	{"HISI  ", "HIP08   ", 0, ACPI_SIG_IORT, greater_than_or_equal},
-> +	{ }
-> +};
-> +
-> +static int __init arm_smmu_v3_pmcg_add_platdata(struct platform_device *pdev)
-> +{
-> +	u32 options = 0;
-> +
-> +	if (acpi_match_platform_list(pmcg_evcntr_rdonly_list) >= 0)
-> +		options |= IORT_PMCG_EVCNTR_RDONLY;
-
-Hmm, do we want IORT code to have to understand a (potential) whole load 
-of PMCG-specific quirks directly, or do we really only need to pass some 
-unambiguous identifier for the PMCG implementation, and let the driver 
-handle the details in private - much like the SMMU model field, only 
-without an external spec to constrain us :)
-
-If we ever want to have named imp-def events, we'd need to do something 
-like that anyway, so perhaps we might be better off taking that approach 
-to begin with (and if so, I'd be inclined to push the basic platdata 
-initialisation for "generic PMCG" into patch #1).
-
-> +
-> +	return platform_device_add_data(pdev, &options, sizeof(options));
-> +}
-> +
->   struct iort_dev_config {
->   	const char *name;
->   	int (*dev_init)(struct acpi_iort_node *node);
-> @@ -1374,6 +1390,7 @@ struct iort_dev_config {
->   				     struct acpi_iort_node *node);
->   	void (*dev_set_proximity)(struct device *dev,
->   				    struct acpi_iort_node *node);
-> +	int (*dev_add_platdata)(struct platform_device *pdev);
->   };
->   
->   static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
-> @@ -1395,6 +1412,7 @@ static const struct iort_dev_config iort_arm_smmu_v3_pmcg_cfg __initconst = {
->   	.name = "arm-smmu-v3-pmu",
->   	.dev_count_resources = arm_smmu_v3_pmcg_count_resources,
->   	.dev_init_resources = arm_smmu_v3_pmcg_init_resources,
-> +	.dev_add_platdata	= arm_smmu_v3_pmcg_add_platdata,
->   };
->   
->   static __init const struct iort_dev_config *iort_get_dev_cfg(
-> @@ -1455,10 +1473,16 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->   		goto dev_put;
->   
->   	/*
-> -	 * Add a copy of IORT node pointer to platform_data to
-> -	 * be used to retrieve IORT data information.
-> +	 * Platform devices based on PMCG nodes uses platform_data to
-> +	 * pass quirk flags to the driver. For others, add a copy of
-> +	 * IORT node pointer to platform_data to be used to retrieve
-> +	 * IORT data information.
->   	 */
-> -	ret = platform_device_add_data(pdev, &node, sizeof(node));
-> +	if (ops->dev_add_platdata)
-> +		ret = ops->dev_add_platdata(pdev);
-> +	else
-> +		ret = platform_device_add_data(pdev, &node, sizeof(node));
-> +
->   	if (ret)
->   		goto dev_put;
->   
-> diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
-> index 71d10a0..02107a1 100644
-> --- a/drivers/perf/arm_smmuv3_pmu.c
-> +++ b/drivers/perf/arm_smmuv3_pmu.c
-> @@ -35,6 +35,7 @@
->    */
->   
->   #include <linux/acpi.h>
-> +#include <linux/acpi_iort.h>
->   #include <linux/bitfield.h>
->   #include <linux/bitops.h>
->   #include <linux/cpuhotplug.h>
-> @@ -111,6 +112,7 @@ struct smmu_pmu {
->   	struct device *dev;
->   	void __iomem *reg_base;
->   	void __iomem *reloc_base;
-> +	u32 options;
->   	u64 counter_present_mask;
->   	u64 counter_mask;
->   };
-> @@ -224,12 +226,25 @@ static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
->   	u32 idx = hwc->idx;
->   	u64 new;
->   
-> -	/*
-> -	 * We limit the max period to half the max counter value of the counter
-> -	 * size, so that even in the case of extreme interrupt latency the
-> -	 * counter will (hopefully) not wrap past its initial value.
-> -	 */
-> -	new = smmu_pmu->counter_mask >> 1;
-> +	if (smmu_pmu->options & IORT_PMCG_EVCNTR_RDONLY) {
-> +		/*
-> +		 * On platforms that require this quirk, if the counter starts
-> +		 * at < half_counter value and wraps, the current logic of
-> +		 * handling the overflow may not work. It is expected that,
-> +		 * those platforms will have full 64 counter bits implemented
-> +		 * so that such a possibility is remote(eg: HiSilicon HIP08).
-> +		 */
-> +		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
-> +	} else {
-> +		/*
-> +		 * We limit the max period to half the max counter value
-> +		 * of the counter size, so that even in the case of extreme
-> +		 * interrupt latency the counter will (hopefully) not wrap
-> +		 * past its initial value.
-> +		 */
-> +		new = smmu_pmu->counter_mask >> 1;
-> +		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
-> +	}
->   
->   	local64_set(&hwc->prev_count, new);
->   	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
-
-Either we've just done this already, or it's not going to have any 
-effect anyway, so it can definitely go.
-
-Robin.
-
-> @@ -670,6 +685,12 @@ static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
->   		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
->   }
->   
-> +static void smmu_pmu_get_acpi_options(struct smmu_pmu *smmu_pmu)
-> +{
-> +	smmu_pmu->options = *(u32 *)dev_get_platdata(smmu_pmu->dev);
-> +	dev_notice(smmu_pmu->dev, "option mask 0x%x\n", smmu_pmu->options);
-> +}
-> +
->   static int smmu_pmu_probe(struct platform_device *pdev)
->   {
->   	struct smmu_pmu *smmu_pmu;
-> @@ -749,6 +770,8 @@ static int smmu_pmu_probe(struct platform_device *pdev)
->   		return -EINVAL;
->   	}
->   
-> +	smmu_pmu_get_acpi_options(smmu_pmu);
-> +
->   	/* Pick one CPU to be the preferred one to use */
->   	smmu_pmu->on_cpu = get_cpu();
->   	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
-> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> index 38cd77b..4a7ae69 100644
-> --- a/include/linux/acpi_iort.h
-> +++ b/include/linux/acpi_iort.h
-> @@ -26,6 +26,9 @@
->   #define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
->   #define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
->   
-> +/* PMCG node option or quirk flags */
-> +#define IORT_PMCG_EVCNTR_RDONLY		(1 << 0)
-> +
->   int iort_register_domain_token(int trans_id, phys_addr_t base,
->   			       struct fwnode_handle *fw_node);
->   void iort_deregister_domain_token(int trans_id);
-> 
+Thanks,
+Xiongfeng
