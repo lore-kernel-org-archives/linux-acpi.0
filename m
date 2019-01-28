@@ -1,65 +1,126 @@
-From: Ross Lagerwall <ross.lagerwall@citrix.com>
-Subject: Re: [PATCH 2/2] efi/cper: Avoid possible OOB when checking generic
- data block
-Date: Mon, 28 Jan 2019 10:04:46 +0000
-Message-ID: <d0a78e2a-7114-de25-4515-01844087ddbb@citrix.com>
-References: <20190122160912.27312-1-ross.lagerwall@citrix.com>
- <20190122160912.27312-3-ross.lagerwall@citrix.com>
- <20190123115402.GB3227@zn.tnic>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCHv5 00/10] Heterogeneuos memory node attributes
+Date: Mon, 28 Jan 2019 15:00:09 +0100
+Message-ID: <20190128140009.GA11059@dhcp22.suse.cz>
+References: <20190124230724.10022-1-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190123115402.GB3227@zn.tnic>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190124230724.10022-1-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-api@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/23/19 11:54 AM, Borislav Petkov wrote:
-> On Tue, Jan 22, 2019 at 04:09:12PM +0000, Ross Lagerwall wrote:
->> When checking a generic status block, we iterate over all the generic
->> data blocks. The loop condition only checks that the start of the
->> generic data block is valid (within estatus->data_length) but not the
->> whole block. Because the size of data blocks (excluding error data) may
->> vary depending on the revision and the revision is contained within the
->> data block, ensure that enough of the current data block is valid before
->> dereferencing any members otherwise an OOB access may occur if
-snip
->> -		data_len -= acpi_hest_get_record_size(gdata);
->> +		record_len = acpi_hest_get_record_size(gdata);
-> 
-> record_size so that it matches the function name it is used to compute
-> this.
-> 
-> Btw, trying to grok this code is making my head spin.
-> 
->> +		if (record_len > data_len)
->> +			return -EINVAL;
-> 
-> <---- newline here.
-> 
-> Btw, those checks in the loop you can abstract away into a separate
-> function so that you end up with something more readable like:
-> 
->          apei_estatus_for_each_section(estatus, gdata) {
->                  record_size = check_hest_record_size(gdata, data_len);
->                  if (!record_size)
->                          return -EINVAL;
-> 
->                  data_len -= record_size;
->          }
-> 
-> for example.
-> 
+Is there any reason why is this not CCing linux-api (Cced now).
 
-There are only two if statements in the loop body -- I don't think it is 
-necessary to abstract this into a separate function (which still 
-requires having one if statement in the loop body).
+On Thu 24-01-19 16:07:14, Keith Busch wrote:
+> == Changes since v4 ==
+> 
+>   All public interfaces have kernel docs.
+> 
+>   Renamed "class" to "access", docs and changed logs updated
+>   accordingly. (Rafael)
+> 
+>   The sysfs hierarchy is altered to put initiators and targets in their
+>   own attribute group directories (Rafael).
+> 
+>   The node lists are removed. This feedback is in conflict with v1
+>   feedback, but consensus wants to remove multi-value sysfs attributes,
+>   which includes lists. We only have symlinks now, just like v1 provided.
+> 
+>   Documentation and code patches are combined such that the code
+>   introducing new attributes and its documentation are in the same
+>   patch. (Rafael and Dan).
+> 
+>   The performance attributes, bandwidth and latency, are moved into the
+>   initiators directory. This should make it obvious for which node
+>   access the attributes apply, which was previously ambiguous.
+>   (Jonathan Cameron).
+> 
+>   The HMAT code selecting "local" initiators is substantially changed.
+>   Only PXM's that have identical performance to the HMAT's processor PXM
+>   in Address Range Structure are registered. This is to avoid considering
+>   nodes identical when only one of several perf attributes are the same.
+>   (Jonathan Cameron).
+> 
+>   Verbose variable naming. Examples include "initiator" and "target"
+>   instead of "i" and "t", "mem_pxm" and "cpu_pxm" instead of "m" and
+>   "p". (Rafael)
+> 
+>   Compile fixes for when HMEM_REPORTING is not set. This is not a user
+>   selectable config option, default 'n', and will have to be selected
+>   by other config options that require it (Greg KH and Rafael).
+> 
+> == Background ==
+> 
+> Platforms may provide multiple types of cpu attached system memory. The
+> memory ranges for each type may have different characteristics that
+> applications may wish to know about when considering what node they want
+> their memory allocated from. 
+> 
+> It had previously been difficult to describe these setups as memory
+> rangers were generally lumped into the NUMA node of the CPUs. New
+> platform attributes have been created and in use today that describe
+> the more complex memory hierarchies that can be created.
+> 
+> This series' objective is to provide the attributes from such systems
+> that are useful for applications to know about, and readily usable with
+> existing tools and libraries.
 
-I've made the other changes you suggested and sent a V2.
+Can you provide a highlevel description of these new attributes and how
+they are supposed to be used.
 
-Thanks,
+Mentioning usecases is also due consideirng the amount of code this
+adds. 
+
+> Keith Busch (10):
+>   acpi: Create subtable parsing infrastructure
+>   acpi: Add HMAT to generic parsing tables
+>   acpi/hmat: Parse and report heterogeneous memory
+>   node: Link memory nodes to their compute nodes
+>   acpi/hmat: Register processor domain to its memory
+>   node: Add heterogenous memory access attributes
+>   acpi/hmat: Register performance attributes
+>   node: Add memory caching attributes
+>   acpi/hmat: Register memory side cache attributes
+>   doc/mm: New documentation for memory performance
+> 
+>  Documentation/ABI/stable/sysfs-devices-node   |  87 ++++-
+>  Documentation/admin-guide/mm/numaperf.rst     | 167 ++++++++
+>  arch/arm64/kernel/acpi_numa.c                 |   2 +-
+>  arch/arm64/kernel/smp.c                       |   4 +-
+>  arch/ia64/kernel/acpi.c                       |  12 +-
+>  arch/x86/kernel/acpi/boot.c                   |  36 +-
+>  drivers/acpi/Kconfig                          |   1 +
+>  drivers/acpi/Makefile                         |   1 +
+>  drivers/acpi/hmat/Kconfig                     |   9 +
+>  drivers/acpi/hmat/Makefile                    |   1 +
+>  drivers/acpi/hmat/hmat.c                      | 537 ++++++++++++++++++++++++++
+>  drivers/acpi/numa.c                           |  16 +-
+>  drivers/acpi/scan.c                           |   4 +-
+>  drivers/acpi/tables.c                         |  76 +++-
+>  drivers/base/Kconfig                          |   8 +
+>  drivers/base/node.c                           | 354 ++++++++++++++++-
+>  drivers/irqchip/irq-gic-v2m.c                 |   2 +-
+>  drivers/irqchip/irq-gic-v3-its-pci-msi.c      |   2 +-
+>  drivers/irqchip/irq-gic-v3-its-platform-msi.c |   2 +-
+>  drivers/irqchip/irq-gic-v3-its.c              |   6 +-
+>  drivers/irqchip/irq-gic-v3.c                  |  10 +-
+>  drivers/irqchip/irq-gic.c                     |   4 +-
+>  drivers/mailbox/pcc.c                         |   2 +-
+>  include/linux/acpi.h                          |   6 +-
+>  include/linux/node.h                          |  60 ++-
+>  25 files changed, 1344 insertions(+), 65 deletions(-)
+>  create mode 100644 Documentation/admin-guide/mm/numaperf.rst
+>  create mode 100644 drivers/acpi/hmat/Kconfig
+>  create mode 100644 drivers/acpi/hmat/Makefile
+>  create mode 100644 drivers/acpi/hmat/hmat.c
+> 
+> -- 
+> 2.14.4
+
 -- 
-Ross Lagerwall
+Michal Hocko
+SUSE Labs
