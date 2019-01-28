@@ -1,126 +1,62 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCHv5 00/10] Heterogeneuos memory node attributes
-Date: Mon, 28 Jan 2019 15:00:09 +0100
-Message-ID: <20190128140009.GA11059@dhcp22.suse.cz>
-References: <20190124230724.10022-1-keith.busch@intel.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 083/304] ACPI: SPCR: Consider baud rate 0 as preconfigured state
+Date: Mon, 28 Jan 2019 10:40:00 -0500
+Message-ID: <20190128154341.47195-83-sashal@kernel.org>
+References: <20190128154341.47195-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190124230724.10022-1-keith.busch@intel.com>
+In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-api@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Is there any reason why is this not CCing linux-api (Cced now).
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Thu 24-01-19 16:07:14, Keith Busch wrote:
-> == Changes since v4 ==
-> 
->   All public interfaces have kernel docs.
-> 
->   Renamed "class" to "access", docs and changed logs updated
->   accordingly. (Rafael)
-> 
->   The sysfs hierarchy is altered to put initiators and targets in their
->   own attribute group directories (Rafael).
-> 
->   The node lists are removed. This feedback is in conflict with v1
->   feedback, but consensus wants to remove multi-value sysfs attributes,
->   which includes lists. We only have symlinks now, just like v1 provided.
-> 
->   Documentation and code patches are combined such that the code
->   introducing new attributes and its documentation are in the same
->   patch. (Rafael and Dan).
-> 
->   The performance attributes, bandwidth and latency, are moved into the
->   initiators directory. This should make it obvious for which node
->   access the attributes apply, which was previously ambiguous.
->   (Jonathan Cameron).
-> 
->   The HMAT code selecting "local" initiators is substantially changed.
->   Only PXM's that have identical performance to the HMAT's processor PXM
->   in Address Range Structure are registered. This is to avoid considering
->   nodes identical when only one of several perf attributes are the same.
->   (Jonathan Cameron).
-> 
->   Verbose variable naming. Examples include "initiator" and "target"
->   instead of "i" and "t", "mem_pxm" and "cpu_pxm" instead of "m" and
->   "p". (Rafael)
-> 
->   Compile fixes for when HMEM_REPORTING is not set. This is not a user
->   selectable config option, default 'n', and will have to be selected
->   by other config options that require it (Greg KH and Rafael).
-> 
-> == Background ==
-> 
-> Platforms may provide multiple types of cpu attached system memory. The
-> memory ranges for each type may have different characteristics that
-> applications may wish to know about when considering what node they want
-> their memory allocated from. 
-> 
-> It had previously been difficult to describe these setups as memory
-> rangers were generally lumped into the NUMA node of the CPUs. New
-> platform attributes have been created and in use today that describe
-> the more complex memory hierarchies that can be created.
-> 
-> This series' objective is to provide the attributes from such systems
-> that are useful for applications to know about, and readily usable with
-> existing tools and libraries.
+[ Upstream commit b413b1abeb21b4a152c0bf8d1379efa30759b6e3 ]
 
-Can you provide a highlevel description of these new attributes and how
-they are supposed to be used.
+Since SPCR 1.04 [1] the baud rate of 0 means a preconfigured state of UART.
+Assume firmware or bootloader configures console correctly.
 
-Mentioning usecases is also due consideirng the amount of code this
-adds. 
+[1]: https://docs.microsoft.com/en-us/windows-hardware/drivers/serports/serial-port-console-redirection-table
 
-> Keith Busch (10):
->   acpi: Create subtable parsing infrastructure
->   acpi: Add HMAT to generic parsing tables
->   acpi/hmat: Parse and report heterogeneous memory
->   node: Link memory nodes to their compute nodes
->   acpi/hmat: Register processor domain to its memory
->   node: Add heterogenous memory access attributes
->   acpi/hmat: Register performance attributes
->   node: Add memory caching attributes
->   acpi/hmat: Register memory side cache attributes
->   doc/mm: New documentation for memory performance
-> 
->  Documentation/ABI/stable/sysfs-devices-node   |  87 ++++-
->  Documentation/admin-guide/mm/numaperf.rst     | 167 ++++++++
->  arch/arm64/kernel/acpi_numa.c                 |   2 +-
->  arch/arm64/kernel/smp.c                       |   4 +-
->  arch/ia64/kernel/acpi.c                       |  12 +-
->  arch/x86/kernel/acpi/boot.c                   |  36 +-
->  drivers/acpi/Kconfig                          |   1 +
->  drivers/acpi/Makefile                         |   1 +
->  drivers/acpi/hmat/Kconfig                     |   9 +
->  drivers/acpi/hmat/Makefile                    |   1 +
->  drivers/acpi/hmat/hmat.c                      | 537 ++++++++++++++++++++++++++
->  drivers/acpi/numa.c                           |  16 +-
->  drivers/acpi/scan.c                           |   4 +-
->  drivers/acpi/tables.c                         |  76 +++-
->  drivers/base/Kconfig                          |   8 +
->  drivers/base/node.c                           | 354 ++++++++++++++++-
->  drivers/irqchip/irq-gic-v2m.c                 |   2 +-
->  drivers/irqchip/irq-gic-v3-its-pci-msi.c      |   2 +-
->  drivers/irqchip/irq-gic-v3-its-platform-msi.c |   2 +-
->  drivers/irqchip/irq-gic-v3-its.c              |   6 +-
->  drivers/irqchip/irq-gic-v3.c                  |  10 +-
->  drivers/irqchip/irq-gic.c                     |   4 +-
->  drivers/mailbox/pcc.c                         |   2 +-
->  include/linux/acpi.h                          |   6 +-
->  include/linux/node.h                          |  60 ++-
->  25 files changed, 1344 insertions(+), 65 deletions(-)
->  create mode 100644 Documentation/admin-guide/mm/numaperf.rst
->  create mode 100644 drivers/acpi/hmat/Kconfig
->  create mode 100644 drivers/acpi/hmat/Makefile
->  create mode 100644 drivers/acpi/hmat/hmat.c
-> 
-> -- 
-> 2.14.4
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Prarit Bhargava <prarit@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/spcr.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
+diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+index 9d52743080a4..c336784d0bcb 100644
+--- a/drivers/acpi/spcr.c
++++ b/drivers/acpi/spcr.c
+@@ -148,6 +148,13 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ 	}
+ 
+ 	switch (table->baud_rate) {
++	case 0:
++		/*
++		 * SPCR 1.04 defines 0 as a preconfigured state of UART.
++		 * Assume firmware or bootloader configures console correctly.
++		 */
++		baud_rate = 0;
++		break;
+ 	case 3:
+ 		baud_rate = 9600;
+ 		break;
+@@ -196,6 +203,10 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ 		 * UART so don't attempt to change to the baud rate state
+ 		 * in the table because driver cannot calculate the dividers
+ 		 */
++		baud_rate = 0;
++	}
++
++	if (!baud_rate) {
+ 		snprintf(opts, sizeof(opts), "%s,%s,0x%llx", uart, iotype,
+ 			 table->serial_port.address);
+ 	} else {
 -- 
-Michal Hocko
-SUSE Labs
+2.19.1
