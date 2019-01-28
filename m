@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 210/258] ACPI/APEI: Clear GHES block_status before panic()
-Date: Mon, 28 Jan 2019 10:58:36 -0500
-Message-ID: <20190128155924.51521-210-sashal@kernel.org>
-References: <20190128155924.51521-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 132/170] ACPI/APEI: Clear GHES block_status before panic()
+Date: Mon, 28 Jan 2019 11:11:22 -0500
+Message-ID: <20190128161200.55107-132-sashal@kernel.org>
+References: <20190128161200.55107-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190128155924.51521-1-sashal@kernel.org>
+In-Reply-To: <20190128161200.55107-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Lenny Szubowicz <lszubowi@redhat.com>, David Arcari <darcari@redhat.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
@@ -36,10 +36,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 02c6fd9caff7..f008ba7c9ced 100644
+index f14695e744d0..5889f6407fea 100644
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -691,6 +691,8 @@ static void __ghes_panic(struct ghes *ghes)
+@@ -675,6 +675,8 @@ static void __ghes_panic(struct ghes *ghes)
  {
  	__ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
  
