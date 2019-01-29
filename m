@@ -1,129 +1,115 @@
-From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
-Date: Tue, 29 Jan 2019 00:56:17 +0000
-Message-ID: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v7 10/25] ACPI / APEI: Tell firmware the estatus queue
+ consumed the records
+Date: Tue, 29 Jan 2019 12:49:52 +0100
+Message-ID: <20190129114952.GA30613@zn.tnic>
+References: <20181203180613.228133-11-james.morse@arm.com>
+ <20181211183634.GO27375@zn.tnic>
+ <56cfa16b-ece4-76e0-3799-58201f8a4ff1@arm.com>
+ <CABo9ajArdbYMOBGPRa185yo9MnKRb0pgS-pHqUNdNS9m+kKO-Q@mail.gmail.com>
+ <20190111120322.GD4729@zn.tnic>
+ <CABo9ajAk5XNBmNHRRfUb-dQzW7-UOs5826jPkrVz-8zrtMUYkg@mail.gmail.com>
+ <20190111174532.GI4729@zn.tnic>
+ <32025682-f85a-58ef-7386-7ee23296b944@arm.com>
+ <20190111195800.GA11723@zn.tnic>
+ <18138b57-51ba-c99c-5b8d-b263fb964714@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Josh Poulson <jopoulso-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <18138b57-51ba-c99c-5b8d-b263fb964714@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <baicar.tyler@gmail.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Jan 23, 2019 at 06:36:38PM +0000, James Morse wrote:
+> Do you consider ENOENT an error? We don't ack in that case as the
+> memory wasn't in use.
 
-Add the Hyper-V _DSM command set to the white list of NVDIMM command
-sets.
+So let's see:
 
-This command set is documented at http://www.uefi.org/RFIC_LIST
-(see "Virtual NVDIMM 0x1901").
+        if (!*buf_paddr)
+                return -ENOENT;
 
-Thanks Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> for writing the
-comment change.
+can happen when apei_read() has returned 0 but it has managed to do
 
-Signed-off-by: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Reviewed-by: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
----
+	*val = 0;
 
-Changes in v2:
-    Updated the comment and changelog (Thanks, Dan!)
-    Rebased to the tag libnvdimm-fixes-5.0-rc4 of the nvdimm tree.
+Now, that function returns error values which we should be checking
+but we're checking the buf_paddr pointed to value for being 0. Are
+we fearing that even if acpi_os_read_memory() or acpi_os_read_port()
+succeed, *buf_paddr could still be 0 ?
 
- drivers/acpi/nfit/core.c   | 17 ++++++++++++++---
- drivers/acpi/nfit/nfit.h   |  6 +++++-
- include/uapi/linux/ndctl.h |  1 +
- 3 files changed, 20 insertions(+), 4 deletions(-)
+Because if not, we should be checking whether rc == -EINVAL and then
+convert it to -ENOENT.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e18ade5d74e9..a9270c99be72 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1861,9 +1861,17 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
- 
- 	/*
--	 * Until standardization materializes we need to consider 4
--	 * different command sets.  Note, that checking for function0 (bit0)
--	 * tells us if any commands are reachable through this GUID.
-+	 * There are 4 "legacy" NVDIMM command sets
-+	 * (NVDIMM_FAMILY_{INTEL,MSFT,HPE1,HPE2}) that were created before
-+	 * an EFI working group was established to constrain this
-+	 * proliferation. The nfit driver probes for the supported command
-+	 * set by GUID. Note, if you're a platform developer looking to add
-+	 * a new command set to this probe, consider using an existing set,
-+	 * or otherwise seek approval to publish the command set at
-+	 * http://www.uefi.org/RFIC_LIST.
-+	 *
-+	 * Note, that checking for function0 (bit0) tells us if any commands
-+	 * are reachable through this GUID.
- 	 */
- 	for (i = 0; i <= NVDIMM_FAMILY_MAX; i++)
- 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-@@ -1886,6 +1894,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 			dsm_mask &= ~(1 << 8);
- 	} else if (nfit_mem->family == NVDIMM_FAMILY_MSFT) {
- 		dsm_mask = 0xffffffff;
-+	} else if (nfit_mem->family == NVDIMM_FAMILY_HYPERV) {
-+		dsm_mask = 0x1f;
- 	} else {
- 		dev_dbg(dev, "unknown dimm command family\n");
- 		nfit_mem->family = -1;
-@@ -3729,6 +3739,7 @@ static __init int nfit_init(void)
- 	guid_parse(UUID_NFIT_DIMM_N_HPE1, &nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
- 	guid_parse(UUID_NFIT_DIMM_N_HPE2, &nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
- 	guid_parse(UUID_NFIT_DIMM_N_MSFT, &nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
-+	guid_parse(UUID_NFIT_DIMM_N_HYPERV, &nfit_uuid[NFIT_DEV_DIMM_N_HYPERV]);
- 
- 	nfit_wq = create_singlethread_workqueue("nfit");
- 	if (!nfit_wq)
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 33691aecfcee..4de167b4f76f 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -34,11 +34,14 @@
- /* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
- #define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
- 
-+/* http://www.uefi.org/RFIC_LIST (see "Virtual NVDIMM 0x1901") */
-+#define UUID_NFIT_DIMM_N_HYPERV "5746c5f2-a9a2-4264-ad0e-e4ddc9e09e80"
-+
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
- 
--#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
-+#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
- 
- #define NVDIMM_STANDARD_CMDMASK \
- (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
-@@ -94,6 +97,7 @@ enum nfit_uuids {
- 	NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
- 	NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
- 	NFIT_DEV_DIMM_N_MSFT = NVDIMM_FAMILY_MSFT,
-+	NFIT_DEV_DIMM_N_HYPERV = NVDIMM_FAMILY_HYPERV,
- 	NFIT_SPA_VOLATILE,
- 	NFIT_SPA_PM,
- 	NFIT_SPA_DCR,
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index f57c9e434d2d..de5d90212409 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -243,6 +243,7 @@ struct nd_cmd_pkg {
- #define NVDIMM_FAMILY_HPE1 1
- #define NVDIMM_FAMILY_HPE2 2
- #define NVDIMM_FAMILY_MSFT 3
-+#define NVDIMM_FAMILY_HYPERV 4
- 
- #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
- 					struct nd_cmd_pkg)
+But ghes_read_estatus() handles the error case first *and* *then* checks
+buf_paddr too, to make really really sure we won't be reading from
+address 0.
+
+> For the other cases its because the records are bogus, but we still
+> unconditionally tell firmware we're done with them.
+
+... to free the memory, yes, ok.
+
+> >> I think it is. 18.3.2.8 of ACPI v6.2 (search for Generic Hardware Error Source
+> >> version 2", then below the table):
+> >> * OSPM detects error (via interrupt/exception or polling the block status)
+> >> * OSPM copies the error status block
+> >> * OSPM clears the block status field of the error status block
+> >> * OSPM acknowledges the error via Read Ack register
+> >>
+> >> The ENOENT case is excluded by 'polling the block status'.
+> > 
+> > Ok, so we signal the absence of an error record with ENOENT.
+> > 
+> >         if (!buf_paddr)
+> >                 return -ENOENT;
+> > 
+> > Can that even happen?
+> 
+> Yes, for NOTIFY_POLLED its the norm. For the IRQ flavours that walk a list of
+> GHES, all but one of them will return ENOENT.
+
+Lemme get this straight: when we do
+
+	apei_read(&buf_paddr, &g->error_status_address);
+
+in the polled case, buf_paddr can be 0?
+
+> We could try it and see. It depends if firmware shares ack locations between
+> multiple GHES. We could ack an empty GHES, and it removes the records of one we
+> haven't looked at yet.
+
+Yeah, OTOH, we shouldn't be pushing our luck here, I guess.
+
+So let's sum up: we'll ack the GHES error in all but the -ENOENT cases
+in order to free the memory occupied by the error record.
+
+The slightly "pathological" -ENOENT case is I guess how the fw behaves
+when it is being polled and also for broken firmware which could report
+a 0 buf_paddr.
+
+Btw, that last thing I'm assuming because
+
+  d334a49113a4 ("ACPI, APEI, Generic Hardware Error Source memory error support")
+
+doesn't say what that check was needed for.
+
+Thx.
+
 -- 
-2.19.1
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
