@@ -1,115 +1,273 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 10/25] ACPI / APEI: Tell firmware the estatus queue
- consumed the records
-Date: Tue, 29 Jan 2019 12:49:52 +0100
-Message-ID: <20190129114952.GA30613@zn.tnic>
-References: <20181203180613.228133-11-james.morse@arm.com>
- <20181211183634.GO27375@zn.tnic>
- <56cfa16b-ece4-76e0-3799-58201f8a4ff1@arm.com>
- <CABo9ajArdbYMOBGPRa185yo9MnKRb0pgS-pHqUNdNS9m+kKO-Q@mail.gmail.com>
- <20190111120322.GD4729@zn.tnic>
- <CABo9ajAk5XNBmNHRRfUb-dQzW7-UOs5826jPkrVz-8zrtMUYkg@mail.gmail.com>
- <20190111174532.GI4729@zn.tnic>
- <32025682-f85a-58ef-7386-7ee23296b944@arm.com>
- <20190111195800.GA11723@zn.tnic>
- <18138b57-51ba-c99c-5b8d-b263fb964714@arm.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] acpi: bgrt: parse BGRT to obtain BMP address before it
+ gets clobbered
+Date: Tue, 29 Jan 2019 15:36:01 +0100
+Message-ID: <CAKv+Gu9Ya45KONSiTh1Nj=WEoiwJqqfhOJf6-PxhyHtOoBeiKw@mail.gmail.com>
+References: <20190122150616.850-1-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <18138b57-51ba-c99c-5b8d-b263fb964714@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <baicar.tyler@gmail.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190122150616.850-1-ard.biesheuvel@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Peter Jones <pjones@redhat.com>, Leif Lindholm <leif.lindholm@linaro.org>, Al Stone <astone@redhat.com>, linux-efi <linux-efi@vger.kernel.org>, "Hsiung,
+ Harry L" <harry.l.hsiung@intel.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 23, 2019 at 06:36:38PM +0000, James Morse wrote:
-> Do you consider ENOENT an error? We don't ack in that case as the
-> memory wasn't in use.
+On Tue, 22 Jan 2019 at 16:06, Ard Biesheuvel <ard.biesheuvel@linaro.org> wrote:
+>
+> The bitmap left in the framebuffer by the firmware is described by an
+> ACPI table called "BGRT", which describes the size, pixel format and
+> the address of a BMP image in memory. While the BGRT ACPI table is
+> guaranteed to reside in a "ACPI reclaim" memory region, which is
+> never touched by Linux. The BMP image, however, typically resides
+> in EFI Boot Services Memory, which may have been overwritten by the
+> time the BGRT discovery routine runs.
+>
+> So instead, drop the handling from the ACPI init code, and call the
+> BGRT parsing code immediately after going over the EFI configuration
+> table array, at which time no memory has been touched yet except for
+> the .data/.bss regions covered by the static kernel image.
+>
+> Unfortunately, this involves a non-trivial amount of ACPI entry
+> point and root table parsing, but we cannot rely on the normal
+> ACPI infrastructure yet this early in the boot.
+>
+> Also note that we cannot take the 'acpi_disabled' global variable
+> into account, since it may not have assumed the correct value yet
+> (on arm64, the default value is '1' which is overridden to '0' if
+> no DT description has been made available by the firmware)
+>
+> Cc: Peter Jones <pjones@redhat.com>
+> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> ---
+>  arch/arm64/kernel/acpi.c        |  2 -
+>  arch/x86/kernel/acpi/boot.c     |  2 -
+>  drivers/acpi/bgrt.c             |  6 --
+>  drivers/firmware/efi/efi-bgrt.c | 80 ++++++++++++++++++--
+>  drivers/firmware/efi/efi.c      | 13 ++++
+>  include/linux/efi-bgrt.h        |  4 +-
+>  6 files changed, 89 insertions(+), 18 deletions(-)
+>
 
-So let's see:
+Rafael, Len,
 
-        if (!*buf_paddr)
-                return -ENOENT;
+Do you mind if i take this via the EFI tree (after addressing
+Lorenzo's comments)
 
-can happen when apei_read() has returned 0 but it has managed to do
+Thanks,
+Ard.
 
-	*val = 0;
 
-Now, that function returns error values which we should be checking
-but we're checking the buf_paddr pointed to value for being 0. Are
-we fearing that even if acpi_os_read_memory() or acpi_os_read_port()
-succeed, *buf_paddr could still be 0 ?
 
-Because if not, we should be checking whether rc == -EINVAL and then
-convert it to -ENOENT.
-
-But ghes_read_estatus() handles the error case first *and* *then* checks
-buf_paddr too, to make really really sure we won't be reading from
-address 0.
-
-> For the other cases its because the records are bogus, but we still
-> unconditionally tell firmware we're done with them.
-
-... to free the memory, yes, ok.
-
-> >> I think it is. 18.3.2.8 of ACPI v6.2 (search for Generic Hardware Error Source
-> >> version 2", then below the table):
-> >> * OSPM detects error (via interrupt/exception or polling the block status)
-> >> * OSPM copies the error status block
-> >> * OSPM clears the block status field of the error status block
-> >> * OSPM acknowledges the error via Read Ack register
-> >>
-> >> The ENOENT case is excluded by 'polling the block status'.
-> > 
-> > Ok, so we signal the absence of an error record with ENOENT.
-> > 
-> >         if (!buf_paddr)
-> >                 return -ENOENT;
-> > 
-> > Can that even happen?
-> 
-> Yes, for NOTIFY_POLLED its the norm. For the IRQ flavours that walk a list of
-> GHES, all but one of them will return ENOENT.
-
-Lemme get this straight: when we do
-
-	apei_read(&buf_paddr, &g->error_status_address);
-
-in the polled case, buf_paddr can be 0?
-
-> We could try it and see. It depends if firmware shares ack locations between
-> multiple GHES. We could ack an empty GHES, and it removes the records of one we
-> haven't looked at yet.
-
-Yeah, OTOH, we shouldn't be pushing our luck here, I guess.
-
-So let's sum up: we'll ack the GHES error in all but the -ENOENT cases
-in order to free the memory occupied by the error record.
-
-The slightly "pathological" -ENOENT case is I guess how the fw behaves
-when it is being polled and also for broken firmware which could report
-a 0 buf_paddr.
-
-Btw, that last thing I'm assuming because
-
-  d334a49113a4 ("ACPI, APEI, Generic Hardware Error Source memory error support")
-
-doesn't say what that check was needed for.
-
-Thx.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 44e3c351e1ea..7429a811f76d 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -230,8 +230,6 @@ void __init acpi_boot_table_init(void)
+>                         early_init_dt_scan_chosen_stdout();
+>         } else {
+>                 acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
+> -               if (IS_ENABLED(CONFIG_ACPI_BGRT))
+> -                       acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+>         }
+>  }
+>
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 2624de16cd7a..2d3535b62752 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -1633,8 +1633,6 @@ int __init acpi_boot_init(void)
+>         acpi_process_madt();
+>
+>         acpi_table_parse(ACPI_SIG_HPET, acpi_parse_hpet);
+> -       if (IS_ENABLED(CONFIG_ACPI_BGRT))
+> -               acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+>
+>         if (!acpi_noirq)
+>                 x86_init.pci.init = pci_acpi_init;
+> diff --git a/drivers/acpi/bgrt.c b/drivers/acpi/bgrt.c
+> index 75af78361ce5..048413e06898 100644
+> --- a/drivers/acpi/bgrt.c
+> +++ b/drivers/acpi/bgrt.c
+> @@ -81,12 +81,6 @@ static const struct attribute_group bgrt_attribute_group = {
+>         .bin_attrs = bgrt_bin_attributes,
+>  };
+>
+> -int __init acpi_parse_bgrt(struct acpi_table_header *table)
+> -{
+> -       efi_bgrt_init(table);
+> -       return 0;
+> -}
+> -
+>  static int __init bgrt_init(void)
+>  {
+>         int ret;
+> diff --git a/drivers/firmware/efi/efi-bgrt.c b/drivers/firmware/efi/efi-bgrt.c
+> index b22ccfb0c991..8bd9b96942d2 100644
+> --- a/drivers/firmware/efi/efi-bgrt.c
+> +++ b/drivers/firmware/efi/efi-bgrt.c
+> @@ -27,24 +27,92 @@ struct bmp_header {
+>         u32 size;
+>  } __packed;
+>
+> -void __init efi_bgrt_init(struct acpi_table_header *table)
+> +void __init efi_bgrt_init(unsigned long rsdp_phys)
+>  {
+>         void *image;
+>         struct bmp_header bmp_header;
+>         struct acpi_table_bgrt *bgrt = &bgrt_tab;
+> +       struct acpi_table_bgrt *table = NULL;
+> +       struct acpi_table_rsdp *rsdp;
+> +       struct acpi_table_header *hdr;
+> +       u64 xsdt_phys;
+> +       u32 rsdt_phys;
+> +       unsigned int len;
+>
+> -       if (acpi_disabled)
+> +       if (!efi_enabled(EFI_MEMMAP))
+>                 return;
+>
+> -       if (!efi_enabled(EFI_MEMMAP))
+> +       /* map the root pointer table to find the xsdt/rsdt values */
+> +       rsdp = early_memremap(rsdp_phys, sizeof(*rsdp));
+> +       if (rsdp && ACPI_VALIDATE_RSDP_SIG(rsdp->signature)) {
+> +               xsdt_phys = rsdp->xsdt_physical_address;
+> +               rsdt_phys = rsdp->rsdt_physical_address;
+> +       } else {
+> +               WARN_ON(1);
+> +               return;
+> +       }
+> +       early_memunmap(rsdp, sizeof(*rsdp));
+> +
+> +       /* obtain the length of whichever table we will be using */
+> +       hdr = early_memremap(xsdt_phys ?: rsdt_phys, sizeof(*hdr));
+> +       if (WARN_ON(!hdr))
+> +               return;
+> +       len = hdr->length;
+> +       early_memunmap(hdr, sizeof(*hdr));
+> +
+> +       if (xsdt_phys) {
+> +               struct acpi_table_xsdt *xsdt = early_memremap(xsdt_phys, len);
+> +               int i;
+> +
+> +               if (WARN_ON(!xsdt))
+> +                       return;
+> +
+> +               for (i = 0; i < (len - sizeof(*hdr)) / sizeof(u64); i++) {
+> +                       table = early_memremap(xsdt->table_offset_entry[i],
+> +                                              sizeof(*table));
+> +                       if (WARN_ON(!table))
+> +                               break;
+> +
+> +                       if (ACPI_COMPARE_NAME(table->header.signature,
+> +                                             ACPI_SIG_BGRT))
+> +                               break;
+> +                       early_memunmap(table, sizeof(*table));
+> +                       table = NULL;
+> +               }
+> +               early_memunmap(xsdt, len);
+> +       } else if (rsdt_phys) {
+> +               struct acpi_table_rsdt *rsdt = early_memremap(rsdt_phys, len);
+> +               int i;
+> +
+> +               if (WARN_ON(!rsdt))
+> +                       return;
+> +
+> +               for (i = 0; i < (len - sizeof(*hdr)) / sizeof(u32); i++) {
+> +                       table = early_memremap(rsdt->table_offset_entry[i],
+> +                                              sizeof(*table));
+> +                       if (WARN_ON(!table))
+> +                               break;
+> +
+> +                       if (ACPI_COMPARE_NAME(table->header.signature,
+> +                                             ACPI_SIG_BGRT))
+> +                               break;
+> +                       early_memunmap(table, sizeof(*table));
+> +                       table = NULL;
+> +               }
+> +               early_memunmap(rsdt, len);
+> +       }
+> +
+> +       if (!table)
+>                 return;
+>
+> -       if (table->length < sizeof(bgrt_tab)) {
+> +       if (table->header.length < sizeof(bgrt_tab)) {
+>                 pr_notice("Ignoring BGRT: invalid length %u (expected %zu)\n",
+> -                      table->length, sizeof(bgrt_tab));
+> +                      table->header.length, sizeof(bgrt_tab));
+>                 return;
+>         }
+> -       *bgrt = *(struct acpi_table_bgrt *)table;
+> +       *bgrt = *table;
+> +       early_memunmap(table, sizeof(*table));
+> +
+>         if (bgrt->version != 1) {
+>                 pr_notice("Ignoring BGRT: invalid version %u (expected 1)\n",
+>                        bgrt->version);
+> diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
+> index 4c46ff6f2242..e5ef5c0eacc1 100644
+> --- a/drivers/firmware/efi/efi.c
+> +++ b/drivers/firmware/efi/efi.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/init.h>
+>  #include <linux/device.h>
+>  #include <linux/efi.h>
+> +#include <linux/efi-bgrt.h>
+>  #include <linux/of.h>
+>  #include <linux/of_fdt.h>
+>  #include <linux/io.h>
+> @@ -592,6 +593,18 @@ int __init efi_config_parse_tables(void *config_tables, int count, int sz,
+>
+>                 early_memunmap(tbl, sizeof(*tbl));
+>         }
+> +
+> +       /*
+> +        * We need to parse the BGRT table (which is an ACPI table not a UEFI
+> +        * configuration table) by hand and figure out where the bitmap it
+> +        * describes lives in memory so we can reserve it early on. Otherwise,
+> +        * it may be clobbered by the time we get to it during the ordinary ACPI
+> +        * table init sequence.
+> +        */
+> +       if (IS_ENABLED(CONFIG_ACPI_BGRT) &&
+> +           efi.acpi20 != EFI_INVALID_TABLE_ADDR)
+> +               efi_bgrt_init(efi.acpi20);
+> +
+>         return 0;
+>  }
+>
+> diff --git a/include/linux/efi-bgrt.h b/include/linux/efi-bgrt.h
+> index e6cd51005633..528ea62d99ec 100644
+> --- a/include/linux/efi-bgrt.h
+> +++ b/include/linux/efi-bgrt.h
+> @@ -6,7 +6,7 @@
+>
+>  #ifdef CONFIG_ACPI_BGRT
+>
+> -void efi_bgrt_init(struct acpi_table_header *table);
+> +void efi_bgrt_init(unsigned long rsdp_phys);
+>  int __init acpi_parse_bgrt(struct acpi_table_header *table);
+>
+>  /* The BGRT data itself; only valid if bgrt_image != NULL. */
+> @@ -15,7 +15,7 @@ extern struct acpi_table_bgrt bgrt_tab;
+>
+>  #else /* !CONFIG_ACPI_BGRT */
+>
+> -static inline void efi_bgrt_init(struct acpi_table_header *table) {}
+> +static inline void efi_bgrt_init(unsigned long rsdp_phys) {}
+>  static inline int __init acpi_parse_bgrt(struct acpi_table_header *table)
+>  {
+>         return 0;
+> --
+> 2.20.1
+>
