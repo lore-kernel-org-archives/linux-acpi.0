@@ -1,203 +1,64 @@
-From: James Morse <james.morse@arm.com>
-Subject: [PATCH v8 26/26] ACPI / APEI: Add support for the SDEI GHES
- Notification type
-Date: Tue, 29 Jan 2019 18:49:02 +0000
-Message-ID: <20190129184902.102850-27-james.morse@arm.com>
-References: <20190129184902.102850-1-james.morse@arm.com>
+From: Dexuan Cui <decui@microsoft.com>
+Subject: [PATCH] nfit: acpi_nfit_ctl(): check out_obj->type in the right place
+Date: Wed, 30 Jan 2019 01:23:01 +0000
+Message-ID: <PU1P153MB01694923DF3280E5828E2BE2BF900@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20190129184902.102850-1-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: linux-acpi@vger.kernel.org
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Josh Poulson <jopoulso@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, KY Srinivasan <kys@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-If the GHES notification type is SDEI, register the provided event
-using the SDEI-GHES helper.
 
-SDEI may be one of two types of event, normal and critical. Critical
-events can interrupt normal events, so these must have separate
-fixmap slots and locks in case both event types are in use.
+In the case of ND_CMD_CALL, we should also check out_obj->type.
 
-Signed-off-by: James Morse <james.morse@arm.com>
+The patch uses out_obj->type, which is a short alias to
+out_obj->package.type.
 
---
-Changes since v7:
- * Use __end_of_fixed_addresses as an arch-agnostic invalid fixmap entry
- * Move the locks definition into the function that uses them to make it
-   clear these are NMI only.
-
-Changes since v6:
- * Tinkering due to the absence of #ifdef
- * Added SDEI to the new ghes_is_synchronous() helper.
-
+Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command mar=
+shaling mechanism")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dexuan Cui <decui@microsoft.com>
 ---
- drivers/acpi/apei/ghes.c | 85 ++++++++++++++++++++++++++++++++++++++++
- include/linux/arm_sdei.h |  3 ++
- 2 files changed, 88 insertions(+)
+ drivers/acpi/nfit/core.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index dfa8f155f964..d0f0a219bf8f 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -25,6 +25,7 @@
-  * GNU General Public License for more details.
-  */
- 
-+#include <linux/arm_sdei.h>
- #include <linux/kernel.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
-@@ -86,6 +87,15 @@
- 	((struct acpi_hest_generic_status *)				\
- 	 ((struct ghes_estatus_node *)(estatus_node) + 1))
- 
-+/*
-+ *  NMI-like notifications vary by architecture, before the compiler can prune
-+ *  unused static functions it needs a value for these enums.
-+ */
-+#ifndef CONFIG_ARM_SDE_INTERFACE
-+#define FIX_APEI_GHES_SDEI_NORMAL	__end_of_fixed_addresses
-+#define FIX_APEI_GHES_SDEI_CRITICAL	__end_of_fixed_addresses
-+#endif
-+
- static inline bool is_hest_type_generic_v2(struct ghes *ghes)
- {
- 	return ghes->generic->header.type == ACPI_HEST_TYPE_GENERIC_ERROR_V2;
-@@ -1088,6 +1098,63 @@ static void ghes_nmi_init_cxt(void)
- 	init_irq_work(&ghes_proc_irq_work, ghes_proc_in_irq);
- }
- 
-+static int __ghes_sdei_callback(struct ghes *ghes,
-+				enum fixed_addresses fixmap_idx)
-+{
-+	if (!ghes_in_nmi_queue_one_entry(ghes, fixmap_idx)) {
-+		irq_work_queue(&ghes_proc_irq_work);
-+
-+		return 0;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 0a49c57334cc..1fa378435dd2 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -554,6 +554,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_des=
+c, struct nvdimm *nvdimm,
+ 		return -EINVAL;
+ 	}
+=20
++	if (out_obj->type !=3D ACPI_TYPE_BUFFER) {
++		dev_dbg(dev, "%s unexpected output object type cmd: %s type: %d\n",
++				dimm_name, cmd_name, out_obj->type);
++		rc =3D -EINVAL;
++		goto out;
 +	}
 +
-+	return -ENOENT;
-+}
-+
-+static int ghes_sdei_normal_callback(u32 event_num, struct pt_regs *regs,
-+				      void *arg)
-+{
-+	static DEFINE_RAW_SPINLOCK(ghes_notify_lock_sdei_normal);
-+	struct ghes *ghes = arg;
-+	int err;
-+
-+	raw_spin_lock(&ghes_notify_lock_sdei_normal);
-+	err = __ghes_sdei_callback(ghes, FIX_APEI_GHES_SDEI_NORMAL);
-+	raw_spin_unlock(&ghes_notify_lock_sdei_normal);
-+
-+	return err;
-+}
-+
-+static int ghes_sdei_critical_callback(u32 event_num, struct pt_regs *regs,
-+				       void *arg)
-+{
-+	static DEFINE_RAW_SPINLOCK(ghes_notify_lock_sdei_critical);
-+	struct ghes *ghes = arg;
-+	int err;
-+
-+	raw_spin_lock(&ghes_notify_lock_sdei_critical);
-+	err = __ghes_sdei_callback(ghes, FIX_APEI_GHES_SDEI_CRITICAL);
-+	raw_spin_unlock(&ghes_notify_lock_sdei_critical);
-+
-+	return err;
-+}
-+
-+static int apei_sdei_register_ghes(struct ghes *ghes)
-+{
-+	if (!IS_ENABLED(CONFIG_ARM_SDE_INTERFACE))
-+		return -EOPNOTSUPP;
-+
-+	return sdei_register_ghes(ghes, ghes_sdei_normal_callback,
-+				 ghes_sdei_critical_callback);
-+}
-+
-+static int apei_sdei_unregister_ghes(struct ghes *ghes)
-+{
-+	if (!IS_ENABLED(CONFIG_ARM_SDE_INTERFACE))
-+		return -EOPNOTSUPP;
-+
-+	return sdei_unregister_ghes(ghes);
-+}
-+
- static int ghes_probe(struct platform_device *ghes_dev)
- {
- 	struct acpi_hest_generic *generic;
-@@ -1123,6 +1190,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 			goto err;
- 		}
- 		break;
-+	case ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED:
-+		if (!IS_ENABLED(CONFIG_ARM_SDE_INTERFACE)) {
-+			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SDE Interface is not supported!\n",
-+				generic->header.source_id);
-+			goto err;
-+		}
-+		break;
- 	case ACPI_HEST_NOTIFY_LOCAL:
- 		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
- 			   generic->header.source_id);
-@@ -1186,6 +1260,11 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_add(ghes);
- 		break;
-+	case ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED:
-+		rc = apei_sdei_register_ghes(ghes);
-+		if (rc)
-+			goto err;
-+		break;
- 	default:
- 		BUG();
+ 	if (call_pkg) {
+ 		call_pkg->nd_fw_size =3D out_obj->buffer.length;
+ 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
+@@ -572,13 +579,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_des=
+c, struct nvdimm *nvdimm,
+ 		return 0;
  	}
-@@ -1211,6 +1290,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 
- static int ghes_remove(struct platform_device *ghes_dev)
- {
-+	int rc;
- 	struct ghes *ghes;
- 	struct acpi_hest_generic *generic;
- 
-@@ -1243,6 +1323,11 @@ static int ghes_remove(struct platform_device *ghes_dev)
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_remove(ghes);
- 		break;
-+	case ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED:
-+		rc = apei_sdei_unregister_ghes(ghes);
-+		if (rc)
-+			return rc;
-+		break;
- 	default:
- 		BUG();
- 		break;
-diff --git a/include/linux/arm_sdei.h b/include/linux/arm_sdei.h
-index 393899192906..3305ea7f9dc7 100644
---- a/include/linux/arm_sdei.h
-+++ b/include/linux/arm_sdei.h
-@@ -12,7 +12,10 @@ enum sdei_conduit_types {
- };
- 
- #include <acpi/ghes.h>
-+
-+#ifdef CONFIG_ARM_SDE_INTERFACE
- #include <asm/sdei.h>
-+#endif
- 
- /* Arch code should override this to set the entry point from firmware... */
- #ifndef sdei_arch_get_entry_point
--- 
-2.20.1
+=20
+-	if (out_obj->package.type !=3D ACPI_TYPE_BUFFER) {
+-		dev_dbg(dev, "%s unexpected output object type cmd: %s type: %d\n",
+-				dimm_name, cmd_name, out_obj->type);
+-		rc =3D -EINVAL;
+-		goto out;
+-	}
+-
+ 	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
+ 			cmd_name, out_obj->buffer.length);
+ 	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
+--=20
+2.19.1
