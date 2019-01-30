@@ -1,32 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [for next][PATCH 1/2] mfd: Fix unmet dependency warning for MFD_TPS68470
-Date: Thu, 31 Jan 2019 00:55:33 +0100
-Message-ID: <2030742.Xi8Ns1LLnS@aspire.rjw.lan>
-References: <20190121231958.28255-1-okaya@kernel.org> <f4bc6037-7c0f-f053-a150-8ae6f683b1bc@kernel.org> <20190128072156.GE4678@dell>
+Subject: Re: [for next][PATCH v3 1/2] platform/x86: Fix unmet dependency warning for ACPI_CMPC
+Date: Thu, 31 Jan 2019 00:56:08 +0100
+Message-ID: <309800316.xPVQqezZ0x@aspire.rjw.lan>
+References: <20190124193101.24519-1-okaya@kernel.org> <CAHp75VerwCxYqozQmaJZL8tcbfDFLBp+nTheP0Ran4qWPqTcLw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190128072156.GE4678@dell>
+In-Reply-To: <CAHp75VerwCxYqozQmaJZL8tcbfDFLBp+nTheP0Ran4qWPqTcLw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Sinan Kaya <okaya@kernel.org>
-Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, open list <linux-kernel@vger.kernel.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Sinan Kaya <okaya@kernel.org>
+Cc: linux-next <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, January 28, 2019 8:21:56 AM CET Lee Jones wrote:
-> On Thu, 24 Jan 2019, Sinan Kaya wrote:
+On Thursday, January 24, 2019 10:32:56 PM CET Andy Shevchenko wrote:
+> On Thu, Jan 24, 2019 at 9:31 PM Sinan Kaya <okaya@kernel.org> wrote:
+> >
+> > Add BACKLIGHT_LCD_SUPPORT for ACPI_CMPC to fix the
+> > warning: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE.
+> >
+> > ACPI_CMPC selects BACKLIGHT_CLASS_DEVICE but BACKLIGHT_CLASS_DEVICE
+> > depends on BACKLIGHT_LCD_SUPPORT.
+> >
+> > Copy BACKLIGHT_LCD_SUPPORT dependency into ACPI_CMPC to fix
+> >
+> > WARNING: unmet direct dependencies detected for BACKLIGHT_CLASS_DEVICE
+> >   Depends on [n]: HAS_IOMEM [=y] && BACKLIGHT_LCD_SUPPORT [=n]
+> >   Selected by [y]:
+> >   - ACPI_CMPC [=y] && X86 [=y] && X86_PLATFORM_DEVICES [=y] && ACPI [=y] && INPUT [=y] && (RFKILL [=n] || RFKILL [=n]=n)
+> >
 > 
-> > On 1/24/2019 5:51 AM, Rafael J. Wysocki wrote:
-> > > Is anyone taking this or should I?
-> > 
-> > Nobody replied to this yet. I was hoping this series to go through acpi
-> > tree like the rest of the other fixes.
+> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 > 
-> [post-vacation reply]
-> 
-> That's not how these things are usually handled, but I taking into
-> consideration the trivialises of the patch, I don't really mind.
-> 
-> Acked-by: Lee Jones <lee.jones@linaro.org>
+> for both patches in case Rafael takes care of them.
 
-I've applied this one, thanks!
+So both applied, thanks!
