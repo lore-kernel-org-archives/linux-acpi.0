@@ -1,64 +1,37 @@
-From: Dexuan Cui <decui@microsoft.com>
-Subject: [PATCH] nfit: acpi_nfit_ctl(): check out_obj->type in the right place
-Date: Wed, 30 Jan 2019 01:23:01 +0000
-Message-ID: <PU1P153MB01694923DF3280E5828E2BE2BF900@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] nfit: acpi_nfit_ctl(): check out_obj->type in the right
+ place
+Date: Tue, 29 Jan 2019 22:21:36 -0800
+Message-ID: <CAPcyv4hhzLsJK9La5C28A1tFc0p28SSLqp8W9XApgANoOcuWSQ@mail.gmail.com>
+References: <PU1P153MB01694923DF3280E5828E2BE2BF900@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Josh Poulson <jopoulso@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, KY Srinivasan <kys@microsoft.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <PU1P153MB01694923DF3280E5828E2BE2BF900-7hHSCQUTt08p9lVGRpUb+2HfQuWdHs3hiGd9ebBGJoev3QGu/rdwKA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Cc: Josh Poulson <jopoulso-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <driverdev-devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Jan 29, 2019 at 5:23 PM Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org> wrote:
+>
+>
+> In the case of ND_CMD_CALL, we should also check out_obj->type.
+>
+> The patch uses out_obj->type, which is a short alias to
+> out_obj->package.type.
+>
+> Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism")
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Signed-off-by: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 
-In the case of ND_CMD_CALL, we should also check out_obj->type.
-
-The patch uses out_obj->type, which is a short alias to
-out_obj->package.type.
-
-Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command mar=
-shaling mechanism")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Dexuan Cui <decui@microsoft.com>
----
- drivers/acpi/nfit/core.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 0a49c57334cc..1fa378435dd2 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -554,6 +554,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_des=
-c, struct nvdimm *nvdimm,
- 		return -EINVAL;
- 	}
-=20
-+	if (out_obj->type !=3D ACPI_TYPE_BUFFER) {
-+		dev_dbg(dev, "%s unexpected output object type cmd: %s type: %d\n",
-+				dimm_name, cmd_name, out_obj->type);
-+		rc =3D -EINVAL;
-+		goto out;
-+	}
-+
- 	if (call_pkg) {
- 		call_pkg->nd_fw_size =3D out_obj->buffer.length;
- 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-@@ -572,13 +579,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_des=
-c, struct nvdimm *nvdimm,
- 		return 0;
- 	}
-=20
--	if (out_obj->package.type !=3D ACPI_TYPE_BUFFER) {
--		dev_dbg(dev, "%s unexpected output object type cmd: %s type: %d\n",
--				dimm_name, cmd_name, out_obj->type);
--		rc =3D -EINVAL;
--		goto out;
--	}
--
- 	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
- 			cmd_name, out_obj->buffer.length);
- 	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
---=20
-2.19.1
+Looks good to me, applied.
