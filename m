@@ -1,114 +1,98 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [RFC PATCH] USB: PCI: set 32bit DMA mask for PCI based USB
- controllers
-Date: Thu, 31 Jan 2019 09:54:22 +0000
-Message-ID: <f9a8ab1f-d560-0fb6-dfc9-61be3c1a2d82@huawei.com>
-References: <1548831714-3706-1-git-send-email-guohanjun@huawei.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v7 10/25] ACPI / APEI: Tell firmware the estatus queue
+ consumed the records
+Date: Thu, 31 Jan 2019 14:29:58 +0100
+Message-ID: <20190131132958.GJ6749@zn.tnic>
+References: <56cfa16b-ece4-76e0-3799-58201f8a4ff1@arm.com>
+ <CABo9ajArdbYMOBGPRa185yo9MnKRb0pgS-pHqUNdNS9m+kKO-Q@mail.gmail.com>
+ <20190111120322.GD4729@zn.tnic>
+ <CABo9ajAk5XNBmNHRRfUb-dQzW7-UOs5826jPkrVz-8zrtMUYkg@mail.gmail.com>
+ <20190111174532.GI4729@zn.tnic>
+ <32025682-f85a-58ef-7386-7ee23296b944@arm.com>
+ <20190111195800.GA11723@zn.tnic>
+ <18138b57-51ba-c99c-5b8d-b263fb964714@arm.com>
+ <20190129114952.GA30613@zn.tnic>
+ <c17156e4-278b-7544-367e-50e928407a03@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1548831714-3706-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Christoph Hellwig <hch@lst.de>
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Jonathan Cameron <Jonathan.Cameron@huawei.com>, anthony.jebson@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <c17156e4-278b-7544-367e-50e928407a03@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, Xie XiuQi <xiexiuqi@huawei.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <baicar.tyler@gmail.com>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 30/01/2019 07:01, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
->
-> We met an issue that when we update the IORT table to revision D,
-> and the kernel update to 4.19, the USB on D06 (ARM64 based server)
-> will probe fail:
->
-> [   13.495751] CPU: 0 PID: 15 Comm: kworker/0:1 Not tainted 4.19.0-00115-gb2b5200 #5
-> [   13.503219] Hardware name: Huawei D06/D06, BIOS Hisilicon D06 UEFI RC0 - V1.09.02 12/25/2018
-> [   13.511645] Workqueue: events work_for_cpu_fn
-> [   13.515989] pstate: a0c00009 (NzCv daif +PAN +UAO)
-> [   13.520767] pc : dma_pool_alloc+0x218/0x270
-> [   13.524937] lr : dma_pool_alloc+0xa0/0x270
-> [   13.529019] sp : ffff000009e23b20
-> [   13.532320] x29: ffff000009e23b20 x28: ffff8027c58ad098
-> [   13.537619] x27: 0000000000001000 x26: ffff8027d7a790a8
-> [   13.542918] x25: ffff000008fa7000 x24: ffff000009e23bc0
-> [   13.548216] x23: 00000000006000c0 x22: ffff8027c58ad010
-> [   13.553515] x21: ffff0000097e1000 x20: ffff8027c58ad000
-> [   13.558814] x19: ffff8027c58ad080 x18: ffffffffffffffff
-> [   13.564112] x17: 0000000000000000 x16: 0000000000007fff
-> [   13.569411] x15: ffff0000097e16c8 x14: ffff8027c5d39885
-> [   13.574709] x13: ffff8027c5d39884 x12: 0000000000000038
-> [   13.580008] x11: 0101010101010101 x10: 7f7f7f7f7f7f7f7f
-> [   13.585307] x9 : 0000000000000000 x8 : ffff8027c587c400
-> [   13.590605] x7 : 0000000000000000 x6 : 000000000000003f
-> [   13.595904] x5 : ffff8027dc5b8000 x4 : ffff8027e09b91e0
-> [   13.601202] x3 : 00000000008d2280 x2 : ffff8027c58ad100
-> [   13.606501] x1 : 0000000000000028 x0 : 0000000000000000
-> [   13.611800] Call trace:
-> [   13.614234]  dma_pool_alloc+0x218/0x270
-> [   13.617710] ata1: SATA link down (SStatus 0 SControl 300)
-> [   13.618059]  ehci_qh_alloc+0x5c/0xf8
-> [   13.627002]  ehci_setup+0x17c/0x4b8
-> [   13.630478]  ehci_pci_setup+0x18c/0x5b8
-> [   13.634301]  usb_add_hcd+0x290/0x7a0
-> [   13.637863]  usb_hcd_pci_probe+0x2cc/0x3e8
-> [   13.641946]  ehci_pci_probe+0x34/0x48
-> [   13.645596]  local_pci_probe+0x3c/0xb0
-> [   13.649331]  work_for_cpu_fn+0x18/0x28
-> [   13.653067]  process_one_work+0x1e4/0x458
-> [   13.657063]  worker_thread+0x228/0x450
-> [   13.660798]  kthread+0x12c/0x130
-> [   13.664014]  ret_from_fork+0x10/0x18
-> [   13.667577] ---[ end trace 6f8757456e2ec456 ]---
->
-> It turns out the the IORT revision D introduce the DMA address
-> limit size for PCI RC and in commit 5ac65e8c8941 ("ACPI/IORT: Support
-> address size limit for root complexes"), will set the DMA mask
-> for the RC and that will be inherited by device under the RC.
->
-> D06 only enables 1 RC but has EPs with different DMA address sizes,
-> for USB it use 32bit DMA, and 64bit for HNS and SAS, so this will
-> cause probe failure if we use 64bit DMA for USB controllers.
->
-> Set the DMA mask to 32bit for PCI based USB controllers,
-> EHCI and OHCI USB controllers are using 32bit DMA address,
-> XHCI will set the DMA mask in its probe after the pci probe,
-> so it's safe just add dma_coerce_mask_and_coherent() in
-> usb_hcd_pci_probe().
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
-> Hi all,
->
-> This is the RFC version, I'm not sure this is the best solution,
-> comments are warmly welcomed.
->
-> Thanks
-> Hanjun
->
->  drivers/usb/core/hcd-pci.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/usb/core/hcd-pci.c b/drivers/usb/core/hcd-pci.c
-> index 0343246..a9c33e6 100644
-> --- a/drivers/usb/core/hcd-pci.c
-> +++ b/drivers/usb/core/hcd-pci.c
-> @@ -188,6 +188,10 @@ int usb_hcd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
->  	if (pci_enable_device(dev) < 0)
->  		return -ENODEV;
->
-> +	retval = dma_coerce_mask_and_coherent(&dev->dev, DMA_BIT_MASK(32));
-> +	if (retval)
-> +		return retval;
+On Tue, Jan 29, 2019 at 06:48:33PM +0000, James Morse wrote:
+> If firmware has never generated CPER records, so it has never written to void
+> *error_status_address, yes.
 
-Hi Hanjun,
+I guess this is the bit of information I was missing.
 
-You're missing tidy-up upon failure.
+> There seem to be two ways of doing this. This zero check implies an example
+> system could be:
+> | g->error_status_address == 0xf00d
+> | *(u64 *)0xf00d == 0
+> Firmware populates CPER records, then updates 0xf00d.
+> (0xf00d would have been pre-mapped by apei_map_generic_address() in ghes_new())
+> Reads of 0xf00d before CPER records are generated get 0.
 
-thanks,
-John
+Ok, this sounds like the polled case. FW better have a record ready
+before raising the NMI.
 
-> +
->  	/*
->  	 * The xHCI driver has its own irq management
->  	 * make sure irq setup is not touched for xhci in generic hcd code
+> Once an error occurs, this system now looks like this:
+> | g->error_status_address == 0xf00d
+> | *(u64 *)0xf00d == 0xbeef
+> | *(u64 *)0xbeef == 0
+> 
+> For new errors, firmware populates CPER records, then updates 0xf00d.
+> Alternatively firmware could re-use the memory at 0xbeef, generating the CPER
+> records backwards, so that once 0xbeef is updated, the rest of the record is
+> visible. (firmware knows not to race with another CPU right?)
+
+Thanks for the comic relief. :-P
+
+> Firmware could equally point 0xf00d at 0xbeef at startup, so it has one fewer
+> values to write when an error occurs. I have an arm64 system with a HEST that
+> does this. (I'm pretty sure its ACPI support is a copy-and-paste from x86, it
+> even describes NOTIFY_NMI, who knows what that means on arm!)
+
+Oh the fun.
+
+> When linux processes an error, ghes_clear_estatus() NULLs the
+> estatus->block_status, (which in this example is at 0xbeef). This is the
+> documented sequence for GHESv2.
+> Elsewhere the spec talks of checking the block status which is part of the
+> records, (not the error_status_address, which is the pointer to the records).
 >
+> Linux can't NULL 0xf00d, because it doesn't know if firmware will write it again
+> next time it updates the records.
+> I can't find where in the spec it says the error status address is written to.
+> Linux works with both 'at boot' and 'on each error'.
+> If it were know to have a static value, ghes_copy_tofrom_phys() would not have
+> been necessary, but its been there since d334a49113a4.
+>
+> In the worst case, if there is a value at the error_status_address, we have to
+> map/unmap it every time we poll in case firmware wrote new records at that same
+> location.
+> 
+> I don't think we can change Linux's behaviour here, without interpreting zero as
+> CPER records or missing new errors.
+
+Nah, I was simply trying to figure out why we do that buf_paddr check.
+Thanks for the extensive clarification.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
