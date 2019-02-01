@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 4/5] ACPI: EC: Eliminate acpi_config_boot_ec()
-Date: Fri, 01 Feb 2019 11:01:19 +0100
-Message-ID: <2942976.lheXMQXGOb@aspire.rjw.lan>
+Subject: [PATCH v2 1/5] ACPI: EC: Declare boot_ec as static
+Date: Fri, 01 Feb 2019 10:57:01 +0100
+Message-ID: <3257902.HcCiuEjYcT@aspire.rjw.lan>
 References: <2897234.rJkq6cDEjt@aspire.rjw.lan> <2804781.zocuRj5ZkX@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -15,98 +15,29 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Notice that acpi_ec_add() calls acpi_config_boot_ec() when it finds
-that the device object passed to it represents a "boot" EC, but in
-that case the ec pointer passed to acpi_config_boot_ec() is guaranteed
-to be equal to boot_ec and ec->handle is passed as the handle
-argument to it, so acpi_config_boot_ec() really only calls
-acpi_ec_setup() and prints a message.
+The boot_ec variable is not used outside of the file it is defined
+in, so declare it as static.
 
-Avoid the pointless checks in acpi_config_boot_ec() by calling
-acpi_ec_setup() directly and print the message separately.
-
-With the above changes in place, there are no users of
-acpi_config_boot_ec(), so drop it.
-
-No intentional functional impact except for a changed message.
+No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/ec.c |   54 ++++++++----------------------------------------------
- 1 file changed, 8 insertions(+), 46 deletions(-)
+ drivers/acpi/ec.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 Index: linux-pm/drivers/acpi/ec.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/ec.c
 +++ linux-pm/drivers/acpi/ec.c
-@@ -1541,49 +1541,6 @@ static int acpi_ec_setup(struct acpi_ec
- 	return ret;
- }
+@@ -186,8 +186,10 @@ static void advance_transaction(struct a
+ static void acpi_ec_event_handler(struct work_struct *work);
+ static void acpi_ec_event_processor(struct work_struct *work);
  
--static int acpi_config_boot_ec(struct acpi_ec *ec, acpi_handle handle,
--			       bool handle_events, bool is_ecdt)
--{
--	int ret;
--
--	/*
--	 * Changing the ACPI handle results in a re-configuration of the
--	 * boot EC. And if it happens after the namespace initialization,
--	 * it causes _REG evaluations.
--	 */
--	if (boot_ec && boot_ec->handle != handle)
--		ec_remove_handlers(boot_ec);
--
--	/* Unset old boot EC */
--	if (boot_ec != ec)
--		acpi_ec_free(boot_ec);
--
--	/*
--	 * ECDT device creation is split into acpi_ec_ecdt_probe() and
--	 * acpi_ec_ecdt_start(). This function takes care of completing the
--	 * ECDT parsing logic as the handle update should be performed
--	 * between the installation/uninstallation of the handlers.
--	 */
--	if (ec->handle != handle)
--		ec->handle = handle;
--
--	ret = acpi_ec_setup(ec, handle_events);
--	if (ret)
--		return ret;
--
--	/* Set new boot EC */
--	if (!boot_ec) {
--		boot_ec = ec;
--		boot_ec_is_ecdt = is_ecdt;
--	}
--
--	acpi_handle_info(boot_ec->handle,
--			 "Used as boot %s EC to handle transactions%s\n",
--			 is_ecdt ? "ECDT" : "DSDT",
--			 handle_events ? " and events" : "");
--	return ret;
--}
--
- static bool acpi_ec_ecdt_get_handle(acpi_handle *phandle)
- {
- 	struct acpi_table_ecdt *ecdt_ptr;
-@@ -1651,12 +1608,17 @@ static int acpi_ec_add(struct acpi_devic
- 			acpi_ec_free(ec);
- 			ec = boot_ec;
- 		}
--		ret = acpi_config_boot_ec(ec, ec->handle, true, is_ecdt);
--	} else
--		ret = acpi_ec_setup(ec, true);
-+	}
+-struct acpi_ec *boot_ec, *first_ec;
++struct acpi_ec *first_ec;
+ EXPORT_SYMBOL(first_ec);
 +
-+	ret = acpi_ec_setup(ec, true);
- 	if (ret)
- 		goto err_query;
++static struct acpi_ec *boot_ec;
+ static bool boot_ec_is_ecdt = false;
+ static struct workqueue_struct *ec_query_wq;
  
-+	if (boot_ec)
-+		acpi_handle_info(boot_ec->handle,
-+				 "Boot %s EC used to handle transactions and events\n",
-+				 is_ecdt ? "ECDT" : "DSDT");
-+
- 	device->driver_data = ec;
- 
- 	ret = !!request_region(ec->data_addr, 1, "EC data");
