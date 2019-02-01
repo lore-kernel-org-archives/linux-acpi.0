@@ -1,92 +1,49 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 22/25] ACPI / APEI: Kick the memory_failure() queue
- for synchronous errors
-Date: Thu, 31 Jan 2019 15:04:42 +0100
-Message-ID: <20190131140442.GL6749@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-23-james.morse@arm.com>
- <20190121175850.GO29166@zn.tnic>
- <58053f17-5f03-8408-7252-a38ed3d448a9@arm.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [RFC PATCH] USB: PCI: set 32bit DMA mask for PCI based USB
+ controllers
+Date: Fri, 1 Feb 2019 13:55:00 +0800
+Message-ID: <ce031291-3050-3817-0ed9-9d83dad0cc55@huawei.com>
+References: <1548831714-3706-1-git-send-email-guohanjun@huawei.com>
+ <f9a8ab1f-d560-0fb6-dfc9-61be3c1a2d82@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <58053f17-5f03-8408-7252-a38ed3d448a9@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <f9a8ab1f-d560-0fb6-dfc9-61be3c1a2d82@huawei.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Garry <john.garry@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Christoph Hellwig <hch@lst.de>
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Jonathan Cameron <Jonathan.Cameron@huawei.com>, anthony.jebson@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 23, 2019 at 06:40:08PM +0000, James Morse wrote:
-> My SMM comment was because the CPU must jump from user-space->SMM, which injects
-> an NMI into the kernel. The kernel's EIP must point into user-space, so
-> returning from the NMI without doing the memory_failure() work puts us back the
-> same position we started in.
+Hi John,
 
-Yeah, known issue. We dealt with that on x86 at the time:
-
-d4812e169de4 ("x86, mce: Get rid of TIF_MCE_NOTIFY and associated mce tricks")
-
-> > Now, memory_failure_queue() does that and can run from IRQ context so
-> > you need only an irq_work which can queue from NMI context. We do it
-> > this way in the MCA code:
-> > 
+On 2019/1/31 17:54, John Garry wrote:
+> On 30/01/2019 07:01, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+[...]
+>>
+>>  drivers/usb/core/hcd-pci.c | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/usb/core/hcd-pci.c b/drivers/usb/core/hcd-pci.c
+>> index 0343246..a9c33e6 100644
+>> --- a/drivers/usb/core/hcd-pci.c
+>> +++ b/drivers/usb/core/hcd-pci.c
+>> @@ -188,6 +188,10 @@ int usb_hcd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
+>>      if (pci_enable_device(dev) < 0)
+>>          return -ENODEV;
+>>
+>> +    retval = dma_coerce_mask_and_coherent(&dev->dev, DMA_BIT_MASK(32));
+>> +    if (retval)
+>> +        return retval;
 > 
-> (was there something missing here?)
-
-Whoops. Yeah, I was about to paste this:
-
-void mce_log(struct mce *m)
-{
-        if (!mce_gen_pool_add(m))
-                irq_work_queue(&mce_irq_work);
-}
-
-we're basically queueing only into the lockless buffer and kicking the
-IRQ work.
-
-> > We queue in an irq_work in NMI context and work through the items in
-> > process context.
+> Hi Hanjun,
 > 
-> How are you getting from NMI to process context in one go?
+> You're missing tidy-up upon failure.
 
-Well, #MC is basically an NMI context on x86 and when it is done, we
-work through the items queued in process context. But see the commit
-above too - for really urgent errors we run memory_failure *before* we
-return to user.
+Good catch, needs to disable pci for failure, I will send
+a updated version to address the comments from you and Christoph.
 
-> This patch causes the IRQ->process transition.
-> The arch specific bit of this gives the irq work queue a kick if returning from
-> the NMI would unmask IRQs. This makes it look like we moved from NMI to IRQ
-> context without returning to user-space.
-> 
-> Once ghes_handle_memory_failure() runs in IRQ context, it task_work_add()s the
-> call to ghes_kick_memory_failure().
-> 
-> Finally on the way out of the kernel to user-space that task_work runs and the
-> memory_failure() work happens in process context.
-> 
-> During all this the user-space program counter can point at a poisoned location,
-> but we don't return there until the memory_failure() work has been done.
-
-Sounds very similar.
-
-Actually, yours is even a bit more elegant. I wonder why we didn't use
-task_work_add() then...
-
-Thx.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Thanks
+Hanjun
