@@ -1,118 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v3 4/5] ACPI: EC: Eliminate acpi_config_boot_ec()
-Date: Fri, 01 Feb 2019 12:47:25 +0100
-Message-ID: <2307828.IJdYcx2e7V@aspire.rjw.lan>
-References: <2897234.rJkq6cDEjt@aspire.rjw.lan> <2804781.zocuRj5ZkX@aspire.rjw.lan> <2942976.lheXMQXGOb@aspire.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v8 04/26] ACPI / APEI: Make hest.c manage the estatus
+ memory pool
+Date: Fri, 1 Feb 2019 14:20:46 +0100
+Message-ID: <20190201132046.GH31854@zn.tnic>
+References: <20190129184902.102850-1-james.morse@arm.com>
+ <20190129184902.102850-5-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2942976.lheXMQXGOb@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Erik Schmauss <erik.schmauss@intel.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <20190129184902.102850-5-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, Jan 29, 2019 at 06:48:40PM +0000, James Morse wrote:
+> ghes.c has a memory pool it uses for the estatus cache and the estatus
+> queue. The cache is initialised when registering the platform driver.
+> For the queue, an NMI-like notification has to grow/shrink the pool
+> as it is registered and unregistered.
+> 
+> This is all pretty noisy when adding new NMI-like notifications, it
+> would be better to replace this with a static pool size based on the
+> number of users.
+> 
+> As a precursor, move the call that creates the pool from ghes_init(),
+> into hest.c. Later this will take the number of ghes entries and
+> consolidate the queue allocations.
+> Remove ghes_estatus_pool_exit() as hest.c doesn't have anywhere to put
+> this.
+> 
+> The pool is now initialised as part of ACPI's subsys_initcall():
+> (acpi_init(), acpi_scan_init(), acpi_pci_root_init(), acpi_hest_init())
+> Before this patch it happened later as a GHES specific device_initcall().
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> ---
+> Changes since v7:
+> * Moved the pool init later, the driver isn't probed until device_init.
+> ---
+>  drivers/acpi/apei/ghes.c | 33 ++++++---------------------------
+>  drivers/acpi/apei/hest.c | 10 +++++++++-
+>  include/acpi/ghes.h      |  2 ++
+>  3 files changed, 17 insertions(+), 28 deletions(-)
 
-Notice that acpi_ec_add() calls acpi_config_boot_ec() when it finds
-that the device object passed to it represents a "boot" EC, but in
-that case the ec pointer passed to acpi_config_boot_ec() is guaranteed
-to be equal to boot_ec and ec->handle is passed as the handle
-argument to it, so acpi_config_boot_ec() really only calls
-acpi_ec_setup() and prints a message.
+Reviewed-by: Borislav Petkov <bp@suse.de>
 
-Avoid the pointless checks in acpi_config_boot_ec() by calling
-acpi_ec_setup() directly and print the message separately.
+-- 
+Regards/Gruss,
+    Boris.
 
-With the above changes in place, there are no users of
-acpi_config_boot_ec(), so drop it.
-
-No intentional functional impact except for a changed message.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-v2 -> v3:
-  * In acpi_ec_add() compare ec to boot_ec before printing the message
-    instead of just checking if boot_ec is not NULL.
-
----
- drivers/acpi/ec.c |   54 ++++++++----------------------------------------------
- 1 file changed, 8 insertions(+), 46 deletions(-)
-
-Index: linux-pm/drivers/acpi/ec.c
-===================================================================
---- linux-pm.orig/drivers/acpi/ec.c
-+++ linux-pm/drivers/acpi/ec.c
-@@ -1541,49 +1541,6 @@ static int acpi_ec_setup(struct acpi_ec
- 	return ret;
- }
- 
--static int acpi_config_boot_ec(struct acpi_ec *ec, acpi_handle handle,
--			       bool handle_events, bool is_ecdt)
--{
--	int ret;
--
--	/*
--	 * Changing the ACPI handle results in a re-configuration of the
--	 * boot EC. And if it happens after the namespace initialization,
--	 * it causes _REG evaluations.
--	 */
--	if (boot_ec && boot_ec->handle != handle)
--		ec_remove_handlers(boot_ec);
--
--	/* Unset old boot EC */
--	if (boot_ec != ec)
--		acpi_ec_free(boot_ec);
--
--	/*
--	 * ECDT device creation is split into acpi_ec_ecdt_probe() and
--	 * acpi_ec_ecdt_start(). This function takes care of completing the
--	 * ECDT parsing logic as the handle update should be performed
--	 * between the installation/uninstallation of the handlers.
--	 */
--	if (ec->handle != handle)
--		ec->handle = handle;
--
--	ret = acpi_ec_setup(ec, handle_events);
--	if (ret)
--		return ret;
--
--	/* Set new boot EC */
--	if (!boot_ec) {
--		boot_ec = ec;
--		boot_ec_is_ecdt = is_ecdt;
--	}
--
--	acpi_handle_info(boot_ec->handle,
--			 "Used as boot %s EC to handle transactions%s\n",
--			 is_ecdt ? "ECDT" : "DSDT",
--			 handle_events ? " and events" : "");
--	return ret;
--}
--
- static bool acpi_ec_ecdt_get_handle(acpi_handle *phandle)
- {
- 	struct acpi_table_ecdt *ecdt_ptr;
-@@ -1651,12 +1608,17 @@ static int acpi_ec_add(struct acpi_devic
- 			acpi_ec_free(ec);
- 			ec = boot_ec;
- 		}
--		ret = acpi_config_boot_ec(ec, ec->handle, true, is_ecdt);
--	} else
--		ret = acpi_ec_setup(ec, true);
-+	}
-+
-+	ret = acpi_ec_setup(ec, true);
- 	if (ret)
- 		goto err_query;
- 
-+	if (ec == boot_ec)
-+		acpi_handle_info(boot_ec->handle,
-+				 "Boot %s EC used to handle transactions and events\n",
-+				 is_ecdt ? "ECDT" : "DSDT");
-+
- 	device->driver_data = ec;
- 
- 	ret = !!request_region(ec->data_addr, 1, "EC data");
+Good mailing practices for 400: avoid top-posting and trim the reply.
