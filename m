@@ -1,38 +1,61 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
-Date: Fri, 1 Feb 2019 21:27:47 -0800
-Message-ID: <CAPcyv4iv1dbAZ89OXizzHDucU0y254NC3CBW3pQ2hMER0gTk9Q@mail.gmail.com>
-References: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4jD1oRWzA4ZiMYZm1uxsbOdgqzbb9raH70-HBDqapcE_g@mail.gmail.com>
- <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4haUouYs_Vfju2SMvjcwc7rqY06zqT8NJ-3uakGMZSu0w@mail.gmail.com>
- <PU1P153MB01694FCAF062E089059CD441BF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4gdWJ8qtiASU9ggz56Mkrm9OXfsO74RM9OOrXFmBw_A9Q@mail.gmail.com>
- <PU1P153MB0169D8F7C6E29C22FE122F3FBF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <PU1P153MB0169D661955195EA070E7EF0BF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4iEcCG0h+HLPkfSC0aNDLq9hdoO00XErF93PHTmEgO-TQ@mail.gmail.com> <PU1P153MB0169FBCCB5639054FC0E6DB6BF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [RFC PATCH] USB: PCI: set 32bit DMA mask for PCI based USB
+ controllers
+Date: Sat, 2 Feb 2019 16:10:07 +0800
+Message-ID: <5caa86b6-3ad4-62d2-26b4-c2b16f1a5f85@huawei.com>
+References: <1548831714-3706-1-git-send-email-guohanjun@huawei.com>
+ <f9a8ab1f-d560-0fb6-dfc9-61be3c1a2d82@huawei.com>
+ <ce031291-3050-3817-0ed9-9d83dad0cc55@huawei.com>
+ <e47d89e3-9bb0-95b0-db63-717594b1692b@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <PU1P153MB0169FBCCB5639054FC0E6DB6BF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+In-Reply-To: <e47d89e3-9bb0-95b0-db63-717594b1692b@huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dexuan Cui <decui@microsoft.com>
-Cc: Josh Poulson <jopoulso@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Len Brown <lenb@kernel.org>
+To: John Garry <john.garry@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Christoph Hellwig <hch@lst.de>
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Jonathan Cameron <Jonathan.Cameron@huawei.com>, anthony.jebson@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 1, 2019 at 6:17 PM Dexuan Cui <decui@microsoft.com> wrote:
-> > From: Dan Williams <dan.j.williams@intel.com>
-[..]
-> > Honestly, the quickest path to something functional for Linux is to
-> > simply delete the _LSR support and use raw mode defined namespaces.
-> > Why have labels if they are read-only and the region is sufficient for
-> > defining boundaries?
->
-> Just now Hyper-V team confirmed _LSW is not supported.
->
-> But with Ubuntu 19.04 kernel (4.18.0-11-generic), I'm able to run the commands
-> without any issue:
+On 2019/2/1 17:13, Hanjun Guo wrote:
+> On 2019/2/1 13:55, Hanjun Guo wrote:
+>> Hi John,
+>>
+>> On 2019/1/31 17:54, John Garry wrote:
+>>> On 30/01/2019 07:01, Hanjun Guo wrote:
+>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>> [...]
+>>>>
+>>>>  drivers/usb/core/hcd-pci.c | 4 ++++
+>>>>  1 file changed, 4 insertions(+)
+>>>>
+>>>> diff --git a/drivers/usb/core/hcd-pci.c b/drivers/usb/core/hcd-pci.c
+>>>> index 0343246..a9c33e6 100644
+>>>> --- a/drivers/usb/core/hcd-pci.c
+>>>> +++ b/drivers/usb/core/hcd-pci.c
+>>>> @@ -188,6 +188,10 @@ int usb_hcd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
+>>>>      if (pci_enable_device(dev) < 0)
+>>>>          return -ENODEV;
+>>>>
+>>>> +    retval = dma_coerce_mask_and_coherent(&dev->dev, DMA_BIT_MASK(32));
+>>>> +    if (retval)
+>>>> +        return retval;
+>>>
+>>> Hi Hanjun,
+>>>
+>>> You're missing tidy-up upon failure.
+>>
+>> Good catch, needs to disable pci for failure, I will send
+>> a updated version to address the comments from you and Christoph.
+> 
+> There is a _DMA method which was introduced in ACPI 6.2 to cover
+> this, I will try that solution then report back.
 
-This is because Ubuntu is running in "label-less" mode. So all the
-writes it is performing for namespace reconfiguration are just going
-to the data-space of the region, not the labels.
+We add a _DMA method under the hostbridge which the EHCI/OHCI being
+connected to, the calltrace is gone and EHCI works as expected.
+
+No need for kernel change, so this patch is dropped.
+
+Thanks
+Hanjun
