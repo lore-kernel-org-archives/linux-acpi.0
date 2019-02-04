@@ -1,182 +1,70 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH] acpi: get rid of acpi_sleep_dispatch
-Date: Mon,  4 Feb 2019 16:32:10 +0100
-Message-ID: <20190204153210.1817-1-hch@lst.de>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has
+ unreliable ACPI wake
+Date: Mon, 4 Feb 2019 11:20:57 -0600
+Message-ID: <20190204172057.GB9160@google.com>
+References: <20190122064544.27426-1-kai.heng.feng@canonical.com>
+ <20190122235134.GE14636@google.com>
+ <91E74111-5BB6-4604-A1D7-B537AB42C317@canonical.com>
+ <20190124151524.GF14636@google.com>
+ <FFC6EC3F-3608-41FC-8B14-815D1747C4B6@canonical.com>
+ <20190124200508.GH14636@google.com>
+ <C7E9B3C9-7E20-4CEB-8B56-D9A8D2E76DD0@canonical.com>
+ <CFAC1243-982E-4BAC-BAF6-41568C1C1A9E@canonical.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CFAC1243-982E-4BAC-BAF6-41568C1C1A9E@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kai Heng Feng <kai.heng.feng@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-No need for the array of structs of function pointers when we can just
-call the handfull of functions directly.
+On Sun, Feb 03, 2019 at 01:46:50AM +0800, Kai Heng Feng wrote:
+> > On Jan 28, 2019, at 3:51 PM, Kai Heng Feng <kai.heng.feng@canonical.com> wrote:
+> 
+> >> If I understand correctly, the bugzilla lspci
+> >> (https://bugzilla.kernel.org/attachment.cgi?id=280691) was collected
+> >> at point 8, and it shows PME_Status=1 when it should be 0.
+> >> 
+> >> If we write a 1 to PME_Status to clear it, and it remains set, that's
+> >> obviously a hardware defect, and Intel should document that in an
+> >> erratum, and a quirk would be the appropriate way to work around it.
+> >> But I doubt that's what's happening.
+> > 
+> > I’ll ask them if they can provide an erratum.
+> 
+> Got confirmed with e1000e folks, I219 (the device in question) doesn’t
+> really support runtime D3.
 
-This could be further cleaned up if acpi_gbl_reduced_hardware was defined
-true in the ACPI_REDUCED_HARDWARE case, but that's material for the next
-round.
+Did you get a reference, e.g., an intel.com URL for that?  Intel
+usually publishes errata for hardware defects, which is nice because
+it means every customer doesn't have to experimentally rediscover
+them.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/acpi/acpica/hwxfsleep.c | 96 +++++++--------------------------
- include/acpi/actypes.h          |  9 ----
- 2 files changed, 18 insertions(+), 87 deletions(-)
+> I also checked the behavior of the device under Windows, and it
+> stays at D0 all the time even when it’s not in use.
 
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index 3f22f7dd4556..f58b78eaec65 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -23,33 +23,6 @@ acpi_hw_set_firmware_waking_vector(struct acpi_table_facs *facs,
- 				   acpi_physical_address physical_address64);
- #endif
- 
--static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
--
--/*
-- * Dispatch table used to efficiently branch to the various sleep
-- * functions.
-- */
--#define ACPI_SLEEP_FUNCTION_ID         0
--#define ACPI_WAKE_PREP_FUNCTION_ID     1
--#define ACPI_WAKE_FUNCTION_ID          2
--
--/* Legacy functions are optional, based upon ACPI_REDUCED_HARDWARE */
--
--static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
--	{ACPI_STRUCT_INIT(legacy_function,
--			  ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep)),
--	 ACPI_STRUCT_INIT(extended_function,
--			  acpi_hw_extended_sleep)},
--	{ACPI_STRUCT_INIT(legacy_function,
--			  ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep)),
--	 ACPI_STRUCT_INIT(extended_function,
--			  acpi_hw_extended_wake_prep)},
--	{ACPI_STRUCT_INIT(legacy_function,
--			  ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake)),
--	 ACPI_STRUCT_INIT(extended_function,
--			  acpi_hw_extended_wake)}
--};
--
- /*
-  * These functions are removed for the ACPI_REDUCED_HARDWARE case:
-  *      acpi_set_firmware_waking_vector
-@@ -209,53 +182,6 @@ acpi_status acpi_enter_sleep_state_s4bios(void)
- 
- ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_s4bios)
- #endif				/* !ACPI_REDUCED_HARDWARE */
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_hw_sleep_dispatch
-- *
-- * PARAMETERS:  sleep_state         - Which sleep state to enter/exit
-- *              function_id         - Sleep, wake_prep, or Wake
-- *
-- * RETURN:      Status from the invoked sleep handling function.
-- *
-- * DESCRIPTION: Dispatch a sleep/wake request to the appropriate handling
-- *              function.
-- *
-- ******************************************************************************/
--static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id)
--{
--	acpi_status status;
--	struct acpi_sleep_functions *sleep_functions =
--	    &acpi_sleep_dispatch[function_id];
--
--#if (!ACPI_REDUCED_HARDWARE)
--	/*
--	 * If the Hardware Reduced flag is set (from the FADT), we must
--	 * use the extended sleep registers (FADT). Note: As per the ACPI
--	 * specification, these extended registers are to be used for HW-reduced
--	 * platforms only. They are not general-purpose replacements for the
--	 * legacy PM register sleep support.
--	 */
--	if (acpi_gbl_reduced_hardware) {
--		status = sleep_functions->extended_function(sleep_state);
--	} else {
--		/* Legacy sleep */
--
--		status = sleep_functions->legacy_function(sleep_state);
--	}
--
--	return (status);
--
--#else
--	/*
--	 * For the case where reduced-hardware-only code is being generated,
--	 * we know that only the extended sleep registers are available
--	 */
--	status = sleep_functions->extended_function(sleep_state);
--	return (status);
--
--#endif				/* !ACPI_REDUCED_HARDWARE */
--}
- 
- /*******************************************************************************
-  *
-@@ -362,7 +288,12 @@ acpi_status acpi_enter_sleep_state(u8 sleep_state)
- 		return_ACPI_STATUS(AE_AML_OPERAND_VALUE);
- 	}
- 
--	status = acpi_hw_sleep_dispatch(sleep_state, ACPI_SLEEP_FUNCTION_ID);
-+#if !ACPI_REDUCED_HARDWARE
-+	if (!acpi_gbl_reduced_hardware)
-+		status = acpi_hw_legacy_sleep(sleep_state);
-+	else
-+#endif
-+		status = acpi_hw_extended_sleep(sleep_state);
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -388,8 +319,12 @@ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
- 
- 	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state_prep);
- 
--	status =
--	    acpi_hw_sleep_dispatch(sleep_state, ACPI_WAKE_PREP_FUNCTION_ID);
-+#if !ACPI_REDUCED_HARDWARE
-+	if (!acpi_gbl_reduced_hardware)
-+		status = acpi_hw_legacy_wake_prep(sleep_state);
-+	else
-+#endif
-+		status = acpi_hw_extended_wake_prep(sleep_state);
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -413,7 +348,12 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
- 
- 	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
- 
--	status = acpi_hw_sleep_dispatch(sleep_state, ACPI_WAKE_FUNCTION_ID);
-+#if !ACPI_REDUCED_HARDWARE
-+	if (!acpi_gbl_reduced_hardware)
-+		status = acpi_hw_legacy_wake(sleep_state);
-+	else
-+#endif
-+		status = acpi_hw_extended_wake(sleep_state);
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 2590627dbfcc..9b11d07e4363 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -885,15 +885,6 @@ typedef u8 acpi_adr_space_type;
- #define ACPI_ENABLE_EVENT                       1
- #define ACPI_DISABLE_EVENT                      0
- 
--/* Sleep function dispatch */
--
--typedef acpi_status (*acpi_sleep_function) (u8 sleep_state);
--
--struct acpi_sleep_functions {
--	acpi_sleep_function legacy_function;
--	acpi_sleep_function extended_function;
--};
--
- /*
-  * External ACPI object definition
-  */
--- 
-2.20.1
+I think there are two possible explanations for this:
+
+  1) This device requires a Windows or a driver update with a
+  device-specific quirk similar to what you're proposing for Linux.
+
+  2) Windows correctly detects that this device doesn't support D3,
+  and Linux has a bug and does not detect that.
+
+Obviously nobody wants to require OS or driver updates just for minor
+device changes, and the PCI and ACPI specs are designed to allow
+generic, non device-specific code to detect D3 support, so the first
+case should be a result of a hardware defect.
+
+> So I sent a patch [1] to disable it.
+> 
+> [1] https://lkml.org/lkml/2019/2/2/200
+
+OK.  Since that's in drivers/net/..., I have no objection and the
+e1000e maintainers would deal with that.
+
+Bjorn
