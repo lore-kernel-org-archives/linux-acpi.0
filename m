@@ -1,55 +1,142 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: [PATCH] MAINTAINERS: Add James Morse to the list of APEI reviewers
-Date: Tue, 5 Feb 2019 13:23:23 +0100
-Message-ID: <20190205122323.GL21801@zn.tnic>
-References: <20190205083836.21641-1-bp@alien8.de>
- <22141238.CtQSfXrvFH@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCHv5 04/10] node: Link memory nodes to their compute nodes
+Date: Tue, 5 Feb 2019 13:33:27 +0100
+Message-ID: <CAJZ5v0jE_gRT5WgpQYwZQmx6N5G+axymbSySb2Nk8Q0OGeNt9A@mail.gmail.com>
+References: <20190124230724.10022-1-keith.busch@intel.com> <20190124230724.10022-5-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <22141238.CtQSfXrvFH@aspire.rjw.lan>
+In-Reply-To: <20190124230724.10022-5-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, James Morse <james.morse@arm.com>, Tony Luck <tony.luck@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Keith Busch <keith.busch@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 05, 2019 at 12:08:00PM +0100, Rafael J. Wysocki wrote:
-> OK, but care to resend and CC linux-acpi too?
+On Fri, Jan 25, 2019 at 12:08 AM Keith Busch <keith.busch@intel.com> wrote:
+>
+> Systems may be constructed with various specialized nodes. Some nodes
+> may provide memory, some provide compute devices that access and use
+> that memory, and others may provide both. Nodes that provide memory are
+> referred to as memory targets, and nodes that can initiate memory access
+> are referred to as memory initiators.
+>
+> Memory targets will often have varying access characteristics from
+> different initiators, and platforms may have ways to express those
+> relationships. In preparation for these systems, provide interfaces for
+> the kernel to export the memory relationship among different nodes memory
+> targets and their initiators with symlinks to each other.
+>
+> If a system provides access locality for each initiator-target pair, nodes
+> may be grouped into ranked access classes relative to other nodes. The
+> new interface allows a subsystem to register relationships of varying
+> classes if available and desired to be exported.
+>
+> A memory initiator may have multiple memory targets in the same access
+> class. The target memory's initiators in a given class indicate the
+> nodes access characteristics share the same performance relative to other
+> linked initiator nodes. Each target within an initiator's access class,
+> though, do not necessarily perform the same as each other.
+>
+> A memory target node may have multiple memory initiators. All linked
+> initiators in a target's class have the same access characteristics to
+> that target.
+>
+> The following example show the nodes' new sysfs hierarchy for a memory
+> target node 'Y' with access class 0 from initiator node 'X':
+>
+>   # symlinks -v /sys/devices/system/node/nodeX/access0/
+>   relative: /sys/devices/system/node/nodeX/access0/targets/nodeY -> ../../nodeY
+>
+>   # symlinks -v /sys/devices/system/node/nodeY/access0/
+>   relative: /sys/devices/system/node/nodeY/access0/initiators/nodeX -> ../../nodeX
+>
+> The new attributes are added to the sysfs stable documentation.
+>
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  Documentation/ABI/stable/sysfs-devices-node |  25 ++++-
+>  drivers/base/node.c                         | 142 +++++++++++++++++++++++++++-
+>  include/linux/node.h                        |   7 +-
+>  3 files changed, 171 insertions(+), 3 deletions(-)
+>
+> diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
+> index 3e90e1f3bf0a..fb843222a281 100644
+> --- a/Documentation/ABI/stable/sysfs-devices-node
+> +++ b/Documentation/ABI/stable/sysfs-devices-node
+> @@ -90,4 +90,27 @@ Date:                December 2009
+>  Contact:       Lee Schermerhorn <lee.schermerhorn@hp.com>
+>  Description:
+>                 The node's huge page size control/query attributes.
+> -               See Documentation/admin-guide/mm/hugetlbpage.rst
+> \ No newline at end of file
+> +               See Documentation/admin-guide/mm/hugetlbpage.rst
+> +
+> +What:          /sys/devices/system/node/nodeX/accessY/
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               The node's relationship to other nodes for access class "Y".
+> +
+> +What:          /sys/devices/system/node/nodeX/accessY/initiators/
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               The directory containing symlinks to memory initiator
+> +               nodes that have class "Y" access to this target node's
+> +               memory. CPUs and other memory initiators in nodes not in
+> +               the list accessing this node's memory may have different
+> +               performance.
+> +
+> +What:          /sys/devices/system/node/nodeX/classY/targets/
+> +Date:          December 2018
+> +Contact:       Keith Busch <keith.busch@intel.com>
+> +Description:
+> +               The directory containing symlinks to memory targets that
+> +               this initiator node has class "Y" access.
+> diff --git a/drivers/base/node.c b/drivers/base/node.c
+> index 86d6cd92ce3d..6f4097680580 100644
+> --- a/drivers/base/node.c
+> +++ b/drivers/base/node.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/nodemask.h>
+>  #include <linux/cpu.h>
+>  #include <linux/device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/swap.h>
+>  #include <linux/slab.h>
+>
+> @@ -59,6 +60,94 @@ static inline ssize_t node_read_cpulist(struct device *dev,
+>  static DEVICE_ATTR(cpumap,  S_IRUGO, node_read_cpumask, NULL);
+>  static DEVICE_ATTR(cpulist, S_IRUGO, node_read_cpulist, NULL);
+>
+> +/**
+> + * struct node_access_nodes - Access class device to hold user visible
+> + *                           relationships to other nodes.
+> + * @dev:       Device for this memory access class
+> + * @list_node: List element in the node's access list
+> + * @access:    The access class rank
+> + */
+> +struct node_access_nodes {
+> +       struct device           dev;
 
-Here you go:
+I'm not sure if the entire struct device is needed here.
 
----
-From: Borislav Petkov <bp@suse.de>
+It looks like what you need is the kobject part of it only and you can
+use a kobject directly here:
 
-Add James to the list of reviewers of the firmware-assisted RAS glue.
+struct kobject        kobj;
 
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Acked-by: James Morse <james.morse@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tony Luck <tony.luck@intel.com>
-Link: https://lkml.kernel.org/r/20190205083836.21641-1-bp@alien8.de
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+Then, you can register that under the node's kobject using
+kobject_init_and_add() and you can create attr groups under a kobject
+using sysfs_create_groups(), which is exactly what device_add_groups()
+does.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index cd5f8ea1e08b..a7e9263a208b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -331,6 +331,7 @@ ACPI APEI
- M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
- M:	Len Brown <lenb@kernel.org>
- L:	linux-acpi@vger.kernel.org
-+R:	James Morse <james.morse@arm.com>
- R:	Tony Luck <tony.luck@intel.com>
- R:	Borislav Petkov <bp@alien8.de>
- F:	drivers/acpi/apei/
--- 
-2.19.1
+That would allow you to avoid allocating extra memory to hold the
+entire device structure and the extra empty "power" subdirectory added
+by device registration would not be there.
 
--- 
-Regards/Gruss,
-    Boris.
+> +       struct list_head        list_node;
+> +       unsigned                access;
+> +};
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Apart from the above, the patch looks good to me.
