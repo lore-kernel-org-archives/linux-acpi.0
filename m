@@ -1,175 +1,126 @@
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-Subject: Re: [PATCHv5 00/10] Heterogeneuos memory node attributes
-Date: Wed, 6 Feb 2019 12:31:00 +0000
-Message-ID: <20190206123100.0000094a@huawei.com>
-References: <20190124230724.10022-1-keith.busch@intel.com>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: security implications of caching with virtio pmem (was Re: [PATCH
+ v3 0/5] kvm "virtio pmem" device)
+Date: Wed, 6 Feb 2019 15:00:26 +0100
+Message-ID: <5b8a06a7-be44-698f-f319-6b2cbcf1eb8a@redhat.com>
+References: <20190109144736.17452-1-pagupta@redhat.com>
+ <20190204170515-mutt-send-email-mst@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190124230724.10022-1-keith.busch@intel.com>
+In-Reply-To: <20190204170515-mutt-send-email-mst@kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, linuxarm@huawei.com
+To: "Michael S. Tsirkin" <mst@redhat.com>, Pankaj Gupta <pagupta@redhat.com>
+Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jack@suse.cz, stefanha@redhat.com, dan.j.williams@intel.com, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com, jmoyer@redhat.com, xiaoguangrong.eric@gmail.com, hch@infradead.org, jasowang@redhat.com, lcapitulino@redhat.com, imammedo@redhat.com, eblake@redhat.com, willy@infradead.org, tytso@mit.edu, adilger.kernel@dilger.ca, darrick.wong@oracle.com, rjw@rjwysocki.net, Andrea Arcangeli <aarcange@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 24 Jan 2019 16:07:14 -0700
-Keith Busch <keith.busch@intel.com> wrote:
-
-> == Changes since v4 ==
+On 04.02.19 23:56, Michael S. Tsirkin wrote:
 > 
->   All public interfaces have kernel docs.
+> On Wed, Jan 09, 2019 at 08:17:31PM +0530, Pankaj Gupta wrote:
+>>  This patch series has implementation for "virtio pmem". 
+>>  "virtio pmem" is fake persistent memory(nvdimm) in guest 
+>>  which allows to bypass the guest page cache. This also
+>>  implements a VIRTIO based asynchronous flush mechanism.  
 > 
->   Renamed "class" to "access", docs and changed logs updated
->   accordingly. (Rafael)
 > 
->   The sysfs hierarchy is altered to put initiators and targets in their
->   own attribute group directories (Rafael).
+> At Pankaj's request I looked at information leak implications of virtio
+> pmem in light of the recent page cache side channels paper
+> (https://arxiv.org/pdf/1901.01161.pdf) - to see what
+> kind of side channels it might create if any.  TLDR - I think that
+> depending on the host side implementation there could be some, but this
+> might be addressable by better documentation in both code and spec.
+> The fake dax approach backing the guest memory by a host page cache
+> does seem to have potential issues.
 > 
->   The node lists are removed. This feedback is in conflict with v1
->   feedback, but consensus wants to remove multi-value sysfs attributes,
->   which includes lists. We only have symlinks now, just like v1 provided.
+> For clarity: we are talking about leaking information either to a VM, or
+> within a VM (I did not look into leaks to hypervisor in configurations
+> such as SEV) through host page cache.
 > 
->   Documentation and code patches are combined such that the code
->   introducing new attributes and its documentation are in the same
->   patch. (Rafael and Dan).
+> Leaks into a VM: It seems clear that while pmem allows memory accesses
+> versus read/write with e.g. a block device, from host page cache point
+> of view this doesn't matter much: reads populate cache in the same way
+> as memory faults.  Thus ignoring presence of information leaks (which is
+> an interesting question e.g. in light of recent discard support) pmem
+> doesn't seem to be any better or worse for leaking information into a
+> VM.
+
++1, just a different way to access that cache.
+
+Conceptually a virtio-pmem devices is from the guest view a "device with
+a managed buffer". Some accesses might be faster than others. There are
+no guarantees on how fast a certain access is. And yes, actions on other
+guests can result in accesses being slower but not faster.
+
+Also other storage devices have caches like that (well, the caches size
+depends on the device) - thinking especially about storage systems -
+which would in my opinion, also allow similar leaks. How are such
+security concerns handled there? Are they different (besides eventually
+access speed)?
+
 > 
->   The performance attributes, bandwidth and latency, are moved into the
->   initiators directory. This should make it obvious for which node
->   access the attributes apply, which was previously ambiguous.
->   (Jonathan Cameron).
+> Leaks within VM: Right now pmem seems to bypass the guest page cache
+> completely.  Whether pmem memory is then resident in a page cache would
+> be up to the device/host. Assuming that it is, the "Preventing
+> Efficient Eviction while Increasing the System Performance"
+> countermeasure for the page cache side channel attack would appear to
+> become ineffective with pmem. What is suggested is a per-process
+> management of the page cache, and host does not have visibility of
+> processes within a VM. Another possible countermeasure - not discussed
+> in the paper - could be modify the applications to lock the security
+> relevant pages in memory.  Again this becomes impractical with pmem as
+> host does not have visibility into that. However note that as long
+> as the only countermeasure linux uses is "Privileged Access"
+> (i.e. blocking mincore) nothing can be done as guest page cache
+> remains as vulnerable as host page cache.
+
+This sounds very use-case specific. If I run a VM only with a very
+specific workload (say, a container running one application), I usually
+don't care about leaks within the VM. At least not leaks between
+applications ;)
+
+In contrast, to running different applications (e.g. containers from
+different customers) on one system, I really care about leaks within a VM.
+
 > 
->   The HMAT code selecting "local" initiators is substantially changed.
->   Only PXM's that have identical performance to the HMAT's processor PXM
->   in Address Range Structure are registered. This is to avoid considering
->   nodes identical when only one of several perf attributes are the same.
->   (Jonathan Cameron).
 > 
->   Verbose variable naming. Examples include "initiator" and "target"
->   instead of "i" and "t", "mem_pxm" and "cpu_pxm" instead of "m" and
->   "p". (Rafael)
+> Countermeasures: which host-side countermeasures can be designed would
+> depend on which countermeasures are used guest-side - we would need to
+> make sure they are not broken by pmem.  For "Preventing Efficient
+> Eviction while Increasing the System Performance" modifying the host
+> implementation to ensure that pmem device bypasses the host page cache
+> would seem to address the security problem.Similarly, ensuring that a
+> real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
+> virt) is used for pmem would make the memory locking countermeasure
+> work.  Whether with such limitations the device is still useful
+> performance wise is an open question.  These questions probably should
+> be addressed in the documentation, spec and possible qemu code.
 > 
->   Compile fixes for when HMEM_REPORTING is not set. This is not a user
->   selectable config option, default 'n', and will have to be selected
->   by other config options that require it (Greg KH and Rafael).
+I also want to note that using a disk/file as memory backend with
+NVDIMMs in QEMU essentially results in the exact same questions we have
+with virtio-pmem.
+
+E.g. kata-containers use nvdimms for the rootfile system (read-only) as
+far as I am aware.
+
+Conceptually, a virtio-pmem device is just an emulated nvdimm device
+with a flush interface. And the nice thing is, that it is designed to
+also work on architectures that don't speak "nvdimm".
+
 > 
-> == Background ==
-> 
-> Platforms may provide multiple types of cpu attached system memory. The
-> memory ranges for each type may have different characteristics that
-> applications may wish to know about when considering what node they want
-> their memory allocated from. 
-> 
-> It had previously been difficult to describe these setups as memory
-> rangers were generally lumped into the NUMA node of the CPUs. New
-> platform attributes have been created and in use today that describe
-> the more complex memory hierarchies that can be created.
-> 
-> This series' objective is to provide the attributes from such systems
-> that are useful for applications to know about, and readily usable with
-> existing tools and libraries.
+> Severity of the security implications: some people argue that the
+> security implications of the page cache leaks are minor.  I do not have
+> an opinion on this: the severity would seem to depend on the specific
+> configuration.
 
-Hi Keith,
+I guess configuration and use case.
 
-Seems to be heading in the right direction to me... (though I personally
-want to see the whole of HMAT expose, but meh, that seems unpopular :)
+Nice summary, thanks for looking into this Michael!
 
-I've fired up a new test rig (someone pinched the fan on the previous one)
-that I can make present pretty much anything to this code.
 
-First up is a system with 4 nodes with cpu and local ddr [0-3] + 1 remote node
-with just memory [4]. All the figures as you might expect between the nodes with
-CPUs. The remote node has equal numbers from all the cpus.
-
-First some general comments on places this doesn't work as my gut feeling
-said it would...
-
-I'm going to keep this somewhat vague on certain points as ACPI 6.3 should
-be public any day now and I think it is fair to say we should take into
-account any changes in there...
-There is definitely one place the current patches won't work with 6.3, but
-I'll point it out in a few days.  There may be others.
-
-1) It seems this version added a hard dependence on having the memory node
-   listed in the Memory Proximity Domain attribute structures.  I'm not 100%
-   sure there is actually any requirement to have those structures. If you aren't
-   using the hint bit, they don't convey any information.  It could be argued
-   that they provide info on what is found in the other hmat entries, but there
-   is little purpose as those entries are explicit in what the provide.
-   (Given I didn't have any of these structures and things  worked fine with
-    v4 it seems this is a new check).
-
-   This is also somewhat inconsistent.
-   a) If a given entry isn't there, we still get for example
-      node4/access0/initiators/[read|write]_* but all values are 0.
-      If we want to do the check you have it needs to not create the files in
-      this case.  Whilst they have no meaning as there are no initiators, it
-      is inconsistent to my mind.
-
-   b) Having one "Memory Proximity Domain attribute structure" for node 4 linking
-      it to node0 is sufficient to allow
-      node4/access0/initiators/node0
-      node4/access0/initiators/node1
-      node4/access0/initiators/node2
-      node4/access0/initiators/node3
-      I think if we are going to enforce the presence of that structure then only
-      the node0 link should exist.
-
-2) Error handling could perhaps do to spit out some nasty warnings.
-   If we have an entry for nodes that don't exist we shouldn't just fail silently,
-   that's just one example I managed to trigger with minor table tweaking.
-
-Personally I would just get rid of enforcing anything based on the presence of
-that structure.
-
-I'll send more focused comments on some of the individual patches.
+-- 
 
 Thanks,
 
-Jonathan
-   
-
-> 
-> Keith Busch (10):
->   acpi: Create subtable parsing infrastructure
->   acpi: Add HMAT to generic parsing tables
->   acpi/hmat: Parse and report heterogeneous memory
->   node: Link memory nodes to their compute nodes
->   acpi/hmat: Register processor domain to its memory
->   node: Add heterogenous memory access attributes
->   acpi/hmat: Register performance attributes
->   node: Add memory caching attributes
->   acpi/hmat: Register memory side cache attributes
->   doc/mm: New documentation for memory performance
-> 
->  Documentation/ABI/stable/sysfs-devices-node   |  87 ++++-
->  Documentation/admin-guide/mm/numaperf.rst     | 167 ++++++++
->  arch/arm64/kernel/acpi_numa.c                 |   2 +-
->  arch/arm64/kernel/smp.c                       |   4 +-
->  arch/ia64/kernel/acpi.c                       |  12 +-
->  arch/x86/kernel/acpi/boot.c                   |  36 +-
->  drivers/acpi/Kconfig                          |   1 +
->  drivers/acpi/Makefile                         |   1 +
->  drivers/acpi/hmat/Kconfig                     |   9 +
->  drivers/acpi/hmat/Makefile                    |   1 +
->  drivers/acpi/hmat/hmat.c                      | 537 ++++++++++++++++++++++++++
->  drivers/acpi/numa.c                           |  16 +-
->  drivers/acpi/scan.c                           |   4 +-
->  drivers/acpi/tables.c                         |  76 +++-
->  drivers/base/Kconfig                          |   8 +
->  drivers/base/node.c                           | 354 ++++++++++++++++-
->  drivers/irqchip/irq-gic-v2m.c                 |   2 +-
->  drivers/irqchip/irq-gic-v3-its-pci-msi.c      |   2 +-
->  drivers/irqchip/irq-gic-v3-its-platform-msi.c |   2 +-
->  drivers/irqchip/irq-gic-v3-its.c              |   6 +-
->  drivers/irqchip/irq-gic-v3.c                  |  10 +-
->  drivers/irqchip/irq-gic.c                     |   4 +-
->  drivers/mailbox/pcc.c                         |   2 +-
->  include/linux/acpi.h                          |   6 +-
->  include/linux/node.h                          |  60 ++-
->  25 files changed, 1344 insertions(+), 65 deletions(-)
->  create mode 100644 Documentation/admin-guide/mm/numaperf.rst
->  create mode 100644 drivers/acpi/hmat/Kconfig
->  create mode 100644 drivers/acpi/hmat/Makefile
->  create mode 100644 drivers/acpi/hmat/hmat.c
-> 
+David / dhildenb
