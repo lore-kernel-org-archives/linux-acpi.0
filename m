@@ -1,58 +1,79 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCHv5 00/10] Heterogeneuos memory node attributes
-Date: Thu, 7 Feb 2019 08:08:17 -0700
-Message-ID: <20190207150817.GC30221@localhost.localdomain>
-References: <20190124230724.10022-1-keith.busch@intel.com>
- <20190207095336.0000529f@huawei.com>
+From: John Garry <john.garry@huawei.com>
+Subject: [PATCH] ACPI/PPTT: Add acpi_pptt_warn_missing() to consolidate logs
+Date: Fri, 8 Feb 2019 00:14:21 +0800
+Message-ID: <1549556061-107418-1-git-send-email-john.garry@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190207095336.0000529f@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>, "linuxarm@huawei.com" <linuxarm@huawei.com>
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jeremy.linton@arm.com, linuxarm@huawei.com, John Garry <john.garry@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 07, 2019 at 01:53:36AM -0800, Jonathan Cameron wrote:
-> As a general heads up, ACPI 6.3 is out and makes some changes.
-> Discussions I've had in the past suggested there were few systems
-> shipping with 6.2 HMAT and that many firmwares would start at 6.3.
-> Of course, that might not be true, but there was fairly wide participation
-> in the meeting so fingers crossed it's accurate.
-> 
-> https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
-> 
-> Particular points to note:
-> 1. Most of the Memory Proximity Domain Attributes Structure was deprecated.
->    This includes the reservation hint which has been replaced
->    with a new mechanism (not used in this patch set)
+For a system using ACPI-based FW without a PPTT, we may get many warnings
+about the lack of a PPTT, as shown:
 
-Yes, and duplicating all the address ranges with SRAT never made any
-sense. No need to define the same thing in multiple places; that's just
-another opprotunity to get it wrong.
+root@(none)$ dmesg | grep -i pptt
+[    0.010125] ACPI PPTT: No PPTT table found, cpu topology may be inaccurate
+[    7.138339] ACPI PPTT: No PPTT table found, cache topology may be inaccurate
+[    7.145368] ACPI PPTT: No PPTT table found, cache topology may be inaccurate
+
+These logs are generated with pr_warn_once(), so the intention was for a
+single log, but the logs overlap, so consolidate them.
+
+Signed-off-by: John Garry <john.garry@huawei.com>
+
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index da031b1df6f5..ad31c50de3be 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -451,6 +451,11 @@ static struct acpi_pptt_processor *acpi_find_processor_package_id(struct acpi_ta
+ 	return cpu;
+ }
  
-> 2. Base units for latency changed to picoseconds.  There is a lot more
->    explanatory text around how those work.
->
-> 3. The measurements of latency and bandwidth no longer have an
->    'aggregate performance' version.  Given the work load was not described
->    this never made any sense.  Better for a knowledgeable bit of software
->    to work out it's own estimate.
-
-Nice. Though they shifted 1st level cached to occupy the same value that
-the aggregate used. They could have just deprecated the old value so we
-could maintain compatibility, but that's okay!
++static void acpi_pptt_warn_missing(void)
++{
++	pr_warn_once("No PPTT table found, cpu and cache topology may be inaccurate\n");
++}
++
+ /**
+  * topology_get_acpi_cpu_tag() - Find a unique topology value for a feature
+  * @table: Pointer to the head of the PPTT table
+@@ -498,7 +503,7 @@ static int find_acpi_cpu_topology_tag(unsigned int cpu, int level, int flag)
  
-> 4. There are now Generic Initiator Domains that have neither memory nor
->    processors.  I'll come back with proposals on handling those soon if
->    no one beats me to it. (I think it's really easy but may be wrong ;)
->    I've not really thought out how this series applies to GI only domains
->    yet.  Probably not useful to know you have an accelerator near to
->    particular memory if you are deciding where to pin your host processor
->    task ;)
-
-I haven't any particular use for these at the moment either, though it
-shouldn't change what this is going to export.
-
-Thanks for the heads up! I'll incorporate 6.3 into v6.
+ 	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
+ 	if (ACPI_FAILURE(status)) {
+-		pr_warn_once("No PPTT table found, cpu topology may be inaccurate\n");
++		acpi_pptt_warn_missing();
+ 		return -ENOENT;
+ 	}
+ 	retval = topology_get_acpi_cpu_tag(table, cpu, level, flag);
+@@ -531,7 +536,7 @@ int acpi_find_last_cache_level(unsigned int cpu)
+ 	acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+ 	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
+ 	if (ACPI_FAILURE(status)) {
+-		pr_warn_once("No PPTT table found, cache topology may be inaccurate\n");
++		acpi_pptt_warn_missing();
+ 	} else {
+ 		number_of_levels = acpi_find_cache_levels(table, acpi_cpu_id);
+ 		acpi_put_table(table);
+@@ -563,7 +568,7 @@ int cache_setup_acpi(unsigned int cpu)
+ 
+ 	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
+ 	if (ACPI_FAILURE(status)) {
+-		pr_warn_once("No PPTT table found, cache topology may be inaccurate\n");
++		acpi_pptt_warn_missing();
+ 		return -ENOENT;
+ 	}
+ 
+@@ -617,7 +622,7 @@ int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
+ 
+ 	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
+ 	if (ACPI_FAILURE(status)) {
+-		pr_warn_once("No PPTT table found, topology may be inaccurate\n");
++		acpi_pptt_warn_missing();
+ 		return -ENOENT;
+ 	}
+ 
+-- 
+2.17.1
