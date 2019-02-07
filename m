@@ -1,92 +1,55 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH] ACPI/PPTT: Add acpi_pptt_warn_missing() to consolidate
- logs
-Date: Thu, 7 Feb 2019 10:21:35 -0600
-Message-ID: <05990286-4b66-2879-f066-b4ab558f7385@arm.com>
-References: <1549556061-107418-1-git-send-email-john.garry@huawei.com>
+From: egranata@google.com
+Subject: [PATCH] driver: platform: Add support for GpioInt() ACPI to platform_get_irq()
+Date: Thu,  7 Feb 2019 10:59:17 -0800
+Message-ID: <20190207185917.167829-1-egranata@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1549556061-107418-1-git-send-email-john.garry@huawei.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>, rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+To: gregkh@linuxfoundation.org, rafael@kernel.org, enric.balletbo@collabora.com
+Cc: linux-kernel@vger.kernel.org, gwendal@chromium.org, dtor@chromium.org, linux-acpi@vger.kernel.org, briannorris@chromium.org, Enrico Granata <egranata@chromium.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Enrico Granata <egranata@chromium.org>
 
-On 2/7/19 10:14 AM, John Garry wrote:
-> For a system using ACPI-based FW without a PPTT, we may get many warnings
-> about the lack of a PPTT, as shown:
-> 
-> root@(none)$ dmesg | grep -i pptt
-> [    0.010125] ACPI PPTT: No PPTT table found, cpu topology may be inaccurate
-> [    7.138339] ACPI PPTT: No PPTT table found, cache topology may be inaccurate
-> [    7.145368] ACPI PPTT: No PPTT table found, cache topology may be inaccurate
-> 
-> These logs are generated with pr_warn_once(), so the intention was for a
-> single log, but the logs overlap, so consolidate them.
-> 
-> Signed-off-by: John Garry <john.garry@huawei.com>
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index da031b1df6f5..ad31c50de3be 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -451,6 +451,11 @@ static struct acpi_pptt_processor *acpi_find_processor_package_id(struct acpi_ta
->   	return cpu;
->   }
->   
-> +static void acpi_pptt_warn_missing(void)
-> +{
-> +	pr_warn_once("No PPTT table found, cpu and cache topology may be inaccurate\n");
-> +}
-> +
->   /**
->    * topology_get_acpi_cpu_tag() - Find a unique topology value for a feature
->    * @table: Pointer to the head of the PPTT table
-> @@ -498,7 +503,7 @@ static int find_acpi_cpu_topology_tag(unsigned int cpu, int level, int flag)
->   
->   	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->   	if (ACPI_FAILURE(status)) {
-> -		pr_warn_once("No PPTT table found, cpu topology may be inaccurate\n");
-> +		acpi_pptt_warn_missing();
->   		return -ENOENT;
->   	}
->   	retval = topology_get_acpi_cpu_tag(table, cpu, level, flag);
-> @@ -531,7 +536,7 @@ int acpi_find_last_cache_level(unsigned int cpu)
->   	acpi_cpu_id = get_acpi_id_for_cpu(cpu);
->   	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->   	if (ACPI_FAILURE(status)) {
-> -		pr_warn_once("No PPTT table found, cache topology may be inaccurate\n");
-> +		acpi_pptt_warn_missing();
->   	} else {
->   		number_of_levels = acpi_find_cache_levels(table, acpi_cpu_id);
->   		acpi_put_table(table);
-> @@ -563,7 +568,7 @@ int cache_setup_acpi(unsigned int cpu)
->   
->   	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->   	if (ACPI_FAILURE(status)) {
-> -		pr_warn_once("No PPTT table found, cache topology may be inaccurate\n");
-> +		acpi_pptt_warn_missing();
->   		return -ENOENT;
->   	}
->   
-> @@ -617,7 +622,7 @@ int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
->   
->   	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->   	if (ACPI_FAILURE(status)) {
-> -		pr_warn_once("No PPTT table found, topology may be inaccurate\n");
-> +		acpi_pptt_warn_missing();
->   		return -ENOENT;
->   	}
->   
-> 
+ACPI 5 added support for GpioInt resources as a way to provide
+information about interrupts mediated via a GPIO controller.
 
-This all looks fine to me,
+Several device buses (e.g. SPI, I2C) have support for retrieving
+an IRQ specified via this type of resource, and providing it
+directly to the driver as an IRQ number.
+This is not currently done for the platform drivers, as platform_get_irq()
+does not try to parse GpioInt() resources.
 
-Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
+This commit adds that functionality.
 
-Thanks!
+Signed-off-by: Enrico Granata <egranata@chromium.org>
+---
+ drivers/base/platform.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index 1c958eb33ef4d..c50c4f9033aef 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -127,7 +127,17 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+ 		irqd_set_trigger_type(irqd, r->flags & IORESOURCE_BITS);
+ 	}
+ 
+-	return r ? r->start : -ENXIO;
++	if (r)
++		return r->start;
++
++	/*
++	 * If no IRQ was found, try to parse ACPI GpioInt resources
++	 * as a last resort.
++	 */
++	if (has_acpi_companion(&dev->dev))
++		return acpi_dev_gpio_irq_get(ACPI_COMPANION(&dev->dev), num);
++
++	return -ENXIO;
+ #endif
+ }
+ EXPORT_SYMBOL_GPL(platform_get_irq);
+-- 
+2.20.1.611.gfbb209baf1-goog
