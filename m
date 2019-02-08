@@ -1,42 +1,36 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v3] gpiolib: acpi: Introduce
-	ACPI_GPIO_QUIRK_ONLY_GPIOIO
-Date: Fri, 8 Feb 2019 15:51:56 +0100
-Message-ID: <CACRpkdbewwKFzHLz8Ok5Kh9gijK-AtKUykTKL1fdQ=zAWYDCoQ@mail.gmail.com>
-References: <20190206204946.61730-1-andriy.shevchenko@linux.intel.com>
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH v1 1/3] PCI / ACPI: Do not export pci_get_hp_params()
+Date: Fri,  8 Feb 2019 10:24:11 -0600
+Message-ID: <20190208162414.3996-2-mr.nuke.me@gmail.com>
+References: <20190208162414.3996-1-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20190206204946.61730-1-andriy.shevchenko@linux.intel.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190208162414.3996-1-mr.nuke.me@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 6, 2019 at 9:49 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+This is only used within drivers/pci, and there is no reason to make
+it available outside of the PCI core.
 
-> New quirk enforces search for GPIO based on its type,
-> i.e. iterate over GpioIo resources only.
->
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> Tested-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+---
+ drivers/pci/pci-acpi.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-I suppose I ACKed that because it needed to be applied in some
-other tree (sorry for short teflon-type memory...)
-
-If I should just apply it, tell me!
-
-Yours,
-Linus Walleij
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index e1949f7efd9c..b25e5fa9d1c9 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -366,7 +366,6 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+ 	}
+ 	return -ENODEV;
+ }
+-EXPORT_SYMBOL_GPL(pci_get_hp_params);
+ 
+ /**
+  * pciehp_is_native - Check whether a hotplug port is handled by the OS
+-- 
+2.19.2
