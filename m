@@ -1,126 +1,42 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v8 00/26] APEI in_nmi() rework and SDEI wire-up
-Date: Fri, 8 Feb 2019 14:13:53 +0000
-Message-ID: <a8b9983d-5eef-2f30-441f-73ce50da7bca@arm.com>
-References: <20190129184902.102850-1-james.morse@arm.com>
- <15200237.N8Ro7ITLGE@aspire.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3] gpiolib: acpi: Introduce
+	ACPI_GPIO_QUIRK_ONLY_GPIOIO
+Date: Fri, 8 Feb 2019 15:51:56 +0100
+Message-ID: <CACRpkdbewwKFzHLz8Ok5Kh9gijK-AtKUykTKL1fdQ=zAWYDCoQ@mail.gmail.com>
+References: <20190206204946.61730-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <15200237.N8Ro7ITLGE@aspire.rjw.lan>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>
-Cc: Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20190206204946.61730-1-andriy.shevchenko@linux.intel.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Wed, Feb 6, 2019 at 9:49 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
-On 08/02/2019 11:40, Rafael J. Wysocki wrote:
-> On Tuesday, January 29, 2019 7:48:36 PM CET James Morse wrote:
->> This series aims to wire-up arm64's fancy new software-NMI notifications
->> for firmware-first RAS. These need to use the estatus-queue, which is
->> also needed for notifications via emulated-SError. All of these
->> things take the 'in_nmi()' path through ghes_copy_tofrom_phys(), and
->> so will deadlock if they can interact, which they might.
+> New quirk enforces search for GPIO based on its type,
+> i.e. iterate over GpioIo resources only.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+> Tested-by: Hans de Goede <hdegoede@redhat.com>
 
->> Known issues:
->>  * ghes_copy_tofrom_phys() already takes a lock in NMI context, this
->>    series moves that around, and makes sure we never try to take the
->>    same lock from different NMIlike notifications. Since the switch to
->>    queued spinlocks it looks like the kernel can only be 4 context's
->>    deep in spinlock, which arm64 could exceed as it doesn't have a
->>    single architected NMI. This would be fixed by dropping back to
->>    test-and-set when the nesting gets too deep:
->>  lore.kernel.org/r/1548215351-18896-1-git-send-email-longman@redhat.com
->>
->> * Taking an NMI from a KVM guest on arm64 with VHE leaves HCR_EL2.TGE
->>   clear, meaning AT and TLBI point at the guest, and PAN/UAO are squiffy.
->>   Only TLBI matters for APEI, and this is fixed by Julien's patch:
->>  http://lore.kernel.org/r/1548084825-8803-2-git-send-email-julien.thierry@arm.com
->>
->> * Linux ignores the physical address mask, meaning it doesn't call
->>   memory_failure() on all the affected pages if firmware or hypervisor
->>   believe in a different page size. Easy to hit on arm64, (easy to fix too,
->>   it just conflicts with this series)
+I suppose I ACKed that because it needed to be applied in some
+other tree (sorry for short teflon-type memory...)
 
+If I should just apply it, tell me!
 
->> James Morse (26):
->>   ACPI / APEI: Don't wait to serialise with oops messages when
->>     panic()ing
->>   ACPI / APEI: Remove silent flag from ghes_read_estatus()
->>   ACPI / APEI: Switch estatus pool to use vmalloc memory
->>   ACPI / APEI: Make hest.c manage the estatus memory pool
->>   ACPI / APEI: Make estatus pool allocation a static size
->>   ACPI / APEI: Don't store CPER records physical address in struct ghes
->>   ACPI / APEI: Remove spurious GHES_TO_CLEAR check
->>   ACPI / APEI: Don't update struct ghes' flags in read/clear estatus
->>   ACPI / APEI: Generalise the estatus queue's notify code
->>   ACPI / APEI: Don't allow ghes_ack_error() to mask earlier errors
->>   ACPI / APEI: Move NOTIFY_SEA between the estatus-queue and NOTIFY_NMI
->>   ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
->>   KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
->>   arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
->>   ACPI / APEI: Move locking to the notification helper
->>   ACPI / APEI: Let the notification helper specify the fixmap slot
->>   ACPI / APEI: Pass ghes and estatus separately to avoid a later copy
->>   ACPI / APEI: Make GHES estatus header validation more user friendly
->>   ACPI / APEI: Split ghes_read_estatus() to allow a peek at the CPER
->>     length
->>   ACPI / APEI: Only use queued estatus entry during
->>     in_nmi_queue_one_entry()
->>   ACPI / APEI: Use separate fixmap pages for arm64 NMI-like
->>     notifications
->>   mm/memory-failure: Add memory_failure_queue_kick()
->>   ACPI / APEI: Kick the memory_failure() queue for synchronous errors
->>   arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
->>   firmware: arm_sdei: Add ACPI GHES registration helper
->>   ACPI / APEI: Add support for the SDEI GHES Notification type
-
-
-> I can apply patches in this series up to and including patch [21/26].
-> 
-> Do you want me to do that?
-
-9-12, 17-19, 21 are missing any review/ack tags, so I wouldn't ask, but as
-you're offering, yes please!
-
-
-> Patch [22/26] requires an ACK from mm people.
-> 
-> Patch [23/26] has a problem that randconfig can generate a configuration
-> in which memory_failure_queue_kick() is not present, so it is necessary
-> to add a CONFIG_MEMORY_FAILURE dependency somewhere for things to
-> work (or define an empty stub for that function in case the symbol is
-> not set).
-
-Damn-it! Thanks, I was just trying to work that report out...
-
-
-> If patches [24-26/26] don't depend on the previous two, I can try to
-> apply them either, so please let me know.
-
-22-24 depend on each other. Merging 24 without the other two is no-improvement,
-so I'd like them to be kept together.
-
-25-26 don't depend on 22-24, but came later so that they weren't affected by the
-same race.
-(note to self: describe that in the cover letter next time.)
-
-
-If I apply the tag's and Boris' changes and post a tested v9 as 1-21, 25-26, is
-that easier, or does it cause extra work?
-
-
-Thanks,
-
-James
+Yours,
+Linus Walleij
