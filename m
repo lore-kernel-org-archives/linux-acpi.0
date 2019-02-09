@@ -1,24 +1,34 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] ACPI fix for v5.0-rc6
-Date: Sat, 09 Feb 2019 00:40:02 +0000
-Message-ID: <154967280295.26526.10186217024779825847.pr-tracker-bot@kernel.org>
-References: <CAJZ5v0hX3PB6k3GCP2y9MYGJiYH6Fvg=cFdUNuDx0FB5UnVY3A@mail.gmail.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [RFC  0/3] arm64: SPE ACPI enablement
+Date: Fri,  8 Feb 2019 18:47:15 -0600
+Message-ID: <20190209004718.3292087-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hX3PB6k3GCP2y9MYGJiYH6Fvg=cFdUNuDx0FB5UnVY3A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 8 Feb 2019 12:22:20 +0100:
+This patch series enables the Arm Statistical
+Profiling Extension (SPE) on ACPI platforms.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.0-rc6
+This is possible because ACPI 6.3 uses a previously
+reserved field in the MADT to store the SPE interrupt
+number, similarly to how the normal PMU is
+described. If a consistent valid interrupt exists
+across all the cores in the system, a platform
+device is registered. That then triggers the SPE module,
+which runs as normal.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e2dac603d4bcb98c65d6f97848b72a217d0dd854
+Jeremy Linton (3):
+  ACPICA: ACPI 6.3: Add MADT/GICC/SPE extension.
+  arm_pmu: acpi: spe: Add initial MADT/SPE probing
+  perf: arm_spe: Enable ACPI/Platform automatic module loading
 
-Thank you!
+ arch/arm64/include/asm/acpi.h |  4 +++
+ drivers/perf/arm_pmu_acpi.c   | 67 +++++++++++++++++++++++++++++++++++
+ drivers/perf/arm_spe_pmu.c    | 11 ++++--
+ include/acpi/actbl2.h         |  5 +--
+ 4 files changed, 83 insertions(+), 4 deletions(-)
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+2.17.2
