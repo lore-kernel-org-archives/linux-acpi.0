@@ -1,108 +1,61 @@
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: [PATCH][RFC] ACPI: add "processor.broadcast_ppc" hook to broadcast  _PPC to all online CPUs
-Date: Sat,  9 Feb 2019 20:02:32 +0800
-Message-ID: <20190209120232.21582-1-yu.c.chen@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] acpi: bgrt: parse BGRT to obtain BMP address before it
+ gets clobbered
+Date: Sat, 9 Feb 2019 14:41:24 +0100
+Message-ID: <CAKv+Gu921D2v0RyuR=rXKKyL6M48MhPJq0b1uM97+4CJPw_Rww@mail.gmail.com>
+References: <20190122150616.850-1-ard.biesheuvel@linaro.org>
+ <20190123053141.GA7376@dhcp-128-65.nay.redhat.com>
+ <CAKv+Gu9yVSfxfy37Z3xt-Ft70VtNs4YYQfcAvMB2qEdSLHhruw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAKv+Gu9yVSfxfy37Z3xt-Ft70VtNs4YYQfcAvMB2qEdSLHhruw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Young <dyoung@redhat.com>, "Kinney,
+ Michael D" <michael.d.kinney@intel.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Peter Jones <pjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Al Stone <astone@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-efi <linux-efi@vger.kernel.org>, "Hsiung,
+ Harry L" <harry.l.hsiung@intel.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Dell Inc. XPS13 9333, the BIOS changes the value of
-MSR_IA32_MISC_ENABLE_TURBO_DISABLE at runtime (e.g., when
-the power source changes), the maximum frequency of the
-CPU is not updated accordingly. This is due to the policy's
-cpuinfo.max is not updated when _PPC notifier fires.
+(+ Mike)
 
-Fix this problem by updating the policy's cpuinfo.max
-and broadcast the _PPC notifier to all online CPUs.
+On Wed, 23 Jan 2019 at 10:44, Ard Biesheuvel <ard.biesheuvel@linaro.org> wrote:
+>
+> On Wed, 23 Jan 2019 at 06:31, Dave Young <dyoung@redhat.com> wrote:
+> >
+> > Hi,
+> >
+> > On 01/22/19 at 04:06pm, Ard Biesheuvel wrote:
+> > > The bitmap left in the framebuffer by the firmware is described by an
+> > > ACPI table called "BGRT", which describes the size, pixel format and
+> > > the address of a BMP image in memory. While the BGRT ACPI table is
+> > > guaranteed to reside in a "ACPI reclaim" memory region, which is
+> > > never touched by Linux. The BMP image, however, typically resides
+> > > in EFI Boot Services Memory, which may have been overwritten by the
+> > > time the BGRT discovery routine runs.
+> >
+> > I vaguely remember boot service memory is reserved on X86,  so this
+> > is an issue of arm only?
+> >
+>
+> No both ARM and x86 are affected. Harry and/or Peter should be able to
+> comment on the details.
+>
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=200759
-Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-Originally-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
----
- drivers/acpi/processor_perflib.c | 16 ++++++++++++++--
- drivers/cpufreq/cpufreq.c        |  2 ++
- drivers/cpufreq/intel_pstate.c   | 15 ++++++++++++++-
- 3 files changed, 30 insertions(+), 3 deletions(-)
+OK, so ARM is definitely affected, but after having had to revert this
+patch since it breaks x86, I am looking into more detail and I have
+trouble figuring *why* this would fail on x86 since, as Dave points
+out, the x86 Linux kernel does not release boot services data regions
+for general allocation until much later.
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index a303fd0e108c..737dbf5aa7f7 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -63,6 +63,10 @@ module_param(ignore_ppc, int, 0644);
- MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
- 		 "limited by BIOS, this should help");
- 
-+static int broadcast_ppc;
-+module_param(broadcast_ppc, int, 0644);
-+MODULE_PARM_DESC(broadcast_ppc, "Broadcast the ppc to all online CPUs");
-+
- #define PPC_REGISTERED   1
- #define PPC_IN_USE       2
- 
-@@ -180,8 +184,16 @@ void acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag)
- 		else
- 			acpi_processor_ppc_ost(pr->handle, 0);
- 	}
--	if (ret >= 0)
--		cpufreq_update_policy(pr->id);
-+	if (ret >= 0) {
-+		if (broadcast_ppc) {
-+			int cpu;
-+
-+			for_each_possible_cpu(cpu)
-+				cpufreq_update_policy(cpu);
-+		} else {
-+			cpufreq_update_policy(pr->id);
-+		}
-+	}
- }
- 
- int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
-diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index e35a886e00bc..95e08816b512 100644
---- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -2237,6 +2237,8 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
- 
- 	policy->min = new_policy->min;
- 	policy->max = new_policy->max;
-+	policy->cpuinfo.max_freq = new_policy->cpuinfo.max_freq;
-+	policy->cpuinfo.min_freq = new_policy->cpuinfo.min_freq;
- 	trace_cpu_frequency_limits(policy);
- 
- 	policy->cached_target_freq = UINT_MAX;
-diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-index dd66decf2087..e1881313c396 100644
---- a/drivers/cpufreq/intel_pstate.c
-+++ b/drivers/cpufreq/intel_pstate.c
-@@ -2081,11 +2081,24 @@ static void intel_pstate_adjust_policy_max(struct cpufreq_policy *policy,
- 
- static int intel_pstate_verify_policy(struct cpufreq_policy *policy)
- {
-+	int max_freq;
- 	struct cpudata *cpu = all_cpu_data[policy->cpu];
- 
- 	update_turbo_state();
-+	max_freq = intel_pstate_get_max_freq(cpu);
-+
-+	if (acpi_ppc && policy->max == policy->cpuinfo.max_freq &&
-+	    max_freq != policy->cpuinfo.max_freq) {
-+		/*
-+		 * System was not running under any constraints, but the
-+		 * current max possible frequency is changed. So reset
-+		 * policy limits.
-+		 */
-+		policy->cpuinfo.max_freq = policy->max = max_freq;
-+	}
-+
- 	cpufreq_verify_within_limits(policy, policy->cpuinfo.min_freq,
--				     intel_pstate_get_max_freq(cpu));
-+				     max_freq);
- 
- 	if (policy->policy != CPUFREQ_POLICY_POWERSAVE &&
- 	    policy->policy != CPUFREQ_POLICY_PERFORMANCE)
--- 
-2.17.1
+Mike (or Peter), do you happen to have a Linux boot log of the case
+where the BGRT is being corrupted?
