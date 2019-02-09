@@ -1,61 +1,99 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH] acpi: bgrt: parse BGRT to obtain BMP address before it
- gets clobbered
-Date: Sat, 9 Feb 2019 14:41:24 +0100
-Message-ID: <CAKv+Gu921D2v0RyuR=rXKKyL6M48MhPJq0b1uM97+4CJPw_Rww@mail.gmail.com>
-References: <20190122150616.850-1-ard.biesheuvel@linaro.org>
- <20190123053141.GA7376@dhcp-128-65.nay.redhat.com>
- <CAKv+Gu9yVSfxfy37Z3xt-Ft70VtNs4YYQfcAvMB2qEdSLHhruw@mail.gmail.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 02/28] ACPI: NUMA: Use correct type for printing addresses on i386-PAE
+Date: Sat,  9 Feb 2019 13:48:10 -0500
+Message-ID: <20190209184840.126418-2-sashal@kernel.org>
+References: <20190209184840.126418-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAKv+Gu9yVSfxfy37Z3xt-Ft70VtNs4YYQfcAvMB2qEdSLHhruw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Young <dyoung@redhat.com>, "Kinney,
- Michael D" <michael.d.kinney@intel.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Peter Jones <pjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Al Stone <astone@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-efi <linux-efi@vger.kernel.org>, "Hsiung,
- Harry L" <harry.l.hsiung@intel.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190209184840.126418-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Chao Fan <fanc.fnst@cn.fujitsu.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-(+ Mike)
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
 
-On Wed, 23 Jan 2019 at 10:44, Ard Biesheuvel <ard.biesheuvel@linaro.org> wrote:
->
-> On Wed, 23 Jan 2019 at 06:31, Dave Young <dyoung@redhat.com> wrote:
-> >
-> > Hi,
-> >
-> > On 01/22/19 at 04:06pm, Ard Biesheuvel wrote:
-> > > The bitmap left in the framebuffer by the firmware is described by an
-> > > ACPI table called "BGRT", which describes the size, pixel format and
-> > > the address of a BMP image in memory. While the BGRT ACPI table is
-> > > guaranteed to reside in a "ACPI reclaim" memory region, which is
-> > > never touched by Linux. The BMP image, however, typically resides
-> > > in EFI Boot Services Memory, which may have been overwritten by the
-> > > time the BGRT discovery routine runs.
-> >
-> > I vaguely remember boot service memory is reserved on X86,  so this
-> > is an issue of arm only?
-> >
->
-> No both ARM and x86 are affected. Harry and/or Peter should be able to
-> comment on the details.
->
+[ Upstream commit b9ced18acf68dffebe6888c7ec765a2b1db7a039 ]
 
-OK, so ARM is definitely affected, but after having had to revert this
-patch since it breaks x86, I am looking into more detail and I have
-trouble figuring *why* this would fail on x86 since, as Dave points
-out, the x86 Linux kernel does not release boot services data regions
-for general allocation until much later.
+The addresses of NUMA nodes are not printed correctly on i386-PAE
+which is misleading.
 
-Mike (or Peter), do you happen to have a Linux boot log of the case
-where the BGRT is being corrupted?
+Here is a debian9-32bit with PAE in a QEMU guest having more than 4G
+of memory:
+
+qemu-system-i386 \
+-hda /var/lib/libvirt/images/debian32.qcow2 \
+-m 5G \
+-enable-kvm \
+-smp 10 \
+-numa node,mem=512M,nodeid=0,cpus=0 \
+-numa node,mem=512M,nodeid=1,cpus=1 \
+-numa node,mem=512M,nodeid=2,cpus=2 \
+-numa node,mem=512M,nodeid=3,cpus=3 \
+-numa node,mem=512M,nodeid=4,cpus=4 \
+-numa node,mem=512M,nodeid=5,cpus=5 \
+-numa node,mem=512M,nodeid=6,cpus=6 \
+-numa node,mem=512M,nodeid=7,cpus=7 \
+-numa node,mem=512M,nodeid=8,cpus=8 \
+-numa node,mem=512M,nodeid=9,cpus=9 \
+-serial stdio
+
+Because of the wrong value type, it prints as below:
+
+[    0.021049] ACPI: SRAT Memory (0x0 length 0xa0000) in proximity domain 0 enabled
+[    0.021740] ACPI: SRAT Memory (0x100000 length 0x1ff00000) in proximity domain 0 enabled
+[    0.022425] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 1 enabled
+[    0.023092] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 2 enabled
+[    0.023764] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 3 enabled
+[    0.024431] ACPI: SRAT Memory (0x80000000 length 0x20000000) in proximity domain 4 enabled
+[    0.025104] ACPI: SRAT Memory (0xa0000000 length 0x20000000) in proximity domain 5 enabled
+[    0.025791] ACPI: SRAT Memory (0x0 length 0x20000000) in proximity domain 6 enabled
+[    0.026412] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 7 enabled
+[    0.027118] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 8 enabled
+[    0.027802] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 9 enabled
+
+The upper half of the start address of the NUMA domains between 6
+and 9 inclusive was cut, so the printed values are incorrect.
+
+Fix the value type, to get the correct values in the log as follows:
+
+[    0.023698] ACPI: SRAT Memory (0x0 length 0xa0000) in proximity domain 0 enabled
+[    0.024325] ACPI: SRAT Memory (0x100000 length 0x1ff00000) in proximity domain 0 enabled
+[    0.024981] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 1 enabled
+[    0.025659] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 2 enabled
+[    0.026317] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 3 enabled
+[    0.026980] ACPI: SRAT Memory (0x80000000 length 0x20000000) in proximity domain 4 enabled
+[    0.027635] ACPI: SRAT Memory (0xa0000000 length 0x20000000) in proximity domain 5 enabled
+[    0.028311] ACPI: SRAT Memory (0x100000000 length 0x20000000) in proximity domain 6 enabled
+[    0.028985] ACPI: SRAT Memory (0x120000000 length 0x20000000) in proximity domain 7 enabled
+[    0.029667] ACPI: SRAT Memory (0x140000000 length 0x20000000) in proximity domain 8 enabled
+[    0.030334] ACPI: SRAT Memory (0x160000000 length 0x20000000) in proximity domain 9 enabled
+
+Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
+[ rjw: Subject & changelog ]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/numa.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 85167603b9c9..0da58f0bf7e5 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -147,9 +147,9 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ 		{
+ 			struct acpi_srat_mem_affinity *p =
+ 			    (struct acpi_srat_mem_affinity *)header;
+-			pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
+-				 (unsigned long)p->base_address,
+-				 (unsigned long)p->length,
++			pr_debug("SRAT Memory (0x%llx length 0x%llx) in proximity domain %d %s%s%s\n",
++				 (unsigned long long)p->base_address,
++				 (unsigned long long)p->length,
+ 				 p->proximity_domain,
+ 				 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
+ 				 "enabled" : "disabled",
+-- 
+2.19.1
