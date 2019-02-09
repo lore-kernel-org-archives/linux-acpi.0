@@ -1,12 +1,10 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 02/28] ACPI: NUMA: Use correct type for printing addresses on i386-PAE
-Date: Sat,  9 Feb 2019 13:48:10 -0500
-Message-ID: <20190209184840.126418-2-sashal@kernel.org>
-References: <20190209184840.126418-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 01/16] ACPI: NUMA: Use correct type for printing addresses on i386-PAE
+Date: Sat,  9 Feb 2019 13:49:12 -0500
+Message-ID: <20190209184927.126791-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190209184840.126418-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Chao Fan <fanc.fnst@cn.fujitsu.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
@@ -79,7 +77,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 85167603b9c9..0da58f0bf7e5 100644
+index 8fb74d9011da..a7907b58562a 100644
 --- a/drivers/acpi/numa.c
 +++ b/drivers/acpi/numa.c
 @@ -147,9 +147,9 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
