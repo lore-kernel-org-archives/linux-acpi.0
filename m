@@ -1,97 +1,43 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 01/12] ACPI: NUMA: Use correct type for printing addresses on i386-PAE
-Date: Sat,  9 Feb 2019 13:49:41 -0500
-Message-ID: <20190209184952.127009-1-sashal@kernel.org>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal-SoC management fixes for v5.0-rc6
+Date: Sat, 9 Feb 2019 20:17:23 -0800
+Message-ID: <20190210041721.GA2805@localhost.localdomain>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Chao Fan <fanc.fnst@cn.fujitsu.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Hello Linus,
 
-[ Upstream commit b9ced18acf68dffebe6888c7ec765a2b1db7a039 ]
+Please consider pulling from
 
-The addresses of NUMA nodes are not printed correctly on i386-PAE
-which is misleading.
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 
-Here is a debian9-32bit with PAE in a QEMU guest having more than 4G
-of memory:
+to receive Thermal-SoC Management fixes for v5.0-rc6 with top-most
 
-qemu-system-i386 \
--hda /var/lib/libvirt/images/debian32.qcow2 \
--m 5G \
--enable-kvm \
--smp 10 \
--numa node,mem=512M,nodeid=0,cpus=0 \
--numa node,mem=512M,nodeid=1,cpus=1 \
--numa node,mem=512M,nodeid=2,cpus=2 \
--numa node,mem=512M,nodeid=3,cpus=3 \
--numa node,mem=512M,nodeid=4,cpus=4 \
--numa node,mem=512M,nodeid=5,cpus=5 \
--numa node,mem=512M,nodeid=6,cpus=6 \
--numa node,mem=512M,nodeid=7,cpus=7 \
--numa node,mem=512M,nodeid=8,cpus=8 \
--numa node,mem=512M,nodeid=9,cpus=9 \
--serial stdio
+bf78f133cd39e0ed41551150909e41513958a738:
 
-Because of the wrong value type, it prints as below:
+  thermal: cpu_cooling: Clarify error message (2019-02-05 15:50:13 -0800)
 
-[    0.021049] ACPI: SRAT Memory (0x0 length 0xa0000) in proximity domain 0 enabled
-[    0.021740] ACPI: SRAT Memory (0x100000 length 0x1ff00000) in proximity domain 0 enabled
-[    0.022425] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 1 enabled
-[    0.023092] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 2 enabled
-[    0.023764] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 3 enabled
-[    0.024431] ACPI: SRAT Memory (0x80000000 length 0x20000000) in proximity domain 4 enabled
-[    0.025104] ACPI: SRAT Memory (0xa0000000 length 0x20000000) in proximity domain 5 enabled
-[    0.025791] ACPI: SRAT Memory (0x0 length 0x20000000) in proximity domain 6 enabled
-[    0.026412] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 7 enabled
-[    0.027118] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 8 enabled
-[    0.027802] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 9 enabled
+on top of commit 8834f5600cf3c8db365e18a3d5cac2c2780c81e5:
 
-The upper half of the start address of the NUMA domains between 6
-and 9 inclusive was cut, so the printed values are incorrect.
+  Linux 5.0-rc5 (2019-02-03 13:48:04 -0800)
 
-Fix the value type, to get the correct values in the log as follows:
+Specifics:
+- Minor fixes on of-thermal and cpu cooling.
 
-[    0.023698] ACPI: SRAT Memory (0x0 length 0xa0000) in proximity domain 0 enabled
-[    0.024325] ACPI: SRAT Memory (0x100000 length 0x1ff00000) in proximity domain 0 enabled
-[    0.024981] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 1 enabled
-[    0.025659] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 2 enabled
-[    0.026317] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 3 enabled
-[    0.026980] ACPI: SRAT Memory (0x80000000 length 0x20000000) in proximity domain 4 enabled
-[    0.027635] ACPI: SRAT Memory (0xa0000000 length 0x20000000) in proximity domain 5 enabled
-[    0.028311] ACPI: SRAT Memory (0x100000000 length 0x20000000) in proximity domain 6 enabled
-[    0.028985] ACPI: SRAT Memory (0x120000000 length 0x20000000) in proximity domain 7 enabled
-[    0.029667] ACPI: SRAT Memory (0x140000000 length 0x20000000) in proximity domain 8 enabled
-[    0.030334] ACPI: SRAT Memory (0x160000000 length 0x20000000) in proximity domain 9 enabled
+BR,
+Eduardo
 
-Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
-[ rjw: Subject & changelog ]
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/numa.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+----------------------------------------------------------------
+Amit Kucheria (2):
+      thermal: of-thermal: Print name of device node with error
+      thermal: cpu_cooling: Clarify error message
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 17b518cb787c..0ea065c6725a 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -147,9 +147,9 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- 		{
- 			struct acpi_srat_mem_affinity *p =
- 			    (struct acpi_srat_mem_affinity *)header;
--			pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
--				 (unsigned long)p->base_address,
--				 (unsigned long)p->length,
-+			pr_debug("SRAT Memory (0x%llx length 0x%llx) in proximity domain %d %s%s%s\n",
-+				 (unsigned long long)p->base_address,
-+				 (unsigned long long)p->length,
- 				 p->proximity_domain,
- 				 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
- 				 "enabled" : "disabled",
--- 
-2.19.1
+ drivers/thermal/cpu_cooling.c | 2 +-
+ drivers/thermal/of-thermal.c  | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
