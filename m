@@ -1,312 +1,149 @@
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-Subject: Re: [PATCHv4 10/13] node: Add memory caching attributes
-Date: Sun, 10 Feb 2019 17:19:58 +0000
-Message-ID: <20190210171958.00003ab2@huawei.com>
-References: <20190116175804.30196-1-keith.busch@intel.com>
-        <20190116175804.30196-11-keith.busch@intel.com>
-        <4a7d1c0c-c269-d7b2-11cb-88ad62b70a06@inria.fr>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
+ in immovable memory
+Date: Mon, 11 Feb 2019 09:46:05 +0800
+Message-ID: <20190211014605.GC1544@localhost.localdomain>
+References: <20181025103345.GF14020@nazgul.tnic>
+ <20181025134050.ggiir77ehntikbwg@gabell>
+ <20181106184519.GA16391@zn.tnic>
+ <20181106193636.svyjwuwrlgnpuyyf@gabell>
+ <20181106204511.GO13712@zn.tnic>
+ <20181106222133.lb7674yzszivzihd@gabell>
+ <20181108105129.GA7543@zn.tnic>
+ <20181110105422.GA20023@zn.tnic>
+ <20181111134556.qxv2v4g7dl5irzo7@gabell>
+ <20190205150514.fvztftk75swgfayd@gabell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4a7d1c0c-c269-d7b2-11cb-88ad62b70a06@inria.fr>
+Content-Disposition: inline
+In-Reply-To: <20190205150514.fvztftk75swgfayd@gabell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 9 Feb 2019 09:20:53 +0100
-Brice Goglin <Brice.Goglin@inria.fr> wrote:
+On Tue, Feb 05, 2019 at 10:05:16AM -0500, Masayoshi Mizuma wrote:
+[...]
 
-> Hello Keith
-> 
-> Could we ever have a single side cache in front of two NUMA nodes ? I
-> don't see a way to find that out in the current implementation. Would we
-> have an "id" and/or "nodemap" bitmask in the sidecache structure ?
+Hi Masa,
 
-This is certainly a possible thing for hardware to do.
+Sorry for delay, since last days were Chinese holiday.
 
-ACPI IIRC doesn't provide any means of representing that - your best
-option is to represent it as two different entries, one for each of the
-memory nodes.  Interesting question of whether you would then claim
-they were half as big each, or the full size.  Of course, there are
-other possible ways to get this info beyond HMAT, so perhaps the interface
-should allow it to be exposed if available?
+>diff --git a/arch/x86/boot/compressed/acpi.c b/arch/x86/boot/compressed/acpi.c
+>index c5a949335..7dd61b943 100644
+>--- a/arch/x86/boot/compressed/acpi.c
+>+++ b/arch/x86/boot/compressed/acpi.c
+>@@ -288,6 +288,7 @@ int count_immovable_mem_regions(void)
+> 	struct acpi_subtable_header *sub_table;
+> 	struct acpi_table_header *table_header;
+> 	char arg[MAX_ACPI_ARG_LENGTH];
+>+	unsigned long long possible_addr, max_possible_addr = 0;
 
-Also, don't know if it's just me, but calling these sidecaches is
-downright confusing.  In ACPI at least they are always
-specifically referred to as Memory Side Caches.
-I'd argue there should even by a hyphen Memory-Side Caches, the point
-being that that they are on the memory side of the interconnected
-rather than the processor side.  Of course an implementation
-choice might be to put them off to the side (as implied by sidecaches)
-in some sense, but it's not the only one.
+This line is so long that it should be added in first line.
 
-</terminology rant> :)
+> 	int num = 0;
+> 
+> 	if (cmdline_find_option("acpi", arg, sizeof(arg)) == 3 &&
+>@@ -308,10 +309,19 @@ int count_immovable_mem_regions(void)
+> 			struct acpi_srat_mem_affinity *ma;
+> 
+> 			ma = (struct acpi_srat_mem_affinity *)sub_table;
+>-			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) && ma->length) {
+>-				immovable_mem[num].start = ma->base_address;
+>-				immovable_mem[num].size = ma->length;
+>-				num++;
+>+			if (ma->length) {
+>+				if (ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) {
+>+					possible_addr =
+>+						ma->base_address + ma->length;
+>+					if (possible_addr > max_possible_addr)
+>+						max_possible_addr =
+>+							possible_addr;
+>+				} else {
+>+					immovable_mem[num].start =
+>+						ma->base_address;
+>+					immovable_mem[num].size = ma->length;
+>+					num++;
+>+				}
+> 			}
 
-Jonathan
+It looks better in another mail where you add a new function.
+
+Thanks,
+Chao Fan
 
 > 
-> Thanks
+> 			if (num >= MAX_NUMNODES*2) {
+>@@ -320,6 +330,7 @@ int count_immovable_mem_regions(void)
+> 			}
+> 		}
+> 		table += sub_table->length;
+>+		boot_params->possible_mem_addr = max_possible_addr;
+> 	}
+> 	return num;
+> }
+>diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
+>index 60733f137..5b64b606e 100644
+>--- a/arch/x86/include/uapi/asm/bootparam.h
+>+++ b/arch/x86/include/uapi/asm/bootparam.h
+>@@ -156,7 +156,7 @@ struct boot_params {
+> 	__u64  tboot_addr;				/* 0x058 */
+> 	struct ist_info ist_info;			/* 0x060 */
+> 	__u64 acpi_rsdp_addr;				/* 0x070 */
+>-	__u8  _pad3[8];					/* 0x078 */
+>+	__u64  possible_mem_addr;			/* 0x078 */
+> 	__u8  hd0_info[16];	/* obsolete! */		/* 0x080 */
+> 	__u8  hd1_info[16];	/* obsolete! */		/* 0x090 */
+> 	struct sys_desc_table sys_desc_table; /* obsolete! */	/* 0x0a0 */
+>diff --git a/arch/x86/mm/kaslr.c b/arch/x86/mm/kaslr.c
+>index 3f452ffed..71fc28570 100644
+>--- a/arch/x86/mm/kaslr.c
+>+++ b/arch/x86/mm/kaslr.c
+>@@ -70,6 +70,30 @@ static inline bool kaslr_memory_enabled(void)
+> 	return kaslr_enabled() && !IS_ENABLED(CONFIG_KASAN);
+> }
 > 
-> Brice
+>+static unsigned int __init kaslr_padding(void)
+>+{
+>+	unsigned int rand_mem_physical_padding =
+>+				CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
+>+#ifdef CONFIG_MEMORY_HOTPLUG
+>+	unsigned long long max_possible_phys, max_actual_phys, threshold;
+>+
+>+	if (!boot_params.possible_mem_addr)
+>+		goto out;
+>+
+>+	max_actual_phys = roundup(PFN_PHYS(max_pfn), 1ULL << TB_SHIFT);
+>+	max_possible_phys = roundup(boot_params.possible_mem_addr,
+>+					1ULL << TB_SHIFT);
+>+	threshold = max_actual_phys +
+>+		((unsigned long long)rand_mem_physical_padding << TB_SHIFT);
+>+
+>+	if (max_possible_phys > threshold)
+>+		rand_mem_physical_padding =
+>+			(max_possible_phys - max_actual_phys) >> TB_SHIFT;
+>+out:
+>+#endif
+>+	return rand_mem_physical_padding;
+>+}
+>+
+> /* Initialize base and padding for each memory region randomized with KASLR */
+> void __init kernel_randomize_memory(void)
+> {
+>@@ -103,7 +127,7 @@ void __init kernel_randomize_memory(void)
+> 	 */
+> 	BUG_ON(kaslr_regions[0].base != &page_offset_base);
+> 	memory_tb = DIV_ROUND_UP(max_pfn << PAGE_SHIFT, 1UL << TB_SHIFT) +
+>-		CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
+>+			kaslr_padding();
 > 
-> 
-> 
-> Le 16/01/2019 à 18:58, Keith Busch a écrit :
-> > System memory may have side caches to help improve access speed to
-> > frequently requested address ranges. While the system provided cache is
-> > transparent to the software accessing these memory ranges, applications
-> > can optimize their own access based on cache attributes.
-> >
-> > Provide a new API for the kernel to register these memory side caches
-> > under the memory node that provides it.
-> >
-> > The new sysfs representation is modeled from the existing cpu cacheinfo
-> > attributes, as seen from /sys/devices/system/cpu/cpuX/side_cache/.
-> > Unlike CPU cacheinfo, though, the node cache level is reported from
-> > the view of the memory. A higher number is nearer to the CPU, while
-> > lower levels are closer to the backing memory. Also unlike CPU cache,
-> > it is assumed the system will handle flushing any dirty cached memory
-> > to the last level on a power failure if the range is persistent memory.
-> >
-> > The attributes we export are the cache size, the line size, associativity,
-> > and write back policy.
-> >
-> > Signed-off-by: Keith Busch <keith.busch@intel.com>
-> > ---
-> >  drivers/base/node.c  | 142 +++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  include/linux/node.h |  39 ++++++++++++++
-> >  2 files changed, 181 insertions(+)
-> >
-> > diff --git a/drivers/base/node.c b/drivers/base/node.c
-> > index 1e909f61e8b1..7ff3ed566d7d 100644
-> > --- a/drivers/base/node.c
-> > +++ b/drivers/base/node.c
-> > @@ -191,6 +191,146 @@ void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
-> >  		pr_info("failed to add performance attribute group to node %d\n",
-> >  			nid);
-> >  }
-> > +
-> > +struct node_cache_info {
-> > +	struct device dev;
-> > +	struct list_head node;
-> > +	struct node_cache_attrs cache_attrs;
-> > +};
-> > +#define to_cache_info(device) container_of(device, struct node_cache_info, dev)
-> > +
-> > +#define CACHE_ATTR(name, fmt) 						\
-> > +static ssize_t name##_show(struct device *dev,				\
-> > +			   struct device_attribute *attr,		\
-> > +			   char *buf)					\
-> > +{									\
-> > +	return sprintf(buf, fmt "\n", to_cache_info(dev)->cache_attrs.name);\
-> > +}									\
-> > +DEVICE_ATTR_RO(name);
-> > +
-> > +CACHE_ATTR(size, "%llu")
-> > +CACHE_ATTR(level, "%u")
-> > +CACHE_ATTR(line_size, "%u")
-> > +CACHE_ATTR(associativity, "%u")
-> > +CACHE_ATTR(write_policy, "%u")
-> > +
-> > +static struct attribute *cache_attrs[] = {
-> > +	&dev_attr_level.attr,
-> > +	&dev_attr_associativity.attr,
-> > +	&dev_attr_size.attr,
-> > +	&dev_attr_line_size.attr,
-> > +	&dev_attr_write_policy.attr,
-> > +	NULL,
-> > +};
-> > +ATTRIBUTE_GROUPS(cache);
-> > +
-> > +static void node_cache_release(struct device *dev)
-> > +{
-> > +	kfree(dev);
-> > +}
-> > +
-> > +static void node_cacheinfo_release(struct device *dev)
-> > +{
-> > +	struct node_cache_info *info = to_cache_info(dev);
-> > +	kfree(info);
-> > +}
-> > +
-> > +static void node_init_cache_dev(struct node *node)
-> > +{
-> > +	struct device *dev;
-> > +
-> > +	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-> > +	if (!dev)
-> > +		return;
-> > +
-> > +	dev->parent = &node->dev;
-> > +	dev->release = node_cache_release;
-> > +	if (dev_set_name(dev, "side_cache"))
-> > +		goto free_dev;
-> > +
-> > +	if (device_register(dev))
-> > +		goto free_name;
-> > +
-> > +	pm_runtime_no_callbacks(dev);
-> > +	node->cache_dev = dev;
-> > +	return;
-> > +free_name:
-> > +	kfree_const(dev->kobj.name);
-> > +free_dev:
-> > +	kfree(dev);
-> > +}
-> > +
-> > +void node_add_cache(unsigned int nid, struct node_cache_attrs *cache_attrs)
-> > +{
-> > +	struct node_cache_info *info;
-> > +	struct device *dev;
-> > +	struct node *node;
-> > +
-> > +	if (!node_online(nid) || !node_devices[nid])
-> > +		return;
-> > +
-> > +	node = node_devices[nid];
-> > +	list_for_each_entry(info, &node->cache_attrs, node) {
-> > +		if (info->cache_attrs.level == cache_attrs->level) {
-> > +			dev_warn(&node->dev,
-> > +				"attempt to add duplicate cache level:%d\n",
-> > +				cache_attrs->level);
-> > +			return;
-> > +		}
-> > +	}
-> > +
-> > +	if (!node->cache_dev)
-> > +		node_init_cache_dev(node);
-> > +	if (!node->cache_dev)
-> > +		return;
-> > +
-> > +	info = kzalloc(sizeof(*info), GFP_KERNEL);
-> > +	if (!info)
-> > +		return;
-> > +
-> > +	dev = &info->dev;
-> > +	dev->parent = node->cache_dev;
-> > +	dev->release = node_cacheinfo_release;
-> > +	dev->groups = cache_groups;
-> > +	if (dev_set_name(dev, "index%d", cache_attrs->level))
-> > +		goto free_cache;
-> > +
-> > +	info->cache_attrs = *cache_attrs;
-> > +	if (device_register(dev)) {
-> > +		dev_warn(&node->dev, "failed to add cache level:%d\n",
-> > +			 cache_attrs->level);
-> > +		goto free_name;
-> > +	}
-> > +	pm_runtime_no_callbacks(dev);
-> > +	list_add_tail(&info->node, &node->cache_attrs);
-> > +	return;
-> > +free_name:
-> > +	kfree_const(dev->kobj.name);
-> > +free_cache:
-> > +	kfree(info);
-> > +}
-> > +
-> > +static void node_remove_caches(struct node *node)
-> > +{
-> > +	struct node_cache_info *info, *next;
-> > +
-> > +	if (!node->cache_dev)
-> > +		return;
-> > +
-> > +	list_for_each_entry_safe(info, next, &node->cache_attrs, node) {
-> > +		list_del(&info->node);
-> > +		device_unregister(&info->dev);
-> > +	}
-> > +	device_unregister(node->cache_dev);
-> > +}
-> > +
-> > +static void node_init_caches(unsigned int nid)
-> > +{
-> > +	INIT_LIST_HEAD(&node_devices[nid]->cache_attrs);
-> > +}
-> > +#else
-> > +static void node_init_caches(unsigned int nid) { }
-> > +static void node_remove_caches(struct node *node) { }
-> >  #endif
-> >  
-> >  #define K(x) ((x) << (PAGE_SHIFT - 10))
-> > @@ -475,6 +615,7 @@ void unregister_node(struct node *node)
-> >  {
-> >  	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
-> >  	node_remove_classes(node);
-> > +	node_remove_caches(node);
-> >  	device_unregister(&node->dev);
-> >  }
-> >  
-> > @@ -755,6 +896,7 @@ int __register_one_node(int nid)
-> >  	INIT_LIST_HEAD(&node_devices[nid]->class_list);
-> >  	/* initialize work queue for memory hot plug */
-> >  	init_node_hugetlb_work(nid);
-> > +	node_init_caches(nid);
-> >  
-> >  	return error;
-> >  }
-> > diff --git a/include/linux/node.h b/include/linux/node.h
-> > index e22940a593c2..8cdf2b2808e4 100644
-> > --- a/include/linux/node.h
-> > +++ b/include/linux/node.h
-> > @@ -37,12 +37,47 @@ struct node_hmem_attrs {
-> >  };
-> >  void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
-> >  			 unsigned class);
-> > +
-> > +enum cache_associativity {
-> > +	NODE_CACHE_DIRECT_MAP,
-> > +	NODE_CACHE_INDEXED,
-> > +	NODE_CACHE_OTHER,
-> > +};
-> > +
-> > +enum cache_write_policy {
-> > +	NODE_CACHE_WRITE_BACK,
-> > +	NODE_CACHE_WRITE_THROUGH,
-> > +	NODE_CACHE_WRITE_OTHER,
-> > +};
-> > +
-> > +/**
-> > + * struct node_cache_attrs - system memory caching attributes
-> > + *
-> > + * @associativity:	The ways memory blocks may be placed in cache
-> > + * @write_policy:	Write back or write through policy
-> > + * @size:		Total size of cache in bytes
-> > + * @line_size:		Number of bytes fetched on a cache miss
-> > + * @level:		Represents the cache hierarchy level
-> > + */
-> > +struct node_cache_attrs {
-> > +	enum cache_associativity associativity;
-> > +	enum cache_write_policy write_policy;
-> > +	u64 size;
-> > +	u16 line_size;
-> > +	u8  level;
-> > +};
-> > +void node_add_cache(unsigned int nid, struct node_cache_attrs *cache_attrs);
-> >  #else
-> >  static inline void node_set_perf_attrs(unsigned int nid,
-> >  				       struct node_hmem_attrs *hmem_attrs,
-> >  				       unsigned class)
-> >  {
-> >  }
-> > +
-> > +static inline void node_add_cache(unsigned int nid,
-> > +				  struct node_cache_attrs *cache_attrs)
-> > +{
-> > +}
-> >  #endif
-> >  
-> >  struct node {
-> > @@ -51,6 +86,10 @@ struct node {
-> >  #if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HUGETLBFS)
-> >  	struct work_struct	node_work;
-> >  #endif
-> > +#ifdef CONFIG_HMEM_REPORTING
-> > +	struct list_head cache_attrs;
-> > +	struct device *cache_dev;
-> > +#endif
-> >  };
-> >  
-> >  struct memory_block;  
-> 
+> 	/* Adapt phyiscal memory region size based on available memory */
+> 	if (memory_tb < kaslr_regions[0].size_tb)
+>-- 
+>2.20.1
+>
+>Thanks,
+>Masa
+>
+>
