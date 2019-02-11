@@ -1,112 +1,119 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [Qemu-devel] security implications of caching with virtio pmem
- (was Re: [PATCH v3 0/5] kvm "virtio pmem" device)
-Date: Mon, 11 Feb 2019 02:29:46 -0500 (EST)
-Message-ID: <888328358.132676.1549870186945.JavaMail.zimbra@redhat.com>
-References: <20190109144736.17452-1-pagupta@redhat.com> <20190204170515-mutt-send-email-mst@kernel.org>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH][RFC] ACPI: add "processor.broadcast_ppc" hook to
+ broadcast  _PPC to all online CPUs
+Date: Mon, 11 Feb 2019 14:46:27 +0530
+Message-ID: <20190211091627.homaij2rtqzrytbu@vireshk-i7>
+References: <20190209120232.21582-1-yu.c.chen@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190204170515-mutt-send-email-mst@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190209120232.21582-1-yu.c.chen@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@redhat.com>, dchinner@redhat.com
-Cc: jack@suse.cz, kvm@vger.kernel.org, david@redhat.com, linux-nvdimm@ml01.01.org, jasowang@redhat.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, Andrea Arcangeli <aarcange@redhat.com>, dave jiang <dave.jiang@intel.com>, darrick wong <darrick.wong@oracle.com>, vishal l verma <vishal.l.verma@intel.com>, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, imammedo@redhat.com, dan j williams <dan.j.williams@intel.com>, lcapitulino@redhat.com, kwolf@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, rjw@rjwysocki.net, linux-kernel@vger.kernel.o
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On 09-02-19, 20:02, Chen Yu wrote:
+> On Dell Inc. XPS13 9333, the BIOS changes the value of
+> MSR_IA32_MISC_ENABLE_TURBO_DISABLE at runtime (e.g., when
+> the power source changes), the maximum frequency of the
+> CPU is not updated accordingly. This is due to the policy's
+> cpuinfo.max is not updated when _PPC notifier fires.
+> 
+> Fix this problem by updating the policy's cpuinfo.max
+> and broadcast the _PPC notifier to all online CPUs.
+> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=200759
+> Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+> Originally-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> ---
+>  drivers/acpi/processor_perflib.c | 16 ++++++++++++++--
+>  drivers/cpufreq/cpufreq.c        |  2 ++
+>  drivers/cpufreq/intel_pstate.c   | 15 ++++++++++++++-
+>  3 files changed, 30 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> index a303fd0e108c..737dbf5aa7f7 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -63,6 +63,10 @@ module_param(ignore_ppc, int, 0644);
+>  MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
+>  		 "limited by BIOS, this should help");
+>  
+> +static int broadcast_ppc;
+> +module_param(broadcast_ppc, int, 0644);
+> +MODULE_PARM_DESC(broadcast_ppc, "Broadcast the ppc to all online CPUs");
+> +
+>  #define PPC_REGISTERED   1
+>  #define PPC_IN_USE       2
+>  
+> @@ -180,8 +184,16 @@ void acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag)
+>  		else
+>  			acpi_processor_ppc_ost(pr->handle, 0);
+>  	}
+> -	if (ret >= 0)
+> -		cpufreq_update_policy(pr->id);
+> +	if (ret >= 0) {
+> +		if (broadcast_ppc) {
+> +			int cpu;
+> +
+> +			for_each_possible_cpu(cpu)
+> +				cpufreq_update_policy(cpu);
+> +		} else {
+> +			cpufreq_update_policy(pr->id);
+> +		}
+> +	}
+>  }
+>  
+>  int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> index e35a886e00bc..95e08816b512 100644
+> --- a/drivers/cpufreq/cpufreq.c
+> +++ b/drivers/cpufreq/cpufreq.c
+> @@ -2237,6 +2237,8 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
+>  
+>  	policy->min = new_policy->min;
+>  	policy->max = new_policy->max;
+> +	policy->cpuinfo.max_freq = new_policy->cpuinfo.max_freq;
+> +	policy->cpuinfo.min_freq = new_policy->cpuinfo.min_freq;
+>  	trace_cpu_frequency_limits(policy);
+>  
+>  	policy->cached_target_freq = UINT_MAX;
+> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+> index dd66decf2087..e1881313c396 100644
+> --- a/drivers/cpufreq/intel_pstate.c
+> +++ b/drivers/cpufreq/intel_pstate.c
+> @@ -2081,11 +2081,24 @@ static void intel_pstate_adjust_policy_max(struct cpufreq_policy *policy,
+>  
+>  static int intel_pstate_verify_policy(struct cpufreq_policy *policy)
+>  {
+> +	int max_freq;
+>  	struct cpudata *cpu = all_cpu_data[policy->cpu];
+>  
+>  	update_turbo_state();
+> +	max_freq = intel_pstate_get_max_freq(cpu);
+> +
+> +	if (acpi_ppc && policy->max == policy->cpuinfo.max_freq &&
+> +	    max_freq != policy->cpuinfo.max_freq) {
+> +		/*
+> +		 * System was not running under any constraints, but the
+> +		 * current max possible frequency is changed. So reset
+> +		 * policy limits.
+> +		 */
+> +		policy->cpuinfo.max_freq = policy->max = max_freq;
+> +	}
+> +
+>  	cpufreq_verify_within_limits(policy, policy->cpuinfo.min_freq,
+> -				     intel_pstate_get_max_freq(cpu));
+> +				     max_freq);
+>  
+>  	if (policy->policy != CPUFREQ_POLICY_POWERSAVE &&
+>  	    policy->policy != CPUFREQ_POLICY_PERFORMANCE)
 
-Hi Michael, 
+By TURBO I believe this is about boost-frequencies and you should use
+that infrastructure to make it work, isn't it ?
 
-Thanks for looking into this and summarizing in detail. 
-
-> >  This patch series has implementation for "virtio pmem".
-> >  "virtio pmem" is fake persistent memory(nvdimm) in guest
-> >  which allows to bypass the guest page cache. This also
-> >  implements a VIRTIO based asynchronous flush mechanism.
-> 
-> 
-> At Pankaj's request I looked at information leak implications of virtio
-> pmem in light of the recent page cache side channels paper
-> (https://arxiv.org/pdf/1901.01161.pdf) - to see what
-> kind of side channels it might create if any.  TLDR - I think that
-> depending on the host side implementation there could be some, but this
-> might be addressable by better documentation in both code and spec.
-> The fake dax approach backing the guest memory by a host page cache
-> does seem to have potential issues.
-> 
-> For clarity: we are talking about leaking information either to a VM, or
-> within a VM (I did not look into leaks to hypervisor in configurations
-> such as SEV) through host page cache.
-> 
-> Leaks into a VM: It seems clear that while pmem allows memory accesses
-> versus read/write with e.g. a block device, from host page cache point
-> of view this doesn't matter much: reads populate cache in the same way
-> as memory faults.  Thus ignoring presence of information leaks (which is
-> an interesting question e.g. in light of recent discard support) pmem
-> doesn't seem to be any better or worse for leaking information into a
-> VM.
-> 
-> Leaks within VM: Right now pmem seems to bypass the guest page cache
-> completely.  Whether pmem memory is then resident in a page cache would
-> be up to the device/host. Assuming that it is, the "Preventing
-> Efficient Eviction while Increasing the System Performance"
-> countermeasure for the page cache side channel attack would appear to
-> become ineffective with pmem. What is suggested is a per-process
-> management of the page cache, and host does not have visibility of
-> processes within a VM. Another possible countermeasure - not discussed
-> in the paper - could be modify the applications to lock the security
-> relevant pages in memory.  Again this becomes impractical with pmem as
-> host does not have visibility into that. However note that as long
-> as the only countermeasure linux uses is "Privileged Access"
-> (i.e. blocking mincore) nothing can be done as guest page cache
-> remains as vulnerable as host page cache.
-> 
-> 
-> Countermeasures: which host-side countermeasures can be designed would
-> depend on which countermeasures are used guest-side - we would need to
-> make sure they are not broken by pmem.  For "Preventing Efficient
-> Eviction while Increasing the System Performance" modifying the host
-> implementation to ensure that pmem device bypasses the host page cache
-> would seem to address the security problem.Similarly, ensuring that a
-> real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
-> virt) is used for pmem would make the memory locking countermeasure
-> work.  Whether with such limitations the device is still useful
-> performance wise is an open question.  These questions probably should
-> be addressed in the documentation, spec and possible qemu code.
-> 
-> 
-> 
-> Severity of the security implications: some people argue that the
-> security implications of the page cache leaks are minor.  I do not have
-> an opinion on this: the severity would seem to depend on the specific
-> configuration.
-> 
-> 
-> Other security implications: recent discussion seems to suggest there
-> are other concerns around e.g. resource management and thus DOS
-> potential. If that's so, it's a matter for a separate discussion
-> as I didn't look into that in depth.
-> 
-> Some or all of the above might be based on a misunderstanding of the
-> current pmem code, the whitepaper and linux page cache in general.
-> If so I apologise, do not hesitate to call out any mistakes.
-
-I agree similar to any guest VM(without virtio-pmem) or any host 
-userspace process, virtio-pmem may also have some security implications.
-We need to document these in virtio-pmem host device specification
-and in qemu code. This is to make sure while creating virtio-pmem
-device, we are aware of these implications and create/use 
-host side device backing file accordingly as per the use-case
-described by David here [1].
-
-I will document these in next version of my patch series.
-
-Hello Dave,
-Are we okay with this?
-
-Thank you everyone for the discussion.
-
-[1] https://marc.info/?l=linux-kernel&m=154946989419403&w=2
-
-Best regards,
-Pankaj    
+-- 
+viresh
