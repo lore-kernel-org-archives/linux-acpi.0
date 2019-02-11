@@ -1,50 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] MAINTAINERS: Add James Morse to the list of APEI reviewers
-Date: Mon, 11 Feb 2019 13:08:18 +0100
-Message-ID: <6336900.I8f9puCxoE@aspire.rjw.lan>
-References: <20190205083836.21641-1-bp@alien8.de> <22141238.CtQSfXrvFH@aspire.rjw.lan> <20190205122323.GL21801@zn.tnic>
+From: Keith Busch <keith.busch@intel.com>
+Subject: Re: [PATCHv4 10/13] node: Add memory caching attributes
+Date: Mon, 11 Feb 2019 08:23:04 -0700
+Message-ID: <20190211152303.GA4525@localhost.localdomain>
+References: <20190116175804.30196-1-keith.busch@intel.com>
+ <20190116175804.30196-11-keith.busch@intel.com>
+ <4a7d1c0c-c269-d7b2-11cb-88ad62b70a06@inria.fr>
+ <20190210171958.00003ab2@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190205122323.GL21801@zn.tnic>
+Content-Disposition: inline
+In-Reply-To: <20190210171958.00003ab2@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, James Morse <james.morse@arm.com>, Tony Luck <tony.luck@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, February 5, 2019 1:23:23 PM CET Borislav Petkov wrote:
-> On Tue, Feb 05, 2019 at 12:08:00PM +0100, Rafael J. Wysocki wrote:
-> > OK, but care to resend and CC linux-acpi too?
+On Sun, Feb 10, 2019 at 09:19:58AM -0800, Jonathan Cameron wrote:
+> On Sat, 9 Feb 2019 09:20:53 +0100
+> Brice Goglin <Brice.Goglin@inria.fr> wrote:
 > 
-> Here you go:
+> > Hello Keith
+> > 
+> > Could we ever have a single side cache in front of two NUMA nodes ? I
+> > don't see a way to find that out in the current implementation. Would we
+> > have an "id" and/or "nodemap" bitmask in the sidecache structure ?
 > 
-> ---
-> From: Borislav Petkov <bp@suse.de>
-> 
-> Add James to the list of reviewers of the firmware-assisted RAS glue.
-> 
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> Acked-by: James Morse <james.morse@arm.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Link: https://lkml.kernel.org/r/20190205083836.21641-1-bp@alien8.de
-> ---
->  MAINTAINERS | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index cd5f8ea1e08b..a7e9263a208b 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -331,6 +331,7 @@ ACPI APEI
->  M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
->  M:	Len Brown <lenb@kernel.org>
->  L:	linux-acpi@vger.kernel.org
-> +R:	James Morse <james.morse@arm.com>
->  R:	Tony Luck <tony.luck@intel.com>
->  R:	Borislav Petkov <bp@alien8.de>
->  F:	drivers/acpi/apei/
-> 
+> This is certainly a possible thing for hardware to do.
+>
+> ACPI IIRC doesn't provide any means of representing that - your best
+> option is to represent it as two different entries, one for each of the
+> memory nodes.  Interesting question of whether you would then claim
+> they were half as big each, or the full size.  Of course, there are
+> other possible ways to get this info beyond HMAT, so perhaps the interface
+> should allow it to be exposed if available?
 
-Applied, thanks!
+HMAT doesn't do this, but I want this interface abstracted enough from
+HMAT to express whatever is necessary.
+
+The CPU cache is the closest existing exported attributes to this,
+and they provide "shared_cpu_list". To that end, I can export a
+"shared_node_list", though previous reviews strongly disliked multi-value
+sysfs entries. :(
+
+Would shared-node symlinks capture the need, and more acceptable?
+ 
+> Also, don't know if it's just me, but calling these sidecaches is
+> downright confusing.  In ACPI at least they are always
+> specifically referred to as Memory Side Caches.
+> I'd argue there should even by a hyphen Memory-Side Caches, the point
+> being that that they are on the memory side of the interconnected
+> rather than the processor side.  Of course an implementation
+> choice might be to put them off to the side (as implied by sidecaches)
+> in some sense, but it's not the only one.
+> 
+> </terminology rant> :)
+
+Now that you mention it, I agree "side" is ambiguous.  Maybe call it
+"numa_cache" or "node_cache"?
