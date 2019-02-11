@@ -1,71 +1,37 @@
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
-Subject: RE: [RFC 1/3] ACPICA: ACPI 6.3: Add MADT/GICC/SPE extension.
-Date: Mon, 11 Feb 2019 18:27:02 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED53C57BD14@ORSMSX122.amr.corp.intel.com>
-References: <20190209004718.3292087-1-jeremy.linton@arm.com>
- <20190209004718.3292087-2-jeremy.linton@arm.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] Thermal-SoC management fixes for v5.0-rc6
+Date: Mon, 11 Feb 2019 10:34:09 -0800
+Message-ID: <CAHk-=wgz_WpD7jc084QROuM0zszEG0-WvQhQZPsCboMOWNRiWw@mail.gmail.com>
+References: <20190210041721.GA2805@localhost.localdomain> <154977271617.2362.11794417398216386913.pr-tracker-bot@kernel.org>
+ <20190211031921.GA1799@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190209004718.3292087-2-jeremy.linton@arm.com>
-Content-Language: en-US
+In-Reply-To: <20190211031921.GA1799@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: Eduardo Valentin <edubezval@gmail.com>, Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+Cc: pr-tracker-bot@kernel.org, Rui Zhang <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Sun, Feb 10, 2019 at 7:19 PM Eduardo Valentin <edubezval@gmail.com> wrote:
+>
+> On Sun, Feb 10, 2019 at 04:25:16AM +0000, pr-tracker-bot@kernel.org wrote:
+> > The pull request you sent on Sat, 9 Feb 2019 20:17:23 -0800:
+> >
+> > > git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+> >
+> > has been merged into torvalds/linux.git:
+> > https://git.kernel.org/torvalds/c/7ad915f5ebf5b9e7ca98a7048d8f84a631fe388b
+>
+> I think the bot is off here because the above commit is about a merge
+> from the linux-omap tree from Tony.
 
+Indeed.
 
-> -----Original Message-----
-> From: Jeremy Linton [mailto:jeremy.linton@arm.com]
-> Sent: Friday, February 8, 2019 4:47 PM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
-> devel@acpica.org; catalin.marinas@arm.com; will.deacon@arm.com;
-> mark.rutland@arm.com; Moore, Robert <robert.moore@intel.com>;
-> Schmauss, Erik <erik.schmauss@intel.com>; Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com>; lenb@kernel.org; Jeremy Linton
-> <jeremy.linton@arm.com>
-> Subject: [RFC 1/3] ACPICA: ACPI 6.3: Add MADT/GICC/SPE extension.
-> 
-Hi Jeremy,
+.. and the pr-tracker-bot thing actually made me ignore the pull
+request, thinking I had left it in my inbox despite having pulled it.
 
-> [Placeholder patch for upstream ACPICA commit]
+So it would be really good to know why pr-tracker-bot ended up
+replying to the wrong email, because it can cause real problems.
 
-FYI: we are planning on releasing ACPICA patches by the end of this week at the latest.
-
-Erik
-> 
-> Add just ACPI 6.3 changes associated with the arm64 SPE.
-> 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  include/acpi/actbl2.h | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h index
-> c50ef7e6b942..4b58eb6cf64e 100644
-> --- a/include/acpi/actbl2.h
-> +++ b/include/acpi/actbl2.h
-> @@ -623,7 +623,7 @@ struct acpi_madt_local_x2apic_nmi {
->  	u8 reserved[3];		/* reserved - must be zero */
->  };
-> 
-> -/* 11: Generic Interrupt (ACPI 5.0 + ACPI 6.0 changes) */
-> +/* 11: Generic Interrupt (ACPI 5.0 + 6.0 + 6.3 changes) */
-> 
->  struct acpi_madt_generic_interrupt {
->  	struct acpi_subtable_header header;
-> @@ -641,7 +641,8 @@ struct acpi_madt_generic_interrupt {
->  	u64 gicr_base_address;
->  	u64 arm_mpidr;
->  	u8 efficiency_class;
-> -	u8 reserved2[3];
-> +	u8 reserved2;
-> +	u16 spe_overflow_interrupt;
->  };
-> 
->  /* Masks for Flags field above */
-> --
-> 2.17.2
+                Linus
