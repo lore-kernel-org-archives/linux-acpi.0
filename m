@@ -1,44 +1,112 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [GIT PULL] Thermal-SoC management fixes for v5.0-rc6
-Date: Sun, 10 Feb 2019 19:19:23 -0800
-Message-ID: <20190211031921.GA1799@localhost.localdomain>
-References: <20190210041721.GA2805@localhost.localdomain>
- <154977271617.2362.11794417398216386913.pr-tracker-bot@kernel.org>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [Qemu-devel] security implications of caching with virtio pmem
+ (was Re: [PATCH v3 0/5] kvm "virtio pmem" device)
+Date: Mon, 11 Feb 2019 02:29:46 -0500 (EST)
+Message-ID: <888328358.132676.1549870186945.JavaMail.zimbra@redhat.com>
+References: <20190109144736.17452-1-pagupta@redhat.com> <20190204170515-mutt-send-email-mst@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <154977271617.2362.11794417398216386913.pr-tracker-bot@kernel.org>
+In-Reply-To: <20190204170515-mutt-send-email-mst@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pr-tracker-bot@kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Michael S. Tsirkin" <mst@redhat.com>, dchinner@redhat.com
+Cc: jack@suse.cz, kvm@vger.kernel.org, david@redhat.com, linux-nvdimm@ml01.01.org, jasowang@redhat.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, Andrea Arcangeli <aarcange@redhat.com>, dave jiang <dave.jiang@intel.com>, darrick wong <darrick.wong@oracle.com>, vishal l verma <vishal.l.verma@intel.com>, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, imammedo@redhat.com, dan j williams <dan.j.williams@intel.com>, lcapitulino@redhat.com, kwolf@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, rjw@rjwysocki.net, linux-kernel@vger.kernel.o
 List-Id: linux-acpi@vger.kernel.org
 
-Hey,
 
-Thanks for the note, but..
+Hi Michael, 
 
-On Sun, Feb 10, 2019 at 04:25:16AM +0000, pr-tracker-bot@kernel.org wrote:
-> The pull request you sent on Sat, 9 Feb 2019 20:17:23 -0800:
+Thanks for looking into this and summarizing in detail. 
+
+> >  This patch series has implementation for "virtio pmem".
+> >  "virtio pmem" is fake persistent memory(nvdimm) in guest
+> >  which allows to bypass the guest page cache. This also
+> >  implements a VIRTIO based asynchronous flush mechanism.
 > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 > 
-> has been merged into torvalds/linux.git:
-> https://git.kernel.org/torvalds/c/7ad915f5ebf5b9e7ca98a7048d8f84a631fe388b
-
-I think the bot is off here because the above commit is about a merge
-from the linux-omap tree from Tony.
-
-7ad915f5ebf5 ("Merge tag 'omap-for-v3.10-rc1/fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap into fixes")
-
-not the above pull. In fact, this pull was not merged so far, as per the log
-of v5.0-rc6. I mean, this is a very late fixes pull anyways and I can always
-resend the pull, but I believe the bot got confused this time.
-
-
+> At Pankaj's request I looked at information leak implications of virtio
+> pmem in light of the recent page cache side channels paper
+> (https://arxiv.org/pdf/1901.01161.pdf) - to see what
+> kind of side channels it might create if any.  TLDR - I think that
+> depending on the host side implementation there could be some, but this
+> might be addressable by better documentation in both code and spec.
+> The fake dax approach backing the guest memory by a host page cache
+> does seem to have potential issues.
 > 
-> Thank you!
+> For clarity: we are talking about leaking information either to a VM, or
+> within a VM (I did not look into leaks to hypervisor in configurations
+> such as SEV) through host page cache.
 > 
-> -- 
-> Deet-doot-dot, I am a bot.
-> https://korg.wiki.kernel.org/userdoc/prtracker
+> Leaks into a VM: It seems clear that while pmem allows memory accesses
+> versus read/write with e.g. a block device, from host page cache point
+> of view this doesn't matter much: reads populate cache in the same way
+> as memory faults.  Thus ignoring presence of information leaks (which is
+> an interesting question e.g. in light of recent discard support) pmem
+> doesn't seem to be any better or worse for leaking information into a
+> VM.
+> 
+> Leaks within VM: Right now pmem seems to bypass the guest page cache
+> completely.  Whether pmem memory is then resident in a page cache would
+> be up to the device/host. Assuming that it is, the "Preventing
+> Efficient Eviction while Increasing the System Performance"
+> countermeasure for the page cache side channel attack would appear to
+> become ineffective with pmem. What is suggested is a per-process
+> management of the page cache, and host does not have visibility of
+> processes within a VM. Another possible countermeasure - not discussed
+> in the paper - could be modify the applications to lock the security
+> relevant pages in memory.  Again this becomes impractical with pmem as
+> host does not have visibility into that. However note that as long
+> as the only countermeasure linux uses is "Privileged Access"
+> (i.e. blocking mincore) nothing can be done as guest page cache
+> remains as vulnerable as host page cache.
+> 
+> 
+> Countermeasures: which host-side countermeasures can be designed would
+> depend on which countermeasures are used guest-side - we would need to
+> make sure they are not broken by pmem.  For "Preventing Efficient
+> Eviction while Increasing the System Performance" modifying the host
+> implementation to ensure that pmem device bypasses the host page cache
+> would seem to address the security problem.Similarly, ensuring that a
+> real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
+> virt) is used for pmem would make the memory locking countermeasure
+> work.  Whether with such limitations the device is still useful
+> performance wise is an open question.  These questions probably should
+> be addressed in the documentation, spec and possible qemu code.
+> 
+> 
+> 
+> Severity of the security implications: some people argue that the
+> security implications of the page cache leaks are minor.  I do not have
+> an opinion on this: the severity would seem to depend on the specific
+> configuration.
+> 
+> 
+> Other security implications: recent discussion seems to suggest there
+> are other concerns around e.g. resource management and thus DOS
+> potential. If that's so, it's a matter for a separate discussion
+> as I didn't look into that in depth.
+> 
+> Some or all of the above might be based on a misunderstanding of the
+> current pmem code, the whitepaper and linux page cache in general.
+> If so I apologise, do not hesitate to call out any mistakes.
+
+I agree similar to any guest VM(without virtio-pmem) or any host 
+userspace process, virtio-pmem may also have some security implications.
+We need to document these in virtio-pmem host device specification
+and in qemu code. This is to make sure while creating virtio-pmem
+device, we are aware of these implications and create/use 
+host side device backing file accordingly as per the use-case
+described by David here [1].
+
+I will document these in next version of my patch series.
+
+Hello Dave,
+Are we okay with this?
+
+Thank you everyone for the discussion.
+
+[1] https://marc.info/?l=linux-kernel&m=154946989419403&w=2
+
+Best regards,
+Pankaj    
