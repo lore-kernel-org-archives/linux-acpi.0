@@ -1,80 +1,47 @@
-From: Dmitry Torokhov <dtor@chromium.org>
-Subject: Re: [PATCH v2] driver: platform: Support parsing GpioInt 0 in platform_get_irq()
-Date: Mon, 11 Feb 2019 11:25:54 -0800
-Message-ID: <CAE_wzQ-a7GR3Kw4cDdD8g8eboKaDtG5zbmtdY+D3K=nh94tUqQ@mail.gmail.com>
-References: <20190207185917.167829-1-egranata@google.com> <20190211190112.209286-1-egranata@chromium.org>
+From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+Subject: Re: [GIT PULL] Thermal-SoC management fixes for v5.0-rc6
+Date: Mon, 11 Feb 2019 15:05:13 -0500
+Message-ID: <CAMwyc-QpYpwqFsGpKSZL1mHdggFYR-XeT9Nb0WgH5LNrgB1KMQ@mail.gmail.com>
+References: <20190210041721.GA2805@localhost.localdomain> <154977271617.2362.11794417398216386913.pr-tracker-bot@kernel.org>
+ <20190211031921.GA1799@localhost.localdomain> <CAHk-=wgz_WpD7jc084QROuM0zszEG0-WvQhQZPsCboMOWNRiWw@mail.gmail.com>
+ <20190211184000.GA4907@chatter.qube.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190211190112.209286-1-egranata@chromium.org>
+In-Reply-To: <20190211184000.GA4907@chatter.qube.local>
 Sender: linux-kernel-owner@vger.kernel.org
-To: egranata@chromium.org
-Cc: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, andy.shevchenko@gmail.com, "Rafael J. Wysocki" <rafael@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, enric.balletbo@collabora.com, lkml <linux-kernel@vger.kernel.org>, gwendal@chromium.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, briannorris@chromium.org, andriy.shevchenko@linux.intel.com, Enrico Granata <egranata@google.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Eduardo Valentin <edubezval@gmail.com>, pr-tracker-bot@kernel.org, Rui Zhang <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 11:01 AM <egranata@chromium.org> wrote:
+On Mon, 11 Feb 2019 at 13:40, Konstantin Ryabitsev
+<konstantin@linuxfoundation.org> wrote:
+> >> On Sun, Feb 10, 2019 at 04:25:16AM +0000, pr-tracker-bot@kernel.org wrote:
+> >> > The pull request you sent on Sat, 9 Feb 2019 20:17:23 -0800:
+> >> >
+> >> > > git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+> >> >
+> >> > has been merged into torvalds/linux.git:
+> >> > https://git.kernel.org/torvalds/c/7ad915f5ebf5b9e7ca98a7048d8f84a631fe388b
+> >>
+> >> I think the bot is off here because the above commit is about a merge
+> >> from the linux-omap tree from Tony.
+> >
+> >Indeed.
+> >
+> >.. and the pr-tracker-bot thing actually made me ignore the pull
+> >request, thinking I had left it in my inbox despite having pulled it.
+> >
+> >So it would be really good to know why pr-tracker-bot ended up
+> >replying to the wrong email, because it can cause real problems.
 >
-> From: Enrico Granata <egranata@chromium.org>
->
-> ACPI 5 added support for GpioInt resources as a way to provide
-> information about interrupts mediated via a GPIO controller.
->
-> Several device buses (e.g. SPI, I2C) have support for retrieving
-> an IRQ specified via this type of resource, and providing it
-> directly to the driver as an IRQ number.
->
-> This is not currently done for the platform drivers, as platform_get_irq()
-> does not try to parse GpioInt() resources. This requires drivers to
-> either have to support only one possible IRQ resource, or to have code
-> in place to try both as a failsafe.
->
-> While there is a possibility of ambiguity for devices that exposes
-> multiple IRQs, it is easy and feasible to support the common case
-> of devices that only expose one IRQ which would be of either type
-> depending on the underlying system's architecture.
->
-> This commit adds support for parsing a GpioInt resource in order
-> to fulfill a request for the index 0 IRQ for a platform device.
->
-> Signed-off-by: Enrico Granata <egranata@chromium.org>
+> Simply put, it's because "it's a pull request sent to Linus." We
+> currently don't disambiguate between Linus showing up in "To" or in "Cc"
+> -- is that an important differentiation that should be enforced?
 
-Yeah, this looks good to me.
+Linus:
 
-Reviewed-by: Dmitry Torokhov <dtor@chromium.org>
+Sorry, I totally misunderstood what you were saying -- I blame the jet
+lag. I'll check out what's going on.
 
-> ---
-> Changes in v2:
->  - only support IRQ index 0
->
->  drivers/base/platform.c | 15 ++++++++++++++-
->  1 file changed, 14 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index 1c958eb33ef4d..0d3611cd1b3bc 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -127,7 +127,20 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
->                 irqd_set_trigger_type(irqd, r->flags & IORESOURCE_BITS);
->         }
->
-> -       return r ? r->start : -ENXIO;
-> +       if (r)
-> +               return r->start;
-> +
-> +       /*
-> +        * For the index 0 interrupt, allow falling back to GpioInt
-> +        * resources. While a device could have both Interrupt and GpioInt
-> +        * resources, making this fallback ambiguous, in many common cases
-> +        * the device will only expose one IRQ, and this fallback
-> +        * allows a common code path across either kind of resource.
-> +        */
-> +       if (num == 0 && has_acpi_companion(&dev->dev))
-> +               return acpi_dev_gpio_irq_get(ACPI_COMPANION(&dev->dev), num);
-> +
-> +       return -ENXIO;
->  #endif
->  }
->  EXPORT_SYMBOL_GPL(platform_get_irq);
-> --
-> 2.20.1.791.gb4d0f1c61a-goog
->
+-K
