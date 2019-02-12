@@ -1,249 +1,63 @@
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH 1/3] ACPI: Support Generic Initator only domains
-Date: Tue, 12 Feb 2019 16:49:24 +0000
-Message-ID: <20190212164926.202-2-Jonathan.Cameron@huawei.com>
-References: <20190212164926.202-1-Jonathan.Cameron@huawei.com>
+From: Keith Busch <keith.busch@intel.com>
+Subject: Re: [PATCHv4 10/13] node: Add memory caching attributes
+Date: Tue, 12 Feb 2019 10:31:20 -0700
+Message-ID: <20190212173120.GD6176@localhost.localdomain>
+References: <20190116175804.30196-1-keith.busch@intel.com>
+ <20190116175804.30196-11-keith.busch@intel.com>
+ <4a7d1c0c-c269-d7b2-11cb-88ad62b70a06@inria.fr>
+ <20190210171958.00003ab2@huawei.com>
+ <20190211152303.GA4525@localhost.localdomain>
+ <20190212084903.00003ff5@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190212164926.202-1-Jonathan.Cameron@huawei.com>
+Content-Disposition: inline
+In-Reply-To: <20190212084903.00003ff5@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: jonathan.cameron@huawei.com, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: linuxarm@huawei.com, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Keith Busch <keith.busch@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Michal Hocko <mhocko@kernel.org>, jcm@redhat.com, Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Generic Initiators are a new ACPI concept that allows for
-the description of proximity domains that contain a
-device which performs memory access (such as a network card)
-but neither host CPU nor memory.
+On Tue, Feb 12, 2019 at 08:49:03AM +0000, Jonathan Cameron wrote:
+> On Mon, 11 Feb 2019 08:23:04 -0700
+> Keith Busch <keith.busch@intel.com> wrote:
+> 
+> > On Sun, Feb 10, 2019 at 09:19:58AM -0800, Jonathan Cameron wrote:
+> > > On Sat, 9 Feb 2019 09:20:53 +0100
+> > > Brice Goglin <Brice.Goglin@inria.fr> wrote:
+> > >   
+> > > > Hello Keith
+> > > > 
+> > > > Could we ever have a single side cache in front of two NUMA nodes ? I
+> > > > don't see a way to find that out in the current implementation. Would we
+> > > > have an "id" and/or "nodemap" bitmask in the sidecache structure ?  
+> > > 
+> > > This is certainly a possible thing for hardware to do.
+> > >
+> > > ACPI IIRC doesn't provide any means of representing that - your best
+> > > option is to represent it as two different entries, one for each of the
+> > > memory nodes.  Interesting question of whether you would then claim
+> > > they were half as big each, or the full size.  Of course, there are
+> > > other possible ways to get this info beyond HMAT, so perhaps the interface
+> > > should allow it to be exposed if available?  
+> > 
+> > HMAT doesn't do this, but I want this interface abstracted enough from
+> > HMAT to express whatever is necessary.
+> > 
+> > The CPU cache is the closest existing exported attributes to this,
+> > and they provide "shared_cpu_list". To that end, I can export a
+> > "shared_node_list", though previous reviews strongly disliked multi-value
+> > sysfs entries. :(
+> > 
+> > Would shared-node symlinks capture the need, and more acceptable?
+> 
+> My inclination is that it's better to follow an existing pattern than
+> invent a new one that breaks people's expectations.
+> 
+> However, don't feel that strongly about it as long as the interface
+> is functional and intuitive.
 
-This first patch has the parsing code and provides the
-infrastructure for an architecture to associate these
-new domains with their nearest memory possessing node.
-
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
----
- drivers/acpi/numa.c            | 62 +++++++++++++++++++++++++++++++++-
- drivers/base/node.c            |  3 ++
- include/acpi/actbl3.h          | 37 +++++++++++++++++++-
- include/asm-generic/topology.h |  3 ++
- include/linux/nodemask.h       |  1 +
- include/linux/topology.h       |  7 ++++
- 6 files changed, 111 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 7bbbf8256a41..890095794695 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -183,6 +183,38 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- 		}
- 		break;
- 
-+	case ACPI_SRAT_TYPE_GENERIC_INITIATOR_AFFINITY:
-+	{
-+		struct acpi_srat_gi_affinity *p =
-+			(struct acpi_srat_gi_affinity *)header;
-+		char name[9] = {};
-+
-+		if (p->flags & ACPI_SRAT_GI_PCI_HANDLE) {
-+			/*
-+			 * For pci devices this may be the only place they
-+			 * are assigned a proximity domain
-+			 */
-+			pr_debug("SRAT Generic Initiator(Seg:%u BDF:%u) in proximity domain %d %s\n",
-+				p->pci_handle.segment,
-+				p->pci_handle.bdf,
-+				p->proximity_domain,
-+				(p->flags & ACPI_SRAT_GI_ENABLED) ?
-+				"enabled" : "disabled");
-+		} else {
-+			/*
-+			 * In this case we can rely on the device having a
-+			 * proximity domain reference
-+			 */
-+			memcpy(name, p->acpi_handle.hid, 8);
-+			pr_info("SRAT Generic Initiator(HID=%s UID=%u) in proximity domain %d %s\n",
-+				name,
-+				p->acpi_handle.uid,
-+				p->proximity_domain,
-+				(p->flags & ACPI_SRAT_GI_ENABLED) ?
-+				"enabled" : "disabled");
-+		}
-+	}
-+	break;
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
-@@ -391,6 +423,32 @@ acpi_parse_gicc_affinity(struct acpi_subtable_header *header,
- 	return 0;
- }
- 
-+static int __init
-+acpi_parse_gi_affinity(struct acpi_subtable_header *header,
-+		       const unsigned long end)
-+{
-+	struct acpi_srat_gi_affinity *gi_affinity;
-+	int node;
-+
-+	gi_affinity = (struct acpi_srat_gi_affinity *)header;
-+	if (!gi_affinity)
-+		return -EINVAL;
-+	acpi_table_print_srat_entry(header);
-+
-+	if (!(gi_affinity->flags & ACPI_SRAT_GI_ENABLED))
-+		return EINVAL;
-+
-+	node = acpi_map_pxm_to_node(gi_affinity->proximity_domain);
-+	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-+		pr_err("SRAT: Too many proximity domains.\n");
-+		return -EINVAL;
-+	}
-+	node_set(node, numa_nodes_parsed);
-+	node_set_state(node, N_GENERIC_INITIATOR);
-+
-+	return 0;
-+}
-+
- static int __initdata parsed_numa_memblks;
- 
- static int __init
-@@ -446,7 +504,7 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: System Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		struct acpi_subtable_proc srat_proc[3];
-+		struct acpi_subtable_proc srat_proc[4];
- 
- 		memset(srat_proc, 0, sizeof(srat_proc));
- 		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-@@ -455,6 +513,8 @@ int __init acpi_numa_init(void)
- 		srat_proc[1].handler = acpi_parse_x2apic_affinity;
- 		srat_proc[2].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
- 		srat_proc[2].handler = acpi_parse_gicc_affinity;
-+		srat_proc[3].id = ACPI_SRAT_TYPE_GENERIC_INITIATOR_AFFINITY;
-+		srat_proc[3].handler = acpi_parse_gi_affinity;
- 
- 		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
- 					sizeof(struct acpi_table_srat),
-diff --git a/drivers/base/node.c b/drivers/base/node.c
-index 86d6cd92ce3d..f59b9d4ca5d5 100644
---- a/drivers/base/node.c
-+++ b/drivers/base/node.c
-@@ -634,6 +634,8 @@ static struct node_attr node_state_attr[] = {
- #endif
- 	[N_MEMORY] = _NODE_ATTR(has_memory, N_MEMORY),
- 	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
-+	[N_GENERIC_INITIATOR] = _NODE_ATTR(has_generic_initiator,
-+					   N_GENERIC_INITIATOR),
- };
- 
- static struct attribute *node_state_attrs[] = {
-@@ -645,6 +647,7 @@ static struct attribute *node_state_attrs[] = {
- #endif
- 	&node_state_attr[N_MEMORY].attr.attr,
- 	&node_state_attr[N_CPU].attr.attr,
-+	&node_state_attr[N_GENERIC_INITIATOR].attr.attr,
- 	NULL
- };
- 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index ea1ca49c9c1b..35ea3f736697 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -190,7 +190,8 @@ enum acpi_srat_type {
- 	ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
- 	ACPI_SRAT_TYPE_GICC_AFFINITY = 3,
- 	ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,	/* ACPI 6.2 */
--	ACPI_SRAT_TYPE_RESERVED = 5	/* 5 and greater are reserved */
-+	ACPI_SRAT_TYPE_GENERIC_INITIATOR_AFFINITY = 5, /* ACPI 6.3 */
-+	ACPI_SRAT_TYPE_RESERVED = 6	/* 6 and greater are reserved */
- };
- 
- /*
-@@ -271,6 +272,40 @@ struct acpi_srat_gic_its_affinity {
- 	u32 its_id;
- };
- 
-+/* Flags for struct acpi_srat_gi_affinity */
-+
-+#define ACPI_SRAT_GI_ENABLED     (1)		/* 00: Use affinity structure */
-+#define ACPI_SRAT_GI_ACPI_HANDLE (0)		/* 01: */
-+#define ACPI_SRAT_GI_PCI_HANDLE  (1 << 1)	/* 01: */
-+
-+/* Handles to associate the generic initiator with types of ACPI device */
-+
-+struct acpi_srat_gi_acpi_handle {
-+	char hid[8];
-+	u32 uid;
-+	u32 reserved;
-+};
-+
-+struct acpi_srat_gi_pci_handle {
-+	u16 segment;
-+	u16 bdf;
-+	u8 reserved[12];
-+};
-+
-+/* 5 : Generic Initiator Affinity (ACPI 6.3) */
-+
-+struct acpi_srat_gi_affinity {
-+	struct acpi_subtable_header header;
-+	u8 reserved;
-+	u8 device_handl_type;
-+	u32 proximity_domain;
-+	union {
-+		struct acpi_srat_gi_acpi_handle acpi_handle;
-+		struct acpi_srat_gi_pci_handle pci_handle;
-+	};
-+	u32 flags;
-+	u32 reserved2;
-+};
- /*******************************************************************************
-  *
-  * STAO - Status Override Table (_STA override) - ACPI 6.0
-diff --git a/include/asm-generic/topology.h b/include/asm-generic/topology.h
-index 238873739550..54d0b4176a45 100644
---- a/include/asm-generic/topology.h
-+++ b/include/asm-generic/topology.h
-@@ -71,6 +71,9 @@
- #ifndef set_cpu_numa_mem
- #define set_cpu_numa_mem(cpu, node)
- #endif
-+#ifndef set_gi_numa_mem
-+#define set_gi_numa_mem(gi, node)
-+#endif
- 
- #endif	/* !CONFIG_NUMA || !CONFIG_HAVE_MEMORYLESS_NODES */
- 
-diff --git a/include/linux/nodemask.h b/include/linux/nodemask.h
-index 5a30ad594ccc..501b1d32b323 100644
---- a/include/linux/nodemask.h
-+++ b/include/linux/nodemask.h
-@@ -399,6 +399,7 @@ enum node_states {
- #endif
- 	N_MEMORY,		/* The node has memory(regular, high, movable) */
- 	N_CPU,		/* The node has one or more cpus */
-+	N_GENERIC_INITIATOR,	/* The node is a GI only node */
- 	NR_NODE_STATES
- };
- 
-diff --git a/include/linux/topology.h b/include/linux/topology.h
-index cb0775e1ee4b..9d5f8501efcf 100644
---- a/include/linux/topology.h
-+++ b/include/linux/topology.h
-@@ -125,6 +125,13 @@ static inline void set_numa_mem(int node)
- }
- #endif
- 
-+#ifndef set_gi_numa_mem
-+static inline void set_gi_numa_mem(int gi, int node)
-+{
-+	_node_numa_mem_[gi] = node;
-+}
-+#endif
-+
- #ifndef node_to_mem_node
- static inline int node_to_mem_node(int node)
- {
--- 
-2.18.0
+Okay, considering I'd have a difficult time testing such an interface
+since it doesn't apply to HMAT, and I've received only conflicting
+feedback on list attributes, I would prefer to leave this feature out
+of this series for now. I'm certainly not against adding it later.
