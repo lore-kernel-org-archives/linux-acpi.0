@@ -1,88 +1,59 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2] driver: platform: Support parsing GpioInt 0 in
- platform_get_irq()
-Date: Tue, 12 Feb 2019 08:29:52 +0100
-Message-ID: <de453c38-a7f9-62bf-72f6-40ac7a76456f@redhat.com>
-References: <20190207185917.167829-1-egranata@google.com>
- <20190211190112.209286-1-egranata@chromium.org>
+From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: Re: [PATCHv4 10/13] node: Add memory caching attributes
+Date: Tue, 12 Feb 2019 09:11:03 +0100
+Message-ID: <854e892c-0c0d-6ab8-bc83-3c6b462bcf72@inria.fr>
+References: <20190116175804.30196-1-keith.busch@intel.com>
+ <20190116175804.30196-11-keith.busch@intel.com>
+ <4a7d1c0c-c269-d7b2-11cb-88ad62b70a06@inria.fr>
+ <20190210171958.00003ab2@huawei.com>
+ <20190211152303.GA4525@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190211190112.209286-1-egranata@chromium.org>
+In-Reply-To: <20190211152303.GA4525@localhost.localdomain>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: egranata@chromium.org, mika.westerberg@linux.intel.com, dtor@chromium.org, andy.shevchenko@gmail.com, rafael@kernel.org, gregkh@linuxfoundation.org, enric.balletbo@collabora.com, linux-kernel@vger.kernel.org, gwendal@chromium.org, linux-acpi@vger.kernel.org, briannorris@chromium.org, andriy.shevchenko@linux.intel.com
-Cc: egranata@google.com
+To: Keith Busch <keith.busch@intel.com>, Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On 11-02-19 20:01, egranata@chromium.org wrote:
-> From: Enrico Granata <egranata@chromium.org>
-> 
-> ACPI 5 added support for GpioInt resources as a way to provide
-> information about interrupts mediated via a GPIO controller.
-> 
-> Several device buses (e.g. SPI, I2C) have support for retrieving
-> an IRQ specified via this type of resource, and providing it
-> directly to the driver as an IRQ number.
-> 
-> This is not currently done for the platform drivers, as platform_get_irq()
-> does not try to parse GpioInt() resources. This requires drivers to
-> either have to support only one possible IRQ resource, or to have code
-> in place to try both as a failsafe.
-> 
-> While there is a possibility of ambiguity for devices that exposes
-> multiple IRQs, it is easy and feasible to support the common case
-> of devices that only expose one IRQ which would be of either type
-> depending on the underlying system's architecture.
-> 
-> This commit adds support for parsing a GpioInt resource in order
-> to fulfill a request for the index 0 IRQ for a platform device.
-> 
-> Signed-off-by: Enrico Granata <egranata@chromium.org>
-
-Looks good to me:
-
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
+Le 11/02/2019 à 16:23, Keith Busch a écrit :
+> On Sun, Feb 10, 2019 at 09:19:58AM -0800, Jonathan Cameron wrote:
+>> On Sat, 9 Feb 2019 09:20:53 +0100
+>> Brice Goglin <Brice.Goglin@inria.fr> wrote:
+>>
+>>> Hello Keith
+>>>
+>>> Could we ever have a single side cache in front of two NUMA nodes ? I
+>>> don't see a way to find that out in the current implementation. Would we
+>>> have an "id" and/or "nodemap" bitmask in the sidecache structure ?
+>> This is certainly a possible thing for hardware to do.
+>>
+>> ACPI IIRC doesn't provide any means of representing that - your best
+>> option is to represent it as two different entries, one for each of the
+>> memory nodes.  Interesting question of whether you would then claim
+>> they were half as big each, or the full size.  Of course, there are
+>> other possible ways to get this info beyond HMAT, so perhaps the interface
+>> should allow it to be exposed if available?
+> HMAT doesn't do this, but I want this interface abstracted enough from
+> HMAT to express whatever is necessary.
+>
+> The CPU cache is the closest existing exported attributes to this,
+> and they provide "shared_cpu_list". To that end, I can export a
+> "shared_node_list", though previous reviews strongly disliked multi-value
+> sysfs entries. :(
+>
+> Would shared-node symlinks capture the need, and more acceptable?
 
 
-> ---
-> Changes in v2:
->   - only support IRQ index 0
-> 
->   drivers/base/platform.c | 15 ++++++++++++++-
->   1 file changed, 14 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index 1c958eb33ef4d..0d3611cd1b3bc 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -127,7 +127,20 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
->   		irqd_set_trigger_type(irqd, r->flags & IORESOURCE_BITS);
->   	}
->   
-> -	return r ? r->start : -ENXIO;
-> +	if (r)
-> +		return r->start;
-> +
-> +	/*
-> +	 * For the index 0 interrupt, allow falling back to GpioInt
-> +	 * resources. While a device could have both Interrupt and GpioInt
-> +	 * resources, making this fallback ambiguous, in many common cases
-> +	 * the device will only expose one IRQ, and this fallback
-> +	 * allows a common code path across either kind of resource.
-> +	 */
-> +	if (num == 0 && has_acpi_companion(&dev->dev))
-> +		return acpi_dev_gpio_irq_get(ACPI_COMPANION(&dev->dev), num);
-> +
-> +	return -ENXIO;
->   #endif
->   }
->   EXPORT_SYMBOL_GPL(platform_get_irq);
-> 
+As a user-space guy reading these files/symlinks, I would prefer reading
+a bitmask just like we do for CPU cache "cpumap" or CPU "siblings" files
+(or sibling_list).
+
+Reading a directory and looking for dentries matching "foo%d" is far
+less convenient  in C. If all these files are inside a dedicated
+subdirectory, it's better but still not as easy.
+
+Brice
