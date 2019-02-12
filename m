@@ -1,63 +1,66 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCHv4 10/13] node: Add memory caching attributes
-Date: Tue, 12 Feb 2019 10:31:20 -0700
-Message-ID: <20190212173120.GD6176@localhost.localdomain>
-References: <20190116175804.30196-1-keith.busch@intel.com>
- <20190116175804.30196-11-keith.busch@intel.com>
- <4a7d1c0c-c269-d7b2-11cb-88ad62b70a06@inria.fr>
- <20190210171958.00003ab2@huawei.com>
- <20190211152303.GA4525@localhost.localdomain>
- <20190212084903.00003ff5@huawei.com>
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH v4 00/14] various dynamic_debug patches
+Date: Tue, 12 Feb 2019 22:41:36 +0100
+Message-ID: <20190212214150.4807-1-linux@rasmusvillemoes.dk>
+References: <20181109231021.11658-1-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190212084903.00003ff5@huawei.com>
+In-Reply-To: <20181109231021.11658-1-linux@rasmusvillemoes.dk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Jason Baron <jbaron@akamai.com>
+Cc: linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, David Sterba <dsterba@suse.com>, Petr Mladek <pmladek@suse.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-btrfs@vger.kernel.org, netdev@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, x86@kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 12, 2019 at 08:49:03AM +0000, Jonathan Cameron wrote:
-> On Mon, 11 Feb 2019 08:23:04 -0700
-> Keith Busch <keith.busch@intel.com> wrote:
-> 
-> > On Sun, Feb 10, 2019 at 09:19:58AM -0800, Jonathan Cameron wrote:
-> > > On Sat, 9 Feb 2019 09:20:53 +0100
-> > > Brice Goglin <Brice.Goglin@inria.fr> wrote:
-> > >   
-> > > > Hello Keith
-> > > > 
-> > > > Could we ever have a single side cache in front of two NUMA nodes ? I
-> > > > don't see a way to find that out in the current implementation. Would we
-> > > > have an "id" and/or "nodemap" bitmask in the sidecache structure ?  
-> > > 
-> > > This is certainly a possible thing for hardware to do.
-> > >
-> > > ACPI IIRC doesn't provide any means of representing that - your best
-> > > option is to represent it as two different entries, one for each of the
-> > > memory nodes.  Interesting question of whether you would then claim
-> > > they were half as big each, or the full size.  Of course, there are
-> > > other possible ways to get this info beyond HMAT, so perhaps the interface
-> > > should allow it to be exposed if available?  
-> > 
-> > HMAT doesn't do this, but I want this interface abstracted enough from
-> > HMAT to express whatever is necessary.
-> > 
-> > The CPU cache is the closest existing exported attributes to this,
-> > and they provide "shared_cpu_list". To that end, I can export a
-> > "shared_node_list", though previous reviews strongly disliked multi-value
-> > sysfs entries. :(
-> > 
-> > Would shared-node symlinks capture the need, and more acceptable?
-> 
-> My inclination is that it's better to follow an existing pattern than
-> invent a new one that breaks people's expectations.
-> 
-> However, don't feel that strongly about it as long as the interface
-> is functional and intuitive.
+This started as an experiment to see how hard it would be to change
+the four pointers in struct _ddebug into relative offsets, a la
+CONFIG_GENERIC_BUG_RELATIVE_POINTERS, thus saving 16 bytes per
+pr_debug site (and thus exactly making up for the extra space used by
+the introduction of jump labels in 9049fc74). I stumbled on a few
+things that are probably worth fixing regardless of whether that goal
+is deemed worthwhile.
 
-Okay, considering I'd have a difficult time testing such an interface
-since it doesn't apply to HMAT, and I've received only conflicting
-feedback on list attributes, I would prefer to leave this feature out
-of this series for now. I'm certainly not against adding it later.
+Back at v3 (in November), I redid the implementation on top of the
+fancy new asm-macros stuff. Luckily enough, v3 didn't get picked up,
+since the asm-macros were backed out again. I still want to do the
+relative-pointers thing eventually, but we're close to the merge
+window opening, so here's just most of the "incidental" patches, some
+of which also serve as preparation for the relative pointers.
+
+I'm not sure how long an Ack/Reviewed-by is good for, but OTOH it also
+feels rude to just drop them on the floor. I've kept those tags since
+the rebasing to current master went completely smooth.
+
+Andrew, please pick these up for soaking in -next.
+
+v3 series: lkml.kernel.org/r/20181109231021.11658-1-linux@rasmusvillemoes.dk
+v2 series: lkml.kernel.org/r/20181009112013.14238-1-linux@rasmusvillemoes.dk
+
+Rasmus Villemoes (14):
+  linux/device.h: use DYNAMIC_DEBUG_BRANCH in dev_dbg_ratelimited
+  linux/net.h: use DYNAMIC_DEBUG_BRANCH in net_dbg_ratelimited
+  linux/printk.h: use DYNAMIC_DEBUG_BRANCH in pr_debug_ratelimited
+  dynamic_debug: consolidate DEFINE_DYNAMIC_DEBUG_METADATA definitions
+  dynamic_debug: don't duplicate modname in ddebug_add_module
+  dynamic_debug: use pointer comparison in ddebug_remove_module
+  dynamic_debug: remove unused EXPORT_SYMBOLs
+  dynamic_debug: move pr_err from module.c to ddebug_add_module
+  dynamic_debug: add static inline stub for ddebug_add_module
+  dynamic_debug: refactor dynamic_pr_debug and friends
+  btrfs: implement btrfs_debug* in terms of helper macro
+  ACPI: use proper DYNAMIC_DEBUG_BRANCH macro
+  ACPI: remove unused __acpi_handle_debug macro
+  ACPI: implement acpi_handle_debug in terms of _dynamic_func_call
+
+ fs/btrfs/ctree.h              |  34 ++++--------
+ include/linux/acpi.h          |  11 +---
+ include/linux/device.h        |   2 +-
+ include/linux/dynamic_debug.h | 102 +++++++++++++++++++---------------
+ include/linux/net.h           |   2 +-
+ include/linux/printk.h        |   2 +-
+ kernel/module.c               |   6 +-
+ lib/dynamic_debug.c           |  22 ++++----
+ 8 files changed, 84 insertions(+), 97 deletions(-)
+
+-- 
+2.20.1
