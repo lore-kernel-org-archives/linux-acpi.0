@@ -1,7 +1,7 @@
 From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH 2/3] arm64: Support Generic Initiator only domains
-Date: Tue, 12 Feb 2019 16:49:25 +0000
-Message-ID: <20190212164926.202-3-Jonathan.Cameron@huawei.com>
+Subject: [PATCH 3/3] ACPI: Let ACPI know we support Generic Initiator Affinity Structures
+Date: Tue, 12 Feb 2019 16:49:26 +0000
+Message-ID: <20190212164926.202-4-Jonathan.Cameron@huawei.com>
 References: <20190212164926.202-1-Jonathan.Cameron@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,45 +12,45 @@ To: jonathan.cameron@huawei.com, linux-mm@kvack.org, linux-acpi@vger.kernel.org,
 Cc: linuxarm@huawei.com, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Keith Busch <keith.busch@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Michal Hocko <mhocko@kernel.org>, jcm@redhat.com, Jonathan Cameron <Jonathan.Cameron@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The one thing that currently needs doing from an architecture
-point of view is associating the GI domain with its nearest
-memory domain.  This allows all the standard NUMA aware code
-to get a 'reasonable' answer.
+Until we tell ACPI that we support generic initiators, it will have
+to operate in fall back domain mode and all _PXM entries should
+be on existing non GI domains.
 
-A clever driver might elect to do load balancing etc
-if there are multiple host / memory domains nearby, but
-that's a decision for the driver.
+This patch sets the relevant OSC bit to make that happen.
 
 Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 ---
- arch/arm64/kernel/smp.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index 1598d6f7200a..871d2d21afb3 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -698,6 +698,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
- {
- 	int err;
- 	unsigned int cpu;
-+	unsigned int node;
- 	unsigned int this_cpu;
+Note that this will need platform guards unless we make generic initiators
+work on all ACPI platforms from the start.
+
+ drivers/acpi/bus.c   | 1 +
+ include/linux/acpi.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 5c093ce01bcd..461fb393346a 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -315,6 +315,7 @@ static void acpi_bus_osc_support(void)
  
- 	init_cpu_topology();
-@@ -736,6 +737,13 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
- 		set_cpu_present(cpu, true);
- 		numa_store_cpu_info(cpu);
- 	}
-+
-+	/*
-+	 * Walk the numa domains and set the node to numa memory reference
-+	 * for any that are Generic Initiator Only.
-+	 */
-+	for_each_node_state(node, N_GENERIC_INITIATOR)
-+		set_gi_numa_mem(node, local_memory_node(node));
- }
+ 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+ 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
++	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_GENERIC_INITIATOR_SUPPORT;
  
- void (*__smp_cross_call)(const struct cpumask *, unsigned int);
+ #ifdef CONFIG_X86
+ 	if (boot_cpu_has(X86_FEATURE_HWP)) {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 87715f20b69a..760c6f3d57f0 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -498,6 +498,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
+ #define OSC_SB_PCLPI_SUPPORT			0x00000080
+ #define OSC_SB_OSLPI_SUPPORT			0x00000100
+ #define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
++#define OSC_SB_GENERIC_INITIATOR_SUPPORT	0x00002000
+ 
+ extern bool osc_sb_apei_support_acked;
+ extern bool osc_pc_lpi_support_confirmed;
 -- 
 2.18.0
