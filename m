@@ -1,71 +1,156 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH] software node: Implement get_named_child_node fwnode callback
-Date: Wed, 13 Feb 2019 14:55:49 +0300
-Message-ID: <20190213115549.81917-1-heikki.krogerus@linux.intel.com>
+From: Yu Chen <yu.c.chen@intel.com>
+Subject: Re: [PATCH][RFC] ACPI: add "processor.broadcast_ppc" hook to
+ broadcast _PPC to all online CPUs
+Date: Thu, 14 Feb 2019 00:52:42 +0800
+Message-ID: <20190213165242.GA30385@chenyu-office.sh.intel.com>
+References: <20190209120232.21582-1-yu.c.chen@intel.com>
+ <CAJZ5v0ggyrn7XJmoDP8Z8F_VJ67K0D4GCLJa7xWcX4gursOB5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0ggyrn7XJmoDP8Z8F_VJ67K0D4GCLJa7xWcX4gursOB5Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This makes it possible to support drivers that use
-fwnode_get_named_child_node() and device_get_named_child_node()
-functions.
+Hi Rafael,
+On Mon, Feb 11, 2019 at 11:41:26AM +0100, Rafael J. Wysocki wrote:
+> On Sat, Feb 9, 2019 at 12:54 PM Chen Yu <yu.c.chen@intel.com> wrote:
+> >
+> > On Dell Inc. XPS13 9333, the BIOS changes the value of
+> > MSR_IA32_MISC_ENABLE_TURBO_DISABLE at runtime (e.g., when
+> > the power source changes), the maximum frequency of the
+> > CPU is not updated accordingly. This is due to the policy's
+> > cpuinfo.max is not updated when _PPC notifier fires.
+> >
+> > Fix this problem by updating the policy's cpuinfo.max
+> > and broadcast the _PPC notifier to all online CPUs.
+> >
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=200759
+> > Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+> > Originally-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> > ---
+> >  drivers/acpi/processor_perflib.c | 16 ++++++++++++++--
+> >  drivers/cpufreq/cpufreq.c        |  2 ++
+> >  drivers/cpufreq/intel_pstate.c   | 15 ++++++++++++++-
+> >  3 files changed, 30 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> > index a303fd0e108c..737dbf5aa7f7 100644
+> > --- a/drivers/acpi/processor_perflib.c
+> > +++ b/drivers/acpi/processor_perflib.c
+> > @@ -63,6 +63,10 @@ module_param(ignore_ppc, int, 0644);
+> >  MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
+> >                  "limited by BIOS, this should help");
+> >
+> > +static int broadcast_ppc;
+> > +module_param(broadcast_ppc, int, 0644);
+> > +MODULE_PARM_DESC(broadcast_ppc, "Broadcast the ppc to all online CPUs");
+> > +
+> >  #define PPC_REGISTERED   1
+> >  #define PPC_IN_USE       2
+> >
+> > @@ -180,8 +184,16 @@ void acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag)
+> >                 else
+> >                         acpi_processor_ppc_ost(pr->handle, 0);
+> >         }
+> > -       if (ret >= 0)
+> > -               cpufreq_update_policy(pr->id);
+> > +       if (ret >= 0) {
+> > +               if (broadcast_ppc) {
+> > +                       int cpu;
+> > +
+> > +                       for_each_possible_cpu(cpu)
+> > +                               cpufreq_update_policy(cpu);
+> > +               } else {
+> > +                       cpufreq_update_policy(pr->id);
+> > +               }
+> > +       }
+> >  }
+> >
+> >  int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+> > diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> > index e35a886e00bc..95e08816b512 100644
+> > --- a/drivers/cpufreq/cpufreq.c
+> > +++ b/drivers/cpufreq/cpufreq.c
+> > @@ -2237,6 +2237,8 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
+> >
+> >         policy->min = new_policy->min;
+> >         policy->max = new_policy->max;
+> > +       policy->cpuinfo.max_freq = new_policy->cpuinfo.max_freq;
+> > +       policy->cpuinfo.min_freq = new_policy->cpuinfo.min_freq;
+> >         trace_cpu_frequency_limits(policy);
+> >
+> >         policy->cached_target_freq = UINT_MAX;
+> > diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+> > index dd66decf2087..e1881313c396 100644
+> > --- a/drivers/cpufreq/intel_pstate.c
+> > +++ b/drivers/cpufreq/intel_pstate.c
+> > @@ -2081,11 +2081,24 @@ static void intel_pstate_adjust_policy_max(struct cpufreq_policy *policy,
+> >
+> >  static int intel_pstate_verify_policy(struct cpufreq_policy *policy)
+> >  {
+> > +       int max_freq;
+> >         struct cpudata *cpu = all_cpu_data[policy->cpu];
+> >
+> >         update_turbo_state();
+> 
+> Well, update_turbo_state() should handle the case at hand already.
+> 
+> That's what it's for actually: It checks if
+> MSR_IA32_MISC_ENABLE_TURBO_DISABLE is set and sets
+> global.turbo_disabled is that's the case.
+> 
+> Why isn't that sufficient?
+> 
+update_turbo_state() changes the flag of global.turbo_diabled but we
+need to also leverage it to adjust the policy.max accordingly. This is why
+we add intel_pstate_get_max_freq() to get the updated max freq in
+intel_pstate_verify_policy().
+> > +       max_freq = intel_pstate_get_max_freq(cpu);
+> > +
+> > +       if (acpi_ppc && policy->max == policy->cpuinfo.max_freq &&
+> > +           max_freq != policy->cpuinfo.max_freq) {
+> > +               /*
+> > +                * System was not running under any constraints, but the
+> > +                * current max possible frequency is changed. So reset
+> > +                * policy limits.
+> > +                */
+> > +               policy->cpuinfo.max_freq = policy->max = max_freq;
+> > +       }
+> 
+> Why does policy->cpuinfo.max_freq need to be updated?
+> 
+This is my understanding:
+There's a corner case that, if the system boots with battery,
+the max cpu frequency will not scale up if we plug the AC later.
+According to the log provided by Gabriele Mazzotta,  if the system
+boot up with battery, then plug the AC after boot up, the max perf ratio
+and policy->cpuinfo.max will remain 17 rather than increasing to
+30(when AC plugged thus turbo enabled):
 
-The node name is for now taken from a device property named
-"name". That mimics the old style of naming of the nodes in
-devicetree (though with modern flattened DT, the name is
-matched against the actual node-name, it used to be done
-with a property "name"). In Open Firmware DT the "name"
-property is also still being used.
+[   52.158810] CPU 0: _PPC is 6 - frequency  limited
+[   52.158822] intel_pstate: set_policy cpuinfo.max 1700000 policy->max 1700000
+[   52.158825] intel_pstate: cpu:0 max_state 30 min_policy_perf:8 max_policy_perf:17
+[   52.158827] intel_pstate: cpu:0 global_min:8 global_max:30
+[   52.158829] intel_pstate: cpu:0 max_perf_ratio:17 min_perf_ratio:8
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/base/swnode.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+This is caused by:
+In current intel_pstate, there's only one chance for policy.cpuinfo.max to get updated
+which is during boot up in __intel_pstate_cpu_init(). If the turbo status changes,
+we might need to also update the policy->cpuinfo.max to tell user that the hardware
+status has changed.
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 89ad8dee6ad5..1fad9291f6aa 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -499,6 +499,28 @@ software_node_get_next_child(const struct fwnode_handle *fwnode,
- 	return &c->fwnode;
- }
- 
-+static struct fwnode_handle *
-+software_node_get_named_child_node(const struct fwnode_handle *fwnode,
-+				   const char *childname)
-+{
-+	struct software_node *swnode = to_software_node(fwnode);
-+	const struct property_entry *prop;
-+	struct software_node *child;
-+
-+	if (!swnode || list_empty(&swnode->children))
-+		return NULL;
-+
-+	list_for_each_entry(child, &swnode->children, entry) {
-+		prop = property_entry_get(child->properties, "name");
-+		if (!prop)
-+			continue;
-+		if (!strcmp(childname, prop->value.str)) {
-+			kobject_get(&child->kobj);
-+			return &child->fwnode;
-+		}
-+	}
-+	return NULL;
-+}
- 
- static const struct fwnode_operations software_node_ops = {
- 	.get = software_node_get,
-@@ -508,6 +530,7 @@ static const struct fwnode_operations software_node_ops = {
- 	.property_read_string_array = software_node_read_string_array,
- 	.get_parent = software_node_get_parent,
- 	.get_next_child_node = software_node_get_next_child,
-+	.get_named_child_node = software_node_get_named_child_node,
- };
- 
- /* -------------------------------------------------------------------------- */
--- 
-2.20.1
+So we give it a chance to adjust the policy.cpuinfo.max and policy.max in
+cpufreq_driver->verify()  according to turbo status, this is what this patch mainly
+aims to do.
+
+Besides, since on this platform there's only one _PPC notification for one CPU, it is
+necessary to broadcast the notification to all CPUs on this package. And this patch
+broadcast it to all online CPUs to make the change simpler.
+
+Best,
+Yu
