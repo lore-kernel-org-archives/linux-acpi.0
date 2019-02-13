@@ -1,61 +1,75 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 44/83] acpi/nfit: Fix race accessing memdev in nfit_get_smbios_id()
-Date: Tue, 12 Feb 2019 21:36:22 -0500
-Message-ID: <20190213023701.20286-44-sashal@kernel.org>
-References: <20190213023701.20286-1-sashal@kernel.org>
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+Subject: Re: [PATCH 1/3] ACPI: Support Generic Initator only domains
+Date: Wed, 13 Feb 2019 10:16:40 +0000
+Message-ID: <20190213101640.00006a51@huawei.com>
+References: <20190212164926.202-1-Jonathan.Cameron@huawei.com>
+        <20190212164926.202-2-Jonathan.Cameron@huawei.com>
+        <20190212214736.GG6176@localhost.localdomain>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
+In-Reply-To: <20190212214736.GG6176@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Luck <tony.luck@intel.com>, Dan Williams <dan.j.williams@intel.com>, Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, =?ISO-8859-1?Q?J?= =?ISO-8859-1?Q?=E9r=F4me?= Glisse <jglisse@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Michal Hocko <mhocko@kernel.org>, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Tony Luck <tony.luck@intel.com>
+On Tue, 12 Feb 2019 14:47:36 -0700
+Keith Busch <keith.busch@intel.com> wrote:
 
-[ Upstream commit 0919871ac37fdcf46c7657da0f1742efe096b399 ]
+> On Tue, Feb 12, 2019 at 04:49:24PM +0000, Jonathan Cameron wrote:
+> > +	case ACPI_SRAT_TYPE_GENERIC_INITIATOR_AFFINITY:
+> > +	{
+> > +		struct acpi_srat_gi_affinity *p =
+> > +			(struct acpi_srat_gi_affinity *)header;
+> > +		char name[9] = {};
+> > +
+> > +		if (p->flags & ACPI_SRAT_GI_PCI_HANDLE) {
+> > +			/*
+> > +			 * For pci devices this may be the only place they
+> > +			 * are assigned a proximity domain
+> > +			 */
+> > +			pr_debug("SRAT Generic Initiator(Seg:%u BDF:%u) in proximity domain %d %s\n",
+> > +				p->pci_handle.segment,
+> > +				p->pci_handle.bdf,
+> > +				p->proximity_domain,
+> > +				(p->flags & ACPI_SRAT_GI_ENABLED) ?
+> > +				"enabled" : "disabled");  
+> 
+> <snip>
+> 
+> > +#define ACPI_SRAT_GI_ENABLED     (1)		/* 00: Use affinity structure */
+> > +#define ACPI_SRAT_GI_ACPI_HANDLE (0)		/* 01: */
+> > +#define ACPI_SRAT_GI_PCI_HANDLE  (1 << 1)	/* 01: */  
+> 
+> It looks like you're reading reserved bits. My copy of the 6.3 spec says
+> PCI Handle is 1, and is set in Device Handle Type field, not in the Flags.
+Good spot.
 
-Possible race accessing memdev structures after dropping the
-mutex. Dan Williams says this could race against another thread
-that is doing:
+Sorry, wrote this long before spec publish and some details got tidied up.
+I fixed iasl end but forgot to actually update the reading of it. Oops!
+As you can probably guess that my test was using an ACPI handle so didn't
+hit this at all.  I'll shove a PCIe card in the machine to check those
+as well.
 
- # echo "ACPI0012:00" > /sys/bus/acpi/drivers/nfit/unbind
+Will fix up for v2!
 
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Fixes: 23222f8f8dce ("acpi, nfit: Add function to look up nvdimm...")
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/nfit/core.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Thanks,
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ea59c01ce8db..f530d3541242 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -719,6 +719,7 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
- 	struct acpi_nfit_memory_map *memdev;
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct nfit_mem *nfit_mem;
-+	u16 physical_id;
- 
- 	mutex_lock(&acpi_desc_lock);
- 	list_for_each_entry(acpi_desc, &acpi_descs, list) {
-@@ -726,10 +727,11 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
- 		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
- 			memdev = __to_nfit_memdev(nfit_mem);
- 			if (memdev->device_handle == device_handle) {
-+				*flags = memdev->flags;
-+				physical_id = memdev->physical_id;
- 				mutex_unlock(&acpi_desc->init_mutex);
- 				mutex_unlock(&acpi_desc_lock);
--				*flags = memdev->flags;
--				return memdev->physical_id;
-+				return physical_id;
- 			}
- 		}
- 		mutex_unlock(&acpi_desc->init_mutex);
--- 
-2.19.1
+Jonathan
+> 
+> > +/* 5 : Generic Initiator Affinity (ACPI 6.3) */
+> > +
+> > +struct acpi_srat_gi_affinity {
+> > +	struct acpi_subtable_header header;
+> > +	u8 reserved;
+> > +	u8 device_handl_type;
+> > +	u32 proximity_domain;
+> > +	union {
+> > +		struct acpi_srat_gi_acpi_handle acpi_handle;
+> > +		struct acpi_srat_gi_pci_handle pci_handle;
+> > +	};
+> > +	u32 flags;
+> > +	u32 reserved2;
+> > +};  
