@@ -1,198 +1,107 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv6 10/10] doc/mm: New documentation for memory performance
-Date: Thu, 14 Feb 2019 10:10:17 -0700
-Message-ID: <20190214171017.9362-11-keith.busch@intel.com>
-References: <20190214171017.9362-1-keith.busch@intel.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC 2/3] arm_pmu: acpi: spe: Add initial MADT/SPE probing
+Date: Thu, 14 Feb 2019 17:11:25 +0000
+Message-ID: <20190214171125.GG2475@fuggles.cambridge.arm.com>
+References: <20190209004718.3292087-1-jeremy.linton@arm.com>
+ <20190209004718.3292087-3-jeremy.linton@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190214171017.9362-1-keith.busch@intel.com>
+Content-Disposition: inline
+In-Reply-To: <20190209004718.3292087-3-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, catalin.marinas@arm.com, mark.rutland@arm.com, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Platforms may provide system memory where some physical address ranges
-perform differently than others, or is side cached by the system.
+Hi Jeremy,
 
-Add documentation describing a high level overview of such systems and the
-perforamnce and caching attributes the kernel provides for applications
-wishing to query this information.
+On Fri, Feb 08, 2019 at 06:47:17PM -0600, Jeremy Linton wrote:
+> ACPI 6.3 adds additional fields to the MADT GICC
+> structure to describe SPE PPI's. We pick these out
+> of the cached reference to the madt_gicc structure
+> similarly to the core PMU code. We then create a platform
+> device referring to the IRQ and let the user/module loader
+> decide whether to load the SPE driver.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  arch/arm64/include/asm/acpi.h |  3 ++
+>  drivers/perf/arm_pmu_acpi.c   | 67 +++++++++++++++++++++++++++++++++++
+>  2 files changed, 70 insertions(+)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 2def77ec14be..f9f9f2eb5d54 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -40,6 +40,9 @@
+>  	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
+>  	(unsigned long)(entry) + (entry)->header.length > (end))
+>  
+> +#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
+> +	spe_overflow_interrupt) + sizeof(u16))
+> +
+>  /* Basic configuration for ACPI */
+>  #ifdef	CONFIG_ACPI
+>  pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
+> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+> index 0f197516d708..725d413b47dc 100644
+> --- a/drivers/perf/arm_pmu_acpi.c
+> +++ b/drivers/perf/arm_pmu_acpi.c
+> @@ -74,6 +74,71 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
+>  	acpi_unregister_gsi(gsi);
+>  }
+>  
+> +static struct resource spe_resources[] = {
+> +	{
+> +		/* irq */
+> +		.flags          = IORESOURCE_IRQ,
+> +	}
+> +};
+> +
+> +static struct platform_device spe_dev = {
+> +	.name = "arm,spe-v1",
+> +	.id = -1,
+> +	.resource = spe_resources,
+> +	.num_resources = ARRAY_SIZE(spe_resources)
+> +};
+> +
+> +/*
+> + * For lack of a better place, hook the normal PMU MADT walk
+> + * and create a SPE device if we detect a recent MADT with
+> + * a homogeneous PPI mapping.
+> + */
+> +static int arm_spe_acpi_parse_irqs(void)
+> +{
+> +	int cpu, ret, irq;
+> +	u16 gsi = 0;
+> +	bool first = true;
+> +
+> +	struct acpi_madt_generic_interrupt *gicc;
+> +
+> +	/*
+> +	 * sanity check all the GICC tables for the same interrupt number
+> +	 * for now we only support homogeneous ACPI/SPE machines.
+> +	 */
+> +	for_each_possible_cpu(cpu) {
+> +		gicc = acpi_cpu_get_madt_gicc(cpu);
+> +
+> +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
+> +			return -ENODEV;
+> +
+> +		if (first) {
+> +			gsi = gicc->spe_overflow_interrupt;
+> +			if (!gsi)
+> +				return -ENODEV;
+> +			first = false;
+> +		} else if (gsi != gicc->spe_overflow_interrupt) {
+> +			pr_warn("ACPI: SPE must have homogeneous interrupts\n");
+> +			return -EINVAL;
+> +		}
 
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- Documentation/admin-guide/mm/numaperf.rst | 164 ++++++++++++++++++++++++++++++
- 1 file changed, 164 insertions(+)
- create mode 100644 Documentation/admin-guide/mm/numaperf.rst
+Unfortunately, I don't think this is sufficient to detect a homogeneous
+system: we'll have to check the MIDRs instead, which is nasty. I would
+personally be in favour of enforcing homogeneity for ACPI systems when we
+bring up secondary CPUs, but I suspect others would disagree.
 
-diff --git a/Documentation/admin-guide/mm/numaperf.rst b/Documentation/admin-guide/mm/numaperf.rst
-new file mode 100644
-index 000000000000..be8a23bb075d
---- /dev/null
-+++ b/Documentation/admin-guide/mm/numaperf.rst
-@@ -0,0 +1,164 @@
-+.. _numaperf:
-+
-+=============
-+NUMA Locality
-+=============
-+
-+Some platforms may have multiple types of memory attached to a compute
-+node. These disparate memory ranges may share some characteristics, such
-+as CPU cache coherence, but may have different performance. For example,
-+different media types and buses affect bandwidth and latency.
-+
-+A system supports such heterogeneous memory by grouping each memory type
-+under different domains, or "nodes", based on locality and performance
-+characteristics.  Some memory may share the same node as a CPU, and others
-+are provided as memory only nodes. While memory only nodes do not provide
-+CPUs, they may still be local to one or more compute nodes relative to
-+other nodes. The following diagram shows one such example of two compute
-+nodes with local memory and a memory only node for each of compute node:
-+
-+ +------------------+     +------------------+
-+ | Compute Node 0   +-----+ Compute Node 1   |
-+ | Local Node0 Mem  |     | Local Node1 Mem  |
-+ +--------+---------+     +--------+---------+
-+          |                        |
-+ +--------+---------+     +--------+---------+
-+ | Slower Node2 Mem |     | Slower Node3 Mem |
-+ +------------------+     +--------+---------+
-+
-+A "memory initiator" is a node containing one or more devices such as
-+CPUs or separate memory I/O devices that can initiate memory requests.
-+A "memory target" is a node containing one or more physical address
-+ranges accessible from one or more memory initiators.
-+
-+When multiple memory initiators exist, they may not all have the same
-+performance when accessing a given memory target. Each initiator-target
-+pair may be organized into different ranked access classes to represent
-+this relationship. The highest performing initiator to a given target
-+is considered to be one of that target's local initiators, and given
-+the highest access class, 0. Any given target may have one or more
-+local initiators, and any given initiator may have multiple local
-+memory targets.
-+
-+To aid applications matching memory targets with their initiators, the
-+kernel provides symlinks to each other. The following example lists the
-+relationship for the access class "0" memory initiators and targets, which is
-+the of nodes with the highest performing access relationship::
-+
-+	# symlinks -v /sys/devices/system/node/nodeX/access0/targets/
-+	relative: /sys/devices/system/node/nodeX/access0/targets/nodeY -> ../../nodeY
-+
-+	# symlinks -v /sys/devices/system/node/nodeY/access0/initiators/
-+	relative: /sys/devices/system/node/nodeY/access0/initiators/nodeX -> ../../nodeX
-+
-+================
-+NUMA Performance
-+================
-+
-+Applications may wish to consider which node they want their memory to
-+be allocated from based on the node's performance characteristics. If
-+the system provides these attributes, the kernel exports them under the
-+node sysfs hierarchy by appending the attributes directory under the
-+memory node's access class 0 initiators as follows::
-+
-+	/sys/devices/system/node/nodeY/access0/initiators/
-+
-+These attributes apply only when accessed from nodes that have the
-+are linked under the this access's inititiators.
-+
-+The performance characteristics the kernel provides for the local initiators
-+are exported are as follows::
-+
-+	# tree -P "read*|write*" /sys/devices/system/node/nodeY/access0/initiators/
-+	/sys/devices/system/node/nodeY/access0/initiators/
-+	|-- read_bandwidth
-+	|-- read_latency
-+	|-- write_bandwidth
-+	`-- write_latency
-+
-+The bandwidth attributes are provided in MiB/second.
-+
-+The latency attributes are provided in nanoseconds.
-+
-+The values reported here correspond to the rated latency and bandwidth
-+for the platform.
-+
-+==========
-+NUMA Cache
-+==========
-+
-+System memory may be constructed in a hierarchy of elements with various
-+performance characteristics in order to provide large address space of
-+slower performing memory cached by a smaller higher performing memory. The
-+system physical addresses memory  initiators are aware of are provided
-+by the last memory level in the hierarchy. The system meanwhile uses
-+higher performing memory to transparently cache access to progressively
-+slower levels.
-+
-+The term "far memory" is used to denote the last level memory in the
-+hierarchy. Each increasing cache level provides higher performing
-+initiator access, and the term "near memory" represents the fastest
-+cache provided by the system.
-+
-+This numbering is different than CPU caches where the cache level (ex:
-+L1, L2, L3) uses a CPU-side view where each increased level is lower
-+performing. In contrast, the memory cache level is centric to the last
-+level memory, so the higher numbered cache level denotes memory nearer
-+to the CPU, and further from far memory.
-+
-+The memory-side caches are not directly addressable by software. When
-+software accesses a system address, the system will return it from the
-+near memory cache if it is present. If it is not present, the system
-+accesses the next level of memory until there is either a hit in that
-+cache level, or it reaches far memory.
-+
-+An application does not need to know about caching attributes in order
-+to use the system. Software may optionally query the memory cache
-+attributes in order to maximize the performance out of such a setup.
-+If the system provides a way for the kernel to discover this information,
-+for example with ACPI HMAT (Heterogeneous Memory Attribute Table),
-+the kernel will append these attributes to the NUMA node memory target.
-+
-+When the kernel first registers a memory cache with a node, the kernel
-+will create the following directory::
-+
-+	/sys/devices/system/node/nodeX/memory_side_cache/
-+
-+If that directory is not present, the system either does not not provide
-+a memory-side cache, or that information is not accessible to the kernel.
-+
-+The attributes for each level of cache is provided under its cache
-+level index::
-+
-+	/sys/devices/system/node/nodeX/memory_side_cache/indexA/
-+	/sys/devices/system/node/nodeX/memory_side_cache/indexB/
-+	/sys/devices/system/node/nodeX/memory_side_cache/indexC/
-+
-+Each cache level's directory provides its attributes. For example, the
-+following shows a single cache level and the attributes available for
-+software to query::
-+
-+	# tree sys/devices/system/node/node0/memory_side_cache/
-+	/sys/devices/system/node/node0/memory_side_cache/
-+	|-- index1
-+	|   |-- associativity
-+	|   |-- line_size
-+	|   |-- size
-+	|   `-- write_policy
-+
-+The "associativity" will be 0 if it is a direct-mapped cache, and non-zero
-+for any other indexed based, multi-way associativity.
-+
-+The "line_size" is the number of bytes accessed from the next cache
-+level on a miss.
-+
-+The "size" is the number of bytes provided by this cache level.
-+
-+The "write_policy" will be 0 for write-back, and non-zero for
-+write-through caching.
-+
-+========
-+See Also
-+========
-+.. [1] https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
-+       Section 5.2.27
--- 
-2.14.4
+Will
