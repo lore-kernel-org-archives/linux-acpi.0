@@ -1,112 +1,118 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv6 00/10] Heterogenous memory node attributes
-Date: Thu, 14 Feb 2019 10:10:07 -0700
-Message-ID: <20190214171017.9362-1-keith.busch@intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [RFC 2/3] arm_pmu: acpi: spe: Add initial MADT/SPE probing
+Date: Thu, 14 Feb 2019 12:03:57 -0600
+Message-ID: <c740a06e-d5d3-3e42-d19b-fbfea02ac0e7@arm.com>
+References: <20190209004718.3292087-1-jeremy.linton@arm.com>
+ <20190209004718.3292087-3-jeremy.linton@arm.com>
+ <20190214171125.GG2475@fuggles.cambridge.arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190214171125.GG2475@fuggles.cambridge.arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, catalin.marinas@arm.com, mark.rutland@arm.com, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-== Changes since v5 ==
+Hi,
 
-  Updated HMAT parsing to account for the recently released ACPI 6.3
-  changes.
+Thanks for taking a look at this..
 
-  HMAT attribute calculation overflow checks.
+On 2/14/19 11:11 AM, Will Deacon wrote:
+> Hi Jeremy,
+> 
+> On Fri, Feb 08, 2019 at 06:47:17PM -0600, Jeremy Linton wrote:
+>> ACPI 6.3 adds additional fields to the MADT GICC
+>> structure to describe SPE PPI's. We pick these out
+>> of the cached reference to the madt_gicc structure
+>> similarly to the core PMU code. We then create a platform
+>> device referring to the IRQ and let the user/module loader
+>> decide whether to load the SPE driver.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   arch/arm64/include/asm/acpi.h |  3 ++
+>>   drivers/perf/arm_pmu_acpi.c   | 67 +++++++++++++++++++++++++++++++++++
+>>   2 files changed, 70 insertions(+)
+>>
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>> index 2def77ec14be..f9f9f2eb5d54 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -40,6 +40,9 @@
+>>   	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
+>>   	(unsigned long)(entry) + (entry)->header.length > (end))
+>>   
+>> +#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
+>> +	spe_overflow_interrupt) + sizeof(u16))
+>> +
+>>   /* Basic configuration for ACPI */
+>>   #ifdef	CONFIG_ACPI
+>>   pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
+>> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+>> index 0f197516d708..725d413b47dc 100644
+>> --- a/drivers/perf/arm_pmu_acpi.c
+>> +++ b/drivers/perf/arm_pmu_acpi.c
+>> @@ -74,6 +74,71 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
+>>   	acpi_unregister_gsi(gsi);
+>>   }
+>>   
+>> +static struct resource spe_resources[] = {
+>> +	{
+>> +		/* irq */
+>> +		.flags          = IORESOURCE_IRQ,
+>> +	}
+>> +};
+>> +
+>> +static struct platform_device spe_dev = {
+>> +	.name = "arm,spe-v1",
+>> +	.id = -1,
+>> +	.resource = spe_resources,
+>> +	.num_resources = ARRAY_SIZE(spe_resources)
+>> +};
+>> +
+>> +/*
+>> + * For lack of a better place, hook the normal PMU MADT walk
+>> + * and create a SPE device if we detect a recent MADT with
+>> + * a homogeneous PPI mapping.
+>> + */
+>> +static int arm_spe_acpi_parse_irqs(void)
+>> +{
+>> +	int cpu, ret, irq;
+>> +	u16 gsi = 0;
+>> +	bool first = true;
+>> +
+>> +	struct acpi_madt_generic_interrupt *gicc;
+>> +
+>> +	/*
+>> +	 * sanity check all the GICC tables for the same interrupt number
+>> +	 * for now we only support homogeneous ACPI/SPE machines.
+>> +	 */
+>> +	for_each_possible_cpu(cpu) {
+>> +		gicc = acpi_cpu_get_madt_gicc(cpu);
+>> +
+>> +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
+>> +			return -ENODEV;
+>> +
+>> +		if (first) {
+>> +			gsi = gicc->spe_overflow_interrupt;
+>> +			if (!gsi)
+>> +				return -ENODEV;
+>> +			first = false;
+>> +		} else if (gsi != gicc->spe_overflow_interrupt) {
+>> +			pr_warn("ACPI: SPE must have homogeneous interrupts\n");
+>> +			return -EINVAL;
+>> +		}
+> 
+> Unfortunately, I don't think this is sufficient to detect a homogeneous
+> system: we'll have to check the MIDRs instead, which is nasty. I would
+> personally be in favour of enforcing homogeneity for ACPI systems when we
+> bring up secondary CPUs, but I suspect others would disagree.
 
-  Fixed memory leak if HMAT parse fails.
+Given that all the SPE capable machines i'm aware of at the moment are 
+homogeneous, are we ok with just doing an online CPU MIDR check for now, 
+and cleaning that up if/when someone builds a machine and complains?
 
-  Minor change to the patch order. All the base node attributes occur
-  before HMAT usage for these new node attributes to resolve a
-  dependency on a new struct.
-
-  Reporting failures to parse HMAT or allocate structures are elevated
-  to a NOTICE level from DEBUG. Any failure will result in just one
-  print so that it is obvious something may need to be investigated
-  rather than silently fail, but also not to be too alarming either.
-
-  Determining the cpu and memory node local relationships is quite
-  different this time (PATCH 7/10). The local relationship to a memory
-  target will be either *only* the node from the Initiator Proximity
-  Domain if provided, or if it is not provided, all the nodes that have
-  the same highest performance. Latency was chosen to take prioirty over
-  bandwidth when ranking performance.
-
-  Renamed "side_cache" to "memory_side_cache". The previous name was
-  ambiguous.
-
-  Removed "level" as an exported cache attribute. It was redundant with
-  the directory name anyway.
-
-  Minor changelog updates, added received reviews, and documentation
-  fixes.
-
-Just want to point out that I am sticking with struct device
-instead of using struct kobject embedded in the attribute tracking
-structures. Previous feedback was leaning either way on this point.
-
-== Background ==
-
-Platforms may provide multiple types of cpu attached system memory. The
-memory ranges for each type may have different characteristics that
-applications may wish to know about when considering what node they want
-their memory allocated from. 
-
-It had previously been difficult to describe these setups as memory
-rangers were generally lumped into the NUMA node of the CPUs. New
-platform attributes have been created and in use today that describe
-the more complex memory hierarchies that can be created.
-
-This series' objective is to provide the attributes from such systems
-that are useful for applications to know about, and readily usable with
-existing tools and libraries. Those applications may query performance
-attributes relative to a particular CPU they're running on in order to
-make more informed choices for where they want to allocate hot and cold
-data. This works with mbind() or the numactl library.
-
-Keith Busch (10):
-  acpi: Create subtable parsing infrastructure
-  acpi: Add HMAT to generic parsing tables
-  acpi/hmat: Parse and report heterogeneous memory
-  node: Link memory nodes to their compute nodes
-  node: Add heterogenous memory access attributes
-  node: Add memory-side caching attributes
-  acpi/hmat: Register processor domain to its memory
-  acpi/hmat: Register performance attributes
-  acpi/hmat: Register memory side cache attributes
-  doc/mm: New documentation for memory performance
-
- Documentation/ABI/stable/sysfs-devices-node   |  89 +++-
- Documentation/admin-guide/mm/numaperf.rst     | 164 +++++++
- arch/arm64/kernel/acpi_numa.c                 |   2 +-
- arch/arm64/kernel/smp.c                       |   4 +-
- arch/ia64/kernel/acpi.c                       |  12 +-
- arch/x86/kernel/acpi/boot.c                   |  36 +-
- drivers/acpi/Kconfig                          |   1 +
- drivers/acpi/Makefile                         |   1 +
- drivers/acpi/hmat/Kconfig                     |   9 +
- drivers/acpi/hmat/Makefile                    |   1 +
- drivers/acpi/hmat/hmat.c                      | 677 ++++++++++++++++++++++++++
- drivers/acpi/numa.c                           |  16 +-
- drivers/acpi/scan.c                           |   4 +-
- drivers/acpi/tables.c                         |  76 ++-
- drivers/base/Kconfig                          |   8 +
- drivers/base/node.c                           | 351 ++++++++++++-
- drivers/irqchip/irq-gic-v2m.c                 |   2 +-
- drivers/irqchip/irq-gic-v3-its-pci-msi.c      |   2 +-
- drivers/irqchip/irq-gic-v3-its-platform-msi.c |   2 +-
- drivers/irqchip/irq-gic-v3-its.c              |   6 +-
- drivers/irqchip/irq-gic-v3.c                  |  10 +-
- drivers/irqchip/irq-gic.c                     |   4 +-
- drivers/mailbox/pcc.c                         |   2 +-
- include/linux/acpi.h                          |   6 +-
- include/linux/node.h                          |  60 ++-
- 25 files changed, 1480 insertions(+), 65 deletions(-)
- create mode 100644 Documentation/admin-guide/mm/numaperf.rst
- create mode 100644 drivers/acpi/hmat/Kconfig
- create mode 100644 drivers/acpi/hmat/Makefile
- create mode 100644 drivers/acpi/hmat/hmat.c
-
--- 
-2.14.4
+Thanks,
