@@ -1,118 +1,45 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH][RFC] ACPI: add "processor.broadcast_ppc" hook to
- broadcast  _PPC to all online CPUs
-Date: Thu, 14 Feb 2019 12:36:48 +0530
-Message-ID: <20190214070648.pvsavc46iivub4hy@vireshk-i7>
-References: <20190209120232.21582-1-yu.c.chen@intel.com>
- <20190211103307.rccddkso3f5s3yko@vireshk-i7>
- <20190213165538.GB30385@chenyu-office.sh.intel.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v6 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
+ 162001800 quirk
+Date: Thu, 14 Feb 2019 15:29:41 +0800
+Message-ID: <91fa1e08-a905-90a9-3577-fa3486bb951f@huawei.com>
+References: <20190204121324.11460-1-shameerali.kolothum.thodi@huawei.com>
+ <20190204121324.11460-5-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190213165538.GB30385@chenyu-office.sh.intel.com>
+In-Reply-To: <20190204121324.11460-5-shameerali.kolothum.thodi@huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yu Chen <yu.c.chen@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, robin.murphy@arm.com
+Cc: andrew.murray@arm.com, jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 14-02-19, 00:55, Yu Chen wrote:
-> Hi Viresh,
-> On Mon, Feb 11, 2019 at 04:03:07PM +0530, Viresh Kumar wrote:
-> > On 09-02-19, 20:02, Chen Yu wrote:
-> > > On Dell Inc. XPS13 9333, the BIOS changes the value of
-> > > MSR_IA32_MISC_ENABLE_TURBO_DISABLE at runtime (e.g., when
-> > > the power source changes), the maximum frequency of the
-> > > CPU is not updated accordingly. This is due to the policy's
-> > > cpuinfo.max is not updated when _PPC notifier fires.
-> > > 
-> > > Fix this problem by updating the policy's cpuinfo.max
-> > > and broadcast the _PPC notifier to all online CPUs.
-> > > 
-> > > Link: https://bugzilla.kernel.org/show_bug.cgi?id=200759
-> > > Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-> > > Originally-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> > > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> > > ---
-> > >  drivers/acpi/processor_perflib.c | 16 ++++++++++++++--
-> > >  drivers/cpufreq/cpufreq.c        |  2 ++
-> > >  drivers/cpufreq/intel_pstate.c   | 15 ++++++++++++++-
-> > >  3 files changed, 30 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> > > index a303fd0e108c..737dbf5aa7f7 100644
-> > > --- a/drivers/acpi/processor_perflib.c
-> > > +++ b/drivers/acpi/processor_perflib.c
-> > > @@ -63,6 +63,10 @@ module_param(ignore_ppc, int, 0644);
-> > >  MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
-> > >  		 "limited by BIOS, this should help");
-> > >  
-> > > +static int broadcast_ppc;
-> > > +module_param(broadcast_ppc, int, 0644);
-> > > +MODULE_PARM_DESC(broadcast_ppc, "Broadcast the ppc to all online CPUs");
-> > > +
-> > >  #define PPC_REGISTERED   1
-> > >  #define PPC_IN_USE       2
-> > >  
-> > > @@ -180,8 +184,16 @@ void acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag)
-> > >  		else
-> > >  			acpi_processor_ppc_ost(pr->handle, 0);
-> > >  	}
-> > > -	if (ret >= 0)
-> > > -		cpufreq_update_policy(pr->id);
-> > > +	if (ret >= 0) {
-> > > +		if (broadcast_ppc) {
-> > > +			int cpu;
-> > > +
-> > > +			for_each_possible_cpu(cpu)
-> > > +				cpufreq_update_policy(cpu);
-> > > +		} else {
-> > > +			cpufreq_update_policy(pr->id);
-> > > +		}
-> > > +	}
-> > >  }
-> > >  
-> > >  int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
-> > > diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> > > index e35a886e00bc..95e08816b512 100644
-> > > --- a/drivers/cpufreq/cpufreq.c
-> > > +++ b/drivers/cpufreq/cpufreq.c
-> > > @@ -2237,6 +2237,8 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
-> > >  
-> > >  	policy->min = new_policy->min;
-> > >  	policy->max = new_policy->max;
-> > > +	policy->cpuinfo.max_freq = new_policy->cpuinfo.max_freq;
-> > > +	policy->cpuinfo.min_freq = new_policy->cpuinfo.min_freq;
-> > >  	trace_cpu_frequency_limits(policy);
-> > >  
-> > >  	policy->cached_target_freq = UINT_MAX;
-> > > diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-> > > index dd66decf2087..e1881313c396 100644
-> > > --- a/drivers/cpufreq/intel_pstate.c
-> > > +++ b/drivers/cpufreq/intel_pstate.c
-> > > @@ -2081,11 +2081,24 @@ static void intel_pstate_adjust_policy_max(struct cpufreq_policy *policy,
-> > >  
-> > >  static int intel_pstate_verify_policy(struct cpufreq_policy *policy)
-> > >  {
-> > > +	int max_freq;
-> > >  	struct cpudata *cpu = all_cpu_data[policy->cpu];
-> > >  
-> > >  	update_turbo_state();
-> > > +	max_freq = intel_pstate_get_max_freq(cpu);
-> > > +
-> > > +	if (acpi_ppc && policy->max == policy->cpuinfo.max_freq &&
-> > 
-> > Why do have this check for policy->max here ?
-> >
-> Thanks for looking at this change, I've replied to another email in detail of
-> the scenario that, this is due to corner case that if the system boots
-> with battery and plug the AC after boot up, the cpufreq max limit will not
-> increase even the turbo has been enabled after the AC plugged.
+On 2019/2/4 20:13, Shameer Kolothum wrote:
+> HiSilicon erratum 162001800 describes the limitation of
+> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
+> 
+> On these platforms, the PMCG event counter registers
+> (SMMU_PMCG_EVCNTRn) are read only and as a result it
+> is not possible to set the initial counter period value
+> on event monitor start.
+> 
+> To work around this, the current value of the counter
+> is read and used for delta calculations. OEM information
+> from ACPI header is used to identify the affected hardware
+> platforms.
+> 
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
+>  drivers/perf/arm_smmuv3_pmu.c | 48 ++++++++++++++++++++++++++++++++++++-------
+>  include/linux/acpi_iort.h     |  1 +
+>  3 files changed, 57 insertions(+), 8 deletions(-)
 
-Yeah, but I asked a different question I believe, why is this
-comparison necessary ?
+For this patch,
 
-policy->max == policy->cpuinfo.max_freq
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
--- 
-viresh
+Thanks
+Hanjun
