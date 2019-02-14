@@ -1,107 +1,310 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [RFC 2/3] arm_pmu: acpi: spe: Add initial MADT/SPE probing
-Date: Thu, 14 Feb 2019 17:11:25 +0000
-Message-ID: <20190214171125.GG2475@fuggles.cambridge.arm.com>
-References: <20190209004718.3292087-1-jeremy.linton@arm.com>
- <20190209004718.3292087-3-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Keith Busch <keith.busch@intel.com>
+Subject: [PATCHv6 06/10] node: Add memory-side caching attributes
+Date: Thu, 14 Feb 2019 10:10:13 -0700
+Message-ID: <20190214171017.9362-7-keith.busch@intel.com>
+References: <20190214171017.9362-1-keith.busch@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190209004718.3292087-3-jeremy.linton@arm.com>
+In-Reply-To: <20190214171017.9362-1-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, catalin.marinas@arm.com, mark.rutland@arm.com, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jeremy,
+System memory may have caches to help improve access speed to frequently
+requested address ranges. While the system provided cache is transparent
+to the software accessing these memory ranges, applications can optimize
+their own access based on cache attributes.
 
-On Fri, Feb 08, 2019 at 06:47:17PM -0600, Jeremy Linton wrote:
-> ACPI 6.3 adds additional fields to the MADT GICC
-> structure to describe SPE PPI's. We pick these out
-> of the cached reference to the madt_gicc structure
-> similarly to the core PMU code. We then create a platform
-> device referring to the IRQ and let the user/module loader
-> decide whether to load the SPE driver.
-> 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  arch/arm64/include/asm/acpi.h |  3 ++
->  drivers/perf/arm_pmu_acpi.c   | 67 +++++++++++++++++++++++++++++++++++
->  2 files changed, 70 insertions(+)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 2def77ec14be..f9f9f2eb5d54 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -40,6 +40,9 @@
->  	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
->  	(unsigned long)(entry) + (entry)->header.length > (end))
->  
-> +#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
-> +	spe_overflow_interrupt) + sizeof(u16))
-> +
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
->  pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
-> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-> index 0f197516d708..725d413b47dc 100644
-> --- a/drivers/perf/arm_pmu_acpi.c
-> +++ b/drivers/perf/arm_pmu_acpi.c
-> @@ -74,6 +74,71 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
->  	acpi_unregister_gsi(gsi);
->  }
->  
-> +static struct resource spe_resources[] = {
-> +	{
-> +		/* irq */
-> +		.flags          = IORESOURCE_IRQ,
-> +	}
-> +};
-> +
-> +static struct platform_device spe_dev = {
-> +	.name = "arm,spe-v1",
-> +	.id = -1,
-> +	.resource = spe_resources,
-> +	.num_resources = ARRAY_SIZE(spe_resources)
-> +};
-> +
-> +/*
-> + * For lack of a better place, hook the normal PMU MADT walk
-> + * and create a SPE device if we detect a recent MADT with
-> + * a homogeneous PPI mapping.
-> + */
-> +static int arm_spe_acpi_parse_irqs(void)
-> +{
-> +	int cpu, ret, irq;
-> +	u16 gsi = 0;
-> +	bool first = true;
-> +
-> +	struct acpi_madt_generic_interrupt *gicc;
-> +
-> +	/*
-> +	 * sanity check all the GICC tables for the same interrupt number
-> +	 * for now we only support homogeneous ACPI/SPE machines.
-> +	 */
-> +	for_each_possible_cpu(cpu) {
-> +		gicc = acpi_cpu_get_madt_gicc(cpu);
-> +
-> +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
-> +			return -ENODEV;
-> +
-> +		if (first) {
-> +			gsi = gicc->spe_overflow_interrupt;
-> +			if (!gsi)
-> +				return -ENODEV;
-> +			first = false;
-> +		} else if (gsi != gicc->spe_overflow_interrupt) {
-> +			pr_warn("ACPI: SPE must have homogeneous interrupts\n");
-> +			return -EINVAL;
-> +		}
+Provide a new API for the kernel to register these memory-side caches
+under the memory node that provides it.
 
-Unfortunately, I don't think this is sufficient to detect a homogeneous
-system: we'll have to check the MIDRs instead, which is nasty. I would
-personally be in favour of enforcing homogeneity for ACPI systems when we
-bring up secondary CPUs, but I suspect others would disagree.
+The new sysfs representation is modeled from the existing cpu cacheinfo
+attributes, as seen from /sys/devices/system/cpu/<cpu>/cache/.  Unlike CPU
+cacheinfo though, the node cache level is reported from the view of the
+memory. A higher level number is nearer to the CPU, while lower levels
+are closer to the last level memory.
 
-Will
+The exported attributes are the cache size, the line size, associativity,
+and write back policy, and add the attributes for the system memory
+caches to sysfs stable documentation.
+
+Signed-off-by: Keith Busch <keith.busch@intel.com>
+---
+ Documentation/ABI/stable/sysfs-devices-node |  35 +++++++
+ drivers/base/node.c                         | 151 ++++++++++++++++++++++++++++
+ include/linux/node.h                        |  34 +++++++
+ 3 files changed, 220 insertions(+)
+
+diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
+index cd64b62152ba..5c88cb9ca14e 100644
+--- a/Documentation/ABI/stable/sysfs-devices-node
++++ b/Documentation/ABI/stable/sysfs-devices-node
+@@ -143,3 +143,38 @@ Contact:	Keith Busch <keith.busch@intel.com>
+ Description:
+ 		This node's write latency in nanoseconds when access
+ 		from nodes found in this class's linked initiators.
++
++What:		/sys/devices/system/node/nodeX/memory_side_cache/indexY/
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		The directory containing attributes for the memory-side cache
++		level 'Y'.
++
++		The caches associativity: 0 for direct mapped, non-zero if
++What:		/sys/devices/system/node/nodeX/memory_side_cache/indexY/associativity
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		The caches associativity: 0 for direct mapped, non-zero if
++		indexed.
++
++What:		/sys/devices/system/node/nodeX/memory_side_cache/indexY/line_size
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		The number of bytes accessed from the next cache level on a
++		cache miss.
++
++What:		/sys/devices/system/node/nodeX/memory_side_cache/indexY/size
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		The size of this memory side cache in bytes.
++
++What:		/sys/devices/system/node/nodeX/memory_side_cache/indexY/write_policy
++Date:		December 2018
++Contact:	Keith Busch <keith.busch@intel.com>
++Description:
++		The cache write policy: 0 for write-back, 1 for write-through,
++		other or unknown.
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index a1795c9c9f7d..575bad0e910d 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -205,6 +205,155 @@ void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
+ 		}
+ 	}
+ }
++
++/**
++ * struct node_cache_info - Internal tracking for memory node caches
++ * @dev:	Device represeting the cache level
++ * @node:	List element for tracking in the node
++ * @cache_attrs:Attributes for this cache level
++ */
++struct node_cache_info {
++	struct device dev;
++	struct list_head node;
++	struct node_cache_attrs cache_attrs;
++};
++#define to_cache_info(device) container_of(device, struct node_cache_info, dev)
++
++#define CACHE_ATTR(name, fmt) 						\
++static ssize_t name##_show(struct device *dev,				\
++			   struct device_attribute *attr,		\
++			   char *buf)					\
++{									\
++	return sprintf(buf, fmt "\n", to_cache_info(dev)->cache_attrs.name);\
++}									\
++DEVICE_ATTR_RO(name);
++
++CACHE_ATTR(size, "%llu")
++CACHE_ATTR(line_size, "%u")
++CACHE_ATTR(associativity, "%u")
++CACHE_ATTR(write_policy, "%u")
++
++static struct attribute *cache_attrs[] = {
++	&dev_attr_associativity.attr,
++	&dev_attr_size.attr,
++	&dev_attr_line_size.attr,
++	&dev_attr_write_policy.attr,
++	NULL,
++};
++ATTRIBUTE_GROUPS(cache);
++
++static void node_cache_release(struct device *dev)
++{
++	kfree(dev);
++}
++
++static void node_cacheinfo_release(struct device *dev)
++{
++	struct node_cache_info *info = to_cache_info(dev);
++	kfree(info);
++}
++
++static void node_init_cache_dev(struct node *node)
++{
++	struct device *dev;
++
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev)
++		return;
++
++	dev->parent = &node->dev;
++	dev->release = node_cache_release;
++	if (dev_set_name(dev, "memory_side_cache"))
++		goto free_dev;
++
++	if (device_register(dev))
++		goto free_name;
++
++	pm_runtime_no_callbacks(dev);
++	node->cache_dev = dev;
++	return;
++free_name:
++	kfree_const(dev->kobj.name);
++free_dev:
++	kfree(dev);
++}
++
++/**
++ * node_add_cache() - add cache attribute to a memory node
++ * @nid: Node identifier that has new cache attributes
++ * @cache_attrs: Attributes for the cache being added
++ */
++void node_add_cache(unsigned int nid, struct node_cache_attrs *cache_attrs)
++{
++	struct node_cache_info *info;
++	struct device *dev;
++	struct node *node;
++
++	if (!node_online(nid) || !node_devices[nid])
++		return;
++
++	node = node_devices[nid];
++	list_for_each_entry(info, &node->cache_attrs, node) {
++		if (info->cache_attrs.level == cache_attrs->level) {
++			dev_warn(&node->dev,
++				"attempt to add duplicate cache level:%d\n",
++				cache_attrs->level);
++			return;
++		}
++	}
++
++	if (!node->cache_dev)
++		node_init_cache_dev(node);
++	if (!node->cache_dev)
++		return;
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info)
++		return;
++
++	dev = &info->dev;
++	dev->parent = node->cache_dev;
++	dev->release = node_cacheinfo_release;
++	dev->groups = cache_groups;
++	if (dev_set_name(dev, "index%d", cache_attrs->level))
++		goto free_cache;
++
++	info->cache_attrs = *cache_attrs;
++	if (device_register(dev)) {
++		dev_warn(&node->dev, "failed to add cache level:%d\n",
++			 cache_attrs->level);
++		goto free_name;
++	}
++	pm_runtime_no_callbacks(dev);
++	list_add_tail(&info->node, &node->cache_attrs);
++	return;
++free_name:
++	kfree_const(dev->kobj.name);
++free_cache:
++	kfree(info);
++}
++
++static void node_remove_caches(struct node *node)
++{
++	struct node_cache_info *info, *next;
++
++	if (!node->cache_dev)
++		return;
++
++	list_for_each_entry_safe(info, next, &node->cache_attrs, node) {
++		list_del(&info->node);
++		device_unregister(&info->dev);
++	}
++	device_unregister(node->cache_dev);
++}
++
++static void node_init_caches(unsigned int nid)
++{
++	INIT_LIST_HEAD(&node_devices[nid]->cache_attrs);
++}
++#else
++static void node_init_caches(unsigned int nid) { }
++static void node_remove_caches(struct node *node) { }
+ #endif
+ 
+ #define K(x) ((x) << (PAGE_SHIFT - 10))
+@@ -489,6 +638,7 @@ void unregister_node(struct node *node)
+ {
+ 	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
+ 	node_remove_accesses(node);
++	node_remove_caches(node);
+ 	device_unregister(&node->dev);
+ }
+ 
+@@ -780,6 +930,7 @@ int __register_one_node(int nid)
+ 	INIT_LIST_HEAD(&node_devices[nid]->access_list);
+ 	/* initialize work queue for memory hot plug */
+ 	init_node_hugetlb_work(nid);
++	node_init_caches(nid);
+ 
+ 	return error;
+ }
+diff --git a/include/linux/node.h b/include/linux/node.h
+index 2db077363d9c..9c88095b65c6 100644
+--- a/include/linux/node.h
++++ b/include/linux/node.h
+@@ -37,6 +37,36 @@ struct node_hmem_attrs {
+ };
+ void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
+ 			 unsigned access);
++
++enum cache_associativity {
++	NODE_CACHE_DIRECT_MAP,
++	NODE_CACHE_INDEXED,
++	NODE_CACHE_OTHER,
++};
++
++enum cache_write_policy {
++	NODE_CACHE_WRITE_BACK,
++	NODE_CACHE_WRITE_THROUGH,
++	NODE_CACHE_WRITE_OTHER,
++};
++
++/**
++ * struct node_cache_attrs - system memory caching attributes
++ *
++ * @associativity:	The ways memory blocks may be placed in cache
++ * @write_policy:	Write back or write through policy
++ * @size:		Total size of cache in bytes
++ * @line_size:		Number of bytes fetched on a cache miss
++ * @level:		The cache hierarchy level
++ */
++struct node_cache_attrs {
++	enum cache_associativity associativity;
++	enum cache_write_policy write_policy;
++	u64 size;
++	u16 line_size;
++	u8 level;
++};
++void node_add_cache(unsigned int nid, struct node_cache_attrs *cache_attrs);
+ #endif
+ 
+ struct node {
+@@ -45,6 +75,10 @@ struct node {
+ #if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HUGETLBFS)
+ 	struct work_struct	node_work;
+ #endif
++#ifdef CONFIG_HMEM_REPORTING
++	struct list_head cache_attrs;
++	struct device *cache_dev;
++#endif
+ };
+ 
+ struct memory_block;
+-- 
+2.14.4
