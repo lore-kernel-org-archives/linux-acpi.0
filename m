@@ -1,181 +1,95 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH][RFC] ACPI: add "processor.broadcast_ppc" hook to
- broadcast _PPC to all online CPUs
-Date: Thu, 14 Feb 2019 11:21:13 +0100
-Message-ID: <CAJZ5v0j229PGxxwkhbVYfk+aPrTx=9LvTnMp8r3V3k+LfPkV1Q@mail.gmail.com>
-References: <20190209120232.21582-1-yu.c.chen@intel.com> <CAJZ5v0ggyrn7XJmoDP8Z8F_VJ67K0D4GCLJa7xWcX4gursOB5Q@mail.gmail.com>
- <20190213165242.GA30385@chenyu-office.sh.intel.com>
+Subject: Re: [PATCH v2 1/2] ACPI / CPPC: Add a helper to get desired performance
+Date: Thu, 14 Feb 2019 11:42:49 +0100
+Message-ID: <CAJZ5v0husvV--mD_8B9cXx6-rD1677s6zT6tcjwk3Dg-dNPAxw@mail.gmail.com>
+References: <1550130368-60513-1-git-send-email-wangxiongfeng2@huawei.com> <1550130368-60513-2-git-send-email-wangxiongfeng2@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213165242.GA30385@chenyu-office.sh.intel.com>
+In-Reply-To: <1550130368-60513-2-git-send-email-wangxiongfeng2@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yu Chen <yu.c.chen@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, gcherianv@gmail.com, Prashanth Prakash <pprakash@codeaurora.org>, George Cherian <george.cherian@cavium.com>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
- On Wed, Feb 13, 2019 at 5:44 PM Yu Chen <yu.c.chen@intel.com> wrote:
+On Thu, Feb 14, 2019 at 8:46 AM Xiongfeng Wang
+<wangxiongfeng2@huawei.com> wrote:
 >
-> Hi Rafael,
-> On Mon, Feb 11, 2019 at 11:41:26AM +0100, Rafael J. Wysocki wrote:
-> > On Sat, Feb 9, 2019 at 12:54 PM Chen Yu <yu.c.chen@intel.com> wrote:
-> > >
-> > > On Dell Inc. XPS13 9333, the BIOS changes the value of
-> > > MSR_IA32_MISC_ENABLE_TURBO_DISABLE at runtime (e.g., when
-> > > the power source changes), the maximum frequency of the
-> > > CPU is not updated accordingly. This is due to the policy's
-> > > cpuinfo.max is not updated when _PPC notifier fires.
-> > >
-> > > Fix this problem by updating the policy's cpuinfo.max
-> > > and broadcast the _PPC notifier to all online CPUs.
-> > >
-> > > Link: https://bugzilla.kernel.org/show_bug.cgi?id=200759
-> > > Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-> > > Originally-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> > > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> > > ---
-> > >  drivers/acpi/processor_perflib.c | 16 ++++++++++++++--
-> > >  drivers/cpufreq/cpufreq.c        |  2 ++
-> > >  drivers/cpufreq/intel_pstate.c   | 15 ++++++++++++++-
-> > >  3 files changed, 30 insertions(+), 3 deletions(-)
-> > >
-> > > diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> > > index a303fd0e108c..737dbf5aa7f7 100644
-> > > --- a/drivers/acpi/processor_perflib.c
-> > > +++ b/drivers/acpi/processor_perflib.c
-> > > @@ -63,6 +63,10 @@ module_param(ignore_ppc, int, 0644);
-> > >  MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
-> > >                  "limited by BIOS, this should help");
-> > >
-> > > +static int broadcast_ppc;
-> > > +module_param(broadcast_ppc, int, 0644);
-> > > +MODULE_PARM_DESC(broadcast_ppc, "Broadcast the ppc to all online CPUs");
-> > > +
-> > >  #define PPC_REGISTERED   1
-> > >  #define PPC_IN_USE       2
-> > >
-> > > @@ -180,8 +184,16 @@ void acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag)
-> > >                 else
-> > >                         acpi_processor_ppc_ost(pr->handle, 0);
-> > >         }
-> > > -       if (ret >= 0)
-> > > -               cpufreq_update_policy(pr->id);
-> > > +       if (ret >= 0) {
-> > > +               if (broadcast_ppc) {
-> > > +                       int cpu;
-> > > +
-> > > +                       for_each_possible_cpu(cpu)
-> > > +                               cpufreq_update_policy(cpu);
-> > > +               } else {
-> > > +                       cpufreq_update_policy(pr->id);
-> > > +               }
-> > > +       }
-> > >  }
-> > >
-> > >  int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
-> > > diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> > > index e35a886e00bc..95e08816b512 100644
-> > > --- a/drivers/cpufreq/cpufreq.c
-> > > +++ b/drivers/cpufreq/cpufreq.c
-> > > @@ -2237,6 +2237,8 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
-> > >
-> > >         policy->min = new_policy->min;
-> > >         policy->max = new_policy->max;
-> > > +       policy->cpuinfo.max_freq = new_policy->cpuinfo.max_freq;
-> > > +       policy->cpuinfo.min_freq = new_policy->cpuinfo.min_freq;
-> > >         trace_cpu_frequency_limits(policy);
-> > >
-> > >         policy->cached_target_freq = UINT_MAX;
-> > > diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-> > > index dd66decf2087..e1881313c396 100644
-> > > --- a/drivers/cpufreq/intel_pstate.c
-> > > +++ b/drivers/cpufreq/intel_pstate.c
-> > > @@ -2081,11 +2081,24 @@ static void intel_pstate_adjust_policy_max(struct cpufreq_policy *policy,
-> > >
-> > >  static int intel_pstate_verify_policy(struct cpufreq_policy *policy)
-> > >  {
-> > > +       int max_freq;
-> > >         struct cpudata *cpu = all_cpu_data[policy->cpu];
-> > >
-> > >         update_turbo_state();
-> >
-> > Well, update_turbo_state() should handle the case at hand already.
-> >
-> > That's what it's for actually: It checks if
-> > MSR_IA32_MISC_ENABLE_TURBO_DISABLE is set and sets
-> > global.turbo_disabled is that's the case.
-> >
-> > Why isn't that sufficient?
-> >
-> update_turbo_state() changes the flag of global.turbo_diabled but we
-> need to also leverage it to adjust the policy.max accordingly. This is why
-> we add intel_pstate_get_max_freq() to get the updated max freq in
-> intel_pstate_verify_policy().
-
-Yes, that's why intel_pstate_verify_policy() passes the return value
-of intel_pstate_get_max_freq() as the second arg
-cpufreq_verify_within_limits(), so really my question was about why
-cpuinfo.max_freq needed to be updated (below).
-
-> > > +       max_freq = intel_pstate_get_max_freq(cpu);
-> > > +
-> > > +       if (acpi_ppc && policy->max == policy->cpuinfo.max_freq &&
-> > > +           max_freq != policy->cpuinfo.max_freq) {
-> > > +               /*
-> > > +                * System was not running under any constraints, but the
-> > > +                * current max possible frequency is changed. So reset
-> > > +                * policy limits.
-> > > +                */
-> > > +               policy->cpuinfo.max_freq = policy->max = max_freq;
-> > > +       }
-> >
-> > Why does policy->cpuinfo.max_freq need to be updated?
-> >
-> This is my understanding:
-> There's a corner case that, if the system boots with battery,
-> the max cpu frequency will not scale up if we plug the AC later.
-
-I see.  The *initial* cpuinfo.max_freq may be too low.  This part is
-missing from your patch changelog.
-
-The driver is not expected to update cpuinfo.max_freq after init.
-That may not actually break anything, even though it is racy in
-principle, but if it is done, it needs to be done in the "passive"
-mode too and that may be more problematic.
-
-Anyway, this is more fundamental than you seem to be thinking.
-
-> According to the log provided by Gabriele Mazzotta,  if the system
-> boot up with battery, then plug the AC after boot up, the max perf ratio
-> and policy->cpuinfo.max will remain 17 rather than increasing to
-> 30(when AC plugged thus turbo enabled):
+> This patch add a helper to get the value of desired performance
+> register.
 >
-> [   52.158810] CPU 0: _PPC is 6 - frequency  limited
-> [   52.158822] intel_pstate: set_policy cpuinfo.max 1700000 policy->max 1700000
-> [   52.158825] intel_pstate: cpu:0 max_state 30 min_policy_perf:8 max_policy_perf:17
-> [   52.158827] intel_pstate: cpu:0 global_min:8 global_max:30
-> [   52.158829] intel_pstate: cpu:0 max_perf_ratio:17 min_perf_ratio:8
+> Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+> ---
+>  drivers/acpi/cppc_acpi.c | 38 ++++++++++++++++++++++++++++++++++++++
+>  include/acpi/cppc_acpi.h |  1 +
+>  2 files changed, 39 insertions(+)
 >
-> This is caused by:
-> In current intel_pstate, there's only one chance for policy.cpuinfo.max to get updated
-> which is during boot up in __intel_pstate_cpu_init(). If the turbo status changes,
-> we might need to also update the policy->cpuinfo.max to tell user that the hardware
-> status has changed.
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 217a782..93588c5 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -1051,6 +1051,44 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+>  }
 >
-> So we give it a chance to adjust the policy.cpuinfo.max and policy.max in
-> cpufreq_driver->verify()  according to turbo status, this is what this patch mainly
-> aims to do.
->
-> Besides, since on this platform there's only one _PPC notification for one CPU, it is
-> necessary to broadcast the notification to all CPUs on this package. And this patch
-> broadcast it to all online CPUs to make the change simpler.
+>  /**
+> + * cppc_get_desired_perf - Get the value of desired performance register.
+> + * @cpunum: CPU from which to get desired performance.
+> + * @desired_perf: address of a variable to store the returned desired performance
+> + *
+> + * Return: 0 for success, -EIO otherwise.
+> + */
+> +int cppc_get_desired_perf(int cpunum, u64 *desired_perf)
+> +{
+> +       struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+> +       int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+> +       struct cpc_register_resource *desired_reg;
+> +       struct cppc_pcc_data *pcc_ss_data = NULL;
+> +       int regs_in_pcc = 0;
 
-You're trying to make two substantial changes in one go, broadcasting
-_PPC and updating cpuinfo.max_freq.  Don't do that, they need to be
-separate changes.
+It would be better to use bool here, but it would be even better to
+not try to avoid calling cpc_read() in two branches.
 
-Moreover, we may want to address the initial cpuinfo.max_freq issue in
-a different way.
+> +
+> +       desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+> +
+> +       if (CPC_IN_PCC(desired_reg)) {
 
-Thanks,
-Rafael
+    int ret = 0;
+
+> +               if (pcc_ss_id < 0)
+> +                       return -EIO;
+> +               pcc_ss_data = pcc_data[pcc_ss_id];
+> +               down_write(&pcc_ss_data->pcc_lock);
+
+    if (send_pcc_cmd(pcc_ss_id, CMD_READ) >= 0)
+            cpc_read(cpunum, desired_reg, desired_perf);
+    else
+            ret = -EIO;
+
+    up_write(&pcc_ss_data->pcc_lock);
+    return ret;
+
+> +               regs_in_pcc = 1;
+> +               if (send_pcc_cmd(pcc_ss_id, CMD_READ) < 0) {
+> +                       up_write(&pcc_ss_data->pcc_lock);
+> +                       return -EIO;
+> +               }
+> +       }
+
+cpc_read(cpunum, desired_reg, desired_perf);
+return 0;
+
+> +
+> +       cpc_read(cpunum, desired_reg, desired_perf);
+> +
+> +       if (regs_in_pcc)
+> +               up_write(&pcc_ss_data->pcc_lock);
+> +
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(cppc_get_desired_perf);
+> +
+> +/**
+>   * cppc_get_perf_caps - Get a CPUs performance capabilities.
+>   * @cpunum: CPU from which to get capabilities info.
+>   * @perf_caps: ptr to cppc_perf_caps. See cppc_acpi.h
