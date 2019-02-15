@@ -1,277 +1,67 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v6 1/4] acpi: arm64: add iort support for PMCG
-Date: Fri, 15 Feb 2019 11:52:45 +0000
-Message-ID: <20190215115245.GA29775@e107981-ln.cambridge.arm.com>
-References: <20190204121324.11460-1-shameerali.kolothum.thodi@huawei.com>
- <20190204121324.11460-2-shameerali.kolothum.thodi@huawei.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC 2/3] arm_pmu: acpi: spe: Add initial MADT/SPE probing
+Date: Fri, 15 Feb 2019 15:00:15 +0000
+Message-ID: <20190215150015.GA6803@fuggles.cambridge.arm.com>
+References: <20190209004718.3292087-1-jeremy.linton@arm.com>
+ <20190209004718.3292087-3-jeremy.linton@arm.com>
+ <20190214171125.GG2475@fuggles.cambridge.arm.com>
+ <c740a06e-d5d3-3e42-d19b-fbfea02ac0e7@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190204121324.11460-2-shameerali.kolothum.thodi@huawei.com>
+In-Reply-To: <c740a06e-d5d3-3e42-d19b-fbfea02ac0e7@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc: robin.murphy@arm.com, andrew.murray@arm.com, jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, catalin.marinas@arm.com, mark.rutland@arm.com, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 04, 2019 at 12:13:21PM +0000, Shameer Kolothum wrote:
-> From: Neil Leeder <nleeder@codeaurora.org>
+On Thu, Feb 14, 2019 at 12:03:57PM -0600, Jeremy Linton wrote:
+> On 2/14/19 11:11 AM, Will Deacon wrote:
+> > On Fri, Feb 08, 2019 at 06:47:17PM -0600, Jeremy Linton wrote:
+> > > +/*
+> > > + * For lack of a better place, hook the normal PMU MADT walk
+> > > + * and create a SPE device if we detect a recent MADT with
+> > > + * a homogeneous PPI mapping.
+> > > + */
+> > > +static int arm_spe_acpi_parse_irqs(void)
+> > > +{
+> > > +	int cpu, ret, irq;
+> > > +	u16 gsi = 0;
+> > > +	bool first = true;
+> > > +
+> > > +	struct acpi_madt_generic_interrupt *gicc;
+> > > +
+> > > +	/*
+> > > +	 * sanity check all the GICC tables for the same interrupt number
+> > > +	 * for now we only support homogeneous ACPI/SPE machines.
+> > > +	 */
+> > > +	for_each_possible_cpu(cpu) {
+> > > +		gicc = acpi_cpu_get_madt_gicc(cpu);
+> > > +
+> > > +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
+> > > +			return -ENODEV;
+> > > +
+> > > +		if (first) {
+> > > +			gsi = gicc->spe_overflow_interrupt;
+> > > +			if (!gsi)
+> > > +				return -ENODEV;
+> > > +			first = false;
+> > > +		} else if (gsi != gicc->spe_overflow_interrupt) {
+> > > +			pr_warn("ACPI: SPE must have homogeneous interrupts\n");
+> > > +			return -EINVAL;
+> > > +		}
+> > 
+> > Unfortunately, I don't think this is sufficient to detect a homogeneous
+> > system: we'll have to check the MIDRs instead, which is nasty. I would
+> > personally be in favour of enforcing homogeneity for ACPI systems when we
+> > bring up secondary CPUs, but I suspect others would disagree.
 > 
-> Add support for the SMMU Performance Monitor Counter Group
-> information from ACPI. This is in preparation for its use
-> in the SMMUv3 PMU driver.
+> Given that all the SPE capable machines i'm aware of at the moment are
+> homogeneous, are we ok with just doing an online CPU MIDR check for now, and
+> cleaning that up if/when someone builds a machine and complains?
 
-Also, in case I do not get a chance to update it, please run:
+Yeah, I think we added a new bit to the PPTT to tell you that the machine is
+homogenous, so just check that first and bail if it's not set.
 
-git log --oneline --no-merges drivers/acpi/arm64/iort.c
-
-You would notice incosistency in the $SUBJECT, fix it please.
-
-Thanks,
-Lorenzo
-
-> Signed-off-by: Neil Leeder <nleeder@codeaurora.org>
-> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> Reviewed-by: Robin Murphy <robin.murphy@arm.com>
-> ---
->  drivers/acpi/arm64/iort.c | 117 ++++++++++++++++++++++++++++++++++++----------
->  include/linux/acpi_iort.h |   6 +++
->  2 files changed, 99 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e48894e..e2c9b26 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -356,7 +356,8 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->  	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->  		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
->  		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
-> -		    node->type == ACPI_IORT_NODE_SMMU_V3) {
-> +		    node->type == ACPI_IORT_NODE_SMMU_V3 ||
-> +		    node->type == ACPI_IORT_NODE_PMCG) {
->  			*id_out = map->output_base;
->  			return parent;
->  		}
-> @@ -394,6 +395,8 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
->  		}
->  
->  		return smmu->id_mapping_index;
-> +	case ACPI_IORT_NODE_PMCG:
-> +		return 0;
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -1218,14 +1221,23 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
->  	}
->  }
->  
-> -static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
-> +static void __init arm_smmu_v3_dma_configure(struct device *dev,
-> +					     struct acpi_iort_node *node)
->  {
->  	struct acpi_iort_smmu_v3 *smmu;
-> +	enum dev_dma_attr attr;
->  
->  	/* Retrieve SMMUv3 specific data */
->  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
->  
-> -	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
-> +	attr = (smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE) ?
-> +			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
-> +
-> +	/* We expect the dma masks to be equivalent for all SMMUv3 set-ups */
-> +	dev->dma_mask = &dev->coherent_dma_mask;
-> +
-> +	/* Configure DMA for the page table walker */
-> +	acpi_dma_configure(dev, attr);
->  }
->  
->  #if defined(CONFIG_ACPI_NUMA)
-> @@ -1301,30 +1313,82 @@ static void __init arm_smmu_init_resources(struct resource *res,
->  	}
->  }
->  
-> -static bool __init arm_smmu_is_coherent(struct acpi_iort_node *node)
-> +static void __init arm_smmu_dma_configure(struct device *dev,
-> +					  struct acpi_iort_node *node)
->  {
->  	struct acpi_iort_smmu *smmu;
-> +	enum dev_dma_attr attr;
->  
->  	/* Retrieve SMMU specific data */
->  	smmu = (struct acpi_iort_smmu *)node->node_data;
->  
-> -	return smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK;
-> +	attr = (smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK) ?
-> +			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
-> +
-> +	/* We expect the dma masks to be equivalent for SMMU set-ups */
-> +	dev->dma_mask = &dev->coherent_dma_mask;
-> +
-> +	/* Configure DMA for the page table walker */
-> +	acpi_dma_configure(dev, attr);
-> +}
-> +
-> +static int __init arm_smmu_v3_pmcg_count_resources(struct acpi_iort_node *node)
-> +{
-> +	struct acpi_iort_pmcg *pmcg;
-> +
-> +	/* Retrieve PMCG specific data */
-> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
-> +
-> +	/*
-> +	 * There are always 2 memory resources.
-> +	 * If the overflow_gsiv is present then add that for a total of 3.
-> +	 */
-> +	return pmcg->overflow_gsiv ? 3 : 2;
-> +}
-> +
-> +static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
-> +						   struct acpi_iort_node *node)
-> +{
-> +	struct acpi_iort_pmcg *pmcg;
-> +
-> +	/* Retrieve PMCG specific data */
-> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
-> +
-> +	res[0].start = pmcg->page0_base_address;
-> +	res[0].end = pmcg->page0_base_address + SZ_4K - 1;
-> +	res[0].flags = IORESOURCE_MEM;
-> +	res[1].start = pmcg->page1_base_address;
-> +	res[1].end = pmcg->page1_base_address + SZ_4K - 1;
-> +	res[1].flags = IORESOURCE_MEM;
-> +
-> +	if (pmcg->overflow_gsiv)
-> +		acpi_iort_register_irq(pmcg->overflow_gsiv, "overflow",
-> +				       ACPI_EDGE_SENSITIVE, &res[2]);
-> +}
-> +
-> +static int __init arm_smmu_v3_pmcg_add_platdata(struct platform_device *pdev)
-> +{
-> +	u32 model = IORT_SMMU_V3_PMCG_GENERIC;
-> +
-> +	return platform_device_add_data(pdev, &model, sizeof(model));
->  }
->  
->  struct iort_dev_config {
->  	const char *name;
->  	int (*dev_init)(struct acpi_iort_node *node);
-> -	bool (*dev_is_coherent)(struct acpi_iort_node *node);
-> +	void (*dev_dma_configure)(struct device *dev,
-> +				  struct acpi_iort_node *node);
->  	int (*dev_count_resources)(struct acpi_iort_node *node);
->  	void (*dev_init_resources)(struct resource *res,
->  				     struct acpi_iort_node *node);
->  	void (*dev_set_proximity)(struct device *dev,
->  				    struct acpi_iort_node *node);
-> +	int (*dev_add_platdata)(struct platform_device *pdev);
->  };
->  
->  static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
->  	.name = "arm-smmu-v3",
-> -	.dev_is_coherent = arm_smmu_v3_is_coherent,
-> +	.dev_dma_configure = arm_smmu_v3_dma_configure,
->  	.dev_count_resources = arm_smmu_v3_count_resources,
->  	.dev_init_resources = arm_smmu_v3_init_resources,
->  	.dev_set_proximity = arm_smmu_v3_set_proximity,
-> @@ -1332,9 +1396,16 @@ static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
->  
->  static const struct iort_dev_config iort_arm_smmu_cfg __initconst = {
->  	.name = "arm-smmu",
-> -	.dev_is_coherent = arm_smmu_is_coherent,
-> +	.dev_dma_configure = arm_smmu_dma_configure,
->  	.dev_count_resources = arm_smmu_count_resources,
-> -	.dev_init_resources = arm_smmu_init_resources
-> +	.dev_init_resources = arm_smmu_init_resources,
-> +};
-> +
-> +static const struct iort_dev_config iort_arm_smmu_v3_pmcg_cfg __initconst = {
-> +	.name = "arm-smmu-v3-pmcg",
-> +	.dev_count_resources = arm_smmu_v3_pmcg_count_resources,
-> +	.dev_init_resources = arm_smmu_v3_pmcg_init_resources,
-> +	.dev_add_platdata = arm_smmu_v3_pmcg_add_platdata,
->  };
->  
->  static __init const struct iort_dev_config *iort_get_dev_cfg(
-> @@ -1345,6 +1416,8 @@ static __init const struct iort_dev_config *iort_get_dev_cfg(
->  		return &iort_arm_smmu_v3_cfg;
->  	case ACPI_IORT_NODE_SMMU:
->  		return &iort_arm_smmu_cfg;
-> +	case ACPI_IORT_NODE_PMCG:
-> +		return &iort_arm_smmu_v3_pmcg_cfg;
->  	default:
->  		return NULL;
->  	}
-> @@ -1362,7 +1435,6 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->  	struct fwnode_handle *fwnode;
->  	struct platform_device *pdev;
->  	struct resource *r;
-> -	enum dev_dma_attr attr;
->  	int ret, count;
->  
->  	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
-> @@ -1393,19 +1465,19 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->  		goto dev_put;
->  
->  	/*
-> -	 * Add a copy of IORT node pointer to platform_data to
-> -	 * be used to retrieve IORT data information.
-> +	 * Platform devices based on PMCG nodes uses platform_data to
-> +	 * pass the hardware model info to the driver. For others, add
-> +	 * a copy of IORT node pointer to platform_data to be used to
-> +	 * retrieve IORT data information.
->  	 */
-> -	ret = platform_device_add_data(pdev, &node, sizeof(node));
-> +	if (ops->dev_add_platdata)
-> +		ret = ops->dev_add_platdata(pdev);
-> +	else
-> +		ret = platform_device_add_data(pdev, &node, sizeof(node));
-> +
->  	if (ret)
->  		goto dev_put;
->  
-> -	/*
-> -	 * We expect the dma masks to be equivalent for
-> -	 * all SMMUs set-ups
-> -	 */
-> -	pdev->dev.dma_mask = &pdev->dev.coherent_dma_mask;
-> -
->  	fwnode = iort_get_fwnode(node);
->  
->  	if (!fwnode) {
-> @@ -1415,11 +1487,8 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->  
->  	pdev->dev.fwnode = fwnode;
->  
-> -	attr = ops->dev_is_coherent && ops->dev_is_coherent(node) ?
-> -			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
-> -
-> -	/* Configure DMA for the page table walker */
-> -	acpi_dma_configure(&pdev->dev, attr);
-> +	if (ops->dev_dma_configure)
-> +		ops->dev_dma_configure(&pdev->dev, node);
->  
->  	iort_set_device_domain(&pdev->dev, node);
->  
-> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> index 38cd77b..832bd6a 100644
-> --- a/include/linux/acpi_iort.h
-> +++ b/include/linux/acpi_iort.h
-> @@ -26,6 +26,12 @@
->  #define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
->  #define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
->  
-> +/*
-> + * PMCG model identifiers for use in smmu pmu driver. Please note
-> + * that, this is not part of the IORT specification.
-> + */
-> +#define IORT_SMMU_V3_PMCG_GENERIC        0x00000000 /* Generic SMMUv3 PMCG */
-> +
->  int iort_register_domain_token(int trans_id, phys_addr_t base,
->  			       struct fwnode_handle *fw_node);
->  void iort_deregister_domain_token(int trans_id);
-> -- 
-> 2.7.4
-> 
-> 
+Will
