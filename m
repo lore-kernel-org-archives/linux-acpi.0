@@ -1,94 +1,288 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 2/2] cpufreq / cppc: Work around for Hisilicon CPPC cpufreq
-Date: Fri, 15 Feb 2019 10:28:56 +0100
-Message-ID: <CAJZ5v0g0mVP_mzpTbHzGYavdbL8UbaXbYsqgEftOMnBEE22Xvg@mail.gmail.com>
-References: <1550130368-60513-1-git-send-email-wangxiongfeng2@huawei.com>
- <CAJZ5v0j03Dj7XSbTNcu7Ew2SekdpTw2hrWT_L+5ZcdRUep7ppw@mail.gmail.com>
- <86a1eddc-01aa-f32a-9bef-c18c7649149b@huawei.com> <2813657.1l3PCoQO4Z@aspire.rjw.lan>
- <8baf1617-6037-2645-bc8a-a6dcf8f7f53b@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v6 1/4] acpi: arm64: add iort support for PMCG
+Date: Fri, 15 Feb 2019 11:39:33 +0000
+Message-ID: <20190215113933.GB27700@e107981-ln.cambridge.arm.com>
+References: <20190204121324.11460-1-shameerali.kolothum.thodi@huawei.com>
+ <20190204121324.11460-2-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8baf1617-6037-2645-bc8a-a6dcf8f7f53b@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, gcherianv@gmail.com, Prashanth Prakash <pprakash@codeaurora.org>, George Cherian <george.cherian@cavium.com>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190204121324.11460-2-shameerali.kolothum.thodi@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc: mark.rutland@arm.com, vkilari@codeaurora.org, neil.m.leeder@gmail.com, jean-philippe.brucker@arm.com, pabba@codeaurora.org, john.garry@huawei.com, will.deacon@arm.com, rruigrok@codeaurora.org, linuxarm@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, guohanjun@huawei.com, andrew.murray@arm.com, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 15, 2019 at 2:25 AM Xiongfeng Wang
-<wangxiongfeng2@huawei.com> wrote:
->
->
->
-> On 2019/2/15 7:15, Rafael J. Wysocki wrote:
-> > On Thursday, February 14, 2019 2:58:21 PM CET Xiongfeng Wang wrote:
-> >>
-> >> On 2019/2/14 18:58, Rafael J. Wysocki wrote:
-> >>> On Thu, Feb 14, 2019 at 8:46 AM Xiongfeng Wang
-> >>> <wangxiongfeng2@huawei.com> wrote:
-> >>>>
-> >>>> Hisilicon chips do not support delivered performance counter register
-> >>>> and reference performance counter register. But the platform can
-> >>>> calculate the real performance using its own method. This patch provide
-> >>>> a workaround for this problem, and other platforms can also use this
-> >>>> workaround framework. We reuse the desired performance register to
-> >>>> store the real performance calculated by the platform. After the
-> >>>> platform finished the frequency adjust, it gets the real performance and
-> >>>> writes it into desired performance register. OS can use it to calculate
-> >>>> the real frequency.
-> >>>>
-> >>>> Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-> >>>> ---
-> >>>>  drivers/cpufreq/cppc_cpufreq.c | 70 ++++++++++++++++++++++++++++++++++++++++++
-> >>>>  1 file changed, 70 insertions(+)
-> >>>>
-> >>>> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> >>>> index fd25c21c..da96fec 100644
-> >>>> --- a/drivers/cpufreq/cppc_cpufreq.c
-> >>>> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> >>>> @@ -33,6 +33,16 @@
-> >>>>  /* Offest in the DMI processor structure for the max frequency */
-> >>>>  #define DMI_PROCESSOR_MAX_SPEED  0x14
-> >>>>
-> >>>> +struct cppc_workaround_info {
-> >>>> +       char oem_id[ACPI_OEM_ID_SIZE +1];
-> >>>> +       char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-> >>>> +       u32 oem_revision;
-> >>>> +       unsigned int (*get_rate)(unsigned int cpu);
-> >>>> +};
-> >>>> +
-> >>>> +/* CPPC workaround for get_rate callback */
-> >>>> +unsigned int (*cppc_wa_get_rate)(unsigned int cpu);
-> >>>> +
-> >>>
-> >>> First off, please don't split the workaround material into two parts.
-> >>> IOW, the other new function added below can go here just fine IMO.
-> >>>
-> >>>>  /*
-> >>>>   * These structs contain information parsed from per CPU
-> >>>>   * ACPI _CPC structures.
-> >>>> @@ -334,6 +344,9 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpunum)
-> >>>>         struct cppc_cpudata *cpu = all_cpu_data[cpunum];
-> >>>>         int ret;
-> >>>>
-> >>>> +       if (cppc_wa_get_rate)
-> >>>> +               return cppc_wa_get_rate(cpunum);
-> >>>
-> >>> Second, what is the value of using the function pointer above?
-> >>>
-> >>> All we need for now is a flag to indicate whether or not to call
-> >>> hisi_cppc_cpufreq_get_rate() here and return its return value.
-> >>
-> >> How about adding a pointer of 'struct cppc_workaround_info' to indicate whether we have
-> >> found a matches workaround ?
-> >> If I use a flag, I will need another variable to indicate which item of the workaround array 'wa_info'
-> >> to use.
-> >
-> > And why do you need to distinguish one of them from the other?
-> >
->
-> I was thinking about future extension. Different platform may have different implementation
-> of 'get_rate' in the future.
+On Mon, Feb 04, 2019 at 12:13:21PM +0000, Shameer Kolothum wrote:
+> From: Neil Leeder <nleeder@codeaurora.org>
+> 
+> Add support for the SMMU Performance Monitor Counter Group
+> information from ACPI. This is in preparation for its use
+> in the SMMUv3 PMU driver.
+> 
+> Signed-off-by: Neil Leeder <nleeder@codeaurora.org>
+> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 117 ++++++++++++++++++++++++++++++++++++----------
+>  include/linux/acpi_iort.h |   6 +++
+>  2 files changed, 99 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e48894e..e2c9b26 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -356,7 +356,8 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>  	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>  		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+>  		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
+> -		    node->type == ACPI_IORT_NODE_SMMU_V3) {
+> +		    node->type == ACPI_IORT_NODE_SMMU_V3 ||
+> +		    node->type == ACPI_IORT_NODE_PMCG) {
+>  			*id_out = map->output_base;
+>  			return parent;
+>  		}
+> @@ -394,6 +395,8 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+>  		}
+>  
+>  		return smmu->id_mapping_index;
+> +	case ACPI_IORT_NODE_PMCG:
+> +		return 0;
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -1218,14 +1221,23 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
+>  	}
+>  }
+>  
+> -static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+> +static void __init arm_smmu_v3_dma_configure(struct device *dev,
+> +					     struct acpi_iort_node *node)
+>  {
+>  	struct acpi_iort_smmu_v3 *smmu;
+> +	enum dev_dma_attr attr;
+>  
+>  	/* Retrieve SMMUv3 specific data */
+>  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>  
+> -	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+> +	attr = (smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE) ?
+> +			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
+> +
+> +	/* We expect the dma masks to be equivalent for all SMMUv3 set-ups */
+> +	dev->dma_mask = &dev->coherent_dma_mask;
+> +
+> +	/* Configure DMA for the page table walker */
+> +	acpi_dma_configure(dev, attr);
+>  }
+>  
+>  #if defined(CONFIG_ACPI_NUMA)
+> @@ -1301,30 +1313,82 @@ static void __init arm_smmu_init_resources(struct resource *res,
+>  	}
+>  }
+>  
+> -static bool __init arm_smmu_is_coherent(struct acpi_iort_node *node)
+> +static void __init arm_smmu_dma_configure(struct device *dev,
+> +					  struct acpi_iort_node *node)
+>  {
+>  	struct acpi_iort_smmu *smmu;
+> +	enum dev_dma_attr attr;
+>  
+>  	/* Retrieve SMMU specific data */
+>  	smmu = (struct acpi_iort_smmu *)node->node_data;
+>  
+> -	return smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK;
+> +	attr = (smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK) ?
+> +			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
+> +
+> +	/* We expect the dma masks to be equivalent for SMMU set-ups */
+> +	dev->dma_mask = &dev->coherent_dma_mask;
+> +
+> +	/* Configure DMA for the page table walker */
+> +	acpi_dma_configure(dev, attr);
+> +}
+> +
+> +static int __init arm_smmu_v3_pmcg_count_resources(struct acpi_iort_node *node)
+> +{
+> +	struct acpi_iort_pmcg *pmcg;
+> +
+> +	/* Retrieve PMCG specific data */
+> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
+> +
+> +	/*
+> +	 * There are always 2 memory resources.
+> +	 * If the overflow_gsiv is present then add that for a total of 3.
+> +	 */
+> +	return pmcg->overflow_gsiv ? 3 : 2;
+> +}
+> +
+> +static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
+> +						   struct acpi_iort_node *node)
+> +{
+> +	struct acpi_iort_pmcg *pmcg;
+> +
+> +	/* Retrieve PMCG specific data */
+> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
+> +
+> +	res[0].start = pmcg->page0_base_address;
+> +	res[0].end = pmcg->page0_base_address + SZ_4K - 1;
+> +	res[0].flags = IORESOURCE_MEM;
+> +	res[1].start = pmcg->page1_base_address;
+> +	res[1].end = pmcg->page1_base_address + SZ_4K - 1;
+> +	res[1].flags = IORESOURCE_MEM;
+> +
+> +	if (pmcg->overflow_gsiv)
+> +		acpi_iort_register_irq(pmcg->overflow_gsiv, "overflow",
+> +				       ACPI_EDGE_SENSITIVE, &res[2]);
+> +}
+> +
+> +static int __init arm_smmu_v3_pmcg_add_platdata(struct platform_device *pdev)
+> +{
+> +	u32 model = IORT_SMMU_V3_PMCG_GENERIC;
+> +
+> +	return platform_device_add_data(pdev, &model, sizeof(model));
+>  }
+>  
+>  struct iort_dev_config {
+>  	const char *name;
+>  	int (*dev_init)(struct acpi_iort_node *node);
+> -	bool (*dev_is_coherent)(struct acpi_iort_node *node);
+> +	void (*dev_dma_configure)(struct device *dev,
+> +				  struct acpi_iort_node *node);
+>  	int (*dev_count_resources)(struct acpi_iort_node *node);
+>  	void (*dev_init_resources)(struct resource *res,
+>  				     struct acpi_iort_node *node);
+>  	void (*dev_set_proximity)(struct device *dev,
+>  				    struct acpi_iort_node *node);
+> +	int (*dev_add_platdata)(struct platform_device *pdev);
+>  };
+>  
+>  static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
+>  	.name = "arm-smmu-v3",
+> -	.dev_is_coherent = arm_smmu_v3_is_coherent,
+> +	.dev_dma_configure = arm_smmu_v3_dma_configure,
+>  	.dev_count_resources = arm_smmu_v3_count_resources,
+>  	.dev_init_resources = arm_smmu_v3_init_resources,
+>  	.dev_set_proximity = arm_smmu_v3_set_proximity,
+> @@ -1332,9 +1396,16 @@ static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
+>  
+>  static const struct iort_dev_config iort_arm_smmu_cfg __initconst = {
+>  	.name = "arm-smmu",
+> -	.dev_is_coherent = arm_smmu_is_coherent,
+> +	.dev_dma_configure = arm_smmu_dma_configure,
+>  	.dev_count_resources = arm_smmu_count_resources,
+> -	.dev_init_resources = arm_smmu_init_resources
+> +	.dev_init_resources = arm_smmu_init_resources,
+> +};
+> +
+> +static const struct iort_dev_config iort_arm_smmu_v3_pmcg_cfg __initconst = {
+> +	.name = "arm-smmu-v3-pmcg",
+> +	.dev_count_resources = arm_smmu_v3_pmcg_count_resources,
+> +	.dev_init_resources = arm_smmu_v3_pmcg_init_resources,
+> +	.dev_add_platdata = arm_smmu_v3_pmcg_add_platdata,
+>  };
+>  
+>  static __init const struct iort_dev_config *iort_get_dev_cfg(
+> @@ -1345,6 +1416,8 @@ static __init const struct iort_dev_config *iort_get_dev_cfg(
+>  		return &iort_arm_smmu_v3_cfg;
+>  	case ACPI_IORT_NODE_SMMU:
+>  		return &iort_arm_smmu_cfg;
+> +	case ACPI_IORT_NODE_PMCG:
+> +		return &iort_arm_smmu_v3_pmcg_cfg;
+>  	default:
+>  		return NULL;
+>  	}
+> @@ -1362,7 +1435,6 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>  	struct fwnode_handle *fwnode;
+>  	struct platform_device *pdev;
+>  	struct resource *r;
+> -	enum dev_dma_attr attr;
+>  	int ret, count;
+>  
+>  	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
+> @@ -1393,19 +1465,19 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>  		goto dev_put;
+>  
+>  	/*
+> -	 * Add a copy of IORT node pointer to platform_data to
+> -	 * be used to retrieve IORT data information.
+> +	 * Platform devices based on PMCG nodes uses platform_data to
+> +	 * pass the hardware model info to the driver. For others, add
+> +	 * a copy of IORT node pointer to platform_data to be used to
+> +	 * retrieve IORT data information.
+>  	 */
+> -	ret = platform_device_add_data(pdev, &node, sizeof(node));
+> +	if (ops->dev_add_platdata)
+> +		ret = ops->dev_add_platdata(pdev);
+> +	else
+> +		ret = platform_device_add_data(pdev, &node, sizeof(node));
+> +
+>  	if (ret)
+>  		goto dev_put;
+>  
+> -	/*
+> -	 * We expect the dma masks to be equivalent for
+> -	 * all SMMUs set-ups
+> -	 */
+> -	pdev->dev.dma_mask = &pdev->dev.coherent_dma_mask;
+> -
+>  	fwnode = iort_get_fwnode(node);
+>  
+>  	if (!fwnode) {
+> @@ -1415,11 +1487,8 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>  
+>  	pdev->dev.fwnode = fwnode;
+>  
+> -	attr = ops->dev_is_coherent && ops->dev_is_coherent(node) ?
+> -			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
+> -
+> -	/* Configure DMA for the page table walker */
+> -	acpi_dma_configure(&pdev->dev, attr);
+> +	if (ops->dev_dma_configure)
+> +		ops->dev_dma_configure(&pdev->dev, node);
+>  
+>  	iort_set_device_domain(&pdev->dev, node);
+>  
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index 38cd77b..832bd6a 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -26,6 +26,12 @@
+>  #define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
+>  #define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
+>  
+> +/*
+> + * PMCG model identifiers for use in smmu pmu driver. Please note
+> + * that, this is not part of the IORT specification.
 
-That's right, but whoever adds this in the future may change the
-driver accordingly.  They will have to make changes to it anyway.
+And it is a Linux internal tag that has nothing to do with HW, it is
+just fabricated for matching a driver, I would like to have this
+clarified in the comment please.
+
+I would have avoided adding another hook to differentiate platform data
+but given that it is self-contained in IORT code that should be fine for
+the sake of making progress:
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> + */
+> +#define IORT_SMMU_V3_PMCG_GENERIC        0x00000000 /* Generic SMMUv3 PMCG */
+> +
+>  int iort_register_domain_token(int trans_id, phys_addr_t base,
+>  			       struct fwnode_handle *fw_node);
+>  void iort_deregister_domain_token(int trans_id);
+> -- 
+> 2.7.4
+> 
+> 
