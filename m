@@ -1,26 +1,17 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Subject: Re: [PATCH v6 1/4] acpi: arm64: add iort support for PMCG
-Date: Fri, 15 Feb 2019 11:39:33 +0000
-Message-ID: <20190215113933.GB27700@e107981-ln.cambridge.arm.com>
+Date: Fri, 15 Feb 2019 11:52:45 +0000
+Message-ID: <20190215115245.GA29775@e107981-ln.cambridge.arm.com>
 References: <20190204121324.11460-1-shameerali.kolothum.thodi@huawei.com>
  <20190204121324.11460-2-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20190204121324.11460-2-shameerali.kolothum.thodi@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc: mark.rutland@arm.com, vkilari@codeaurora.org, neil.m.leeder@gmail.com, jean-philippe.brucker@arm.com, pabba@codeaurora.org, john.garry@huawei.com, will.deacon@arm.com, rruigrok@codeaurora.org, linuxarm@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, guohanjun@huawei.com, andrew.murray@arm.com, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org
+Cc: robin.murphy@arm.com, andrew.murray@arm.com, jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
 On Mon, Feb 04, 2019 at 12:13:21PM +0000, Shameer Kolothum wrote:
@@ -29,7 +20,16 @@ On Mon, Feb 04, 2019 at 12:13:21PM +0000, Shameer Kolothum wrote:
 > Add support for the SMMU Performance Monitor Counter Group
 > information from ACPI. This is in preparation for its use
 > in the SMMUv3 PMU driver.
-> 
+
+Also, in case I do not get a chance to update it, please run:
+
+git log --oneline --no-merges drivers/acpi/arm64/iort.c
+
+You would notice incosistency in the $SUBJECT, fix it please.
+
+Thanks,
+Lorenzo
+
 > Signed-off-by: Neil Leeder <nleeder@codeaurora.org>
 > Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
@@ -265,17 +265,6 @@ On Mon, Feb 04, 2019 at 12:13:21PM +0000, Shameer Kolothum wrote:
 > +/*
 > + * PMCG model identifiers for use in smmu pmu driver. Please note
 > + * that, this is not part of the IORT specification.
-
-And it is a Linux internal tag that has nothing to do with HW, it is
-just fabricated for matching a driver, I would like to have this
-clarified in the comment please.
-
-I would have avoided adding another hook to differentiate platform data
-but given that it is self-contained in IORT code that should be fine for
-the sake of making progress:
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
 > + */
 > +#define IORT_SMMU_V3_PMCG_GENERIC        0x00000000 /* Generic SMMUv3 PMCG */
 > +
