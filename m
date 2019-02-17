@@ -1,7 +1,7 @@
 From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: [PATCH v3 1/2] ACPI / CPPC: Add a helper to get desired performance
-Date: Sun, 17 Feb 2019 11:54:14 +0800
-Message-ID: <1550375655-58007-2-git-send-email-wangxiongfeng2@huawei.com>
+Subject: [PATCH v3 2/2] cpufreq / cppc: Work around for Hisilicon CPPC cpufreq
+Date: Sun, 17 Feb 2019 11:54:15 +0800
+Message-ID: <1550375655-58007-3-git-send-email-wangxiongfeng2@huawei.com>
 References: <1550375655-58007-1-git-send-email-wangxiongfeng2@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,76 +12,109 @@ To: viresh.kumar@linaro.org, rafael@kernel.org, gcherianv@gmail.com, pprakash@co
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, wangxiongfeng2@huawei.com, john.garry@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-This patch add a helper to get the value of desired performance
-register.
+Hisilicon chips do not support delivered performance counter register
+and reference performance counter register. But the platform can
+calculate the real performance using its own method. We reuse the
+desired performance register to store the real performance calculated by
+the platform. After the platform finished the frequency adjust, it gets
+the real performance and writes it into desired performance register. Os
+can use it to calculate the real frequency.
 
 Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
 ---
- drivers/acpi/cppc_acpi.c | 39 +++++++++++++++++++++++++++++++++++++++
- include/acpi/cppc_acpi.h |  1 +
- 2 files changed, 40 insertions(+)
+ drivers/cpufreq/cppc_cpufreq.c | 66 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 217a782..231d447 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1051,6 +1051,45 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
- }
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index fd25c21c..efc0298 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -42,6 +42,67 @@
+  */
+ static struct cppc_cpudata **all_cpu_data;
  
- /**
-+ * cppc_get_desired_perf - Get the value of desired performance register.
-+ * @cpunum: CPU from which to get desired performance.
-+ * @desired_perf: address of a variable to store the returned desired performance
-+ *
-+ * Return: 0 for success, -EIO otherwise.
-+ */
-+int cppc_get_desired_perf(int cpunum, u64 *desired_perf)
-+{
-+	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
-+	struct cpc_register_resource *desired_reg;
-+	struct cppc_pcc_data *pcc_ss_data = NULL;
++struct cppc_workaround_oem_info {
++	char oem_id[ACPI_OEM_ID_SIZE +1];
++	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
++	u32 oem_revision;
++};
 +
-+	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
++static bool apply_hisi_workaround;
 +
-+	if (CPC_IN_PCC(desired_reg)) {
-+		int ret = 0;
-+
-+		if (pcc_ss_id < 0)
-+			return -EIO;
-+		pcc_ss_data = pcc_data[pcc_ss_id];
-+
-+		down_write(&pcc_ss_data->pcc_lock);
-+		if (send_pcc_cmd(pcc_ss_id, CMD_READ) >= 0)
-+			cpc_read(cpunum, desired_reg, desired_perf);
-+		else
-+			ret = -EIO;
-+		up_write(&pcc_ss_data->pcc_lock);
-+
-+		return ret;
++static struct cppc_workaround_oem_info wa_info[] = {
++	{
++		.oem_id		= "HISI  ",
++		.oem_table_id	= "HIP07   ",
++		.oem_revision	= 0,
++	}, {
++		.oem_id		= "HISI  ",
++		.oem_table_id	= "HIP08   ",
++		.oem_revision	= 0,
 +	}
++};
 +
-+	cpc_read(cpunum, desired_reg, desired_perf);
++static unsigned int cppc_cpufreq_perf_to_khz(struct cppc_cpudata *cpu,
++					unsigned int perf);
 +
-+	return 0;
++/*
++ * HISI platform does not support delivered performance counter and
++ * reference performance counter. It can calculate the performance using the
++ * platform specific mechanism. We reuse the desired performance register to
++ * store the real performance calculated by the platform.
++ */
++static unsigned int hisi_cppc_cpufreq_get_rate(unsigned int cpunum)
++{
++	struct cppc_cpudata *cpudata = all_cpu_data[cpunum];
++	u64 desired_perf;
++	int ret;
++
++	ret = cppc_get_desired_perf(cpunum, &desired_perf);
++	if (ret < 0)
++		return -EIO;
++
++	return cppc_cpufreq_perf_to_khz(cpudata, desired_perf);
 +}
-+EXPORT_SYMBOL_GPL(cppc_get_desired_perf);
 +
-+/**
-  * cppc_get_perf_caps - Get a CPUs performance capabilities.
-  * @cpunum: CPU from which to get capabilities info.
-  * @perf_caps: ptr to cppc_perf_caps. See cppc_acpi.h
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 4f34734..ba6fd72 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -137,6 +137,7 @@ struct cppc_cpudata {
- 	cpumask_var_t shared_cpu_map;
- };
++static void cppc_check_hisi_workaround(void)
++{
++	struct acpi_table_header *tbl;
++	acpi_status status = AE_OK;
++	int i;
++
++	status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
++	if (ACPI_FAILURE(status) || !tbl)
++		return;
++
++	for (i = 0; i < ARRAY_SIZE(wa_info); i++) {
++		if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
++		    !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
++		    wa_info[i].oem_revision == tbl->oem_revision) {
++			apply_hisi_workaround = true;
++		}
++	}
++}
++
+ /* Callback function used to retrieve the max frequency from DMI */
+ static void cppc_find_dmi_mhz(const struct dmi_header *dm, void *private)
+ {
+@@ -334,6 +395,9 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpunum)
+ 	struct cppc_cpudata *cpu = all_cpu_data[cpunum];
+ 	int ret;
  
-+extern int cppc_get_desired_perf(int cpunum, u64 *desired_perf);
- extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
- extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
- extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
++	if (apply_hisi_workaround)
++		return hisi_cppc_cpufreq_get_rate(cpunum);
++
+ 	ret = cppc_get_perf_ctrs(cpunum, &fb_ctrs_t0);
+ 	if (ret)
+ 		return ret;
+@@ -386,6 +450,8 @@ static int __init cppc_cpufreq_init(void)
+ 		goto out;
+ 	}
+ 
++	cppc_check_hisi_workaround();
++
+ 	ret = cpufreq_register_driver(&cppc_cpufreq_driver);
+ 	if (ret)
+ 		goto out;
 -- 
 1.7.12.4
