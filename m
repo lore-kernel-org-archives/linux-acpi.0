@@ -1,77 +1,87 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [RFC 2/3] arm_pmu: acpi: spe: Add initial MADT/SPE probing
-Date: Fri, 15 Feb 2019 10:04:54 -0600
-Message-ID: <09cbaf45-d514-3cb3-4bab-744491462338@arm.com>
-References: <20190209004718.3292087-1-jeremy.linton@arm.com>
- <20190209004718.3292087-3-jeremy.linton@arm.com>
- <20190214171125.GG2475@fuggles.cambridge.arm.com>
- <c740a06e-d5d3-3e42-d19b-fbfea02ac0e7@arm.com>
- <20190215150015.GA6803@fuggles.cambridge.arm.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: [PATCH v3 1/2] ACPI / CPPC: Add a helper to get desired performance
+Date: Sun, 17 Feb 2019 11:54:14 +0800
+Message-ID: <1550375655-58007-2-git-send-email-wangxiongfeng2@huawei.com>
+References: <1550375655-58007-1-git-send-email-wangxiongfeng2@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190215150015.GA6803@fuggles.cambridge.arm.com>
-Content-Language: en-US
+In-Reply-To: <1550375655-58007-1-git-send-email-wangxiongfeng2@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, catalin.marinas@arm.com, mark.rutland@arm.com, robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
+To: viresh.kumar@linaro.org, rafael@kernel.org, gcherianv@gmail.com, pprakash@codeaurora.org, george.cherian@cavium.com, robert.moore@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, wangxiongfeng2@huawei.com, john.garry@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+This patch add a helper to get the value of desired performance
+register.
 
-On 2/15/19 9:00 AM, Will Deacon wrote:
-> On Thu, Feb 14, 2019 at 12:03:57PM -0600, Jeremy Linton wrote:
->> On 2/14/19 11:11 AM, Will Deacon wrote:
->>> On Fri, Feb 08, 2019 at 06:47:17PM -0600, Jeremy Linton wrote:
->>>> +/*
->>>> + * For lack of a better place, hook the normal PMU MADT walk
->>>> + * and create a SPE device if we detect a recent MADT with
->>>> + * a homogeneous PPI mapping.
->>>> + */
->>>> +static int arm_spe_acpi_parse_irqs(void)
->>>> +{
->>>> +	int cpu, ret, irq;
->>>> +	u16 gsi = 0;
->>>> +	bool first = true;
->>>> +
->>>> +	struct acpi_madt_generic_interrupt *gicc;
->>>> +
->>>> +	/*
->>>> +	 * sanity check all the GICC tables for the same interrupt number
->>>> +	 * for now we only support homogeneous ACPI/SPE machines.
->>>> +	 */
->>>> +	for_each_possible_cpu(cpu) {
->>>> +		gicc = acpi_cpu_get_madt_gicc(cpu);
->>>> +
->>>> +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
->>>> +			return -ENODEV;
->>>> +
->>>> +		if (first) {
->>>> +			gsi = gicc->spe_overflow_interrupt;
->>>> +			if (!gsi)
->>>> +				return -ENODEV;
->>>> +			first = false;
->>>> +		} else if (gsi != gicc->spe_overflow_interrupt) {
->>>> +			pr_warn("ACPI: SPE must have homogeneous interrupts\n");
->>>> +			return -EINVAL;
->>>> +		}
->>>
->>> Unfortunately, I don't think this is sufficient to detect a homogeneous
->>> system: we'll have to check the MIDRs instead, which is nasty. I would
->>> personally be in favour of enforcing homogeneity for ACPI systems when we
->>> bring up secondary CPUs, but I suspect others would disagree.
->>
->> Given that all the SPE capable machines i'm aware of at the moment are
->> homogeneous, are we ok with just doing an online CPU MIDR check for now, and
->> cleaning that up if/when someone builds a machine and complains?
-> 
-> Yeah, I think we added a new bit to the PPTT to tell you that the machine is
-> homogenous, so just check that first and bail if it's not set.
+Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+---
+ drivers/acpi/cppc_acpi.c | 39 +++++++++++++++++++++++++++++++++++++++
+ include/acpi/cppc_acpi.h |  1 +
+ 2 files changed, 40 insertions(+)
 
-Yes of course, 100% better plan. Although its probably going to have to 
-be more of a case of walking all the possible cores and assuring they 
-have the same flag level (similar to how the socket flag is handled). Of 
-course that information is useful enough it should probably just be done 
-as part of the normal cpu topology walk. Then the people who have to 
-back port these patches end up with a big dependent set... <chuckle>
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 217a782..231d447 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -1051,6 +1051,45 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+ }
+ 
+ /**
++ * cppc_get_desired_perf - Get the value of desired performance register.
++ * @cpunum: CPU from which to get desired performance.
++ * @desired_perf: address of a variable to store the returned desired performance
++ *
++ * Return: 0 for success, -EIO otherwise.
++ */
++int cppc_get_desired_perf(int cpunum, u64 *desired_perf)
++{
++	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
++	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
++	struct cpc_register_resource *desired_reg;
++	struct cppc_pcc_data *pcc_ss_data = NULL;
++
++	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
++
++	if (CPC_IN_PCC(desired_reg)) {
++		int ret = 0;
++
++		if (pcc_ss_id < 0)
++			return -EIO;
++		pcc_ss_data = pcc_data[pcc_ss_id];
++
++		down_write(&pcc_ss_data->pcc_lock);
++		if (send_pcc_cmd(pcc_ss_id, CMD_READ) >= 0)
++			cpc_read(cpunum, desired_reg, desired_perf);
++		else
++			ret = -EIO;
++		up_write(&pcc_ss_data->pcc_lock);
++
++		return ret;
++	}
++
++	cpc_read(cpunum, desired_reg, desired_perf);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cppc_get_desired_perf);
++
++/**
+  * cppc_get_perf_caps - Get a CPUs performance capabilities.
+  * @cpunum: CPU from which to get capabilities info.
+  * @perf_caps: ptr to cppc_perf_caps. See cppc_acpi.h
+diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+index 4f34734..ba6fd72 100644
+--- a/include/acpi/cppc_acpi.h
++++ b/include/acpi/cppc_acpi.h
+@@ -137,6 +137,7 @@ struct cppc_cpudata {
+ 	cpumask_var_t shared_cpu_map;
+ };
+ 
++extern int cppc_get_desired_perf(int cpunum, u64 *desired_perf);
+ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
+ extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
+ extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
+-- 
+1.7.12.4
