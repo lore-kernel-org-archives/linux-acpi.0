@@ -1,44 +1,50 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: [PATCH v3 0/2] Work around for Hisilicon CPPC cpufreq
-Date: Sun, 17 Feb 2019 11:54:13 +0800
-Message-ID: <1550375655-58007-1-git-send-email-wangxiongfeng2@huawei.com>
+From: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
+Subject: [PATCH] ACPI / processor: Set P_LVL{2,3} idle state descriptions
+Date: Mon, 18 Feb 2019 01:33:49 +0000
+Message-ID: <20190218013335.233265-1-Yazen.Ghannam@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: viresh.kumar@linaro.org, rafael@kernel.org, gcherianv@gmail.com, pprakash@codeaurora.org, george.cherian@cavium.com, robert.moore@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, wangxiongfeng2@huawei.com, john.garry@huawei.com
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hisilicon chips do not support delivered performance counter register
-and reference performance counter register. But the platform can
-calculate the real performance using its own method. This patch provide
-a workaround for this problem, and other platforms can also use this
-workaround framework. We reuse the desired performance register to
-store the real performance calculated by the platform. After the
-platform finished the frequency adjust, it gets the real performance and
-writes it into desired performance register. OS can use it to calculate
-the real frequency.
+From: Yazen Ghannam <yazen.ghannam@amd.com>
 
-Changlog:
+The ACPI idle driver will fallback to using the legacy P_LVL* SystemIO
+method of entering C-states if the _CST method is disabled and P_BLK is
+defined. However, in this case the C2 and C3 states won't have a
+description set, so the user will see "<null>" when reading the
+description from sysfs.
 
-v2 -> v3:
-	Recontruct 'cppc_get_desired_perf'.
-	Rename 'cppc_workaround_info' to 'cppc_workaround_oem_info'
-	Drop 'get_rate' member from struct cppc_workaround_oem_info
-	Change 'cppc_wa_get_rate' pointer to a flag to indicate whether
-	we need to aplly the workaround.
-	Move the new functions to the beginning of cppc-cpufreq.c
+Give each of these states a description.
 
+Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
+---
+ drivers/acpi/processor_idle.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Xiongfeng Wang (2):
-  ACPI / CPPC: Add a helper to get desired performance
-  cpufreq / cppc: Work around for Hisilicon CPPC cpufreq
-
- drivers/acpi/cppc_acpi.c       | 39 +++++++++++++++++++++++++
- drivers/cpufreq/cppc_cpufreq.c | 66 ++++++++++++++++++++++++++++++++++++++++++
- include/acpi/cppc_acpi.h       |  1 +
- 3 files changed, 106 insertions(+)
-
--- 
-1.7.12.4
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index b2131c4ea124..98d4ec5bf450 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -282,6 +282,13 @@ static int acpi_processor_get_power_info_fadt(struct a=
+cpi_processor *pr)
+ 			  pr->power.states[ACPI_STATE_C2].address,
+ 			  pr->power.states[ACPI_STATE_C3].address));
+=20
++	snprintf(pr->power.states[ACPI_STATE_C2].desc,
++			 ACPI_CX_DESC_LEN, "ACPI P_LVL2 IOPORT 0x%x",
++			 pr->power.states[ACPI_STATE_C2].address);
++	snprintf(pr->power.states[ACPI_STATE_C3].desc,
++			 ACPI_CX_DESC_LEN, "ACPI P_LVL3 IOPORT 0x%x",
++			 pr->power.states[ACPI_STATE_C3].address);
++
+ 	return 0;
+ }
+=20
+--=20
+2.17.1
