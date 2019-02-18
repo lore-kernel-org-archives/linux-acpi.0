@@ -1,50 +1,65 @@
-From: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
-Subject: [PATCH] ACPI / processor: Set P_LVL{2,3} idle state descriptions
-Date: Mon, 18 Feb 2019 01:33:49 +0000
-Message-ID: <20190218013335.233265-1-Yazen.Ghannam@amd.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v6 1/4] acpi: arm64: add iort support for PMCG
+Date: Mon, 18 Feb 2019 09:57:44 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA8392C2FA3@lhreml524-mbb.china.huawei.com>
+References: <20190204121324.11460-1-shameerali.kolothum.thodi@huawei.com>
+ <20190204121324.11460-2-shameerali.kolothum.thodi@huawei.com>
+ <20190215113933.GB27700@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190215113933.GB27700@e107981-ln.cambridge.arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "robin.murphy@arm.com" <robin.murphy@arm.com>, "andrew.murray@arm.com" <andrew.murray@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Yazen Ghannam <yazen.ghannam@amd.com>
 
-The ACPI idle driver will fallback to using the legacy P_LVL* SystemIO
-method of entering C-states if the _CST method is disabled and P_BLK is
-defined. However, in this case the C2 and C3 states won't have a
-description set, so the user will see "<null>" when reading the
-description from sysfs.
 
-Give each of these states a description.
+> -----Original Message-----
+> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
+> Sent: 15 February 2019 11:40
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> Cc: robin.murphy@arm.com; andrew.murray@arm.com;
+> jean-philippe.brucker@arm.com; will.deacon@arm.com;
+> mark.rutland@arm.com; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
+> John Garry <john.garry@huawei.com>; pabba@codeaurora.org;
+> vkilari@codeaurora.org; rruigrok@codeaurora.org; linux-acpi@vger.kernel.org;
+> linux-kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Linuxarm
+> <linuxarm@huawei.com>; neil.m.leeder@gmail.com
+> Subject: Re: [PATCH v6 1/4] acpi: arm64: add iort support for PMCG
+> 
+[...]
 
-Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
----
- drivers/acpi/processor_idle.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+> > +/*
+> > + * PMCG model identifiers for use in smmu pmu driver. Please note
+> > + * that, this is not part of the IORT specification.
+> 
+> And it is a Linux internal tag that has nothing to do with HW, it is just fabricated
+> for matching a driver, I would like to have this clarified in the comment please.
+> 
+> I would have avoided adding another hook to differentiate platform data but
+> given that it is self-contained in IORT code that should be fine for the sake of
+> making progress:
+> 
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index b2131c4ea124..98d4ec5bf450 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -282,6 +282,13 @@ static int acpi_processor_get_power_info_fadt(struct a=
-cpi_processor *pr)
- 			  pr->power.states[ACPI_STATE_C2].address,
- 			  pr->power.states[ACPI_STATE_C3].address));
-=20
-+	snprintf(pr->power.states[ACPI_STATE_C2].desc,
-+			 ACPI_CX_DESC_LEN, "ACPI P_LVL2 IOPORT 0x%x",
-+			 pr->power.states[ACPI_STATE_C2].address);
-+	snprintf(pr->power.states[ACPI_STATE_C3].desc,
-+			 ACPI_CX_DESC_LEN, "ACPI P_LVL3 IOPORT 0x%x",
-+			 pr->power.states[ACPI_STATE_C3].address);
-+
- 	return 0;
- }
-=20
---=20
-2.17.1
+Thanks. I will wait for review of main driver patches and then will sent out a
+revised one incorporating your comments on this.
+
+Thanks,
+Shameer
+
+> > + */
+> > +#define IORT_SMMU_V3_PMCG_GENERIC        0x00000000 /* Generic
+> SMMUv3 PMCG */
+> > +
+> >  int iort_register_domain_token(int trans_id, phys_addr_t base,
+> >  			       struct fwnode_handle *fw_node);  void
+> > iort_deregister_domain_token(int trans_id);
+> > --
+> > 2.7.4
+> >
+> >
