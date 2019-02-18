@@ -1,73 +1,92 @@
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Subject: Re: [PATCHv6 00/10] Heterogenous memory node attributes
-Date: Mon, 18 Feb 2019 15:25:31 +0100
-Message-ID: <f2add663-a9e1-86df-0afd-22ef03d3d943@inria.fr>
-References: <20190214171017.9362-1-keith.busch@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Kai Heng Feng <kai.heng.feng@canonical.com>
+Subject: Re: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has
+ unreliable ACPI wake
+Date: Mon, 18 Feb 2019 16:30:35 +0100
+Message-ID: <7070C6C7-AA47-4F5F-A456-7DEEA7405F48@canonical.com>
+References: <20190122064544.27426-1-kai.heng.feng@canonical.com>
+ <20190122235134.GE14636@google.com>
+ <91E74111-5BB6-4604-A1D7-B537AB42C317@canonical.com>
+ <20190124151524.GF14636@google.com>
+ <FFC6EC3F-3608-41FC-8B14-815D1747C4B6@canonical.com>
+ <20190124200508.GH14636@google.com>
+ <C7E9B3C9-7E20-4CEB-8B56-D9A8D2E76DD0@canonical.com>
+ <CFAC1243-982E-4BAC-BAF6-41568C1C1A9E@canonical.com>
+ <20190204172057.GB9160@google.com>
+Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190214171017.9362-1-keith.busch@intel.com>
-Content-Language: en-US
+In-Reply-To: <20190204172057.GB9160@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-Le 14/02/2019 à 18:10, Keith Busch a écrit :
-> == Changes since v5 ==
->
->   Updated HMAT parsing to account for the recently released ACPI 6.3
->   changes.
->
->   HMAT attribute calculation overflow checks.
->
->   Fixed memory leak if HMAT parse fails.
->
->   Minor change to the patch order. All the base node attributes occur
->   before HMAT usage for these new node attributes to resolve a
->   dependency on a new struct.
->
->   Reporting failures to parse HMAT or allocate structures are elevated
->   to a NOTICE level from DEBUG. Any failure will result in just one
->   print so that it is obvious something may need to be investigated
->   rather than silently fail, but also not to be too alarming either.
->
->   Determining the cpu and memory node local relationships is quite
->   different this time (PATCH 7/10). The local relationship to a memory
->   target will be either *only* the node from the Initiator Proximity
->   Domain if provided, or if it is not provided, all the nodes that have
->   the same highest performance. Latency was chosen to take prioirty over
->   bandwidth when ranking performance.
 
+> On Feb 4, 2019, at 6:20 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> 
+> On Sun, Feb 03, 2019 at 01:46:50AM +0800, Kai Heng Feng wrote:
+>>> On Jan 28, 2019, at 3:51 PM, Kai Heng Feng <kai.heng.feng@canonical.com> wrote:
+>> 
+>>>> If I understand correctly, the bugzilla lspci
+>>>> (https://bugzilla.kernel.org/attachment.cgi?id=280691) was collected
+>>>> at point 8, and it shows PME_Status=1 when it should be 0.
+>>>> 
+>>>> If we write a 1 to PME_Status to clear it, and it remains set, that's
+>>>> obviously a hardware defect, and Intel should document that in an
+>>>> erratum, and a quirk would be the appropriate way to work around it.
+>>>> But I doubt that's what's happening.
+>>> 
+>>> I’ll ask them if they can provide an erratum.
+>> 
+>> Got confirmed with e1000e folks, I219 (the device in question) doesn’t
+>> really support runtime D3.
+> 
+> Did you get a reference, e.g., an intel.com URL for that?  Intel
+> usually publishes errata for hardware defects, which is nice because
+> it means every customer doesn't have to experimentally rediscover
+> them.
 
-Hello Keith
+Unfortunately no.
 
-I am trying to understand what this last paragraph means.
+> 
+>> I also checked the behavior of the device under Windows, and it
+>> stays at D0 all the time even when it’s not in use.
+> 
+> I think there are two possible explanations for this:
+> 
+>  1) This device requires a Windows or a driver update with a
+>  device-specific quirk similar to what you're proposing for Linux.
 
-Let's say I have a machine with DDR and NVDIMM both attached to the same
-socket, and I use Dave Hansen's kmem patchs to make the NVDIMM appear as
-"normal memory" in an additional NUMA node. Let's call node0 the DDR and
-node1 the NVDIMM kmem node.
+I am sure the latest driver is loaded under Windows.
 
-Now user-space wants to find out which CPUs are actually close to the
-NVDIMMs. My understanding is that SRAT says that CPUs are local to the
-DDR only. Hence /sys/devices/system/node/node1/cpumap says there are no
-CPU local to the NVDIMM. And HMAT won't change this, right?
+> 
+>  2) Windows correctly detects that this device doesn't support D3,
+>  and Linux has a bug and does not detect that.
 
-Will node1 contain access0/initiators/node0 to clarify that CPUs local
-to the NVDIMM are those of node0? Even if latency from node0 to node1
-latency is higher than node0 to node0?
+I think that’s the case.
 
-Another way to ask this: Is the latency/performance only used for
-distinguishing the local initiator CPUs among multiple CPU nodes
-accesing the same memory node? Or is it also used to distinguish the
-local memory target among multiple memories access by a single CPU node?
+> 
+> Obviously nobody wants to require OS or driver updates just for minor
+> device changes, and the PCI and ACPI specs are designed to allow
+> generic, non device-specific code to detect D3 support, so the first
+> case should be a result of a hardware defect.
 
-The Intel machine I am currently testing patches on doesn't have a HMAT
-in 1-level-memory unfortunately.
+Yea, that’s why my original idea is to workaround it in PCI/ACPI.
 
-Thanks
+> 
+>> So I sent a patch [1] to disable it.
+>> 
+>> [1] https://lkml.org/lkml/2019/2/2/200
+> 
+> OK.  Since that's in drivers/net/..., I have no objection and the
+> e1000e maintainers would deal with that.
 
-Brice
+Thanks.
+
+Kai-Heng
+
+> 
+> Bjorn
