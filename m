@@ -1,49 +1,76 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 0/2] Work around for Hisilicon CPPC cpufreq
-Date: Tue, 19 Feb 2019 10:59:00 +0100
-Message-ID: <12311117.DSx6JT7Gj8@aspire.rjw.lan>
-References: <1550375655-58007-1-git-send-email-wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH] software node: Implement get_named_child_node fwnode callback
+Date: Tue, 19 Feb 2019 11:00:17 +0100
+Message-ID: <1695920.3PekvGoq6c@aspire.rjw.lan>
+References: <20190213115549.81917-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1550375655-58007-1-git-send-email-wangxiongfeng2@huawei.com>
+In-Reply-To: <20190213115549.81917-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Cc: viresh.kumar@linaro.org, rafael@kernel.org, gcherianv@gmail.com, pprakash@codeaurora.org, george.cherian@cavium.com, robert.moore@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, john.garry@huawei.com
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday, February 17, 2019 4:54:13 AM CET Xiongfeng Wang wrote:
-> Hisilicon chips do not support delivered performance counter register
-> and reference performance counter register. But the platform can
-> calculate the real performance using its own method. This patch provide
-> a workaround for this problem, and other platforms can also use this
-> workaround framework. We reuse the desired performance register to
-> store the real performance calculated by the platform. After the
-> platform finished the frequency adjust, it gets the real performance and
-> writes it into desired performance register. OS can use it to calculate
-> the real frequency.
+On Wednesday, February 13, 2019 12:55:49 PM CET Heikki Krogerus wrote:
+> This makes it possible to support drivers that use
+> fwnode_get_named_child_node() and device_get_named_child_node()
+> functions.
 > 
-> Changlog:
+> The node name is for now taken from a device property named
+> "name". That mimics the old style of naming of the nodes in
+> devicetree (though with modern flattened DT, the name is
+> matched against the actual node-name, it used to be done
+> with a property "name"). In Open Firmware DT the "name"
+> property is also still being used.
 > 
-> v2 -> v3:
-> 	Recontruct 'cppc_get_desired_perf'.
-> 	Rename 'cppc_workaround_info' to 'cppc_workaround_oem_info'
-> 	Drop 'get_rate' member from struct cppc_workaround_oem_info
-> 	Change 'cppc_wa_get_rate' pointer to a flag to indicate whether
-> 	we need to aplly the workaround.
-> 	Move the new functions to the beginning of cppc-cpufreq.c
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  drivers/base/swnode.c | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
 > 
-> 
-> Xiongfeng Wang (2):
->   ACPI / CPPC: Add a helper to get desired performance
->   cpufreq / cppc: Work around for Hisilicon CPPC cpufreq
-> 
->  drivers/acpi/cppc_acpi.c       | 39 +++++++++++++++++++++++++
->  drivers/cpufreq/cppc_cpufreq.c | 66 ++++++++++++++++++++++++++++++++++++++++++
->  include/acpi/cppc_acpi.h       |  1 +
->  3 files changed, 106 insertions(+)
-> 
+> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> index 89ad8dee6ad5..1fad9291f6aa 100644
+> --- a/drivers/base/swnode.c
+> +++ b/drivers/base/swnode.c
+> @@ -499,6 +499,28 @@ software_node_get_next_child(const struct fwnode_handle *fwnode,
+>  	return &c->fwnode;
+>  }
+>  
+> +static struct fwnode_handle *
+> +software_node_get_named_child_node(const struct fwnode_handle *fwnode,
+> +				   const char *childname)
+> +{
+> +	struct software_node *swnode = to_software_node(fwnode);
+> +	const struct property_entry *prop;
+> +	struct software_node *child;
+> +
+> +	if (!swnode || list_empty(&swnode->children))
+> +		return NULL;
+> +
+> +	list_for_each_entry(child, &swnode->children, entry) {
+> +		prop = property_entry_get(child->properties, "name");
+> +		if (!prop)
+> +			continue;
+> +		if (!strcmp(childname, prop->value.str)) {
+> +			kobject_get(&child->kobj);
+> +			return &child->fwnode;
+> +		}
+> +	}
+> +	return NULL;
+> +}
+>  
+>  static const struct fwnode_operations software_node_ops = {
+>  	.get = software_node_get,
+> @@ -508,6 +530,7 @@ static const struct fwnode_operations software_node_ops = {
+>  	.property_read_string_array = software_node_read_string_array,
+>  	.get_parent = software_node_get_parent,
+>  	.get_next_child_node = software_node_get_next_child,
+> +	.get_named_child_node = software_node_get_named_child_node,
+>  };
+>  
+>  /* -------------------------------------------------------------------------- */
 > 
 
-Both patches applied, thanks!
+Applied, thanks!
