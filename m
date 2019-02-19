@@ -1,92 +1,52 @@
-From: Kai Heng Feng <kai.heng.feng@canonical.com>
-Subject: Re: [PATCH] PCI / ACPI: Don't clear pme_poll on device that has
- unreliable ACPI wake
-Date: Mon, 18 Feb 2019 16:30:35 +0100
-Message-ID: <7070C6C7-AA47-4F5F-A456-7DEEA7405F48@canonical.com>
-References: <20190122064544.27426-1-kai.heng.feng@canonical.com>
- <20190122235134.GE14636@google.com>
- <91E74111-5BB6-4604-A1D7-B537AB42C317@canonical.com>
- <20190124151524.GF14636@google.com>
- <FFC6EC3F-3608-41FC-8B14-815D1747C4B6@canonical.com>
- <20190124200508.GH14636@google.com>
- <C7E9B3C9-7E20-4CEB-8B56-D9A8D2E76DD0@canonical.com>
- <CFAC1243-982E-4BAC-BAF6-41568C1C1A9E@canonical.com>
- <20190204172057.GB9160@google.com>
-Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / processor: Set P_LVL{2,3} idle state descriptions
+Date: Tue, 19 Feb 2019 10:57:02 +0100
+Message-ID: <3670654.07UQUedC4A@aspire.rjw.lan>
+References: <20190218013335.233265-1-Yazen.Ghannam@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190204172057.GB9160@google.com>
+In-Reply-To: <20190218013335.233265-1-Yazen.Ghannam@amd.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-> On Feb 4, 2019, at 6:20 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+On Monday, February 18, 2019 2:33:49 AM CET Ghannam, Yazen wrote:
+> From: Yazen Ghannam <yazen.ghannam@amd.com>
 > 
-> On Sun, Feb 03, 2019 at 01:46:50AM +0800, Kai Heng Feng wrote:
->>> On Jan 28, 2019, at 3:51 PM, Kai Heng Feng <kai.heng.feng@canonical.com> wrote:
->> 
->>>> If I understand correctly, the bugzilla lspci
->>>> (https://bugzilla.kernel.org/attachment.cgi?id=280691) was collected
->>>> at point 8, and it shows PME_Status=1 when it should be 0.
->>>> 
->>>> If we write a 1 to PME_Status to clear it, and it remains set, that's
->>>> obviously a hardware defect, and Intel should document that in an
->>>> erratum, and a quirk would be the appropriate way to work around it.
->>>> But I doubt that's what's happening.
->>> 
->>> I’ll ask them if they can provide an erratum.
->> 
->> Got confirmed with e1000e folks, I219 (the device in question) doesn’t
->> really support runtime D3.
+> The ACPI idle driver will fallback to using the legacy P_LVL* SystemIO
+> method of entering C-states if the _CST method is disabled and P_BLK is
+> defined. However, in this case the C2 and C3 states won't have a
+> description set, so the user will see "<null>" when reading the
+> description from sysfs.
 > 
-> Did you get a reference, e.g., an intel.com URL for that?  Intel
-> usually publishes errata for hardware defects, which is nice because
-> it means every customer doesn't have to experimentally rediscover
-> them.
-
-Unfortunately no.
-
+> Give each of these states a description.
 > 
->> I also checked the behavior of the device under Windows, and it
->> stays at D0 all the time even when it’s not in use.
+> Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
+> ---
+>  drivers/acpi/processor_idle.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> I think there are two possible explanations for this:
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index b2131c4ea124..98d4ec5bf450 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -282,6 +282,13 @@ static int acpi_processor_get_power_info_fadt(struct acpi_processor *pr)
+>  			  pr->power.states[ACPI_STATE_C2].address,
+>  			  pr->power.states[ACPI_STATE_C3].address));
+>  
+> +	snprintf(pr->power.states[ACPI_STATE_C2].desc,
+> +			 ACPI_CX_DESC_LEN, "ACPI P_LVL2 IOPORT 0x%x",
+> +			 pr->power.states[ACPI_STATE_C2].address);
+> +	snprintf(pr->power.states[ACPI_STATE_C3].desc,
+> +			 ACPI_CX_DESC_LEN, "ACPI P_LVL3 IOPORT 0x%x",
+> +			 pr->power.states[ACPI_STATE_C3].address);
+> +
+>  	return 0;
+>  }
+>  
 > 
->  1) This device requires a Windows or a driver update with a
->  device-specific quirk similar to what you're proposing for Linux.
 
-I am sure the latest driver is loaded under Windows.
-
-> 
->  2) Windows correctly detects that this device doesn't support D3,
->  and Linux has a bug and does not detect that.
-
-I think that’s the case.
-
-> 
-> Obviously nobody wants to require OS or driver updates just for minor
-> device changes, and the PCI and ACPI specs are designed to allow
-> generic, non device-specific code to detect D3 support, so the first
-> case should be a result of a hardware defect.
-
-Yea, that’s why my original idea is to workaround it in PCI/ACPI.
-
-> 
->> So I sent a patch [1] to disable it.
->> 
->> [1] https://lkml.org/lkml/2019/2/2/200
-> 
-> OK.  Since that's in drivers/net/..., I have no objection and the
-> e1000e maintainers would deal with that.
-
-Thanks.
-
-Kai-Heng
-
-> 
-> Bjorn
+Applied, thanks!
