@@ -1,46 +1,80 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCHv6 07/10] acpi/hmat: Register processor domain to its memory
-Date: Fri, 22 Feb 2019 11:21:37 -0800
-Message-ID: <CAPcyv4jpP0CP-QxWDc_E1QwL736PLwh8ZPrnKJzVnYrAk++93g@mail.gmail.com>
-References: <20190214171017.9362-1-keith.busch@intel.com> <20190214171017.9362-8-keith.busch@intel.com>
- <CAJZ5v0gjv0DZvYMTPBLnUmMtu8=g0zFd4x-cpP11Kzv+6XCwUw@mail.gmail.com> <20190222184831.GF10237@localhost.localdomain>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 63/72] x86/kexec: Don't setup EFI info if EFI runtime is not enabled
+Date: Sat, 23 Feb 2019 16:04:13 -0500
+Message-ID: <20190223210422.199966-63-sashal@kernel.org>
+References: <20190223210422.199966-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190222184831.GF10237@localhost.localdomain>
+In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Linux API <linux-api@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Hansen <dave.hansen@intel.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Kairui Song <kasong@redhat.com>, Borislav Petkov <bp@suse.de>, AKASHI Takahiro <takahiro.akashi@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, bhe@redhat.com, David Howells <dhowells@redhat.com>, erik.schmauss@intel.com, fanc.fnst@cn.fujitsu.com, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, kexec@lists.infradead.org, lenb@kernel.org, linux-acpi@vger.kernel.org, Philipp Rudo <prudo@linux.vnet.ibm.com>, rafael.j.wysocki@intel.com, robert.moore@intel.com, Thomas Gleixner <tglx@linutronix.de>, x86-ml <x86@kernel.org>, Yannik Sembritzki <yannik@sembritzki.me>, Sasha Levin <sashal@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 22, 2019 at 10:48 AM Keith Busch <keith.busch@intel.com> wrote:
->
-> On Wed, Feb 20, 2019 at 11:02:01PM +0100, Rafael J. Wysocki wrote:
-> > On Thu, Feb 14, 2019 at 6:10 PM Keith Busch <keith.busch@intel.com> wrote:
-> > >  config ACPI_HMAT
-> > >         bool "ACPI Heterogeneous Memory Attribute Table Support"
-> > >         depends on ACPI_NUMA
-> > > +       select HMEM_REPORTING
-> >
-> > If you want to do this here, I'm not sure that defining HMEM_REPORTING
-> > as a user-selectable option is a good idea.  In particular, I don't
-> > really think that setting ACPI_HMAT without it makes a lot of sense.
-> > Apart from this, the patch looks reasonable to me.
->
-> I'm trying to implement based on the feedback, but I'm a little confused.
->
-> As I have it at the moment, HMEM_REPORTING is not user-prompted, so
-> another option needs to turn it on. I have ACPI_HMAT do that here.
->
-> So when you say it's a bad idea to make HMEM_REPORTING user selectable,
-> isn't it already not user selectable?
->
-> If I do it the other way around, that's going to make HMEM_REPORTING
-> complicated if a non-ACPI implementation wants to report HMEM
-> properties.
+From: Kairui Song <kasong@redhat.com>
 
-Agree. If a platform supports these HMEM properties then they should
-be reported. ACPI_HMAT is that opt-in for ACPI based platforms, and
-other archs can do something similar. It's not clear that one would
-ever want to opt-in to HMAT support and opt-out of reporting any of it
-to userspace.
+[ Upstream commit 2aa958c99c7fd3162b089a1a56a34a0cdb778de1 ]
+
+Kexec-ing a kernel with "efi=noruntime" on the first kernel's command
+line causes the following null pointer dereference:
+
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
+  #PF error: [normal kernel read fault]
+  Call Trace:
+   efi_runtime_map_copy+0x28/0x30
+   bzImage64_load+0x688/0x872
+   arch_kexec_kernel_image_load+0x6d/0x70
+   kimage_file_alloc_init+0x13e/0x220
+   __x64_sys_kexec_file_load+0x144/0x290
+   do_syscall_64+0x55/0x1a0
+   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Just skip the EFI info setup if EFI runtime services are not enabled.
+
+ [ bp: Massage commit message. ]
+
+Suggested-by: Dave Young <dyoung@redhat.com>
+Signed-off-by: Kairui Song <kasong@redhat.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Acked-by: Dave Young <dyoung@redhat.com>
+Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: bhe@redhat.com
+Cc: David Howells <dhowells@redhat.com>
+Cc: erik.schmauss@intel.com
+Cc: fanc.fnst@cn.fujitsu.com
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: kexec@lists.infradead.org
+Cc: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
+Cc: Philipp Rudo <prudo@linux.vnet.ibm.com>
+Cc: rafael.j.wysocki@intel.com
+Cc: robert.moore@intel.com
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: x86-ml <x86@kernel.org>
+Cc: Yannik Sembritzki <yannik@sembritzki.me>
+Link: https://lkml.kernel.org/r/20190118111310.29589-2-kasong@redhat.com
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/x86/kernel/kexec-bzimage64.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
+index 278cd07228dd8..9490a2845f14b 100644
+--- a/arch/x86/kernel/kexec-bzimage64.c
++++ b/arch/x86/kernel/kexec-bzimage64.c
+@@ -167,6 +167,9 @@ setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
+ 	struct efi_info *current_ei = &boot_params.efi_info;
+ 	struct efi_info *ei = &params->efi_info;
+ 
++	if (!efi_enabled(EFI_RUNTIME_SERVICES))
++		return 0;
++
+ 	if (!current_ei->efi_memmap_size)
+ 		return 0;
+ 
+-- 
+2.19.1
