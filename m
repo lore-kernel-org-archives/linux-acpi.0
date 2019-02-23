@@ -1,14 +1,14 @@
 From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH AUTOSEL 4.4 20/26] x86/kexec: Don't setup EFI info if EFI
+Subject: [PATCH AUTOSEL 3.18 15/18] x86/kexec: Don't setup EFI info if EFI
  runtime is not enabled
-Date: Sat, 23 Feb 2019 16:10:41 -0500
-Message-ID: <20190223211047.202725-20-sashal@kernel.org>
-References: <20190223211047.202725-1-sashal@kernel.org>
+Date: Sat, 23 Feb 2019 16:11:32 -0500
+Message-ID: <20190223211135.203082-15-sashal@kernel.org>
+References: <20190223211135.203082-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20190223211047.202725-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20190223211135.203082-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
  <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/kexec/>
@@ -73,10 +73,10 @@ Signed-off-by: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
-index 0f8a6bbaaa443..0bf17576dd2af 100644
+index ca05f86481aac..3e22751382c38 100644
 --- a/arch/x86/kernel/kexec-bzimage64.c
 +++ b/arch/x86/kernel/kexec-bzimage64.c
-@@ -168,6 +168,9 @@ setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
+@@ -167,6 +167,9 @@ setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
  	struct efi_info *current_ei = &boot_params.efi_info;
  	struct efi_info *ei = &params->efi_info;
  
