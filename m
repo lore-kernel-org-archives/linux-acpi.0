@@ -1,90 +1,78 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH AUTOSEL 3.18 15/18] x86/kexec: Don't setup EFI info if EFI
- runtime is not enabled
-Date: Sat, 23 Feb 2019 16:11:32 -0500
-Message-ID: <20190223211135.203082-15-sashal@kernel.org>
-References: <20190223211135.203082-1-sashal@kernel.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] driver: platform: Support parsing GpioInt 0 in platform_get_irq()
+Date: Sun, 24 Feb 2019 20:34:45 +0100
+Message-ID: <CAJZ5v0g-pWj9Fmg6W4+tt6QQCRssxcjVsHSDedO+ph3jsREhZw@mail.gmail.com>
+References: <20190207185917.167829-1-egranata@google.com> <20190211190112.209286-1-egranata@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20190223211135.203082-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, x86-ml <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Philipp Rudo <prudo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Kairui Song <kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, fanc.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, AKASHI Takahiro <takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Yannik Sembritzki <yannik-Ed5pum6jkczxnD6Ig1nlyA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190211190112.209286-1-egranata@chromium.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Enrico Granata <egranata@chromium.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Dmitry Torokhov <dtor@chromium.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gwendal Grignou <gwendal@chromium.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Brian Norris <briannorris@chromium.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Enrico Granata <egranata@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Kairui Song <kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+On Mon, Feb 11, 2019 at 8:01 PM <egranata@chromium.org> wrote:
+>
+> From: Enrico Granata <egranata@chromium.org>
+>
+> ACPI 5 added support for GpioInt resources as a way to provide
+> information about interrupts mediated via a GPIO controller.
+>
+> Several device buses (e.g. SPI, I2C) have support for retrieving
+> an IRQ specified via this type of resource, and providing it
+> directly to the driver as an IRQ number.
+>
+> This is not currently done for the platform drivers, as platform_get_irq()
+> does not try to parse GpioInt() resources. This requires drivers to
+> either have to support only one possible IRQ resource, or to have code
+> in place to try both as a failsafe.
+>
+> While there is a possibility of ambiguity for devices that exposes
+> multiple IRQs, it is easy and feasible to support the common case
+> of devices that only expose one IRQ which would be of either type
+> depending on the underlying system's architecture.
+>
+> This commit adds support for parsing a GpioInt resource in order
+> to fulfill a request for the index 0 IRQ for a platform device.
+>
+> Signed-off-by: Enrico Granata <egranata@chromium.org>
 
-[ Upstream commit 2aa958c99c7fd3162b089a1a56a34a0cdb778de1 ]
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Kexec-ing a kernel with "efi=noruntime" on the first kernel's command
-line causes the following null pointer dereference:
-
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
-  #PF error: [normal kernel read fault]
-  Call Trace:
-   efi_runtime_map_copy+0x28/0x30
-   bzImage64_load+0x688/0x872
-   arch_kexec_kernel_image_load+0x6d/0x70
-   kimage_file_alloc_init+0x13e/0x220
-   __x64_sys_kexec_file_load+0x144/0x290
-   do_syscall_64+0x55/0x1a0
-   entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-Just skip the EFI info setup if EFI runtime services are not enabled.
-
- [ bp: Massage commit message. ]
-
-Suggested-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Kairui Song <kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
-Acked-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: AKASHI Takahiro <takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: fanc.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org
-Cc: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Cc: Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Philipp Rudo <prudo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: x86-ml <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Yannik Sembritzki <yannik-Ed5pum6jkczxnD6Ig1nlyA@public.gmane.org>
-Link: https://lkml.kernel.org/r/20190118111310.29589-2-kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Signed-off-by: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- arch/x86/kernel/kexec-bzimage64.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
-index ca05f86481aac..3e22751382c38 100644
---- a/arch/x86/kernel/kexec-bzimage64.c
-+++ b/arch/x86/kernel/kexec-bzimage64.c
-@@ -167,6 +167,9 @@ setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
- 	struct efi_info *current_ei = &boot_params.efi_info;
- 	struct efi_info *ei = &params->efi_info;
- 
-+	if (!efi_enabled(EFI_RUNTIME_SERVICES))
-+		return 0;
-+
- 	if (!current_ei->efi_memmap_size)
- 		return 0;
- 
--- 
-2.19.1
+> ---
+> Changes in v2:
+>  - only support IRQ index 0
+>
+>  drivers/base/platform.c | 15 ++++++++++++++-
+>  1 file changed, 14 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index 1c958eb33ef4d..0d3611cd1b3bc 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -127,7 +127,20 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+>                 irqd_set_trigger_type(irqd, r->flags & IORESOURCE_BITS);
+>         }
+>
+> -       return r ? r->start : -ENXIO;
+> +       if (r)
+> +               return r->start;
+> +
+> +       /*
+> +        * For the index 0 interrupt, allow falling back to GpioInt
+> +        * resources. While a device could have both Interrupt and GpioInt
+> +        * resources, making this fallback ambiguous, in many common cases
+> +        * the device will only expose one IRQ, and this fallback
+> +        * allows a common code path across either kind of resource.
+> +        */
+> +       if (num == 0 && has_acpi_companion(&dev->dev))
+> +               return acpi_dev_gpio_irq_get(ACPI_COMPANION(&dev->dev), num);
+> +
+> +       return -ENXIO;
+>  #endif
+>  }
+>  EXPORT_SYMBOL_GPL(platform_get_irq);
+> --
+> 2.20.1.791.gb4d0f1c61a-goog
+>
