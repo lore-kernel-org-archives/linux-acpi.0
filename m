@@ -1,57 +1,130 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCHv6 07/10] acpi/hmat: Register processor domain to its memory
-Date: Sun, 24 Feb 2019 21:07:03 +0100
-Message-ID: <CAJZ5v0gyEJ59qSno_MKjr97zeYaLp=v1=ZYz1twM1eZJCP_DTw@mail.gmail.com>
-References: <20190214171017.9362-1-keith.busch@intel.com> <20190214171017.9362-8-keith.busch@intel.com>
- <CAJZ5v0gjv0DZvYMTPBLnUmMtu8=g0zFd4x-cpP11Kzv+6XCwUw@mail.gmail.com>
- <20190222184831.GF10237@localhost.localdomain> <CAPcyv4jpP0CP-QxWDc_E1QwL736PLwh8ZPrnKJzVnYrAk++93g@mail.gmail.com>
+From: Juri Lelli <juri.lelli@redhat.com>
+Subject: Re: [ANNOUNCE][CFP] Power Management and Scheduling in the Linux
+ Kernel III edition (OSPM-summit 2019)
+Date: Mon, 25 Feb 2019 08:43:33 +0100
+Message-ID: <20190225074333.GH21785@localhost.localdomain>
+References: <20190114161910.GB5581@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jpP0CP-QxWDc_E1QwL736PLwh8ZPrnKJzVnYrAk++93g@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190114161910.GB5581@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Keith Busch <keith.busch@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Linux API <linux-api@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Hansen <dave.hansen@intel.com>
+To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 22, 2019 at 8:21 PM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> On Fri, Feb 22, 2019 at 10:48 AM Keith Busch <keith.busch@intel.com> wrote:
-> >
-> > On Wed, Feb 20, 2019 at 11:02:01PM +0100, Rafael J. Wysocki wrote:
-> > > On Thu, Feb 14, 2019 at 6:10 PM Keith Busch <keith.busch@intel.com> wrote:
-> > > >  config ACPI_HMAT
-> > > >         bool "ACPI Heterogeneous Memory Attribute Table Support"
-> > > >         depends on ACPI_NUMA
-> > > > +       select HMEM_REPORTING
-> > >
-> > > If you want to do this here, I'm not sure that defining HMEM_REPORTING
-> > > as a user-selectable option is a good idea.  In particular, I don't
-> > > really think that setting ACPI_HMAT without it makes a lot of sense.
-> > > Apart from this, the patch looks reasonable to me.
-> >
-> > I'm trying to implement based on the feedback, but I'm a little confused.
-> >
-> > As I have it at the moment, HMEM_REPORTING is not user-prompted, so
-> > another option needs to turn it on. I have ACPI_HMAT do that here.
-> >
-> > So when you say it's a bad idea to make HMEM_REPORTING user selectable,
-> > isn't it already not user selectable?
-> >
-> > If I do it the other way around, that's going to make HMEM_REPORTING
-> > complicated if a non-ACPI implementation wants to report HMEM
-> > properties.
->
-> Agree. If a platform supports these HMEM properties then they should
-> be reported.
+Hello,
 
-Well, I'm not sure if everybody is in agreement on that.
+A quick one to inform everybody that registrations are now open!
 
-> ACPI_HMAT is that opt-in for ACPI based platforms, and
-> other archs can do something similar. It's not clear that one would
-> ever want to opt-in to HMAT support and opt-out of reporting any of it
-> to userspace.
+Although list of topics looks pretty good already, we are still
+accepting new ones. So, please don't hesitate to add your.
 
-In my view, ACPI_HMAT need not be an opt-in in the first place.  The
-only reason to avoid compiling HMAT parsing it would be if there were
-no users of it in the kernel IMO.
+Best,
+
+- Juri
+
+On 14/01/19 17:19, Juri Lelli wrote:
+> Power Management and Scheduling in the Linux Kernel (OSPM-summit) III edition
+> May 20-22, 2019
+> Scuola Superiore Sant'Anna
+> Pisa, Italy
+> 
+> ---
+> 
+> .:: FOCUS
+> 
+> The III edition of the Power Management and Scheduling in the Linux
+> Kernel (OSPM) summit aims at fostering discussions on power management
+> and (real-time) scheduling techniques. Summit will be held in Pisa
+> (Italy) on May 20-22, 2019.
+> 
+> Although scheduler techniques for reducing energy consumption while
+> meeting performance and latency requirements are the prime interest of
+> the summit, we welcome anybody interested in having discussions on the
+> broader scope of real-time systems, real-time and non-real-time
+> scheduling, tooling, debugging and tracing.
+> 
+> Feel free to have a look at what happened previous years:
+> 
+>  I  edition - https://lwn.net/Articles/721573/
+>  II edition - https://lwn.net/Articles/754923/
+> 
+> .:: FORMAT
+> 
+> The summit is organized to cover three days of discussions and talks.
+> 
+> The list of topics of interest includes (but it is not limited to):
+> 
+>  * Power management techniques
+>  * Real-time and non real-time scheduling techniques
+>  * Energy consumption and CPU capacity aware scheduling
+>  * Real-time virtualization
+>  * Mobile/Server power management real-world use cases (successes and
+>    failures)
+>  * Power management and scheduling tooling (configuration, integration,
+>    testing, etc.)
+>  * Tracing
+>  * Recap/lightning talks
+> 
+> Presentations can cover recently developed technologies, ongoing work
+> and new ideas. Please understand that this workshop is not intended for
+> presenting sales and marketing pitches.
+> 
+> .:: ATTENDING
+> 
+> Attending the OSPM-summit is free of charge, but registration to the
+> event is mandatory. The event can allow a maximum of 50 people (so, be
+> sure to register early!). Registrations open on February 22nd, 2019.
+> 
+> To register fill in the registration form available at
+> https://goo.gl/forms/33rgOC70ypRrrZV33.
+> 
+> While it is not strictly required to submit a topic/presentation (see
+> below), registrations with a topic/presentation proposal will take
+> precedence.
+> 
+> .:: SUBMIT A TOPIC/PRESENTATION
+> 
+> To submit a topic/presentation add its details to this list:
+> https://docs.google.com/spreadsheets/d/1s5JzAlPoISZFwvV6QajE3aPBGVaixdLb5ftamJ4Mn9U/edit?usp=sharing
+> 
+> (feel free to get inspired by last year list of accepted topics
+> https://docs.google.com/spreadsheets/d/1ZPfASW6zVOM3xQvOrcaDEf1c-Pxi1XnFukVYHHwGUq4/edit?usp=sharing)
+> 
+> Or, if you prefer, simply reply (only to me, please :) to this email
+> specifying:
+> 
+> - name/surname
+> - affiliation
+> - short bio
+> - email address
+> - title
+> - abstract
+> - 30min or 50min slot
+> 
+> Deadline for submitting topics/presentations is 8th of February 2019.
+> Notifications for accepted topics/presentations will be sent out on 22nd
+> of February 2019.
+> 
+> .:: VENUE
+> 
+> The workshop will take place at ReTiS Lab*, Scuola Superiore Sant'Anna,
+> Pisa, Italy. Pisa is a small town, walking distance from the city center
+> to the venue is 20 minutes, walking distance from the airport to the
+> city center is 30 minutes. More details are available from the summit
+> web page: http://retis.sssup.it/ospm-summit/#site
+> 
+> * https://goo.gl/maps/2pPXG2v7Lfp
+> 
+> .:: ORGANIZERS (in alphabetical order)
+> 
+> Luca Abeni (SSSA)
+> Patrick Bellasi (Arm)
+> Tommaso Cucinotta (SSSA)
+> Dietmar Eggemann (Arm)
+> Sudeep Holla (Arm)
+> Juri Lelli (Red Hat)
+> Lorenzo Pieralisi (Arm)
+> Morten Rasmussen (Arm)
+> Claudio Scordino (Evidence SRL)
