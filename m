@@ -1,130 +1,65 @@
-From: Juri Lelli <juri.lelli@redhat.com>
-Subject: Re: [ANNOUNCE][CFP] Power Management and Scheduling in the Linux
- Kernel III edition (OSPM-summit 2019)
-Date: Mon, 25 Feb 2019 08:43:33 +0100
-Message-ID: <20190225074333.GH21785@localhost.localdomain>
-References: <20190114161910.GB5581@localhost.localdomain>
+From: Keith Busch <keith.busch@intel.com>
+Subject: Re: [PATCHv6 07/10] acpi/hmat: Register processor domain to its
+ memory
+Date: Mon, 25 Feb 2019 09:51:18 -0700
+Message-ID: <20190225165118.GK10237@localhost.localdomain>
+References: <20190214171017.9362-1-keith.busch@intel.com>
+ <20190214171017.9362-8-keith.busch@intel.com>
+ <CAJZ5v0gjv0DZvYMTPBLnUmMtu8=g0zFd4x-cpP11Kzv+6XCwUw@mail.gmail.com>
+ <20190222184831.GF10237@localhost.localdomain>
+ <CAJZ5v0hfQ5HWT0kfaOxSbpJvdqotsMWVBCZ6wiL4Tnuy+O5O7Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190114161910.GB5581@localhost.localdomain>
+In-Reply-To: <CAJZ5v0hfQ5HWT0kfaOxSbpJvdqotsMWVBCZ6wiL4Tnuy+O5O7Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Linux API <linux-api@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Sun, Feb 24, 2019 at 08:59:45PM +0100, Rafael J. Wysocki wrote:
+> On Fri, Feb 22, 2019 at 7:48 PM Keith Busch <keith.busch@intel.com> wrote:
+> > If I do it the other way around, that's going to make HMEM_REPORTING
+> > complicated if a non-ACPI implementation wants to report HMEM
+> > properties.
+> 
+> But the mitigations that Dave was talking about get in the way, don't they?
+> 
+> Say there is another Kconfig option,CACHE_MITIGATIONS, to enable them.
+> Then you want ACPI_HMAT to be set when that it set and you also want
+> ACPI_HMAT to be set when HMEM_REPORTING and ACPI_NUMA are both set.
+> 
+> OTOH, you may not want HMEM_REPORTING to be set when CACHE_MITIGATIONS
+> is set, but that causes ACPI_HMAT to be set and which means that
+> ACPI_HMAT alone will not be sufficient to determine the
+> HMEM_REPORTING value.
 
-A quick one to inform everybody that registrations are now open!
+I can't think of when we'd want to suppress reporting these attributes
+to user space, but I can split HMAT enabling so it doesn't depend on
+HMEM_REPORTING just in case there really is an in-kernel user that
+definitely does not want the same attributes exported.
 
-Although list of topics looks pretty good already, we are still
-accepting new ones. So, please don't hesitate to add your.
+> Now, if you prompt for HMEM_REPORTING and make it depend on ACPI_NUMA,
+> then ACPI_HMAT can be selected by that (regardless of the
+> CACHE_MITIGATIONS value).
+> 
+> And if someone wants to use HMEM_REPORTING without ACPI_NUMA, it can
+> be made depend on whatever new option is there for that non-ACPI
+> mechanism.
+> 
+> There might be a problem if someone wanted to enable the alternative
+> way of HMEM_REPORTING if ACPI_NUMA was set (in which case HMAT would
+> have to be ignored even if it was present), but in that case there
+> would need to be an explicit way to choose between HMAT and non-HMAT
+> anyway.
+> 
+> In any case, I prefer providers to be selected by consumers and not
+> the other way around, in case there are multiple consumers for one
+> provider.
 
-Best,
-
-- Juri
-
-On 14/01/19 17:19, Juri Lelli wrote:
-> Power Management and Scheduling in the Linux Kernel (OSPM-summit) III edition
-> May 20-22, 2019
-> Scuola Superiore Sant'Anna
-> Pisa, Italy
-> 
-> ---
-> 
-> .:: FOCUS
-> 
-> The III edition of the Power Management and Scheduling in the Linux
-> Kernel (OSPM) summit aims at fostering discussions on power management
-> and (real-time) scheduling techniques. Summit will be held in Pisa
-> (Italy) on May 20-22, 2019.
-> 
-> Although scheduler techniques for reducing energy consumption while
-> meeting performance and latency requirements are the prime interest of
-> the summit, we welcome anybody interested in having discussions on the
-> broader scope of real-time systems, real-time and non-real-time
-> scheduling, tooling, debugging and tracing.
-> 
-> Feel free to have a look at what happened previous years:
-> 
->  I  edition - https://lwn.net/Articles/721573/
->  II edition - https://lwn.net/Articles/754923/
-> 
-> .:: FORMAT
-> 
-> The summit is organized to cover three days of discussions and talks.
-> 
-> The list of topics of interest includes (but it is not limited to):
-> 
->  * Power management techniques
->  * Real-time and non real-time scheduling techniques
->  * Energy consumption and CPU capacity aware scheduling
->  * Real-time virtualization
->  * Mobile/Server power management real-world use cases (successes and
->    failures)
->  * Power management and scheduling tooling (configuration, integration,
->    testing, etc.)
->  * Tracing
->  * Recap/lightning talks
-> 
-> Presentations can cover recently developed technologies, ongoing work
-> and new ideas. Please understand that this workshop is not intended for
-> presenting sales and marketing pitches.
-> 
-> .:: ATTENDING
-> 
-> Attending the OSPM-summit is free of charge, but registration to the
-> event is mandatory. The event can allow a maximum of 50 people (so, be
-> sure to register early!). Registrations open on February 22nd, 2019.
-> 
-> To register fill in the registration form available at
-> https://goo.gl/forms/33rgOC70ypRrrZV33.
-> 
-> While it is not strictly required to submit a topic/presentation (see
-> below), registrations with a topic/presentation proposal will take
-> precedence.
-> 
-> .:: SUBMIT A TOPIC/PRESENTATION
-> 
-> To submit a topic/presentation add its details to this list:
-> https://docs.google.com/spreadsheets/d/1s5JzAlPoISZFwvV6QajE3aPBGVaixdLb5ftamJ4Mn9U/edit?usp=sharing
-> 
-> (feel free to get inspired by last year list of accepted topics
-> https://docs.google.com/spreadsheets/d/1ZPfASW6zVOM3xQvOrcaDEf1c-Pxi1XnFukVYHHwGUq4/edit?usp=sharing)
-> 
-> Or, if you prefer, simply reply (only to me, please :) to this email
-> specifying:
-> 
-> - name/surname
-> - affiliation
-> - short bio
-> - email address
-> - title
-> - abstract
-> - 30min or 50min slot
-> 
-> Deadline for submitting topics/presentations is 8th of February 2019.
-> Notifications for accepted topics/presentations will be sent out on 22nd
-> of February 2019.
-> 
-> .:: VENUE
-> 
-> The workshop will take place at ReTiS Lab*, Scuola Superiore Sant'Anna,
-> Pisa, Italy. Pisa is a small town, walking distance from the city center
-> to the venue is 20 minutes, walking distance from the airport to the
-> city center is 30 minutes. More details are available from the summit
-> web page: http://retis.sssup.it/ospm-summit/#site
-> 
-> * https://goo.gl/maps/2pPXG2v7Lfp
-> 
-> .:: ORGANIZERS (in alphabetical order)
-> 
-> Luca Abeni (SSSA)
-> Patrick Bellasi (Arm)
-> Tommaso Cucinotta (SSSA)
-> Dietmar Eggemann (Arm)
-> Sudeep Holla (Arm)
-> Juri Lelli (Red Hat)
-> Lorenzo Pieralisi (Arm)
-> Morten Rasmussen (Arm)
-> Claudio Scordino (Evidence SRL)
+Well, the HMEM_REPORTING fundamentally has no dependency on any of these
+things and I've put some effort into making this part provider agnostic.
+I will change it if this concern is gating acceptance, but I don't
+think it's as intuitive for generic interfaces to be the selector for
+implementation specific providers.
