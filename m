@@ -1,319 +1,181 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv7 03/10] acpi/hmat: Parse and report heterogeneous memory
-Date: Wed, 27 Feb 2019 15:50:31 -0700
-Message-ID: <20190227225038.20438-4-keith.busch@intel.com>
-References: <20190227225038.20438-1-keith.busch@intel.com>
+From: Yu Chen <yu.c.chen@intel.com>
+Subject: Re: [PATCH][RFC] ACPI: add "processor.broadcast_ppc" hook to
+ broadcast  _PPC to all online CPUs
+Date: Fri, 1 Mar 2019 01:52:30 +0800
+Message-ID: <20190228175230.GA31788@chenyu-office.sh.intel.com>
+References: <20190209120232.21582-1-yu.c.chen@intel.com>
+ <20190211103307.rccddkso3f5s3yko@vireshk-i7>
+ <20190213165538.GB30385@chenyu-office.sh.intel.com>
+ <20190214070648.pvsavc46iivub4hy@vireshk-i7>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190227225038.20438-1-keith.busch@intel.com>
+Content-Disposition: inline
+In-Reply-To: <20190214070648.pvsavc46iivub4hy@vireshk-i7>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Systems may provide different memory types and export this information
-in the ACPI Heterogeneous Memory Attribute Table (HMAT). Parse these
-tables provided by the platform and report the memory access and caching
-attributes to the kernel messages.
+On Thu, Feb 14, 2019 at 12:36:48PM +0530, Viresh Kumar wrote:
+> On 14-02-19, 00:55, Yu Chen wrote:
+> > Hi Viresh,
+> > On Mon, Feb 11, 2019 at 04:03:07PM +0530, Viresh Kumar wrote:
+> > > On 09-02-19, 20:02, Chen Yu wrote:
+> > > > On Dell Inc. XPS13 9333, the BIOS changes the value of
+> > > > MSR_IA32_MISC_ENABLE_TURBO_DISABLE at runtime (e.g., when
+> > > > the power source changes), the maximum frequency of the
+> > > > CPU is not updated accordingly. This is due to the policy's
+> > > > cpuinfo.max is not updated when _PPC notifier fires.
+> > > > 
+> > > > Fix this problem by updating the policy's cpuinfo.max
+> > > > and broadcast the _PPC notifier to all online CPUs.
+> > > > 
+> > > > Link: https://bugzilla.kernel.org/show_bug.cgi?id=200759
+> > > > Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+> > > > Originally-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> > > > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> > > > ---
+> > > >  drivers/acpi/processor_perflib.c | 16 ++++++++++++++--
+> > > >  drivers/cpufreq/cpufreq.c        |  2 ++
+> > > >  drivers/cpufreq/intel_pstate.c   | 15 ++++++++++++++-
+> > > >  3 files changed, 30 insertions(+), 3 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> > > > index a303fd0e108c..737dbf5aa7f7 100644
+> > > > --- a/drivers/acpi/processor_perflib.c
+> > > > +++ b/drivers/acpi/processor_perflib.c
+> > > > @@ -63,6 +63,10 @@ module_param(ignore_ppc, int, 0644);
+> > > >  MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
+> > > >  		 "limited by BIOS, this should help");
+> > > >  
+> > > > +static int broadcast_ppc;
+> > > > +module_param(broadcast_ppc, int, 0644);
+> > > > +MODULE_PARM_DESC(broadcast_ppc, "Broadcast the ppc to all online CPUs");
+> > > > +
+> > > >  #define PPC_REGISTERED   1
+> > > >  #define PPC_IN_USE       2
+> > > >  
+> > > > @@ -180,8 +184,16 @@ void acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag)
+> > > >  		else
+> > > >  			acpi_processor_ppc_ost(pr->handle, 0);
+> > > >  	}
+> > > > -	if (ret >= 0)
+> > > > -		cpufreq_update_policy(pr->id);
+> > > > +	if (ret >= 0) {
+> > > > +		if (broadcast_ppc) {
+> > > > +			int cpu;
+> > > > +
+> > > > +			for_each_possible_cpu(cpu)
+> > > > +				cpufreq_update_policy(cpu);
+> > > > +		} else {
+> > > > +			cpufreq_update_policy(pr->id);
+> > > > +		}
+> > > > +	}
+> > > >  }
+> > > >  
+> > > >  int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+> > > > diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> > > > index e35a886e00bc..95e08816b512 100644
+> > > > --- a/drivers/cpufreq/cpufreq.c
+> > > > +++ b/drivers/cpufreq/cpufreq.c
+> > > > @@ -2237,6 +2237,8 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
+> > > >  
+> > > >  	policy->min = new_policy->min;
+> > > >  	policy->max = new_policy->max;
+> > > > +	policy->cpuinfo.max_freq = new_policy->cpuinfo.max_freq;
+> > > > +	policy->cpuinfo.min_freq = new_policy->cpuinfo.min_freq;
+> > > >  	trace_cpu_frequency_limits(policy);
+> > > >  
+> > > >  	policy->cached_target_freq = UINT_MAX;
+> > > > diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+> > > > index dd66decf2087..e1881313c396 100644
+> > > > --- a/drivers/cpufreq/intel_pstate.c
+> > > > +++ b/drivers/cpufreq/intel_pstate.c
+> > > > @@ -2081,11 +2081,24 @@ static void intel_pstate_adjust_policy_max(struct cpufreq_policy *policy,
+> > > >  
+> > > >  static int intel_pstate_verify_policy(struct cpufreq_policy *policy)
+> > > >  {
+> > > > +	int max_freq;
+> > > >  	struct cpudata *cpu = all_cpu_data[policy->cpu];
+> > > >  
+> > > >  	update_turbo_state();
+> > > > +	max_freq = intel_pstate_get_max_freq(cpu);
+> > > > +
+> > > > +	if (acpi_ppc && policy->max == policy->cpuinfo.max_freq &&
+> > > 
+> > > Why do have this check for policy->max here ?
+> > >
+> > Thanks for looking at this change, I've replied to another email in detail of
+> > the scenario that, this is due to corner case that if the system boots
+> > with battery and plug the AC after boot up, the cpufreq max limit will not
+> > increase even the turbo has been enabled after the AC plugged.
+> 
+> Yeah, but I asked a different question I believe, why is this
+> comparison necessary ?
+>
+Sorry for late response, I was caught in another issue.
 
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- drivers/acpi/Kconfig       |   1 +
- drivers/acpi/Makefile      |   1 +
- drivers/acpi/hmat/Kconfig  |   7 ++
- drivers/acpi/hmat/Makefile |   1 +
- drivers/acpi/hmat/hmat.c   | 237 +++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 247 insertions(+)
- create mode 100644 drivers/acpi/hmat/Kconfig
- create mode 100644 drivers/acpi/hmat/Makefile
- create mode 100644 drivers/acpi/hmat/hmat.c
+The reason for why checking if policy->max equals to policy->cpuinfo.max_freq
+is to bypass unnecessary assignment(it turns out to be a hacky
+logic here):
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 4e015c77e48e..283ee94224c6 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -475,6 +475,7 @@ config ACPI_REDUCED_HARDWARE_ONLY
- 	  If you are unsure what to do, do not enable this option.
- 
- source "drivers/acpi/nfit/Kconfig"
-+source "drivers/acpi/hmat/Kconfig"
- 
- source "drivers/acpi/apei/Kconfig"
- source "drivers/acpi/dptf/Kconfig"
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index bb857421c2e8..5d361e4e3405 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -80,6 +80,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI)		+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_NFIT)		+= nfit/
-+obj-$(CONFIG_ACPI_HMAT)		+= hmat/
- obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
-diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/hmat/Kconfig
-new file mode 100644
-index 000000000000..2f7111b7af62
---- /dev/null
-+++ b/drivers/acpi/hmat/Kconfig
-@@ -0,0 +1,7 @@
-+# SPDX-License-Identifier: GPL-2.0
-+config ACPI_HMAT
-+	bool "ACPI Heterogeneous Memory Attribute Table Support"
-+	depends on ACPI_NUMA
-+	help
-+	 If set, this option has the kernel parse and report the
-+	 platform's ACPI HMAT (Heterogeneous Memory Attributes Table).
-diff --git a/drivers/acpi/hmat/Makefile b/drivers/acpi/hmat/Makefile
-new file mode 100644
-index 000000000000..e909051d3d00
---- /dev/null
-+++ b/drivers/acpi/hmat/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_ACPI_HMAT) := hmat.o
-diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-new file mode 100644
-index 000000000000..99f711420f6d
---- /dev/null
-+++ b/drivers/acpi/hmat/hmat.c
-@@ -0,0 +1,237 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) 2019, Intel Corporation.
-+ *
-+ * Heterogeneous Memory Attributes Table (HMAT) representation
-+ *
-+ * This program parses and reports the platform's HMAT tables, and registers
-+ * the applicable attributes with the node's interfaces.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/bitops.h>
-+#include <linux/device.h>
-+#include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/node.h>
-+#include <linux/sysfs.h>
-+
-+static __initdata u8 hmat_revision;
-+
-+static __init const char *hmat_data_type(u8 type)
-+{
-+	switch (type) {
-+	case ACPI_HMAT_ACCESS_LATENCY:
-+		return "Access Latency";
-+	case ACPI_HMAT_READ_LATENCY:
-+		return "Read Latency";
-+	case ACPI_HMAT_WRITE_LATENCY:
-+		return "Write Latency";
-+	case ACPI_HMAT_ACCESS_BANDWIDTH:
-+		return "Access Bandwidth";
-+	case ACPI_HMAT_READ_BANDWIDTH:
-+		return "Read Bandwidth";
-+	case ACPI_HMAT_WRITE_BANDWIDTH:
-+		return "Write Bandwidth";
-+	default:
-+		return "Reserved";
-+	}
-+}
-+
-+static __init const char *hmat_data_type_suffix(u8 type)
-+{
-+	switch (type) {
-+	case ACPI_HMAT_ACCESS_LATENCY:
-+	case ACPI_HMAT_READ_LATENCY:
-+	case ACPI_HMAT_WRITE_LATENCY:
-+		return " nsec";
-+	case ACPI_HMAT_ACCESS_BANDWIDTH:
-+	case ACPI_HMAT_READ_BANDWIDTH:
-+	case ACPI_HMAT_WRITE_BANDWIDTH:
-+		return " MB/s";
-+	default:
-+		return "";
-+	}
-+}
-+
-+static __init u32 hmat_normalize(u16 entry, u64 base, u8 type)
-+{
-+	u32 value;
-+
-+	/*
-+	 * Check for invalid and overflow values
-+	 */
-+	if (entry == 0xffff || !entry)
-+		return 0;
-+	else if (base > (UINT_MAX / (entry)))
-+		return 0;
-+
-+	/*
-+	 * Divide by the base unit for version 1, convert latency from
-+	 * picosenonds to nanoseconds if revision 2.
-+	 */
-+	value = entry * base;
-+	if (hmat_revision == 1) {
-+		if (value < 10)
-+			return 0;
-+		value = DIV_ROUND_UP(value, 10);
-+	} else if (hmat_revision == 2) {
-+		switch (type) {
-+		case ACPI_HMAT_ACCESS_LATENCY:
-+		case ACPI_HMAT_READ_LATENCY:
-+		case ACPI_HMAT_WRITE_LATENCY:
-+			value = DIV_ROUND_UP(value, 1000);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+	return value;
-+}
-+
-+static __init int hmat_parse_locality(union acpi_subtable_headers *header,
-+				      const unsigned long end)
-+{
-+	struct acpi_hmat_locality *hmat_loc = (void *)header;
-+	unsigned int init, targ, total_size, ipds, tpds;
-+	u32 *inits, *targs, value;
-+	u16 *entries;
-+	u8 type;
-+
-+	if (hmat_loc->header.length < sizeof(*hmat_loc)) {
-+		pr_notice("HMAT: Unexpected locality header length: %d\n",
-+			 hmat_loc->header.length);
-+		return -EINVAL;
-+	}
-+
-+	type = hmat_loc->data_type;
-+	ipds = hmat_loc->number_of_initiator_Pds;
-+	tpds = hmat_loc->number_of_target_Pds;
-+	total_size = sizeof(*hmat_loc) + sizeof(*entries) * ipds * tpds +
-+		     sizeof(*inits) * ipds + sizeof(*targs) * tpds;
-+	if (hmat_loc->header.length < total_size) {
-+		pr_notice("HMAT: Unexpected locality header length:%d, minimum required:%d\n",
-+			 hmat_loc->header.length, total_size);
-+		return -EINVAL;
-+	}
-+
-+	pr_info("HMAT: Locality: Flags:%02x Type:%s Initiator Domains:%d Target Domains:%d Base:%lld\n",
-+		hmat_loc->flags, hmat_data_type(type), ipds, tpds,
-+		hmat_loc->entry_base_unit);
-+
-+	inits = (u32 *)(hmat_loc + 1);
-+	targs = inits + ipds;
-+	entries = (u16 *)(targs + tpds);
-+	for (init = 0; init < ipds; init++) {
-+		for (targ = 0; targ < tpds; targ++) {
-+			value = hmat_normalize(entries[init * tpds + targ],
-+					       hmat_loc->entry_base_unit,
-+					       type);
-+			pr_info("  Initiator-Target[%d-%d]:%d%s\n",
-+				inits[init], targs[targ], value,
-+				hmat_data_type_suffix(type));
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static __init int hmat_parse_cache(union acpi_subtable_headers *header,
-+				   const unsigned long end)
-+{
-+	struct acpi_hmat_cache *cache = (void *)header;
-+	u32 attrs;
-+
-+	if (cache->header.length < sizeof(*cache)) {
-+		pr_notice("HMAT: Unexpected cache header length: %d\n",
-+			 cache->header.length);
-+		return -EINVAL;
-+	}
-+
-+	attrs = cache->cache_attributes;
-+	pr_info("HMAT: Cache: Domain:%d Size:%llu Attrs:%08x SMBIOS Handles:%d\n",
-+		cache->memory_PD, cache->cache_size, attrs,
-+		cache->number_of_SMBIOShandles);
-+
-+	return 0;
-+}
-+
-+static int __init hmat_parse_address_range(union acpi_subtable_headers *header,
-+					   const unsigned long end)
-+{
-+	struct acpi_hmat_proximity_domain *p = (void *)header;
-+	struct memory_target *target = NULL;
-+
-+	if (p->header.length != sizeof(*p)) {
-+		pr_notice("HMAT: Unexpected address range header length: %d\n",
-+			 p->header.length);
-+		return -EINVAL;
-+	}
-+
-+	if (hmat_revision == 1)
-+		pr_info("HMAT: Memory (%#llx length %#llx) Flags:%04x Processor Domain:%d Memory Domain:%d\n",
-+			p->reserved3, p->reserved4, p->flags, p->processor_PD,
-+			p->memory_PD);
-+	else
-+		pr_info("HMAT: Memory Flags:%04x Processor Domain:%d Memory Domain:%d\n",
-+			p->flags, p->processor_PD, p->memory_PD);
-+
-+	return 0;
-+}
-+
-+static int __init hmat_parse_subtable(union acpi_subtable_headers *header,
-+				      const unsigned long end)
-+{
-+	struct acpi_hmat_structure *hdr = (void *)header;
-+
-+	if (!hdr)
-+		return -EINVAL;
-+
-+	switch (hdr->type) {
-+	case ACPI_HMAT_TYPE_ADDRESS_RANGE:
-+		return hmat_parse_address_range(header, end);
-+	case ACPI_HMAT_TYPE_LOCALITY:
-+		return hmat_parse_locality(header, end);
-+	case ACPI_HMAT_TYPE_CACHE:
-+		return hmat_parse_cache(header, end);
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static __init int hmat_init(void)
-+{
-+	struct acpi_table_header *tbl;
-+	enum acpi_hmat_type i;
-+	acpi_status status;
-+
-+	if (srat_disabled())
-+		return 0;
-+
-+	status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
-+	if (ACPI_FAILURE(status))
-+		return 0;
-+
-+	hmat_revision = tbl->revision;
-+	switch (hmat_revision) {
-+	case 1:
-+	case 2:
-+		break;
-+	default:
-+		pr_notice("Ignoring HMAT: Unknown revision:%d\n", hmat_revision);
-+		goto out_put;
-+	}
-+
-+	for (i = ACPI_HMAT_TYPE_ADDRESS_RANGE; i < ACPI_HMAT_TYPE_RESERVED; i++) {
-+		if (acpi_table_parse_entries(ACPI_SIG_HMAT,
-+					     sizeof(struct acpi_table_hmat), i,
-+					     hmat_parse_subtable, 0) < 0) {
-+			pr_notice("Ignoring HMAT: Invalid table");
-+			goto out_put;
-+		}
-+	}
-+out_put:
-+	acpi_put_table(tbl);
-+	return 0;
-+}
-+subsys_initcall(hmat_init);
--- 
-2.14.4
+Say, if the system boots up with AC attached, after bootup the cpuinfo.max
+is always the highest, and there is no need to reassign the cpuinfo.max.
+
+However if the system boots up with AC deattached, then the cpuinfo.max
+will not scale up if the AC is attached after bootup.
+
+Thus in former case, the cpuinfo.max does not equals to policy.max, and
+we don't need to update cpuinfo.max. While in latter case, the cpuinfo.max
+might equal to policy.max, and in this situation we need to update the
+cpuinfo.max.
+
+
+Case 1: Boot up AC attached, cpuinfo.max does not equal to policy.max
+
+# Unplug
+
+[   25.775643] CPU 0: _PPC is 6 - frequency  limited
+[   25.775660] intel_pstate: set_policy cpuinfo.max 3000000 policy->max 1700000
+[   25.775666] intel_pstate: cpu:0 max_state 17 min_policy_perf:8 max_policy_perf:17
+[   25.775670] intel_pstate: cpu:0 global_min:8 global_max:30
+[   25.775674] intel_pstate: cpu:0 max_perf_ratio:17 min_perf_ratio:8
+
+"REDUCED FREQUENCY ABOVE AFTER UNPLUG"
+
+
+# Re-plug
+
+[   36.979264] CPU 0: _PPC is 6 - frequency  limited
+[   36.979276] intel_pstate: policy->max > max non turbo frequency
+[   36.979280] intel_pstate: set_policy cpuinfo.max 3000000 policy->max 3000000
+[   36.979283] intel_pstate: cpu:0 max_state 30 min_policy_perf:8 max_policy_perf:30
+[   36.979286] intel_pstate: cpu:0 global_min:8 global_max:30
+[   36.979289] intel_pstate: cpu:0 max_perf_ratio:30 min_perf_ratio:8
+
+
+Case 2: boot up without AC attached, cpuinfo.max equals to policy.max:
+
+
+# Plug
+
+[   52.158810] CPU 0: _PPC is 6 - frequency  limited
+[   52.158822] intel_pstate: set_policy cpuinfo.max 1700000 policy->max 1700000
+[   52.158825] intel_pstate: cpu:0 max_state 30 min_policy_perf:8 max_policy_perf:17
+[   52.158827] intel_pstate: cpu:0 global_min:8 global_max:30
+[   52.158829] intel_pstate: cpu:0 max_perf_ratio:17 min_perf_ratio:8
+
+
+As we see, the check is a little hacky, because it does not do with the logic
+on how to check if the system's cpuinfo.max is abnormal. In v2 version, I've
+removed this check to make the code easier to be understood.
+
+
+Best,
+Yu
+
+> policy->max == policy->cpuinfo.max_freq
+> 
+> -- 
+> viresh
