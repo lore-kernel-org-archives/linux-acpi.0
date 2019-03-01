@@ -1,47 +1,35 @@
-From: Flavio Suligoi <f.suligoi@asem.it>
-Subject: [PATCH] doc: acpi: fix path for acpidbg tool
-Date: Fri, 1 Mar 2019 11:53:11 +0100
-Message-ID: <1551437591-11022-1-git-send-email-f.suligoi@asem.it>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH] ACPI/PPTT: Simplify leaf node detection.
+Date: Fri,  1 Mar 2019 12:52:21 -0600
+Message-ID: <20190301185221.608501-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Flavio Suligoi <f.suligoi@asem.it>
+To: linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, sudeep.holla@arm.com, Lorenzo.Pieralisi@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The file:
+ACPI 6.3 bumps the PPTT table revision and adds a LEAF_NODE flag.
+This allows us to avoid a second pass through the table to assure
+that the node in question is a leaf.
 
-Documentation/acpi/aml-debugger.txt
-
-reports an obsolete path for the acpidbg tool.
-
-Signed-off-by: Flavio Suligoi <f.suligoi@asem.it>
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- Documentation/acpi/aml-debugger.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/pptt.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
-index e851cc5..75ebeb6 100644
---- a/Documentation/acpi/aml-debugger.txt
-+++ b/Documentation/acpi/aml-debugger.txt
-@@ -23,7 +23,7 @@ kernel.
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index ad31c50de3be..065c4fc245d1 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -209,6 +209,9 @@ static int acpi_pptt_leaf_node(struct acpi_table_header *table_hdr,
+ 	struct acpi_pptt_processor *cpu_node;
+ 	u32 proc_sz;
  
-    The resultant userspace tool binary is then located at:
- 
--     tools/acpi/power/acpi/acpidbg/acpidbg
-+     tools/power/acpi/acpidbg
- 
-    It can be installed to system directories by running "make install" (as a
-    sufficiently privileged user).
-@@ -35,7 +35,7 @@ kernel.
- 
-    # mount -t debugfs none /sys/kernel/debug
-    # modprobe acpi_dbg
--   # tools/acpi/power/acpi/acpidbg/acpidbg
-+   # tools/power/acpi/acpidbg
- 
-    That spawns the interactive AML debugger environment where you can execute
-    debugger commands.
++	if (table_hdr->revision > 1)
++		return (node->flags & ACPI_PPTT_ACPI_LEAF_NODE);
++
+ 	table_end = (unsigned long)table_hdr + table_hdr->length;
+ 	node_entry = ACPI_PTR_DIFF(node, table_hdr);
+ 	entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr,
 -- 
-2.7.4
+2.20.1
