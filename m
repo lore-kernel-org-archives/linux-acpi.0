@@ -1,75 +1,49 @@
-From: "Chen, Hu" <hu1.chen@intel.com>
-Subject: [PATCH] ACPI / PM: Propagate KEY_POWER wakeup events to user space
-Date: Mon,  4 Mar 2019 11:00:21 +0800
-Message-ID: <20190304030022.22492-1-hu1.chen@intel.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH] ACPI/PPTT: Simplify leaf node detection.
+Date: Mon, 4 Mar 2019 10:02:08 +0000
+Message-ID: <20190304100208.GA32379@e107155-lin>
+References: <20190301185221.608501-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190301185221.608501-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: hu1.chen@intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, Lorenzo.Pieralisi@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-When the system is woken from S3 by the ACPI fixed power button, send
-KEY_POWER to user space.
+On Fri, Mar 01, 2019 at 12:52:21PM -0600, Jeremy Linton wrote:
+> ACPI 6.3 bumps the PPTT table revision and adds a LEAF_NODE flag.
+> This allows us to avoid a second pass through the table to assure
+> that the node in question is a leaf.
+>
 
-I run Android on x86 PC (it's a NUC). Everytime I press the power button
-to wake the system, it suspends right away. After some debug, I find
-that Android wants to see KEY_POWER at resume. Otherwise, its
-opportunistic suspend will kick in shortly.
+Reviewed-by:Sudeep Holla <sudeep.holla@arm.com>
 
-Signed-off-by: Chen, Hu <hu1.chen@intel.com>
----
- drivers/acpi/button.c | 4 +++-
- drivers/acpi/sleep.c  | 8 ++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+--
+Regards,
+Sudeep
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index a19ff3977ac4..117718057938 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -33,6 +33,7 @@
- #include <linux/acpi.h>
- #include <linux/dmi.h>
- #include <acpi/button.h>
-+#include <linux/suspend.h>
- 
- #define PREFIX "ACPI: "
- 
-@@ -417,7 +418,8 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
- 			int keycode;
- 
- 			acpi_pm_wakeup_event(&device->dev);
--			if (button->suspended)
-+			if (button->suspended &&
-+			    mem_sleep_current == PM_SUSPEND_TO_IDLE)
- 				break;
- 
- 			keycode = test_bit(KEY_SLEEP, input->keybit) ?
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 403c4ff15349..c5dcee9f5872 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -462,6 +462,13 @@ static int find_powerf_dev(struct device *dev, void *data)
- 	return !strcmp(hid, ACPI_BUTTON_HID_POWERF);
- }
- 
-+static void pwr_btn_notify(struct device *dev)
-+{
-+	struct acpi_device *device = to_acpi_device(dev);
-+
-+	device->driver->ops.notify(device, ACPI_FIXED_HARDWARE_EVENT);
-+}
-+
- /**
-  *	acpi_pm_finish - Instruct the platform to leave a sleep state.
-  *
-@@ -505,6 +512,7 @@ static void acpi_pm_finish(void)
- 				      find_powerf_dev);
- 	if (pwr_btn_dev) {
- 		pm_wakeup_event(pwr_btn_dev, 0);
-+		pwr_btn_notify(pwr_btn_dev);
- 		put_device(pwr_btn_dev);
- 	}
- }
--- 
-2.20.1
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/acpi/pptt.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> index ad31c50de3be..065c4fc245d1 100644
+> --- a/drivers/acpi/pptt.c
+> +++ b/drivers/acpi/pptt.c
+> @@ -209,6 +209,9 @@ static int acpi_pptt_leaf_node(struct acpi_table_header *table_hdr,
+>  	struct acpi_pptt_processor *cpu_node;
+>  	u32 proc_sz;
+>
+> +	if (table_hdr->revision > 1)
+> +		return (node->flags & ACPI_PPTT_ACPI_LEAF_NODE);
+> +
+>  	table_end = (unsigned long)table_hdr + table_hdr->length;
+>  	node_entry = ACPI_PTR_DIFF(node, table_hdr);
+>  	entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr,
+> --
+> 2.20.1
+>
