@@ -1,88 +1,36 @@
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Re: [PATCH] ACPI / sysfs: Restructure get_status
-Date: Thu, 7 Mar 2019 10:21:04 -0800
-Message-ID: <CAKwvOdkfW6ipodrfLcGspLP3RaKdxLEvz=odBqh4PcoyVYyzwA@mail.gmail.com>
-References: <20190307173802.3448-1-natechancellor@gmail.com>
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH RESEND v1 1/3] PCI / ACPI: Do not export pci_get_hp_params()
+Date: Thu,  7 Mar 2019 15:38:25 -0600
+Message-ID: <20190307213834.5914-2-mr.nuke.me@gmail.com>
+References: <20190307213834.5914-1-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190307173802.3448-1-natechancellor@gmail.com>
+In-Reply-To: <20190307213834.5914-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, clang-built-linux@googlegroups.com
+To: bhelgaas@google.com
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 7, 2019 at 9:38 AM Nathan Chancellor
-<natechancellor@gmail.com> wrote:
->
-> When building with -Wsometimes-uninitialized, Clang warns:
->
-> drivers/acpi/sysfs.c:667:13: warning: variable 'result' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
->
-> Clang can't determine that all cases are covered by the two separate if
-> statements. We could combine then to look like this:
->
->     int result;
->
->     if (...) {
->         ...
->     } else if {
->         ...
->     } else {
->         result -EINVAL;
->     }
->
->     return result;
->
-> However, at that point, we can further simplify this function by only
-> using result when absolutely needed and just direct returning the value
-> of the function.
->
-> Link: https://github.com/ClangBuiltLinux/linux/issues/388
-> Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
->  drivers/acpi/sysfs.c | 13 ++++---------
->  1 file changed, 4 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-> index 41324f0b1bee..6ed785cadad9 100644
-> --- a/drivers/acpi/sysfs.c
-> +++ b/drivers/acpi/sysfs.c
-> @@ -651,23 +651,18 @@ static void acpi_global_event_handler(u32 event_type, acpi_handle device,
->  static int get_status(u32 index, acpi_event_status *status,
->                       acpi_handle *handle)
->  {
-> -       int result;
-> -
-> -       if (index >= num_gpes + ACPI_NUM_FIXED_EVENTS)
-> -               return -EINVAL;
-> -
->         if (index < num_gpes) {
-> -               result = acpi_get_gpe_device(index, handle);
-> +               int result = acpi_get_gpe_device(index, handle);
+This is only used within drivers/pci, and there is no reason to make
+it available outside of the PCI core.
 
-I'm surprised this does not trip -Wdeclaration-after-statement.
+Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+---
+ drivers/pci/pci-acpi.c | 1 -
+ 1 file changed, 1 deletion(-)
 
->                 if (result) {
->                         ACPI_EXCEPTION((AE_INFO, AE_NOT_FOUND,
->                                         "Invalid GPE 0x%x", index));
->                         return result;
->                 }
-> -               result = acpi_get_gpe_status(*handle, index, status);
-> +               return acpi_get_gpe_status(*handle, index, status);
->         } else if (index < (num_gpes + ACPI_NUM_FIXED_EVENTS))
-> -               result = acpi_get_event_status(index - num_gpes, status);
-> +               return acpi_get_event_status(index - num_gpes, status);
->
-> -       return result;
-> +       return -EINVAL;
->  }
-
-
-LGTM, thanks Nathan!
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index e1949f7efd9c..b25e5fa9d1c9 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -366,7 +366,6 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+ 	}
+ 	return -ENODEV;
+ }
+-EXPORT_SYMBOL_GPL(pci_get_hp_params);
+ 
+ /**
+  * pciehp_is_native - Check whether a hotplug port is handled by the OS
 -- 
-Thanks,
-~Nick Desaulniers
+2.19.2
