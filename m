@@ -1,52 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] doc: acpi: fix path for acpidbg tool
-Date: Mon, 11 Mar 2019 12:58:46 +0100
-Message-ID: <2066889.Es8ADf5CTK@aspire.rjw.lan>
-References: <1551437591-11022-1-git-send-email-f.suligoi@asem.it>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 1/2] i2c: i2c-designware-platdrv: Allow a dynamic adap.
+ nr without an ACPI fwnode
+Date: Mon, 11 Mar 2019 14:52:07 +0200
+Message-ID: <20190311125207.GR9224@smile.fi.intel.com>
+References: <20190311112216.31391-1-hdegoede@redhat.com>
+ <20190311112216.31391-2-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1551437591-11022-1-git-send-email-f.suligoi@asem.it>
+Content-Disposition: inline
+In-Reply-To: <20190311112216.31391-2-hdegoede@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Flavio Suligoi <f.suligoi@asem.it>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, March 1, 2019 11:53:11 AM CET Flavio Suligoi wrote:
-> The file:
+On Mon, Mar 11, 2019 at 12:22:15PM +0100, Hans de Goede wrote:
+> Before this commit the i2c-designware-platdrv assumes that if the pdev
+> has an apci-companion it should use a dynamic adapter-nr and otherwise
+> it will use pdev->id as adapter-nr.
 > 
-> Documentation/acpi/aml-debugger.txt
+> On some devices e.g. the Apollo Lake using Acer TravelMate Spin B118,
+> some of the LPSS i2c-adapters are enumerated through PCI and do not have
+> an ACPI fwnode. These devices are handled as mfd devices so they end up
+> using the i2c-designware-platdrv driver.
 > 
-> reports an obsolete path for the acpidbg tool.
+> This results in the i2c-adapter being registered with the mfd generated
+> pdev->id as adapter-nr, which conflicts with existing adapters, triggering
+> a WARN(id < 0, "couldn't get idr") in i2c-core-base.c and causing the
+> adapter registration to fail.
 > 
-> Signed-off-by: Flavio Suligoi <f.suligoi@asem.it>
-> ---
->  Documentation/acpi/aml-debugger.txt | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
-> index e851cc5..75ebeb6 100644
-> --- a/Documentation/acpi/aml-debugger.txt
-> +++ b/Documentation/acpi/aml-debugger.txt
-> @@ -23,7 +23,7 @@ kernel.
->  
->     The resultant userspace tool binary is then located at:
->  
-> -     tools/acpi/power/acpi/acpidbg/acpidbg
-> +     tools/power/acpi/acpidbg
->  
->     It can be installed to system directories by running "make install" (as a
->     sufficiently privileged user).
-> @@ -35,7 +35,7 @@ kernel.
->  
->     # mount -t debugfs none /sys/kernel/debug
->     # modprobe acpi_dbg
-> -   # tools/acpi/power/acpi/acpidbg/acpidbg
-> +   # tools/power/acpi/acpidbg
->  
->     That spawns the interactive AML debugger environment where you can execute
->     debugger commands.
+> This commit adds support for setting a "linux,use-dynamic-adapter-nr"
+> device property on the device to make i2c-designware-platdrv use dynamic
+> adapter-nrs on devices without an ACPI fwnode, together with changes to
+> drivers/mfd/intel-lpss-pci.c to set this, this fixes the WARN.
 > 
 
-Applied, thanks!
+> Before this commit the setting of the adapter.nr was somewhat convoluted,
+> in the acpi_companion case it was set from dw_i2c_acpi_configure, in the
+> non acpi_companion case it was set from dw_i2c_set_fifo_size() based on
+> tx_fifo_depth not being set yet. This commit also cleans this up.
+
+Can we split this to two patches, i.e. one is almost the same as this one,
+except the second one adds a new property check to the conditional?
+
+If you agree to do so, you may add mine Rb tag to the first one out of three.
+
+> Note the "linux,use-dynamic-adapter-nr" is meant for kernel internal use
+> only, therefor it is NOT documented under Documents/devicetree/bindings.
+
+To the second and third ones, can we rather check if the device has fwnode
+either ACPI or swnode? AFAIU now we have swnode assigned during MFD device
+registration and can easily distinguish this w/o any additional properties.
+
+-- 
+With Best Regards,
+Andy Shevchenko
