@@ -1,101 +1,258 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/2] i2c: i2c-designware-platdrv: Allow a dynamic adap. nr without an ACPI fwnode
-Date: Mon, 11 Mar 2019 12:22:15 +0100
-Message-ID: <20190311112216.31391-2-hdegoede@redhat.com>
-References: <20190311112216.31391-1-hdegoede@redhat.com>
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+Subject: Re: [PATCHv7 10/10] doc/mm: New documentation for memory
+ performance
+Date: Mon, 11 Mar 2019 11:38:43 +0000
+Message-ID: <20190311113843.00006b47@huawei.com>
+References: <20190227225038.20438-1-keith.busch@intel.com>
+        <20190227225038.20438-11-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190311112216.31391-1-hdegoede@redhat.com>
+In-Reply-To: <20190227225038.20438-11-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Before this commit the i2c-designware-platdrv assumes that if the pdev
-has an apci-companion it should use a dynamic adapter-nr and otherwise
-it will use pdev->id as adapter-nr.
+On Wed, 27 Feb 2019 15:50:38 -0700
+Keith Busch <keith.busch@intel.com> wrote:
 
-On some devices e.g. the Apollo Lake using Acer TravelMate Spin B118,
-some of the LPSS i2c-adapters are enumerated through PCI and do not have
-an ACPI fwnode. These devices are handled as mfd devices so they end up
-using the i2c-designware-platdrv driver.
+> Platforms may provide system memory where some physical address ranges
+> perform differently than others, or is side cached by the system.
+The magic 'side cached' term still here in the patch description, ideally
+wants cleaning up.
 
-This results in the i2c-adapter being registered with the mfd generated
-pdev->id as adapter-nr, which conflicts with existing adapters, triggering
-a WARN(id < 0, "couldn't get idr") in i2c-core-base.c and causing the
-adapter registration to fail.
+> 
+> Add documentation describing a high level overview of such systems and the
+> perforamnce and caching attributes the kernel provides for applications
+performance
 
-This commit adds support for setting a "linux,use-dynamic-adapter-nr"
-device property on the device to make i2c-designware-platdrv use dynamic
-adapter-nrs on devices without an ACPI fwnode, together with changes to
-drivers/mfd/intel-lpss-pci.c to set this, this fixes the WARN.
+> wishing to query this information.
+> 
+> Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
 
-Before this commit the setting of the adapter.nr was somewhat convoluted,
-in the acpi_companion case it was set from dw_i2c_acpi_configure, in the
-non acpi_companion case it was set from dw_i2c_set_fifo_size() based on
-tx_fifo_depth not being set yet. This commit also cleans this up.
+A few comments inline. Mostly the weird corner cases that I miss understood
+in one of the earlier versions of the code.
 
-Note the "linux,use-dynamic-adapter-nr" is meant for kernel internal use
-only, therefor it is NOT documented under Documents/devicetree/bindings.
+Whilst I think perhaps that one section could be tweaked a tiny bit I'm basically
+happy with this if you don't want to.
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1687065
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/i2c/busses/i2c-designware-platdrv.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index ead5e7de3e4d..9f28159efdb2 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -86,7 +86,6 @@ static int dw_i2c_acpi_configure(struct platform_device *pdev)
- 	struct i2c_timings *t = &dev->timings;
- 	u32 ss_ht = 0, fp_ht = 0, hs_ht = 0, fs_ht = 0;
- 
--	dev->adapter.nr = -1;
- 	dev->tx_fifo_depth = 32;
- 	dev->rx_fifo_depth = 32;
- 
-@@ -219,7 +218,7 @@ static void i2c_dw_configure_slave(struct dw_i2c_dev *dev)
- 	dev->mode = DW_IC_SLAVE;
- }
- 
--static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev, int id)
-+static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev)
- {
- 	u32 param, tx_fifo_depth, rx_fifo_depth;
- 
-@@ -233,7 +232,6 @@ static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev, int id)
- 	if (!dev->tx_fifo_depth) {
- 		dev->tx_fifo_depth = tx_fifo_depth;
- 		dev->rx_fifo_depth = rx_fifo_depth;
--		dev->adapter.nr = id;
- 	} else if (tx_fifo_depth >= 2) {
- 		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
- 				tx_fifo_depth);
-@@ -324,6 +322,13 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
- 	if (has_acpi_companion(&pdev->dev))
- 		dw_i2c_acpi_configure(pdev);
- 
-+	if (has_acpi_companion(&pdev->dev) ||
-+	    device_property_read_bool(&pdev->dev,
-+				      "linux,use-dynamic-adapter-nr"))
-+		dev->adapter.nr = -1;
-+	else
-+		dev->adapter.nr = pdev->id;
-+
- 	/*
- 	 * Only standard mode at 100kHz, fast mode at 400kHz,
- 	 * fast mode plus at 1MHz and high speed mode at 3.4MHz are supported.
-@@ -358,7 +363,7 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
- 				div_u64(clk_khz * t->sda_hold_ns + 500000, 1000000);
- 	}
- 
--	dw_i2c_set_fifo_size(dev, pdev->id);
-+	dw_i2c_set_fifo_size(dev);
- 
- 	adap = &dev->adapter;
- 	adap->owner = THIS_MODULE;
--- 
-2.20.1
+> ---
+>  Documentation/admin-guide/mm/numaperf.rst | 164 ++++++++++++++++++++++++++++++
+>  1 file changed, 164 insertions(+)
+>  create mode 100644 Documentation/admin-guide/mm/numaperf.rst
+> 
+> diff --git a/Documentation/admin-guide/mm/numaperf.rst b/Documentation/admin-guide/mm/numaperf.rst
+> new file mode 100644
+> index 000000000000..d32756b9be48
+> --- /dev/null
+> +++ b/Documentation/admin-guide/mm/numaperf.rst
+> @@ -0,0 +1,164 @@
+> +.. _numaperf:
+> +
+> +=============
+> +NUMA Locality
+> +=============
+> +
+> +Some platforms may have multiple types of memory attached to a compute
+> +node. These disparate memory ranges may share some characteristics, such
+> +as CPU cache coherence, but may have different performance. For example,
+> +different media types and buses affect bandwidth and latency.
+> +
+> +A system supports such heterogeneous memory by grouping each memory type
+> +under different domains, or "nodes", based on locality and performance
+> +characteristics.  Some memory may share the same node as a CPU, and others
+> +are provided as memory only nodes. While memory only nodes do not provide
+> +CPUs, they may still be local to one or more compute nodes relative to
+> +other nodes. The following diagram shows one such example of two compute
+> +nodes with local memory and a memory only node for each of compute node:
+> +
+> + +------------------+     +------------------+
+> + | Compute Node 0   +-----+ Compute Node 1   |
+> + | Local Node0 Mem  |     | Local Node1 Mem  |
+> + +--------+---------+     +--------+---------+
+> +          |                        |
+> + +--------+---------+     +--------+---------+
+> + | Slower Node2 Mem |     | Slower Node3 Mem |
+> + +------------------+     +--------+---------+
+> +
+> +A "memory initiator" is a node containing one or more devices such as
+> +CPUs or separate memory I/O devices that can initiate memory requests.
+> +A "memory target" is a node containing one or more physical address
+> +ranges accessible from one or more memory initiators.
+> +
+> +When multiple memory initiators exist, they may not all have the same
+> +performance when accessing a given memory target. Each initiator-target
+> +pair may be organized into different ranked access classes to represent
+> +this relationship. 
+
+This concept is a bit vague at the moment. Largely because only access0
+is actually defined.  We should definitely keep a close eye on any others
+that are defined in future to make sure this text is still valid.
+
+I can certainly see it being used for different ideas of 'best' rather
+than simply best and second best etc.
+
+> The highest performing initiator to a given target
+> +is considered to be one of that target's local initiators, and given
+> +the highest access class, 0. Any given target may have one or more
+> +local initiators, and any given initiator may have multiple local
+> +memory targets.
+> +
+> +To aid applications matching memory targets with their initiators, the
+> +kernel provides symlinks to each other. The following example lists the
+> +relationship for the access class "0" memory initiators and targets, which is
+> +the of nodes with the highest performing access relationship::
+> +
+> +	# symlinks -v /sys/devices/system/node/nodeX/access0/targets/
+> +	relative: /sys/devices/system/node/nodeX/access0/targets/nodeY -> ../../nodeY
+
+So this one perhaps needs a bit more description - I would put it after initiators
+which precisely fits the description you have here now.
+
+"targets contains those nodes for which this initiator is the best possible initiator."
+
+which is subtly different form
+
+"targets contains those nodes to which this node has the highest
+performing access characteristics."
+
+For example in my test case:
+* 4 nodes with local memory and cpu, 1 node remote and equal distant from all of the
+  initiators,
+
+targets for the compute nodes contains both themselves and the remote node, to which
+the characteristics are of course worse. As you point out before, we need to look
+in 
+node0/access0/targets/node0/access0/initiators 
+node0/access0/targets/node4/access0/initiators 
+to get the relevant characteristics and work out that node0 is 'nearer' itself
+(obviously this is a bit of a silly case, but we could have no memory node0 and
+be talking about node4 and node5.
+
+I am happy with the actual interface, this is just a question about whether we can tweak
+this text to be slightly clearer.
+
+> +
+> +	# symlinks -v /sys/devices/system/node/nodeY/access0/initiators/
+> +	relative: /sys/devices/system/node/nodeY/access0/initiators/nodeX -> ../../nodeX
+> +
+> +================
+> +NUMA Performance
+> +================
+> +
+> +Applications may wish to consider which node they want their memory to
+> +be allocated from based on the node's performance characteristics. If
+> +the system provides these attributes, the kernel exports them under the
+> +node sysfs hierarchy by appending the attributes directory under the
+> +memory node's access class 0 initiators as follows::
+> +
+> +	/sys/devices/system/node/nodeY/access0/initiators/
+> +
+> +These attributes apply only when accessed from nodes that have the
+> +are linked under the this access's inititiators.
+> +
+> +The performance characteristics the kernel provides for the local initiators
+> +are exported are as follows::
+> +
+> +	# tree -P "read*|write*" /sys/devices/system/node/nodeY/access0/initiators/
+> +	/sys/devices/system/node/nodeY/access0/initiators/
+> +	|-- read_bandwidth
+> +	|-- read_latency
+> +	|-- write_bandwidth
+> +	`-- write_latency
+> +
+> +The bandwidth attributes are provided in MiB/second.
+> +
+> +The latency attributes are provided in nanoseconds.
+> +
+> +The values reported here correspond to the rated latency and bandwidth
+> +for the platform.
+> +
+> +==========
+> +NUMA Cache
+> +==========
+> +
+> +System memory may be constructed in a hierarchy of elements with various
+> +performance characteristics in order to provide large address space of
+> +slower performing memory cached by a smaller higher performing memory. The
+> +system physical addresses memory  initiators are aware of are provided
+> +by the last memory level in the hierarchy. The system meanwhile uses
+> +higher performing memory to transparently cache access to progressively
+> +slower levels.
+> +
+> +The term "far memory" is used to denote the last level memory in the
+> +hierarchy. Each increasing cache level provides higher performing
+> +initiator access, and the term "near memory" represents the fastest
+> +cache provided by the system.
+> +
+> +This numbering is different than CPU caches where the cache level (ex:
+> +L1, L2, L3) uses the CPU-side view where each increased level is lower
+> +performing. In contrast, the memory cache level is centric to the last
+> +level memory, so the higher numbered cache level corresponds to  memory
+> +nearer to the CPU, and further from far memory.
+> +
+> +The memory-side caches are not directly addressable by software. When
+> +software accesses a system address, the system will return it from the
+> +near memory cache if it is present. If it is not present, the system
+> +accesses the next level of memory until there is either a hit in that
+> +cache level, or it reaches far memory.
+> +
+> +An application does not need to know about caching attributes in order
+> +to use the system. Software may optionally query the memory cache
+> +attributes in order to maximize the performance out of such a setup.
+> +If the system provides a way for the kernel to discover this information,
+> +for example with ACPI HMAT (Heterogeneous Memory Attribute Table),
+> +the kernel will append these attributes to the NUMA node memory target.
+> +
+> +When the kernel first registers a memory cache with a node, the kernel
+> +will create the following directory::
+
+Real nitpick but more precisely, "If relevant, the kernel..."  Otherwise
+we say it's always there but then say it isn't below.
+
+> +
+> +	/sys/devices/system/node/nodeX/memory_side_cache/
+> +
+> +If that directory is not present, the system either does not not provide
+> +a memory-side cache, or that information is not accessible to the kernel.
+> +
+> +The attributes for each level of cache is provided under its cache
+> +level index::
+> +
+> +	/sys/devices/system/node/nodeX/memory_side_cache/indexA/
+> +	/sys/devices/system/node/nodeX/memory_side_cache/indexB/
+> +	/sys/devices/system/node/nodeX/memory_side_cache/indexC/
+> +
+> +Each cache level's directory provides its attributes. For example, the
+> +following shows a single cache level and the attributes available for
+> +software to query::
+> +
+> +	# tree sys/devices/system/node/node0/memory_side_cache/
+> +	/sys/devices/system/node/node0/memory_side_cache/
+> +	|-- index1
+> +	|   |-- indexing
+> +	|   |-- line_size
+> +	|   |-- size
+> +	|   `-- write_policy
+> +
+> +The "indexing" will be 0 if it is a direct-mapped cache, and non-zero
+> +for any other indexed based, multi-way associativity.
+> +
+> +The "line_size" is the number of bytes accessed from the next cache
+> +level on a miss.
+> +
+> +The "size" is the number of bytes provided by this cache level.
+> +
+> +The "write_policy" will be 0 for write-back, and non-zero for
+> +write-through caching.
+> +
+> +========
+> +See Also
+> +========
+> +.. [1] https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+> +       Section 5.2.27
