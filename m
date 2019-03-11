@@ -1,78 +1,33 @@
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-Subject: Re: [PATCHv7 08/10] acpi/hmat: Register performance attributes
-Date: Mon, 11 Mar 2019 11:21:52 +0000
-Message-ID: <20190311112152.0000639c@huawei.com>
-References: <20190227225038.20438-1-keith.busch@intel.com>
-        <20190227225038.20438-9-keith.busch@intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 0/2] intel-lpss-pci-i2c: Fix oops when there is no ACPI fwnode
+Date: Mon, 11 Mar 2019 12:22:14 +0100
+Message-ID: <20190311112216.31391-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190227225038.20438-9-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 27 Feb 2019 15:50:36 -0700
-Keith Busch <keith.busch@intel.com> wrote:
+Hi All,
 
-> Save the best performace access attributes and register these with the
+Here is a patch series fixing an oops when there is no ACPI fwnode
+associated with a PCI enumerated LPSS I2C controller:
+https://bugzilla.redhat.com/show_bug.cgi?id=1687065
 
-performance
+This is fixed by the first patch in this series, which modifies
+i2c-designware-platdrv.c to fix this. The fix is enabled conditionally
+because otherwise it might break things on platforms where i2c-designware
+controllers are enumerated through e.g. devicetree.
 
-> memory's node if HMAT provides the locality table. While HMAT does make
-> it possible to know performance for all possible initiator-target
-> pairings, we export only the local pairings at this time.
-> 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Keith Busch <keith.busch@intel.com>
+The second patch modifies intel-lpss-pci.c to pass the new
+"linux,use-dynamic-adapter-nr" devicetree property to activate the fix.
 
-Jonathan
-> ---
->  drivers/acpi/hmat/Kconfig |  5 ++++-
->  drivers/acpi/hmat/hmat.c  | 10 +++++++++-
->  2 files changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/hmat/Kconfig
-> index 13cddd612a52..95a29964dbea 100644
-> --- a/drivers/acpi/hmat/Kconfig
-> +++ b/drivers/acpi/hmat/Kconfig
-> @@ -2,7 +2,10 @@
->  config ACPI_HMAT
->  	bool "ACPI Heterogeneous Memory Attribute Table Support"
->  	depends on ACPI_NUMA
-> +	select HMEM_REPORTING
->  	help
->  	 If set, this option has the kernel parse and report the
->  	 platform's ACPI HMAT (Heterogeneous Memory Attributes Table),
-> -	 and register memory initiators with their targets.
-> +	 register memory initiators with their targets, and export
-> +	 performance attributes through the node's sysfs device if
-> +	 provided.
-> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-> index bb6a11653729..5b469c98a454 100644
-> --- a/drivers/acpi/hmat/hmat.c
-> +++ b/drivers/acpi/hmat/hmat.c
-> @@ -549,12 +549,20 @@ static __init void hmat_register_target_initiators(struct memory_target *target)
->  	}
->  }
->  
-> +static __init void hmat_register_target_perf(struct memory_target *target)
-> +{
-> +	unsigned mem_nid = pxm_to_node(target->memory_pxm);
-> +	node_set_perf_attrs(mem_nid, &target->hmem_attrs, 0);
-> +}
-> +
->  static __init void hmat_register_targets(void)
->  {
->  	struct memory_target *target;
->  
-> -	list_for_each_entry(target, &targets, node)
-> +	list_for_each_entry(target, &targets, node) {
->  		hmat_register_target_initiators(target);
-> +		hmat_register_target_perf(target);
-> +	}
->  }
->  
->  static __init void hmat_free_structures(void)
+The first patch should be merged first, so that the devicetree prop name
+is "stable", then the second patch can be merged independently through the
+mfd tree.
+
+Regards,
+
+Hans
