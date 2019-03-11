@@ -1,115 +1,52 @@
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-Subject: Re: [PATCHv7 00/10] Heterogenous memory node attributes
-Date: Mon, 11 Mar 2019 11:47:37 +0000
-Message-ID: <20190311114459.00006f3d@huawei.com>
-References: <20190227225038.20438-1-keith.busch@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] doc: acpi: fix path for acpidbg tool
+Date: Mon, 11 Mar 2019 12:58:46 +0100
+Message-ID: <2066889.Es8ADf5CTK@aspire.rjw.lan>
+References: <1551437591-11022-1-git-send-email-f.suligoi@asem.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190227225038.20438-1-keith.busch@intel.com>
+In-Reply-To: <1551437591-11022-1-git-send-email-f.suligoi@asem.it>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, linuxarm@huawei.com
+To: Flavio Suligoi <f.suligoi@asem.it>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 27 Feb 2019 15:50:28 -0700
-Keith Busch <keith.busch@intel.com> wrote:
+On Friday, March 1, 2019 11:53:11 AM CET Flavio Suligoi wrote:
+> The file:
+> 
+> Documentation/acpi/aml-debugger.txt
+> 
+> reports an obsolete path for the acpidbg tool.
+> 
+> Signed-off-by: Flavio Suligoi <f.suligoi@asem.it>
+> ---
+>  Documentation/acpi/aml-debugger.txt | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
+> index e851cc5..75ebeb6 100644
+> --- a/Documentation/acpi/aml-debugger.txt
+> +++ b/Documentation/acpi/aml-debugger.txt
+> @@ -23,7 +23,7 @@ kernel.
+>  
+>     The resultant userspace tool binary is then located at:
+>  
+> -     tools/acpi/power/acpi/acpidbg/acpidbg
+> +     tools/power/acpi/acpidbg
+>  
+>     It can be installed to system directories by running "make install" (as a
+>     sufficiently privileged user).
+> @@ -35,7 +35,7 @@ kernel.
+>  
+>     # mount -t debugfs none /sys/kernel/debug
+>     # modprobe acpi_dbg
+> -   # tools/acpi/power/acpi/acpidbg/acpidbg
+> +   # tools/power/acpi/acpidbg
+>  
+>     That spawns the interactive AML debugger environment where you can execute
+>     debugger commands.
+> 
 
-> == Changes since v6 ==
-> 
->   Updated to linux-next, which has a change to the HMAT structures to
->   account for ACPI revision 6.3.
-> 
->   Changed memory-side cache "associativity" attribute to "indexing"
-> 
-> 
-> Regarding the Kconfig, I am having the implementation specific as a user
-> selectable option, and the generic interface, HMEM_REPORTING, is not a
-> user prompt. I just wanted to clarify the point that there's only one.
-> 
-> 
-> == Background ==
-> 
-> Platforms may provide multiple types of cpu attached system memory. The
-> memory ranges for each type may have different characteristics that
-> applications may wish to know about when considering what node they want
-> their memory allocated from. 
-> 
-> It had previously been difficult to describe these setups as memory
-> rangers were generally lumped into the NUMA node of the CPUs. New
-> platform attributes have been created and in use today that describe
-> the more complex memory hierarchies that can be created.
-> 
-> This series' objective is to provide the attributes from such systems
-> that are useful for applications to know about, and readily usable with
-> existing tools and libraries. Those applications may query performance
-> attributes relative to a particular CPU they're running on in order to
-> make more informed choices for where they want to allocate hot and cold
-> data. This works with mbind() or the numactl library.
-
-Hi Keith,
-
-Great to see this 'nearly' good to go.
-
-For those that were too small / trivial to deserve a reviewed-by
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-Subject to that one tweak in patch 7,
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-Note that my tests were very limited for the memory-side caches
-and not exactly comprehensive for the access attributes either.
-
-They focused on the cases I care about rather than putting together
-a fuller test suite.  That is probably worth doing at some point though
-not sure I'll get to it any time soon.
-
-Thanks,
-
-Jonathan
-
-> 
-> Keith Busch (10):
->   acpi: Create subtable parsing infrastructure
->   acpi: Add HMAT to generic parsing tables
->   acpi/hmat: Parse and report heterogeneous memory
->   node: Link memory nodes to their compute nodes
->   node: Add heterogenous memory access attributes
->   node: Add memory-side caching attributes
->   acpi/hmat: Register processor domain to its memory
->   acpi/hmat: Register performance attributes
->   acpi/hmat: Register memory side cache attributes
->   doc/mm: New documentation for memory performance
-> 
->  Documentation/ABI/stable/sysfs-devices-node   |  87 +++-
->  Documentation/admin-guide/mm/numaperf.rst     | 164 +++++++
->  arch/arm64/kernel/acpi_numa.c                 |   2 +-
->  arch/arm64/kernel/smp.c                       |   4 +-
->  arch/ia64/kernel/acpi.c                       |  14 +-
->  arch/x86/kernel/acpi/boot.c                   |  36 +-
->  drivers/acpi/Kconfig                          |   1 +
->  drivers/acpi/Makefile                         |   1 +
->  drivers/acpi/hmat/Kconfig                     |  11 +
->  drivers/acpi/hmat/Makefile                    |   1 +
->  drivers/acpi/hmat/hmat.c                      | 670 ++++++++++++++++++++++++++
->  drivers/acpi/numa.c                           |  16 +-
->  drivers/acpi/scan.c                           |   4 +-
->  drivers/acpi/tables.c                         |  76 ++-
->  drivers/base/Kconfig                          |   8 +
->  drivers/base/node.c                           | 352 +++++++++++++-
->  drivers/irqchip/irq-gic-v2m.c                 |   2 +-
->  drivers/irqchip/irq-gic-v3-its-pci-msi.c      |   2 +-
->  drivers/irqchip/irq-gic-v3-its-platform-msi.c |   2 +-
->  drivers/irqchip/irq-gic-v3-its.c              |   6 +-
->  drivers/irqchip/irq-gic-v3.c                  |  10 +-
->  drivers/irqchip/irq-gic.c                     |   4 +-
->  drivers/mailbox/pcc.c                         |   2 +-
->  include/linux/acpi.h                          |   6 +-
->  include/linux/node.h                          |  72 ++-
->  25 files changed, 1487 insertions(+), 66 deletions(-)
->  create mode 100644 Documentation/admin-guide/mm/numaperf.rst
->  create mode 100644 drivers/acpi/hmat/Kconfig
->  create mode 100644 drivers/acpi/hmat/Makefile
->  create mode 100644 drivers/acpi/hmat/hmat.c
-> 
+Applied, thanks!
