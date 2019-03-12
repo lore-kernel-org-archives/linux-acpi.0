@@ -1,76 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI: sysfs: Prevent get_status() from returning acpi_status
-Date: Tue, 12 Mar 2019 10:30:29 +0100
-Message-ID: <53542709.3ZnE1UDn36@aspire.rjw.lan>
+Subject: Re: [PATCH] ACPI/PPTT: Simplify leaf node detection.
+Date: Tue, 12 Mar 2019 10:31:59 +0100
+Message-ID: <3893217.oT7ovuD9xH@aspire.rjw.lan>
+References: <20190301185221.608501-1-jeremy.linton@arm.com> <20190304100208.GA32379@e107155-lin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190304100208.GA32379@e107155-lin>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Nathan Chancellor <natechancellor@gmail.com>
+To: Sudeep Holla <sudeep.holla@arm.com>, Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, Lorenzo.Pieralisi@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, March 4, 2019 11:02:08 AM CET Sudeep Holla wrote:
+> On Fri, Mar 01, 2019 at 12:52:21PM -0600, Jeremy Linton wrote:
+> > ACPI 6.3 bumps the PPTT table revision and adds a LEAF_NODE flag.
+> > This allows us to avoid a second pass through the table to assure
+> > that the node in question is a leaf.
+> >
+> 
+> Reviewed-by:Sudeep Holla <sudeep.holla@arm.com>
+> 
+> --
+> Regards,
+> Sudeep
+> 
+> > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> > ---
+> >  drivers/acpi/pptt.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> >
+> > diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> > index ad31c50de3be..065c4fc245d1 100644
+> > --- a/drivers/acpi/pptt.c
+> > +++ b/drivers/acpi/pptt.c
+> > @@ -209,6 +209,9 @@ static int acpi_pptt_leaf_node(struct acpi_table_header *table_hdr,
+> >  	struct acpi_pptt_processor *cpu_node;
+> >  	u32 proc_sz;
+> >
+> > +	if (table_hdr->revision > 1)
+> > +		return (node->flags & ACPI_PPTT_ACPI_LEAF_NODE);
+> > +
+> >  	table_end = (unsigned long)table_hdr + table_hdr->length;
+> >  	node_entry = ACPI_PTR_DIFF(node, table_hdr);
+> >  	entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr,
+> > --
 
-The return value of get_status() is passed to user space on errors,
-so it should not return acpi_status values then.  Make it return
-error values that are meaningful for user space instead.
-
-This also makes a Clang warning regarding the initialization of a
-local variable in get_status() go away.
-
-Reported-by: Nathan Chancellor <natechancellor@gmail.com>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-Resend with a proper changelog and tags from Nathan.
-
----
- drivers/acpi/sysfs.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
-
-Index: linux-pm/drivers/acpi/sysfs.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sysfs.c
-+++ linux-pm/drivers/acpi/sysfs.c
-@@ -648,26 +648,29 @@ static void acpi_global_event_handler(u3
- 	}
- }
- 
--static int get_status(u32 index, acpi_event_status *status,
-+static int get_status(u32 index, acpi_event_status *ret,
- 		      acpi_handle *handle)
- {
--	int result;
-+	acpi_status status;
- 
- 	if (index >= num_gpes + ACPI_NUM_FIXED_EVENTS)
- 		return -EINVAL;
- 
- 	if (index < num_gpes) {
--		result = acpi_get_gpe_device(index, handle);
--		if (result) {
-+		status = acpi_get_gpe_device(index, handle);
-+		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, AE_NOT_FOUND,
- 					"Invalid GPE 0x%x", index));
--			return result;
-+			return -ENXIO;
- 		}
--		result = acpi_get_gpe_status(*handle, index, status);
--	} else if (index < (num_gpes + ACPI_NUM_FIXED_EVENTS))
--		result = acpi_get_event_status(index - num_gpes, status);
-+		status = acpi_get_gpe_status(*handle, index, ret);
-+	} else {
-+		status = acpi_get_event_status(index - num_gpes, ret);
-+	}
-+	if (ACPI_FAILURE(status))
-+		return -EIO;
- 
--	return result;
-+	return 0;
- }
- 
- static ssize_t counter_show(struct kobject *kobj,
+Patch applied, thanks!
