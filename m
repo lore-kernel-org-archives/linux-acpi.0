@@ -1,92 +1,79 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: [PATCH 4.9 58/96] x86/kexec: Dont setup EFI info if EFI runtime is
- not enabled
-Date: Tue, 12 Mar 2019 10:10:16 -0700
-Message-ID: <20190312171038.895781665@linuxfoundation.org>
-References: <20190312171034.530434962@linuxfoundation.org>
+From: moosotc@gmail.com
+Subject: ACPI, software suspend, power consumption, EFI, crashing
+Date: Wed, 13 Mar 2019 15:39:36 +0300
+Message-ID: <87ftrrosmv.fsf@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20190312171034.530434962-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yannik Sembritzki <yannik-Ed5pum6jkczxnD6Ig1nlyA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Philipp Rudo <prudo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, AKASHI Takahiro <takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, x86-ml <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, fanc.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Kairui Song <kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-4.9-stable review patch.  If anyone has any objections, please let me know.
+Hello,
 
-------------------
+After a "regular" system update (pacman -Syu) new kernel and firmware
+packages were installed on this machine[1] (The exact version of the
+kernel/firmware may be a red-herring given sporadic and non bisectable
+(at this point) nature of the problem)
 
-[ Upstream commit 2aa958c99c7fd3162b089a1a56a34a0cdb778de1 ]
+The system failed to come up after a reboot though. The machine was
+dead, being an EFI box meant that it also was silent as to why (no
+console output).
 
-Kexec-ing a kernel with "efi=noruntime" on the first kernel's command
-line causes the following null pointer dereference:
+After adding "debug earlyprintk=efi,keep log_buf_len=16M"[2] to the
+kernel command line (luckily it's quite easy with rEFInd[3]) it became
+apparent that kernel was crashing (at least 2 oopses happened during
+boot the second one being fatal)
 
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
-  #PF error: [normal kernel read fault]
-  Call Trace:
-   efi_runtime_map_copy+0x28/0x30
-   bzImage64_load+0x688/0x872
-   arch_kexec_kernel_image_load+0x6d/0x70
-   kimage_file_alloc_init+0x13e/0x220
-   __x64_sys_kexec_file_load+0x144/0x290
-   do_syscall_64+0x55/0x1a0
-   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Several false starts later (i.e. downgrade kernel/firmware) when the
+system will _sometimes_ boot) the "real" culprit was identified -
+another kernel command line parameter _seems_ to play a crucial role:
+an empty acpi_osi (i.e. `acpi_osi=`), with acpi_osi removed from the
+command line the system (so far) never failed to reach user-space.
 
-Just skip the EFI info setup if EFI runtime services are not enabled.
+But empty acpi_osi was there for a reason, without it the system
+consumes 2 watts more while idling (for background cf. [4]) (That said
+the acpi_osi influence on power was noticed by accident and is as
+inexplicable as the need to do a one-time suspend to memory to achieve
+power consumption on par with macOS on this hardware)
 
- [ bp: Massage commit message. ]
+It is also worth pointing out that the crashes are not really
+deterministic and _sometimes_ kernel boots even with an empty acpi_osi
+being present. The non deterministic nature of failures also means
+that there is no good "bisection" point for saying this kernel was
+okay and after this point in time things went awry.
 
-Suggested-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Kairui Song <kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
-Acked-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: AKASHI Takahiro <takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: fanc.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org
-Cc: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Cc: Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Philipp Rudo <prudo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: x86-ml <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Yannik Sembritzki <yannik-Ed5pum6jkczxnD6Ig1nlyA@public.gmane.org>
-Link: https://lkml.kernel.org/r/20190118111310.29589-2-kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Signed-off-by: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- arch/x86/kernel/kexec-bzimage64.c | 3 +++
- 1 file changed, 3 insertions(+)
+---------
+Update #1
+Having `spectre_v2=off' in the kernel command line:
 
-diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
-index 490f9be3fda2..167ecc270ca5 100644
---- a/arch/x86/kernel/kexec-bzimage64.c
-+++ b/arch/x86/kernel/kexec-bzimage64.c
-@@ -167,6 +167,9 @@ setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
- 	struct efi_info *current_ei = &boot_params.efi_info;
- 	struct efi_info *ei = &params->efi_info;
- 
-+	if (!efi_enabled(EFI_RUNTIME_SERVICES))
-+		return 0;
-+
- 	if (!current_ei->efi_memmap_size)
- 		return 0;
- 
+a. Makes the kernel boot even with an empty acpi_osi
+b. Makes the suspend-to-memory "trick" effective again
+   (in bringing power consumption down)
+
+Update #2 (12-03-2019)
+Turns out `spectre_v2=off' is no panacea, just that when it's there
+kernel is more likely to complete booting without a hitch
+
+Open questions
+--------------
+
+a. How are `spectre_v2=off' and `acpi_osi=' related? (update #2 makes
+   this point moot)
+
+b. (Original question from 2016) Why does one-off (accidentally
+   discovered) suspend to RAM have any bearing on power consumption?
+   And why is the efficiency of this trick dependant on acpi_osi?
+
+   What exactly is so important in clear acpi_osi? (A hypothesis here
+   is that AML does (or doesn`t do something "important") depending on
+   the acpi_osi value)
+
+[1] https://manuals.info.apple.com/MANUALS/1000/MA1687/en_US/mac-mini-late2014-qs.pdf
+[2] After ~10 minutes of excruciatingly slow video redraws
+[3] http://www.rodsbooks.com/refind/
+[4] https://lkml.org/lkml/2016/2/12/55
+
 -- 
-2.19.1
+mailto:moosotc@gmail.com
