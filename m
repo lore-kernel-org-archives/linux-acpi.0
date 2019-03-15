@@ -1,52 +1,29 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: Re: [PATCH 2/2] ACPI: NUMA: show match info about PXM ID and
- offline/online node
-Date: Fri, 15 Mar 2019 16:34:47 +0800
-Message-ID: <9344679d-8d45-03ce-d525-5be0d14e96d8@huawei.com>
-References: <20190315021940.86905-1-wangkefeng.wang@huawei.com>
- <20190315021940.86905-3-wangkefeng.wang@huawei.com>
+From: Keith Busch <kbusch@kernel.org>
+Subject: Re: [PATCHv8 00/10] Heterogenous memory node attributes
+Date: Fri, 15 Mar 2019 11:50:57 -0600
+Message-ID: <20190315175049.GA18389@localhost.localdomain>
+References: <20190311205606.11228-1-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190315021940.86905-3-wangkefeng.wang@huawei.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190311205606.11228-1-keith.busch@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keith Busch <keith.busch@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Jonathan Cameron <jonathan.cameron@huawei.com>, Brice Goglin <Brice.Goglin@inria.fr>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Greg,
 
-On 2019/3/15 10:19, Kefeng Wang wrote:
-> It maybe trigger some issue when the acpi device driver allocs memory
-> from an offline node, so use alternative acpi_map_pxm_to_online_node()
-> to find an online node, let's show infomation about proximity ID, mapped
-> offline node and the nearest online node returned.
->
-> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> ---
->  drivers/acpi/numa.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index 7bbbf8256a41..064c771a7338 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -121,6 +121,9 @@ int acpi_map_pxm_to_online_node(int pxm)
->  			}
->  		}
->  	}
-> +	if (min_node != node)
-> +		pr_warn("IORT: PXM %d Mapped to offline node %d, choose nearest online node %d",
-> +			pxm, node, min_node);
-Should remove IORT prefix, some other table like NFIT, DMAR have PXM filed, waiting for review.
->  
->  	return min_node;
->  }
+Just wanted to check with you on how we may proceed with this series.
+The main feature is exporting new sysfs attributes through driver core,
+so I think it makes most sense to go through you unless you'd prefer
+this go through a different route.
+
+The proposed interface has been pretty stable for a while now, and we've
+received reviews, acks and tests on all patches. Please let me know if
+there is anything else you'd like to see from this series, or if you
+just need more time to get around to this.
+
+Thanks,
+Keith
