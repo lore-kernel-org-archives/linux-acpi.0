@@ -1,93 +1,60 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 09/25] coresight: catu: Cleanup device specific data
-Date: Wed, 20 Mar 2019 18:49:26 +0000
-Message-ID: <1553107783-3340-10-git-send-email-suzuki.poulose@arm.com>
-References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
+From: Furquan Shaikh <furquan@google.com>
+Subject: [PATCH] drivers/acpi: Clear status of an event before enabling it
+Date: Wed, 20 Mar 2019 15:28:44 -0700
+Message-ID: <20190320222844.134765-1-furquan@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, Mathieu Poirier <mathieu.poirier@linaro.org>
+To: robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+Cc: rajatja@google.com, evgreen@google.com, dlaurie@google.com, furquan@google.com
 List-Id: linux-acpi@vger.kernel.org
 
-Switch to using the CoreSight device instead of the real
-amba device.
+Commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
+clearing ACPI IRQs during suspend/resume") was added to stop clearing
+of event status bits unconditionally on suspend and resume paths. This
+was done because of an issue
+reported (https://bugzilla.kernel.org/show_bug.cgi?id=196249) where
+lid status stays closed even on resume (which happens because event
+status bits are cleared unconditionally on resume). Though this change
+fixed the issue on suspend path, it introduced regressions on several
+resume paths.
 
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
-Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+First regression was reported and fixed on S5 path by the following
+change: commit fa85015c0d95 ("ACPICA: Clear status of all events when
+entering S5"). Next regression was reported and fixed on all legacy
+sleep paths by the commit f317c7dc12b7 ("ACPICA: Clear status of all
+events when entering sleep states"). However, regression still exists
+on S0ix sleep path since it does not follow the legacy sleep path.
+
+In case of S0ix, events are enabled as part of device suspend path. If
+status bits for the events are set when they are enabled, it could
+result in premature wake from S0ix. This change ensures that status is
+cleared for any event that is being enabled so that any stale events
+are cleared out.
+
+Signed-off-by: Furquan Shaikh <furquan@google.com>
 ---
- drivers/hwtracing/coresight/coresight-catu.c | 13 +++++++------
- drivers/hwtracing/coresight/coresight-catu.h |  1 -
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/acpi/acpica/evgpe.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/hwtracing/coresight/coresight-catu.c b/drivers/hwtracing/coresight/coresight-catu.c
-index 11c6f2f..671a05a 100644
---- a/drivers/hwtracing/coresight/coresight-catu.c
-+++ b/drivers/hwtracing/coresight/coresight-catu.c
-@@ -408,13 +408,14 @@ static int catu_enable_hw(struct catu_drvdata *drvdata, void *data)
- 	int rc;
- 	u32 control, mode;
- 	struct etr_buf *etr_buf = data;
-+	struct device *dev = &drvdata->csdev->dev;
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 62d3aa74277b4..61455ab42fc87 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -81,8 +81,12 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
  
- 	if (catu_wait_for_ready(drvdata))
--		dev_warn(drvdata->dev, "Timeout while waiting for READY\n");
-+		dev_warn(dev, "Timeout while waiting for READY\n");
+ 	ACPI_FUNCTION_TRACE(ev_enable_gpe);
  
- 	control = catu_read_control(drvdata);
- 	if (control & BIT(CATU_CONTROL_ENABLE)) {
--		dev_warn(drvdata->dev, "CATU is already enabled\n");
-+		dev_warn(dev, "CATU is already enabled\n");
- 		return -EBUSY;
- 	}
+-	/* Enable the requested GPE */
++	/* Clear the GPE (of stale events) */
++	status = acpi_hw_clear_gpe(gpe_event_info);
++	if (ACPI_FAILURE(status))
++		return_ACPI_STATUS(status);
  
-@@ -440,7 +441,7 @@ static int catu_enable_hw(struct catu_drvdata *drvdata, void *data)
- 	catu_write_irqen(drvdata, 0);
- 	catu_write_mode(drvdata, mode);
- 	catu_write_control(drvdata, control);
--	dev_dbg(drvdata->dev, "Enabled in %s mode\n",
-+	dev_dbg(dev, "Enabled in %s mode\n",
- 		(mode == CATU_MODE_PASS_THROUGH) ?
- 		"Pass through" :
- 		"Translate");
-@@ -461,15 +462,16 @@ static int catu_enable(struct coresight_device *csdev, void *data)
- static int catu_disable_hw(struct catu_drvdata *drvdata)
- {
- 	int rc = 0;
-+	struct device *dev = &drvdata->csdev->dev;
- 
- 	catu_write_control(drvdata, 0);
- 	coresight_disclaim_device_unlocked(drvdata->base);
- 	if (catu_wait_for_ready(drvdata)) {
--		dev_info(drvdata->dev, "Timeout while waiting for READY\n");
-+		dev_info(dev, "Timeout while waiting for READY\n");
- 		rc = -EAGAIN;
- 	}
- 
--	dev_dbg(drvdata->dev, "Disabled\n");
-+	dev_dbg(dev, "Disabled\n");
- 	return rc;
++	/* Enable the requested GPE */
+ 	status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
+ 	return_ACPI_STATUS(status);
  }
- 
-@@ -519,7 +521,6 @@ static int catu_probe(struct amba_device *adev, const struct amba_id *id)
- 		goto out;
- 	}
- 
--	drvdata->dev = dev;
- 	dev_set_drvdata(dev, drvdata);
- 	base = devm_ioremap_resource(dev, &adev->res);
- 	if (IS_ERR(base)) {
-diff --git a/drivers/hwtracing/coresight/coresight-catu.h b/drivers/hwtracing/coresight/coresight-catu.h
-index 1b281f0..96ea8c4 100644
---- a/drivers/hwtracing/coresight/coresight-catu.h
-+++ b/drivers/hwtracing/coresight/coresight-catu.h
-@@ -61,7 +61,6 @@
- #define CATU_IRQEN_OFF		0x0
- 
- struct catu_drvdata {
--	struct device *dev;
- 	void __iomem *base;
- 	struct coresight_device *csdev;
- 	int irq;
 -- 
-2.7.4
+2.21.0.225.g810b269d1ac-goog
