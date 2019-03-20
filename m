@@ -1,330 +1,281 @@
 From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [TEST PATCH 26/25] edk2-platform: juno: Update ACPI CoreSight Bindings
-Date: Wed, 20 Mar 2019 18:49:43 +0000
-Message-ID: <1553107783-3340-27-git-send-email-suzuki.poulose@arm.com>
+Subject: [PATCH 04/25] coresight: dynamic-replicator: Prepare for merging with
+ static replicator
+Date: Wed, 20 Mar 2019 18:49:21 +0000
+Message-ID: <1553107783-3340-5-git-send-email-suzuki.poulose@arm.com>
 References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>
+Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Suzuki K Poulose <suzuki.poulose@arm.com>, coresight@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.walker@arm.com, mike.leach@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI bindings for CoreSight components on the Juno-r0 board.
-Please note that the bindings apply only for the juno-r0.
-The layout on r1 and r2 are slightly different and will need
-dynamic ACPI table support to be able to use a single UEFI
-image.
+Rename the dynamic replicator specific routines for merging with the
+replicator driver. Also re-arrange the probe routine to make it easier
+to merge.
 
+Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
 Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
 ---
- Platform/ARM/JunoPkg/AcpiTables/Dsdt.asl | 241 +++++++++++++++++++++++++++++++
- 1 file changed, 241 insertions(+)
+ .../coresight/coresight-dynamic-replicator.c       | 104 +++++++++++++--------
+ 1 file changed, 63 insertions(+), 41 deletions(-)
 
-diff --git a/Platform/ARM/JunoPkg/AcpiTables/Dsdt.asl b/Platform/ARM/JunoPkg/AcpiTables/Dsdt.asl
-index 702b057..c70e8ac 100644
---- a/Platform/ARM/JunoPkg/AcpiTables/Dsdt.asl
-+++ b/Platform/ARM/JunoPkg/AcpiTables/Dsdt.asl
-@@ -14,6 +14,51 @@
+diff --git a/drivers/hwtracing/coresight/coresight-dynamic-replicator.c b/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
+index fe176b9..b7d7c41 100644
+--- a/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
++++ b/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
+@@ -21,13 +21,13 @@
+ #define REPLICATOR_IDFILTER1		0x004
  
- #include "ArmPlatform.h"
+ /**
+- * struct replicator_state - specifics associated to a replicator component
++ * struct replicator_drvdata - specifics associated to a replicator component
+  * @base:	memory mapped base address for this component.
+  * @dev:	the device entity associated with this component
+  * @atclk:	optional clock for the core parts of the replicator.
+  * @csdev:	component vitals needed by the framework
+  */
+-struct replicator_state {
++struct replicator_drvdata {
+ 	void __iomem		*base;
+ 	struct device		*dev;
+ 	struct clk		*atclk;
+@@ -35,9 +35,9 @@ struct replicator_state {
+ };
  
-+#define ACPI_GRAPH_REV		0
-+#define ACPI_GRAPH_UUID		"ab02a46b-74c7-45a2-bd68-f7d344ef2153"
-+
-+#define CORESIGHT_GRAPH_UUID	"3ecbc8b6-1d0e-4fb3-8107-e627f805c6cd"
-+
-+#define CS_LINK_MASTER		1
-+#define CS_LINK_SLAVE		0
-+
-+
-+#define DSD_CS_GRAPH_BEGIN(_nports)			\
-+        Package () {					\
-+          1,		// GraphID			\
-+          ToUUID(CORESIGHT_GRAPH_UUID),			\
-+          _nports,
-+
-+#define DSD_CS_GRAPH_END				\
-+	}
-+
-+#define DSD_GRAPH_BEGIN(_nports)			\
-+     ToUUID(ACPI_GRAPH_UUID),				\
-+     Package() {					\
-+       ACPI_GRAPH_REV,					\
-+       1,						\
-+       DSD_CS_GRAPH_BEGIN(_nports)
-+
-+#define DSD_GRAPH_END					\
-+       DSD_CS_GRAPH_END					\
-+     }
-+
-+#define DSD_PORTS_BEGIN(_nports)			\
-+   Name (_DSD,  Package () {				\
-+     DSD_GRAPH_BEGIN(_nports)
-+
-+#define DSD_PORTS_END					\
-+   DSD_GRAPH_END					\
-+  })
-+
-+#define CS_PORT(_port, _rport, _rphandle, _dir)		\
-+    Package () { _port, _rport, _rphandle, _dir}
-+
-+#define CS_INPUT_PORT(_port, _rport, _rphandle)		\
-+    CS_PORT(_port, _rport, _rphandle, CS_LINK_SLAVE)
-+#define CS_OUTPUT_PORT(_port, _rport, _rphandle)		\
-+    CS_PORT(_port, _rport, _rphandle, CS_LINK_MASTER)
-+
- DefinitionBlock("DsdtTable.aml", "DSDT", 1, "ARMLTD", "ARM-JUNO", EFI_ACPI_ARM_OEM_REVISION) {
-   Scope(_SB) {
-     //
-@@ -122,15 +167,56 @@ DefinitionBlock("DsdtTable.aml", "DSDT", 1, "ARMLTD", "ARM-JUNO", EFI_ACPI_ARM_O
-         Method (_LPI, 0, NotSerialized) {
-           return(PLPI)
-         }
-+
-+        Device(ETM0) { // ETM on Cluster0 CPU0
-+          Name (_HID, "ARMHC500")
-+          Name (_CID, "ARMHC500")
-+          Name (_CRS, ResourceTemplate() {
-+            Memory32Fixed(ReadWrite, 0x22040000, 0x1000)
-+          })
-+
-+          DSD_PORTS_BEGIN(1)
-+          CS_OUTPUT_PORT(0, 0, \_SB_.CLU0.FUN0)
-+          DSD_PORTS_END
-+
-+        } // ETM0
-       }
-+
-       Device(CPU1) { // A57-1: Cluster 0, Cpu 1
-         Name(_HID, "ACPI0007")
-         Name(_UID, 5)
-         Method (_LPI, 0, NotSerialized) {
-           return(PLPI)
-         }
-+        Device(ETM1) { // ETM on Cluster0 CPU1
-+          Name (_HID, "ARMHC500")
-+          Name (_CID, "ARMHC500")
-+          Name (_CRS, ResourceTemplate() {
-+            Memory32Fixed(ReadWrite, 0x22140000, 0x1000)
-+          })
-+
-+          DSD_PORTS_BEGIN(1)
-+          CS_OUTPUT_PORT(0, 1, \_SB_.CLU0.FUN0)
-+          DSD_PORTS_END
-+
-+        } // ETM1
-       }
-+
-+      Device(FUN0) {
-+        Name(_HID, "ARMHC9FF")
-+        Name(_CID, "ARMHC9FF")
-+        Name(_CRS, ResourceTemplate() {
-+          Memory32Fixed(ReadWrite, 0x220c0000, 0x1000)
-+        })
-+
-+        DSD_PORTS_BEGIN(3)
-+        CS_OUTPUT_PORT(0, 0, \_SB_.MFUN),
-+        CS_INPUT_PORT(0, 0, \_SB_.CLU0.CPU0.ETM0),
-+        CS_INPUT_PORT(1, 0, \_SB_.CLU0.CPU1.ETM1)
-+        DSD_PORTS_END
-+      } // CL0.FUN0
-     }
-+
-     Device (CLU1) { // Cluster1 state
-       Name(_HID, "ACPI0010")
-       Name(_UID, 2)
-@@ -208,19 +294,45 @@ DefinitionBlock("DsdtTable.aml", "DSDT", 1, "ARMLTD", "ARM-JUNO", EFI_ACPI_ARM_O
-           "CorePwrDn"
-         },
-       })
-+
-       Device(CPU2) { // A53-0: Cluster 1, Cpu 0
-         Name(_HID, "ACPI0007")
-         Name(_UID, 0)
-         Method (_LPI, 0, NotSerialized) {
-           return(PLPI)
-         }
-+        Device(ETM2) { // ETM on Cluster1, CPU0
-+          Name (_HID, "ARMHC500")
-+          Name (_CID, "ARMHC500")
-+          Name (_CRS, ResourceTemplate() {
-+            Memory32Fixed(ReadWrite, 0x23040000, 0x1000)
-+          })
-+
-+          DSD_PORTS_BEGIN(1)
-+          CS_OUTPUT_PORT(0, 0, \_SB_.CLU1.FUN1)
-+          DSD_PORTS_END
-+
-+        } // ETM2
-       }
-+
-       Device(CPU3) { // A53-1: Cluster 1, Cpu 1
-         Name(_HID, "ACPI0007")
-         Name(_UID, 1)
-         Method (_LPI, 0, NotSerialized) {
-           return(PLPI)
-         }
-+        Device(ETM3) { // ETM on Cluster1, CPU1
-+          Name (_HID, "ARMHC500")
-+          Name (_CID, "ARMHC500")
-+          Name (_CRS, ResourceTemplate() {
-+            Memory32Fixed(ReadWrite, 0x23140000, 0x1000)
-+          })
-+
-+          DSD_PORTS_BEGIN(1)
-+          CS_OUTPUT_PORT(0, 1, \_SB_.CLU1.FUN1)
-+          DSD_PORTS_END
-+
-+        } // ETM3
-       }
-       Device(CPU4) { // A53-2: Cluster 1, Cpu 2
-         Name(_HID, "ACPI0007")
-@@ -228,6 +340,18 @@ DefinitionBlock("DsdtTable.aml", "DSDT", 1, "ARMLTD", "ARM-JUNO", EFI_ACPI_ARM_O
-         Method (_LPI, 0, NotSerialized) {
-           return(PLPI)
-         }
-+        Device(ETM4) { // ETM on Cluster1, CPU2
-+          Name (_HID, "ARMHC500")	// ETM
-+          Name (_CID, "ARMHC500")	// ETM
-+          Name (_CRS, ResourceTemplate() {
-+            Memory32Fixed(ReadWrite, 0x23240000, 0x1000)
-+          })
-+
-+          DSD_PORTS_BEGIN(1)
-+          CS_OUTPUT_PORT(0, 2, \_SB_.CLU1.FUN1)
-+          DSD_PORTS_END
-+
-+        } // ETM4
-       }
-       Device(CPU5) { // A53-3: Cluster 1, Cpu 3
-         Name(_HID, "ACPI0007")
-@@ -235,9 +359,126 @@ DefinitionBlock("DsdtTable.aml", "DSDT", 1, "ARMLTD", "ARM-JUNO", EFI_ACPI_ARM_O
-         Method (_LPI, 0, NotSerialized) {
-           return(PLPI)
-         }
-+        Device(ETM5) { // ETM on Cluster1, CPU3
-+          Name (_HID, "ARMHC500")	// ETM
-+          Name (_CID, "ARMHC500")	// ETM
-+          Name (_CRS, ResourceTemplate() {
-+            Memory32Fixed(ReadWrite, 0x23340000, 0x1000)
-+          })
-+
-+          DSD_PORTS_BEGIN(1)
-+          CS_OUTPUT_PORT(0, 3, \_SB_.CLU1.FUN1)
-+          DSD_PORTS_END
-+        } // ETM5
-       }
-+      Device(FUN1) {
-+        Name(_HID, "ARMHC9FF")
-+        Name(_CID, "ARMHC9FF")
-+        Name(_CRS, ResourceTemplate() {
-+          Memory32Fixed(ReadWrite, 0x230c0000, 0x1000)
-+        })
-+
-+        DSD_PORTS_BEGIN(5)
-+        CS_OUTPUT_PORT(0, 1, \_SB_.MFUN),
-+        CS_INPUT_PORT(0, 0, \_SB_.CLU1.CPU2.ETM2),
-+        CS_INPUT_PORT(1, 0, \_SB_.CLU1.CPU3.ETM3),
-+        CS_INPUT_PORT(2, 0, \_SB_.CLU1.CPU4.ETM4),
-+        CS_INPUT_PORT(3, 0, \_SB_.CLU1.CPU5.ETM5)
-+        DSD_PORTS_END
-+      } // CL1.FUN1
-     }
+ /*
+- * replicator_reset : Reset the replicator configuration to sane values.
++ * dynamic_replicator_reset : Reset the replicator configuration to sane values.
+  */
+-static void replicator_reset(struct replicator_state *drvdata)
++static void dynamic_replicator_reset(struct replicator_drvdata *drvdata)
+ {
+ 	CS_UNLOCK(drvdata->base);
  
-+    Device(STM0) {
-+      Name(_HID, "ARMHC502")	// STM
-+      Name(_CID, "ARMHC502")
-+      Name(_CRS, ResourceTemplate() {
-+        Memory32Fixed(ReadWrite, 0x20100000, 0x1000)
-+        Memory32Fixed(ReadWrite, 0x28000000, 0x1000000)
-+      })
-+      DSD_PORTS_BEGIN(1)
-+      CS_OUTPUT_PORT(0, 2, \_SB_.MFUN)
-+      DSD_PORTS_END
-+    }
+@@ -50,12 +50,11 @@ static void replicator_reset(struct replicator_state *drvdata)
+ 	CS_LOCK(drvdata->base);
+ }
+ 
+-static int replicator_enable(struct coresight_device *csdev, int inport,
+-			      int outport)
++static int dynamic_replicator_enable(struct replicator_drvdata *drvdata,
++				     int inport, int outport)
+ {
+ 	int rc = 0;
+ 	u32 reg;
+-	struct replicator_state *drvdata = dev_get_drvdata(csdev->dev.parent);
+ 
+ 	switch (outport) {
+ 	case 0:
+@@ -76,21 +75,28 @@ static int replicator_enable(struct coresight_device *csdev, int inport,
+ 		rc = coresight_claim_device_unlocked(drvdata->base);
+ 
+ 	/* Ensure that the outport is enabled. */
+-	if (!rc) {
++	if (!rc)
+ 		writel_relaxed(0x00, drvdata->base + reg);
+-		dev_dbg(drvdata->dev, "REPLICATOR enabled\n");
+-	}
+-
+ 	CS_LOCK(drvdata->base);
+ 
+ 	return rc;
+ }
+ 
+-static void replicator_disable(struct coresight_device *csdev, int inport,
+-				int outport)
++static int replicator_enable(struct coresight_device *csdev, int inport,
++			     int outport)
++{
++	int rc = 0;
++	struct replicator_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
 +
-+    Device(MFUN) {
-+      Name(_HID, "ARMHC9FF")	// Funnel
-+      Name(_CID, "ARMHC9FF")	// Funnel
-+      Name(_CRS, ResourceTemplate() {
-+        Memory32Fixed(ReadWrite, 0x20040000, 0x1000)
-+      })
++	rc = dynamic_replicator_enable(drvdata, inport, outport);
++	dev_dbg(drvdata->dev, "REPLICATOR enabled\n");
++	return rc;
++}
 +
-+      DSD_PORTS_BEGIN(4)
-+      CS_OUTPUT_PORT(0, 0, \_SB_.ETF0),
-+      CS_INPUT_PORT(0, 0, \_SB_.CLU0.FUN0),
-+      CS_INPUT_PORT(1, 0, \_SB_.CLU1.FUN1),
-+      CS_INPUT_PORT(2, 0, \_SB_.STM0)
-+      DSD_PORTS_END
++static void dynamic_replicator_disable(struct replicator_drvdata *drvdata,
++				       int inport, int outport)
+ {
+ 	u32 reg;
+-	struct replicator_state *drvdata = dev_get_drvdata(csdev->dev.parent);
+ 
+ 	switch (outport) {
+ 	case 0:
+@@ -113,7 +119,14 @@ static void replicator_disable(struct coresight_device *csdev, int inport,
+ 	    (readl_relaxed(drvdata->base + REPLICATOR_IDFILTER1) == 0xff))
+ 		coresight_disclaim_device_unlocked(drvdata->base);
+ 	CS_LOCK(drvdata->base);
++}
+ 
++static void replicator_disable(struct coresight_device *csdev, int inport,
++			       int outport)
++{
++	struct replicator_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
 +
-+    } // MFUN-nel
++	dynamic_replicator_disable(drvdata, inport, outport);
+ 	dev_dbg(drvdata->dev, "REPLICATOR disabled\n");
+ }
+ 
+@@ -127,7 +140,7 @@ static const struct coresight_ops replicator_cs_ops = {
+ };
+ 
+ #define coresight_replicator_reg(name, offset) \
+-	coresight_simple_reg32(struct replicator_state, name, offset)
++	coresight_simple_reg32(struct replicator_drvdata, name, offset)
+ 
+ coresight_replicator_reg(idfilter0, REPLICATOR_IDFILTER0);
+ coresight_replicator_reg(idfilter1, REPLICATOR_IDFILTER1);
+@@ -148,52 +161,55 @@ static const struct attribute_group *replicator_groups[] = {
+ 	NULL,
+ };
+ 
+-static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
++static int replicator_probe(struct device *dev, struct resource *res)
+ {
+ 	int ret = 0;
+-	struct device *dev = &adev->dev;
+-	struct resource *res = &adev->res;
+ 	struct coresight_platform_data *pdata = NULL;
+-	struct replicator_state *drvdata;
++	struct replicator_drvdata *drvdata;
+ 	struct coresight_desc desc = { 0 };
+-	struct device_node *np = adev->dev.of_node;
++	struct device_node *np = dev->of_node;
+ 	void __iomem *base;
+ 
+ 	if (np) {
+ 		pdata = of_get_coresight_platform_data(dev, np);
+ 		if (IS_ERR(pdata))
+ 			return PTR_ERR(pdata);
+-		adev->dev.platform_data = pdata;
++		dev->platform_data = pdata;
+ 	}
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+ 		return -ENOMEM;
+ 
+-	drvdata->dev = &adev->dev;
+-	drvdata->atclk = devm_clk_get(&adev->dev, "atclk"); /* optional */
++	drvdata->dev = dev;
++	drvdata->atclk = devm_clk_get(dev, "atclk"); /* optional */
+ 	if (!IS_ERR(drvdata->atclk)) {
+ 		ret = clk_prepare_enable(drvdata->atclk);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	/* Validity for the resource is already checked by the AMBA core */
+-	base = devm_ioremap_resource(dev, res);
+-	if (IS_ERR(base)) {
+-		ret = PTR_ERR(base);
+-		goto out_disable_clk;
++	/*
++	 * Map the device base for dynamic-replicator, which has been
++	 * validated by AMBA core
++	 */
++	if (res) {
++		base = devm_ioremap_resource(dev, res);
++		if (IS_ERR(base)) {
++			ret = PTR_ERR(base);
++			goto out_disable_clk;
++		}
++		drvdata->base = base;
++		desc.groups = replicator_groups;
+ 	}
+ 
+-	drvdata->base = base;
+ 	dev_set_drvdata(dev, drvdata);
+ 
+ 	desc.type = CORESIGHT_DEV_TYPE_LINK;
+ 	desc.subtype.link_subtype = CORESIGHT_DEV_SUBTYPE_LINK_SPLIT;
+ 	desc.ops = &replicator_cs_ops;
+-	desc.pdata = adev->dev.platform_data;
+-	desc.dev = &adev->dev;
+-	desc.groups = replicator_groups;
++	desc.pdata = dev->platform_data;
++	desc.dev = dev;
+ 	drvdata->csdev = coresight_register(&desc);
+ 
+ 	if (IS_ERR(drvdata->csdev)) {
+@@ -201,8 +217,8 @@ static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
+ 		goto out_disable_clk;
+ 	}
+ 
+-	replicator_reset(drvdata);
+-	pm_runtime_put(&adev->dev);
++	dynamic_replicator_reset(drvdata);
++	pm_runtime_put(dev);
+ 
+ out_disable_clk:
+ 	if (ret && !IS_ERR_OR_NULL(drvdata->atclk))
+@@ -210,10 +226,16 @@ static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
+ 	return ret;
+ }
+ 
++static int dynamic_replicator_probe(struct amba_device *adev,
++				    const struct amba_id *id)
++{
++	return replicator_probe(&adev->dev, &adev->res);
++}
 +
-+    Device(ETF0) {
-+      Name(_HID, "ARMHC97C")	// TMC
-+      Name(_CID, "ARMHC97C")	// TMC
-+      Name(_CRS, ResourceTemplate() {
-+        Memory32Fixed(ReadWrite, 0x20010000, 0x1000)
-+      })
-+
-+      DSD_PORTS_BEGIN(2)
-+      CS_OUTPUT_PORT(0, 1, \_SB_.RPL),
-+      CS_INPUT_PORT(0, 0, \_SB_.MFUN)
-+      DSD_PORTS_END
-+
-+    } // ETF0
-+
-+    Device(RPL) {
-+      Name(_HID, "ARMHC98D")	// Replicator
-+      Name(_CID, "ARMHC98D")	// Replicator
-+      Name(_CRS, ResourceTemplate() {
-+        Memory32Fixed(ReadWrite, 0x20120000, 0x1000)
-+      })
-+
-+      DSD_PORTS_BEGIN(3)
-+      CS_OUTPUT_PORT(0, 0, \_SB_.TPIU),
-+      CS_OUTPUT_PORT(1, 0, \_SB_.ETR),
-+      CS_INPUT_PORT(0, 0, \_SB_.ETF0)
-+      DSD_PORTS_END
-+
-+    } // RPL
-+
-+    Device(ETR) {
-+      Name(_HID, "ARMHC97C")	// TMC
-+      Name(_CID, "ARMHC97C")	// TMC
-+      Name(_CCA, 0) // The ETR on this platform is not coherent
-+      Name(_CRS, ResourceTemplate() {
-+        Memory32Fixed(ReadWrite, 0x20070000, 0x1000)
-+      })
-+
-+      Name(_DSD, Package() {
-+         DSD_GRAPH_BEGIN(1)
-+         CS_INPUT_PORT(0, 1, \_SB_.RPL)
-+         DSD_GRAPH_END,
-+
-+         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+         Package() {
-+            Package(2) {"arm,scatter-gather", 1}
-+         }
-+      })
-+
-+    } // ETR
-+
-+    Device(TPIU) {
-+      Name(_HID, "ARMHC979")	// TPIU
-+      Name(_CID, "ARMHC979")	// TPIU
-+      Name(_CRS, ResourceTemplate() {
-+        Memory32Fixed(ReadWrite, 0x20030000, 0x1000)
-+      })
-+
-+      DSD_PORTS_BEGIN(1)
-+      CS_INPUT_PORT(0, 0, \_SB_.RPL)
-+      DSD_PORTS_END
-+
-+    } // TPIU
-+
-     //
-     // Keyboard and Mouse
-     //
+ #ifdef CONFIG_PM
+ static int replicator_runtime_suspend(struct device *dev)
+ {
+-	struct replicator_state *drvdata = dev_get_drvdata(dev);
++	struct replicator_drvdata *drvdata = dev_get_drvdata(dev);
+ 
+ 	if (drvdata && !IS_ERR(drvdata->atclk))
+ 		clk_disable_unprepare(drvdata->atclk);
+@@ -223,7 +245,7 @@ static int replicator_runtime_suspend(struct device *dev)
+ 
+ static int replicator_runtime_resume(struct device *dev)
+ {
+-	struct replicator_state *drvdata = dev_get_drvdata(dev);
++	struct replicator_drvdata *drvdata = dev_get_drvdata(dev);
+ 
+ 	if (drvdata && !IS_ERR(drvdata->atclk))
+ 		clk_prepare_enable(drvdata->atclk);
+@@ -238,7 +260,7 @@ static const struct dev_pm_ops replicator_dev_pm_ops = {
+ 			   NULL)
+ };
+ 
+-static const struct amba_id replicator_ids[] = {
++static const struct amba_id dynamic_replicator_ids[] = {
+ 	{
+ 		.id     = 0x000bb909,
+ 		.mask   = 0x000fffff,
+@@ -251,13 +273,13 @@ static const struct amba_id replicator_ids[] = {
+ 	{ 0, 0 },
+ };
+ 
+-static struct amba_driver replicator_driver = {
++static struct amba_driver dynamic_replicator_driver = {
+ 	.drv = {
+ 		.name	= "coresight-dynamic-replicator",
+ 		.pm	= &replicator_dev_pm_ops,
+ 		.suppress_bind_attrs = true,
+ 	},
+-	.probe		= replicator_probe,
+-	.id_table	= replicator_ids,
++	.probe		= dynamic_replicator_probe,
++	.id_table	= dynamic_replicator_ids,
+ };
+-builtin_amba_driver(replicator_driver);
++builtin_amba_driver(dynamic_replicator_driver);
 -- 
 2.7.4
