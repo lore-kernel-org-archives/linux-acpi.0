@@ -1,7 +1,7 @@
 From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 18/25] coresight: Introduce generic platform data helper
-Date: Wed, 20 Mar 2019 18:49:35 +0000
-Message-ID: <1553107783-3340-19-git-send-email-suzuki.poulose@arm.com>
+Subject: [PATCH 21/25] coresight: Use fwnode handle instead of device names
+Date: Wed, 20 Mar 2019 18:49:38 +0000
+Message-ID: <1553107783-3340-22-git-send-email-suzuki.poulose@arm.com>
 References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
@@ -10,390 +10,163 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, Mathieu Poirier <mathieu.poirier@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-So far we have hard coded the DT platform parsing code in
-every driver. Introduce generic helper to parse the information
-provided by the firmware in a platform agnostic manner, in preparation
-for the ACPI support.
+We rely on the device names to find a CoreSight device on the
+coresight bus. The device name however is obtained from the platform,
+which is bound to the real platform/amba device. As we are about
+to use different naming scheme for the coresight devices, we can't
+rely on the platform device name to find the corresponding
+coresight device. Instead we use the platform agnostic
+"fwnode handle" of the parent device to find the devices.
+We also reuse the same fwnode as the parent for the Coresight
+device we create.
 
 Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
 Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
 ---
- drivers/hwtracing/coresight/coresight-catu.c       | 13 ++---
- drivers/hwtracing/coresight/coresight-etb10.c      | 11 ++--
- drivers/hwtracing/coresight/coresight-etm3x.c      | 12 ++--
- drivers/hwtracing/coresight/coresight-etm4x.c      | 11 ++--
- drivers/hwtracing/coresight/coresight-funnel.c     | 11 ++--
- drivers/hwtracing/coresight/coresight-platform.c   | 65 +++++++++++++---------
- drivers/hwtracing/coresight/coresight-replicator.c | 12 ++--
- drivers/hwtracing/coresight/coresight-stm.c        | 11 ++--
- drivers/hwtracing/coresight/coresight-tmc.c        | 13 ++---
- drivers/hwtracing/coresight/coresight-tpiu.c       | 11 ++--
- include/linux/coresight.h                          |  7 +--
- 11 files changed, 80 insertions(+), 97 deletions(-)
+ drivers/hwtracing/coresight/coresight-platform.c | 10 ++++------
+ drivers/hwtracing/coresight/coresight-priv.h     |  2 ++
+ drivers/hwtracing/coresight/coresight.c          | 19 +++++++++++--------
+ include/linux/coresight.h                        |  4 ++--
+ 4 files changed, 19 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/hwtracing/coresight/coresight-catu.c b/drivers/hwtracing/coresight/coresight-catu.c
-index 671a05a..4595c67 100644
---- a/drivers/hwtracing/coresight/coresight-catu.c
-+++ b/drivers/hwtracing/coresight/coresight-catu.c
-@@ -503,17 +503,14 @@ static int catu_probe(struct amba_device *adev, const struct amba_id *id)
- 	struct coresight_desc catu_desc;
- 	struct coresight_platform_data *pdata = NULL;
- 	struct device *dev = &adev->dev;
--	struct device_node *np = dev->of_node;
- 	void __iomem *base;
- 
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata)) {
--			ret = PTR_ERR(pdata);
--			goto out;
--		}
--		dev->platform_data = pdata;
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata)) {
-+		ret = PTR_ERR(pdata);
-+		goto out;
- 	}
-+	dev->platform_data = pdata;
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata) {
-diff --git a/drivers/hwtracing/coresight/coresight-etb10.c b/drivers/hwtracing/coresight/coresight-etb10.c
-index a471cbd..e4175849 100644
---- a/drivers/hwtracing/coresight/coresight-etb10.c
-+++ b/drivers/hwtracing/coresight/coresight-etb10.c
-@@ -688,14 +688,11 @@ static int etb_probe(struct amba_device *adev, const struct amba_id *id)
- 	struct etb_drvdata *drvdata;
- 	struct resource *res = &adev->res;
- 	struct coresight_desc desc = { 0 };
--	struct device_node *np = adev->dev.of_node;
- 
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--		adev->dev.platform_data = pdata;
--	}
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
-+	adev->dev.platform_data = pdata;
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
-diff --git a/drivers/hwtracing/coresight/coresight-etm3x.c b/drivers/hwtracing/coresight/coresight-etm3x.c
-index 7137f06..b101464 100644
---- a/drivers/hwtracing/coresight/coresight-etm3x.c
-+++ b/drivers/hwtracing/coresight/coresight-etm3x.c
-@@ -788,20 +788,16 @@ static int etm_probe(struct amba_device *adev, const struct amba_id *id)
- 	struct etm_drvdata *drvdata;
- 	struct resource *res = &adev->res;
- 	struct coresight_desc desc = { 0 };
--	struct device_node *np = adev->dev.of_node;
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
- 		return -ENOMEM;
- 
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--
--		adev->dev.platform_data = pdata;
--	}
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
- 
-+	adev->dev.platform_data = pdata;
- 	drvdata->use_cp14 = fwnode_property_read_bool(dev->fwnode, "arm,cp14");
- 	dev_set_drvdata(dev, drvdata);
- 
-diff --git a/drivers/hwtracing/coresight/coresight-etm4x.c b/drivers/hwtracing/coresight/coresight-etm4x.c
-index 8d5ee3b..bfc23ab 100644
---- a/drivers/hwtracing/coresight/coresight-etm4x.c
-+++ b/drivers/hwtracing/coresight/coresight-etm4x.c
-@@ -974,18 +974,15 @@ static int etm4_probe(struct amba_device *adev, const struct amba_id *id)
- 	struct etmv4_drvdata *drvdata;
- 	struct resource *res = &adev->res;
- 	struct coresight_desc desc = { 0 };
--	struct device_node *np = adev->dev.of_node;
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
- 		return -ENOMEM;
- 
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--		adev->dev.platform_data = pdata;
--	}
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
-+	adev->dev.platform_data = pdata;
- 
- 	dev_set_drvdata(dev, drvdata);
- 
-diff --git a/drivers/hwtracing/coresight/coresight-funnel.c b/drivers/hwtracing/coresight/coresight-funnel.c
-index 1085f31..2590744 100644
---- a/drivers/hwtracing/coresight/coresight-funnel.c
-+++ b/drivers/hwtracing/coresight/coresight-funnel.c
-@@ -185,14 +185,11 @@ static int funnel_probe(struct amba_device *adev, const struct amba_id *id)
- 	struct funnel_drvdata *drvdata;
- 	struct resource *res = &adev->res;
- 	struct coresight_desc desc = { 0 };
--	struct device_node *np = adev->dev.of_node;
- 
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--		adev->dev.platform_data = pdata;
--	}
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
-+	adev->dev.platform_data = pdata;
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
 diff --git a/drivers/hwtracing/coresight/coresight-platform.c b/drivers/hwtracing/coresight/coresight-platform.c
-index 514cc2b..693e3f5 100644
+index 877ed2b..5eee987 100644
 --- a/drivers/hwtracing/coresight/coresight-platform.c
 +++ b/drivers/hwtracing/coresight/coresight-platform.c
-@@ -17,6 +17,20 @@
- #include <linux/cpumask.h>
- #include <asm/smp_plat.h>
+@@ -31,7 +31,7 @@ static int coresight_alloc_conns(struct device *dev,
+ 	return 0;
+ }
  
-+static int coresight_alloc_conns(struct device *dev,
-+				 struct coresight_platform_data *pdata)
-+{
-+	if (pdata->nr_outport) {
-+		pdata->conns = devm_kzalloc(dev, pdata->nr_outport *
-+					    sizeof(*pdata->conns),
-+					    GFP_KERNEL);
-+		if (!pdata->conns)
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
+-static int coresight_fwnode_handle_match(struct device *dev, void *data)
++int coresight_match_fwnode_handle(struct device *dev, void *data)
+ {
+ 	return dev_fwnode(dev) == data;
+ }
+@@ -46,7 +46,7 @@ coresight_find_device_by_fwnode(struct fwnode_handle *fwnode)
+ 	 * platform bus.
+ 	 */
+ 	dev = bus_find_device(&platform_bus_type, NULL,
+-			      fwnode, coresight_fwnode_handle_match);
++			      fwnode, coresight_match_fwnode_handle);
+ 	if (dev)
+ 		return dev;
+ 
+@@ -55,7 +55,7 @@ coresight_find_device_by_fwnode(struct fwnode_handle *fwnode)
+ 	 * looking for the device that matches the endpoint node.
+ 	 */
+ 	return bus_find_device(&amba_bustype, NULL,
+-			       fwnode, coresight_fwnode_handle_match);
++			       fwnode, coresight_match_fwnode_handle);
+ }
+ 
  #ifdef CONFIG_OF
- static int of_dev_node_match(struct device *dev, void *data)
- {
-@@ -133,20 +147,6 @@ static void of_coresight_get_ports(const struct device_node *node,
- 	}
- }
+@@ -214,9 +214,7 @@ static int of_coresight_parse_endpoint(struct device *dev,
+ 		}
  
--static int of_coresight_alloc_memory(struct device *dev,
--			struct coresight_platform_data *pdata)
--{
--	if (pdata->nr_outport) {
--		pdata->conns = devm_kzalloc(dev, pdata->nr_outport *
--					    sizeof(*pdata->conns),
--					    GFP_KERNEL);
--		if (!pdata->conns)
--			return -ENOMEM;
--	}
--
--	return 0;
--}
--
- int of_coresight_get_cpu(const struct device_node *node)
- {
- 	int cpu;
-@@ -226,23 +226,17 @@ static int of_coresight_parse_endpoint(struct device *dev,
- 	return ret;
- }
+ 		conn->outport = endpoint.port;
+-		conn->child_name = devm_kstrdup(dev,
+-						dev_name(rdev),
+-						GFP_KERNEL);
++		conn->child_fwnode = fwnode_handle_get(rdev_fwnode);
+ 		conn->child_port = rendpoint.port;
+ 		/* Connection record updated */
+ 		ret = 1;
+diff --git a/drivers/hwtracing/coresight/coresight-priv.h b/drivers/hwtracing/coresight/coresight-priv.h
+index e0684d0..8fb1243 100644
+--- a/drivers/hwtracing/coresight/coresight-priv.h
++++ b/drivers/hwtracing/coresight/coresight-priv.h
+@@ -153,6 +153,8 @@ struct list_head *coresight_build_path(struct coresight_device *csdev,
+ 				       struct coresight_device *sink);
+ void coresight_release_path(struct list_head *path);
  
--struct coresight_platform_data *
-+static struct coresight_platform_data *
- of_get_coresight_platform_data(struct device *dev,
--			       const struct device_node *node)
-+			       struct coresight_platform_data *pdata)
- {
- 	int ret = 0;
--	struct coresight_platform_data *pdata;
- 	struct coresight_connection *conn;
- 	struct device_node *ep = NULL;
- 	const struct device_node *parent = NULL;
- 	bool legacy_binding = false;
-+	struct device_node *node = dev->of_node;
- 
--	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
--	if (!pdata)
--		return ERR_PTR(-ENOMEM);
--
--	/* Use device name as sysfs handle */
--	pdata->name = dev_name(dev);
- 	pdata->cpu = of_coresight_get_cpu(node);
- 
- 	/* Get the number of input and output port for this component */
-@@ -252,7 +246,7 @@ of_get_coresight_platform_data(struct device *dev,
- 	if (!pdata->nr_outport)
- 		return pdata;
- 
--	ret = of_coresight_alloc_memory(dev, pdata);
-+	ret = coresight_alloc_conns(dev, pdata);
- 	if (ret)
- 		return ERR_PTR(ret);
- 
-@@ -294,5 +288,26 @@ of_get_coresight_platform_data(struct device *dev,
- 
- 	return pdata;
- }
--EXPORT_SYMBOL_GPL(of_get_coresight_platform_data);
- #endif
++int coresight_match_fwnode_handle(struct device *dev, void *data);
 +
-+struct coresight_platform_data *
-+coresight_get_platform_data(struct device *dev)
-+{
-+	struct coresight_platform_data *pdata;
-+
-+	if (IS_ERR_OR_NULL(dev->fwnode))
-+		return NULL;
-+
-+	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* Use device name as sysfs handle */
-+	pdata->name = dev_name(dev);
-+
-+	if (is_of_node(dev->fwnode))
-+		return of_get_coresight_platform_data(dev, pdata);
-+
-+	return ERR_PTR(-ENOENT);
-+}
-+EXPORT_SYMBOL_GPL(coresight_get_platform_data);
-diff --git a/drivers/hwtracing/coresight/coresight-replicator.c b/drivers/hwtracing/coresight/coresight-replicator.c
-index 8bbb008..7eb3bf7 100644
---- a/drivers/hwtracing/coresight/coresight-replicator.c
-+++ b/drivers/hwtracing/coresight/coresight-replicator.c
-@@ -177,15 +177,12 @@ static int replicator_probe(struct device *dev, struct resource *res)
- 	struct coresight_platform_data *pdata = NULL;
- 	struct replicator_drvdata *drvdata;
- 	struct coresight_desc desc = { 0 };
--	struct device_node *np = dev->of_node;
- 	void __iomem *base;
- 
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--		dev->platform_data = pdata;
--	}
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
-+	dev->platform_data = pdata;
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
-@@ -213,7 +210,6 @@ static int replicator_probe(struct device *dev, struct resource *res)
+ #ifdef CONFIG_CORESIGHT_SOURCE_ETM3X
+ extern int etm_readl_cp14(u32 off, unsigned int *val);
+ extern int etm_writel_cp14(u32 off, u32 val);
+diff --git a/drivers/hwtracing/coresight/coresight.c b/drivers/hwtracing/coresight/coresight.c
+index 29cef89..9cdedab 100644
+--- a/drivers/hwtracing/coresight/coresight.c
++++ b/drivers/hwtracing/coresight/coresight.c
+@@ -1005,13 +1005,11 @@ static int coresight_orphan_match(struct device *dev, void *data)
+ 		/* We have found at least one orphan connection */
+ 		if (conn->child_dev == NULL) {
+ 			/* Does it match this newly added device? */
+-			if (conn->child_name &&
+-			    !strcmp(dev_name(&csdev->dev), conn->child_name)) {
++			if (conn->child_fwnode ==  csdev->dev.fwnode)
+ 				conn->child_dev = csdev;
+-			} else {
++			else
+ 				/* This component still has an orphan */
+ 				still_orphan = true;
+-			}
+ 		}
  	}
  
- 	dev_set_drvdata(dev, drvdata);
--
- 	desc.type = CORESIGHT_DEV_TYPE_LINK;
- 	desc.subtype.link_subtype = CORESIGHT_DEV_SUBTYPE_LINK_SPLIT;
- 	desc.ops = &replicator_cs_ops;
-diff --git a/drivers/hwtracing/coresight/coresight-stm.c b/drivers/hwtracing/coresight/coresight-stm.c
-index eb96bba..6514586 100644
---- a/drivers/hwtracing/coresight/coresight-stm.c
-+++ b/drivers/hwtracing/coresight/coresight-stm.c
-@@ -809,14 +809,11 @@ static int stm_probe(struct amba_device *adev, const struct amba_id *id)
- 	size_t bitmap_size;
- 	struct coresight_desc desc = { 0 };
- 	struct coresight_device *csdev;
--	struct device_node *np = adev->dev.of_node;
+@@ -1043,9 +1041,9 @@ static void coresight_fixup_device_conns(struct coresight_device *csdev)
+ 		struct coresight_connection *conn = &csdev->conns[i];
+ 		struct device *dev = NULL;
  
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--		adev->dev.platform_data = pdata;
--	}
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
-+	adev->dev.platform_data = pdata;
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
- 		return -ENOMEM;
-diff --git a/drivers/hwtracing/coresight/coresight-tmc.c b/drivers/hwtracing/coresight/coresight-tmc.c
-index 7ce3427..147ab17 100644
---- a/drivers/hwtracing/coresight/coresight-tmc.c
-+++ b/drivers/hwtracing/coresight/coresight-tmc.c
-@@ -394,16 +394,13 @@ static int tmc_probe(struct amba_device *adev, const struct amba_id *id)
- 	struct tmc_drvdata *drvdata;
- 	struct resource *res = &adev->res;
- 	struct coresight_desc desc = { 0 };
--	struct device_node *np = adev->dev.of_node;
+-		if (conn->child_name)
+-			dev = bus_find_device_by_name(&coresight_bustype, NULL,
+-						      conn->child_name);
++		dev = bus_find_device(&coresight_bustype, NULL,
++				      (void *)conn->child_fwnode,
++				      coresight_match_fwnode_handle);
+ 		if (dev) {
+ 			conn->child_dev = to_coresight_device(dev);
+ 			/* and put reference from 'bus_find_device()' */
+@@ -1080,9 +1078,11 @@ static int coresight_remove_match(struct device *dev, void *data)
+ 		if (conn->child_dev == NULL)
+ 			continue;
  
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata)) {
--			ret = PTR_ERR(pdata);
--			goto out;
--		}
--		adev->dev.platform_data = pdata;
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata)) {
-+		ret = PTR_ERR(pdata);
-+		goto out;
- 	}
-+	adev->dev.platform_data = pdata;
+-		if (!strcmp(dev_name(&csdev->dev), conn->child_name)) {
++		if (csdev->dev.fwnode == conn->child_fwnode) {
+ 			iterator->orphan = true;
+ 			conn->child_dev = NULL;
++			/* Drop the reference to the handle for connection */
++			fwnode_handle_put(conn->child_fwnode);
+ 			/* No need to continue */
+ 			break;
+ 		}
+@@ -1198,6 +1198,8 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
+ 	csdev->dev.parent = desc->dev;
+ 	csdev->dev.release = coresight_device_release;
+ 	csdev->dev.bus = &coresight_bustype;
++	csdev->dev.fwnode = fwnode_handle_get(dev_fwnode(desc->dev));
++
+ 	dev_set_name(&csdev->dev, "%s", desc->pdata->name);
  
- 	ret = -ENOMEM;
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
-diff --git a/drivers/hwtracing/coresight/coresight-tpiu.c b/drivers/hwtracing/coresight/coresight-tpiu.c
-index 9763721..18a749a 100644
---- a/drivers/hwtracing/coresight/coresight-tpiu.c
-+++ b/drivers/hwtracing/coresight/coresight-tpiu.c
-@@ -120,14 +120,11 @@ static int tpiu_probe(struct amba_device *adev, const struct amba_id *id)
- 	struct resource *res = &adev->res;
- 	struct coresight_desc desc = { 0 };
- 	struct coresight_device *csdev;
--	struct device_node *np = adev->dev.of_node;
- 
--	if (np) {
--		pdata = of_get_coresight_platform_data(dev, np);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--		adev->dev.platform_data = pdata;
--	}
-+	pdata = coresight_get_platform_data(dev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
-+	adev->dev.platform_data = pdata;
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
+ 	ret = device_register(&csdev->dev);
+@@ -1247,6 +1249,7 @@ void coresight_unregister(struct coresight_device *csdev)
+ 	etm_perf_del_symlink_sink(csdev);
+ 	/* Remove references of that device in the topology */
+ 	coresight_remove_conns(csdev);
++	fwnode_handle_put(csdev->dev.fwnode);
+ 	device_unregister(&csdev->dev);
+ }
+ EXPORT_SYMBOL_GPL(coresight_unregister);
 diff --git a/include/linux/coresight.h b/include/linux/coresight.h
-index 7b87965..5b29255 100644
+index a48cd9b..76c31b2 100644
 --- a/include/linux/coresight.h
 +++ b/include/linux/coresight.h
-@@ -293,14 +293,11 @@ static inline void coresight_disclaim_device_unlocked(void __iomem *base) {}
- 
- #ifdef CONFIG_OF
- extern int of_coresight_get_cpu(const struct device_node *node);
--extern struct coresight_platform_data *
--of_get_coresight_platform_data(struct device *dev,
--			       const struct device_node *node);
- #else
- static inline int of_coresight_get_cpu(const struct device_node *node)
- { return 0; }
--static inline struct coresight_platform_data *of_get_coresight_platform_data(
--	struct device *dev, const struct device_node *node) { return NULL; }
- #endif
- 
-+struct coresight_platform_data *coresight_get_platform_data(struct device *dev);
-+
- #endif
+@@ -128,14 +128,14 @@ struct coresight_desc {
+ /**
+  * struct coresight_connection - representation of a single connection
+  * @outport:	a connection's output port number.
+- * @chid_name:	remote component's name.
++ * @chid_fwnode: remote component's fwnode handle.
+  * @child_port:	remote component's port number @output is connected to.
+  * @child_dev:	a @coresight_device representation of the component
+ 		connected to @outport.
+  */
+ struct coresight_connection {
+ 	int outport;
+-	const char *child_name;
++	struct fwnode_handle *child_fwnode;
+ 	int child_port;
+ 	struct coresight_device *child_dev;
+ };
 -- 
 2.7.4
