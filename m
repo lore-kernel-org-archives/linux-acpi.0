@@ -1,21 +1,18 @@
-From: Furquan Shaikh <furquan@google.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH] drivers/acpi: Clear status of an event before enabling it
-Date: Wed, 20 Mar 2019 16:44:52 -0600
-Message-ID: <CAEGmHFH3FBwXZEwF_rH69dBYFQegFJgcxt+5HPL_9sM_4pg+=A@mail.gmail.com>
+Date: Thu, 21 Mar 2019 00:11:28 +0100
+Message-ID: <CAJZ5v0h7dYEFHSOHengJ3OFyXBW+XZVbjCAegpzqg1VxeeaXog@mail.gmail.com>
 References: <20190320222844.134765-1-furquan@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190320222844.134765-1-furquan@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lv.zheng@intel.com, ericbakuladavis@gmail.com, mika.westerberg@linux.intel.com
-Cc: Rajat Jain <rajatja@google.com>, Evan Green <evgreen@google.com>, Duncan Laurie <dlaurie@google.com>
+To: Furquan Shaikh <furquan@google.com>
+Cc: Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rajat Jain <rajatja@google.com>, evgreen@google.com, dlaurie@google.com
 List-Id: linux-acpi@vger.kernel.org
 
-Adding authors of the original commit whom I failed to copy in the
-original patch.
-
-On Wed, Mar 20, 2019 at 4:34 PM Furquan Shaikh <furquan@google.com> wrote:
+On Wed, Mar 20, 2019 at 11:34 PM Furquan Shaikh <furquan@google.com> wrote:
 >
 > Commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
 > clearing ACPI IRQs during suspend/resume") was added to stop clearing
@@ -33,7 +30,9 @@ On Wed, Mar 20, 2019 at 4:34 PM Furquan Shaikh <furquan@google.com> wrote:
 > sleep paths by the commit f317c7dc12b7 ("ACPICA: Clear status of all
 > events when entering sleep states"). However, regression still exists
 > on S0ix sleep path since it does not follow the legacy sleep path.
->
+
+What exactly is failing?
+
 > In case of S0ix, events are enabled as part of device suspend path. If
 > status bits for the events are set when they are enabled, it could
 > result in premature wake from S0ix. This change ensures that status is
@@ -58,6 +57,9 @@ On Wed, Mar 20, 2019 at 4:34 PM Furquan Shaikh <furquan@google.com> wrote:
 > +       status = acpi_hw_clear_gpe(gpe_event_info);
 > +       if (ACPI_FAILURE(status))
 > +               return_ACPI_STATUS(status);
+
+Well, this may cause events to be missed.
+
 >
 > +       /* Enable the requested GPE */
 >         status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
