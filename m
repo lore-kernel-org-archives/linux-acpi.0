@@ -1,155 +1,459 @@
 From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 03/25] coresight: replicator: Prepare for merging with
- dynamic-replicator
-Date: Wed, 20 Mar 2019 18:49:20 +0000
-Message-ID: <1553107783-3340-4-git-send-email-suzuki.poulose@arm.com>
+Subject: [PATCH 24/25] coresight: Support for ACPI bindings
+Date: Wed, 20 Mar 2019 18:49:41 +0000
+Message-ID: <1553107783-3340-25-git-send-email-suzuki.poulose@arm.com>
 References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Suzuki K Poulose <suzuki.poulose@arm.com>, coresight@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.walker@arm.com, mike.leach@linaro.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mathieu Poirier <mathieu.poirier@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-As a preparatory step to merge the separate drivers for static and
-dynamic replicators, annotate the static replicator specific details.
-Also refactor the probe routine to make it generic in order to merge
-the drivers easily.
+Add support for parsing the ACPI platform description
+for CoreSight. The connections are encoded in a DSD graph
+property with CoreSight specific variation of the property.
 
+The ETMs are listed as the children device of the respective
+CPU.
+
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
 Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
 ---
- drivers/hwtracing/coresight/coresight-replicator.c | 62 +++++++++++++---------
- 1 file changed, 36 insertions(+), 26 deletions(-)
+ drivers/hwtracing/coresight/coresight-platform.c | 402 +++++++++++++++++++++++
+ 1 file changed, 402 insertions(+)
 
-diff --git a/drivers/hwtracing/coresight/coresight-replicator.c b/drivers/hwtracing/coresight/coresight-replicator.c
-index feac983..43cbcf1 100644
---- a/drivers/hwtracing/coresight/coresight-replicator.c
-+++ b/drivers/hwtracing/coresight/coresight-replicator.c
-@@ -56,58 +56,68 @@ static const struct coresight_ops replicator_cs_ops = {
- 	.link_ops	= &replicator_link_ops,
- };
+diff --git a/drivers/hwtracing/coresight/coresight-platform.c b/drivers/hwtracing/coresight/coresight-platform.c
+index 5eee987..06b1188 100644
+--- a/drivers/hwtracing/coresight/coresight-platform.c
++++ b/drivers/hwtracing/coresight/coresight-platform.c
+@@ -3,6 +3,7 @@
+  * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+  */
  
--static int replicator_probe(struct platform_device *pdev)
-+static int replicator_probe(struct device *dev)
- {
--	int ret;
--	struct device *dev = &pdev->dev;
-+	int ret = 0;
- 	struct coresight_platform_data *pdata = NULL;
- 	struct replicator_drvdata *drvdata;
- 	struct coresight_desc desc = { 0 };
--	struct device_node *np = pdev->dev.of_node;
-+	struct device_node *np = dev->of_node;
++#include <linux/acpi.h>
+ #include <linux/types.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+@@ -289,10 +290,409 @@ of_get_coresight_platform_data(struct device *dev,
+ }
+ #endif
  
- 	if (np) {
- 		pdata = of_get_coresight_platform_data(dev, np);
- 		if (IS_ERR(pdata))
- 			return PTR_ERR(pdata);
--		pdev->dev.platform_data = pdata;
-+		dev->platform_data = pdata;
- 	}
- 
- 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
- 		return -ENOMEM;
- 
--	drvdata->dev = &pdev->dev;
--	drvdata->atclk = devm_clk_get(&pdev->dev, "atclk"); /* optional */
-+	drvdata->dev = dev;
-+	drvdata->atclk = devm_clk_get(dev, "atclk"); /* optional */
- 	if (!IS_ERR(drvdata->atclk)) {
- 		ret = clk_prepare_enable(drvdata->atclk);
- 		if (ret)
- 			return ret;
- 	}
--	pm_runtime_get_noresume(&pdev->dev);
--	pm_runtime_set_active(&pdev->dev);
--	pm_runtime_enable(&pdev->dev);
--	platform_set_drvdata(pdev, drvdata);
++#ifdef CONFIG_ACPI
 +
-+	dev_set_drvdata(dev, drvdata);
- 
- 	desc.type = CORESIGHT_DEV_TYPE_LINK;
- 	desc.subtype.link_subtype = CORESIGHT_DEV_SUBTYPE_LINK_SPLIT;
- 	desc.ops = &replicator_cs_ops;
--	desc.pdata = pdev->dev.platform_data;
--	desc.dev = &pdev->dev;
-+	desc.pdata = dev->platform_data;
-+	desc.dev = dev;
- 	drvdata->csdev = coresight_register(&desc);
- 	if (IS_ERR(drvdata->csdev)) {
- 		ret = PTR_ERR(drvdata->csdev);
--		goto out_disable_pm;
-+		goto out_disable_clk;
- 	}
- 
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_put(dev);
- 
--	return 0;
--
--out_disable_pm:
--	if (!IS_ERR(drvdata->atclk))
-+out_disable_clk:
-+	if (ret && !IS_ERR_OR_NULL(drvdata->atclk))
- 		clk_disable_unprepare(drvdata->atclk);
--	pm_runtime_put_noidle(&pdev->dev);
--	pm_runtime_disable(&pdev->dev);
-+	return ret;
++#include <acpi/actypes.h>
++#include <acpi/processor.h>
++
++/* ACPI Graph _DSD UUID : "ab02a46b-74c7-45a2-bd68-f7d344ef2153" */
++static const guid_t acpi_graph_uuid = GUID_INIT(0xab02a46b, 0x74c7, 0x45a2,
++						0xbd, 0x68, 0xf7, 0xd3,
++						0x44, 0xef, 0x21, 0x53);
++/* Coresight ACPI Graph UUID : "3ecbc8b6-1d0e-4fb3-8107-e627f805c6cd" */
++static const guid_t coresight_graph_uuid = GUID_INIT(0x3ecbc8b6, 0x1d0e, 0x4fb3,
++						     0x81, 0x07, 0xe6, 0x27,
++						     0xf8, 0x05, 0xc6, 0xcd);
++#define ACPI_CORESIGHT_LINK_SLAVE	0
++#define ACPI_CORESIGHT_LINK_MASTER	1
++
++static inline bool is_acpi_guid(const union acpi_object *obj)
++{
++	return (obj->type == ACPI_TYPE_BUFFER) && (obj->buffer.length == 16);
 +}
 +
-+static int static_replicator_probe(struct platform_device *pdev)
++/*
++ * acpi_guid_matches	- Checks if the given object is a GUID object and
++ * that it matches the supplied the GUID.
++ */
++static inline bool acpi_guid_matches(const union acpi_object *obj,
++				   const guid_t *guid)
 +{
-+	int ret;
++	return is_acpi_guid(obj) &&
++	       guid_equal((guid_t *)obj->buffer.pointer, guid);
++}
 +
-+	pm_runtime_get_noresume(&pdev->dev);
-+	pm_runtime_set_active(&pdev->dev);
-+	pm_runtime_enable(&pdev->dev);
++static inline bool is_acpi_dsd_graph_guid(const union acpi_object *obj)
++{
++	return acpi_guid_matches(obj, &acpi_graph_uuid);
++}
 +
-+	ret = replicator_probe(&pdev->dev);
++static inline bool is_acpi_coresight_graph_guid(const union acpi_object *obj)
++{
++	return acpi_guid_matches(obj, &coresight_graph_uuid);
++}
 +
-+	if (ret) {
-+		pm_runtime_put_noidle(&pdev->dev);
-+		pm_runtime_disable(&pdev->dev);
++static inline bool is_acpi_coresight_graph(const union acpi_object *obj)
++{
++	const union acpi_object *graphid, *guid, *links;
++
++	if (obj->type != ACPI_TYPE_PACKAGE ||
++	    obj->package.count < 3)
++		return false;
++
++	graphid = &obj->package.elements[0];
++	guid = &obj->package.elements[1];
++	links = &obj->package.elements[2];
++
++	if (graphid->type != ACPI_TYPE_INTEGER ||
++	    links->type != ACPI_TYPE_INTEGER)
++		return false;
++
++	return is_acpi_coresight_graph_guid(guid);
++}
++
++/*
++ * acpi_validate_dsd_graph	- Make sure the given _DSD graph conforms
++ * to the ACPI _DSD Graph specification.
++ *
++ * ACPI Devices Graph property has the following format:
++ *	Revision	- Integer, must be 0
++ *	NumberOfGraphs	- Integer, N indicating the following list.
++ *	Graph[1],
++ *	 ...
++ *	Graph[N]
++ *
++ * And each Graph entry has the following format:
++ *	GraphID		- Integer, identifying a graph the device belongs to.
++ *	UUID		- UUID identifying the specification that governs
++ *			  this graph. (e.g, see is_acpi_coresight_graph())
++ *	NumberOfLinks	- Number "N" of connections on this node of the graph.
++ *	Links[1]
++ *	...
++ *	Links[N]
++ */
++static inline bool acpi_validate_dsd_graph(const union acpi_object *graph)
++{
++	int i, n;
++	const union acpi_object *rev, *nr_graphs;
++
++	/* The graph must contain at least the Revision and Number of Graphs */
++	if (graph->package.count < 2)
++		return false;
++
++	rev = &graph->package.elements[0];
++	nr_graphs = &graph->package.elements[1];
++
++	if (rev->type != ACPI_TYPE_INTEGER ||
++	    nr_graphs->type != ACPI_TYPE_INTEGER)
++		return false;
++
++	/* We only support revision 0 */
++	if (rev->integer.value != 0)
++		return false;
++
++	n = nr_graphs->integer.value;
++	/* Make sure the package has right number of elements */
++	if (graph->package.count != (n + 2))
++		return false;
++
++	/* Each entry must be a graph package with at least 3 members */
++	for (i = 2; i < n + 2; i++) {
++		const union acpi_object *obj = &graph->package.elements[i];
++
++		if (obj->type != ACPI_TYPE_PACKAGE ||
++		    obj->package.count < 3)
++			return false;
 +	}
- 
- 	return ret;
++
++	return true;
++}
++
++/* acpi_get_dsd_graph	- Find the _DSD Graph property for the given device. */
++const union acpi_object *
++acpi_get_dsd_graph(struct acpi_device *adev)
++{
++	int i;
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
++	acpi_status status;
++	const union acpi_object *dsd;
++
++	status = acpi_evaluate_object_typed(adev->handle, "_DSD", NULL,
++					    &buf, ACPI_TYPE_PACKAGE);
++	if (ACPI_FAILURE(status))
++		return NULL;
++
++	dsd = buf.pointer;
++	for (i = 0; i + 1 < dsd->package.count; i += 2) {
++		const union acpi_object *guid, *package;
++
++		guid = &dsd->package.elements[i];
++		package = &dsd->package.elements[i + 1];
++
++		/* All _DSD elements must have a UUID and a Package */
++		if (!is_acpi_guid(guid) || package->type != ACPI_TYPE_PACKAGE)
++			break;
++		/* Skip the non-Graph _DSD packages */
++		if (!is_acpi_dsd_graph_guid(guid))
++			continue;
++		if (acpi_validate_dsd_graph(package))
++			return package;
++		/* Invalid graph format, continue */
++		dev_warn(&adev->dev, "Invalid Graph _DSD property\n");
++	}
++
++	return NULL;
++}
++
++static inline bool
++acpi_validate_coresight_graph(const union acpi_object *cs_graph)
++{
++	int nlinks;
++
++	nlinks = cs_graph->package.elements[2].integer.value;
++	if (cs_graph->package.count != (nlinks + 3))
++		return false;
++	/* The links are validated in acpi_coresight_parse_link() */
++	return true;
++}
++
++/*
++ * acpi_get_coresight_graph	- Parse the device _DSD tables and find
++ * the Graph property matching the CoreSight Graphs.
++ *
++ * Returns the pointer to the CoreSight Graph Package when found. Otherwise
++ * returns NULL.
++ */
++const union acpi_object *
++acpi_get_coresight_graph(struct acpi_device *adev)
++{
++	const union acpi_object *graph_list, *graph;
++	int i, nr_graphs;
++
++	graph_list = acpi_get_dsd_graph(adev);
++	if (!graph_list)
++		return graph_list;
++
++	nr_graphs = graph_list->package.elements[1].integer.value;
++
++	for (i = 2; i < nr_graphs + 2; i++) {
++		graph = &graph_list->package.elements[i];
++		if (!is_acpi_coresight_graph(graph))
++			continue;
++		if (acpi_validate_coresight_graph(graph))
++			return graph;
++		/* Invalid graph format */
++		break;
++	}
++
++	return NULL;
++}
++
++/*
++ * acpi_coresight_parse_link	- Parse the given Graph connection
++ * of the device and populate the coresight_connection for an output
++ * connection.
++ *
++ * CoreSight Graph specification mandates that the direction of the data
++ * flow must be specified in the link. i.e,
++ *
++ *	SourcePortAddress,	// Integer
++ *	DestinationPortAddress,	// Integer
++ *	DestinationDeviceName,	// Reference to another device
++ *	DirectionOfFlow,	// 1 for output(master), 0 for input(slave)
++ *
++ * Returns the direction of the data flow [ Input(slave) or Output(master) ]
++ * upon success.
++ * Returns an negative error number otherwise.
++ */
++static int acpi_coresight_parse_link(struct acpi_device *adev,
++				     const union acpi_object *link,
++				     struct coresight_connection *conn)
++{
++	int rc, dir;
++	const union acpi_object *fields;
++	struct acpi_device *r_adev;
++	struct device *rdev;
++
++	if (link->type != ACPI_TYPE_PACKAGE ||
++	    link->package.count != 4)
++		return -EINVAL;
++
++	fields = link->package.elements;
++
++	if (fields[0].type != ACPI_TYPE_INTEGER ||
++	    fields[1].type != ACPI_TYPE_INTEGER ||
++	    fields[2].type != ACPI_TYPE_LOCAL_REFERENCE ||
++	    fields[3].type != ACPI_TYPE_INTEGER)
++		return -EINVAL;
++
++	rc = acpi_bus_get_device(fields[2].reference.handle, &r_adev);
++	if (rc)
++		return rc;
++
++	dir = fields[3].integer.value;
++	if (dir == ACPI_CORESIGHT_LINK_MASTER) {
++		conn->outport = fields[0].integer.value;
++		conn->child_port = fields[1].integer.value;
++		rdev = coresight_find_device_by_fwnode(&r_adev->fwnode);
++		if (!rdev)
++			return -EPROBE_DEFER;
++		conn->child_fwnode = fwnode_handle_get(&r_adev->fwnode);
++	}
++
++	return dir;
++}
++
++/*
++ * acpi_coresight_parse_graph	- Parse the _DSD CoreSight graph
++ * connection information and populate the supplied coresight_platform_data
++ * instance.
++ */
++static int acpi_coresight_parse_graph(struct acpi_device *adev,
++				      struct coresight_platform_data *pdata)
++{
++	int rc, i, nlinks;
++	const union acpi_object *graph;
++	struct coresight_connection *conns, *ptr;
++
++	pdata->nr_inport = pdata->nr_outport = 0;
++	graph = acpi_get_coresight_graph(adev);
++	if (!graph)
++		return -ENOENT;
++
++	nlinks = graph->package.elements[2].integer.value;
++	if (!nlinks)
++		return 0;
++
++	/*
++	 * To avoid scanning the table twice (once for finding the number of
++	 * output links and then later for parsing the output links),
++	 * cache the links information in one go and then later copy
++	 * it to the pdata.
++	 */
++	conns = devm_kcalloc(&adev->dev, nlinks, sizeof(*conns), GFP_KERNEL);
++	if (!conns)
++		return -ENOMEM;
++	ptr = conns;
++	for (i = 0; i < nlinks; i++) {
++		const union acpi_object *link = &graph->package.elements[3 + i];
++		int dir;
++
++		dir = acpi_coresight_parse_link(adev, link, ptr);
++		if (dir < 0)
++			return dir;
++
++		if (dir == ACPI_CORESIGHT_LINK_MASTER) {
++			pdata->nr_outport++;
++			ptr++;
++		} else {
++			pdata->nr_inport++;
++		}
++	}
++
++	rc = coresight_alloc_conns(&adev->dev, pdata);
++	if (rc)
++		return rc;
++
++	/* Copy the connection information to the final location */
++	for (i = 0; i < pdata->nr_outport; i++)
++		pdata->conns[i] = conns[i];
++
++	devm_kfree(&adev->dev, conns);
++	return 0;
++}
++
++/*
++ * acpi_handle_to_logical_cpuid	- Map a given acpi_handle to the
++ * logical CPU id of the corresponding CPU device.
++ *
++ * Returns the logical CPU id when found. Otherwise returns >= nr_cpus_id.
++ */
++static int
++acpi_handle_to_logical_cpuid(acpi_handle handle)
++{
++	int i;
++	struct acpi_processor *pr;
++
++	for_each_possible_cpu(i) {
++		pr = per_cpu(processors, i);
++		if (pr && pr->handle == handle)
++			break;
++	}
++
++	return i;
++}
++
++/*
++ * acpi_coresigh_get_cpu - Find the logical CPU id of the CPU associated
++ * with this coresight device. With ACPI bindings, the CoreSight components
++ * are listed as child device of the associated CPU.
++ *
++ * Returns the logical CPU id when found. Otherwise returns < 0.
++ */
++static int acpi_coresight_get_cpu(struct device *dev)
++{
++	int cpu;
++	acpi_handle cpu_handle;
++	acpi_status status;
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++
++	if (!adev)
++		return 0;
++	status = acpi_get_parent(adev->handle, &cpu_handle);
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	cpu = acpi_handle_to_logical_cpuid(cpu_handle);
++	if (cpu >= nr_cpu_ids)
++		return 0;
++	return cpu;
++}
++
++static struct coresight_platform_data *
++acpi_get_coresight_platform_data(struct device *dev,
++				 struct coresight_platform_data *pdata)
++{
++	int rc = -EINVAL;
++	struct acpi_device *adev;
++
++	if (!dev)
++		goto out;
++
++	adev = ACPI_COMPANION(dev);
++	if (!adev)
++		goto out;
++
++	rc = acpi_coresight_parse_graph(adev, pdata);
++	if (rc)
++		goto out;
++out:
++	if (rc)
++		return ERR_PTR(rc);
++	return pdata;
++}
++
++#else
++
++static inline struct coresight_platform_data *
++acpi_get_coresight_platform_data(struct device *dev,
++				 struct coresight_platform_data *pdata)
++{
++	return NULL;
++}
++
++static inline int acpi_coresight_get_cpu(struct device *dev)
++{
++	return 0;
++}
++#endif
++
+ int coresight_get_cpu(struct device *dev)
+ {
+ 	if (is_of_node(dev->fwnode))
+ 		return of_coresight_get_cpu(dev);
++	else if (is_acpi_device_node(dev->fwnode))
++		return acpi_coresight_get_cpu(dev);
+ 	return 0;
  }
-@@ -139,18 +149,18 @@ static const struct dev_pm_ops replicator_dev_pm_ops = {
- 			   replicator_runtime_resume, NULL)
- };
+ EXPORT_SYMBOL_GPL(coresight_get_cpu);
+@@ -315,6 +715,8 @@ coresight_get_platform_data(struct device *dev)
  
--static const struct of_device_id replicator_match[] = {
-+static const struct of_device_id static_replicator_match[] = {
- 	{.compatible = "arm,coresight-replicator"},
- 	{}
- };
+ 	if (is_of_node(dev->fwnode))
+ 		return of_get_coresight_platform_data(dev, pdata);
++	else if (is_acpi_device_node(dev->fwnode))
++		return acpi_get_coresight_platform_data(dev, pdata);
  
--static struct platform_driver replicator_driver = {
--	.probe          = replicator_probe,
-+static struct platform_driver static_replicator_driver = {
-+	.probe          = static_replicator_probe,
- 	.driver         = {
- 		.name   = "coresight-replicator",
--		.of_match_table = replicator_match,
-+		.of_match_table = static_replicator_match,
- 		.pm	= &replicator_dev_pm_ops,
- 		.suppress_bind_attrs = true,
- 	},
- };
--builtin_platform_driver(replicator_driver);
-+builtin_platform_driver(static_replicator_driver);
+ 	return ERR_PTR(-ENOENT);
+ }
 -- 
 2.7.4
