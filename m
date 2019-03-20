@@ -1,648 +1,624 @@
 From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 14/25] coresight: Rename of_coresight to coresight-platform
-Date: Wed, 20 Mar 2019 18:49:31 +0000
-Message-ID: <1553107783-3340-15-git-send-email-suzuki.poulose@arm.com>
+Subject: [PATCH 05/25] coresight: Merge the static and dynamic replicator
+ drivers
+Date: Wed, 20 Mar 2019 18:49:22 +0000
+Message-ID: <1553107783-3340-6-git-send-email-suzuki.poulose@arm.com>
 References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Suzuki K Poulose <suzuki.poulose@arm.com>, coresight@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.walker@arm.com, mike.leach@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rename the firmware handling file to a more generic
-name, in preparation for adding ACPI support.
+Merge the drivers for the two varieties of replicators into
+a singel one. The dynamic replicator has programming base
+which can be programmed to filter the trace data. The driver
+detects the type based on the "base" address value of the
+device, which is NULL for the static device.
+
+Also, while at it, remove the now obsolete DYNAMIC_REPLICATOR
+config entry.
 
 Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
 Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
 ---
- drivers/hwtracing/coresight/Makefile             |   3 +-
- drivers/hwtracing/coresight/coresight-platform.c | 298 +++++++++++++++++++++++
- drivers/hwtracing/coresight/of_coresight.c       | 297 ----------------------
- 3 files changed, 299 insertions(+), 299 deletions(-)
- create mode 100644 drivers/hwtracing/coresight/coresight-platform.c
- delete mode 100644 drivers/hwtracing/coresight/of_coresight.c
+ drivers/hwtracing/coresight/Kconfig                |   8 -
+ drivers/hwtracing/coresight/Makefile               |   1 -
+ .../coresight/coresight-dynamic-replicator.c       | 285 ---------------------
+ drivers/hwtracing/coresight/coresight-replicator.c | 174 ++++++++++++-
+ 4 files changed, 169 insertions(+), 299 deletions(-)
+ delete mode 100644 drivers/hwtracing/coresight/coresight-dynamic-replicator.c
 
+diff --git a/drivers/hwtracing/coresight/Kconfig b/drivers/hwtracing/coresight/Kconfig
+index ad34380..a40d796 100644
+--- a/drivers/hwtracing/coresight/Kconfig
++++ b/drivers/hwtracing/coresight/Kconfig
+@@ -81,14 +81,6 @@ config CORESIGHT_SOURCE_ETM4X
+ 	  for instruction level tracing. Depending on the implemented version
+ 	  data tracing may also be available.
+ 
+-config CORESIGHT_DYNAMIC_REPLICATOR
+-	bool "CoreSight Programmable Replicator driver"
+-	depends on CORESIGHT_LINKS_AND_SINKS
+-	help
+-	  This enables support for dynamic CoreSight replicator link driver.
+-	  The programmable ATB replicator allows independent filtering of the
+-	  trace data based on the traceid.
+-
+ config CORESIGHT_STM
+ 	bool "CoreSight System Trace Macrocell driver"
+ 	depends on (ARM && !(CPU_32v3 || CPU_32v4 || CPU_32v4T)) || ARM64
 diff --git a/drivers/hwtracing/coresight/Makefile b/drivers/hwtracing/coresight/Makefile
-index 3b435aa..3c0ac42 100644
+index 41870de..3b435aa 100644
 --- a/drivers/hwtracing/coresight/Makefile
 +++ b/drivers/hwtracing/coresight/Makefile
-@@ -2,8 +2,7 @@
- #
- # Makefile for CoreSight drivers.
- #
--obj-$(CONFIG_CORESIGHT) += coresight.o coresight-etm-perf.o
--obj-$(CONFIG_OF) += of_coresight.o
-+obj-$(CONFIG_CORESIGHT) += coresight.o coresight-etm-perf.o coresight-platform.o
- obj-$(CONFIG_CORESIGHT_LINK_AND_SINK_TMC) += coresight-tmc.o \
- 					     coresight-tmc-etf.o \
- 					     coresight-tmc-etr.o
-diff --git a/drivers/hwtracing/coresight/coresight-platform.c b/drivers/hwtracing/coresight/coresight-platform.c
-new file mode 100644
-index 0000000..514cc2b
---- /dev/null
-+++ b/drivers/hwtracing/coresight/coresight-platform.c
-@@ -0,0 +1,298 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+#include <linux/clk.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/of_graph.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/amba/bus.h>
-+#include <linux/coresight.h>
-+#include <linux/cpumask.h>
-+#include <asm/smp_plat.h>
-+
-+#ifdef CONFIG_OF
-+static int of_dev_node_match(struct device *dev, void *data)
-+{
-+	return dev->of_node == data;
-+}
-+
-+static struct device *
-+of_coresight_get_endpoint_device(struct device_node *endpoint)
-+{
-+	struct device *dev = NULL;
-+
-+	/*
-+	 * If we have a non-configurable replicator, it will be found on the
-+	 * platform bus.
-+	 */
-+	dev = bus_find_device(&platform_bus_type, NULL,
-+			      endpoint, of_dev_node_match);
-+	if (dev)
-+		return dev;
-+
-+	/*
-+	 * We have a configurable component - circle through the AMBA bus
-+	 * looking for the device that matches the endpoint node.
-+	 */
-+	return bus_find_device(&amba_bustype, NULL,
-+			       endpoint, of_dev_node_match);
-+}
-+
-+static inline bool of_coresight_legacy_ep_is_input(struct device_node *ep)
-+{
-+	return of_property_read_bool(ep, "slave-mode");
-+}
-+
-+static void of_coresight_get_ports_legacy(const struct device_node *node,
-+					  int *nr_inport, int *nr_outport)
-+{
-+	struct device_node *ep = NULL;
-+	int in = 0, out = 0;
-+
-+	do {
-+		ep = of_graph_get_next_endpoint(node, ep);
-+		if (!ep)
-+			break;
-+
-+		if (of_coresight_legacy_ep_is_input(ep))
-+			in++;
-+		else
-+			out++;
-+
-+	} while (ep);
-+
-+	*nr_inport = in;
-+	*nr_outport = out;
-+}
-+
-+static struct device_node *of_coresight_get_port_parent(struct device_node *ep)
-+{
-+	struct device_node *parent = of_graph_get_port_parent(ep);
-+
-+	/*
-+	 * Skip one-level up to the real device node, if we
-+	 * are using the new bindings.
-+	 */
-+	if (of_node_name_eq(parent, "in-ports") ||
-+	    of_node_name_eq(parent, "out-ports"))
-+		parent = of_get_next_parent(parent);
-+
-+	return parent;
-+}
-+
-+static inline struct device_node *
-+of_coresight_get_input_ports_node(const struct device_node *node)
-+{
-+	return of_get_child_by_name(node, "in-ports");
-+}
-+
-+static inline struct device_node *
-+of_coresight_get_output_ports_node(const struct device_node *node)
-+{
-+	return of_get_child_by_name(node, "out-ports");
-+}
-+
-+static inline int
-+of_coresight_count_ports(struct device_node *port_parent)
-+{
-+	int i = 0;
-+	struct device_node *ep = NULL;
-+
-+	while ((ep = of_graph_get_next_endpoint(port_parent, ep)))
-+		i++;
-+	return i;
-+}
-+
-+static void of_coresight_get_ports(const struct device_node *node,
-+				   int *nr_inport, int *nr_outport)
-+{
-+	struct device_node *input_ports = NULL, *output_ports = NULL;
-+
-+	input_ports = of_coresight_get_input_ports_node(node);
-+	output_ports = of_coresight_get_output_ports_node(node);
-+
-+	if (input_ports || output_ports) {
-+		if (input_ports) {
-+			*nr_inport = of_coresight_count_ports(input_ports);
-+			of_node_put(input_ports);
-+		}
-+		if (output_ports) {
-+			*nr_outport = of_coresight_count_ports(output_ports);
-+			of_node_put(output_ports);
-+		}
-+	} else {
-+		/* Fall back to legacy DT bindings parsing */
-+		of_coresight_get_ports_legacy(node, nr_inport, nr_outport);
-+	}
-+}
-+
-+static int of_coresight_alloc_memory(struct device *dev,
-+			struct coresight_platform_data *pdata)
-+{
-+	if (pdata->nr_outport) {
-+		pdata->conns = devm_kzalloc(dev, pdata->nr_outport *
-+					    sizeof(*pdata->conns),
-+					    GFP_KERNEL);
-+		if (!pdata->conns)
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+int of_coresight_get_cpu(const struct device_node *node)
-+{
-+	int cpu;
-+	struct device_node *dn;
-+
-+	dn = of_parse_phandle(node, "cpu", 0);
-+	/* Affinity defaults to CPU0 */
-+	if (!dn)
-+		return 0;
-+	cpu = of_cpu_node_to_id(dn);
-+	of_node_put(dn);
-+
-+	/* Affinity to CPU0 if no cpu nodes are found */
-+	return (cpu < 0) ? 0 : cpu;
-+}
-+EXPORT_SYMBOL_GPL(of_coresight_get_cpu);
-+
-+/*
-+ * of_coresight_parse_endpoint : Parse the given output endpoint @ep
-+ * and fill the connection information in @conn
-+ *
-+ * Parses the local port, remote device name and the remote port.
-+ *
-+ * Returns :
-+ *	 1	- If the parsing is successful and a connection record
-+ *		  was created for an output connection.
-+ *	 0	- If the parsing completed without any fatal errors.
-+ *	-Errno	- Fatal error, abort the scanning.
-+ */
-+static int of_coresight_parse_endpoint(struct device *dev,
-+				       struct device_node *ep,
-+				       struct coresight_connection *conn)
-+{
-+	int ret = 0;
-+	struct of_endpoint endpoint, rendpoint;
-+	struct device_node *rparent = NULL;
-+	struct device_node *rep = NULL;
-+	struct device *rdev = NULL;
-+
-+	do {
-+		/* Parse the local port details */
-+		if (of_graph_parse_endpoint(ep, &endpoint))
-+			break;
-+		/*
-+		 * Get a handle on the remote endpoint and the device it is
-+		 * attached to.
-+		 */
-+		rep = of_graph_get_remote_endpoint(ep);
-+		if (!rep)
-+			break;
-+		rparent = of_coresight_get_port_parent(rep);
-+		if (!rparent)
-+			break;
-+		if (of_graph_parse_endpoint(rep, &rendpoint))
-+			break;
-+
-+		/* If the remote device is not available, defer probing */
-+		rdev = of_coresight_get_endpoint_device(rparent);
-+		if (!rdev) {
-+			ret = -EPROBE_DEFER;
-+			break;
-+		}
-+
-+		conn->outport = endpoint.port;
-+		conn->child_name = devm_kstrdup(dev,
-+						dev_name(rdev),
-+						GFP_KERNEL);
-+		conn->child_port = rendpoint.port;
-+		/* Connection record updated */
-+		ret = 1;
-+	} while (0);
-+
-+	of_node_put(rparent);
-+	of_node_put(rep);
-+	put_device(rdev);
-+
-+	return ret;
-+}
-+
-+struct coresight_platform_data *
-+of_get_coresight_platform_data(struct device *dev,
-+			       const struct device_node *node)
-+{
-+	int ret = 0;
-+	struct coresight_platform_data *pdata;
-+	struct coresight_connection *conn;
-+	struct device_node *ep = NULL;
-+	const struct device_node *parent = NULL;
-+	bool legacy_binding = false;
-+
-+	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* Use device name as sysfs handle */
-+	pdata->name = dev_name(dev);
-+	pdata->cpu = of_coresight_get_cpu(node);
-+
-+	/* Get the number of input and output port for this component */
-+	of_coresight_get_ports(node, &pdata->nr_inport, &pdata->nr_outport);
-+
-+	/* If there are no output connections, we are done */
-+	if (!pdata->nr_outport)
-+		return pdata;
-+
-+	ret = of_coresight_alloc_memory(dev, pdata);
-+	if (ret)
-+		return ERR_PTR(ret);
-+
-+	parent = of_coresight_get_output_ports_node(node);
-+	/*
-+	 * If the DT uses obsoleted bindings, the ports are listed
-+	 * under the device and we need to filter out the input
-+	 * ports.
-+	 */
-+	if (!parent) {
-+		legacy_binding = true;
-+		parent = node;
-+		dev_warn_once(dev, "Uses obsolete Coresight DT bindings\n");
-+	}
-+
-+	conn = pdata->conns;
-+
-+	/* Iterate through each output port to discover topology */
-+	while ((ep = of_graph_get_next_endpoint(parent, ep))) {
-+		/*
-+		 * Legacy binding mixes input/output ports under the
-+		 * same parent. So, skip the input ports if we are dealing
-+		 * with legacy binding, as they processed with their
-+		 * connected output ports.
-+		 */
-+		if (legacy_binding && of_coresight_legacy_ep_is_input(ep))
-+			continue;
-+
-+		ret = of_coresight_parse_endpoint(dev, ep, conn);
-+		switch (ret) {
-+		case 1:
-+			conn++;		/* Fall through */
-+		case 0:
-+			break;
-+		default:
-+			return ERR_PTR(ret);
-+		}
-+	}
-+
-+	return pdata;
-+}
-+EXPORT_SYMBOL_GPL(of_get_coresight_platform_data);
-+#endif
-diff --git a/drivers/hwtracing/coresight/of_coresight.c b/drivers/hwtracing/coresight/of_coresight.c
+@@ -15,7 +15,6 @@ obj-$(CONFIG_CORESIGHT_SOURCE_ETM3X) += coresight-etm3x.o coresight-etm-cp14.o \
+ 					coresight-etm3x-sysfs.o
+ obj-$(CONFIG_CORESIGHT_SOURCE_ETM4X) += coresight-etm4x.o \
+ 					coresight-etm4x-sysfs.o
+-obj-$(CONFIG_CORESIGHT_DYNAMIC_REPLICATOR) += coresight-dynamic-replicator.o
+ obj-$(CONFIG_CORESIGHT_STM) += coresight-stm.o
+ obj-$(CONFIG_CORESIGHT_CPU_DEBUG) += coresight-cpu-debug.o
+ obj-$(CONFIG_CORESIGHT_CATU) += coresight-catu.o
+diff --git a/drivers/hwtracing/coresight/coresight-dynamic-replicator.c b/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
 deleted file mode 100644
-index 7045930..0000000
---- a/drivers/hwtracing/coresight/of_coresight.c
+index b7d7c41..0000000
+--- a/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
 +++ /dev/null
-@@ -1,297 +0,0 @@
+@@ -1,285 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0
 -/*
-- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+- * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
 - */
 -
--#include <linux/types.h>
--#include <linux/err.h>
--#include <linux/slab.h>
--#include <linux/clk.h>
--#include <linux/of.h>
--#include <linux/of_address.h>
--#include <linux/of_graph.h>
--#include <linux/of_platform.h>
--#include <linux/platform_device.h>
 -#include <linux/amba/bus.h>
+-#include <linux/clk.h>
 -#include <linux/coresight.h>
--#include <linux/cpumask.h>
--#include <asm/smp_plat.h>
+-#include <linux/device.h>
+-#include <linux/err.h>
+-#include <linux/init.h>
+-#include <linux/io.h>
+-#include <linux/kernel.h>
+-#include <linux/of.h>
+-#include <linux/pm_runtime.h>
+-#include <linux/slab.h>
 -
+-#include "coresight-priv.h"
 -
--static int of_dev_node_match(struct device *dev, void *data)
+-#define REPLICATOR_IDFILTER0		0x000
+-#define REPLICATOR_IDFILTER1		0x004
+-
+-/**
+- * struct replicator_drvdata - specifics associated to a replicator component
+- * @base:	memory mapped base address for this component.
+- * @dev:	the device entity associated with this component
+- * @atclk:	optional clock for the core parts of the replicator.
+- * @csdev:	component vitals needed by the framework
+- */
+-struct replicator_drvdata {
+-	void __iomem		*base;
+-	struct device		*dev;
+-	struct clk		*atclk;
+-	struct coresight_device	*csdev;
+-};
+-
+-/*
+- * dynamic_replicator_reset : Reset the replicator configuration to sane values.
+- */
+-static void dynamic_replicator_reset(struct replicator_drvdata *drvdata)
 -{
--	return dev->of_node == data;
--}
+-	CS_UNLOCK(drvdata->base);
 -
--static struct device *
--of_coresight_get_endpoint_device(struct device_node *endpoint)
--{
--	struct device *dev = NULL;
--
--	/*
--	 * If we have a non-configurable replicator, it will be found on the
--	 * platform bus.
--	 */
--	dev = bus_find_device(&platform_bus_type, NULL,
--			      endpoint, of_dev_node_match);
--	if (dev)
--		return dev;
--
--	/*
--	 * We have a configurable component - circle through the AMBA bus
--	 * looking for the device that matches the endpoint node.
--	 */
--	return bus_find_device(&amba_bustype, NULL,
--			       endpoint, of_dev_node_match);
--}
--
--static inline bool of_coresight_legacy_ep_is_input(struct device_node *ep)
--{
--	return of_property_read_bool(ep, "slave-mode");
--}
--
--static void of_coresight_get_ports_legacy(const struct device_node *node,
--					  int *nr_inport, int *nr_outport)
--{
--	struct device_node *ep = NULL;
--	int in = 0, out = 0;
--
--	do {
--		ep = of_graph_get_next_endpoint(node, ep);
--		if (!ep)
--			break;
--
--		if (of_coresight_legacy_ep_is_input(ep))
--			in++;
--		else
--			out++;
--
--	} while (ep);
--
--	*nr_inport = in;
--	*nr_outport = out;
--}
--
--static struct device_node *of_coresight_get_port_parent(struct device_node *ep)
--{
--	struct device_node *parent = of_graph_get_port_parent(ep);
--
--	/*
--	 * Skip one-level up to the real device node, if we
--	 * are using the new bindings.
--	 */
--	if (of_node_name_eq(parent, "in-ports") ||
--	    of_node_name_eq(parent, "out-ports"))
--		parent = of_get_next_parent(parent);
--
--	return parent;
--}
--
--static inline struct device_node *
--of_coresight_get_input_ports_node(const struct device_node *node)
--{
--	return of_get_child_by_name(node, "in-ports");
--}
--
--static inline struct device_node *
--of_coresight_get_output_ports_node(const struct device_node *node)
--{
--	return of_get_child_by_name(node, "out-ports");
--}
--
--static inline int
--of_coresight_count_ports(struct device_node *port_parent)
--{
--	int i = 0;
--	struct device_node *ep = NULL;
--
--	while ((ep = of_graph_get_next_endpoint(port_parent, ep)))
--		i++;
--	return i;
--}
--
--static void of_coresight_get_ports(const struct device_node *node,
--				   int *nr_inport, int *nr_outport)
--{
--	struct device_node *input_ports = NULL, *output_ports = NULL;
--
--	input_ports = of_coresight_get_input_ports_node(node);
--	output_ports = of_coresight_get_output_ports_node(node);
--
--	if (input_ports || output_ports) {
--		if (input_ports) {
--			*nr_inport = of_coresight_count_ports(input_ports);
--			of_node_put(input_ports);
--		}
--		if (output_ports) {
--			*nr_outport = of_coresight_count_ports(output_ports);
--			of_node_put(output_ports);
--		}
--	} else {
--		/* Fall back to legacy DT bindings parsing */
--		of_coresight_get_ports_legacy(node, nr_inport, nr_outport);
+-	if (!coresight_claim_device_unlocked(drvdata->base)) {
+-		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER0);
+-		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER1);
+-		coresight_disclaim_device_unlocked(drvdata->base);
 -	}
+-
+-	CS_LOCK(drvdata->base);
 -}
 -
--static int of_coresight_alloc_memory(struct device *dev,
--			struct coresight_platform_data *pdata)
+-static int dynamic_replicator_enable(struct replicator_drvdata *drvdata,
+-				     int inport, int outport)
 -{
--	if (pdata->nr_outport) {
--		pdata->conns = devm_kzalloc(dev, pdata->nr_outport *
--					    sizeof(*pdata->conns),
--					    GFP_KERNEL);
--		if (!pdata->conns)
--			return -ENOMEM;
+-	int rc = 0;
+-	u32 reg;
+-
+-	switch (outport) {
+-	case 0:
+-		reg = REPLICATOR_IDFILTER0;
+-		break;
+-	case 1:
+-		reg = REPLICATOR_IDFILTER1;
+-		break;
+-	default:
+-		WARN_ON(1);
+-		return -EINVAL;
 -	}
+-
+-	CS_UNLOCK(drvdata->base);
+-
+-	if ((readl_relaxed(drvdata->base + REPLICATOR_IDFILTER0) == 0xff) &&
+-	    (readl_relaxed(drvdata->base + REPLICATOR_IDFILTER1) == 0xff))
+-		rc = coresight_claim_device_unlocked(drvdata->base);
+-
+-	/* Ensure that the outport is enabled. */
+-	if (!rc)
+-		writel_relaxed(0x00, drvdata->base + reg);
+-	CS_LOCK(drvdata->base);
+-
+-	return rc;
+-}
+-
+-static int replicator_enable(struct coresight_device *csdev, int inport,
+-			     int outport)
+-{
+-	int rc = 0;
+-	struct replicator_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
+-
+-	rc = dynamic_replicator_enable(drvdata, inport, outport);
+-	dev_dbg(drvdata->dev, "REPLICATOR enabled\n");
+-	return rc;
+-}
+-
+-static void dynamic_replicator_disable(struct replicator_drvdata *drvdata,
+-				       int inport, int outport)
+-{
+-	u32 reg;
+-
+-	switch (outport) {
+-	case 0:
+-		reg = REPLICATOR_IDFILTER0;
+-		break;
+-	case 1:
+-		reg = REPLICATOR_IDFILTER1;
+-		break;
+-	default:
+-		WARN_ON(1);
+-		return;
+-	}
+-
+-	CS_UNLOCK(drvdata->base);
+-
+-	/* disable the flow of ATB data through port */
+-	writel_relaxed(0xff, drvdata->base + reg);
+-
+-	if ((readl_relaxed(drvdata->base + REPLICATOR_IDFILTER0) == 0xff) &&
+-	    (readl_relaxed(drvdata->base + REPLICATOR_IDFILTER1) == 0xff))
+-		coresight_disclaim_device_unlocked(drvdata->base);
+-	CS_LOCK(drvdata->base);
+-}
+-
+-static void replicator_disable(struct coresight_device *csdev, int inport,
+-			       int outport)
+-{
+-	struct replicator_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
+-
+-	dynamic_replicator_disable(drvdata, inport, outport);
+-	dev_dbg(drvdata->dev, "REPLICATOR disabled\n");
+-}
+-
+-static const struct coresight_ops_link replicator_link_ops = {
+-	.enable		= replicator_enable,
+-	.disable	= replicator_disable,
+-};
+-
+-static const struct coresight_ops replicator_cs_ops = {
+-	.link_ops	= &replicator_link_ops,
+-};
+-
+-#define coresight_replicator_reg(name, offset) \
+-	coresight_simple_reg32(struct replicator_drvdata, name, offset)
+-
+-coresight_replicator_reg(idfilter0, REPLICATOR_IDFILTER0);
+-coresight_replicator_reg(idfilter1, REPLICATOR_IDFILTER1);
+-
+-static struct attribute *replicator_mgmt_attrs[] = {
+-	&dev_attr_idfilter0.attr,
+-	&dev_attr_idfilter1.attr,
+-	NULL,
+-};
+-
+-static const struct attribute_group replicator_mgmt_group = {
+-	.attrs = replicator_mgmt_attrs,
+-	.name = "mgmt",
+-};
+-
+-static const struct attribute_group *replicator_groups[] = {
+-	&replicator_mgmt_group,
+-	NULL,
+-};
+-
+-static int replicator_probe(struct device *dev, struct resource *res)
+-{
+-	int ret = 0;
+-	struct coresight_platform_data *pdata = NULL;
+-	struct replicator_drvdata *drvdata;
+-	struct coresight_desc desc = { 0 };
+-	struct device_node *np = dev->of_node;
+-	void __iomem *base;
+-
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-		dev->platform_data = pdata;
+-	}
+-
+-	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+-	if (!drvdata)
+-		return -ENOMEM;
+-
+-	drvdata->dev = dev;
+-	drvdata->atclk = devm_clk_get(dev, "atclk"); /* optional */
+-	if (!IS_ERR(drvdata->atclk)) {
+-		ret = clk_prepare_enable(drvdata->atclk);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	/*
+-	 * Map the device base for dynamic-replicator, which has been
+-	 * validated by AMBA core
+-	 */
+-	if (res) {
+-		base = devm_ioremap_resource(dev, res);
+-		if (IS_ERR(base)) {
+-			ret = PTR_ERR(base);
+-			goto out_disable_clk;
+-		}
+-		drvdata->base = base;
+-		desc.groups = replicator_groups;
+-	}
+-
+-	dev_set_drvdata(dev, drvdata);
+-
+-	desc.type = CORESIGHT_DEV_TYPE_LINK;
+-	desc.subtype.link_subtype = CORESIGHT_DEV_SUBTYPE_LINK_SPLIT;
+-	desc.ops = &replicator_cs_ops;
+-	desc.pdata = dev->platform_data;
+-	desc.dev = dev;
+-	drvdata->csdev = coresight_register(&desc);
+-
+-	if (IS_ERR(drvdata->csdev)) {
+-		ret = PTR_ERR(drvdata->csdev);
+-		goto out_disable_clk;
+-	}
+-
+-	dynamic_replicator_reset(drvdata);
+-	pm_runtime_put(dev);
+-
+-out_disable_clk:
+-	if (ret && !IS_ERR_OR_NULL(drvdata->atclk))
+-		clk_disable_unprepare(drvdata->atclk);
+-	return ret;
+-}
+-
+-static int dynamic_replicator_probe(struct amba_device *adev,
+-				    const struct amba_id *id)
+-{
+-	return replicator_probe(&adev->dev, &adev->res);
+-}
+-
+-#ifdef CONFIG_PM
+-static int replicator_runtime_suspend(struct device *dev)
+-{
+-	struct replicator_drvdata *drvdata = dev_get_drvdata(dev);
+-
+-	if (drvdata && !IS_ERR(drvdata->atclk))
+-		clk_disable_unprepare(drvdata->atclk);
 -
 -	return 0;
 -}
 -
--int of_coresight_get_cpu(const struct device_node *node)
+-static int replicator_runtime_resume(struct device *dev)
 -{
--	int cpu;
--	struct device_node *dn;
+-	struct replicator_drvdata *drvdata = dev_get_drvdata(dev);
 -
--	dn = of_parse_phandle(node, "cpu", 0);
--	/* Affinity defaults to CPU0 */
--	if (!dn)
--		return 0;
--	cpu = of_cpu_node_to_id(dn);
--	of_node_put(dn);
+-	if (drvdata && !IS_ERR(drvdata->atclk))
+-		clk_prepare_enable(drvdata->atclk);
 -
--	/* Affinity to CPU0 if no cpu nodes are found */
--	return (cpu < 0) ? 0 : cpu;
+-	return 0;
 -}
--EXPORT_SYMBOL_GPL(of_coresight_get_cpu);
+-#endif
 -
--/*
-- * of_coresight_parse_endpoint : Parse the given output endpoint @ep
-- * and fill the connection information in @conn
-- *
-- * Parses the local port, remote device name and the remote port.
-- *
-- * Returns :
-- *	 1	- If the parsing is successful and a connection record
-- *		  was created for an output connection.
-- *	 0	- If the parsing completed without any fatal errors.
-- *	-Errno	- Fatal error, abort the scanning.
-- */
--static int of_coresight_parse_endpoint(struct device *dev,
--				       struct device_node *ep,
--				       struct coresight_connection *conn)
--{
--	int ret = 0;
--	struct of_endpoint endpoint, rendpoint;
--	struct device_node *rparent = NULL;
--	struct device_node *rep = NULL;
--	struct device *rdev = NULL;
+-static const struct dev_pm_ops replicator_dev_pm_ops = {
+-	SET_RUNTIME_PM_OPS(replicator_runtime_suspend,
+-			   replicator_runtime_resume,
+-			   NULL)
+-};
 -
--	do {
--		/* Parse the local port details */
--		if (of_graph_parse_endpoint(ep, &endpoint))
--			break;
--		/*
--		 * Get a handle on the remote endpoint and the device it is
--		 * attached to.
--		 */
--		rep = of_graph_get_remote_endpoint(ep);
--		if (!rep)
--			break;
--		rparent = of_coresight_get_port_parent(rep);
--		if (!rparent)
--			break;
--		if (of_graph_parse_endpoint(rep, &rendpoint))
--			break;
+-static const struct amba_id dynamic_replicator_ids[] = {
+-	{
+-		.id     = 0x000bb909,
+-		.mask   = 0x000fffff,
+-	},
+-	{
+-		/* Coresight SoC-600 */
+-		.id     = 0x000bb9ec,
+-		.mask   = 0x000fffff,
+-	},
+-	{ 0, 0 },
+-};
 -
--		/* If the remote device is not available, defer probing */
--		rdev = of_coresight_get_endpoint_device(rparent);
--		if (!rdev) {
--			ret = -EPROBE_DEFER;
--			break;
--		}
--
--		conn->outport = endpoint.port;
--		conn->child_name = devm_kstrdup(dev,
--						dev_name(rdev),
--						GFP_KERNEL);
--		conn->child_port = rendpoint.port;
--		/* Connection record updated */
--		ret = 1;
--	} while (0);
--
--	of_node_put(rparent);
--	of_node_put(rep);
--	put_device(rdev);
--
--	return ret;
--}
--
--struct coresight_platform_data *
--of_get_coresight_platform_data(struct device *dev,
--			       const struct device_node *node)
--{
--	int ret = 0;
--	struct coresight_platform_data *pdata;
--	struct coresight_connection *conn;
--	struct device_node *ep = NULL;
--	const struct device_node *parent = NULL;
--	bool legacy_binding = false;
--
--	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
--	if (!pdata)
--		return ERR_PTR(-ENOMEM);
--
--	/* Use device name as sysfs handle */
--	pdata->name = dev_name(dev);
--	pdata->cpu = of_coresight_get_cpu(node);
--
--	/* Get the number of input and output port for this component */
--	of_coresight_get_ports(node, &pdata->nr_inport, &pdata->nr_outport);
--
--	/* If there are no output connections, we are done */
--	if (!pdata->nr_outport)
--		return pdata;
--
--	ret = of_coresight_alloc_memory(dev, pdata);
--	if (ret)
--		return ERR_PTR(ret);
--
--	parent = of_coresight_get_output_ports_node(node);
--	/*
--	 * If the DT uses obsoleted bindings, the ports are listed
--	 * under the device and we need to filter out the input
--	 * ports.
--	 */
--	if (!parent) {
--		legacy_binding = true;
--		parent = node;
--		dev_warn_once(dev, "Uses obsolete Coresight DT bindings\n");
--	}
--
--	conn = pdata->conns;
--
--	/* Iterate through each output port to discover topology */
--	while ((ep = of_graph_get_next_endpoint(parent, ep))) {
--		/*
--		 * Legacy binding mixes input/output ports under the
--		 * same parent. So, skip the input ports if we are dealing
--		 * with legacy binding, as they processed with their
--		 * connected output ports.
--		 */
--		if (legacy_binding && of_coresight_legacy_ep_is_input(ep))
--			continue;
--
--		ret = of_coresight_parse_endpoint(dev, ep, conn);
--		switch (ret) {
--		case 1:
--			conn++;		/* Fall through */
--		case 0:
--			break;
--		default:
--			return ERR_PTR(ret);
--		}
--	}
--
--	return pdata;
--}
--EXPORT_SYMBOL_GPL(of_get_coresight_platform_data);
+-static struct amba_driver dynamic_replicator_driver = {
+-	.drv = {
+-		.name	= "coresight-dynamic-replicator",
+-		.pm	= &replicator_dev_pm_ops,
+-		.suppress_bind_attrs = true,
+-	},
+-	.probe		= dynamic_replicator_probe,
+-	.id_table	= dynamic_replicator_ids,
+-};
+-builtin_amba_driver(dynamic_replicator_driver);
+diff --git a/drivers/hwtracing/coresight/coresight-replicator.c b/drivers/hwtracing/coresight/coresight-replicator.c
+index 43cbcf1..4e0da85 100644
+--- a/drivers/hwtracing/coresight/coresight-replicator.c
++++ b/drivers/hwtracing/coresight/coresight-replicator.c
+@@ -1,10 +1,11 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+  *
+  * Description: CoreSight Replicator driver
+  */
+ 
++#include <linux/amba/bus.h>
+ #include <linux/kernel.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+@@ -18,25 +19,117 @@
+ 
+ #include "coresight-priv.h"
+ 
++#define REPLICATOR_IDFILTER0		0x000
++#define REPLICATOR_IDFILTER1		0x004
++
+ /**
+  * struct replicator_drvdata - specifics associated to a replicator component
++ * @base:	memory mapped base address for this component. Also indicates
++ *		whether this one is programmable or not.
+  * @dev:	the device entity associated with this component
+  * @atclk:	optional clock for the core parts of the replicator.
+  * @csdev:	component vitals needed by the framework
+  */
+ struct replicator_drvdata {
++	void __iomem		*base;
+ 	struct device		*dev;
+ 	struct clk		*atclk;
+ 	struct coresight_device	*csdev;
+ };
+ 
++static void dynamic_replicator_reset(struct replicator_drvdata *drvdata)
++{
++	CS_UNLOCK(drvdata->base);
++
++	if (!coresight_claim_device_unlocked(drvdata->base)) {
++		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER0);
++		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER1);
++		coresight_disclaim_device_unlocked(drvdata->base);
++	}
++
++	CS_LOCK(drvdata->base);
++}
++
++/*
++ * replicator_reset : Reset the replicator configuration to sane values.
++ */
++static inline void replicator_reset(struct replicator_drvdata *drvdata)
++{
++	if (drvdata->base)
++		dynamic_replicator_reset(drvdata);
++}
++
++static int dynamic_replicator_enable(struct replicator_drvdata *drvdata,
++				     int inport, int outport)
++{
++	int rc = 0;
++	u32 reg;
++
++	switch (outport) {
++	case 0:
++		reg = REPLICATOR_IDFILTER0;
++		break;
++	case 1:
++		reg = REPLICATOR_IDFILTER1;
++		break;
++	default:
++		WARN_ON(1);
++		return -EINVAL;
++	}
++
++	CS_UNLOCK(drvdata->base);
++
++	if ((readl_relaxed(drvdata->base + REPLICATOR_IDFILTER0) == 0xff) &&
++	    (readl_relaxed(drvdata->base + REPLICATOR_IDFILTER1) == 0xff))
++		rc = coresight_claim_device_unlocked(drvdata->base);
++
++	/* Ensure that the outport is enabled. */
++	if (!rc)
++		writel_relaxed(0x00, drvdata->base + reg);
++	CS_LOCK(drvdata->base);
++
++	return rc;
++}
++
+ static int replicator_enable(struct coresight_device *csdev, int inport,
+ 			     int outport)
+ {
++	int rc = 0;
+ 	struct replicator_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
+ 
+-	dev_dbg(drvdata->dev, "REPLICATOR enabled\n");
+-	return 0;
++	if (drvdata->base)
++		rc = dynamic_replicator_enable(drvdata, inport, outport);
++	if (!rc)
++		dev_dbg(drvdata->dev, "REPLICATOR enabled\n");
++	return rc;
++}
++
++static void dynamic_replicator_disable(struct replicator_drvdata *drvdata,
++				       int inport, int outport)
++{
++	u32 reg;
++
++	switch (outport) {
++	case 0:
++		reg = REPLICATOR_IDFILTER0;
++		break;
++	case 1:
++		reg = REPLICATOR_IDFILTER1;
++		break;
++	default:
++		WARN_ON(1);
++		return;
++	}
++
++	CS_UNLOCK(drvdata->base);
++
++	/* disable the flow of ATB data through port */
++	writel_relaxed(0xff, drvdata->base + reg);
++
++	if ((readl_relaxed(drvdata->base + REPLICATOR_IDFILTER0) == 0xff) &&
++	    (readl_relaxed(drvdata->base + REPLICATOR_IDFILTER1) == 0xff))
++		coresight_disclaim_device_unlocked(drvdata->base);
++	CS_LOCK(drvdata->base);
+ }
+ 
+ static void replicator_disable(struct coresight_device *csdev, int inport,
+@@ -44,6 +137,8 @@ static void replicator_disable(struct coresight_device *csdev, int inport,
+ {
+ 	struct replicator_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
+ 
++	if (drvdata->base)
++		dynamic_replicator_disable(drvdata, inport, outport);
+ 	dev_dbg(drvdata->dev, "REPLICATOR disabled\n");
+ }
+ 
+@@ -56,13 +151,36 @@ static const struct coresight_ops replicator_cs_ops = {
+ 	.link_ops	= &replicator_link_ops,
+ };
+ 
+-static int replicator_probe(struct device *dev)
++#define coresight_replicator_reg(name, offset) \
++	coresight_simple_reg32(struct replicator_drvdata, name, offset)
++
++coresight_replicator_reg(idfilter0, REPLICATOR_IDFILTER0);
++coresight_replicator_reg(idfilter1, REPLICATOR_IDFILTER1);
++
++static struct attribute *replicator_mgmt_attrs[] = {
++	&dev_attr_idfilter0.attr,
++	&dev_attr_idfilter1.attr,
++	NULL,
++};
++
++static const struct attribute_group replicator_mgmt_group = {
++	.attrs = replicator_mgmt_attrs,
++	.name = "mgmt",
++};
++
++static const struct attribute_group *replicator_groups[] = {
++	&replicator_mgmt_group,
++	NULL,
++};
++
++static int replicator_probe(struct device *dev, struct resource *res)
+ {
+ 	int ret = 0;
+ 	struct coresight_platform_data *pdata = NULL;
+ 	struct replicator_drvdata *drvdata;
+ 	struct coresight_desc desc = { 0 };
+ 	struct device_node *np = dev->of_node;
++	void __iomem *base;
+ 
+ 	if (np) {
+ 		pdata = of_get_coresight_platform_data(dev, np);
+@@ -83,6 +201,20 @@ static int replicator_probe(struct device *dev)
+ 			return ret;
+ 	}
+ 
++	/*
++	 * Map the device base for dynamic-replicator, which has been
++	 * validated by AMBA core
++	 */
++	if (res) {
++		base = devm_ioremap_resource(dev, res);
++		if (IS_ERR(base)) {
++			ret = PTR_ERR(base);
++			goto out_disable_clk;
++		}
++		drvdata->base = base;
++		desc.groups = replicator_groups;
++	}
++
+ 	dev_set_drvdata(dev, drvdata);
+ 
+ 	desc.type = CORESIGHT_DEV_TYPE_LINK;
+@@ -96,6 +228,7 @@ static int replicator_probe(struct device *dev)
+ 		goto out_disable_clk;
+ 	}
+ 
++	replicator_reset(drvdata);
+ 	pm_runtime_put(dev);
+ 
+ out_disable_clk:
+@@ -112,7 +245,8 @@ static int static_replicator_probe(struct platform_device *pdev)
+ 	pm_runtime_set_active(&pdev->dev);
+ 	pm_runtime_enable(&pdev->dev);
+ 
+-	ret = replicator_probe(&pdev->dev);
++	/* Static replicators do not have programming base */
++	ret = replicator_probe(&pdev->dev, NULL);
+ 
+ 	if (ret) {
+ 		pm_runtime_put_noidle(&pdev->dev);
+@@ -164,3 +298,33 @@ static struct platform_driver static_replicator_driver = {
+ 	},
+ };
+ builtin_platform_driver(static_replicator_driver);
++
++static int dynamic_replicator_probe(struct amba_device *adev,
++				    const struct amba_id *id)
++{
++	return replicator_probe(&adev->dev, &adev->res);
++}
++
++static const struct amba_id dynamic_replicator_ids[] = {
++	{
++		.id     = 0x000bb909,
++		.mask   = 0x000fffff,
++	},
++	{
++		/* Coresight SoC-600 */
++		.id     = 0x000bb9ec,
++		.mask   = 0x000fffff,
++	},
++	{ 0, 0 },
++};
++
++static struct amba_driver dynamic_replicator_driver = {
++	.drv = {
++		.name	= "coresight-dynamic-replicator",
++		.pm	= &replicator_dev_pm_ops,
++		.suppress_bind_attrs = true,
++	},
++	.probe		= dynamic_replicator_probe,
++	.id_table	= dynamic_replicator_ids,
++};
++builtin_amba_driver(dynamic_replicator_driver);
 -- 
 2.7.4
