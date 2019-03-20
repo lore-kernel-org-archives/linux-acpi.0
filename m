@@ -1,7 +1,7 @@
 From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 19/25] coresight: Make device to CPU mapping generic
-Date: Wed, 20 Mar 2019 18:49:36 +0000
-Message-ID: <1553107783-3340-20-git-send-email-suzuki.poulose@arm.com>
+Subject: [PATCH 18/25] coresight: Introduce generic platform data helper
+Date: Wed, 20 Mar 2019 18:49:35 +0000
+Message-ID: <1553107783-3340-19-git-send-email-suzuki.poulose@arm.com>
 References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
@@ -10,116 +10,390 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, Mathieu Poirier <mathieu.poirier@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The CoreSight components ETM and CPU-Debug are always associated
-with CPUs. Replace the of_coresight_get_cpu() with a platform
-agnostic helper, in preparation to add ACPI support.
+So far we have hard coded the DT platform parsing code in
+every driver. Introduce generic helper to parse the information
+provided by the firmware in a platform agnostic manner, in preparation
+for the ACPI support.
 
 Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
 Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
 ---
- drivers/hwtracing/coresight/coresight-cpu-debug.c |  3 +--
- drivers/hwtracing/coresight/coresight-platform.c  | 18 +++++++++++++-----
- include/linux/coresight.h                         |  7 +------
- 3 files changed, 15 insertions(+), 13 deletions(-)
+ drivers/hwtracing/coresight/coresight-catu.c       | 13 ++---
+ drivers/hwtracing/coresight/coresight-etb10.c      | 11 ++--
+ drivers/hwtracing/coresight/coresight-etm3x.c      | 12 ++--
+ drivers/hwtracing/coresight/coresight-etm4x.c      | 11 ++--
+ drivers/hwtracing/coresight/coresight-funnel.c     | 11 ++--
+ drivers/hwtracing/coresight/coresight-platform.c   | 65 +++++++++++++---------
+ drivers/hwtracing/coresight/coresight-replicator.c | 12 ++--
+ drivers/hwtracing/coresight/coresight-stm.c        | 11 ++--
+ drivers/hwtracing/coresight/coresight-tmc.c        | 13 ++---
+ drivers/hwtracing/coresight/coresight-tpiu.c       | 11 ++--
+ include/linux/coresight.h                          |  7 +--
+ 11 files changed, 80 insertions(+), 97 deletions(-)
 
-diff --git a/drivers/hwtracing/coresight/coresight-cpu-debug.c b/drivers/hwtracing/coresight/coresight-cpu-debug.c
-index e8819d7..07a1367 100644
---- a/drivers/hwtracing/coresight/coresight-cpu-debug.c
-+++ b/drivers/hwtracing/coresight/coresight-cpu-debug.c
-@@ -572,14 +572,13 @@ static int debug_probe(struct amba_device *adev, const struct amba_id *id)
+diff --git a/drivers/hwtracing/coresight/coresight-catu.c b/drivers/hwtracing/coresight/coresight-catu.c
+index 671a05a..4595c67 100644
+--- a/drivers/hwtracing/coresight/coresight-catu.c
++++ b/drivers/hwtracing/coresight/coresight-catu.c
+@@ -503,17 +503,14 @@ static int catu_probe(struct amba_device *adev, const struct amba_id *id)
+ 	struct coresight_desc catu_desc;
+ 	struct coresight_platform_data *pdata = NULL;
  	struct device *dev = &adev->dev;
- 	struct debug_drvdata *drvdata;
+-	struct device_node *np = dev->of_node;
+ 	void __iomem *base;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata)) {
+-			ret = PTR_ERR(pdata);
+-			goto out;
+-		}
+-		dev->platform_data = pdata;
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata)) {
++		ret = PTR_ERR(pdata);
++		goto out;
+ 	}
++	dev->platform_data = pdata;
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata) {
+diff --git a/drivers/hwtracing/coresight/coresight-etb10.c b/drivers/hwtracing/coresight/coresight-etb10.c
+index a471cbd..e4175849 100644
+--- a/drivers/hwtracing/coresight/coresight-etb10.c
++++ b/drivers/hwtracing/coresight/coresight-etb10.c
+@@ -688,14 +688,11 @@ static int etb_probe(struct amba_device *adev, const struct amba_id *id)
+ 	struct etb_drvdata *drvdata;
  	struct resource *res = &adev->res;
+ 	struct coresight_desc desc = { 0 };
 -	struct device_node *np = adev->dev.of_node;
- 	int ret;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-		adev->dev.platform_data = pdata;
+-	}
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata))
++		return PTR_ERR(pdata);
++	adev->dev.platform_data = pdata;
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+diff --git a/drivers/hwtracing/coresight/coresight-etm3x.c b/drivers/hwtracing/coresight/coresight-etm3x.c
+index 7137f06..b101464 100644
+--- a/drivers/hwtracing/coresight/coresight-etm3x.c
++++ b/drivers/hwtracing/coresight/coresight-etm3x.c
+@@ -788,20 +788,16 @@ static int etm_probe(struct amba_device *adev, const struct amba_id *id)
+ 	struct etm_drvdata *drvdata;
+ 	struct resource *res = &adev->res;
+ 	struct coresight_desc desc = { 0 };
+-	struct device_node *np = adev->dev.of_node;
  
  	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
  	if (!drvdata)
  		return -ENOMEM;
  
--	drvdata->cpu = np ? of_coresight_get_cpu(np) : 0;
-+	drvdata->cpu = coresight_get_cpu(dev);
- 	if (per_cpu(debug_drvdata, drvdata->cpu)) {
- 		dev_err(dev, "CPU%d drvdata has already been initialized\n",
- 			drvdata->cpu);
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-
+-		adev->dev.platform_data = pdata;
+-	}
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata))
++		return PTR_ERR(pdata);
+ 
++	adev->dev.platform_data = pdata;
+ 	drvdata->use_cp14 = fwnode_property_read_bool(dev->fwnode, "arm,cp14");
+ 	dev_set_drvdata(dev, drvdata);
+ 
+diff --git a/drivers/hwtracing/coresight/coresight-etm4x.c b/drivers/hwtracing/coresight/coresight-etm4x.c
+index 8d5ee3b..bfc23ab 100644
+--- a/drivers/hwtracing/coresight/coresight-etm4x.c
++++ b/drivers/hwtracing/coresight/coresight-etm4x.c
+@@ -974,18 +974,15 @@ static int etm4_probe(struct amba_device *adev, const struct amba_id *id)
+ 	struct etmv4_drvdata *drvdata;
+ 	struct resource *res = &adev->res;
+ 	struct coresight_desc desc = { 0 };
+-	struct device_node *np = adev->dev.of_node;
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+ 		return -ENOMEM;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-		adev->dev.platform_data = pdata;
+-	}
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata))
++		return PTR_ERR(pdata);
++	adev->dev.platform_data = pdata;
+ 
+ 	dev_set_drvdata(dev, drvdata);
+ 
+diff --git a/drivers/hwtracing/coresight/coresight-funnel.c b/drivers/hwtracing/coresight/coresight-funnel.c
+index 1085f31..2590744 100644
+--- a/drivers/hwtracing/coresight/coresight-funnel.c
++++ b/drivers/hwtracing/coresight/coresight-funnel.c
+@@ -185,14 +185,11 @@ static int funnel_probe(struct amba_device *adev, const struct amba_id *id)
+ 	struct funnel_drvdata *drvdata;
+ 	struct resource *res = &adev->res;
+ 	struct coresight_desc desc = { 0 };
+-	struct device_node *np = adev->dev.of_node;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-		adev->dev.platform_data = pdata;
+-	}
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata))
++		return PTR_ERR(pdata);
++	adev->dev.platform_data = pdata;
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
 diff --git a/drivers/hwtracing/coresight/coresight-platform.c b/drivers/hwtracing/coresight/coresight-platform.c
-index 693e3f5..93b6c87 100644
+index 514cc2b..693e3f5 100644
 --- a/drivers/hwtracing/coresight/coresight-platform.c
 +++ b/drivers/hwtracing/coresight/coresight-platform.c
-@@ -147,12 +147,14 @@ static void of_coresight_get_ports(const struct device_node *node,
+@@ -17,6 +17,20 @@
+ #include <linux/cpumask.h>
+ #include <asm/smp_plat.h>
+ 
++static int coresight_alloc_conns(struct device *dev,
++				 struct coresight_platform_data *pdata)
++{
++	if (pdata->nr_outport) {
++		pdata->conns = devm_kzalloc(dev, pdata->nr_outport *
++					    sizeof(*pdata->conns),
++					    GFP_KERNEL);
++		if (!pdata->conns)
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
+ #ifdef CONFIG_OF
+ static int of_dev_node_match(struct device *dev, void *data)
+ {
+@@ -133,20 +147,6 @@ static void of_coresight_get_ports(const struct device_node *node,
  	}
  }
  
--int of_coresight_get_cpu(const struct device_node *node)
-+static int of_coresight_get_cpu(struct device *dev)
+-static int of_coresight_alloc_memory(struct device *dev,
+-			struct coresight_platform_data *pdata)
+-{
+-	if (pdata->nr_outport) {
+-		pdata->conns = devm_kzalloc(dev, pdata->nr_outport *
+-					    sizeof(*pdata->conns),
+-					    GFP_KERNEL);
+-		if (!pdata->conns)
+-			return -ENOMEM;
+-	}
+-
+-	return 0;
+-}
+-
+ int of_coresight_get_cpu(const struct device_node *node)
  {
  	int cpu;
- 	struct device_node *dn;
- 
--	dn = of_parse_phandle(node, "cpu", 0);
-+	if (!dev->of_node)
-+		return 0;
-+	dn = of_parse_phandle(dev->of_node, "cpu", 0);
- 	/* Affinity defaults to CPU0 */
- 	if (!dn)
- 		return 0;
-@@ -162,7 +164,6 @@ int of_coresight_get_cpu(const struct device_node *node)
- 	/* Affinity to CPU0 if no cpu nodes are found */
- 	return (cpu < 0) ? 0 : cpu;
+@@ -226,23 +226,17 @@ static int of_coresight_parse_endpoint(struct device *dev,
+ 	return ret;
  }
--EXPORT_SYMBOL_GPL(of_coresight_get_cpu);
  
- /*
-  * of_coresight_parse_endpoint : Parse the given output endpoint @ep
-@@ -237,8 +238,6 @@ of_get_coresight_platform_data(struct device *dev,
- 	bool legacy_binding = false;
- 	struct device_node *node = dev->of_node;
- 
--	pdata->cpu = of_coresight_get_cpu(node);
--
- 	/* Get the number of input and output port for this component */
- 	of_coresight_get_ports(node, &pdata->nr_inport, &pdata->nr_outport);
- 
-@@ -290,6 +289,14 @@ of_get_coresight_platform_data(struct device *dev,
- }
- #endif
- 
-+int coresight_get_cpu(struct device *dev)
-+{
-+	if (is_of_node(dev->fwnode))
-+		return of_coresight_get_cpu(dev);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(coresight_get_cpu);
-+
- struct coresight_platform_data *
- coresight_get_platform_data(struct device *dev)
+-struct coresight_platform_data *
++static struct coresight_platform_data *
+ of_get_coresight_platform_data(struct device *dev,
+-			       const struct device_node *node)
++			       struct coresight_platform_data *pdata)
  {
-@@ -304,6 +311,7 @@ coresight_get_platform_data(struct device *dev)
+ 	int ret = 0;
+-	struct coresight_platform_data *pdata;
+ 	struct coresight_connection *conn;
+ 	struct device_node *ep = NULL;
+ 	const struct device_node *parent = NULL;
+ 	bool legacy_binding = false;
++	struct device_node *node = dev->of_node;
  
- 	/* Use device name as sysfs handle */
- 	pdata->name = dev_name(dev);
-+	pdata->cpu = coresight_get_cpu(dev);
+-	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+-	if (!pdata)
+-		return ERR_PTR(-ENOMEM);
+-
+-	/* Use device name as sysfs handle */
+-	pdata->name = dev_name(dev);
+ 	pdata->cpu = of_coresight_get_cpu(node);
  
- 	if (is_of_node(dev->fwnode))
- 		return of_get_coresight_platform_data(dev, pdata);
+ 	/* Get the number of input and output port for this component */
+@@ -252,7 +246,7 @@ of_get_coresight_platform_data(struct device *dev,
+ 	if (!pdata->nr_outport)
+ 		return pdata;
+ 
+-	ret = of_coresight_alloc_memory(dev, pdata);
++	ret = coresight_alloc_conns(dev, pdata);
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+@@ -294,5 +288,26 @@ of_get_coresight_platform_data(struct device *dev,
+ 
+ 	return pdata;
+ }
+-EXPORT_SYMBOL_GPL(of_get_coresight_platform_data);
+ #endif
++
++struct coresight_platform_data *
++coresight_get_platform_data(struct device *dev)
++{
++	struct coresight_platform_data *pdata;
++
++	if (IS_ERR_OR_NULL(dev->fwnode))
++		return NULL;
++
++	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return ERR_PTR(-ENOMEM);
++
++	/* Use device name as sysfs handle */
++	pdata->name = dev_name(dev);
++
++	if (is_of_node(dev->fwnode))
++		return of_get_coresight_platform_data(dev, pdata);
++
++	return ERR_PTR(-ENOENT);
++}
++EXPORT_SYMBOL_GPL(coresight_get_platform_data);
+diff --git a/drivers/hwtracing/coresight/coresight-replicator.c b/drivers/hwtracing/coresight/coresight-replicator.c
+index 8bbb008..7eb3bf7 100644
+--- a/drivers/hwtracing/coresight/coresight-replicator.c
++++ b/drivers/hwtracing/coresight/coresight-replicator.c
+@@ -177,15 +177,12 @@ static int replicator_probe(struct device *dev, struct resource *res)
+ 	struct coresight_platform_data *pdata = NULL;
+ 	struct replicator_drvdata *drvdata;
+ 	struct coresight_desc desc = { 0 };
+-	struct device_node *np = dev->of_node;
+ 	void __iomem *base;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-		dev->platform_data = pdata;
+-	}
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata))
++		return PTR_ERR(pdata);
++	dev->platform_data = pdata;
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+@@ -213,7 +210,6 @@ static int replicator_probe(struct device *dev, struct resource *res)
+ 	}
+ 
+ 	dev_set_drvdata(dev, drvdata);
+-
+ 	desc.type = CORESIGHT_DEV_TYPE_LINK;
+ 	desc.subtype.link_subtype = CORESIGHT_DEV_SUBTYPE_LINK_SPLIT;
+ 	desc.ops = &replicator_cs_ops;
+diff --git a/drivers/hwtracing/coresight/coresight-stm.c b/drivers/hwtracing/coresight/coresight-stm.c
+index eb96bba..6514586 100644
+--- a/drivers/hwtracing/coresight/coresight-stm.c
++++ b/drivers/hwtracing/coresight/coresight-stm.c
+@@ -809,14 +809,11 @@ static int stm_probe(struct amba_device *adev, const struct amba_id *id)
+ 	size_t bitmap_size;
+ 	struct coresight_desc desc = { 0 };
+ 	struct coresight_device *csdev;
+-	struct device_node *np = adev->dev.of_node;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-		adev->dev.platform_data = pdata;
+-	}
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata))
++		return PTR_ERR(pdata);
++	adev->dev.platform_data = pdata;
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+ 		return -ENOMEM;
+diff --git a/drivers/hwtracing/coresight/coresight-tmc.c b/drivers/hwtracing/coresight/coresight-tmc.c
+index 7ce3427..147ab17 100644
+--- a/drivers/hwtracing/coresight/coresight-tmc.c
++++ b/drivers/hwtracing/coresight/coresight-tmc.c
+@@ -394,16 +394,13 @@ static int tmc_probe(struct amba_device *adev, const struct amba_id *id)
+ 	struct tmc_drvdata *drvdata;
+ 	struct resource *res = &adev->res;
+ 	struct coresight_desc desc = { 0 };
+-	struct device_node *np = adev->dev.of_node;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata)) {
+-			ret = PTR_ERR(pdata);
+-			goto out;
+-		}
+-		adev->dev.platform_data = pdata;
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata)) {
++		ret = PTR_ERR(pdata);
++		goto out;
+ 	}
++	adev->dev.platform_data = pdata;
+ 
+ 	ret = -ENOMEM;
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+diff --git a/drivers/hwtracing/coresight/coresight-tpiu.c b/drivers/hwtracing/coresight/coresight-tpiu.c
+index 9763721..18a749a 100644
+--- a/drivers/hwtracing/coresight/coresight-tpiu.c
++++ b/drivers/hwtracing/coresight/coresight-tpiu.c
+@@ -120,14 +120,11 @@ static int tpiu_probe(struct amba_device *adev, const struct amba_id *id)
+ 	struct resource *res = &adev->res;
+ 	struct coresight_desc desc = { 0 };
+ 	struct coresight_device *csdev;
+-	struct device_node *np = adev->dev.of_node;
+ 
+-	if (np) {
+-		pdata = of_get_coresight_platform_data(dev, np);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-		adev->dev.platform_data = pdata;
+-	}
++	pdata = coresight_get_platform_data(dev);
++	if (IS_ERR(pdata))
++		return PTR_ERR(pdata);
++	adev->dev.platform_data = pdata;
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
 diff --git a/include/linux/coresight.h b/include/linux/coresight.h
-index 5b29255..a48cd9b 100644
+index 7b87965..5b29255 100644
 --- a/include/linux/coresight.h
 +++ b/include/linux/coresight.h
-@@ -291,12 +291,7 @@ static inline void coresight_disclaim_device_unlocked(void __iomem *base) {}
+@@ -293,14 +293,11 @@ static inline void coresight_disclaim_device_unlocked(void __iomem *base) {}
  
+ #ifdef CONFIG_OF
+ extern int of_coresight_get_cpu(const struct device_node *node);
+-extern struct coresight_platform_data *
+-of_get_coresight_platform_data(struct device *dev,
+-			       const struct device_node *node);
+ #else
+ static inline int of_coresight_get_cpu(const struct device_node *node)
+ { return 0; }
+-static inline struct coresight_platform_data *of_get_coresight_platform_data(
+-	struct device *dev, const struct device_node *node) { return NULL; }
  #endif
  
--#ifdef CONFIG_OF
--extern int of_coresight_get_cpu(const struct device_node *node);
--#else
--static inline int of_coresight_get_cpu(const struct device_node *node)
--{ return 0; }
--#endif
-+extern int coresight_get_cpu(struct device *dev);
- 
- struct coresight_platform_data *coresight_get_platform_data(struct device *dev);
- 
++struct coresight_platform_data *coresight_get_platform_data(struct device *dev);
++
+ #endif
 -- 
 2.7.4
