@@ -1,16 +1,11 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 1/2] ACPI/IORT: set online numa node for smmuv3 device
-Date: Wed, 20 Mar 2019 14:00:16 +0000
-Message-ID: <20190320140016.GA8694@e107981-ln.cambridge.arm.com>
-References: <20190315021940.86905-1-wangkefeng.wang@huawei.com>
- <20190315021940.86905-2-wangkefeng.wang@huawei.com>
- <d45aa526-2cd9-2381-8856-6ddb7e7ced7d@arm.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: [PATCH 0/4] Add PCI ATS support to Arm SMMUv3
+Date: Wed, 20 Mar 2019 17:36:30 +0000
+Message-ID: <20190320173634.21895-1-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <d45aa526-2cd9-2381-8856-6ddb7e7ced7d@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,97 +15,35 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+To: will.deacon@arm.com
+Cc: lorenzo.pieralisi@arm.com, zhongmiao@hisilicon.com, okaya@kernel.org, joro@8bytes.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 20, 2019 at 11:41:18AM +0000, Robin Murphy wrote:
-> On 15/03/2019 02:19, Kefeng Wang wrote:
-> >If there is only node 0 in system, but smmuv3 device is set to offline
-> >node 1, parsed from proximity domain in SMMUv3 IORT table, it will lead
-> >to following crash,
-> 
-> Surely that's just a firmware bug? If node 1 doesn't exist in the system
-> then AFAICS if we're presented with a device claiming to be on that node we
-> can only assume the whole thing is bogus. Thus if we're going to work around
-> it at all, it seems to me like we should reject the entire device rather
-> than just bodging it to some other node.
+Add ATS support to the SMMUv3 driver. The previous posting was about a
+year ago, as part of SVA v2 [1]. I feel slightly more confident
+upstreaming this now that we can disable the feature for untrusted
+devices. It's a low-hanging fruit in the SVA patch stack, and a good
+candidate for v5.2.
 
-I suspect that's the same issue this thread addressed:
+As for testing, there is a public (free as in beer) software model that
+has both SMMUv3 and a SATA controller with ATS [2]. It's not much since,
+except for a dev_dbg message, you won't notice a difference when
+enabling ATS, but it can still be used for checking that the patches
+don't break anything.
 
-https://lore.kernel.org/linux-pci/CAErSpo6S0qtR42tjGZrFu4aMFFyThx1hkHTSowTt6t3XerpHnA@mail.gmail.com/
+[1] https://www.spinics.net/lists/kvm/msg168742.html
+[2] https://patchwork.kernel.org/patch/10781793/
 
-Lorenzo
+Jean-Philippe Brucker (4):
+  ACPI/IORT: Check ATS capability in root complex nodes
+  iommu/arm-smmu-v3: Link domains and devices
+  iommu/arm-smmu-v3: Add support for PCI ATS
+  iommu/arm-smmu-v3: Disable tagged pointers
 
-> Robin.
-> 
-> >
-> >[   47.492451] Unable to handle kernel paging request at virtual address 0000000000001388
-> >[   47.500361] Mem abort info:
-> >[   47.503143]   ESR = 0x96000004
-> >[   47.506189]   Exception class = DABT (current EL), IL = 32 bits
-> >[   47.512099]   SET = 0, FnV = 0
-> >[   47.515140]   EA = 0, S1PTW = 0
-> >[   47.518272] Data abort info:
-> >[   47.521144]   ISV = 0, ISS = 0x00000004
-> >[   47.524970]   CM = 0, WnR = 0
-> >[   47.527929] [0000000000001388] user address but active_mm is swapper
-> >[   47.534285] Internal error: Oops: 96000004 [#1] SMP
-> >[   47.539151] Modules linked in:
-> >[   47.542194] CPU: 5 PID: 1 Comm: swapper/0 Not tainted 5.0.0 #15
-> >[   47.549490] pstate: 80c00009 (Nzcv daif +PAN +UAO)
-> >[   47.554272] pc : __alloc_pages_nodemask+0x13c/0x1068
-> >[   47.559224] lr : __alloc_pages_nodemask+0xdc/0x1068
-> >...
-> >[   47.646873] Process swapper/0 (pid: 1, stack limit = 0x(____ptrval____))
-> >[   47.653560] Call trace:
-> >[   47.655994]  __alloc_pages_nodemask+0x13c/0x1068
-> >[   47.660600]  new_slab+0xec/0x570
-> >[   47.663816]  ___slab_alloc+0x3e0/0x4f8
-> >[   47.667553]  __slab_alloc+0x60/0x80
-> >[   47.671029]  __kmalloc_node_track_caller+0x10c/0x478
-> >[   47.675984]  devm_kmalloc+0x44/0xb0
-> >[   47.679460]  pinctrl_bind_pins+0x4c/0x188
-> >[   47.683457]  really_probe+0x78/0x2b8
-> >[   47.687019]  driver_probe_device+0x64/0x110
-> >[   47.691189]  device_driver_attach+0x74/0x98
-> >[   47.695360]  __driver_attach+0x9c/0xe8
-> >[   47.699095]  bus_for_each_dev+0x84/0xd8
-> >[   47.702919]  driver_attach+0x30/0x40
-> >[   47.706481]  bus_add_driver+0x170/0x218
-> >[   47.710304]  driver_register+0x64/0x118
-> >[   47.714128]  __platform_driver_register+0x54/0x60
-> >[   47.718820]  arm_smmu_driver_init+0x24/0x2c
-> >[   47.722991]  do_one_initcall+0xbc/0x328
-> >[   47.726816]  kernel_init_freeable+0x304/0x3ac
-> >[   47.731162]  kernel_init+0x18/0x110
-> >[   47.734638]  ret_from_fork+0x10/0x1c
-> >[   47.738202] Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
-> >[   47.744307] ---[ end trace dfeaed4c373a32da ]--
-> >
-> >Using acpi_map_pxm_to_online_node() to get online node to fix it.
-> >
-> >Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> >---
-> >  drivers/acpi/arm64/iort.c | 8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> >
-> >diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >index e48894e002ba..a2ce836ec103 100644
-> >--- a/drivers/acpi/arm64/iort.c
-> >+++ b/drivers/acpi/arm64/iort.c
-> >@@ -1239,10 +1239,10 @@ static void  __init arm_smmu_v3_set_proximity(struct device *dev,
-> >  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> >  	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> >-		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> >-		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
-> >-			smmu->base_address,
-> >-			smmu->pxm);
-> >+		int node = acpi_map_pxm_to_online_node(smmu->pxm);
-> >+		set_dev_node(dev, node);
-> >+		pr_info("SMMU-v3[%llx] -> PXM %d -> Node %d\n",
-> >+			smmu->base_address, smmu->pxm, node);
-> >  	}
-> >  }
-> >  #else
-> >
+ drivers/acpi/arm64/iort.c   |  11 ++
+ drivers/iommu/arm-smmu-v3.c | 250 +++++++++++++++++++++++++++++++++++-
+ include/linux/iommu.h       |   4 +
+ 3 files changed, 259 insertions(+), 6 deletions(-)
+
+-- 
+2.21.0
