@@ -1,77 +1,78 @@
 From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 02/25] coresight: dynamic-replicator: Clean up error handling
-Date: Wed, 20 Mar 2019 18:49:19 +0000
-Message-ID: <1553107783-3340-3-git-send-email-suzuki.poulose@arm.com>
+Subject: [PATCH 06/25] coresight: funnel: Clean up device book keeping
+Date: Wed, 20 Mar 2019 18:49:23 +0000
+Message-ID: <1553107783-3340-7-git-send-email-suzuki.poulose@arm.com>
 References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, Mathieu Poirier <mathie.poirier@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We fail to disable the clock in case of a failure during the
-probe. Clean this up. Also, we are supposed to drop the pm reference
-only when the probing is successful.
+In preparation to use a consistent device naming scheme,
+clean up the device link tracking in funnel driver.
+Use the "coresight" device instead of the "real" parent device
+for all internal purposes. All other requests (e.g, power management,
+DMA operations) must use the "real" device which is the parent device.
 
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: Mathieu Poirier <mathie.poirier@linaro.org>
 Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
 ---
- .../coresight/coresight-dynamic-replicator.c       | 24 ++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ drivers/hwtracing/coresight/coresight-funnel.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/hwtracing/coresight/coresight-dynamic-replicator.c b/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
-index 299667b..fe176b9 100644
---- a/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
-+++ b/drivers/hwtracing/coresight/coresight-dynamic-replicator.c
-@@ -150,7 +150,7 @@ static const struct attribute_group *replicator_groups[] = {
+diff --git a/drivers/hwtracing/coresight/coresight-funnel.c b/drivers/hwtracing/coresight/coresight-funnel.c
+index 9279251..1085f31 100644
+--- a/drivers/hwtracing/coresight/coresight-funnel.c
++++ b/drivers/hwtracing/coresight/coresight-funnel.c
+@@ -37,7 +37,6 @@
+  */
+ struct funnel_drvdata {
+ 	void __iomem		*base;
+-	struct device		*dev;
+ 	struct clk		*atclk;
+ 	struct coresight_device	*csdev;
+ 	unsigned long		priority;
+@@ -77,7 +76,7 @@ static int funnel_enable(struct coresight_device *csdev, int inport,
+ 	rc = funnel_enable_hw(drvdata, inport);
  
- static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
- {
--	int ret;
-+	int ret = 0;
- 	struct device *dev = &adev->dev;
- 	struct resource *res = &adev->res;
- 	struct coresight_platform_data *pdata = NULL;
-@@ -180,12 +180,13 @@ static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
- 
- 	/* Validity for the resource is already checked by the AMBA core */
- 	base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(base))
--		return PTR_ERR(base);
-+	if (IS_ERR(base)) {
-+		ret = PTR_ERR(base);
-+		goto out_disable_clk;
-+	}
- 
- 	drvdata->base = base;
- 	dev_set_drvdata(dev, drvdata);
--	pm_runtime_put(&adev->dev);
- 
- 	desc.type = CORESIGHT_DEV_TYPE_LINK;
- 	desc.subtype.link_subtype = CORESIGHT_DEV_SUBTYPE_LINK_SPLIT;
-@@ -195,11 +196,18 @@ static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
- 	desc.groups = replicator_groups;
- 	drvdata->csdev = coresight_register(&desc);
- 
--	if (!IS_ERR(drvdata->csdev)) {
--		replicator_reset(drvdata);
--		return 0;
-+	if (IS_ERR(drvdata->csdev)) {
-+		ret = PTR_ERR(drvdata->csdev);
-+		goto out_disable_clk;
- 	}
--	return PTR_ERR(drvdata->csdev);
-+
-+	replicator_reset(drvdata);
-+	pm_runtime_put(&adev->dev);
-+
-+out_disable_clk:
-+	if (ret && !IS_ERR_OR_NULL(drvdata->atclk))
-+		clk_disable_unprepare(drvdata->atclk);
-+	return ret;
+ 	if (!rc)
+-		dev_dbg(drvdata->dev, "FUNNEL inport %d enabled\n", inport);
++		dev_dbg(&csdev->dev, "FUNNEL inport %d enabled\n", inport);
+ 	return rc;
  }
  
- #ifdef CONFIG_PM
+@@ -105,7 +104,7 @@ static void funnel_disable(struct coresight_device *csdev, int inport,
+ 
+ 	funnel_disable_hw(drvdata, inport);
+ 
+-	dev_dbg(drvdata->dev, "FUNNEL inport %d disabled\n", inport);
++	dev_dbg(&csdev->dev, "FUNNEL inport %d disabled\n", inport);
+ }
+ 
+ static const struct coresight_ops_link funnel_link_ops = {
+@@ -160,11 +159,11 @@ static ssize_t funnel_ctrl_show(struct device *dev,
+ 	u32 val;
+ 	struct funnel_drvdata *drvdata = dev_get_drvdata(dev->parent);
+ 
+-	pm_runtime_get_sync(drvdata->dev);
++	pm_runtime_get_sync(dev->parent);
+ 
+ 	val = get_funnel_ctrl_hw(drvdata);
+ 
+-	pm_runtime_put(drvdata->dev);
++	pm_runtime_put(dev->parent);
+ 
+ 	return sprintf(buf, "%#x\n", val);
+ }
+@@ -199,7 +198,6 @@ static int funnel_probe(struct amba_device *adev, const struct amba_id *id)
+ 	if (!drvdata)
+ 		return -ENOMEM;
+ 
+-	drvdata->dev = &adev->dev;
+ 	drvdata->atclk = devm_clk_get(&adev->dev, "atclk"); /* optional */
+ 	if (!IS_ERR(drvdata->atclk)) {
+ 		ret = clk_prepare_enable(drvdata->atclk);
 -- 
 2.7.4
