@@ -1,90 +1,155 @@
 From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 23/25] coresight: stm: ACPI support for parsing stimulus base
-Date: Wed, 20 Mar 2019 18:49:40 +0000
-Message-ID: <1553107783-3340-24-git-send-email-suzuki.poulose@arm.com>
+Subject: [PATCH 03/25] coresight: replicator: Prepare for merging with
+ dynamic-replicator
+Date: Wed, 20 Mar 2019 18:49:20 +0000
+Message-ID: <1553107783-3340-4-git-send-email-suzuki.poulose@arm.com>
 References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, Suzuki K Poulose <suzuki.poulose@arm.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Suzuki K Poulose <suzuki.poulose@arm.com>, coresight@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.walker@arm.com, mike.leach@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-The stimulus base for STM device must be listed as the second memory
-resource, followed by the programming base address. Add support for
-parsing the information for ACPI.
+As a preparatory step to merge the separate drivers for static and
+dynamic replicators, annotate the static replicator specific details.
+Also refactor the probe routine to make it generic in order to merge
+the drivers easily.
 
 Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
 ---
- drivers/hwtracing/coresight/coresight-stm.c | 43 +++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ drivers/hwtracing/coresight/coresight-replicator.c | 62 +++++++++++++---------
+ 1 file changed, 36 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/hwtracing/coresight/coresight-stm.c b/drivers/hwtracing/coresight/coresight-stm.c
-index d94ae22..995443a 100644
---- a/drivers/hwtracing/coresight/coresight-stm.c
-+++ b/drivers/hwtracing/coresight/coresight-stm.c
-@@ -16,6 +16,7 @@
-  * (C) 2015-2016 Chunyan Zhang <zhang.chunyan@linaro.org>
-  */
- #include <asm/local.h>
-+#include <linux/acpi.h>
- #include <linux/amba/bus.h>
- #include <linux/bitmap.h>
- #include <linux/clk.h>
-@@ -717,10 +718,52 @@ static inline int of_stm_get_stimulus_area(struct device *dev,
- }
- #endif
+diff --git a/drivers/hwtracing/coresight/coresight-replicator.c b/drivers/hwtracing/coresight/coresight-replicator.c
+index feac983..43cbcf1 100644
+--- a/drivers/hwtracing/coresight/coresight-replicator.c
++++ b/drivers/hwtracing/coresight/coresight-replicator.c
+@@ -56,58 +56,68 @@ static const struct coresight_ops replicator_cs_ops = {
+ 	.link_ops	= &replicator_link_ops,
+ };
  
-+#ifdef CONFIG_ACPI
-+static int acpi_stm_get_stimulus_area(struct device *dev, struct resource *res)
-+{
-+	int rc;
-+	bool found_base = false;
-+	struct resource_entry *rent;
-+	LIST_HEAD(res_list);
-+
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+
-+	if (!adev)
-+		return -ENODEV;
-+	rc = acpi_dev_get_resources(adev, &res_list, NULL, NULL);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = -ENOENT;
-+	list_for_each_entry(rent, &res_list, node) {
-+		if (resource_type(rent->res) != IORESOURCE_MEM)
-+			continue;
-+		if (found_base) {
-+			*res = *rent->res;
-+			rc = 0;
-+			break;
-+		}
-+
-+		found_base = true;
-+	}
-+
-+	acpi_dev_free_resource_list(&res_list);
-+	return rc;
-+}
-+#else
-+static inline int acpi_stm_get_stimulus_area(struct device *dev,
-+					     struct resource *res)
-+{
-+	return -ENOENT;
-+}
-+#endif
-+
- static int stm_get_stimulus_area(struct device *dev, struct resource *res)
+-static int replicator_probe(struct platform_device *pdev)
++static int replicator_probe(struct device *dev)
  {
- 	if (dev->of_node)
- 		return of_stm_get_stimulus_area(dev, res);
-+	else if (is_acpi_node(dev->fwnode))
-+		return acpi_stm_get_stimulus_area(dev, res);
- 	return -ENOENT;
- }
+-	int ret;
+-	struct device *dev = &pdev->dev;
++	int ret = 0;
+ 	struct coresight_platform_data *pdata = NULL;
+ 	struct replicator_drvdata *drvdata;
+ 	struct coresight_desc desc = { 0 };
+-	struct device_node *np = pdev->dev.of_node;
++	struct device_node *np = dev->of_node;
  
+ 	if (np) {
+ 		pdata = of_get_coresight_platform_data(dev, np);
+ 		if (IS_ERR(pdata))
+ 			return PTR_ERR(pdata);
+-		pdev->dev.platform_data = pdata;
++		dev->platform_data = pdata;
+ 	}
+ 
+ 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+ 		return -ENOMEM;
+ 
+-	drvdata->dev = &pdev->dev;
+-	drvdata->atclk = devm_clk_get(&pdev->dev, "atclk"); /* optional */
++	drvdata->dev = dev;
++	drvdata->atclk = devm_clk_get(dev, "atclk"); /* optional */
+ 	if (!IS_ERR(drvdata->atclk)) {
+ 		ret = clk_prepare_enable(drvdata->atclk);
+ 		if (ret)
+ 			return ret;
+ 	}
+-	pm_runtime_get_noresume(&pdev->dev);
+-	pm_runtime_set_active(&pdev->dev);
+-	pm_runtime_enable(&pdev->dev);
+-	platform_set_drvdata(pdev, drvdata);
++
++	dev_set_drvdata(dev, drvdata);
+ 
+ 	desc.type = CORESIGHT_DEV_TYPE_LINK;
+ 	desc.subtype.link_subtype = CORESIGHT_DEV_SUBTYPE_LINK_SPLIT;
+ 	desc.ops = &replicator_cs_ops;
+-	desc.pdata = pdev->dev.platform_data;
+-	desc.dev = &pdev->dev;
++	desc.pdata = dev->platform_data;
++	desc.dev = dev;
+ 	drvdata->csdev = coresight_register(&desc);
+ 	if (IS_ERR(drvdata->csdev)) {
+ 		ret = PTR_ERR(drvdata->csdev);
+-		goto out_disable_pm;
++		goto out_disable_clk;
+ 	}
+ 
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put(dev);
+ 
+-	return 0;
+-
+-out_disable_pm:
+-	if (!IS_ERR(drvdata->atclk))
++out_disable_clk:
++	if (ret && !IS_ERR_OR_NULL(drvdata->atclk))
+ 		clk_disable_unprepare(drvdata->atclk);
+-	pm_runtime_put_noidle(&pdev->dev);
+-	pm_runtime_disable(&pdev->dev);
++	return ret;
++}
++
++static int static_replicator_probe(struct platform_device *pdev)
++{
++	int ret;
++
++	pm_runtime_get_noresume(&pdev->dev);
++	pm_runtime_set_active(&pdev->dev);
++	pm_runtime_enable(&pdev->dev);
++
++	ret = replicator_probe(&pdev->dev);
++
++	if (ret) {
++		pm_runtime_put_noidle(&pdev->dev);
++		pm_runtime_disable(&pdev->dev);
++	}
+ 
+ 	return ret;
+ }
+@@ -139,18 +149,18 @@ static const struct dev_pm_ops replicator_dev_pm_ops = {
+ 			   replicator_runtime_resume, NULL)
+ };
+ 
+-static const struct of_device_id replicator_match[] = {
++static const struct of_device_id static_replicator_match[] = {
+ 	{.compatible = "arm,coresight-replicator"},
+ 	{}
+ };
+ 
+-static struct platform_driver replicator_driver = {
+-	.probe          = replicator_probe,
++static struct platform_driver static_replicator_driver = {
++	.probe          = static_replicator_probe,
+ 	.driver         = {
+ 		.name   = "coresight-replicator",
+-		.of_match_table = replicator_match,
++		.of_match_table = static_replicator_match,
+ 		.pm	= &replicator_dev_pm_ops,
+ 		.suppress_bind_attrs = true,
+ 	},
+ };
+-builtin_platform_driver(replicator_driver);
++builtin_platform_driver(static_replicator_driver);
 -- 
 2.7.4
