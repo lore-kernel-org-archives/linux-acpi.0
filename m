@@ -1,96 +1,105 @@
-From: Furquan Shaikh <furquan@google.com>
-Subject: Re: [PATCH] drivers/acpi: Clear status of an event before enabling it
-Date: Wed, 20 Mar 2019 20:16:08 -0600
-Message-ID: <CAEGmHFEqhh_xYaTXsVHqSgNW-1Ao6-mtk0BPhgu3-8ua6cCZ-Q@mail.gmail.com>
-References: <20190320222844.134765-1-furquan@google.com> <CAJZ5v0h7dYEFHSOHengJ3OFyXBW+XZVbjCAegpzqg1VxeeaXog@mail.gmail.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH 1/2] ACPI/IORT: set online numa node for smmuv3 device
+Date: Thu, 21 Mar 2019 14:08:47 +0800
+Message-ID: <c0ba61db-0d99-0a50-92c6-cf6f9ad97872@huawei.com>
+References: <20190315021940.86905-1-wangkefeng.wang@huawei.com>
+ <20190315021940.86905-2-wangkefeng.wang@huawei.com>
+ <d45aa526-2cd9-2381-8856-6ddb7e7ced7d@arm.com>
+ <20190320140016.GA8694@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0h7dYEFHSOHengJ3OFyXBW+XZVbjCAegpzqg1VxeeaXog@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rajat Jain <rajatja@google.com>, Evan Green <evgreen@google.com>, Duncan Laurie <dlaurie@google.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190320140016.GA8694@e107981-ln.cambridge.arm.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 20, 2019 at 5:11 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> On Wed, Mar 20, 2019 at 11:34 PM Furquan Shaikh <furquan@google.com> wrote:
-> >
-> > Commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
-> > clearing ACPI IRQs during suspend/resume") was added to stop clearing
-> > of event status bits unconditionally on suspend and resume paths. This
-> > was done because of an issue
-> > reported (https://bugzilla.kernel.org/show_bug.cgi?id=196249) where
-> > lid status stays closed even on resume (which happens because event
-> > status bits are cleared unconditionally on resume). Though this change
-> > fixed the issue on suspend path, it introduced regressions on several
-> > resume paths.
-> >
-> > First regression was reported and fixed on S5 path by the following
-> > change: commit fa85015c0d95 ("ACPICA: Clear status of all events when
-> > entering S5"). Next regression was reported and fixed on all legacy
-> > sleep paths by the commit f317c7dc12b7 ("ACPICA: Clear status of all
-> > events when entering sleep states"). However, regression still exists
-> > on S0ix sleep path since it does not follow the legacy sleep path.
->
-> What exactly is failing?
-
-Here is the failure scenario:
-
-1. Consider the case of trackpad which acts as a wake source.
-2. Since the pad is configured for SCI, GPE_STS gets set for that pad
-during normal interrupts as well (i.e. during probe at boot or when
-using the trackpad)
-3. Now, when the platform decides to enter S0ix, it enables the wake
-on trackpad by enabling appropriate GPE_EN bit.
-4. So, at this point, we are in a situation where GPE_EN as well as
-GPE_STS are set.
-5. Now, if the platform enters S0ix, having GPE_STS set will result in
-unwanted wakes because of stale events.
-
-This is similar to what was fixed on the legacy sleep path:
-https://lkml.org/lkml/2018/8/12/42. However, as S0ix does not follow
-the legacy sleep path, clearing of GPE status does not happen. Thus,
-it is causing failures to go into S0ix on our platforms because of the
-stale wake events as described above.
-
->
-> > In case of S0ix, events are enabled as part of device suspend path. If
-> > status bits for the events are set when they are enabled, it could
-> > result in premature wake from S0ix. This change ensures that status is
-> > cleared for any event that is being enabled so that any stale events
-> > are cleared out.
-> >
-> > Signed-off-by: Furquan Shaikh <furquan@google.com>
-> > ---
-> >  drivers/acpi/acpica/evgpe.c | 6 +++++-
-> >  1 file changed, 5 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-> > index 62d3aa74277b4..61455ab42fc87 100644
-> > --- a/drivers/acpi/acpica/evgpe.c
-> > +++ b/drivers/acpi/acpica/evgpe.c
-> > @@ -81,8 +81,12 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
-> >
-> >         ACPI_FUNCTION_TRACE(ev_enable_gpe);
-> >
-> > -       /* Enable the requested GPE */
-> > +       /* Clear the GPE (of stale events) */
-> > +       status = acpi_hw_clear_gpe(gpe_event_info);
-> > +       if (ACPI_FAILURE(status))
-> > +               return_ACPI_STATUS(status);
->
-> Well, this may cause events to be missed.
-
-Won't those be stale events? i.e. any event that has occurred before
-GPE is enabled should be ignored.
-
->
-> >
-> > +       /* Enable the requested GPE */
-> >         status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
-> >         return_ACPI_STATUS(status);
-> >  }
-> > --
-> > 2.21.0.225.g810b269d1ac-goog
-> >
+Ck9uIDIwMTkvMy8yMCAyMjowMCwgTG9yZW56byBQaWVyYWxpc2kgd3JvdGU6Cj4gT24gV2VkLCBN
+YXIgMjAsIDIwMTkgYXQgMTE6NDE6MThBTSArMDAwMCwgUm9iaW4gTXVycGh5IHdyb3RlOgo+PiBP
+biAxNS8wMy8yMDE5IDAyOjE5LCBLZWZlbmcgV2FuZyB3cm90ZToKPj4+IElmIHRoZXJlIGlzIG9u
+bHkgbm9kZSAwIGluIHN5c3RlbSwgYnV0IHNtbXV2MyBkZXZpY2UgaXMgc2V0IHRvIG9mZmxpbmUK
+Pj4+IG5vZGUgMSwgcGFyc2VkIGZyb20gcHJveGltaXR5IGRvbWFpbiBpbiBTTU1VdjMgSU9SVCB0
+YWJsZSwgaXQgd2lsbCBsZWFkCj4+PiB0byBmb2xsb3dpbmcgY3Jhc2gsCj4+IFN1cmVseSB0aGF0
+J3MganVzdCBhIGZpcm13YXJlIGJ1Zz8gSWYgbm9kZSAxIGRvZXNuJ3QgZXhpc3QgaW4gdGhlIHN5
+c3RlbQo+PiB0aGVuIEFGQUlDUyBpZiB3ZSdyZSBwcmVzZW50ZWQgd2l0aCBhIGRldmljZSBjbGFp
+bWluZyB0byBiZSBvbiB0aGF0IG5vZGUgd2UKPj4gY2FuIG9ubHkgYXNzdW1lIHRoZSB3aG9sZSB0
+aGluZyBpcyBib2d1cy4gVGh1cyBpZiB3ZSdyZSBnb2luZyB0byB3b3JrIGFyb3VuZAo+PiBpdCBh
+dCBhbGwsIGl0IHNlZW1zIHRvIG1lIGxpa2Ugd2Ugc2hvdWxkIHJlamVjdCB0aGUgZW50aXJlIGRl
+dmljZSByYXRoZXIKPj4gdGhhbiBqdXN0IGJvZGdpbmcgaXQgdG8gc29tZSBvdGhlciBub2RlLgoK
+WWVzLCBJIG1ldCB0aGlzIG9vcHMgd2l0aCBhIHdyb25nIElPUlQgY29uZmlndXJhdGlvbiwKCj4g
+SSBzdXNwZWN0IHRoYXQncyB0aGUgc2FtZSBpc3N1ZSB0aGlzIHRocmVhZCBhZGRyZXNzZWQ6Cj4K
+PiBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1wY2kvQ0FFclNwbzZTMHF0UjQydGpHWnJG
+dTRhTUZGeVRoeDFoa0hUU293VHQ2dDNYZXJwSG5BQG1haWwuZ21haWwuY29tLwoKYW5kIHRoZSBz
+aXR1YXRpb24gbWVudGlvbmVkIGFib3ZlIHNob3VsZCB3aWxsIHRyaWdnZXIgdGhpcyBpc3N1ZSB0
+b28uCgpJZiB0aGUgbm9kZSBpcyBvZmZsaW5lLCB3ZSBjYW4ganVzdCByZXR1cm4gZnJvbSBhcm1f
+c21tdV92M19zZXRfcHJveGltaXR5KCkswqAgYW55IGJldHRlciB3YXkgdG8gZml4IHRoaXM/CgoK
+PiBMb3JlbnpvCj4KPj4gUm9iaW4uCj4+Cj4+PiBbICAgNDcuNDkyNDUxXSBVbmFibGUgdG8gaGFu
+ZGxlIGtlcm5lbCBwYWdpbmcgcmVxdWVzdCBhdCB2aXJ0dWFsIGFkZHJlc3MgMDAwMDAwMDAwMDAw
+MTM4OAo+Pj4gWyAgIDQ3LjUwMDM2MV0gTWVtIGFib3J0IGluZm86Cj4+PiBbICAgNDcuNTAzMTQz
+XSAgIEVTUiA9IDB4OTYwMDAwMDQKPj4+IFsgICA0Ny41MDYxODldICAgRXhjZXB0aW9uIGNsYXNz
+ID0gREFCVCAoY3VycmVudCBFTCksIElMID0gMzIgYml0cwo+Pj4gWyAgIDQ3LjUxMjA5OV0gICBT
+RVQgPSAwLCBGblYgPSAwCj4+PiBbICAgNDcuNTE1MTQwXSAgIEVBID0gMCwgUzFQVFcgPSAwCj4+
+PiBbICAgNDcuNTE4MjcyXSBEYXRhIGFib3J0IGluZm86Cj4+PiBbICAgNDcuNTIxMTQ0XSAgIElT
+ViA9IDAsIElTUyA9IDB4MDAwMDAwMDQKPj4+IFsgICA0Ny41MjQ5NzBdICAgQ00gPSAwLCBXblIg
+PSAwCj4+PiBbICAgNDcuNTI3OTI5XSBbMDAwMDAwMDAwMDAwMTM4OF0gdXNlciBhZGRyZXNzIGJ1
+dCBhY3RpdmVfbW0gaXMgc3dhcHBlcgo+Pj4gWyAgIDQ3LjUzNDI4NV0gSW50ZXJuYWwgZXJyb3I6
+IE9vcHM6IDk2MDAwMDA0IFsjMV0gU01QCj4+PiBbICAgNDcuNTM5MTUxXSBNb2R1bGVzIGxpbmtl
+ZCBpbjoKPj4+IFsgICA0Ny41NDIxOTRdIENQVTogNSBQSUQ6IDEgQ29tbTogc3dhcHBlci8wIE5v
+dCB0YWludGVkIDUuMC4wICMxNQo+Pj4gWyAgIDQ3LjU0OTQ5MF0gcHN0YXRlOiA4MGMwMDAwOSAo
+TnpjdiBkYWlmICtQQU4gK1VBTykKPj4+IFsgICA0Ny41NTQyNzJdIHBjIDogX19hbGxvY19wYWdl
+c19ub2RlbWFzaysweDEzYy8weDEwNjgKPj4+IFsgICA0Ny41NTkyMjRdIGxyIDogX19hbGxvY19w
+YWdlc19ub2RlbWFzaysweGRjLzB4MTA2OAo+Pj4gLi4uCj4+PiBbICAgNDcuNjQ2ODczXSBQcm9j
+ZXNzIHN3YXBwZXIvMCAocGlkOiAxLCBzdGFjayBsaW1pdCA9IDB4KF9fX19wdHJ2YWxfX19fKSkK
+Pj4+IFsgICA0Ny42NTM1NjBdIENhbGwgdHJhY2U6Cj4+PiBbICAgNDcuNjU1OTk0XSAgX19hbGxv
+Y19wYWdlc19ub2RlbWFzaysweDEzYy8weDEwNjgKPj4+IFsgICA0Ny42NjA2MDBdICBuZXdfc2xh
+YisweGVjLzB4NTcwCj4+PiBbICAgNDcuNjYzODE2XSAgX19fc2xhYl9hbGxvYysweDNlMC8weDRm
+OAo+Pj4gWyAgIDQ3LjY2NzU1M10gIF9fc2xhYl9hbGxvYysweDYwLzB4ODAKPj4+IFsgICA0Ny42
+NzEwMjldICBfX2ttYWxsb2Nfbm9kZV90cmFja19jYWxsZXIrMHgxMGMvMHg0NzgKPj4+IFsgICA0
+Ny42NzU5ODRdICBkZXZtX2ttYWxsb2MrMHg0NC8weGIwCj4+PiBbICAgNDcuNjc5NDYwXSAgcGlu
+Y3RybF9iaW5kX3BpbnMrMHg0Yy8weDE4OAo+Pj4gWyAgIDQ3LjY4MzQ1N10gIHJlYWxseV9wcm9i
+ZSsweDc4LzB4MmI4Cj4+PiBbICAgNDcuNjg3MDE5XSAgZHJpdmVyX3Byb2JlX2RldmljZSsweDY0
+LzB4MTEwCj4+PiBbICAgNDcuNjkxMTg5XSAgZGV2aWNlX2RyaXZlcl9hdHRhY2grMHg3NC8weDk4
+Cj4+PiBbICAgNDcuNjk1MzYwXSAgX19kcml2ZXJfYXR0YWNoKzB4OWMvMHhlOAo+Pj4gWyAgIDQ3
+LjY5OTA5NV0gIGJ1c19mb3JfZWFjaF9kZXYrMHg4NC8weGQ4Cj4+PiBbICAgNDcuNzAyOTE5XSAg
+ZHJpdmVyX2F0dGFjaCsweDMwLzB4NDAKPj4+IFsgICA0Ny43MDY0ODFdICBidXNfYWRkX2RyaXZl
+cisweDE3MC8weDIxOAo+Pj4gWyAgIDQ3LjcxMDMwNF0gIGRyaXZlcl9yZWdpc3RlcisweDY0LzB4
+MTE4Cj4+PiBbICAgNDcuNzE0MTI4XSAgX19wbGF0Zm9ybV9kcml2ZXJfcmVnaXN0ZXIrMHg1NC8w
+eDYwCj4+PiBbICAgNDcuNzE4ODIwXSAgYXJtX3NtbXVfZHJpdmVyX2luaXQrMHgyNC8weDJjCj4+
+PiBbICAgNDcuNzIyOTkxXSAgZG9fb25lX2luaXRjYWxsKzB4YmMvMHgzMjgKPj4+IFsgICA0Ny43
+MjY4MTZdICBrZXJuZWxfaW5pdF9mcmVlYWJsZSsweDMwNC8weDNhYwo+Pj4gWyAgIDQ3LjczMTE2
+Ml0gIGtlcm5lbF9pbml0KzB4MTgvMHgxMTAKPj4+IFsgICA0Ny43MzQ2MzhdICByZXRfZnJvbV9m
+b3JrKzB4MTAvMHgxYwo+Pj4gWyAgIDQ3LjczODIwMl0gQ29kZTogZjkwMDEzYjUgYjk0MTBmYTEg
+MWE5ZjA2OTQgYjUwMDE0YzIgKGI5NDAwODA0KQo+Pj4gWyAgIDQ3Ljc0NDMwN10gLS0tWyBlbmQg
+dHJhY2UgZGZlYWVkNGMzNzNhMzJkYSBdLS0KPj4+Cj4+PiBVc2luZyBhY3BpX21hcF9weG1fdG9f
+b25saW5lX25vZGUoKSB0byBnZXQgb25saW5lIG5vZGUgdG8gZml4IGl0Lgo+Pj4KPj4+IFNpZ25l
+ZC1vZmYtYnk6IEtlZmVuZyBXYW5nIDx3YW5na2VmZW5nLndhbmdAaHVhd2VpLmNvbT4KPj4+IC0t
+LQo+Pj4gIGRyaXZlcnMvYWNwaS9hcm02NC9pb3J0LmMgfCA4ICsrKystLS0tCj4+PiAgMSBmaWxl
+IGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkKPj4+Cj4+PiBkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9hY3BpL2FybTY0L2lvcnQuYyBiL2RyaXZlcnMvYWNwaS9hcm02NC9pb3J0
+LmMKPj4+IGluZGV4IGU0ODg5NGUwMDJiYS4uYTJjZTgzNmVjMTAzIDEwMDY0NAo+Pj4gLS0tIGEv
+ZHJpdmVycy9hY3BpL2FybTY0L2lvcnQuYwo+Pj4gKysrIGIvZHJpdmVycy9hY3BpL2FybTY0L2lv
+cnQuYwo+Pj4gQEAgLTEyMzksMTAgKzEyMzksMTAgQEAgc3RhdGljIHZvaWQgIF9faW5pdCBhcm1f
+c21tdV92M19zZXRfcHJveGltaXR5KHN0cnVjdCBkZXZpY2UgKmRldiwKPj4+ICAJc21tdSA9IChz
+dHJ1Y3QgYWNwaV9pb3J0X3NtbXVfdjMgKilub2RlLT5ub2RlX2RhdGE7Cj4+PiAgCWlmIChzbW11
+LT5mbGFncyAmIEFDUElfSU9SVF9TTU1VX1YzX1BYTV9WQUxJRCkgewo+Pj4gLQkJc2V0X2Rldl9u
+b2RlKGRldiwgYWNwaV9tYXBfcHhtX3RvX25vZGUoc21tdS0+cHhtKSk7Cj4+PiAtCQlwcl9pbmZv
+KCJTTU1VLXYzWyVsbHhdIE1hcHBlZCB0byBQcm94aW1pdHkgZG9tYWluICVkXG4iLAo+Pj4gLQkJ
+CXNtbXUtPmJhc2VfYWRkcmVzcywKPj4+IC0JCQlzbW11LT5weG0pOwo+Pj4gKwkJaW50IG5vZGUg
+PSBhY3BpX21hcF9weG1fdG9fb25saW5lX25vZGUoc21tdS0+cHhtKTsKPj4+ICsJCXNldF9kZXZf
+bm9kZShkZXYsIG5vZGUpOwo+Pj4gKwkJcHJfaW5mbygiU01NVS12M1slbGx4XSAtPiBQWE0gJWQg
+LT4gTm9kZSAlZFxuIiwKPj4+ICsJCQlzbW11LT5iYXNlX2FkZHJlc3MsIHNtbXUtPnB4bSwgbm9k
+ZSk7Cj4+PiAgCX0KPj4+ICB9Cj4+PiAgI2Vsc2UKPj4+Cj4gLgo+CgoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5n
+IGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
+bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
