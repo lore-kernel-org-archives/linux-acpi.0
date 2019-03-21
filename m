@@ -1,105 +1,188 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: Re: [PATCH 1/2] ACPI/IORT: set online numa node for smmuv3 device
-Date: Thu, 21 Mar 2019 14:08:47 +0800
-Message-ID: <c0ba61db-0d99-0a50-92c6-cf6f9ad97872@huawei.com>
-References: <20190315021940.86905-1-wangkefeng.wang@huawei.com>
- <20190315021940.86905-2-wangkefeng.wang@huawei.com>
- <d45aa526-2cd9-2381-8856-6ddb7e7ced7d@arm.com>
- <20190320140016.GA8694@e107981-ln.cambridge.arm.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v6 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
+ 162001800 quirk
+Date: Thu, 21 Mar 2019 12:36:22 +0000
+Message-ID: <ac16c8c7-02e6-5837-5887-737d7ebdcbea@arm.com>
+References: <20190204121324.11460-1-shameerali.kolothum.thodi@huawei.com>
+ <20190204121324.11460-5-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190320140016.GA8694@e107981-ln.cambridge.arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Sudeep Holla <sudeep.holla@arm.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190204121324.11460-5-shameerali.kolothum.thodi@huawei.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com
+Cc: andrew.murray@arm.com, jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-Ck9uIDIwMTkvMy8yMCAyMjowMCwgTG9yZW56byBQaWVyYWxpc2kgd3JvdGU6Cj4gT24gV2VkLCBN
-YXIgMjAsIDIwMTkgYXQgMTE6NDE6MThBTSArMDAwMCwgUm9iaW4gTXVycGh5IHdyb3RlOgo+PiBP
-biAxNS8wMy8yMDE5IDAyOjE5LCBLZWZlbmcgV2FuZyB3cm90ZToKPj4+IElmIHRoZXJlIGlzIG9u
-bHkgbm9kZSAwIGluIHN5c3RlbSwgYnV0IHNtbXV2MyBkZXZpY2UgaXMgc2V0IHRvIG9mZmxpbmUK
-Pj4+IG5vZGUgMSwgcGFyc2VkIGZyb20gcHJveGltaXR5IGRvbWFpbiBpbiBTTU1VdjMgSU9SVCB0
-YWJsZSwgaXQgd2lsbCBsZWFkCj4+PiB0byBmb2xsb3dpbmcgY3Jhc2gsCj4+IFN1cmVseSB0aGF0
-J3MganVzdCBhIGZpcm13YXJlIGJ1Zz8gSWYgbm9kZSAxIGRvZXNuJ3QgZXhpc3QgaW4gdGhlIHN5
-c3RlbQo+PiB0aGVuIEFGQUlDUyBpZiB3ZSdyZSBwcmVzZW50ZWQgd2l0aCBhIGRldmljZSBjbGFp
-bWluZyB0byBiZSBvbiB0aGF0IG5vZGUgd2UKPj4gY2FuIG9ubHkgYXNzdW1lIHRoZSB3aG9sZSB0
-aGluZyBpcyBib2d1cy4gVGh1cyBpZiB3ZSdyZSBnb2luZyB0byB3b3JrIGFyb3VuZAo+PiBpdCBh
-dCBhbGwsIGl0IHNlZW1zIHRvIG1lIGxpa2Ugd2Ugc2hvdWxkIHJlamVjdCB0aGUgZW50aXJlIGRl
-dmljZSByYXRoZXIKPj4gdGhhbiBqdXN0IGJvZGdpbmcgaXQgdG8gc29tZSBvdGhlciBub2RlLgoK
-WWVzLCBJIG1ldCB0aGlzIG9vcHMgd2l0aCBhIHdyb25nIElPUlQgY29uZmlndXJhdGlvbiwKCj4g
-SSBzdXNwZWN0IHRoYXQncyB0aGUgc2FtZSBpc3N1ZSB0aGlzIHRocmVhZCBhZGRyZXNzZWQ6Cj4K
-PiBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1wY2kvQ0FFclNwbzZTMHF0UjQydGpHWnJG
-dTRhTUZGeVRoeDFoa0hUU293VHQ2dDNYZXJwSG5BQG1haWwuZ21haWwuY29tLwoKYW5kIHRoZSBz
-aXR1YXRpb24gbWVudGlvbmVkIGFib3ZlIHNob3VsZCB3aWxsIHRyaWdnZXIgdGhpcyBpc3N1ZSB0
-b28uCgpJZiB0aGUgbm9kZSBpcyBvZmZsaW5lLCB3ZSBjYW4ganVzdCByZXR1cm4gZnJvbSBhcm1f
-c21tdV92M19zZXRfcHJveGltaXR5KCkswqAgYW55IGJldHRlciB3YXkgdG8gZml4IHRoaXM/CgoK
-PiBMb3JlbnpvCj4KPj4gUm9iaW4uCj4+Cj4+PiBbICAgNDcuNDkyNDUxXSBVbmFibGUgdG8gaGFu
-ZGxlIGtlcm5lbCBwYWdpbmcgcmVxdWVzdCBhdCB2aXJ0dWFsIGFkZHJlc3MgMDAwMDAwMDAwMDAw
-MTM4OAo+Pj4gWyAgIDQ3LjUwMDM2MV0gTWVtIGFib3J0IGluZm86Cj4+PiBbICAgNDcuNTAzMTQz
-XSAgIEVTUiA9IDB4OTYwMDAwMDQKPj4+IFsgICA0Ny41MDYxODldICAgRXhjZXB0aW9uIGNsYXNz
-ID0gREFCVCAoY3VycmVudCBFTCksIElMID0gMzIgYml0cwo+Pj4gWyAgIDQ3LjUxMjA5OV0gICBT
-RVQgPSAwLCBGblYgPSAwCj4+PiBbICAgNDcuNTE1MTQwXSAgIEVBID0gMCwgUzFQVFcgPSAwCj4+
-PiBbICAgNDcuNTE4MjcyXSBEYXRhIGFib3J0IGluZm86Cj4+PiBbICAgNDcuNTIxMTQ0XSAgIElT
-ViA9IDAsIElTUyA9IDB4MDAwMDAwMDQKPj4+IFsgICA0Ny41MjQ5NzBdICAgQ00gPSAwLCBXblIg
-PSAwCj4+PiBbICAgNDcuNTI3OTI5XSBbMDAwMDAwMDAwMDAwMTM4OF0gdXNlciBhZGRyZXNzIGJ1
-dCBhY3RpdmVfbW0gaXMgc3dhcHBlcgo+Pj4gWyAgIDQ3LjUzNDI4NV0gSW50ZXJuYWwgZXJyb3I6
-IE9vcHM6IDk2MDAwMDA0IFsjMV0gU01QCj4+PiBbICAgNDcuNTM5MTUxXSBNb2R1bGVzIGxpbmtl
-ZCBpbjoKPj4+IFsgICA0Ny41NDIxOTRdIENQVTogNSBQSUQ6IDEgQ29tbTogc3dhcHBlci8wIE5v
-dCB0YWludGVkIDUuMC4wICMxNQo+Pj4gWyAgIDQ3LjU0OTQ5MF0gcHN0YXRlOiA4MGMwMDAwOSAo
-TnpjdiBkYWlmICtQQU4gK1VBTykKPj4+IFsgICA0Ny41NTQyNzJdIHBjIDogX19hbGxvY19wYWdl
-c19ub2RlbWFzaysweDEzYy8weDEwNjgKPj4+IFsgICA0Ny41NTkyMjRdIGxyIDogX19hbGxvY19w
-YWdlc19ub2RlbWFzaysweGRjLzB4MTA2OAo+Pj4gLi4uCj4+PiBbICAgNDcuNjQ2ODczXSBQcm9j
-ZXNzIHN3YXBwZXIvMCAocGlkOiAxLCBzdGFjayBsaW1pdCA9IDB4KF9fX19wdHJ2YWxfX19fKSkK
-Pj4+IFsgICA0Ny42NTM1NjBdIENhbGwgdHJhY2U6Cj4+PiBbICAgNDcuNjU1OTk0XSAgX19hbGxv
-Y19wYWdlc19ub2RlbWFzaysweDEzYy8weDEwNjgKPj4+IFsgICA0Ny42NjA2MDBdICBuZXdfc2xh
-YisweGVjLzB4NTcwCj4+PiBbICAgNDcuNjYzODE2XSAgX19fc2xhYl9hbGxvYysweDNlMC8weDRm
-OAo+Pj4gWyAgIDQ3LjY2NzU1M10gIF9fc2xhYl9hbGxvYysweDYwLzB4ODAKPj4+IFsgICA0Ny42
-NzEwMjldICBfX2ttYWxsb2Nfbm9kZV90cmFja19jYWxsZXIrMHgxMGMvMHg0NzgKPj4+IFsgICA0
-Ny42NzU5ODRdICBkZXZtX2ttYWxsb2MrMHg0NC8weGIwCj4+PiBbICAgNDcuNjc5NDYwXSAgcGlu
-Y3RybF9iaW5kX3BpbnMrMHg0Yy8weDE4OAo+Pj4gWyAgIDQ3LjY4MzQ1N10gIHJlYWxseV9wcm9i
-ZSsweDc4LzB4MmI4Cj4+PiBbICAgNDcuNjg3MDE5XSAgZHJpdmVyX3Byb2JlX2RldmljZSsweDY0
-LzB4MTEwCj4+PiBbICAgNDcuNjkxMTg5XSAgZGV2aWNlX2RyaXZlcl9hdHRhY2grMHg3NC8weDk4
-Cj4+PiBbICAgNDcuNjk1MzYwXSAgX19kcml2ZXJfYXR0YWNoKzB4OWMvMHhlOAo+Pj4gWyAgIDQ3
-LjY5OTA5NV0gIGJ1c19mb3JfZWFjaF9kZXYrMHg4NC8weGQ4Cj4+PiBbICAgNDcuNzAyOTE5XSAg
-ZHJpdmVyX2F0dGFjaCsweDMwLzB4NDAKPj4+IFsgICA0Ny43MDY0ODFdICBidXNfYWRkX2RyaXZl
-cisweDE3MC8weDIxOAo+Pj4gWyAgIDQ3LjcxMDMwNF0gIGRyaXZlcl9yZWdpc3RlcisweDY0LzB4
-MTE4Cj4+PiBbICAgNDcuNzE0MTI4XSAgX19wbGF0Zm9ybV9kcml2ZXJfcmVnaXN0ZXIrMHg1NC8w
-eDYwCj4+PiBbICAgNDcuNzE4ODIwXSAgYXJtX3NtbXVfZHJpdmVyX2luaXQrMHgyNC8weDJjCj4+
-PiBbICAgNDcuNzIyOTkxXSAgZG9fb25lX2luaXRjYWxsKzB4YmMvMHgzMjgKPj4+IFsgICA0Ny43
-MjY4MTZdICBrZXJuZWxfaW5pdF9mcmVlYWJsZSsweDMwNC8weDNhYwo+Pj4gWyAgIDQ3LjczMTE2
-Ml0gIGtlcm5lbF9pbml0KzB4MTgvMHgxMTAKPj4+IFsgICA0Ny43MzQ2MzhdICByZXRfZnJvbV9m
-b3JrKzB4MTAvMHgxYwo+Pj4gWyAgIDQ3LjczODIwMl0gQ29kZTogZjkwMDEzYjUgYjk0MTBmYTEg
-MWE5ZjA2OTQgYjUwMDE0YzIgKGI5NDAwODA0KQo+Pj4gWyAgIDQ3Ljc0NDMwN10gLS0tWyBlbmQg
-dHJhY2UgZGZlYWVkNGMzNzNhMzJkYSBdLS0KPj4+Cj4+PiBVc2luZyBhY3BpX21hcF9weG1fdG9f
-b25saW5lX25vZGUoKSB0byBnZXQgb25saW5lIG5vZGUgdG8gZml4IGl0Lgo+Pj4KPj4+IFNpZ25l
-ZC1vZmYtYnk6IEtlZmVuZyBXYW5nIDx3YW5na2VmZW5nLndhbmdAaHVhd2VpLmNvbT4KPj4+IC0t
-LQo+Pj4gIGRyaXZlcnMvYWNwaS9hcm02NC9pb3J0LmMgfCA4ICsrKystLS0tCj4+PiAgMSBmaWxl
-IGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkKPj4+Cj4+PiBkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9hY3BpL2FybTY0L2lvcnQuYyBiL2RyaXZlcnMvYWNwaS9hcm02NC9pb3J0
-LmMKPj4+IGluZGV4IGU0ODg5NGUwMDJiYS4uYTJjZTgzNmVjMTAzIDEwMDY0NAo+Pj4gLS0tIGEv
-ZHJpdmVycy9hY3BpL2FybTY0L2lvcnQuYwo+Pj4gKysrIGIvZHJpdmVycy9hY3BpL2FybTY0L2lv
-cnQuYwo+Pj4gQEAgLTEyMzksMTAgKzEyMzksMTAgQEAgc3RhdGljIHZvaWQgIF9faW5pdCBhcm1f
-c21tdV92M19zZXRfcHJveGltaXR5KHN0cnVjdCBkZXZpY2UgKmRldiwKPj4+ICAJc21tdSA9IChz
-dHJ1Y3QgYWNwaV9pb3J0X3NtbXVfdjMgKilub2RlLT5ub2RlX2RhdGE7Cj4+PiAgCWlmIChzbW11
-LT5mbGFncyAmIEFDUElfSU9SVF9TTU1VX1YzX1BYTV9WQUxJRCkgewo+Pj4gLQkJc2V0X2Rldl9u
-b2RlKGRldiwgYWNwaV9tYXBfcHhtX3RvX25vZGUoc21tdS0+cHhtKSk7Cj4+PiAtCQlwcl9pbmZv
-KCJTTU1VLXYzWyVsbHhdIE1hcHBlZCB0byBQcm94aW1pdHkgZG9tYWluICVkXG4iLAo+Pj4gLQkJ
-CXNtbXUtPmJhc2VfYWRkcmVzcywKPj4+IC0JCQlzbW11LT5weG0pOwo+Pj4gKwkJaW50IG5vZGUg
-PSBhY3BpX21hcF9weG1fdG9fb25saW5lX25vZGUoc21tdS0+cHhtKTsKPj4+ICsJCXNldF9kZXZf
-bm9kZShkZXYsIG5vZGUpOwo+Pj4gKwkJcHJfaW5mbygiU01NVS12M1slbGx4XSAtPiBQWE0gJWQg
-LT4gTm9kZSAlZFxuIiwKPj4+ICsJCQlzbW11LT5iYXNlX2FkZHJlc3MsIHNtbXUtPnB4bSwgbm9k
-ZSk7Cj4+PiAgCX0KPj4+ICB9Cj4+PiAgI2Vsc2UKPj4+Cj4gLgo+CgoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5n
-IGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
-bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On 04/02/2019 12:13, Shameer Kolothum wrote:
+> HiSilicon erratum 162001800 describes the limitation of
+> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
+> 
+> On these platforms, the PMCG event counter registers
+> (SMMU_PMCG_EVCNTRn) are read only and as a result it
+> is not possible to set the initial counter period value
+> on event monitor start.
+> 
+> To work around this, the current value of the counter
+> is read and used for delta calculations. OEM information
+> from ACPI header is used to identify the affected hardware
+> platforms.
+> 
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> ---
+>   drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
+>   drivers/perf/arm_smmuv3_pmu.c | 48 ++++++++++++++++++++++++++++++++++++-------
+>   include/linux/acpi_iort.h     |  1 +
+>   3 files changed, 57 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e2c9b26..4dc68de 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1366,9 +1366,23 @@ static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
+>   				       ACPI_EDGE_SENSITIVE, &res[2]);
+>   }
+>   
+> +static struct acpi_platform_list pmcg_plat_info[] __initdata = {
+> +	/* HiSilicon Hip08 Platform */
+> +	{"HISI  ", "HIP08   ", 0, ACPI_SIG_IORT, greater_than_or_equal, 0,
+> +	 IORT_SMMU_V3_PMCG_HISI_HIP08},
+> +	{ }
+> +};
+> +
+>   static int __init arm_smmu_v3_pmcg_add_platdata(struct platform_device *pdev)
+>   {
+> -	u32 model = IORT_SMMU_V3_PMCG_GENERIC;
+> +	u32 model;
+> +	int idx;
+> +
+> +	idx = acpi_match_platform_list(pmcg_plat_info);
+> +	if (idx >= 0)
+> +		model = pmcg_plat_info[idx].data;
+> +	else
+> +		model = IORT_SMMU_V3_PMCG_GENERIC;
+>   
+>   	return platform_device_add_data(pdev, &model, sizeof(model));
+>   }
+> diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
+> index eeb9dee..95a3ed0 100644
+> --- a/drivers/perf/arm_smmuv3_pmu.c
+> +++ b/drivers/perf/arm_smmuv3_pmu.c
+> @@ -35,6 +35,7 @@
+>    */
+>   
+>   #include <linux/acpi.h>
+> +#include <linux/acpi_iort.h>
+>   #include <linux/bitfield.h>
+>   #include <linux/bitops.h>
+>   #include <linux/cpuhotplug.h>
+> @@ -93,6 +94,8 @@
+>   
+>   #define SMMU_PMCG_PA_SHIFT              12
+>   
+> +#define SMMU_PMCG_EVCNTR_RDONLY         BIT(0)
+> +
+>   static int cpuhp_state_num;
+>   
+>   struct smmu_pmu {
+> @@ -107,6 +110,7 @@ struct smmu_pmu {
+>   	struct device *dev;
+>   	void __iomem *reg_base;
+>   	void __iomem *reloc_base;
+> +	u32 options;
+
+Super-nit: can we put options the other side of counter_mask so as to 
+not waste 8 whole bytes on padding? ;)
+
+Otherwise, nothing stands out to my eye, so
+
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+
+Cheers,
+Robin.
+
+>   	u64 counter_mask;
+>   	bool global_filter;
+>   	u32 global_filter_span;
+> @@ -222,15 +226,27 @@ static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
+>   	u32 idx = hwc->idx;
+>   	u64 new;
+>   
+> -	/*
+> -	 * We limit the max period to half the max counter value of the counter
+> -	 * size, so that even in the case of extreme interrupt latency the
+> -	 * counter will (hopefully) not wrap past its initial value.
+> -	 */
+> -	new = smmu_pmu->counter_mask >> 1;
+> +	if (smmu_pmu->options & SMMU_PMCG_EVCNTR_RDONLY) {
+> +		/*
+> +		 * On platforms that require this quirk, if the counter starts
+> +		 * at < half_counter value and wraps, the current logic of
+> +		 * handling the overflow may not work. It is expected that,
+> +		 * those platforms will have full 64 counter bits implemented
+> +		 * so that such a possibility is remote(eg: HiSilicon HIP08).
+> +		 */
+> +		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
+> +	} else {
+> +		/*
+> +		 * We limit the max period to half the max counter value
+> +		 * of the counter size, so that even in the case of extreme
+> +		 * interrupt latency the counter will (hopefully) not wrap
+> +		 * past its initial value.
+> +		 */
+> +		new = smmu_pmu->counter_mask >> 1;
+> +		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
+> +	}
+>   
+>   	local64_set(&hwc->prev_count, new);
+> -	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
+>   }
+>   
+>   static void smmu_pmu_set_event_filter(struct perf_event *event,
+> @@ -674,6 +690,22 @@ static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
+>   		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
+>   }
+>   
+> +static void smmu_pmu_get_acpi_options(struct smmu_pmu *smmu_pmu)
+> +{
+> +	u32 model;
+> +
+> +	model = *(u32 *)dev_get_platdata(smmu_pmu->dev);
+> +
+> +	switch (model) {
+> +	case IORT_SMMU_V3_PMCG_HISI_HIP08:
+> +		/* HiSilicon Erratum 162001800 */
+> +		smmu_pmu->options |= SMMU_PMCG_EVCNTR_RDONLY;
+> +		break;
+> +	}
+> +
+> +	dev_notice(smmu_pmu->dev, "option mask 0x%x\n", smmu_pmu->options);
+> +}
+> +
+>   static int smmu_pmu_probe(struct platform_device *pdev)
+>   {
+>   	struct smmu_pmu *smmu_pmu;
+> @@ -752,6 +784,8 @@ static int smmu_pmu_probe(struct platform_device *pdev)
+>   		return -EINVAL;
+>   	}
+>   
+> +	smmu_pmu_get_acpi_options(smmu_pmu);
+> +
+>   	/* Pick one CPU to be the preferred one to use */
+>   	smmu_pmu->on_cpu = get_cpu();
+>   	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index 832bd6a..bdb6912 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -31,6 +31,7 @@
+>    * that, this is not part of the IORT specification.
+>    */
+>   #define IORT_SMMU_V3_PMCG_GENERIC        0x00000000 /* Generic SMMUv3 PMCG */
+> +#define IORT_SMMU_V3_PMCG_HISI_HIP08     0x00000001 /* HiSilicon HIP08 PMCG */
+>   
+>   int iort_register_domain_token(int trans_id, phys_addr_t base,
+>   			       struct fwnode_handle *fw_node);
+> 
