@@ -1,35 +1,35 @@
-From: Sinan Kaya <Okaya-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/4] ACPI/IORT: Check ATS capability in root complex nodes
-Date: Thu, 21 Mar 2019 12:00:14 -0400
-Message-ID: <fc53b2f7-53c4-c32d-8588-6f8d98ef5e7f@kernel.org>
-References: <20190320173634.21895-1-jean-philippe.brucker@arm.com>
-	<20190320173634.21895-2-jean-philippe.brucker@arm.com>
+From: syzbot <syzbot+240f9766d6be3d69431e@syzkaller.appspotmail.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in _decode_session6 (2)
+Date: Thu, 21 Mar 2019 16:08:00 -0700
+Message-ID: <000000000000461a4c0584a2cfd2@google.com>
+References: <000000000000c4ba820579737025@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20190320173634.21895-2-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org
-Cc: zhongmiao-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <000000000000c4ba820579737025@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com, daniel@iogearbox.net, davem@davemloft.net, devel@acpica.org, herbert@gondor.apana.org.au, kuznet@ms2.inr.ac.ru, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-can@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, lv.zheng@intel.com, mkl@pengutronix.de, netdev@vger.kernel.org, rafael.j.wysocki@intel.com, rjw@rjwysocki.net, robert.moore@intel.com, socketcan@hartkopp.net, steffen.klassert@secunet.com, syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 3/20/2019 1:36 PM, Jean-Philippe Brucker wrote:
->   		err = pci_for_each_dma_alias(to_pci_dev(dev),
->   					     iort_pci_iommu_init, &info);
-> +
-> +		if (!err && !iort_pci_rc_supports_ats(node))
-> +			dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_NO_ATS;
+syzbot has bisected this bug to:
 
-Is it possible to remove !err check here. ATS supported is just a flag
-in IORT table. Does this decision have to rely on having a correct dma
-alias?
+commit 64fd1c7040880292710e6592ddc88d0d73cfb6fb
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Mon Jun 12 20:48:41 2017 +0000
+
+     ACPI / PM: Run wakeup notify handlers synchronously
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1555b12b200000
+start commit:   64fd1c70 ACPI / PM: Run wakeup notify handlers synchronously
+git tree:       upstream
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=1755b12b200000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1355b12b200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=93932074d01b4a5
+dashboard link: https://syzkaller.appspot.com/bug?extid=240f9766d6be3d69431e
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13f35e4d400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1280edbd400000
+
+Reported-by: syzbot+240f9766d6be3d69431e@syzkaller.appspotmail.com
+Fixes: 64fd1c704088 ("ACPI / PM: Run wakeup notify handlers synchronously")
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
