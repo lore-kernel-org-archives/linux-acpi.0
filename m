@@ -1,81 +1,92 @@
-From: Ian W MORRISON <ianwmorrison@gmail.com>
-Subject: [PATCH] Skip deferred request irqs for devices known to fail
-Date: Fri, 22 Mar 2019 22:05:15 +1100
-Message-ID: <20190322110515.21499-1-ianwmorrison@gmail.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: benjamin.tissoires@redhat.com, hdegoede@redhat.com, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com
-Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Ian W MORRISON <ianwmorrison@gmail.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: [PATCH 3.18 068/134] x86/kexec: Dont setup EFI info if EFI runtime is
+ not enabled
+Date: Fri, 22 Mar 2019 12:14:41 +0100
+Message-ID: <20190322111214.990612455@linuxfoundation.org>
+References: <20190322111210.465931067@linuxfoundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20190322111210.465931067-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec/>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yannik Sembritzki <yannik-Ed5pum6jkczxnD6Ig1nlyA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Philipp Rudo <prudo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, AKASHI Takahiro <takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, x86-ml <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, fanc.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Kairui Song <kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Patch ca876c7483b6 "gpiolib-acpi: make sure we trigger edge events at
-least once on boot" causes the MINIX family of mini PCs to fail to boot
-resulting in a "black screen". 
+3.18-stable review patch.  If anyone has any objections, please let me know.
 
-This patch excludes MINIX devices from executing this trigger in order
-to successfully boot.
+------------------
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Ian W MORRISON <ianwmorrison@gmail.com>
+[ Upstream commit 2aa958c99c7fd3162b089a1a56a34a0cdb778de1 ]
+
+Kexec-ing a kernel with "efi=noruntime" on the first kernel's command
+line causes the following null pointer dereference:
+
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
+  #PF error: [normal kernel read fault]
+  Call Trace:
+   efi_runtime_map_copy+0x28/0x30
+   bzImage64_load+0x688/0x872
+   arch_kexec_kernel_image_load+0x6d/0x70
+   kimage_file_alloc_init+0x13e/0x220
+   __x64_sys_kexec_file_load+0x144/0x290
+   do_syscall_64+0x55/0x1a0
+   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Just skip the EFI info setup if EFI runtime services are not enabled.
+
+ [ bp: Massage commit message. ]
+
+Suggested-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Kairui Song <kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
+Acked-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: AKASHI Takahiro <takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: fanc.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org
+Cc: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Cc: Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Philipp Rudo <prudo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: x86-ml <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yannik Sembritzki <yannik-Ed5pum6jkczxnD6Ig1nlyA@public.gmane.org>
+Link: https://lkml.kernel.org/r/20190118111310.29589-2-kasong-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Signed-off-by: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/gpio/gpiolib-acpi.c | 28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ arch/x86/kernel/kexec-bzimage64.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 259cf6ab969b..8d855dc9b020 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -16,9 +16,21 @@
- #include <linux/interrupt.h>
- #include <linux/mutex.h>
- #include <linux/pinctrl/pinctrl.h>
-+#include <linux/dmi.h>
+diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
+index ca05f86481aa..3e22751382c3 100644
+--- a/arch/x86/kernel/kexec-bzimage64.c
++++ b/arch/x86/kernel/kexec-bzimage64.c
+@@ -167,6 +167,9 @@ setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
+ 	struct efi_info *current_ei = &boot_params.efi_info;
+ 	struct efi_info *ei = &params->efi_info;
  
- #include "gpiolib.h"
- 
-+static const struct dmi_system_id skip_deferred_request_irqs_table[] = {
-+	{
-+		.ident = "MINIX Z83-4",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "MINIX"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Z83-4"),
-+		},
-+	},
-+	{}
-+};
++	if (!efi_enabled(EFI_RUNTIME_SERVICES))
++		return 0;
 +
- /**
-  * struct acpi_gpio_event - ACPI GPIO event handler data
-  *
-@@ -1219,18 +1231,24 @@ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
- }
+ 	if (!current_ei->efi_memmap_size)
+ 		return 0;
  
- /* Run deferred acpi_gpiochip_request_irqs() */
-+/* but exclude devices known to fail */
- static int acpi_gpio_handle_deferred_request_irqs(void)
- {
- 	struct acpi_gpio_chip *acpi_gpio, *tmp;
-+	const struct dmi_system_id *dmi_id;
- 
--	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
--	list_for_each_entry_safe(acpi_gpio, tmp,
-+	dmi_id = dmi_first_match(skip_deferred_request_irqs_table);
-+
-+	if (! dmi_id) {
-+		mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
-+		list_for_each_entry_safe(acpi_gpio, tmp,
- 				 &acpi_gpio_deferred_req_irqs_list,
- 				 deferred_req_irqs_list_entry)
--		acpi_gpiochip_request_irqs(acpi_gpio);
-+			acpi_gpiochip_request_irqs(acpi_gpio);
- 
--	acpi_gpio_deferred_req_irqs_done = true;
--	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
-+		acpi_gpio_deferred_req_irqs_done = true;
-+		mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
-+	}
- 
- 	return 0;
- }
 -- 
-2.17.1
+2.19.1
