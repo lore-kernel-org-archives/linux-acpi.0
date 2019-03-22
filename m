@@ -1,101 +1,55 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] Skip deferred request irqs for devices known to fail
-Date: Fri, 22 Mar 2019 15:45:23 +0100
-Message-ID: <b5a7b895-e08d-f432-8606-4d8c776d4a8a@redhat.com>
-References: <20190322110515.21499-1-ianwmorrison@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 0/5] Device property improvements, add %pfw format specifier
+Date: Fri, 22 Mar 2019 17:29:25 +0200
+Message-ID: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190322110515.21499-1-ianwmorrison@gmail.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ian W MORRISON <ianwmorrison@gmail.com>, benjamin.tissoires@redhat.com, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com
-Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi all,
 
-On 3/22/19 12:05 PM, Ian W MORRISON wrote:
-> Patch ca876c7483b6 "gpiolib-acpi: make sure we trigger edge events at
-> least once on boot" causes the MINIX family of mini PCs to fail to boot
-> resulting in a "black screen".
-> 
-> This patch excludes MINIX devices from executing this trigger in order
-> to successfully boot.
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Ian W MORRISON <ianwmorrison@gmail.com>
+This set adds functionality into the device property API (counting a
+node's parents as well as obtaining its name) in order to support printing
+fwnode names using a new conversion specifier "%pfw". The names that are
+produced are equivalent to its OF counterpart "%pOF" on OF systems for the
+two supported modifiers ("f" and "P").
 
-IMHO we need to root-cause this problem a bit more before applying this
-kludge.
+Printing a node's name is something that's been available on OF for a long
+time and if something is converted to device property API (such as the
+V4L2 fwnode framework) it always got removed of a nice feature that was
+sometimes essential in debugging. With this set, that no longer is the
+case.
 
-Can you provide an ACPI dump of one of the affected machines ?
+This set depends on a cleanup set fully releasing the now-deprecated %pf
+for other use:
 
-Regards,
+<URL:https://lore.kernel.org/lkml/20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com/T/#t>
 
-Hans
+I was a bit hesitant on how much of this should be covered by the fwnode
+ops and how much would be just better to reside in lib/vsprintf.c, but
+opted for putting it to the fwnode interface. This keeps it clean and
+still rather lean on the fwnode ops side while making it possible to add
+other firmware types (although that is unlikely I guess).
 
+Sakari Ailus (5):
+  device property: Add functions for accessing node's parents
+  device property: Add fwnode_get_name for returning the name of a node
+  device property: Add a function to obtain a node's prefix
+  lib/vsprintf: Make use of fwnode API to obtain node names and
+    separators
+  lib/vsprintf: Add %pfw conversion specifier for printing fwnode names
 
+ Documentation/core-api/printk-formats.rst | 24 +++++++++
+ drivers/acpi/property.c                   | 46 ++++++++++++++++
+ drivers/base/property.c                   | 86 ++++++++++++++++++++++++++---
+ drivers/of/property.c                     | 16 ++++++
+ include/linux/fwnode.h                    |  4 ++
+ include/linux/property.h                  |  5 ++
+ lib/vsprintf.c                            | 89 +++++++++++++++++++++++--------
+ scripts/checkpatch.pl                     |  2 +-
+ 8 files changed, 242 insertions(+), 30 deletions(-)
 
-> ---
->   drivers/gpio/gpiolib-acpi.c | 28 +++++++++++++++++++++++-----
->   1 file changed, 23 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 259cf6ab969b..8d855dc9b020 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -16,9 +16,21 @@
->   #include <linux/interrupt.h>
->   #include <linux/mutex.h>
->   #include <linux/pinctrl/pinctrl.h>
-> +#include <linux/dmi.h>
->   
->   #include "gpiolib.h"
->   
-> +static const struct dmi_system_id skip_deferred_request_irqs_table[] = {
-> +	{
-> +		.ident = "MINIX Z83-4",
-> +		.matches = {
-> +			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "MINIX"),
-> +			DMI_MATCH(DMI_PRODUCT_NAME, "Z83-4"),
-> +		},
-> +	},
-> +	{}
-> +};
-> +
->   /**
->    * struct acpi_gpio_event - ACPI GPIO event handler data
->    *
-> @@ -1219,18 +1231,24 @@ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
->   }
->   
->   /* Run deferred acpi_gpiochip_request_irqs() */
-> +/* but exclude devices known to fail */
->   static int acpi_gpio_handle_deferred_request_irqs(void)
->   {
->   	struct acpi_gpio_chip *acpi_gpio, *tmp;
-> +	const struct dmi_system_id *dmi_id;
->   
-> -	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
-> -	list_for_each_entry_safe(acpi_gpio, tmp,
-> +	dmi_id = dmi_first_match(skip_deferred_request_irqs_table);
-> +
-> +	if (! dmi_id) {
-> +		mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
-> +		list_for_each_entry_safe(acpi_gpio, tmp,
->   				 &acpi_gpio_deferred_req_irqs_list,
->   				 deferred_req_irqs_list_entry)
-> -		acpi_gpiochip_request_irqs(acpi_gpio);
-> +			acpi_gpiochip_request_irqs(acpi_gpio);
->   
-> -	acpi_gpio_deferred_req_irqs_done = true;
-> -	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
-> +		acpi_gpio_deferred_req_irqs_done = true;
-> +		mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
-> +	}
->   
->   	return 0;
->   }
-> 
+-- 
+2.11.0
