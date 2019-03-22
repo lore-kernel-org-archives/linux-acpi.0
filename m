@@ -1,48 +1,101 @@
-From: David Sterba <dsterba-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH 1/2] treewide: Switch printk users from %pf and %pF to
- %ps and %pS, respectively
-Date: Fri, 22 Mar 2019 15:30:28 +0100
-Message-ID: <20190322143028.GD28481@twin.jikos.cz>
-References: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
- <20190322132108.25501-2-sakari.ailus@linux.intel.com>
-Reply-To: dsterba-AlSwsSmVLrQ@public.gmane.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] Skip deferred request irqs for devices known to fail
+Date: Fri, 22 Mar 2019 15:45:23 +0100
+Message-ID: <b5a7b895-e08d-f432-8606-4d8c776d4a8a@redhat.com>
+References: <20190322110515.21499-1-ianwmorrison@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20190322132108.25501-2-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-f2fs-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190322110515.21499-1-ianwmorrison@gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ian W MORRISON <ianwmorrison@gmail.com>, benjamin.tissoires@redhat.com, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com
+Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 22, 2019 at 03:21:07PM +0200, Sakari Ailus wrote:
-> %pF and %pf are functionally equivalent to %pS and %ps conversion
-> specifiers. The former are deprecated, therefore switch the current users
-> to use the preferred variant.
+Hi,
+
+On 3/22/19 12:05 PM, Ian W MORRISON wrote:
+> Patch ca876c7483b6 "gpiolib-acpi: make sure we trigger edge events at
+> least once on boot" causes the MINIX family of mini PCs to fail to boot
+> resulting in a "black screen".
 > 
-> The changes have been produced by the following command:
+> This patch excludes MINIX devices from executing this trigger in order
+> to successfully boot.
 > 
-> 	git grep -l '%p[fF]' | grep -v '^\(tools\|Documentation\)/' | \
-> 	while read i; do perl -i -pe 's/%pf/%ps/g; s/%pF/%pS/g;' $i; done
-> 
-> And verifying the result.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Ian W MORRISON <ianwmorrison@gmail.com>
+
+IMHO we need to root-cause this problem a bit more before applying this
+kludge.
+
+Can you provide an ACPI dump of one of the affected machines ?
+
+Regards,
+
+Hans
+
+
+
 > ---
-
-For 
-
->  fs/btrfs/tests/free-space-tree-tests.c  |  4 ++--
->  include/trace/events/btrfs.h            |  2 +-
-
-Acked-by: David Sterba <dsterba-IBi9RG/b67k@public.gmane.org>
+>   drivers/gpio/gpiolib-acpi.c | 28 +++++++++++++++++++++++-----
+>   1 file changed, 23 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index 259cf6ab969b..8d855dc9b020 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -16,9 +16,21 @@
+>   #include <linux/interrupt.h>
+>   #include <linux/mutex.h>
+>   #include <linux/pinctrl/pinctrl.h>
+> +#include <linux/dmi.h>
+>   
+>   #include "gpiolib.h"
+>   
+> +static const struct dmi_system_id skip_deferred_request_irqs_table[] = {
+> +	{
+> +		.ident = "MINIX Z83-4",
+> +		.matches = {
+> +			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "MINIX"),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "Z83-4"),
+> +		},
+> +	},
+> +	{}
+> +};
+> +
+>   /**
+>    * struct acpi_gpio_event - ACPI GPIO event handler data
+>    *
+> @@ -1219,18 +1231,24 @@ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
+>   }
+>   
+>   /* Run deferred acpi_gpiochip_request_irqs() */
+> +/* but exclude devices known to fail */
+>   static int acpi_gpio_handle_deferred_request_irqs(void)
+>   {
+>   	struct acpi_gpio_chip *acpi_gpio, *tmp;
+> +	const struct dmi_system_id *dmi_id;
+>   
+> -	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
+> -	list_for_each_entry_safe(acpi_gpio, tmp,
+> +	dmi_id = dmi_first_match(skip_deferred_request_irqs_table);
+> +
+> +	if (! dmi_id) {
+> +		mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
+> +		list_for_each_entry_safe(acpi_gpio, tmp,
+>   				 &acpi_gpio_deferred_req_irqs_list,
+>   				 deferred_req_irqs_list_entry)
+> -		acpi_gpiochip_request_irqs(acpi_gpio);
+> +			acpi_gpiochip_request_irqs(acpi_gpio);
+>   
+> -	acpi_gpio_deferred_req_irqs_done = true;
+> -	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
+> +		acpi_gpio_deferred_req_irqs_done = true;
+> +		mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
+> +	}
+>   
+>   	return 0;
+>   }
+> 
