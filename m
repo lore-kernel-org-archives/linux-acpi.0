@@ -1,83 +1,56 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 098/230] x86/kexec: Dont setup EFI info if EFI runtime is not enabled
-Date: Fri, 22 Mar 2019 12:13:56 +0100
-Message-ID: <20190322111243.491677243@linuxfoundation.org>
-References: <20190322111236.796964179@linuxfoundation.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] Skip deferred request irqs for devices known to fail
+Date: Fri, 22 Mar 2019 13:42:54 +0200
+Message-ID: <20190322114254.GT9224@smile.fi.intel.com>
+References: <20190322110515.21499-1-ianwmorrison@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190322111236.796964179@linuxfoundation.org>
+Content-Disposition: inline
+In-Reply-To: <20190322110515.21499-1-ianwmorrison@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Young <dyoung@redhat.com>, Kairui Song <kasong@redhat.com>, Borislav Petkov <bp@suse.de>, AKASHI Takahiro <takahiro.akashi@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, bhe@redhat.com, David Howells <dhowells@redhat.com>, erik.schmauss@intel.com, fanc.fnst@cn.fujitsu.com, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, kexec@lists.infradead.org, lenb@kernel.org, linux-acpi@vger.kernel.org, Philipp Rudo <prudo@linux.vnet.ibm.com>, rafael.j.wysocki@intel.com, robert.moore@intel.com, Thomas Gleixner <tglx@linutronix.de>, x86-ml <x86@kernel.org>, Yannik Sembritzki <yannik@sembritzki.me>, Sasha Levin <sashal@kernel.org>
+To: Ian W MORRISON <ianwmorrison@gmail.com>
+Cc: benjamin.tissoires@redhat.com, hdegoede@redhat.com, mika.westerberg@linux.intel.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+On Fri, Mar 22, 2019 at 10:05:15PM +1100, Ian W MORRISON wrote:
 
-------------------
+Thanks for the patch, my comments below.
 
-[ Upstream commit 2aa958c99c7fd3162b089a1a56a34a0cdb778de1 ]
+> Patch ca876c7483b6 "gpiolib-acpi: make sure we trigger edge events at
+> least once on boot" causes the MINIX family of mini PCs to fail to boot
+> resulting in a "black screen". 
 
-Kexec-ing a kernel with "efi=noruntime" on the first kernel's command
-line causes the following null pointer dereference:
+> This patch excludes MINIX devices from executing this trigger in order
+> to successfully boot.
 
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
-  #PF error: [normal kernel read fault]
-  Call Trace:
-   efi_runtime_map_copy+0x28/0x30
-   bzImage64_load+0x688/0x872
-   arch_kexec_kernel_image_load+0x6d/0x70
-   kimage_file_alloc_init+0x13e/0x220
-   __x64_sys_kexec_file_load+0x144/0x290
-   do_syscall_64+0x55/0x1a0
-   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Hmm... Feels like this is symptomatic healing.
+Hans, do you have anything in mind about this case?
 
-Just skip the EFI info setup if EFI runtime services are not enabled.
+>  #include <linux/interrupt.h>
+>  #include <linux/mutex.h>
+>  #include <linux/pinctrl/pinctrl.h>
+> +#include <linux/dmi.h>
 
- [ bp: Massage commit message. ]
+This should be in order.
 
-Suggested-by: Dave Young <dyoung@redhat.com>
-Signed-off-by: Kairui Song <kasong@redhat.com>
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Acked-by: Dave Young <dyoung@redhat.com>
-Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: bhe@redhat.com
-Cc: David Howells <dhowells@redhat.com>
-Cc: erik.schmauss@intel.com
-Cc: fanc.fnst@cn.fujitsu.com
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: kexec@lists.infradead.org
-Cc: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
-Cc: Philipp Rudo <prudo@linux.vnet.ibm.com>
-Cc: rafael.j.wysocki@intel.com
-Cc: robert.moore@intel.com
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: x86-ml <x86@kernel.org>
-Cc: Yannik Sembritzki <yannik@sembritzki.me>
-Link: https://lkml.kernel.org/r/20190118111310.29589-2-kasong@redhat.com
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/x86/kernel/kexec-bzimage64.c | 3 +++
- 1 file changed, 3 insertions(+)
+>  /* Run deferred acpi_gpiochip_request_irqs() */
+> +/* but exclude devices known to fail */
 
-diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
-index 0f8a6bbaaa44..0bf17576dd2a 100644
---- a/arch/x86/kernel/kexec-bzimage64.c
-+++ b/arch/x86/kernel/kexec-bzimage64.c
-@@ -168,6 +168,9 @@ setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
- 	struct efi_info *current_ei = &boot_params.efi_info;
- 	struct efi_info *ei = &params->efi_info;
- 
-+	if (!efi_enabled(EFI_RUNTIME_SERVICES))
-+		return 0;
-+
- 	if (!current_ei->efi_memmap_size)
- 		return 0;
- 
+/*
+ * This should be done in the similar style
+ * as for multi-line comments. Like this one.
+ */
+
+> +	dmi_id = dmi_first_match(skip_deferred_request_irqs_table);
+> +
+
+Redundant blank line.
+
+> +	if (! dmi_id) {
+
+No space here, however, better to write positive conditional.
+
 -- 
-2.19.1
+With Best Regards,
+Andy Shevchenko
