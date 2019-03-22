@@ -1,96 +1,24 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 5/5] lib/vsprintf: Add %pfw conversion specifier for
- printing fwnode names
-Date: Fri, 22 Mar 2019 19:21:14 +0200
-Message-ID: <20190322172114.GY9224@smile.fi.intel.com>
-References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
- <20190322152930.16642-6-sakari.ailus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL] Device properties framework fix for v5.1-rc2
+Date: Fri, 22 Mar 2019 19:15:11 +0000
+Message-ID: <155328211174.18163.7361689231132086507.pr-tracker-bot@kernel.org>
+References: <CAJZ5v0i5Jy9sAXLQX-Wap5qW6_sw+CW9JOx4t8E=hazK39_xHw@mail.gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190322152930.16642-6-sakari.ailus@linux.intel.com>
+In-Reply-To: <CAJZ5v0i5Jy9sAXLQX-Wap5qW6_sw+CW9JOx4t8E=hazK39_xHw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 22, 2019 at 05:29:30PM +0200, Sakari Ailus wrote:
-> Add support for %pfw conversion specifier (with "f" and "P" modifiers) to
-> support printing full path of the node, including its name ("f") and only
-> the node's name ("P") in the printk family of functions. The two flags
-> have equivalent functionality to existing %pOF with the same two modifiers
-> ("f" and "P") on OF based systems. The ability to do the same on ACPI
-> based systems is added by this patch.
+The pull request you sent on Fri, 22 Mar 2019 11:28:08 +0100:
 
-Do we encourage people to use it instead of %pOF cases where it is suitable?
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git devprop-5.1-rc2
 
-> On ACPI based systems the resulting strings look like
-> 
-> 	\_SB.PCI0.CIO2.port@1.endpoint@0
-> 
-> where the nodes are separated by a dot (".") and the first three are
-> ACPI device nodes and the latter two ACPI data nodes.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/e42091739f649b3caf43ddffa53f0416dc396fdd
 
-Do we support swnode here?
-
-> +static noinline_for_stack
-> +char *fwnode_string(char *buf, char *end, struct fwnode_handle *fwnode,
-> +		    struct printf_spec spec, const char *fmt)
-> +{
-> +	const char * const modifiers = "fP";
-> +	struct printf_spec str_spec = spec;
-> +	char *buf_start = buf;
-> +	bool pass;
-> +
-> +	str_spec.field_width = -1;
-> +
-
-> +	if ((unsigned long)fwnode < PAGE_SIZE)
-> +		return string(buf, end, "(null)", spec);
-
-Just put there a NULL pointer, we would not like to maintain duplicated strings
-over the kernel.
-
-I remember Petr has a patch series related to address space check, though I
-don't remember the status of affairs.
-
-> +
-> +	/* simple case without anything any more format specifiers */
-> +	fmt++;
-> +	if (fmt[0] == '\0' || strcspn(fmt, modifiers) > 0)
-> +		fmt = "f";
-> +
-> +	for (pass = false; strspn(fmt, modifiers); fmt++, pass = true) {
-
-I don't see test cases.
-
-What would we get out of %pfwfffPPPfff?
-
-Hint: I'm expecting above to be equivalent to %pfwf
-
-> +		if (pass) {
-> +			if (buf < end)
-> +				*buf = ':';
-> +			buf++;
-> +		}
-> +
-> +		switch (*fmt) {
-> +		case 'f':	/* full_name */
-> +			buf = fwnode_gen_full_name(fwnode, buf, end);
-> +			break;
-> +		case 'P':	/* name */
-> +			buf = string(buf, end, fwnode_get_name(fwnode),
-> +				     str_spec);
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +
-> +	return widen_string(buf, buf - buf_start, end, spec);
-> +}
+Thank you!
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
