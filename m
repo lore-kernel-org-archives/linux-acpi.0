@@ -1,33 +1,95 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 0/2] Remove support for deprecated %pf and %pF in vsprintf
-Date: Fri, 22 Mar 2019 19:05:50 +0200
-Message-ID: <20190322170550.GX9224@smile.fi.intel.com>
-References: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
- <CAMuHMdVmqqjVx7As9AAywYxYXG=grijF5rF77OBn6TUjM9+xKw@mail.gmail.com>
- <20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com>
+Subject: Re: [PATCH 5/5] lib/vsprintf: Add %pfw conversion specifier for
+ printing fwnode names
+Date: Fri, 22 Mar 2019 19:21:14 +0200
+Message-ID: <20190322172114.GY9224@smile.fi.intel.com>
+References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
+ <20190322152930.16642-6-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com>
+In-Reply-To: <20190322152930.16642-6-sakari.ailus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Petr Mladek <pmladek@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, scsi <linux-scsi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, linux-f2fs-devel@lists.sourceforge.net, linux-block@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, netdev <netdev@vger.kernel.org>, linux-btrfs <linux-btrfs@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, xen-devel@lists.xenproject.org, ceph-devel <ceph-devel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux ARM <linux-arm-kernel@l>
+Cc: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 22, 2019 at 03:53:50PM +0200, Sakari Ailus wrote:
+On Fri, Mar 22, 2019 at 05:29:30PM +0200, Sakari Ailus wrote:
+> Add support for %pfw conversion specifier (with "f" and "P" modifiers) to
+> support printing full path of the node, including its name ("f") and only
+> the node's name ("P") in the printk family of functions. The two flags
+> have equivalent functionality to existing %pOF with the same two modifiers
+> ("f" and "P") on OF based systems. The ability to do the same on ACPI
+> based systems is added by this patch.
 
-> Porting a patch
-> forward should have no issues either as checkpatch.pl has been complaining
-> of the use of %pf and %pF for a while now.
+Do we encourage people to use it instead of %pOF cases where it is suitable?
 
-And that's exactly the reason why I think instead of removing warning on
-checkpatch, it makes sense to convert to an error for a while. People are
-tending read documentation on internet and thus might have outdated one. And
-yes, the compiler doesn't tell a thing about it.
+> On ACPI based systems the resulting strings look like
+> 
+> 	\_SB.PCI0.CIO2.port@1.endpoint@0
+> 
+> where the nodes are separated by a dot (".") and the first three are
+> ACPI device nodes and the latter two ACPI data nodes.
 
-P.S. Though, if majority of people will tell that I'm wrong, then it's okay to
-remove.
+Do we support swnode here?
+
+> +static noinline_for_stack
+> +char *fwnode_string(char *buf, char *end, struct fwnode_handle *fwnode,
+> +		    struct printf_spec spec, const char *fmt)
+> +{
+> +	const char * const modifiers = "fP";
+> +	struct printf_spec str_spec = spec;
+> +	char *buf_start = buf;
+> +	bool pass;
+> +
+> +	str_spec.field_width = -1;
+> +
+
+> +	if ((unsigned long)fwnode < PAGE_SIZE)
+> +		return string(buf, end, "(null)", spec);
+
+Just put there a NULL pointer, we would not like to maintain duplicated strings
+over the kernel.
+
+I remember Petr has a patch series related to address space check, though I
+don't remember the status of affairs.
+
+> +
+> +	/* simple case without anything any more format specifiers */
+> +	fmt++;
+> +	if (fmt[0] == '\0' || strcspn(fmt, modifiers) > 0)
+> +		fmt = "f";
+> +
+> +	for (pass = false; strspn(fmt, modifiers); fmt++, pass = true) {
+
+I don't see test cases.
+
+What would we get out of %pfwfffPPPfff?
+
+Hint: I'm expecting above to be equivalent to %pfwf
+
+> +		if (pass) {
+> +			if (buf < end)
+> +				*buf = ':';
+> +			buf++;
+> +		}
+> +
+> +		switch (*fmt) {
+> +		case 'f':	/* full_name */
+> +			buf = fwnode_gen_full_name(fwnode, buf, end);
+> +			break;
+> +		case 'P':	/* name */
+> +			buf = string(buf, end, fwnode_get_name(fwnode),
+> +				     str_spec);
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +	}
+> +
+> +	return widen_string(buf, buf - buf_start, end, spec);
+> +}
 
 -- 
 With Best Regards,
