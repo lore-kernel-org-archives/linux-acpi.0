@@ -1,126 +1,34 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 1/5] device property: Add functions for accessing node's parents
-Date: Fri, 22 Mar 2019 17:29:26 +0200
-Message-ID: <20190322152930.16642-2-sakari.ailus@linux.intel.com>
-References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 0/2] Remove support for deprecated %pf and %pF in vsprintf
+Date: Fri, 22 Mar 2019 19:05:50 +0200
+Message-ID: <20190322170550.GX9224@smile.fi.intel.com>
+References: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
+ <CAMuHMdVmqqjVx7As9AAywYxYXG=grijF5rF77OBn6TUjM9+xKw@mail.gmail.com>
+ <20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Petr Mladek <pmladek@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, scsi <linux-scsi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, linux-f2fs-devel@lists.sourceforge.net, linux-block@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, netdev <netdev@vger.kernel.org>, linux-btrfs <linux-btrfs@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, xen-devel@lists.xenproject.org, ceph-devel <ceph-devel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux ARM <linux-arm-kernel@l>
 List-Id: linux-acpi@vger.kernel.org
 
-Add two convenience functions for accessing node's parents:
+On Fri, Mar 22, 2019 at 03:53:50PM +0200, Sakari Ailus wrote:
 
-fwnode_count_parents() returns the number of parent nodes a given node
-has. fwnode_get_nth_parent() returns node's parent at a given distance
-from the node itself.
+> Porting a patch
+> forward should have no issues either as checkpatch.pl has been complaining
+> of the use of %pf and %pF for a while now.
 
-Also reorder fwnode_get_parent() in property.c according to the same order
-as in property.h.
+And that's exactly the reason why I think instead of removing warning on
+checkpatch, it makes sense to convert to an error for a while. People are
+tending read documentation on internet and thus might have outdated one. And
+yes, the compiler doesn't tell a thing about it.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/base/property.c  | 61 ++++++++++++++++++++++++++++++++++++++++++------
- include/linux/property.h |  3 +++
- 2 files changed, 57 insertions(+), 7 deletions(-)
+P.S. Though, if majority of people will tell that I'm wrong, then it's okay to
+remove.
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 8b91ab380d14..3f5ff6b23ae4 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -533,6 +533,19 @@ int device_add_properties(struct device *dev,
- EXPORT_SYMBOL_GPL(device_add_properties);
- 
- /**
-+ * fwnode_get_parent - Return parent firwmare node
-+ * @fwnode: Firmware whose parent is retrieved
-+ *
-+ * Return parent firmware node of the given node if possible or %NULL if no
-+ * parent was available.
-+ */
-+struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
-+{
-+	return fwnode_call_ptr_op(fwnode, get_parent);
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_parent);
-+
-+/**
-  * fwnode_get_next_parent - Iterate to the node's parent
-  * @fwnode: Firmware whose parent is retrieved
-  *
-@@ -554,17 +567,51 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
- EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
- 
- /**
-- * fwnode_get_parent - Return parent firwmare node
-- * @fwnode: Firmware whose parent is retrieved
-+ * fwnode_count_parents - Return the number of parents a node has
-  *
-- * Return parent firmware node of the given node if possible or %NULL if no
-- * parent was available.
-+ * @fwnode: The node the parents of which are to be counted
-+ *
-+ * Returns the number of parents a node has.
-  */
--struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
-+unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
- {
--	return fwnode_call_ptr_op(fwnode, get_parent);
-+	unsigned int count;
-+
-+	fwnode_handle_get(fwnode);
-+
-+	for (count = 0; fwnode; count++)
-+		fwnode = fwnode_get_next_parent(fwnode);
-+
-+	return count - 1;
- }
--EXPORT_SYMBOL_GPL(fwnode_get_parent);
-+EXPORT_SYMBOL_GPL(fwnode_count_parents);
-+
-+/**
-+ * fwnode_get_nth_parent - Return an nth parent of a node
-+ *
-+ * @fwnode: The node the parent of which is requested
-+ * @depth: Distance of the parent from the node
-+ *
-+ * Returns the nth parent of a node. If @depth is 0, the functionality is
-+ * equivalent to fwnode_handle_get(). For @depth == 1, it is fwnode_get_parent()
-+ * and so on.
-+ *
-+ * The caller is responsible for calling fwnode_handle_put() for the returned
-+ * node.
-+ */
-+struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
-+					    unsigned int depth)
-+{
-+	unsigned int i;
-+
-+	fwnode_handle_get(fwnode);
-+
-+	for (i = 0; i < depth && fwnode; i++)
-+		fwnode = fwnode_get_next_parent(fwnode);
-+
-+	return fwnode;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
- 
- /**
-  * fwnode_get_next_child_node - Return the next child node handle for a node
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 65d3420dd5d1..1164ac974ee8 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -81,6 +81,9 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
- struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_get_next_parent(
- 	struct fwnode_handle *fwnode);
-+unsigned int fwnode_count_parents(struct fwnode_handle *fwn);
-+struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
-+					    unsigned int depth);
- struct fwnode_handle *fwnode_get_next_child_node(
- 	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
- struct fwnode_handle *fwnode_get_next_available_child_node(
 -- 
-2.11.0
+With Best Regards,
+Andy Shevchenko
