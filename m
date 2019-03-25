@@ -1,72 +1,36 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3] Documentation: acpi: Add an example for PRP0001
-Date: Mon, 25 Mar 2019 19:11:49 +0200
-Message-ID: <20190325171149.GM9224@smile.fi.intel.com>
-References: <20190325165338.5826-1-thomas.preston@codethink.co.uk>
+From: helgaas@kernel.org
+Subject: [PATCH 0/4] ACPI: Trivial cleanups
+Date: Mon, 25 Mar 2019 13:33:59 -0500
+Message-ID: <20190325183403.251473-1-helgaas@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190325165338.5826-1-thomas.preston@codethink.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Preston <thomas.preston@codethink.co.uk>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mika.westerberg@linux.intel.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 25, 2019 at 04:53:38PM +0000, Thomas Preston wrote:
-> Add an example for the magic PRP0001 device ID which allows matching
-> ACPI devices against drivers using OF Device Tree compatible property.
+From: Bjorn Helgaas <bhelgaas@google.com>
 
-Thank you!
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Clean up whitespace, fix some typos, add a couple comments, simplify the
+acpi_bus_extract_wakeup_device_power_package() internal interface slightly.
 
-> 
-> Signed-off-by: Thomas Preston <thomas.preston@codethink.co.uk>
-> ---
->  Documentation/acpi/enumeration.txt | 26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
-> 
-> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-> index 7bcf9c3d9fbe..1395b844649c 100644
-> --- a/Documentation/acpi/enumeration.txt
-> +++ b/Documentation/acpi/enumeration.txt
-> @@ -410,6 +410,32 @@ Specifically, the device IDs returned by _HID and preceding PRP0001 in the _CID
->  return package will be checked first.  Also in that case the bus type the device
->  will be enumerated to depends on the device ID returned by _HID.
->  
-> +For example, the following ACPI sample might be used to enumerate an lm75-type
-> +I2C temperature sensor and match it to the driver using the Device Tree
-> +namespace link:
-> +
-> +	Device (TMP0)
-> +	{
-> +		Name (_HID, "PRP0001")
-> +		Name (_DSD, Package() {
-> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +			Package () {
-> +				Package (2) { "compatible", "ti,tmp75" },
-> +			}
-> +		})
-> +		Method (_CRS, 0, Serialized)
-> +		{
-> +			Name (SBUF, ResourceTemplate ()
-> +			{
-> +				I2cSerialBusV2 (0x48, ControllerInitiated,
-> +					400000, AddressingMode7Bit,
-> +					"\\_SB.PCI0.I2C1", 0x00,
-> +					ResourceConsumer, , Exclusive,)
-> +			})
-> +			Return (SBUF)
-> +		}
-> +	}
-> +
->  It is valid to define device objects with a _HID returning PRP0001 and without
->  the "compatible" property in the _DSD or a _CID as long as one of their
->  ancestors provides a _DSD with a valid "compatible" property.  Such device
-> -- 
-> 2.11.0
-> 
+Bjorn Helgaas (4):
+  ACPI: Fix comment typos
+  ACPI / tables: Cleanup whitespace
+  ACPI / scan: Simplify acpi_bus_extract_wakeup_device_power_package()
+  ACPI / scan: Add labels for PNP button devices
+
+ drivers/acpi/acpi_dbg.c     |  2 +-
+ drivers/acpi/acpi_lpat.c    |  2 +-
+ drivers/acpi/cppc_acpi.c    | 34 +++++++++++++-------------
+ drivers/acpi/power.c        |  4 ++--
+ drivers/acpi/pptt.c         | 48 ++++++++++++++++++-------------------
+ drivers/acpi/scan.c         | 19 +++++++--------
+ drivers/acpi/spcr.c         |  2 +-
+ drivers/acpi/tables.c       | 18 ++++----------
+ drivers/acpi/video_detect.c |  2 +-
+ 9 files changed, 60 insertions(+), 71 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.21.0.392.gf8f6787159e-goog
