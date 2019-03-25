@@ -1,8 +1,8 @@
 From: Matthew Garrett <matthewgarrett@google.com>
-Subject: [PATCH 15/27] acpi: Disable ACPI table override if the kernel is
+Subject: [PATCH 16/27] acpi: Disable APEI error injection if the kernel is
  locked down
-Date: Mon, 25 Mar 2019 15:09:42 -0700
-Message-ID: <20190325220954.29054-16-matthewgarrett@google.com>
+Date: Mon, 25 Mar 2019 15:09:43 -0700
+Message-ID: <20190325220954.29054-17-matthewgarrett@google.com>
 References: <20190325220954.29054-1-matthewgarrett@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -15,39 +15,42 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Linn Crosetto <linn@hpe.com>
 
->From the kernel documentation (initrd_table_override.txt):
+ACPI provides an error injection mechanism, EINJ, for debugging and testing
+the ACPI Platform Error Interface (APEI) and other RAS features.  If
+supported by the firmware, ACPI specification 5.0 and later provide for a
+way to specify a physical memory address to which to inject the error.
 
-  If the ACPI_INITRD_TABLE_OVERRIDE compile option is true, it is possible
-  to override nearly any ACPI table provided by the BIOS with an
-  instrumented, modified one.
+Injecting errors through EINJ can produce errors which to the platform are
+indistinguishable from real hardware errors.  This can have undesirable
+side-effects, such as causing the platform to mark hardware as needing
+replacement.
 
-When securelevel is set, the kernel should disallow any unauthenticated
-changes to kernel space.  ACPI tables contain code invoked by the kernel,
-so do not allow ACPI tables to be overridden if the kernel is locked down.
+While it does not provide a method to load unauthenticated privileged code,
+the effect of these errors may persist across reboots and affect trust in
+the underlying hardware, so disable error injection through EINJ if
+the kernel is locked down.
 
 Signed-off-by: Linn Crosetto <linn@hpe.com>
 Signed-off-by: David Howells <dhowells@redhat.com>
 cc: linux-acpi@vger.kernel.org
 Signed-off-by: Matthew Garrett <matthewgarrett@google.com>
 ---
- drivers/acpi/tables.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/acpi/apei/einj.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 48eabb6c2d4f..f3b4117cd8f3 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -531,6 +531,11 @@ void __init acpi_table_upgrade(void)
- 	if (table_nr == 0)
- 		return;
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index fcccbfdbdd1a..9fe6bbab2e7d 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -518,6 +518,9 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 	int rc;
+ 	u64 base_addr, size;
  
-+	if (kernel_is_locked_down("ACPI table override")) {
-+		pr_notice("kernel is locked down, ignoring table override\n");
-+		return;
-+	}
++	if (kernel_is_locked_down("ACPI error injection"))
++		return -EPERM;
 +
- 	acpi_tables_addr =
- 		memblock_find_in_range(0, ACPI_TABLE_UPGRADE_MAX_PHYS,
- 				       all_tables_size, PAGE_SIZE);
+ 	/* If user manually set "flags", make sure it is legal */
+ 	if (flags && (flags &
+ 		~(SETWA_FLAGS_APICID|SETWA_FLAGS_MEM|SETWA_FLAGS_PCIE_SBDF)))
 -- 
 2.21.0.392.gf8f6787159e-goog
