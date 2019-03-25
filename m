@@ -1,61 +1,41 @@
-From: Thomas Preston <thomas.preston@codethink.co.uk>
-Subject: Re: [PATCH] Documentation: acpi: Add an example for PRP0001
-Date: Mon, 25 Mar 2019 14:42:09 +0000
-Message-ID: <d67bb260-863c-1131-1323-711c3d2e227d@codethink.co.uk>
-References: <20190322134705.27994-1-thomas.preston@codethink.co.uk>
- <CAJZ5v0isa7x+XPAregcKtMxtgsNw43JuBhGB_1x3eHkvaV8HRg@mail.gmail.com>
- <20190325115118.GP9224@smile.fi.intel.com>
- <20190325130413.GT9224@smile.fi.intel.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH 3/4] iommu/arm-smmu-v3: Add support for PCI ATS
+Date: Mon, 25 Mar 2019 15:01:10 +0000
+Message-ID: <130ae431-49b0-cec0-7b7d-8d6342353d31@arm.com>
+References: <20190320173634.21895-1-jean-philippe.brucker@arm.com>
+	<20190320173634.21895-4-jean-philippe.brucker@arm.com>
+	<6a4fb991-b8cd-d64d-25bd-dbbefcf69fa5@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190325130413.GT9224@smile.fi.intel.com>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <6a4fb991-b8cd-d64d-25bd-dbbefcf69fa5-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sinan Kaya <Okaya-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org
+Cc: zhongmiao-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-Thanks for looking at this.
-
-On 25/03/2019 13:04, Andy Shevchenko wrote:
-> On Mon, Mar 25, 2019 at 01:51:18PM +0200, Andy Shevchenko wrote:
->> On Mon, Mar 25, 2019 at 10:31:13AM +0100, Rafael J. Wysocki wrote:
->>> On Fri, Mar 22, 2019 at 2:47 PM Thomas Preston
->>> <thomas.preston@codethink.co.uk> wrote:
->>>>
->>>> Add an example for the magic PRP0001 device ID which allows matching
->>>> ACPI devices against drivers using OF Device Tree compatible property.
->>>> It wasn't clear to me that PRP0001 could be used in _CID.
->>>
->>> Mika, Andy, can you have a look at this, please?
->>
->> Good to me,
->> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->>
->> Though one thing I would like to add (not directly related to the patch
->> per se), i.e. it would be nice to keep such examples under meta-acpi [1]
->> umbrella as a database for such excerpts.
->>
->> Thomas, can you do that?
->>
->> [1]: https://github.com/westeri/meta-acpi
-
-I will :)
-
->>
->>>> +               Name (_HID, "TITMP75") /* _HID will appear in sysfs */
-> 
-> Sorry for not noticing earlier.
-> 
-> Is this an official ID for the chip? We discourage people to invent ACPI IDs on
-> their own.
-> 
-> 
-
-The device is a TI tmp75b temperature sensor [0]. The HID is completely
-made up, I'm afraid. It doesn't exist in the registry.
-
-[0] http://www.ti.com/lit/ds/symlink/tmp75b.pdf
+T24gMjEvMDMvMjAxOSAxNTo1MiwgU2luYW4gS2F5YSB3cm90ZToKPiBPbiAzLzIwLzIwMTkgMToz
+NiBQTSwgSmVhbi1QaGlsaXBwZSBCcnVja2VyIHdyb3RlOgo+PiBwb3MgPSBwY2lfZmluZF9leHRf
+Y2FwYWJpbGl0eShwZGV2LCBQQ0lfRVhUX0NBUF9JRF9BVFMpOwo+PiArwqDCoMKgIGlmICghcG9z
+KQo+PiArwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FTk9TWVM7Cj4+ICsKPiAKPiBZb3UgZG9uJ3Qg
+bmVlZCB0aGlzLiBwY2lfZW5hYmxlX2F0cygpIHZhbGlkYXRlcyB0aGlzIHZpYS4KPiAKPiDCoMKg
+wqDCoGlmICghZGV2LT5hdHNfY2FwKQo+IMKgwqDCoMKgwqDCoMKgIHJldHVybiAtRUlOVkFMOwoK
+UmlnaHQsIEkgdGhpbmsgSSB3YW50ZWQgdG8gZGlmZmVyZW50aWF0ZSBsYWNrIG9mIEFUUyBjYXBh
+YmlsaXR5IGZyb20KYWN0dWFsIGVycm9yIGluIHBjaV9lbmFibGVfYXRzKCksIGluIHdoaWNoIGNh
+c2Ugd2UnZCBpc3N1ZSBhIGRldl9lcnIoKS4KQnV0IHRoZSBvbmx5IG90aGVyIGVycm9ycyBpbiBw
+Y2lfZW5hYmxlX2F0cygpIGFyZSByZWxhdGVkIHRvIGludmFsaWQgU1RVCnBhcmFtZXRlciwgd2hp
+Y2ggYXJlIHZhbGlkIGluIG91ciBjYXNlLCBzbyB0aGUgZGV2X2VycigpIGlzIHByZXR0eQp1c2Vs
+ZXNzLiBJJ2xsIHJlbW92ZSB0aGlzLgoKVGhhbmtzLApKZWFuCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmlvbW11IG1haWxpbmcgbGlzdAppb21tdUBsaXN0
+cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91bmRhdGlvbi5vcmcv
+bWFpbG1hbi9saXN0aW5mby9pb21tdQ==
