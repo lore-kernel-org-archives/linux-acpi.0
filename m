@@ -1,55 +1,50 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/2] cpufreq: intel_pstate: Also use cppc nominal_perf for base_frequency
-Date: Mon, 25 Mar 2019 13:04:41 +0100
-Message-ID: <CAJZ5v0ii-Q_w-6gPaz75+=7hKoZSv50gdCDk78DyA1BCwQ+jyA@mail.gmail.com>
-References: <20190322224520.6740-1-srinivas.pandruvada@linux.intel.com> <20190322224520.6740-3-srinivas.pandruvada@linux.intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] Documentation: acpi: Add an example for PRP0001
+Date: Mon, 25 Mar 2019 15:04:13 +0200
+Message-ID: <20190325130413.GT9224@smile.fi.intel.com>
+References: <20190322134705.27994-1-thomas.preston@codethink.co.uk>
+ <CAJZ5v0isa7x+XPAregcKtMxtgsNw43JuBhGB_1x3eHkvaV8HRg@mail.gmail.com>
+ <20190325115118.GP9224@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190322224520.6740-3-srinivas.pandruvada@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <20190325115118.GP9224@smile.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Prashanth Prakash <pprakash@codeaurora.org>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, "4 . 20+" <stable@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Thomas Preston <thomas.preston@codethink.co.uk>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 22, 2019 at 11:45 PM Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
->
-> ACPI specifications stat that if the "Guaranteed Performance Register" is
-> not implemented, OSPM assumes guaranteed performance is always equal to
-> nominal performance. So for invalid and unimplemented guaranteed
-> performance register, use nominal performance as guaranteed performance.
->
-> This change will fallback to nominal_perf when guranteed_perf is invalid.
-> If nominal_perf is also invalid, then fallback to existing implementation,
-> which is to read from HWP Capabilities MSR.
->
-> Fixes: 86d333a8cc7f ("cpufreq: intel_pstate: Add base_frequency attribute")
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> Cc: 4.20+ <stable@vger.kernel.org> # 4.20+
-> ---
->  drivers/cpufreq/intel_pstate.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-> index 7b4b0a7ac68b..e16dea241c55 100644
-> --- a/drivers/cpufreq/intel_pstate.c
-> +++ b/drivers/cpufreq/intel_pstate.c
-> @@ -385,6 +385,9 @@ static int intel_pstate_get_cppc_guranteed(int cpu)
->         if (ret)
->                 return ret;
->
-> +       if (!cppc_perf.guaranteed_perf)
-> +               return cppc_perf.nominal_perf;
-> +
->         return cppc_perf.guaranteed_perf;
->  }
+On Mon, Mar 25, 2019 at 01:51:18PM +0200, Andy Shevchenko wrote:
+> On Mon, Mar 25, 2019 at 10:31:13AM +0100, Rafael J. Wysocki wrote:
+> > On Fri, Mar 22, 2019 at 2:47 PM Thomas Preston
+> > <thomas.preston@codethink.co.uk> wrote:
+> > >
+> > > Add an example for the magic PRP0001 device ID which allows matching
+> > > ACPI devices against drivers using OF Device Tree compatible property.
+> > > It wasn't clear to me that PRP0001 could be used in _CID.
+> > 
+> > Mika, Andy, can you have a look at this, please?
+> 
+> Good to me,
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> 
+> Though one thing I would like to add (not directly related to the patch
+> per se), i.e. it would be nice to keep such examples under meta-acpi [1]
+> umbrella as a database for such excerpts.
+> 
+> Thomas, can you do that?
+> 
+> [1]: https://github.com/westeri/meta-acpi
+> 
+> > > +               Name (_HID, "TITMP75") /* _HID will appear in sysfs */
 
-I would do this the other way around, that is
+Sorry for not noticing earlier.
 
-if (cppc_perf.guaranteed_perf)
-        return cppc_perf.guaranteed_perf;
+Is this an official ID for the chip? We discourage people to invent ACPI IDs on
+their own.
 
-return cppc_perf.nominal_perf;
 
-That is slightly easier to follow IMO.
+-- 
+With Best Regards,
+Andy Shevchenko
