@@ -1,7 +1,7 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 3/4] arm_pmu: acpi: spe: Add initial MADT/SPE probing
-Date: Tue, 26 Mar 2019 17:39:37 -0500
-Message-ID: <20190326223938.5365-4-jeremy.linton@arm.com>
+Subject: [PATCH 1/4] ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
+Date: Tue, 26 Mar 2019 17:39:35 -0500
+Message-ID: <20190326223938.5365-2-jeremy.linton@arm.com>
 References: <20190326223938.5365-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,119 +12,76 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.3 adds additional fields to the MADT GICC
-structure to describe SPE PPI's. We pick these out
-of the cached reference to the madt_gicc structure
-similarly to the core PMU code. We then create a platform
-device referring to the IRQ and let the user/module loader
-decide whether to load the SPE driver.
+ACPI 6.3 adds a flag to indicate that child nodes are all
+identical cores. This is useful to authoritatively determine
+if a set of (possibly offline) cores are identical or not.
+
+Since the flag doesn't give us a unique id we can generate
+one and use it to create bitmaps of sibling nodes, or simply
+in a loop to determine if a subset of cores are identical.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm64/include/asm/acpi.h |  3 ++
- drivers/perf/arm_pmu_acpi.c   | 69 +++++++++++++++++++++++++++++++++++
- 2 files changed, 72 insertions(+)
+ drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
+ include/linux/acpi.h |  5 +++++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 7628efbe6c12..d10399b9f998 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -41,6 +41,9 @@
- 	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
- 	(unsigned long)(entry) + (entry)->header.length > (end))
- 
-+#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
-+	spe_interrupt) + sizeof(u16))
-+
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
- pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-index 0f197516d708..a2418108eab2 100644
---- a/drivers/perf/arm_pmu_acpi.c
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -74,6 +74,73 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
- 	acpi_unregister_gsi(gsi);
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index 065c4fc245d1..472c95ec816b 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -660,3 +660,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
+ 	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
+ 					  ACPI_PPTT_PHYSICAL_PACKAGE);
  }
- 
-+static struct resource spe_resources[] = {
-+	{
-+		/* irq */
-+		.flags          = IORESOURCE_IRQ,
-+	}
-+};
 +
-+static struct platform_device spe_dev = {
-+	.name = "arm,spe-v1",
-+	.id = -1,
-+	.resource = spe_resources,
-+	.num_resources = ARRAY_SIZE(spe_resources)
-+};
-+
-+/*
-+ * For lack of a better place, hook the normal PMU MADT walk
-+ * and create a SPE device if we detect a recent MADT with
-+ * a homogeneous PPI mapping.
++/**
++ * find_acpi_cpu_topology_hetero_id() - Determine a unique implementation
++ * @cpu: Kernel logical cpu number
++ *
++ * Determine a unique heterogeneous ID for the given CPU. CPUs with the same
++ * implementation should have matching IDs. Since this is a tree we can only
++ * detect implementations where the heterogeneous flag is the parent to all
++ * matching cores. AKA if a two socket machine has two different core types
++ * in each socket this will end up being represented as four unique core types
++ * rather than two.
++ *
++ * The returned ID can be used to group peers with identical implementation.
++ *
++ * The search terminates when a level is found with the identical implementation
++ * flag set or we reach a root node.
++ *
++ * Return: -ENOENT if the PPTT doesn't exist, or the cpu cannot be found.
++ * Otherwise returns a value which represents a group of identical cores
++ * similar to this cpu.
 + */
-+static int arm_spe_acpi_parse_irqs(void)
++int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
 +{
-+	int cpu, ret, irq;
-+	int hetid;
-+	u16 gsi = 0;
-+	bool first = true;
-+
-+	struct acpi_madt_generic_interrupt *gicc;
-+
-+	/*
-+	 * sanity check all the GICC tables for the same interrupt number
-+	 * for now we only support homogeneous ACPI/SPE machines.
-+	 */
-+	for_each_possible_cpu(cpu) {
-+		gicc = acpi_cpu_get_madt_gicc(cpu);
-+
-+		if (gicc->header.length < ACPI_MADT_GICC_SPE)
-+			return -ENODEV;
-+		if (first) {
-+			gsi = gicc->spe_interrupt;
-+			if (!gsi)
-+				return -ENODEV;
-+			hetid = find_acpi_cpu_topology_hetero_id(cpu);
-+			first = false;
-+		} else if ((gsi != gicc->spe_interrupt) ||
-+			   (hetid != find_acpi_cpu_topology_hetero_id(cpu))) {
-+			pr_warn("ACPI: SPE must be homogeneous\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	irq = acpi_register_gsi(NULL, gsi, ACPI_LEVEL_SENSITIVE,
-+				ACPI_ACTIVE_HIGH);
-+	if (irq < 0) {
-+		pr_warn("ACPI: SPE Unable to register interrupt: %d\n", gsi);
-+		return irq;
-+	}
-+
-+	spe_resources[0].start = irq;
-+	ret = platform_device_register(&spe_dev);
-+	if (ret < 0) {
-+		pr_warn("ACPI: SPE: Unable to register device\n");
-+		acpi_unregister_gsi(gsi);
-+	}
-+
-+	return ret;
++	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
++					  ACPI_PPTT_ACPI_IDENTICAL);
 +}
-+
- static int arm_pmu_acpi_parse_irqs(void)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index d5dcebd7aad3..1444fb042898 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1309,6 +1309,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
+ #ifdef CONFIG_ACPI_PPTT
+ int find_acpi_cpu_topology(unsigned int cpu, int level);
+ int find_acpi_cpu_topology_package(unsigned int cpu);
++int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
+ int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+ #else
+ static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
+@@ -1319,6 +1320,10 @@ static inline int find_acpi_cpu_topology_package(unsigned int cpu)
  {
- 	int irq, cpu, irq_cpu, err;
-@@ -279,6 +346,8 @@ static int arm_pmu_acpi_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
-+	arm_spe_acpi_parse_irqs(); /* failures are expected */
-+
- 	ret = arm_pmu_acpi_parse_irqs();
- 	if (ret)
- 		return ret;
+ 	return -EINVAL;
+ }
++static int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
++{
++	return -EINVAL;
++}
+ static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
+ {
+ 	return -EINVAL;
 -- 
 2.20.1
