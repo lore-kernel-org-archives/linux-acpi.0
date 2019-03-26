@@ -1,48 +1,130 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 0/4] arm64: SPE ACPI enablement
-Date: Tue, 26 Mar 2019 17:39:34 -0500
-Message-ID: <20190326223938.5365-1-jeremy.linton@arm.com>
+Subject: [PATCH 3/4] arm_pmu: acpi: spe: Add initial MADT/SPE probing
+Date: Tue, 26 Mar 2019 17:39:37 -0500
+Message-ID: <20190326223938.5365-4-jeremy.linton@arm.com>
+References: <20190326223938.5365-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190326223938.5365-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch series enables the Arm Statistical Profiling
-Extension (SPE) on ACPI platforms.
+ACPI 6.3 adds additional fields to the MADT GICC
+structure to describe SPE PPI's. We pick these out
+of the cached reference to the madt_gicc structure
+similarly to the core PMU code. We then create a platform
+device referring to the IRQ and let the user/module loader
+decide whether to load the SPE driver.
 
-This is possible because ACPI 6.3 uses a previously
-reserved field in the MADT to store the SPE interrupt
-number, similarly to how the normal PMU is described.
-If a consistent valid interrupt exists across all the
-cores in the system, a platform device is registered.
-That then triggers the SPE module, which runs as normal.
-
-This version also adds the ability to parse the PPTT for
-IDENTICAL cores. We then use this to sanity check the
-single SPE device we create. This creates a bit of a
-problem with respect to the specification though. The
-specification says that its legal for multiple tree's
-to exist in the PPTT. We handle this fine, but what
-happens in the case of multiple tree's is that the lack
-of a common node with IDENTICAL set forces us to assume
-that there are multiple non IDENTICAL cores in the
-machine.
-
-Jeremy Linton (4):
-  ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
-  ACPI/PPTT: Modify node flag detection to find last IDENTICAL
-  arm_pmu: acpi: spe: Add initial MADT/SPE probing
-  perf: arm_spe: Enable ACPI/Platform automatic module loading
-
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
  arch/arm64/include/asm/acpi.h |  3 ++
- drivers/acpi/pptt.c           | 82 ++++++++++++++++++++++++++++++-----
- drivers/perf/arm_pmu_acpi.c   | 69 +++++++++++++++++++++++++++++
- drivers/perf/arm_spe_pmu.c    | 11 ++++-
- include/linux/acpi.h          |  5 +++
- 5 files changed, 157 insertions(+), 13 deletions(-)
+ drivers/perf/arm_pmu_acpi.c   | 69 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 72 insertions(+)
 
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 7628efbe6c12..d10399b9f998 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -41,6 +41,9 @@
+ 	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
+ 	(unsigned long)(entry) + (entry)->header.length > (end))
+ 
++#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
++	spe_interrupt) + sizeof(u16))
++
+ /* Basic configuration for ACPI */
+ #ifdef	CONFIG_ACPI
+ pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
+diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+index 0f197516d708..a2418108eab2 100644
+--- a/drivers/perf/arm_pmu_acpi.c
++++ b/drivers/perf/arm_pmu_acpi.c
+@@ -74,6 +74,73 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
+ 	acpi_unregister_gsi(gsi);
+ }
+ 
++static struct resource spe_resources[] = {
++	{
++		/* irq */
++		.flags          = IORESOURCE_IRQ,
++	}
++};
++
++static struct platform_device spe_dev = {
++	.name = "arm,spe-v1",
++	.id = -1,
++	.resource = spe_resources,
++	.num_resources = ARRAY_SIZE(spe_resources)
++};
++
++/*
++ * For lack of a better place, hook the normal PMU MADT walk
++ * and create a SPE device if we detect a recent MADT with
++ * a homogeneous PPI mapping.
++ */
++static int arm_spe_acpi_parse_irqs(void)
++{
++	int cpu, ret, irq;
++	int hetid;
++	u16 gsi = 0;
++	bool first = true;
++
++	struct acpi_madt_generic_interrupt *gicc;
++
++	/*
++	 * sanity check all the GICC tables for the same interrupt number
++	 * for now we only support homogeneous ACPI/SPE machines.
++	 */
++	for_each_possible_cpu(cpu) {
++		gicc = acpi_cpu_get_madt_gicc(cpu);
++
++		if (gicc->header.length < ACPI_MADT_GICC_SPE)
++			return -ENODEV;
++		if (first) {
++			gsi = gicc->spe_interrupt;
++			if (!gsi)
++				return -ENODEV;
++			hetid = find_acpi_cpu_topology_hetero_id(cpu);
++			first = false;
++		} else if ((gsi != gicc->spe_interrupt) ||
++			   (hetid != find_acpi_cpu_topology_hetero_id(cpu))) {
++			pr_warn("ACPI: SPE must be homogeneous\n");
++			return -EINVAL;
++		}
++	}
++
++	irq = acpi_register_gsi(NULL, gsi, ACPI_LEVEL_SENSITIVE,
++				ACPI_ACTIVE_HIGH);
++	if (irq < 0) {
++		pr_warn("ACPI: SPE Unable to register interrupt: %d\n", gsi);
++		return irq;
++	}
++
++	spe_resources[0].start = irq;
++	ret = platform_device_register(&spe_dev);
++	if (ret < 0) {
++		pr_warn("ACPI: SPE: Unable to register device\n");
++		acpi_unregister_gsi(gsi);
++	}
++
++	return ret;
++}
++
+ static int arm_pmu_acpi_parse_irqs(void)
+ {
+ 	int irq, cpu, irq_cpu, err;
+@@ -279,6 +346,8 @@ static int arm_pmu_acpi_init(void)
+ 	if (acpi_disabled)
+ 		return 0;
+ 
++	arm_spe_acpi_parse_irqs(); /* failures are expected */
++
+ 	ret = arm_pmu_acpi_parse_irqs();
+ 	if (ret)
+ 		return ret;
 -- 
 2.20.1
