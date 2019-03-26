@@ -1,100 +1,55 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 5/5] lib/vsprintf: Add %pfw conversion specifier for
- printing fwnode names
-Date: Tue, 26 Mar 2019 15:13:53 +0200
-Message-ID: <20190326131353.GY9224@smile.fi.intel.com>
-References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
- <20190322152930.16642-6-sakari.ailus@linux.intel.com>
- <20190322172114.GY9224@smile.fi.intel.com>
- <20190324181745.vgckevapfwi7mul7@mara.localdomain>
+Subject: Re: [PATCH v2 3/6] device property: Add a function to obtain a
+ node's prefix
+Date: Tue, 26 Mar 2019 15:16:26 +0200
+Message-ID: <20190326131626.GZ9224@smile.fi.intel.com>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-4-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190324181745.vgckevapfwi7mul7@mara.localdomain>
+In-Reply-To: <20190326124106.27694-4-sakari.ailus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Mar 24, 2019 at 08:17:46PM +0200, Sakari Ailus wrote:
-> On Fri, Mar 22, 2019 at 07:21:14PM +0200, Andy Shevchenko wrote:
-> > On Fri, Mar 22, 2019 at 05:29:30PM +0200, Sakari Ailus wrote:
-> > > Add support for %pfw conversion specifier (with "f" and "P" modifiers) to
-> > > support printing full path of the node, including its name ("f") and only
-> > > the node's name ("P") in the printk family of functions. The two flags
-> > > have equivalent functionality to existing %pOF with the same two modifiers
-> > > ("f" and "P") on OF based systems. The ability to do the same on ACPI
-> > > based systems is added by this patch.
-> > 
-> > Do we encourage people to use it instead of %pOF cases where it is suitable?
+On Tue, Mar 26, 2019 at 02:41:03PM +0200, Sakari Ailus wrote:
+> The prefix is used for printing purpose before a node, and it also works
+> as a separator between two nodes.
 > 
-> For code that is used on both OF and ACPI based systems, I think so. But if
-> you have something that is only used on OF, %pOF is better --- it has more
-> functionality that seems quite OF specific. In general I think the ability
-> to print a node's full name is way more important on OF. On ACPI you don't
-> need it so often --- which is probably the reason it hasn't been supported.
 
-But if code is going to support ACPI and DT and at the same time use %pOF
-extensions that are not covered by %pfw it would be inconsistent somehow.
+One nit below.
 
-> > > On ACPI based systems the resulting strings look like
-> > > 
-> > > 	\_SB.PCI0.CIO2.port@1.endpoint@0
-> > > 
-> > > where the nodes are separated by a dot (".") and the first three are
-> > > ACPI device nodes and the latter two ACPI data nodes.
-> > 
-> > Do we support swnode here?
-> 
-> Good question. The swnodes have no hierarchy at the moment (they're only
-> created for a struct device as a parent) and they do not have human-readable
-> names. So I'd say it's not relevant right now. Should these two change,
-> support for swnode could (and should) be added later on.
+> +static const char *
+> +acpi_fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
+> +{
+> +	struct fwnode_handle *parent;
+> +
 
-Heikki, what do you think about this?
+> +	parent = fwnode_get_parent(fwnode);
+> +	/* Root node. */
 
-> > > +	if ((unsigned long)fwnode < PAGE_SIZE)
-> > > +		return string(buf, end, "(null)", spec);
-> > 
-> > Just put there a NULL pointer, we would not like to maintain duplicated strings
-> > over the kernel.
-> > 
-> > I remember Petr has a patch series related to address space check, though I
-> > don't remember the status of affairs.
-> 
-> This bit has been actually adopted from the OF counterpart. If there are
-> improvements in this area, then I'd just change both at the same time.
+I guess a comment could be easier to read if it goes before parent assignment
+line.
 
-The patch series by Petr I mentioned takes care about OF case. But it doesn't
-have covered yours by obvious reasons.
+> +	if (!parent)
+> +		return "";
+> +
+> +	parent = fwnode_get_next_parent(parent);
+> +	/* Second node from the root; no prefix here either. */
 
-> > > +	for (pass = false; strspn(fmt, modifiers); fmt++, pass = true) {
-> > 
-> > I don't see test cases.
-> > 
-> > What would we get out of %pfwfffPPPfff?
-> > 
-> > Hint: I'm expecting above to be equivalent to %pfwf
-> 
-> I guess it's a matter of expectations. :-)
+Ditto.
 
-Common sense and basic expectations from all of %p extensions.
-
-> Again this works the same way
-> than the OF counterpart.
-
-OF lacks of testing apparently.
-
-> Right now there's little to print (just the name
-> and the full name), but if support is added for more, then this mechanism is
-> fully relevant again.
-> 
-> The alternative would be to remove that now and add it back if it's needed
-> again. I have a slight preference towards keeping it extensible (i.e. as
-> it's now).
-
-See how other helpers do parse this.
+> +	if (!parent)
+> +		return "";
+> +
+> +	fwnode_handle_put(parent);
+> +
+> +	/* ACPI device or data node. */
+> +	return ".";
+> +}
 
 -- 
 With Best Regards,
