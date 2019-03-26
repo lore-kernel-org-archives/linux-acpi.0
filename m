@@ -1,116 +1,46 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH v2 2/2] PCI/AER: Determine AER ownership based on _OSC instead of HEST
-Date: Tue, 26 Mar 2019 12:23:42 -0500
-Message-ID: <20190326172343.28946-3-mr.nuke.me@gmail.com>
-References: <20190326172343.28946-1-mr.nuke.me@gmail.com>
+From: Matthew Garrett <matthewgarrett@google.com>
+Subject: [PATCH V31 14/25] acpi: Ignore acpi_rsdp kernel param when the kernel
+ has been locked down
+Date: Tue, 26 Mar 2019 11:27:30 -0700
+Message-ID: <20190326182742.16950-15-matthewgarrett@google.com>
+References: <20190326182742.16950-1-matthewgarrett@google.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190326172343.28946-1-mr.nuke.me@gmail.com>
+In-Reply-To: <20190326182742.16950-1-matthewgarrett@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com
-Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, scott.faasse@hpe.com, leo.duran@amd.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell Currey <ruscur@russell.cc>, Sam Bobroff <sbobroff@linux.ibm.com>, Oliver O'Halloran <oohall@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: jmorris@namei.org
+Cc: linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org, dhowells@redhat.com, linux-api@vger.kernel.org, luto@kernel.org, Josh Boyer <jwboyer@redhat.com>, Matthew Garrett <mjg59@google.com>, Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-HEST is used to describe the meaning of errors received as part of ACPI
-Platform Error Interfaces (APEI), however the correct way to determine
-AER ownership is the _OSC method.
+From: Josh Boyer <jwboyer@redhat.com>
 
-The ACPI spec allows _OSC and HEST to say things that might not make
-sense on a specific hardware implementation.
-For example _OSC can say "OS has control" on the root bus, while HEST
-says "This PCIe device is firmware-first". This is fine when the
-platform can differentiate error sources at the root complex. On x86
-platforms, AER errors can be routed to either to an MSI vector
-(native AER), or to SMM (firmware-first). As this is done at the root
-complex level, the example above would not make sense.
+This option allows userspace to pass the RSDP address to the kernel, which
+makes it possible for a user to modify the workings of hardware .  Reject
+the option when the kernel is locked down.
 
-Notice that in neither case is it correct to go to HEST to determine
-AER ownership. This is the conclusion of a six-months discussion in
-the ACPI Software Working Group.
-
-pci_dev->__aer_firmware_first is used to prevent modification of AER
-registers when firmware owns AER. This is synonymous with the AER
-ownership negotiated during _OSC. Thus _OSC is the correct way to
-use to set this flag, not HEST.
-
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Matthew Garrett <mjg59@google.com>
+cc: Dave Young <dyoung@redhat.com>
+cc: linux-acpi@vger.kernel.org
 ---
- drivers/pci/pcie/aer.c | 57 ++----------------------------------------
- 1 file changed, 2 insertions(+), 55 deletions(-)
+ drivers/acpi/osl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
-index d029979e61f6..08cee30b3ef3 100644
---- a/drivers/pci/pcie/aer.c
-+++ b/drivers/pci/pcie/aer.c
-@@ -237,66 +237,13 @@ static inline bool hest_match_type(struct acpi_hest_header *hest_hdr,
- 	return false;
- }
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f29e427d0d1d..cd5bba7b8eb3 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -194,7 +194,8 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 	acpi_physical_address pa;
  
--struct aer_hest_parse_info {
--	struct pci_dev *pci_dev;
--	int firmware_first;
--};
--
--static int hest_source_is_pcie_aer(struct acpi_hest_header *hest_hdr)
--{
--	if (hest_hdr->type == ACPI_HEST_TYPE_AER_ROOT_PORT ||
--	    hest_hdr->type == ACPI_HEST_TYPE_AER_ENDPOINT ||
--	    hest_hdr->type == ACPI_HEST_TYPE_AER_BRIDGE)
--		return 1;
--	return 0;
--}
--
--static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
--{
--	struct aer_hest_parse_info *info = data;
--	struct acpi_hest_aer_common *p;
--	int ff;
--
--	if (!hest_source_is_pcie_aer(hest_hdr))
--		return 0;
--
--	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
--	ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--
--	/*
--	 * If no specific device is supplied, determine whether
--	 * FIRMWARE_FIRST is set for *any* PCIe device.
--	 */
--	if (!info->pci_dev) {
--		info->firmware_first |= ff;
--		return 0;
--	}
- 
--	/* Otherwise, check the specific device */
--	if (p->flags & ACPI_HEST_GLOBAL) {
--		if (hest_match_type(hest_hdr, info->pci_dev))
--			info->firmware_first = ff;
--	} else
--		if (hest_match_pci(p, info->pci_dev))
--			info->firmware_first = ff;
--
--	return 0;
--}
- 
- static void aer_set_firmware_first(struct pci_dev *pci_dev)
- {
--	int rc;
--	struct aer_hest_parse_info info = {
--		.pci_dev	= pci_dev,
--		.firmware_first	= 0,
--	};
-+	struct pci_host_bridge *host = pci_find_host_bridge(pci_dev->bus);
- 
--	rc = apei_hest_parse(aer_hest_parse, &info);
--
--	if (rc)
--		pci_dev->__aer_firmware_first = 0;
--	else
--		pci_dev->__aer_firmware_first = info.firmware_first;
-+	pci_dev->__aer_firmware_first = !host->native_aer;
- 	pci_dev->__aer_firmware_first_valid = 1;
- }
- 
+ #ifdef CONFIG_KEXEC
+-	if (acpi_rsdp)
++	if (acpi_rsdp && !kernel_is_locked_down("ACPI RSDP specification",
++						LOCKDOWN_INTEGRITY))
+ 		return acpi_rsdp;
+ #endif
+ 	pa = acpi_arch_get_root_pointer();
 -- 
-2.19.2
+2.21.0.392.gf8f6787159e-goog
