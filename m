@@ -1,175 +1,42 @@
-From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Subject: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800 quirk
-Date: Tue, 26 Mar 2019 15:17:53 +0000
-Message-ID: <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
-References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
+From: Petr Mladek <pmladek@suse.com>
+Subject: Re: [PATCH 5/5] lib/vsprintf: Add %pfw conversion specifier for
+ printing fwnode names
+Date: Tue, 26 Mar 2019 16:21:55 +0100
+Message-ID: <20190326152155.6sn2u6eep55vssjm@pathway.suse.cz>
+References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
+ <20190322152930.16642-6-sakari.ailus@linux.intel.com>
+ <20190322172114.GY9224@smile.fi.intel.com>
+ <20190324181745.vgckevapfwi7mul7@mara.localdomain>
+ <20190326131353.GY9224@smile.fi.intel.com>
+ <20190326133947.pbniwkvszlahw3dr@paasikivi.fi.intel.com>
+ <20190326135557.GD9224@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
+Content-Disposition: inline
+In-Reply-To: <20190326135557.GD9224@smile.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lorenzo.pieralisi@arm.com, robin.murphy@arm.com
-Cc: andrew.murray@arm.com, jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-HiSilicon erratum 162001800 describes the limitation of
-SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
+On Tue 2019-03-26 15:55:57, Andy Shevchenko wrote:
+> On Tue, Mar 26, 2019 at 03:39:47PM +0200, Sakari Ailus wrote:
+> > On Tue, Mar 26, 2019 at 03:13:53PM +0200, Andy Shevchenko wrote:
+> > > On Sun, Mar 24, 2019 at 08:17:46PM +0200, Sakari Ailus wrote:
+> 
+> > > The patch series by Petr I mentioned takes care about OF case. But it doesn't
+> > > have covered yours by obvious reasons.
+> > 
+> > Do you happen to have a pointer to it?
+> 
+> Petr, can you share what is the state of affairs with that series?
 
-On these platforms, the PMCG event counter registers
-(SMMU_PMCG_EVCNTRn) are read only and as a result it
-is not possible to set the initial counter period value
-on event monitor start.
+I might send a new version this week but I do not promise it.
+It is regularly pushed aside by more urgent work.
 
-To work around this, the current value of the counter
-is read and used for delta calculations. OEM information
-from ACPI header is used to identify the affected hardware
-platforms.
+But we could work on both changes independently. Both can be
+updated easily depending on which one gets accepted earlier.
 
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
----
- drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
- drivers/perf/arm_smmuv3_pmu.c | 48 ++++++++++++++++++++++++++++++++++++-------
- include/linux/acpi_iort.h     |  1 +
- 3 files changed, 57 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index e2c9b26..4dc68de 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -1366,9 +1366,23 @@ static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
- 				       ACPI_EDGE_SENSITIVE, &res[2]);
- }
- 
-+static struct acpi_platform_list pmcg_plat_info[] __initdata = {
-+	/* HiSilicon Hip08 Platform */
-+	{"HISI  ", "HIP08   ", 0, ACPI_SIG_IORT, greater_than_or_equal, 0,
-+	 IORT_SMMU_V3_PMCG_HISI_HIP08},
-+	{ }
-+};
-+
- static int __init arm_smmu_v3_pmcg_add_platdata(struct platform_device *pdev)
- {
--	u32 model = IORT_SMMU_V3_PMCG_GENERIC;
-+	u32 model;
-+	int idx;
-+
-+	idx = acpi_match_platform_list(pmcg_plat_info);
-+	if (idx >= 0)
-+		model = pmcg_plat_info[idx].data;
-+	else
-+		model = IORT_SMMU_V3_PMCG_GENERIC;
- 
- 	return platform_device_add_data(pdev, &model, sizeof(model));
- }
-diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
-index 7803e9e..6b3c0ed 100644
---- a/drivers/perf/arm_smmuv3_pmu.c
-+++ b/drivers/perf/arm_smmuv3_pmu.c
-@@ -35,6 +35,7 @@
-  */
- 
- #include <linux/acpi.h>
-+#include <linux/acpi_iort.h>
- #include <linux/bitfield.h>
- #include <linux/bitops.h>
- #include <linux/cpuhotplug.h>
-@@ -93,6 +94,8 @@
- 
- #define SMMU_PMCG_PA_SHIFT              12
- 
-+#define SMMU_PMCG_EVCNTR_RDONLY         BIT(0)
-+
- static int cpuhp_state_num;
- 
- struct smmu_pmu {
-@@ -108,6 +111,7 @@ struct smmu_pmu {
- 	void __iomem *reg_base;
- 	void __iomem *reloc_base;
- 	u64 counter_mask;
-+	u32 options;
- 	bool global_filter;
- 	u32 global_filter_span;
- 	u32 global_filter_sid;
-@@ -222,15 +226,27 @@ static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
- 	u32 idx = hwc->idx;
- 	u64 new;
- 
--	/*
--	 * We limit the max period to half the max counter value of the counter
--	 * size, so that even in the case of extreme interrupt latency the
--	 * counter will (hopefully) not wrap past its initial value.
--	 */
--	new = smmu_pmu->counter_mask >> 1;
-+	if (smmu_pmu->options & SMMU_PMCG_EVCNTR_RDONLY) {
-+		/*
-+		 * On platforms that require this quirk, if the counter starts
-+		 * at < half_counter value and wraps, the current logic of
-+		 * handling the overflow may not work. It is expected that,
-+		 * those platforms will have full 64 counter bits implemented
-+		 * so that such a possibility is remote(eg: HiSilicon HIP08).
-+		 */
-+		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
-+	} else {
-+		/*
-+		 * We limit the max period to half the max counter value
-+		 * of the counter size, so that even in the case of extreme
-+		 * interrupt latency the counter will (hopefully) not wrap
-+		 * past its initial value.
-+		 */
-+		new = smmu_pmu->counter_mask >> 1;
-+		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
-+	}
- 
- 	local64_set(&hwc->prev_count, new);
--	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
- }
- 
- static void smmu_pmu_set_event_filter(struct perf_event *event,
-@@ -669,6 +685,22 @@ static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
- 		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
- }
- 
-+static void smmu_pmu_get_acpi_options(struct smmu_pmu *smmu_pmu)
-+{
-+	u32 model;
-+
-+	model = *(u32 *)dev_get_platdata(smmu_pmu->dev);
-+
-+	switch (model) {
-+	case IORT_SMMU_V3_PMCG_HISI_HIP08:
-+		/* HiSilicon Erratum 162001800 */
-+		smmu_pmu->options |= SMMU_PMCG_EVCNTR_RDONLY;
-+		break;
-+	}
-+
-+	dev_notice(smmu_pmu->dev, "option mask 0x%x\n", smmu_pmu->options);
-+}
-+
- static int smmu_pmu_probe(struct platform_device *pdev)
- {
- 	struct smmu_pmu *smmu_pmu;
-@@ -748,6 +780,8 @@ static int smmu_pmu_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
-+	smmu_pmu_get_acpi_options(smmu_pmu);
-+
- 	/* Pick one CPU to be the preferred one to use */
- 	smmu_pmu->on_cpu = raw_smp_processor_id();
- 	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
-diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-index 052ef7b..723e4df 100644
---- a/include/linux/acpi_iort.h
-+++ b/include/linux/acpi_iort.h
-@@ -32,6 +32,7 @@
-  * do with hardware or with IORT specification.
-  */
- #define IORT_SMMU_V3_PMCG_GENERIC        0x00000000 /* Generic SMMUv3 PMCG */
-+#define IORT_SMMU_V3_PMCG_HISI_HIP08     0x00000001 /* HiSilicon HIP08 PMCG */
- 
- int iort_register_domain_token(int trans_id, phys_addr_t base,
- 			       struct fwnode_handle *fw_node);
--- 
-2.7.4
+Best Regards,
+Petr
