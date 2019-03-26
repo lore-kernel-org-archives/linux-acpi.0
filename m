@@ -1,7 +1,7 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 4/6] lib/vsprintf: Remove support for %pF and %pf in favour of %pS and %ps
-Date: Tue, 26 Mar 2019 14:41:04 +0200
-Message-ID: <20190326124106.27694-5-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 3/6] device property: Add a function to obtain a node's prefix
+Date: Tue, 26 Mar 2019 14:41:03 +0200
+Message-ID: <20190326124106.27694-4-sakari.ailus@linux.intel.com>
 References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
@@ -10,91 +10,140 @@ To: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-%pS and %ps are now the preferred conversion specifiers to print function
-%names. The functionality is equivalent; remove the old, deprecated %pF
-%and %pf support.
+The prefix is used for printing purpose before a node, and it also works
+as a separator between two nodes.
 
-Depends-on: ("treewide: Switch printk users from %pf and %pF to %ps and
-	      %pS, respectively")
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/core-api/printk-formats.rst | 10 ----------
- lib/vsprintf.c                            |  8 ++------
- scripts/checkpatch.pl                     |  1 -
- 3 files changed, 2 insertions(+), 17 deletions(-)
+ drivers/acpi/property.c  | 22 ++++++++++++++++++++++
+ drivers/base/property.c  | 12 ++++++++++++
+ drivers/of/property.c    | 10 ++++++++++
+ include/linux/fwnode.h   |  2 ++
+ include/linux/property.h |  1 +
+ 5 files changed, 47 insertions(+)
 
-diff --git a/Documentation/core-api/printk-formats.rst b/Documentation/core-api/printk-formats.rst
-index c37ec7cd9c06..c90826a1ff17 100644
---- a/Documentation/core-api/printk-formats.rst
-+++ b/Documentation/core-api/printk-formats.rst
-@@ -78,8 +78,6 @@ Symbols/Function Pointers
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 8c9a4c02cde2..c167fd748f86 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1314,6 +1314,27 @@ static const char *acpi_fwnode_get_name(const struct fwnode_handle *fwnode)
+ 	return adev ? acpi_device_bid(adev) : NULL;
+ }
  
- 	%pS	versatile_init+0x0/0x110
- 	%ps	versatile_init
--	%pF	versatile_init+0x0/0x110
--	%pf	versatile_init
- 	%pSR	versatile_init+0x9/0x110
- 		(with __builtin_extract_return_addr() translation)
- 	%pB	prev_fn_of_versatile_init+0x88/0x88
-@@ -89,14 +87,6 @@ The ``S`` and ``s`` specifiers are used for printing a pointer in symbolic
- format. They result in the symbol name with (S) or without (s)
- offsets. If KALLSYMS are disabled then the symbol address is printed instead.
++static const char *
++acpi_fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *parent;
++
++	parent = fwnode_get_parent(fwnode);
++	/* Root node. */
++	if (!parent)
++		return "";
++
++	parent = fwnode_get_next_parent(parent);
++	/* Second node from the root; no prefix here either. */
++	if (!parent)
++		return "";
++
++	fwnode_handle_put(parent);
++
++	/* ACPI device or data node. */
++	return ".";
++}
++
+ static struct fwnode_handle *
+ acpi_fwnode_get_parent(struct fwnode_handle *fwnode)
+ {
+@@ -1355,6 +1376,7 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ 		.get_next_child_node = acpi_get_next_subnode,		\
+ 		.get_named_child_node = acpi_fwnode_get_named_child_node, \
+ 		.get_name = acpi_fwnode_get_name,			\
++		.get_name_prefix = acpi_fwnode_get_name_prefix,		\
+ 		.get_reference_args = acpi_fwnode_get_reference_args,	\
+ 		.graph_get_next_endpoint =				\
+ 			acpi_graph_get_next_endpoint,			\
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 04a8591cd1b0..2e5b826a2376 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -544,6 +544,18 @@ const char *fwnode_get_name(const struct fwnode_handle *fwnode)
+ }
  
--Note, that the ``F`` and ``f`` specifiers are identical to ``S`` (``s``)
--and thus deprecated. We have ``F`` and ``f`` because on ia64, ppc64 and
--parisc64 function pointers are indirect and, in fact, are function
--descriptors, which require additional dereferencing before we can lookup
--the symbol. As of now, ``S`` and ``s`` perform dereferencing on those
--platforms (when needed), so ``F`` and ``f`` exist for compatibility
--reasons only.
--
- The ``B`` specifier results in the symbol name with offsets and should be
- used when printing stack backtraces. The specifier takes into
- consideration the effect of compiler optimisations which may occur
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index 791b6fa36905..5f60b8d41277 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -797,7 +797,7 @@ char *symbol_string(char *buf, char *end, void *ptr,
- #ifdef CONFIG_KALLSYMS
- 	if (*fmt == 'B')
- 		sprint_backtrace(sym, value);
--	else if (*fmt != 'f' && *fmt != 's')
-+	else if (*fmt != 's')
- 		sprint_symbol(sym, value);
- 	else
- 		sprint_symbol_no_offset(sym, value);
-@@ -1853,9 +1853,7 @@ char *device_node_string(char *buf, char *end, struct device_node *dn,
+ /**
++ * fwnode_get_name_prefix - Return the prefix of node for printing purposes
++ * @fwnode: The firmware node
++ *
++ * Returns the prefix of a node, intended to be printed right before the node.
++ * The prefix works also as a separator between the nodes.
++ */
++const char *fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
++{
++	return fwnode_call_ptr_op(fwnode, get_name_prefix);
++}
++
++/**
+  * fwnode_get_parent - Return parent firwmare node
+  * @fwnode: Firmware whose parent is retrieved
   *
-  * - 'S' For symbolic direct pointers (or function descriptors) with offset
-  * - 's' For symbolic direct pointers (or function descriptors) without offset
-- * - 'F' Same as 'S'
-- * - 'f' Same as 's'
-- * - '[FfSs]R' as above with __builtin_extract_return_addr() translation
-+ * - '[Ss]R' as above with __builtin_extract_return_addr() translation
-  * - 'B' For backtraced symbolic direct pointers with offset
-  * - 'R' For decoded struct resource, e.g., [mem 0x0-0x1f 64bit pref]
-  * - 'r' For raw struct resource, e.g., [mem 0x0-0x1f flags 0x201]
-@@ -1970,8 +1968,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
- 	}
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index f0a7b78f2d9f..8fed3b142b41 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -877,6 +877,15 @@ static const char *of_fwnode_get_name(const struct fwnode_handle *fwnode)
+ 	return kbasename(to_of_node(fwnode)->full_name);
+ }
  
- 	switch (*fmt) {
--	case 'F':
--	case 'f':
- 	case 'S':
- 	case 's':
- 		ptr = dereference_symbol_descriptor(ptr);
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 5b756278df13..b2e80259fb8c 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -5994,7 +5994,6 @@ sub process {
- 					my $ext_type = "Invalid";
- 					my $use = "";
- 					if ($bad_specifier =~ /p[Ff]/) {
--						$ext_type = "Deprecated";
- 						$use = " - use %pS instead";
- 						$use =~ s/pS/ps/ if ($bad_specifier =~ /pf/);
- 					}
++static const char *of_fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
++{
++	/* Root needs no prefix here (its name is "/"). */
++	if (!to_of_node(fwnode)->parent)
++		return "";
++
++	return "/";
++}
++
+ static struct fwnode_handle *
+ of_fwnode_get_parent(const struct fwnode_handle *fwnode)
+ {
+@@ -999,6 +1008,7 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.property_read_int_array = of_fwnode_property_read_int_array,
+ 	.property_read_string_array = of_fwnode_property_read_string_array,
+ 	.get_name = of_fwnode_get_name,
++	.get_name_prefix = of_fwnode_get_name_prefix,
+ 	.get_parent = of_fwnode_get_parent,
+ 	.get_next_child_node = of_fwnode_get_next_child_node,
+ 	.get_named_child_node = of_fwnode_get_named_child_node,
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 85b7fa4dc727..592ac6936e14 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -60,6 +60,7 @@ struct fwnode_reference_args {
+  * @property_read_string_array: Read an array of string properties. Return zero
+  *				on success, a negative error code otherwise.
+  * @get_name: Return the name of an fwnode.
++ * @get_name_prefix: Get a prefix for a node (for printing purposes).
+  * @get_parent: Return the parent of an fwnode.
+  * @get_next_child_node: Return the next child node in an iteration.
+  * @get_named_child_node: Return a child node with a given name.
+@@ -87,6 +88,7 @@ struct fwnode_operations {
+ 				      const char *propname, const char **val,
+ 				      size_t nval);
+ 	const char *(*get_name)(const struct fwnode_handle *fwnode);
++	const char *(*get_name_prefix)(const struct fwnode_handle *fwnode);
+ 	struct fwnode_handle *(*get_parent)(const struct fwnode_handle *fwnode);
+ 	struct fwnode_handle *
+ 	(*get_next_child_node)(const struct fwnode_handle *fwnode,
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 2f5df900e310..0ea466ee8c3d 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -79,6 +79,7 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+ 				       struct fwnode_reference_args *args);
+ 
+ const char *fwnode_get_name(const struct fwnode_handle *fwnode);
++const char *fwnode_get_name_prefix(const struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_get_next_parent(
+ 	struct fwnode_handle *fwnode);
 -- 
 2.11.0
