@@ -1,86 +1,48 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH 10/25] coresight: tpiu: Clean up device specific data
-Date: Tue, 26 Mar 2019 15:54:40 -0600
-Message-ID: <20190326215440.GB1658@xps15>
-References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
- <1553107783-3340-11-git-send-email-suzuki.poulose@arm.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH 0/4] arm64: SPE ACPI enablement
+Date: Tue, 26 Mar 2019 17:39:34 -0500
+Message-ID: <20190326223938.5365-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1553107783-3340-11-git-send-email-suzuki.poulose@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 20, 2019 at 06:49:27PM +0000, Suzuki K Poulose wrote:
-> Switch to using the coresight device instead of the parent
-> amba device.
-> 
-> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
-> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
-> ---
->  drivers/hwtracing/coresight/coresight-tpiu.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/hwtracing/coresight/coresight-tpiu.c b/drivers/hwtracing/coresight/coresight-tpiu.c
-> index b2f72a1..9763721 100644
-> --- a/drivers/hwtracing/coresight/coresight-tpiu.c
-> +++ b/drivers/hwtracing/coresight/coresight-tpiu.c
-> @@ -48,15 +48,13 @@
->  
->  /**
->   * @base:	memory mapped base address for this component.
-> - * @dev:	the device entity associated to this component.
-> + * @dev:	the coresight device entity associated to this component.
->   * @atclk:	optional clock for the core parts of the TPIU.
-> - * @csdev:	component vitals needed by the framework.
->   */
->  struct tpiu_drvdata {
->  	void __iomem		*base;
->  	struct device		*dev;
->  	struct clk		*atclk;
-> -	struct coresight_device	*csdev;
+This patch series enables the Arm Statistical Profiling
+Extension (SPE) on ACPI platforms.
 
-Here again I would get rid of @dev rather than @csdev to be consistent with what
-was done previously.
+This is possible because ACPI 6.3 uses a previously
+reserved field in the MADT to store the SPE interrupt
+number, similarly to how the normal PMU is described.
+If a consistent valid interrupt exists across all the
+cores in the system, a platform device is registered.
+That then triggers the SPE module, which runs as normal.
 
-Mathieu
+This version also adds the ability to parse the PPTT for
+IDENTICAL cores. We then use this to sanity check the
+single SPE device we create. This creates a bit of a
+problem with respect to the specification though. The
+specification says that its legal for multiple tree's
+to exist in the PPTT. We handle this fine, but what
+happens in the case of multiple tree's is that the lack
+of a common node with IDENTICAL set forces us to assume
+that there are multiple non IDENTICAL cores in the
+machine.
 
->  };
->  
->  static void tpiu_enable_hw(struct tpiu_drvdata *drvdata)
-> @@ -121,6 +119,7 @@ static int tpiu_probe(struct amba_device *adev, const struct amba_id *id)
->  	struct tpiu_drvdata *drvdata;
->  	struct resource *res = &adev->res;
->  	struct coresight_desc desc = { 0 };
-> +	struct coresight_device *csdev;
->  	struct device_node *np = adev->dev.of_node;
->  
->  	if (np) {
-> @@ -134,7 +133,6 @@ static int tpiu_probe(struct amba_device *adev, const struct amba_id *id)
->  	if (!drvdata)
->  		return -ENOMEM;
->  
-> -	drvdata->dev = &adev->dev;
->  	drvdata->atclk = devm_clk_get(&adev->dev, "atclk"); /* optional */
->  	if (!IS_ERR(drvdata->atclk)) {
->  		ret = clk_prepare_enable(drvdata->atclk);
-> @@ -160,9 +158,11 @@ static int tpiu_probe(struct amba_device *adev, const struct amba_id *id)
->  	desc.ops = &tpiu_cs_ops;
->  	desc.pdata = pdata;
->  	desc.dev = dev;
-> -	drvdata->csdev = coresight_register(&desc);
-> +	csdev = coresight_register(&desc);
-> +	if (!IS_ERR(csdev))
-> +		drvdata->dev = &csdev->dev;
->  
-> -	return PTR_ERR_OR_ZERO(drvdata->csdev);
-> +	return PTR_ERR_OR_ZERO(csdev);
->  }
->  
->  #ifdef CONFIG_PM
-> -- 
-> 2.7.4
-> 
+Jeremy Linton (4):
+  ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
+  ACPI/PPTT: Modify node flag detection to find last IDENTICAL
+  arm_pmu: acpi: spe: Add initial MADT/SPE probing
+  perf: arm_spe: Enable ACPI/Platform automatic module loading
+
+ arch/arm64/include/asm/acpi.h |  3 ++
+ drivers/acpi/pptt.c           | 82 ++++++++++++++++++++++++++++++-----
+ drivers/perf/arm_pmu_acpi.c   | 69 +++++++++++++++++++++++++++++
+ drivers/perf/arm_spe_pmu.c    | 11 ++++-
+ include/linux/acpi.h          |  5 +++
+ 5 files changed, 157 insertions(+), 13 deletions(-)
+
+-- 
+2.20.1
