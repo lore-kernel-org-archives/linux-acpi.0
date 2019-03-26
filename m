@@ -1,57 +1,104 @@
-From: Petr Mladek <pmladek@suse.com>
-Subject: Re: [PATCH 5/5] lib/vsprintf: Add %pfw conversion specifier for
- printing fwnode names
-Date: Tue, 26 Mar 2019 16:50:20 +0100
-Message-ID: <20190326155020.awlvbnm5qqn4wu6t@pathway.suse.cz>
-References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
- <20190322152930.16642-6-sakari.ailus@linux.intel.com>
- <20190322172114.GY9224@smile.fi.intel.com>
- <20190324181745.vgckevapfwi7mul7@mara.localdomain>
- <20190326131353.GY9224@smile.fi.intel.com>
- <20190326140633.GE7049@kuha.fi.intel.com>
- <20190326141243.g2x44v65npw4yhw5@paasikivi.fi.intel.com>
- <20190326143021.GE9224@smile.fi.intel.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v7 2/4] perf/smmuv3: Add arm64 smmuv3 pmu driver
+Date: Tue, 26 Mar 2019 16:57:42 +0000
+Message-ID: <fa89c332-d420-8fef-5034-518e60571bd9@arm.com>
+References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
+ <20190326151753.19384-3-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190326143021.GE9224@smile.fi.intel.com>
+In-Reply-To: <20190326151753.19384-3-shameerali.kolothum.thodi@huawei.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com
+Cc: andrew.murray@arm.com, jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue 2019-03-26 16:30:21, Andy Shevchenko wrote:
-> On Tue, Mar 26, 2019 at 04:12:43PM +0200, Sakari Ailus wrote:
-> > On Tue, Mar 26, 2019 at 04:06:33PM +0200, Heikki Krogerus wrote:
-> > > On Tue, Mar 26, 2019 at 03:13:53PM +0200, Andy Shevchenko wrote:
-> 
-> > > > > > Do we support swnode here?
-> > > > > 
-> > > > > Good question. The swnodes have no hierarchy at the moment (they're only
-> > > > > created for a struct device as a parent) and they do not have human-readable
-> > > > > names. So I'd say it's not relevant right now. Should these two change,
-> > > > > support for swnode could (and should) be added later on.
-> > > > 
-> > > > Heikki, what do you think about this?
-> > > 
-> > > Well, the swnodes do have hierarchy. That was kind of the whole point
-> > > of introducing them. They now can also be named using "name" property.
-> > > See commit 344798206f171c5abea7ab1f9762fa526d7f539d.
-> > 
-> > Right; I saw the function after initially replying to Andy but I missed
-> > where the node name came from. :-) Now I know...
-> > 
-> > I can add support for swnode, too, if you like.
-> 
-> Definitely!
+Hi Shameer,
 
-It might really make sense to obsolete %pOF and handle all three
-(OF, ACPI, Software) nodes using the same %pfw modifiers.
+On 26/03/2019 15:17, Shameer Kolothum wrote:
+[...]
+> +static int smmu_pmu_apply_event_filter(struct smmu_pmu *smmu_pmu,
+> +				       struct perf_event *event, int idx)
+> +{
+> +	u32 span, sid;
+> +	unsigned int num_ctrs = smmu_pmu->num_counters;
+> +	bool filter_en = !!get_filter_enable(event);
+> +
+> +	span = filter_en ? get_filter_span(event) :
+> +			   SMMU_PMCG_DEFAULT_FILTER_SPAN;
+> +	sid = filter_en ? get_filter_stream_id(event) :
+> +			   SMMU_PMCG_DEFAULT_FILTER_SID;
+> +
+> +	/* Support individual filter settings */
+> +	if (!smmu_pmu->global_filter) {
+> +		smmu_pmu_set_event_filter(event, idx, span, sid);
+> +		return 0;
+> +	}
+> +
+> +	/* Requested settings same as current global settings*/
+> +	if (span == smmu_pmu->global_filter_span &&
+> +	    sid == smmu_pmu->global_filter_sid)
+> +		return 0;
+> +
+> +	if (!bitmap_empty(smmu_pmu->used_counters, num_ctrs))
+> +		return -EAGAIN;
+> +
+> +	if (idx == 0) {
+> +		smmu_pmu_set_event_filter(event, idx, span, sid);
+> +		smmu_pmu->global_filter_span = span;
+> +		smmu_pmu->global_filter_sid = sid;
+> +		return 0;
+> +	}
 
-If I get it correctly, we could distinguish them by
-fwnode->ops, see is_of_node(), is_acpi_static_node(),
-is_software_node().
+When I suggested dropping the check of idx, I did mean removing it 
+entirely, not just moving it further down ;)
 
-Best Regards,
-Petr
+Nothing to worry about though, I'll just leave this here for Will to 
+consider applying on top or squashing.
+
+Thanks,
+Robin.
+
+----->8-----
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: [PATCH] perf/smmuv3: Relax global filter constraint a little
+
+Although the current behaviour of smmu_pmu_get_event_idx() effectively
+ensures that the first-allocated counter will be counter 0, there's no
+need to strictly enforce that in smmu_pmu_apply_event_filter(). All that
+matters is that we only ever touch the global filter settings in
+SMMU_PMCG_SMR0 and SMMU_PMCG_EVTYPER0 while no counters are active.
+
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+---
+  drivers/perf/arm_smmuv3_pmu.c | 11 ++++-------
+  1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
+index 6b3c0ed7ad71..23045ead6de1 100644
+--- a/drivers/perf/arm_smmuv3_pmu.c
++++ b/drivers/perf/arm_smmuv3_pmu.c
+@@ -286,14 +286,11 @@ static int smmu_pmu_apply_event_filter(struct 
+smmu_pmu *smmu_pmu,
+  	if (!bitmap_empty(smmu_pmu->used_counters, num_ctrs))
+  		return -EAGAIN;
+
+-	if (idx == 0) {
+-		smmu_pmu_set_event_filter(event, idx, span, sid);
+-		smmu_pmu->global_filter_span = span;
+-		smmu_pmu->global_filter_sid = sid;
+-		return 0;
+-	}
++	smmu_pmu_set_event_filter(event, 0, span, sid);
++	smmu_pmu->global_filter_span = span;
++	smmu_pmu->global_filter_sid = sid;
+
+-	return -EAGAIN;
++	return 0;
+  }
+
+  static int smmu_pmu_get_event_idx(struct smmu_pmu *smmu_pmu,
+-- 
+2.20.1.dirty
