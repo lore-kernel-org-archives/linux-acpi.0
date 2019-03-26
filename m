@@ -1,8 +1,8 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Subject: Re: [PATCH 5/5] lib/vsprintf: Add %pfw conversion specifier for
  printing fwnode names
-Date: Tue, 26 Mar 2019 16:30:21 +0200
-Message-ID: <20190326143021.GE9224@smile.fi.intel.com>
+Date: Tue, 26 Mar 2019 16:30:40 +0200
+Message-ID: <20190326143040.GF7049@kuha.fi.intel.com>
 References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
  <20190322152930.16642-6-sakari.ailus@linux.intel.com>
  <20190322172114.GY9224@smile.fi.intel.com>
@@ -17,13 +17,23 @@ Content-Disposition: inline
 In-Reply-To: <20190326141243.g2x44v65npw4yhw5@paasikivi.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Tue, Mar 26, 2019 at 04:12:43PM +0200, Sakari Ailus wrote:
+> Moi,
+> 
 > On Tue, Mar 26, 2019 at 04:06:33PM +0200, Heikki Krogerus wrote:
+> > Hi,
+> > 
 > > On Tue, Mar 26, 2019 at 03:13:53PM +0200, Andy Shevchenko wrote:
-
+> > > > > > On ACPI based systems the resulting strings look like
+> > > > > > 
+> > > > > > 	\_SB.PCI0.CIO2.port@1.endpoint@0
+> > > > > > 
+> > > > > > where the nodes are separated by a dot (".") and the first three are
+> > > > > > ACPI device nodes and the latter two ACPI data nodes.
+> > > > > 
 > > > > > Do we support swnode here?
 > > > > 
 > > > > Good question. The swnodes have no hierarchy at the moment (they're only
@@ -42,8 +52,9 @@ On Tue, Mar 26, 2019 at 04:12:43PM +0200, Sakari Ailus wrote:
 > 
 > I can add support for swnode, too, if you like.
 
-Definitely!
+It's up to you.
+
+thanks,
 
 -- 
-With Best Regards,
-Andy Shevchenko
+heikki
