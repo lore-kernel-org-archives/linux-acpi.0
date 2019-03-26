@@ -1,87 +1,98 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v7 2/4] perf/smmuv3: Add arm64 smmuv3 pmu driver
-Date: Tue, 26 Mar 2019 17:02:26 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA8393296D1@lhreml524-mbb.china.huawei.com>
-References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
- <20190326151753.19384-3-shameerali.kolothum.thodi@huawei.com>
- <fa89c332-d420-8fef-5034-518e60571bd9@arm.com>
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH v2 0/2] PCI/AER: Consistently use _OSC to determine who owns AER
+Date: Tue, 26 Mar 2019 12:23:40 -0500
+Message-ID: <20190326172343.28946-1-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <fa89c332-d420-8fef-5034-518e60571bd9@arm.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
-Cc: "andrew.murray@arm.com" <andrew.murray@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>
+To: bhelgaas@google.com
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, scott.faasse@hpe.com, leo.duran@amd.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell Currey <ruscur@russell.cc>, Sam Bobroff <sbobroff@linux.ibm.com>, Oliver O'Halloran <oohall@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgUm9iaW4sDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4g
-TXVycGh5IFttYWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDI2IE1hcmNoIDIw
-MTkgMTY6NTgNCj4gVG86IFNoYW1lZXJhbGkgS29sb3RodW0gVGhvZGkgPHNoYW1lZXJhbGkua29s
-b3RodW0udGhvZGlAaHVhd2VpLmNvbT47DQo+IGxvcmVuem8ucGllcmFsaXNpQGFybS5jb20NCj4g
-Q2M6IGFuZHJldy5tdXJyYXlAYXJtLmNvbTsgamVhbi1waGlsaXBwZS5icnVja2VyQGFybS5jb207
-DQo+IHdpbGwuZGVhY29uQGFybS5jb207IG1hcmsucnV0bGFuZEBhcm0uY29tOyBHdW9oYW5qdW4g
-KEhhbmp1biBHdW8pDQo+IDxndW9oYW5qdW5AaHVhd2VpLmNvbT47IEpvaG4gR2FycnkgPGpvaG4u
-Z2FycnlAaHVhd2VpLmNvbT47DQo+IHBhYmJhQGNvZGVhdXJvcmEub3JnOyB2a2lsYXJpQGNvZGVh
-dXJvcmEub3JnOyBycnVpZ3Jva0Bjb2RlYXVyb3JhLm9yZzsNCj4gbGludXgtYWNwaUB2Z2VyLmtl
-cm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LWFybS1rZXJu
-ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgTGludXhhcm0gPGxpbnV4YXJtQGh1YXdlaS5jb20+Ow0K
-PiBuZWlsLm0ubGVlZGVyQGdtYWlsLmNvbQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHY3IDIvNF0g
-cGVyZi9zbW11djM6IEFkZCBhcm02NCBzbW11djMgcG11IGRyaXZlcg0KPiANCj4gSGkgU2hhbWVl
-ciwNCj4gDQo+IE9uIDI2LzAzLzIwMTkgMTU6MTcsIFNoYW1lZXIgS29sb3RodW0gd3JvdGU6DQo+
-IFsuLi5dDQo+ID4gK3N0YXRpYyBpbnQgc21tdV9wbXVfYXBwbHlfZXZlbnRfZmlsdGVyKHN0cnVj
-dCBzbW11X3BtdSAqc21tdV9wbXUsDQo+ID4gKwkJCQkgICAgICAgc3RydWN0IHBlcmZfZXZlbnQg
-KmV2ZW50LCBpbnQgaWR4KQ0KPiA+ICt7DQo+ID4gKwl1MzIgc3Bhbiwgc2lkOw0KPiA+ICsJdW5z
-aWduZWQgaW50IG51bV9jdHJzID0gc21tdV9wbXUtPm51bV9jb3VudGVyczsNCj4gPiArCWJvb2wg
-ZmlsdGVyX2VuID0gISFnZXRfZmlsdGVyX2VuYWJsZShldmVudCk7DQo+ID4gKw0KPiA+ICsJc3Bh
-biA9IGZpbHRlcl9lbiA/IGdldF9maWx0ZXJfc3BhbihldmVudCkgOg0KPiA+ICsJCQkgICBTTU1V
-X1BNQ0dfREVGQVVMVF9GSUxURVJfU1BBTjsNCj4gPiArCXNpZCA9IGZpbHRlcl9lbiA/IGdldF9m
-aWx0ZXJfc3RyZWFtX2lkKGV2ZW50KSA6DQo+ID4gKwkJCSAgIFNNTVVfUE1DR19ERUZBVUxUX0ZJ
-TFRFUl9TSUQ7DQo+ID4gKw0KPiA+ICsJLyogU3VwcG9ydCBpbmRpdmlkdWFsIGZpbHRlciBzZXR0
-aW5ncyAqLw0KPiA+ICsJaWYgKCFzbW11X3BtdS0+Z2xvYmFsX2ZpbHRlcikgew0KPiA+ICsJCXNt
-bXVfcG11X3NldF9ldmVudF9maWx0ZXIoZXZlbnQsIGlkeCwgc3Bhbiwgc2lkKTsNCj4gPiArCQly
-ZXR1cm4gMDsNCj4gPiArCX0NCj4gPiArDQo+ID4gKwkvKiBSZXF1ZXN0ZWQgc2V0dGluZ3Mgc2Ft
-ZSBhcyBjdXJyZW50IGdsb2JhbCBzZXR0aW5ncyovDQo+ID4gKwlpZiAoc3BhbiA9PSBzbW11X3Bt
-dS0+Z2xvYmFsX2ZpbHRlcl9zcGFuICYmDQo+ID4gKwkgICAgc2lkID09IHNtbXVfcG11LT5nbG9i
-YWxfZmlsdGVyX3NpZCkNCj4gPiArCQlyZXR1cm4gMDsNCj4gPiArDQo+ID4gKwlpZiAoIWJpdG1h
-cF9lbXB0eShzbW11X3BtdS0+dXNlZF9jb3VudGVycywgbnVtX2N0cnMpKQ0KPiA+ICsJCXJldHVy
-biAtRUFHQUlOOw0KPiA+ICsNCj4gPiArCWlmIChpZHggPT0gMCkgew0KPiA+ICsJCXNtbXVfcG11
-X3NldF9ldmVudF9maWx0ZXIoZXZlbnQsIGlkeCwgc3Bhbiwgc2lkKTsNCj4gPiArCQlzbW11X3Bt
-dS0+Z2xvYmFsX2ZpbHRlcl9zcGFuID0gc3BhbjsNCj4gPiArCQlzbW11X3BtdS0+Z2xvYmFsX2Zp
-bHRlcl9zaWQgPSBzaWQ7DQo+ID4gKwkJcmV0dXJuIDA7DQo+ID4gKwl9DQo+IA0KPiBXaGVuIEkg
-c3VnZ2VzdGVkIGRyb3BwaW5nIHRoZSBjaGVjayBvZiBpZHgsIEkgZGlkIG1lYW4gcmVtb3Zpbmcg
-aXQNCj4gZW50aXJlbHksIG5vdCBqdXN0IG1vdmluZyBpdCBmdXJ0aGVyIGRvd24gOykNCg0KQWgu
-LkkgbXVzdCBjb25mZXNzIHRoYXQgSSB3YXMgc2xpZ2h0bHkgY29uZnVzZWQgYnkgdGhhdCBzdWdn
-ZXN0aW9uIGFuZCANCnRob3VnaHQgdGhhdCB5b3UgYXJlIG1ha2luZyBhIGNhc2UgZm9yIGNvZGUg
-YmVpbmcgbW9yZSBjbGVhciB0byByZWFkIDopDQogDQo+IE5vdGhpbmcgdG8gd29ycnkgYWJvdXQg
-dGhvdWdoLCBJJ2xsIGp1c3QgbGVhdmUgdGhpcyBoZXJlIGZvciBXaWxsIHRvDQo+IGNvbnNpZGVy
-IGFwcGx5aW5nIG9uIHRvcCBvciBzcXVhc2hpbmcuDQoNClRoYW5rcyBmb3IgdGhhdC4NCg0KQ2hl
-ZXJzLA0KU2hhbWVlcg0KDQo+IFRoYW5rcywNCj4gUm9iaW4uDQo+IA0KPiAtLS0tLT44LS0tLS0N
-Cj4gRnJvbTogUm9iaW4gTXVycGh5IDxyb2Jpbi5tdXJwaHlAYXJtLmNvbT4NCj4gU3ViamVjdDog
-W1BBVENIXSBwZXJmL3NtbXV2MzogUmVsYXggZ2xvYmFsIGZpbHRlciBjb25zdHJhaW50IGEgbGl0
-dGxlDQo+IA0KPiBBbHRob3VnaCB0aGUgY3VycmVudCBiZWhhdmlvdXIgb2Ygc21tdV9wbXVfZ2V0
-X2V2ZW50X2lkeCgpIGVmZmVjdGl2ZWx5DQo+IGVuc3VyZXMgdGhhdCB0aGUgZmlyc3QtYWxsb2Nh
-dGVkIGNvdW50ZXIgd2lsbCBiZSBjb3VudGVyIDAsIHRoZXJlJ3Mgbm8NCj4gbmVlZCB0byBzdHJp
-Y3RseSBlbmZvcmNlIHRoYXQgaW4gc21tdV9wbXVfYXBwbHlfZXZlbnRfZmlsdGVyKCkuIEFsbCB0
-aGF0DQo+IG1hdHRlcnMgaXMgdGhhdCB3ZSBvbmx5IGV2ZXIgdG91Y2ggdGhlIGdsb2JhbCBmaWx0
-ZXIgc2V0dGluZ3MgaW4NCj4gU01NVV9QTUNHX1NNUjAgYW5kIFNNTVVfUE1DR19FVlRZUEVSMCB3
-aGlsZSBubyBjb3VudGVycyBhcmUNCj4gYWN0aXZlLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogUm9i
-aW4gTXVycGh5IDxyb2Jpbi5tdXJwaHlAYXJtLmNvbT4NCj4gLS0tDQo+ICAgZHJpdmVycy9wZXJm
-L2FybV9zbW11djNfcG11LmMgfCAxMSArKysrLS0tLS0tLQ0KPiAgIDEgZmlsZSBjaGFuZ2VkLCA0
-IGluc2VydGlvbnMoKyksIDcgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9wZXJmL2FybV9zbW11djNfcG11LmMNCj4gYi9kcml2ZXJzL3BlcmYvYXJtX3NtbXV2M19wbXUu
-Yw0KPiBpbmRleCA2YjNjMGVkN2FkNzEuLjIzMDQ1ZWFkNmRlMSAxMDA2NDQNCj4gLS0tIGEvZHJp
-dmVycy9wZXJmL2FybV9zbW11djNfcG11LmMNCj4gKysrIGIvZHJpdmVycy9wZXJmL2FybV9zbW11
-djNfcG11LmMNCj4gQEAgLTI4NiwxNCArMjg2LDExIEBAIHN0YXRpYyBpbnQgc21tdV9wbXVfYXBw
-bHlfZXZlbnRfZmlsdGVyKHN0cnVjdA0KPiBzbW11X3BtdSAqc21tdV9wbXUsDQo+ICAgCWlmICgh
-Yml0bWFwX2VtcHR5KHNtbXVfcG11LT51c2VkX2NvdW50ZXJzLCBudW1fY3RycykpDQo+ICAgCQly
-ZXR1cm4gLUVBR0FJTjsNCj4gDQo+IC0JaWYgKGlkeCA9PSAwKSB7DQo+IC0JCXNtbXVfcG11X3Nl
-dF9ldmVudF9maWx0ZXIoZXZlbnQsIGlkeCwgc3Bhbiwgc2lkKTsNCj4gLQkJc21tdV9wbXUtPmds
-b2JhbF9maWx0ZXJfc3BhbiA9IHNwYW47DQo+IC0JCXNtbXVfcG11LT5nbG9iYWxfZmlsdGVyX3Np
-ZCA9IHNpZDsNCj4gLQkJcmV0dXJuIDA7DQo+IC0JfQ0KPiArCXNtbXVfcG11X3NldF9ldmVudF9m
-aWx0ZXIoZXZlbnQsIDAsIHNwYW4sIHNpZCk7DQo+ICsJc21tdV9wbXUtPmdsb2JhbF9maWx0ZXJf
-c3BhbiA9IHNwYW47DQo+ICsJc21tdV9wbXUtPmdsb2JhbF9maWx0ZXJfc2lkID0gc2lkOw0KPiAN
-Cj4gLQlyZXR1cm4gLUVBR0FJTjsNCj4gKwlyZXR1cm4gMDsNCj4gICB9DQo+IA0KPiAgIHN0YXRp
-YyBpbnQgc21tdV9wbXVfZ2V0X2V2ZW50X2lkeChzdHJ1Y3Qgc21tdV9wbXUgKnNtbXVfcG11LA0K
-PiAtLQ0KPiAyLjIwLjEuZGlydHkNCg==
+This started as a nudge from Keith, who pointed out that it doesn't make sense
+to disable AER services when only one device has a FIRMWARE_FIRST HEST.
+
+I won't re-phrase the points in the original patch [1]. The patch started a
+long discussion in the ACPI Software Working Group (ASWG). The nearly unanimous
+conclusion is that my original interpretation is correct.
+
+I'd like to quote one of the tables that was produced as part of that
+conversation:
+
+(_OSC AER Control, HEST AER Structure FFS) = (0, 0)
+	* OSPM is prevented from writing to the PCI Express AER registers.
+	* OSPM has no guidance on how AER errors are being handled – but it
+	  does know that it is not in control of AER registers. PCI-e errors
+	  that make it to the OS (via NMI, etc) would be treated as spurious
+	  since access to the AER registers isn’t allowed for proper sourcing.
+
+
+(_OSC AER Control, HEST AER Structure FFS) = (0, 1)
+	* OSPM is prevented from writing to the PCI Express AER registers.
+	* OSPM is being given guidance that Firmware is handling AER errors and
+	  those interrupts are routed to the platform. Firmware may pass along
+	  error information via GHES
+
+
+(_OSC AER Control, HEST AER Structure FFS) = (0, Does not exist)
+	* OSPM is prevented from writing to the PCI Express AER registers.
+	* OSPM has no guidance on how AER errors are being handled – but it
+	  does know that it is not in control of AER registers. PCI-e errors
+	  that make it to the OS (via NMI, etc) would be treated as spurious
+	  since access to the AER registers isn’t allowed for proper sourcing.
+
+(_OSC AER Control, HEST AER Structure FFS) = (1, 0)
+	* OSPM is in control of writing to the PCI Express AER registers.
+	* OSPM is being given guidance that AER errors will interrupt the OS
+	  directly and that the OS is expected to handle all AER capability
+	  structure read/clears for the devices with this attribute (or all if
+	  the Global Bit is set.)
+
+(_OSC AER Control, HEST AER Structure FFS) = (1, 1)
+	* OSPM is in control of writing to the PCI Express AER registers.
+	* OSPM is being given guidance that although OS is in control of AER
+	  read/writes – the actual interrupt is being routed to the platform
+	  first.
+	* Subsequent fields with masks/enables should be performed by the OS
+	  during initialization on behalf of firmware. These are to be honoured
+	  in this mode because with FF, the firmware needs to be able to handle
+	  the errors it expects and not be given errors it was not expecting to
+	  handle.
+	* Firmware may pass along error information via GHES, or generate an OS
+	  interrupt and allow the OS to interrogate AER status directly via the
+	  AER capability structures.
+
+
+(_OSC AER Control, HEST AER Structure FFS) = (0, Does not exist)
+	* OSPM is in control of writing to the PCI Express AER registers.
+	* OSPM has no guidance from the platform and is in complete control of
+	  AER error handling.
+
+
+There may be one caveat. Someone mentioned in the original discussions that
+there may exist machines which make the assumption that HEST is authoritative,
+but did not identify any such machine. We should keep in mind that they may
+require a quirk.
+
+Alex
+
+
+[1] https://lkml.org/lkml/2018/11/16/202
+
+Changes since v1:
+ * Started 6-month conversation in ASWG
+ * Re-phrased commit message to reflect some of the points in ASWG discussion
+
+Alexandru Gagniuc (2):
+  PCI/AER: Do not use APEI/HEST to disable AER services globally
+  PCI/AER: Determine AER ownership based on _OSC instead of HEST
+
+ drivers/acpi/pci_root.c  |  9 +----
+ drivers/pci/pcie/aer.c   | 82 ++--------------------------------------
+ include/linux/pci-acpi.h |  6 ---
+ 3 files changed, 5 insertions(+), 92 deletions(-)
+
+-- 
+2.19.2
