@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 47/87] ACPI / video: Refactor and fix dmi_is_desktop()
-Date: Wed, 27 Mar 2019 14:20:00 -0400
-Message-ID: <20190327182040.17444-47-sashal@kernel.org>
-References: <20190327182040.17444-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 123/123] ACPI / video: Extend chassis-type detection with a "Lunch Box" check
+Date: Wed, 27 Mar 2019 14:16:27 -0400
+Message-ID: <20190327181628.15899-123-sashal@kernel.org>
+References: <20190327181628.15899-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327182040.17444-1-sashal@kernel.org>
+In-Reply-To: <20190327181628.15899-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
@@ -14,69 +14,44 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit cecf3e3e0803462335e25d083345682518097334 ]
+[ Upstream commit d693c008e3ca04db5916ff72e68ce661888a913b ]
 
-This commit refactors the chassis-type detection introduced by
-commit 53fa1f6e8a59 ("ACPI / video: Only default only_lcd to true on
-Win8-ready _desktops_") (where desktop means anything without a builtin
-screen).
+Commit 53fa1f6e8a59 ("ACPI / video: Only default only_lcd to true on
+Win8-ready _desktops_") introduced chassis type detection, limiting the
+lcd_only check for the backlight to devices where the chassis-type
+indicates their is no builtin LCD panel.
 
-The DMI chassis_type is an unsigned integer, so rather then doing a
-whole bunch of string-compares on it, convert it to an int and feed
-the result to a switch case.
+The purpose of the lcd_only check is to avoid advertising a backlight
+interface on desktops, since skylake and newer machines seem to always
+have a backlight interface even if there is no LCD panel. The limiting
+of this check to desktops only was done to avoid breaking backlight
+support on some laptops which do not have the lcd flag set.
 
-Note the switch case uses hex values, this is done because the spec
-uses hex values too. This changes the check for "Main Server Chassis"
-from checking for 11 decimal to 11 hexadecimal, this is a bug fix,
-the original check for 11 decimal was wrong.
+The Fujitsu ESPRIMO Q910 which is a compact (NUC like) desktop machine
+has a chassis type of 0x10 aka "Lunch Box". Without the lcd_only check
+we end up falsely advertising backlight/brightness control on this
+device. This commit extend the dmi_is_desktop check to return true
+for type 0x10 to fix this.
 
 Fixes: 53fa1f6e8a59 ("ACPI / video: Only default only_lcd to true ...")
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-[ rjw: Drop redundant return statements ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpi_video.c | 19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ drivers/acpi/acpi_video.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 667dc5c86fef..d79e38abd6d9 100644
+index 9f56c066227c..e39a1489cc72 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -2069,21 +2069,28 @@ static int __init intel_opregion_present(void)
- 	return opregion;
- }
- 
-+/* Check if the chassis-type indicates there is no builtin LCD panel */
- static bool dmi_is_desktop(void)
- {
- 	const char *chassis_type;
-+	unsigned long type;
- 
- 	chassis_type = dmi_get_system_info(DMI_CHASSIS_TYPE);
- 	if (!chassis_type)
- 		return false;
- 
--	if (!strcmp(chassis_type, "3") || /*  3: Desktop */
--	    !strcmp(chassis_type, "4") || /*  4: Low Profile Desktop */
--	    !strcmp(chassis_type, "5") || /*  5: Pizza Box */
--	    !strcmp(chassis_type, "6") || /*  6: Mini Tower */
--	    !strcmp(chassis_type, "7") || /*  7: Tower */
--	    !strcmp(chassis_type, "11"))  /* 11: Main Server Chassis */
-+	if (kstrtoul(chassis_type, 10, &type) != 0)
-+		return false;
-+
-+	switch (type) {
-+	case 0x03: /* Desktop */
-+	case 0x04: /* Low Profile Desktop */
-+	case 0x05: /* Pizza Box */
-+	case 0x06: /* Mini Tower */
-+	case 0x07: /* Tower */
-+	case 0x11: /* Main Server Chassis */
+@@ -2142,6 +2142,7 @@ static bool dmi_is_desktop(void)
+ 	case 0x05: /* Pizza Box */
+ 	case 0x06: /* Mini Tower */
+ 	case 0x07: /* Tower */
++	case 0x10: /* Lunch Box */
+ 	case 0x11: /* Main Server Chassis */
  		return true;
-+	}
- 
- 	return false;
- }
+ 	}
 -- 
 2.19.1
