@@ -1,71 +1,62 @@
 From: Petr Mladek <pmladek@suse.com>
-Subject: Re: [PATCH v2 3/6] device property: Add a function to obtain a
- node's prefix
-Date: Wed, 27 Mar 2019 13:36:59 +0100
-Message-ID: <20190327123659.nna3hqcotnerptiz@pathway.suse.cz>
-References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
- <20190326124106.27694-4-sakari.ailus@linux.intel.com>
- <20190326131626.GZ9224@smile.fi.intel.com>
- <20190326133248.2nrm5javjw4vd2yq@paasikivi.fi.intel.com>
+Subject: Re: [PATCH 4/5] lib/vsprintf: Make use of fwnode API to obtain node
+ names and separators
+Date: Wed, 27 Mar 2019 13:53:56 +0100
+Message-ID: <20190327125356.s7hockgf5yfyhx52@pathway.suse.cz>
+References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
+ <20190322152930.16642-5-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190326133248.2nrm5javjw4vd2yq@paasikivi.fi.intel.com>
+In-Reply-To: <20190322152930.16642-5-sakari.ailus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
+Cc: linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue 2019-03-26 15:32:48, Sakari Ailus wrote:
-> Hi Andy,
+On Fri 2019-03-22 17:29:29, Sakari Ailus wrote:
+> Instead of implementing our own means of discovering parent nodes, node
+> names or counting how many parents a node has, use the newly added
+> functions in the fwnode API to obtain that information.
 > 
-> On Tue, Mar 26, 2019 at 03:16:26PM +0200, Andy Shevchenko wrote:
-> > On Tue, Mar 26, 2019 at 02:41:03PM +0200, Sakari Ailus wrote:
-> > > The prefix is used for printing purpose before a node, and it also works
-> > > as a separator between two nodes.
-> > > 
-> > 
-> > One nit below.
-> > 
-> > > +static const char *
-> > > +acpi_fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
-> > > +{
-> > > +	struct fwnode_handle *parent;
-> > > +
-> > 
-> > > +	parent = fwnode_get_parent(fwnode);
-> > > +	/* Root node. */
-> > 
-> > I guess a comment could be easier to read if it goes before parent assignment
-> > line.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  lib/vsprintf.c | 37 +++++++++++++++----------------------
+>  1 file changed, 15 insertions(+), 22 deletions(-)
 > 
-> Only if the comments are changed accordingly. What we're doing here is
-> trying to figure out whether this is the root node. I can do that for v3.
+> diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+> index 5f60b8d41277..91f2a3e4892e 100644
+> --- a/lib/vsprintf.c
+> +++ b/lib/vsprintf.c
+> @@ -37,6 +37,7 @@
+>  #include <net/addrconf.h>
+>  #include <linux/siphash.h>
+>  #include <linux/compiler.h>
+> +#include <linux/property.h>
+>  #ifdef CONFIG_BLOCK
+>  #include <linux/blkdev.h>
+>  #endif
+> @@ -1720,32 +1721,23 @@ char *flags_string(char *buf, char *end, void *flags_ptr, const char *fmt)
+>  	return format_flags(buf, end, flags, names);
+>  }
+>  
+> -static const char *device_node_name_for_depth(const struct device_node *np, int depth)
+> -{
+> -	for ( ; np && depth; depth--)
+> -		np = np->parent;
+> -
+> -	return kbasename(np->full_name);
+> -}
+> -
+>  static noinline_for_stack
+> -char *device_node_gen_full_name(const struct device_node *np, char *buf, char *end)
+> +char *fwnode_gen_full_name(struct fwnode_handle *fwnode, char *buf, char *end)
 
-IMHO, the comment in acpi_fwnode_get_name() is easier to understand:
+I first read this as fwnode_get_full_name(), see "get" vs. "gen".
+I guess that it was because there is used also fwnode_get_name().
 
-/* Is this the root node? */
-
-> > 
-> > > +	if (!parent)
-> > > +		return "";
-> > > +
-> > > +	parent = fwnode_get_next_parent(parent);
-> > > +	/* Second node from the root; no prefix here either. */
-> > 
-> > Ditto.
-
-/* Is this 2nd node from the root? */
-
-> > > +	if (!parent)
-> > > +		return "";
-> > > +
-> > > +	fwnode_handle_put(parent);
-> > > +
-> > > +	/* ACPI device or data node. */
-> > > +	return ".";
-> > > +}
+Please, rename it to fwnode_full_name_string() or so ;-)
 
 Best Regards,
 Petr
