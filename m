@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 261/262] ACPI / video: Extend chassis-type detection with a "Lunch Box" check
-Date: Wed, 27 Mar 2019 14:01:56 -0400
-Message-ID: <20190327180158.10245-261-sashal@kernel.org>
-References: <20190327180158.10245-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 87/87] ACPI / video: Extend chassis-type detection with a "Lunch Box" check
+Date: Wed, 27 Mar 2019 14:20:40 -0400
+Message-ID: <20190327182040.17444-87-sashal@kernel.org>
+References: <20190327182040.17444-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
+In-Reply-To: <20190327182040.17444-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
@@ -42,10 +42,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 1ab1460c4a4e..d73afb562ad9 100644
+index d79e38abd6d9..ea0573176894 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -2143,6 +2143,7 @@ static bool dmi_is_desktop(void)
+@@ -2088,6 +2088,7 @@ static bool dmi_is_desktop(void)
  	case 0x05: /* Pizza Box */
  	case 0x06: /* Mini Tower */
  	case 0x07: /* Tower */
