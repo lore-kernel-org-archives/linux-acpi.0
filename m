@@ -1,110 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] drivers/acpi: Clear status of an event before enabling it
-Date: Wed, 27 Mar 2019 13:24:46 +0100
-Message-ID: <CAJZ5v0hxNA_KHjcqSL4XPpQpB1M4UuWJcYOknex=NOGavoooHA@mail.gmail.com>
-References: <20190320222844.134765-1-furquan@google.com> <CAJZ5v0h7dYEFHSOHengJ3OFyXBW+XZVbjCAegpzqg1VxeeaXog@mail.gmail.com>
- <CAEGmHFEqhh_xYaTXsVHqSgNW-1Ao6-mtk0BPhgu3-8ua6cCZ-Q@mail.gmail.com>
+From: Petr Mladek <pmladek@suse.com>
+Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing
+ node's parents
+Date: Wed, 27 Mar 2019 13:26:25 +0100
+Message-ID: <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-2-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAEGmHFEqhh_xYaTXsVHqSgNW-1Ao6-mtk0BPhgu3-8ua6cCZ-Q@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190326124106.27694-2-sakari.ailus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Furquan Shaikh <furquan@google.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rajat Jain <rajatja@google.com>, Evan Green <evgreen@google.com>, Duncan Laurie <dlaurie@google.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 21, 2019 at 3:16 AM Furquan Shaikh <furquan@google.com> wrote:
->
-> On Wed, Mar 20, 2019 at 5:11 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > On Wed, Mar 20, 2019 at 11:34 PM Furquan Shaikh <furquan@google.com> wrote:
-> > >
-> > > Commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
-> > > clearing ACPI IRQs during suspend/resume") was added to stop clearing
-> > > of event status bits unconditionally on suspend and resume paths. This
-> > > was done because of an issue
-> > > reported (https://bugzilla.kernel.org/show_bug.cgi?id=196249) where
-> > > lid status stays closed even on resume (which happens because event
-> > > status bits are cleared unconditionally on resume). Though this change
-> > > fixed the issue on suspend path, it introduced regressions on several
-> > > resume paths.
-> > >
-> > > First regression was reported and fixed on S5 path by the following
-> > > change: commit fa85015c0d95 ("ACPICA: Clear status of all events when
-> > > entering S5"). Next regression was reported and fixed on all legacy
-> > > sleep paths by the commit f317c7dc12b7 ("ACPICA: Clear status of all
-> > > events when entering sleep states"). However, regression still exists
-> > > on S0ix sleep path since it does not follow the legacy sleep path.
-> >
-> > What exactly is failing?
->
-> Here is the failure scenario:
->
-> 1. Consider the case of trackpad which acts as a wake source.
-> 2. Since the pad is configured for SCI, GPE_STS gets set for that pad
-> during normal interrupts as well (i.e. during probe at boot or when
-> using the trackpad)
+On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
+> Add two convenience functions for accessing node's parents:
+> 
+> fwnode_count_parents() returns the number of parent nodes a given node
+> has. fwnode_get_nth_parent() returns node's parent at a given distance
+> from the node itself.
+> 
+> Also reorder fwnode_get_parent() in property.c according to the same order
+> as in property.h.
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 8b91ab380d14..61eb6ceacc3f 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+>  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+>  
+>  /**
+> - * fwnode_get_parent - Return parent firwmare node
+> - * @fwnode: Firmware whose parent is retrieved
+> + * fwnode_count_parents - Return the number of parents a node has
+> + * @fwnode: The node the parents of which are to be counted
+>   *
+> - * Return parent firmware node of the given node if possible or %NULL if no
+> - * parent was available.
+> + * Returns the number of parents a node has.
+>   */
+> -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
+> +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
+>  {
+> -	return fwnode_call_ptr_op(fwnode, get_parent);
+> +	unsigned int count;
+> +
+> +	fwnode_handle_get(fwnode);
+> +
+> +	for (count = 0; fwnode; count++)
+> +		fwnode = fwnode_get_next_parent(fwnode);
 
-I don't quite understand this.
+Is it guaranteed that all parents stay when
+fwnode_get_next_parent() releases the reference count
+for each counted member?
 
-Is the same GPE used for signaling trackpad events in the system
-working state and for wakeup?
+> +
+> +	return count - 1;
 
-> 3. Now, when the platform decides to enter S0ix, it enables the wake
-> on trackpad by enabling appropriate GPE_EN bit.
-> 4. So, at this point, we are in a situation where GPE_EN as well as
-> GPE_STS are set.
-> 5. Now, if the platform enters S0ix, having GPE_STS set will result in
-> unwanted wakes because of stale events.
->
-> This is similar to what was fixed on the legacy sleep path:
-> https://lkml.org/lkml/2018/8/12/42. However, as S0ix does not follow
-> the legacy sleep path, clearing of GPE status does not happen. Thus,
-> it is causing failures to go into S0ix on our platforms because of the
-> stale wake events as described above.
->
-> >
-> > > In case of S0ix, events are enabled as part of device suspend path. If
-> > > status bits for the events are set when they are enabled, it could
-> > > result in premature wake from S0ix. This change ensures that status is
-> > > cleared for any event that is being enabled so that any stale events
-> > > are cleared out.
-> > >
-> > > Signed-off-by: Furquan Shaikh <furquan@google.com>
-> > > ---
-> > >  drivers/acpi/acpica/evgpe.c | 6 +++++-
-> > >  1 file changed, 5 insertions(+), 1 deletion(-)
-> > >
-> > > diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-> > > index 62d3aa74277b4..61455ab42fc87 100644
-> > > --- a/drivers/acpi/acpica/evgpe.c
-> > > +++ b/drivers/acpi/acpica/evgpe.c
-> > > @@ -81,8 +81,12 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
-> > >
-> > >         ACPI_FUNCTION_TRACE(ev_enable_gpe);
-> > >
-> > > -       /* Enable the requested GPE */
-> > > +       /* Clear the GPE (of stale events) */
-> > > +       status = acpi_hw_clear_gpe(gpe_event_info);
-> > > +       if (ACPI_FAILURE(status))
-> > > +               return_ACPI_STATUS(status);
-> >
-> > Well, this may cause events to be missed.
->
-> Won't those be stale events?
+We could start counting from count = -1;
 
-They need not be stale, the device may have already detected some
-activity before the GPE is enabled.
+>  }
+> -EXPORT_SYMBOL_GPL(fwnode_get_parent);
+> +EXPORT_SYMBOL_GPL(fwnode_count_parents);
+> +
 
-> i.e. any event that has occurred before GPE is enabled should be ignored.
-
-But this is a good point.
-
->
-> >
-> > >
-> > > +       /* Enable the requested GPE */
-> > >         status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
-> > >         return_ACPI_STATUS(status);
-> > >  }
-> > > --
+Best Regards,
+Petr
