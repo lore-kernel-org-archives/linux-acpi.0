@@ -1,55 +1,110 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: Re: [PATCH 10/25] coresight: tpiu: Clean up device specific data
-Date: Wed, 27 Mar 2019 11:52:54 +0000
-Message-ID: <db4dfb7b-49db-ca9b-58ca-8b40a9157949@arm.com>
-References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
- <1553107783-3340-11-git-send-email-suzuki.poulose@arm.com>
- <20190326215440.GB1658@xps15>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] drivers/acpi: Clear status of an event before enabling it
+Date: Wed, 27 Mar 2019 13:24:46 +0100
+Message-ID: <CAJZ5v0hxNA_KHjcqSL4XPpQpB1M4UuWJcYOknex=NOGavoooHA@mail.gmail.com>
+References: <20190320222844.134765-1-furquan@google.com> <CAJZ5v0h7dYEFHSOHengJ3OFyXBW+XZVbjCAegpzqg1VxeeaXog@mail.gmail.com>
+ <CAEGmHFEqhh_xYaTXsVHqSgNW-1Ao6-mtk0BPhgu3-8ua6cCZ-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190326215440.GB1658@xps15>
-Content-Language: en-US
+In-Reply-To: <CAEGmHFEqhh_xYaTXsVHqSgNW-1Ao6-mtk0BPhgu3-8ua6cCZ-Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mathieu.poirier@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com
+To: Furquan Shaikh <furquan@google.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rajat Jain <rajatja@google.com>, Evan Green <evgreen@google.com>, Duncan Laurie <dlaurie@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/26/2019 09:54 PM, Mathieu Poirier wrote:
-> On Wed, Mar 20, 2019 at 06:49:27PM +0000, Suzuki K Poulose wrote:
->> Switch to using the coresight device instead of the parent
->> amba device.
->>
->> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
->> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
->> ---
->>   drivers/hwtracing/coresight/coresight-tpiu.c | 12 ++++++------
->>   1 file changed, 6 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/hwtracing/coresight/coresight-tpiu.c b/drivers/hwtracing/coresight/coresight-tpiu.c
->> index b2f72a1..9763721 100644
->> --- a/drivers/hwtracing/coresight/coresight-tpiu.c
->> +++ b/drivers/hwtracing/coresight/coresight-tpiu.c
->> @@ -48,15 +48,13 @@
->>   
->>   /**
->>    * @base:	memory mapped base address for this component.
->> - * @dev:	the device entity associated to this component.
->> + * @dev:	the coresight device entity associated to this component.
->>    * @atclk:	optional clock for the core parts of the TPIU.
->> - * @csdev:	component vitals needed by the framework.
->>    */
->>   struct tpiu_drvdata {
->>   	void __iomem		*base;
->>   	struct device		*dev;
->>   	struct clk		*atclk;
->> -	struct coresight_device	*csdev;
-> 
-> Here again I would get rid of @dev rather than @csdev to be consistent with what
-> was done previously.
+On Thu, Mar 21, 2019 at 3:16 AM Furquan Shaikh <furquan@google.com> wrote:
+>
+> On Wed, Mar 20, 2019 at 5:11 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> >
+> > On Wed, Mar 20, 2019 at 11:34 PM Furquan Shaikh <furquan@google.com> wrote:
+> > >
+> > > Commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
+> > > clearing ACPI IRQs during suspend/resume") was added to stop clearing
+> > > of event status bits unconditionally on suspend and resume paths. This
+> > > was done because of an issue
+> > > reported (https://bugzilla.kernel.org/show_bug.cgi?id=196249) where
+> > > lid status stays closed even on resume (which happens because event
+> > > status bits are cleared unconditionally on resume). Though this change
+> > > fixed the issue on suspend path, it introduced regressions on several
+> > > resume paths.
+> > >
+> > > First regression was reported and fixed on S5 path by the following
+> > > change: commit fa85015c0d95 ("ACPICA: Clear status of all events when
+> > > entering S5"). Next regression was reported and fixed on all legacy
+> > > sleep paths by the commit f317c7dc12b7 ("ACPICA: Clear status of all
+> > > events when entering sleep states"). However, regression still exists
+> > > on S0ix sleep path since it does not follow the legacy sleep path.
+> >
+> > What exactly is failing?
+>
+> Here is the failure scenario:
+>
+> 1. Consider the case of trackpad which acts as a wake source.
+> 2. Since the pad is configured for SCI, GPE_STS gets set for that pad
+> during normal interrupts as well (i.e. during probe at boot or when
+> using the trackpad)
 
-Sure, will do.
+I don't quite understand this.
 
-Cheers
-Suzuki
+Is the same GPE used for signaling trackpad events in the system
+working state and for wakeup?
+
+> 3. Now, when the platform decides to enter S0ix, it enables the wake
+> on trackpad by enabling appropriate GPE_EN bit.
+> 4. So, at this point, we are in a situation where GPE_EN as well as
+> GPE_STS are set.
+> 5. Now, if the platform enters S0ix, having GPE_STS set will result in
+> unwanted wakes because of stale events.
+>
+> This is similar to what was fixed on the legacy sleep path:
+> https://lkml.org/lkml/2018/8/12/42. However, as S0ix does not follow
+> the legacy sleep path, clearing of GPE status does not happen. Thus,
+> it is causing failures to go into S0ix on our platforms because of the
+> stale wake events as described above.
+>
+> >
+> > > In case of S0ix, events are enabled as part of device suspend path. If
+> > > status bits for the events are set when they are enabled, it could
+> > > result in premature wake from S0ix. This change ensures that status is
+> > > cleared for any event that is being enabled so that any stale events
+> > > are cleared out.
+> > >
+> > > Signed-off-by: Furquan Shaikh <furquan@google.com>
+> > > ---
+> > >  drivers/acpi/acpica/evgpe.c | 6 +++++-
+> > >  1 file changed, 5 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+> > > index 62d3aa74277b4..61455ab42fc87 100644
+> > > --- a/drivers/acpi/acpica/evgpe.c
+> > > +++ b/drivers/acpi/acpica/evgpe.c
+> > > @@ -81,8 +81,12 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
+> > >
+> > >         ACPI_FUNCTION_TRACE(ev_enable_gpe);
+> > >
+> > > -       /* Enable the requested GPE */
+> > > +       /* Clear the GPE (of stale events) */
+> > > +       status = acpi_hw_clear_gpe(gpe_event_info);
+> > > +       if (ACPI_FAILURE(status))
+> > > +               return_ACPI_STATUS(status);
+> >
+> > Well, this may cause events to be missed.
+>
+> Won't those be stale events?
+
+They need not be stale, the device may have already detected some
+activity before the GPE is enabled.
+
+> i.e. any event that has occurred before GPE is enabled should be ignored.
+
+But this is a good point.
+
+>
+> >
+> > >
+> > > +       /* Enable the requested GPE */
+> > >         status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
+> > >         return_ACPI_STATUS(status);
+> > >  }
+> > > --
