@@ -1,71 +1,71 @@
 From: Petr Mladek <pmladek@suse.com>
-Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing
- node's parents
-Date: Wed, 27 Mar 2019 13:26:25 +0100
-Message-ID: <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
+Subject: Re: [PATCH v2 3/6] device property: Add a function to obtain a
+ node's prefix
+Date: Wed, 27 Mar 2019 13:36:59 +0100
+Message-ID: <20190327123659.nna3hqcotnerptiz@pathway.suse.cz>
 References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
- <20190326124106.27694-2-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-4-sakari.ailus@linux.intel.com>
+ <20190326131626.GZ9224@smile.fi.intel.com>
+ <20190326133248.2nrm5javjw4vd2yq@paasikivi.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190326124106.27694-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20190326133248.2nrm5javjw4vd2yq@paasikivi.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
-> Add two convenience functions for accessing node's parents:
+On Tue 2019-03-26 15:32:48, Sakari Ailus wrote:
+> Hi Andy,
 > 
-> fwnode_count_parents() returns the number of parent nodes a given node
-> has. fwnode_get_nth_parent() returns node's parent at a given distance
-> from the node itself.
+> On Tue, Mar 26, 2019 at 03:16:26PM +0200, Andy Shevchenko wrote:
+> > On Tue, Mar 26, 2019 at 02:41:03PM +0200, Sakari Ailus wrote:
+> > > The prefix is used for printing purpose before a node, and it also works
+> > > as a separator between two nodes.
+> > > 
+> > 
+> > One nit below.
+> > 
+> > > +static const char *
+> > > +acpi_fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
+> > > +{
+> > > +	struct fwnode_handle *parent;
+> > > +
+> > 
+> > > +	parent = fwnode_get_parent(fwnode);
+> > > +	/* Root node. */
+> > 
+> > I guess a comment could be easier to read if it goes before parent assignment
+> > line.
 > 
-> Also reorder fwnode_get_parent() in property.c according to the same order
-> as in property.h.
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 8b91ab380d14..61eb6ceacc3f 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
->  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
->  
->  /**
-> - * fwnode_get_parent - Return parent firwmare node
-> - * @fwnode: Firmware whose parent is retrieved
-> + * fwnode_count_parents - Return the number of parents a node has
-> + * @fwnode: The node the parents of which are to be counted
->   *
-> - * Return parent firmware node of the given node if possible or %NULL if no
-> - * parent was available.
-> + * Returns the number of parents a node has.
->   */
-> -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
-> +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
->  {
-> -	return fwnode_call_ptr_op(fwnode, get_parent);
-> +	unsigned int count;
-> +
-> +	fwnode_handle_get(fwnode);
-> +
-> +	for (count = 0; fwnode; count++)
-> +		fwnode = fwnode_get_next_parent(fwnode);
+> Only if the comments are changed accordingly. What we're doing here is
+> trying to figure out whether this is the root node. I can do that for v3.
 
-Is it guaranteed that all parents stay when
-fwnode_get_next_parent() releases the reference count
-for each counted member?
+IMHO, the comment in acpi_fwnode_get_name() is easier to understand:
 
-> +
-> +	return count - 1;
+/* Is this the root node? */
 
-We could start counting from count = -1;
+> > 
+> > > +	if (!parent)
+> > > +		return "";
+> > > +
+> > > +	parent = fwnode_get_next_parent(parent);
+> > > +	/* Second node from the root; no prefix here either. */
+> > 
+> > Ditto.
 
->  }
-> -EXPORT_SYMBOL_GPL(fwnode_get_parent);
-> +EXPORT_SYMBOL_GPL(fwnode_count_parents);
-> +
+/* Is this 2nd node from the root? */
+
+> > > +	if (!parent)
+> > > +		return "";
+> > > +
+> > > +	fwnode_handle_put(parent);
+> > > +
+> > > +	/* ACPI device or data node. */
+> > > +	return ".";
+> > > +}
 
 Best Regards,
 Petr
