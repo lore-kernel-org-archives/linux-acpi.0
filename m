@@ -1,38 +1,82 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: Re: [PATCH 05/25] coresight: Merge the static and dynamic replicator
- drivers
-Date: Wed, 27 Mar 2019 17:33:24 +0000
-Message-ID: <21d02bdd-5fe2-4496-b96d-f588f559e8d7@arm.com>
-References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
- <1553107783-3340-6-git-send-email-suzuki.poulose@arm.com>
- <20190327152749.GC1658@xps15>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 146/262] ACPI / video: Refactor and fix dmi_is_desktop()
+Date: Wed, 27 Mar 2019 14:00:01 -0400
+Message-ID: <20190327180158.10245-146-sashal@kernel.org>
+References: <20190327180158.10245-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327152749.GC1658@xps15>
-Content-Language: en-US
+In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mathieu.poirier@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/27/2019 03:27 PM, Mathieu Poirier wrote:
-> On Wed, Mar 20, 2019 at 06:49:22PM +0000, Suzuki K Poulose wrote:
->> Merge the drivers for the two varieties of replicators into
->> a singel one. The dynamic replicator has programming base
->> which can be programmed to filter the trace data. The driver
->> detects the type based on the "base" address value of the
->> device, which is NULL for the static device.
->>
->> Also, while at it, remove the now obsolete DYNAMIC_REPLICATOR
->> config entry.
->>
->> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
->> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
-> 
-> I'll pickup patches 1 to 5 immediately as they are useful on their own.
+From: Hans de Goede <hdegoede@redhat.com>
 
-Cool, Thanks. I will drop them from the next revision
+[ Upstream commit cecf3e3e0803462335e25d083345682518097334 ]
 
-Suzuki
+This commit refactors the chassis-type detection introduced by
+commit 53fa1f6e8a59 ("ACPI / video: Only default only_lcd to true on
+Win8-ready _desktops_") (where desktop means anything without a builtin
+screen).
+
+The DMI chassis_type is an unsigned integer, so rather then doing a
+whole bunch of string-compares on it, convert it to an int and feed
+the result to a switch case.
+
+Note the switch case uses hex values, this is done because the spec
+uses hex values too. This changes the check for "Main Server Chassis"
+from checking for 11 decimal to 11 hexadecimal, this is a bug fix,
+the original check for 11 decimal was wrong.
+
+Fixes: 53fa1f6e8a59 ("ACPI / video: Only default only_lcd to true ...")
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+[ rjw: Drop redundant return statements ]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/acpi_video.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index f0b52266b3ac..1ab1460c4a4e 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -2124,21 +2124,28 @@ static int __init intel_opregion_present(void)
+ 	return opregion;
+ }
+ 
++/* Check if the chassis-type indicates there is no builtin LCD panel */
+ static bool dmi_is_desktop(void)
+ {
+ 	const char *chassis_type;
++	unsigned long type;
+ 
+ 	chassis_type = dmi_get_system_info(DMI_CHASSIS_TYPE);
+ 	if (!chassis_type)
+ 		return false;
+ 
+-	if (!strcmp(chassis_type, "3") || /*  3: Desktop */
+-	    !strcmp(chassis_type, "4") || /*  4: Low Profile Desktop */
+-	    !strcmp(chassis_type, "5") || /*  5: Pizza Box */
+-	    !strcmp(chassis_type, "6") || /*  6: Mini Tower */
+-	    !strcmp(chassis_type, "7") || /*  7: Tower */
+-	    !strcmp(chassis_type, "11"))  /* 11: Main Server Chassis */
++	if (kstrtoul(chassis_type, 10, &type) != 0)
++		return false;
++
++	switch (type) {
++	case 0x03: /* Desktop */
++	case 0x04: /* Low Profile Desktop */
++	case 0x05: /* Pizza Box */
++	case 0x06: /* Mini Tower */
++	case 0x07: /* Tower */
++	case 0x11: /* Main Server Chassis */
+ 		return true;
++	}
+ 
+ 	return false;
+ }
+-- 
+2.19.1
