@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 3/3] usb: typec: mux: Use the "compatible" property instead of a boolean property
-Date: Wed, 27 Mar 2019 19:43:39 +0300
-Message-ID: <20190327164339.31205-4-heikki.krogerus@linux.intel.com>
+Subject: [PATCH 2/3] usb: roles: Use the "compatible" property instead of a boolean property
+Date: Wed, 27 Mar 2019 19:43:38 +0300
+Message-ID: <20190327164339.31205-3-heikki.krogerus@linux.intel.com>
 References: <20190327164339.31205-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,34 +17,21 @@ against the "compatible" property.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/usb/typec/mux.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/usb/roles/class.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/typec/mux.c b/drivers/usb/typec/mux.c
-index 2ce54f3fc79c..9462b90f1c09 100644
---- a/drivers/usb/typec/mux.c
-+++ b/drivers/usb/typec/mux.c
-@@ -32,11 +32,7 @@ static void *typec_switch_match(struct device_connection *con, int ep,
- 		return ERR_PTR(-EPROBE_DEFER);
- 	}
+diff --git a/drivers/usb/roles/class.c b/drivers/usb/roles/class.c
+index f45d8df5cfb8..3dc1e05959c1 100644
+--- a/drivers/usb/roles/class.c
++++ b/drivers/usb/roles/class.c
+@@ -101,7 +101,7 @@ static void *usb_role_switch_match(struct device_connection *con, int ep,
+ 	struct device *dev;
  
--	/*
--	 * With OF graph the mux node must have a boolean device property named
--	 * "orientation-switch".
--	 */
--	if (con->id && !fwnode_property_present(con->fwnode, con->id))
-+	if (con->id && !fwnode_is_compatible(con->fwnode, con->id))
- 		return NULL;
+ 	if (con->fwnode) {
+-		if (!fwnode_property_present(con->fwnode, con->id))
++		if (!fwnode_is_compatible(con->fwnode, con->id))
+ 			return NULL;
  
- 	list_for_each_entry(sw, &switch_list, entry)
-@@ -148,7 +144,7 @@ static void *typec_mux_match(struct device_connection *con, int ep, void *data)
- 
- 	/* Accessory Mode muxes */
- 	if (!desc) {
--		match = fwnode_property_present(con->fwnode, "accessory");
-+		match = fwnode_is_compatible(con->fwnode, "accessory");
- 		if (match)
- 			goto find_mux;
- 		return NULL;
+ 		dev = class_find_device(role_class, NULL, con->fwnode,
 -- 
 2.20.1
