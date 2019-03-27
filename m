@@ -1,58 +1,78 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 5/5] lib/vsprintf: Add %pfw conversion specifier for
- printing fwnode names
-Date: Wed, 27 Mar 2019 16:10:48 +0200
-Message-ID: <20190327141047.bhndwqde7vjz6bad@paasikivi.fi.intel.com>
-References: <20190322152930.16642-1-sakari.ailus@linux.intel.com>
- <20190322152930.16642-6-sakari.ailus@linux.intel.com>
- <20190326151307.erqyps6wfvf4on2d@pathway.suse.cz>
+Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing
+ node's parents
+Date: Wed, 27 Mar 2019 16:20:37 +0200
+Message-ID: <20190327142036.jf6puc5uo2mjutbl@paasikivi.fi.intel.com>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-2-sakari.ailus@linux.intel.com>
+ <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190326151307.erqyps6wfvf4on2d@pathway.suse.cz>
+In-Reply-To: <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Petr Mladek <pmladek@suse.com>
-Cc: linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi Petr,
 
-On Tue, Mar 26, 2019 at 04:13:07PM +0100, Petr Mladek wrote:
-> On Fri 2019-03-22 17:29:30, Sakari Ailus wrote:
-> > Add support for %pfw conversion specifier (with "f" and "P" modifiers) to
-> > support printing full path of the node, including its name ("f") and only
-> > the node's name ("P") in the printk family of functions. The two flags
-> > have equivalent functionality to existing %pOF with the same two modifiers
-> > ("f" and "P") on OF based systems. The ability to do the same on ACPI
-> > based systems is added by this patch.
+On Wed, Mar 27, 2019 at 01:26:25PM +0100, Petr Mladek wrote:
+> On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
+> > Add two convenience functions for accessing node's parents:
 > > 
-> > On ACPI based systems the resulting strings look like
+> > fwnode_count_parents() returns the number of parent nodes a given node
+> > has. fwnode_get_nth_parent() returns node's parent at a given distance
+> > from the node itself.
 > > 
-> > 	\_SB.PCI0.CIO2.port@1.endpoint@0
+> > Also reorder fwnode_get_parent() in property.c according to the same order
+> > as in property.h.
 > > 
-> > where the nodes are separated by a dot (".") and the first three are
-> > ACPI device nodes and the latter two ACPI data nodes.
-> > 
-> > Depends-on: ("vsprintf: Remove support for %pF and %pf in favour of %pS and %ps")
+> > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > index 8b91ab380d14..61eb6ceacc3f 100644
+> > --- a/drivers/base/property.c
+> > +++ b/drivers/base/property.c
+> > @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+> >  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+> >  
+> >  /**
+> > - * fwnode_get_parent - Return parent firwmare node
+> > - * @fwnode: Firmware whose parent is retrieved
+> > + * fwnode_count_parents - Return the number of parents a node has
+> > + * @fwnode: The node the parents of which are to be counted
+> >   *
+> > - * Return parent firmware node of the given node if possible or %NULL if no
+> > - * parent was available.
+> > + * Returns the number of parents a node has.
+> >   */
+> > -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
+> > +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
+> >  {
+> > -	return fwnode_call_ptr_op(fwnode, get_parent);
+> > +	unsigned int count;
+> > +
+> > +	fwnode_handle_get(fwnode);
+> > +
+> > +	for (count = 0; fwnode; count++)
+> > +		fwnode = fwnode_get_next_parent(fwnode);
 > 
-> Reusing obsolete modifiers is dangerous from many reasons:
-> 
->    + people might miss the change of the meaning
->    + backporting mistakes
->    + 3rd party modules
-> 
-> It might be acceptable if the long term gain is bigger
-> than a short time difficulties. But it would be better
-> to it a safe way when possible.
-> 
-> Fortunately, we could keep the backward compatibility
-> for "%pf" and handle only "%pfw*" with the fwnode api.
+> Is it guaranteed that all parents stay when
+> fwnode_get_next_parent() releases the reference count
+> for each counted member?
 
-The v2 of this patch produces a warning (using WARN_ONCE()) for "%pf" not
-immediately followed by "w". "%pfw" was not a valid conversion specifier
-before this set, so we're actually not re-using the exactly same conversion
-specifiers.
+fwnode_get_next_parent() only releases the child node after it has acquired
+the parent. The only implementation with refcounting for single nodes is
+actually OF.
+
+> 
+> > +
+> > +	return count - 1;
+> 
+> We could start counting from count = -1;
+
+We could, but then count would need to be made signed (unless overflowing
+is preferred instead).
 
 -- 
 Regards,
