@@ -1,131 +1,135 @@
-From: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>
-Subject: Re: [PATCH 5/6] acpi/cppc: Add support for optional CPPC registers
-Date: Wed, 27 Mar 2019 15:47:59 +0000
-Message-ID: <f3a749646c66a84e17383204385d8c73750d4813.camel@intel.com>
-References: <cover.1553285718.git.Janakarajan.Natarajan@amd.com>
-         <d16e973c3fa4343134f6d246cc424f29ff5d7dc9.1553285718.git.Janakarajan.Natarajan@amd.com>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH RFCv2 0/4] mm/memory_hotplug: Introduce memory block types
+Date: Wed, 27 Mar 2019 17:03:33 +0100
+Message-ID: <39ec8cea-46c7-1be3-92a0-5ab2ddb0bbea@redhat.com>
+References: <20181130175922.10425-1-david@redhat.com>
+ <1b4afb6a-5f91-407d-6e6e-6a89b8cf5d56@redhat.com>
+ <20181220130832.GH9104@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha-1;
-        protocol="application/x-pkcs7-signature"; boundary="=-kyD2xNK4HdhVAIX8yB9x"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d16e973c3fa4343134f6d246cc424f29ff5d7dc9.1553285718.git.Janakarajan.Natarajan@amd.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20181220130832.GH9104@dhcp22.suse.cz>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Janakarajan.Natarajan@amd.com" <Janakarajan.Natarajan@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
-Cc: "Yazen.Ghannam@amd.com" <Yazen.Ghannam@amd.com>, "lenb@kernel.org" <lenb@kernel.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "Moore, Robert" <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Wei Yang <richard.weiyang@gmail.com>, linux-mm@kvack.org, Pavel Tatashin <pavel.tatashin@microsoft.com>, Arun KS <arunks@codeaurora.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Paul Mackerras <paulus@samba.org>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stefano Stabellini <sstabellini@kernel.org>Dave Jiang <dave>
 List-Id: linux-acpi@vger.kernel.org
 
---=-kyD2xNK4HdhVAIX8yB9x
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 20.12.18 14:08, Michal Hocko wrote:
+> On Thu 20-12-18 13:58:16, David Hildenbrand wrote:
+>> On 30.11.18 18:59, David Hildenbrand wrote:
+>>> This is the second approach, introducing more meaningful memory block
+>>> types and not changing online behavior in the kernel. It is based on
+>>> latest linux-next.
+>>>
+>>> As we found out during dicussion, user space should always handle onlining
+>>> of memory, in any case. However in order to make smart decisions in user
+>>> space about if and how to online memory, we have to export more information
+>>> about memory blocks. This way, we can formulate rules in user space.
+>>>
+>>> One such information is the type of memory block we are talking about.
+>>> This helps to answer some questions like:
+>>> - Does this memory block belong to a DIMM?
+>>> - Can this DIMM theoretically ever be unplugged again?
+>>> - Was this memory added by a balloon driver that will rely on balloon
+>>>   inflation to remove chunks of that memory again? Which zone is advised?
+>>> - Is this special standby memory on s390x that is usually not automatically
+>>>   onlined?
+>>>
+>>> And in short it helps to answer to some extend (excluding zone imbalances)
+>>> - Should I online this memory block?
+>>> - To which zone should I online this memory block?
+>>> ... of course special use cases will result in different anwers. But that's
+>>> why user space has control of onlining memory.
+>>>
+>>> More details can be found in Patch 1 and Patch 3.
+>>> Tested on x86 with hotplugged DIMMs. Cross-compiled for PPC and s390x.
+>>>
+>>>
+>>> Example:
+>>> $ udevadm info -q all -a /sys/devices/system/memory/memory0
+>>> 	KERNEL=="memory0"
+>>> 	SUBSYSTEM=="memory"
+>>> 	DRIVER==""
+>>> 	ATTR{online}=="1"
+>>> 	ATTR{phys_device}=="0"
+>>> 	ATTR{phys_index}=="00000000"
+>>> 	ATTR{removable}=="0"
+>>> 	ATTR{state}=="online"
+>>> 	ATTR{type}=="boot"
+>>> 	ATTR{valid_zones}=="none"
+>>> $ udevadm info -q all -a /sys/devices/system/memory/memory90
+>>> 	KERNEL=="memory90"
+>>> 	SUBSYSTEM=="memory"
+>>> 	DRIVER==""
+>>> 	ATTR{online}=="1"
+>>> 	ATTR{phys_device}=="0"
+>>> 	ATTR{phys_index}=="0000005a"
+>>> 	ATTR{removable}=="1"
+>>> 	ATTR{state}=="online"
+>>> 	ATTR{type}=="dimm"
+>>> 	ATTR{valid_zones}=="Normal"
+>>>
+>>>
+>>> RFC -> RFCv2:
+>>> - Now also taking care of PPC (somehow missed it :/ )
+>>> - Split the series up to some degree (some ideas on how to split up patch 3
+>>>   would be very welcome)
+>>> - Introduce more memory block types. Turns out abstracting too much was
+>>>   rather confusing and not helpful. Properly document them.
+>>>
+>>> Notes:
+>>> - I wanted to convert the enum of types into a named enum but this
+>>>   provoked all kinds of different errors. For now, I am doing it just like
+>>>   the other types (e.g. online_type) we are using in that context.
+>>> - The "removable" property should never have been named like that. It
+>>>   should have been "offlinable". Can we still rename that? E.g. boot memory
+>>>   is sometimes marked as removable ...
+>>>
+>>
+>>
+>> Any feedback regarding the suggested block types would be very much
+>> appreciated!
+> 
+> I still do not like this much to be honest. I just didn't get to think
+> through this properly. My fear is that this is conflating an actual API
+> with the current implementation and as such will cause problems in
+> future. But I haven't really looked into your patches closely so I might
+> be wrong. Anyway I won't be able to look into it by the end of year.
+> 
 
-On Fri, 2019-03-22 at 20:26 +0000, Natarajan, Janakarajan wrote:
-> From: Yazen Ghannam <Yazen.Ghannam@amd.com>
->=20
-> Newer AMD processors support a subset of the optional CPPC registers.
-> Create show, store and helper routines for supported CPPC registers.
->=20
-> Signed-off-by: Yazen Ghannam <Yazen.Ghannam@amd.com>
-> [ carved out into a patch, cleaned up, productized ]
-> Signed-off-by: Janakarajan Natarajan <Janakarajan.Natarajan@amd.com>
->=20
+So I started to think about this again, and I guess somehow exposing an
+identification of the device driver that added the memory section could
+be sufficient.
 
-[..]
+E.g. "hyperv", "xen", "acpi", "sclp", "virtio-mem" ...
 
-> +	/* desired_perf is the only mandatory value in perf_ctrls */
-> +	if (cpc_read(cpu, desired_reg, &desired))
-> +		ret =3D -EFAULT;
-> +
-> +	if (CPC_SUPPORTED(max_reg) && cpc_read(cpu, max_reg, &max))
-> +		ret =3D -EFAULT;
-> +
-We should create and use different macro other than CPPC_SUPPORTED.
-CPC_SUPPORTED doesn't validate the correctness of object type for a
-field. For example "Maximum Performance Register" can only be buffer
-not integer. In this way invalid field definitions can be ignored.
+Via separate device driver interfaces, other information about the
+memory could be exposed. (e.g. for ACPI: which memory devices belong to
+one physical device). So stuff would not have to centered around
+/sys/devices/system/memory/ , uglifying it for special cases.
 
+We would have to write udev rules to deal with these values, should be
+easy. If no DRIVER is given, it is simply memory detected and detected
+during boot. ACPI changing the DRIVER might be tricky (from no DRIVER ->
+ACPI), but I guess it could be done.
 
-> +	if (CPC_SUPPORTED(min_reg) && cpc_read(cpu, min_reg, &min))
-> +		ret =3D -EFAULT;
-> +
-> +	if (CPC_SUPPORTED(energy_reg) && cpc_read(cpu, energy_reg,
-> &energy))
-> +		ret =3D -EFAULT;
-> +
-> +	if (CPC_SUPPORTED(auto_sel_enable_reg) &&
-> +	    cpc_read(cpu, auto_sel_enable_reg, &auto_sel_enable))
-> +		ret =3D -EFAULT;
-> +
-Here it is fine to use CPC_SUPPORTED as the "Autonomous Selection
-Enable" can be both integer and buffer.
+Now, the question would be how to get the DRIVER value in there. Adding
+a bunch of fake device drivers would work, however this might get a
+little messy ... and then there is unbining and rebinding which can be
+triggered by userspace. Thinks to care about? Most probably not.
+
+-- 
 
 Thanks,
-Srinivas
 
-
---=-kyD2xNK4HdhVAIX8yB9x
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKhTCCBOsw
-ggPToAMCAQICEDabxALowUBS+21KC0JI8fcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UEBhMCU0Ux
-FDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5hbCBUVFAgTmV0
-d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0xMzEyMTEwMDAwMDBa
-Fw0yMDA1MzAxMDQ4MzhaMHkxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEUMBIGA1UEBxMLU2Fu
-dGEgQ2xhcmExGjAYBgNVBAoTEUludGVsIENvcnBvcmF0aW9uMSswKQYDVQQDEyJJbnRlbCBFeHRl
-cm5hbCBCYXNpYyBJc3N1aW5nIENBIDRCMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
-yzuW/y/g0bznz8BD48M94luFzqHaqY9yGN9H/W0J7hOVBpl0rTQJ6kZ7z7hyDb9kf2UW4ZU25alC
-i+q5m6NwHg+z9pcN7bQ84SSBueaYF7cXlAg7z3XyZbzSEYP7raeuWRf5fYvYzq8/uI7VNR8o/43w
-PtDP10YDdO/0J5xrHxnC/9/aU+wTFSVsPqxsd7C58mnu7G4VRJ0n9PG4SfmYNC0h/5fLWuOWhxAv
-6MuiK7MmvTPHLMclULgJqVSqG1MbBs0FbzoRHne4Cx0w6rtzPTrzo+bTRqhruaU18lQkzBk6OnyJ
-UthtaDQIlfyGy2IlZ5F6QEyjItbdKcHHdjBX8wIDAQABo4IBdzCCAXMwHwYDVR0jBBgwFoAUrb2Y
-ejS0Jvf6xCZU7wO94CTLVBowHQYDVR0OBBYEFNpBI5xaj3GvV4M+INPjZdsMywvbMA4GA1UdDwEB
-/wQEAwIBhjASBgNVHRMBAf8ECDAGAQH/AgEAMDYGA1UdJQQvMC0GCCsGAQUFBwMEBgorBgEEAYI3
-CgMEBgorBgEEAYI3CgMMBgkrBgEEAYI3FQUwFwYDVR0gBBAwDjAMBgoqhkiG+E0BBQFpMEkGA1Ud
-HwRCMEAwPqA8oDqGOGh0dHA6Ly9jcmwudHJ1c3QtcHJvdmlkZXIuY29tL0FkZFRydXN0RXh0ZXJu
-YWxDQVJvb3QuY3JsMDoGCCsGAQUFBwEBBC4wLDAqBggrBgEFBQcwAYYeaHR0cDovL29jc3AudHJ1
-c3QtcHJvdmlkZXIuY29tMDUGA1UdHgQuMCygKjALgQlpbnRlbC5jb20wG6AZBgorBgEEAYI3FAID
-oAsMCWludGVsLmNvbTANBgkqhkiG9w0BAQUFAAOCAQEAp9XGgH85hk/3IuN8F4nrFd24MAoau7Uq
-M/of09XtyYg2dV0TIPqtxPZw4813r78WwsGIbvtO8VQ18dNktIxaq6+ym2zebqDh0z6Bvo63jKE/
-HMj8oNV3ovnuo+7rGpCppcda4iVBG2CetB3WXbUVr82EzECN+wxmC4H9Rup+gn+t+qeBTaXulQfV
-TYOvZ0eZPO+DyC2pVv5q5+xHljyUsVqpzsw89utuO8ZYaMsQGBRuFGOncRLEOhCtehy5B5aCI571
-i4dDAv9LPODrEzm3PBfrNhlp8C0skak15VXWFzNuHd00AsxXxWSUT4TG8RiAH61Ua5GXsP1BIZwl
-4WjK8DCCBZIwggR6oAMCAQICEzMAAGknngjvas7THxUAAAAAaScwDQYJKoZIhvcNAQEFBQAweTEL
-MAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQwEgYDVQQHEwtTYW50YSBDbGFyYTEaMBgGA1UEChMR
-SW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVybmFsIEJhc2ljIElzc3Vpbmcg
-Q0EgNEIwHhcNMTgwOTIwMTc0MzAyWhcNMTkwOTE1MTc0MzAyWjBNMR0wGwYDVQQDExRQYW5kcnV2
-YWRhLCBTcmluaXZhczEsMCoGCSqGSIb3DQEJARYdc3Jpbml2YXMucGFuZHJ1dmFkYUBpbnRlbC5j
-b20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDELV/n1NV8gbe+W+XA/ZKYE4xpwz3x
-LUESKoE5k90jxzN25In6a+JbVsjYSauSGQ95iA6tNOUEenwB8jxJU0v4/yRFbvSfuJajKjF8exi0
-KdyAWiExduUtQmtjhLtItm/fqhfsIr9KDzQ33Vjdag4T2GoeOueksz2gRpU3UVOtk3xK1buFAqpX
-N5VyCn4Um8PYvsUVtzkXibwnIKX8UT3aYtUS+ckE9drKHQR9P9St9bQx34Zt85L9hqx32ibYPz3S
-n4IJlKBiiK7B8oFPhD7KEZOWboHrE2uHLEkIXpp852sG0oFkLLstEDK9Z46WS4Ni1yfGRE6jY79A
-DJOEZIX9AgMBAAGjggI9MIICOTAdBgNVHQ4EFgQUZ2w0kbL1uZEoQTmAiMqoAXL81L8wHwYDVR0j
-BBgwFoAU2kEjnFqPca9Xgz4g0+Nl2wzLC9swZQYDVR0fBF4wXDBaoFigVoZUaHR0cDovL3d3dy5p
-bnRlbC5jb20vcmVwb3NpdG9yeS9DUkwvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWlu
-ZyUyMENBJTIwNEIuY3JsMIGfBggrBgEFBQcBAQSBkjCBjzAiBggrBgEFBQcwAYYWaHR0cDovL29j
-c3AuaW50ZWwuY29tLzBpBggrBgEFBQcwAoZdaHR0cDovL3d3dy5pbnRlbC5jb20vcmVwb3NpdG9y
-eS9jZXJ0aWZpY2F0ZXMvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENBJTIw
-NEIuY3J0MAsGA1UdDwQEAwIHgDA8BgkrBgEEAYI3FQcELzAtBiUrBgEEAYI3FQiGw4x1hJnlUYP9
-gSiFjp9TgpHACWeB3r05lfBDAgFkAgEJMB8GA1UdJQQYMBYGCCsGAQUFBwMEBgorBgEEAYI3CgMM
-MCkGCSsGAQQBgjcVCgQcMBowCgYIKwYBBQUHAwQwDAYKKwYBBAGCNwoDDDBXBgNVHREEUDBOoC0G
-CisGAQQBgjcUAgOgHwwdc3Jpbml2YXMucGFuZHJ1dmFkYUBpbnRlbC5jb22BHXNyaW5pdmFzLnBh
-bmRydXZhZGFAaW50ZWwuY29tMA0GCSqGSIb3DQEBBQUAA4IBAQAXirNmyawI/PJRnjPoqNcgSr8N
-8VXBvv8kwQidSNWKswBqo8ul8u+pkG7v8YjZUy1OJQUFXPvihht10Tb5O2xZ9hpIo4WFcRX2eg2Z
-t6koRJUB9ZDjEETG2j4EpcGmWIBrDBNZLZTLIYG5JzsS6mGCq42AKspSAJD00vwfL0KlCc4BVUvC
-64+q7etbf6c90n05KjfLfoUXBqwWLJCe3KPD20d/kbvesTzs2PVQxI7K1eL9n2rBoqBpcRY0ppkz
-FKjiTQ8IcwhyWQbzLfVIy5tNuyinhNBRv3COOMGoayaljijEPcEHLE63tA2OIao2Hz6GLRYzg0mT
-hCtsB4xSboPZMYICFzCCAhMCAQEwgZAweTELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQwEgYD
-VQQHEwtTYW50YSBDbGFyYTEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIklu
-dGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgNEICEzMAAGknngjvas7THxUAAAAAaScwCQYF
-Kw4DAhoFAKBdMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTE5MDMy
-NzE1NDc1N1owIwYJKoZIhvcNAQkEMRYEFOqDBsh4J0yuAGaSLsxv6geeYwZ0MA0GCSqGSIb3DQEB
-AQUABIIBAKM3WZDBqwAvE9jcZFpDRYvCSU9tT62Jqm7g9as2rMQx9vYPyiP/XQou6kHEgEaeLmiX
-Jinm+6rX/3zXygplx8Wcip7AKr5eomSR3+RqGpN0KgmQJbwoSHtMCBPK01HKVxJTS1jltFnNMJ2N
-mvJZLgpL+mpTExICrz22hQyT7dkN9+OE9F1PRg2KZ7axpHZPnvSQAXCvihTtLD5gQvRbbjf/Vm/q
-0PAJG3tIotzIQpgPedstnIm/gcNUnZkoVIWyqtOUOGlUXQ1jo/KHgWKcGJgUNw4XJ43YXK22vcQM
-bFAU52waYjIyaOjj1OrYVLEgHQe5iTpQByEUtPqJU5yXaUwAAAAAAAA=
-
-
---=-kyD2xNK4HdhVAIX8yB9x--
+David / dhildenb
