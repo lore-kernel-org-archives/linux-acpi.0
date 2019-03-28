@@ -1,136 +1,146 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2] ACPI / PM: Propagate KEY_POWER to user space when
- resume
-Date: Thu, 28 Mar 2019 14:31:49 +0100
-Message-ID: <1ad154aa-4d92-395d-890c-fe81b0bf21b5@redhat.com>
-References: <CAJZ5v0g3+S0vkW0XTzMKA8rYCtgy7yJ+UDc5xG4rRcdTbcJ=Lg@mail.gmail.com>
- <20190328103448.20335-1-hu1.chen@intel.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: [PATCH v2] ACPI/IORT: Reject platform dev creation when dev set to
+ wrong numa node
+Date: Thu, 28 Mar 2019 22:00:22 +0800
+Message-ID: <20190328140022.85790-1-wangkefeng.wang@huawei.com>
+References: <20190328113230.GA19628@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190328103448.20335-1-hu1.chen@intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Chen, Hu" <hu1.chen@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190328113230.GA19628@red-moon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+If there is only node 0 in system, but smmuv3 device is set to offline
+node 1, parsed from proximity domain in SMMUv3 IORT table, it will lead
+to following crash,
 
-On 28-03-19 11:34, Chen, Hu wrote:
-> I run Android on x86 PC (it's a NUC). Everytime I press the power button
-> to wake the system, it suspends right away. After some debug, I find
-> that Android wants to see KEY_POWER at resume. Otherwise, its
-> opportunistic suspend will kick in shortly.
-> 
-> However, other OS such as Ubuntu doesn't like KEY_POWER at resume. So
-> add a knob "/sys/module/button/parameters/key_power_at_resume" for users
-> to select.
+[   47.492451] Unable to handle kernel paging request at virtual address 0000000000001388
+[   47.500361] Mem abort info:
+[   47.503143]   ESR = 0x96000004
+[   47.506189]   Exception class = DABT (current EL), IL = 32 bits
+[   47.512099]   SET = 0, FnV = 0
+[   47.515140]   EA = 0, S1PTW = 0
+[   47.518272] Data abort info:
+[   47.521144]   ISV = 0, ISS = 0x00000004
+[   47.524970]   CM = 0, WnR = 0
+[   47.527929] [0000000000001388] user address but active_mm is swapper
+[   47.534285] Internal error: Oops: 96000004 [#1] SMP
+[   47.539151] Modules linked in:
+[   47.542194] CPU: 5 PID: 1 Comm: swapper/0 Not tainted 5.0.0 #15
+[   47.549490] pstate: 80c00009 (Nzcv daif +PAN +UAO)
+[   47.554272] pc : __alloc_pages_nodemask+0x13c/0x1068
+[   47.559224] lr : __alloc_pages_nodemask+0xdc/0x1068
+...
+[   47.646873] Process swapper/0 (pid: 1, stack limit = 0x(____ptrval____))
+[   47.653560] Call trace:
+[   47.655994]  __alloc_pages_nodemask+0x13c/0x1068
+[   47.660600]  new_slab+0xec/0x570
+[   47.663816]  ___slab_alloc+0x3e0/0x4f8
+[   47.667553]  __slab_alloc+0x60/0x80
+[   47.671029]  __kmalloc_node_track_caller+0x10c/0x478
+[   47.675984]  devm_kmalloc+0x44/0xb0
+[   47.679460]  pinctrl_bind_pins+0x4c/0x188
+[   47.683457]  really_probe+0x78/0x2b8
+[   47.687019]  driver_probe_device+0x64/0x110
+[   47.691189]  device_driver_attach+0x74/0x98
+[   47.695360]  __driver_attach+0x9c/0xe8
+[   47.699095]  bus_for_each_dev+0x84/0xd8
+[   47.702919]  driver_attach+0x30/0x40
+[   47.706481]  bus_add_driver+0x170/0x218
+[   47.710304]  driver_register+0x64/0x118
+[   47.714128]  __platform_driver_register+0x54/0x60
+[   47.718820]  arm_smmu_driver_init+0x24/0x2c
+[   47.722991]  do_one_initcall+0xbc/0x328
+[   47.726816]  kernel_init_freeable+0x304/0x3ac
+[   47.731162]  kernel_init+0x18/0x110
+[   47.734638]  ret_from_fork+0x10/0x1c
+[   47.738202] Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
+[   47.744307] ---[ end trace dfeaed4c373a32da ]--
 
-We've had a similar discussion about the power-button on Bay Trail tablets,
-which often is connected to a GPIO driver.
+This could be triggered by firmware bug with bad IORT configuration,
+or a NUMA node has no memory attaching to it, also with NR_CPUS less
+than CPUs presented in MADT.
 
-There we had the opposite problem, that regular desktop environments
-like GNOME (and the related daemons) will immediately re-suspend again
-on resume because of a KEY_POWER press event at resume. I submitted patches
-to make the gpio-keys code not send a keypress on resume (configurable
-per button) but that got nacked by Dmitry, the input subsystem maintainer.
+Make dev_set_proximity() with a return value, terminating device creation
+if it return failure.
 
-It seems that this mostly is an evdev/input policy decision so that
-this patch is going to need an ack from Dmitry, I've added Dmitry
-to the Cc.
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+---
+ drivers/acpi/arm64/iort.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-Note that after my kernel level fix for the Bay Trail devices got
-nacked, I worked-around this in userspace:
-
-https://gitlab.gnome.org/GNOME/gnome-settings-daemon/commit/f2ae8a3b9905cde7a9c12f78cb84689e97203380
-
-But for GNOME only, e.g. KDE will likely still have a problem with
-a KEY_POWER event being reported after suspend.
-
-It seems the problem is that we have 2 different userspaces here
-which have exact opposite expectations wrt KEY_POWER reporting
-after a wakeup from suspend with the power-button. Android expects
-it to be reported, which is why gpio-keys is reporting it since it
-is mostly used with Android, where as classic Linux desktop-environments
-expect it to NOT be reported, which is why the acpi-button.c code
-so far has not reported it :|
-
-I believe that unconditionally sending KEY_POWER after resume
-will indeed causes issues for standard Linux distros, so I believe
-that your solution with a parameter for people who want to run
-android on plain x86 hardware is the best we can do now, but
-I really wish we would remedy this situation one way or the other.
-
-I wanted to give everyone involved the whole story, hence the
-long mail :)
-
-Regards,
-
-Hans
-
-
-
-
-
-
-> 
-> Signed-off-by: Chen, Hu <hu1.chen@intel.com>
-> ---
-> 
->   drivers/acpi/button.c | 6 +++++-
->   drivers/acpi/sleep.c  | 8 ++++++++
->   2 files changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index a19ff3977ac4..f98e6d85dd2b 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -129,6 +129,10 @@ struct acpi_button {
->   	bool suspended;
->   };
->   
-> +/* does userspace want to see KEY_POWER at resume? */
-> +static bool key_power_at_resume __read_mostly;
-> +module_param(key_power_at_resume, bool, 0644);
-> +
->   static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
->   static struct acpi_device *lid_device;
->   static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
-> @@ -417,7 +421,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
->   			int keycode;
->   
->   			acpi_pm_wakeup_event(&device->dev);
-> -			if (button->suspended)
-> +			if (button->suspended && !key_power_at_resume)
->   				break;
->   
->   			keycode = test_bit(KEY_SLEEP, input->keybit) ?
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 403c4ff15349..c5dcee9f5872 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -462,6 +462,13 @@ static int find_powerf_dev(struct device *dev, void *data)
->   	return !strcmp(hid, ACPI_BUTTON_HID_POWERF);
->   }
->   
-> +static void pwr_btn_notify(struct device *dev)
-> +{
-> +	struct acpi_device *device = to_acpi_device(dev);
-> +
-> +	device->driver->ops.notify(device, ACPI_FIXED_HARDWARE_EVENT);
-> +}
-> +
->   /**
->    *	acpi_pm_finish - Instruct the platform to leave a sleep state.
->    *
-> @@ -505,6 +512,7 @@ static void acpi_pm_finish(void)
->   				      find_powerf_dev);
->   	if (pwr_btn_dev) {
->   		pm_wakeup_event(pwr_btn_dev, 0);
-> +		pwr_btn_notify(pwr_btn_dev);
->   		put_device(pwr_btn_dev);
->   	}
->   }
-> 
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index e48894e002ba..c294c3490e66 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1232,21 +1232,30 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+ /*
+  * set numa proximity domain for smmuv3 device
+  */
+-static void  __init arm_smmu_v3_set_proximity(struct device *dev,
++static int  __init arm_smmu_v3_set_proximity(struct device *dev,
+ 					      struct acpi_iort_node *node)
+ {
+ 	struct acpi_iort_smmu_v3 *smmu;
+ 
+ 	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+ 	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+-		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
++		int node = acpi_map_pxm_to_node(smmu->pxm);
++		if (node != NUMA_NO_NODE && !node_online(node))
++			return -EINVAL;
++
++		set_dev_node(dev, node);
+ 		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
+ 			smmu->base_address,
+ 			smmu->pxm);
+ 	}
++	return 0;
+ }
+ #else
+-#define arm_smmu_v3_set_proximity NULL
++static int  __init arm_smmu_v3_set_proximity(struct device *dev,
++					      struct acpi_iort_node *node)
++{
++	return 0;
++}
+ #endif
+ 
+ static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
+@@ -1318,7 +1327,7 @@ struct iort_dev_config {
+ 	int (*dev_count_resources)(struct acpi_iort_node *node);
+ 	void (*dev_init_resources)(struct resource *res,
+ 				     struct acpi_iort_node *node);
+-	void (*dev_set_proximity)(struct device *dev,
++	int (*dev_set_proximity)(struct device *dev,
+ 				    struct acpi_iort_node *node);
+ };
+ 
+@@ -1369,8 +1378,11 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+ 	if (!pdev)
+ 		return -ENOMEM;
+ 
+-	if (ops->dev_set_proximity)
+-		ops->dev_set_proximity(&pdev->dev, node);
++	if (ops->dev_set_proximity) {
++		ret = ops->dev_set_proximity(&pdev->dev, node);
++		if (ret)
++			goto dev_put;
++	}
+ 
+ 	count = ops->dev_count_resources(node);
+ 
+-- 
+2.20.1
