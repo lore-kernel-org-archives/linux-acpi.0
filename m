@@ -1,69 +1,67 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 1/2] ACPI/IORT: set online numa node for smmuv3 device
-Date: Thu, 28 Mar 2019 11:32:38 +0000
-Message-ID: <20190328113230.GA19628@red-moon>
-References: <20190315021940.86905-1-wangkefeng.wang@huawei.com>
- <20190315021940.86905-2-wangkefeng.wang@huawei.com>
- <d45aa526-2cd9-2381-8856-6ddb7e7ced7d@arm.com>
- <20190320140016.GA8694@e107981-ln.cambridge.arm.com>
- <c0ba61db-0d99-0a50-92c6-cf6f9ad97872@huawei.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 3/6] device property: Add a function to obtain a
+ node's prefix
+Date: Thu, 28 Mar 2019 13:43:51 +0200
+Message-ID: <20190328114350.cyzj7zkbmbu4a2i4@kekkonen.localdomain>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-4-sakari.ailus@linux.intel.com>
+ <20190326131626.GZ9224@smile.fi.intel.com>
+ <20190326133248.2nrm5javjw4vd2yq@paasikivi.fi.intel.com>
+ <20190327123659.nna3hqcotnerptiz@pathway.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <c0ba61db-0d99-0a50-92c6-cf6f9ad97872@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20190327123659.nna3hqcotnerptiz@pathway.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Petr Mladek <pmladek@suse.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 21, 2019 at 02:08:47PM +0800, Kefeng Wang wrote:
-> =
+On Wed, Mar 27, 2019 at 01:36:59PM +0100, Petr Mladek wrote:
+> On Tue 2019-03-26 15:32:48, Sakari Ailus wrote:
+> > Hi Andy,
+> > 
+> > On Tue, Mar 26, 2019 at 03:16:26PM +0200, Andy Shevchenko wrote:
+> > > On Tue, Mar 26, 2019 at 02:41:03PM +0200, Sakari Ailus wrote:
+> > > > The prefix is used for printing purpose before a node, and it also works
+> > > > as a separator between two nodes.
+> > > > 
+> > > 
+> > > One nit below.
+> > > 
+> > > > +static const char *
+> > > > +acpi_fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
+> > > > +{
+> > > > +	struct fwnode_handle *parent;
+> > > > +
+> > > 
+> > > > +	parent = fwnode_get_parent(fwnode);
+> > > > +	/* Root node. */
+> > > 
+> > > I guess a comment could be easier to read if it goes before parent assignment
+> > > line.
+> > 
+> > Only if the comments are changed accordingly. What we're doing here is
+> > trying to figure out whether this is the root node. I can do that for v3.
+> 
+> IMHO, the comment in acpi_fwnode_get_name() is easier to understand:
+> 
+> /* Is this the root node? */
+> 
+> > > 
+> > > > +	if (!parent)
+> > > > +		return "";
+> > > > +
+> > > > +	parent = fwnode_get_next_parent(parent);
+> > > > +	/* Second node from the root; no prefix here either. */
+> > > 
+> > > Ditto.
+> 
+> /* Is this 2nd node from the root? */
 
-> On 2019/3/20 22:00, Lorenzo Pieralisi wrote:
-> > On Wed, Mar 20, 2019 at 11:41:18AM +0000, Robin Murphy wrote:
-> >> On 15/03/2019 02:19, Kefeng Wang wrote:
-> >>> If there is only node 0 in system, but smmuv3 device is set to offline
-> >>> node 1, parsed from proximity domain in SMMUv3 IORT table, it will le=
-ad
-> >>> to following crash,
-> >> Surely that's just a firmware bug? If node 1 doesn't exist in the syst=
-em
-> >> then AFAICS if we're presented with a device claiming to be on that no=
-de we
-> >> can only assume the whole thing is bogus. Thus if we're going to work =
-around
-> >> it at all, it seems to me like we should reject the entire device rath=
-er
-> >> than just bodging it to some other node.
-> =
+I used both the strings.
 
-> Yes, I met this oops with a wrong IORT configuration,
-> =
-
-> > I suspect that's the same issue this thread addressed:
-> >
-> > https://lore.kernel.org/linux-pci/CAErSpo6S0qtR42tjGZrFu4aMFFyThx1hkHTS=
-owTt6t3XerpHnA@mail.gmail.com/
-> =
-
-> and the situation mentioned above should will trigger this issue too.
-> =
-
-> If the node is offline, we can just return from
-> arm_smmu_v3_set_proximity(),=A0 any better way to fix this?
-
-Add a return value to the set_promixity() callback and return failure on
-hitting the issue above, therefore terminating device creation.
-
-Thanks,
-Lorenzo
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
