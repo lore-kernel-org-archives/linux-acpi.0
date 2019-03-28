@@ -1,81 +1,160 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing
- node's parents
-Date: Thu, 28 Mar 2019 10:38:01 +0100
-Message-ID: <CAJZ5v0hi04yACD9ZzDCaxhJh-uHHpMOu=zZzVf4t5vH=ctaYBg@mail.gmail.com>
-References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
- <20190326124106.27694-2-sakari.ailus@linux.intel.com> <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
- <20190327142036.jf6puc5uo2mjutbl@paasikivi.fi.intel.com>
+Subject: Re: [PATCH v2 2/6] device property: Add fwnode_get_name for returning
+ the name of a node
+Date: Thu, 28 Mar 2019 10:45:57 +0100
+Message-ID: <CAJZ5v0gUZaxyp0Hb228F_PuBhshmQ8v7VFYtv75oZg_Hpo8RTw@mail.gmail.com>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com> <20190326124106.27694-3-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327142036.jf6puc5uo2mjutbl@paasikivi.fi.intel.com>
+In-Reply-To: <20190326124106.27694-3-sakari.ailus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Petr Mladek <pmladek@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 27, 2019 at 3:20 PM Sakari Ailus
+On Tue, Mar 26, 2019 at 1:41 PM Sakari Ailus
 <sakari.ailus@linux.intel.com> wrote:
 >
-> Hi Petr,
+> The fwnode framework did not have means to obtain the name of a node. Add
+> that now, in form of the fwnode_get_name() function and a corresponding
+> get_name fwnode op. OF and ACPI support is included.
 >
-> On Wed, Mar 27, 2019 at 01:26:25PM +0100, Petr Mladek wrote:
-> > On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
-> > > Add two convenience functions for accessing node's parents:
-> > >
-> > > fwnode_count_parents() returns the number of parent nodes a given node
-> > > has. fwnode_get_nth_parent() returns node's parent at a given distance
-> > > from the node itself.
-> > >
-> > > Also reorder fwnode_get_parent() in property.c according to the same order
-> > > as in property.h.
-> > >
-> > > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > > index 8b91ab380d14..61eb6ceacc3f 100644
-> > > --- a/drivers/base/property.c
-> > > +++ b/drivers/base/property.c
-> > > @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
-> > >  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
-> > >
-> > >  /**
-> > > - * fwnode_get_parent - Return parent firwmare node
-> > > - * @fwnode: Firmware whose parent is retrieved
-> > > + * fwnode_count_parents - Return the number of parents a node has
-> > > + * @fwnode: The node the parents of which are to be counted
-> > >   *
-> > > - * Return parent firmware node of the given node if possible or %NULL if no
-> > > - * parent was available.
-> > > + * Returns the number of parents a node has.
-> > >   */
-> > > -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
-> > > +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
-> > >  {
-> > > -   return fwnode_call_ptr_op(fwnode, get_parent);
-> > > +   unsigned int count;
-> > > +
-> > > +   fwnode_handle_get(fwnode);
-> > > +
-> > > +   for (count = 0; fwnode; count++)
-> > > +           fwnode = fwnode_get_next_parent(fwnode);
-> >
-> > Is it guaranteed that all parents stay when
-> > fwnode_get_next_parent() releases the reference count
-> > for each counted member?
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/acpi/property.c  | 24 ++++++++++++++++++++++++
+>  drivers/base/property.c  | 11 +++++++++++
+>  drivers/of/property.c    |  6 ++++++
+>  include/linux/fwnode.h   |  2 ++
+>  include/linux/property.h |  1 +
+>  5 files changed, 44 insertions(+)
 >
-> fwnode_get_next_parent() only releases the child node after it has acquired
-> the parent. The only implementation with refcounting for single nodes is
-> actually OF.
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 77abe0ec4043..8c9a4c02cde2 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -1291,6 +1291,29 @@ acpi_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
+>                                                   args_count, args);
+>  }
 >
-> >
-> > > +
-> > > +   return count - 1;
-> >
-> > We could start counting from count = -1;
->
-> We could, but then count would need to be made signed (unless overflowing
-> is preferred instead).
+> +static const char *acpi_fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +       const struct acpi_device *adev;
+> +       struct fwnode_handle *parent;
+> +
+> +       parent = fwnode_get_parent(fwnode);
+> +       /* Is this the root node? */
+> +       if (!parent)
+> +               return "\\";
+> +
+> +       fwnode_handle_put(parent);
+> +
+> +       if (is_acpi_data_node(fwnode)) {
+> +               const struct acpi_data_node *dn = to_acpi_data_node(fwnode);
+> +
+> +               return dn->name;
+> +       }
+> +
+> +       adev = to_acpi_device_node(fwnode);
+> +
+> +       return adev ? acpi_device_bid(adev) : NULL;
 
-What if there are no parents?
+I would do
 
-Or is it guaranteed that there always will be at least one?
+if (WARN_ON(!adev))
+         return NULL;
+
+return acpi_device_bid(adev);
+
+> +}
+> +
+>  static struct fwnode_handle *
+>  acpi_fwnode_get_parent(struct fwnode_handle *fwnode)
+>  {
+> @@ -1331,6 +1354,7 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+>                 .get_parent = acpi_node_get_parent,                     \
+>                 .get_next_child_node = acpi_get_next_subnode,           \
+>                 .get_named_child_node = acpi_fwnode_get_named_child_node, \
+> +               .get_name = acpi_fwnode_get_name,                       \
+>                 .get_reference_args = acpi_fwnode_get_reference_args,   \
+>                 .graph_get_next_endpoint =                              \
+>                         acpi_graph_get_next_endpoint,                   \
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 61eb6ceacc3f..04a8591cd1b0 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -533,6 +533,17 @@ int device_add_properties(struct device *dev,
+>  EXPORT_SYMBOL_GPL(device_add_properties);
+>
+>  /**
+> + * fwnode_get_name - Return the name of a node
+> + * @fwnode: The firmware node
+> + *
+> + * Returns a pointer to the node name.
+> + */
+> +const char *fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +       return fwnode_call_ptr_op(fwnode, get_name);
+> +}
+> +
+> +/**
+>   * fwnode_get_parent - Return parent firwmare node
+>   * @fwnode: Firmware whose parent is retrieved
+>   *
+> diff --git a/drivers/of/property.c b/drivers/of/property.c
+> index 8631efa1daa1..f0a7b78f2d9f 100644
+> --- a/drivers/of/property.c
+> +++ b/drivers/of/property.c
+> @@ -872,6 +872,11 @@ of_fwnode_property_read_string_array(const struct fwnode_handle *fwnode,
+>                 of_property_count_strings(node, propname);
+>  }
+>
+> +static const char *of_fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +       return kbasename(to_of_node(fwnode)->full_name);
+> +}
+> +
+>  static struct fwnode_handle *
+>  of_fwnode_get_parent(const struct fwnode_handle *fwnode)
+>  {
+> @@ -993,6 +998,7 @@ const struct fwnode_operations of_fwnode_ops = {
+>         .property_present = of_fwnode_property_present,
+>         .property_read_int_array = of_fwnode_property_read_int_array,
+>         .property_read_string_array = of_fwnode_property_read_string_array,
+> +       .get_name = of_fwnode_get_name,
+>         .get_parent = of_fwnode_get_parent,
+>         .get_next_child_node = of_fwnode_get_next_child_node,
+>         .get_named_child_node = of_fwnode_get_named_child_node,
+> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+> index faebf0ca0686..85b7fa4dc727 100644
+> --- a/include/linux/fwnode.h
+> +++ b/include/linux/fwnode.h
+> @@ -59,6 +59,7 @@ struct fwnode_reference_args {
+>   *                              otherwise.
+>   * @property_read_string_array: Read an array of string properties. Return zero
+>   *                             on success, a negative error code otherwise.
+> + * @get_name: Return the name of an fwnode.
+>   * @get_parent: Return the parent of an fwnode.
+>   * @get_next_child_node: Return the next child node in an iteration.
+>   * @get_named_child_node: Return a child node with a given name.
+> @@ -85,6 +86,7 @@ struct fwnode_operations {
+>         (*property_read_string_array)(const struct fwnode_handle *fwnode_handle,
+>                                       const char *propname, const char **val,
+>                                       size_t nval);
+> +       const char *(*get_name)(const struct fwnode_handle *fwnode);
+>         struct fwnode_handle *(*get_parent)(const struct fwnode_handle *fwnode);
+>         struct fwnode_handle *
+>         (*get_next_child_node)(const struct fwnode_handle *fwnode,
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index 1164ac974ee8..2f5df900e310 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -78,6 +78,7 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+>                                        unsigned int nargs, unsigned int index,
+>                                        struct fwnode_reference_args *args);
+>
+> +const char *fwnode_get_name(const struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_next_parent(
+>         struct fwnode_handle *fwnode);
+> --
