@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH 17/23] acpi doc: convert acpi/aml-debugger.txt to rst format
-Date: Fri, 29 Mar 2019 00:27:15 +0800
-Message-ID: <20190328162721.26138-18-changbin.du@gmail.com>
+Subject: [PATCH 18/23] acpi doc: convert acpi/apei/output_format.txt to rst format
+Date: Fri, 29 Mar 2019 00:27:16 +0800
+Message-ID: <20190328162721.26138-19-changbin.du@gmail.com>
 References: <20190328162721.26138-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,173 +17,328 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- Documentation/acpi/aml-debugger.rst | 74 +++++++++++++++++++++++++++++
- Documentation/acpi/aml-debugger.txt | 66 -------------------------
- Documentation/acpi/index.rst        |  1 +
- 3 files changed, 75 insertions(+), 66 deletions(-)
- create mode 100644 Documentation/acpi/aml-debugger.rst
- delete mode 100644 Documentation/acpi/aml-debugger.txt
+ Documentation/acpi/apei/output_format.rst | 148 ++++++++++++++++++++++
+ Documentation/acpi/apei/output_format.txt | 147 ---------------------
+ Documentation/acpi/index.rst              |   1 +
+ 3 files changed, 149 insertions(+), 147 deletions(-)
+ create mode 100644 Documentation/acpi/apei/output_format.rst
+ delete mode 100644 Documentation/acpi/apei/output_format.txt
 
-diff --git a/Documentation/acpi/aml-debugger.rst b/Documentation/acpi/aml-debugger.rst
+diff --git a/Documentation/acpi/apei/output_format.rst b/Documentation/acpi/apei/output_format.rst
 new file mode 100644
-index 000000000000..dc9b75530dc3
+index 000000000000..7183cb8d9fcd
 --- /dev/null
-+++ b/Documentation/acpi/aml-debugger.rst
-@@ -0,0 +1,74 @@
-+.. include:: <isonum.txt>
++++ b/Documentation/acpi/apei/output_format.rst
+@@ -0,0 +1,148 @@
++==================
++APEI output format
++==================
 +
-+================
-+The AML Debugger
-+================
++APEI uses printk as hardware error reporting interface, the output
++format is as follow::
 +
-+:Copyright: |copy| 2016, Intel Corporation
-+:Author: Lv Zheng <lv.zheng@intel.com>
++        <error record> :=
++        APEI generic hardware error status
++        severity: <integer>, <severity string>
++        section: <integer>, severity: <integer>, <severity string>
++        flags: <integer>
++        <section flags strings>
++        fru_id: <uuid string>
++        fru_text: <string>
++        section_type: <section type string>
++        <section data>
 +
++        <severity string>* := recoverable | fatal | corrected | info
 +
-+This document describes the usage of the AML debugger embedded in the Linux
-+kernel.
++        <section flags strings># :=
++        [primary][, containment warning][, reset][, threshold exceeded]\
++        [, resource not accessible][, latent error]
 +
-+1. Build the debugger
-+=====================
++        <section type string> := generic processor error | memory error | \
++        PCIe error | unknown, <uuid string>
 +
-+The following kernel configuration items are required to enable the AML
-+debugger interface from the Linux kernel::
++        <section data> :=
++        <generic processor section data> | <memory section data> | \
++        <pcie section data> | <null>
 +
-+   CONFIG_ACPI_DEBUGGER=y
-+   CONFIG_ACPI_DEBUGGER_USER=m
++        <generic processor section data> :=
++        [processor_type: <integer>, <proc type string>]
++        [processor_isa: <integer>, <proc isa string>]
++        [error_type: <integer>
++        <proc error type strings>]
++        [operation: <integer>, <proc operation string>]
++        [flags: <integer>
++        <proc flags strings>]
++        [level: <integer>]
++        [version_info: <integer>]
++        [processor_id: <integer>]
++        [target_address: <integer>]
++        [requestor_id: <integer>]
++        [responder_id: <integer>]
++        [IP: <integer>]
 +
-+The userspace utilities can be built from the kernel source tree using
-+the following commands::
++        <proc type string>* := IA32/X64 | IA64
 +
-+   $ cd tools
-+   $ make acpi
++        <proc isa string>* := IA32 | IA64 | X64
 +
-+The resultant userspace tool binary is then located at::
++        <processor error type strings># :=
++        [cache error][, TLB error][, bus error][, micro-architectural error]
 +
-+   tools/power/acpi/acpidbg
++        <proc operation string>* := unknown or generic | data read | data write | \
++        instruction execution
 +
-+It can be installed to system directories by running "make install" (as a
-+sufficiently privileged user).
++        <proc flags strings># :=
++        [restartable][, precise IP][, overflow][, corrected]
 +
-+2. Start the userspace debugger interface
-+=========================================
++        <memory section data> :=
++        [error_status: <integer>]
++        [physical_address: <integer>]
++        [physical_address_mask: <integer>]
++        [node: <integer>]
++        [card: <integer>]
++        [module: <integer>]
++        [bank: <integer>]
++        [device: <integer>]
++        [row: <integer>]
++        [column: <integer>]
++        [bit_position: <integer>]
++        [requestor_id: <integer>]
++        [responder_id: <integer>]
++        [target_id: <integer>]
++        [error_type: <integer>, <mem error type string>]
 +
-+After booting the kernel with the debugger built-in, the debugger can be
-+started by using the following commands::
++        <mem error type string>* :=
++        unknown | no error | single-bit ECC | multi-bit ECC | \
++        single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
++        target abort | parity error | watchdog timeout | invalid address | \
++        mirror Broken | memory sparing | scrub corrected error | \
++        scrub uncorrected error
 +
-+   # mount -t debugfs none /sys/kernel/debug
-+   # modprobe acpi_dbg
-+   # tools/power/acpi/acpidbg
++        <pcie section data> :=
++        [port_type: <integer>, <pcie port type string>]
++        [version: <integer>.<integer>]
++        [command: <integer>, status: <integer>]
++        [device_id: <integer>:<integer>:<integer>.<integer>
++        slot: <integer>
++        secondary_bus: <integer>
++        vendor_id: <integer>, device_id: <integer>
++        class_code: <integer>]
++        [serial number: <integer>, <integer>]
++        [bridge: secondary_status: <integer>, control: <integer>]
++        [aer_status: <integer>, aer_mask: <integer>
++        <aer status string>
++        [aer_uncor_severity: <integer>]
++        aer_layer=<aer layer string>, aer_agent=<aer agent string>
++        aer_tlp_header: <integer> <integer> <integer> <integer>]
 +
-+That spawns the interactive AML debugger environment where you can execute
-+debugger commands.
++        <pcie port type string>* := PCIe end point | legacy PCI end point | \
++        unknown | unknown | root port | upstream switch port | \
++        downstream switch port | PCIe to PCI/PCI-X bridge | \
++        PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
++        root complex event collector
 +
-+The commands are documented in the "ACPICA Overview and Programmer Reference"
-+that can be downloaded from
++        if section severity is fatal or recoverable
++        <aer status string># :=
++        unknown | unknown | unknown | unknown | Data Link Protocol | \
++        unknown | unknown | unknown | unknown | unknown | unknown | unknown | \
++        Poisoned TLP | Flow Control Protocol | Completion Timeout | \
++        Completer Abort | Unexpected Completion | Receiver Overflow | \
++        Malformed TLP | ECRC | Unsupported Request
++        else
++        <aer status string># :=
++        Receiver Error | unknown | unknown | unknown | unknown | unknown | \
++        Bad TLP | Bad DLLP | RELAY_NUM Rollover | unknown | unknown | unknown | \
++        Replay Timer Timeout | Advisory Non-Fatal
++        fi
 +
-+https://acpica.org/documentation
++        <aer layer string> :=
++        Physical Layer | Data Link Layer | Transaction Layer
 +
-+The detailed debugger commands reference is located in Chapter 12 "ACPICA
-+Debugger Reference".  The "help" command can be used for a quick reference.
++        <aer agent string> :=
++        Receiver ID | Requester ID | Completer ID | Transmitter ID
 +
-+3. Stop the userspace debugger interface
-+========================================
++Where, [] designate corresponding content is optional
 +
-+The interactive debugger interface can be closed by pressing Ctrl+C or using
-+the "quit" or "exit" commands.  When finished, unload the module with::
++All <field string> description with * has the following format::
 +
-+   # rmmod acpi_dbg
++        field: <integer>, <field string>
 +
-+The module unloading may fail if there is an acpidbg instance running.
++Where value of <integer> should be the position of "string" in <field
++string> description. Otherwise, <field string> will be "unknown".
 +
-+4. Run the debugger in a script
-+===============================
++All <field strings> description with # has the following format::
 +
-+It may be useful to run the AML debugger in a test script. "acpidbg" supports
-+this in a special "batch" mode.  For example, the following command outputs
-+the entire ACPI namespace::
++        field: <integer>
++        <field strings>
 +
-+   # acpidbg -b "namespace"
-diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
++Where each string in <fields strings> corresponding to one set bit of
++<integer>. The bit position is the position of "string" in <field
++strings> description.
++
++For more detailed explanation of every field, please refer to UEFI
++specification version 2.3 or later, section Appendix N: Common
++Platform Error Record.
+diff --git a/Documentation/acpi/apei/output_format.txt b/Documentation/acpi/apei/output_format.txt
 deleted file mode 100644
-index 75ebeb64ab29..000000000000
---- a/Documentation/acpi/aml-debugger.txt
+index 0c49c197c47a..000000000000
+--- a/Documentation/acpi/apei/output_format.txt
 +++ /dev/null
-@@ -1,66 +0,0 @@
--The AML Debugger
+@@ -1,147 +0,0 @@
+-                     APEI output format
+-                     ~~~~~~~~~~~~~~~~~~
 -
--Copyright (C) 2016, Intel Corporation
--Author: Lv Zheng <lv.zheng@intel.com>
+-APEI uses printk as hardware error reporting interface, the output
+-format is as follow.
 -
+-<error record> :=
+-APEI generic hardware error status
+-severity: <integer>, <severity string>
+-section: <integer>, severity: <integer>, <severity string>
+-flags: <integer>
+-<section flags strings>
+-fru_id: <uuid string>
+-fru_text: <string>
+-section_type: <section type string>
+-<section data>
 -
--This document describes the usage of the AML debugger embedded in the Linux
--kernel.
+-<severity string>* := recoverable | fatal | corrected | info
 -
--1. Build the debugger
+-<section flags strings># :=
+-[primary][, containment warning][, reset][, threshold exceeded]\
+-[, resource not accessible][, latent error]
 -
--   The following kernel configuration items are required to enable the AML
--   debugger interface from the Linux kernel:
+-<section type string> := generic processor error | memory error | \
+-PCIe error | unknown, <uuid string>
 -
--   CONFIG_ACPI_DEBUGGER=y
--   CONFIG_ACPI_DEBUGGER_USER=m
+-<section data> :=
+-<generic processor section data> | <memory section data> | \
+-<pcie section data> | <null>
 -
--   The userspace utilities can be built from the kernel source tree using
--   the following commands:
+-<generic processor section data> :=
+-[processor_type: <integer>, <proc type string>]
+-[processor_isa: <integer>, <proc isa string>]
+-[error_type: <integer>
+-<proc error type strings>]
+-[operation: <integer>, <proc operation string>]
+-[flags: <integer>
+-<proc flags strings>]
+-[level: <integer>]
+-[version_info: <integer>]
+-[processor_id: <integer>]
+-[target_address: <integer>]
+-[requestor_id: <integer>]
+-[responder_id: <integer>]
+-[IP: <integer>]
 -
--   $ cd tools
--   $ make acpi
+-<proc type string>* := IA32/X64 | IA64
 -
--   The resultant userspace tool binary is then located at:
+-<proc isa string>* := IA32 | IA64 | X64
 -
--     tools/power/acpi/acpidbg
+-<processor error type strings># :=
+-[cache error][, TLB error][, bus error][, micro-architectural error]
 -
--   It can be installed to system directories by running "make install" (as a
--   sufficiently privileged user).
+-<proc operation string>* := unknown or generic | data read | data write | \
+-instruction execution
 -
--2. Start the userspace debugger interface
+-<proc flags strings># :=
+-[restartable][, precise IP][, overflow][, corrected]
 -
--   After booting the kernel with the debugger built-in, the debugger can be
--   started by using the following commands:
+-<memory section data> :=
+-[error_status: <integer>]
+-[physical_address: <integer>]
+-[physical_address_mask: <integer>]
+-[node: <integer>]
+-[card: <integer>]
+-[module: <integer>]
+-[bank: <integer>]
+-[device: <integer>]
+-[row: <integer>]
+-[column: <integer>]
+-[bit_position: <integer>]
+-[requestor_id: <integer>]
+-[responder_id: <integer>]
+-[target_id: <integer>]
+-[error_type: <integer>, <mem error type string>]
 -
--   # mount -t debugfs none /sys/kernel/debug
--   # modprobe acpi_dbg
--   # tools/power/acpi/acpidbg
+-<mem error type string>* :=
+-unknown | no error | single-bit ECC | multi-bit ECC | \
+-single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
+-target abort | parity error | watchdog timeout | invalid address | \
+-mirror Broken | memory sparing | scrub corrected error | \
+-scrub uncorrected error
 -
--   That spawns the interactive AML debugger environment where you can execute
--   debugger commands.
+-<pcie section data> :=
+-[port_type: <integer>, <pcie port type string>]
+-[version: <integer>.<integer>]
+-[command: <integer>, status: <integer>]
+-[device_id: <integer>:<integer>:<integer>.<integer>
+-slot: <integer>
+-secondary_bus: <integer>
+-vendor_id: <integer>, device_id: <integer>
+-class_code: <integer>]
+-[serial number: <integer>, <integer>]
+-[bridge: secondary_status: <integer>, control: <integer>]
+-[aer_status: <integer>, aer_mask: <integer>
+-<aer status string>
+-[aer_uncor_severity: <integer>]
+-aer_layer=<aer layer string>, aer_agent=<aer agent string>
+-aer_tlp_header: <integer> <integer> <integer> <integer>]
 -
--   The commands are documented in the "ACPICA Overview and Programmer Reference"
--   that can be downloaded from
+-<pcie port type string>* := PCIe end point | legacy PCI end point | \
+-unknown | unknown | root port | upstream switch port | \
+-downstream switch port | PCIe to PCI/PCI-X bridge | \
+-PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
+-root complex event collector
 -
--   https://acpica.org/documentation
+-if section severity is fatal or recoverable
+-<aer status string># :=
+-unknown | unknown | unknown | unknown | Data Link Protocol | \
+-unknown | unknown | unknown | unknown | unknown | unknown | unknown | \
+-Poisoned TLP | Flow Control Protocol | Completion Timeout | \
+-Completer Abort | Unexpected Completion | Receiver Overflow | \
+-Malformed TLP | ECRC | Unsupported Request
+-else
+-<aer status string># :=
+-Receiver Error | unknown | unknown | unknown | unknown | unknown | \
+-Bad TLP | Bad DLLP | RELAY_NUM Rollover | unknown | unknown | unknown | \
+-Replay Timer Timeout | Advisory Non-Fatal
+-fi
 -
--   The detailed debugger commands reference is located in Chapter 12 "ACPICA
--   Debugger Reference".  The "help" command can be used for a quick reference.
+-<aer layer string> :=
+-Physical Layer | Data Link Layer | Transaction Layer
 -
--3. Stop the userspace debugger interface
+-<aer agent string> :=
+-Receiver ID | Requester ID | Completer ID | Transmitter ID
 -
--   The interactive debugger interface can be closed by pressing Ctrl+C or using
--   the "quit" or "exit" commands.  When finished, unload the module with:
+-Where, [] designate corresponding content is optional
 -
--   # rmmod acpi_dbg
+-All <field string> description with * has the following format:
 -
--   The module unloading may fail if there is an acpidbg instance running.
+-field: <integer>, <field string>
 -
--4. Run the debugger in a script
+-Where value of <integer> should be the position of "string" in <field
+-string> description. Otherwise, <field string> will be "unknown".
 -
--   It may be useful to run the AML debugger in a test script. "acpidbg" supports
--   this in a special "batch" mode.  For example, the following command outputs
--   the entire ACPI namespace:
+-All <field strings> description with # has the following format:
 -
--   # acpidbg -b "namespace"
+-field: <integer>
+-<field strings>
+-
+-Where each string in <fields strings> corresponding to one set bit of
+-<integer>. The bit position is the position of "string" in <field
+-strings> description.
+-
+-For more detailed explanation of every field, please refer to UEFI
+-specification version 2.3 or later, section Appendix N: Common
+-Platform Error Record.
 diff --git a/Documentation/acpi/index.rst b/Documentation/acpi/index.rst
-index 48964586ef75..241723643468 100644
+index 241723643468..6ecd7736449f 100644
 --- a/Documentation/acpi/index.rst
 +++ b/Documentation/acpi/index.rst
-@@ -21,3 +21,4 @@ Linux ACPI (Advanced Configuration and Power Interface)
-    dsdt-override
+@@ -22,3 +22,4 @@ Linux ACPI (Advanced Configuration and Power Interface)
     debug
     method-tracing
-+   aml-debugger
+    aml-debugger
++   apei/output_format
 -- 
 2.20.1
