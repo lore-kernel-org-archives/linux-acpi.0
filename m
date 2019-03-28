@@ -1,72 +1,52 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 07/10] ASoC: Intel: bytcr_rt5651: Convert to
-	use acpi_dev_get_first_match_dev()
-Date: Thu, 28 Mar 2019 19:17:26 +0200
-Message-ID: <20190328171729.44002-8-andriy.shevchenko@linux.intel.com>
-References: <20190328171729.44002-1-andriy.shevchenko@linux.intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 0/3] device property: fwnode_is_compatible() helper
+Date: Thu, 28 Mar 2019 19:38:57 +0200
+Message-ID: <20190328173857.GC9993@kuha.fi.intel.com>
+References: <20190327164339.31205-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20190328171729.44002-1-andriy.shevchenko@linux.intel.com>
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190327164339.31205-1-heikki.krogerus@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Chunfeng Yun <chunfeng.yun@mediatek.com>, Biju Das <biju.das@bp.renesas.com>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-acpi_dev_get_first_match_name() is deprecated and going to be removed
-because it leaks a reference.
+On Wed, Mar 27, 2019 at 07:43:36PM +0300, Heikki Krogerus wrote:
+> Hi,
+> 
+> Basically the helper is just a generic version of the function
+> of_device_is_compatible() that should work also with ACPI and
+> software nodes.
+> 
+> As the first user for the helper, I'm converting in this series the
+> USB role switch code to expect the "compatible" property to have the
+> value "usb-role-switch" instead of expecting a boolean property named
+> "usb-role-switch". I'm doing the same for the USB Type-C mux code.
+> 
+> thanks,
+> 
+> Heikki Krogerus (3):
+>   device property: Add fwnode_is_compatible() and device_is_compatible()
+>     helpers
+>   usb: roles: Use the "compatible" property instead of a boolean
+>     property
+>   usb: typec: mux: Use the "compatible" property instead of a boolean
+>     property
+> 
+>  drivers/base/property.c   | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/usb/roles/class.c |  2 +-
+>  drivers/usb/typec/mux.c   |  8 ++------
+>  include/linux/property.h  |  3 +++
+>  4 files changed, 41 insertions(+), 7 deletions(-)
 
-Convert the driver to use acpi_dev_get_first_match_dev() instead.
+Don't take this series yet. We are having a discussion on whether this
+is the correct approach with the USB mux or not in an other mail
+thread. The helper itself (patch 1/3) I guess is fine though.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- sound/soc/intel/boards/bytcr_rt5651.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/sound/soc/intel/boards/bytcr_rt5651.c b/sound/soc/intel/boards/bytcr_rt5651.c
-index b0a4d297176e..b744add01d12 100644
---- a/sound/soc/intel/boards/bytcr_rt5651.c
-+++ b/sound/soc/intel/boards/bytcr_rt5651.c
-@@ -867,8 +867,8 @@ static int snd_byt_rt5651_mc_probe(struct platform_device *pdev)
- 	struct byt_rt5651_private *priv;
- 	struct snd_soc_acpi_mach *mach;
- 	const char *platform_name;
-+	struct acpi_device *adev;
- 	struct device *codec_dev;
--	const char *i2c_name = NULL;
- 	const char *hp_swapped;
- 	bool is_bytcr = false;
- 	int ret_val = 0;
-@@ -894,14 +894,16 @@ static int snd_byt_rt5651_mc_probe(struct platform_device *pdev)
- 	}
- 
- 	/* fixup codec name based on HID */
--	i2c_name = acpi_dev_get_first_match_name(mach->id, NULL, -1);
--	if (!i2c_name) {
-+	adev = acpi_dev_get_first_match_dev(mach->id, NULL, -1);
-+	if (adev) {
-+		snprintf(byt_rt5651_codec_name, sizeof(byt_rt5651_codec_name),
-+			 "i2c-%s", acpi_dev_name(adev));
-+		put_device(&adev->dev);
-+		byt_rt5651_dais[dai_index].codec_name = byt_rt5651_codec_name;
-+	} else {
- 		dev_err(&pdev->dev, "Error cannot find '%s' dev\n", mach->id);
- 		return -ENODEV;
- 	}
--	snprintf(byt_rt5651_codec_name, sizeof(byt_rt5651_codec_name),
--		"%s%s", "i2c-", i2c_name);
--	byt_rt5651_dais[dai_index].codec_name = byt_rt5651_codec_name;
- 
- 	codec_dev = bus_find_device_by_name(&i2c_bus_type, NULL,
- 					    byt_rt5651_codec_name);
+thanks,
+
 -- 
-2.20.1
+heikki
