@@ -1,79 +1,69 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 2/6] device property: Add fwnode_get_name for
- returning the name of a node
-Date: Thu, 28 Mar 2019 13:31:56 +0200
-Message-ID: <20190328113156.o5wfxcww5mphmd6i@kekkonen.localdomain>
-References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
- <20190326124106.27694-3-sakari.ailus@linux.intel.com>
- <CAJZ5v0gUZaxyp0Hb228F_PuBhshmQ8v7VFYtv75oZg_Hpo8RTw@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 1/2] ACPI/IORT: set online numa node for smmuv3 device
+Date: Thu, 28 Mar 2019 11:32:38 +0000
+Message-ID: <20190328113230.GA19628@red-moon>
+References: <20190315021940.86905-1-wangkefeng.wang@huawei.com>
+ <20190315021940.86905-2-wangkefeng.wang@huawei.com>
+ <d45aa526-2cd9-2381-8856-6ddb7e7ced7d@arm.com>
+ <20190320140016.GA8694@e107981-ln.cambridge.arm.com>
+ <c0ba61db-0d99-0a50-92c6-cf6f9ad97872@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gUZaxyp0Hb228F_PuBhshmQ8v7VFYtv75oZg_Hpo8RTw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh@kernel.org>
+In-Reply-To: <c0ba61db-0d99-0a50-92c6-cf6f9ad97872@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Thu, Mar 21, 2019 at 02:08:47PM +0800, Kefeng Wang wrote:
+> =
 
-On Thu, Mar 28, 2019 at 10:45:57AM +0100, Rafael J. Wysocki wrote:
-> On Tue, Mar 26, 2019 at 1:41 PM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> >
-> > The fwnode framework did not have means to obtain the name of a node. Add
-> > that now, in form of the fwnode_get_name() function and a corresponding
-> > get_name fwnode op. OF and ACPI support is included.
-> >
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/acpi/property.c  | 24 ++++++++++++++++++++++++
-> >  drivers/base/property.c  | 11 +++++++++++
-> >  drivers/of/property.c    |  6 ++++++
-> >  include/linux/fwnode.h   |  2 ++
-> >  include/linux/property.h |  1 +
-> >  5 files changed, 44 insertions(+)
-> >
-> > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> > index 77abe0ec4043..8c9a4c02cde2 100644
-> > --- a/drivers/acpi/property.c
-> > +++ b/drivers/acpi/property.c
-> > @@ -1291,6 +1291,29 @@ acpi_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
-> >                                                   args_count, args);
-> >  }
-> >
-> > +static const char *acpi_fwnode_get_name(const struct fwnode_handle *fwnode)
-> > +{
-> > +       const struct acpi_device *adev;
-> > +       struct fwnode_handle *parent;
-> > +
-> > +       parent = fwnode_get_parent(fwnode);
-> > +       /* Is this the root node? */
-> > +       if (!parent)
-> > +               return "\\";
-> > +
-> > +       fwnode_handle_put(parent);
-> > +
-> > +       if (is_acpi_data_node(fwnode)) {
-> > +               const struct acpi_data_node *dn = to_acpi_data_node(fwnode);
-> > +
-> > +               return dn->name;
-> > +       }
-> > +
-> > +       adev = to_acpi_device_node(fwnode);
-> > +
-> > +       return adev ? acpi_device_bid(adev) : NULL;
-> 
-> I would do
-> 
-> if (WARN_ON(!adev))
->          return NULL;
-> 
-> return acpi_device_bid(adev);
+> On 2019/3/20 22:00, Lorenzo Pieralisi wrote:
+> > On Wed, Mar 20, 2019 at 11:41:18AM +0000, Robin Murphy wrote:
+> >> On 15/03/2019 02:19, Kefeng Wang wrote:
+> >>> If there is only node 0 in system, but smmuv3 device is set to offline
+> >>> node 1, parsed from proximity domain in SMMUv3 IORT table, it will le=
+ad
+> >>> to following crash,
+> >> Surely that's just a firmware bug? If node 1 doesn't exist in the syst=
+em
+> >> then AFAICS if we're presented with a device claiming to be on that no=
+de we
+> >> can only assume the whole thing is bogus. Thus if we're going to work =
+around
+> >> it at all, it seems to me like we should reject the entire device rath=
+er
+> >> than just bodging it to some other node.
+> =
 
-Done.
+> Yes, I met this oops with a wrong IORT configuration,
+> =
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> > I suspect that's the same issue this thread addressed:
+> >
+> > https://lore.kernel.org/linux-pci/CAErSpo6S0qtR42tjGZrFu4aMFFyThx1hkHTS=
+owTt6t3XerpHnA@mail.gmail.com/
+> =
+
+> and the situation mentioned above should will trigger this issue too.
+> =
+
+> If the node is offline, we can just return from
+> arm_smmu_v3_set_proximity(),=A0 any better way to fix this?
+
+Add a return value to the set_promixity() callback and return failure on
+hitting the issue above, therefore terminating device creation.
+
+Thanks,
+Lorenzo
