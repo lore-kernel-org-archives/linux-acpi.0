@@ -1,153 +1,104 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v2] ACPI/IORT: Reject platform dev creation when dev set
- to wrong numa node
-Date: Thu, 28 Mar 2019 13:59:12 +0000
-Message-ID: <2bc8b920-937f-86f0-1eb5-065c8b2871d1@arm.com>
-References: <20190328113230.GA19628@red-moon>
- <20190328140022.85790-1-wangkefeng.wang@huawei.com>
+From: Petr Mladek <pmladek@suse.com>
+Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing
+ node's parents
+Date: Thu, 28 Mar 2019 15:10:36 +0100
+Message-ID: <20190328141036.mbns3ei4agnginsg@pathway.suse.cz>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-2-sakari.ailus@linux.intel.com>
+ <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
+ <20190327142036.jf6puc5uo2mjutbl@paasikivi.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190328140022.85790-1-wangkefeng.wang@huawei.com>
-Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190327142036.jf6puc5uo2mjutbl@paasikivi.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 28/03/2019 14:00, Kefeng Wang wrote:
-> If there is only node 0 in system, but smmuv3 device is set to offline
-> node 1, parsed from proximity domain in SMMUv3 IORT table, it will lead
-> to following crash,
+On Wed 2019-03-27 16:20:37, Sakari Ailus wrote:
+> Hi Petr,
 > 
-> [   47.492451] Unable to handle kernel paging request at virtual address 0000000000001388
-> [   47.500361] Mem abort info:
-> [   47.503143]   ESR = 0x96000004
-> [   47.506189]   Exception class = DABT (current EL), IL = 32 bits
-> [   47.512099]   SET = 0, FnV = 0
-> [   47.515140]   EA = 0, S1PTW = 0
-> [   47.518272] Data abort info:
-> [   47.521144]   ISV = 0, ISS = 0x00000004
-> [   47.524970]   CM = 0, WnR = 0
-> [   47.527929] [0000000000001388] user address but active_mm is swapper
-> [   47.534285] Internal error: Oops: 96000004 [#1] SMP
-> [   47.539151] Modules linked in:
-> [   47.542194] CPU: 5 PID: 1 Comm: swapper/0 Not tainted 5.0.0 #15
-> [   47.549490] pstate: 80c00009 (Nzcv daif +PAN +UAO)
-> [   47.554272] pc : __alloc_pages_nodemask+0x13c/0x1068
-> [   47.559224] lr : __alloc_pages_nodemask+0xdc/0x1068
-> ...
-> [   47.646873] Process swapper/0 (pid: 1, stack limit = 0x(____ptrval____))
-> [   47.653560] Call trace:
-> [   47.655994]  __alloc_pages_nodemask+0x13c/0x1068
-> [   47.660600]  new_slab+0xec/0x570
-> [   47.663816]  ___slab_alloc+0x3e0/0x4f8
-> [   47.667553]  __slab_alloc+0x60/0x80
-> [   47.671029]  __kmalloc_node_track_caller+0x10c/0x478
-> [   47.675984]  devm_kmalloc+0x44/0xb0
-> [   47.679460]  pinctrl_bind_pins+0x4c/0x188
-> [   47.683457]  really_probe+0x78/0x2b8
-> [   47.687019]  driver_probe_device+0x64/0x110
-> [   47.691189]  device_driver_attach+0x74/0x98
-> [   47.695360]  __driver_attach+0x9c/0xe8
-> [   47.699095]  bus_for_each_dev+0x84/0xd8
-> [   47.702919]  driver_attach+0x30/0x40
-> [   47.706481]  bus_add_driver+0x170/0x218
-> [   47.710304]  driver_register+0x64/0x118
-> [   47.714128]  __platform_driver_register+0x54/0x60
-> [   47.718820]  arm_smmu_driver_init+0x24/0x2c
-> [   47.722991]  do_one_initcall+0xbc/0x328
-> [   47.726816]  kernel_init_freeable+0x304/0x3ac
-> [   47.731162]  kernel_init+0x18/0x110
-> [   47.734638]  ret_from_fork+0x10/0x1c
-> [   47.738202] Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
-> [   47.744307] ---[ end trace dfeaed4c373a32da ]--
+> On Wed, Mar 27, 2019 at 01:26:25PM +0100, Petr Mladek wrote:
+> > On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
+> > > Add two convenience functions for accessing node's parents:
+> > > 
+> > > fwnode_count_parents() returns the number of parent nodes a given node
+> > > has. fwnode_get_nth_parent() returns node's parent at a given distance
+> > > from the node itself.
+> > > 
+> > > Also reorder fwnode_get_parent() in property.c according to the same order
+> > > as in property.h.
+> > > 
+> > > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > > index 8b91ab380d14..61eb6ceacc3f 100644
+> > > --- a/drivers/base/property.c
+> > > +++ b/drivers/base/property.c
+> > > @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+> > >  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+> > >  
+> > >  /**
+> > > - * fwnode_get_parent - Return parent firwmare node
+> > > - * @fwnode: Firmware whose parent is retrieved
+> > > + * fwnode_count_parents - Return the number of parents a node has
+> > > + * @fwnode: The node the parents of which are to be counted
+> > >   *
+> > > - * Return parent firmware node of the given node if possible or %NULL if no
+> > > - * parent was available.
+> > > + * Returns the number of parents a node has.
+> > >   */
+> > > -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
+> > > +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
+> > >  {
+> > > -	return fwnode_call_ptr_op(fwnode, get_parent);
+> > > +	unsigned int count;
+> > > +
+> > > +	fwnode_handle_get(fwnode);
+> > > +
+> > > +	for (count = 0; fwnode; count++)
+> > > +		fwnode = fwnode_get_next_parent(fwnode);
+> > 
+> > Is it guaranteed that all parents stay when
+> > fwnode_get_next_parent() releases the reference count
+> > for each counted member?
 > 
-> This could be triggered by firmware bug with bad IORT configuration,
-> or a NUMA node has no memory attaching to it, also with NR_CPUS less
-> than CPUs presented in MADT.
-> 
-> Make dev_set_proximity() with a return value, terminating device creation
-> if it return failure.
-> 
-> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> ---
->   drivers/acpi/arm64/iort.c | 24 ++++++++++++++++++------
->   1 file changed, 18 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e48894e002ba..c294c3490e66 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1232,21 +1232,30 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
->   /*
->    * set numa proximity domain for smmuv3 device
->    */
-> -static void  __init arm_smmu_v3_set_proximity(struct device *dev,
-> +static int  __init arm_smmu_v3_set_proximity(struct device *dev,
->   					      struct acpi_iort_node *node)
->   {
->   	struct acpi_iort_smmu_v3 *smmu;
->   
->   	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
->   	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> -		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> +		int node = acpi_map_pxm_to_node(smmu->pxm);
-> +		if (node != NUMA_NO_NODE && !node_online(node))
-> +			return -EINVAL;
-> +
-> +		set_dev_node(dev, node);
->   		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
->   			smmu->base_address,
->   			smmu->pxm);
->   	}
-> +	return 0;
->   }
->   #else
-> -#define arm_smmu_v3_set_proximity NULL
-> +static int  __init arm_smmu_v3_set_proximity(struct device *dev,
-> +					      struct acpi_iort_node *node)
-> +{
-> +	return 0;
-> +}
+> fwnode_get_next_parent() only releases the child node after it has acquired
+> the parent. The only implementation with refcounting for single nodes is
+> actually OF.
 
-Doesn't this end up having the same effect as just leaving the callback 
-assigned with NULL? Not sure why that would need to change :/
+I am still a bit confused. The function is later used the following way:
 
-Robin.
+	for (depth = fwnode_count_parents(fwnode); depth >= 0; depth--) {
+		struct fwnode_handle *__fwnode =
+			fwnode_get_nth_parent(fwnode, depth);
 
->   #endif
->   
->   static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
-> @@ -1318,7 +1327,7 @@ struct iort_dev_config {
->   	int (*dev_count_resources)(struct acpi_iort_node *node);
->   	void (*dev_init_resources)(struct resource *res,
->   				     struct acpi_iort_node *node);
-> -	void (*dev_set_proximity)(struct device *dev,
-> +	int (*dev_set_proximity)(struct device *dev,
->   				    struct acpi_iort_node *node);
->   };
->   
-> @@ -1369,8 +1378,11 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->   	if (!pdev)
->   		return -ENOMEM;
->   
-> -	if (ops->dev_set_proximity)
-> -		ops->dev_set_proximity(&pdev->dev, node);
-> +	if (ops->dev_set_proximity) {
-> +		ret = ops->dev_set_proximity(&pdev->dev, node);
-> +		if (ret)
-> +			goto dev_put;
-> +	}
->   
->   	count = ops->dev_count_resources(node);
->   
-> 
+		buf = string(buf, end, fwnode_get_name_prefix(__fwnode),
+			     default_str_spec);
+		buf = string(buf, end, fwnode_get_name(__fwnode),
+			     default_str_spec);
+
+		fwnode_handle_put(__fwnode);
+	}
+
+It uses the number to walk the hierarchy over and over again to print
+the path from root.
+
+I would expect that parents could not get removed until all children
+are removed. And that the most bottom child (fwnode) must not get
+removed. Otherwise we would access freed memory in each cycle.
+
+Then there is a question why we need to get the reference of the
+parents
+at all.
+
+It might be because we do not need touch refcounting of the parents
+in this scenario. But we are re-using existing functions where
+the ref-counting hang-over is important.
+
+Or we really need to increase refcounting of parents. Then it looks
+suspicious because we want to traverse the same path several times
+and always have only one node locked (refcounted).
+
+Best Regards,
+Petr
