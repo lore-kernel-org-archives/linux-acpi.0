@@ -1,96 +1,133 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing
- node's parents
-Date: Thu, 28 Mar 2019 15:52:35 +0100
-Message-ID: <CAJZ5v0gAM_jn-gkmyu7Av+X0W_8g9NGjBEeXC-3-q_Ncb2PEGw@mail.gmail.com>
-References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
- <20190326124106.27694-2-sakari.ailus@linux.intel.com> <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
- <20190327142036.jf6puc5uo2mjutbl@paasikivi.fi.intel.com> <CAJZ5v0hi04yACD9ZzDCaxhJh-uHHpMOu=zZzVf4t5vH=ctaYBg@mail.gmail.com>
- <20190328111307.ppuywzyb3i56pw4h@kekkonen.localdomain>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH 1/4] ACPI/PPTT: Add function to return ACPI 6.3 Identical
+ tokens
+Date: Thu, 28 Mar 2019 10:20:49 -0500
+Message-ID: <7b1a15e4-3d16-4c39-542b-f86a4451a592@arm.com>
+References: <20190326223938.5365-1-jeremy.linton@arm.com>
+ <20190326223938.5365-2-jeremy.linton@arm.com>
+ <CAJZ5v0g7DOTiP=UiyqW6wf7AWyK8bi93CGsAsg_T=6HJDWrQww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190328111307.ppuywzyb3i56pw4h@kekkonen.localdomain>
+In-Reply-To: <CAJZ5v0g7DOTiP=UiyqW6wf7AWyK8bi93CGsAsg_T=6HJDWrQww@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Petr Mladek <pmladek@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, James Morse <james.morse@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 28, 2019 at 12:13 PM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Hi Rafael,
->
-> On Thu, Mar 28, 2019 at 10:38:01AM +0100, Rafael J. Wysocki wrote:
-> > On Wed, Mar 27, 2019 at 3:20 PM Sakari Ailus
-> > <sakari.ailus@linux.intel.com> wrote:
-> > >
-> > > Hi Petr,
-> > >
-> > > On Wed, Mar 27, 2019 at 01:26:25PM +0100, Petr Mladek wrote:
-> > > > On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
-> > > > > Add two convenience functions for accessing node's parents:
-> > > > >
-> > > > > fwnode_count_parents() returns the number of parent nodes a given node
-> > > > > has. fwnode_get_nth_parent() returns node's parent at a given distance
-> > > > > from the node itself.
-> > > > >
-> > > > > Also reorder fwnode_get_parent() in property.c according to the same order
-> > > > > as in property.h.
-> > > > >
-> > > > > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > > > > index 8b91ab380d14..61eb6ceacc3f 100644
-> > > > > --- a/drivers/base/property.c
-> > > > > +++ b/drivers/base/property.c
-> > > > > @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
-> > > > >  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
-> > > > >
-> > > > >  /**
-> > > > > - * fwnode_get_parent - Return parent firwmare node
-> > > > > - * @fwnode: Firmware whose parent is retrieved
-> > > > > + * fwnode_count_parents - Return the number of parents a node has
-> > > > > + * @fwnode: The node the parents of which are to be counted
-> > > > >   *
-> > > > > - * Return parent firmware node of the given node if possible or %NULL if no
-> > > > > - * parent was available.
-> > > > > + * Returns the number of parents a node has.
-> > > > >   */
-> > > > > -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
-> > > > > +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
-> > > > >  {
-> > > > > -   return fwnode_call_ptr_op(fwnode, get_parent);
-> > > > > +   unsigned int count;
-> > > > > +
-> > > > > +   fwnode_handle_get(fwnode);
-> > > > > +
-> > > > > +   for (count = 0; fwnode; count++)
-> > > > > +           fwnode = fwnode_get_next_parent(fwnode);
-> > > >
-> > > > Is it guaranteed that all parents stay when
-> > > > fwnode_get_next_parent() releases the reference count
-> > > > for each counted member?
-> > >
-> > > fwnode_get_next_parent() only releases the child node after it has acquired
-> > > the parent. The only implementation with refcounting for single nodes is
-> > > actually OF.
-> > >
-> > > >
-> > > > > +
-> > > > > +   return count - 1;
-> > > >
-> > > > We could start counting from count = -1;
-> > >
-> > > We could, but then count would need to be made signed (unless overflowing
-> > > is preferred instead).
-> >
-> > What if there are no parents?
-> >
-> > Or is it guaranteed that there always will be at least one?
->
-> If there are no parents, the function will return 0 --- the node itself is
-> counted in the loop, too, hence the need to decrement by one.
+Hi,
 
-Right, sorry.
+First, thanks for taking a look at this.
 
-Then I don't see why count cannot be int.  Or call it "iter" to avoid
-confusion with negative "counts". :-)
+On 3/28/19 5:04 AM, Rafael J. Wysocki wrote:
+> On Tue, Mar 26, 2019 at 11:40 PM Jeremy Linton <jeremy.linton@arm.com> wrote:
+>>
+>> ACPI 6.3 adds a flag to indicate that child nodes are all
+>> identical cores. This is useful to authoritatively determine
+>> if a set of (possibly offline) cores are identical or not.
+>>
+>> Since the flag doesn't give us a unique id we can generate
+>> one and use it to create bitmaps of sibling nodes, or simply
+>> in a loop to determine if a subset of cores are identical.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
+>>   include/linux/acpi.h |  5 +++++
+>>   2 files changed, 31 insertions(+)
+>>
+>> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+>> index 065c4fc245d1..472c95ec816b 100644
+>> --- a/drivers/acpi/pptt.c
+>> +++ b/drivers/acpi/pptt.c
+>> @@ -660,3 +660,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
+>>          return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
+>>                                            ACPI_PPTT_PHYSICAL_PACKAGE);
+>>   }
+>> +
+>> +/**
+>> + * find_acpi_cpu_topology_hetero_id() - Determine a unique implementation
+> 
+> Maybe "Get a core architecture tag"?
+
+Sure.
+
+> 
+>> + * @cpu: Kernel logical cpu number
+> 
+> s/logical cpu/logical CPU/ please.
+
+Sure.
+
+> 
+>> + *
+>> + * Determine a unique heterogeneous ID for the given CPU. CPUs with the same
+>> + * implementation should have matching IDs. Since this is a tree we can only
+>> + * detect implementations where the heterogeneous flag is the parent to all
+>> + * matching cores. AKA if a two socket machine has two different core types
+>> + * in each socket this will end up being represented as four unique core types
+>> + * rather than two.
+> 
+> I find it quite difficult to parse that comment, honestly.
+> 
+> AFAICS, the function returns a tag that will be the same for all cores
+> with the same architecture in one package.  That is, if the package is
+> heterogeneous and there are two types of cores in it, there will be
+> two different tags.  Is this correct?
+
+Yes, two ID/tags per package, but since there are two packages (in this 
+example) its four different tags total. This is forced by the need to 
+have a node with the PACKAGE flag set splitting up IDENTICAL cores 
+within the tree. A simpler topology would hopefully be able to group all 
+the identical cores in the machine together. But in the above case using 
+only the PPTT tree, it may not be possible to authoritatively tell how 
+many different core types are in the machine if there are more than two 
+tag groupings. By itself those four tags in the above example may be 
+four different core types, or only two. That is likely not a huge 
+problem as a processor container, or MIDR, can be used to merge 
+different tag groups together depending on the callers needs.
+
+> 
+>> + *
+>> + * The returned ID can be used to group peers with identical implementation.
+>> + *
+>> + * The search terminates when a level is found with the identical implementation
+>> + * flag set or we reach a root node.
+>> + *
+>> + * Return: -ENOENT if the PPTT doesn't exist, or the cpu cannot be found.
+>> + * Otherwise returns a value which represents a group of identical cores
+>> + * similar to this cpu.
+>> + */
+>> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
+>> +{
+>> +       return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
+>> +                                         ACPI_PPTT_ACPI_IDENTICAL);
+>> +}
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index d5dcebd7aad3..1444fb042898 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -1309,6 +1309,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
+>>   #ifdef CONFIG_ACPI_PPTT
+>>   int find_acpi_cpu_topology(unsigned int cpu, int level);
+>>   int find_acpi_cpu_topology_package(unsigned int cpu);
+>> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
+>>   int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+>>   #else
+>>   static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
+>> @@ -1319,6 +1320,10 @@ static inline int find_acpi_cpu_topology_package(unsigned int cpu)
+>>   {
+>>          return -EINVAL;
+>>   }
+>> +static int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
+>> +{
+>> +       return -EINVAL;
+>> +}
+>>   static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
+>>   {
+>>          return -EINVAL;
+>> --
+>> 2.20.1
+>>
