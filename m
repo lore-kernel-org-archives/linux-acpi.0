@@ -1,143 +1,136 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH 3/4] arm_pmu: acpi: spe: Add initial MADT/SPE probing
-Date: Thu, 28 Mar 2019 12:40:12 +0000
-Message-ID: <2b53e957-6d36-fdfe-20e4-1664108c07ef@huawei.com>
-References: <20190326223938.5365-1-jeremy.linton@arm.com>
- <20190326223938.5365-4-jeremy.linton@arm.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2] ACPI / PM: Propagate KEY_POWER to user space when
+ resume
+Date: Thu, 28 Mar 2019 14:31:49 +0100
+Message-ID: <1ad154aa-4d92-395d-890c-fe81b0bf21b5@redhat.com>
+References: <CAJZ5v0g3+S0vkW0XTzMKA8rYCtgy7yJ+UDc5xG4rRcdTbcJ=Lg@mail.gmail.com>
+ <20190328103448.20335-1-hu1.chen@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190326223938.5365-4-jeremy.linton@arm.com>
+In-Reply-To: <20190328103448.20335-1-hu1.chen@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com
+To: "Chen, Hu" <hu1.chen@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 26/03/2019 22:39, Jeremy Linton wrote:
-> ACPI 6.3 adds additional fields to the MADT GICC
-> structure to describe SPE PPI's. We pick these out
-> of the cached reference to the madt_gicc structure
-> similarly to the core PMU code. We then create a platform
-> device referring to the IRQ and let the user/module loader
-> decide whether to load the SPE driver.
->
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Hi,
+
+On 28-03-19 11:34, Chen, Hu wrote:
+> I run Android on x86 PC (it's a NUC). Everytime I press the power button
+> to wake the system, it suspends right away. After some debug, I find
+> that Android wants to see KEY_POWER at resume. Otherwise, its
+> opportunistic suspend will kick in shortly.
+> 
+> However, other OS such as Ubuntu doesn't like KEY_POWER at resume. So
+> add a knob "/sys/module/button/parameters/key_power_at_resume" for users
+> to select.
+
+We've had a similar discussion about the power-button on Bay Trail tablets,
+which often is connected to a GPIO driver.
+
+There we had the opposite problem, that regular desktop environments
+like GNOME (and the related daemons) will immediately re-suspend again
+on resume because of a KEY_POWER press event at resume. I submitted patches
+to make the gpio-keys code not send a keypress on resume (configurable
+per button) but that got nacked by Dmitry, the input subsystem maintainer.
+
+It seems that this mostly is an evdev/input policy decision so that
+this patch is going to need an ack from Dmitry, I've added Dmitry
+to the Cc.
+
+Note that after my kernel level fix for the Bay Trail devices got
+nacked, I worked-around this in userspace:
+
+https://gitlab.gnome.org/GNOME/gnome-settings-daemon/commit/f2ae8a3b9905cde7a9c12f78cb84689e97203380
+
+But for GNOME only, e.g. KDE will likely still have a problem with
+a KEY_POWER event being reported after suspend.
+
+It seems the problem is that we have 2 different userspaces here
+which have exact opposite expectations wrt KEY_POWER reporting
+after a wakeup from suspend with the power-button. Android expects
+it to be reported, which is why gpio-keys is reporting it since it
+is mostly used with Android, where as classic Linux desktop-environments
+expect it to NOT be reported, which is why the acpi-button.c code
+so far has not reported it :|
+
+I believe that unconditionally sending KEY_POWER after resume
+will indeed causes issues for standard Linux distros, so I believe
+that your solution with a parameter for people who want to run
+android on plain x86 hardware is the best we can do now, but
+I really wish we would remedy this situation one way or the other.
+
+I wanted to give everyone involved the whole story, hence the
+long mail :)
+
+Regards,
+
+Hans
+
+
+
+
+
+
+> 
+> Signed-off-by: Chen, Hu <hu1.chen@intel.com>
 > ---
->  arch/arm64/include/asm/acpi.h |  3 ++
->  drivers/perf/arm_pmu_acpi.c   | 69 +++++++++++++++++++++++++++++++++++
->  2 files changed, 72 insertions(+)
->
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 7628efbe6c12..d10399b9f998 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -41,6 +41,9 @@
->  	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
->  	(unsigned long)(entry) + (entry)->header.length > (end))
->
-> +#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
-> +	spe_interrupt) + sizeof(u16))
+> 
+>   drivers/acpi/button.c | 6 +++++-
+>   drivers/acpi/sleep.c  | 8 ++++++++
+>   2 files changed, 13 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index a19ff3977ac4..f98e6d85dd2b 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -129,6 +129,10 @@ struct acpi_button {
+>   	bool suspended;
+>   };
+>   
+> +/* does userspace want to see KEY_POWER at resume? */
+> +static bool key_power_at_resume __read_mostly;
+> +module_param(key_power_at_resume, bool, 0644);
 > +
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
->  pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
-> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-> index 0f197516d708..a2418108eab2 100644
-> --- a/drivers/perf/arm_pmu_acpi.c
-> +++ b/drivers/perf/arm_pmu_acpi.c
-> @@ -74,6 +74,73 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
->  	acpi_unregister_gsi(gsi);
->  }
->
-> +static struct resource spe_resources[] = {
-> +	{
-> +		/* irq */
-> +		.flags          = IORESOURCE_IRQ,
-> +	}
-> +};
-> +
-> +static struct platform_device spe_dev = {
-> +	.name = "arm,spe-v1",
-> +	.id = -1,
-> +	.resource = spe_resources,
-> +	.num_resources = ARRAY_SIZE(spe_resources)
-> +};
-> +
-> +/*
-> + * For lack of a better place,
-
-It seems that the kernel Image size can now increase due to this part of 
-SPE support even if ARM_SPE_PMU config is disabled.
-
-And I don't even think that ARM_SPE_PMU depends on ARM_PMU (which 
-ARM_PMU_ACPI depends on).
-
-Thanks,
-John
-
-hook the normal PMU MADT walk
-> + * and create a SPE device if we detect a recent MADT with
-> + * a homogeneous PPI mapping.
-> + */
-> +static int arm_spe_acpi_parse_irqs(void)
+>   static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+>   static struct acpi_device *lid_device;
+>   static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+> @@ -417,7 +421,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+>   			int keycode;
+>   
+>   			acpi_pm_wakeup_event(&device->dev);
+> -			if (button->suspended)
+> +			if (button->suspended && !key_power_at_resume)
+>   				break;
+>   
+>   			keycode = test_bit(KEY_SLEEP, input->keybit) ?
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 403c4ff15349..c5dcee9f5872 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -462,6 +462,13 @@ static int find_powerf_dev(struct device *dev, void *data)
+>   	return !strcmp(hid, ACPI_BUTTON_HID_POWERF);
+>   }
+>   
+> +static void pwr_btn_notify(struct device *dev)
 > +{
-> +	int cpu, ret, irq;
-> +	int hetid;
-> +	u16 gsi = 0;
-> +	bool first = true;
+> +	struct acpi_device *device = to_acpi_device(dev);
 > +
-> +	struct acpi_madt_generic_interrupt *gicc;
-> +
-> +	/*
-> +	 * sanity check all the GICC tables for the same interrupt number
-> +	 * for now we only support homogeneous ACPI/SPE machines.
-> +	 */
-> +	for_each_possible_cpu(cpu) {
-> +		gicc = acpi_cpu_get_madt_gicc(cpu);
-> +
-> +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
-> +			return -ENODEV;
-> +		if (first) {
-> +			gsi = gicc->spe_interrupt;
-> +			if (!gsi)
-> +				return -ENODEV;
-> +			hetid = find_acpi_cpu_topology_hetero_id(cpu);
-> +			first = false;
-> +		} else if ((gsi != gicc->spe_interrupt) ||
-> +			   (hetid != find_acpi_cpu_topology_hetero_id(cpu))) {
-> +			pr_warn("ACPI: SPE must be homogeneous\n");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	irq = acpi_register_gsi(NULL, gsi, ACPI_LEVEL_SENSITIVE,
-> +				ACPI_ACTIVE_HIGH);
-> +	if (irq < 0) {
-> +		pr_warn("ACPI: SPE Unable to register interrupt: %d\n", gsi);
-> +		return irq;
-> +	}
-> +
-> +	spe_resources[0].start = irq;
-> +	ret = platform_device_register(&spe_dev);
-> +	if (ret < 0) {
-> +		pr_warn("ACPI: SPE: Unable to register device\n");
-> +		acpi_unregister_gsi(gsi);
-> +	}
-> +
-> +	return ret;
+> +	device->driver->ops.notify(device, ACPI_FIXED_HARDWARE_EVENT);
 > +}
 > +
->  static int arm_pmu_acpi_parse_irqs(void)
->  {
->  	int irq, cpu, irq_cpu, err;
-> @@ -279,6 +346,8 @@ static int arm_pmu_acpi_init(void)
->  	if (acpi_disabled)
->  		return 0;
->
-> +	arm_spe_acpi_parse_irqs(); /* failures are expected */
-> +
->  	ret = arm_pmu_acpi_parse_irqs();
->  	if (ret)
->  		return ret;
->
+>   /**
+>    *	acpi_pm_finish - Instruct the platform to leave a sleep state.
+>    *
+> @@ -505,6 +512,7 @@ static void acpi_pm_finish(void)
+>   				      find_powerf_dev);
+>   	if (pwr_btn_dev) {
+>   		pm_wakeup_event(pwr_btn_dev, 0);
+> +		pwr_btn_notify(pwr_btn_dev);
+>   		put_device(pwr_btn_dev);
+>   	}
+>   }
+> 
