@@ -1,104 +1,81 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/4] ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
-Date: Thu, 28 Mar 2019 11:04:14 +0100
-Message-ID: <CAJZ5v0g7DOTiP=UiyqW6wf7AWyK8bi93CGsAsg_T=6HJDWrQww@mail.gmail.com>
-References: <20190326223938.5365-1-jeremy.linton@arm.com> <20190326223938.5365-2-jeremy.linton@arm.com>
+From: "Chen, Hu" <hu1.chen@intel.com>
+Subject: [PATCH v2] ACPI / PM: Propagate KEY_POWER to user space when resume
+Date: Thu, 28 Mar 2019 18:34:48 +0800
+Message-ID: <20190328103448.20335-1-hu1.chen@intel.com>
+References: <CAJZ5v0g3+S0vkW0XTzMKA8rYCtgy7yJ+UDc5xG4rRcdTbcJ=Lg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190326223938.5365-2-jeremy.linton@arm.com>
+In-Reply-To: <CAJZ5v0g3+S0vkW0XTzMKA8rYCtgy7yJ+UDc5xG4rRcdTbcJ=Lg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, James Morse <james.morse@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linuxarm <linuxarm@huawei.com>
+Cc: hdegoede@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 26, 2019 at 11:40 PM Jeremy Linton <jeremy.linton@arm.com> wrote:
->
-> ACPI 6.3 adds a flag to indicate that child nodes are all
-> identical cores. This is useful to authoritatively determine
-> if a set of (possibly offline) cores are identical or not.
->
-> Since the flag doesn't give us a unique id we can generate
-> one and use it to create bitmaps of sibling nodes, or simply
-> in a loop to determine if a subset of cores are identical.
->
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
->  include/linux/acpi.h |  5 +++++
->  2 files changed, 31 insertions(+)
->
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index 065c4fc245d1..472c95ec816b 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -660,3 +660,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
->         return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
->                                           ACPI_PPTT_PHYSICAL_PACKAGE);
->  }
-> +
-> +/**
-> + * find_acpi_cpu_topology_hetero_id() - Determine a unique implementation
+I run Android on x86 PC (it's a NUC). Everytime I press the power button
+to wake the system, it suspends right away. After some debug, I find
+that Android wants to see KEY_POWER at resume. Otherwise, its
+opportunistic suspend will kick in shortly.
 
-Maybe "Get a core architecture tag"?
+However, other OS such as Ubuntu doesn't like KEY_POWER at resume. So
+add a knob "/sys/module/button/parameters/key_power_at_resume" for users
+to select.
 
-> + * @cpu: Kernel logical cpu number
+Signed-off-by: Chen, Hu <hu1.chen@intel.com>
+---
 
-s/logical cpu/logical CPU/ please.
+ drivers/acpi/button.c | 6 +++++-
+ drivers/acpi/sleep.c  | 8 ++++++++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-> + *
-> + * Determine a unique heterogeneous ID for the given CPU. CPUs with the same
-> + * implementation should have matching IDs. Since this is a tree we can only
-> + * detect implementations where the heterogeneous flag is the parent to all
-> + * matching cores. AKA if a two socket machine has two different core types
-> + * in each socket this will end up being represented as four unique core types
-> + * rather than two.
-
-I find it quite difficult to parse that comment, honestly.
-
-AFAICS, the function returns a tag that will be the same for all cores
-with the same architecture in one package.  That is, if the package is
-heterogeneous and there are two types of cores in it, there will be
-two different tags.  Is this correct?
-
-> + *
-> + * The returned ID can be used to group peers with identical implementation.
-> + *
-> + * The search terminates when a level is found with the identical implementation
-> + * flag set or we reach a root node.
-> + *
-> + * Return: -ENOENT if the PPTT doesn't exist, or the cpu cannot be found.
-> + * Otherwise returns a value which represents a group of identical cores
-> + * similar to this cpu.
-> + */
-> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
-> +{
-> +       return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
-> +                                         ACPI_PPTT_ACPI_IDENTICAL);
-> +}
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index d5dcebd7aad3..1444fb042898 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1309,6 +1309,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
->  #ifdef CONFIG_ACPI_PPTT
->  int find_acpi_cpu_topology(unsigned int cpu, int level);
->  int find_acpi_cpu_topology_package(unsigned int cpu);
-> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
->  int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
->  #else
->  static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
-> @@ -1319,6 +1320,10 @@ static inline int find_acpi_cpu_topology_package(unsigned int cpu)
->  {
->         return -EINVAL;
->  }
-> +static int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
-> +{
-> +       return -EINVAL;
-> +}
->  static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
->  {
->         return -EINVAL;
-> --
-> 2.20.1
->
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index a19ff3977ac4..f98e6d85dd2b 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -129,6 +129,10 @@ struct acpi_button {
+ 	bool suspended;
+ };
+ 
++/* does userspace want to see KEY_POWER at resume? */
++static bool key_power_at_resume __read_mostly;
++module_param(key_power_at_resume, bool, 0644);
++
+ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+ static struct acpi_device *lid_device;
+ static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+@@ -417,7 +421,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 			int keycode;
+ 
+ 			acpi_pm_wakeup_event(&device->dev);
+-			if (button->suspended)
++			if (button->suspended && !key_power_at_resume)
+ 				break;
+ 
+ 			keycode = test_bit(KEY_SLEEP, input->keybit) ?
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 403c4ff15349..c5dcee9f5872 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -462,6 +462,13 @@ static int find_powerf_dev(struct device *dev, void *data)
+ 	return !strcmp(hid, ACPI_BUTTON_HID_POWERF);
+ }
+ 
++static void pwr_btn_notify(struct device *dev)
++{
++	struct acpi_device *device = to_acpi_device(dev);
++
++	device->driver->ops.notify(device, ACPI_FIXED_HARDWARE_EVENT);
++}
++
+ /**
+  *	acpi_pm_finish - Instruct the platform to leave a sleep state.
+  *
+@@ -505,6 +512,7 @@ static void acpi_pm_finish(void)
+ 				      find_powerf_dev);
+ 	if (pwr_btn_dev) {
+ 		pm_wakeup_event(pwr_btn_dev, 0);
++		pwr_btn_notify(pwr_btn_dev);
+ 		put_device(pwr_btn_dev);
+ 	}
+ }
+-- 
+2.20.1
