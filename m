@@ -1,133 +1,112 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH 1/4] ACPI/PPTT: Add function to return ACPI 6.3 Identical
- tokens
-Date: Thu, 28 Mar 2019 10:20:49 -0500
-Message-ID: <7b1a15e4-3d16-4c39-542b-f86a4451a592@arm.com>
-References: <20190326223938.5365-1-jeremy.linton@arm.com>
- <20190326223938.5365-2-jeremy.linton@arm.com>
- <CAJZ5v0g7DOTiP=UiyqW6wf7AWyK8bi93CGsAsg_T=6HJDWrQww@mail.gmail.com>
+From: Changbin Du <changbin.du@gmail.com>
+Subject: [PATCH 00/23] Include linux ACPI docs into Sphinx TOC tree
+Date: Fri, 29 Mar 2019 00:26:58 +0800
+Message-ID: <20190328162721.26138-1-changbin.du@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0g7DOTiP=UiyqW6wf7AWyK8bi93CGsAsg_T=6HJDWrQww@mail.gmail.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, James Morse <james.morse@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linuxarm <linuxarm@huawei.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi Corbet and All,
+The kernel now uses Sphinx to generate intelligent and beautiful documentation
+from reStructuredText files. I converted most of the Linux ACPI docs to rst
+format in this serias.
 
-First, thanks for taking a look at this.
+For you to preview, please visit below url:
+http://104.238.181.70:8080/kernel-doc/acpi/index.html
 
-On 3/28/19 5:04 AM, Rafael J. Wysocki wrote:
-> On Tue, Mar 26, 2019 at 11:40 PM Jeremy Linton <jeremy.linton@arm.com> wrote:
->>
->> ACPI 6.3 adds a flag to indicate that child nodes are all
->> identical cores. This is useful to authoritatively determine
->> if a set of (possibly offline) cores are identical or not.
->>
->> Since the flag doesn't give us a unique id we can generate
->> one and use it to create bitmaps of sibling nodes, or simply
->> in a loop to determine if a subset of cores are identical.
->>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
->>   include/linux/acpi.h |  5 +++++
->>   2 files changed, 31 insertions(+)
->>
->> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
->> index 065c4fc245d1..472c95ec816b 100644
->> --- a/drivers/acpi/pptt.c
->> +++ b/drivers/acpi/pptt.c
->> @@ -660,3 +660,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
->>          return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
->>                                            ACPI_PPTT_PHYSICAL_PACKAGE);
->>   }
->> +
->> +/**
->> + * find_acpi_cpu_topology_hetero_id() - Determine a unique implementation
-> 
-> Maybe "Get a core architecture tag"?
+Thank you!
 
-Sure.
+Changbin Du (23):
+  Documentation: add Linux ACPI to Sphinx TOC tree
+  acpi doc: convert acpi/namespace.txt to rst format
+  acpi doc: convert acpi/enumeration.txt to rst format
+  acpi doc: convert acpi/osi.txt to rst format
+  acpi doc: convert acpi/linuxized-acpica.txt to rst format
+  acpi doc: convert acpi/scan_handlers.txt to rst format
+  acpi doc: convert acpi/DSD-properties-rules.txt to rst format
+  acpi doc: convert acpi/gpio-properties.txt to rst format
+  acpi doc: convert acpi/method-customizing.txt to rst format
+  acpi doc: convert acpi/initrd_table_override.txt to rst format
+  acpi doc: convert acpi/dsdt-override.txt to rst format
+  acpi doc: convert acpi/i2c-muxes.txt to rst format
+  acpi doc: convert acpi/acpi-lid.txt to rst format
+  acpi doc: convert acpi/dsd/graph.txt to rst format
+  acpi doc: convert acpi/debug.txt to rst format
+  acpi doc: convert acpi/method-tracing.txt to rst format
+  acpi doc: convert acpi/aml-debugger.txt to rst format
+  acpi doc: convert acpi/apei/output_format.txt to rst format
+  acpi doc: convert acpi/apei/einj.txt to rst format
+  acpi doc: convert acpi/cppc_sysfs.txt to rst format
+  acpi doc: convert acpi/lpit.txt to rst format
+  acpi doc: convert acpi/ssdt-overlays.txt to rst format
+  acpi doc: convert acpi/video_extension.txt to rst format
 
-> 
->> + * @cpu: Kernel logical cpu number
-> 
-> s/logical cpu/logical CPU/ please.
+ ...ies-rules.txt => DSD-properties-rules.rst} |  19 +-
+ .../acpi/{acpi-lid.txt => acpi-lid.rst}       |  47 ++-
+ Documentation/acpi/aml-debugger.rst           |  74 +++++
+ Documentation/acpi/aml-debugger.txt           |  66 ----
+ .../acpi/apei/{einj.txt => einj.rst}          |  96 +++---
+ Documentation/acpi/apei/output_format.rst     | 148 +++++++++
+ Documentation/acpi/apei/output_format.txt     | 147 ---------
+ .../acpi/{cppc_sysfs.txt => cppc_sysfs.rst}   |  69 ++--
+ Documentation/acpi/{debug.txt => debug.rst}   |  31 +-
+ ...eferences.txt => data-node-references.rst} |  27 +-
+ .../acpi/dsd/{graph.txt => graph.rst}         | 155 ++++-----
+ .../{dsdt-override.txt => dsdt-override.rst}  |   6 +-
+ .../acpi/{enumeration.txt => enumeration.rst} | 133 ++++----
+ ...pio-properties.txt => gpio-properties.rst} |  76 +++--
+ Documentation/acpi/i2c-muxes.rst              |  59 ++++
+ Documentation/acpi/i2c-muxes.txt              |  58 ----
+ Documentation/acpi/index.rst                  |  30 ++
+ Documentation/acpi/initrd_table_override.rst  | 118 +++++++
+ Documentation/acpi/initrd_table_override.txt  | 111 -------
+ ...uxized-acpica.txt => linuxized-acpica.rst} | 114 ++++---
+ Documentation/acpi/{lpit.txt => lpit.rst}     |  16 +-
+ Documentation/acpi/method-customizing.rst     |  80 +++++
+ Documentation/acpi/method-customizing.txt     |  73 -----
+ Documentation/acpi/method-tracing.rst         | 224 +++++++++++++
+ Documentation/acpi/method-tracing.txt         | 192 -----------
+ .../acpi/{namespace.txt => namespace.rst}     | 309 +++++++++---------
+ Documentation/acpi/{osi.txt => osi.rst}       |  13 +-
+ .../{scan_handlers.txt => scan_handlers.rst}  |  23 +-
+ .../{ssdt-overlays.txt => ssdt-overlays.rst}  | 166 +++++-----
+ ...ideo_extension.txt => video_extension.rst} |  61 ++--
+ Documentation/index.rst                       |   1 +
+ 31 files changed, 1463 insertions(+), 1279 deletions(-)
+ rename Documentation/acpi/{DSD-properties-rules.txt => DSD-properties-rules.rst} (89%)
+ rename Documentation/acpi/{acpi-lid.txt => acpi-lid.rst} (78%)
+ create mode 100644 Documentation/acpi/aml-debugger.rst
+ delete mode 100644 Documentation/acpi/aml-debugger.txt
+ rename Documentation/acpi/apei/{einj.txt => einj.rst} (68%)
+ create mode 100644 Documentation/acpi/apei/output_format.rst
+ delete mode 100644 Documentation/acpi/apei/output_format.txt
+ rename Documentation/acpi/{cppc_sysfs.txt => cppc_sysfs.rst} (51%)
+ rename Documentation/acpi/{debug.txt => debug.rst} (91%)
+ rename Documentation/acpi/dsd/{data-node-references.txt => data-node-references.rst} (80%)
+ rename Documentation/acpi/dsd/{graph.txt => graph.rst} (56%)
+ rename Documentation/acpi/{dsdt-override.txt => dsdt-override.rst} (63%)
+ rename Documentation/acpi/{enumeration.txt => enumeration.rst} (87%)
+ rename Documentation/acpi/{gpio-properties.txt => gpio-properties.rst} (82%)
+ create mode 100644 Documentation/acpi/i2c-muxes.rst
+ delete mode 100644 Documentation/acpi/i2c-muxes.txt
+ create mode 100644 Documentation/acpi/index.rst
+ create mode 100644 Documentation/acpi/initrd_table_override.rst
+ delete mode 100644 Documentation/acpi/initrd_table_override.txt
+ rename Documentation/acpi/{linuxized-acpica.txt => linuxized-acpica.rst} (78%)
+ rename Documentation/acpi/{lpit.txt => lpit.rst} (70%)
+ create mode 100644 Documentation/acpi/method-customizing.rst
+ delete mode 100644 Documentation/acpi/method-customizing.txt
+ create mode 100644 Documentation/acpi/method-tracing.rst
+ delete mode 100644 Documentation/acpi/method-tracing.txt
+ rename Documentation/acpi/{namespace.txt => namespace.rst} (54%)
+ rename Documentation/acpi/{osi.txt => osi.rst} (97%)
+ rename Documentation/acpi/{scan_handlers.txt => scan_handlers.rst} (91%)
+ rename Documentation/acpi/{ssdt-overlays.txt => ssdt-overlays.rst} (50%)
+ rename Documentation/acpi/{video_extension.txt => video_extension.rst} (80%)
 
-Sure.
-
-> 
->> + *
->> + * Determine a unique heterogeneous ID for the given CPU. CPUs with the same
->> + * implementation should have matching IDs. Since this is a tree we can only
->> + * detect implementations where the heterogeneous flag is the parent to all
->> + * matching cores. AKA if a two socket machine has two different core types
->> + * in each socket this will end up being represented as four unique core types
->> + * rather than two.
-> 
-> I find it quite difficult to parse that comment, honestly.
-> 
-> AFAICS, the function returns a tag that will be the same for all cores
-> with the same architecture in one package.  That is, if the package is
-> heterogeneous and there are two types of cores in it, there will be
-> two different tags.  Is this correct?
-
-Yes, two ID/tags per package, but since there are two packages (in this 
-example) its four different tags total. This is forced by the need to 
-have a node with the PACKAGE flag set splitting up IDENTICAL cores 
-within the tree. A simpler topology would hopefully be able to group all 
-the identical cores in the machine together. But in the above case using 
-only the PPTT tree, it may not be possible to authoritatively tell how 
-many different core types are in the machine if there are more than two 
-tag groupings. By itself those four tags in the above example may be 
-four different core types, or only two. That is likely not a huge 
-problem as a processor container, or MIDR, can be used to merge 
-different tag groups together depending on the callers needs.
-
-> 
->> + *
->> + * The returned ID can be used to group peers with identical implementation.
->> + *
->> + * The search terminates when a level is found with the identical implementation
->> + * flag set or we reach a root node.
->> + *
->> + * Return: -ENOENT if the PPTT doesn't exist, or the cpu cannot be found.
->> + * Otherwise returns a value which represents a group of identical cores
->> + * similar to this cpu.
->> + */
->> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
->> +{
->> +       return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
->> +                                         ACPI_PPTT_ACPI_IDENTICAL);
->> +}
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index d5dcebd7aad3..1444fb042898 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -1309,6 +1309,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
->>   #ifdef CONFIG_ACPI_PPTT
->>   int find_acpi_cpu_topology(unsigned int cpu, int level);
->>   int find_acpi_cpu_topology_package(unsigned int cpu);
->> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
->>   int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
->>   #else
->>   static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
->> @@ -1319,6 +1320,10 @@ static inline int find_acpi_cpu_topology_package(unsigned int cpu)
->>   {
->>          return -EINVAL;
->>   }
->> +static int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
->> +{
->> +       return -EINVAL;
->> +}
->>   static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
->>   {
->>          return -EINVAL;
->> --
->> 2.20.1
->>
+-- 
+2.20.1
