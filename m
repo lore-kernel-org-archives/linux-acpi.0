@@ -1,85 +1,112 @@
-From: Petr Mladek <pmladek@suse.com>
-Subject: Re: [PATCH v2 6/6] lib/vsprintf: Add %pfw conversion specifier for
- printing fwnode names
-Date: Thu, 28 Mar 2019 15:29:27 +0100
-Message-ID: <20190328142927.uxd54bqdvrfbfbn7@pathway.suse.cz>
-References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
- <20190326124106.27694-7-sakari.ailus@linux.intel.com>
- <8c6accab-9e0c-c2d4-ce93-ea3ede60f34e@rasmusvillemoes.dk>
- <20190326132450.GB9224@smile.fi.intel.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH v2] ACPI/IORT: Reject platform dev creation when dev set
+ to wrong numa node
+Date: Thu, 28 Mar 2019 22:29:15 +0800
+Message-ID: <81103cc2-4681-cdab-4369-ee609121e3f2@huawei.com>
+References: <20190328113230.GA19628@red-moon>
+ <20190328140022.85790-1-wangkefeng.wang@huawei.com>
+ <2bc8b920-937f-86f0-1eb5-065c8b2871d1@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190326132450.GB9224@smile.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <2bc8b920-937f-86f0-1eb5-065c8b2871d1@arm.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue 2019-03-26 15:24:50, Andy Shevchenko wrote:
-> On Tue, Mar 26, 2019 at 02:11:35PM +0100, Rasmus Villemoes wrote:
-> > On 26/03/2019 13.41, Sakari Ailus wrote:
-> > > Add support for %pfw conversion specifier (with "f" and "P" modifiers) to
-> > > support printing full path of the node, including its name ("f") and only
-> > > the node's name ("P") in the printk family of functions. The two flags
-> > > have equivalent functionality to existing %pOF with the same two modifiers
-> > > ("f" and "P") on OF based systems. The ability to do the same on ACPI
-> > > based systems is added by this patch.
-> 
-> > > +	for (pass = false; strspn(fmt, modifiers); fmt++, pass = true) {
-> > > +		if (pass) {
-> > > +			if (buf < end)
-> > > +				*buf = ':';
-> > > +			buf++;
-> > > +		}
-> > > +
-> > > +		switch (*fmt) {
-> > > +		case 'f':	/* full_name */
-> > > +			buf = fwnode_gen_full_name(fwnode, buf, end);
-> > > +			break;
-> > > +		case 'P':	/* name */
-> > > +			buf = string(buf, end, fwnode_get_name(fwnode),
-> > > +				     str_spec);
-> > > +			break;
-> > > +		default:
-> > > +			break;
-> > > +		}
-> > > +	}
-> > 
-> > This seems awfully complicated. Why would anyone ever pass more than one
-> > of 'f' and 'P'? Why not just
-> > 
-> > switch(*fmt) {
-> > case 'P':
-> >    ...
-> > case 'f':
-> > default:
-> >    ...
-> > }
-> > 
-> > which avoids the loop and the strcspn. Or, drop the default: case and
-> > don't have logic at all for falling back to 'f' if neither is present.
-> > 
-> > > +	return widen_string(buf, buf - buf_start, end, spec);
-> > > +}
-> 
-> My point as well (as per sent comments against previous version).
-> Sakari, can you add test cases at the same time?
-> 
-> > >  			return device_node_string(buf, end, ptr, spec, fmt + 1);
-> 
-> > > +			return fwnode_string(buf, end, ptr, spec, fmt + 1);
-> > 
-> > Why not pass fmt+2; we know that fmt+1 points at a 'w'. Just to avoid
-> > doing the fmt++ inside fwnode_string().
-> 
-> I guess in order to be consistent with existing %pOF case. But wouldn't be
-> better to fix %pOF for that sooner or later?
-
-Good question. Are there any %pOF users that would want to use the for
-cycle and printk more values by single %pOF? Would the output be human
-readable without any delimiters or words around?
-
-Best Regards,
-Petr
+Ck9uIDIwMTkvMy8yOCAyMTo1OSwgUm9iaW4gTXVycGh5IHdyb3RlOgo+IE9uIDI4LzAzLzIwMTkg
+MTQ6MDAsIEtlZmVuZyBXYW5nIHdyb3RlOgo+PiBJZiB0aGVyZSBpcyBvbmx5IG5vZGUgMCBpbiBz
+eXN0ZW0sIGJ1dCBzbW11djMgZGV2aWNlIGlzIHNldCB0byBvZmZsaW5lCj4+IG5vZGUgMSwgcGFy
+c2VkIGZyb20gcHJveGltaXR5IGRvbWFpbiBpbiBTTU1VdjMgSU9SVCB0YWJsZSwgaXQgd2lsbCBs
+ZWFkCj4+IHRvIGZvbGxvd2luZyBjcmFzaCwKPj4KPj4gW8KgwqAgNDcuNDkyNDUxXSBVbmFibGUg
+dG8gaGFuZGxlIGtlcm5lbCBwYWdpbmcgcmVxdWVzdCBhdCB2aXJ0dWFsIGFkZHJlc3MgMDAwMDAw
+MDAwMDAwMTM4OAo+PiBbwqDCoCA0Ny41MDAzNjFdIE1lbSBhYm9ydCBpbmZvOgo+PiBbwqDCoCA0
+Ny41MDMxNDNdwqDCoCBFU1IgPSAweDk2MDAwMDA0Cj4+IFvCoMKgIDQ3LjUwNjE4OV3CoMKgIEV4
+Y2VwdGlvbiBjbGFzcyA9IERBQlQgKGN1cnJlbnQgRUwpLCBJTCA9IDMyIGJpdHMKPj4gW8KgwqAg
+NDcuNTEyMDk5XcKgwqAgU0VUID0gMCwgRm5WID0gMAo+PiBbwqDCoCA0Ny41MTUxNDBdwqDCoCBF
+QSA9IDAsIFMxUFRXID0gMAo+PiBbwqDCoCA0Ny41MTgyNzJdIERhdGEgYWJvcnQgaW5mbzoKPj4g
+W8KgwqAgNDcuNTIxMTQ0XcKgwqAgSVNWID0gMCwgSVNTID0gMHgwMDAwMDAwNAo+PiBbwqDCoCA0
+Ny41MjQ5NzBdwqDCoCBDTSA9IDAsIFduUiA9IDAKPj4gW8KgwqAgNDcuNTI3OTI5XSBbMDAwMDAw
+MDAwMDAwMTM4OF0gdXNlciBhZGRyZXNzIGJ1dCBhY3RpdmVfbW0gaXMgc3dhcHBlcgo+PiBbwqDC
+oCA0Ny41MzQyODVdIEludGVybmFsIGVycm9yOiBPb3BzOiA5NjAwMDAwNCBbIzFdIFNNUAo+PiBb
+wqDCoCA0Ny41MzkxNTFdIE1vZHVsZXMgbGlua2VkIGluOgo+PiBbwqDCoCA0Ny41NDIxOTRdIENQ
+VTogNSBQSUQ6IDEgQ29tbTogc3dhcHBlci8wIE5vdCB0YWludGVkIDUuMC4wICMxNQo+PiBbwqDC
+oCA0Ny41NDk0OTBdIHBzdGF0ZTogODBjMDAwMDkgKE56Y3YgZGFpZiArUEFOICtVQU8pCj4+IFvC
+oMKgIDQ3LjU1NDI3Ml0gcGMgOiBfX2FsbG9jX3BhZ2VzX25vZGVtYXNrKzB4MTNjLzB4MTA2OAo+
+PiBbwqDCoCA0Ny41NTkyMjRdIGxyIDogX19hbGxvY19wYWdlc19ub2RlbWFzaysweGRjLzB4MTA2
+OAo+PiAuLi4KPj4gW8KgwqAgNDcuNjQ2ODczXSBQcm9jZXNzIHN3YXBwZXIvMCAocGlkOiAxLCBz
+dGFjayBsaW1pdCA9IDB4KF9fX19wdHJ2YWxfX19fKSkKPj4gW8KgwqAgNDcuNjUzNTYwXSBDYWxs
+IHRyYWNlOgo+PiBbwqDCoCA0Ny42NTU5OTRdwqAgX19hbGxvY19wYWdlc19ub2RlbWFzaysweDEz
+Yy8weDEwNjgKPj4gW8KgwqAgNDcuNjYwNjAwXcKgIG5ld19zbGFiKzB4ZWMvMHg1NzAKPj4gW8Kg
+wqAgNDcuNjYzODE2XcKgIF9fX3NsYWJfYWxsb2MrMHgzZTAvMHg0ZjgKPj4gW8KgwqAgNDcuNjY3
+NTUzXcKgIF9fc2xhYl9hbGxvYysweDYwLzB4ODAKPj4gW8KgwqAgNDcuNjcxMDI5XcKgIF9fa21h
+bGxvY19ub2RlX3RyYWNrX2NhbGxlcisweDEwYy8weDQ3OAo+PiBbwqDCoCA0Ny42NzU5ODRdwqAg
+ZGV2bV9rbWFsbG9jKzB4NDQvMHhiMAo+PiBbwqDCoCA0Ny42Nzk0NjBdwqAgcGluY3RybF9iaW5k
+X3BpbnMrMHg0Yy8weDE4OAo+PiBbwqDCoCA0Ny42ODM0NTddwqAgcmVhbGx5X3Byb2JlKzB4Nzgv
+MHgyYjgKPj4gW8KgwqAgNDcuNjg3MDE5XcKgIGRyaXZlcl9wcm9iZV9kZXZpY2UrMHg2NC8weDEx
+MAo+PiBbwqDCoCA0Ny42OTExODldwqAgZGV2aWNlX2RyaXZlcl9hdHRhY2grMHg3NC8weDk4Cj4+
+IFvCoMKgIDQ3LjY5NTM2MF3CoCBfX2RyaXZlcl9hdHRhY2grMHg5Yy8weGU4Cj4+IFvCoMKgIDQ3
+LjY5OTA5NV3CoCBidXNfZm9yX2VhY2hfZGV2KzB4ODQvMHhkOAo+PiBbwqDCoCA0Ny43MDI5MTld
+wqAgZHJpdmVyX2F0dGFjaCsweDMwLzB4NDAKPj4gW8KgwqAgNDcuNzA2NDgxXcKgIGJ1c19hZGRf
+ZHJpdmVyKzB4MTcwLzB4MjE4Cj4+IFvCoMKgIDQ3LjcxMDMwNF3CoCBkcml2ZXJfcmVnaXN0ZXIr
+MHg2NC8weDExOAo+PiBbwqDCoCA0Ny43MTQxMjhdwqAgX19wbGF0Zm9ybV9kcml2ZXJfcmVnaXN0
+ZXIrMHg1NC8weDYwCj4+IFvCoMKgIDQ3LjcxODgyMF3CoCBhcm1fc21tdV9kcml2ZXJfaW5pdCsw
+eDI0LzB4MmMKPj4gW8KgwqAgNDcuNzIyOTkxXcKgIGRvX29uZV9pbml0Y2FsbCsweGJjLzB4MzI4
+Cj4+IFvCoMKgIDQ3LjcyNjgxNl3CoCBrZXJuZWxfaW5pdF9mcmVlYWJsZSsweDMwNC8weDNhYwo+
+PiBbwqDCoCA0Ny43MzExNjJdwqAga2VybmVsX2luaXQrMHgxOC8weDExMAo+PiBbwqDCoCA0Ny43
+MzQ2MzhdwqAgcmV0X2Zyb21fZm9yaysweDEwLzB4MWMKPj4gW8KgwqAgNDcuNzM4MjAyXSBDb2Rl
+OiBmOTAwMTNiNSBiOTQxMGZhMSAxYTlmMDY5NCBiNTAwMTRjMiAoYjk0MDA4MDQpCj4+IFvCoMKg
+IDQ3Ljc0NDMwN10gLS0tWyBlbmQgdHJhY2UgZGZlYWVkNGMzNzNhMzJkYSBdLS0KPj4KPj4gVGhp
+cyBjb3VsZCBiZSB0cmlnZ2VyZWQgYnkgZmlybXdhcmUgYnVnIHdpdGggYmFkIElPUlQgY29uZmln
+dXJhdGlvbiwKPj4gb3IgYSBOVU1BIG5vZGUgaGFzIG5vIG1lbW9yeSBhdHRhY2hpbmcgdG8gaXQs
+IGFsc28gd2l0aCBOUl9DUFVTIGxlc3MKPj4gdGhhbiBDUFVzIHByZXNlbnRlZCBpbiBNQURULgo+
+Pgo+PiBNYWtlIGRldl9zZXRfcHJveGltaXR5KCkgd2l0aCBhIHJldHVybiB2YWx1ZSwgdGVybWlu
+YXRpbmcgZGV2aWNlIGNyZWF0aW9uCj4+IGlmIGl0IHJldHVybiBmYWlsdXJlLgo+Pgo+PiBTaWdu
+ZWQtb2ZmLWJ5OiBLZWZlbmcgV2FuZyA8d2FuZ2tlZmVuZy53YW5nQGh1YXdlaS5jb20+Cj4+IC0t
+LQo+PiDCoCBkcml2ZXJzL2FjcGkvYXJtNjQvaW9ydC5jIHwgMjQgKysrKysrKysrKysrKysrKysr
+LS0tLS0tCj4+IMKgIDEgZmlsZSBjaGFuZ2VkLCAxOCBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9u
+cygtKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FybTY0L2lvcnQuYyBiL2RyaXZl
+cnMvYWNwaS9hcm02NC9pb3J0LmMKPj4gaW5kZXggZTQ4ODk0ZTAwMmJhLi5jMjk0YzM0OTBlNjYg
+MTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvYWNwaS9hcm02NC9pb3J0LmMKPj4gKysrIGIvZHJpdmVy
+cy9hY3BpL2FybTY0L2lvcnQuYwo+PiBAQCAtMTIzMiwyMSArMTIzMiwzMCBAQCBzdGF0aWMgYm9v
+bCBfX2luaXQgYXJtX3NtbXVfdjNfaXNfY29oZXJlbnQoc3RydWN0IGFjcGlfaW9ydF9ub2RlICpu
+b2RlKQo+PiDCoCAvKgo+PiDCoMKgICogc2V0IG51bWEgcHJveGltaXR5IGRvbWFpbiBmb3Igc21t
+dXYzIGRldmljZQo+PiDCoMKgICovCj4+IC1zdGF0aWMgdm9pZMKgIF9faW5pdCBhcm1fc21tdV92
+M19zZXRfcHJveGltaXR5KHN0cnVjdCBkZXZpY2UgKmRldiwKPj4gK3N0YXRpYyBpbnTCoCBfX2lu
+aXQgYXJtX3NtbXVfdjNfc2V0X3Byb3hpbWl0eShzdHJ1Y3QgZGV2aWNlICpkZXYsCj4+IMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzdHJ1Y3Qg
+YWNwaV9pb3J0X25vZGUgKm5vZGUpCj4+IMKgIHsKPj4gwqDCoMKgwqDCoCBzdHJ1Y3QgYWNwaV9p
+b3J0X3NtbXVfdjMgKnNtbXU7Cj4+IMKgIMKgwqDCoMKgwqAgc21tdSA9IChzdHJ1Y3QgYWNwaV9p
+b3J0X3NtbXVfdjMgKilub2RlLT5ub2RlX2RhdGE7Cj4+IMKgwqDCoMKgwqAgaWYgKHNtbXUtPmZs
+YWdzICYgQUNQSV9JT1JUX1NNTVVfVjNfUFhNX1ZBTElEKSB7Cj4+IC3CoMKgwqDCoMKgwqDCoCBz
+ZXRfZGV2X25vZGUoZGV2LCBhY3BpX21hcF9weG1fdG9fbm9kZShzbW11LT5weG0pKTsKPj4gK8Kg
+wqDCoMKgwqDCoMKgIGludCBub2RlID0gYWNwaV9tYXBfcHhtX3RvX25vZGUoc21tdS0+cHhtKTsK
+Pj4gK8KgwqDCoMKgwqDCoMKgIGlmIChub2RlICE9IE5VTUFfTk9fTk9ERSAmJiAhbm9kZV9vbmxp
+bmUobm9kZSkpCj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJldHVybiAtRUlOVkFMOwo+PiAr
+Cj4+ICvCoMKgwqDCoMKgwqDCoCBzZXRfZGV2X25vZGUoZGV2LCBub2RlKTsKPj4gwqDCoMKgwqDC
+oMKgwqDCoMKgIHByX2luZm8oIlNNTVUtdjNbJWxseF0gTWFwcGVkIHRvIFByb3hpbWl0eSBkb21h
+aW4gJWRcbiIsCj4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHNtbXUtPmJhc2VfYWRkcmVz
+cywKPj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc21tdS0+cHhtKTsKPj4gwqDCoMKgwqDC
+oCB9Cj4+ICvCoMKgwqAgcmV0dXJuIDA7Cj4+IMKgIH0KPj4gwqAgI2Vsc2UKPj4gLSNkZWZpbmUg
+YXJtX3NtbXVfdjNfc2V0X3Byb3hpbWl0eSBOVUxMCj4+ICtzdGF0aWMgaW50wqAgX19pbml0IGFy
+bV9zbW11X3YzX3NldF9wcm94aW1pdHkoc3RydWN0IGRldmljZSAqZGV2LAo+PiArwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfaW9y
+dF9ub2RlICpub2RlKQo+PiArewo+PiArwqDCoMKgIHJldHVybiAwOwo+PiArfQo+Cj4gRG9lc24n
+dCB0aGlzIGVuZCB1cCBoYXZpbmcgdGhlIHNhbWUgZWZmZWN0IGFzIGp1c3QgbGVhdmluZyB0aGUg
+Y2FsbGJhY2sgYXNzaWduZWQgd2l0aCBOVUxMPyBOb3Qgc3VyZSB3aHkgdGhhdCB3b3VsZCBuZWVk
+IHRvIGNoYW5nZSA6LwoKT29wcywgc2hvdWxkIG5vdCBjaGFuZ2UgdGhpcyBwYXJ0wqAgOyAoCgpp
+ZiBubyBvdGhlciBpc3N1ZSwgd2lsbCByZXNlbmQKClRoYW5rcy4KCgo+Cj4gUm9iaW4uCj4KCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0t
+a2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcK
+aHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2Vy
+bmVsCg==
