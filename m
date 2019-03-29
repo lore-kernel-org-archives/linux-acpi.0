@@ -1,481 +1,60 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH 24/25] coresight: Support for ACPI bindings
-Date: Fri, 29 Mar 2019 13:09:51 -0600
-Message-ID: <20190329190951.GB7163@xps15>
-References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
- <1553107783-3340-25-git-send-email-suzuki.poulose@arm.com>
+From: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
+Subject: RE: [PATCH 5/6] acpi/cppc: Add support for optional CPPC registers
+Date: Fri, 29 Mar 2019 20:18:04 +0000
+Message-ID: <SN6PR12MB26399489011DD026910B6049F85A0@SN6PR12MB2639.namprd12.prod.outlook.com>
+References: <cover.1553285718.git.Janakarajan.Natarajan@amd.com>
+         <d16e973c3fa4343134f6d246cc424f29ff5d7dc9.1553285718.git.Janakarajan.Natarajan@amd.com>
+ <f3a749646c66a84e17383204385d8c73750d4813.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1553107783-3340-25-git-send-email-suzuki.poulose@arm.com>
+In-Reply-To: <f3a749646c66a84e17383204385d8c73750d4813.camel@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "Moore, Robert" <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 20, 2019 at 06:49:41PM +0000, Suzuki K Poulose wrote:
-> Add support for parsing the ACPI platform description
-> for CoreSight. The connections are encoded in a DSD graph
-> property with CoreSight specific variation of the property.
-> 
-> The ETMs are listed as the children device of the respective
-> CPU.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
-> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
-> ---
->  drivers/hwtracing/coresight/coresight-platform.c | 402 +++++++++++++++++++++++
->  1 file changed, 402 insertions(+)
-> 
-> diff --git a/drivers/hwtracing/coresight/coresight-platform.c b/drivers/hwtracing/coresight/coresight-platform.c
-> index 5eee987..06b1188 100644
-> --- a/drivers/hwtracing/coresight/coresight-platform.c
-> +++ b/drivers/hwtracing/coresight/coresight-platform.c
-> @@ -3,6 +3,7 @@
->   * Copyright (c) 2012, The Linux Foundation. All rights reserved.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/types.h>
->  #include <linux/err.h>
->  #include <linux/slab.h>
-> @@ -289,10 +290,409 @@ of_get_coresight_platform_data(struct device *dev,
->  }
->  #endif
->  
-> +#ifdef CONFIG_ACPI
-> +
-> +#include <acpi/actypes.h>
-> +#include <acpi/processor.h>
-> +
-> +/* ACPI Graph _DSD UUID : "ab02a46b-74c7-45a2-bd68-f7d344ef2153" */
-> +static const guid_t acpi_graph_uuid = GUID_INIT(0xab02a46b, 0x74c7, 0x45a2,
-> +						0xbd, 0x68, 0xf7, 0xd3,
-> +						0x44, 0xef, 0x21, 0x53);
-> +/* Coresight ACPI Graph UUID : "3ecbc8b6-1d0e-4fb3-8107-e627f805c6cd" */
-> +static const guid_t coresight_graph_uuid = GUID_INIT(0x3ecbc8b6, 0x1d0e, 0x4fb3,
-> +						     0x81, 0x07, 0xe6, 0x27,
-> +						     0xf8, 0x05, 0xc6, 0xcd);
-> +#define ACPI_CORESIGHT_LINK_SLAVE	0
-> +#define ACPI_CORESIGHT_LINK_MASTER	1
-> +
-> +static inline bool is_acpi_guid(const union acpi_object *obj)
-> +{
-> +	return (obj->type == ACPI_TYPE_BUFFER) && (obj->buffer.length == 16);
-> +}
-> +
-> +/*
-> + * acpi_guid_matches	- Checks if the given object is a GUID object and
-> + * that it matches the supplied the GUID.
-> + */
-> +static inline bool acpi_guid_matches(const union acpi_object *obj,
-> +				   const guid_t *guid)
-> +{
-> +	return is_acpi_guid(obj) &&
-> +	       guid_equal((guid_t *)obj->buffer.pointer, guid);
-> +}
-> +
-> +static inline bool is_acpi_dsd_graph_guid(const union acpi_object *obj)
-> +{
-> +	return acpi_guid_matches(obj, &acpi_graph_uuid);
-> +}
-> +
-> +static inline bool is_acpi_coresight_graph_guid(const union acpi_object *obj)
-> +{
-> +	return acpi_guid_matches(obj, &coresight_graph_uuid);
-> +}
-> +
-> +static inline bool is_acpi_coresight_graph(const union acpi_object *obj)
-> +{
-> +	const union acpi_object *graphid, *guid, *links;
-> +
-> +	if (obj->type != ACPI_TYPE_PACKAGE ||
-> +	    obj->package.count < 3)
-> +		return false;
-> +
-> +	graphid = &obj->package.elements[0];
-> +	guid = &obj->package.elements[1];
-> +	links = &obj->package.elements[2];
-> +
-> +	if (graphid->type != ACPI_TYPE_INTEGER ||
-> +	    links->type != ACPI_TYPE_INTEGER)
-> +		return false;
-> +
-> +	return is_acpi_coresight_graph_guid(guid);
-> +}
-> +
-> +/*
-> + * acpi_validate_dsd_graph	- Make sure the given _DSD graph conforms
-> + * to the ACPI _DSD Graph specification.
-> + *
-> + * ACPI Devices Graph property has the following format:
-> + *	Revision	- Integer, must be 0
-> + *	NumberOfGraphs	- Integer, N indicating the following list.
-> + *	Graph[1],
-> + *	 ...
-> + *	Graph[N]
-> + *
-> + * And each Graph entry has the following format:
-> + *	GraphID		- Integer, identifying a graph the device belongs to.
-> + *	UUID		- UUID identifying the specification that governs
-> + *			  this graph. (e.g, see is_acpi_coresight_graph())
-> + *	NumberOfLinks	- Number "N" of connections on this node of the graph.
-> + *	Links[1]
-> + *	...
-> + *	Links[N]
-> + */
-> +static inline bool acpi_validate_dsd_graph(const union acpi_object *graph)
-> +{
-> +	int i, n;
-> +	const union acpi_object *rev, *nr_graphs;
-> +
-> +	/* The graph must contain at least the Revision and Number of Graphs */
-> +	if (graph->package.count < 2)
-> +		return false;
-> +
-> +	rev = &graph->package.elements[0];
-> +	nr_graphs = &graph->package.elements[1];
-> +
-> +	if (rev->type != ACPI_TYPE_INTEGER ||
-> +	    nr_graphs->type != ACPI_TYPE_INTEGER)
-> +		return false;
-> +
-> +	/* We only support revision 0 */
-> +	if (rev->integer.value != 0)
-> +		return false;
-> +
-> +	n = nr_graphs->integer.value;
-> +	/* Make sure the package has right number of elements */
-> +	if (graph->package.count != (n + 2))
-> +		return false;
-> +
-> +	/* Each entry must be a graph package with at least 3 members */
-> +	for (i = 2; i < n + 2; i++) {
-> +		const union acpi_object *obj = &graph->package.elements[i];
-> +
-> +		if (obj->type != ACPI_TYPE_PACKAGE ||
-> +		    obj->package.count < 3)
-> +			return false;
-> +	}
-> +
-> +	return true;
-> +}
-> +
-> +/* acpi_get_dsd_graph	- Find the _DSD Graph property for the given device. */
-> +const union acpi_object *
-> +acpi_get_dsd_graph(struct acpi_device *adev)
-> +{
-> +	int i;
-> +	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
-> +	acpi_status status;
-> +	const union acpi_object *dsd;
-> +
-> +	status = acpi_evaluate_object_typed(adev->handle, "_DSD", NULL,
-> +					    &buf, ACPI_TYPE_PACKAGE);
-> +	if (ACPI_FAILURE(status))
-> +		return NULL;
-> +
-> +	dsd = buf.pointer;
-> +	for (i = 0; i + 1 < dsd->package.count; i += 2) {
-> +		const union acpi_object *guid, *package;
-> +
-> +		guid = &dsd->package.elements[i];
-> +		package = &dsd->package.elements[i + 1];
-> +
-> +		/* All _DSD elements must have a UUID and a Package */
-> +		if (!is_acpi_guid(guid) || package->type != ACPI_TYPE_PACKAGE)
-> +			break;
-> +		/* Skip the non-Graph _DSD packages */
-> +		if (!is_acpi_dsd_graph_guid(guid))
-> +			continue;
-> +		if (acpi_validate_dsd_graph(package))
-> +			return package;
-> +		/* Invalid graph format, continue */
-> +		dev_warn(&adev->dev, "Invalid Graph _DSD property\n");
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
-> +static inline bool
-> +acpi_validate_coresight_graph(const union acpi_object *cs_graph)
-> +{
-> +	int nlinks;
-> +
-> +	nlinks = cs_graph->package.elements[2].integer.value;
-> +	if (cs_graph->package.count != (nlinks + 3))
-> +		return false;
-> +	/* The links are validated in acpi_coresight_parse_link() */
-> +	return true;
-> +}
-> +
-> +/*
-> + * acpi_get_coresight_graph	- Parse the device _DSD tables and find
-> + * the Graph property matching the CoreSight Graphs.
-> + *
-> + * Returns the pointer to the CoreSight Graph Package when found. Otherwise
-> + * returns NULL.
-> + */
-> +const union acpi_object *
-> +acpi_get_coresight_graph(struct acpi_device *adev)
-> +{
-> +	const union acpi_object *graph_list, *graph;
-> +	int i, nr_graphs;
-> +
-> +	graph_list = acpi_get_dsd_graph(adev);
-> +	if (!graph_list)
-> +		return graph_list;
-> +
-> +	nr_graphs = graph_list->package.elements[1].integer.value;
-> +
-> +	for (i = 2; i < nr_graphs + 2; i++) {
-> +		graph = &graph_list->package.elements[i];
-> +		if (!is_acpi_coresight_graph(graph))
-> +			continue;
-> +		if (acpi_validate_coresight_graph(graph))
-> +			return graph;
-> +		/* Invalid graph format */
-> +		break;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
-> +/*
-> + * acpi_coresight_parse_link	- Parse the given Graph connection
-> + * of the device and populate the coresight_connection for an output
-> + * connection.
-> + *
-> + * CoreSight Graph specification mandates that the direction of the data
-> + * flow must be specified in the link. i.e,
-> + *
-> + *	SourcePortAddress,	// Integer
-> + *	DestinationPortAddress,	// Integer
-> + *	DestinationDeviceName,	// Reference to another device
-> + *	DirectionOfFlow,	// 1 for output(master), 0 for input(slave)
-> + *
-> + * Returns the direction of the data flow [ Input(slave) or Output(master) ]
-> + * upon success.
-> + * Returns an negative error number otherwise.
-> + */
-> +static int acpi_coresight_parse_link(struct acpi_device *adev,
-> +				     const union acpi_object *link,
-> +				     struct coresight_connection *conn)
-> +{
-> +	int rc, dir;
-> +	const union acpi_object *fields;
-> +	struct acpi_device *r_adev;
-> +	struct device *rdev;
-> +
-> +	if (link->type != ACPI_TYPE_PACKAGE ||
-> +	    link->package.count != 4)
-> +		return -EINVAL;
-> +
-> +	fields = link->package.elements;
-> +
-> +	if (fields[0].type != ACPI_TYPE_INTEGER ||
-> +	    fields[1].type != ACPI_TYPE_INTEGER ||
-> +	    fields[2].type != ACPI_TYPE_LOCAL_REFERENCE ||
-> +	    fields[3].type != ACPI_TYPE_INTEGER)
-> +		return -EINVAL;
-> +
-> +	rc = acpi_bus_get_device(fields[2].reference.handle, &r_adev);
-> +	if (rc)
-> +		return rc;
-> +
-> +	dir = fields[3].integer.value;
-> +	if (dir == ACPI_CORESIGHT_LINK_MASTER) {
-> +		conn->outport = fields[0].integer.value;
-> +		conn->child_port = fields[1].integer.value;
-> +		rdev = coresight_find_device_by_fwnode(&r_adev->fwnode);
-> +		if (!rdev)
-> +			return -EPROBE_DEFER;
-> +		conn->child_fwnode = fwnode_handle_get(&r_adev->fwnode);
-> +	}
-> +
-> +	return dir;
-> +}
-> +
-> +/*
-> + * acpi_coresight_parse_graph	- Parse the _DSD CoreSight graph
-> + * connection information and populate the supplied coresight_platform_data
-> + * instance.
-> + */
-> +static int acpi_coresight_parse_graph(struct acpi_device *adev,
-> +				      struct coresight_platform_data *pdata)
-> +{
-> +	int rc, i, nlinks;
-> +	const union acpi_object *graph;
-> +	struct coresight_connection *conns, *ptr;
-> +
-> +	pdata->nr_inport = pdata->nr_outport = 0;
-> +	graph = acpi_get_coresight_graph(adev);
-> +	if (!graph)
-> +		return -ENOENT;
-> +
-> +	nlinks = graph->package.elements[2].integer.value;
-> +	if (!nlinks)
-> +		return 0;
-> +
-> +	/*
-> +	 * To avoid scanning the table twice (once for finding the number of
-> +	 * output links and then later for parsing the output links),
-> +	 * cache the links information in one go and then later copy
-> +	 * it to the pdata.
-> +	 */
-> +	conns = devm_kcalloc(&adev->dev, nlinks, sizeof(*conns), GFP_KERNEL);
-> +	if (!conns)
-> +		return -ENOMEM;
-> +	ptr = conns;
-> +	for (i = 0; i < nlinks; i++) {
-> +		const union acpi_object *link = &graph->package.elements[3 + i];
-> +		int dir;
-> +
-> +		dir = acpi_coresight_parse_link(adev, link, ptr);
-> +		if (dir < 0)
-> +			return dir;
-> +
-> +		if (dir == ACPI_CORESIGHT_LINK_MASTER) {
-> +			pdata->nr_outport++;
-> +			ptr++;
-> +		} else {
-> +			pdata->nr_inport++;
-> +		}
-> +	}
-> +
-> +	rc = coresight_alloc_conns(&adev->dev, pdata);
-> +	if (rc)
-> +		return rc;
-> +
-> +	/* Copy the connection information to the final location */
-> +	for (i = 0; i < pdata->nr_outport; i++)
-> +		pdata->conns[i] = conns[i];
-> +
-> +	devm_kfree(&adev->dev, conns);
-> +	return 0;
-> +}
-> +
-> +/*
-> + * acpi_handle_to_logical_cpuid	- Map a given acpi_handle to the
-
-This looks a little weird... I think all tabs should be drop in the comments.
-
-> + * logical CPU id of the corresponding CPU device.
-> + *
-> + * Returns the logical CPU id when found. Otherwise returns >= nr_cpus_id.
-> + */
-> +static int
-> +acpi_handle_to_logical_cpuid(acpi_handle handle)
-> +{
-> +	int i;
-> +	struct acpi_processor *pr;
-> +
-> +	for_each_possible_cpu(i) {
-> +		pr = per_cpu(processors, i);
-> +		if (pr && pr->handle == handle)
-> +			break;
-> +	}
-> +
-> +	return i;
-> +}
-> +
-> +/*
-> + * acpi_coresigh_get_cpu - Find the logical CPU id of the CPU associated
-> + * with this coresight device. With ACPI bindings, the CoreSight components
-> + * are listed as child device of the associated CPU.
-> + *
-> + * Returns the logical CPU id when found. Otherwise returns < 0.
-> + */
-> +static int acpi_coresight_get_cpu(struct device *dev)
-> +{
-> +	int cpu;
-> +	acpi_handle cpu_handle;
-> +	acpi_status status;
-> +	struct acpi_device *adev = ACPI_COMPANION(dev);
-> +
-> +	if (!adev)
-> +		return 0;
-> +	status = acpi_get_parent(adev->handle, &cpu_handle);
-> +	if (ACPI_FAILURE(status))
-> +		return 0;
-> +
-> +	cpu = acpi_handle_to_logical_cpuid(cpu_handle);
-> +	if (cpu >= nr_cpu_ids)
-> +		return 0;
-> +	return cpu;
-> +}
-> +
-> +static struct coresight_platform_data *
-> +acpi_get_coresight_platform_data(struct device *dev,
-> +				 struct coresight_platform_data *pdata)
-> +{
-> +	int rc = -EINVAL;
-> +	struct acpi_device *adev;
-> +
-> +	if (!dev)
-> +		goto out;
-
-If we are here dev is valid.  Otherwise things would have blown up in
-coresight_get_platform_data() when calling is_acpi_device_node().
-
-> +
-> +	adev = ACPI_COMPANION(dev);
-> +	if (!adev)
-> +		goto out;
-> +
-> +	rc = acpi_coresight_parse_graph(adev, pdata);
-> +	if (rc)
-> +		goto out;
-> +out:
-> +	if (rc)
-> +		return ERR_PTR(rc);
-> +	return pdata;
-> +}
-> +
-> +#else
-> +
-> +static inline struct coresight_platform_data *
-> +acpi_get_coresight_platform_data(struct device *dev,
-> +				 struct coresight_platform_data *pdata)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline int acpi_coresight_get_cpu(struct device *dev)
-> +{
-> +	return 0;
-> +}
-> +#endif
-> +
->  int coresight_get_cpu(struct device *dev)
->  {
->  	if (is_of_node(dev->fwnode))
->  		return of_coresight_get_cpu(dev);
-> +	else if (is_acpi_device_node(dev->fwnode))
-> +		return acpi_coresight_get_cpu(dev);
->  	return 0;
-
-If we failed both of and acpi discovery method I'd return an error.
-
-I've only reviewed the bottom half of this patch but I'm out of time for today.
-I will continue next week.
-
-Thanks,
-Mathieu
-
->  }
->  EXPORT_SYMBOL_GPL(coresight_get_cpu);
-> @@ -315,6 +715,8 @@ coresight_get_platform_data(struct device *dev)
->  
->  	if (is_of_node(dev->fwnode))
->  		return of_get_coresight_platform_data(dev, pdata);
-> +	else if (is_acpi_device_node(dev->fwnode))
-> +		return acpi_get_coresight_platform_data(dev, pdata);
->  
->  	return ERR_PTR(-ENOENT);
->  }
-> -- 
-> 2.7.4
-> 
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZn
+ZXIua2VybmVsLm9yZyA8bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmc+IE9uIEJlaGFs
+ZiBPZiBQYW5kcnV2YWRhLCBTcmluaXZhcw0KPiBTZW50OiBXZWRuZXNkYXksIE1hcmNoIDI3LCAy
+MDE5IDEwOjQ4IEFNDQo+IFRvOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBh
+Y3BpY2Eub3JnOyBOYXRhcmFqYW4sIEphbmFrYXJhamFuIDxKYW5ha2FyYWphbi5OYXRhcmFqYW5A
+YW1kLmNvbT47IGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgtcG1Admdlci5r
+ZXJuZWwub3JnDQo+IENjOiBHaGFubmFtLCBZYXplbiA8WWF6ZW4uR2hhbm5hbUBhbWQuY29tPjsg
+bGVuYkBrZXJuZWwub3JnOyB2aXJlc2gua3VtYXJAbGluYXJvLm9yZzsgTW9vcmUsIFJvYmVydA0K
+PiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IFNjaG1hdXNzLCBFcmlrIDxlcmlrLnNjaG1hdXNz
+QGludGVsLmNvbT47IHJqd0Byand5c29ja2kubmV0DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggNS82
+XSBhY3BpL2NwcGM6IEFkZCBzdXBwb3J0IGZvciBvcHRpb25hbCBDUFBDIHJlZ2lzdGVycw0KPiAN
+Cj4gT24gRnJpLCAyMDE5LTAzLTIyIGF0IDIwOjI2ICswMDAwLCBOYXRhcmFqYW4sIEphbmFrYXJh
+amFuIHdyb3RlOg0KPiA+IEZyb206IFlhemVuIEdoYW5uYW0gPFlhemVuLkdoYW5uYW1AYW1kLmNv
+bT4NCj4gPg0KPiA+IE5ld2VyIEFNRCBwcm9jZXNzb3JzIHN1cHBvcnQgYSBzdWJzZXQgb2YgdGhl
+IG9wdGlvbmFsIENQUEMgcmVnaXN0ZXJzLg0KPiA+IENyZWF0ZSBzaG93LCBzdG9yZSBhbmQgaGVs
+cGVyIHJvdXRpbmVzIGZvciBzdXBwb3J0ZWQgQ1BQQyByZWdpc3RlcnMuDQo+ID4NCj4gPiBTaWdu
+ZWQtb2ZmLWJ5OiBZYXplbiBHaGFubmFtIDxZYXplbi5HaGFubmFtQGFtZC5jb20+DQo+ID4gWyBj
+YXJ2ZWQgb3V0IGludG8gYSBwYXRjaCwgY2xlYW5lZCB1cCwgcHJvZHVjdGl6ZWQgXQ0KPiA+IFNp
+Z25lZC1vZmYtYnk6IEphbmFrYXJhamFuIE5hdGFyYWphbiA8SmFuYWthcmFqYW4uTmF0YXJhamFu
+QGFtZC5jb20+DQo+ID4NCj4gDQo+IFsuLl0NCj4gDQo+ID4gKwkvKiBkZXNpcmVkX3BlcmYgaXMg
+dGhlIG9ubHkgbWFuZGF0b3J5IHZhbHVlIGluIHBlcmZfY3RybHMgKi8NCj4gPiArCWlmIChjcGNf
+cmVhZChjcHUsIGRlc2lyZWRfcmVnLCAmZGVzaXJlZCkpDQo+ID4gKwkJcmV0ID0gLUVGQVVMVDsN
+Cj4gPiArDQo+ID4gKwlpZiAoQ1BDX1NVUFBPUlRFRChtYXhfcmVnKSAmJiBjcGNfcmVhZChjcHUs
+IG1heF9yZWcsICZtYXgpKQ0KPiA+ICsJCXJldCA9IC1FRkFVTFQ7DQo+ID4gKw0KPiBXZSBzaG91
+bGQgY3JlYXRlIGFuZCB1c2UgZGlmZmVyZW50IG1hY3JvIG90aGVyIHRoYW4gQ1BQQ19TVVBQT1JU
+RUQuDQo+IENQQ19TVVBQT1JURUQgZG9lc24ndCB2YWxpZGF0ZSB0aGUgY29ycmVjdG5lc3Mgb2Yg
+b2JqZWN0IHR5cGUgZm9yIGENCj4gZmllbGQuIEZvciBleGFtcGxlICJNYXhpbXVtIFBlcmZvcm1h
+bmNlIFJlZ2lzdGVyIiBjYW4gb25seSBiZSBidWZmZXINCj4gbm90IGludGVnZXIuIEluIHRoaXMg
+d2F5IGludmFsaWQgZmllbGQgZGVmaW5pdGlvbnMgY2FuIGJlIGlnbm9yZWQuDQo+IA0KDQpTbyBj
+cmVhdGUgc29tZXRoaW5nIGxpa2UgIkNQUENfU1VQUE9SVEVEX0JVRkZFUiIgZm9yIGJ1ZmZlci1v
+bmx5IHJlZ2lzdGVycz8NCg0KQW5kIHRoZW4gYnVmZmVyL2ludGVnZXIgcmVnaXN0ZXJzIHdpbGwg
+Y29udGludWUgdG8gdXNlICJDUFBDX1NVUFBPUlRFRCIuDQoNClRoZXNlIHNlZW0gdG8gYmUgdGhl
+IG9ubHkgdHdvIGNhc2VzIGF0IHRoaXMgdGltZS4gSXMgdGhpcyBva2F5Pw0KDQpUaGFua3MsDQpZ
+YXplbg0KDQo+IA0KPiA+ICsJaWYgKENQQ19TVVBQT1JURUQobWluX3JlZykgJiYgY3BjX3JlYWQo
+Y3B1LCBtaW5fcmVnLCAmbWluKSkNCj4gPiArCQlyZXQgPSAtRUZBVUxUOw0KPiA+ICsNCj4gPiAr
+CWlmIChDUENfU1VQUE9SVEVEKGVuZXJneV9yZWcpICYmIGNwY19yZWFkKGNwdSwgZW5lcmd5X3Jl
+ZywNCj4gPiAmZW5lcmd5KSkNCj4gPiArCQlyZXQgPSAtRUZBVUxUOw0KPiA+ICsNCj4gPiArCWlm
+IChDUENfU1VQUE9SVEVEKGF1dG9fc2VsX2VuYWJsZV9yZWcpICYmDQo+ID4gKwkgICAgY3BjX3Jl
+YWQoY3B1LCBhdXRvX3NlbF9lbmFibGVfcmVnLCAmYXV0b19zZWxfZW5hYmxlKSkNCj4gPiArCQly
+ZXQgPSAtRUZBVUxUOw0KPiA+ICsNCj4gSGVyZSBpdCBpcyBmaW5lIHRvIHVzZSBDUENfU1VQUE9S
+VEVEIGFzIHRoZSAiQXV0b25vbW91cyBTZWxlY3Rpb24NCj4gRW5hYmxlIiBjYW4gYmUgYm90aCBp
+bnRlZ2VyIGFuZCBidWZmZXIuDQo+IA0KPiBUaGFua3MsDQo+IFNyaW5pdmFzDQoNCg==
