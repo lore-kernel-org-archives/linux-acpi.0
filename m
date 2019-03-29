@@ -1,102 +1,131 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2] ACPI / PM: Propagate KEY_POWER to user space when
- resume
-Date: Fri, 29 Mar 2019 13:32:44 +0100
-Message-ID: <20190329123244.GA20104@amd>
-References: <CAJZ5v0g3+S0vkW0XTzMKA8rYCtgy7yJ+UDc5xG4rRcdTbcJ=Lg@mail.gmail.com>
- <20190328103448.20335-1-hu1.chen@intel.com>
- <20190329102519.GA11784@atrey.karlin.mff.cuni.cz>
- <23bc59ef-fc25-440b-ab1c-c5db6b5cf6d2@redhat.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing
+ node's parents
+Date: Fri, 29 Mar 2019 15:04:36 +0200
+Message-ID: <20190329130436.4fxzki5kljprhyai@kekkonen.localdomain>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-2-sakari.ailus@linux.intel.com>
+ <20190327122625.eaisnw776vqwhhnh@pathway.suse.cz>
+ <20190327142036.jf6puc5uo2mjutbl@paasikivi.fi.intel.com>
+ <20190328141036.mbns3ei4agnginsg@pathway.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <23bc59ef-fc25-440b-ab1c-c5db6b5cf6d2@redhat.com>
+In-Reply-To: <20190328141036.mbns3ei4agnginsg@pathway.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Chen, Hu" <hu1.chen@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Petr Mladek <pmladek@suse.com>
+Cc: linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Petr,
 
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Mar 28, 2019 at 03:10:36PM +0100, Petr Mladek wrote:
+> On Wed 2019-03-27 16:20:37, Sakari Ailus wrote:
+> > Hi Petr,
+> > 
+> > On Wed, Mar 27, 2019 at 01:26:25PM +0100, Petr Mladek wrote:
+> > > On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
+> > > > Add two convenience functions for accessing node's parents:
+> > > > 
+> > > > fwnode_count_parents() returns the number of parent nodes a given node
+> > > > has. fwnode_get_nth_parent() returns node's parent at a given distance
+> > > > from the node itself.
+> > > > 
+> > > > Also reorder fwnode_get_parent() in property.c according to the same order
+> > > > as in property.h.
+> > > > 
+> > > > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > > > index 8b91ab380d14..61eb6ceacc3f 100644
+> > > > --- a/drivers/base/property.c
+> > > > +++ b/drivers/base/property.c
+> > > > @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+> > > >  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+> > > >  
+> > > >  /**
+> > > > - * fwnode_get_parent - Return parent firwmare node
+> > > > - * @fwnode: Firmware whose parent is retrieved
+> > > > + * fwnode_count_parents - Return the number of parents a node has
+> > > > + * @fwnode: The node the parents of which are to be counted
+> > > >   *
+> > > > - * Return parent firmware node of the given node if possible or %NULL if no
+> > > > - * parent was available.
+> > > > + * Returns the number of parents a node has.
+> > > >   */
+> > > > -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
+> > > > +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
+> > > >  {
+> > > > -	return fwnode_call_ptr_op(fwnode, get_parent);
+> > > > +	unsigned int count;
+> > > > +
+> > > > +	fwnode_handle_get(fwnode);
+> > > > +
+> > > > +	for (count = 0; fwnode; count++)
+> > > > +		fwnode = fwnode_get_next_parent(fwnode);
+> > > 
+> > > Is it guaranteed that all parents stay when
+> > > fwnode_get_next_parent() releases the reference count
+> > > for each counted member?
+> > 
+> > fwnode_get_next_parent() only releases the child node after it has acquired
+> > the parent. The only implementation with refcounting for single nodes is
+> > actually OF.
+> 
+> I am still a bit confused. The function is later used the following way:
+> 
+> 	for (depth = fwnode_count_parents(fwnode); depth >= 0; depth--) {
+> 		struct fwnode_handle *__fwnode =
+> 			fwnode_get_nth_parent(fwnode, depth);
+> 
+> 		buf = string(buf, end, fwnode_get_name_prefix(__fwnode),
+> 			     default_str_spec);
+> 		buf = string(buf, end, fwnode_get_name(__fwnode),
+> 			     default_str_spec);
+> 
+> 		fwnode_handle_put(__fwnode);
+> 	}
+> 
+> It uses the number to walk the hierarchy over and over again to print
+> the path from root.
+> 
+> I would expect that parents could not get removed until all children
+> are removed. And that the most bottom child (fwnode) must not get
+> removed. Otherwise we would access freed memory in each cycle.
+> 
+> Then there is a question why we need to get the reference of the
+> parents
+> at all.
+> 
+> It might be because we do not need touch refcounting of the parents
+> in this scenario. But we are re-using existing functions where
+> the ref-counting hang-over is important.
+> 
+> Or we really need to increase refcounting of parents. Then it looks
+> suspicious because we want to traverse the same path several times
+> and always have only one node locked (refcounted).
 
-On Fri 2019-03-29 12:38:39, Hans de Goede wrote:
-> Hi,
->=20
-> On 3/29/19 11:25 AM, Pavel Machek wrote:
-> >>I run Android on x86 PC (it's a NUC). Everytime I press the power button
-> >>to wake the system, it suspends right away. After some debug, I find
-> >>that Android wants to see KEY_POWER at resume. Otherwise, its
-> >>opportunistic suspend will kick in shortly.
-> >>
-> >>However, other OS such as Ubuntu doesn't like KEY_POWER at resume. So
-> >>add a knob "/sys/module/button/parameters/key_power_at_resume" for users
-> >>to select.
-> >>
-> >>Signed-off-by: Chen, Hu <hu1.chen@intel.com>
-> >
-> >NAK.
-> >
-> >Fix android, lets not break kernel.
->=20
-> It is not that simple, as I explained in my other reply to this
-> patch, we alreayd have inconsistent behavior here inside the kernel.
->=20
-> When KEY_POWER is handled by the gpio-keys driver it does explicitly
-> send a KET_POWER press event when the system is woken up through the
-> power-button.
+I hope I understand your concern better this time.
 
-Which may be okay.
+You basically have to have a reference to a node until you're done
+accessing it. The refcounting in the fwnode framework is based on the OF
+API --- otherwise you couldn't access OF nodes using the framework. ACPI
+does not have those (as you can't dynamically remove nodes). The newly
+added swnode does have refcounting of individual nodes as well.
 
-> Arguably that is more consistent, e.g. some systems can also be woken
-> up through a home-button press and in that case we do want the KEY_HOMEPA=
-GE
-> to be propagated to userspace after the wakeup so that we not only wake
-> but also switch to the homescreen (whatever that might be).
+Even if a node's parent did disappear while printing an fwnode full name,
+it'd mean that
 
-Which may also be okay.
+1) fwnode_count_parents() returned an incorrect value (less than expected)
+   or
 
-> Note I'm not saying that I'm happy with any of this, but simply NACK-ing
-> this patch is IMHO not the answer.
+2) some of the node names could be NULL if node references could not be
+   obtained.
 
-Well, to add a knob
-"/sys/module/button/parameters/key_power_at_resume" is really not
-acceptable. Android does not know that it needs to set it, so it will
-not set it, and the problem remains. Plus, we get a great mess in
-future.
+Both would result into garbled output in that case. I have to admit I'm not
+sure if this is possible with OF.
 
-But yes, we might want userland to know why the system woke up. And it
-would be good if everything also worked with wake-on-lan. Hmm.
+-- 
+Kind regards,
 
-It is also possible that PC's ACPI power button should generate
-something else than KEY_POWER. Power button on my USB keyboard
-generates that, and that is really quite different button the one on
-the box.
-
-I'm not saying I know what the solution is. But we should have one
-solution, not a knob to select between different solutions.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---tKW2IUtsqtDRztdT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlyeEGwACgkQMOfwapXb+vIeZgCfUC8q4+n31T3i6R7APn52ZVnW
-ei0An22NKrpngC6KAJZhnySIy5Ngkkud
-=NPzD
------END PGP SIGNATURE-----
-
---tKW2IUtsqtDRztdT--
+Sakari Ailus
+sakari.ailus@linux.intel.com
