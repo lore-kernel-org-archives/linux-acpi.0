@@ -1,62 +1,107 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 02/10] extcon: axp288: Convert to use
-	acpi_dev_get_first_match_dev()
-Date: Fri, 29 Mar 2019 23:58:47 +0100
-Message-ID: <3488798.d5z7iexCG2@aspire.rjw.lan>
-References: <20190328171729.44002-1-andriy.shevchenko@linux.intel.com>
- <20190328171729.44002-3-andriy.shevchenko@linux.intel.com>
- <c5090422-e707-a774-f3ab-b5bf49cd6851@samsung.com>
+Subject: Re: [PATCH v2 1/6] device property: Add functions for accessing node's parents
+Date: Sat, 30 Mar 2019 00:00:21 +0100
+Message-ID: <4059126.EBkttauCCI@aspire.rjw.lan>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com> <CAJZ5v0gAM_jn-gkmyu7Av+X0W_8g9NGjBEeXC-3-q_Ncb2PEGw@mail.gmail.com> <20190329131507.cc4qt5oyd74nvmzt@kekkonen.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <c5090422-e707-a774-f3ab-b5bf49cd6851@samsung.com>
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Mark Brown <broonie@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190329131507.cc4qt5oyd74nvmzt@kekkonen.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Petr Mladek <pmladek@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gRnJpZGF5LCBNYXJjaCAyOSwgMjAxOSAxOjUzOjA5IEFNIENFVCBDaGFud29vIENob2kgd3Jv
-dGU6Cj4gSGkgQW5keSwKPiAKPiBPbiAxOS4gMy4gMjkuIOyYpOyghCAyOjE3LCBBbmR5IFNoZXZj
-aGVua28gd3JvdGU6Cj4gPiBhY3BpX2Rldl9nZXRfZmlyc3RfbWF0Y2hfbmFtZSgpIGlzIGRlcHJl
-Y2F0ZWQgYW5kIGdvaW5nIHRvIGJlIHJlbW92ZWQKPiA+IGJlY2F1c2UgaXQgbGVha3MgYSByZWZl
-cmVuY2UuCj4gPiAKPiA+IENvbnZlcnQgdGhlIGRyaXZlciB0byB1c2UgYWNwaV9kZXZfZ2V0X2Zp
-cnN0X21hdGNoX2RldigpIGluc3RlYWQuCj4gPiAKPiA+IENjOiBDaGFud29vIENob2kgPGN3MDAu
-Y2hvaUBzYW1zdW5nLmNvbT4KPiA+IENjOiBNeXVuZ0pvbyBIYW0gPG15dW5nam9vLmhhbUBzYW1z
-dW5nLmNvbT4KPiA+IENjOiBDaGVuLVl1IFRzYWkgPHdlbnNAY3NpZS5vcmc+Cj4gPiBTaWduZWQt
-b2ZmLWJ5OiBBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNv
-bT4KPiA+IC0tLQo+ID4gIGRyaXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYyB8IDkgKysrKyst
-LS0tCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkK
-PiA+IAo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYyBiL2Ry
-aXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYwo+ID4gaW5kZXggYTk4MzcwOGI3N2E2Li41MGY5
-NDAyZmIzMjUgMTAwNjQ0Cj4gPiAtLS0gYS9kcml2ZXJzL2V4dGNvbi9leHRjb24tYXhwMjg4LmMK
-PiA+ICsrKyBiL2RyaXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYwo+ID4gQEAgLTMzMyw3ICsz
-MzMsNyBAQCBzdGF0aWMgaW50IGF4cDI4OF9leHRjb25fcHJvYmUoc3RydWN0IHBsYXRmb3JtX2Rl
-dmljZSAqcGRldikKPiA+ICAJc3RydWN0IGF4cDI4OF9leHRjb25faW5mbyAqaW5mbzsKPiA+ICAJ
-c3RydWN0IGF4cDIweF9kZXYgKmF4cDIweCA9IGRldl9nZXRfZHJ2ZGF0YShwZGV2LT5kZXYucGFy
-ZW50KTsKPiA+ICAJc3RydWN0IGRldmljZSAqZGV2ID0gJnBkZXYtPmRldjsKPiA+IC0JY29uc3Qg
-Y2hhciAqbmFtZTsKPiA+ICsJc3RydWN0IGFjcGlfZGV2aWNlICphZGV2Owo+ID4gIAlpbnQgcmV0
-LCBpLCBwaXJxOwo+ID4gIAo+ID4gIAlpbmZvID0gZGV2bV9remFsbG9jKCZwZGV2LT5kZXYsIHNp
-emVvZigqaW5mbyksIEdGUF9LRVJORUwpOwo+ID4gQEAgLTM1Nyw5ICszNTcsMTAgQEAgc3RhdGlj
-IGludCBheHAyODhfZXh0Y29uX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4g
-PiAgCQlpZiAocmV0KQo+ID4gIAkJCXJldHVybiByZXQ7Cj4gPiAgCj4gPiAtCQluYW1lID0gYWNw
-aV9kZXZfZ2V0X2ZpcnN0X21hdGNoX25hbWUoIklOVDM0OTYiLCBOVUxMLCAtMSk7Cj4gPiAtCQlp
-ZiAobmFtZSkgewo+ID4gLQkJCWluZm8tPmlkX2V4dGNvbiA9IGV4dGNvbl9nZXRfZXh0Y29uX2Rl
-dihuYW1lKTsKPiA+ICsJCWFkZXYgPSBhY3BpX2Rldl9nZXRfZmlyc3RfbWF0Y2hfZGV2KCJJTlQz
-NDk2IiwgTlVMTCwgLTEpOwo+ID4gKwkJaWYgKGFkZXYpIHsKPiA+ICsJCQlpbmZvLT5pZF9leHRj
-b24gPSBleHRjb25fZ2V0X2V4dGNvbl9kZXYoYWNwaV9kZXZfbmFtZShhZGV2KSk7Cj4gPiArCQkJ
-cHV0X2RldmljZSgmYWRldi0+ZGV2KTsKPiA+ICAJCQlpZiAoIWluZm8tPmlkX2V4dGNvbikKPiA+
-ICAJCQkJcmV0dXJuIC1FUFJPQkVfREVGRVI7Cj4gPiAgCj4gPiAKPiAKPiBBcHBsaWVkIGl0LiBU
-aGFua3MuCj4gCj4gCgpCdXQgaXQgd29uJ3QgYnVpbGQgd2l0aG91dCB0aGUgZmlyc3QgcGF0Y2gg
-SSBzdXBwb3NlPwoKQUNLLCBwbGVhc2U/CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNh
-LXByb2plY3Qub3JnCmh0dHBzOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlz
-dGluZm8vYWxzYS1kZXZlbAo=
+On Friday, March 29, 2019 2:15:07 PM CET Sakari Ailus wrote:
+> On Thu, Mar 28, 2019 at 03:52:35PM +0100, Rafael J. Wysocki wrote:
+> > On Thu, Mar 28, 2019 at 12:13 PM Sakari Ailus
+> > <sakari.ailus@linux.intel.com> wrote:
+> > >
+> > > Hi Rafael,
+> > >
+> > > On Thu, Mar 28, 2019 at 10:38:01AM +0100, Rafael J. Wysocki wrote:
+> > > > On Wed, Mar 27, 2019 at 3:20 PM Sakari Ailus
+> > > > <sakari.ailus@linux.intel.com> wrote:
+> > > > >
+> > > > > Hi Petr,
+> > > > >
+> > > > > On Wed, Mar 27, 2019 at 01:26:25PM +0100, Petr Mladek wrote:
+> > > > > > On Tue 2019-03-26 14:41:01, Sakari Ailus wrote:
+> > > > > > > Add two convenience functions for accessing node's parents:
+> > > > > > >
+> > > > > > > fwnode_count_parents() returns the number of parent nodes a given node
+> > > > > > > has. fwnode_get_nth_parent() returns node's parent at a given distance
+> > > > > > > from the node itself.
+> > > > > > >
+> > > > > > > Also reorder fwnode_get_parent() in property.c according to the same order
+> > > > > > > as in property.h.
+> > > > > > >
+> > > > > > > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > > > > > > index 8b91ab380d14..61eb6ceacc3f 100644
+> > > > > > > --- a/drivers/base/property.c
+> > > > > > > +++ b/drivers/base/property.c
+> > > > > > > @@ -554,17 +567,49 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+> > > > > > >  EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+> > > > > > >
+> > > > > > >  /**
+> > > > > > > - * fwnode_get_parent - Return parent firwmare node
+> > > > > > > - * @fwnode: Firmware whose parent is retrieved
+> > > > > > > + * fwnode_count_parents - Return the number of parents a node has
+> > > > > > > + * @fwnode: The node the parents of which are to be counted
+> > > > > > >   *
+> > > > > > > - * Return parent firmware node of the given node if possible or %NULL if no
+> > > > > > > - * parent was available.
+> > > > > > > + * Returns the number of parents a node has.
+> > > > > > >   */
+> > > > > > > -struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
+> > > > > > > +unsigned int fwnode_count_parents(struct fwnode_handle *fwnode)
+> > > > > > >  {
+> > > > > > > -   return fwnode_call_ptr_op(fwnode, get_parent);
+> > > > > > > +   unsigned int count;
+> > > > > > > +
+> > > > > > > +   fwnode_handle_get(fwnode);
+> > > > > > > +
+> > > > > > > +   for (count = 0; fwnode; count++)
+> > > > > > > +           fwnode = fwnode_get_next_parent(fwnode);
+> > > > > >
+> > > > > > Is it guaranteed that all parents stay when
+> > > > > > fwnode_get_next_parent() releases the reference count
+> > > > > > for each counted member?
+> > > > >
+> > > > > fwnode_get_next_parent() only releases the child node after it has acquired
+> > > > > the parent. The only implementation with refcounting for single nodes is
+> > > > > actually OF.
+> > > > >
+> > > > > >
+> > > > > > > +
+> > > > > > > +   return count - 1;
+> > > > > >
+> > > > > > We could start counting from count = -1;
+> > > > >
+> > > > > We could, but then count would need to be made signed (unless overflowing
+> > > > > is preferred instead).
+> > > >
+> > > > What if there are no parents?
+> > > >
+> > > > Or is it guaranteed that there always will be at least one?
+> > >
+> > > If there are no parents, the function will return 0 --- the node itself is
+> > > counted in the loop, too, hence the need to decrement by one.
+> > 
+> > Right, sorry.
+> > 
+> > Then I don't see why count cannot be int.  Or call it "iter" to avoid
+> > confusion with negative "counts". :-)
+> 
+> Another option would be changing where the counting starts --- the first
+> parent. I.e.
+> 
+> fwnode = fwnode_get_parent(fwnode);
+> 
+> for (count = 0; fwnode; count++)
+> 	fwnode = fwnode_get_next_parent(fwnode);
+> 
+> return count;
+
+LGTM, thanks!
