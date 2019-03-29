@@ -1,10 +1,9 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v2 14/24] acpi doc: convert acpi/dsd/graph.txt to rst format
-Date: Fri, 29 Mar 2019 08:11:25 +0800
-Message-ID: <20190329001135.15847-15-changbin.du@gmail.com>
+Subject: [PATCH v2 16/24] acpi doc: convert acpi/debug.txt to rst format
+Date: Fri, 29 Mar 2019 08:11:27 +0800
+Message-ID: <20190329001135.15847-17-changbin.du@gmail.com>
 References: <20190329001135.15847-1-changbin.du@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190329001135.15847-1-changbin.du@gmail.com>
@@ -18,258 +17,127 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- .../acpi/dsd/{graph.txt => graph.rst}         | 157 +++++++++---------
- Documentation/acpi/index.rst                  |   1 +
- 2 files changed, 81 insertions(+), 77 deletions(-)
- rename Documentation/acpi/dsd/{graph.txt => graph.rst} (56%)
+ Documentation/acpi/{debug.txt => debug.rst} | 31 +++++++++++----------
+ Documentation/acpi/index.rst                |  1 +
+ 2 files changed, 18 insertions(+), 14 deletions(-)
+ rename Documentation/acpi/{debug.txt => debug.rst} (91%)
 
-diff --git a/Documentation/acpi/dsd/graph.txt b/Documentation/acpi/dsd/graph.rst
-similarity index 56%
-rename from Documentation/acpi/dsd/graph.txt
-rename to Documentation/acpi/dsd/graph.rst
-index b9ce910781dc..e0baed35b037 100644
---- a/Documentation/acpi/dsd/graph.txt
-+++ b/Documentation/acpi/dsd/graph.rst
-@@ -1,8 +1,11 @@
--Graphs
+diff --git a/Documentation/acpi/debug.txt b/Documentation/acpi/debug.rst
+similarity index 91%
+rename from Documentation/acpi/debug.txt
+rename to Documentation/acpi/debug.rst
+index 65bf47c46b6d..1a152dd1d765 100644
+--- a/Documentation/acpi/debug.txt
++++ b/Documentation/acpi/debug.rst
+@@ -1,18 +1,21 @@
+-			ACPI Debug Output
 +.. SPDX-License-Identifier: GPL-2.0
  
-+======
-+Graphs
-+======
++=================
++ACPI Debug Output
++=================
  
- _DSD
------
-+====
+ The ACPI CA, the Linux ACPI core, and some ACPI drivers can generate debug
+ output.  This document describes how to use this facility.
  
- _DSD (Device Specific Data) [7] is a predefined ACPI device
- configuration object that can be used to convey information on
-@@ -30,7 +33,7 @@ hierarchical data extension array on each depth.
+ Compile-time configuration
+---------------------------
++==========================
  
+ ACPI debug output is globally enabled by CONFIG_ACPI_DEBUG.  If this config
+ option is turned off, the debug messages are not even built into the
+ kernel.
  
- Ports and endpoints
---------------------
-+===================
+ Boot- and run-time configuration
+---------------------------------
++================================
  
- The port and endpoint concepts are very similar to those in Devicetree
- [3]. A port represents an interface in a device, and an endpoint
-@@ -38,9 +41,9 @@ represents a connection to that interface.
+ When CONFIG_ACPI_DEBUG=y, you can select the component and level of messages
+ you're interested in.  At boot-time, use the acpi.debug_layer and
+@@ -21,7 +24,7 @@ debug_layer and debug_level files in /sys/module/acpi/parameters/ to control
+ the debug messages.
  
- All port nodes are located under the device's "_DSD" node in the hierarchical
- data extension tree. The data extension related to each port node must begin
--with "port" and must be followed by the "@" character and the number of the port
--as its key. The target object it refers to should be called "PRTX", where "X" is
--the number of the port. An example of such a package would be:
-+with "port" and must be followed by the "@" character and the number of the
-+port as its key. The target object it refers to should be called "PRTX", where
-+"X" is the number of the port. An example of such a package would be::
+ debug_layer (component)
+------------------------
++=======================
  
-     Package() { "port@4", PRT4 }
+ The "debug_layer" is a mask that selects components of interest, e.g., a
+ specific driver or part of the ACPI interpreter.  To build the debug_layer
+@@ -33,7 +36,7 @@ to /sys/module/acpi/parameters/debug_layer.
  
-@@ -49,7 +52,7 @@ data extension key of the endpoint nodes must begin with
- "endpoint" and must be followed by the "@" character and the number of the
- endpoint. The object it refers to should be called "EPXY", where "X" is the
- number of the port and "Y" is the number of the endpoint. An example of such a
--package would be:
-+package would be::
+ The possible components are defined in include/acpi/acoutput.h and
+ include/acpi/acpi_drivers.h.  Reading /sys/module/acpi/parameters/debug_layer
+-shows the supported mask values, currently these:
++shows the supported mask values, currently these::
  
-     Package() { "endpoint@0", EP40 }
+     ACPI_UTILITIES                  0x00000001
+     ACPI_HARDWARE                   0x00000002
+@@ -65,7 +68,7 @@ shows the supported mask values, currently these:
+     ACPI_PROCESSOR_COMPONENT        0x20000000
  
-@@ -62,85 +65,85 @@ of that port shall be zero. Similarly, if a port may only have a single
- endpoint, the number of that endpoint shall be zero.
+ debug_level
+------------
++===========
  
- The endpoint reference uses property extension with "remote-endpoint" property
--name followed by a reference in the same package. Such references consist of the
-+name followed by a reference in the same package. Such references consist of
- the remote device reference, the first package entry of the port data extension
- reference under the device and finally the first package entry of the endpoint
--data extension reference under the port. Individual references thus appear as:
-+data extension reference under the port. Individual references thus appear as::
+ The "debug_level" is a mask that selects different types of messages, e.g.,
+ those related to initialization, method execution, informational messages, etc.
+@@ -81,7 +84,7 @@ to /sys/module/acpi/parameters/debug_level.
  
-     Package() { device, "port@X", "endpoint@Y" }
+ The possible levels are defined in include/acpi/acoutput.h.  Reading
+ /sys/module/acpi/parameters/debug_level shows the supported mask values,
+-currently these:
++currently these::
  
--In the above example, "X" is the number of the port and "Y" is the number of the
--endpoint.
-+In the above example, "X" is the number of the port and "Y" is the number of
-+the endpoint.
+     ACPI_LV_INIT                    0x00000001
+     ACPI_LV_DEBUG_OBJECT            0x00000002
+@@ -113,9 +116,9 @@ currently these:
+     ACPI_LV_EVENTS                  0x80000000
  
- The references to endpoints must be always done both ways, to the
- remote endpoint and back from the referred remote endpoint node.
+ Examples
+---------
++========
  
--A simple example of this is show below:
-+A simple example of this is show below::
+-For example, drivers/acpi/bus.c contains this:
++For example, drivers/acpi/bus.c contains this::
  
-     Scope (\_SB.PCI0.I2C2)
-     {
--	Device (CAM0)
--	{
--	    Name (_DSD, Package () {
--		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--		Package () {
--		    Package () { "compatible", Package () { "nokia,smia" } },
--		},
--		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--		Package () {
--		    Package () { "port@0", PRT0 },
--		}
--	    })
--	    Name (PRT0, Package() {
--		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--		Package () {
--		    Package () { "reg", 0 },
--		},
--		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--		Package () {
--		    Package () { "endpoint@0", EP00 },
--		}
--	    })
--	    Name (EP00, Package() {
--		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--		Package () {
--		    Package () { "reg", 0 },
--		    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, "port@4", "endpoint@0" } },
--		}
--	    })
--	}
-+        Device (CAM0)
-+        {
-+            Name (_DSD, Package () {
-+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+                Package () {
-+                    Package () { "compatible", Package () { "nokia,smia" } },
-+                },
-+                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+                Package () {
-+                    Package () { "port@0", PRT0 },
-+                }
-+            })
-+            Name (PRT0, Package() {
-+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+                Package () {
-+                    Package () { "reg", 0 },
-+                },
-+                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+                Package () {
-+                    Package () { "endpoint@0", EP00 },
-+                }
-+            })
-+            Name (EP00, Package() {
-+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+                Package () {
-+                    Package () { "reg", 0 },
-+                    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, "port@4", "endpoint@0" } },
-+                }
-+            })
-+        }
-     }
+     #define _COMPONENT              ACPI_BUS_COMPONENT
+     ...
+@@ -127,22 +130,22 @@ statement uses ACPI_DB_INFO, which is macro based on the ACPI_LV_INFO
+ definition.)
  
-     Scope (\_SB.PCI0)
-     {
--	Device (ISP)
--	{
--	    Name (_DSD, Package () {
--		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--		Package () {
--		    Package () { "port@4", PRT4 },
--		}
--	    })
--
--	    Name (PRT4, Package() {
--		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--		Package () {
--		    Package () { "reg", 4 }, /* CSI-2 port number */
--		},
--		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--		Package () {
--		    Package () { "endpoint@0", EP40 },
--		}
--	    })
--
--	    Name (EP40, Package() {
--		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--		Package () {
--		    Package () { "reg", 0 },
--		    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, "port@0", "endpoint@0" } },
--		}
--	    })
--	}
-+        Device (ISP)
-+        {
-+            Name (_DSD, Package () {
-+                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+                Package () {
-+                    Package () { "port@4", PRT4 },
-+                }
-+            })
-+
-+            Name (PRT4, Package() {
-+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+                Package () {
-+                    Package () { "reg", 4 }, /* CSI-2 port number */
-+                },
-+                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+                Package () {
-+                    Package () { "endpoint@0", EP40 },
-+                }
-+            })
-+
-+            Name (EP40, Package() {
-+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+                Package () {
-+                    Package () { "reg", 0 },
-+                    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, "port@0", "endpoint@0" } },
-+                }
-+            })
-+        }
-     }
+ Enable all AML "Debug" output (stores to the Debug object while interpreting
+-AML) during boot:
++AML) during boot::
  
- Here, the port 0 of the "CAM0" device is connected to the port 4 of
-@@ -148,27 +151,27 @@ the "ISP" device and vice versa.
+     acpi.debug_layer=0xffffffff acpi.debug_level=0x2
  
+-Enable PCI and PCI interrupt routing debug messages:
++Enable PCI and PCI interrupt routing debug messages::
  
- References
------------
-+==========
+     acpi.debug_layer=0x400000 acpi.debug_level=0x4
  
- [1] _DSD (Device Specific Data) Implementation Guide.
--    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm>,
-+    http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm,
-     referenced 2016-10-03.
+-Enable all ACPI hardware-related messages:
++Enable all ACPI hardware-related messages::
  
--[2] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
-+[2] Devicetree. http://www.devicetree.org, referenced 2016-10-03.
+     acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
  
- [3] Documentation/devicetree/bindings/graph.txt
+-Enable all ACPI_DB_INFO messages after boot:
++Enable all ACPI_DB_INFO messages after boot::
  
- [4] Device Properties UUID For _DSD.
--    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
-+    http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf,
-     referenced 2016-10-04.
+     # echo 0x4 > /sys/module/acpi/parameters/debug_level
  
- [5] Hierarchical Data Extension UUID For _DSD.
--    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf>,
-+    http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf,
-     referenced 2016-10-04.
+-Show all valid component values:
++Show all valid component values::
  
- [6] Advanced Configuration and Power Interface Specification.
--    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
-+    http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf,
-     referenced 2016-10-04.
- 
- [7] _DSD Device Properties Usage Rules.
--    Documentation/acpi/DSD-properties-rules.txt
-+    :doc:`../DSD-properties-rules`
+     # cat /sys/module/acpi/parameters/debug_layer
 diff --git a/Documentation/acpi/index.rst b/Documentation/acpi/index.rst
-index 909f12833692..40a628b2be21 100644
+index b680fb13f445..ee0000a396e4 100644
 --- a/Documentation/acpi/index.rst
 +++ b/Documentation/acpi/index.rst
-@@ -9,6 +9,7 @@ Linux ACPI (Advanced Configuration and Power Interface)
- 
-    linuxized-acpica
-    namespace
-+   dsd/graph
-    enumeration
-    osi
-    DSD-properties-rules
+@@ -21,3 +21,4 @@ Linux ACPI (Advanced Configuration and Power Interface)
+    method-customizing
+    initrd_table_override
+    dsdt-override
++   debug
 -- 
 2.20.1
