@@ -1,9 +1,10 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v2 21/24] acpi doc: convert acpi/cppc_sysfs.txt to rst format
-Date: Fri, 29 Mar 2019 08:11:32 +0800
-Message-ID: <20190329001135.15847-22-changbin.du@gmail.com>
+Subject: [PATCH v2 22/24] acpi doc: convert acpi/lpit.txt to rst format
+Date: Fri, 29 Mar 2019 08:11:33 +0800
+Message-ID: <20190329001135.15847-23-changbin.du@gmail.com>
 References: <20190329001135.15847-1-changbin.du@gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190329001135.15847-1-changbin.du@gmail.com>
@@ -17,126 +18,57 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- .../acpi/{cppc_sysfs.txt => cppc_sysfs.rst}   | 71 ++++++++++---------
- Documentation/acpi/index.rst                  |  1 +
- 2 files changed, 40 insertions(+), 32 deletions(-)
- rename Documentation/acpi/{cppc_sysfs.txt => cppc_sysfs.rst} (51%)
+ Documentation/acpi/index.rst              |  1 +
+ Documentation/acpi/{lpit.txt => lpit.rst} | 18 +++++++++++++-----
+ 2 files changed, 14 insertions(+), 5 deletions(-)
+ rename Documentation/acpi/{lpit.txt => lpit.rst} (68%)
 
-diff --git a/Documentation/acpi/cppc_sysfs.txt b/Documentation/acpi/cppc_sysfs.rst
-similarity index 51%
-rename from Documentation/acpi/cppc_sysfs.txt
-rename to Documentation/acpi/cppc_sysfs.rst
-index f20fb445135d..a4b99afbe331 100644
---- a/Documentation/acpi/cppc_sysfs.txt
-+++ b/Documentation/acpi/cppc_sysfs.rst
-@@ -1,5 +1,11 @@
-+.. SPDX-License-Identifier: GPL-2.0
- 
--	Collaborative Processor Performance Control (CPPC)
-+==================================================
-+Collaborative Processor Performance Control (CPPC)
-+==================================================
-+
-+CPPC
-+====
- 
- CPPC defined in the ACPI spec describes a mechanism for the OS to manage the
- performance of a logical processor on a contigious and abstract performance
-@@ -10,31 +16,28 @@ For more details on CPPC please refer to the ACPI specification at:
- 
- http://uefi.org/specifications
- 
--Some of the CPPC registers are exposed via sysfs under:
--
--/sys/devices/system/cpu/cpuX/acpi_cppc/
--
--for each cpu X
-+Some of the CPPC registers are exposed via sysfs under::
- 
----------------------------------------------------------------------------------
-+  /sys/devices/system/cpu/cpuX/acpi_cppc/
- 
--$ ls -lR  /sys/devices/system/cpu/cpu0/acpi_cppc/
--/sys/devices/system/cpu/cpu0/acpi_cppc/:
--total 0
---r--r--r-- 1 root root 65536 Mar  5 19:38 feedback_ctrs
---r--r--r-- 1 root root 65536 Mar  5 19:38 highest_perf
---r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_freq
---r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_nonlinear_perf
---r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_perf
---r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_freq
---r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_perf
---r--r--r-- 1 root root 65536 Mar  5 19:38 reference_perf
---r--r--r-- 1 root root 65536 Mar  5 19:38 wraparound_time
-+for each cpu X::
- 
----------------------------------------------------------------------------------
-+  $ ls -lR  /sys/devices/system/cpu/cpu0/acpi_cppc/
-+  /sys/devices/system/cpu/cpu0/acpi_cppc/:
-+  total 0
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 feedback_ctrs
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 highest_perf
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_freq
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_nonlinear_perf
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_perf
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_freq
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_perf
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 reference_perf
-+  -r--r--r-- 1 root root 65536 Mar  5 19:38 wraparound_time
- 
- * highest_perf : Highest performance of this processor (abstract scale).
--* nominal_perf : Highest sustained performance of this processor (abstract scale).
-+* nominal_perf : Highest sustained performance of this processor
-+  (abstract scale).
- * lowest_nonlinear_perf : Lowest performance of this processor with nonlinear
-   power savings (abstract scale).
- * lowest_perf : Lowest performance of this processor (abstract scale).
-@@ -48,22 +51,26 @@ total 0
- * feedback_ctrs : Includes both Reference and delivered performance counter.
-   Reference counter ticks up proportional to processor's reference performance.
-   Delivered counter ticks up proportional to processor's delivered performance.
--* wraparound_time: Minimum time for the feedback counters to wraparound (seconds).
-+* wraparound_time: Minimum time for the feedback counters to wraparound
-+  (seconds).
- * reference_perf : Performance level at which reference performance counter
-   accumulates (abstract scale).
- 
----------------------------------------------------------------------------------
- 
--		Computing Average Delivered Performance
-+Computing Average Delivered Performance
-+=======================================
-+
-+Below describes the steps to compute the average performance delivered by
-+taking two different snapshots of feedback counters at time T1 and T2.
-+
-+  T1: Read feedback_ctrs as fbc_t1
-+      Wait or run some workload
- 
--Below describes the steps to compute the average performance delivered by taking
--two different snapshots of feedback counters at time T1 and T2.
-+  T2: Read feedback_ctrs as fbc_t2
- 
--T1: Read feedback_ctrs as fbc_t1
--    Wait or run some workload
--T2: Read feedback_ctrs as fbc_t2
-+::
- 
--delivered_counter_delta = fbc_t2[del] - fbc_t1[del]
--reference_counter_delta = fbc_t2[ref] - fbc_t1[ref]
-+  delivered_counter_delta = fbc_t2[del] - fbc_t1[del]
-+  reference_counter_delta = fbc_t2[ref] - fbc_t1[ref]
- 
--delivered_perf = (refernce_perf x delivered_counter_delta) / reference_counter_delta
-+  delivered_perf = (refernce_perf x delivered_counter_delta) / reference_counter_delta
 diff --git a/Documentation/acpi/index.rst b/Documentation/acpi/index.rst
-index bdd82615fef6..91aeed814ea9 100644
+index 91aeed814ea9..664807949272 100644
 --- a/Documentation/acpi/index.rst
 +++ b/Documentation/acpi/index.rst
-@@ -26,3 +26,4 @@ Linux ACPI (Advanced Configuration and Power Interface)
-    aml-debugger
+@@ -27,3 +27,4 @@ Linux ACPI (Advanced Configuration and Power Interface)
     apei/output_format
     apei/einj
-+   cppc_sysfs
+    cppc_sysfs
++   lpit
+diff --git a/Documentation/acpi/lpit.txt b/Documentation/acpi/lpit.rst
+similarity index 68%
+rename from Documentation/acpi/lpit.txt
+rename to Documentation/acpi/lpit.rst
+index b426398d2e97..aca928fab027 100644
+--- a/Documentation/acpi/lpit.txt
++++ b/Documentation/acpi/lpit.rst
+@@ -1,3 +1,9 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++===========================
++Low Power Idle Table (LPIT)
++===========================
++
+ To enumerate platform Low Power Idle states, Intel platforms are using
+ “Low Power Idle Table” (LPIT). More details about this table can be
+ downloaded from:
+@@ -8,13 +14,15 @@ Residencies for each low power state can be read via FFH
+ 
+ On platforms supporting S0ix sleep states, there can be two types of
+ residencies:
+-- CPU PKG C10 (Read via FFH interface)
+-- Platform Controller Hub (PCH) SLP_S0 (Read via memory mapped interface)
++
++  - CPU PKG C10 (Read via FFH interface)
++  - Platform Controller Hub (PCH) SLP_S0 (Read via memory mapped interface)
+ 
+ The following attributes are added dynamically to the cpuidle
+-sysfs attribute group:
+-	/sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
+-	/sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
++sysfs attribute group::
++
++  /sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
++  /sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
+ 
+ The "low_power_idle_cpu_residency_us" attribute shows time spent
+ by the CPU package in PKG C10
 -- 
 2.20.1
