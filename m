@@ -1,140 +1,62 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Fixing the GHES driver vs not causing issues in the first place
-Date: Fri, 29 Mar 2019 16:37:31 -0500
-Message-ID: <9acf86ac-a065-e093-347c-e35ac4069e08@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 02/10] extcon: axp288: Convert to use
+	acpi_dev_get_first_match_dev()
+Date: Fri, 29 Mar 2019 23:58:47 +0100
+Message-ID: <3488798.d5z7iexCG2@aspire.rjw.lan>
+References: <20190328171729.44002-1-andriy.shevchenko@linux.intel.com>
+ <20190328171729.44002-3-andriy.shevchenko@linux.intel.com>
+ <c5090422-e707-a774-f3ab-b5bf49cd6851@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, bp@alien8.de, "Bolen, Austin" <austin_bolen@dell.com>, Lukas Wunner <lukas@wunner.de>, Keith Busch <keith.busch@intel.com>, Jonathan Derrick <jonathan.derrick@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, Erik Schmauss <erik.schmauss@intel.com>, Robert Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <c5090422-e707-a774-f3ab-b5bf49cd6851@samsung.com>
+List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Mark Brown <broonie@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The issue of dying inside the GHES driver has popped up a few times before.
-I've looked into fixing this before, but we didn't quite come to agreement
-because the verbiage in the ACPI spec is vague:
-     " When a fatal uncorrected error occurs, the system is
-       restarted to prevent propagation of the error. "
-
-This popped up again a couple of times recently [1]. Linus suggested that
-fixing the GHES driver might pay higher dividends. I considered reviving 
-an old
-fix, but put it aside after hearing concerns about the unintended 
-consequences,
-which I'll get to soon.
-
-A few days back, I lost an entire MD RAID1. It was during hot-removal 
-testing
-that I do on an irregular basis, and a kernel panic from the GHES driver had
-caused the system to go down. I have seen some occasional filesystem 
-corruption
-in other crashes, but nothing fsck couldn't fix. The interesting part is 
-that
-the array that was lost was not part of the device set that was being
-hot-removed. The state of things doesn't seem very joyful.
-
-The machine in question is a Dell r740xd. It uses firmware-first (FFS)
-handling for PCIe errors, and is generally good at identifying a hot-removal
-and not bothering the OS about it. The events that I am testing for are
-situations where, due to slow operator, tilted drive, worn connectors, 
-errors
-make it past FFS to the OS -- with "fatal" severity.
-     In that case, the GHES driver sees a fatal hardware error and panics.
-On this machine, FFS reported it as fatal in an attempt to cause the 
-system to
-reboot, and prevent propagation of the error.
-
-     The "prevent propagation of the error" flow was designed around OSes
-that can't do recovery. Firmware assumes an instantaneous reboot, so it does
-not set itself up to report future errors. The EFI reference code does not
-re-arm errors, so we suspect most OEM's firmware will work this way. Despite
-the apparently enormous stupidity of crashing an otherwise perfectly good
-system, there are good and well thought out reasons behind it.
-     An example is reading a block of data from an NVMe drive, and
-encountering a CRC error on the PCIe bus. If we didn't  do an "instantaneous
-reboot" after a previous fatal error, we will not get the CRC error 
-reported.
-Thus, we risk silent data corruption.
-
-     On the Linux side, we can ignore the "fatal" nature of the error, and
-even recover the PCIe devices behind the error. However, this is ill 
-advised for
-the reason listed above.
-
-     The counter argument is that a panic() is more likely to cause
-filesystem corruption. In over one year of testing, I have not seen a single
-incident of data corruption, yet I have seen the boot ask me to run fsck on
-multiple occasions. And this seems to me like a tradeoff problem rather than
-anything else.
-
-     In the case of this Dell machine, there are ways to hot-swap PCIe
-devices them without needing to take either of the risks above:
-     1. Turn off the downstream port manually.
-     2. Insert/replace drive
-     3. Turn on the downstream port manually.
-
-     What bothers me is the firmware's assumption that a fatal error must
-crash the machine. I've looked at the the verbiage in the spec, and I don't
-fully agree that either side respects the contract.
-Our _OSC contract with the firmware says that firmware will report 
-errors to us,
-while we are not allowed to touch certain parts of the device. Following the
-verbiage in the spec, we do need to reboot on a fatal error, but that 
-reboot is
-not guaranteed to be instantaneous. Firmware still has to honor the contract
-and report errors to us. This may seem like a spec non-compliance issue.
-
-     It would be great if FFS would mark the errors as recoverable, but the
-level of validation required makes this unrealistic on existing 
-machines. New
-machines will likely move to the Containment Error Recovery model, which is
-essentially FFS for DPC (PCIe Downstream Port Containment). This leaves the
-current generation of servers in limbo -- I'm led to believe other 
-server OEMs
-have very similar issues.
-
-     Given the dilemma above, I'm really not sure what the right 
-solution is.
-How do we produce a fix that addresses complaints from both sides. When 
-firmware
-gives us a false positive, should we panic? Should we instead print a 
-message
-informing the user/admin that a reboot of the machine is required. Should we
-initiate a reboot automatically?
-
-     From Linux' ability to recover, PCIe fatal errors are false positives
--- every time, all the time. However, their fatality is not there 
-without any
-reason. I do want to avoid opinions that FFS wants us to crash, gives us the
-finger, and we should give the finger back.
-
-     Another option that was discussed before, but was very controversial is
-the fix that involves not causing the problem in the first place [1] 
-[2]. On the
-machines that I have access to, FFS is handled in SMM, which means that 
-all CPU
-cores are held up until the processing of the error is complete. On one
-particular machine (dual 40-core CPU) SMM will talk to the BMC over I/O 
-ports,
-which takes roughly 300 milliseconds. We're losing roughly 24 
-core-seconds to
-a check that might have taken us a couple of clock cycles.
-
-I'm hoping that I was able to give out a good overview of the problems 
-we are
-facing on FFS systems, and I hope that we can find some formula to deal with
-them in a way that is both pleasant and robust. Oh, FFS!
-
-Alex
-
-P.S. If there's interest, I can look for system logs that show the 300+ 
-ms gap
-caused by the SMM handler.
-
-
-[1] 
-https://lore.kernel.org/lkml/20190222010502.2434-1-jonathan.derrick@intel.com/T/#u
-[2] 
-https://lore.kernel.org/lkml/20190222194808.15962-1-mr.nuke.me@gmail.com/
+T24gRnJpZGF5LCBNYXJjaCAyOSwgMjAxOSAxOjUzOjA5IEFNIENFVCBDaGFud29vIENob2kgd3Jv
+dGU6Cj4gSGkgQW5keSwKPiAKPiBPbiAxOS4gMy4gMjkuIOyYpOyghCAyOjE3LCBBbmR5IFNoZXZj
+aGVua28gd3JvdGU6Cj4gPiBhY3BpX2Rldl9nZXRfZmlyc3RfbWF0Y2hfbmFtZSgpIGlzIGRlcHJl
+Y2F0ZWQgYW5kIGdvaW5nIHRvIGJlIHJlbW92ZWQKPiA+IGJlY2F1c2UgaXQgbGVha3MgYSByZWZl
+cmVuY2UuCj4gPiAKPiA+IENvbnZlcnQgdGhlIGRyaXZlciB0byB1c2UgYWNwaV9kZXZfZ2V0X2Zp
+cnN0X21hdGNoX2RldigpIGluc3RlYWQuCj4gPiAKPiA+IENjOiBDaGFud29vIENob2kgPGN3MDAu
+Y2hvaUBzYW1zdW5nLmNvbT4KPiA+IENjOiBNeXVuZ0pvbyBIYW0gPG15dW5nam9vLmhhbUBzYW1z
+dW5nLmNvbT4KPiA+IENjOiBDaGVuLVl1IFRzYWkgPHdlbnNAY3NpZS5vcmc+Cj4gPiBTaWduZWQt
+b2ZmLWJ5OiBBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNv
+bT4KPiA+IC0tLQo+ID4gIGRyaXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYyB8IDkgKysrKyst
+LS0tCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkK
+PiA+IAo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYyBiL2Ry
+aXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYwo+ID4gaW5kZXggYTk4MzcwOGI3N2E2Li41MGY5
+NDAyZmIzMjUgMTAwNjQ0Cj4gPiAtLS0gYS9kcml2ZXJzL2V4dGNvbi9leHRjb24tYXhwMjg4LmMK
+PiA+ICsrKyBiL2RyaXZlcnMvZXh0Y29uL2V4dGNvbi1heHAyODguYwo+ID4gQEAgLTMzMyw3ICsz
+MzMsNyBAQCBzdGF0aWMgaW50IGF4cDI4OF9leHRjb25fcHJvYmUoc3RydWN0IHBsYXRmb3JtX2Rl
+dmljZSAqcGRldikKPiA+ICAJc3RydWN0IGF4cDI4OF9leHRjb25faW5mbyAqaW5mbzsKPiA+ICAJ
+c3RydWN0IGF4cDIweF9kZXYgKmF4cDIweCA9IGRldl9nZXRfZHJ2ZGF0YShwZGV2LT5kZXYucGFy
+ZW50KTsKPiA+ICAJc3RydWN0IGRldmljZSAqZGV2ID0gJnBkZXYtPmRldjsKPiA+IC0JY29uc3Qg
+Y2hhciAqbmFtZTsKPiA+ICsJc3RydWN0IGFjcGlfZGV2aWNlICphZGV2Owo+ID4gIAlpbnQgcmV0
+LCBpLCBwaXJxOwo+ID4gIAo+ID4gIAlpbmZvID0gZGV2bV9remFsbG9jKCZwZGV2LT5kZXYsIHNp
+emVvZigqaW5mbyksIEdGUF9LRVJORUwpOwo+ID4gQEAgLTM1Nyw5ICszNTcsMTAgQEAgc3RhdGlj
+IGludCBheHAyODhfZXh0Y29uX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4g
+PiAgCQlpZiAocmV0KQo+ID4gIAkJCXJldHVybiByZXQ7Cj4gPiAgCj4gPiAtCQluYW1lID0gYWNw
+aV9kZXZfZ2V0X2ZpcnN0X21hdGNoX25hbWUoIklOVDM0OTYiLCBOVUxMLCAtMSk7Cj4gPiAtCQlp
+ZiAobmFtZSkgewo+ID4gLQkJCWluZm8tPmlkX2V4dGNvbiA9IGV4dGNvbl9nZXRfZXh0Y29uX2Rl
+dihuYW1lKTsKPiA+ICsJCWFkZXYgPSBhY3BpX2Rldl9nZXRfZmlyc3RfbWF0Y2hfZGV2KCJJTlQz
+NDk2IiwgTlVMTCwgLTEpOwo+ID4gKwkJaWYgKGFkZXYpIHsKPiA+ICsJCQlpbmZvLT5pZF9leHRj
+b24gPSBleHRjb25fZ2V0X2V4dGNvbl9kZXYoYWNwaV9kZXZfbmFtZShhZGV2KSk7Cj4gPiArCQkJ
+cHV0X2RldmljZSgmYWRldi0+ZGV2KTsKPiA+ICAJCQlpZiAoIWluZm8tPmlkX2V4dGNvbikKPiA+
+ICAJCQkJcmV0dXJuIC1FUFJPQkVfREVGRVI7Cj4gPiAgCj4gPiAKPiAKPiBBcHBsaWVkIGl0LiBU
+aGFua3MuCj4gCj4gCgpCdXQgaXQgd29uJ3QgYnVpbGQgd2l0aG91dCB0aGUgZmlyc3QgcGF0Y2gg
+SSBzdXBwb3NlPwoKQUNLLCBwbGVhc2U/CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNh
+LXByb2plY3Qub3JnCmh0dHBzOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlz
+dGluZm8vYWxzYS1kZXZlbAo=
