@@ -1,81 +1,44 @@
-From: Furquan Shaikh <furquan@google.com>
-Subject: Re: [PATCH] drivers/acpi: Clear status of an event before enabling it
-Date: Thu, 28 Mar 2019 16:48:24 -0700
-Message-ID: <CAEGmHFHvOJWOjgEz3mYBKGeb4+r_QfuLaWb=NW8mq7GTXdefVA@mail.gmail.com>
-References: <20190320222844.134765-1-furquan@google.com> <CAJZ5v0h7dYEFHSOHengJ3OFyXBW+XZVbjCAegpzqg1VxeeaXog@mail.gmail.com>
- <CAEGmHFEqhh_xYaTXsVHqSgNW-1Ao6-mtk0BPhgu3-8ua6cCZ-Q@mail.gmail.com>
- <CAJZ5v0hxNA_KHjcqSL4XPpQpB1M4UuWJcYOknex=NOGavoooHA@mail.gmail.com>
- <CAEGmHFHaFk6v=vcciU3QNaQfLriWSJtQ5QUjciY+O8dLh3DhJA@mail.gmail.com> <CAJZ5v0jPJYM6n0OWBM17d3MF5h5B+an+LSRiXTHqboXZuXkcvw@mail.gmail.com>
+From: Changbin Du <changbin.du@gmail.com>
+Subject: Re: [PATCH 00/23] Include linux ACPI docs into Sphinx TOC tree
+Date: Fri, 29 Mar 2019 08:08:50 +0800
+Message-ID: <20190329000849.mwwktjbllqzwytcz@mail.google.com>
+References: <20190328162721.26138-1-changbin.du@gmail.com>
+ <158b68a902139066f53d308cc5a428774445a05b.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jPJYM6n0OWBM17d3MF5h5B+an+LSRiXTHqboXZuXkcvw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <158b68a902139066f53d308cc5a428774445a05b.camel@perches.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rajat Jain <rajatja@google.com>, Evan Green <evgreen@google.com>, Duncan Laurie <dlaurie@google.com>
+To: Joe Perches <joe@perches.com>
+Cc: Changbin Du <changbin.du@gmail.com>, Jonathan Corbet <corbet@lwn.net>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 28, 2019 at 1:57 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+On Thu, Mar 28, 2019 at 09:34:50AM -0700, Joe Perches wrote:
+> On Fri, 2019-03-29 at 00:26 +0800, Changbin Du wrote:
+> > Hi Corbet and All,
+> > The kernel now uses Sphinx to generate intelligent and beautiful documentation
+> > from reStructuredText files. I converted most of the Linux ACPI docs to rst
+> > format in this serias.
+> []
+> >  ...pio-properties.txt => gpio-properties.rst} |  76 +++--
+> 
+> Please also update this MAINTAINERS entry
 >
-> On Thu, Mar 28, 2019 at 1:46 AM Furquan Shaikh <furquan@google.com> wrote:
-> >
-> > On Wed, Mar 27, 2019 at 5:24 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > >
-> > > On Thu, Mar 21, 2019 at 3:16 AM Furquan Shaikh <furquan@google.com> wrote:
-> > > >
-> > > > On Wed, Mar 20, 2019 at 5:11 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > > > >
-> > > > > On Wed, Mar 20, 2019 at 11:34 PM Furquan Shaikh <furquan@google.com> wrote:
-> > > > > >
-> > > > > > Commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
-> > > > > > clearing ACPI IRQs during suspend/resume") was added to stop clearing
-> > > > > > of event status bits unconditionally on suspend and resume paths. This
-> > > > > > was done because of an issue
-> > > > > > reported (https://bugzilla.kernel.org/show_bug.cgi?id=196249) where
-> > > > > > lid status stays closed even on resume (which happens because event
-> > > > > > status bits are cleared unconditionally on resume). Though this change
-> > > > > > fixed the issue on suspend path, it introduced regressions on several
-> > > > > > resume paths.
-> > > > > >
-> > > > > > First regression was reported and fixed on S5 path by the following
-> > > > > > change: commit fa85015c0d95 ("ACPICA: Clear status of all events when
-> > > > > > entering S5"). Next regression was reported and fixed on all legacy
-> > > > > > sleep paths by the commit f317c7dc12b7 ("ACPICA: Clear status of all
-> > > > > > events when entering sleep states"). However, regression still exists
-> > > > > > on S0ix sleep path since it does not follow the legacy sleep path.
-> > > > >
-> > > > > What exactly is failing?
-> > > >
-> > > > Here is the failure scenario:
-> > > >
-> > > > 1. Consider the case of trackpad which acts as a wake source.
-> > > > 2. Since the pad is configured for SCI, GPE_STS gets set for that pad
-> > > > during normal interrupts as well (i.e. during probe at boot or when
-> > > > using the trackpad)
-> > >
-> > > I don't quite understand this.
-> > >
-> > > Is the same GPE used for signaling trackpad events in the system
-> > > working state and for wakeup?
-> >
-> > Yes. The same pad is being configured for interrupts (i.e. routed to
-> > APIC) during S0 as well as configured for GPE (i.e. routed for SCI) to
-> > cause wakes when in S0ix/S3. This pad is externally connected to
-> > trackpad interrupt line.
->
-> And the way the system is wired up causes the GPE status to be set
-> when it is enabled, I suppose?
+sure.
 
-That is correct.
+> MAINTAINERS-GPIO ACPI SUPPORT
+> MAINTAINERS-M:  Mika Westerberg <mika.westerberg@linux.intel.com>
+> MAINTAINERS-M:  Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> MAINTAINERS-L:  linux-gpio@vger.kernel.org
+> MAINTAINERS-L:  linux-acpi@vger.kernel.org
+> MAINTAINERS-S:  Maintained
+> MAINTAINERS:F:  Documentation/acpi/gpio-properties.txt
+> MAINTAINERS-F:  drivers/gpio/gpiolib-acpi.c
+> MAINTAINERS-
+> 
+> 
 
->
-> So effectively, you need to disable the active-state IRQ, then clear
-> the GPE status and enable it for wakeup.
->
-> OK, I'll queue up the patch (and talk to the upstream ACPICA people
-> about taking it in there).
-
-Thank you!
-
->
-> Thanks!
+-- 
+Cheers,
+Changbin Du
