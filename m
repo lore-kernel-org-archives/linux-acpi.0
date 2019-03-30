@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 38/52] ACPI / utils: Drop reference in test for device presence
-Date: Fri, 29 Mar 2019 20:52:45 -0400
-Message-ID: <20190330005301.26868-38-sashal@kernel.org>
-References: <20190330005301.26868-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 49/67] ACPI / utils: Drop reference in test for device presence
+Date: Fri, 29 Mar 2019 20:50:29 -0400
+Message-ID: <20190330005047.25998-49-sashal@kernel.org>
+References: <20190330005047.25998-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190330005301.26868-1-sashal@kernel.org>
+In-Reply-To: <20190330005047.25998-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
