@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 09/21] ACPI / SBS: Fix GPE storm on recent MacBookPro's
-Date: Fri, 29 Mar 2019 21:31:00 -0400
-Message-ID: <20190330013112.784-9-sashal@kernel.org>
-References: <20190330013112.784-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 18/57] ACPI / SBS: Fix GPE storm on recent MacBookPro's
+Date: Fri, 29 Mar 2019 21:28:11 -0400
+Message-ID: <20190330012854.32212-18-sashal@kernel.org>
+References: <20190330012854.32212-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190330013112.784-1-sashal@kernel.org>
+In-Reply-To: <20190330012854.32212-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: =?UTF-8?q?Ronald=20Tschal=C3=A4r?= <ronald@innovation.ch>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
@@ -39,10 +39,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index ad0b13ad4bbb..4a76000bcf7a 100644
+index 295b59271189..96c5e27967f4 100644
 --- a/drivers/acpi/sbs.c
 +++ b/drivers/acpi/sbs.c
-@@ -443,9 +443,13 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+@@ -441,9 +441,13 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
  
  	/*
  	 * The spec requires that bit 4 always be 1. If it's not set, assume
