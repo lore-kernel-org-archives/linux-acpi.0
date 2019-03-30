@@ -1,126 +1,62 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 31/57] ACPI: EC / PM: Disable non-wakeup GPEs for suspend-to-idle
-Date: Fri, 29 Mar 2019 21:28:24 -0400
-Message-ID: <20190330012854.32212-31-sashal@kernel.org>
-References: <20190330012854.32212-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 13/37] ACPI / SBS: Fix GPE storm on recent MacBookPro's
+Date: Fri, 29 Mar 2019 21:29:56 -0400
+Message-ID: <20190330013020.379-13-sashal@kernel.org>
+References: <20190330013020.379-1-sashal@kernel.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190330012854.32212-1-sashal@kernel.org>
+In-Reply-To: <20190330013020.379-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Cc: =?UTF-8?q?Ronald=20Tschal=C3=A4r?= <ronald@innovation.ch>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+From: Ronald Tschalär <ronald@innovation.ch>
 
-[ Upstream commit f941d3e41da7f86bdb9dcc1977c2bcc6b89bfe47 ]
+[ Upstream commit ca1721c5bee77105829cbd7baab8ee0eab85b06d ]
 
-There are systems in which non-wakeup GPEs fire during the "noirq"
-suspend stage of suspending devices and that effectively prevents the
-system that tries to suspend to idle from entering any low-power
-state at all.  If the offending GPE fires regularly and often enough,
-the system appears to be suspended, but in fact it is in a tight loop
-over "noirq" suspend and "noirq" resume of devices all the time.
+On Apple machines, plugging-in or unplugging the power triggers a GPE
+for the EC. Since these machines expose an SBS device, this GPE ends
+up triggering the acpi_sbs_callback(). This in turn tries to get the
+status of the SBS charger. However, on MBP13,* and MBP14,* machines,
+performing the smbus-read operation to get the charger's status triggers
+the EC's GPE again. The result is an endless re-triggering and handling
+of that GPE, consuming significant CPU resources (> 50% in irq).
 
-To prevent that from happening, disable all non-wakeup GPEs except
-for the EC GPE for suspend-to-idle (the EC GPE is special, because
-on some systems it has to be enabled for power button wakeup events
-to be generated as expected).
+In the end this is quite similar to commit 3031cddea633 (ACPI / SBS:
+Don't assume the existence of an SBS charger), except that on the above
+machines a status of all 1's is returned. And like there, we just want
+ignore the charger here.
 
-Fixes: 147a7d9d25ca (ACPI / PM: Do not reconfigure GPEs for suspend-to-idle)
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=201987
-Reported-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Tested-by: Zhang Rui <rui.zhang@intel.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=198169
+Signed-off-by: Ronald TschalÃ¤r <ronald@innovation.ch>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/ec.c       | 12 ++++++++++++
- drivers/acpi/internal.h |  2 ++
- drivers/acpi/sleep.c    | 11 +++++++++++
- 3 files changed, 25 insertions(+)
+ drivers/acpi/sbs.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index d4e5610e09c5..9d66a47d32fb 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1034,6 +1034,18 @@ void acpi_ec_unblock_transactions(void)
- 		acpi_ec_start(first_ec, true);
- }
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index a2428e9462dd..3c092f07d7e3 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -441,9 +441,13 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
  
-+void acpi_ec_mark_gpe_for_wake(void)
-+{
-+	if (first_ec && !ec_no_wakeup)
-+		acpi_mark_gpe_for_wake(NULL, first_ec->gpe);
-+}
-+
-+void acpi_ec_set_gpe_wake_mask(u8 action)
-+{
-+	if (first_ec && !ec_no_wakeup)
-+		acpi_set_gpe_wake_mask(NULL, first_ec->gpe, action);
-+}
-+
- void acpi_ec_dispatch_gpe(void)
- {
- 	if (first_ec)
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 530a3f675490..f59d0b9e2683 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -188,6 +188,8 @@ int acpi_ec_ecdt_probe(void);
- int acpi_ec_dsdt_probe(void);
- void acpi_ec_block_transactions(void);
- void acpi_ec_unblock_transactions(void);
-+void acpi_ec_mark_gpe_for_wake(void);
-+void acpi_ec_set_gpe_wake_mask(u8 action);
- void acpi_ec_dispatch_gpe(void);
- int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
- 			      acpi_handle handle, acpi_ec_query_func func,
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 754d59f95500..74c489047f57 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -940,6 +940,8 @@ static int lps0_device_attach(struct acpi_device *adev,
+ 	/*
+ 	 * The spec requires that bit 4 always be 1. If it's not set, assume
+-	 * that the implementation doesn't support an SBS charger
++	 * that the implementation doesn't support an SBS charger.
++	 *
++	 * And on some MacBooks a status of 0xffff is always returned, no
++	 * matter whether the charger is plugged in or not, which is also
++	 * wrong, so ignore the SBS charger for those too.
+ 	 */
+-	if (!((status >> 4) & 0x1))
++	if (!((status >> 4) & 0x1) || status == 0xffff)
+ 		return -ENODEV;
  
- 		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
- 				  bitmask);
-+
-+		acpi_ec_mark_gpe_for_wake();
- 	} else {
- 		acpi_handle_debug(adev->handle,
- 				  "_DSM function 0 evaluation failed\n");
-@@ -968,11 +970,16 @@ static int acpi_s2idle_prepare(void)
- 	if (lps0_device_handle) {
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
-+
-+		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
- 	}
- 
- 	if (acpi_sci_irq_valid())
- 		enable_irq_wake(acpi_sci_irq);
- 
-+	/* Change the configuration of GPEs to avoid spurious wakeup. */
-+	acpi_enable_all_wakeup_gpes();
-+	acpi_os_wait_events_complete();
- 	return 0;
- }
- 
-@@ -1017,10 +1024,14 @@ static void acpi_s2idle_sync(void)
- 
- static void acpi_s2idle_restore(void)
- {
-+	acpi_enable_all_runtime_gpes();
-+
- 	if (acpi_sci_irq_valid())
- 		disable_irq_wake(acpi_sci_irq);
- 
- 	if (lps0_device_handle) {
-+		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
-+
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON);
- 	}
+ 	sbs->charger_present = (status >> 15) & 0x1;
 -- 
 2.19.1
