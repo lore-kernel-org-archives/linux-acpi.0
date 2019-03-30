@@ -1,48 +1,126 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 49/67] ACPI / utils: Drop reference in test for device presence
-Date: Fri, 29 Mar 2019 20:50:29 -0400
-Message-ID: <20190330005047.25998-49-sashal@kernel.org>
-References: <20190330005047.25998-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 31/57] ACPI: EC / PM: Disable non-wakeup GPEs for suspend-to-idle
+Date: Fri, 29 Mar 2019 21:28:24 -0400
+Message-ID: <20190330012854.32212-31-sashal@kernel.org>
+References: <20190330012854.32212-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190330005047.25998-1-sashal@kernel.org>
+In-Reply-To: <20190330012854.32212-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-[ Upstream commit 54e3aca84e571559915998aa6cc05e5ac37c043b ]
+[ Upstream commit f941d3e41da7f86bdb9dcc1977c2bcc6b89bfe47 ]
 
-When commit 8661423eea1a ("ACPI / utils: Add new acpi_dev_present
-helper") introduced acpi_dev_present(), it missed the fact that
-bus_find_device() took a reference on the device found by it and
-the callers of acpi_dev_present() don't drop that reference.
+There are systems in which non-wakeup GPEs fire during the "noirq"
+suspend stage of suspending devices and that effectively prevents the
+system that tries to suspend to idle from entering any low-power
+state at all.  If the offending GPE fires regularly and often enough,
+the system appears to be suspended, but in fact it is in a tight loop
+over "noirq" suspend and "noirq" resume of devices all the time.
 
-Drop the reference on the device in acpi_dev_present().
+To prevent that from happening, disable all non-wakeup GPEs except
+for the EC GPE for suspend-to-idle (the EC GPE is special, because
+on some systems it has to be enabled for power button wakeup events
+to be generated as expected).
 
-Fixes: 8661423eea1a ("ACPI / utils: Add new acpi_dev_present helper")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+Fixes: 147a7d9d25ca (ACPI / PM: Do not reconfigure GPEs for suspend-to-idle)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=201987
+Reported-by: Zhang Rui <rui.zhang@intel.com>
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Tested-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/utils.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/ec.c       | 12 ++++++++++++
+ drivers/acpi/internal.h |  2 ++
+ drivers/acpi/sleep.c    | 11 +++++++++++
+ 3 files changed, 25 insertions(+)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 78db97687f26..c4b06cc075f9 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -800,6 +800,7 @@ bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
- 	match.hrv = hrv;
- 
- 	dev = bus_find_device(&acpi_bus_type, NULL, &match, acpi_dev_match_cb);
-+	put_device(dev);
- 	return !!dev;
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index d4e5610e09c5..9d66a47d32fb 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1034,6 +1034,18 @@ void acpi_ec_unblock_transactions(void)
+ 		acpi_ec_start(first_ec, true);
  }
- EXPORT_SYMBOL(acpi_dev_present);
+ 
++void acpi_ec_mark_gpe_for_wake(void)
++{
++	if (first_ec && !ec_no_wakeup)
++		acpi_mark_gpe_for_wake(NULL, first_ec->gpe);
++}
++
++void acpi_ec_set_gpe_wake_mask(u8 action)
++{
++	if (first_ec && !ec_no_wakeup)
++		acpi_set_gpe_wake_mask(NULL, first_ec->gpe, action);
++}
++
+ void acpi_ec_dispatch_gpe(void)
+ {
+ 	if (first_ec)
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 530a3f675490..f59d0b9e2683 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -188,6 +188,8 @@ int acpi_ec_ecdt_probe(void);
+ int acpi_ec_dsdt_probe(void);
+ void acpi_ec_block_transactions(void);
+ void acpi_ec_unblock_transactions(void);
++void acpi_ec_mark_gpe_for_wake(void);
++void acpi_ec_set_gpe_wake_mask(u8 action);
+ void acpi_ec_dispatch_gpe(void);
+ int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
+ 			      acpi_handle handle, acpi_ec_query_func func,
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 754d59f95500..74c489047f57 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -940,6 +940,8 @@ static int lps0_device_attach(struct acpi_device *adev,
+ 
+ 		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
+ 				  bitmask);
++
++		acpi_ec_mark_gpe_for_wake();
+ 	} else {
+ 		acpi_handle_debug(adev->handle,
+ 				  "_DSM function 0 evaluation failed\n");
+@@ -968,11 +970,16 @@ static int acpi_s2idle_prepare(void)
+ 	if (lps0_device_handle) {
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
++
++		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
+ 	}
+ 
+ 	if (acpi_sci_irq_valid())
+ 		enable_irq_wake(acpi_sci_irq);
+ 
++	/* Change the configuration of GPEs to avoid spurious wakeup. */
++	acpi_enable_all_wakeup_gpes();
++	acpi_os_wait_events_complete();
+ 	return 0;
+ }
+ 
+@@ -1017,10 +1024,14 @@ static void acpi_s2idle_sync(void)
+ 
+ static void acpi_s2idle_restore(void)
+ {
++	acpi_enable_all_runtime_gpes();
++
+ 	if (acpi_sci_irq_valid())
+ 		disable_irq_wake(acpi_sci_irq);
+ 
+ 	if (lps0_device_handle) {
++		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
++
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON);
+ 	}
 -- 
 2.19.1
