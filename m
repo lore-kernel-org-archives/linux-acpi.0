@@ -1,129 +1,169 @@
 From: Hanna Hawa <hhhawa@amazon.com>
-Subject: [PATCH 4/7] irqchip/al-msi: Update wrong parameter naming
-Date: Sun, 31 Mar 2019 15:34:12 +0300
-Message-ID: <1554035655-11352-5-git-send-email-hhhawa@amazon.com>
-References: <1554035655-11352-1-git-send-email-hhhawa@amazon.com>
+Subject: [PATCH 6/7] irqchip/al-msi: Refactor in preparation to add ACPI support
+Date: Sun, 31 Mar 2019 15:35:32 +0300
+Message-ID: <1554035733-11827-2-git-send-email-hhhawa@amazon.com>
+References: <1554035733-11827-1-git-send-email-hhhawa@amazon.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1554035655-11352-1-git-send-email-hhhawa@amazon.com>
+In-Reply-To: <1554035733-11827-1-git-send-email-hhhawa@amazon.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tsahee@annapurnalabs.com, antoine.tenart@bootlin.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
 Cc: ronenk@amazon.com, dwmw@amazon.co.uk, vaerov@amazon.com, zeev@amazon.com, alisaidi@amazon.com, talel@amazon.com, hhhawa@amazon.com, jonnyc@amazon.com, hanochu@amazon.com, barakw@amazon.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Update the naming of sgi parameter to be spi, and fix comments.
-
-The message interrupts target the SPIs in the target GIC, and not the
-SGIs.
-
-No functional change in this patch.
+Move common parts which will be shared between DT and ACPI parsing, to
+a common function.
 
 Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
 ---
- drivers/irqchip/irq-al-msi.c | 34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ drivers/irqchip/irq-al-msi.c | 87 +++++++++++++++++++++++++-------------------
+ 1 file changed, 49 insertions(+), 38 deletions(-)
 
 diff --git a/drivers/irqchip/irq-al-msi.c b/drivers/irqchip/irq-al-msi.c
-index a1bbefc..f04a311c 100644
+index f04a311c..ec27455 100644
 --- a/drivers/irqchip/irq-al-msi.c
 +++ b/drivers/irqchip/irq-al-msi.c
-@@ -28,8 +28,8 @@
+@@ -26,6 +26,7 @@
+ #define AL_MSIX_SPI_TARGET_CLUSTER0		BIT(16)
+ 
  struct al_msix_data {
++	struct fwnode_handle *msi_domain_handle;
  	spinlock_t msi_map_lock;
  	phys_addr_t addr;
--	u32 spi_first;		/* The SGI number that MSIs start */
--	u32 num_spis;		/* The number of SGIs for MSIs */
-+	u32 spi_first;		/* The SPI number that MSIs start */
-+	u32 num_spis;		/* The number of SPIs for MSIs */
- 	unsigned long *msi_map;
+ 	u32 spi_first;		/* The SPI number that MSIs start */
+@@ -190,22 +191,9 @@ static const struct irq_domain_ops al_msix_middle_domain_ops = {
  };
  
-@@ -53,7 +53,7 @@ static struct irq_chip al_msix_irq_chip = {
- 	.irq_set_affinity	= irq_chip_set_affinity_parent,
- };
- 
--static int al_msix_allocate_sgi(struct al_msix_data *priv, int num_req)
-+static int al_msix_allocate_spi(struct al_msix_data *priv, int num_req)
+ static int al_msix_init_domains(struct al_msix_data *priv,
+-				struct device_node *node)
++				struct irq_domain *gic_domain)
  {
- 	int first;
+-	struct irq_domain *middle_domain, *msi_domain, *gic_domain;
+-	struct device_node *gic_node;
+-
+-	gic_node = of_irq_find_parent(node);
+-	if (!gic_node) {
+-		pr_err("Failed to find the GIC node\n");
+-		return -ENODEV;
+-	}
+-
+-	gic_domain = irq_find_host(gic_node);
+-	if (!gic_domain) {
+-		pr_err("Failed to find the GIC domain\n");
+-		return -ENXIO;
+-	}
++	struct irq_domain *middle_domain, *msi_domain;
  
-@@ -73,10 +73,10 @@ static int al_msix_allocate_sgi(struct al_msix_data *priv, int num_req)
- 	return priv->spi_first + first;
+ 	middle_domain = irq_domain_add_tree(NULL, &al_msix_middle_domain_ops,
+ 					    priv);
+@@ -216,7 +204,7 @@ static int al_msix_init_domains(struct al_msix_data *priv,
+ 
+ 	middle_domain->parent = gic_domain;
+ 
+-	msi_domain = pci_msi_create_irq_domain(of_node_to_fwnode(node),
++	msi_domain = pci_msi_create_irq_domain(priv->msi_domain_handle,
+ 					       &al_msix_domain_info,
+ 					       middle_domain);
+ 	if (!msi_domain) {
+@@ -228,34 +216,62 @@ static int al_msix_init_domains(struct al_msix_data *priv,
+ 	return 0;
  }
  
--static void al_msix_free_sgi(struct al_msix_data *priv, unsigned int sgi,
-+static void al_msix_free_spi(struct al_msix_data *priv, unsigned int spi,
- 			     int num_req)
++static int al_msix_init_common(struct al_msix_data *priv, u64 base_address)
++{
++	spin_lock_init(&priv->msi_map_lock);
++
++	/*
++	 * The 20 least significant bits of addr provide direct information
++	 * regarding the interrupt destination.
++	 *
++	 * To select the primary GIC as the target GIC, bits [18:17] must be set
++	 * to 0x0. In this case, bit 16 (SPI_TARGET_CLUSTER0) must be set.
++	 */
++	priv->addr = base_address & GENMASK_ULL(63, 20);
++	priv->addr |= AL_MSIX_SPI_TARGET_CLUSTER0;
++
++	priv->msi_map = kcalloc(BITS_TO_LONGS(priv->num_spis),
++				sizeof(*priv->msi_map),
++				GFP_KERNEL);
++	if (!priv->msi_map)
++		return -ENOMEM;
++
++	pr_debug("Registering %d msixs, starting at %d\n", priv->num_spis,
++		 priv->spi_first);
++
++	return 0;
++}
++
+ static int al_msix_init(struct device_node *node, struct device_node *parent)
  {
--	int first = sgi - priv->spi_first;
-+	int first = spi - priv->spi_first;
+ 	struct al_msix_data *priv;
+ 	struct resource res;
++	struct device_node *gic_node;
++	struct irq_domain *gic_domain;
+ 	int ret;
  
- 	spin_lock(&priv->msi_map_lock);
++	gic_node = of_irq_find_parent(node);
++	if (!gic_node) {
++		pr_err("Failed to find the GIC node\n");
++		return -ENODEV;
++	}
++
++	gic_domain = irq_find_host(gic_node);
++	if (!gic_domain) {
++		pr_err("Failed to find the GIC domain\n");
++		return -ENXIO;
++	}
++
+ 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+ 		return -ENOMEM;
  
-@@ -119,7 +119,7 @@ static struct irq_chip middle_irq_chip = {
- };
- 
- static int al_msix_gic_domain_alloc(struct irq_domain *domain,
--				    unsigned int virq, int sgi)
-+				    unsigned int virq, int spi)
- {
- 	struct irq_fwspec fwspec;
- 	struct irq_data *d;
-@@ -131,7 +131,7 @@ static int al_msix_gic_domain_alloc(struct irq_domain *domain,
- 	fwspec.fwnode = domain->parent->fwnode;
- 	fwspec.param_count = 3;
- 	fwspec.param[0] = 0;
--	fwspec.param[1] = sgi;
-+	fwspec.param[1] = spi;
- 	fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
- 
- 	ret = irq_domain_alloc_irqs_parent(domain, virq, 1, &fwspec);
-@@ -149,27 +149,27 @@ static int al_msix_middle_domain_alloc(struct irq_domain *domain,
- 				       unsigned int nr_irqs, void *args)
- {
- 	struct al_msix_data *priv = domain->host_data;
--	int sgi, err, i;
-+	int spi, err, i;
- 
--	sgi = al_msix_allocate_sgi(priv, nr_irqs);
--	if (sgi < 0)
--		return sgi;
-+	spi = al_msix_allocate_spi(priv, nr_irqs);
-+	if (spi < 0)
-+		return spi;
- 
- 	for (i = 0; i < nr_irqs; i++) {
--		err = al_msix_gic_domain_alloc(domain, virq + i, sgi + i);
-+		err = al_msix_gic_domain_alloc(domain, virq + i, spi + i);
- 		if (err)
--			goto err_sgi;
-+			goto err_spi;
- 
--		irq_domain_set_hwirq_and_chip(domain, virq + i, sgi + i,
-+		irq_domain_set_hwirq_and_chip(domain, virq + i, spi + i,
- 					      &middle_irq_chip, priv);
+-	spin_lock_init(&priv->msi_map_lock);
+-
+ 	ret = of_address_to_resource(node, 0, &res);
+ 	if (ret) {
+ 		pr_err("Failed to allocate resource\n");
+ 		goto err_priv;
  	}
  
- 	return 0;
+-	/*
+-	 * The 20 least significant bits of addr provide direct information
+-	 * regarding the interrupt destination.
+-	 *
+-	 * To select the primary GIC as the target GIC, bits [18:17] must be set
+-	 * to 0x0. In this case, bit 16 (SPI_TARGET_CLUSTER0) must be set.
+-	 */
+-	priv->addr = res.start & GENMASK_ULL(63, 20);
+-	priv->addr |= AL_MSIX_SPI_TARGET_CLUSTER0;
+-
+ 	if (of_property_read_u32(node, "al,msi-base-spi", &priv->spi_first)) {
+ 		pr_err("Unable to parse MSI base\n");
+ 		ret = -EINVAL;
+@@ -268,18 +284,13 @@ static int al_msix_init(struct device_node *node, struct device_node *parent)
+ 		goto err_priv;
+ 	}
  
--err_sgi:
-+err_spi:
- 	while (--i >= 0)
- 		irq_domain_free_irqs_parent(domain, virq, i);
--	al_msix_free_sgi(priv, sgi, nr_irqs);
-+	al_msix_free_spi(priv, spi, nr_irqs);
- 	return err;
- }
+-	priv->msi_map = kcalloc(BITS_TO_LONGS(priv->num_spis),
+-				sizeof(*priv->msi_map),
+-				GFP_KERNEL);
+-	if (!priv->msi_map) {
+-		ret = -ENOMEM;
+-		goto err_priv;
+-	}
++	priv->msi_domain_handle = of_node_to_fwnode(node);
  
-@@ -181,7 +181,7 @@ static void al_msix_middle_domain_free(struct irq_domain *domain,
- 	struct al_msix_data *priv = irq_data_get_irq_chip_data(d);
+-	pr_debug("Registering %d msixs, starting at %d\n",
+-		 priv->num_spis, priv->spi_first);
++	ret = al_msix_init_common(priv, res.start);
++	if (ret)
++		goto err_priv;
  
- 	irq_domain_free_irqs_parent(domain, virq, nr_irqs);
--	al_msix_free_sgi(priv, d->hwirq, nr_irqs);
-+	al_msix_free_spi(priv, d->hwirq, nr_irqs);
- }
+-	ret = al_msix_init_domains(priv, node);
++	ret = al_msix_init_domains(priv, gic_domain);
+ 	if (ret)
+ 		goto err_map;
  
- static const struct irq_domain_ops al_msix_middle_domain_ops = {
 -- 
 2.7.4
