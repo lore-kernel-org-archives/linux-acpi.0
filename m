@@ -1,32 +1,52 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v2 3/6] device property: Add a function to obtain a
- node's prefix
-Date: Sun, 31 Mar 2019 01:42:13 -0500
-Message-ID: <5ca06147.1c69fb81.f8db8.1219@mx.google.com>
-References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
- <20190326124106.27694-4-sakari.ailus@linux.intel.com>
+From: Hanna Hawa <hhhawa@amazon.com>
+Subject: [PATCH 1/7] irqchip/alpine-msi: Call IOMMU DMA mapping MSI message hook
+Date: Sun, 31 Mar 2019 15:34:09 +0300
+Message-ID: <1554035655-11352-2-git-send-email-hhhawa@amazon.com>
+References: <1554035655-11352-1-git-send-email-hhhawa@amazon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190326124106.27694-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <1554035655-11352-1-git-send-email-hhhawa@amazon.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: tsahee@annapurnalabs.com, antoine.tenart@bootlin.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: ronenk@amazon.com, dwmw@amazon.co.uk, vaerov@amazon.com, zeev@amazon.com, alisaidi@amazon.com, talel@amazon.com, hhhawa@amazon.com, jonnyc@amazon.com, hanochu@amazon.com, barakw@amazon.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 26, 2019 at 02:41:03PM +0200, Sakari Ailus wrote:
-> The prefix is used for printing purpose before a node, and it also works
-> as a separator between two nodes.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/acpi/property.c  | 22 ++++++++++++++++++++++
->  drivers/base/property.c  | 12 ++++++++++++
->  drivers/of/property.c    | 10 ++++++++++
+Add missing IOMMU DMA mapping MSI message hook in compose_msi_msg()
+callback for Alpine MSIx driver, to map the MSI physical address to
+IOMMU IOVA for any device attached to IOMMU DMA ops domains.
 
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
+Co-developed-by: Vladimir Aerov <vaerov@amazon.com>
+Signed-off-by: Vladimir Aerov <vaerov@amazon.com>
+---
+ drivers/irqchip/irq-alpine-msi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
->  include/linux/fwnode.h   |  2 ++
->  include/linux/property.h |  1 +
->  5 files changed, 47 insertions(+)
+diff --git a/drivers/irqchip/irq-alpine-msi.c b/drivers/irqchip/irq-alpine-msi.c
+index 23a3b87..ae2fca7 100644
+--- a/drivers/irqchip/irq-alpine-msi.c
++++ b/drivers/irqchip/irq-alpine-msi.c
+@@ -12,6 +12,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/dma-iommu.h>
+ #include <linux/irqchip.h>
+ #include <linux/irqchip/arm-gic.h>
+ #include <linux/msi.h>
+@@ -99,6 +100,12 @@ static void alpine_msix_compose_msi_msg(struct irq_data *data,
+ 	msg->address_hi = upper_32_bits(msg_addr);
+ 	msg->address_lo = lower_32_bits(msg_addr);
+ 	msg->data = 0;
++
++	/*
++	 * Mapping MSI address to IOMMU IOVA, relevant for devices associated
++	 * with IOMMU DMA ops domain.
++	 */
++	iommu_dma_map_msi_msg(data->irq, msg);
+ }
+ 
+ static struct msi_domain_info alpine_msix_domain_info = {
+-- 
+2.7.4
