@@ -1,67 +1,33 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH v2 01/24] Documentation: add Linux ACPI to Sphinx TOC tree
-Date: Sun, 31 Mar 2019 05:13:00 +0000
-Message-ID: <20190331051258.7f4una2eh7eeyctb@mail.google.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
- <20190329001135.15847-2-changbin.du@gmail.com>
- <CAJZ5v0h=tpzWJrt02ET28EG9hn6eSusLV68FZCV8nnXHDBxHEQ@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 2/6] device property: Add fwnode_get_name for
+ returning the name of a node
+Date: Sun, 31 Mar 2019 01:42:10 -0500
+Message-ID: <5ca06143.1c69fb81.65919.5944@mx.google.com>
+References: <20190326124106.27694-1-sakari.ailus@linux.intel.com>
+ <20190326124106.27694-3-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0h=tpzWJrt02ET28EG9hn6eSusLV68FZCV8nnXHDBxHEQ@mail.gmail.com>
+In-Reply-To: <20190326124106.27694-3-sakari.ailus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Changbin Du <changbin.du@gmail.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org, rafael@kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Mar 30, 2019 at 10:51:50AM +0100, Rafael J. Wysocki wrote:
-> On Fri, Mar 29, 2019 at 1:12 AM Changbin Du <changbin.du@gmail.com> wrote:
-> >
-> > Add a index.rst for trace subsystem. More docs will be added later.
-> >
-> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
-> > ---
-> >  Documentation/acpi/index.rst | 8 ++++++++
-> >  Documentation/index.rst      | 1 +
-> >  2 files changed, 9 insertions(+)
-> >  create mode 100644 Documentation/acpi/index.rst
-> >
-> > diff --git a/Documentation/acpi/index.rst b/Documentation/acpi/index.rst
-> > new file mode 100644
-> > index 000000000000..7241ceb1673c
-> > --- /dev/null
-> > +++ b/Documentation/acpi/index.rst
-> > @@ -0,0 +1,8 @@
-> > +.. SPDX-License-Identifier: GPL-2.0
-> > +
-> > +=======================================================
-> > +Linux ACPI (Advanced Configuration and Power Interface)
+On Tue, Mar 26, 2019 at 02:41:02PM +0200, Sakari Ailus wrote:
+> The fwnode framework did not have means to obtain the name of a node. Add
+> that now, in form of the fwnode_get_name() function and a corresponding
+> get_name fwnode op. OF and ACPI support is included.
 > 
-> "Linux ACPI Support", please.
-> 
-sure.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/acpi/property.c  | 24 ++++++++++++++++++++++++
+>  drivers/base/property.c  | 11 +++++++++++
+>  drivers/of/property.c    |  6 ++++++
 
-> > +=======================================================
-> > +
-> > +.. toctree::
-> > +   :maxdepth: 2
-> > diff --git a/Documentation/index.rst b/Documentation/index.rst
-> > index 80a421cb935e..e3aa28275894 100644
-> > --- a/Documentation/index.rst
-> > +++ b/Documentation/index.rst
-> > @@ -90,6 +90,7 @@ needed).
-> >     filesystems/index
-> >     vm/index
-> >     bpf/index
-> > +   acpi/index
-> >     misc-devices/index
-> >
-> >  Architecture-specific documentation
-> > --
-> > 2.20.1
-> >
+Acked-by: Rob Herring <robh@kernel.org>
 
--- 
-Cheers,
-Changbin Du
+>  include/linux/fwnode.h   |  2 ++
+>  include/linux/property.h |  1 +
+>  5 files changed, 44 insertions(+)
