@@ -1,42 +1,70 @@
-From: Keith Busch <kbusch@kernel.org>
-Subject: Re: [PATCHv8 07/10] acpi/hmat: Register processor domain to its
- memory
-Date: Sun, 31 Mar 2019 23:00:16 -0600
-Message-ID: <20190401050016.GA16792@localhost.localdomain>
-References: <20190311205606.11228-1-keith.busch@intel.com>
- <20190311205606.11228-8-keith.busch@intel.com>
- <CAPcyv4j5bLiUtmjdnjt7KNOtNm4sRHWp=5T3m1bWD=U1zBXeqQ@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 01/10] ACPI / utils: Introduce
+ acpi_dev_get_first_match_dev() helper
+Date: Mon, 1 Apr 2019 14:23:08 +0700
+Message-ID: <20190401072308.GD2059@sirena.org.uk>
+References: <20190328171729.44002-1-andriy.shevchenko@linux.intel.com>
+ <20190328171729.44002-2-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4j5bLiUtmjdnjt7KNOtNm4sRHWp=5T3m1bWD=U1zBXeqQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux API <linux-api@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Jonathan Cameron <jonathan.cameron@huawei.com>, Brice Goglin <Brice.Goglin@inria.fr>
+Content-Type: multipart/mixed; boundary="===============5911700954738424892=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20190328171729.44002-2-andriy.shevchenko@linux.intel.com>
+List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 29, 2019 at 02:15:03PM -0700, Dan Williams wrote:
-> On Mon, Mar 11, 2019 at 1:55 PM Keith Busch <keith.busch@intel.com> wrote:
-> > +static __init struct memory_target *find_mem_target(unsigned int mem_pxm)
-> > +{
-> > +       struct memory_target *target;
-> > +
-> > +       list_for_each_entry(target, &targets, node)
-> > +               if (target->memory_pxm == mem_pxm)
-> > +                       return target;
-> > +       return NULL;
-> 
-> The above implementation assumes that every SRAT entry has a unique
-> @mem_pxm. I don't think that's valid if the memory map is sparse,
-> right?
 
-Oh, we don't really care if multiple entries report the same PXM. We do
-assume there may be multiple entires with the same PXM and have tested
-this, but we're just allocating one memory target per unique memory
-PXM and consider multiple entires comprise the same memory target. That
-is okay if since we only need to identify unique PXMs and have no use
-for the adderss ranges that make up that target, which is the case
-for this series. I see you have a future use that has address ranges
-considerations, so separate targets for sparse ranges can definitely
-be added.
+--===============5911700954738424892==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="tNQTSEo8WG/FKZ8E"
+Content-Disposition: inline
+
+
+--tNQTSEo8WG/FKZ8E
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Mar 28, 2019 at 07:17:20PM +0200, Andy Shevchenko wrote:
+> The acpi_dev_get_first_match_name() is missing put_device() call
+> and thus keeping reference counting unbalanced.
+>=20
+> In order to fix the issue introduce a new helper to convert existing users
+> one-by-one to a better API. And then remove the old one.
+
+Acked-by: Mark Brown <broonie@kernel.org>
+
+--tNQTSEo8WG/FKZ8E
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlyhvFkACgkQJNaLcl1U
+h9CfVwf9HI0pZk+Z+ehn8o4fu2GIlocSGL0J3RM/XTqgcfr7l25I8VJ5OY4XIjvx
+CF78KzbqnSzYe1cozgb5ZfpCq/m9CWEftEyyH8LG2K8rvkG34uG8+4hcG2CiRf4m
+9evfeVg7f4Pgh5bAWji9ATYHn66ad6KC/hI5D1A2P/57r4H99d9XOav0OJDYUr4R
+JalXFc90uj5uzT3nhKtFtdXOCY34Z/pqwRTBI9zh8bJKWqIoYjOXSVF5PT9QbAc8
+YColLAcXSTGujFMTAfIt1OegQCVHU6u/dQIIEfdIzpLK0tG16lML9ahExfpXoZvO
+nnJ0uDdr5AxtS3HvlvfLmJadwLw+lw==
+=6KQ6
+-----END PGP SIGNATURE-----
+
+--tNQTSEo8WG/FKZ8E--
+
+--===============5911700954738424892==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============5911700954738424892==--
