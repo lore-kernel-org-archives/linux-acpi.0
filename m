@@ -1,53 +1,38 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 00/10] ACPI / utils: Replace leaky
-	function
-Date: Tue, 2 Apr 2019 13:37:40 +0300
-Message-ID: <20190402103740.GI9224@smile.fi.intel.com>
-References: <20190328171729.44002-1-andriy.shevchenko@linux.intel.com>
- <4456530.mAAcKWZnvW@aspire.rjw.lan>
- <CAJZ5v0gppf2xdQCz29gFkoP+9XGQ9XnPqB94MdOJhCNL9Ez2rQ@mail.gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCHv8 00/10] Heterogenous memory node attributes
+Date: Tue, 2 Apr 2019 16:56:28 +0200
+Message-ID: <20190402145628.GA16110@kroah.com>
+References: <20190311205606.11228-1-keith.busch@intel.com>
+ <20190315175049.GA18389@localhost.localdomain>
+ <20190316030407.GA1607@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gppf2xdQCz29gFkoP+9XGQ9XnPqB94MdOJhCNL9Ez2rQ@mail.gmail.com>
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Chanwoo Choi <cw00.choi@samsung.com>, Hans de Goede <hdegoede@redhat.com>, Linus Walleij <linus.walleij@linaro.org>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Chen-Yu Tsai <wens@csie.org>, Mark Brown <broonie@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+In-Reply-To: <20190316030407.GA1607@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keith Busch <kbusch@kernel.org>
+Cc: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-api@vger.kernel.org, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Jonathan Cameron <jonathan.cameron@huawei.com>, Brice Goglin <Brice.Goglin@inria.fr>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 02, 2019 at 11:17:06AM +0200, Rafael J. Wysocki wrote:
-> On Tue, Apr 2, 2019 at 10:59 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >
-> > On Thursday, March 28, 2019 6:17:19 PM CEST Andy Shevchenko wrote:
-> > > The acpi_dev_get_first_match_name() is missing put_device() call
-> > > and thus keeping reference counting unbalanced.
-> > >
-> > > In order to fix the issue introduce a new helper to convert existing users
-> > > one-by-one to a better API.
-> > >
-> > > Since v3:
-> > > - convert all existing users and drop old API (Mika)
-> > > - add Hans' tag
-
-> > All applied (with the tags selected so far), thanks!
+On Fri, Mar 15, 2019 at 08:04:07PM -0700, Greg Kroah-Hartman wrote:
+> On Fri, Mar 15, 2019 at 11:50:57AM -0600, Keith Busch wrote:
+> > Hi Greg,
+> > 
+> > Just wanted to check with you on how we may proceed with this series.
+> > The main feature is exporting new sysfs attributes through driver core,
+> > so I think it makes most sense to go through you unless you'd prefer
+> > this go through a different route.
+> > 
+> > The proposed interface has been pretty stable for a while now, and we've
+> > received reviews, acks and tests on all patches. Please let me know if
+> > there is anything else you'd like to see from this series, or if you
+> > just need more time to get around to this.
 > 
-> s/selected/collected/
-> 
-> Strange ...
+> I can't do anything with patches until after -rc1 is out, sorry.  Once
+> that happens I'll work to dig through my pending queue and will review
+> these then.
 
-Thank you, Rafael!
+Sorry for the delay, all now queued up, thanks!
 
-
--- 
-With Best Regards,
-Andy Shevchenko
+greg k-h
