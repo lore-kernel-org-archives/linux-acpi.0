@@ -1,45 +1,26 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Tue, 2 Apr 2019 10:25:23 +0200
-Message-ID: <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com> <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3] Documentation: acpi: Add an example for PRP0001
+Date: Tue, 02 Apr 2019 10:55:50 +0200
+Message-ID: <1647899.RmuxU4V1Im@aspire.rjw.lan>
+References: <20190325165338.5826-1-thomas.preston@codethink.co.uk> <20190326094827.GN3622@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
+In-Reply-To: <20190326094827.GN3622@lahna.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Thomas Preston <thomas.preston@codethink.co.uk>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, andriy.shevchenko@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Mar 30, 2019 at 10:41 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> On Fri, Mar 29, 2019 at 1:11 AM Changbin Du <changbin.du@gmail.com> wrote:
-> >
-> > Hi Corbet and All,
-> > The kernel now uses Sphinx to generate intelligent and beautiful documentation
-> > from reStructuredText files. I converted most of the Linux ACPI docs to rst
-> > format in this serias.
->
-> First, I appreciated the effort, thanks for your work!
->
-> > For you to preview, please visit below url:
-> > http://104.238.181.70:8080/kernel-doc/acpi/index.html
->
-> So currently all of this appears under Kernel API documentation, but
-> the majority of it is not about kernel API.
->
-> At least some of it could go under admin-guide IMO.
+On Tuesday, March 26, 2019 10:48:27 AM CEST Mika Westerberg wrote:
+> On Mon, Mar 25, 2019 at 04:53:38PM +0000, Thomas Preston wrote:
+> > Add an example for the magic PRP0001 device ID which allows matching
+> > ACPI devices against drivers using OF Device Tree compatible property.
+> > 
+> > Signed-off-by: Thomas Preston <thomas.preston@codethink.co.uk>
+> 
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
 
-Jon,
-
-There are ACPI-related documents currently in Documentation/acpi/ that
-don't clearly fall under either driver-api or admin-guide.  For
-example, some of them describe various aspects of the ACPI support
-subsystem operation and some document expectations with respect to the
-ACPI tables provided by the firmware etc.
-
-Where would you recommend to put them after converting to .rst?
-
-Cheers,
-Rafael
+Patch applied, thanks!
