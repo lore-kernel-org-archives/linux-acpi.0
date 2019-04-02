@@ -1,66 +1,45 @@
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [RFC PATCH v2 3/3] ACPI: Let ACPI know we support Generic Initiator
- Affinity Structures
-Date: Mon, 1 Apr 2019 23:36:03 +0800
-Message-ID: <20190401153603.67775-4-Jonathan.Cameron@huawei.com>
-References: <20190401153603.67775-1-Jonathan.Cameron@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
+Date: Tue, 2 Apr 2019 10:25:23 +0200
+Message-ID: <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
+References: <20190329001135.15847-1-changbin.du@gmail.com> <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190401153603.67775-1-Jonathan.Cameron@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: keith.busch@intel.com, jglisse@redhat.com, rjw@rjwysocki.net, linuxarm@huawei.com, Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Until we tell ACPI that we support generic initiators, it will have
-to operate in fall back domain mode and all _PXM entries should
-be on existing non GI domains.
+On Sat, Mar 30, 2019 at 10:41 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Fri, Mar 29, 2019 at 1:11 AM Changbin Du <changbin.du@gmail.com> wrote:
+> >
+> > Hi Corbet and All,
+> > The kernel now uses Sphinx to generate intelligent and beautiful documentation
+> > from reStructuredText files. I converted most of the Linux ACPI docs to rst
+> > format in this serias.
+>
+> First, I appreciated the effort, thanks for your work!
+>
+> > For you to preview, please visit below url:
+> > http://104.238.181.70:8080/kernel-doc/acpi/index.html
+>
+> So currently all of this appears under Kernel API documentation, but
+> the majority of it is not about kernel API.
+>
+> At least some of it could go under admin-guide IMO.
 
-This patch sets the relevant OSC bit to make that happen.
+Jon,
 
-Note that this currently doesn't take into account whether we have the relevant
-setup code for a given architecture.  Do we want to make this optional, or
-should the initial patch set just enable it for all ACPI supporting architectures?
+There are ACPI-related documents currently in Documentation/acpi/ that
+don't clearly fall under either driver-api or admin-guide.  For
+example, some of them describe various aspects of the ACPI support
+subsystem operation and some document expectations with respect to the
+ACPI tables provided by the firmware etc.
 
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
----
- drivers/acpi/bus.c   | 1 +
- include/linux/acpi.h | 1 +
- 2 files changed, 2 insertions(+)
+Where would you recommend to put them after converting to .rst?
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 6ecbbabf1233..0ebc4722d83e 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -315,6 +315,7 @@ static void acpi_bus_osc_support(void)
- 
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
-+	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_GENERIC_INITIATOR_SUPPORT;
- 
- #ifdef CONFIG_X86
- 	if (boot_cpu_has(X86_FEATURE_HWP)) {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d5dcebd7aad3..cc68b2ad0630 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -503,6 +503,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- #define OSC_SB_PCLPI_SUPPORT			0x00000080
- #define OSC_SB_OSLPI_SUPPORT			0x00000100
- #define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
-+#define OSC_SB_GENERIC_INITIATOR_SUPPORT	0x00002000
- 
- extern bool osc_sb_apei_support_acked;
- extern bool osc_pc_lpi_support_confirmed;
--- 
-2.18.0
+Cheers,
+Rafael
