@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 04/11] software node: Implement .get_reference_args fwnode operation
-Date: Wed,  3 Apr 2019 19:45:30 +0300
-Message-ID: <20190403164537.24643-5-heikki.krogerus@linux.intel.com>
+Subject: [PATCH 05/11] ACPI / property: Don't limit named child node matching to data nodes
+Date: Wed,  3 Apr 2019 19:45:31 +0300
+Message-ID: <20190403164537.24643-6-heikki.krogerus@linux.intel.com>
 References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,87 +12,53 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfou
 Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This makes it possible to support drivers that use
-fwnode_property_get_reference_args() function.
+There is no reason why we should limit the use of
+fwnode_get_named_child_node() to data nodes only.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/base/swnode.c | 56 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ drivers/acpi/property.c | 26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 39b8f8f35cfe..d6a9b56cb073 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -534,6 +534,61 @@ software_node_get_named_child_node(const struct fwnode_handle *fwnode,
- 	return NULL;
- }
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 77abe0ec4043..c3fb52c387a6 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -602,15 +602,29 @@ static struct fwnode_handle *
+ acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+ 				 const char *childname)
+ {
++	char name[ACPI_PATH_SEGMENT_LENGTH];
+ 	struct fwnode_handle *child;
++	struct acpi_buffer path;
++	acpi_status status;
  
-+static int
-+software_node_get_reference_args(const struct fwnode_handle *fwnode,
-+				 const char *propname, const char *nargs_prop,
-+				 unsigned int nargs, unsigned int index,
-+				 struct fwnode_reference_args *args)
-+{
-+	struct software_node *swnode = to_software_node(fwnode);
-+	struct software_node_reference *ref;
-+	const struct property_entry *prop;
-+	int ret = -ENOENT;
-+	int i;
+-	/*
+-	 * Find first matching named child node of this fwnode.
+-	 * For ACPI this will be a data only sub-node.
+-	 */
+-	fwnode_for_each_child_node(fwnode, child)
+-		if (acpi_data_node_match(child, childname))
++	path.length = sizeof(name);
++	path.pointer = name;
 +
-+	mutex_lock(&swnode->lock);
-+
-+	if (!swnode || list_empty(&swnode->references))
-+		goto err_unlock;
-+
-+	if (nargs_prop) {
-+		prop = property_entry_get(swnode->properties, nargs_prop);
-+		if (!prop) {
-+			ret = -EINVAL;
-+			goto err_unlock;
++	fwnode_for_each_child_node(fwnode, child) {
++		if (is_acpi_data_node(child)) {
++			if (acpi_data_node_match(child, childname))
++				return child;
++			continue;
 +		}
 +
-+		nargs = prop->value.u32_data;
-+	}
-+
-+	if (nargs > NR_FWNODE_REFERENCE_ARGS) {
-+		ret = -EINVAL;
-+		goto err_unlock;
-+	}
-+
-+	list_for_each_entry(ref, &swnode->references, list) {
-+		if (strcmp(ref->name, propname))
-+			continue;
-+
-+		if (index > (ref->nrefs - 1))
++		status = acpi_get_name(ACPI_HANDLE_FWNODE(child),
++				       ACPI_SINGLE_NAME, &path);
++		if (ACPI_FAILURE(status))
 +			break;
 +
-+		args->nargs = nargs;
-+		args->fwnode = software_node_get(ref->args[index].fwnode);
-+
-+		for (i = 0; i < nargs; i++)
-+			args->args[i] = ref->args[index].args[i];
-+
-+		ret = 0;
-+		break;
++		if (!strncmp(name, childname, ACPI_NAME_SIZE))
+ 			return child;
 +	}
-+
-+err_unlock:
-+	mutex_unlock(&swnode->lock);
-+
-+	return ret;
-+}
-+
- static const struct fwnode_operations software_node_ops = {
- 	.get = software_node_get,
- 	.put = software_node_put,
-@@ -543,6 +598,7 @@ static const struct fwnode_operations software_node_ops = {
- 	.get_parent = software_node_get_parent,
- 	.get_next_child_node = software_node_get_next_child,
- 	.get_named_child_node = software_node_get_named_child_node,
-+	.get_reference_args = software_node_get_reference_args,
- };
  
- /* -------------------------------------------------------------------------- */
+ 	return NULL;
+ }
 -- 
 2.20.1
