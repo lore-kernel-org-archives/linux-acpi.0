@@ -1,167 +1,94 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/4] Documentation: PM: Add SPDX license tags to multiple files
-Date: Thu, 04 Apr 2019 00:04:43 +0200
-Message-ID: <30491576.jJB0AOblsF@aspire.rjw.lan>
-References: <4546107.fVFrecLk33@aspire.rjw.lan>
+From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 5/5] xfs: disable map_sync for async flush
+Date: Wed, 3 Apr 2019 15:39:22 -0700
+Message-ID: <20190403223921.GM5147@magnolia>
+References: <20190403104018.23947-1-pagupta@redhat.com>
+ <20190403104018.23947-6-pagupta@redhat.com>
+ <20190403220912.GB26298@dastard>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4546107.fVFrecLk33@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20190403220912.GB26298@dastard>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
+Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, cohuck-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, Apr 04, 2019 at 09:09:12AM +1100, Dave Chinner wrote:
+> On Wed, Apr 03, 2019 at 04:10:18PM +0530, Pankaj Gupta wrote:
+> > Virtio pmem provides asynchronous host page cache flush
+> > mechanism. we don't support 'MAP_SYNC' with virtio pmem 
+> > and xfs.
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  fs/xfs/xfs_file.c | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> > 
+> > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> > index 1f2e2845eb76..dced2eb8c91a 100644
+> > --- a/fs/xfs/xfs_file.c
+> > +++ b/fs/xfs/xfs_file.c
+> > @@ -1203,6 +1203,14 @@ xfs_file_mmap(
+> >  	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+> >  		return -EOPNOTSUPP;
+> >  
+> > +	/* We don't support synchronous mappings with DAX files if
+> > +	 * dax_device is not synchronous.
+> > +	 */
+> > +	if (IS_DAX(file_inode(filp)) && !dax_synchronous(
+> > +		xfs_find_daxdev_for_inode(file_inode(filp))) &&
+> > +					(vma->vm_flags & VM_SYNC))
+> > +		return -EOPNOTSUPP;
+> > +
+> >  	file_accessed(filp);
+> >  	vma->vm_ops = &xfs_file_vm_ops;
+> >  	if (IS_DAX(file_inode(filp)))
+> 
+> All this ad hoc IS_DAX conditional logic is getting pretty nasty.
+> 
+> xfs_file_mmap(
+> ....
+> {
+> 	struct inode	*inode = file_inode(filp);
+> 
+> 	if (vma->vm_flags & VM_SYNC) {
+> 		if (!IS_DAX(inode))
+> 			return -EOPNOTSUPP;
+> 		if (!dax_synchronous(xfs_find_daxdev_for_inode(inode))
+> 			return -EOPNOTSUPP;
+> 	}
+> 
+> 	file_accessed(filp);
+> 	vma->vm_ops = &xfs_file_vm_ops;
+> 	if (IS_DAX(inode))
+> 		vma->vm_flags |= VM_HUGEPAGE;
+> 	return 0;
+> }
+> 
+> 
+> Even better, factor out all the "MAP_SYNC supported" checks into a
+> helper so that the filesystem code just doesn't have to care about
+> the details of checking for DAX+MAP_SYNC support....
 
-Add SPDX license tags to .rst files under Documentation/driver-api/pm
-and Documentation/admin-quide/pm.
+Seconded, since ext4 has nearly the same flag validation logic.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- Documentation/admin-guide/pm/cpufreq.rst       |    2 ++
- Documentation/admin-guide/pm/cpuidle.rst       |    2 ++
- Documentation/admin-guide/pm/index.rst         |    2 ++
- Documentation/admin-guide/pm/intel_pstate.rst  |    2 ++
- Documentation/admin-guide/pm/sleep-states.rst  |    2 ++
- Documentation/admin-guide/pm/strategies.rst    |    2 ++
- Documentation/admin-guide/pm/system-wide.rst   |    2 ++
- Documentation/admin-guide/pm/working-state.rst |    2 ++
- Documentation/driver-api/pm/cpuidle.rst        |    2 ++
- Documentation/driver-api/pm/devices.rst        |    2 ++
- Documentation/driver-api/pm/index.rst          |    2 ++
- Documentation/driver-api/pm/notifiers.rst      |    2 ++
- Documentation/driver-api/pm/types.rst          |    2 ++
- 13 files changed, 26 insertions(+)
+--D
 
-Index: linux-pm/Documentation/admin-guide/pm/cpufreq.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/cpufreq.rst
-+++ linux-pm/Documentation/admin-guide/pm/cpufreq.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- .. |struct cpufreq_policy| replace:: :c:type:`struct cpufreq_policy <cpufreq_policy>`
- .. |intel_pstate| replace:: :doc:`intel_pstate <intel_pstate>`
- 
-Index: linux-pm/Documentation/admin-guide/pm/cpuidle.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/cpuidle.rst
-+++ linux-pm/Documentation/admin-guide/pm/cpuidle.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- .. |struct cpuidle_state| replace:: :c:type:`struct cpuidle_state <cpuidle_state>`
- .. |cpufreq| replace:: :doc:`CPU Performance Scaling <cpufreq>`
- 
-Index: linux-pm/Documentation/admin-guide/pm/index.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/index.rst
-+++ linux-pm/Documentation/admin-guide/pm/index.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ================
- Power Management
- ================
-Index: linux-pm/Documentation/admin-guide/pm/intel_pstate.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/intel_pstate.rst
-+++ linux-pm/Documentation/admin-guide/pm/intel_pstate.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ===============================================
- ``intel_pstate`` CPU Performance Scaling Driver
- ===============================================
-Index: linux-pm/Documentation/admin-guide/pm/sleep-states.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/sleep-states.rst
-+++ linux-pm/Documentation/admin-guide/pm/sleep-states.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ===================
- System Sleep States
- ===================
-Index: linux-pm/Documentation/admin-guide/pm/strategies.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/strategies.rst
-+++ linux-pm/Documentation/admin-guide/pm/strategies.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ===========================
- Power Management Strategies
- ===========================
-Index: linux-pm/Documentation/admin-guide/pm/system-wide.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/system-wide.rst
-+++ linux-pm/Documentation/admin-guide/pm/system-wide.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ============================
- System-Wide Power Management
- ============================
-Index: linux-pm/Documentation/admin-guide/pm/working-state.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/working-state.rst
-+++ linux-pm/Documentation/admin-guide/pm/working-state.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ==============================
- Working-State Power Management
- ==============================
-Index: linux-pm/Documentation/driver-api/pm/cpuidle.rst
-===================================================================
---- linux-pm.orig/Documentation/driver-api/pm/cpuidle.rst
-+++ linux-pm/Documentation/driver-api/pm/cpuidle.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- .. |struct cpuidle_governor| replace:: :c:type:`struct cpuidle_governor <cpuidle_governor>`
- .. |struct cpuidle_device| replace:: :c:type:`struct cpuidle_device <cpuidle_device>`
- .. |struct cpuidle_driver| replace:: :c:type:`struct cpuidle_driver <cpuidle_driver>`
-Index: linux-pm/Documentation/driver-api/pm/devices.rst
-===================================================================
---- linux-pm.orig/Documentation/driver-api/pm/devices.rst
-+++ linux-pm/Documentation/driver-api/pm/devices.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- .. |struct dev_pm_ops| replace:: :c:type:`struct dev_pm_ops <dev_pm_ops>`
- .. |struct dev_pm_domain| replace:: :c:type:`struct dev_pm_domain <dev_pm_domain>`
- .. |struct bus_type| replace:: :c:type:`struct bus_type <bus_type>`
-Index: linux-pm/Documentation/driver-api/pm/index.rst
-===================================================================
---- linux-pm.orig/Documentation/driver-api/pm/index.rst
-+++ linux-pm/Documentation/driver-api/pm/index.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ===============================
- CPU and Device Power Management
- ===============================
-Index: linux-pm/Documentation/driver-api/pm/notifiers.rst
-===================================================================
---- linux-pm.orig/Documentation/driver-api/pm/notifiers.rst
-+++ linux-pm/Documentation/driver-api/pm/notifiers.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- =============================
- Suspend/Hibernation Notifiers
- =============================
-Index: linux-pm/Documentation/driver-api/pm/types.rst
-===================================================================
---- linux-pm.orig/Documentation/driver-api/pm/types.rst
-+++ linux-pm/Documentation/driver-api/pm/types.rst
-@@ -1,3 +1,5 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
- ==================================
- Device Power Management Data Types
- ==================================
+> 
+> Cheers,
+> 
+> Dave.
+> -- 
+> Dave Chinner
+> david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
