@@ -1,33 +1,39 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Wed, 3 Apr 2019 23:40:13 +0300
-Message-ID: <CAHp75VdXffhc+2YcFNOr2XwauTt08Bw75ao2ia7cNvAqhJnUQQ@mail.gmail.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com> <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com> <20190403133613.13f3fd75@lwn.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI: PM: Print debug messages when enabling GPEs for wakeup
+Date: Wed, 03 Apr 2019 23:58:01 +0200
+Message-ID: <3571352.AeSAkbixj6@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190403133613.13f3fd75@lwn.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 3, 2019 at 10:38 PM Jonathan Corbet <corbet@lwn.net> wrote:
-> On Tue, 2 Apr 2019 10:25:23 +0200
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+In sufficiently complicated GPE configurations it is hard to
+determine which GPE could be the source of system wakeup from a sleep
+state, so make __acpi_device_wakeup_enable() print that information
+to the kernel log if debugging is enabled.
 
-> Admin guide
->         cppc_sysfs
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
->         initrd_table_override
-
-> other:
->         dsdt-override: find another home for those five lines
-
-This is similar to initrd_table_override for some particular case, and
-sounds like Admin guide, indeed.
-
--- 
-With Best Regards,
-Andy Shevchenko
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -728,6 +728,9 @@ static int __acpi_device_wakeup_enable(s
+ 		goto out;
+ 	}
+ 
++	acpi_handle_debug(adev->handle, "GPE%2X enabled for wakeup\n",
++			  (unsigned int)wakeup->gpe_number);
++
+ inc:
+ 	wakeup->enable_count++;
+ 
