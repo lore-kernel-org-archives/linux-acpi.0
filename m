@@ -1,118 +1,177 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Date: Wed, 3 Apr 2019 10:54:31 +0200
-Message-ID: <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v4 0/5] virtio pmem driver
+Date: Wed,  3 Apr 2019 16:10:13 +0530
+Message-ID: <20190403104018.23947-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190403054352.30120-1-kai.heng.feng@canonical.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kai-Heng Feng <kai.heng.feng@canonical.com>, rjw@rjwysocki.net
-Cc: lenb@kernel.org, rhowell@uwyo.edu, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu, adilger.kernel@dilger.ca, darrick.wong@oracle.com, lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, aarcange@redhat.com, david@redhat.com, david@fromorbit.com, cohuck@redhat.com, xiaoguangrong.eric@gmail.com, pagupta@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+ This patch series has implementation for "virtio pmem". 
+ "virtio pmem" is fake persistent memory(nvdimm) in guest 
+ which allows to bypass the guest page cache. This also
+ implements a VIRTIO based asynchronous flush mechanism.  
+ 
+ Sharing guest kernel driver in this patchset with the 
+ changes suggested in v3. Tested with Qemu side device 
+ emulation [6] for virtio-pmem. 
 
-On 03-04-19 07:43, Kai-Heng Feng wrote:
-> i2c-designware-platdrv fails to work after the system restored from
-> hibernation:
-> [ 272.775692] i2c_designware 80860F41:00: Unknown Synopsys component type: 0xffffffff
-> 
-> Commit 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from
-> resume_noirq") makes acpi_lpss_{suspend_late,resume_early}() bail early
-> on BYT/CHT as resume_from_noirq is set. This means dw_i2c_plat_resume()
-> doesn't gets called by acpi_lpss_resume_early(), and this causes the
-> issue.
-> 
-> Introduce acpi_lpss_{poweroff_late,restore_early}() to make sure
-> driver's own poweroff_late and restore_early get called.
-> 
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=202139
-> Fixes: 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from resume_noirq")
-> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+ We have incorporated all the suggestions in V3. Documented 
+ the impact of possible page cache side channel attacks with 
+ suggested countermeasures.
+ 
+ Details of project idea for 'virtio pmem' flushing interface 
+ is shared [3] & [4].
 
-The ordering problem fixed by commit 48402cee6889 can hit hibernate too,
-so I think it would be better to do this instead to fix this problem:
+ Implementation is divided into two parts:
+ New virtio pmem guest driver and qemu code changes for new 
+ virtio pmem paravirtualized device.
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 1e2a10a06b9d..cf768608437e 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -1142,8 +1142,8 @@ static struct dev_pm_domain acpi_lpss_pm_domain = {
-  		.thaw_noirq = acpi_subsys_thaw_noirq,
-  		.poweroff = acpi_subsys_suspend,
-  		.poweroff_late = acpi_lpss_suspend_late,
--		.poweroff_noirq = acpi_subsys_suspend_noirq,
--		.restore_noirq = acpi_subsys_resume_noirq,
-+		.poweroff_noirq = acpi_lpss_suspend_noirq,
-+		.restore_noirq = acpi_lpss_resume_noirq,
-  		.restore_early = acpi_lpss_resume_early,
-  #endif
-  		.runtime_suspend = acpi_lpss_runtime_suspend,
+1. Guest virtio-pmem kernel driver
+---------------------------------
+   - Reads persistent memory range from paravirt device and 
+     registers with 'nvdimm_bus'.  
+   - 'nvdimm/pmem' driver uses this information to allocate 
+     persistent memory region and setup filesystem operations 
+     to the allocated memory. 
+   - virtio pmem driver implements asynchronous flushing 
+     interface to flush from guest to host.
 
-Then the i2c controllers on platforms with the resume_from_noirq
-flag set for them will be ready for use while the PCI subsystem
-runs the _PS0 / _PS3 methods of PCI devices which may use the
-i2c controllers (which is what commit 48402cee6889 set out to fix
-in the first place).
+2. Qemu virtio-pmem device
+---------------------------------
+   - Creates virtio pmem device and exposes a memory range to 
+     KVM guest. 
+   - At host side this is file backed memory which acts as 
+     persistent memory. 
+   - Qemu side flush uses aio thread pool API's and virtio 
+     for asynchronous guest multi request handling. 
 
-If people affected by the problem can give my version of the fix a test,
-then that would be great.
+   David Hildenbrand CCed also posted a modified version[7] of 
+   qemu virtio-pmem code based on updated Qemu memory device API. 
 
-Regards,
+ Virtio-pmem security implications and countermeasures:
+ -----------------------------------------------------
 
-Hans
+ In previous posting of kernel driver, there was discussion [9]
+ on possible implications of page cache side channel attacks with 
+ virtio pmem. After thorough analysis of details of known side 
+ channel attacks, below are the suggestions:
 
+ - Depends entirely on how host backing image file is mapped 
+   into guest address space. 
 
+ - virtio-pmem device emulation, by default shared mapping is used
+   to map host backing file. It is recommended to use separate
+   backing file at host side for every guest. This will prevent
+   any possibility of executing common code from multiple guests
+   and any chance of inferring guest local data based based on 
+   execution time.
 
+ - If backing file is required to be shared among multiple guests 
+   it is recommended to don't support host page cache eviction 
+   commands from the guest driver. This will avoid any possibility
+   of inferring guest local data or host data from another guest. 
 
-> ---
->   drivers/acpi/acpi_lpss.c | 14 ++++++++++++--
->   1 file changed, 12 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 1e2a10a06b9d..49aef186d73d 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -1058,6 +1058,11 @@ static int acpi_lpss_suspend_late(struct device *dev)
->   	return acpi_lpss_do_suspend_late(dev);
->   }
->   
-> +static int acpi_lpss_poweroff_late(struct device *dev)
-> +{
-> +	return acpi_lpss_do_suspend_late(dev);
-> +}
-> +
->   static int acpi_lpss_suspend_noirq(struct device *dev)
->   {
->   	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-> @@ -1089,6 +1094,11 @@ static int acpi_lpss_resume_early(struct device *dev)
->   	return acpi_lpss_do_resume_early(dev);
->   }
->   
-> +static int acpi_lpss_restore_early(struct device *dev)
-> +{
-> +	return acpi_lpss_do_resume_early(dev);
-> +}
-> +
->   static int acpi_lpss_resume_noirq(struct device *dev)
->   {
->   	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-> @@ -1141,10 +1151,10 @@ static struct dev_pm_domain acpi_lpss_pm_domain = {
->   		.freeze_noirq = acpi_subsys_freeze_noirq,
->   		.thaw_noirq = acpi_subsys_thaw_noirq,
->   		.poweroff = acpi_subsys_suspend,
-> -		.poweroff_late = acpi_lpss_suspend_late,
-> +		.poweroff_late = acpi_lpss_poweroff_late,
->   		.poweroff_noirq = acpi_subsys_suspend_noirq,
->   		.restore_noirq = acpi_subsys_resume_noirq,
-> -		.restore_early = acpi_lpss_resume_early,
-> +		.restore_early = acpi_lpss_restore_early,
->   #endif
->   		.runtime_suspend = acpi_lpss_runtime_suspend,
->   		.runtime_resume = acpi_lpss_runtime_resume,
-> 
+ - Proposed device specification [8] for virtio-pmem device with 
+   details of possible security implications and suggested 
+   countermeasures for device emulation.
+
+ Virtio-pmem errors handling:
+ ----------------------------------------
+  Checked behaviour of virtio-pmem for below types of errors
+  Need suggestions on expected behaviour for handling these errors?
+
+  - Hardware Errors: Uncorrectable recoverable Errors: 
+  a] virtio-pmem: 
+    - As per current logic if error page belongs to Qemu process, 
+      host MCE handler isolates(hwpoison) that page and send SIGBUS. 
+      Qemu SIGBUS handler injects exception to KVM guest. 
+    - KVM guest then isolates the page and send SIGBUS to guest 
+      userspace process which has mapped the page. 
+  
+  b] Existing implementation for ACPI pmem driver: 
+    - Handles such errors with MCE notifier and creates a list 
+      of bad blocks. Read/direct access DAX operation return EIO 
+      if accessed memory page fall in bad block list.
+    - It also starts backgound scrubbing.  
+    - Similar functionality can be reused in virtio-pmem with MCE 
+      notifier but without scrubbing(no ACPI/ARS)? Need inputs to 
+      confirm if this behaviour is ok or needs any change?
+
+Changes from PATCH v3: [1]
+
+- Use generic dax_synchronous() helper to check for DAXDEV_SYNC 
+  flag - [Dan, Darrick, Jan]
+- Add 'is_nvdimm_async' function
+- Document page cache side channel attacks implications & 
+  countermeasures - [Dave Chinner, Michael]
+
+Changes from PATCH v2: [2]
+- Disable MAP_SYNC for ext4 & XFS filesystems - [Dan] 
+- Use name 'virtio pmem' in place of 'fake dax' 
+
+Changes from PATCH v1: 
+- 0-day build test for build dependency on libnvdimm 
+
+ Changes suggested by - [Dan Williams]
+- Split the driver into two parts virtio & pmem  
+- Move queuing of async block request to block layer
+- Add "sync" parameter in nvdimm_flush function
+- Use indirect call for nvdimm_flush
+- Don’t move declarations to common global header e.g nd.h
+- nvdimm_flush() return 0 or -EIO if it fails
+- Teach nsio_rw_bytes() that the flush can fail
+- Rename nvdimm_flush() to generic_nvdimm_flush()
+- Use 'nd_region->provider_data' for long dereferencing
+- Remove virtio_pmem_freeze/restore functions
+- Remove BSD license text with SPDX license text
+
+- Add might_sleep() in virtio_pmem_flush - [Luiz]
+- Make spin_lock_irqsave() narrow
+
+Changes from RFC v3
+- Rebase to latest upstream - Luiz
+- Call ndregion->flush in place of nvdimm_flush- Luiz
+- kmalloc return check - Luiz
+- virtqueue full handling - Stefan
+- Don't map entire virtio_pmem_req to device - Stefan
+- request leak, correct sizeof req- Stefan
+- Move declaration to virtio_pmem.c
+
+Changes from RFC v2:
+- Add flush function in the nd_region in place of switching
+  on a flag - Dan & Stefan
+- Add flush completion function with proper locking and wait
+  for host side flush completion - Stefan & Dan
+- Keep userspace API in uapi header file - Stefan, MST
+- Use LE fields & New device id - MST
+- Indentation & spacing suggestions - MST & Eric
+- Remove extra header files & add licensing - Stefan
+
+Changes from RFC v1:
+- Reuse existing 'pmem' code for registering persistent 
+  memory and other operations instead of creating an entirely 
+  new block driver.
+- Use VIRTIO driver to register memory information with 
+  nvdimm_bus and create region_type accordingly. 
+- Call VIRTIO flush from existing pmem driver.
+
+Pankaj Gupta (5):
+   libnvdimm: nd_region flush callback support
+   virtio-pmem: Add virtio-pmem guest driver
+   libnvdimm: add nd_region buffered dax_dev flag
+   ext4: disable map_sync for virtio pmem
+   xfs: disable map_sync for virtio pmem
+
+[1] https://lkml.org/lkml/2019/1/9/471
+[2] https://lkml.org/lkml/2018/10/13/117
+[3] https://www.spinics.net/lists/kvm/msg149761.html
+[4] https://www.spinics.net/lists/kvm/msg153095.html  
+[5] https://lkml.org/lkml/2018/8/31/413
+[6] https://marc.info/?l=linux-kernel&m=153572228719237&w=2 
+[7] https://marc.info/?l=qemu-devel&m=153555721901824&w=2
+[8] https://lists.oasis-open.org/archives/virtio-dev/201903/msg00083.html
