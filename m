@@ -1,56 +1,78 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 00/11] Software fwnode references
-Date: Wed,  3 Apr 2019 19:45:26 +0300
-Message-ID: <20190403164537.24643-1-heikki.krogerus@linux.intel.com>
+Subject: [PATCH 02/11] software node: Simplify software_node_release() function
+Date: Wed,  3 Apr 2019 19:45:28 +0300
+Message-ID: <20190403164537.24643-3-heikki.krogerus@linux.intel.com>
+References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190403164537.24643-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>
 Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+It's possible to release the node ID immediately when
+fwnode_remove_software_node() is called, no need to wait for
+software_node_release() with that. This change has no
+functional effect.
 
-This series adds support for software fwnode reference handling. In
-practice it means making fwnode_property_get_reference_args() function
-usable in the drivers also with software nodes. I send the series
-originally as RFC [1].
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ drivers/base/swnode.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-As the first user for the software node references, I'm converting
-intel_cht_int33fe.c to use them as part of the series.
-
-[1] https://lkml.org/lkml/2019/3/15/457
-
-thanks,
-
-Heikki Krogerus (11):
-  software node: Allow node creation without properties
-  software node: Simplify software_node_release() function
-  software node: Add support for references
-  software node: Implement .get_reference_args fwnode operation
-  ACPI / property: Don't limit named child node matching to data nodes
-  device connection: Find connections also by checking the references
-  usb: typec: Registering real device entries for the muxes
-  platform/x86: intel_cht_int33fe: Provide software nodes for the
-    devices
-  platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
-  platform/x86: intel_cht_int33fe: Link with external dependencies using
-    fwnodes
-  platform/x86: intel_cht_int33fe: Replacing the old connections with
-    references
-
- drivers/acpi/property.c                  |  26 +-
- drivers/base/devcon.c                    |  28 ++
- drivers/base/swnode.c                    | 180 +++++++++++-
- drivers/platform/x86/intel_cht_int33fe.c | 346 ++++++++++++++++++++---
- drivers/usb/typec/bus.h                  |  15 +
- drivers/usb/typec/class.c                |  17 +-
- drivers/usb/typec/mux.c                  | 221 ++++++++++-----
- drivers/usb/typec/mux/pi3usb30532.c      |  46 +--
- include/linux/property.h                 |   8 +
- include/linux/usb/typec_mux.h            |  62 ++--
- 10 files changed, 765 insertions(+), 184 deletions(-)
-
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 30077454eb68..7b321bf8424c 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -557,13 +557,6 @@ static void software_node_release(struct kobject *kobj)
+ {
+ 	struct software_node *swnode = kobj_to_swnode(kobj);
+ 
+-	if (swnode->parent) {
+-		ida_simple_remove(&swnode->parent->child_ids, swnode->id);
+-		list_del(&swnode->entry);
+-	} else {
+-		ida_simple_remove(&swnode_root_ids, swnode->id);
+-	}
+-
+ 	ida_destroy(&swnode->child_ids);
+ 	property_entries_free(swnode->properties);
+ 	kfree(swnode);
+@@ -610,9 +603,6 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 	INIT_LIST_HEAD(&swnode->children);
+ 	swnode->parent = p;
+ 
+-	if (p)
+-		list_add_tail(&swnode->entry, &p->children);
+-
+ 	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
+ 				   p ? &p->kobj : NULL, "node%d", swnode->id);
+ 	if (ret) {
+@@ -626,6 +616,9 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 		return ERR_PTR(ret);
+ 	}
+ 
++	if (p)
++		list_add_tail(&swnode->entry, &p->children);
++
+ 	kobject_uevent(&swnode->kobj, KOBJ_ADD);
+ 	return &swnode->fwnode;
+ }
+@@ -638,6 +631,13 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
+ 	if (!swnode)
+ 		return;
+ 
++	if (swnode->parent) {
++		ida_simple_remove(&swnode->parent->child_ids, swnode->id);
++		list_del(&swnode->entry);
++	} else {
++		ida_simple_remove(&swnode_root_ids, swnode->id);
++	}
++
+ 	kobject_put(&swnode->kobj);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
 -- 
 2.20.1
