@@ -1,56 +1,81 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH v4 5/5] xfs: disable map_sync for async
- flush
-Date: Thu, 4 Apr 2019 11:50:02 -0400 (EDT)
-Message-ID: <846216210.17971239.1554393002566.JavaMail.zimbra@redhat.com>
-References: <20190403104018.23947-1-pagupta@redhat.com> <20190403220912.GB26298@dastard> <20190403223921.GM5147@magnolia> <1508883801.17367965.1554358418550.JavaMail.zimbra@redhat.com> <651986267.17402634.1554368950178.JavaMail.zimbra@redhat.com> <20190404094029.GD16131@quack2.suse.cz> <527416483.17415178.1554372524196.JavaMail.zimbra@redhat.com> <20190404150025.GN5147@magnolia>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800
+ quirk
+Date: Thu, 4 Apr 2019 16:31:55 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA8393575FC@lhreml524-mbs.china.huawei.com>
+References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
+ <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
+ <20190404154711.GA27577@fuggles.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190404150025.GN5147@magnolia>
+In-Reply-To: <20190404154711.GA27577@fuggles.cambridge.arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, mst@redhat.com, jasowang@redhat.com, Dave Chinner <david@fromorbit.com>, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, dave jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org, vishal l verma <vishal.l.verma@intel.com>, david@redhat.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-ext4@vger.kernel.org, lenb@kernel.org, riel@surriel.com, stefanha@redhat.com, dan j williams <dan.j.williams@intel.com>, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, cohuck@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kern
+To: Will Deacon <will.deacon@arm.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "andrew.murray@arm.com" <andrew.murray@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leede>
 List-Id: linux-acpi@vger.kernel.org
 
 
-> > > 
-> > > So I would put the helper in include/linux/dax.h and have it like:
-> > > 
-> > > bool daxdev_mapping_supported(struct vm_area_struct *vma,
+
+> -----Original Message-----
+> From: Will Deacon [mailto:will.deacon@arm.com]
+> Sent: 04 April 2019 16:47
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> Cc: lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
+> andrew.murray@arm.com; jean-philippe.brucker@arm.com;
+> mark.rutland@arm.com; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
+> John Garry <john.garry@huawei.com>; pabba@codeaurora.org;
+> vkilari@codeaurora.org; rruigrok@codeaurora.org; linux-acpi@vger.kernel.org;
+> linux-kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Linuxarm
+> <linuxarm@huawei.com>; neil.m.leeder@gmail.com
+> Subject: Re: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800
+> quirk
 > 
-> Should this be static inline if you're putting it in the header file?
-
-yes. Thanks.
-
+> On Tue, Mar 26, 2019 at 03:17:53PM +0000, Shameer Kolothum wrote:
+> > HiSilicon erratum 162001800 describes the limitation of
+> > SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
+> >
+> > On these platforms, the PMCG event counter registers
+> > (SMMU_PMCG_EVCNTRn) are read only and as a result it
+> > is not possible to set the initial counter period value
+> > on event monitor start.
+> >
+> > To work around this, the current value of the counter
+> > is read and used for delta calculations. OEM information
+> > from ACPI header is used to identify the affected hardware
+> > platforms.
+> >
+> > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> > Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> > ---
+> >  drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
+> >  drivers/perf/arm_smmuv3_pmu.c | 48
+> ++++++++++++++++++++++++++++++++++++-------
+> >  include/linux/acpi_iort.h     |  1 +
+> >  3 files changed, 57 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index e2c9b26..4dc68de 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -1366,9 +1366,23 @@ static void __init
+> arm_smmu_v3_pmcg_init_resources(struct resource *res,
+> >  				       ACPI_EDGE_SENSITIVE, &res[2]);
+> >  }
+> >
+> > +static struct acpi_platform_list pmcg_plat_info[] __initdata = {
+> > +	/* HiSilicon Hip08 Platform */
+> > +	{"HISI  ", "HIP08   ", 0, ACPI_SIG_IORT, greater_than_or_equal, 0,
 > 
-> A comment ought to be added to describe what this predicate function
-> does.
-
-Sure, will add a comment describing the function.
-
+> Passing integer constant 0 for the reason feels wrong to me. I'm going to
+> change it to "Erratum #162001800" and also add an entry to
+> silicon-errata.txt.
 > 
-> > > 			      struct dax_device *dax_dev)
-> > > {
-> > > 	if (!(vma->vm_flags & VM_SYNC))
-> > > 		return true;
-> > > 	if (!IS_DAX(file_inode(vma->vm_file)))
-> > > 		return false;
-> > > 	return dax_synchronous(dax_dev);
-> > > }
-> > 
-> > Sure. This is much better. I was also not sure what to name the helper
-> > function.
-> > I will go ahead with this unless 'Dave' & 'Darrick' have anything to add.
-> 
-> Jan's approach (modulo that one comment) looks good to me.
+> Please shout if that's not ok.
 
-Sure. Thank you.
+Thanks Will for taking a look at this series. The proposed changes are fine to me.
 
-Best regards,
-Pankaj
-
-> 
-> --D
-> 
+Shameer
