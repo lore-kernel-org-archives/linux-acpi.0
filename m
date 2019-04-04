@@ -1,79 +1,44 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH 4/4] perf: arm_spe: Enable ACPI/Platform automatic module
- loading
-Date: Thu, 4 Apr 2019 12:24:38 -0500
-Message-ID: <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
-References: <20190326223938.5365-1-jeremy.linton@arm.com>
- <20190326223938.5365-5-jeremy.linton@arm.com>
- <20190404170423.GC28932@fuggles.cambridge.arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fix for v5.1-rc4
+Date: Thu, 4 Apr 2019 22:30:24 +0200
+Message-ID: <CAJZ5v0g=1Cdme_bigvg9JtxREs=e-kkpRo5-7HUuGEiy1bw0gA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190404170423.GC28932@fuggles.cambridge.arm.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi Linus,
 
-On 4/4/19 12:04 PM, Will Deacon wrote:
-> On Tue, Mar 26, 2019 at 05:39:38PM -0500, Jeremy Linton wrote:
->> Lets add the MODULE_TABLE and platform id_table entries so that
->> the SPE driver can attach to the ACPI platform device created by
->> the core pmu code.
->>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>   drivers/perf/arm_spe_pmu.c | 11 +++++++++--
->>   1 file changed, 9 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
->> index 7cb766dafe85..ffa2c76c08bb 100644
->> --- a/drivers/perf/arm_spe_pmu.c
->> +++ b/drivers/perf/arm_spe_pmu.c
->> @@ -1176,7 +1176,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
->>   };
->>   MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
->>   
->> -static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
->> +static const struct platform_device_id arm_spe_match[] = {
->> +	{ "arm,spe-v1", 0},
-> 
-> It would be nice if we could avoid duplicating this string from the ACPI
-> parsing code.
+Please pull from the tag
 
-Ok sure, I just need to find a good common place for it.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-5.1-rc4
 
-> 
->> +	{ }
->> +};
->> +MODULE_DEVICE_TABLE(platform, arm_spe_match);
->> +
->> +static int arm_spe_pmu_device_probe(struct platform_device *pdev)
->>   {
->>   	int ret;
->>   	struct arm_spe_pmu *spe_pmu;
->> @@ -1236,11 +1242,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
->>   }
->>   
->>   static struct platform_driver arm_spe_pmu_driver = {
->> +	.id_table = arm_spe_match,
->>   	.driver	= {
->>   		.name		= DRVNAME,
->>   		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
-> 
-> Hmm, so some other drivers don't hook .id_table like you do, but instead
-> hook .acpi_match_table in the driver structure. Is that not better?
+with top-most commit b59fb7ef5240c301ca8b5b70d4298c0f053bb0c3
 
-This isn't actually an ACPI device, (aka not defined in the namespace), 
-so its missing much of the ACPI functionality. I think that also means 
-its needs to be declared this way.
+ Merge branch 'acpica' into acpi
+
+on top of commit aa9aaa4d61c0048d3faad056893cd7860bbc084c
+
+ ACPI: use different default debug value than ACPICA
+
+to receive an ACPI fix for 5.1-rc4.
+
+This prevents stale GPE events from triggering spurious system
+wakeups from suspend-to-idle (Furquan Shaikh).
+
+Thanks!
 
 
-> 
-> Will
-> 
+---------------
+
+Furquan Shaikh (1):
+      ACPICA: Clear status of GPEs before enabling them
+
+---------------
+
+ drivers/acpi/acpica/evgpe.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
