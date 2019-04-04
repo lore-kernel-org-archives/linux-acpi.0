@@ -1,92 +1,43 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: Re: [PATCH 23/25] coresight: stm: ACPI support for parsing stimulus
- base
-Date: Thu, 4 Apr 2019 12:27:13 +0100
-Message-ID: <09baa551-b351-6651-e609-75ed425ae7f4@arm.com>
-References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
- <1553107783-3340-24-git-send-email-suzuki.poulose@arm.com>
- <20190328204151.GA7163@xps15>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800
+ quirk
+Date: Thu, 4 Apr 2019 13:32:25 +0100
+Message-ID: <20190404123218.GA27823@fuggles.cambridge.arm.com>
+References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
+ <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190328204151.GA7163@xps15>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mathieu.poirier@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, rjw@rjwysocki.net
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc: lorenzo.pieralisi@arm.com, robin.murphy@arm.com, andrew.murray@arm.com, jean-philippe.brucker@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mathieu,
-
-On 28/03/2019 20:41, Mathieu Poirier wrote:
-> On Wed, Mar 20, 2019 at 06:49:40PM +0000, Suzuki K Poulose wrote:
->> The stimulus base for STM device must be listed as the second memory
->> resource, followed by the programming base address. Add support for
->> parsing the information for ACPI.
->>
->> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
->> ---
-
->> +#ifdef CONFIG_ACPI
->> +static int acpi_stm_get_stimulus_area(struct device *dev, struct resource *res)
->> +{
->> +	int rc;
->> +	bool found_base = false;
->> +	struct resource_entry *rent;
->> +	LIST_HEAD(res_list);
->> +
->> +	struct acpi_device *adev = ACPI_COMPANION(dev);
->> +
->> +	if (!adev)
->> +		return -ENODEV;
->> +	rc = acpi_dev_get_resources(adev, &res_list, NULL, NULL);
->> +	if (rc < 0)
->> +		return rc;
->> +
->> +	rc = -ENOENT;
->> +	list_for_each_entry(rent, &res_list, node) {
->> +		if (resource_type(rent->res) != IORESOURCE_MEM)
->> +			continue;
->> +		if (found_base) {
->> +			*res = *rent->res;
->> +			rc = 0;
->> +			break;
->> +		}
->> +
->> +		found_base = true;
+On Tue, Mar 26, 2019 at 03:17:53PM +0000, Shameer Kolothum wrote:
+> HiSilicon erratum 162001800 describes the limitation of
+> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
 > 
-> Is the ACPI binding crystal clear on the fact that the second resource region
-> has to be for stimulus ports?
-
-Yes. Section 2.3 Resources in ACPI for CoreSightTM 1.0 (DEN0067) :
-
-"Each CoresSight component needs to declare the resources it owns using the _CRS
-method. This must include base address and span covering the MMIO interface of
-the device. In addition those that can raise interrupts must describe the
-interrupts they consume.
-
-For STM two base addresses must be presented, these must be provided in order.
-First the configuration base address, and then external stimuli memory region
-base address"
-
->>   static int stm_get_stimulus_area(struct device *dev, struct resource *res)
->>   {
->>   	if (dev->of_node)
+> On these platforms, the PMCG event counter registers
+> (SMMU_PMCG_EVCNTRn) are read only and as a result it
+> is not possible to set the initial counter period value
+> on event monitor start.
 > 
-> Wouldn't it be better to use is_of_node()?
-
-
+> To work around this, the current value of the counter
+> is read and used for delta calculations. OEM information
+> from ACPI header is used to identify the affected hardware
+> platforms.
 > 
->>   		return of_stm_get_stimulus_area(dev, res);
->> +	else if (is_acpi_node(dev->fwnode)
-> 
-> is_acpi_device_node()?
-> 
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+>  drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
+>  drivers/perf/arm_smmuv3_pmu.c | 48 ++++++++++++++++++++++++++++++++++++-------
+>  include/linux/acpi_iort.h     |  1 +
+>  3 files changed, 57 insertions(+), 8 deletions(-)
 
-Yes, to both the above.
+I need an Ack from Lorenzo for the IORT parts of this patch.
 
-Cheers
-Suzuki
+Will
