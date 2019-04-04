@@ -1,43 +1,62 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800
- quirk
-Date: Thu, 4 Apr 2019 13:32:25 +0100
-Message-ID: <20190404123218.GA27823@fuggles.cambridge.arm.com>
-References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
- <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: Re: [PATCH] gpio: merrifield: Fix build err without CONFIG_ACPI
+Date: Thu, 4 Apr 2019 22:04:04 +0800
+Message-ID: <271a33ae-b4fc-0528-cf59-5053dc46cce0@huawei.com>
+References: <20190404103925.25652-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
+In-Reply-To: <20190404103925.25652-1-yuehaibing@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc: lorenzo.pieralisi@arm.com, robin.murphy@arm.com, andrew.murray@arm.com, jean-philippe.brucker@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: andriy.shevchenko@linux.intel.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, rjw@rjwysocki.net
+Cc: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 26, 2019 at 03:17:53PM +0000, Shameer Kolothum wrote:
-> HiSilicon erratum 162001800 describes the limitation of
-> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
++cc Rafael and linux-acpi
+
+On 2019/4/4 18:39, Yue Haibing wrote:
+> From: YueHaibing <yuehaibing@huawei.com>
 > 
-> On these platforms, the PMCG event counter registers
-> (SMMU_PMCG_EVCNTRn) are read only and as a result it
-> is not possible to set the initial counter period value
-> on event monitor start.
+> When building CONFIG_ACPI is not set
+> gcc warn this:
 > 
-> To work around this, the current value of the counter
-> is read and used for delta calculations. OEM information
-> from ACPI header is used to identify the affected hardware
-> platforms.
-> 
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+> drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+>    put_device(&adev->dev);
+>                    ^
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 > ---
->  drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
->  drivers/perf/arm_smmuv3_pmu.c | 48 ++++++++++++++++++++++++++++++++++++-------
->  include/linux/acpi_iort.h     |  1 +
->  3 files changed, 57 insertions(+), 8 deletions(-)
-
-I need an Ack from Lorenzo for the IORT parts of this patch.
-
-Will
+>  drivers/gpio/gpio-merrifield.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-merrifield.c b/drivers/gpio/gpio-merrifield.c
+> index 2383dc7..78ac32f 100644
+> --- a/drivers/gpio/gpio-merrifield.c
+> +++ b/drivers/gpio/gpio-merrifield.c
+> @@ -379,17 +379,18 @@ static void mrfld_irq_init_hw(struct mrfld_gpio *priv)
+>  
+>  static const char *mrfld_gpio_get_pinctrl_dev_name(struct mrfld_gpio *priv)
+>  {
+> -	struct acpi_device *adev;
+>  	const char *name;
+> +#ifdef CONFIG_ACPI
+> +	struct acpi_device *adev;
+>  
+>  	adev = acpi_dev_get_first_match_dev("INTC1002", NULL, -1);
+>  	if (adev) {
+>  		name = devm_kstrdup(priv->dev, acpi_dev_name(adev), GFP_KERNEL);
+>  		put_device(&adev->dev);
+> -	} else {
+> -		name = "pinctrl-merrifield";
+>  	}
+> -
+> +#else
+> +	name = "pinctrl-merrifield";
+> +#endif
+>  	return name;
+>  }
+>  
+> 
