@@ -1,44 +1,53 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fix for v5.1-rc4
-Date: Thu, 4 Apr 2019 22:30:24 +0200
-Message-ID: <CAJZ5v0g=1Cdme_bigvg9JtxREs=e-kkpRo5-7HUuGEiy1bw0gA@mail.gmail.com>
+From: "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>
+Subject: [PATCH v2 0/7] CPPC optional registers AMD support
+Date: Thu, 4 Apr 2019 21:25:43 +0000
+Message-ID: <cover.1554410643.git.Janakarajan.Natarajan@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Ghannam, Yazen" <Yazen.Ghannam@amd.com>, "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.1-rc4
-
-with top-most commit b59fb7ef5240c301ca8b5b70d4298c0f053bb0c3
-
- Merge branch 'acpica' into acpi
-
-on top of commit aa9aaa4d61c0048d3faad056893cd7860bbc084c
-
- ACPI: use different default debug value than ACPICA
-
-to receive an ACPI fix for 5.1-rc4.
-
-This prevents stale GPE events from triggering spurious system
-wakeups from suspend-to-idle (Furquan Shaikh).
-
-Thanks!
-
-
----------------
-
-Furquan Shaikh (1):
-      ACPICA: Clear status of GPEs before enabling them
-
----------------
-
- drivers/acpi/acpica/evgpe.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Q1BQQyAoQ29sbGFib3JhdGl2ZSBQcm9jZXNzb3IgUGVyZm9ybWFuY2UgQ29udHJvbCkgb2ZmZXJz
+IG9wdGlvbmFsDQpyZWdpc3RlcnMgd2hpY2ggY2FuIGJlIHVzZWQgdG8gdHVuZSB0aGUgc3lzdGVt
+IGJhc2VkIG9uIGVuZXJneSBhbmQvb3INCnBlcmZvcm1hbmNlIHJlcXVpcmVtZW50cy4NCg0KTmV3
+ZXIgQU1EIHByb2Nlc3NvcnMgYWRkIHN1cHBvcnQgZm9yIGEgc3Vic2V0IG9mIHRoZXNlIG9wdGlv
+bmFsIENQUEMNCnJlZ2lzdGVycywgYmFzZWQgb24gQUNQSSB2Ni4xLg0KDQpUaGUgZm9sbG93aW5n
+IGFyZSB0aGUgc3VwcG9ydGVkIENQUEMgcmVnaXN0ZXJzIGZvciB3aGljaCBzeXNmcyBlbnRyaWVz
+DQphcmUgY3JlYXRlZDoNCiogZW5hYmxlICAgICAgICAgICAgICAgIChORVcpDQoqIG1heF9wZXJm
+ICAgICAgICAgICAgICAoTkVXKQ0KKiBtaW5fcGVyZiAgICAgICAgICAgICAgKE5FVykNCiogZW5l
+cmd5X3BlcmYNCiogbG93ZXN0X3BlcmYNCiogbm9taW5hbF9wZXJmDQoqIGRlc2lyZWRfcGVyZiAg
+ICAgICAgICAoTkVXKQ0KKiBmZWVkYmFja19jdHJzDQoqIGF1dG9fc2VsX2VuYWJsZSAgICAgICAo
+TkVXKQ0KKiBsb3dlc3Rfbm9ubGluZWFyX3BlcmYNCg0KVGhlIENQUEMgZHJpdmVyIGlzIHVwZGF0
+ZWQgdG8gZW5hYmxlIHRoZSBPU1BNIGFuZCB0aGUgdXNlcnNwYWNlIHRvDQphY2Nlc3MNCnRoZSBu
+ZXdseSBzdXBwb3J0ZWQgcmVnaXN0ZXJzLg0KDQpUaGUgcHVycG9zZSBvZiBleHBvc2luZyB0aGUg
+cmVnaXN0ZXJzIHZpYSB0aGUgc3lzZnMgZW50cmllcyBpcyB0byBhbGxvdw0KdGhlIHVzZXJzcGFj
+ZSB0bzoNCiogVHdlYWsgdGhlIHZhbHVlcyB0byBmaXQgaXRzIHdvcmtsb2FkLg0KKiBBcHBseSBh
+IHByb2ZpbGUgZnJvbSBBTUQncyBvcHRpbWl6YXRpb24gZ3VpZGVzLg0KDQpQcm9maWxlcyB3aWxs
+IGJlIGRvY3VtZW50ZWQgaW4gdGhlIHBlcmZvcm1hbmNlL29wdGltaXphdGlvbiBndWlkZXMuDQoN
+Ck5vdGU6DQoqIEFNRCBzeXN0ZW1zIHdpbGwgbm90IGhhdmUgYSBwb2xpY3kgYXBwbGllZCBpbiB0
+aGUga2VybmVsIGF0IHRoaXMgdGltZS4NCiogQnkgZGVmYXVsdCwgYWNwaV9jcHVmcmVxIHdpbGwg
+c3RpbGwgYmUgdXNlZC4NCg0KVE9ETzoNCiogQ3JlYXRlIGEgbGludXggdXNlcnNwYWNlIHRvb2wg
+dGhhdCB3aWxsIGhlbHAgdXNlcnMgZ2VuZXJhdGUgYSBDUFBDDQoqIHByb2ZpbGUNCiAgZm9yIHRo
+ZWlyIHRhcmdldCB3b3JrbG9hZC4NCiogQ3JlYXRlIG9yIHVwZGF0ZSBhIGRyaXZlciB0byBhcHBs
+eSBhIGdlbmVyYWwgQ1BQQyBwb2xpY3kgaW4gdGhlDQoqIGtlcm5lbC4NCg0KdjEtPnYyOg0KKiBB
+ZGQgbWFjcm8gdG8gZW5zdXJlIEJVRkZFUiBvbmx5IHJlZ2lzdGVycyBoYXZlIEJVRkZFUiB0eXBl
+Lg0KKiBBZGQgc3VwcG9ydCBtYWNybyB0byBtYWtlIHRoZSByaWdodCBjaGVjayBiYXNlZCBvbiBy
+ZWdpc3RlciB0eXBlLg0KKiBSZW1vdmUgc3VwcG9ydCBjaGVja3MgZm9yIHJlZ2lzdGVycyB3aGlj
+aCBhcmUgbWFuZGF0b3J5Lg0KDQpKYW5ha2FyYWphbiBOYXRhcmFqYW4gKDIpOg0KICBhY3BpL2Nw
+cGM6IEFkZCBtYWNybyBmb3IgQ1BQQyByZWdpc3RlciBCVUZGRVIgb25seSBjaGVjaw0KICBhY3Bp
+L2NwcGM6IEVuc3VyZSBvbmx5IHN1cHBvcnRlZCBDUFBDIHN5c2ZzIGVudHJpZXMgYXJlIGNyZWF0
+ZWQNCg0KWWF6ZW4gR2hhbm5hbSAoNSk6DQogIGFjcGkvY3BwYzogTW9kaWZ5IHNob3dfY3BwY19k
+YXRhIG1hY3JvDQogIGFjcGkvY3BwYzogUmV3b3JrIGNwcGNfc2V0X3BlcmYoKSB0byB1c2UgY3Bw
+Y19yZWdzIGluZGV4DQogIGFjcGkvY3BwYzogQWRkIG1hY3JvcyB0byBkZWZpbmUgYSBSL1cgc3lz
+ZnMgZW50cnkgZm9yIENQUEMgcmVnaXN0ZXJzDQogIGFjcGkvY3BwYzogQWRkIHN1cHBvcnQgZm9y
+IG9wdGlvbmFsIENQUEMgcmVnaXN0ZXJzDQogIGFjcGkvY3BwYzogQWRkIHN1cHBvcnQgZm9yIENQ
+UEMgRW5hYmxlIHJlZ2lzdGVyDQoNCiBkcml2ZXJzL2FjcGkvY3BwY19hY3BpLmMgICAgICAgfCA0
+MDIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tDQogZHJpdmVycy9jcHVmcmVxL2Nw
+cGNfY3B1ZnJlcS5jIHwgICA2ICstDQogaW5jbHVkZS9hY3BpL2NwcGNfYWNwaS5oICAgICAgIHwg
+ICA2ICstDQogMyBmaWxlcyBjaGFuZ2VkLCAzNzIgaW5zZXJ0aW9ucygrKSwgNDIgZGVsZXRpb25z
+KC0pDQoNCi0tIA0KMi4xNy4xDQoNCg==
