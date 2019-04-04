@@ -1,228 +1,190 @@
-From: Zeev Zilberman <zeev@amazon.com>
-Subject: Re: [PATCH 7/7] irqchip/al-msi: Add ACPI support
-Date: Thu, 4 Apr 2019 17:45:59 +0300
-Message-ID: <cc40b029-b06e-1367-2411-1ec325d3b97b@amazon.com>
-References: <1554035733-11827-1-git-send-email-hhhawa@amazon.com>
- <1554035733-11827-3-git-send-email-hhhawa@amazon.com>
- <86pnq65v48.wl-marc.zyngier@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800
+ quirk
+Date: Thu, 4 Apr 2019 15:49:03 +0100
+Message-ID: <20190404144903.GA15903@red-moon>
+References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
+ <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <86pnq65v48.wl-marc.zyngier@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Hanna Hawa <hhhawa@amazon.com>
-Cc: tsahee@annapurnalabs.com, antoine.tenart@bootlin.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, ronenk@amazon.com, dwmw@amazon.co.uk, vaerov@amazon.com, alisaidi@amazon.com, talel@amazon.com, jonnyc@amazon.com, hanochu@amazon.com, barakw@amazon.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc: robin.murphy@arm.com, andrew.murray@arm.com, jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marc,
-
-We have considered exposing our interrupt controller both via MADT 
-OEM-specific entry and via DSDT.
-We've chosen MADT OEM-specific entry, because it seemed like a 
-reasonable placeholder for custom interrupt controller, but we can move 
-to DSDT, if this seems like a better way to represent it.
-
-Either way we chose, we'll need to solve the ordering issue of the 
-drivers probing.
-The desired order of driver probing in the system, because of the 
-dependencies, is:
-GIC -> AL MSIX controller driver -> PCI
-If we keep using MADT, we can't just use IRQCHIP_DECLARE, because there 
-is no way we found to control ordering of MADT probing. So, GIC might be 
-probed after our driver in this case.
-The reason we used early_initcall, is that the early_initcalls are 
-invoked after MADT probing in the system (and before DSDT probing).
-
-If we move to using DSDT we need to solve the ordering problem from 
-another direction - make sure that MSIX driver is probed before PCI.
-In the patches that were posted for xgene interrupt controller (and 
-weren't accepted) we saw that they proposed to solve the same issue
-by modifying ACPI subsystem code by defining a new type for msi drivers 
-and probing them before PCI drivers 
-(https://patchwork.ozlabs.org/patch/818771/).
- From the feedback on that patch 
-(https://patchwork.ozlabs.org/cover/818767/#1788415) it seemed that 
-alternative solution is in the works,
-but we didn't manage to find any followup on this.
-
-We would be glad to hear what you propose for fixing the ordering issue 
-and rework the patches accordingly.
-
-Thanks,
-Ze'ev
-
-On 4/1/19 05:15, Marc Zyngier wrote:
-> On Sun, 31 Mar 2019 13:35:33 +0100,
-> Hanna Hawa <hhhawa@amazon.com> wrote:
->>
->> This patch adds ACPI support for AL-MSIx driver.
->>
->> The AL-MSIx controller is not standard, is not included in the UEFI
->> specification, and will not be added. The driver ACPI binding is
->> performed when the following conditions are true:
->> - OEM ID is AMAZON
->> - MADT table type is 0x80 (part of the OEM reserved range).
->>
->> Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
->> Co-developed-by: Vladimir Aerov <vaerov@amazon.com>
->> Signed-off-by: Vladimir Aerov <vaerov@amazon.com>
->> ---
->>   drivers/irqchip/irq-al-msi.c | 118 ++++++++++++++++++++++++++++++++++++++++---
->>   1 file changed, 111 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/irqchip/irq-al-msi.c b/drivers/irqchip/irq-al-msi.c
->> index ec27455..cb80c1e 100644
->> --- a/drivers/irqchip/irq-al-msi.c
->> +++ b/drivers/irqchip/irq-al-msi.c
->> @@ -9,6 +9,7 @@
->>   
->>   #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->>   
->> +#include <linux/acpi.h>
->>   #include <linux/dma-iommu.h>
->>   #include <linux/irqchip.h>
->>   #include <linux/irqchip/arm-gic.h>
->> @@ -126,14 +127,20 @@ static int al_msix_gic_domain_alloc(struct irq_domain *domain,
->>   	struct irq_data *d;
->>   	int ret;
->>   
->> -	if (!is_of_node(domain->parent->fwnode))
->> +	if (is_of_node(domain->parent->fwnode)) {
->> +		fwspec.fwnode = domain->parent->fwnode;
->> +		fwspec.param_count = 3;
->> +		fwspec.param[0] = 0;
->> +		fwspec.param[1] = spi;
->> +		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
->> +	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
->> +		fwspec.fwnode = domain->parent->fwnode;
->> +		fwspec.param_count = 2;
->> +		fwspec.param[0] = spi + 32;
->> +		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
->> +	} else {
->>   		return -EINVAL;
->> -
->> -	fwspec.fwnode = domain->parent->fwnode;
->> -	fwspec.param_count = 3;
->> -	fwspec.param[0] = 0;
->> -	fwspec.param[1] = spi;
->> -	fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
->> +	}
->>   
->>   	ret = irq_domain_alloc_irqs_parent(domain, virq, 1, &fwspec);
->>   	if (ret)
->> @@ -304,3 +311,100 @@ static int al_msix_init(struct device_node *node, struct device_node *parent)
->>   }
->>   IRQCHIP_DECLARE(alpine_msix, "al,alpine-msix", al_msix_init);
->>   IRQCHIP_DECLARE(al_msix, "amazon,al-msix", al_msix_init);
->> +
->> +#ifdef CONFIG_ACPI
->> +static struct al_msix_data *priv;
->> +
->> +#define ACPI_AMZN_MADT_OEM_TYPE		0x80
->> +#define ACPI_AMZN_OEM_ID		"AMAZON"
->> +
->> +struct acpi_madt_msix_oem_frame {
->> +	struct acpi_subtable_header header;
->> +	u64 base_address;
->> +	u32 base_address_len;
->> +	u16 spi_count;
->> +	u16 spi_base;
->> +};
->> +
->> +static struct fwnode_handle *al_msi_get_fwnode(struct device *dev)
->> +{
->> +	return priv->msi_domain_handle;
->> +}
->> +
->> +static int __init al_msix_acpi_probe(struct acpi_subtable_header *header,
->> +				     const unsigned long end)
->> +{
->> +	struct irq_domain *gic_domain;
->> +	struct fwnode_handle *gic_domain_handle;
->> +	struct acpi_madt_msix_oem_frame *m;
->> +	int ret;
->> +
->> +	m = container_of(header, struct acpi_madt_msix_oem_frame, header);
->> +	if (BAD_MADT_ENTRY(m, end))
->> +		return -EINVAL;
->> +
->> +	gic_domain_handle = acpi_get_gsi_domain_id();
->> +	if (!gic_domain_handle) {
->> +		pr_err("Failed to find the GIC domain handle\n");
->> +		return -ENXIO;
->> +	}
->> +
->> +	gic_domain = irq_find_matching_fwnode(gic_domain_handle,
->> +					      DOMAIN_BUS_ANY);
->> +	if (!gic_domain) {
->> +		pr_err("Failed to find the GIC domain\n");
->> +		return -ENXIO;
->> +	}
+On Tue, Mar 26, 2019 at 03:17:53PM +0000, Shameer Kolothum wrote:
+> HiSilicon erratum 162001800 describes the limitation of
+> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
 > 
-> Why do you do this in the iterator? It won't change over time, right?
+> On these platforms, the PMCG event counter registers
+> (SMMU_PMCG_EVCNTRn) are read only and as a result it
+> is not possible to set the initial counter period value
+> on event monitor start.
 > 
->> +
->> +	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
->> +	if (!priv)
->> +		return -ENOMEM;
->> +
->> +	priv->spi_first = m->spi_base;
->> +	priv->num_spis = m->spi_count;
->> +
->> +	priv->msi_domain_handle = irq_domain_alloc_fwnode((void *)
->> +							  m->base_address);
->> +	if (!priv->msi_domain_handle) {
->> +		pr_err("Unable to allocate msi domain token\n");
->> +		ret = -EINVAL;
->> +		goto err_acpi_priv;
->> +	}
->> +
->> +	ret = al_msix_init_common(priv, m->base_address);
->> +	if (ret)
->> +		goto err_acpi_priv;
->> +
->> +	ret = al_msix_init_domains(priv, gic_domain);
->> +	if (ret)
->> +		goto err_acpi_map;
->> +
->> +	pci_msi_register_fwnode_provider(&al_msi_get_fwnode);
->> +
->> +	return 0;
->> +
->> +err_acpi_map:
->> +	kfree(priv->msi_map);
->> +err_acpi_priv:
->> +	kfree(priv);
->> +	return ret;
->> +}
->> +
->> +static int __init al_msix_acpi_init(void)
->> +{
->> +	static struct acpi_table_madt *madt;
->> +	acpi_status status;
->> +
->> +	/* if ACPI MADT table is not Amazon defined return */
->> +	status = acpi_get_table(ACPI_SIG_MADT, 0,
->> +				(struct acpi_table_header **)&madt);
->> +	if (ACPI_FAILURE(status) || (madt && memcmp(madt->header.oem_id,
->> +						    ACPI_AMZN_OEM_ID,
->> +						    ACPI_OEM_ID_SIZE)))
->> +		return -ENODEV;
->> +
->> +	return acpi_table_parse_madt(ACPI_AMZN_MADT_OEM_TYPE,
->> +				     al_msix_acpi_probe, 0);
->> +}
->> +early_initcall(al_msix_acpi_init);
+> To work around this, the current value of the counter
+> is read and used for delta calculations. OEM information
+> from ACPI header is used to identify the affected hardware
+> platforms.
 > 
-> These initcalls are not maintainable in the long run. Either this is
-> part of the core ACPI discovery (IRQCHIP_ACPI_DECLARE), or it should
-> use another probing method. If you need to express dependencies, make
-> it an actual device driver (I suspect you're in complete control of
-> the FW anyway), which would make a lot more sense.
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+>  drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
+>  drivers/perf/arm_smmuv3_pmu.c | 48 ++++++++++++++++++++++++++++++++++++-------
+>  include/linux/acpi_iort.h     |  1 +
+>  3 files changed, 57 insertions(+), 8 deletions(-)
 > 
-> Thanks,
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e2c9b26..4dc68de 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1366,9 +1366,23 @@ static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
+>  				       ACPI_EDGE_SENSITIVE, &res[2]);
+>  }
+>  
+> +static struct acpi_platform_list pmcg_plat_info[] __initdata = {
+> +	/* HiSilicon Hip08 Platform */
+> +	{"HISI  ", "HIP08   ", 0, ACPI_SIG_IORT, greater_than_or_equal, 0,
+> +	 IORT_SMMU_V3_PMCG_HISI_HIP08},
+> +	{ }
+> +};
+
+Hopefully we won't have plaforms with *some* counters that eg are
+read-only and others that are read-write, or any other quirks
+combination that this hack can't solve, otherwise we are back to square
+one, namely, to the specifications (IORT or PMCG, or both).
+
+As it stands it is OK since we can revisit it later so:
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+>  static int __init arm_smmu_v3_pmcg_add_platdata(struct platform_device *pdev)
+>  {
+> -	u32 model = IORT_SMMU_V3_PMCG_GENERIC;
+> +	u32 model;
+> +	int idx;
+> +
+> +	idx = acpi_match_platform_list(pmcg_plat_info);
+> +	if (idx >= 0)
+> +		model = pmcg_plat_info[idx].data;
+> +	else
+> +		model = IORT_SMMU_V3_PMCG_GENERIC;
+>  
+>  	return platform_device_add_data(pdev, &model, sizeof(model));
+>  }
+> diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
+> index 7803e9e..6b3c0ed 100644
+> --- a/drivers/perf/arm_smmuv3_pmu.c
+> +++ b/drivers/perf/arm_smmuv3_pmu.c
+> @@ -35,6 +35,7 @@
+>   */
+>  
+>  #include <linux/acpi.h>
+> +#include <linux/acpi_iort.h>
+>  #include <linux/bitfield.h>
+>  #include <linux/bitops.h>
+>  #include <linux/cpuhotplug.h>
+> @@ -93,6 +94,8 @@
+>  
+>  #define SMMU_PMCG_PA_SHIFT              12
+>  
+> +#define SMMU_PMCG_EVCNTR_RDONLY         BIT(0)
+> +
+>  static int cpuhp_state_num;
+>  
+>  struct smmu_pmu {
+> @@ -108,6 +111,7 @@ struct smmu_pmu {
+>  	void __iomem *reg_base;
+>  	void __iomem *reloc_base;
+>  	u64 counter_mask;
+> +	u32 options;
+>  	bool global_filter;
+>  	u32 global_filter_span;
+>  	u32 global_filter_sid;
+> @@ -222,15 +226,27 @@ static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
+>  	u32 idx = hwc->idx;
+>  	u64 new;
+>  
+> -	/*
+> -	 * We limit the max period to half the max counter value of the counter
+> -	 * size, so that even in the case of extreme interrupt latency the
+> -	 * counter will (hopefully) not wrap past its initial value.
+> -	 */
+> -	new = smmu_pmu->counter_mask >> 1;
+> +	if (smmu_pmu->options & SMMU_PMCG_EVCNTR_RDONLY) {
+> +		/*
+> +		 * On platforms that require this quirk, if the counter starts
+> +		 * at < half_counter value and wraps, the current logic of
+> +		 * handling the overflow may not work. It is expected that,
+> +		 * those platforms will have full 64 counter bits implemented
+> +		 * so that such a possibility is remote(eg: HiSilicon HIP08).
+> +		 */
+> +		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
+> +	} else {
+> +		/*
+> +		 * We limit the max period to half the max counter value
+> +		 * of the counter size, so that even in the case of extreme
+> +		 * interrupt latency the counter will (hopefully) not wrap
+> +		 * past its initial value.
+> +		 */
+> +		new = smmu_pmu->counter_mask >> 1;
+> +		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
+> +	}
+>  
+>  	local64_set(&hwc->prev_count, new);
+> -	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
+>  }
+>  
+>  static void smmu_pmu_set_event_filter(struct perf_event *event,
+> @@ -669,6 +685,22 @@ static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
+>  		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
+>  }
+>  
+> +static void smmu_pmu_get_acpi_options(struct smmu_pmu *smmu_pmu)
+> +{
+> +	u32 model;
+> +
+> +	model = *(u32 *)dev_get_platdata(smmu_pmu->dev);
+> +
+> +	switch (model) {
+> +	case IORT_SMMU_V3_PMCG_HISI_HIP08:
+> +		/* HiSilicon Erratum 162001800 */
+> +		smmu_pmu->options |= SMMU_PMCG_EVCNTR_RDONLY;
+> +		break;
+> +	}
+> +
+> +	dev_notice(smmu_pmu->dev, "option mask 0x%x\n", smmu_pmu->options);
+> +}
+> +
+>  static int smmu_pmu_probe(struct platform_device *pdev)
+>  {
+>  	struct smmu_pmu *smmu_pmu;
+> @@ -748,6 +780,8 @@ static int smmu_pmu_probe(struct platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+>  
+> +	smmu_pmu_get_acpi_options(smmu_pmu);
+> +
+>  	/* Pick one CPU to be the preferred one to use */
+>  	smmu_pmu->on_cpu = raw_smp_processor_id();
+>  	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index 052ef7b..723e4df 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -32,6 +32,7 @@
+>   * do with hardware or with IORT specification.
+>   */
+>  #define IORT_SMMU_V3_PMCG_GENERIC        0x00000000 /* Generic SMMUv3 PMCG */
+> +#define IORT_SMMU_V3_PMCG_HISI_HIP08     0x00000001 /* HiSilicon HIP08 PMCG */
+>  
+>  int iort_register_domain_token(int trans_id, phys_addr_t base,
+>  			       struct fwnode_handle *fw_node);
+> -- 
+> 2.7.4
 > 
-> 	M.
 > 
