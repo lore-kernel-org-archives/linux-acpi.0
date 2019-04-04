@@ -1,69 +1,92 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [PATCH v4 5/5] xfs: disable map_sync for async flush
-Date: Thu, 4 Apr 2019 06:52:16 -0400 (EDT)
-Message-ID: <511760533.17430856.1554375136102.JavaMail.zimbra@redhat.com>
-References: <20190403104018.23947-1-pagupta@redhat.com> <20190403104018.23947-6-pagupta@redhat.com> <20190403220912.GB26298@dastard> <1518295599.17367903.1554358350929.JavaMail.zimbra@redhat.com> <20190404095649.GB8738@angband.pl>
+From: Suzuki K Poulose <suzuki.poulose@arm.com>
+Subject: Re: [PATCH 23/25] coresight: stm: ACPI support for parsing stimulus
+ base
+Date: Thu, 4 Apr 2019 12:27:13 +0100
+Message-ID: <09baa551-b351-6651-e609-75ed425ae7f4@arm.com>
+References: <1553107783-3340-1-git-send-email-suzuki.poulose@arm.com>
+ <1553107783-3340-24-git-send-email-suzuki.poulose@arm.com>
+ <20190328204151.GA7163@xps15>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190404095649.GB8738@angband.pl>
+In-Reply-To: <20190328204151.GA7163@xps15>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Borowski <kilobyte@angband.pl>
-Cc: Dave Chinner <david@fromorbit.com>, darrick wong <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, dan j williams <dan.j.williams@intel.com>, zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>, dave jiang <dave.jiang@intel.com>, mst@redhat.com, jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu, adilger kernel <adilger.kernel@dilger.ca>, lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com
+To: mathieu.poirier@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, coresight@lists.linaro.org, mike.leach@linaro.org, robert.walker@arm.com, rjw@rjwysocki.net
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Mathieu,
+
+On 28/03/2019 20:41, Mathieu Poirier wrote:
+> On Wed, Mar 20, 2019 at 06:49:40PM +0000, Suzuki K Poulose wrote:
+>> The stimulus base for STM device must be listed as the second memory
+>> resource, followed by the programming base address. Add support for
+>> parsing the information for ACPI.
+>>
+>> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+>> ---
+
+>> +#ifdef CONFIG_ACPI
+>> +static int acpi_stm_get_stimulus_area(struct device *dev, struct resource *res)
+>> +{
+>> +	int rc;
+>> +	bool found_base = false;
+>> +	struct resource_entry *rent;
+>> +	LIST_HEAD(res_list);
+>> +
+>> +	struct acpi_device *adev = ACPI_COMPANION(dev);
+>> +
+>> +	if (!adev)
+>> +		return -ENODEV;
+>> +	rc = acpi_dev_get_resources(adev, &res_list, NULL, NULL);
+>> +	if (rc < 0)
+>> +		return rc;
+>> +
+>> +	rc = -ENOENT;
+>> +	list_for_each_entry(rent, &res_list, node) {
+>> +		if (resource_type(rent->res) != IORESOURCE_MEM)
+>> +			continue;
+>> +		if (found_base) {
+>> +			*res = *rent->res;
+>> +			rc = 0;
+>> +			break;
+>> +		}
+>> +
+>> +		found_base = true;
+> 
+> Is the ACPI binding crystal clear on the fact that the second resource region
+> has to be for stimulus ports?
+
+Yes. Section 2.3 Resources in ACPI for CoreSightTM 1.0 (DEN0067) :
+
+"Each CoresSight component needs to declare the resources it owns using the _CRS
+method. This must include base address and span covering the MMIO interface of
+the device. In addition those that can raise interrupts must describe the
+interrupts they consume.
+
+For STM two base addresses must be presented, these must be provided in order.
+First the configuration base address, and then external stimuli memory region
+base address"
+
+>>   static int stm_get_stimulus_area(struct device *dev, struct resource *res)
+>>   {
+>>   	if (dev->of_node)
+> 
+> Wouldn't it be better to use is_of_node()?
+
 
 > 
-> On Thu, Apr 04, 2019 at 02:12:30AM -0400, Pankaj Gupta wrote:
-> > > All this ad hoc IS_DAX conditional logic is getting pretty nasty.
-> > > 
-> > > xfs_file_mmap(
-> > > ....
-> > > {
-> > > 	struct inode	*inode = file_inode(filp);
-> > > 
-> > > 	if (vma->vm_flags & VM_SYNC) {
-> > > 		if (!IS_DAX(inode))
-> > > 			return -EOPNOTSUPP;
-> > > 		if (!dax_synchronous(xfs_find_daxdev_for_inode(inode))
-> > > 			return -EOPNOTSUPP;
-> > > 	}
-> > > 
-> > > 	file_accessed(filp);
-> > > 	vma->vm_ops = &xfs_file_vm_ops;
-> > > 	if (IS_DAX(inode))
-> > > 		vma->vm_flags |= VM_HUGEPAGE;
-> > > 	return 0;
-> > > }
-> > 
-> > Sure, this is better.
+>>   		return of_stm_get_stimulus_area(dev, res);
+>> +	else if (is_acpi_node(dev->fwnode)
 > 
-> > > Even better, factor out all the "MAP_SYNC supported" checks into a
-> > > helper so that the filesystem code just doesn't have to care about
-> > > the details of checking for DAX+MAP_SYNC support....
-> > 
-> > o.k. Will add one common helper function for both ext4 & xfs filesystems.
+> is_acpi_device_node()?
 > 
-> Note this pending patch for Goldwyn Rodrigues' patchset for btrfs:
-> 
-> https://lore.kernel.org/linux-btrfs/20190328102418.5466-1-kilobyte@angband.pl/
-> 
-> We might want to coordinate.
 
-Sure. Good to know.
+Yes, to both the above.
 
-Thanks for the pointer. Will have a look.
-
-Best regards,
-Pankaj 
-
-> 
-> 
-> Meow!
-> --
-> ⢀⣴⠾⠻⢶⣦⠀
-> ⣾⠁⢠⠒⠀⣿⡁ Did ya know that typing "test -j8" instead of "ctest -j8"
-> ⢿⡄⠘⠷⠚⠋⠀ will make your testsuite pass much faster, and fix bugs?
-> ⠈⠳⣄⠀⠀⠀⠀
-> 
+Cheers
+Suzuki
