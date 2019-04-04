@@ -1,46 +1,91 @@
-From: Matthew Garrett <matthewgarrett@google.com>
-Subject: [PATCH V32 14/27] acpi: Ignore acpi_rsdp kernel param when the kernel
- has been locked down
-Date: Wed,  3 Apr 2019 17:32:36 -0700
-Message-ID: <20190404003249.14356-15-matthewgarrett@google.com>
-References: <20190404003249.14356-1-matthewgarrett@google.com>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [PATCH v4 5/5] xfs: disable map_sync for async flush
+Date: Thu, 4 Apr 2019 02:12:30 -0400 (EDT)
+Message-ID: <1518295599.17367903.1554358350929.JavaMail.zimbra@redhat.com>
+References: <20190403104018.23947-1-pagupta@redhat.com> <20190403104018.23947-6-pagupta@redhat.com> <20190403220912.GB26298@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190404003249.14356-1-matthewgarrett@google.com>
+In-Reply-To: <20190403220912.GB26298@dastard>
 Sender: linux-kernel-owner@vger.kernel.org
-To: jmorris@namei.org
-Cc: linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org, dhowells@redhat.com, linux-api@vger.kernel.org, luto@kernel.org, Josh Boyer <jwboyer@redhat.com>, Matthew Garrett <mjg59@google.com>, Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, dan j williams <dan.j.williams@intel.com>, zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>, dave jiang <dave.jiang@intel.com>, mst@redhat.com, jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu, adilger kernel <adilger.kernel@dilger.ca>, darrick wong <darrick.wong@oracle.com>, lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, aarcange@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Josh Boyer <jwboyer@redhat.com>
 
-This option allows userspace to pass the RSDP address to the kernel, which
-makes it possible for a user to modify the workings of hardware .  Reject
-the option when the kernel is locked down.
+Hi Dave,
 
-Signed-off-by: Josh Boyer <jwboyer@redhat.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Matthew Garrett <mjg59@google.com>
-cc: Dave Young <dyoung@redhat.com>
-cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/osl.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> > Virtio pmem provides asynchronous host page cache flush
+> > mechanism. we don't support 'MAP_SYNC' with virtio pmem
+> > and xfs.
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  fs/xfs/xfs_file.c | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> > 
+> > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> > index 1f2e2845eb76..dced2eb8c91a 100644
+> > --- a/fs/xfs/xfs_file.c
+> > +++ b/fs/xfs/xfs_file.c
+> > @@ -1203,6 +1203,14 @@ xfs_file_mmap(
+> >  	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+> >  		return -EOPNOTSUPP;
+> >  
+> > +	/* We don't support synchronous mappings with DAX files if
+> > +	 * dax_device is not synchronous.
+> > +	 */
+> > +	if (IS_DAX(file_inode(filp)) && !dax_synchronous(
+> > +		xfs_find_daxdev_for_inode(file_inode(filp))) &&
+> > +					(vma->vm_flags & VM_SYNC))
+> > +		return -EOPNOTSUPP;
+> > +
+> >  	file_accessed(filp);
+> >  	vma->vm_ops = &xfs_file_vm_ops;
+> >  	if (IS_DAX(file_inode(filp)))
+> 
+> All this ad hoc IS_DAX conditional logic is getting pretty nasty.
+> 
+> xfs_file_mmap(
+> ....
+> {
+> 	struct inode	*inode = file_inode(filp);
+> 
+> 	if (vma->vm_flags & VM_SYNC) {
+> 		if (!IS_DAX(inode))
+> 			return -EOPNOTSUPP;
+> 		if (!dax_synchronous(xfs_find_daxdev_for_inode(inode))
+> 			return -EOPNOTSUPP;
+> 	}
+> 
+> 	file_accessed(filp);
+> 	vma->vm_ops = &xfs_file_vm_ops;
+> 	if (IS_DAX(inode))
+> 		vma->vm_flags |= VM_HUGEPAGE;
+> 	return 0;
+> }
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index f29e427d0d1d..cd5bba7b8eb3 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -194,7 +194,8 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
- 	acpi_physical_address pa;
- 
- #ifdef CONFIG_KEXEC
--	if (acpi_rsdp)
-+	if (acpi_rsdp && !kernel_is_locked_down("ACPI RSDP specification",
-+						LOCKDOWN_INTEGRITY))
- 		return acpi_rsdp;
- #endif
- 	pa = acpi_arch_get_root_pointer();
--- 
-2.21.0.392.gf8f6787159e-goog
+Sure, this is better.
+
+> 
+> 
+> Even better, factor out all the "MAP_SYNC supported" checks into a
+> helper so that the filesystem code just doesn't have to care about
+> the details of checking for DAX+MAP_SYNC support....
+
+o.k. Will add one common helper function for both ext4 & xfs filesystems.
+
+Thanks for the suggestion.
+
+Best regards,
+Pankaj
+
+> 
+> Cheers,
+> 
+> Dave.
+> --
+> Dave Chinner
+> david@fromorbit.com
+> 
