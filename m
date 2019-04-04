@@ -1,81 +1,64 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800
- quirk
-Date: Thu, 4 Apr 2019 16:31:55 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA8393575FC@lhreml524-mbs.china.huawei.com>
-References: <20190326151753.19384-1-shameerali.kolothum.thodi@huawei.com>
- <20190326151753.19384-5-shameerali.kolothum.thodi@huawei.com>
- <20190404154711.GA27577@fuggles.cambridge.arm.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 4/4] perf: arm_spe: Enable ACPI/Platform automatic module
+ loading
+Date: Thu, 4 Apr 2019 18:04:23 +0100
+Message-ID: <20190404170423.GC28932@fuggles.cambridge.arm.com>
+References: <20190326223938.5365-1-jeremy.linton@arm.com>
+ <20190326223938.5365-5-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190404154711.GA27577@fuggles.cambridge.arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190326223938.5365-5-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "andrew.murray@arm.com" <andrew.murray@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leede>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Will Deacon [mailto:will.deacon@arm.com]
-> Sent: 04 April 2019 16:47
-> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-> Cc: lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
-> andrew.murray@arm.com; jean-philippe.brucker@arm.com;
-> mark.rutland@arm.com; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> John Garry <john.garry@huawei.com>; pabba@codeaurora.org;
-> vkilari@codeaurora.org; rruigrok@codeaurora.org; linux-acpi@vger.kernel.org;
-> linux-kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Linuxarm
-> <linuxarm@huawei.com>; neil.m.leeder@gmail.com
-> Subject: Re: [PATCH v7 4/4] perf/smmuv3: Enable HiSilicon Erratum 162001800
-> quirk
+On Tue, Mar 26, 2019 at 05:39:38PM -0500, Jeremy Linton wrote:
+> Lets add the MODULE_TABLE and platform id_table entries so that
+> the SPE driver can attach to the ACPI platform device created by
+> the core pmu code.
 > 
-> On Tue, Mar 26, 2019 at 03:17:53PM +0000, Shameer Kolothum wrote:
-> > HiSilicon erratum 162001800 describes the limitation of
-> > SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
-> >
-> > On these platforms, the PMCG event counter registers
-> > (SMMU_PMCG_EVCNTRn) are read only and as a result it
-> > is not possible to set the initial counter period value
-> > on event monitor start.
-> >
-> > To work around this, the current value of the counter
-> > is read and used for delta calculations. OEM information
-> > from ACPI header is used to identify the affected hardware
-> > platforms.
-> >
-> > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> > Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > Reviewed-by: Robin Murphy <robin.murphy@arm.com>
-> > ---
-> >  drivers/acpi/arm64/iort.c     | 16 ++++++++++++++-
-> >  drivers/perf/arm_smmuv3_pmu.c | 48
-> ++++++++++++++++++++++++++++++++++++-------
-> >  include/linux/acpi_iort.h     |  1 +
-> >  3 files changed, 57 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index e2c9b26..4dc68de 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -1366,9 +1366,23 @@ static void __init
-> arm_smmu_v3_pmcg_init_resources(struct resource *res,
-> >  				       ACPI_EDGE_SENSITIVE, &res[2]);
-> >  }
-> >
-> > +static struct acpi_platform_list pmcg_plat_info[] __initdata = {
-> > +	/* HiSilicon Hip08 Platform */
-> > +	{"HISI  ", "HIP08   ", 0, ACPI_SIG_IORT, greater_than_or_equal, 0,
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>  drivers/perf/arm_spe_pmu.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
 > 
-> Passing integer constant 0 for the reason feels wrong to me. I'm going to
-> change it to "Erratum #162001800" and also add an entry to
-> silicon-errata.txt.
-> 
-> Please shout if that's not ok.
+> diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
+> index 7cb766dafe85..ffa2c76c08bb 100644
+> --- a/drivers/perf/arm_spe_pmu.c
+> +++ b/drivers/perf/arm_spe_pmu.c
+> @@ -1176,7 +1176,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
+>  };
+>  MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
+>  
+> -static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
+> +static const struct platform_device_id arm_spe_match[] = {
+> +	{ "arm,spe-v1", 0},
 
-Thanks Will for taking a look at this series. The proposed changes are fine to me.
+It would be nice if we could avoid duplicating this string from the ACPI
+parsing code.
 
-Shameer
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(platform, arm_spe_match);
+> +
+> +static int arm_spe_pmu_device_probe(struct platform_device *pdev)
+>  {
+>  	int ret;
+>  	struct arm_spe_pmu *spe_pmu;
+> @@ -1236,11 +1242,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
+>  }
+>  
+>  static struct platform_driver arm_spe_pmu_driver = {
+> +	.id_table = arm_spe_match,
+>  	.driver	= {
+>  		.name		= DRVNAME,
+>  		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
+
+Hmm, so some other drivers don't hook .id_table like you do, but instead
+hook .acpi_match_table in the driver structure. Is that not better?
+
+Will
