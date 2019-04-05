@@ -2,107 +2,88 @@ Return-Path: <SRS0=kPaS=SH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-5.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2854C4360F
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:21:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B62F8C4360F
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:50:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A802D205F4
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:21:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9127321852
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:50:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726806AbfDEOVr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Apr 2019 10:21:47 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:43608 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726730AbfDEOVq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Apr 2019 10:21:46 -0400
-Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 8FCA0EB8A12F5A7454F4;
-        Fri,  5 Apr 2019 22:21:38 +0800 (CST)
-Received: from localhost (10.177.31.96) by DGGEMS404-HUB.china.huawei.com
- (10.3.19.204) with Microsoft SMTP Server id 14.3.408.0; Fri, 5 Apr 2019
- 22:21:32 +0800
-From:   Yue Haibing <yuehaibing@huawei.com>
-To:     <andriy.shevchenko@linux.intel.com>, <linus.walleij@linaro.org>,
-        <bgolaszewski@baylibre.com>, <rjw@rjwysocki.net>
-CC:     <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>, YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
-Date:   Fri, 5 Apr 2019 22:21:12 +0800
-Message-ID: <20190405142112.26592-1-yuehaibing@huawei.com>
-X-Mailer: git-send-email 2.10.2.windows.1
-In-Reply-To: <20190404103925.25652-1-yuehaibing@huawei.com>
+        id S1726714AbfDEOuR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Apr 2019 10:50:17 -0400
+Received: from mga12.intel.com ([192.55.52.136]:60091 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726594AbfDEOuR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 5 Apr 2019 10:50:17 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Apr 2019 07:50:13 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,313,1549958400"; 
+   d="scan'208";a="131759100"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.72.86])
+  by orsmga008.jf.intel.com with ESMTP; 05 Apr 2019 07:50:10 -0700
+Received: from andy by smile with local (Exim 4.92)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1hCQAT-0001v1-DC; Fri, 05 Apr 2019 17:50:09 +0300
+Date:   Fri, 5 Apr 2019 17:50:09 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Yue Haibing <yuehaibing@huawei.com>
+Cc:     linus.walleij@linaro.org, bgolaszewski@baylibre.com,
+        rjw@rjwysocki.net, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
+Message-ID: <20190405145009.GD9224@smile.fi.intel.com>
 References: <20190404103925.25652-1-yuehaibing@huawei.com>
+ <20190405142112.26592-1-yuehaibing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-X-Originating-IP: [10.177.31.96]
-X-CFilter-Loop: Reflected
+Content-Disposition: inline
+In-Reply-To: <20190405142112.26592-1-yuehaibing@huawei.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190405142112.mRzynL28rDRZomd2rmLxzUZ5iTibKSZ4fp4XqJbR2v0@z>
+Message-ID: <20190405145009.lmjb2tY8Sk5jNpgngM-jYbOGqf-w42JkM_T-QMJVk1Y@z>
 
-From: YueHaibing <yuehaibing@huawei.com>
+On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
+> From: YueHaibing <yuehaibing@huawei.com>
+> 
+> When building CONFIG_ACPI is not set
+> gcc warn this:
+> 
+> drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+> drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+>    put_device(&adev->dev);
+>                    ^
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 
-When building CONFIG_ACPI is not set
-gcc warn this:
+Thank you for an update, I have a comment below, but before sending v3, let
+Rafael to have a chance to look at it.
 
-drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
-drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
-   put_device(&adev->dev);
-                   ^
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
-v2: rework patch use put_acpi_device helper
----
- drivers/gpio/gpio-merrifield.c | 2 +-
- include/linux/acpi.h           | 7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+>  #ifdef CONFIG_ACPI
+>  extern int acpi_platform_notify(struct device *dev, enum kobject_action action);
+> +
+> +static inline void put_acpi_device(struct acpi_device *adev)
+> +{
+> +	put_device(&adev->dev);
+> +}
 
-diff --git a/drivers/gpio/gpio-merrifield.c b/drivers/gpio/gpio-merrifield.c
-index 2383dc7..99ca18c 100644
---- a/drivers/gpio/gpio-merrifield.c
-+++ b/drivers/gpio/gpio-merrifield.c
-@@ -385,7 +385,7 @@ static const char *mrfld_gpio_get_pinctrl_dev_name(struct mrfld_gpio *priv)
- 	adev = acpi_dev_get_first_match_dev("INTC1002", NULL, -1);
- 	if (adev) {
- 		name = devm_kstrdup(priv->dev, acpi_dev_name(adev), GFP_KERNEL);
--		put_device(&adev->dev);
-+		put_acpi_device(adev);
- 	} else {
- 		name = "pinctrl-merrifield";
- 	}
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index a1bd789..2563e13 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1331,12 +1331,19 @@ static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
- 
- #ifdef CONFIG_ACPI
- extern int acpi_platform_notify(struct device *dev, enum kobject_action action);
-+
-+static inline void put_acpi_device(struct acpi_device *adev)
-+{
-+	put_device(&adev->dev);
-+}
- #else
- static inline int
- acpi_platform_notify(struct device *dev, enum kobject_action action)
- {
- 	return 0;
- }
-+
-+static inline void put_acpi_device(struct acpi_device *adev) {}
- #endif
- 
- #endif	/*_LINUX_ACPI_H*/
+This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
+And talking to Mika we agreed that naming would be better as acpi_dev_put().
+
 -- 
-2.7.4
+With Best Regards,
+Andy Shevchenko
 
 
