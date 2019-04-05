@@ -1,20 +1,20 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: (unknown)
-Date: Fri, 5 Apr 2019 10:38:13 +0800
-Message-ID: <20190405023811.d57iakm7dg2lvunc@mail.google.com>
+Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
+Date: Fri, 5 Apr 2019 10:44:35 +0800
+Message-ID: <20190405024350.rbwbiaxjybrmqea6@mail.google.com>
+References: <20190329001135.15847-1-changbin.du@gmail.com>
+ <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
+ <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
+ <20190403133613.13f3fd75@lwn.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20190403133613.13f3fd75@lwn.net>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jonathan Corbet <corbet@lwn.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-
-Bcc:
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Reply-To:
-In-Reply-To: <20190403133613.13f3fd75@lwn.net>
 
 + Bjorn
 
@@ -70,7 +70,7 @@ Which seems not good.
 > 
 > Of course, then it would be nice to better integrate those documents so
 > that they fit into a single coherent whole...a guy can dream...:)
-> 
+>
 I am not an adminstrator, so I don't know how adminstrators use this kernel
 documentation. But as a kernel developer, I prefer all related documents
 integrated into one charpter. Because I probably miss some useful sections
