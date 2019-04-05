@@ -1,73 +1,48 @@
-From: Yue Haibing <yuehaibing@huawei.com>
-Subject: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
-Date: Fri, 5 Apr 2019 22:21:12 +0800
-Message-ID: <20190405142112.26592-1-yuehaibing@huawei.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
+Date: Fri, 5 Apr 2019 17:50:09 +0300
+Message-ID: <20190405145009.GD9224@smile.fi.intel.com>
 References: <20190404103925.25652-1-yuehaibing@huawei.com>
+ <20190405142112.26592-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190404103925.25652-1-yuehaibing@huawei.com>
+Content-Disposition: inline
+In-Reply-To: <20190405142112.26592-1-yuehaibing@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, rjw@rjwysocki.net
-Cc: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+To: Yue Haibing <yuehaibing@huawei.com>
+Cc: linus.walleij@linaro.org, bgolaszewski@baylibre.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
+On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
+> From: YueHaibing <yuehaibing@huawei.com>
+> 
+> When building CONFIG_ACPI is not set
+> gcc warn this:
+> 
+> drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+> drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+>    put_device(&adev->dev);
+>                    ^
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 
-When building CONFIG_ACPI is not set
-gcc warn this:
+Thank you for an update, I have a comment below, but before sending v3, let
+Rafael to have a chance to look at it.
 
-drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
-drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
-   put_device(&adev->dev);
-                   ^
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
-v2: rework patch use put_acpi_device helper
----
- drivers/gpio/gpio-merrifield.c | 2 +-
- include/linux/acpi.h           | 7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+>  #ifdef CONFIG_ACPI
+>  extern int acpi_platform_notify(struct device *dev, enum kobject_action action);
+> +
+> +static inline void put_acpi_device(struct acpi_device *adev)
+> +{
+> +	put_device(&adev->dev);
+> +}
 
-diff --git a/drivers/gpio/gpio-merrifield.c b/drivers/gpio/gpio-merrifield.c
-index 2383dc7..99ca18c 100644
---- a/drivers/gpio/gpio-merrifield.c
-+++ b/drivers/gpio/gpio-merrifield.c
-@@ -385,7 +385,7 @@ static const char *mrfld_gpio_get_pinctrl_dev_name(struct mrfld_gpio *priv)
- 	adev = acpi_dev_get_first_match_dev("INTC1002", NULL, -1);
- 	if (adev) {
- 		name = devm_kstrdup(priv->dev, acpi_dev_name(adev), GFP_KERNEL);
--		put_device(&adev->dev);
-+		put_acpi_device(adev);
- 	} else {
- 		name = "pinctrl-merrifield";
- 	}
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index a1bd789..2563e13 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1331,12 +1331,19 @@ static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
- 
- #ifdef CONFIG_ACPI
- extern int acpi_platform_notify(struct device *dev, enum kobject_action action);
-+
-+static inline void put_acpi_device(struct acpi_device *adev)
-+{
-+	put_device(&adev->dev);
-+}
- #else
- static inline int
- acpi_platform_notify(struct device *dev, enum kobject_action action)
- {
- 	return 0;
- }
-+
-+static inline void put_acpi_device(struct acpi_device *adev) {}
- #endif
- 
- #endif	/*_LINUX_ACPI_H*/
+This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
+And talking to Mika we agreed that naming would be better as acpi_dev_put().
+
 -- 
-2.7.4
+With Best Regards,
+Andy Shevchenko
