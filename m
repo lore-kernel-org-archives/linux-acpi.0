@@ -1,48 +1,57 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
-Date: Fri, 5 Apr 2019 17:50:09 +0300
-Message-ID: <20190405145009.GD9224@smile.fi.intel.com>
-References: <20190404103925.25652-1-yuehaibing@huawei.com>
- <20190405142112.26592-1-yuehaibing@huawei.com>
+From: Keith Busch <kbusch@kernel.org>
+Subject: Re: [PATCH][next] acpi/hmat: fix uninitialized pointer dereference
+ on pointer 'target'
+Date: Fri, 5 Apr 2019 09:38:00 -0600
+Message-ID: <20190405153759.GB25081@localhost.localdomain>
+References: <20190405141215.2079-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190405142112.26592-1-yuehaibing@huawei.com>
+In-Reply-To: <20190405141215.2079-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yue Haibing <yuehaibing@huawei.com>
-Cc: linus.walleij@linaro.org, bgolaszewski@baylibre.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Busch, Keith" <keith.busch@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
-> From: YueHaibing <yuehaibing@huawei.com>
+On Fri, Apr 05, 2019 at 07:12:15AM -0700, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> When building CONFIG_ACPI is not set
-> gcc warn this:
+> The pointer 'target' is not initialized and is only assigned when the
+> ACPI_HMAT_MEMORY_PD_VALID bit in p->flags is set.  There is a later null
+> check on target that leads to an uninitialized pointer read and
+> dereference when assigning target->processor_pxm when target contains a
+> non-null garbage value.  Fix this by initializing targer to null.
 > 
-> drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
-> drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
->    put_device(&adev->dev);
->                    ^
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> Fixes: 665ac7e92757 ("acpi/hmat: Register processor domain to its memory")
+> Addresses-Coverity: ("Uninitialized pointer read")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Thank you for an update, I have a comment below, but before sending v3, let
-Rafael to have a chance to look at it.
+I would have sworn this was fixed as it's in my tree already, but the
+submitted patch sure enough doesn't have it.
 
->  #ifdef CONFIG_ACPI
->  extern int acpi_platform_notify(struct device *dev, enum kobject_action action);
-> +
-> +static inline void put_acpi_device(struct acpi_device *adev)
-> +{
-> +	put_device(&adev->dev);
-> +}
+I've double checked to see if there are any other discrepencies, and
+there are no other differences after this.
 
-This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
-And talking to Mika we agreed that naming would be better as acpi_dev_put().
+Thanks for the fix!
 
--- 
-With Best Regards,
-Andy Shevchenko
+Reviewed-by: Keith Busch <keith.busch@intel.com>
+
+> ---
+>  drivers/acpi/hmat/hmat.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+> index b7824a0309f7..b275016ff648 100644
+> --- a/drivers/acpi/hmat/hmat.c
+> +++ b/drivers/acpi/hmat/hmat.c
+> @@ -366,7 +366,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+>  					      const unsigned long end)
+>  {
+>  	struct acpi_hmat_proximity_domain *p = (void *)header;
+> -	struct memory_target *target;
+> +	struct memory_target *target = NULL;
+>  
+>  	if (p->header.length != sizeof(*p)) {
+>  		pr_notice("HMAT: Unexpected address range header length: %d\n",
+> -- 
