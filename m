@@ -1,87 +1,73 @@
-From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Qemu-devel] [PATCH v7 6/6] xfs: disable map_sync for async flush
-Date: Wed, 8 May 2019 01:49:04 -0400 (EDT)
-Message-ID: <7976014.27184867.1557294544901.JavaMail.zimbra@redhat.com>
-References: <20190426050039.17460-1-pagupta@redhat.com>
- <20190426050039.17460-7-pagupta@redhat.com>
- <CAPcyv4hCP4E4xPkQx25tqhznon6ADwrYJB1yujkrO-A7LUnsmg@mail.gmail.com>
- <20190507161736.GV5207@magnolia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190507161736.GV5207@magnolia>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, david <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andreas Dilger <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ext4 <linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, yuval shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Igor Mammedov <imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal@redha>
-List-Id: linux-acpi@vger.kernel.org
+Return-Path: <SRS0=kPaS=SH=vger.kernel.org=linux-acpi-owner@kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
+	T_DKIMWL_WL_HIGH autolearn=unavailable autolearn_force=no version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E7D7C4360F
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 01:55:21 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id 2D68B206DD
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 01:55:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1554429321;
+	bh=4G2UzrIPT/jXiQ0MqgSb8ygxHABTmX7PxLCN6wxgra0=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=bNwcexGt7r97cntOxLE2KZQe6HTkjC0DGTXMXL2R3ct0aBYsbZhth5xlzwUz9j5fm
+	 G9ICXgG1tz56/JdSgoWEz0CUlyY+tEIQEtXCvegzdmVsI0eV/BqHDSpWMVUTiVaFVP
+	 IEXqsRRbCLyjF2vVeOvZNNDJgc/qNZ75rLXjLIs4=
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S1730052AbfDEBzI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 4 Apr 2019 21:55:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43472 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729641AbfDEBzI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 Apr 2019 21:55:08 -0400
+Subject: Re: [GIT PULL] ACPI fix for v5.1-rc4
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1554429308;
+        bh=4G2UzrIPT/jXiQ0MqgSb8ygxHABTmX7PxLCN6wxgra0=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=CFb1kC5RBIRWRsuIFw+QdwoOVFjk53vwd1HCFFAUqiVk14hXZePXK8SYdTmR/r8uf
+         i79AroVhszG8Msq759v7Kx7td8S2h5l0RZMNHesE1kDpqkr66T8piDnvs01yzr2Alw
+         Fnz6s5ykGIg91a7o9aTDZE75rSR7jSd5QOh35CSc=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0g=1Cdme_bigvg9JtxREs=e-kkpRo5-7HUuGEiy1bw0gA@mail.gmail.com>
+References: <CAJZ5v0g=1Cdme_bigvg9JtxREs=e-kkpRo5-7HUuGEiy1bw0gA@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0g=1Cdme_bigvg9JtxREs=e-kkpRo5-7HUuGEiy1bw0gA@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+ acpi-5.1-rc4
+X-PR-Tracked-Commit-Id: b59fb7ef5240c301ca8b5b70d4298c0f053bb0c3
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: b512f71221d0bcb07ab32f3e958a84e164c85881
+Message-Id:
+ <155442930798.31474.11389041453540921430.pr-tracker-bot@kernel.org>
+Date:   Fri, 05 Apr 2019 01:55:07 +0000
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
+Precedence: bulk
+List-ID: <linux-acpi.vger.kernel.org>
+X-Mailing-List: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Message-ID: <20190405015507.uBy0dRwimm6QXebMKAJoejDVvSVzipZ5N4MeTE8lYIw@z>
 
+The pull request you sent on Thu, 4 Apr 2019 22:30:24 +0200:
 
-> 
-> On Tue, May 07, 2019 at 08:37:01AM -0700, Dan Williams wrote:
-> > On Thu, Apr 25, 2019 at 10:03 PM Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> > >
-> > > Dont support 'MAP_SYNC' with non-DAX files and DAX files
-> > > with asynchronous dax_device. Virtio pmem provides
-> > > asynchronous host page cache flush mechanism. We don't
-> > > support 'MAP_SYNC' with virtio pmem and xfs.
-> > >
-> > > Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > >  fs/xfs/xfs_file.c | 9 ++++++---
-> > >  1 file changed, 6 insertions(+), 3 deletions(-)
-> > 
-> > Darrick, does this look ok to take through the nvdimm tree?
-> 
-> <urk> forgot about this, sorry. :/
-> 
-> > >
-> > > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> > > index a7ceae90110e..f17652cca5ff 100644
-> > > --- a/fs/xfs/xfs_file.c
-> > > +++ b/fs/xfs/xfs_file.c
-> > > @@ -1203,11 +1203,14 @@ xfs_file_mmap(
-> > >         struct file     *filp,
-> > >         struct vm_area_struct *vma)
-> > >  {
-> > > +       struct dax_device       *dax_dev;
-> > > +
-> > > +       dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
-> > >         /*
-> > > -        * We don't support synchronous mappings for non-DAX files. At
-> > > least
-> > > -        * until someone comes with a sensible use case.
-> > > +        * We don't support synchronous mappings for non-DAX files and
-> > > +        * for DAX files if underneath dax_device is not synchronous.
-> > >          */
-> > > -       if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
-> > > +       if (!daxdev_mapping_supported(vma, dax_dev))
-> > >                 return -EOPNOTSUPP;
-> 
-> LGTM, and I'm fine with it going through nvdimm.  Nothing in
-> xfs-5.2-merge touches that function so it should be clean.
-> 
-> Reviewed-by: Darrick J. Wong <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.1-rc4
 
-Thank you for the review.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/b512f71221d0bcb07ab32f3e958a84e164c85881
 
-Pankaj
+Thank you!
 
-> 
-> --D
-> 
-> > >
-> > >         file_accessed(filp);
-> > > --
-> > > 2.20.1
-> > >
-> 
-> 
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
