@@ -2,61 +2,74 @@ Return-Path: <SRS0=kPaS=SH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91BAEC4360F
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 12:11:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EDEEC4360F
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:12:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 68A9F20449
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 12:11:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF4512184B
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:12:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727608AbfDEMLw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Apr 2019 08:11:52 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:46902 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726135AbfDEMLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Apr 2019 08:11:52 -0400
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 3DAB3F82422FF6169E0B;
-        Fri,  5 Apr 2019 20:11:49 +0800 (CST)
-Received: from [127.0.0.1] (10.177.31.96) by DGGEMS406-HUB.china.huawei.com
- (10.3.19.206) with Microsoft SMTP Server id 14.3.408.0; Fri, 5 Apr 2019
- 20:11:43 +0800
-Subject: Re: [PATCH] gpio: merrifield: Fix build err without CONFIG_ACPI
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-References: <20190404103925.25652-1-yuehaibing@huawei.com>
- <271a33ae-b4fc-0528-cf59-5053dc46cce0@huawei.com>
- <20190405100703.GX9224@smile.fi.intel.com>
-CC:     <linus.walleij@linaro.org>, <bgolaszewski@baylibre.com>,
-        <rjw@rjwysocki.net>, <linux-kernel@vger.kernel.org>,
-        <linux-gpio@vger.kernel.org>, <linux-acpi@vger.kernel.org>
-From:   YueHaibing <yuehaibing@huawei.com>
-Message-ID: <8651647d-a606-1c1a-dce2-00a6b2dadbf9@huawei.com>
-Date:   Fri, 5 Apr 2019 20:11:42 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.2.0
+        id S1730024AbfDEOMU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Apr 2019 10:12:20 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:54368 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726594AbfDEOMU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Apr 2019 10:12:20 -0400
+Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
+        by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+        (Exim 4.76)
+        (envelope-from <colin.king@canonical.com>)
+        id 1hCPZn-0002VU-RL; Fri, 05 Apr 2019 14:12:15 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Keith Busch <keith.busch@intel.com>, linux-acpi@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][next] acpi/hmat: fix uninitialized pointer dereference on pointer 'target'
+Date:   Fri,  5 Apr 2019 15:12:15 +0100
+Message-Id: <20190405141215.2079-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20190405100703.GX9224@smile.fi.intel.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.177.31.96]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190405121142.evVnT0hYGS5doQVnkiZKXjJ6ZwN2WAWZV9r9_T9FfxU@z>
+Message-ID: <20190405141215.-1dVi6CqmvOXDXMkUv0nPPUN2rbUOALsVr4d36W9lWw@z>
 
+From: Colin Ian King <colin.king@canonical.com>
 
-On 2019/4/5 18:07, Andy Shevchenko wrote:
-> On Thu, Apr 04, 2019 at 10:04:04PM +0800, YueHaibing wrote:
->> +cc Rafael and linux-acpi
-> 
-> Yeah, but please, address my comments and send v2.
+The pointer 'target' is not initialized and is only assigned when the
+ACPI_HMAT_MEMORY_PD_VALID bit in p->flags is set.  There is a later null
+check on target that leads to an uninitialized pointer read and
+dereference when assigning target->processor_pxm when target contains a
+non-null garbage value.  Fix this by initializing targer to null.
 
-Oh, sorry, I just forgot to send v2.
+Fixes: 665ac7e92757 ("acpi/hmat: Register processor domain to its memory")
+Addresses-Coverity: ("Uninitialized pointer read")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/acpi/hmat/hmat.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> 
+diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+index b7824a0309f7..b275016ff648 100644
+--- a/drivers/acpi/hmat/hmat.c
++++ b/drivers/acpi/hmat/hmat.c
+@@ -366,7 +366,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+ 					      const unsigned long end)
+ {
+ 	struct acpi_hmat_proximity_domain *p = (void *)header;
+-	struct memory_target *target;
++	struct memory_target *target = NULL;
+ 
+ 	if (p->header.length != sizeof(*p)) {
+ 		pr_notice("HMAT: Unexpected address range header length: %d\n",
+-- 
+2.20.1
 
