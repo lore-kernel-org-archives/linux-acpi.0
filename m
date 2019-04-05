@@ -2,88 +2,103 @@ Return-Path: <SRS0=kPaS=SH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B62F8C4360F
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:50:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CF48C4360F
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 15:36:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9127321852
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 14:50:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1E2F218A6
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Apr 2019 15:36:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1554478597;
+	bh=KO+Bx5T0axLekH0skoRWOhS3pDLqZ6mZZCB90Cse7w4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=HyCG3r5IqTkhXS9FWqj8MzV5AUL4IV+RD2OuNA3rJIyMoFwjVO2TXMOJUs6/H8b0o
+	 yug2bLL+kfP12B3SyRQe1ALpVsQ89/IjX3uLGGQ4E6CA3v4RWQr0r2O1MCG93ldXzH
+	 kJxqfSl3L0B3eXsHucD6y6tEE8CsSpcz8hg1Vbpc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726714AbfDEOuR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Apr 2019 10:50:17 -0400
-Received: from mga12.intel.com ([192.55.52.136]:60091 "EHLO mga12.intel.com"
+        id S1731087AbfDEPgb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Apr 2019 11:36:31 -0400
+Received: from mga11.intel.com ([192.55.52.93]:30309 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726594AbfDEOuR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Apr 2019 10:50:17 -0400
+        id S1729987AbfDEPgb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 5 Apr 2019 11:36:31 -0400
 X-Amp-Result: UNKNOWN
 X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Apr 2019 07:50:13 -0700
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Apr 2019 08:36:30 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.60,313,1549958400"; 
-   d="scan'208";a="131759100"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.72.86])
-  by orsmga008.jf.intel.com with ESMTP; 05 Apr 2019 07:50:10 -0700
-Received: from andy by smile with local (Exim 4.92)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1hCQAT-0001v1-DC; Fri, 05 Apr 2019 17:50:09 +0300
-Date:   Fri, 5 Apr 2019 17:50:09 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Yue Haibing <yuehaibing@huawei.com>
-Cc:     linus.walleij@linaro.org, bgolaszewski@baylibre.com,
-        rjw@rjwysocki.net, linux-kernel@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
-Message-ID: <20190405145009.GD9224@smile.fi.intel.com>
-References: <20190404103925.25652-1-yuehaibing@huawei.com>
- <20190405142112.26592-1-yuehaibing@huawei.com>
+   d="scan'208";a="158577326"
+Received: from unknown (HELO localhost.localdomain) ([10.232.112.69])
+  by fmsmga002.fm.intel.com with ESMTP; 05 Apr 2019 08:36:29 -0700
+Date:   Fri, 5 Apr 2019 09:38:00 -0600
+From:   Keith Busch <kbusch@kernel.org>
+To:     Colin King <colin.king@canonical.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Busch, Keith" <keith.busch@intel.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH][next] acpi/hmat: fix uninitialized pointer dereference
+ on pointer 'target'
+Message-ID: <20190405153759.GB25081@localhost.localdomain>
+References: <20190405141215.2079-1-colin.king@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Disposition: inline
-In-Reply-To: <20190405142112.26592-1-yuehaibing@huawei.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190405141215.2079-1-colin.king@canonical.com>
+User-Agent: Mutt/1.9.1 (2017-09-22)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190405145009.lmjb2tY8Sk5jNpgngM-jYbOGqf-w42JkM_T-QMJVk1Y@z>
+Message-ID: <20190405153800.lKHlJ9inDYWHEUtAzp14w2KLtD-XXIeO3N502mnEJak@z>
 
-On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
-> From: YueHaibing <yuehaibing@huawei.com>
+On Fri, Apr 05, 2019 at 07:12:15AM -0700, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> When building CONFIG_ACPI is not set
-> gcc warn this:
+> The pointer 'target' is not initialized and is only assigned when the
+> ACPI_HMAT_MEMORY_PD_VALID bit in p->flags is set.  There is a later null
+> check on target that leads to an uninitialized pointer read and
+> dereference when assigning target->processor_pxm when target contains a
+> non-null garbage value.  Fix this by initializing targer to null.
 > 
-> drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
-> drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
->    put_device(&adev->dev);
->                    ^
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> Fixes: 665ac7e92757 ("acpi/hmat: Register processor domain to its memory")
+> Addresses-Coverity: ("Uninitialized pointer read")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Thank you for an update, I have a comment below, but before sending v3, let
-Rafael to have a chance to look at it.
+I would have sworn this was fixed as it's in my tree already, but the
+submitted patch sure enough doesn't have it.
 
->  #ifdef CONFIG_ACPI
->  extern int acpi_platform_notify(struct device *dev, enum kobject_action action);
-> +
-> +static inline void put_acpi_device(struct acpi_device *adev)
-> +{
-> +	put_device(&adev->dev);
-> +}
+I've double checked to see if there are any other discrepencies, and
+there are no other differences after this.
 
-This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
-And talking to Mika we agreed that naming would be better as acpi_dev_put().
+Thanks for the fix!
 
--- 
-With Best Regards,
-Andy Shevchenko
+Reviewed-by: Keith Busch <keith.busch@intel.com>
 
-
+> ---
+>  drivers/acpi/hmat/hmat.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+> index b7824a0309f7..b275016ff648 100644
+> --- a/drivers/acpi/hmat/hmat.c
+> +++ b/drivers/acpi/hmat/hmat.c
+> @@ -366,7 +366,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+>  					      const unsigned long end)
+>  {
+>  	struct acpi_hmat_proximity_domain *p = (void *)header;
+> -	struct memory_target *target;
+> +	struct memory_target *target = NULL;
+>  
+>  	if (p->header.length != sizeof(*p)) {
+>  		pr_notice("HMAT: Unexpected address range header length: %d\n",
+> -- 
