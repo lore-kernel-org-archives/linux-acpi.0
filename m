@@ -1,88 +1,60 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Fri, 5 Apr 2019 10:44:35 +0800
-Message-ID: <20190405024350.rbwbiaxjybrmqea6@mail.google.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
- <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
- <20190403133613.13f3fd75@lwn.net>
+From: Mukesh Ojha <mojha@codeaurora.org>
+Subject: Re: [PATCH v2] extcon: axp288: Add a depends on ACPI to the Kconfig
+ entry
+Date: Fri, 5 Apr 2019 11:06:09 +0530
+Message-ID: <9903c0fc-3016-49ea-0120-bab4eb857cf4@codeaurora.org>
+References: <20190404104222.23900-1-yuehaibing@huawei.com>
+ <20190404141748.27048-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190403133613.13f3fd75@lwn.net>
+In-Reply-To: <20190404141748.27048-1-yuehaibing@huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: Yue Haibing <yuehaibing@huawei.com>, myungjoo.ham@samsung.com, cw00.choi@samsung.com, wens@csie.org, hdegoede@redhat.com, rjw@rjwysocki.net
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-+ Bjorn
 
-On Wed, Apr 03, 2019 at 01:36:13PM -0600, Jonathan Corbet wrote:
-> On Tue, 2 Apr 2019 10:25:23 +0200
-> "Rafael J. Wysocki" <rafael@kernel.org> wrote:
-> 
-> > There are ACPI-related documents currently in Documentation/acpi/ that
-> > don't clearly fall under either driver-api or admin-guide.  For
-> > example, some of them describe various aspects of the ACPI support
-> > subsystem operation and some document expectations with respect to the
-> > ACPI tables provided by the firmware etc.
-> > 
-> > Where would you recommend to put them after converting to .rst?
-> 
-> OK, I've done some pondering on this.  Maybe what we need is a new
-> top-level "hardware guide" book meant to hold information on how the
-> hardware works and what the kernel's expectations are.  Architecture
-> information could maybe go there too.  Would this make sense?
-> 
-> If so, I could see a division like this:
-> 
-> Hardware guide
-> 	acpi-lid
-> 	aml-debugger (or maybe driver api?)
-> 	debug (ditto)
-> 	DSD-properties-rules
-> 	gpio-properties
-> 	i2c-muxes
-> 
-> Admin guide
-> 	cppc_sysfs
-> 	initrd_table_override
-> 
-> Driver-API
-> 	enumeration
-> 	scan_handlers
-> 
-> other:
-> 	dsdt-override: find another home for those five lines
+On 4/4/2019 7:47 PM, Yue Haibing wrote:
+> From: YueHaibing <yuehaibing@huawei.com>
 >
-Then, should we create dedicated sub-directories for these new charpters and
-move documents to coresspoding one? Now we have 'admin-guide' and all admin-guid
-docs are under it, otherwise we will have reference across different folders.
-For example, the 'admin-guide/index.rst' will have:
-    ...
-    ../acpi/osi
-    ...
-Which seems not good.
-
-> ...and so on.  I've probably gotten at least one of those wrong, but that's
-> the idea.
-> 
-> Of course, then it would be nice to better integrate those documents so
-> that they fit into a single coherent whole...a guy can dream...:)
+> As Hans de Goede pointed, using this driver without ACPI
+> makes little sense, so add ACPI dependency to Kconfig entry
+> to fix a build error while CONFIG_ACPI is not set.
 >
-I am not an adminstrator, so I don't know how adminstrators use this kernel
-documentation. But as a kernel developer, I prefer all related documents
-integrated into one charpter. Because I probably miss some useful sections
-if the documents are distributed into several charpters. And this is usually
-how a book is written (One charpter focus on one topic and has sub-sections
-such as overview, backgroud knowledge, implemenation details..),
-but a book mostly target on hypothetical readers...
+> drivers/extcon/extcon-axp288.c: In function 'axp288_extcon_probe':
+> drivers/extcon/extcon-axp288.c:363:20: error: dereferencing pointer to incomplete type
+>      put_device(&adev->dev);
+>
+> Fixes: 0cf064db948a ("extcon: axp288: Convert to use acpi_dev_get_first_match_dev()")
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Suggested-by: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 
-> Thanks,
-> 
-> jon
+This looks good too.
+Reviewed-by: Mukesh Ojha <mojha@codeaurora.org>
 
--- 
 Cheers,
-Changbin Du
+-Mukesh
+
+> ---
+> v2: rework patch
+> ---
+>   drivers/extcon/Kconfig | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
+> index 1ed4b45..de06faf 100644
+> --- a/drivers/extcon/Kconfig
+> +++ b/drivers/extcon/Kconfig
+> @@ -30,7 +30,7 @@ config EXTCON_ARIZONA
+>   
+>   config EXTCON_AXP288
+>   	tristate "X-Power AXP288 EXTCON support"
+> -	depends on MFD_AXP20X && USB_SUPPORT && X86
+> +	depends on MFD_AXP20X && USB_SUPPORT && X86 && ACPI
+>   	select USB_ROLE_SWITCH
+>   	help
+>   	  Say Y here to enable support for USB peripheral detection
