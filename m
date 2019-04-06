@@ -1,69 +1,68 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [PATCH 2/4] iommu/arm-smmu-v3: Link domains and devices
-Date: Fri, 5 Apr 2019 19:07:56 +0100
-Message-ID: <b21e1dc0-c0c8-6c48-fd3f-cd6c9653434b@arm.com>
-References: <20190320173634.21895-1-jean-philippe.brucker@arm.com>
- <20190320173634.21895-3-jean-philippe.brucker@arm.com>
- <20190404143924.GB27823@fuggles.cambridge.arm.com>
- <312d33a5-8eca-3fae-fd8b-8325e045761b@arm.com>
- <20190405163949.GA19828@fuggles.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190405163949.GA19828@fuggles.cambridge.arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-acpi@vger.kernel.org, zhongmiao@hisilicon.com, rjw@rjwysocki.net, okaya@kernel.org, "eric.auger@redhat.com" <eric.auger@redhat.com>, iommu@lists.linux-foundation.org, sudeep.holla@arm.com, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+From: Qian Cai <cai@lca.pw>
+Subject: [PATCH -next] acpi/hmat: fix memory leaks in hmat_init()
+Date: Sat,  6 Apr 2019 14:17:04 -0400
+Message-ID: <20190406181704.33574-1-cai@lca.pw>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: keith.busch@intel.com, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Qian Cai <cai@lca.pw>
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/04/2019 17:39, Will Deacon wrote:
->>> I'm wondering whether we can't take this a bit further and re-organise the
->>> data structures to make this a little simpler overall. Something along the
->>> lines of:
->>>
->>> 	struct arm_smmu_master_data {
->>> 		struct list_head		list; // masters in the same domain
->>> 		struct arm_smmu_device		*smmu;
->>> 		unsigned int			num_sids;
->>> 		u32				*sids; // Points into fwspec
->>> 		struct arm_smmu_domain		*domain; // NULL -> !assigned
->>> 	};
->>>
->>> and then just add a list_head into struct arm_smmu_domain to track the
->>> masters that have been attached (if you're feeling brave, you could put
->>> this into the s1_cfg).
->>
->> I'm not sure about that last bit, shouldn't the list of masters apply to
->> both s1 and s2?
-> 
-> I was assuming that (a) we were only using ATS with stage-1 and (b) we only
-> need the masters list for ATC invalidation. Did I go wrong somewhere?
+The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
+memory") introduced some memory leaks below due to it fails to release
+the heap memory in an error path, and then the stack __initdata memory
+which reference them get freed during boot renders those heap memory as
+leaks.
 
-Hmm, I messed that up in patch 3, actually. I'm still unsure about it,
-but in the end I was meaning to enable ATS for both stage-1 and stage-2
-domains. We could make it stage-1 only, but VFIO can assign a device
-with a stage-1 domain to userspace. That's the case with QEMU, which
-doesn't use VFIO_TYPE1_NESTING_IOMMU at the moment. So I don't think
-limiting ATS to stage-1 protects against anything.
+unreferenced object 0xc8ff8008349e9400 (size 128):
+  comm "swapper/0", pid 1, jiffies 4294709236 (age 48121.476s)
+  hex dump (first 32 bytes):
+    00 d0 9e 34 08 80 ff 84 d8 00 43 11 00 10 ff ff  ...4......C.....
+    00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<00000000869d4503>] __kmalloc+0x568/0x600
+    [<0000000070fd6afb>] alloc_memory_target+0x50/0xd8
+    [<00000000efa2081e>] srat_parse_mem_affinity+0x58/0x5c
+    [<000000008bfaef74>] acpi_parse_entries_array+0x1c8/0x2c0
+    [<0000000022804877>] acpi_table_parse_entries_array+0x11c/0x138
+    [<00000000ffe9cd34>] acpi_table_parse_entries+0x7c/0xac
+    [<00000000a7023afd>] hmat_init+0x90/0x174
+    [<00000000694a86c1>] do_one_initcall+0x2d8/0x5f8
+    [<0000000024889da9>] do_initcall_level+0x37c/0x3fc
+    [<000000009be02908>] do_basic_setup+0x38/0x50
+    [<0000000037b3ac0a>] kernel_init_freeable+0x194/0x258
+    [<00000000f5741184>] kernel_init+0x18/0x334
+    [<000000007b30f423>] ret_from_fork+0x10/0x18
+    [<000000006c7147a8>] 0xffffffffffffffff
 
+Signed-off-by: Qian Cai <cai@lca.pw>
+---
+ drivers/acpi/hmat/hmat.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-For (b), the master list will likely also be used for PASID support, to
-invalidate cached CDs for each device in a domain, but that's only stage-1.
-
-Then the current patchsets for nested translation also rely on the
-master list to bind guest PASID tables to all devices attached
-to a domain. But with those patches, s1_cfg and s2_cfg aren't in an enum
-anymore and we could still keep the list in s1_cfg.
-
-Thanks,
-Jean
+diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+index b7824a0309f7..c9b8abcf012c 100644
+--- a/drivers/acpi/hmat/hmat.c
++++ b/drivers/acpi/hmat/hmat.c
+@@ -637,7 +637,7 @@ static __init int hmat_init(void)
+ 
+ 	status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
+ 	if (ACPI_FAILURE(status))
+-		return 0;
++		goto out_free;
+ 
+ 	hmat_revision = tbl->revision;
+ 	switch (hmat_revision) {
+@@ -659,8 +659,9 @@ static __init int hmat_init(void)
+ 	}
+ 	hmat_register_targets();
+ out_put:
+-	hmat_free_structures();
+ 	acpi_put_table(tbl);
++out_free:
++	hmat_free_structures();
+ 	return 0;
+ }
+ subsys_initcall(hmat_init);
+-- 
+2.17.2 (Apple Git-113)
