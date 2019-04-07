@@ -2,115 +2,123 @@ Return-Path: <SRS0=/dqn=SJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3EFAC10F0E
-	for <linux-acpi@archiver.kernel.org>; Sun,  7 Apr 2019 06:21:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AB4CC10F0E
+	for <linux-acpi@archiver.kernel.org>; Sun,  7 Apr 2019 11:22:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 63D29214AE
-	for <linux-acpi@archiver.kernel.org>; Sun,  7 Apr 2019 06:21:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36B12213F2
+	for <linux-acpi@archiver.kernel.org>; Sun,  7 Apr 2019 11:22:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="ZLe0X5x/";
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="Kc9EEwMJ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="K0TWfzwA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725929AbfDGGVX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 7 Apr 2019 02:21:23 -0400
-Received: from smtp.codeaurora.org ([198.145.29.96]:60866 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725905AbfDGGVX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Apr 2019 02:21:23 -0400
-Received: by smtp.codeaurora.org (Postfix, from userid 1000)
-        id A629060DB4; Sun,  7 Apr 2019 06:21:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1554618082;
-        bh=Zm8cgQkIsC08l9USijCNh4jueDmjz1UqE4tPtN/fGfc=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=ZLe0X5x/XvMC612lIvdraGWgs5FSnM2dDs8xEE+5FTDmAH6NZHTsd3PRNGNjt2vAC
-         378yux11RUMBAwUy++tI39awOmXLRipazhhZodyUJ3X2tjOvdwmNA77pAzbhdkHxr4
-         SruNp9nIknt5rGPBjz+iepLyo78cEL4iQ9yGTfCk=
-Received: from [10.79.171.6] (blr-bdr-fw-01_globalnat_allzones-outside.qualcomm.com [103.229.18.19])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: mojha@smtp.codeaurora.org)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 1702060907;
-        Sun,  7 Apr 2019 06:21:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1554618081;
-        bh=Zm8cgQkIsC08l9USijCNh4jueDmjz1UqE4tPtN/fGfc=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=Kc9EEwMJFGLnuqdvY2KrFDrD1DuhjltndWefLPUO5QkXux8SBn19DXzVXg94Wv2gD
-         tsFC7PWwBVF54U4KPFwjtX8zKScQWZzse0HHABYoDEIWTPyddaQGKE6PcZ8zdG/7DH
-         xerKW1HVZaP5fQhnZmb5Z1DpbgKRFusXs7x5Nods=
-DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org 1702060907
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; spf=none smtp.mailfrom=mojha@codeaurora.org
+        id S1726501AbfDGLWo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 7 Apr 2019 07:22:44 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:35161 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726245AbfDGLWo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Apr 2019 07:22:44 -0400
+Received: by mail-ed1-f68.google.com with SMTP id s39so9172443edb.2;
+        Sun, 07 Apr 2019 04:22:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=p38y1Z8OAIHDpBI4bmmPeGfl/LANifrJcDre2IIMaIo=;
+        b=K0TWfzwAWnp5stOsw5iuSYR/OmivN800u+j2/7ddjRikl7q71SUEpwCdTjpSK/+1XJ
+         sm2GgcClZ2EBwHMrPMSDwpW3iTsy6w3E21VD/sM0+EOPK/RgcvuJprDif3nsBjcm7DfV
+         Y0WT11K+W0/qinsk4TrcWUGT5ow3VEWgPYD4PO+He0oHdWePT+VLbIggOu/mmG+Ad22W
+         K75znBZOfjiFxBkMJYvw8lvKUbjbpehCOtuuS5R/cXnIUriCn112I0rnyQeSlLpHr7yp
+         yc/7wAMOSqOj9x0E43V7hFCuFFTyANC21gxPorK8Pj2rT56khNJtCvWm3rYwtrB724m3
+         6cEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=p38y1Z8OAIHDpBI4bmmPeGfl/LANifrJcDre2IIMaIo=;
+        b=od6fSwKO9FqpnDfZCBtPPFOyjF3v7DaKCI4sqoxEVAAknGW8hhOFtUVxOk0KXOBE6v
+         lv91Hq8I3FLTIuzeUjGKMMqV2LDKQGxTsGjun2BRIc8i6IIyZj6f/XSdDRjQ1RM0f/ER
+         j7mo0D9rmAmSyZNuI+fAW496ahCDWyR0bB24udZCpipLExLJvVq/d8SltfBI9V9nKMiI
+         EsjqDW/wBkGE37JkhyvS3miebQBw3VhzhSIj/ohgES/lEE26wLVP7l8YRldJt26YHvnp
+         AvrF4Z2ufXOCtOad127HXkxQlmNiq/BS7+OyNZUrais98vwM4V+1pzErb78k565GUEHJ
+         Q9eA==
+X-Gm-Message-State: APjAAAWOTA/biQE5ra+6JZYMX+bXqGYdZXtZ1zKLuCTD6AIZZFq4O7JM
+        2CynnN/FGFjgGI467TcyKaA=
+X-Google-Smtp-Source: APXvYqyG8RQ8O2Q2QYqWTONy4XeRtMrSAislCJr56xv/h9FCc6D8VVmecrYKkt5LGJ7emtvkyhvxtw==
+X-Received: by 2002:a17:906:8381:: with SMTP id p1mr13192459ejx.169.1554636161976;
+        Sun, 07 Apr 2019 04:22:41 -0700 (PDT)
+Received: from archlinux-ryzen ([2a01:4f9:2a:1fae::2])
+        by smtp.gmail.com with ESMTPSA id j14sm4965167ejc.69.2019.04.07.04.22.40
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Sun, 07 Apr 2019 04:22:40 -0700 (PDT)
+Date:   Sun, 7 Apr 2019 04:22:38 -0700
+From:   Nathan Chancellor <natechancellor@gmail.com>
+To:     Qian Cai <cai@lca.pw>
+Cc:     gregkh@linuxfoundation.org, rjw@rjwysocki.net, lenb@kernel.org,
+        keith.busch@intel.com, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Subject: Re: [PATCH -next] acpi/hmat: fix an uninitialized memory_target
-To:     Qian Cai <cai@lca.pw>, gregkh@linuxfoundation.org
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, keith.busch@intel.com,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-ID: <20190407112238.GA30750@archlinux-ryzen>
 References: <20190407011222.38963-1-cai@lca.pw>
-From:   Mukesh Ojha <mojha@codeaurora.org>
-Message-ID: <561c18b5-9bb5-3d25-b172-f1f29910de8e@codeaurora.org>
-Date:   Sun, 7 Apr 2019 11:51:09 +0530
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
 MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
 In-Reply-To: <20190407011222.38963-1-cai@lca.pw>
-Content-Type: text/plain; charset="UTF-8"; format="flowed"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190407062109.nXZhLIdQw5Pk3mw6QgtCEVF7xHKJIBs4D8lCQpOdrqg@z>
+Message-ID: <20190407112238.z-FTSyqyJa32zClEg8M2r0bM5hGEvagM6lLvfTDBsYk@z>
 
-
-On 4/7/2019 6:42 AM, Qian Cai wrote:
+On Sat, Apr 06, 2019 at 09:12:22PM -0400, Qian Cai wrote:
 > The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
 > memory") introduced an uninitialized "struct memory_target" that could
 > cause an incorrect branching.
->
+> 
 > drivers/acpi/hmat/hmat.c:385:6: warning: variable 'target' is used
 > uninitialized whenever 'if' condition is false
 > [-Wsometimes-uninitialized]
->          if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
->              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>         if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
+>             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > drivers/acpi/hmat/hmat.c:392:6: note: uninitialized use occurs here
->          if (target && p->flags & ACPI_HMAT_PROCESSOR_PD_VALID) {
->              ^~~~~~
+>         if (target && p->flags & ACPI_HMAT_PROCESSOR_PD_VALID) {
+>             ^~~~~~
 > drivers/acpi/hmat/hmat.c:385:2: note: remove the 'if' if its condition
 > is always true
->          if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
->          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>         if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
+>         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > drivers/acpi/hmat/hmat.c:369:30: note: initialize the variable 'target'
 > to silence this warning
->          struct memory_target *target;
->                                      ^
->                                       = NULL
->
+>         struct memory_target *target;
+>                                     ^
+>                                      = NULL
+> 
 > Signed-off-by: Qian Cai <cai@lca.pw>
-Reviewed-by: Mukesh Ojha <mojha@codeaurora.org>
 
-Cheers,
--Mukesh
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
 
 > ---
->   drivers/acpi/hmat/hmat.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
+>  drivers/acpi/hmat/hmat.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
 > diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
 > index c9b8abcf012c..6653dba3b377 100644
 > --- a/drivers/acpi/hmat/hmat.c
 > +++ b/drivers/acpi/hmat/hmat.c
 > @@ -366,7 +366,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
->   					      const unsigned long end)
->   {
->   	struct acpi_hmat_proximity_domain *p = (void *)header;
+>  					      const unsigned long end)
+>  {
+>  	struct acpi_hmat_proximity_domain *p = (void *)header;
 > -	struct memory_target *target;
 > +	struct memory_target *target = NULL;
->   
->   	if (p->header.length != sizeof(*p)) {
->   		pr_notice("HMAT: Unexpected address range header length: %d\n",
+>  
+>  	if (p->header.length != sizeof(*p)) {
+>  		pr_notice("HMAT: Unexpected address range header length: %d\n",
+> -- 
+> 2.17.2 (Apple Git-113)
+> 
