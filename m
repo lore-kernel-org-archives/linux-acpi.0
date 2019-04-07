@@ -1,62 +1,69 @@
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: Re: [PATCH -next] acpi/hmat: fix an uninitialized memory_target
-Date: Sun, 7 Apr 2019 04:22:38 -0700
-Message-ID: <20190407112238.GA30750@archlinux-ryzen>
-References: <20190407011222.38963-1-cai@lca.pw>
+From: "Robert R. Howell" <RHowell@uwyo.edu>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+Date: Sun, 7 Apr 2019 20:58:12 +0000
+Message-ID: <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190407011222.38963-1-cai@lca.pw>
+In-Reply-To: <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
+Content-Language: en-US
+Content-ID: <080B9BC2A68AD44EADDB85C6560230C2@namprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Qian Cai <cai@lca.pw>
-Cc: gregkh@linuxfoundation.org, rjw@rjwysocki.net, lenb@kernel.org, keith.busch@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Apr 06, 2019 at 09:12:22PM -0400, Qian Cai wrote:
-> The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
-> memory") introduced an uninitialized "struct memory_target" that could
-> cause an incorrect branching.
-> 
-> drivers/acpi/hmat/hmat.c:385:6: warning: variable 'target' is used
-> uninitialized whenever 'if' condition is false
-> [-Wsometimes-uninitialized]
->         if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
->             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> drivers/acpi/hmat/hmat.c:392:6: note: uninitialized use occurs here
->         if (target && p->flags & ACPI_HMAT_PROCESSOR_PD_VALID) {
->             ^~~~~~
-> drivers/acpi/hmat/hmat.c:385:2: note: remove the 'if' if its condition
-> is always true
->         if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
->         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> drivers/acpi/hmat/hmat.c:369:30: note: initialize the variable 'target'
-> to silence this warning
->         struct memory_target *target;
->                                     ^
->                                      = NULL
-> 
-> Signed-off-by: Qian Cai <cai@lca.pw>
-
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-
-> ---
->  drivers/acpi/hmat/hmat.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-> index c9b8abcf012c..6653dba3b377 100644
-> --- a/drivers/acpi/hmat/hmat.c
-> +++ b/drivers/acpi/hmat/hmat.c
-> @@ -366,7 +366,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
->  					      const unsigned long end)
->  {
->  	struct acpi_hmat_proximity_domain *p = (void *)header;
-> -	struct memory_target *target;
-> +	struct memory_target *target = NULL;
->  
->  	if (p->header.length != sizeof(*p)) {
->  		pr_notice("HMAT: Unexpected address range header length: %d\n",
-> -- 
-> 2.17.2 (Apple Git-113)
-> 
+T24gNC8zLzE5IDI6NTQgQU0sIEhhbnMgZGUgR29lZGUgd3JvdGU6DQoNCj4gDQo+IEhpLA0KPiAN
+Cj4gT24gMDMtMDQtMTkgMDc6NDMsIEthaS1IZW5nIEZlbmcgd3JvdGU6DQo+PiBpMmMtZGVzaWdu
+d2FyZS1wbGF0ZHJ2IGZhaWxzIHRvIHdvcmsgYWZ0ZXIgdGhlIHN5c3RlbSByZXN0b3JlZCBmcm9t
+DQo+PiBoaWJlcm5hdGlvbjoNCj4+IFsgMjcyLjc3NTY5Ml0gaTJjX2Rlc2lnbndhcmUgODA4NjBG
+NDE6MDA6IFVua25vd24gU3lub3BzeXMgY29tcG9uZW50IHR5cGU6IDB4ZmZmZmZmZmYNCj4+DQo+
+PiBDb21taXQgNDg0MDJjZWU2ODg5ICgiQUNQSSAvIExQU1M6IFJlc3VtZSBCWVQvQ0hUIEkyQyBj
+b250cm9sbGVycyBmcm9tDQo+PiByZXN1bWVfbm9pcnEiKSBtYWtlcyBhY3BpX2xwc3Nfe3N1c3Bl
+bmRfbGF0ZSxyZXN1bWVfZWFybHl9KCkgYmFpbCBlYXJseQ0KPj4gb24gQllUL0NIVCBhcyByZXN1
+bWVfZnJvbV9ub2lycSBpcyBzZXQuIFRoaXMgbWVhbnMgZHdfaTJjX3BsYXRfcmVzdW1lKCkNCj4+
+IGRvZXNuJ3QgZ2V0cyBjYWxsZWQgYnkgYWNwaV9scHNzX3Jlc3VtZV9lYXJseSgpLCBhbmQgdGhp
+cyBjYXVzZXMgdGhlDQo+PiBpc3N1ZS4NCj4+DQouLi4NCj4gDQo+IFRoZSBvcmRlcmluZyBwcm9i
+bGVtIGZpeGVkIGJ5IGNvbW1pdCA0ODQwMmNlZTY4ODkgY2FuIGhpdCBoaWJlcm5hdGUgdG9vLA0K
+PiBzbyBJIHRoaW5rIGl0IHdvdWxkIGJlIGJldHRlciB0byBkbyB0aGlzIGluc3RlYWQgdG8gZml4
+IHRoaXMgcHJvYmxlbToNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaV9scHNz
+LmMgYi9kcml2ZXJzL2FjcGkvYWNwaV9scHNzLmMNCj4gaW5kZXggMWUyYTEwYTA2YjlkLi5jZjc2
+ODYwODQzN2UgMTAwNjQ0DQouLi4NCj4gSWYgcGVvcGxlIGFmZmVjdGVkIGJ5IHRoZSBwcm9ibGVt
+IGNhbiBnaXZlIG15IHZlcnNpb24gb2YgdGhlIGZpeCBhIHRlc3QsDQo+IHRoZW4gdGhhdCB3b3Vs
+ZCBiZSBncmVhdC4NCj4gDQo+IFJlZ2FyZHMsDQo+IA0KPiBIYW5zDQoNCkkgZGlkIHRyeSBhcHBs
+eWluZyB5b3VyIChIYW5zJykgcGF0Y2ggdG8gYSA1LjAuMCBhbmQgYSA1LjEtcmMzIGtlcm5lbCwg
+aW5zdGVhZCBvZiB3aGF0IEkgaGFkIA0KYmVlbiBkb2luZyBwcmV2aW91c2x5LCB3aGljaCB3YXMg
+cmV2ZXJ0aW5nIGNvbW1pdCAwMmU0NTY0NmQ1M2IuICBJIHRlc3RlZCBpdCBvbiBhbiBBU1VTIFQx
+MDBUQSANCmFuZCB1bmZvcnR1bmF0ZWx5IHdpdGggYm90aCBrZXJuZWxzIGFmdGVyIHJlc3VtZSBm
+cm9tIGhpYmVybmF0aW9uIEkgc3RpbGwgZ2V0IGVycm9ycyBsaWtlIHRob3NlIA0KbGlzdGVkIGJl
+bG93LCBhbmQgc291bmQgbm8gbG9uZ2VyIHdvcmtzLiAgSSBhbHNvIHRyaWVkIGFwcGx5aW5nIHRo
+ZSBwYXRjaCBmcm9tIEthaS1IZW5nIEZlbmcgDQooaW5zdGVhZCBvZiBIYW5zJyBwYXRjaCBvciBt
+eSByZXZlcnQpIG9uIGJvdGgga2VybmVscyBhbmQgYWdhaW4gaW4gYm90aCBjYXNlcyBJIGdldCB0
+aGVzZSBzYW1lIGVycm9ycy4NCg0KSW4gY29udHJhc3QsIG9uIHRoZSA1LjAuMCBrZXJuZWwgd2hl
+biBJIHJldmVydCAwMmU0NTY0NmQ1M2IsIHRoZSBwcm9ibGVtIGlzIGZpeGVkLiAgQmVjYXVzZSAN
+Cm9mIGNoYW5nZXMgaW4gYWRqYWNlbnQgY29kZSBpbiA1LjEtcmMzLCBJIGhhdmVuJ3QgeWV0IGZv
+dW5kIGEgd2F5IHRvIG1lcmdlIHRoZSBuZXcgY29kZSANCmFuZCB0aGUgMDJlNDU2NDZkNTNiIHJl
+dmVydCB3aXRob3V0IGNhdXNpbmcgd29yc2UgcHJvYmxlbXMuIEJ1dCB0aGF0J3MgcHJvYmFibHkg
+YmVjYXVzZSANCkkgZG9uJ3QgcmVhbGx5IHVuZGVyc3RhbmQgdGhlIGRldGFpbHMgb2YgdGhhdCBj
+b2RlLg0KDQpbICAxMjAuNjkwNDI4XSBpMmNfZGVzaWdud2FyZSA4MDg2MEY0MTowMTogdGltZW91
+dCB3YWl0aW5nIGZvciBidXMgcmVhZHkNClsgIDEyMC42OTA0NDJdIHJ0NTY0MCBpMmMtMTBFQzU2
+NDA6MDA6IEZhaWxlZCB0byB3cml0ZSAxM2QgPSAzNjAwOiAtMTEwDQpbICAxMjAuNzEyODYwXSBp
+MmNfZGVzaWdud2FyZSA4MDg2MEY0MTowMTogdGltZW91dCB3YWl0aW5nIGZvciBidXMgcmVhZHkN
+ClsgIDEyMC43MzczODldIGkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAxOiB0aW1lb3V0IHdhaXRp
+bmcgZm9yIGJ1cyByZWFkeQ0KWyAgMTIwLjc1OTY1N10gaTJjX2Rlc2lnbndhcmUgODA4NjBGNDE6
+MDE6IHRpbWVvdXQgd2FpdGluZyBmb3IgYnVzIHJlYWR5DQpbICAxMjAuNzgxNzk3XSBpMmNfZGVz
+aWdud2FyZSA4MDg2MEY0MTowMTogdGltZW91dCB3YWl0aW5nIGZvciBidXMgcmVhZHkNClsgIDEy
+MC44MDQxNTNdIGkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAxOiB0aW1lb3V0IHdhaXRpbmcgZm9y
+IGJ1cyByZWFkeQ0KWyAgMTIwLjgyNjQ2N10gaTJjX2Rlc2lnbndhcmUgODA4NjBGNDE6MDE6IHRp
+bWVvdXQgd2FpdGluZyBmb3IgYnVzIHJlYWR5DQpbICAxMjEuOTY1ODg2XSBpMmNfZGVzaWdud2Fy
+ZSA4MDg2MEY0MTowMTogdGltZW91dCBpbiBkaXNhYmxpbmcgYWRhcHRlcg0KLi4uLi4NClsgIDEz
+Mi43ODI2MzRdIGkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAxOiBjb250cm9sbGVyIHRpbWVkIG91
+dA0KWyAgMTMzLjgwNjUzOF0gaTJjX2Rlc2lnbndhcmUgODA4NjBGNDE6MDE6IGNvbnRyb2xsZXIg
+dGltZWQgb3V0DQpbICAxMzQuODMwOTkxXSBpMmNfZGVzaWdud2FyZSA4MDg2MEY0MTowMTogY29u
+dHJvbGxlciB0aW1lZCBvdXQNClsgIDEzNS44NTUxODNdIGkyY19kZXNpZ253YXJlIDgwODYwRjQx
+OjAxOiBjb250cm9sbGVyIHRpbWVkIG91dA0KDQpMZXQgbWUga25vdyBpZiBJIGNhbiBkbyBhbnkg
+b3RoZXIgdGVzdGluZyB0byBoZWxwLg0KDQpCb2IgSG93ZWxsDQoNCg==
