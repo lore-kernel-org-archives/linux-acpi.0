@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CDC2C10F14
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 10:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B012C10F14
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 10:47:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5B30A20883
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 10:42:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D950220883
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 10:47:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725983AbfDHKmS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Apr 2019 06:42:18 -0400
-Received: from foss.arm.com ([217.140.101.70]:46078 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725857AbfDHKmS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 Apr 2019 06:42:18 -0400
+        id S1726471AbfDHKrA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Apr 2019 06:47:00 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:46244 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726133AbfDHKrA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Apr 2019 06:47:00 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id F092D15AD;
-        Mon,  8 Apr 2019 03:42:17 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CD72C15AD;
+        Mon,  8 Apr 2019 03:46:59 -0700 (PDT)
 Received: from red-moon (red-moon.cambridge.arm.com [10.1.197.39])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 762CD3F718;
-        Mon,  8 Apr 2019 03:42:16 -0700 (PDT)
-Date:   Mon, 8 Apr 2019 11:42:14 +0100
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6D66D3F718;
+        Mon,  8 Apr 2019 03:46:58 -0700 (PDT)
+Date:   Mon, 8 Apr 2019 11:46:58 +0100
 From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 To:     Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc:     Robin Murphy <robin.murphy@arm.com>,
@@ -33,7 +33,7 @@ Cc:     Robin Murphy <robin.murphy@arm.com>,
         hanjun.guo@linaro.org
 Subject: Re: [PATCH RESEND v2] ACPI/IORT: Reject platform dev creation when
  dev set to wrong numa node
-Message-ID: <20190408104214.GA2727@red-moon>
+Message-ID: <20190408104658.GB2727@red-moon>
 References: <20190328140022.85790-1-wangkefeng.wang@huawei.com>
  <20190329031751.73814-1-wangkefeng.wang@huawei.com>
 MIME-Version: 1.0
@@ -45,17 +45,23 @@ Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190408104214.7zYY6gjd-3WGJiswZYTEbWGccIXCXvTNaJgj2Eqn4UY@z>
+Message-ID: <20190408104658.OYmbqrX-R7xQsV4B7gZvDSN-VtkIBykm1nL27MCdJWk@z>
+
+Also, in the $SUBJECT, s/numa/NUMA because that's an acronym not
+an English word.
+
+Here:
+
+"ACPI/IORT: Reject platform device creation on NUMA node mapping failure"
+
+Thanks,
+Lorenzo
 
 On Fri, Mar 29, 2019 at 11:17:51AM +0800, Kefeng Wang wrote:
 > If there is only node 0 in system, but smmuv3 device is set to offline
 > node 1, parsed from proximity domain in SMMUv3 IORT table, it will lead
 > to following crash,
-
-"In a system where, through IORT firmware mappings, the SMMU device is
-mapped to a NUMA node that is not online, the kernel bootstrap results
-in the following crash:"
-
+> 
 > [   47.492451] Unable to handle kernel paging request at virtual address 0000000000001388
 > [   47.500361] Mem abort info:
 > [   47.503143]   ESR = 0x96000004
@@ -98,36 +104,19 @@ in the following crash:"
 > [   47.734638]  ret_from_fork+0x10/0x1c
 > [   47.738202] Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
 > [   47.744307] ---[ end trace dfeaed4c373a32da ]--
-
-Nit: timestamps are not useful information, remove them and indent
-the log with two spaces, to quote it.
-
+> 
 > This could be triggered by firmware bug with bad IORT configuration,
 > or a NUMA node has no memory attaching to it, also with NR_CPUS less
 > than CPUs presented in MADT.
-
-Either you explain this properly or you remove this paragraph, I would
-remove it.
-
-Actually I would add a Link: tag to point at the lore archives where the
-related discussions took place.
-
+> 
 > Make dev_set_proximity() with a return value, terminating device creation
 > if it return failure.
-
-"Change the dev_set_proximity() hook prototype so that it returns a
-value and make it return failure if the PXM->NUMA-node mapping
-corresponds to an offline node, fixing the crash".
-
+> 
 > Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 > ---
 >  drivers/acpi/arm64/iort.c | 18 +++++++++++++-----
 >  1 file changed, 13 insertions(+), 5 deletions(-)
-
-With the commit log changes above:
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
+> 
 > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
 > index e48894e002ba..1fc1851b078e 100644
 > --- a/drivers/acpi/arm64/iort.c
