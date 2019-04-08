@@ -1,36 +1,66 @@
-From: Jens Axboe <axboe@kernel.dk>
-Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
-Date: Mon, 8 Apr 2019 11:41:18 -0600
-Message-ID: <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
-References: <20190408173914.GA13260@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190408173914.GA13260@amd>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>
-Cc: paolo.valente@linaro.org, linux-block@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+From: Erik Schmauss <erik.schmauss@intel.com>
+Subject: [PATCH 4/8] ACPICA: Namespace: remove address node from global list after method termination
+Date: Mon,  8 Apr 2019 13:36:55 -0700
+Message-ID: <20190408203659.4207-5-erik.schmauss@intel.com>
+References: <20190408203659.4207-1-erik.schmauss@intel.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190408203659.4207-1-erik.schmauss@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net
+Cc: Erik Schmauss <erik.schmauss@intel.com>, stable@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 4/8/19 11:39 AM, Pavel Machek wrote:
-> Hi!
-> 
-> For some reason, Thinkpad X60 now crashes during boot. I see some
-> weird backtraces, and it may be bfq related... or maybe ACPI idle.
-> 
-> Does x86-32 work for you?
-> 
-> Weird thing is, 5.1.0-rc3-next-20190408 boots here (but later has
-> problems during resume, making it unusable, too). They may not have
-> 100% same configs. 
+ACPICA commit b233720031a480abd438f2e9c643080929d144c3
 
-Can you try and revert:
+ASL operation_regions declare a range of addresses that it uses. In a
+perfect world, the range of addresses should be used exclusively by
+the AML interpreter. The OS can use this information to decide which
+drivers to load so that the AML interpreter and device drivers use
+different regions of memory.
 
-9dee8b3b057e1
+During table load, the address information is added to a global
+address range list. Each node in this list contains an address range
+as well as a namespace node of the operation_region. This list is
+deleted at ACPI shutdown.
 
-and see if that helps?
+Unfortunately, ASL operation_regions can be declared inside of control
+methods. Although this is not recommended, modern firmware contains
+such code. New module level code changes unintentionally removed the
+functionality of adding and removing nodes to the global address
+range list.
 
+A few months ago, support for adding addresses has been re-
+implemented. However, the removal of the address range list was
+missed and resulted in some systems to crash due to the address list
+containing bogus namespace nodes from operation_regions declared in
+control methods. In order to fix the crash, this change removes
+dynamic operation_regions after control method termination.
+
+Link: https://github.com/acpica/acpica/commit/b2337200
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=202475
+Cc: stable@vger.kernel.org # 4.20+
+Fixes: 4abb951b73ff (ACPICA: AML interpreter: add region addresses in global list during initialization)
+Reported-by: Michael J Gruber <mjg@fedoraproject.org>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/nsobject.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/acpi/acpica/nsobject.c b/drivers/acpi/acpica/nsobject.c
+index 8638f43cfc3d..79d86da1c892 100644
+--- a/drivers/acpi/acpica/nsobject.c
++++ b/drivers/acpi/acpica/nsobject.c
+@@ -186,6 +186,10 @@ void acpi_ns_detach_object(struct acpi_namespace_node *node)
+ 		}
+ 	}
+ 
++	if (obj_desc->common.type == ACPI_TYPE_REGION) {
++		acpi_ut_remove_address_range(obj_desc->region.space_id, node);
++	}
++
+ 	/* Clear the Node entry in all cases */
+ 
+ 	node->object = NULL;
 -- 
-Jens Axboe
+2.17.2
