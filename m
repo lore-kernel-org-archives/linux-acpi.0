@@ -4,20 +4,20 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.9 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35412C10F14
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DDBEC10F13
 	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 20:52:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D22121841
+	by mail.kernel.org (Postfix) with ESMTP id 6544F20880
 	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 20:52:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729067AbfDHUwv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1728826AbfDHUwv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 8 Apr 2019 16:52:51 -0400
-Received: from mga03.intel.com ([134.134.136.65]:41642 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:41643 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728826AbfDHUws (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1728967AbfDHUws (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 8 Apr 2019 16:52:48 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
@@ -25,16 +25,16 @@ Received: from fmsmga007.fm.intel.com ([10.253.24.52])
   by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Apr 2019 13:52:48 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.60,326,1549958400"; 
-   d="scan'208";a="141104056"
+   d="scan'208";a="141104053"
 Received: from bartok.jf.intel.com ([10.54.75.137])
-  by fmsmga007.fm.intel.com with ESMTP; 08 Apr 2019 13:52:48 -0700
+  by fmsmga007.fm.intel.com with ESMTP; 08 Apr 2019 13:52:47 -0700
 From:   Erik Schmauss <erik.schmauss@intel.com>
 To:     linux-acpi@vger.kernel.org, rjw@rjwysocki.net
-Cc:     Erik Schmauss <erik.schmauss@intel.com>,
-        Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 7/8] ACPICA: Namespace: add check to avoid null pointer dereference
-Date:   Mon,  8 Apr 2019 13:42:29 -0700
-Message-Id: <20190408204230.4335-8-erik.schmauss@intel.com>
+Cc:     Bob Moore <robert.moore@intel.com>,
+        Erik Schmauss <erik.schmauss@intel.com>
+Subject: [PATCH 6/8] ACPICA: Update version to 20190329
+Date:   Mon,  8 Apr 2019 13:42:28 -0700
+Message-Id: <20190408204230.4335-7-erik.schmauss@intel.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20190408204230.4335-1-erik.schmauss@intel.com>
 References: <20190408204230.4335-1-erik.schmauss@intel.com>
@@ -43,34 +43,32 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPICA commit 7586a625f9c34c3169efd88470192bf63119e31a
+From: Bob Moore <robert.moore@intel.com>
 
-Some ACPICA userspace tools call acpi_ut_subsystem_shutdown() during
-cleanup and dereference a null pointer when cleaning up the
-namespace.
+ACPICA commit 802ec363be67580f52251219ef90613008495392
 
-Link: https://github.com/acpica/acpica/commit/7586a625
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Version 20190329.
+
+Link: https://github.com/acpica/acpica/commit/802ec363
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/acpica/nsalloc.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ include/acpi/acpixf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/nsalloc.c b/drivers/acpi/acpica/nsalloc.c
-index 5470213b8e64..6eb63db72249 100644
---- a/drivers/acpi/acpica/nsalloc.c
-+++ b/drivers/acpi/acpica/nsalloc.c
-@@ -74,6 +74,10 @@ void acpi_ns_delete_node(struct acpi_namespace_node *node)
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 24dbb4e742a6..60b4067391e3 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -12,7 +12,7 @@
  
- 	ACPI_FUNCTION_NAME(ns_delete_node);
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
-+	if (!node) {
-+		return_VOID;
-+	}
-+
- 	/* Detach an object if there is one */
+-#define ACPI_CA_VERSION                 0x20190215
++#define ACPI_CA_VERSION                 0x20190329
  
- 	acpi_ns_detach_object(node);
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 2.17.2
 
