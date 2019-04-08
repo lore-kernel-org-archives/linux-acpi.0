@@ -1,8 +1,8 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Subject: Re: [PATCH RESEND v2] ACPI/IORT: Reject platform dev creation when
  dev set to wrong numa node
-Date: Mon, 8 Apr 2019 11:42:14 +0100
-Message-ID: <20190408104214.GA2727@red-moon>
+Date: Mon, 8 Apr 2019 11:46:58 +0100
+Message-ID: <20190408104658.GB2727@red-moon>
 References: <20190328140022.85790-1-wangkefeng.wang@huawei.com>
  <20190329031751.73814-1-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
@@ -24,15 +24,21 @@ To: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Sudeep Holla <sudeep.holla@arm.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
+Also, in the $SUBJECT, s/numa/NUMA because that's an acronym not
+an English word.
+
+Here:
+
+"ACPI/IORT: Reject platform device creation on NUMA node mapping failure"
+
+Thanks,
+Lorenzo
+
 On Fri, Mar 29, 2019 at 11:17:51AM +0800, Kefeng Wang wrote:
 > If there is only node 0 in system, but smmuv3 device is set to offline
 > node 1, parsed from proximity domain in SMMUv3 IORT table, it will lead
 > to following crash,
-
-"In a system where, through IORT firmware mappings, the SMMU device is
-mapped to a NUMA node that is not online, the kernel bootstrap results
-in the following crash:"
-
+> 
 > [   47.492451] Unable to handle kernel paging request at virtual address 0000000000001388
 > [   47.500361] Mem abort info:
 > [   47.503143]   ESR = 0x96000004
@@ -75,36 +81,19 @@ in the following crash:"
 > [   47.734638]  ret_from_fork+0x10/0x1c
 > [   47.738202] Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
 > [   47.744307] ---[ end trace dfeaed4c373a32da ]--
-
-Nit: timestamps are not useful information, remove them and indent
-the log with two spaces, to quote it.
-
+> 
 > This could be triggered by firmware bug with bad IORT configuration,
 > or a NUMA node has no memory attaching to it, also with NR_CPUS less
 > than CPUs presented in MADT.
-
-Either you explain this properly or you remove this paragraph, I would
-remove it.
-
-Actually I would add a Link: tag to point at the lore archives where the
-related discussions took place.
-
+> 
 > Make dev_set_proximity() with a return value, terminating device creation
 > if it return failure.
-
-"Change the dev_set_proximity() hook prototype so that it returns a
-value and make it return failure if the PXM->NUMA-node mapping
-corresponds to an offline node, fixing the crash".
-
+> 
 > Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 > ---
 >  drivers/acpi/arm64/iort.c | 18 +++++++++++++-----
 >  1 file changed, 13 insertions(+), 5 deletions(-)
-
-With the commit log changes above:
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
+> 
 > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
 > index e48894e002ba..1fc1851b078e 100644
 > --- a/drivers/acpi/arm64/iort.c
