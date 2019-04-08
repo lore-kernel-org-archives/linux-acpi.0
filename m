@@ -1,13 +1,13 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 09/11] platform/x86: intel_cht_int33fe: Provide fwnode for
- the USB connector
-Date: Mon, 8 Apr 2019 19:10:49 +0300
-Message-ID: <CAHp75Vcd==tp4VYrZ9iaYhz1k21EWD0uzVFdOSLKd83oFqcJxg@mail.gmail.com>
-References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com> <20190403164537.24643-10-heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 10/11] platform/x86: intel_cht_int33fe: Link with external
+ dependencies using fwnodes
+Date: Mon, 8 Apr 2019 19:42:52 +0300
+Message-ID: <CAHp75VeTUCQax01xVNg7N6oAYKoxadX9vL-X9oEQFHHJ6OSrpg@mail.gmail.com>
+References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com> <20190403164537.24643-11-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190403164537.24643-10-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20190403164537.24643-11-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>
@@ -16,99 +16,102 @@ List-Id: linux-acpi@vger.kernel.org
 On Wed, Apr 3, 2019 at 7:46 PM Heikki Krogerus
 <heikki.krogerus@linux.intel.com> wrote:
 >
-> In ACPI, and now also in DT, the USB connectors usually have
-> their own device nodes. In case of USB Type-C, those
-> connector (port) nodes are child nodes of the controller or
-> PHY device, in our case the fusb302. The software fwnodes
-> allow us to create a similar child node for fusb302 that
-> represents the connector also on Intel CHT.
->
-> This makes it possible replace the fusb302 specific device
-> properties which were deprecated with the common USB
-> connector properties that tcpm.c is able to use directly.
->
+> Supplying also external devices - the DisplayPort connector
+> and the USB role switch - software fwnodes. After this the
+> driver has access to all the components tied to the USB
+> Type-C connector and can start creating software node
+> references to actually associate them with the USB Type-C
+> connector device.
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> +static int role_switch_match(struct device *dev, void *name)
+> +{
+> +       return !strcmp(dev_name(dev), name);
+> +}
+> +
+> +static int cht_int33fe_setup_mux(struct cht_int33fe_data *data)
+> +{
 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
->  drivers/platform/x86/intel_cht_int33fe.c | 37 ++++++++++++++++++++++--
->  1 file changed, 34 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-> index 2f12ce154489..544e0b90aa07 100644
-> --- a/drivers/platform/x86/intel_cht_int33fe.c
-> +++ b/drivers/platform/x86/intel_cht_int33fe.c
-> @@ -25,6 +25,7 @@
->  #include <linux/regulator/consumer.h>
->  #include <linux/slab.h>
->  #include <linux/pci.h>
-> +#include <linux/usb/pd.h>
->
->  #define EXPECTED_PTYPE         4
->
-> @@ -32,6 +33,7 @@ enum {
->         INT33FE_NODE_FUSB302,
->         INT33FE_NODE_MAX17047,
->         INT33FE_NODE_PI3USB30532,
-> +       INT33FE_NODE_USB_CONNECTOR,
->         INT33FE_NODE_MAX,
->  };
->
-> @@ -112,9 +114,29 @@ cht_int33fe_max17047(struct device *dev, struct cht_int33fe_data *data)
->
->  static const struct property_entry fusb302_props[] = {
->         PROPERTY_ENTRY_STRING("linux,extcon-name", "cht_wcove_pwrsrc"),
-> -       PROPERTY_ENTRY_U32("fcs,max-sink-microvolt", 12000000),
-> -       PROPERTY_ENTRY_U32("fcs,max-sink-microamp",   3000000),
-> -       PROPERTY_ENTRY_U32("fcs,max-sink-microwatt", 36000000),
-> +       { }
-> +};
+> +       /* First let's find xHCI PCI device */
+> +       pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, NULL);
+> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> +               return -ENODEV;
 > +
-> +#define PDO_FIXED_FLAGS \
-> +       (PDO_FIXED_DUAL_ROLE | PDO_FIXED_DATA_SWAP | PDO_FIXED_USB_COMM)
+
+> +       /* Then the child platform device */
+> +       p = device_find_child(&pdev->dev, "intel_xhci_usb_sw",
+> +                             role_switch_match);
+
+We have already similar code in kernel
+(drivers/nvdimm/claim.c::namespace_match), perhaps
+you at least can (locally) introduce
+
+static int match_name(...) // or re-use from drivers/base/bus.c
+{
+...
+}
+
+static device_find_child_by_name(...)
+{
+...
+}
+
+which we may move to the driver core now or later on.
+
+> +       pci_dev_put(pdev);
+> +       if (!p)
+> +               return -EPROBE_DEFER;
 > +
-> +static const u32 src_pdo[] = {
-> +       PDO_FIXED(5000, 1500, PDO_FIXED_FLAGS),
-> +};
+
+> +       /* Finally the mux device */
+> +       dev = device_find_child(p, "intel_xhci_usb_sw-role-switch",
+> +                               role_switch_match);
+
+Ditto.
+
+> +       put_device(p);
+> +       if (!dev)
+> +               return -EPROBE_DEFER;
+
+> +       return 0;
+
+> +}
+
+> +static int cht_int33fe_setup_dp(struct cht_int33fe_data *data)
+> +{
+> +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
+> +       struct pci_dev *pdev;
 > +
-> +static const u32 snk_pdo[] = {
-> +       PDO_FIXED(5000, 400, PDO_FIXED_FLAGS),
-> +       PDO_VAR(5000, 12000, 3000),
-> +};
+> +       /* First let's find the GPU PCI device */
+> +       pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, NULL);
+> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> +               return -ENODEV;
 > +
-> +static const struct property_entry usb_connector_props[] = {
-> +       PROPERTY_ENTRY_STRING("name", "connector"),
-> +       PROPERTY_ENTRY_STRING("data-role", "dual"),
-> +       PROPERTY_ENTRY_STRING("power-role", "dual"),
-> +       PROPERTY_ENTRY_STRING("try-power-role", "sink"),
-> +       PROPERTY_ENTRY_U32_ARRAY("source-pdos", src_pdo),
-> +       PROPERTY_ENTRY_U32_ARRAY("sink-pdos", snk_pdo),
-> +       PROPERTY_ENTRY_U32("op-sink-microwatt", 36000000),
->         { }
->  };
->
-> @@ -149,6 +171,15 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
->                 data->node[i] = fwnode;
->         }
->
-> +       /* Node for the USB connector (FUSB302 is the parent) */
-> +       fwnode = fwnode_create_software_node(usb_connector_props,
-> +                                            data->node[INT33FE_NODE_FUSB302]);
-> +       if (IS_ERR(fwnode)) {
-> +               ret = PTR_ERR(fwnode);
-> +               goto err_remove_nodes;
-> +       }
-> +       data->node[INT33FE_NODE_USB_CONNECTOR] = fwnode;
+> +       /* Then the DP child device node */
+> +       data->dp = device_get_named_child_node(&pdev->dev, "DD02");
+> +       pci_dev_put(pdev);
+> +       if (!data->dp)
+> +               return -ENODEV;
 > +
->         return 0;
->
->  err_remove_nodes:
-> --
-> 2.20.1
->
+
+> +       fwnode->secondary = ERR_PTR(-ENODEV);
+> +       data->dp->secondary = fwnode;
+
+Can't generic helper be in charge of doing this, i.e. chaining fwnodes?
+
+///
+void fwnode_chain(parent, new)
+{
+...
+}
+///
+
+fwnode_chain(data->dp, fwnode);
 
 
--- 
+> +
+> +       return 0;
+> +}
+
+--
 With Best Regards,
 Andy Shevchenko
