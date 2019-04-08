@@ -1,10 +1,10 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
 Subject: [PATCH 4/8] ACPICA: Namespace: remove address node from global list after method termination
-Date: Mon,  8 Apr 2019 13:36:55 -0700
-Message-ID: <20190408203659.4207-5-erik.schmauss@intel.com>
-References: <20190408203659.4207-1-erik.schmauss@intel.com>
+Date: Mon,  8 Apr 2019 13:42:26 -0700
+Message-ID: <20190408204230.4335-5-erik.schmauss@intel.com>
+References: <20190408204230.4335-1-erik.schmauss@intel.com>
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190408203659.4207-1-erik.schmauss@intel.com>
+In-Reply-To: <20190408204230.4335-1-erik.schmauss@intel.com>
 Sender: stable-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net
 Cc: Erik Schmauss <erik.schmauss@intel.com>, stable@vger.kernel.org, Bob Moore <robert.moore@intel.com>
