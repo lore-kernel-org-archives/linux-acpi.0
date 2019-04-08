@@ -1,95 +1,163 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Date: Mon, 8 Apr 2019 10:16:22 +0200
-Message-ID: <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
- <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
- <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH RESEND v2] ACPI/IORT: Reject platform dev creation when
+ dev set to wrong numa node
+Date: Mon, 8 Apr 2019 11:42:14 +0100
+Message-ID: <20190408104214.GA2727@red-moon>
+References: <20190328140022.85790-1-wangkefeng.wang@huawei.com>
+ <20190329031751.73814-1-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Robert R. Howell" <RHowell@uwyo.edu>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190329031751.73814-1-wangkefeng.wang@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Sudeep Holla <sudeep.holla@arm.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Fri, Mar 29, 2019 at 11:17:51AM +0800, Kefeng Wang wrote:
+> If there is only node 0 in system, but smmuv3 device is set to offline
+> node 1, parsed from proximity domain in SMMUv3 IORT table, it will lead
+> to following crash,
 
-On 07-04-19 22:58, Robert R. Howell wrote:
-> On 4/3/19 2:54 AM, Hans de Goede wrote:
-> 
->>
->> Hi,
->>
->> On 03-04-19 07:43, Kai-Heng Feng wrote:
->>> i2c-designware-platdrv fails to work after the system restored from
->>> hibernation:
->>> [ 272.775692] i2c_designware 80860F41:00: Unknown Synopsys component type: 0xffffffff
->>>
->>> Commit 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from
->>> resume_noirq") makes acpi_lpss_{suspend_late,resume_early}() bail early
->>> on BYT/CHT as resume_from_noirq is set. This means dw_i2c_plat_resume()
->>> doesn't gets called by acpi_lpss_resume_early(), and this causes the
->>> issue.
->>>
+"In a system where, through IORT firmware mappings, the SMMU device is
+mapped to a NUMA node that is not online, the kernel bootstrap results
+in the following crash:"
+
+> [   47.492451] Unable to handle kernel paging request at virtual address 0000000000001388
+> [   47.500361] Mem abort info:
+> [   47.503143]   ESR = 0x96000004
+> [   47.506189]   Exception class = DABT (current EL), IL = 32 bits
+> [   47.512099]   SET = 0, FnV = 0
+> [   47.515140]   EA = 0, S1PTW = 0
+> [   47.518272] Data abort info:
+> [   47.521144]   ISV = 0, ISS = 0x00000004
+> [   47.524970]   CM = 0, WnR = 0
+> [   47.527929] [0000000000001388] user address but active_mm is swapper
+> [   47.534285] Internal error: Oops: 96000004 [#1] SMP
+> [   47.539151] Modules linked in:
+> [   47.542194] CPU: 5 PID: 1 Comm: swapper/0 Not tainted 5.0.0 #15
+> [   47.549490] pstate: 80c00009 (Nzcv daif +PAN +UAO)
+> [   47.554272] pc : __alloc_pages_nodemask+0x13c/0x1068
+> [   47.559224] lr : __alloc_pages_nodemask+0xdc/0x1068
 > ...
->>
->> The ordering problem fixed by commit 48402cee6889 can hit hibernate too,
->> so I think it would be better to do this instead to fix this problem:
->>
->> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
->> index 1e2a10a06b9d..cf768608437e 100644
-> ...
->> If people affected by the problem can give my version of the fix a test,
->> then that would be great.
->>
->> Regards,
->>
->> Hans
+> [   47.646873] Process swapper/0 (pid: 1, stack limit = 0x(____ptrval____))
+> [   47.653560] Call trace:
+> [   47.655994]  __alloc_pages_nodemask+0x13c/0x1068
+> [   47.660600]  new_slab+0xec/0x570
+> [   47.663816]  ___slab_alloc+0x3e0/0x4f8
+> [   47.667553]  __slab_alloc+0x60/0x80
+> [   47.671029]  __kmalloc_node_track_caller+0x10c/0x478
+> [   47.675984]  devm_kmalloc+0x44/0xb0
+> [   47.679460]  pinctrl_bind_pins+0x4c/0x188
+> [   47.683457]  really_probe+0x78/0x2b8
+> [   47.687019]  driver_probe_device+0x64/0x110
+> [   47.691189]  device_driver_attach+0x74/0x98
+> [   47.695360]  __driver_attach+0x9c/0xe8
+> [   47.699095]  bus_for_each_dev+0x84/0xd8
+> [   47.702919]  driver_attach+0x30/0x40
+> [   47.706481]  bus_add_driver+0x170/0x218
+> [   47.710304]  driver_register+0x64/0x118
+> [   47.714128]  __platform_driver_register+0x54/0x60
+> [   47.718820]  arm_smmu_driver_init+0x24/0x2c
+> [   47.722991]  do_one_initcall+0xbc/0x328
+> [   47.726816]  kernel_init_freeable+0x304/0x3ac
+> [   47.731162]  kernel_init+0x18/0x110
+> [   47.734638]  ret_from_fork+0x10/0x1c
+> [   47.738202] Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
+> [   47.744307] ---[ end trace dfeaed4c373a32da ]--
+
+Nit: timestamps are not useful information, remove them and indent
+the log with two spaces, to quote it.
+
+> This could be triggered by firmware bug with bad IORT configuration,
+> or a NUMA node has no memory attaching to it, also with NR_CPUS less
+> than CPUs presented in MADT.
+
+Either you explain this properly or you remove this paragraph, I would
+remove it.
+
+Actually I would add a Link: tag to point at the lore archives where the
+related discussions took place.
+
+> Make dev_set_proximity() with a return value, terminating device creation
+> if it return failure.
+
+"Change the dev_set_proximity() hook prototype so that it returns a
+value and make it return failure if the PXM->NUMA-node mapping
+corresponds to an offline node, fixing the crash".
+
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 18 +++++++++++++-----
+>  1 file changed, 13 insertions(+), 5 deletions(-)
+
+With the commit log changes above:
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e48894e002ba..1fc1851b078e 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1232,18 +1232,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>  /*
+>   * set numa proximity domain for smmuv3 device
+>   */
+> -static void  __init arm_smmu_v3_set_proximity(struct device *dev,
+> +static int  __init arm_smmu_v3_set_proximity(struct device *dev,
+>  					      struct acpi_iort_node *node)
+>  {
+>  	struct acpi_iort_smmu_v3 *smmu;
+>  
+>  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>  	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+> -		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+> +		int node = acpi_map_pxm_to_node(smmu->pxm);
+> +		if (node != NUMA_NO_NODE && !node_online(node))
+> +			return -EINVAL;
+> +
+> +		set_dev_node(dev, node);
+>  		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
+>  			smmu->base_address,
+>  			smmu->pxm);
+>  	}
+> +	return 0;
+>  }
+>  #else
+>  #define arm_smmu_v3_set_proximity NULL
+> @@ -1318,7 +1323,7 @@ struct iort_dev_config {
+>  	int (*dev_count_resources)(struct acpi_iort_node *node);
+>  	void (*dev_init_resources)(struct resource *res,
+>  				     struct acpi_iort_node *node);
+> -	void (*dev_set_proximity)(struct device *dev,
+> +	int (*dev_set_proximity)(struct device *dev,
+>  				    struct acpi_iort_node *node);
+>  };
+>  
+> @@ -1369,8 +1374,11 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>  	if (!pdev)
+>  		return -ENOMEM;
+>  
+> -	if (ops->dev_set_proximity)
+> -		ops->dev_set_proximity(&pdev->dev, node);
+> +	if (ops->dev_set_proximity) {
+> +		ret = ops->dev_set_proximity(&pdev->dev, node);
+> +		if (ret)
+> +			goto dev_put;
+> +	}
+>  
+>  	count = ops->dev_count_resources(node);
+>  
+> -- 
+> 2.20.1
 > 
-> I did try applying your (Hans') patch to a 5.0.0 and a 5.1-rc3 kernel, instead of what I had
-> been doing previously, which was reverting commit 02e45646d53b.  I tested it on an ASUS T100TA
-> and unfortunately with both kernels after resume from hibernation I still get errors like those
-> listed below, and sound no longer works.  I also tried applying the patch from Kai-Heng Feng
-> (instead of Hans' patch or my revert) on both kernels and again in both cases I get these same errors.
-> 
-> In contrast, on the 5.0.0 kernel when I revert 02e45646d53b, the problem is fixed.  Because
-> of changes in adjacent code in 5.1-rc3, I haven't yet found a way to merge the new code
-> and the 02e45646d53b revert without causing worse problems. But that's probably because
-> I don't really understand the details of that code.
-> 
-> [  120.690428] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.690442] rt5640 i2c-10EC5640:00: Failed to write 13d = 3600: -110
-> [  120.712860] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.737389] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.759657] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.781797] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.804153] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.826467] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  121.965886] i2c_designware 80860F41:01: timeout in disabling adapter
-> .....
-> [  132.782634] i2c_designware 80860F41:01: controller timed out
-> [  133.806538] i2c_designware 80860F41:01: controller timed out
-> [  134.830991] i2c_designware 80860F41:01: controller timed out
-> [  135.855183] i2c_designware 80860F41:01: controller timed out
-> 
-> Let me know if I can do any other testing to help.
-
-Hmm, interesting so you have hibernation working on a T100TA
-(with 5.0 + 02e45646d53b reverted), right ?
-
-I must admit I never try hibernation myself, in experience it tends to
-have more issues then regular suspend/resume and there are already enough
-other issues to worry about on Bay and Cherry Trail based devices.
-
-But if it works on the T100TA and 02e45646d53b broke it then I will
-try to fix this, I've a T100TA myself. Currently my T100TA is at my
-local hackerspace, so I will not have access to it until coming Friday.
-
-Regards,
-
-Hans
