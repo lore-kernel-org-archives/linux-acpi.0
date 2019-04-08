@@ -1,145 +1,155 @@
-Return-Path: <SRS0=/dqn=SJ=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=s14x=SK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1238C10F0E
-	for <linux-acpi@archiver.kernel.org>; Sun,  7 Apr 2019 20:58:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1E92C282DE
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 03:44:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9A78C2087F
-	for <linux-acpi@archiver.kernel.org>; Sun,  7 Apr 2019 20:58:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=uwy.onmicrosoft.com header.i=@uwy.onmicrosoft.com header.b="CQBvns6g"
+	by mail.kernel.org (Postfix) with ESMTP id 7F1EC208E3
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 03:44:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726396AbfDGU6P (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 7 Apr 2019 16:58:15 -0400
-Received: from mail-eopbgr680138.outbound.protection.outlook.com ([40.107.68.138]:37573
-        "EHLO NAM04-BN3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726366AbfDGU6P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 7 Apr 2019 16:58:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uwy.onmicrosoft.com;
- s=selector1-uwyo-edu;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mtP60vdhK6aiGW39fe9JfsXhAiRV9WmnxPD1yQdQD20=;
- b=CQBvns6gmId88WTCzYA7IwhYSPA+eqMIuQZwx7iH25TRYMgWlJ+RuzkjB5/RauuTnEfidiBLkfhNSq55OkdpSJJMI80tpY4EdN1VXumRbYLOd7KdbI1yXwipOsI2TZzxuVEwHL7R2MvnVb+q/wVYzpwMm6K/EaLuezLtjJ6bimU=
-Received: from DM6PR05MB5259.namprd05.prod.outlook.com (20.177.223.223) by
- DM6PR05MB5628.namprd05.prod.outlook.com (20.176.123.85) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1792.11; Sun, 7 Apr 2019 20:58:12 +0000
-Received: from DM6PR05MB5259.namprd05.prod.outlook.com
- ([fe80::ed6e:ffe4:83a:29c7]) by DM6PR05MB5259.namprd05.prod.outlook.com
- ([fe80::ed6e:ffe4:83a:29c7%4]) with mapi id 15.20.1792.007; Sun, 7 Apr 2019
- 20:58:12 +0000
-From:   "Robert R. Howell" <RHowell@uwyo.edu>
-To:     Hans de Goede <hdegoede@redhat.com>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-CC:     "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+        id S1726464AbfDHDoY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 7 Apr 2019 23:44:24 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:40160 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726349AbfDHDoX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Apr 2019 23:44:23 -0400
+Received: from mail-qt1-f198.google.com ([209.85.160.198])
+        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <kai.heng.feng@canonical.com>)
+        id 1hDLCm-0005XS-Dd
+        for linux-acpi@vger.kernel.org; Mon, 08 Apr 2019 03:44:20 +0000
+Received: by mail-qt1-f198.google.com with SMTP id k13so11499751qtc.23
+        for <linux-acpi@vger.kernel.org>; Sun, 07 Apr 2019 20:44:20 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
+         :content-transfer-encoding:message-id:references:to;
+        bh=2JIaDBayuL3uBjV+gAUXNn7OjCmpE8H2R4sqnbLcGE4=;
+        b=gh3N0DZusqwOv+jj83O3+NGArtyoLqOn+sFz4SWWNsnCyJa1jzOT+oNiIg61jS063C
+         LpWkWSkaOxmk9k8WugWeum4T2gTY5cZi8EbVKGwb1MAfWtfevex9EKUch3n/KUno+qK0
+         gtGJkLcy1FN1HPm1TiCT8LH72cEVndnC+DR4S5ii3GrHDNg+yPqMme0/LijN2WDKTO9t
+         K5JEeZEIqapHYqRFpadccfx/UDUj5OQKWLuAb+Z5c+zO62RxP0WNZk/7JttjGpWUmLjo
+         QcntdV2bIBUIvRmPJpG33lvLYd6B4I7IzU4f0L4bDKchmiAqu1nZ/MPefkoUk4CYp7z7
+         xr1g==
+X-Gm-Message-State: APjAAAULmi0iD03h59qgc+ZIde0HolsQ0Sl0N9ix7Ia5G5sFAHN+xt/J
+        UcYEOgAXHw2XPBB6XQxZHKGZhhBKW1WMFWbkG9eteRylOx8KGKpVV1pr5tJcx8Mto3Jpia1aFw/
+        RR4c/gzbztjOEKMX+dM+6/hHMk2t6OHdpxElQzQ0=
+X-Received: by 2002:ac8:27b0:: with SMTP id w45mr22444507qtw.341.1554695059561;
+        Sun, 07 Apr 2019 20:44:19 -0700 (PDT)
+X-Google-Smtp-Source: APXvYqy0gWZ8l9nizdbXOcxT+d8cxm7PyDkpnIXppndq0PQ7+geFE2V6DklqMKly2eMmC48Krahxtw==
+X-Received: by 2002:ac8:27b0:: with SMTP id w45mr22444492qtw.341.1554695059296;
+        Sun, 07 Apr 2019 20:44:19 -0700 (PDT)
+Received: from [10.101.46.46] (61-220-137-37.HINET-IP.hinet.net. [61.220.137.37])
+        by smtp.gmail.com with ESMTPSA id v8sm17730005qtc.69.2019.04.07.20.44.16
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 07 Apr 2019 20:44:18 -0700 (PDT)
+Content-Type: text/plain; charset="UTF-8"; delsp="yes"; format="flowed"
+Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.8\))
 Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
  on BYT/CHT
-Thread-Topic: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Thread-Index: AQHU6eBClqunF/byekqefGejWfaC+aYqIfOAgAcThIA=
-Date:   Sun, 7 Apr 2019 20:58:12 +0000
-Message-ID: <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+From:   Kai Heng Feng <kai.heng.feng@canonical.com>
+In-Reply-To: <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+Date:   Mon, 8 Apr 2019 11:44:11 +0800
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Message-Id: <EE3052A4-7566-4C92-B5FC-93918B297465@canonical.com>
 References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
  <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
-In-Reply-To: <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
-x-originating-ip: [208.45.14.217]
-x-clientproxiedby: SN6PR02CA0036.namprd02.prod.outlook.com
- (2603:10b6:805:a2::49) To DM6PR05MB5259.namprd05.prod.outlook.com
- (2603:10b6:5:7f::31)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=RHowell@uwyo.edu; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 8c3163c1-e24e-4479-b0e6-08d6bb9bbf07
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600139)(711020)(4605104)(2017052603328)(7193020);SRVR:DM6PR05MB5628;
-x-ms-traffictypediagnostic: DM6PR05MB5628:
-x-microsoft-antispam-prvs: <DM6PR05MB56282487583495AF18D830C9D3530@DM6PR05MB5628.namprd05.prod.outlook.com>
-x-forefront-prvs: 00003DBFE7
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(136003)(366004)(396003)(39850400004)(376002)(346002)(199004)(189003)(36756003)(26005)(2616005)(305945005)(2501003)(256004)(14444005)(7736002)(99286004)(476003)(72206003)(6246003)(31686004)(64126003)(6436002)(110136005)(53936002)(54906003)(14454004)(3846002)(106356001)(105586002)(2906002)(186003)(6116002)(446003)(6512007)(58126008)(11346002)(76176011)(786003)(386003)(53546011)(486006)(6486002)(97736004)(75432002)(80792005)(88552002)(8936002)(8676002)(478600001)(71200400001)(71190400001)(81156014)(81166006)(68736007)(4326008)(86362001)(316002)(229853002)(102836004)(25786009)(65826007)(31696002)(52116002)(66066001)(5660300002)(65956001)(6506007)(65806001);DIR:OUT;SFP:1102;SCL:1;SRVR:DM6PR05MB5628;H:DM6PR05MB5259.namprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: uwyo.edu does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: wbVGcfMx/EUZoqo7MZlOVteMtCHxVlX8v5BREOxoh9a8981iWIoycfzb1D/Rn5mdv8WNt4GnFmCplnxTnidnmuEyQRuxgXiCa4jdU0NLXBicULiT0oaLyJWjjOSeejuwk1bypCNBZyU/6DhiSGZlf9thspP2fqhhrSAE8eMw3No+/dx/AVUEY6saBP1+rTCqQ5WXpqs7EO5m6GFmnYuy9jGAhpYrLATRqRZAtGVHpl4KXxYYvJgvDffELJ8Nws/Om7Zy0AhVHxeCu5Vs2wTX4Wn9pZ9yUpgDcOwDYe88dGi7xjmhSeHT8OguoHLnYhJdpmHmAjvA4GPeMdAjPMnIKSbFUevtLfBXnbdIyuuCy+nm8bDNyRS4cmzLQVFjk2uAPHNZ/ayppp+za/dSIFWpMw32bumwWN3fFcQWup7VG6A=
-Content-Type: text/plain; charset="UTF-8"
-Content-ID: <080B9BC2A68AD44EADDB85C6560230C2@namprd05.prod.outlook.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-X-OriginatorOrg: uwyo.edu
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8c3163c1-e24e-4479-b0e6-08d6bb9bbf07
-X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Apr 2019 20:58:12.2713
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: f9cdd7ad-825d-4601-8e9c-a325e02d52da
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR05MB5628
+ <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+To:     "Robert R. Howell" <RHowell@uwyo.edu>
+X-Mailer: Apple Mail (2.3445.104.8)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190407205812.zWuk3EVTJ261kkogSJRJ0NL2CKs_gc7bR_2bqwjHAhg@z>
+Message-ID: <20190408034411._GhRhaL6YJb3nGrWel_gENMXAwJyhCkh43PgvxzPA4k@z>
 
-T24gNC8zLzE5IDI6NTQgQU0sIEhhbnMgZGUgR29lZGUgd3JvdGU6DQoNCj4gDQo+IEhpLA0KPiAN
-Cj4gT24gMDMtMDQtMTkgMDc6NDMsIEthaS1IZW5nIEZlbmcgd3JvdGU6DQo+PiBpMmMtZGVzaWdu
-d2FyZS1wbGF0ZHJ2IGZhaWxzIHRvIHdvcmsgYWZ0ZXIgdGhlIHN5c3RlbSByZXN0b3JlZCBmcm9t
-DQo+PiBoaWJlcm5hdGlvbjoNCj4+IFsgMjcyLjc3NTY5Ml0gaTJjX2Rlc2lnbndhcmUgODA4NjBG
-NDE6MDA6IFVua25vd24gU3lub3BzeXMgY29tcG9uZW50IHR5cGU6IDB4ZmZmZmZmZmYNCj4+DQo+
-PiBDb21taXQgNDg0MDJjZWU2ODg5ICgiQUNQSSAvIExQU1M6IFJlc3VtZSBCWVQvQ0hUIEkyQyBj
-b250cm9sbGVycyBmcm9tDQo+PiByZXN1bWVfbm9pcnEiKSBtYWtlcyBhY3BpX2xwc3Nfe3N1c3Bl
-bmRfbGF0ZSxyZXN1bWVfZWFybHl9KCkgYmFpbCBlYXJseQ0KPj4gb24gQllUL0NIVCBhcyByZXN1
-bWVfZnJvbV9ub2lycSBpcyBzZXQuIFRoaXMgbWVhbnMgZHdfaTJjX3BsYXRfcmVzdW1lKCkNCj4+
-IGRvZXNuJ3QgZ2V0cyBjYWxsZWQgYnkgYWNwaV9scHNzX3Jlc3VtZV9lYXJseSgpLCBhbmQgdGhp
-cyBjYXVzZXMgdGhlDQo+PiBpc3N1ZS4NCj4+DQouLi4NCj4gDQo+IFRoZSBvcmRlcmluZyBwcm9i
-bGVtIGZpeGVkIGJ5IGNvbW1pdCA0ODQwMmNlZTY4ODkgY2FuIGhpdCBoaWJlcm5hdGUgdG9vLA0K
-PiBzbyBJIHRoaW5rIGl0IHdvdWxkIGJlIGJldHRlciB0byBkbyB0aGlzIGluc3RlYWQgdG8gZml4
-IHRoaXMgcHJvYmxlbToNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaV9scHNz
-LmMgYi9kcml2ZXJzL2FjcGkvYWNwaV9scHNzLmMNCj4gaW5kZXggMWUyYTEwYTA2YjlkLi5jZjc2
-ODYwODQzN2UgMTAwNjQ0DQouLi4NCj4gSWYgcGVvcGxlIGFmZmVjdGVkIGJ5IHRoZSBwcm9ibGVt
-IGNhbiBnaXZlIG15IHZlcnNpb24gb2YgdGhlIGZpeCBhIHRlc3QsDQo+IHRoZW4gdGhhdCB3b3Vs
-ZCBiZSBncmVhdC4NCj4gDQo+IFJlZ2FyZHMsDQo+IA0KPiBIYW5zDQoNCkkgZGlkIHRyeSBhcHBs
-eWluZyB5b3VyIChIYW5zJykgcGF0Y2ggdG8gYSA1LjAuMCBhbmQgYSA1LjEtcmMzIGtlcm5lbCwg
-aW5zdGVhZCBvZiB3aGF0IEkgaGFkIA0KYmVlbiBkb2luZyBwcmV2aW91c2x5LCB3aGljaCB3YXMg
-cmV2ZXJ0aW5nIGNvbW1pdCAwMmU0NTY0NmQ1M2IuICBJIHRlc3RlZCBpdCBvbiBhbiBBU1VTIFQx
-MDBUQSANCmFuZCB1bmZvcnR1bmF0ZWx5IHdpdGggYm90aCBrZXJuZWxzIGFmdGVyIHJlc3VtZSBm
-cm9tIGhpYmVybmF0aW9uIEkgc3RpbGwgZ2V0IGVycm9ycyBsaWtlIHRob3NlIA0KbGlzdGVkIGJl
-bG93LCBhbmQgc291bmQgbm8gbG9uZ2VyIHdvcmtzLiAgSSBhbHNvIHRyaWVkIGFwcGx5aW5nIHRo
-ZSBwYXRjaCBmcm9tIEthaS1IZW5nIEZlbmcgDQooaW5zdGVhZCBvZiBIYW5zJyBwYXRjaCBvciBt
-eSByZXZlcnQpIG9uIGJvdGgga2VybmVscyBhbmQgYWdhaW4gaW4gYm90aCBjYXNlcyBJIGdldCB0
-aGVzZSBzYW1lIGVycm9ycy4NCg0KSW4gY29udHJhc3QsIG9uIHRoZSA1LjAuMCBrZXJuZWwgd2hl
-biBJIHJldmVydCAwMmU0NTY0NmQ1M2IsIHRoZSBwcm9ibGVtIGlzIGZpeGVkLiAgQmVjYXVzZSAN
-Cm9mIGNoYW5nZXMgaW4gYWRqYWNlbnQgY29kZSBpbiA1LjEtcmMzLCBJIGhhdmVuJ3QgeWV0IGZv
-dW5kIGEgd2F5IHRvIG1lcmdlIHRoZSBuZXcgY29kZSANCmFuZCB0aGUgMDJlNDU2NDZkNTNiIHJl
-dmVydCB3aXRob3V0IGNhdXNpbmcgd29yc2UgcHJvYmxlbXMuIEJ1dCB0aGF0J3MgcHJvYmFibHkg
-YmVjYXVzZSANCkkgZG9uJ3QgcmVhbGx5IHVuZGVyc3RhbmQgdGhlIGRldGFpbHMgb2YgdGhhdCBj
-b2RlLg0KDQpbICAxMjAuNjkwNDI4XSBpMmNfZGVzaWdud2FyZSA4MDg2MEY0MTowMTogdGltZW91
-dCB3YWl0aW5nIGZvciBidXMgcmVhZHkNClsgIDEyMC42OTA0NDJdIHJ0NTY0MCBpMmMtMTBFQzU2
-NDA6MDA6IEZhaWxlZCB0byB3cml0ZSAxM2QgPSAzNjAwOiAtMTEwDQpbICAxMjAuNzEyODYwXSBp
-MmNfZGVzaWdud2FyZSA4MDg2MEY0MTowMTogdGltZW91dCB3YWl0aW5nIGZvciBidXMgcmVhZHkN
-ClsgIDEyMC43MzczODldIGkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAxOiB0aW1lb3V0IHdhaXRp
-bmcgZm9yIGJ1cyByZWFkeQ0KWyAgMTIwLjc1OTY1N10gaTJjX2Rlc2lnbndhcmUgODA4NjBGNDE6
-MDE6IHRpbWVvdXQgd2FpdGluZyBmb3IgYnVzIHJlYWR5DQpbICAxMjAuNzgxNzk3XSBpMmNfZGVz
-aWdud2FyZSA4MDg2MEY0MTowMTogdGltZW91dCB3YWl0aW5nIGZvciBidXMgcmVhZHkNClsgIDEy
-MC44MDQxNTNdIGkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAxOiB0aW1lb3V0IHdhaXRpbmcgZm9y
-IGJ1cyByZWFkeQ0KWyAgMTIwLjgyNjQ2N10gaTJjX2Rlc2lnbndhcmUgODA4NjBGNDE6MDE6IHRp
-bWVvdXQgd2FpdGluZyBmb3IgYnVzIHJlYWR5DQpbICAxMjEuOTY1ODg2XSBpMmNfZGVzaWdud2Fy
-ZSA4MDg2MEY0MTowMTogdGltZW91dCBpbiBkaXNhYmxpbmcgYWRhcHRlcg0KLi4uLi4NClsgIDEz
-Mi43ODI2MzRdIGkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAxOiBjb250cm9sbGVyIHRpbWVkIG91
-dA0KWyAgMTMzLjgwNjUzOF0gaTJjX2Rlc2lnbndhcmUgODA4NjBGNDE6MDE6IGNvbnRyb2xsZXIg
-dGltZWQgb3V0DQpbICAxMzQuODMwOTkxXSBpMmNfZGVzaWdud2FyZSA4MDg2MEY0MTowMTogY29u
-dHJvbGxlciB0aW1lZCBvdXQNClsgIDEzNS44NTUxODNdIGkyY19kZXNpZ253YXJlIDgwODYwRjQx
-OjAxOiBjb250cm9sbGVyIHRpbWVkIG91dA0KDQpMZXQgbWUga25vdyBpZiBJIGNhbiBkbyBhbnkg
-b3RoZXIgdGVzdGluZyB0byBoZWxwLg0KDQpCb2IgSG93ZWxsDQoNCg==
+at 4:58 AM, Robert R. Howell <RHowell@uwyo.edu> wrote:
+
+> On 4/3/19 2:54 AM, Hans de Goede wrote:
+>
+>> Hi,
+>>
+>> On 03-04-19 07:43, Kai-Heng Feng wrote:
+>>> i2c-designware-platdrv fails to work after the system restored from
+>>> hibernation:
+>>> [ 272.775692] i2c_designware 80860F41:00: Unknown Synopsys component  
+>>> type: 0xffffffff
+>>>
+>>> Commit 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from
+>>> resume_noirq") makes acpi_lpss_{suspend_late,resume_early}() bail early
+>>> on BYT/CHT as resume_from_noirq is set. This means dw_i2c_plat_resume()
+>>> doesn't gets called by acpi_lpss_resume_early(), and this causes the
+>>> issue.
+> ...
+>> The ordering problem fixed by commit 48402cee6889 can hit hibernate too,
+>> so I think it would be better to do this instead to fix this problem:
+>>
+>> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+>> index 1e2a10a06b9d..cf768608437e 100644
+> ...
+>> If people affected by the problem can give my version of the fix a test,
+>> then that would be great.
+>>
+>> Regards,
+>>
+>> Hans
+>
+> I did try applying your (Hans') patch to a 5.0.0 and a 5.1-rc3 kernel,  
+> instead of what I had
+> been doing previously, which was reverting commit 02e45646d53b.  I tested  
+> it on an ASUS T100TA
+> and unfortunately with both kernels after resume from hibernation I still  
+> get errors like those
+> listed below, and sound no longer works.  I also tried applying the patch  
+> from Kai-Heng Feng
+> (instead of Hans' patch or my revert) on both kernels and again in both  
+> cases I get these same errors.
+
+Hmm, Hans’ works for me, as acpi_lpss_resume_noirq() calls  
+acpi_lpss_do_resume_early() for S4.
+
+>
+> In contrast, on the 5.0.0 kernel when I revert 02e45646d53b, the problem  
+> is fixed.  Because
+> of changes in adjacent code in 5.1-rc3, I haven't yet found a way to  
+> merge the new code
+> and the 02e45646d53b revert without causing worse problems. But that's  
+> probably because
+> I don't really understand the details of that code.
+>
+> [  120.690428] i2c_designware 80860F41:01: timeout waiting for bus ready
+> [  120.690442] rt5640 i2c-10EC5640:00: Failed to write 13d = 3600: -110
+> [  120.712860] i2c_designware 80860F41:01: timeout waiting for bus ready
+> [  120.737389] i2c_designware 80860F41:01: timeout waiting for bus ready
+> [  120.759657] i2c_designware 80860F41:01: timeout waiting for bus ready
+> [  120.781797] i2c_designware 80860F41:01: timeout waiting for bus ready
+> [  120.804153] i2c_designware 80860F41:01: timeout waiting for bus ready
+> [  120.826467] i2c_designware 80860F41:01: timeout waiting for bus ready
+> [  121.965886] i2c_designware 80860F41:01: timeout in disabling adapter
+> .....
+> [  132.782634] i2c_designware 80860F41:01: controller timed out
+> [  133.806538] i2c_designware 80860F41:01: controller timed out
+> [  134.830991] i2c_designware 80860F41:01: controller timed out
+> [  135.855183] i2c_designware 80860F41:01: controller timed out
+>
+> Let me know if I can do any other testing to help.
+
+Is it possible to attach full dmesg? Thanks.
+
+Kai-Heng
+
+>
+> Bob Howell
+
+
