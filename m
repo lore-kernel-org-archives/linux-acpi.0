@@ -2,63 +2,63 @@ Return-Path: <SRS0=s14x=SK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8C1AC10F13
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 16:11:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8573AC10F13
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 16:43:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6FDDF20857
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 16:11:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 543752148E
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 16:43:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TdXOlRQG"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bWuvfpEo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727161AbfDHQLB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Apr 2019 12:11:01 -0400
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:47017 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726926AbfDHQLB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Apr 2019 12:11:01 -0400
-Received: by mail-pl1-f196.google.com with SMTP id y6so7583417pll.13;
-        Mon, 08 Apr 2019 09:11:01 -0700 (PDT)
+        id S1727291AbfDHQnF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Apr 2019 12:43:05 -0400
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:42012 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727023AbfDHQnF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Apr 2019 12:43:05 -0400
+Received: by mail-pg1-f195.google.com with SMTP id p6so7631235pgh.9;
+        Mon, 08 Apr 2019 09:43:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=C75wt9iHaATt71XyxfdYG+wz/oR7VyvjcOxmmFFLecw=;
-        b=TdXOlRQGDUj964aqhqVbcysV/xdXrMHdgSlJezey0DR77S2u/JBx7iCsdudLE423GY
-         VNG9Z3Dt4As2MHl49vVmh/cRvqzZV2l7iNUFCQfHsz2lz7xaFevKmEu6l2oggzlPgYml
-         xtvTcawxtuk/yZ3sTio+zSybAyE7GP4pzMps9KQcNIKpKuJMeuipQxvFQRbIOvyVfd+O
-         Gr/NdVwvY3uFfs2Z8ufzQnwnkXosnjWZCFvuQT4hBHgK5zQ98kbXSWYdn2fhEPWhjsNJ
-         5XPqOIwAIw0UuAm0umVXoL/oalAfIUsXgWhOCNsPtgA0gM6A+3aVRLdwV/6IFGNHSda5
-         RjTA==
+        bh=4AcJLUK/8Iy4Wan47KQQy9j5Grf/VAPXWacmY5zQc5Y=;
+        b=bWuvfpEoh8WiJ2qcx+G0m3DX6GQTrcayjkwoH1DyR+3cNEVdhKPRy5Xliw7skrPhIe
+         2RS+ozSYJujZ3ht5TmDzZdxMvWgvW4X0j7auN9zh/X2FJXhRHo7bDMKuvochS5uQjVmv
+         pELHNrokWzQeUYbYa1VbvH2WTF1Hg/US73EYkL8IgrXInQJ5WQBmYcoYco2zAh9VQLzt
+         Ezaj2HcX8V1QfOvhee5QoP4Qug4S5/pDLesegrqG91zwXwVlzzXvjZpt+Xh4yoRPAYMZ
+         2LQU8FmvnHhNaW6zQF4M5tEmq90tFpVKbNyhPPGr0Nt3BoKIYYUkT7ZA5M9YXh9btV9P
+         KZng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=C75wt9iHaATt71XyxfdYG+wz/oR7VyvjcOxmmFFLecw=;
-        b=bSLOE6TyT/fx0Qo6JXqcJ9gIfdPGYsKtHOLQV+MZFB0G6FjepKWStywZfWoSyyFawQ
-         +aWnUJpYA22YEfWT1g9m6B64pBRVXb7S8Ka2Zh7Hwh+9lvaDMQWiiwLsXXXR7zYE40p1
-         vgtx+7gmIpbqtFmMSpP1bqw0gryOCQGn2eV/61rLojUED/feIy5AHetB7cbdjwSOKcs3
-         8wH1VN4Sn+li+8qGtspRQFWpFjHh1GO5SYq+OoG28/+fQLMeAVVwi5Ez3G9MCW0onBPb
-         joyxBCWpiCt+fDlBrlseLjQV8G3L7FKX3vTPSdDPdKOTcnpYVDPnoJXX1zCkK359qoqW
-         5rXQ==
-X-Gm-Message-State: APjAAAUPD60v7cvY1YkoJtWSg8BFwolUs5gMF2+W44YxyaI26unWS8sR
-        H8vn6EBarByf4ui0jlvvEZf0Hp9HiTOIPqiNxFg=
-X-Google-Smtp-Source: APXvYqyjISur4yXGB7CC3vawawNGdF8Q94UjfEYo2dBqsronKBS9K9Hf3MctqvwJndmlUdTBJCb90stbsoPolMs9YMM=
-X-Received: by 2002:a17:902:e091:: with SMTP id cb17mr31798505plb.222.1554739860445;
- Mon, 08 Apr 2019 09:11:00 -0700 (PDT)
+        bh=4AcJLUK/8Iy4Wan47KQQy9j5Grf/VAPXWacmY5zQc5Y=;
+        b=BLLzr0vYNVg9TJprB5sb7qV35NEN4vCXSytlNrQBv05wtpMgKg68J5N2tvzpGdAGBc
+         rGZIeql/zFXAIbcYsx1A5hSahtvCMfdfKXohs5vEC9UwNwTAYQNRZSQzpEQYzI86Srwe
+         4IN+K1YTrzwyHTRQWrggXJbR+cc+Lq9nRCz3kGK6gjSvOqE2vMlOO8+QSlel/9YAAJ4W
+         x1IRavNAVPFLZKJuQsbDEMfEC/BhKmh+yeARH4EcFJ2p/xW0ZonzTFvelOz8NU+V8po1
+         2+HIKgTMaiiPuxfFncbAQmWNTdZ8vPMPPpEKBSFg0LAQVQfDPaRxB9qpwGWm530hOFaR
+         MyPA==
+X-Gm-Message-State: APjAAAUIuUn5OAwpB9+CdtTRXVZGQ1t/W7Yymx/c1Jwhvp6IxHN3er6L
+        RwLTgUEIxmHmQLxVk2RywTqQWIAoXPiTucbueWA=
+X-Google-Smtp-Source: APXvYqwmlIqlb3Bhp0SOIhraIZIW32mx1aIYrO+OJHcH9obLjmYhXyOv7/a33VB6L83wnK12rDxdNiHCFRI7iMxYe2U=
+X-Received: by 2002:a65:4302:: with SMTP id j2mr28025853pgq.291.1554741784310;
+ Mon, 08 Apr 2019 09:43:04 -0700 (PDT)
 MIME-Version: 1.0
-References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com> <20190403164537.24643-10-heikki.krogerus@linux.intel.com>
-In-Reply-To: <20190403164537.24643-10-heikki.krogerus@linux.intel.com>
+References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com> <20190403164537.24643-11-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20190403164537.24643-11-heikki.krogerus@linux.intel.com>
 From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Mon, 8 Apr 2019 19:10:49 +0300
+Date:   Mon, 8 Apr 2019 19:42:52 +0300
 Message-ID:
- <CAHp75Vcd==tp4VYrZ9iaYhz1k21EWD0uzVFdOSLKd83oFqcJxg@mail.gmail.com>
-Subject: Re: [PATCH 09/11] platform/x86: intel_cht_int33fe: Provide fwnode for
- the USB connector
+ <CAHp75VeTUCQax01xVNg7N6oAYKoxadX9vL-X9oEQFHHJ6OSrpg@mail.gmail.com>
+Subject: Re: [PATCH 10/11] platform/x86: intel_cht_int33fe: Link with external
+ dependencies using fwnodes
 To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -73,104 +73,107 @@ Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190408161049.1rdHwRtnzDushBo5buLSqBY9gPLAngWFHeMVKc6aIS4@z>
+Message-ID: <20190408164252.g3f0lJ5UASpS1q_Vj8jNiiYXOFz9s72QNMcEqCIbE0Q@z>
 
 On Wed, Apr 3, 2019 at 7:46 PM Heikki Krogerus
 <heikki.krogerus@linux.intel.com> wrote:
 >
-> In ACPI, and now also in DT, the USB connectors usually have
-> their own device nodes. In case of USB Type-C, those
-> connector (port) nodes are child nodes of the controller or
-> PHY device, in our case the fusb302. The software fwnodes
-> allow us to create a similar child node for fusb302 that
-> represents the connector also on Intel CHT.
->
-> This makes it possible replace the fusb302 specific device
-> properties which were deprecated with the common USB
-> connector properties that tcpm.c is able to use directly.
->
+> Supplying also external devices - the DisplayPort connector
+> and the USB role switch - software fwnodes. After this the
+> driver has access to all the components tied to the USB
+> Type-C connector and can start creating software node
+> references to actually associate them with the USB Type-C
+> connector device.
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> +static int role_switch_match(struct device *dev, void *name)
+> +{
+> +       return !strcmp(dev_name(dev), name);
+> +}
+> +
+> +static int cht_int33fe_setup_mux(struct cht_int33fe_data *data)
+> +{
 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
->  drivers/platform/x86/intel_cht_int33fe.c | 37 ++++++++++++++++++++++--
->  1 file changed, 34 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-> index 2f12ce154489..544e0b90aa07 100644
-> --- a/drivers/platform/x86/intel_cht_int33fe.c
-> +++ b/drivers/platform/x86/intel_cht_int33fe.c
-> @@ -25,6 +25,7 @@
->  #include <linux/regulator/consumer.h>
->  #include <linux/slab.h>
->  #include <linux/pci.h>
-> +#include <linux/usb/pd.h>
->
->  #define EXPECTED_PTYPE         4
->
-> @@ -32,6 +33,7 @@ enum {
->         INT33FE_NODE_FUSB302,
->         INT33FE_NODE_MAX17047,
->         INT33FE_NODE_PI3USB30532,
-> +       INT33FE_NODE_USB_CONNECTOR,
->         INT33FE_NODE_MAX,
->  };
->
-> @@ -112,9 +114,29 @@ cht_int33fe_max17047(struct device *dev, struct cht_int33fe_data *data)
->
->  static const struct property_entry fusb302_props[] = {
->         PROPERTY_ENTRY_STRING("linux,extcon-name", "cht_wcove_pwrsrc"),
-> -       PROPERTY_ENTRY_U32("fcs,max-sink-microvolt", 12000000),
-> -       PROPERTY_ENTRY_U32("fcs,max-sink-microamp",   3000000),
-> -       PROPERTY_ENTRY_U32("fcs,max-sink-microwatt", 36000000),
-> +       { }
-> +};
+> +       /* First let's find xHCI PCI device */
+> +       pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, NULL);
+> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> +               return -ENODEV;
 > +
-> +#define PDO_FIXED_FLAGS \
-> +       (PDO_FIXED_DUAL_ROLE | PDO_FIXED_DATA_SWAP | PDO_FIXED_USB_COMM)
+
+> +       /* Then the child platform device */
+> +       p = device_find_child(&pdev->dev, "intel_xhci_usb_sw",
+> +                             role_switch_match);
+
+We have already similar code in kernel
+(drivers/nvdimm/claim.c::namespace_match), perhaps
+you at least can (locally) introduce
+
+static int match_name(...) // or re-use from drivers/base/bus.c
+{
+...
+}
+
+static device_find_child_by_name(...)
+{
+...
+}
+
+which we may move to the driver core now or later on.
+
+> +       pci_dev_put(pdev);
+> +       if (!p)
+> +               return -EPROBE_DEFER;
 > +
-> +static const u32 src_pdo[] = {
-> +       PDO_FIXED(5000, 1500, PDO_FIXED_FLAGS),
-> +};
+
+> +       /* Finally the mux device */
+> +       dev = device_find_child(p, "intel_xhci_usb_sw-role-switch",
+> +                               role_switch_match);
+
+Ditto.
+
+> +       put_device(p);
+> +       if (!dev)
+> +               return -EPROBE_DEFER;
+
+> +       return 0;
+
+> +}
+
+> +static int cht_int33fe_setup_dp(struct cht_int33fe_data *data)
+> +{
+> +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
+> +       struct pci_dev *pdev;
 > +
-> +static const u32 snk_pdo[] = {
-> +       PDO_FIXED(5000, 400, PDO_FIXED_FLAGS),
-> +       PDO_VAR(5000, 12000, 3000),
-> +};
+> +       /* First let's find the GPU PCI device */
+> +       pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, NULL);
+> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> +               return -ENODEV;
 > +
-> +static const struct property_entry usb_connector_props[] = {
-> +       PROPERTY_ENTRY_STRING("name", "connector"),
-> +       PROPERTY_ENTRY_STRING("data-role", "dual"),
-> +       PROPERTY_ENTRY_STRING("power-role", "dual"),
-> +       PROPERTY_ENTRY_STRING("try-power-role", "sink"),
-> +       PROPERTY_ENTRY_U32_ARRAY("source-pdos", src_pdo),
-> +       PROPERTY_ENTRY_U32_ARRAY("sink-pdos", snk_pdo),
-> +       PROPERTY_ENTRY_U32("op-sink-microwatt", 36000000),
->         { }
->  };
->
-> @@ -149,6 +171,15 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
->                 data->node[i] = fwnode;
->         }
->
-> +       /* Node for the USB connector (FUSB302 is the parent) */
-> +       fwnode = fwnode_create_software_node(usb_connector_props,
-> +                                            data->node[INT33FE_NODE_FUSB302]);
-> +       if (IS_ERR(fwnode)) {
-> +               ret = PTR_ERR(fwnode);
-> +               goto err_remove_nodes;
-> +       }
-> +       data->node[INT33FE_NODE_USB_CONNECTOR] = fwnode;
+> +       /* Then the DP child device node */
+> +       data->dp = device_get_named_child_node(&pdev->dev, "DD02");
+> +       pci_dev_put(pdev);
+> +       if (!data->dp)
+> +               return -ENODEV;
 > +
->         return 0;
->
->  err_remove_nodes:
-> --
-> 2.20.1
->
+
+> +       fwnode->secondary = ERR_PTR(-ENODEV);
+> +       data->dp->secondary = fwnode;
+
+Can't generic helper be in charge of doing this, i.e. chaining fwnodes?
+
+///
+void fwnode_chain(parent, new)
+{
+...
+}
+///
+
+fwnode_chain(data->dp, fwnode);
 
 
--- 
+> +
+> +       return 0;
+> +}
+
+--
 With Best Regards,
 Andy Shevchenko
