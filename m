@@ -2,154 +2,92 @@ Return-Path: <SRS0=s14x=SK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1E92C282DE
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 03:44:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B86EEC282CE
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 06:16:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F1EC208E3
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 03:44:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D7F220880
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 06:16:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="dmOzrBN3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726464AbfDHDoY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 7 Apr 2019 23:44:24 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:40160 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726349AbfDHDoX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Apr 2019 23:44:23 -0400
-Received: from mail-qt1-f198.google.com ([209.85.160.198])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <kai.heng.feng@canonical.com>)
-        id 1hDLCm-0005XS-Dd
-        for linux-acpi@vger.kernel.org; Mon, 08 Apr 2019 03:44:20 +0000
-Received: by mail-qt1-f198.google.com with SMTP id k13so11499751qtc.23
-        for <linux-acpi@vger.kernel.org>; Sun, 07 Apr 2019 20:44:20 -0700 (PDT)
+        id S1725953AbfDHGQI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Apr 2019 02:16:08 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:43255 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725925AbfDHGQH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Apr 2019 02:16:07 -0400
+Received: by mail-pg1-f194.google.com with SMTP id z9so3749960pgu.10
+        for <linux-acpi@vger.kernel.org>; Sun, 07 Apr 2019 23:16:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=CfvbGnjyK6QBz+f+ilqK6DelekKKtPChS3cXJ94sQ7k=;
+        b=dmOzrBN3YULvEY0f4eCIYBRnInVqZzkclcfjxL0+6tjS0CzCI7wJS4nUXQ3bAojUbH
+         yiUdPNEDcSZHn7CpQ9QHY3ZgQEX4UvZFXuOUPERrG0AmpxRLwLGa6RrHAjg3syepwk/7
+         z2FvFKUWnesuGWLbsyuDtU52U8HMAyDm/dj7OFHb7SggGZrVLZ//HOocmTtjIvro3ugD
+         CbPApvXZJQCVmcQtiVyDs0hK9/ya5AJ4ox+ORrGxSzVxFCyd7E4X1SLsGAJAYWIn5y0u
+         z/K0AipwLjVcVhllloY/h6qwETGIEUFcFllb0xJf2NUjEUo3RaFAJR+MmU+Y+Tb5aaOJ
+         uvpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=2JIaDBayuL3uBjV+gAUXNn7OjCmpE8H2R4sqnbLcGE4=;
-        b=gh3N0DZusqwOv+jj83O3+NGArtyoLqOn+sFz4SWWNsnCyJa1jzOT+oNiIg61jS063C
-         LpWkWSkaOxmk9k8WugWeum4T2gTY5cZi8EbVKGwb1MAfWtfevex9EKUch3n/KUno+qK0
-         gtGJkLcy1FN1HPm1TiCT8LH72cEVndnC+DR4S5ii3GrHDNg+yPqMme0/LijN2WDKTO9t
-         K5JEeZEIqapHYqRFpadccfx/UDUj5OQKWLuAb+Z5c+zO62RxP0WNZk/7JttjGpWUmLjo
-         QcntdV2bIBUIvRmPJpG33lvLYd6B4I7IzU4f0L4bDKchmiAqu1nZ/MPefkoUk4CYp7z7
-         xr1g==
-X-Gm-Message-State: APjAAAULmi0iD03h59qgc+ZIde0HolsQ0Sl0N9ix7Ia5G5sFAHN+xt/J
-        UcYEOgAXHw2XPBB6XQxZHKGZhhBKW1WMFWbkG9eteRylOx8KGKpVV1pr5tJcx8Mto3Jpia1aFw/
-        RR4c/gzbztjOEKMX+dM+6/hHMk2t6OHdpxElQzQ0=
-X-Received: by 2002:ac8:27b0:: with SMTP id w45mr22444507qtw.341.1554695059561;
-        Sun, 07 Apr 2019 20:44:19 -0700 (PDT)
-X-Google-Smtp-Source: APXvYqy0gWZ8l9nizdbXOcxT+d8cxm7PyDkpnIXppndq0PQ7+geFE2V6DklqMKly2eMmC48Krahxtw==
-X-Received: by 2002:ac8:27b0:: with SMTP id w45mr22444492qtw.341.1554695059296;
-        Sun, 07 Apr 2019 20:44:19 -0700 (PDT)
-Received: from [10.101.46.46] (61-220-137-37.HINET-IP.hinet.net. [61.220.137.37])
-        by smtp.gmail.com with ESMTPSA id v8sm17730005qtc.69.2019.04.07.20.44.16
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=CfvbGnjyK6QBz+f+ilqK6DelekKKtPChS3cXJ94sQ7k=;
+        b=RyilY7WREkPBxqAv1LEFNoR9M8B5/SucZSut8eMVLSA15seb/uM03Pu0ozI+yKkMwP
+         IXbrNFcofDHnM+GdcJTBeWWgNEHeFuECUX5xGsvvTu0GIj7TXWN7ByojU7T8lgfm7v/b
+         7j2h4YoiAlgv8dNvd9uZvcpecKeleeTtvombD53rsyAfuPsLTpgytXQRndhapB0M/2Mc
+         tUxDgQPAdWU1oUDf6ew/YdjrIXAHLTMPaVLLk/qRn0GWXbeW6/fdfEFCaykcnDafZvT3
+         OklX0goSQl5OWYHiNClQyFKSrdW+LWCCpQ4El/zKVWhGYEPXWgKpclRiZTLJ3ckFsFRs
+         tkPA==
+X-Gm-Message-State: APjAAAXMEVHMyWQ/3MoeTkmKUDg1qpwPQV3jAc4vK0KXjBMvLF7Afr45
+        sAK6q+AmU8XeFfmpqou8L02PUg==
+X-Google-Smtp-Source: APXvYqyGw1d2DrXrhALSJbebXmgwtFetA7DWxJPdBM5szRUq2LmSoUKxxERkEgGlWGLoRwUEr6Zw9g==
+X-Received: by 2002:a62:474a:: with SMTP id u71mr27860107pfa.87.1554704167103;
+        Sun, 07 Apr 2019 23:16:07 -0700 (PDT)
+Received: from localhost ([122.172.162.162])
+        by smtp.gmail.com with ESMTPSA id m2sm41859927pgr.74.2019.04.07.23.16.05
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 07 Apr 2019 20:44:18 -0700 (PDT)
-Content-Type: text/plain; charset="UTF-8"; delsp="yes"; format="flowed"
-Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.8\))
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-From:   Kai Heng Feng <kai.heng.feng@canonical.com>
-In-Reply-To: <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
-Date:   Mon, 8 Apr 2019 11:44:11 +0800
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Transfer-Encoding: 8bit
-Message-Id: <EE3052A4-7566-4C92-B5FC-93918B297465@canonical.com>
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
- <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
- <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
-To:     "Robert R. Howell" <RHowell@uwyo.edu>
-X-Mailer: Apple Mail (2.3445.104.8)
+        Sun, 07 Apr 2019 23:16:06 -0700 (PDT)
+Date:   Mon, 8 Apr 2019 11:46:04 +0530
+From:   Viresh Kumar <viresh.kumar@linaro.org>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Linux Documentation <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH 0/4] Documentation: PM: Assorted updates
+Message-ID: <20190408061604.vezucnff4dp2tx7x@vireshk-i7>
+References: <4546107.fVFrecLk33@aspire.rjw.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <4546107.fVFrecLk33@aspire.rjw.lan>
+User-Agent: NeoMutt/20180323-120-3dd1ac
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190408034411._GhRhaL6YJb3nGrWel_gENMXAwJyhCkh43PgvxzPA4k@z>
+Message-ID: <20190408061604.ZewEcOtVtRxnguy3OlpeQ1quyKb5PjSIfmySSAy4H_0@z>
 
-at 4:58 AM, Robert R. Howell <RHowell@uwyo.edu> wrote:
+On 04-04-19, 00:02, Rafael J. Wysocki wrote:
+> Hi All,
+> 
+> There patches make some changes in the PM documentation:
+> 
+> - Add "references" sections to cpufreq-related documents (patch [1/4]).
+> - Add SPDX license tags to multiple PM-related documents (patch [2/4]).
+> - Unify copyright notices in PM-related documents (patch [3/4]).
+> - Add an SPDX license tag and a copyright notice to the new
+>   intel_epb doc (in linux-next only ATM).
 
-> On 4/3/19 2:54 AM, Hans de Goede wrote:
->
->> Hi,
->>
->> On 03-04-19 07:43, Kai-Heng Feng wrote:
->>> i2c-designware-platdrv fails to work after the system restored from
->>> hibernation:
->>> [ 272.775692] i2c_designware 80860F41:00: Unknown Synopsys component  
->>> type: 0xffffffff
->>>
->>> Commit 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from
->>> resume_noirq") makes acpi_lpss_{suspend_late,resume_early}() bail early
->>> on BYT/CHT as resume_from_noirq is set. This means dw_i2c_plat_resume()
->>> doesn't gets called by acpi_lpss_resume_early(), and this causes the
->>> issue.
-> ...
->> The ordering problem fixed by commit 48402cee6889 can hit hibernate too,
->> so I think it would be better to do this instead to fix this problem:
->>
->> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
->> index 1e2a10a06b9d..cf768608437e 100644
-> ...
->> If people affected by the problem can give my version of the fix a test,
->> then that would be great.
->>
->> Regards,
->>
->> Hans
->
-> I did try applying your (Hans') patch to a 5.0.0 and a 5.1-rc3 kernel,  
-> instead of what I had
-> been doing previously, which was reverting commit 02e45646d53b.  I tested  
-> it on an ASUS T100TA
-> and unfortunately with both kernels after resume from hibernation I still  
-> get errors like those
-> listed below, and sound no longer works.  I also tried applying the patch  
-> from Kai-Heng Feng
-> (instead of Hans' patch or my revert) on both kernels and again in both  
-> cases I get these same errors.
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-Hmm, Hans’ works for me, as acpi_lpss_resume_noirq() calls  
-acpi_lpss_do_resume_early() for S4.
-
->
-> In contrast, on the 5.0.0 kernel when I revert 02e45646d53b, the problem  
-> is fixed.  Because
-> of changes in adjacent code in 5.1-rc3, I haven't yet found a way to  
-> merge the new code
-> and the 02e45646d53b revert without causing worse problems. But that's  
-> probably because
-> I don't really understand the details of that code.
->
-> [  120.690428] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.690442] rt5640 i2c-10EC5640:00: Failed to write 13d = 3600: -110
-> [  120.712860] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.737389] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.759657] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.781797] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.804153] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  120.826467] i2c_designware 80860F41:01: timeout waiting for bus ready
-> [  121.965886] i2c_designware 80860F41:01: timeout in disabling adapter
-> .....
-> [  132.782634] i2c_designware 80860F41:01: controller timed out
-> [  133.806538] i2c_designware 80860F41:01: controller timed out
-> [  134.830991] i2c_designware 80860F41:01: controller timed out
-> [  135.855183] i2c_designware 80860F41:01: controller timed out
->
-> Let me know if I can do any other testing to help.
-
-Is it possible to attach full dmesg? Thanks.
-
-Kai-Heng
-
->
-> Bob Howell
-
-
+-- 
+viresh
