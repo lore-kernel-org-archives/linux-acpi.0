@@ -2,76 +2,98 @@ Return-Path: <SRS0=s14x=SK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82A51C10F13
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 17:39:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE5A9C10F13
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 17:41:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 58C2020879
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 17:39:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C00DD20879
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 17:41:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel-dk.20150623.gappssmtp.com header.i=@kernel-dk.20150623.gappssmtp.com header.b="Ih0iRH9J"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726808AbfDHRjR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Apr 2019 13:39:17 -0400
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41615 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726401AbfDHRjR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Apr 2019 13:39:17 -0400
-Received: by atrey.karlin.mff.cuni.cz (Postfix, from userid 512)
-        id 16CC4803C8; Mon,  8 Apr 2019 19:39:07 +0200 (CEST)
-Date:   Mon, 8 Apr 2019 19:39:14 +0200
-From:   Pavel Machek <pavel@ucw.cz>
-To:     kernel list <linux-kernel@vger.kernel.org>
-Cc:     paolo.valente@linaro.org, axboe@kernel.dk,
-        linux-block@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
-Message-ID: <20190408173914.GA13260@amd>
+        id S1729120AbfDHRlY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Apr 2019 13:41:24 -0400
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:43870 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729119AbfDHRlX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Apr 2019 13:41:23 -0400
+Received: by mail-pf1-f196.google.com with SMTP id c8so8030824pfd.10
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Apr 2019 10:41:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kernel-dk.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=cqpWNodamv1eUSJSNNofxMV6WCSyHNg+Yh/sQooGGpw=;
+        b=Ih0iRH9JDgXLJ1qyKayI8LBXShhh2MPHgqF5i3y4gOTn+jABAPdIq7iPlBWpdBqF/A
+         wbmfSYI7zXudrI8+pRxFLwzZ67STju6nXw56KWZm0yeMAIAt2qnrn2GsajOjmC5nPDch
+         Xvp5QiLqLxYlgezRlC1oY7G8qifyPFOiTUYtHAr7ugVC5MmkkKG43OS32jwR+J1cs8cs
+         U56mMu7sqtAFi8XCYVV5em7eUXQnKSsRP4Q1pHY7pzIX0lwiQxV23HVJhOR+8AyZEQzz
+         rJ9AdMZ7pHn9hDp5hhtySGcr0VbIskAnDpqNj95MVmip9qcJkKCLbhUdGrrXVUuHrogh
+         ZviA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=cqpWNodamv1eUSJSNNofxMV6WCSyHNg+Yh/sQooGGpw=;
+        b=N+9h56yq9Xz3fg6/zZBPYCMoPawQN5Um9XzyrHp4CdBiBtqki2Wkqgb65ChBn5D7LV
+         PDHTUcVvgPyPFYH8fXMEl+gNjvTVYT/MiLNBQ24DdNkdHh+LK/GhUiCcx2ZZDNkc1seT
+         5itL108UqnDWx5Mdxzoa3zxmIgzao+8yffvVezuAPWpnwzunwQPaamxqLiEMRkF1J7nD
+         157bsFDtl/5uNqIf6ignU+zwDh3YAAO1NDeuTY9V0LgxsnPYSaHBrACqVdkBTJaKC1uA
+         Xpj3CTenrYZRBdYr/RmUzuA6Zw3uvRKkeVstwbD/KPmI2u8Vd6IdLlfwQVWin13Qx7hg
+         +hwQ==
+X-Gm-Message-State: APjAAAVAHDiJNrgvg3f2UNsRdgAX6NxcoxP9f6Ynz0f6HaRtcFTsQ8cT
+        4Buz0FlvNN9Hji3ZVHAlH5WOv3ry3zTX+w==
+X-Google-Smtp-Source: APXvYqx1T9NOaiyozTTZjIPOheuJaw8zj1M7E1Cm8p4SgRVrH+TRsD204yf9gWKXMzK+SOScLTpQRA==
+X-Received: by 2002:a63:360c:: with SMTP id d12mr28202147pga.404.1554745281911;
+        Mon, 08 Apr 2019 10:41:21 -0700 (PDT)
+Received: from [192.168.1.121] (66.29.188.166.static.utbb.net. [66.29.188.166])
+        by smtp.gmail.com with ESMTPSA id i2sm43527566pfo.9.2019.04.08.10.41.20
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 08 Apr 2019 10:41:21 -0700 (PDT)
+Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
+To:     Pavel Machek <pavel@ucw.cz>,
+        kernel list <linux-kernel@vger.kernel.org>
+Cc:     paolo.valente@linaro.org, linux-block@vger.kernel.org,
+        rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+References: <20190408173914.GA13260@amd>
+From:   Jens Axboe <axboe@kernel.dk>
+Message-ID: <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
+Date:   Mon, 8 Apr 2019 11:41:18 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
-Content-Disposition: inline
-User-Agent: Mutt/1.5.23 (2014-03-12)
+In-Reply-To: <20190408173914.GA13260@amd>
+Content-Type: text/plain; charset="UTF-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190408173914.fetpvHRp_gRBFIVp-si_Kg8spn5Kux5BrI90BRdvzf0@z>
+Message-ID: <20190408174118._PD6bG1SfhnB9dGkqMnsHJ7Oy20uaKrsXChoBi2X388@z>
 
+On 4/8/19 11:39 AM, Pavel Machek wrote:
+> Hi!
+> 
+> For some reason, Thinkpad X60 now crashes during boot. I see some
+> weird backtraces, and it may be bfq related... or maybe ACPI idle.
+> 
+> Does x86-32 work for you?
+> 
+> Weird thing is, 5.1.0-rc3-next-20190408 boots here (but later has
+> problems during resume, making it unusable, too). They may not have
+> 100% same configs. 
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Can you try and revert:
 
-Hi!
+9dee8b3b057e1
 
-For some reason, Thinkpad X60 now crashes during boot. I see some
-weird backtraces, and it may be bfq related... or maybe ACPI idle.
+and see if that helps?
 
-Does x86-32 work for you?
+-- 
+Jens Axboe
 
-Weird thing is, 5.1.0-rc3-next-20190408 boots here (but later has
-problems during resume, making it unusable, too). They may not have
-100% same configs.=20
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlyrh0IACgkQMOfwapXb+vIRrACggLsDvfZVSFfbIvrcQZoIKISC
-vMcAniBKjgYjIf9rFHdY2PhSUgLR82Zf
-=5yXV
------END PGP SIGNATURE-----
-
---cNdxnHkX5QqsyA0e--
