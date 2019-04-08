@@ -2,98 +2,69 @@ Return-Path: <SRS0=s14x=SK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.9 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE5A9C10F13
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 17:41:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 393A1C10F13
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 20:47:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C00DD20879
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 17:41:24 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel-dk.20150623.gappssmtp.com header.i=@kernel-dk.20150623.gappssmtp.com header.b="Ih0iRH9J"
+	by mail.kernel.org (Postfix) with ESMTP id 08AD420857
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 20:47:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729120AbfDHRlY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Apr 2019 13:41:24 -0400
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:43870 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729119AbfDHRlX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Apr 2019 13:41:23 -0400
-Received: by mail-pf1-f196.google.com with SMTP id c8so8030824pfd.10
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Apr 2019 10:41:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernel-dk.20150623.gappssmtp.com; s=20150623;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=cqpWNodamv1eUSJSNNofxMV6WCSyHNg+Yh/sQooGGpw=;
-        b=Ih0iRH9JDgXLJ1qyKayI8LBXShhh2MPHgqF5i3y4gOTn+jABAPdIq7iPlBWpdBqF/A
-         wbmfSYI7zXudrI8+pRxFLwzZ67STju6nXw56KWZm0yeMAIAt2qnrn2GsajOjmC5nPDch
-         Xvp5QiLqLxYlgezRlC1oY7G8qifyPFOiTUYtHAr7ugVC5MmkkKG43OS32jwR+J1cs8cs
-         U56mMu7sqtAFi8XCYVV5em7eUXQnKSsRP4Q1pHY7pzIX0lwiQxV23HVJhOR+8AyZEQzz
-         rJ9AdMZ7pHn9hDp5hhtySGcr0VbIskAnDpqNj95MVmip9qcJkKCLbhUdGrrXVUuHrogh
-         ZviA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=cqpWNodamv1eUSJSNNofxMV6WCSyHNg+Yh/sQooGGpw=;
-        b=N+9h56yq9Xz3fg6/zZBPYCMoPawQN5Um9XzyrHp4CdBiBtqki2Wkqgb65ChBn5D7LV
-         PDHTUcVvgPyPFYH8fXMEl+gNjvTVYT/MiLNBQ24DdNkdHh+LK/GhUiCcx2ZZDNkc1seT
-         5itL108UqnDWx5Mdxzoa3zxmIgzao+8yffvVezuAPWpnwzunwQPaamxqLiEMRkF1J7nD
-         157bsFDtl/5uNqIf6ignU+zwDh3YAAO1NDeuTY9V0LgxsnPYSaHBrACqVdkBTJaKC1uA
-         Xpj3CTenrYZRBdYr/RmUzuA6Zw3uvRKkeVstwbD/KPmI2u8Vd6IdLlfwQVWin13Qx7hg
-         +hwQ==
-X-Gm-Message-State: APjAAAVAHDiJNrgvg3f2UNsRdgAX6NxcoxP9f6Ynz0f6HaRtcFTsQ8cT
-        4Buz0FlvNN9Hji3ZVHAlH5WOv3ry3zTX+w==
-X-Google-Smtp-Source: APXvYqx1T9NOaiyozTTZjIPOheuJaw8zj1M7E1Cm8p4SgRVrH+TRsD204yf9gWKXMzK+SOScLTpQRA==
-X-Received: by 2002:a63:360c:: with SMTP id d12mr28202147pga.404.1554745281911;
-        Mon, 08 Apr 2019 10:41:21 -0700 (PDT)
-Received: from [192.168.1.121] (66.29.188.166.static.utbb.net. [66.29.188.166])
-        by smtp.gmail.com with ESMTPSA id i2sm43527566pfo.9.2019.04.08.10.41.20
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 08 Apr 2019 10:41:21 -0700 (PDT)
-Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
-To:     Pavel Machek <pavel@ucw.cz>,
-        kernel list <linux-kernel@vger.kernel.org>
-Cc:     paolo.valente@linaro.org, linux-block@vger.kernel.org,
-        rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
-References: <20190408173914.GA13260@amd>
-From:   Jens Axboe <axboe@kernel.dk>
-Message-ID: <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
-Date:   Mon, 8 Apr 2019 11:41:18 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
-MIME-Version: 1.0
-In-Reply-To: <20190408173914.GA13260@amd>
-Content-Type: text/plain; charset="UTF-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        id S1726755AbfDHUrQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Apr 2019 16:47:16 -0400
+Received: from mga02.intel.com ([134.134.136.20]:33548 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726492AbfDHUrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Apr 2019 16:47:16 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Apr 2019 13:47:15 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,326,1549958400"; 
+   d="scan'208";a="314181139"
+Received: from bartok.jf.intel.com ([10.54.75.137])
+  by orsmga005.jf.intel.com with ESMTP; 08 Apr 2019 13:47:15 -0700
+From:   Erik Schmauss <erik.schmauss@intel.com>
+To:     linux-acpi@vger.kernel.org, rjw@rjwysocki.net
+Cc:     Erik Schmauss <erik.schmauss@intel.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 5/8] ACPICA: utilities: fix spelling of PCC to platform_comm_channel
+Date:   Mon,  8 Apr 2019 13:36:56 -0700
+Message-Id: <20190408203659.4207-6-erik.schmauss@intel.com>
+X-Mailer: git-send-email 2.17.2
+In-Reply-To: <20190408203659.4207-1-erik.schmauss@intel.com>
+References: <20190408203659.4207-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190408174118._PD6bG1SfhnB9dGkqMnsHJ7Oy20uaKrsXChoBi2X388@z>
 
-On 4/8/19 11:39 AM, Pavel Machek wrote:
-> Hi!
-> 
-> For some reason, Thinkpad X60 now crashes during boot. I see some
-> weird backtraces, and it may be bfq related... or maybe ACPI idle.
-> 
-> Does x86-32 work for you?
-> 
-> Weird thing is, 5.1.0-rc3-next-20190408 boots here (but later has
-> problems during resume, making it unusable, too). They may not have
-> 100% same configs. 
+ACPICA commit 5e5c349e73982aea5d9f74416c0b2eea1b0767a1
 
-Can you try and revert:
+Link: https://github.com/acpica/acpica/commit/5e5c349e
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/utdecode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-9dee8b3b057e1
-
-and see if that helps?
-
+diff --git a/drivers/acpi/acpica/utdecode.c b/drivers/acpi/acpica/utdecode.c
+index 76e054c83c39..65beaa237669 100644
+--- a/drivers/acpi/acpica/utdecode.c
++++ b/drivers/acpi/acpica/utdecode.c
+@@ -78,7 +78,7 @@ const char *acpi_gbl_region_types[ACPI_NUM_PREDEFINED_REGIONS] = {
+ 	"IPMI",			/* 0x07 */
+ 	"GeneralPurposeIo",	/* 0x08 */
+ 	"GenericSerialBus",	/* 0x09 */
+-	"PCC"			/* 0x0A */
++	"PlatformCommChannel"	/* 0x0A */
+ };
+ 
+ const char *acpi_ut_get_region_name(u8 space_id)
 -- 
-Jens Axboe
+2.17.2
 
