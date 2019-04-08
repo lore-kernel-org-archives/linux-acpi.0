@@ -2,167 +2,65 @@ Return-Path: <SRS0=s14x=SK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BB0AC10F13
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 15:20:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A252C10F14
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 15:42:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05A6C20883
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 15:20:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C7EF218EA
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Apr 2019 15:42:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1554738167;
+	bh=nWemL7SHJ7gPd5YbSIkkmwRpuaAXgFtg8KYf9tI5T5Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=wAzPhnQPRKxQM5hDN/bCkl2oovt78E0ZzObPXVDntJtF7mETge1UvnGcj1+rB9vtc
+	 XDChRt0Q1bfdHD9u6KDv1m1d4ts7cT0eZpX9yLXiQUX+OX3q9qx12Cg03WKzfGR0pZ
+	 tQ3yYpe/zJAprQqnIpwjtsbZsPJ4BAQ9N+/864lE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727664AbfDHPUv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Apr 2019 11:20:51 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:57462 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727529AbfDHPUv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 Apr 2019 11:20:51 -0400
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 603193852E528C65A889;
-        Mon,  8 Apr 2019 23:20:49 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
- 14.3.408.0; Mon, 8 Apr 2019 23:20:39 +0800
-From:   Kefeng Wang <wangkefeng.wang@huawei.com>
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Sudeep Holla <sudeep.holla@arm.com>, <rjw@rjwysocki.net>,
-        <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-CC:     Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: [PATCH v3] ACPI/IORT: Reject platform device creation on NUMA node mapping failure
-Date:   Mon, 8 Apr 2019 23:21:12 +0800
-Message-ID: <20190408152112.42056-1-wangkefeng.wang@huawei.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190408104658.GB2727@red-moon>
-References: <20190408104658.GB2727@red-moon>
+        id S1726475AbfDHPml (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Apr 2019 11:42:41 -0400
+Received: from mga12.intel.com ([192.55.52.136]:48753 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726349AbfDHPmj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Apr 2019 11:42:39 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Apr 2019 08:42:38 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,325,1549958400"; 
+   d="scan'208";a="159785522"
+Received: from unknown (HELO localhost.localdomain) ([10.232.112.69])
+  by fmsmga004.fm.intel.com with ESMTP; 08 Apr 2019 08:42:38 -0700
+Date:   Mon, 8 Apr 2019 09:44:15 -0600
+From:   Keith Busch <kbusch@kernel.org>
+To:     Qian Cai <cai@lca.pw>
+Cc:     gregkh@linuxfoundation.org, rjw@rjwysocki.net, lenb@kernel.org,
+        keith.busch@intel.com, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH -next] acpi/hmat: fix an uninitialized memory_target
+Message-ID: <20190408154415.GG32498@localhost.localdomain>
+References: <20190407011222.38963-1-cai@lca.pw>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
 Content-Type: text/plain; charset="UTF-8"
-X-Originating-IP: [10.175.113.25]
-X-CFilter-Loop: Reflected
+Content-Disposition: inline
+In-Reply-To: <20190407011222.38963-1-cai@lca.pw>
+User-Agent: Mutt/1.9.1 (2017-09-22)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190408152112.T8dZtRvpzq_4YMtvMoJ9mEoWYDAUuFapQ3xbmoFOxKY@z>
+Message-ID: <20190408154415.2UfiZnZcHjzBpfmo11yA5mr4b-m82aIXtz_xcTBG3Vk@z>
 
-In a system where, through IORT firmware mappings, the SMMU device is
-mapped to a NUMA node that is not online, the kernel bootstrap results
-in the following crash:
+On Sat, Apr 06, 2019 at 09:12:22PM -0400, Qian Cai wrote:
+> The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
+> memory") introduced an uninitialized "struct memory_target" that could
+> cause an incorrect branching.
 
-  Unable to handle kernel paging request at virtual address 0000000000001388
-  Mem abort info:
-    ESR = 0x96000004
-    Exception class = DABT (current EL), IL = 32 bits
-    SET = 0, FnV = 0
-    EA = 0, S1PTW = 0
-  Data abort info:
-    ISV = 0, ISS = 0x00000004
-    CM = 0, WnR = 0
-  [0000000000001388] user address but active_mm is swapper
-  Internal error: Oops: 96000004 [#1] SMP
-  Modules linked in:
-  CPU: 5 PID: 1 Comm: swapper/0 Not tainted 5.0.0 #15
-  pstate: 80c00009 (Nzcv daif +PAN +UAO)
-  pc : __alloc_pages_nodemask+0x13c/0x1068
-  lr : __alloc_pages_nodemask+0xdc/0x1068
-  ...
-  Process swapper/0 (pid: 1, stack limit = 0x(____ptrval____))
-  Call trace:
-   __alloc_pages_nodemask+0x13c/0x1068
-   new_slab+0xec/0x570
-   ___slab_alloc+0x3e0/0x4f8
-   __slab_alloc+0x60/0x80
-   __kmalloc_node_track_caller+0x10c/0x478
-   devm_kmalloc+0x44/0xb0
-   pinctrl_bind_pins+0x4c/0x188
-   really_probe+0x78/0x2b8
-   driver_probe_device+0x64/0x110
-   device_driver_attach+0x74/0x98
-   __driver_attach+0x9c/0xe8
-   bus_for_each_dev+0x84/0xd8
-   driver_attach+0x30/0x40
-   bus_add_driver+0x170/0x218
-   driver_register+0x64/0x118
-   __platform_driver_register+0x54/0x60
-   arm_smmu_driver_init+0x24/0x2c
-   do_one_initcall+0xbc/0x328
-   kernel_init_freeable+0x304/0x3ac
-   kernel_init+0x18/0x110
-   ret_from_fork+0x10/0x1c
-  Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
-  ---[ end trace dfeaed4c373a32da ]--
+Thanks for the catch. We do have another patch submitted a few days that
+fixes this, though:
 
-Change the dev_set_proximity() hook prototype so that it returns a
-value and make it return failure if the PXM->NUMA-node mapping
-corresponds to an offline node, fixing the crash.
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Link: https://lore.kernel.org/linux-arm-kernel/20190315021940.86905-1-wangkefeng.wang@huawei.com/
----
-v2->v3:
--Update changelog according to Lorenzo Pieralisi's comment and add acked-by.
-
- drivers/acpi/arm64/iort.c | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index e48894e002ba..a46c2c162c03 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -1232,18 +1232,24 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
- /*
-  * set numa proximity domain for smmuv3 device
-  */
--static void  __init arm_smmu_v3_set_proximity(struct device *dev,
-+static int  __init arm_smmu_v3_set_proximity(struct device *dev,
- 					      struct acpi_iort_node *node)
- {
- 	struct acpi_iort_smmu_v3 *smmu;
- 
- 	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
- 	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
--		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-+		int node = acpi_map_pxm_to_node(smmu->pxm);
-+
-+		if (node != NUMA_NO_NODE && !node_online(node))
-+			return -EINVAL;
-+
-+		set_dev_node(dev, node);
- 		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
- 			smmu->base_address,
- 			smmu->pxm);
- 	}
-+	return 0;
- }
- #else
- #define arm_smmu_v3_set_proximity NULL
-@@ -1318,7 +1324,7 @@ struct iort_dev_config {
- 	int (*dev_count_resources)(struct acpi_iort_node *node);
- 	void (*dev_init_resources)(struct resource *res,
- 				     struct acpi_iort_node *node);
--	void (*dev_set_proximity)(struct device *dev,
-+	int (*dev_set_proximity)(struct device *dev,
- 				    struct acpi_iort_node *node);
- };
- 
-@@ -1369,8 +1375,11 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
- 	if (!pdev)
- 		return -ENOMEM;
- 
--	if (ops->dev_set_proximity)
--		ops->dev_set_proximity(&pdev->dev, node);
-+	if (ops->dev_set_proximity) {
-+		ret = ops->dev_set_proximity(&pdev->dev, node);
-+		if (ret)
-+			goto dev_put;
-+	}
- 
- 	count = ops->dev_count_resources(node);
- 
--- 
-2.20.1
-
+  https://patchwork.kernel.org/patch/10887487/
