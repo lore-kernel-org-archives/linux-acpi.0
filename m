@@ -2,189 +2,94 @@ Return-Path: <SRS0=ifiZ=SL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT
+X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E7BCC10F0E
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 065BAC10F0E
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:33:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD63A214AF
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:17:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IwiMC75f"
+	by mail.kernel.org (Postfix) with ESMTP id D45B82133D
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:33:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726511AbfDIQRL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Apr 2019 12:17:11 -0400
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:36975 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726412AbfDIQRK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Apr 2019 12:17:10 -0400
-Received: by mail-pg1-f195.google.com with SMTP id e6so9575503pgc.4;
-        Tue, 09 Apr 2019 09:17:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=vKw8Jl9tNEqGMUO467SQXKKYv88p0pyHcXsJhIjuhFk=;
-        b=IwiMC75f3+vX+tEKVTBZKhHd5TgUMvi9yKSkkfFOoIb6/LuIXeudrnlyE6gSO1wFlI
-         bCMYFKCUU4O/DbwShOO1BkjLIbHiao33xTV68qXq/NAoIVOYolZwA/AHo1pTf/gAjn5S
-         W+wYG6ASQyIbyOFZmSIbZWYgsdrUdHWHgTkSGDuvkzrr2VIvk9Gyf0JOBLOpr26lFpA7
-         tW9nMuG6x0Srnyj/rNMrHm7hWiFQ0J8LDtdPcc1F1wFAbk2DzrJYiGZnII23fS5g7NCX
-         302oKoOP1Y62Q+deyhazzqg566zWI3A6yBMksmm1AG0u2MWxFFCjIsghjlMwz2KlQGLY
-         Ukrw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=vKw8Jl9tNEqGMUO467SQXKKYv88p0pyHcXsJhIjuhFk=;
-        b=qUO1f4O+uR2PZ2tyYqoDK6wfOGQHf+aJHywXm5wYLEIliSk/Zf84bGxzqmdWdhs5gT
-         kON6kt0bgeugz7dhYbq1p3m1ZcTfMkHiB6aKVjmjygjhdrVqgMX8G/lvWBHFC8upZmge
-         KEBFbWbA8y3d/iiJvwG8moFciliyr/tl1T+qq1VixvCmG5uGuw8jcV3tkH+7jZTyOJW1
-         Tar+f4nSB/T4TwJIXJuXOL8wWkuzvsAJhzhX19h65axQuoK+YA02lpMhCE9hlyiXLLhK
-         KbM/1zK3VunlxCdd64DyzECClok6OZqdZ5yYDexz+IEuaZ3UFjy+oxFrl+H2jiGlOHPM
-         +IvA==
-X-Gm-Message-State: APjAAAWB7gdsDfa04E4GRlCHz9aDl01PnBqezAjLLyRqmrOuRPjBAt0W
-        9Wy40pkW/EAJ2YXyvRa1/4WsHnDr
-X-Google-Smtp-Source: APXvYqyWUIMDBbEk74RxQq3YagkSKRFnJ6UnL4jnCH4JYGLxKLtPhvNpESHKN8uAyV/OJFF2eef5nw==
-X-Received: by 2002:a63:f444:: with SMTP id p4mr36475025pgk.32.1554826629948;
-        Tue, 09 Apr 2019 09:17:09 -0700 (PDT)
-Received: from mail.google.com ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id g10sm15773364pgq.54.2019.04.09.09.17.05
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 09 Apr 2019 09:17:09 -0700 (PDT)
-Date:   Wed, 10 Apr 2019 00:17:02 +0800
-From:   Changbin Du <changbin.du@gmail.com>
-To:     Jonathan Corbet <corbet@lwn.net>
-Cc:     Changbin Du <changbin.du@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Message-ID: <20190409161700.3itslgpqlhx3up3m@mail.google.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
- <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
- <20190403133613.13f3fd75@lwn.net>
- <20190405024350.rbwbiaxjybrmqea6@mail.google.com>
+        id S1726515AbfDIQdE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Apr 2019 12:33:04 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35827 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726396AbfDIQdE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Apr 2019 12:33:04 -0400
+Received: by atrey.karlin.mff.cuni.cz (Postfix, from userid 512)
+        id E55F880203; Tue,  9 Apr 2019 18:32:52 +0200 (CEST)
+Date:   Tue, 9 Apr 2019 18:33:04 +0200
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Jens Axboe <axboe@kernel.dk>
+Cc:     kernel list <linux-kernel@vger.kernel.org>,
+        paolo.valente@linaro.org, linux-block@vger.kernel.org,
+        rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
+Message-ID: <20190409163304.GA23829@amd>
+References: <20190408173914.GA13260@amd>
+ <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="8t9RHnE3ZwKMSgU+"
 Content-Disposition: inline
-In-Reply-To: <20190405024350.rbwbiaxjybrmqea6@mail.google.com>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190409161702.5IHyqNClCPvniVNgw31QST0ZSZPiA2npQrkOngD0RgU@z>
+Message-ID: <20190409163304.q6ut0j1b7tGlMjNoBdOKhuG7QVkMY-w3CksfbkIWrS8@z>
 
-On Fri, Apr 05, 2019 at 10:44:35AM +0800, Changbin Du wrote:
-> + Bjorn
-> 
-> On Wed, Apr 03, 2019 at 01:36:13PM -0600, Jonathan Corbet wrote:
-> > On Tue, 2 Apr 2019 10:25:23 +0200
-> > "Rafael J. Wysocki" <rafael@kernel.org> wrote:
-> > 
-> > > There are ACPI-related documents currently in Documentation/acpi/ that
-> > > don't clearly fall under either driver-api or admin-guide.  For
-> > > example, some of them describe various aspects of the ACPI support
-> > > subsystem operation and some document expectations with respect to the
-> > > ACPI tables provided by the firmware etc.
-> > > 
-> > > Where would you recommend to put them after converting to .rst?
-> > 
-> > OK, I've done some pondering on this.  Maybe what we need is a new
-> > top-level "hardware guide" book meant to hold information on how the
-> > hardware works and what the kernel's expectations are.  Architecture
-> > information could maybe go there too.  Would this make sense?
-> > 
-> > If so, I could see a division like this:
-> > 
-> > Hardware guide
-> > 	acpi-lid
-> > 	aml-debugger (or maybe driver api?)
-> > 	debug (ditto)
-> > 	DSD-properties-rules
-> > 	gpio-properties
-> > 	i2c-muxes
-> > 
-> > Admin guide
-> > 	cppc_sysfs
-> > 	initrd_table_override
-> > 
-> > Driver-API
-> > 	enumeration
-> > 	scan_handlers
-> > 
-> > other:
-> > 	dsdt-override: find another home for those five lines
-> >
-> Then, should we create dedicated sub-directories for these new charpters and
-> move documents to coresspoding one? Now we have 'admin-guide' and all admin-guid
-> docs are under it, otherwise we will have reference across different folders.
-> For example, the 'admin-guide/index.rst' will have:
->     ...
->     ../acpi/osi
->     ...
-> Which seems not good.
->
-Jonathan, what is your idea about the placement of doc files?
 
-> > ...and so on.  I've probably gotten at least one of those wrong, but that's
-> > the idea.
-> > 
-> > Of course, then it would be nice to better integrate those documents so
-> > that they fit into a single coherent whole...a guy can dream...:)
-> >
-> I am not an adminstrator, so I don't know how adminstrators use this kernel
-> documentation. But as a kernel developer, I prefer all related documents
-> integrated into one charpter. Because I probably miss some useful sections
-> if the documents are distributed into several charpters. And this is usually
-> how a book is written (One charpter focus on one topic and has sub-sections
-> such as overview, backgroud knowledge, implemenation details..),
-> but a book mostly target on hypothetical readers...
->
-After some considerarion, I have a new idea. Since the top charpter named as
-*API* so non-API things is not suitable for this charpter. But can we just
-rename it? For example, we can rename 'Kernel API documentation' to 
-'Subsystem-specifc documentation' which is similar to 'Architecture-specific documentation'?
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Subsystem-specifc documentation
--------------------------------
-.. toctree::
-   :maxdepth: 2
+On Mon 2019-04-08 11:41:18, Jens Axboe wrote:
+> On 4/8/19 11:39 AM, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > For some reason, Thinkpad X60 now crashes during boot. I see some
+> > weird backtraces, and it may be bfq related... or maybe ACPI idle.
+> >=20
+> > Does x86-32 work for you?
+> >=20
+> > Weird thing is, 5.1.0-rc3-next-20190408 boots here (but later has
+> > problems during resume, making it unusable, too). They may not have
+> > 100% same configs.
 
-   driver-api/index
-   core-api/index
-   media/index
-   networking/index
-   input/index
-   gpu/index
-   ...
+I now noticed it said:
 
-Architecture-specific documentation
------------------------------------
-.. toctree::
-   :maxdepth: 2
+EIP is in bfq_bfqq_expire
 
-   sh/index
-   x86/index
-   ...
+> Can you try and revert:
+>=20
+> 9dee8b3b057e1
+>=20
+> and see if that helps?
 
-> > Thanks,
-> > 
-> > jon
-> 
-> -- 
-> Cheers,
-> Changbin Du
+Yes, I tried and yes, it helps. What are the next steps?=20
 
--- 
-Cheers,
-Changbin Du
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--8t9RHnE3ZwKMSgU+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlysyUAACgkQMOfwapXb+vI+KwCgradkSjU5BXM7t3nzK3oiTVBE
+/vYAn069+EnMQXCDobqsLfChLCZ8wYH+
+=hjYf
+-----END PGP SIGNATURE-----
+
+--8t9RHnE3ZwKMSgU+--
