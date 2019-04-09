@@ -7,103 +7,128 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5A0EC282DA
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 07:51:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2B76C10F0E
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 08:25:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F8822133D
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 07:51:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92AE920880
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 08:25:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1554796315;
-	bh=kqKl/3RVuSDSjnJGLkF2QN6+m79NRO5u35n/OV7I/64=;
+	s=default; t=1554798323;
+	bh=oaS6f76BKxRmq8otg6LSpUIPoj6vfOU+3HFQzYGs22Y=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=TNFGA6d8zLgqA1dTgTwISsXlLaOf6GmAcQN9eVK1gvp5733eZl7LEQfREe2AY122p
-	 7/Ofc1D4lYGa0pG3+j+Ll1XjaaYagesEy+RcSHzm3C8LM0ld93Y0GZDzSGxZoPBSpo
-	 zQkZ6kzxGKruvXwfy45TSWSe/7nb7jcoeHtkbebM=
+	b=rEafWvJ3VVlwutakEl6jjCDYOqxRbcFu3eFva9q5sBQ4FygF6+7lKVW/RsOX5KUwe
+	 6yP5OCuBQ1AxdEhRG0FtclR8S892lENa0WWAFyIXIXq4JSCW4XD1SGPeDgvgdWrgRO
+	 QuQlUlVqsVgYZd7bbPLQ9/E80OxOTSr38F9bBLrY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726205AbfDIHvu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Apr 2019 03:51:50 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:36875 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726062AbfDIHvu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Apr 2019 03:51:50 -0400
-Received: by mail-oi1-f194.google.com with SMTP id v84so12772187oif.4;
-        Tue, 09 Apr 2019 00:51:50 -0700 (PDT)
+        id S1726372AbfDIIZX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Apr 2019 04:25:23 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:39671 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726079AbfDIIZX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Apr 2019 04:25:23 -0400
+Received: by mail-ot1-f68.google.com with SMTP id f10so8650434otb.6;
+        Tue, 09 Apr 2019 01:25:22 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=evxZYFfKsXbCQjzTR4SOB+0xSipzPCh8tZrToggUcck=;
-        b=OovX6Z1b5rz3Wmki/k2DHEraBLSFfYZPtyoG6fLzRN2hGiQ6mEBWA6l55ZoIxQMOHI
-         i0ztMN64/K5UOjaGeJe0Gavv05lh/rgCLyLoXz9poZyXjvhYajlqBgxub7jvKa1ep0Rm
-         fqkUP3xcb5dsrs9gcKDhlkDBNqSKqWYOeV2lWQt74QPPmtcvo4PlfIIBt7TIum5OirdL
-         r6iVZDSbSO8AJrP98QiJzJzZSlyBUmiOYurhITn7WF+vdY4eT+brH6WAp8SvgbNUY+F0
-         ZUNN6mGvlxBHB7Z8I4mM1ldWGbvCjIGPbfqrO30qMgrQMSYieWV6hehS2+v9siT2Vg6D
-         rQFg==
-X-Gm-Message-State: APjAAAVs+5p0Jea4j4yqDvMmwnXr8lQB22pjwiJOI92e6/tv7IU+6vih
-        7RMGN+0p9nKn5A1ZM6qLKQKvXT5YHYxh1I/TzNY=
-X-Google-Smtp-Source: APXvYqz6SYn6srGWYg5PeazX89ohtOZ5L0CAy1Ry21Fv1oP9OmbPDOKBIQ7NwaxiB6RMZUouwO4MUOn2iEMLO/oM6CU=
-X-Received: by 2002:aca:4c08:: with SMTP id z8mr19937976oia.30.1554796309691;
- Tue, 09 Apr 2019 00:51:49 -0700 (PDT)
+        bh=ztTlJVe9dYWkHV8KqSemRa9C2RUeEJ94F76mKLeWHuk=;
+        b=dsAyYoJiOaqqTgYxWHj/jaPVBABex4rvbTsPUyWGNnhNIFhiJGGYe5y89gjOV0R13e
+         pCpPpSFgUMbHv6agPxxSEaM+iaR4P4TQim9GvBCyE8YE4Khb7FcIOZLKS1GQqMmoAQ7s
+         8EhSe0HuVwR1D3+VdL+C5UM69r0am0gyvbEQfk7w2wAajZhsFrHYOoWJEofC56pC9WYB
+         84THUT3krzFZx2cM3o/MnvOtYaqBOW9d2Ba3RrQYhMCoQsswhpWjgwGSrhdVj0f2VHZG
+         b+Rc0YKtBiWB2fJnuW22CJm3xgI2mICAoQj6koUYS/vOANqWr+/ekamtn9HLsEAub6wr
+         9S5Q==
+X-Gm-Message-State: APjAAAV6LbmbY3DLeujJLIdnGonCMuclP70Rd0UZaC0/r+TgHEXW4+Ei
+        YpKvkoIRXeSUlnsYtRfY0atURsd2tbTl8742w8HgnSDF
+X-Google-Smtp-Source: APXvYqzYfuGHwhA9mz5qH7Xuor2infLgy5DuIDet79lXYzCetBa+TCkuKmhsINJj8ebeFwR4zbHGIvtNtUrLFWwodT8=
+X-Received: by 2002:a9d:4b11:: with SMTP id q17mr23354309otf.272.1554798322167;
+ Tue, 09 Apr 2019 01:25:22 -0700 (PDT)
 MIME-Version: 1.0
-References: <20190405141215.2079-1-colin.king@canonical.com>
-In-Reply-To: <20190405141215.2079-1-colin.king@canonical.com>
+References: <20190406181704.33574-1-cai@lca.pw>
+In-Reply-To: <20190406181704.33574-1-cai@lca.pw>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 9 Apr 2019 09:51:38 +0200
+Date:   Tue, 9 Apr 2019 10:25:11 +0200
 Message-ID:
- <CAJZ5v0gxx_4nRS6R8ACfKG7C-eRMh+hXa7WkNYoMzqOTA2WqJQ@mail.gmail.com>
-Subject: Re: [PATCH][next] acpi/hmat: fix uninitialized pointer dereference on
- pointer 'target'
-To:     Colin King <colin.king@canonical.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+ <CAJZ5v0jxUn_Hhm21FFBc2eSp49kCciCzR1_UGewHkpJiTy3LGw@mail.gmail.com>
+Subject: Re: [PATCH -next] acpi/hmat: fix memory leaks in hmat_init()
+To:     Qian Cai <cai@lca.pw>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
         Keith Busch <keith.busch@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190409075138.12yVHplEFWAfZhdX4ZqH0kra-O7YsNd707tLuZ--sDM@z>
+Message-ID: <20190409082511.jo7O2yxDF4sOlwu0Hlzhvl5Uys0lI8WjRxUpnrE6hYU@z>
 
-On Fri, Apr 5, 2019 at 4:12 PM Colin King <colin.king@canonical.com> wrote:
+On Sat, Apr 6, 2019 at 8:18 PM Qian Cai <cai@lca.pw> wrote:
 >
-> From: Colin Ian King <colin.king@canonical.com>
+> The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
+> memory") introduced some memory leaks below due to it fails to release
+> the heap memory in an error path, and then the stack __initdata memory
+> which reference them get freed during boot renders those heap memory as
+> leaks.
 >
-> The pointer 'target' is not initialized and is only assigned when the
-> ACPI_HMAT_MEMORY_PD_VALID bit in p->flags is set.  There is a later null
-> check on target that leads to an uninitialized pointer read and
-> dereference when assigning target->processor_pxm when target contains a
-> non-null garbage value.  Fix this by initializing targer to null.
+> unreferenced object 0xc8ff8008349e9400 (size 128):
+>   comm "swapper/0", pid 1, jiffies 4294709236 (age 48121.476s)
+>   hex dump (first 32 bytes):
+>     00 d0 9e 34 08 80 ff 84 d8 00 43 11 00 10 ff ff  ...4......C.....
+>     00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 00  ................
+>   backtrace:
+>     [<00000000869d4503>] __kmalloc+0x568/0x600
+>     [<0000000070fd6afb>] alloc_memory_target+0x50/0xd8
+>     [<00000000efa2081e>] srat_parse_mem_affinity+0x58/0x5c
+>     [<000000008bfaef74>] acpi_parse_entries_array+0x1c8/0x2c0
+>     [<0000000022804877>] acpi_table_parse_entries_array+0x11c/0x138
+>     [<00000000ffe9cd34>] acpi_table_parse_entries+0x7c/0xac
+>     [<00000000a7023afd>] hmat_init+0x90/0x174
+>     [<00000000694a86c1>] do_one_initcall+0x2d8/0x5f8
+>     [<0000000024889da9>] do_initcall_level+0x37c/0x3fc
+>     [<000000009be02908>] do_basic_setup+0x38/0x50
+>     [<0000000037b3ac0a>] kernel_init_freeable+0x194/0x258
+>     [<00000000f5741184>] kernel_init+0x18/0x334
+>     [<000000007b30f423>] ret_from_fork+0x10/0x18
+>     [<000000006c7147a8>] 0xffffffffffffffff
 >
-> Fixes: 665ac7e92757 ("acpi/hmat: Register processor domain to its memory")
-> Addresses-Coverity: ("Uninitialized pointer read")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> Signed-off-by: Qian Cai <cai@lca.pw>
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Greg, since the patch fixed by this one is in your tree, can you apply
-this too, please?
+Well, the catch is good, but the additional label is sort of excessive IMO.
 
 > ---
->  drivers/acpi/hmat/hmat.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/hmat/hmat.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 >
 > diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-> index b7824a0309f7..b275016ff648 100644
+> index b7824a0309f7..c9b8abcf012c 100644
 > --- a/drivers/acpi/hmat/hmat.c
 > +++ b/drivers/acpi/hmat/hmat.c
-> @@ -366,7 +366,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
->                                               const unsigned long end)
->  {
->         struct acpi_hmat_proximity_domain *p = (void *)header;
-> -       struct memory_target *target;
-> +       struct memory_target *target = NULL;
+> @@ -637,7 +637,7 @@ static __init int hmat_init(void)
 >
->         if (p->header.length != sizeof(*p)) {
->                 pr_notice("HMAT: Unexpected address range header length: %d\n",
+>         status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
+>         if (ACPI_FAILURE(status))
+
+I would just add a hmat_free_structures() call here or rework the
+_put_table() logic which is not really straightforward.
+
+> -               return 0;
+> +               goto out_free;
+>
+>         hmat_revision = tbl->revision;
+>         switch (hmat_revision) {
+> @@ -659,8 +659,9 @@ static __init int hmat_init(void)
+>         }
+>         hmat_register_targets();
+>  out_put:
+> -       hmat_free_structures();
+>         acpi_put_table(tbl);
+> +out_free:
+> +       hmat_free_structures();
+>         return 0;
+>  }
+>  subsys_initcall(hmat_init);
 > --
-> 2.20.1
->
