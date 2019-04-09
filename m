@@ -2,98 +2,99 @@ Return-Path: <SRS0=ifiZ=SL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B369CC282CE
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 21:26:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C80C10F0E
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 21:34:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B5FA20883
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 21:26:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 296E820883
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 21:34:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1554845693;
+	bh=3Rn/tLNFiLmHFC8vgadLzksy1JdM3dfI4xofu9xTBuY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=F8ej4PeuH6laNtxDJakYT3Aa7hPgRhWlE/YCMKlMlRRr5JC+VD1iB4jrl0UdhLph8
+	 b35xtrYufeDUlwjfG3o88fFpuh1mcOQQI0yuCLISYl9DHx+SZvpmTpD9oo1LsRNiU7
+	 F9KxVPZwUKiR+8kX7CR9jz2mECNnF7stqnaxYF3I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727020AbfDIV0k (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Apr 2019 17:26:40 -0400
-Received: from ms.lwn.net ([45.79.88.28]:45678 "EHLO ms.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726705AbfDIV0k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 Apr 2019 17:26:40 -0400
-Received: from lwn.net (localhost [127.0.0.1])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ms.lwn.net (Postfix) with ESMTPSA id 88202301;
-        Tue,  9 Apr 2019 21:26:39 +0000 (UTC)
-Date:   Tue, 9 Apr 2019 15:26:38 -0600
-From:   Jonathan Corbet <corbet@lwn.net>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Changbin Du <changbin.du@gmail.com>,
+        id S1726556AbfDIVew (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Apr 2019 17:34:52 -0400
+Received: from mail-oi1-f172.google.com ([209.85.167.172]:36664 "EHLO
+        mail-oi1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726554AbfDIVew (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Apr 2019 17:34:52 -0400
+Received: by mail-oi1-f172.google.com with SMTP id l203so14905079oia.3;
+        Tue, 09 Apr 2019 14:34:51 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=YCj8/Jh2lzAX/ifQOqTmL3TNG1QpFM+KmxMgxpaY2b0=;
+        b=USsq/KkjoobeKX8bzvlZhwc0sw5lgrNbgDFOHtpRFkH0Hwbxdd9LjzQxLohdilM9DL
+         5k6tPC9KPfTaxIMznNwkqVSVCC9knTpNpNFhzbUTKN7/p+N5NYbTe029+7HFv+W3nlNf
+         al7w0onkk3TMXE4EBkVcj5MGpqC/KNxD+38Q/vd9JrtRnDDCVd5zGWEjlA+VF/Dr8LTd
+         +8B08gqwVpjMJY/3YixFE68rA3FiHgsEqHmVmVGKw0M4rrxT9aAQ1saewCjpjA786sSf
+         eUOvHeM5FykTXZdXhFVVmztMXbKI8jGr3qIlaoli73ysJOTOwqFQwR8PinY4QKBKuNy0
+         OXIQ==
+X-Gm-Message-State: APjAAAXyy+cZaiYSDKvcCCshOF726MbxS//6Q69bqE+zKSPLDiDePGKm
+        19KqzACGokytJp/jh/RsWqnJ+3coALhTTmtH2Jo=
+X-Google-Smtp-Source: APXvYqxRtIOamILXpNgWHGXCVRFM6O+kD1ULGS7OydC1r8bpiYBolDJQxNbp3mn7Z9hAlrw6cnhouXOuS33l2Af2t00=
+X-Received: by 2002:aca:8d3:: with SMTP id 202mr356699oii.76.1554845691361;
+ Tue, 09 Apr 2019 14:34:51 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190406181704.33574-1-cai@lca.pw> <CAJZ5v0jxUn_Hhm21FFBc2eSp49kCciCzR1_UGewHkpJiTy3LGw@mail.gmail.com>
+ <1554816309.26196.46.camel@lca.pw> <CAJZ5v0g_oLdqv_sp8Un-44wO6vtQH6rVeUTKxSynO8VPPascxA@mail.gmail.com>
+ <1554823996.26196.48.camel@lca.pw>
+In-Reply-To: <1554823996.26196.48.camel@lca.pw>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 9 Apr 2019 23:34:40 +0200
+Message-ID:
+ <CAJZ5v0jSutxp0jadaj3d2rR+2i4xX7BHaf6g0o_UDQ4-decw8g@mail.gmail.com>
+Subject: Re: [PATCH -next] acpi/hmat: fix memory leaks in hmat_init()
+To:     Qian Cai <cai@lca.pw>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
+        Keith Busch <keith.busch@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Message-ID: <20190409152638.5b20c77f@lwn.net>
-In-Reply-To: <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
-        <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
-        <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
-        <20190403133613.13f3fd75@lwn.net>
-        <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
-Organization: LWN.net
-MIME-Version: 1.0
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190409212638.I12SjCs3_v2FACv8nPqY8aCDAzwwmTmRkrMcqOWf3i8@z>
+Message-ID: <20190409213440.YUjQq9A4CKvihK3s4aclxkWslgiVTi9sgTLRUmskCMM@z>
 
-On Tue, 9 Apr 2019 18:42:59 +0200
-"Rafael J. Wysocki" <rafael@kernel.org> wrote:
+On Tue, Apr 9, 2019 at 5:33 PM Qian Cai <cai@lca.pw> wrote:
+>
+> On Tue, 2019-04-09 at 16:54 +0200, Rafael J. Wysocki wrote:
+> > Fewer jumps are easier to follow in general, so avoiding ones that can
+> > be avoided is helpful.
+> >
+> > I'm not buying the argument about more code line changes needed if the
+> > function name changes.  It's meaningless.
+> >
+> > And if you check the return value of acpi_get_table() for SRAT after
+> > calling acpi_put_table(tbl), you will only need the out_free label, if
+> > I'm not mistaken.
+>
+> I don't really understand this.
 
-> > Hardware guide  
-> 
-> This is more about documenting the expectations regarding the platform
-> firmware, so what about firmware-guide instead?
+Sorry, I didn't have the original code in front of me when I was
+writing my reply.
 
-I had imagined a slightly wider focus, but this seems OK for now.  We can
-always rename it later :)
+I was thinking about checking the return value of
+acpi_table_parse_entries() after calling acpi_put_table(tbl).  Then,
+if it returns an error, you only need to call hmat_free_structures().
 
-> So what about this:
-> 
-> - Create a new firmware-guide under Documentation and add an acpi/
-> directory to it for starters.  Put the following files into it:
-> 
->          acpi-lid
->          aml-debugger
->          debug (ditto)
->          DSD-properties-rules
->          gpio-properties
->          i2c-muxes
-> 
-> - Add an acpi/ subdirectory to Documentation/admin-guide and put the
-> following files into it:
-> 
->          cppc_sysfs
->          initrd_table_override
->          dsdt-override
+Similarly, if acpi_get_table(ACPI_SIG_HMAT, 0, &tbl) returns an error,
+you only need to call hmat_free_structures().
 
-I do wonder if, rather than creating a new directory, we shouldn't just
-make a single acpi.rst and put that information into it?  
+But I didn't remember the other jumps to out_put.
 
-> - Add an acpi/ subdirectory to Documentation/driver-api and put the
-> following files into it:
-> 
->          enumeration
->          scan_handlers
-
-...and something similar here?  I guess that would be my preference, but I
-don't feel all that strongly about it if there's reasons to do otherwise.
-
-In general the plan seems good.
-
-Thanks,
-
-jon
+Still, since it is valid to pass NULL to acpi_put_table(), you can
+jump to out_put if acpi_get_table(ACPI_SIG_HMAT, 0, &tbl) returns an
+error too.
