@@ -1,66 +1,51 @@
-From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 4/8] ACPICA: Namespace: remove address node from global list after method termination
-Date: Mon,  8 Apr 2019 13:42:26 -0700
-Message-ID: <20190408204230.4335-5-erik.schmauss@intel.com>
-References: <20190408204230.4335-1-erik.schmauss@intel.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190408204230.4335-1-erik.schmauss@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net
-Cc: Erik Schmauss <erik.schmauss@intel.com>, stable@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: Re: [PATCH][next] acpi/hmat: fix uninitialized pointer dereference
+ on pointer 'target'
+Date: Mon, 8 Apr 2019 20:28:47 -0700
+Message-ID: <20190409032847.GA19002@archlinux-i9>
+References: <20190405141215.2079-1-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190405141215.2079-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keith Busch <keith.busch@intel.com>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit b233720031a480abd438f2e9c643080929d144c3
+On Fri, Apr 05, 2019 at 03:12:15PM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> The pointer 'target' is not initialized and is only assigned when the
+> ACPI_HMAT_MEMORY_PD_VALID bit in p->flags is set.  There is a later null
+> check on target that leads to an uninitialized pointer read and
+> dereference when assigning target->processor_pxm when target contains a
+> non-null garbage value.  Fix this by initializing targer to null.
+> 
+> Fixes: 665ac7e92757 ("acpi/hmat: Register processor domain to its memory")
+> Addresses-Coverity: ("Uninitialized pointer read")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-ASL operation_regions declare a range of addresses that it uses. In a
-perfect world, the range of addresses should be used exclusively by
-the AML interpreter. The OS can use this information to decide which
-drivers to load so that the AML interpreter and device drivers use
-different regions of memory.
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
 
-During table load, the address information is added to a global
-address range list. Each node in this list contains an address range
-as well as a namespace node of the operation_region. This list is
-deleted at ACPI shutdown.
-
-Unfortunately, ASL operation_regions can be declared inside of control
-methods. Although this is not recommended, modern firmware contains
-such code. New module level code changes unintentionally removed the
-functionality of adding and removing nodes to the global address
-range list.
-
-A few months ago, support for adding addresses has been re-
-implemented. However, the removal of the address range list was
-missed and resulted in some systems to crash due to the address list
-containing bogus namespace nodes from operation_regions declared in
-control methods. In order to fix the crash, this change removes
-dynamic operation_regions after control method termination.
-
-Link: https://github.com/acpica/acpica/commit/b2337200
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=202475
-Cc: stable@vger.kernel.org # 4.20+
-Fixes: 4abb951b73ff (ACPICA: AML interpreter: add region addresses in global list during initialization)
-Reported-by: Michael J Gruber <mjg@fedoraproject.org>
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- drivers/acpi/acpica/nsobject.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/acpi/acpica/nsobject.c b/drivers/acpi/acpica/nsobject.c
-index 8638f43cfc3d..79d86da1c892 100644
---- a/drivers/acpi/acpica/nsobject.c
-+++ b/drivers/acpi/acpica/nsobject.c
-@@ -186,6 +186,10 @@ void acpi_ns_detach_object(struct acpi_namespace_node *node)
- 		}
- 	}
- 
-+	if (obj_desc->common.type == ACPI_TYPE_REGION) {
-+		acpi_ut_remove_address_range(obj_desc->region.space_id, node);
-+	}
-+
- 	/* Clear the Node entry in all cases */
- 
- 	node->object = NULL;
--- 
-2.17.2
+> ---
+>  drivers/acpi/hmat/hmat.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+> index b7824a0309f7..b275016ff648 100644
+> --- a/drivers/acpi/hmat/hmat.c
+> +++ b/drivers/acpi/hmat/hmat.c
+> @@ -366,7 +366,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+>  					      const unsigned long end)
+>  {
+>  	struct acpi_hmat_proximity_domain *p = (void *)header;
+> -	struct memory_target *target;
+> +	struct memory_target *target = NULL;
+>  
+>  	if (p->header.length != sizeof(*p)) {
+>  		pr_notice("HMAT: Unexpected address range header length: %d\n",
+> -- 
+> 2.20.1
+> 
