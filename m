@@ -1,96 +1,50 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH 08/11] platform/x86: intel_cht_int33fe: Provide software
- nodes for the devices
-Date: Tue, 9 Apr 2019 15:41:13 +0300
-Message-ID: <20190409124113.GB20058@kuha.fi.intel.com>
-References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com>
- <20190403164537.24643-9-heikki.krogerus@linux.intel.com>
- <CAHp75VfQK_YHyfryMUO0uG_uwoKcgMn_NUXaRbiOXeXQz6xyYQ@mail.gmail.com>
+From: Petr Mladek <pmladek@suse.com>
+Subject: Re: [PATCH v2 1/1] treewide: Switch printk users from %pf and %pF to
+ %ps and %pS, respectively
+Date: Tue, 9 Apr 2019 15:02:23 +0200
+Message-ID: <20190409130223.qylyzna7syu5cdc4@pathway.suse.cz>
+References: <20190325193229.23390-1-sakari.ailus@linux.intel.com>
+ <20190326133510.cylhvyvc7l77bqdg@pathway.suse.cz>
+ <20190403112814.7frkxkwmitzugzmt@paasikivi.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAHp75VfQK_YHyfryMUO0uG_uwoKcgMn_NUXaRbiOXeXQz6xyYQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>
+In-Reply-To: <20190403112814.7frkxkwmitzugzmt@paasikivi.fi.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org, linux-um@lists.infradead.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-mm@kvack.org, ceph-devel@vger.kernel.org, netdev@vger.kernel.org, Anna-Maria Gleixner <anna-maria@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 08, 2019 at 07:09:15PM +0300, Andy Shevchenko wrote:
-> On Wed, Apr 3, 2019 at 7:46 PM Heikki Krogerus
-> <heikki.krogerus@linux.intel.com> wrote:
-> >
-> > Software nodes provide two features that we will need later.
-> > 1) Software nodes can have references to other software nodes.
-> > 2) Software nodes can exist before a device entry is created.
+On Wed 2019-04-03 14:28:14, Sakari Ailus wrote:
+> Ping.
 > 
-> >  #include <linux/platform_device.h>
-> >  #include <linux/regulator/consumer.h>
-> >  #include <linux/slab.h>
-> > +#include <linux/pci.h>
+> On Tue, Mar 26, 2019 at 02:35:10PM +0100, Petr Mladek wrote:
+> > Linus,
+> > 
+> > On Mon 2019-03-25 21:32:28, Sakari Ailus wrote:
+> > > %pF and %pf are functionally equivalent to %pS and %ps conversion
+> > > specifiers. The former are deprecated, therefore switch the current users
+> > > to use the preferred variant.
+> > > 
+> > > The changes have been produced by the following command:
+> > > 
+> > > 	git grep -l '%p[fF]' | grep -v '^\(tools\|Documentation\)/' | \
+> > > 	while read i; do perl -i -pe 's/%pf/%ps/g; s/%pF/%pS/g;' $i; done
+> > > 
+> > > And verifying the result.
+> > 
+> > I guess that the best timing for such tree-wide clean up is the end
+> > of the merge window. Should we wait for 5.2 or is it still acceptable
+> > to push this for 5.1-rc3?
 > 
-> I understand your attitude to ordering here, but we already have it
-> ordered, why not to keep it that way?
+> The patch still cleanly applies to linux-next as wells as Linus's tree.
+> Some %pf bits have appeared and fixed since (include/trace/events/timer.h);
+> the fix is in linux-next so once that and this patch are merged, there are
+> no remaining %pf (or %pF) users left.
 
-Sure. I'll keep the order.
+I have pushed the patch into printk.git, branch for-5.2-pf-removal.
+It is v2 without the include/trace/events/timer.h stuff.
 
-> > -static struct i2c_client *cht_int33fe_find_max17047(void)
-> > -{
-> > -       struct i2c_client *max17047 = NULL;
-> > -
-> > -       i2c_for_each_dev(&max17047, cht_int33fe_check_for_max17047);
-> > -       return max17047;
-> > -}
-> 
-> This sounds like a cleanup patch before actual change.
-> And I'm not sure, do we need to remove this function?
-> 
-> > +static int
-> > +cht_int33fe_max17047(struct device *dev, struct cht_int33fe_data *data)
-> > +{
-> > +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_MAX17047];
-> > +       struct i2c_client *max17047 = NULL;
-> > +       struct i2c_board_info board_info;
-> > +       int ret;
-> > +
-> > +       i2c_for_each_dev(&max17047, cht_int33fe_check_for_max17047);
-> > +       if (max17047) {
-> > +               /* Pre-existing i2c-client for the max17047, add device-props */
-> > +               max17047->dev.fwnode->secondary = fwnode;
-> > +               /* And re-probe to get the new device-props applied. */
-> > +               ret = device_reprobe(&max17047->dev);
-> > +               if (ret)
-> > +                       dev_warn(dev, "Reprobing max17047 error: %d\n", ret);
-> > +               return 0;
-> > +       }
-> > +
-> > +       memset(&board_info, 0, sizeof(board_info));
-> > +       strlcpy(board_info.type, "max17047", I2C_NAME_SIZE);
-> > +       board_info.dev_name = "max17047";
-> > +       board_info.fwnode = fwnode;
-> > +       data->max17047 = i2c_acpi_new_device(dev, 1, &board_info);
-> > +       if (IS_ERR(data->max17047))
-> > +               return PTR_ERR(data->max17047);
-> > +
-> > +       return 0;
-> > +}
-> 
-> This looks like a split from the original code with some changes.
-> Perhaps, split patch first.
-> 
-> >         /* Work around BIOS bug, see comment on cht_int33fe_find_max17047 */
-> 
-> After this patch, the comment here become outdated, care to fix?
-> 
-> > +       ret = cht_int33fe_max17047(dev, data);
-> 
-> Seems like the verb is missed in the name of the function.
-
-Yeah, I never meant to rename the function. I'll just keep the
-function name as cht_int33fe_find_max17047.
-
-
-thanks,
-
--- 
-heikki
+Best Regards,
+Petr
