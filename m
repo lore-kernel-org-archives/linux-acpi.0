@@ -1,66 +1,46 @@
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Tue, 9 Apr 2019 15:26:38 -0600
-Message-ID: <20190409152638.5b20c77f@lwn.net>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
-        <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
-        <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
-        <20190403133613.13f3fd75@lwn.net>
-        <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH -next] acpi/hmat: fix memory leaks in hmat_init()
+Date: Tue, 9 Apr 2019 23:34:40 +0200
+Message-ID: <CAJZ5v0jSutxp0jadaj3d2rR+2i4xX7BHaf6g0o_UDQ4-decw8g@mail.gmail.com>
+References: <20190406181704.33574-1-cai@lca.pw> <CAJZ5v0jxUn_Hhm21FFBc2eSp49kCciCzR1_UGewHkpJiTy3LGw@mail.gmail.com>
+ <1554816309.26196.46.camel@lca.pw> <CAJZ5v0g_oLdqv_sp8Un-44wO6vtQH6rVeUTKxSynO8VPPascxA@mail.gmail.com>
+ <1554823996.26196.48.camel@lca.pw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
+In-Reply-To: <1554823996.26196.48.camel@lca.pw>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: Qian Cai <cai@lca.pw>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Keith Busch <keith.busch@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 9 Apr 2019 18:42:59 +0200
-"Rafael J. Wysocki" <rafael@kernel.org> wrote:
+On Tue, Apr 9, 2019 at 5:33 PM Qian Cai <cai@lca.pw> wrote:
+>
+> On Tue, 2019-04-09 at 16:54 +0200, Rafael J. Wysocki wrote:
+> > Fewer jumps are easier to follow in general, so avoiding ones that can
+> > be avoided is helpful.
+> >
+> > I'm not buying the argument about more code line changes needed if the
+> > function name changes.  It's meaningless.
+> >
+> > And if you check the return value of acpi_get_table() for SRAT after
+> > calling acpi_put_table(tbl), you will only need the out_free label, if
+> > I'm not mistaken.
+>
+> I don't really understand this.
 
-> > Hardware guide  
-> 
-> This is more about documenting the expectations regarding the platform
-> firmware, so what about firmware-guide instead?
+Sorry, I didn't have the original code in front of me when I was
+writing my reply.
 
-I had imagined a slightly wider focus, but this seems OK for now.  We can
-always rename it later :)
+I was thinking about checking the return value of
+acpi_table_parse_entries() after calling acpi_put_table(tbl).  Then,
+if it returns an error, you only need to call hmat_free_structures().
 
-> So what about this:
-> 
-> - Create a new firmware-guide under Documentation and add an acpi/
-> directory to it for starters.  Put the following files into it:
-> 
->          acpi-lid
->          aml-debugger
->          debug (ditto)
->          DSD-properties-rules
->          gpio-properties
->          i2c-muxes
-> 
-> - Add an acpi/ subdirectory to Documentation/admin-guide and put the
-> following files into it:
-> 
->          cppc_sysfs
->          initrd_table_override
->          dsdt-override
+Similarly, if acpi_get_table(ACPI_SIG_HMAT, 0, &tbl) returns an error,
+you only need to call hmat_free_structures().
 
-I do wonder if, rather than creating a new directory, we shouldn't just
-make a single acpi.rst and put that information into it?  
+But I didn't remember the other jumps to out_put.
 
-> - Add an acpi/ subdirectory to Documentation/driver-api and put the
-> following files into it:
-> 
->          enumeration
->          scan_handlers
-
-...and something similar here?  I guess that would be my preference, but I
-don't feel all that strongly about it if there's reasons to do otherwise.
-
-In general the plan seems good.
-
-Thanks,
-
-jon
+Still, since it is valid to pass NULL to acpi_put_table(), you can
+jump to out_put if acpi_get_table(ACPI_SIG_HMAT, 0, &tbl) returns an
+error too.
