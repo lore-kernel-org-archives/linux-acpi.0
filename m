@@ -1,80 +1,121 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH -next] acpi/hmat: fix memory leaks in hmat_init()
-Date: Tue, 9 Apr 2019 10:25:11 +0200
-Message-ID: <CAJZ5v0jxUn_Hhm21FFBc2eSp49kCciCzR1_UGewHkpJiTy3LGw@mail.gmail.com>
-References: <20190406181704.33574-1-cai@lca.pw>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 10/11] platform/x86: intel_cht_int33fe: Link with
+ external dependencies using fwnodes
+Date: Tue, 9 Apr 2019 15:38:20 +0300
+Message-ID: <20190409123820.GA20058@kuha.fi.intel.com>
+References: <20190403164537.24643-1-heikki.krogerus@linux.intel.com>
+ <20190403164537.24643-11-heikki.krogerus@linux.intel.com>
+ <CAHp75VeTUCQax01xVNg7N6oAYKoxadX9vL-X9oEQFHHJ6OSrpg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190406181704.33574-1-cai@lca.pw>
+Content-Disposition: inline
+In-Reply-To: <CAHp75VeTUCQax01xVNg7N6oAYKoxadX9vL-X9oEQFHHJ6OSrpg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Qian Cai <cai@lca.pw>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Keith Busch <keith.busch@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Apr 6, 2019 at 8:18 PM Qian Cai <cai@lca.pw> wrote:
->
-> The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
-> memory") introduced some memory leaks below due to it fails to release
-> the heap memory in an error path, and then the stack __initdata memory
-> which reference them get freed during boot renders those heap memory as
-> leaks.
->
-> unreferenced object 0xc8ff8008349e9400 (size 128):
->   comm "swapper/0", pid 1, jiffies 4294709236 (age 48121.476s)
->   hex dump (first 32 bytes):
->     00 d0 9e 34 08 80 ff 84 d8 00 43 11 00 10 ff ff  ...4......C.....
->     00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 00  ................
->   backtrace:
->     [<00000000869d4503>] __kmalloc+0x568/0x600
->     [<0000000070fd6afb>] alloc_memory_target+0x50/0xd8
->     [<00000000efa2081e>] srat_parse_mem_affinity+0x58/0x5c
->     [<000000008bfaef74>] acpi_parse_entries_array+0x1c8/0x2c0
->     [<0000000022804877>] acpi_table_parse_entries_array+0x11c/0x138
->     [<00000000ffe9cd34>] acpi_table_parse_entries+0x7c/0xac
->     [<00000000a7023afd>] hmat_init+0x90/0x174
->     [<00000000694a86c1>] do_one_initcall+0x2d8/0x5f8
->     [<0000000024889da9>] do_initcall_level+0x37c/0x3fc
->     [<000000009be02908>] do_basic_setup+0x38/0x50
->     [<0000000037b3ac0a>] kernel_init_freeable+0x194/0x258
->     [<00000000f5741184>] kernel_init+0x18/0x334
->     [<000000007b30f423>] ret_from_fork+0x10/0x18
->     [<000000006c7147a8>] 0xffffffffffffffff
->
-> Signed-off-by: Qian Cai <cai@lca.pw>
+On Mon, Apr 08, 2019 at 07:42:52PM +0300, Andy Shevchenko wrote:
+> On Wed, Apr 3, 2019 at 7:46 PM Heikki Krogerus
+> <heikki.krogerus@linux.intel.com> wrote:
+> >
+> > Supplying also external devices - the DisplayPort connector
+> > and the USB role switch - software fwnodes. After this the
+> > driver has access to all the components tied to the USB
+> > Type-C connector and can start creating software node
+> > references to actually associate them with the USB Type-C
+> > connector device.
+> 
+> > +static int role_switch_match(struct device *dev, void *name)
+> > +{
+> > +       return !strcmp(dev_name(dev), name);
+> > +}
+> > +
+> > +static int cht_int33fe_setup_mux(struct cht_int33fe_data *data)
+> > +{
+> 
+> > +       /* First let's find xHCI PCI device */
+> > +       pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, NULL);
+> > +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> > +               return -ENODEV;
+> > +
+> 
+> > +       /* Then the child platform device */
+> > +       p = device_find_child(&pdev->dev, "intel_xhci_usb_sw",
+> > +                             role_switch_match);
+> 
+> We have already similar code in kernel
+> (drivers/nvdimm/claim.c::namespace_match), perhaps
+> you at least can (locally) introduce
+> 
+> static int match_name(...) // or re-use from drivers/base/bus.c
+> {
+> ...
+> }
 
-Well, the catch is good, but the additional label is sort of excessive IMO.
+OK.
 
-> ---
->  drivers/acpi/hmat/hmat.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-> index b7824a0309f7..c9b8abcf012c 100644
-> --- a/drivers/acpi/hmat/hmat.c
-> +++ b/drivers/acpi/hmat/hmat.c
-> @@ -637,7 +637,7 @@ static __init int hmat_init(void)
->
->         status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
->         if (ACPI_FAILURE(status))
+> static device_find_child_by_name(...)
+> {
+> ...
+> }
+> 
+> which we may move to the driver core now or later on.
+> 
+> > +       pci_dev_put(pdev);
+> > +       if (!p)
+> > +               return -EPROBE_DEFER;
+> > +
+> 
+> > +       /* Finally the mux device */
+> > +       dev = device_find_child(p, "intel_xhci_usb_sw-role-switch",
+> > +                               role_switch_match);
+> 
+> Ditto.
+> 
+> > +       put_device(p);
+> > +       if (!dev)
+> > +               return -EPROBE_DEFER;
+> 
+> > +       return 0;
+> 
+> > +}
+> 
+> > +static int cht_int33fe_setup_dp(struct cht_int33fe_data *data)
+> > +{
+> > +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
+> > +       struct pci_dev *pdev;
+> > +
+> > +       /* First let's find the GPU PCI device */
+> > +       pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, NULL);
+> > +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> > +               return -ENODEV;
+> > +
+> > +       /* Then the DP child device node */
+> > +       data->dp = device_get_named_child_node(&pdev->dev, "DD02");
+> > +       pci_dev_put(pdev);
+> > +       if (!data->dp)
+> > +               return -ENODEV;
+> > +
+> 
+> > +       fwnode->secondary = ERR_PTR(-ENODEV);
+> > +       data->dp->secondary = fwnode;
+> 
+> Can't generic helper be in charge of doing this, i.e. chaining fwnodes?
+> 
+> ///
+> void fwnode_chain(parent, new)
+> {
+> ...
+> }
+> ///
 
-I would just add a hmat_free_structures() call here or rework the
-_put_table() logic which is not really straightforward.
+We probable should just export set_secondary_fwnode(). I'll add a
+patch for that.
 
-> -               return 0;
-> +               goto out_free;
->
->         hmat_revision = tbl->revision;
->         switch (hmat_revision) {
-> @@ -659,8 +659,9 @@ static __init int hmat_init(void)
->         }
->         hmat_register_targets();
->  out_put:
-> -       hmat_free_structures();
->         acpi_put_table(tbl);
-> +out_free:
-> +       hmat_free_structures();
->         return 0;
->  }
->  subsys_initcall(hmat_init);
-> --
+
+thanks Andy,
+
+-- 
+heikki
