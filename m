@@ -1,50 +1,90 @@
-From: Petr Mladek <pmladek@suse.com>
-Subject: Re: [PATCH v2 1/1] treewide: Switch printk users from %pf and %pF to
- %ps and %pS, respectively
-Date: Tue, 9 Apr 2019 15:02:23 +0200
-Message-ID: <20190409130223.qylyzna7syu5cdc4@pathway.suse.cz>
-References: <20190325193229.23390-1-sakari.ailus@linux.intel.com>
- <20190326133510.cylhvyvc7l77bqdg@pathway.suse.cz>
- <20190403112814.7frkxkwmitzugzmt@paasikivi.fi.intel.com>
+From: Qian Cai <cai@lca.pw>
+Subject: Re: [PATCH -next] acpi/hmat: fix memory leaks in hmat_init()
+Date: Tue, 09 Apr 2019 09:25:09 -0400
+Message-ID: <1554816309.26196.46.camel@lca.pw>
+References: <20190406181704.33574-1-cai@lca.pw>
+         <CAJZ5v0jxUn_Hhm21FFBc2eSp49kCciCzR1_UGewHkpJiTy3LGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190403112814.7frkxkwmitzugzmt@paasikivi.fi.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org, linux-um@lists.infradead.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-mm@kvack.org, ceph-devel@vger.kernel.org, netdev@vger.kernel.org, Anna-Maria Gleixner <anna-maria@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0jxUn_Hhm21FFBc2eSp49kCciCzR1_UGewHkpJiTy3LGw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Keith Busch <keith.busch@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed 2019-04-03 14:28:14, Sakari Ailus wrote:
-> Ping.
-> 
-> On Tue, Mar 26, 2019 at 02:35:10PM +0100, Petr Mladek wrote:
-> > Linus,
+On Tue, 2019-04-09 at 10:25 +0200, Rafael J. Wysocki wrote:
+> On Sat, Apr 6, 2019 at 8:18 PM Qian Cai <cai@lca.pw> wrote:
 > > 
-> > On Mon 2019-03-25 21:32:28, Sakari Ailus wrote:
-> > > %pF and %pf are functionally equivalent to %pS and %ps conversion
-> > > specifiers. The former are deprecated, therefore switch the current users
-> > > to use the preferred variant.
-> > > 
-> > > The changes have been produced by the following command:
-> > > 
-> > > 	git grep -l '%p[fF]' | grep -v '^\(tools\|Documentation\)/' | \
-> > > 	while read i; do perl -i -pe 's/%pf/%ps/g; s/%pF/%pS/g;' $i; done
-> > > 
-> > > And verifying the result.
+> > The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
+> > memory") introduced some memory leaks below due to it fails to release
+> > the heap memory in an error path, and then the stack __initdata memory
+> > which reference them get freed during boot renders those heap memory as
+> > leaks.
 > > 
-> > I guess that the best timing for such tree-wide clean up is the end
-> > of the merge window. Should we wait for 5.2 or is it still acceptable
-> > to push this for 5.1-rc3?
+> > unreferenced object 0xc8ff8008349e9400 (size 128):
+> >   comm "swapper/0", pid 1, jiffies 4294709236 (age 48121.476s)
+> >   hex dump (first 32 bytes):
+> >     00 d0 9e 34 08 80 ff 84 d8 00 43 11 00 10 ff ff  ...4......C.....
+> >     00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 00  ................
+> >   backtrace:
+> >     [<00000000869d4503>] __kmalloc+0x568/0x600
+> >     [<0000000070fd6afb>] alloc_memory_target+0x50/0xd8
+> >     [<00000000efa2081e>] srat_parse_mem_affinity+0x58/0x5c
+> >     [<000000008bfaef74>] acpi_parse_entries_array+0x1c8/0x2c0
+> >     [<0000000022804877>] acpi_table_parse_entries_array+0x11c/0x138
+> >     [<00000000ffe9cd34>] acpi_table_parse_entries+0x7c/0xac
+> >     [<00000000a7023afd>] hmat_init+0x90/0x174
+> >     [<00000000694a86c1>] do_one_initcall+0x2d8/0x5f8
+> >     [<0000000024889da9>] do_initcall_level+0x37c/0x3fc
+> >     [<000000009be02908>] do_basic_setup+0x38/0x50
+> >     [<0000000037b3ac0a>] kernel_init_freeable+0x194/0x258
+> >     [<00000000f5741184>] kernel_init+0x18/0x334
+> >     [<000000007b30f423>] ret_from_fork+0x10/0x18
+> >     [<000000006c7147a8>] 0xffffffffffffffff
+> > 
+> > Signed-off-by: Qian Cai <cai@lca.pw>
 > 
-> The patch still cleanly applies to linux-next as wells as Linus's tree.
-> Some %pf bits have appeared and fixed since (include/trace/events/timer.h);
-> the fix is in linux-next so once that and this patch are merged, there are
-> no remaining %pf (or %pF) users left.
+> Well, the catch is good, but the additional label is sort of excessive IMO.
+> 
+> > ---
+> >  drivers/acpi/hmat/hmat.c | 5 +++--
+> >  1 file changed, 3 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+> > index b7824a0309f7..c9b8abcf012c 100644
+> > --- a/drivers/acpi/hmat/hmat.c
+> > +++ b/drivers/acpi/hmat/hmat.c
+> > @@ -637,7 +637,7 @@ static __init int hmat_init(void)
+> > 
+> >         status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
+> >         if (ACPI_FAILURE(status))
+> 
+> I would just add a hmat_free_structures() call here or rework the
+> _put_table() logic which is not really straightforward.
 
-I have pushed the patch into printk.git, branch for-5.2-pf-removal.
-It is v2 without the include/trace/events/timer.h stuff.
+I am not sure how adding a hmat_free_structures() call there would be better. If
+the name has bee changed to something else in the future, it ends up needing to
+change 2 places. It also not save the adding line-count either. I don't see how
+to rework the acpi_put_table() logic to be better than adding a label here
+either.
 
-Best Regards,
-Petr
+> 
+> > -               return 0;
+> > +               goto out_free;
+> > 
+> >         hmat_revision = tbl->revision;
+> >         switch (hmat_revision) {
+> > @@ -659,8 +659,9 @@ static __init int hmat_init(void)
+> >         }
+> >         hmat_register_targets();
+> >  out_put:
+> > -       hmat_free_structures();
+> >         acpi_put_table(tbl);
+> > +out_free:
+> > +       hmat_free_structures();
+> >         return 0;
+> >  }
+> >  subsys_initcall(hmat_init);
+> > --
