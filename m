@@ -1,122 +1,68 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Wed, 10 Apr 2019 00:17:02 +0800
-Message-ID: <20190409161700.3itslgpqlhx3up3m@mail.google.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
- <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
- <20190403133613.13f3fd75@lwn.net>
- <20190405024350.rbwbiaxjybrmqea6@mail.google.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
+Date: Tue, 9 Apr 2019 18:33:04 +0200
+Message-ID: <20190409163304.GA23829@amd>
+References: <20190408173914.GA13260@amd>
+ <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="8t9RHnE3ZwKMSgU+"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190405024350.rbwbiaxjybrmqea6@mail.google.com>
+In-Reply-To: <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: Changbin Du <changbin.du@gmail.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: Jens Axboe <axboe@kernel.dk>
+Cc: kernel list <linux-kernel@vger.kernel.org>, paolo.valente@linaro.org, linux-block@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 05, 2019 at 10:44:35AM +0800, Changbin Du wrote:
-> + Bjorn
-> 
-> On Wed, Apr 03, 2019 at 01:36:13PM -0600, Jonathan Corbet wrote:
-> > On Tue, 2 Apr 2019 10:25:23 +0200
-> > "Rafael J. Wysocki" <rafael@kernel.org> wrote:
-> > 
-> > > There are ACPI-related documents currently in Documentation/acpi/ that
-> > > don't clearly fall under either driver-api or admin-guide.  For
-> > > example, some of them describe various aspects of the ACPI support
-> > > subsystem operation and some document expectations with respect to the
-> > > ACPI tables provided by the firmware etc.
-> > > 
-> > > Where would you recommend to put them after converting to .rst?
-> > 
-> > OK, I've done some pondering on this.  Maybe what we need is a new
-> > top-level "hardware guide" book meant to hold information on how the
-> > hardware works and what the kernel's expectations are.  Architecture
-> > information could maybe go there too.  Would this make sense?
-> > 
-> > If so, I could see a division like this:
-> > 
-> > Hardware guide
-> > 	acpi-lid
-> > 	aml-debugger (or maybe driver api?)
-> > 	debug (ditto)
-> > 	DSD-properties-rules
-> > 	gpio-properties
-> > 	i2c-muxes
-> > 
-> > Admin guide
-> > 	cppc_sysfs
-> > 	initrd_table_override
-> > 
-> > Driver-API
-> > 	enumeration
-> > 	scan_handlers
-> > 
-> > other:
-> > 	dsdt-override: find another home for those five lines
-> >
-> Then, should we create dedicated sub-directories for these new charpters and
-> move documents to coresspoding one? Now we have 'admin-guide' and all admin-guid
-> docs are under it, otherwise we will have reference across different folders.
-> For example, the 'admin-guide/index.rst' will have:
->     ...
->     ../acpi/osi
->     ...
-> Which seems not good.
->
-Jonathan, what is your idea about the placement of doc files?
 
-> > ...and so on.  I've probably gotten at least one of those wrong, but that's
-> > the idea.
-> > 
-> > Of course, then it would be nice to better integrate those documents so
-> > that they fit into a single coherent whole...a guy can dream...:)
-> >
-> I am not an adminstrator, so I don't know how adminstrators use this kernel
-> documentation. But as a kernel developer, I prefer all related documents
-> integrated into one charpter. Because I probably miss some useful sections
-> if the documents are distributed into several charpters. And this is usually
-> how a book is written (One charpter focus on one topic and has sub-sections
-> such as overview, backgroud knowledge, implemenation details..),
-> but a book mostly target on hypothetical readers...
->
-After some considerarion, I have a new idea. Since the top charpter named as
-*API* so non-API things is not suitable for this charpter. But can we just
-rename it? For example, we can rename 'Kernel API documentation' to 
-'Subsystem-specifc documentation' which is similar to 'Architecture-specific documentation'?
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Subsystem-specifc documentation
--------------------------------
-.. toctree::
-   :maxdepth: 2
+On Mon 2019-04-08 11:41:18, Jens Axboe wrote:
+> On 4/8/19 11:39 AM, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > For some reason, Thinkpad X60 now crashes during boot. I see some
+> > weird backtraces, and it may be bfq related... or maybe ACPI idle.
+> >=20
+> > Does x86-32 work for you?
+> >=20
+> > Weird thing is, 5.1.0-rc3-next-20190408 boots here (but later has
+> > problems during resume, making it unusable, too). They may not have
+> > 100% same configs.
 
-   driver-api/index
-   core-api/index
-   media/index
-   networking/index
-   input/index
-   gpu/index
-   ...
+I now noticed it said:
 
-Architecture-specific documentation
------------------------------------
-.. toctree::
-   :maxdepth: 2
+EIP is in bfq_bfqq_expire
 
-   sh/index
-   x86/index
-   ...
+> Can you try and revert:
+>=20
+> 9dee8b3b057e1
+>=20
+> and see if that helps?
 
-> > Thanks,
-> > 
-> > jon
-> 
-> -- 
-> Cheers,
-> Changbin Du
+Yes, I tried and yes, it helps. What are the next steps?=20
 
--- 
-Cheers,
-Changbin Du
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--8t9RHnE3ZwKMSgU+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlysyUAACgkQMOfwapXb+vI+KwCgradkSjU5BXM7t3nzK3oiTVBE
+/vYAn069+EnMQXCDobqsLfChLCZ8wYH+
+=hjYf
+-----END PGP SIGNATURE-----
+
+--8t9RHnE3ZwKMSgU+--
