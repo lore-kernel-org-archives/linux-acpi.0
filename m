@@ -1,83 +1,51 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Tue, 9 Apr 2019 18:42:59 +0200
-Message-ID: <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com> <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com> <20190403133613.13f3fd75@lwn.net>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH v2 0/7] Add PCI ATS support to Arm SMMUv3
+Date: Tue,  9 Apr 2019 17:52:38 +0100
+Message-ID: <20190409165245.26500-1-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190403133613.13f3fd75@lwn.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: will.deacon-5wv7dgnIgG8@public.gmane.org
+Cc: zhongmiao-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, okaya-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 3, 2019 at 9:36 PM Jonathan Corbet <corbet@lwn.net> wrote:
->
-> On Tue, 2 Apr 2019 10:25:23 +0200
-> "Rafael J. Wysocki" <rafael@kernel.org> wrote:
->
-> > There are ACPI-related documents currently in Documentation/acpi/ that
-> > don't clearly fall under either driver-api or admin-guide.  For
-> > example, some of them describe various aspects of the ACPI support
-> > subsystem operation and some document expectations with respect to the
-> > ACPI tables provided by the firmware etc.
-> >
-> > Where would you recommend to put them after converting to .rst?
->
-> OK, I've done some pondering on this.  Maybe what we need is a new
-> top-level "hardware guide" book meant to hold information on how the
-> hardware works and what the kernel's expectations are.  Architecture
-> information could maybe go there too.  Would this make sense?
->
-> If so, I could see a division like this:
->
-> Hardware guide
+This series enables PCI ATS in SMMUv3. Changes since v1 [1]:
 
-This is more about documenting the expectations regarding the platform
-firmware, so what about firmware-guide instead?
+* Simplify the SMMU structures (patches 2-4 are new).
 
->         acpi-lid
->         aml-debugger (or maybe driver api?)
->         debug (ditto)
->         DSD-properties-rules
->         gpio-properties
->         i2c-muxes
->
-> Admin guide
->         cppc_sysfs
->         initrd_table_override
+* Don't enable ATS for devices that are attached to a bypass domain,
+  because in that case a translation request would cause F_BAD_ATS_TREQ.
+  Translation requests in that case cause F_BAD_ATS_TREQ. Enable ATS in
+  attach_dev() rather than add_device().
 
-And I would add dsdt-override here.
+* Enable ATS for stage-1 and stage-2 STEs alike. There is no benefit to
+  disabling ATS for stage-2 domains.
 
->
-> Driver-API
->         enumeration
->         scan_handlers
->
+[1] https://www.spinics.net/lists/arm-kernel/msg714628.html
 
-So what about this:
+Jean-Philippe Brucker (7):
+  ACPI/IORT: Check ATS capability in root complex nodes
+  iommu/arm-smmu-v3: Rename arm_smmu_master_data to arm_smmu_master
+  iommu/arm-smmu-v3: Store SteamIDs in master
+  iommu/arm-smmu-v3: Add a master->domain pointer
+  iommu/arm-smmu-v3: Link domains and devices
+  iommu/arm-smmu-v3: Add support for PCI ATS
+  iommu/arm-smmu-v3: Disable tagged pointers
 
-- Create a new firmware-guide under Documentation and add an acpi/
-directory to it for starters.  Put the following files into it:
+ drivers/acpi/arm64/iort.c   |  11 ++
+ drivers/iommu/arm-smmu-v3.c | 340 ++++++++++++++++++++++++++++--------
+ include/linux/iommu.h       |   4 +
+ 3 files changed, 286 insertions(+), 69 deletions(-)
 
-         acpi-lid
-         aml-debugger
-         debug (ditto)
-         DSD-properties-rules
-         gpio-properties
-         i2c-muxes
-
-- Add an acpi/ subdirectory to Documentation/admin-guide and put the
-following files into it:
-
-         cppc_sysfs
-         initrd_table_override
-         dsdt-override
-
-- Add an acpi/ subdirectory to Documentation/driver-api and put the
-following files into it:
-
-         enumeration
-         scan_handlers
+-- 
+2.21.0
