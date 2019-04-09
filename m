@@ -2,126 +2,136 @@ Return-Path: <SRS0=ifiZ=SL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18A78C10F0E
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:35:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0506C10F0E
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:43:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC54B2084F
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:35:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Td2OyzsE"
+	by mail.kernel.org (Postfix) with ESMTP id BCD0A2084C
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Apr 2019 16:43:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1554828191;
+	bh=qoyOD+v3x+mf84bBIxX0hhygERUHZLqfHjmuo4I2XSo=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=TfJ48kdesWSARMXXWZRY8Xly82WVB+Hdy3n4gWK7XX1TqfLyXuHK5PJCohoh2dW/G
+	 SmRjGoSVeL7nEQlMCWzllq+BSACip3UA3hTvcz2B5FkftsseSqjN4vPcI5vqYpAub/
+	 +/UftJze6Jwwxcj7kkbhBCiKjXcZID+Gm9H2sGUc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726646AbfDIQfn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Apr 2019 12:35:43 -0400
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:50510 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726570AbfDIQfj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Apr 2019 12:35:39 -0400
-Received: by mail-wm1-f67.google.com with SMTP id z11so4393501wmi.0
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Apr 2019 09:35:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=kVY6gm93IxOicC2fEC0J47/R327+OQXdPKJ+Wc5c6E8=;
-        b=Td2OyzsETjXiNxxyrCwZCh3GbsO7MDlHuRiQ/LCapEbezj4Hggno5+xpcDaZgiNDU7
-         7ZHOZ7L+MOlC53rlvf7uQTEyC+QcKwTd5nOa9f85wD5IHJeIQcCu31tcM1m9Wf+0D59p
-         4M/UIZo39IezGeCUHRWuy6fi3FLj/3toP4epYwKypwg6zoJHcGhuUkJ9LxNvUJUK7ASg
-         QN5SCQksYWRlv2/2Rl6ciZs1ix1L/tDleCBGaba4mCGgKjnx9y6RMzftBak1rdnkl4Ww
-         d0Kkbu2YoiFrGf5Bg6EZKlihq4BXkwLFZIoK5+gOsl2HO04KXXvvCm/DkfYlhdDkJWSv
-         anJQ==
+        id S1726493AbfDIQnL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Apr 2019 12:43:11 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:33613 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726465AbfDIQnL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Apr 2019 12:43:11 -0400
+Received: by mail-ot1-f68.google.com with SMTP id j10so16210968otq.0;
+        Tue, 09 Apr 2019 09:43:10 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=kVY6gm93IxOicC2fEC0J47/R327+OQXdPKJ+Wc5c6E8=;
-        b=uBdbzGKMTDKHCANVRkgpgBMYbEaqna815/B6sYmR28w5c/9Vt90OWK0IrwYgE5u/gG
-         f9Ry2/2CTVXVYile7YoRSqUryItA/+OkzNxrFbPo2v0+W+A1Mi+XqKvQKDlTO9ISgnHr
-         yVLVskUgJKjlOSObHs2gWw1l7qSncWpLC1ph60La3y6eF/iAxEdr9pXn5mL9Rm9o+dkb
-         jgMU23nJyYnoVIAm/CZmSUkYd9MqLr2YpXH5hLwDDWPgqxjvWCyPuY8BWCiP+vd9x30i
-         5h2ATN0r86fM32K5T2reuF7XXS+KUlozqjyzK+HFBwRuNjR7rLv+jFCASWZq2JJbSHXH
-         TeBw==
-X-Gm-Message-State: APjAAAXMj0Nc9hZPwR33tMKSmW/44B5G7OX+aIVvi9PGdIBpQEsUbhhR
-        ir9Isrm0i3Qck98GLvdCPycLzw==
-X-Google-Smtp-Source: APXvYqz2TDdi7UCDhvoeR1eOs1eAO1vnYR+6NdJrUCh3mNN3DAxteX/OYqTz3dLe2c+WXCh8QLRMVA==
-X-Received: by 2002:a1c:a7c5:: with SMTP id q188mr15353008wme.126.1554827737361;
-        Tue, 09 Apr 2019 09:35:37 -0700 (PDT)
-Received: from [192.168.0.105] ([88.147.54.190])
-        by smtp.gmail.com with ESMTPSA id j11sm44523040wrw.85.2019.04.09.09.35.36
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 09 Apr 2019 09:35:36 -0700 (PDT)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=YugM0T8nODd+4GQ5iGHz+GQ5SmQR4JkwnCYSPD0kXuQ=;
+        b=hQ83FiYR/5qC9Jy4eK7T8NdaGpeHJjS6Qlql8+qh++DBzRqYvL3PAsPNXE6yTkjUqp
+         NNwWMtE4tflJ75tPkfDaBOyV9JQl3UWQfbb9e+iiG14pjUnyanK8GSoIR5RSqgFEzPdX
+         S7TX0iPrv5BcrM8pQtcq7+DxR7c3bQ45bjMv5WwnACyGgAPiwm0D2Y2KaAKxfNt1Z+6G
+         9WhMQ0BqQ0ZskoaT+ary+1hW+1dzMjrTRW6QWDcMElChnf71E5M4VuGNZZkkwWIt8OgW
+         yaaRsvtURtDgiNSDP/+yCqcQQvT2Uk8xI/9HNAZG/Aw/p4i4rBY4fWb/h9E94S+p65rw
+         dUGQ==
+X-Gm-Message-State: APjAAAXDodP1wuH9q6jJS1A1DSmQz3Av93qoiPwaBil+B2lmalJ5gg5V
+        L2tcs9gZbwK0lJU8WtIh9mPiPF027nC13v8iyyE=
+X-Google-Smtp-Source: APXvYqxtSDEwTTbntrVIkFfs9EJ2wef1fP+IJ83V0sKQtVP6A6D/Rsta+wOR56X3RtSY0OOh7Gp36TM1I4Ea1kDQymM=
+X-Received: by 2002:a9d:4b11:: with SMTP id q17mr25143721otf.272.1554828190051;
+ Tue, 09 Apr 2019 09:43:10 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190329001135.15847-1-changbin.du@gmail.com> <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
+ <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com> <20190403133613.13f3fd75@lwn.net>
+In-Reply-To: <20190403133613.13f3fd75@lwn.net>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 9 Apr 2019 18:42:59 +0200
+Message-ID:
+ <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
+Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
+To:     Jonathan Corbet <corbet@lwn.net>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Changbin Du <changbin.du@gmail.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
-Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
-From:   Paolo Valente <paolo.valente@linaro.org>
-In-Reply-To: <20190409163304.GA23829@amd>
-Date:   Tue, 9 Apr 2019 18:35:35 +0200
-Cc:     Jens Axboe <axboe@kernel.dk>,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-block <linux-block@vger.kernel.org>, rjw@rjwysocki.net,
-        lenb@kernel.org, linux-acpi@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <F6306562-0022-4043-BBF8-13FE4872CA31@linaro.org>
-References: <20190408173914.GA13260@amd>
- <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk> <20190409163304.GA23829@amd>
-To:     Pavel Machek <pavel@ucw.cz>
-X-Mailer: Apple Mail (2.3445.102.3)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190409163535.DQu_JpY1a1kRtWs9SQQe5yRQ7lqKq7uWRbKk8Syf-dk@z>
+Message-ID: <20190409164259.rvlCKIH-anwo8T01_4VzPXCiMdvlt-hFPqySQz-lgLA@z>
 
+On Wed, Apr 3, 2019 at 9:36 PM Jonathan Corbet <corbet@lwn.net> wrote:
+>
+> On Tue, 2 Apr 2019 10:25:23 +0200
+> "Rafael J. Wysocki" <rafael@kernel.org> wrote:
+>
+> > There are ACPI-related documents currently in Documentation/acpi/ that
+> > don't clearly fall under either driver-api or admin-guide.  For
+> > example, some of them describe various aspects of the ACPI support
+> > subsystem operation and some document expectations with respect to the
+> > ACPI tables provided by the firmware etc.
+> >
+> > Where would you recommend to put them after converting to .rst?
+>
+> OK, I've done some pondering on this.  Maybe what we need is a new
+> top-level "hardware guide" book meant to hold information on how the
+> hardware works and what the kernel's expectations are.  Architecture
+> information could maybe go there too.  Would this make sense?
+>
+> If so, I could see a division like this:
+>
+> Hardware guide
 
+This is more about documenting the expectations regarding the platform
+firmware, so what about firmware-guide instead?
 
-> Il giorno 9 apr 2019, alle ore 18:33, Pavel Machek <pavel@ucw.cz> ha =
-scritto:
->=20
-> On Mon 2019-04-08 11:41:18, Jens Axboe wrote:
->> On 4/8/19 11:39 AM, Pavel Machek wrote:
->>> Hi!
->>>=20
->>> For some reason, Thinkpad X60 now crashes during boot. I see some
->>> weird backtraces, and it may be bfq related... or maybe ACPI idle.
->>>=20
->>> Does x86-32 work for you?
->>>=20
->>> Weird thing is, 5.1.0-rc3-next-20190408 boots here (but later has
->>> problems during resume, making it unusable, too). They may not have
->>> 100% same configs.
->=20
-> I now noticed it said:
->=20
-> EIP is in bfq_bfqq_expire
->=20
->> Can you try and revert:
->>=20
->> 9dee8b3b057e1
->>=20
->> and see if that helps?
->=20
-> Yes, I tried and yes, it helps. What are the next steps?=20
->=20
+>         acpi-lid
+>         aml-debugger (or maybe driver api?)
+>         debug (ditto)
+>         DSD-properties-rules
+>         gpio-properties
+>         i2c-muxes
+>
+> Admin guide
+>         cppc_sysfs
+>         initrd_table_override
 
-Try my fix:
+And I would add dsdt-override here.
 
-=
-https://lore.kernel.org/linux-block/20190409191420.3f56d493@fire.localdoma=
-in/T/#m30a14045e710b870f00f7c51cdaa7c403977b767
+>
+> Driver-API
+>         enumeration
+>         scan_handlers
+>
 
-and cross your fingers :)
+So what about this:
 
-Thanks,
-Paolo
+- Create a new firmware-guide under Documentation and add an acpi/
+directory to it for starters.  Put the following files into it:
 
-> 									=
-Pavel
->=20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) =
-http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+         acpi-lid
+         aml-debugger
+         debug (ditto)
+         DSD-properties-rules
+         gpio-properties
+         i2c-muxes
 
+- Add an acpi/ subdirectory to Documentation/admin-guide and put the
+following files into it:
+
+         cppc_sysfs
+         initrd_table_override
+         dsdt-override
+
+- Add an acpi/ subdirectory to Documentation/driver-api and put the
+following files into it:
+
+         enumeration
+         scan_handlers
