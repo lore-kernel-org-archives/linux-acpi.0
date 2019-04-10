@@ -1,239 +1,253 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2 03/12] software node: Add support for references
-Date: Wed, 10 Apr 2019 18:24:56 +0300
-Message-ID: <20190410152505.87041-4-heikki.krogerus@linux.intel.com>
-References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [PATCH v5 2/5] virtio-pmem: Add virtio pmem driver
+Date: Wed, 10 Apr 2019 11:38:00 -0400 (EDT)
+Message-ID: <1663006162.20832248.1554910680080.JavaMail.zimbra@redhat.com>
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-3-pagupta@redhat.com> <20190410142426.5bf0d9a4.cohuck@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20190410142426.5bf0d9a4.cohuck@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
+To: Cornelia Huck <cohuck@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, dan j williams <dan.j.williams@intel.com>, zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>, dave jiang <dave.jiang@intel.com>, mst@redhat.com, jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu, adilger kernel <adilger.kernel@dilger.ca>, darrick wong <darrick.wong@oracle.com>, lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, aarcange@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Introducing functions that can be used for adding and
-removing references to other software nodes. The goal is to
-support fwnode_property_get_reference_args() also with
-software nodes, however, get_reference_args fwnode operation
-callback is not yet implemented in this commit for the
-software nodes. This commit will only add support for
-reference addition/removal.
 
-The next example shows how to add references to GPIOs using the
-format described in Documentation/acpi/gpio-properties.txt:
+> 
+> > This patch adds virtio-pmem driver for KVM guest.
+> > 
+> > Guest reads the persistent memory range information from
+> > Qemu over VIRTIO and registers it on nvdimm_bus. It also
+> > creates a nd_region object with the persistent memory
+> > range information so that existing 'nvdimm/pmem' driver
+> > can reserve this into system memory map. This way
+> > 'virtio-pmem' driver uses existing functionality of pmem
+> > driver to register persistent memory compatible for DAX
+> > capable filesystems.
+> > 
+> > This also provides function to perform guest flush over
+> > VIRTIO from 'pmem' driver when userspace performs flush
+> > on DAX memory range.
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  drivers/nvdimm/virtio_pmem.c     |  88 ++++++++++++++++++++++
+> >  drivers/virtio/Kconfig           |  10 +++
+> >  drivers/virtio/Makefile          |   1 +
+> >  drivers/virtio/pmem.c            | 124 +++++++++++++++++++++++++++++++
+> >  include/linux/virtio_pmem.h      |  60 +++++++++++++++
+> >  include/uapi/linux/virtio_ids.h  |   1 +
+> >  include/uapi/linux/virtio_pmem.h |  10 +++
+> >  7 files changed, 294 insertions(+)
+> >  create mode 100644 drivers/nvdimm/virtio_pmem.c
+> >  create mode 100644 drivers/virtio/pmem.c
+> >  create mode 100644 include/linux/virtio_pmem.h
+> >  create mode 100644 include/uapi/linux/virtio_pmem.h
+> > 
+> (...)
+> > diff --git a/drivers/virtio/pmem.c b/drivers/virtio/pmem.c
+> > new file mode 100644
+> > index 000000000000..cc9de9589d56
+> > --- /dev/null
+> > +++ b/drivers/virtio/pmem.c
+> > @@ -0,0 +1,124 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/*
+> > + * virtio_pmem.c: Virtio pmem Driver
+> > + *
+> > + * Discovers persistent memory range information
+> > + * from host and registers the virtual pmem device
+> > + * with libnvdimm core.
+> > + */
+> > +#include <linux/virtio_pmem.h>
+> > +#include <../../drivers/nvdimm/nd.h>
+> > +
+> > +static struct virtio_device_id id_table[] = {
+> > +	{ VIRTIO_ID_PMEM, VIRTIO_DEV_ANY_ID },
+> > +	{ 0 },
+> > +};
+> > +
+> > + /* Initialize virt queue */
+> > +static int init_vq(struct virtio_pmem *vpmem)
+> 
+> IMHO, you don't gain much by splitting off this function...
 
-/* Array with two GPIOs */
-static struct fwnode_reference_args gpioargs[] __initdata = {
-	{
-		.nargs = 3,
-		.args[0]= 19, /* index */
-		.args[1]= 0,  /* pin */
-		.args[2]= 0,  /* active_low */
-	},
-	{
-		.nargs = 3,
-		.args[0]= 20, /* index */
-		.args[1]= 0,  /* pin */
-		.args[2]= 0,  /* active_low */
-	},
-	{ }
-};
+o.k. I kept this for better code structure.
 
-static int myinit(void)
-{
-	struct software_node_reference *ref;
-	struct fwnode_handle *gpio_node;
-	struct fwnode_handle *my_node;
+> 
+> > +{
+> > +	struct virtqueue *vq;
+> > +
+> > +	/* single vq */
+> > +	vpmem->req_vq = vq = virtio_find_single_vq(vpmem->vdev,
+> > +				host_ack, "flush_queue");
+> > +	if (IS_ERR(vq))
+> > +		return PTR_ERR(vq);
+> 
+> I'm personally not a fan of chained assignments... I think I'd just
+> drop the 'vq' variable and operate on vpmem->req_vq directly.
 
-	/* Creating the nodes */
-	gpio_node = fwnode_create_software_node(gpio_props, NULL);
-	...
-	my_node = fwnode_create_software_node(my_props, NULL);
-	...
+Sure.
 
-	/* gpio_node is associated with a GPIO/Pin controller in this example */
-	...
+> 
+> > +
+> > +	spin_lock_init(&vpmem->pmem_lock);
+> > +	INIT_LIST_HEAD(&vpmem->req_list);
+> > +
+> > +	return 0;
+> > +};
+> > +
+> > +static int virtio_pmem_probe(struct virtio_device *vdev)
+> > +{
+> > +	int err = 0;
+> > +	struct resource res;
+> > +	struct virtio_pmem *vpmem;
+> > +	struct nvdimm_bus *nvdimm_bus;
+> > +	struct nd_region_desc ndr_desc = {};
+> > +	int nid = dev_to_node(&vdev->dev);
+> > +	struct nd_region *nd_region;
+> > +
+> > +	if (!vdev->config->get) {
+> > +		dev_err(&vdev->dev, "%s failure: config disabled\n",
+> 
+> Maybe s/config disabled/config access disabled/ ? That seems to be the
+> more common message.
 
-	/* Assigning the actual node references */
-	gpioargs[0].fwnode = gpio_node;
-	gpioargs[1].fwnode = gpio_node;
+This is better.
 
-	/* my_node will now have a named ("gpios") reference to the two GPIOs */
-	ref = fwnode_create_software_node_reference(my_node, "gpios", gpioargs);
-	...
-	return 0;
-}
+> 
+> > +			__func__);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	vdev->priv = vpmem = devm_kzalloc(&vdev->dev, sizeof(*vpmem),
+> > +					GFP_KERNEL);
+> 
+> Here, the vpmem variable makes sense for convenience, but I'm again not
+> a fan of the chaining :)
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/base/swnode.c    | 101 +++++++++++++++++++++++++++++++++++++++
- include/linux/property.h |   8 ++++
- 2 files changed, 109 insertions(+)
+Sure will change :)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 7b321bf8424c..39b8f8f35cfe 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -11,10 +11,19 @@
- #include <linux/property.h>
- #include <linux/slab.h>
- 
-+struct software_node_reference {
-+	struct list_head list;
-+	const char *name;
-+	int nrefs;
-+	struct fwnode_reference_args *args;
-+};
-+
- struct software_node {
- 	int id;
- 	struct kobject kobj;
- 	struct fwnode_handle fwnode;
-+	struct list_head references;
-+	struct mutex lock; /* node lock */
- 
- 	/* hierarchy */
- 	struct ida child_ids;
-@@ -598,9 +607,11 @@ fwnode_create_software_node(const struct property_entry *properties,
- 	swnode->kobj.kset = swnode_kset;
- 	swnode->fwnode.ops = &software_node_ops;
- 
-+	mutex_init(&swnode->lock);
- 	ida_init(&swnode->child_ids);
- 	INIT_LIST_HEAD(&swnode->entry);
- 	INIT_LIST_HEAD(&swnode->children);
-+	INIT_LIST_HEAD(&swnode->references);
- 	swnode->parent = p;
- 
- 	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
-@@ -631,6 +642,11 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
- 	if (!swnode)
- 		return;
- 
-+	mutex_lock(&swnode->lock);
-+	WARN(!list_empty(&swnode->references),
-+	     "\"%s\" has still references", kobject_name(&swnode->kobj));
-+	mutex_unlock(&swnode->lock);
-+
- 	if (swnode->parent) {
- 		ida_simple_remove(&swnode->parent->child_ids, swnode->id);
- 		list_del(&swnode->entry);
-@@ -642,6 +658,91 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
- }
- EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
- 
-+/**
-+ * fwnode_create_software_node_reference - Create named reference description
-+ * @fwnode: The software node to have the references
-+ * @name: Name given to reference description
-+ * @args: Zero terminated array of software node references with arguments
-+ *
-+ * Associates software nodes listed in @args with @fwnode. The association is
-+ * named @name. The reference count is incremented for the nodes in @args.
-+ *
-+ * Returns pointer to software node reference description on success, or ERR_PTR
-+ * on failure.
-+ */
-+struct software_node_reference *
-+fwnode_create_software_node_reference(const struct fwnode_handle *fwnode,
-+				      const char *name,
-+				      const struct fwnode_reference_args *args)
-+{
-+	struct software_node *swnode = to_software_node(fwnode);
-+	struct software_node_reference *ref;
-+	int n;
-+
-+	if (!swnode)
-+		return ERR_PTR(-EINVAL);
-+
-+	for (n = 0; args[n].fwnode; n++)
-+		if (!is_software_node(args[n].fwnode))
-+			return ERR_PTR(-EINVAL);
-+
-+	ref = kzalloc(sizeof(*ref), GFP_KERNEL);
-+	if (!ref)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ref->nrefs = n;
-+
-+	ref->name = kstrdup(name, GFP_KERNEL);
-+	if (!ref->name) {
-+		kfree(ref);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	ref->args = kcalloc(ref->nrefs, sizeof(*ref->args), GFP_KERNEL);
-+	if (!ref->args) {
-+		kfree(ref->name);
-+		kfree(ref);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	for (n = 0; n < ref->nrefs; n++) {
-+		ref->args[n] = args[n];
-+		software_node_get(ref->args[n].fwnode);
-+	}
-+
-+	mutex_lock(&swnode->lock);
-+	list_add_tail(&ref->list, &swnode->references);
-+	mutex_unlock(&swnode->lock);
-+
-+	return ref;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_create_software_node_reference);
-+
-+/**
-+ * fwnode_remove_software_node_reference - Remove named reference description
-+ * @ref: Software node reference description
-+ *
-+ * Remove named reference @ref. Decrements the software node reference count of
-+ * each node in @ref, and removes the association that was created in
-+ * fwnode_create_software_node_reference().
-+ */
-+void fwnode_remove_software_node_reference(struct software_node_reference *ref)
-+{
-+	int n;
-+
-+	if (IS_ERR_OR_NULL(ref))
-+		return;
-+
-+	for (n = 0; n < ref->nrefs; n++)
-+		kobject_put(&to_software_node(ref->args[n].fwnode)->kobj);
-+
-+	list_del(&ref->list);
-+	kfree(ref->args);
-+	kfree(ref->name);
-+	kfree(ref);
-+}
-+EXPORT_SYMBOL_GPL(fwnode_remove_software_node_reference);
-+
- int software_node_notify(struct device *dev, unsigned long action)
- {
- 	struct fwnode_handle *fwnode = dev_fwnode(dev);
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 65d3420dd5d1..40e12ca43556 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -314,6 +314,8 @@ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- /* -------------------------------------------------------------------------- */
- /* Software fwnode support - when HW description is incomplete or missing */
- 
-+struct sofware_node_reference;
-+
- bool is_software_node(const struct fwnode_handle *fwnode);
- 
- int software_node_notify(struct device *dev, unsigned long action);
-@@ -323,4 +325,10 @@ fwnode_create_software_node(const struct property_entry *properties,
- 			    const struct fwnode_handle *parent);
- void fwnode_remove_software_node(struct fwnode_handle *fwnode);
- 
-+struct software_node_reference *
-+fwnode_create_software_node_reference(const struct fwnode_handle *fwnode,
-+				      const char *name,
-+				      const struct fwnode_reference_args *args);
-+void fwnode_remove_software_node_reference(struct software_node_reference *ref);
-+
- #endif /* _LINUX_PROPERTY_H_ */
--- 
-2.20.1
+> 
+> > +	if (!vpmem) {
+> > +		err = -ENOMEM;
+> > +		goto out_err;
+> > +	}
+> > +
+> > +	vpmem->vdev = vdev;
+> > +	err = init_vq(vpmem);
+> > +	if (err)
+> > +		goto out_err;
+> > +
+> > +	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
+> > +			start, &vpmem->start);
+> > +	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
+> > +			size, &vpmem->size);
+> > +
+> > +	res.start = vpmem->start;
+> > +	res.end   = vpmem->start + vpmem->size-1;
+> > +	vpmem->nd_desc.provider_name = "virtio-pmem";
+> > +	vpmem->nd_desc.module = THIS_MODULE;
+> > +
+> > +	vpmem->nvdimm_bus = nvdimm_bus = nvdimm_bus_register(&vdev->dev,
+> > +						&vpmem->nd_desc);
+> 
+> And here :)
+
+Sure.
+
+> 
+> > +	if (!nvdimm_bus)
+> > +		goto out_vq;
+> > +
+> > +	dev_set_drvdata(&vdev->dev, nvdimm_bus);
+> > +
+> > +	ndr_desc.res = &res;
+> > +	ndr_desc.numa_node = nid;
+> > +	ndr_desc.flush = virtio_pmem_flush;
+> > +	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+> > +	set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
+> > +	nd_region = nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc);
+> > +	nd_region->provider_data =  dev_to_virtio
+> > +					(nd_region->dev.parent->parent);
+> 
+> Isn't it clear that this parent chain will always end up at &vdev->dev?
+
+Yes, It will resolve to &vdev->dev.
+
+> Maybe simply set ->provider_data to vdev directly? (Does it need to
+> grab a reference count of the device, BTW?)
+
+reference is already taken when registering the device with nvdimm_bus.
+
+> 
+> > +
+> > +	if (!nd_region)
+> > +		goto out_nd;
+> 
+> Probably better to do this check before you access nd_region's
+> members :)
+
+ah Sorry! Will correct this.
+
+> 
+> > +
+> > +	return 0;
+> > +out_nd:
+> > +	err = -ENXIO;
+> > +	nvdimm_bus_unregister(nvdimm_bus);
+> > +out_vq:
+> > +	vdev->config->del_vqs(vdev);
+> > +out_err:
+> > +	dev_err(&vdev->dev, "failed to register virtio pmem memory\n");
+> > +	return err;
+> > +}
+> > +
+> > +static void virtio_pmem_remove(struct virtio_device *vdev)
+> > +{
+> > +	struct virtio_pmem *vpmem = vdev->priv;
+> > +	struct nvdimm_bus *nvdimm_bus = dev_get_drvdata(&vdev->dev);
+> > +
+> > +	nvdimm_bus_unregister(nvdimm_bus);
+> 
+> I haven't followed this around the nvdimm code, but is the nd_region
+> you created during probe cleaned up automatically, or would you need to
+> do something here?
+
+'nvdimm_bus_unregister' does that.
+> 
+> > +	vdev->config->del_vqs(vdev);
+> > +	vdev->config->reset(vdev);
+> > +	kfree(vpmem);
+> 
+> You allocated vpmem via devm_kzalloc; isn't it freed automatically on
+> remove?
+
+yes. Will remove free(vpmem).
+
+> 
+> > +}
+> > +
+> > +static struct virtio_driver virtio_pmem_driver = {
+> > +	.driver.name		= KBUILD_MODNAME,
+> > +	.driver.owner		= THIS_MODULE,
+> > +	.id_table		= id_table,
+> > +	.probe			= virtio_pmem_probe,
+> > +	.remove			= virtio_pmem_remove,
+> > +};
+> > +
+> > +module_virtio_driver(virtio_pmem_driver);
+> > +MODULE_DEVICE_TABLE(virtio, id_table);
+> > +MODULE_DESCRIPTION("Virtio pmem driver");
+> > +MODULE_LICENSE("GPL");
+> 
+> Only looked at this from the general virtio driver angle; seems fine
+> apart from some easy-to-fix issues and some personal style preference
+> things.
+
+Thank you for the review.
+
+Best regards,
+Pankaj
+> 
