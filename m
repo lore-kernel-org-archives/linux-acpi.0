@@ -1,94 +1,592 @@
-From: Cornelia Huck <cohuck@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH v5 2/5] virtio-pmem: Add virtio pmem driver
-Date: Wed, 10 Apr 2019 18:52:41 +0200
-Message-ID: <20190410185241.1b0b1982.cohuck@redhat.com>
-References: <20190410040826.24371-1-pagupta@redhat.com>
-        <20190410040826.24371-3-pagupta@redhat.com>
-        <20190410091216-mutt-send-email-mst@kernel.org>
-        <127904196.20807948.1554904981681.JavaMail.zimbra@redhat.com>
-        <20190410163139.4a04175e.cohuck@redhat.com>
-        <20190410124114-mutt-send-email-mst@kernel.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 2/2] PCI/DPC: Add Error Disconnect Recover (EDR)
+ support
+Date: Wed, 10 Apr 2019 13:41:24 -0500
+Message-ID: <20190410184124.GF256045@google.com>
+References: <cover.1553027719.git.sathyanarayanan.kuppuswamy@linux.intel.com>
+ <4818f4dfa41bddc3968da4717c453897d4ad5717.1553027719.git.sathyanarayanan.kuppuswamy@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190410124114-mutt-send-email-mst@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4818f4dfa41bddc3968da4717c453897d4ad5717.1553027719.git.sathyanarayanan.kuppuswamy@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Pankaj Gupta <pagupta@redhat.com>, jack@suse.cz, kvm@vger.kernel.org, david@redhat.com, jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, dave jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org, vishal l verma <vishal.l.verma@intel.com>, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, pbonzini@redhat.com, dan j williams <dan.j.williams@intel.com>, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangr>
+To: sathyanarayanan.kuppuswamy@linux.intel.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ashok.raj@intel.com, keith.busch@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 10 Apr 2019 12:46:12 -0400
-"Michael S. Tsirkin" <mst@redhat.com> wrote:
-
-> On Wed, Apr 10, 2019 at 04:31:39PM +0200, Cornelia Huck wrote:
-> > On Wed, 10 Apr 2019 10:03:01 -0400 (EDT)
-> > Pankaj Gupta <pagupta@redhat.com> wrote:
-> >   
-> > > > 
-> > > > On Wed, Apr 10, 2019 at 09:38:22AM +0530, Pankaj Gupta wrote:    
-> > > > > This patch adds virtio-pmem driver for KVM guest.
-> > > > > 
-> > > > > Guest reads the persistent memory range information from
-> > > > > Qemu over VIRTIO and registers it on nvdimm_bus. It also
-> > > > > creates a nd_region object with the persistent memory
-> > > > > range information so that existing 'nvdimm/pmem' driver
-> > > > > can reserve this into system memory map. This way
-> > > > > 'virtio-pmem' driver uses existing functionality of pmem
-> > > > > driver to register persistent memory compatible for DAX
-> > > > > capable filesystems.
-> > > > > 
-> > > > > This also provides function to perform guest flush over
-> > > > > VIRTIO from 'pmem' driver when userspace performs flush
-> > > > > on DAX memory range.
-> > > > > 
-> > > > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>  
-> >   
-> > > > > diff --git a/include/uapi/linux/virtio_ids.h
-> > > > > b/include/uapi/linux/virtio_ids.h
-> > > > > index 6d5c3b2d4f4d..346389565ac1 100644
-> > > > > --- a/include/uapi/linux/virtio_ids.h
-> > > > > +++ b/include/uapi/linux/virtio_ids.h
-> > > > > @@ -43,5 +43,6 @@
-> > > > >  #define VIRTIO_ID_INPUT        18 /* virtio input */
-> > > > >  #define VIRTIO_ID_VSOCK        19 /* virtio vsock transport */
-> > > > >  #define VIRTIO_ID_CRYPTO       20 /* virtio crypto */
-> > > > > +#define VIRTIO_ID_PMEM         25 /* virtio pmem */
-> > > > >  
-> > > > >  #endif /* _LINUX_VIRTIO_IDS_H */    
-> > > > 
-> > > > Didn't Paolo point out someone is using 25 for audio?    
-> > > 
-> > > 
-> > > Sorry! I did not notice this.
-> > >   
-> > > > 
-> > > > Please, reserve an ID with the Virtio TC before using it.    
-> > > 
-> > > I thought I requested[1] ID 25.
-> > > 
-> > > [1] https://github.com/oasis-tcs/virtio-spec/issues/38
-> > > [2] https://lists.oasis-open.org/archives/virtio-dev/201805/threads.html
-> > > 
-> > > In that case I will send request for next available ID i.e 26?  
-> > 
-> > Have the folks using this for audio sent a reservation request as well?
-> > If not, I'd say the first requester should get the id...  
+On Tue, Mar 19, 2019 at 01:47:29PM -0700, sathyanarayanan.kuppuswamy@linux.intel.com wrote:
+> From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
 > 
-> No but I think they ship their's already. No one ships pmem
-> so it's less pain for everyone if we just skip 25.
-
-Ugh. Ok, then we should change pmem...
-
+> As per PCI firmware specification v3.2 ECN
+> (https://members.pcisig.com/wg/PCI-SIG/document/12614), when firmware
+> owns Downstream Port Containment (DPC), its expected to use the "Error
+> Disconnect Recover" (EDR) notification to alert OSPM of a DPC event and
+> if OS supports EDR, its expected to handle the software state invalidation
+> and port recovery in OS and let firmware know the recovery status via _OST
+> ACPI call.
 > 
-> > (And yes, we need to be quicker with voting on/applying id
-> > reservations :/)  
+> Since EDR is a hybrid service, DPC service shall be enabled in OS even
+> if AER is not natively enabled in OS.
 > 
-> We can't vote on what was not proposed for a vote.
-> At the moment that responsibility is with the commented
-> once discussion on the comment has taken place.
-> 
-> I think what's missing is a description of the process
-> in the README. Want to write it up and post it?
+> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> ---
+>  drivers/pci/pcie/Kconfig        |  10 +
+>  drivers/pci/pcie/dpc.c          | 326 ++++++++++++++++++++++++++++++--
 
-I can add that to my TODO list, can't promise speedy resolution, though.
+I'll be looking for Keith's reviewed-by for this eventually.
+
+It looks like this could be split into some smaller patches:
+
+  - Add dpc_dev.native_dpc (hopefully we can find a less confusing name)
+  - Convert dpc_handler() to dpc_handler() + dpc_process_error()
+  - Add EDR support
+
+>  drivers/pci/pcie/portdrv_core.c |   9 +-
+>  3 files changed, 329 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
+> index 5cbdbca904ac..55f65d1cbc9e 100644
+> --- a/drivers/pci/pcie/Kconfig
+> +++ b/drivers/pci/pcie/Kconfig
+> @@ -142,3 +142,13 @@ config PCIE_PTM
+>  
+>  	  This is only useful if you have devices that support PTM, but it
+>  	  is safe to enable even if you don't.
+> +
+> +config PCIE_EDR
+> +	bool "PCI Express Error Disconnect Recover support"
+> +	default n
+> +	depends on PCIE_DPC && ACPI
+> +	help
+> +	  This options adds Error Disconnect Recover support as specified
+> +	  in PCI firmware specification v3.2 Downstream Port Containment
+> +	  Related Enhancements ECN. Enable this if you want to support hybrid
+> +	  DPC model which uses both firmware and OS to implement DPC.
+> diff --git a/drivers/pci/pcie/dpc.c b/drivers/pci/pcie/dpc.c
+> index 7b77754a82de..bdf4ca8a0acb 100644
+> --- a/drivers/pci/pcie/dpc.c
+> +++ b/drivers/pci/pcie/dpc.c
+> @@ -11,6 +11,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/init.h>
+>  #include <linux/pci.h>
+> +#include <linux/acpi.h>
+>  
+>  #include "portdrv.h"
+>  #include "../pci.h"
+> @@ -20,8 +21,23 @@ struct dpc_dev {
+>  	u16			cap_pos;
+>  	bool			rp_extensions;
+>  	u8			rp_log_size;
+> +	bool			native_dpc;
+
+This is going to be way too confusing with a "native_dpc" in both the
+struct pci_host_bridge and the struct dpc_dev.
+
+> +	pci_ers_result_t	error_state;
+> +#ifdef CONFIG_ACPI
+> +	struct acpi_device	*adev;
+> +#endif
+>  };
+>  
+> +#ifdef CONFIG_ACPI
+> +
+> +#define EDR_PORT_ENABLE_DSM     0x0C
+> +#define EDR_PORT_LOCATE_DSM     0x0D
+> +
+> +static const guid_t pci_acpi_dsm_guid =
+> +		GUID_INIT(0xe5c937d0, 0x3553, 0x4d7a,
+> +			  0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d);
+> +#endif
+> +
+>  static const char * const rp_pio_error_string[] = {
+>  	"Configuration Request received UR Completion",	 /* Bit Position 0  */
+>  	"Configuration Request received CA Completion",	 /* Bit Position 1  */
+> @@ -67,6 +83,9 @@ void pci_save_dpc_state(struct pci_dev *dev)
+>  	if (!dpc)
+>  		return;
+>  
+> +	if (!dpc->native_dpc)
+> +		return;
+> +
+>  	save_state = pci_find_saved_ext_cap(dev, PCI_EXT_CAP_ID_DPC);
+>  	if (!save_state)
+>  		return;
+> @@ -88,6 +107,9 @@ void pci_restore_dpc_state(struct pci_dev *dev)
+>  	if (!dpc)
+>  		return;
+>  
+> +	if (!dpc->native_dpc)
+> +		return;
+> +
+>  	save_state = pci_find_saved_ext_cap(dev, PCI_EXT_CAP_ID_DPC);
+>  	if (!save_state)
+>  		return;
+> @@ -224,10 +246,9 @@ static int dpc_get_aer_uncorrect_severity(struct pci_dev *dev,
+>  	return 1;
+>  }
+>  
+> -static irqreturn_t dpc_handler(int irq, void *context)
+> +static void dpc_process_error(struct dpc_dev *dpc)
+>  {
+>  	struct aer_err_info info;
+> -	struct dpc_dev *dpc = context;
+>  	struct pci_dev *pdev = dpc->dev->port;
+>  	struct device *dev = &dpc->dev->device;
+>  	u16 cap = dpc->cap_pos, status, source, reason, ext_reason;
+> @@ -261,6 +282,13 @@ static irqreturn_t dpc_handler(int irq, void *context)
+>  
+>  	/* We configure DPC so it only triggers on ERR_FATAL */
+>  	pcie_do_recovery(pdev, pci_channel_io_frozen, PCIE_PORT_SERVICE_DPC);
+> +}
+> +
+> +static irqreturn_t dpc_handler(int irq, void *context)
+> +{
+> +	struct dpc_dev *dpc = context;
+> +
+> +	dpc_process_error(dpc);
+>  
+>  	return IRQ_HANDLED;
+>  }
+> @@ -283,6 +311,230 @@ static irqreturn_t dpc_irq(int irq, void *context)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +void dpc_error_resume(struct pci_dev *dev)
+
+Looks like this should be static?
+
+> +{
+> +	struct dpc_dev *dpc;
+> +
+> +	dpc = to_dpc_dev(dev);
+> +	if (!dpc)
+> +		return;
+
+I don't think it's possible for dpc to be NULL, is it?  Remove the
+test if not.
+
+> +	dpc->error_state = PCI_ERS_RESULT_RECOVERED;
+> +}
+> +
+> +#ifdef CONFIG_ACPI
+> +
+> +/*
+> + * _DSM wrapper function to enable/disable DPC port.
+> + * @dpc   : DPC device structure
+> + * @enable: status of DPC port (0 or 1).
+> + *
+> + * returns 0 on success or errno on failure.
+> + */
+> +static int acpi_enable_dpc_port(struct dpc_dev *dpc, bool enable)
+> +{
+> +	union acpi_object *obj;
+> +	int status;
+> +	union acpi_object argv4;
+> +
+> +	/* Check whether EDR_PORT_ENABLE_DSM is supported in firmware */
+> +	status = acpi_check_dsm(dpc->adev->handle, &pci_acpi_dsm_guid, 1,
+> +				1 << EDR_PORT_ENABLE_DSM);
+
+I don't think this acpi_check_dsm() is necessary, is it?  I expect
+acpi_evaluate_dsm() to fail nicely if there's no _DSM or it doesn't
+support the function.
+
+> +	if (!status)
+> +		return -ENOTSUPP;
+> +
+> +	argv4.type = ACPI_TYPE_INTEGER;
+> +	argv4.integer.value = enable;
+> +
+> +	obj = acpi_evaluate_dsm(dpc->adev->handle, &pci_acpi_dsm_guid, 1,
+> +				EDR_PORT_ENABLE_DSM, &argv4);
+> +	if (!obj)
+> +		return -EIO;
+> +
+> +	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == enable)
+> +		status = 0;
+> +	else
+> +		status = -EIO;
+> +
+> +	ACPI_FREE(obj);
+> +
+> +	return status;
+> +}
+> +
+> +/*
+> + * _DSM wrapper function to locate DPC port.
+> + * @dpc   : DPC device structure
+> + *
+> + * returns pci_dev or NULL.
+> + */
+> +static struct pci_dev *acpi_locate_dpc_port(struct dpc_dev *dpc)
+> +{
+> +	union acpi_object *obj;
+> +	int status;
+> +	u16 port;
+> +
+> +	/* Check whether EDR_PORT_LOCATE_DSM is supported in firmware */
+> +	status = acpi_check_dsm(dpc->adev->handle, &pci_acpi_dsm_guid, 1,
+> +				1 << EDR_PORT_LOCATE_DSM);
+
+Unnecessary?
+
+> +	if (!status)
+> +		return dpc->dev->port;
+
+If you *do* need the acpi_check_dsm(), I would have expected to return
+NULL in this error case?
+
+> +
+> +
+
+Extra blank line here.
+
+> +	obj = acpi_evaluate_dsm(dpc->adev->handle, &pci_acpi_dsm_guid, 1,
+> +				EDR_PORT_LOCATE_DSM, NULL);
+> +	if (!obj)
+> +		return NULL;
+> +
+> +	if (obj->type == ACPI_TYPE_INTEGER) {
+> +		/*
+> +		 * Firmware returns DPC port BDF details in following format:
+> +		 *	15:8 = bus
+> +		 *	7:3 = device
+> +		 *	2:0 = function
+> +		 */
+> +		port = obj->integer.value;
+> +		ACPI_FREE(obj);
+> +	} else {
+> +		ACPI_FREE(obj);
+> +		return NULL;
+> +	}
+> +
+> +	return pci_get_domain_bus_and_slot(0, PCI_BUS_NUM(port), port & 0xff);
+> +}
+> +
+> +/*
+> + * _OST wrapper function to let firmware know the status of EDR event.
+> + * @dpc   : DPC device structure.
+> + * @status: Status of EDR event.
+> + *
+
+Spurious blank line in the comment.
+
+> + */
+> +static int acpi_send_edr_status(struct dpc_dev *dpc,  u16 status)
+> +{
+> +	u32 ost_status;
+> +	struct pci_dev *pdev = dpc->dev->port;
+> +
+> +	dev_dbg(&pdev->dev, "Sending EDR status :%x\n", status);
+> +
+> +	ost_status =  PCI_DEVID(pdev->bus->number, pdev->devfn);
+> +	ost_status = (ost_status << 16) | status;
+> +
+> +	if (!acpi_has_method(dpc->adev->handle, "_OST"))
+> +		return -ENOTSUPP;
+
+This acpi_has_method() check is superfluous, isn't it?  I would expect
+acpi_evaluate_ost() to fail gracefully if there's no _OST.
+
+I do see several other instances of code of the form:
+
+  if (!acpi_has_method(handle, "XXXX"))
+    return false;
+
+  status = acpi_evaluate_*(handle, "XXXX", ...);
+
+But I think that's a pointless pattern.  I think we could just try to
+evaluate the method directly, since the evaluation will fail if the
+method doesn't exist:
+
+  status = acpi_evaluate_*(handle, "XXXX", ...);
+
+> +	status = acpi_evaluate_ost(dpc->adev->handle,
+> +				   ACPI_NOTIFY_DISCONNECT_RECOVER,
+> +				   ost_status, NULL);
+> +	if (ACPI_FAILURE(status))
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Helper function used for disconnecting the child devices when EDR event is
+> + * received from firmware.
+> + */
+> +static void dpc_disconnect_devices(struct pci_dev *dev)
+> +{
+> +	struct pci_dev *udev;
+> +	struct pci_bus *parent;
+> +	struct pci_dev *pdev, *temp;
+> +
+> +	dev_dbg(&dev->dev, "Disconnecting the child devices\n");
+> +
+> +	if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE)
+> +		udev = dev;
+> +	else
+> +		udev = dev->bus->self;
+> +
+> +	parent = udev->subordinate;
+> +	pci_walk_bus(parent, pci_dev_set_disconnected, NULL);
+> +
+> +	pci_lock_rescan_remove();
+> +	pci_dev_get(dev);
+> +	list_for_each_entry_safe_reverse(pdev, temp, &parent->devices,
+> +					 bus_list) {
+> +		pci_stop_and_remove_bus_device(pdev);
+> +	}
+> +	pci_dev_put(dev);
+> +	pci_unlock_rescan_remove();
+> +}
+> +
+> +static void edr_handle_event(acpi_handle handle, u32 event, void *data)
+> +{
+> +	struct dpc_dev *dpc = (struct dpc_dev *) data;
+> +	struct pci_dev *pdev;
+> +	u16 status, cap;
+> +
+> +	if (event != ACPI_NOTIFY_DISCONNECT_RECOVER)
+> +		return;
+> +
+> +	if (!data) {
+> +		pr_err("Invalid EDR event\n");
+
+In what instance can "data" be NULL?  I think *never*, unless ACPI
+screwed up and lost the context you supplied to
+acpi_install_notify_handler().  In that case, we should do something
+more significant than print a message and just return.  I think we
+should just omit this test, and if ACPI screwed up, we'll take a null
+pointer dereference oops, we'll see exactly where, and we'll have a
+chance to fix the problem.
+
+> +		return;
+> +	}
+> +
+> +	dev_dbg(&dpc->dev->port->dev, "Valid EDR event received\n");
+
+Set "pdev" at declaration and use it in these printks.
+
+> +
+> +	/*
+> +	 * Check if _DSM(0xD) is available, and if present locate the
+> +	 * port which issued EDR event.
+> +	 */
+> +	pdev = acpi_locate_dpc_port(dpc);
+
+Can this be done at probe-time instead of event-time?
+
+> +	if (!pdev) {
+> +		dev_err(&dpc->dev->port->dev, "No valid port found\n");
+> +		return;
+> +	}
+> +
+> +	/*
+> +	 * Get DPC priv data for given pdev
+> +	 */
+> +	dpc = to_dpc_dev(pdev);
+> +	dpc->error_state = PCI_ERS_RESULT_DISCONNECT;
+> +	pdev = dpc->dev->port;
+
+It's quite confusing to reassign pdev here.  The comment about "Get
+DPC priv data for given pdev" is really superfluous since that much is
+obvious from the code.  What's *not* obvious is whether this "pdev =
+dpc->dev->port" changes anything and if so, why.
+
+> +	cap = dpc->cap_pos;
+> +
+> +	/*
+> +	 * Check if the port supports DPC:
+> +	 *
+> +	 * if port does not support DPC, then let firmware handle
+> +	 * the error recovery and OS is responsible for cleaning
+> +	 * up the child devices.
+> +	 *
+> +	 * if port supports DPC, then fall back to default error
+> +	 * recovery.
+
+Capitalize first letter of sentences.
+
+> +	 *
+> +	 */
+> +	if (cap) {
+> +		/* Check if there is a valid DPC trigger */
+> +		pci_read_config_word(pdev, cap + PCI_EXP_DPC_STATUS, &status);
+> +		if (!(status & PCI_EXP_DPC_STATUS_TRIGGER)) {
+> +			dev_err(&pdev->dev, "Invalid DPC trigger\n");
+
+Include "status" value in the printk.
+
+> +			return;
+> +		}
+> +		dpc_process_error(dpc);
+> +	}
+> +
+> +	if (dpc->error_state == PCI_ERS_RESULT_RECOVERED) {
+> +		/*
+> +		 * Recovery is successful, so send
+> +		 * _OST(0xF, BDF << 16 | 0x80, "") to firmware.
+> +		 */
+> +		status = 0x80;
+> +	} else {
+> +		/*
+> +		 * Recovery is not successful, so disconnect child devices
+> +		 * and send _OST(0xF, BDF << 16 | 0x81, "") to firmware.
+> +		 */
+> +		dpc_disconnect_devices(pdev);
+> +		status = 0x81;
+> +	}
+> +
+> +	acpi_send_edr_status(dpc, status);
+> +}
+> +
+> +#endif
+> +
+>  #define FLAG(x, y) (((x) & (y)) ? '+' : '-')
+>  static int dpc_probe(struct pcie_device *dev)
+>  {
+> @@ -291,9 +543,10 @@ static int dpc_probe(struct pcie_device *dev)
+>  	struct device *device = &dev->device;
+>  	int status;
+>  	u16 ctl, cap;
+> -
+> -	if (pcie_aer_get_firmware_first(pdev))
+> -		return -ENOTSUPP;
+> +#ifdef CONFIG_ACPI
+> +	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+> +	acpi_status astatus;
+> +#endif
+>  
+>  	dpc = devm_kzalloc(device, sizeof(*dpc), GFP_KERNEL);
+>  	if (!dpc)
+> @@ -302,16 +555,53 @@ static int dpc_probe(struct pcie_device *dev)
+>  	dpc->cap_pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_DPC);
+>  	dpc->dev = dev;
+>  	set_service_data(dev, dpc);
+> +	dpc->error_state = PCI_ERS_RESULT_NONE;
+> +
+> +	if (!pcie_aer_get_firmware_first(pdev))
+> +		if (pci_aer_available() && dpc->cap_pos)
+> +			dpc->native_dpc = 1;
+>  
+> -	status = devm_request_threaded_irq(device, dev->irq, dpc_irq,
+> -					   dpc_handler, IRQF_SHARED,
+> -					   "pcie-dpc", dpc);
+> -	if (status) {
+> -		dev_warn(device, "request IRQ%d failed: %d\n", dev->irq,
+> -			 status);
+> -		return status;
+> +	/*
+> +	 * If native support is not enabled and ACPI is not
+> +	 * enabled then return error.
+> +	 */
+> +	if (!dpc->native_dpc && !IS_ENABLED(CONFIG_APCI))
+> +		return -ENODEV;
+> +
+> +	if (dpc->native_dpc) {
+> +		status = devm_request_threaded_irq(device, dev->irq, dpc_irq,
+> +						   dpc_handler, IRQF_SHARED,
+> +						   "pcie-dpc", dpc);
+> +		if (status) {
+> +			dev_warn(device, "request IRQ%d failed: %d\n", dev->irq,
+> +				 status);
+> +			return status;
+> +		}
+>  	}
+>  
+> +#ifdef CONFIG_ACPI
+> +	if (!dpc->native_dpc) {
+> +		if (!adev) {
+> +			dev_err(device, "No valid acpi device found\n");
+
+s/acpi/ACPI/ (in comments, printk, other English text)
+
+> +			return -ENODEV;
+> +		}
+> +
+> +		dpc->adev = adev;
+> +
+> +		/* Register ACPI notifier for EDR event */
+
+"Register handler for System events, one of which is the EDR event"?
+
+> +		astatus = acpi_install_notify_handler(adev->handle,
+> +						      ACPI_SYSTEM_NOTIFY,
+> +						      edr_handle_event,
+> +						      dpc);
+> +
+> +		if (ACPI_FAILURE(astatus)) {
+> +			dev_err(device, "Install notifier failed\n");
+
+Mention "ACPI notify handler" here.
+
+> +			return -EBUSY;
+> +		}
+> +
+> +		acpi_enable_dpc_port(dpc, true);
+> +	}
+> +#endif
+>  	pci_read_config_word(pdev, dpc->cap_pos + PCI_EXP_DPC_CAP, &cap);
+>  	pci_read_config_word(pdev, dpc->cap_pos + PCI_EXP_DPC_CTL, &ctl);
+>  
+> @@ -325,8 +615,12 @@ static int dpc_probe(struct pcie_device *dev)
+>  		}
+>  	}
+>  
+> -	ctl = (ctl & 0xfff4) | PCI_EXP_DPC_CTL_EN_FATAL | PCI_EXP_DPC_CTL_INT_EN;
+> -	pci_write_config_word(pdev, dpc->cap_pos + PCI_EXP_DPC_CTL, ctl);
+> +	if (dpc->native_dpc) {
+> +		ctl = (ctl & 0xfff4) | PCI_EXP_DPC_CTL_EN_FATAL |
+> +			PCI_EXP_DPC_CTL_INT_EN;
+> +		pci_write_config_word(pdev, dpc->cap_pos + PCI_EXP_DPC_CTL,
+> +				      ctl);
+> +	}
+>  
+>  	dev_info(device, "DPC error containment capabilities: Int Msg #%d, RPExt%c PoisonedTLP%c SwTrigger%c RP PIO Log %d, DL_ActiveErr%c\n",
+>  		cap & PCI_EXP_DPC_IRQ, FLAG(cap, PCI_EXP_DPC_CAP_RP_EXT),
+> @@ -344,6 +638,9 @@ static void dpc_remove(struct pcie_device *dev)
+>  	struct pci_dev *pdev = dev->port;
+>  	u16 ctl;
+>  
+> +	if (!dpc->native_dpc)
+> +		return;
+> +
+>  	pci_read_config_word(pdev, dpc->cap_pos + PCI_EXP_DPC_CTL, &ctl);
+>  	ctl &= ~(PCI_EXP_DPC_CTL_EN_FATAL | PCI_EXP_DPC_CTL_INT_EN);
+>  	pci_write_config_word(pdev, dpc->cap_pos + PCI_EXP_DPC_CTL, ctl);
+> @@ -356,6 +653,7 @@ static struct pcie_port_service_driver dpcdriver = {
+>  	.probe		= dpc_probe,
+>  	.remove		= dpc_remove,
+>  	.reset_link	= dpc_reset_link,
+> +	.error_resume   = dpc_error_resume,
+>  };
+>  
+>  int __init pcie_dpc_init(void)
+> diff --git a/drivers/pci/pcie/portdrv_core.c b/drivers/pci/pcie/portdrv_core.c
+> index 865f12f4b314..050cbb7a5083 100644
+> --- a/drivers/pci/pcie/portdrv_core.c
+> +++ b/drivers/pci/pcie/portdrv_core.c
+> @@ -249,9 +249,14 @@ static int get_port_device_capability(struct pci_dev *dev)
+>  		pcie_pme_interrupt_enable(dev, false);
+>  	}
+>  
+> +	/*
+> +	 * If EDR support is enabled in OS, then even if AER is not handled in
+> +	 * OS, DPC service can be enabled.
+> +	 */
+>  	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
+> -	    pci_aer_available() && services & PCIE_PORT_SERVICE_AER &&
+> -	    (pcie_ports_native || host->native_dpc))
+> +	    ((IS_ENABLED(CONFIG_PCIE_EDR) && !host->native_dpc) ||
+> +	    (pci_aer_available() && services & PCIE_PORT_SERVICE_AER &&
+> +	    (pcie_ports_native || host->native_dpc))))
+
+Holy cow, I think I'll have to schedule an hour sometime to figure
+out what's going on here :)
+
+>  		services |= PCIE_PORT_SERVICE_DPC;
+>  
+>  	if (pci_pcie_type(dev) == PCI_EXP_TYPE_DOWNSTREAM || -- 2.20.1
+> 
