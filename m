@@ -2,122 +2,117 @@ Return-Path: <SRS0=P5bh=SM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16FD5C282CE
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 09:33:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD63C10F14
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 11:07:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D83522083E
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 09:33:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="HYuFRgC6"
+	by mail.kernel.org (Postfix) with ESMTP id B7AD221971
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 11:07:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727306AbfDJJdv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Apr 2019 05:33:51 -0400
-Received: from mail-wr1-f48.google.com ([209.85.221.48]:37498 "EHLO
-        mail-wr1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727226AbfDJJdv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Apr 2019 05:33:51 -0400
-Received: by mail-wr1-f48.google.com with SMTP id w10so2082951wrm.4
-        for <linux-acpi@vger.kernel.org>; Wed, 10 Apr 2019 02:33:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=+1px/DHWI8SCzx6KfYR6VAzOZhOwhiFObq5qES6AFTc=;
-        b=HYuFRgC6VzWRME+SFpFAZ4xtknixYDl81l6ABefhMTESOoafxtNQO3dwvbFylsKfPk
-         Pn9qiej7xQ+tuPNMLfOt1w3Y9HFoPPnssr9cWxytPul2kXuHuFWWTvqINWLj9rPBC9Tw
-         blBhAdSntCKDgWaDmV55RE4kPzNtGP6pyu4tQq22RxcY1EozdElXgEe0crvso3yVG8MV
-         EmvCVaI8BWiqT3/H1S/kd61k0dl/hzLAUUPo3Ptv2TxGMMK7V01DNN70h2RqwYNxIOgD
-         nLij5sv77R6kYjbEr+ud1aKaT8aRUR4q89ZVXIjeuNvEum520mp77j4sT1T/eo3NAog4
-         KIcg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=+1px/DHWI8SCzx6KfYR6VAzOZhOwhiFObq5qES6AFTc=;
-        b=ZvoOXwMZlSIeTzZ60oSMCVIemZqXYhBUG5BUXJq+wuoboliYd+ohmbcFWUUDUEl681
-         eBjWtuq9Kfjxvdct+xxaxAtrKkLnV3xQ0pqgmoiL1KaFHzw+ls3mOO7biwp2LS+4R6Aj
-         OL+EpzCVwkRV2T8YnHr3q7dvVD7ab7L1rcq0IEts0U4RckJ+/kjA1LsELJHPfnfwtLWp
-         wBDeLsYBmUWNGr5MY3X6e6c08Vl3XrGP7n5nUAdbeuS423U0mYuYTzjKRS0K6dhah+5D
-         fBVS/pPm1QajK2owvVF3NQov+BZUb8uGSytxB3mJ4C+Nrahm+IEkdS0fQwZFq7odcrqF
-         Ewhg==
-X-Gm-Message-State: APjAAAXzGbVdiiaVpdIYhw62pMN07DdQonpIXVduY+Hb07hBF3/XUIfs
-        I9zxfq/UIiO4OSbidVz4uUKFzA==
-X-Google-Smtp-Source: APXvYqwKw0Za71js2z9d2LuAig2tXInnm6/AEiqkVaMtZyh+M9KbP9w/slGFebTsDa893xGlABXvhQ==
-X-Received: by 2002:a5d:6a08:: with SMTP id m8mr26908793wru.30.1554888829177;
-        Wed, 10 Apr 2019 02:33:49 -0700 (PDT)
-Received: from wifi-122_dhcprange-158.wifi.unimo.it ([155.185.122.158])
-        by smtp.gmail.com with ESMTPSA id s189sm3402225wmf.45.2019.04.10.02.33.46
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 10 Apr 2019 02:33:48 -0700 (PDT)
+        id S1729729AbfDJLHl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Apr 2019 07:07:41 -0400
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:2036 "EHLO
+        mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729714AbfDJLHk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Apr 2019 07:07:40 -0400
+X-IronPort-AV: E=Sophos;i="5.60,332,1549926000"; 
+   d="scan'208";a="302419625"
+Received: from unknown (HELO [193.50.110.222]) ([193.50.110.222])
+  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/AES128-SHA; 10 Apr 2019 13:07:37 +0200
+Subject: Re: [PATCH] hmat: Register attributes for memory hot add
+To:     Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc:     Rafael Wysocki <rafael@kernel.org>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>
+References: <20190409214415.3722-1-keith.busch@intel.com>
+From:   Brice Goglin <Brice.Goglin@inria.fr>
+Openpgp: preference=signencrypt
+Autocrypt: addr=Brice.Goglin@inria.fr; prefer-encrypt=mutual; keydata=
+ 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
+Message-ID: <30db4768-5dc8-d493-1bac-03f382e867e4@inria.fr>
+Date:   Wed, 10 Apr 2019 13:07:37 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
+MIME-Version: 1.0
+In-Reply-To: <20190409214415.3722-1-keith.busch@intel.com>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
-Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
-From:   Paolo Valente <paolo.valente@linaro.org>
-In-Reply-To: <20190410093044.GA3776@amd>
-Date:   Wed, 10 Apr 2019 11:33:43 +0200
-Cc:     Jens Axboe <axboe@kernel.dk>,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-block <linux-block@vger.kernel.org>, rjw@rjwysocki.net,
-        lenb@kernel.org, linux-acpi@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <E5BA70BA-D560-4C4C-BEC7-83E7D6407070@linaro.org>
-References: <20190408173914.GA13260@amd>
- <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk> <20190409163304.GA23829@amd>
- <F6306562-0022-4043-BBF8-13FE4872CA31@linaro.org> <20190410093044.GA3776@amd>
-To:     Pavel Machek <pavel@ucw.cz>
-X-Mailer: Apple Mail (2.3445.102.3)
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190410093343.SQ54_MZHYidxUE3RSAAbQHn2c3ZnD5vfIi6vCgcYIgM@z>
+Message-ID: <20190410110737.H1PpLGXw4ZYbrDzP1Ud9bs5e-Iet4eZBsaRF_PEOsx4@z>
+
+Thanks Keith, this solves my issue.
+
+On a machine where node4 (PMEM) is close to node0 and node1 (1st socket
+SNCs), hotplugging that node makes node0 and node1 appear as initiators
+to node4 (and node4 as target to them). Same for the other socket. And
+perf attributes look good.
+
+Reported-and-tested-by: Brice Goglin <Brice.Goglin@inria.fr>
+
+Just one minor typo below.
 
 
+Le 09/04/2019 à 23:44, Keith Busch a écrit :
+> Some types of memory nodes that HMAT describes may not be online at the
+> time we initially parse their nodes' tables. If the node should be set
+> to online later, as can happen when using PMEM as RAM after boot, the
+> node's attributes will be missing their initiator links and performance.
+>
+> Regsiter a memory notifier callback and set the memory attributes when
 
-> Il giorno 10 apr 2019, alle ore 11:30, Pavel Machek <pavel@ucw.cz> ha =
-scritto:
->=20
-> Hi!
->=20
->>> I now noticed it said:
->>>=20
->>> EIP is in bfq_bfqq_expire
->>>=20
->>>> Can you try and revert:
->>>>=20
->>>> 9dee8b3b057e1
->>>>=20
->>>> and see if that helps?
->>>=20
->>> Yes, I tried and yes, it helps. What are the next steps?=20
->>>=20
->>=20
->> Try my fix:
->>=20
->> =
-https://lore.kernel.org/linux-block/20190409191420.3f56d493@fire.localdoma=
-in/T/#m30a14045e710b870f00f7c51cdaa7c403977b767
->>=20
->> and cross your fingers :)
->=20
-> It seems to work... even without fingers crossed.
->=20
+Typo regsiter->register
 
-Great!  I've submitted a final version of this fix patch a few minutes
-ago (not yet archived anywhere, sorry).
+thanks
 
-Thanks,
-Paolo
+Brice
 
-> Tested-by: Pavel Machek <pavel@ucw.cz>
-> 									=
-Pavel
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) =
-http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
