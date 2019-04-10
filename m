@@ -2,106 +2,307 @@ Return-Path: <SRS0=P5bh=SM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A7DAC10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:26:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2B23C10F14
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:38:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7308A20820
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:26:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1D4720818
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:38:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729381AbfDJPZN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Apr 2019 11:25:13 -0400
-Received: from mga06.intel.com ([134.134.136.31]:15566 "EHLO mga06.intel.com"
+        id S1729962AbfDJPiC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Apr 2019 11:38:02 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:37336 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729519AbfDJPZM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Apr 2019 11:25:12 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Apr 2019 08:25:08 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,332,1549958400"; 
-   d="scan'208";a="163102910"
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 10 Apr 2019 08:25:06 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH 00/12] Software fwnode references
-Date:   Wed, 10 Apr 2019 18:24:53 +0300
-Message-Id: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
+        id S1726494AbfDJPiC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Apr 2019 11:38:02 -0400
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id D956181114;
+        Wed, 10 Apr 2019 15:38:00 +0000 (UTC)
+Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id BD0155DA5B;
+        Wed, 10 Apr 2019 15:38:00 +0000 (UTC)
+Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
+        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 7000F3FA45;
+        Wed, 10 Apr 2019 15:38:00 +0000 (UTC)
+Date:   Wed, 10 Apr 2019 11:38:00 -0400 (EDT)
+From:   Pankaj Gupta <pagupta@redhat.com>
+To:     Cornelia Huck <cohuck@redhat.com>
+Cc:     linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
+        virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        qemu-devel@nongnu.org, linux-ext4@vger.kernel.org,
+        linux-xfs@vger.kernel.org,
+        dan j williams <dan.j.williams@intel.com>,
+        zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>,
+        dave jiang <dave.jiang@intel.com>, mst@redhat.com,
+        jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net,
+        hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu,
+        adilger kernel <adilger.kernel@dilger.ca>,
+        darrick wong <darrick.wong@oracle.com>, lcapitulino@redhat.com,
+        kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com,
+        nilal@redhat.com, riel@surriel.com, stefanha@redhat.com,
+        aarcange@redhat.com, david@redhat.com, david@fromorbit.com,
+        xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
+        pbonzini@redhat.com, kilobyte@angband.pl,
+        yuval shaia <yuval.shaia@oracle.com>
+Message-ID: <1663006162.20832248.1554910680080.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190410142426.5bf0d9a4.cohuck@redhat.com>
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-3-pagupta@redhat.com> <20190410142426.5bf0d9a4.cohuck@redhat.com>
+Subject: Re: [PATCH v5 2/5] virtio-pmem: Add virtio pmem driver
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.67.116.117, 10.4.195.26]
+Thread-Topic: virtio-pmem: Add virtio pmem driver
+Thread-Index: ni96j4d6FUDPJPNtE4chnh/uKdN03w==
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.28]); Wed, 10 Apr 2019 15:38:01 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190410152453.7LeRQgmMppwI1VKym4b5uboCfuovjNiVEGuVX5kAjKo@z>
+Message-ID: <20190410153800._nI9BTRGYWArgAMgVlPavuepjOZjm1Z-fza5E0_ZBFM@z>
 
-Hi,
 
-This is the second version of this series. In this version I'm
-introducing a new helper device_find_child_by_name() as proposed
-by Andy. Andy requested also another helper that could be used for
-chaining the fwnodes, but I decided not to add that now. I would like
-to still think about how we should handle exceptions like if there
-already is a secondary node assigned for a node.
+> 
+> > This patch adds virtio-pmem driver for KVM guest.
+> > 
+> > Guest reads the persistent memory range information from
+> > Qemu over VIRTIO and registers it on nvdimm_bus. It also
+> > creates a nd_region object with the persistent memory
+> > range information so that existing 'nvdimm/pmem' driver
+> > can reserve this into system memory map. This way
+> > 'virtio-pmem' driver uses existing functionality of pmem
+> > driver to register persistent memory compatible for DAX
+> > capable filesystems.
+> > 
+> > This also provides function to perform guest flush over
+> > VIRTIO from 'pmem' driver when userspace performs flush
+> > on DAX memory range.
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  drivers/nvdimm/virtio_pmem.c     |  88 ++++++++++++++++++++++
+> >  drivers/virtio/Kconfig           |  10 +++
+> >  drivers/virtio/Makefile          |   1 +
+> >  drivers/virtio/pmem.c            | 124 +++++++++++++++++++++++++++++++
+> >  include/linux/virtio_pmem.h      |  60 +++++++++++++++
+> >  include/uapi/linux/virtio_ids.h  |   1 +
+> >  include/uapi/linux/virtio_pmem.h |  10 +++
+> >  7 files changed, 294 insertions(+)
+> >  create mode 100644 drivers/nvdimm/virtio_pmem.c
+> >  create mode 100644 drivers/virtio/pmem.c
+> >  create mode 100644 include/linux/virtio_pmem.h
+> >  create mode 100644 include/uapi/linux/virtio_pmem.h
+> > 
+> (...)
+> > diff --git a/drivers/virtio/pmem.c b/drivers/virtio/pmem.c
+> > new file mode 100644
+> > index 000000000000..cc9de9589d56
+> > --- /dev/null
+> > +++ b/drivers/virtio/pmem.c
+> > @@ -0,0 +1,124 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/*
+> > + * virtio_pmem.c: Virtio pmem Driver
+> > + *
+> > + * Discovers persistent memory range information
+> > + * from host and registers the virtual pmem device
+> > + * with libnvdimm core.
+> > + */
+> > +#include <linux/virtio_pmem.h>
+> > +#include <../../drivers/nvdimm/nd.h>
+> > +
+> > +static struct virtio_device_id id_table[] = {
+> > +	{ VIRTIO_ID_PMEM, VIRTIO_DEV_ANY_ID },
+> > +	{ 0 },
+> > +};
+> > +
+> > + /* Initialize virt queue */
+> > +static int init_vq(struct virtio_pmem *vpmem)
+> 
+> IMHO, you don't gain much by splitting off this function...
 
-The v1 commit message:
+o.k. I kept this for better code structure.
 
-This series adds support for software fwnode reference handling. In
-practice it means making fwnode_property_get_reference_args() function
-usable in the drivers also with software nodes. I send the series
-originally as RFC [1].
+> 
+> > +{
+> > +	struct virtqueue *vq;
+> > +
+> > +	/* single vq */
+> > +	vpmem->req_vq = vq = virtio_find_single_vq(vpmem->vdev,
+> > +				host_ack, "flush_queue");
+> > +	if (IS_ERR(vq))
+> > +		return PTR_ERR(vq);
+> 
+> I'm personally not a fan of chained assignments... I think I'd just
+> drop the 'vq' variable and operate on vpmem->req_vq directly.
 
-As the first user for the software node references, I'm converting
-intel_cht_int33fe.c to use them as part of the series.
+Sure.
 
-[1] https://lkml.org/lkml/2019/3/15/457
+> 
+> > +
+> > +	spin_lock_init(&vpmem->pmem_lock);
+> > +	INIT_LIST_HEAD(&vpmem->req_list);
+> > +
+> > +	return 0;
+> > +};
+> > +
+> > +static int virtio_pmem_probe(struct virtio_device *vdev)
+> > +{
+> > +	int err = 0;
+> > +	struct resource res;
+> > +	struct virtio_pmem *vpmem;
+> > +	struct nvdimm_bus *nvdimm_bus;
+> > +	struct nd_region_desc ndr_desc = {};
+> > +	int nid = dev_to_node(&vdev->dev);
+> > +	struct nd_region *nd_region;
+> > +
+> > +	if (!vdev->config->get) {
+> > +		dev_err(&vdev->dev, "%s failure: config disabled\n",
+> 
+> Maybe s/config disabled/config access disabled/ ? That seems to be the
+> more common message.
 
-thanks,
+This is better.
 
-Heikki Krogerus (12):
-  software node: Allow node creation without properties
-  software node: Simplify software_node_release() function
-  software node: Add support for references
-  software node: Implement .get_reference_args fwnode operation
-  driver core: Add helper device_find_child_by_name()
-  ACPI / property: Don't limit named child node matching to data nodes
-  device connection: Find connections also by checking the references
-  usb: typec: Registering real device entries for the muxes
-  platform/x86: intel_cht_int33fe: Provide software nodes for the
-    devices
-  platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
-  platform/x86: intel_cht_int33fe: Link with external dependencies using
-    fwnodes
-  platform/x86: intel_cht_int33fe: Replacing the old connections with
-    references
+> 
+> > +			__func__);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	vdev->priv = vpmem = devm_kzalloc(&vdev->dev, sizeof(*vpmem),
+> > +					GFP_KERNEL);
+> 
+> Here, the vpmem variable makes sense for convenience, but I'm again not
+> a fan of the chaining :)
 
- drivers/acpi/property.c                  |  26 +-
- drivers/base/core.c                      |  31 +++
- drivers/base/devcon.c                    |  28 ++
- drivers/base/swnode.c                    | 180 +++++++++++-
- drivers/platform/x86/intel_cht_int33fe.c | 339 +++++++++++++++++++----
- drivers/usb/typec/bus.h                  |  15 +
- drivers/usb/typec/class.c                |  17 +-
- drivers/usb/typec/mux.c                  | 221 ++++++++++-----
- drivers/usb/typec/mux/pi3usb30532.c      |  46 +--
- include/linux/device.h                   |   2 +
- include/linux/property.h                 |   8 +
- include/linux/usb/typec_mux.h            |  62 ++---
- 12 files changed, 791 insertions(+), 184 deletions(-)
+Sure will change :)
 
--- 
-2.20.1
+> 
+> > +	if (!vpmem) {
+> > +		err = -ENOMEM;
+> > +		goto out_err;
+> > +	}
+> > +
+> > +	vpmem->vdev = vdev;
+> > +	err = init_vq(vpmem);
+> > +	if (err)
+> > +		goto out_err;
+> > +
+> > +	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
+> > +			start, &vpmem->start);
+> > +	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
+> > +			size, &vpmem->size);
+> > +
+> > +	res.start = vpmem->start;
+> > +	res.end   = vpmem->start + vpmem->size-1;
+> > +	vpmem->nd_desc.provider_name = "virtio-pmem";
+> > +	vpmem->nd_desc.module = THIS_MODULE;
+> > +
+> > +	vpmem->nvdimm_bus = nvdimm_bus = nvdimm_bus_register(&vdev->dev,
+> > +						&vpmem->nd_desc);
+> 
+> And here :)
 
+Sure.
+
+> 
+> > +	if (!nvdimm_bus)
+> > +		goto out_vq;
+> > +
+> > +	dev_set_drvdata(&vdev->dev, nvdimm_bus);
+> > +
+> > +	ndr_desc.res = &res;
+> > +	ndr_desc.numa_node = nid;
+> > +	ndr_desc.flush = virtio_pmem_flush;
+> > +	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+> > +	set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
+> > +	nd_region = nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc);
+> > +	nd_region->provider_data =  dev_to_virtio
+> > +					(nd_region->dev.parent->parent);
+> 
+> Isn't it clear that this parent chain will always end up at &vdev->dev?
+
+Yes, It will resolve to &vdev->dev.
+
+> Maybe simply set ->provider_data to vdev directly? (Does it need to
+> grab a reference count of the device, BTW?)
+
+reference is already taken when registering the device with nvdimm_bus.
+
+> 
+> > +
+> > +	if (!nd_region)
+> > +		goto out_nd;
+> 
+> Probably better to do this check before you access nd_region's
+> members :)
+
+ah Sorry! Will correct this.
+
+> 
+> > +
+> > +	return 0;
+> > +out_nd:
+> > +	err = -ENXIO;
+> > +	nvdimm_bus_unregister(nvdimm_bus);
+> > +out_vq:
+> > +	vdev->config->del_vqs(vdev);
+> > +out_err:
+> > +	dev_err(&vdev->dev, "failed to register virtio pmem memory\n");
+> > +	return err;
+> > +}
+> > +
+> > +static void virtio_pmem_remove(struct virtio_device *vdev)
+> > +{
+> > +	struct virtio_pmem *vpmem = vdev->priv;
+> > +	struct nvdimm_bus *nvdimm_bus = dev_get_drvdata(&vdev->dev);
+> > +
+> > +	nvdimm_bus_unregister(nvdimm_bus);
+> 
+> I haven't followed this around the nvdimm code, but is the nd_region
+> you created during probe cleaned up automatically, or would you need to
+> do something here?
+
+'nvdimm_bus_unregister' does that.
+> 
+> > +	vdev->config->del_vqs(vdev);
+> > +	vdev->config->reset(vdev);
+> > +	kfree(vpmem);
+> 
+> You allocated vpmem via devm_kzalloc; isn't it freed automatically on
+> remove?
+
+yes. Will remove free(vpmem).
+
+> 
+> > +}
+> > +
+> > +static struct virtio_driver virtio_pmem_driver = {
+> > +	.driver.name		= KBUILD_MODNAME,
+> > +	.driver.owner		= THIS_MODULE,
+> > +	.id_table		= id_table,
+> > +	.probe			= virtio_pmem_probe,
+> > +	.remove			= virtio_pmem_remove,
+> > +};
+> > +
+> > +module_virtio_driver(virtio_pmem_driver);
+> > +MODULE_DEVICE_TABLE(virtio, id_table);
+> > +MODULE_DESCRIPTION("Virtio pmem driver");
+> > +MODULE_LICENSE("GPL");
+> 
+> Only looked at this from the general virtio driver angle; seems fine
+> apart from some easy-to-fix issues and some personal style preference
+> things.
+
+Thank you for the review.
+
+Best regards,
+Pankaj
+> 
