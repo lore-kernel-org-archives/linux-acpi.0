@@ -1,73 +1,62 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Tue, 9 Apr 2019 23:44:11 +0200
-Message-ID: <CAJZ5v0jgbvixMJTVPfEHMX0z-ssc9ZcMRCwS-QEyqtkFWcNh5Q@mail.gmail.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com> <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
- <20190403133613.13f3fd75@lwn.net> <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
- <20190409152638.5b20c77f@lwn.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Qian Cai <cai@lca.pw>
+Subject: [PATCH -next v2] acpi/hmat: fix memory leaks in hmat_init()
+Date: Tue,  9 Apr 2019 22:14:50 -0400
+Message-ID: <20190410021450.1263-1-cai@lca.pw>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190409152638.5b20c77f@lwn.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: gregkh@linuxfoundation.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, keith.busch@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Qian Cai <cai@lca.pw>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 9, 2019 at 11:26 PM Jonathan Corbet <corbet@lwn.net> wrote:
->
-> On Tue, 9 Apr 2019 18:42:59 +0200
-> "Rafael J. Wysocki" <rafael@kernel.org> wrote:
->
-> > > Hardware guide
-> >
-> > This is more about documenting the expectations regarding the platform
-> > firmware, so what about firmware-guide instead?
->
-> I had imagined a slightly wider focus, but this seems OK for now.  We can
-> always rename it later :)
->
-> > So what about this:
-> >
-> > - Create a new firmware-guide under Documentation and add an acpi/
-> > directory to it for starters.  Put the following files into it:
-> >
-> >          acpi-lid
-> >          aml-debugger
-> >          debug (ditto)
-> >          DSD-properties-rules
-> >          gpio-properties
-> >          i2c-muxes
-> >
-> > - Add an acpi/ subdirectory to Documentation/admin-guide and put the
-> > following files into it:
-> >
-> >          cppc_sysfs
-> >          initrd_table_override
-> >          dsdt-override
->
-> I do wonder if, rather than creating a new directory, we shouldn't just
-> make a single acpi.rst and put that information into it?
->
-> > - Add an acpi/ subdirectory to Documentation/driver-api and put the
-> > following files into it:
-> >
-> >          enumeration
-> >          scan_handlers
->
-> ...and something similar here?  I guess that would be my preference, but I
-> don't feel all that strongly about it if there's reasons to do otherwise.
+The commit 665ac7e92757 ("acpi/hmat: Register processor domain to its
+memory") introduced some memory leaks below due to it fails to release
+the heap memory in an error path, and then those statically-allocated
+__initdata memory which reference them get freed during boot renders
+those heap memory as leaks. Since it is valid to pass NULL to
+acpi_put_table(), it is fine to call it even if acpi_get_table() returns
+an error.
 
-The primary reason would be to retain the correspondence between the
-old and the new files.
+unreferenced object 0xc8ff8008349e9400 (size 128):
+  comm "swapper/0", pid 1, jiffies 4294709236 (age 48121.476s)
+  hex dump (first 32 bytes):
+    00 d0 9e 34 08 80 ff 84 d8 00 43 11 00 10 ff ff  ...4......C.....
+    00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<00000000869d4503>] __kmalloc+0x568/0x600
+    [<0000000070fd6afb>] alloc_memory_target+0x50/0xd8
+    [<00000000efa2081e>] srat_parse_mem_affinity+0x58/0x5c
+    [<000000008bfaef74>] acpi_parse_entries_array+0x1c8/0x2c0
+    [<0000000022804877>] acpi_table_parse_entries_array+0x11c/0x138
+    [<00000000ffe9cd34>] acpi_table_parse_entries+0x7c/0xac
+    [<00000000a7023afd>] hmat_init+0x90/0x174
+    [<00000000694a86c1>] do_one_initcall+0x2d8/0x5f8
+    [<0000000024889da9>] do_initcall_level+0x37c/0x3fc
+    [<000000009be02908>] do_basic_setup+0x38/0x50
+    [<0000000037b3ac0a>] kernel_init_freeable+0x194/0x258
+    [<00000000f5741184>] kernel_init+0x18/0x334
+    [<000000007b30f423>] ret_from_fork+0x10/0x18
+    [<000000006c7147a8>] 0xffffffffffffffff
 
-I guess they could be combined, but that would be two sort of
-different changes in one go.
+Signed-off-by: Qian Cai <cai@lca.pw>
+---
 
-> In general the plan seems good.
+v2: goto out_put per Rafael.
 
-OK, thanks!
+ drivers/acpi/hmat/hmat.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Cheers,
-Rafael
+diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+index b7824a0309f7..69cdb3cea545 100644
+--- a/drivers/acpi/hmat/hmat.c
++++ b/drivers/acpi/hmat/hmat.c
+@@ -637,7 +637,7 @@ static __init int hmat_init(void)
+ 
+ 	status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
+ 	if (ACPI_FAILURE(status))
+-		return 0;
++		goto out_put;
+ 
+ 	hmat_revision = tbl->revision;
+ 	switch (hmat_revision) {
+-- 
+2.17.2 (Apple Git-113)
