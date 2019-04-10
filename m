@@ -6,27 +6,27 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 321EBC10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:26:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 665DFC10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:26:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F3D7420820
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:26:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BFE12083E
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 15:26:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733184AbfDJPZ2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Apr 2019 11:25:28 -0400
-Received: from mga06.intel.com ([134.134.136.31]:15584 "EHLO mga06.intel.com"
+        id S1730541AbfDJPZT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Apr 2019 11:25:19 -0400
+Received: from mga06.intel.com ([134.134.136.31]:15566 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733170AbfDJPZ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Apr 2019 11:25:27 -0400
+        id S1729439AbfDJPZT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Apr 2019 11:25:19 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Apr 2019 08:25:26 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Apr 2019 08:25:18 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.60,332,1549958400"; 
-   d="scan'208";a="163102962"
+   d="scan'208";a="163102937"
 Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 10 Apr 2019 08:25:24 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 10 Apr 2019 08:25:16 -0700
 From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -35,9 +35,9 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Andy Shevchenko <andy@infradead.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
-Subject: [PATCH v2 07/12] device connection: Find connections also by checking the references
-Date:   Wed, 10 Apr 2019 18:25:00 +0300
-Message-Id: <20190410152505.87041-8-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 04/12] software node: Implement .get_reference_args fwnode operation
+Date:   Wed, 10 Apr 2019 18:24:57 +0300
+Message-Id: <20190410152505.87041-5-heikki.krogerus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
@@ -48,63 +48,90 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190410152500.ERjMdhOy6MoTHs5DjSpXdaMLG1G4aluYkXUAhjzLlH0@z>
+Message-ID: <20190410152457.eAZbLPCxWQgZK_6DpOovwJBQBFD8T5ORqypa_NvSlJc@z>
 
-We can also use this API to find named references that the
-device nodes have by using fwnode_property_get_reference_args()
-function.
+This makes it possible to support drivers that use
+fwnode_property_get_reference_args() function.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/base/devcon.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/base/swnode.c | 56 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
-diff --git a/drivers/base/devcon.c b/drivers/base/devcon.c
-index 04db9ae235e4..4cdf95532b63 100644
---- a/drivers/base/devcon.c
-+++ b/drivers/base/devcon.c
-@@ -38,6 +38,30 @@ fwnode_graph_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 39b8f8f35cfe..d6a9b56cb073 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -534,6 +534,61 @@ software_node_get_named_child_node(const struct fwnode_handle *fwnode,
  	return NULL;
  }
  
-+static void *
-+fwnode_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
-+		    void *data, devcon_match_fn_t match)
++static int
++software_node_get_reference_args(const struct fwnode_handle *fwnode,
++				 const char *propname, const char *nargs_prop,
++				 unsigned int nargs, unsigned int index,
++				 struct fwnode_reference_args *args)
 +{
-+	struct device_connection con = { };
-+	struct fwnode_reference_args args;
-+	void *ret;
++	struct software_node *swnode = to_software_node(fwnode);
++	struct software_node_reference *ref;
++	const struct property_entry *prop;
++	int ret = -ENOENT;
 +	int i;
 +
-+	for (i = 0; ; i++) {
-+		if (fwnode_property_get_reference_args(fwnode, con_id, NULL, 0,
-+						       i, &args))
-+			break;
++	mutex_lock(&swnode->lock);
 +
-+		con.fwnode = args.fwnode;
-+		ret = match(&con, -1, data);
-+		fwnode_handle_put(args.fwnode);
-+		if (ret)
-+			return ret;
++	if (!swnode || list_empty(&swnode->references))
++		goto err_unlock;
++
++	if (nargs_prop) {
++		prop = property_entry_get(swnode->properties, nargs_prop);
++		if (!prop) {
++			ret = -EINVAL;
++			goto err_unlock;
++		}
++
++		nargs = prop->value.u32_data;
 +	}
 +
-+	return NULL;
++	if (nargs > NR_FWNODE_REFERENCE_ARGS) {
++		ret = -EINVAL;
++		goto err_unlock;
++	}
++
++	list_for_each_entry(ref, &swnode->references, list) {
++		if (strcmp(ref->name, propname))
++			continue;
++
++		if (index > (ref->nrefs - 1))
++			break;
++
++		args->nargs = nargs;
++		args->fwnode = software_node_get(ref->args[index].fwnode);
++
++		for (i = 0; i < nargs; i++)
++			args->args[i] = ref->args[index].args[i];
++
++		ret = 0;
++		break;
++	}
++
++err_unlock:
++	mutex_unlock(&swnode->lock);
++
++	return ret;
 +}
 +
- /**
-  * device_connection_find_match - Find physical connection to a device
-  * @dev: Device with the connection
-@@ -65,6 +89,10 @@ void *device_connection_find_match(struct device *dev, const char *con_id,
- 		ret = fwnode_graph_devcon_match(fwnode, con_id, data, match);
- 		if (ret)
- 			return ret;
-+
-+		ret = fwnode_devcon_match(fwnode, con_id, data, match);
-+		if (ret)
-+			return ret;
- 	}
+ static const struct fwnode_operations software_node_ops = {
+ 	.get = software_node_get,
+ 	.put = software_node_put,
+@@ -543,6 +598,7 @@ static const struct fwnode_operations software_node_ops = {
+ 	.get_parent = software_node_get_parent,
+ 	.get_next_child_node = software_node_get_next_child,
+ 	.get_named_child_node = software_node_get_named_child_node,
++	.get_reference_args = software_node_get_reference_args,
+ };
  
- 	mutex_lock(&devcon_lock);
+ /* -------------------------------------------------------------------------- */
 -- 
 2.20.1
 
