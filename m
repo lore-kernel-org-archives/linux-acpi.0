@@ -2,144 +2,275 @@ Return-Path: <SRS0=P5bh=SM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.9 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D695C10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 16:53:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6D9FC10F14
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 17:42:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D351217F4
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 16:53:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73EC320854
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 17:42:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388115AbfDJQxF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Apr 2019 12:53:05 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:59608 "EHLO mx1.redhat.com"
+        id S1729841AbfDJRmA convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Apr 2019 13:42:00 -0400
+Received: from mga14.intel.com ([192.55.52.115]:65290 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730479AbfDJQxF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Apr 2019 12:53:05 -0400
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 5F5B38046D;
-        Wed, 10 Apr 2019 16:53:04 +0000 (UTC)
-Received: from gondolin (ovpn-204-33.brq.redhat.com [10.40.204.33])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 0CC6A104C421;
-        Wed, 10 Apr 2019 16:52:45 +0000 (UTC)
-Date:   Wed, 10 Apr 2019 18:52:41 +0200
-From:   Cornelia Huck <cohuck@redhat.com>
-To:     "Michael S. Tsirkin" <mst@redhat.com>
-Cc:     Pankaj Gupta <pagupta@redhat.com>, jack@suse.cz,
-        kvm@vger.kernel.org, david@redhat.com, jasowang@redhat.com,
-        david@fromorbit.com, qemu-devel@nongnu.org,
-        virtualization@lists.linux-foundation.org,
-        adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org,
-        aarcange@redhat.com, dave jiang <dave.jiang@intel.com>,
-        linux-nvdimm@lists.01.org,
-        vishal l verma <vishal.l.verma@intel.com>,
-        willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org,
-        jmoyer@redhat.com, linux-ext4@vger.kernel.org, lenb@kernel.org,
-        kilobyte@angband.pl, riel@surriel.com,
-        yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com,
-        pbonzini@redhat.com, dan j williams <dan.j.williams@intel.com>,
-        lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com,
-        tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
-        darrick wong <darrick.wong@oracle.com>, rjw@rjwysocki.net,
-        linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, imammedo@redhat.com
-Subject: Re: [Qemu-devel] [PATCH v5 2/5] virtio-pmem: Add virtio pmem driver
-Message-ID: <20190410185241.1b0b1982.cohuck@redhat.com>
-In-Reply-To: <20190410124114-mutt-send-email-mst@kernel.org>
-References: <20190410040826.24371-1-pagupta@redhat.com>
-        <20190410040826.24371-3-pagupta@redhat.com>
-        <20190410091216-mutt-send-email-mst@kernel.org>
-        <127904196.20807948.1554904981681.JavaMail.zimbra@redhat.com>
-        <20190410163139.4a04175e.cohuck@redhat.com>
-        <20190410124114-mutt-send-email-mst@kernel.org>
-Organization: Red Hat GmbH
+        id S1729822AbfDJRlu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Apr 2019 13:41:50 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Apr 2019 10:41:49 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,334,1549958400"; 
+   d="scan'208";a="160496169"
+Received: from orsmsx106.amr.corp.intel.com ([10.22.225.133])
+  by fmsmga004.fm.intel.com with ESMTP; 10 Apr 2019 10:41:49 -0700
+Received: from orsmsx157.amr.corp.intel.com (10.22.240.23) by
+ ORSMSX106.amr.corp.intel.com (10.22.225.133) with Microsoft SMTP Server (TLS)
+ id 14.3.408.0; Wed, 10 Apr 2019 10:41:48 -0700
+Received: from orsmsx110.amr.corp.intel.com ([169.254.10.28]) by
+ ORSMSX157.amr.corp.intel.com ([169.254.9.192]) with mapi id 14.03.0415.000;
+ Wed, 10 Apr 2019 10:41:48 -0700
+From:   "Moore, Robert" <robert.moore@intel.com>
+To:     lkp <lkp@intel.com>
+CC:     "kbuild-all@01.org" <kbuild-all@01.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "devel@acpica.org" <devel@acpica.org>,
+        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: [pm:bleeding-edge 47/52] drivers//acpi/acpi_configfs.c:112:32:
+ error: 'ACPI_NAME_SIZE' undeclared; did you mean 'APR_NAME_SIZE'?
+Thread-Topic: [pm:bleeding-edge 47/52] drivers//acpi/acpi_configfs.c:112:32:
+ error: 'ACPI_NAME_SIZE' undeclared; did you mean 'APR_NAME_SIZE'?
+Thread-Index: AQHU7rApcoRVXpyzdkiJAdVzXZlLmaY1q8Aw
+Date:   Wed, 10 Apr 2019 17:41:48 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B95830E0@ORSMSX110.amr.corp.intel.com>
+References: <201904091650.n4PgwLCA%lkp@intel.com>
+In-Reply-To: <201904091650.n4PgwLCA%lkp@intel.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiMTI3N2VjNDEtZjFhOC00YTcwLWIwYWYtOWY0MjU2OWM5M2YwIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiV2ttRStkTGNUcEgrdVVcL1pNNXJyOHlSbHpuWEFOUmJKcUtGZnpnaDNjOXk4WlJ5VW1mQ0NLMk81M1hTdldrZWYifQ==
+x-ctpclassification: CTP_NT
+dlp-product: dlpe-windows
+dlp-version: 11.0.600.7
+dlp-reaction: no-action
+x-originating-ip: [10.22.254.138]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.28]); Wed, 10 Apr 2019 16:53:04 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190410165241.IQuyc0Yen3YlSo6SaIX7TnbG9tr2Vsih6t2xyoJjAOM@z>
 
-On Wed, 10 Apr 2019 12:46:12 -0400
-"Michael S. Tsirkin" <mst@redhat.com> wrote:
+We renamed some of these:
 
-> On Wed, Apr 10, 2019 at 04:31:39PM +0200, Cornelia Huck wrote:
-> > On Wed, 10 Apr 2019 10:03:01 -0400 (EDT)
-> > Pankaj Gupta <pagupta@redhat.com> wrote:
-> >   
-> > > > 
-> > > > On Wed, Apr 10, 2019 at 09:38:22AM +0530, Pankaj Gupta wrote:    
-> > > > > This patch adds virtio-pmem driver for KVM guest.
-> > > > > 
-> > > > > Guest reads the persistent memory range information from
-> > > > > Qemu over VIRTIO and registers it on nvdimm_bus. It also
-> > > > > creates a nd_region object with the persistent memory
-> > > > > range information so that existing 'nvdimm/pmem' driver
-> > > > > can reserve this into system memory map. This way
-> > > > > 'virtio-pmem' driver uses existing functionality of pmem
-> > > > > driver to register persistent memory compatible for DAX
-> > > > > capable filesystems.
-> > > > > 
-> > > > > This also provides function to perform guest flush over
-> > > > > VIRTIO from 'pmem' driver when userspace performs flush
-> > > > > on DAX memory range.
-> > > > > 
-> > > > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>  
-> >   
-> > > > > diff --git a/include/uapi/linux/virtio_ids.h
-> > > > > b/include/uapi/linux/virtio_ids.h
-> > > > > index 6d5c3b2d4f4d..346389565ac1 100644
-> > > > > --- a/include/uapi/linux/virtio_ids.h
-> > > > > +++ b/include/uapi/linux/virtio_ids.h
-> > > > > @@ -43,5 +43,6 @@
-> > > > >  #define VIRTIO_ID_INPUT        18 /* virtio input */
-> > > > >  #define VIRTIO_ID_VSOCK        19 /* virtio vsock transport */
-> > > > >  #define VIRTIO_ID_CRYPTO       20 /* virtio crypto */
-> > > > > +#define VIRTIO_ID_PMEM         25 /* virtio pmem */
-> > > > >  
-> > > > >  #endif /* _LINUX_VIRTIO_IDS_H */    
-> > > > 
-> > > > Didn't Paolo point out someone is using 25 for audio?    
-> > > 
-> > > 
-> > > Sorry! I did not notice this.
-> > >   
-> > > > 
-> > > > Please, reserve an ID with the Virtio TC before using it.    
-> > > 
-> > > I thought I requested[1] ID 25.
-> > > 
-> > > [1] https://github.com/oasis-tcs/virtio-spec/issues/38
-> > > [2] https://lists.oasis-open.org/archives/virtio-dev/201805/threads.html
-> > > 
-> > > In that case I will send request for next available ID i.e 26?  
-> > 
-> > Have the folks using this for audio sent a reservation request as well?
-> > If not, I'd say the first requester should get the id...  
+
+Renamed some internal macros to improve code understanding and maintenance. The macros below all operate on single 4-character ACPI NameSegs, not generic strings (old -> new):
+    ACPI_NAME_SIZE    -> ACPI_NAMESEG_SIZE
+    ACPI_COMPARE_NAME -> ACPI_COMPARE_NAMESEG
+    ACPI_MOVE_NAME    -> ACPI_COPY_NAMESEG
+
+
+
+> -----Original Message-----
+> From: lkp
+> Sent: Tuesday, April 9, 2019 1:42 AM
+> To: Moore, Robert <robert.moore@intel.com>
+> Cc: kbuild-all@01.org; linux-acpi@vger.kernel.org; devel@acpica.org;
+> linux-pm@vger.kernel.org; Rafael J. Wysocki <rjw@rjwysocki.net>;
+> Schmauss, Erik <erik.schmauss@intel.com>
+> Subject: [pm:bleeding-edge 47/52] drivers//acpi/acpi_configfs.c:112:32:
+> error: 'ACPI_NAME_SIZE' undeclared; did you mean 'APR_NAME_SIZE'?
 > 
-> No but I think they ship their's already. No one ships pmem
-> so it's less pain for everyone if we just skip 25.
-
-Ugh. Ok, then we should change pmem...
-
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-
+> pm.git bleeding-edge
+> head:   ea3d77d1940b15ef51a4f4936d05e99fab4cecff
+> commit: 756ae0e33ac30984626b5f570c21c2bd1defac4d [47/52] ACPICA: Rename
+> nameseg length macro/define for clarity
+> config: i386-randconfig-x001-201914 (attached as .config)
+> compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
+> reproduce:
+>         git checkout 756ae0e33ac30984626b5f570c21c2bd1defac4d
+>         # save the attached .config to linux build tree
+>         make ARCH=i386
 > 
-> > (And yes, we need to be quicker with voting on/applying id
-> > reservations :/)  
+> All error/warnings (new ones prefixed by >>):
 > 
-> We can't vote on what was not proposed for a vote.
-> At the moment that responsibility is with the commented
-> once discussion on the comment has taken place.
+>    drivers//acpi/acpi_configfs.c: In function
+> 'acpi_table_signature_show':
+> >> drivers//acpi/acpi_configfs.c:112:32: error: 'ACPI_NAME_SIZE'
+> undeclared (first use in this function); did you mean 'APR_NAME_SIZE'?
+>      return sprintf(str, "%.*s\n", ACPI_NAME_SIZE, h->signature);
+>                                    ^~~~~~~~~~~~~~
+>                                    APR_NAME_SIZE
+>    drivers//acpi/acpi_configfs.c:112:32: note: each undeclared
+> identifier is reported only once for each function it appears in
+>    drivers//acpi/acpi_configfs.c: In function
+> 'acpi_table_asl_compiler_id_show':
+>    drivers//acpi/acpi_configfs.c:173:32: error: 'ACPI_NAME_SIZE'
+> undeclared (first use in this function); did you mean 'APR_NAME_SIZE'?
+>      return sprintf(str, "%.*s\n", ACPI_NAME_SIZE, h->asl_compiler_id);
+>                                    ^~~~~~~~~~~~~~
+>                                    APR_NAME_SIZE
+> >> drivers//acpi/acpi_configfs.c:174:1: warning: control reaches end of
+> non-void function [-Wreturn-type]
+>     }
+>     ^
+>    drivers//acpi/acpi_configfs.c: In function
+> 'acpi_table_signature_show':
+>    drivers//acpi/acpi_configfs.c:113:1: warning: control reaches end of
+> non-void function [-Wreturn-type]
+>     }
+>     ^
 > 
-> I think what's missing is a description of the process
-> in the README. Want to write it up and post it?
-
-I can add that to my TODO list, can't promise speedy resolution, though.
+> vim +112 drivers//acpi/acpi_configfs.c
+> 
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  104
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  105
+> static ssize_t acpi_table_signature_show(struct config_item *cfg, char
+> *str)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  106
+> {
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  107
+> 	struct acpi_table_header *h = get_header(cfg);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  108
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  109
+> 	if (!h)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  110
+> 		return -EINVAL;
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  111
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08 @112
+> 	return sprintf(str, "%.*s\n", ACPI_NAME_SIZE, h->signature);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  113
+> }
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  114
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  115
+> static ssize_t acpi_table_length_show(struct config_item *cfg, char
+> *str)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  116
+> {
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  117
+> 	struct acpi_table_header *h = get_header(cfg);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  118
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  119
+> 	if (!h)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  120
+> 		return -EINVAL;
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  121
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  122
+> 	return sprintf(str, "%d\n", h->length);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  123
+> }
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  124
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  125
+> static ssize_t acpi_table_revision_show(struct config_item *cfg, char
+> *str)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  126
+> {
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  127
+> 	struct acpi_table_header *h = get_header(cfg);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  128
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  129
+> 	if (!h)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  130
+> 		return -EINVAL;
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  131
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  132
+> 	return sprintf(str, "%d\n", h->revision);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  133
+> }
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  134
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  135
+> static ssize_t acpi_table_oem_id_show(struct config_item *cfg, char
+> *str)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  136
+> {
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  137
+> 	struct acpi_table_header *h = get_header(cfg);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  138
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  139
+> 	if (!h)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  140
+> 		return -EINVAL;
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  141
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  142
+> 	return sprintf(str, "%.*s\n", ACPI_OEM_ID_SIZE, h->oem_id);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  143
+> }
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  144
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  145
+> static ssize_t acpi_table_oem_table_id_show(struct config_item *cfg,
+> char *str)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  146
+> {
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  147
+> 	struct acpi_table_header *h = get_header(cfg);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  148
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  149
+> 	if (!h)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  150
+> 		return -EINVAL;
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  151
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  152
+> 	return sprintf(str, "%.*s\n", ACPI_OEM_TABLE_ID_SIZE, h-
+> >oem_table_id);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  153
+> }
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  154
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  155
+> static ssize_t acpi_table_oem_revision_show(struct config_item *cfg,
+> char *str)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  156
+> {
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  157
+> 	struct acpi_table_header *h = get_header(cfg);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  158
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  159
+> 	if (!h)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  160
+> 		return -EINVAL;
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  161
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  162
+> 	return sprintf(str, "%d\n", h->oem_revision);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  163
+> }
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  164
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  165
+> static ssize_t acpi_table_asl_compiler_id_show(struct config_item *cfg,
+> c62c15a9 drivers/acpi/acpi_configfs.c Andy Shevchenko  2019-03-11  166
+> 					       char *str)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  167
+> {
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  168
+> 	struct acpi_table_header *h = get_header(cfg);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  169
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  170
+> 	if (!h)
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  171
+> 		return -EINVAL;
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  172
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  173
+> 	return sprintf(str, "%.*s\n", ACPI_NAME_SIZE, h->asl_compiler_id);
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08 @174
+> }
+> 612bd01f drivers/acpi/configfs.c      Octavian Purdila 2016-07-08  175
+> 
+> :::::: The code at line 112 was first introduced by commit
+> :::::: 612bd01fc6e04c3ce9eb59587b4a7e4ebd6aff35 ACPI: add support for
+> loading SSDTs via configfs
+> 
+> :::::: TO: Octavian Purdila <octavian.purdila@intel.com>
+> :::::: CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology
+> Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel
+> Corporation
