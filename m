@@ -2,100 +2,96 @@ Return-Path: <SRS0=P5bh=SM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FFF0C282CE
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 08:38:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF7CCC10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 09:30:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F3BA2070D
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 08:38:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EF962083E
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 09:30:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729511AbfDJIie (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Apr 2019 04:38:34 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:57448 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729450AbfDJIie (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Apr 2019 04:38:34 -0400
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 25C9F3088A7E;
-        Wed, 10 Apr 2019 08:38:34 +0000 (UTC)
-Received: from colo-mx.corp.redhat.com (colo-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.20])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 043A45D962;
-        Wed, 10 Apr 2019 08:38:34 +0000 (UTC)
-Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
-        by colo-mx.corp.redhat.com (Postfix) with ESMTP id B08A91803385;
-        Wed, 10 Apr 2019 08:38:33 +0000 (UTC)
-Date:   Wed, 10 Apr 2019 04:38:33 -0400 (EDT)
-From:   Pankaj Gupta <pagupta@redhat.com>
-To:     Jan Kara <jack@suse.cz>
-Cc:     linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        qemu-devel@nongnu.org, linux-ext4@vger.kernel.org,
-        linux-xfs@vger.kernel.org,
-        dan j williams <dan.j.williams@intel.com>,
-        zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>,
-        dave jiang <dave.jiang@intel.com>, mst@redhat.com,
-        jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net,
-        hch@infradead.org, lenb@kernel.org, tytso@mit.edu,
-        adilger kernel <adilger.kernel@dilger.ca>,
-        darrick wong <darrick.wong@oracle.com>, lcapitulino@redhat.com,
-        kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com,
-        nilal@redhat.com, riel@surriel.com, stefanha@redhat.com,
-        aarcange@redhat.com, david@redhat.com, david@fromorbit.com,
-        cohuck@redhat.com,
-        xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
-        pbonzini@redhat.com, kilobyte@angband.pl,
-        yuval shaia <yuval.shaia@oracle.com>
-Message-ID: <1336073020.20708683.1554885513376.JavaMail.zimbra@redhat.com>
-In-Reply-To: <20190410082804.GG1426@quack2.suse.cz>
-References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-4-pagupta@redhat.com> <20190410082804.GG1426@quack2.suse.cz>
-Subject: Re: [PATCH v5 3/6] libnvdimm: add dax_dev sync flag
+        id S1729454AbfDJJas (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Apr 2019 05:30:48 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36042 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726924AbfDJJas (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Apr 2019 05:30:48 -0400
+Received: by atrey.karlin.mff.cuni.cz (Postfix, from userid 512)
+        id EE9E08053D; Wed, 10 Apr 2019 11:30:36 +0200 (CEST)
+Date:   Wed, 10 Apr 2019 11:30:44 +0200
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Paolo Valente <paolo.valente@linaro.org>
+Cc:     Jens Axboe <axboe@kernel.dk>,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-block <linux-block@vger.kernel.org>, rjw@rjwysocki.net,
+        lenb@kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: Thinkpad X60: regression with 5.1-rc1 and 5.1-rc4
+Message-ID: <20190410093044.GA3776@amd>
+References: <20190408173914.GA13260@amd>
+ <678ab058-986c-9727-58d7-d3f5283e2225@kernel.dk>
+ <20190409163304.GA23829@amd>
+ <F6306562-0022-4043-BBF8-13FE4872CA31@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.65.16.19, 10.4.195.22]
-Thread-Topic: libnvdimm: add dax_dev sync flag
-Thread-Index: 3uZjW5jhUzBiRAKeiJEV9NRdm5X/hQ==
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.47]); Wed, 10 Apr 2019 08:38:34 +0000 (UTC)
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
+Content-Disposition: inline
+In-Reply-To: <F6306562-0022-4043-BBF8-13FE4872CA31@linaro.org>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190410083833.gxeSPn5wp7X4TI3lTx43PLh3k62QC5-VNEUnZunv0ME@z>
+Message-ID: <20190410093044.hTB4hT4lL-6ye-67dD5U4qh_rMIgXjGgU1nwnmPgXJ8@z>
 
 
-> 
-> On Wed 10-04-19 09:38:23, Pankaj Gupta wrote:
-> > @@ -64,6 +65,10 @@ static inline bool dax_write_cache_enabled(struct
-> > dax_device *dax_dev)
-> >  {
-> >  	return false;
-> >  }
-> > +static inline bool dax_synchronous(struct dax_device *dax_dev)
-> > +{
-> > +	return true;
-> > +}
-> 
-> Is there a need to define dax_synchronous() for !CONFIG_DAX? Because that
-> property of dax device is pretty much undefined and I don't see anything
-> needing to call it for !CONFIG_DAX...
+--DocE+STaALJfprDB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You are right. Will remove this.
+Hi!
 
-Thanks for the review.
+> > I now noticed it said:
+> >=20
+> > EIP is in bfq_bfqq_expire
+> >=20
+> >> Can you try and revert:
+> >>=20
+> >> 9dee8b3b057e1
+> >>=20
+> >> and see if that helps?
+> >=20
+> > Yes, I tried and yes, it helps. What are the next steps?=20
+> >=20
+>=20
+> Try my fix:
+>=20
+> https://lore.kernel.org/linux-block/20190409191420.3f56d493@fire.localdom=
+ain/T/#m30a14045e710b870f00f7c51cdaa7c403977b767
+>=20
+> and cross your fingers :)
 
-Best regards,
-Pankaj
+It seems to work... even without fingers crossed.
 
-> 
-> 								Honza
-> --
-> Jan Kara <jack@suse.com>
-> SUSE Labs, CR
-> 
+Tested-by: Pavel Machek <pavel@ucw.cz>
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--DocE+STaALJfprDB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlytt8QACgkQMOfwapXb+vLQHACgwtIivSbdVhFRgJOzmwD+jX9w
+fiAAn3PNMMqoimIU76sd/za230tevyY+
+=dYXi
+-----END PGP SIGNATURE-----
+
+--DocE+STaALJfprDB--
