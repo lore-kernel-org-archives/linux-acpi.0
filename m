@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2 06/12] ACPI / property: Don't limit named child node matching to data nodes
-Date: Wed, 10 Apr 2019 18:24:59 +0300
-Message-ID: <20190410152505.87041-7-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 10/12] platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
+Date: Wed, 10 Apr 2019 18:25:03 +0300
+Message-ID: <20190410152505.87041-11-heikki.krogerus@linux.intel.com>
 References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,56 +9,94 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-There is no reason why we should limit the use of
-fwnode_get_named_child_node() to data nodes only.
+In ACPI, and now also in DT, the USB connectors usually have
+their own device nodes. In case of USB Type-C, those
+connector (port) nodes are child nodes of the controller or
+PHY device, in our case the fusb302. The software fwnodes
+allow us to create a similar child node for fusb302 that
+represents the connector also on Intel CHT.
 
+This makes it possible replace the fusb302 specific device
+properties which were deprecated with the common USB
+connector properties that tcpm.c is able to use directly.
+
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/acpi/property.c | 26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ drivers/platform/x86/intel_cht_int33fe.c | 37 ++++++++++++++++++++++--
+ 1 file changed, 34 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 77abe0ec4043..c3fb52c387a6 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -602,15 +602,29 @@ static struct fwnode_handle *
- acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
- 				 const char *childname)
- {
-+	char name[ACPI_PATH_SEGMENT_LENGTH];
- 	struct fwnode_handle *child;
-+	struct acpi_buffer path;
-+	acpi_status status;
+diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
+index a9abc77fffa7..0707afd39ca5 100644
+--- a/drivers/platform/x86/intel_cht_int33fe.c
++++ b/drivers/platform/x86/intel_cht_int33fe.c
+@@ -25,6 +25,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
++#include <linux/usb/pd.h>
  
--	/*
--	 * Find first matching named child node of this fwnode.
--	 * For ACPI this will be a data only sub-node.
--	 */
--	fwnode_for_each_child_node(fwnode, child)
--		if (acpi_data_node_match(child, childname))
-+	path.length = sizeof(name);
-+	path.pointer = name;
+ #define EXPECTED_PTYPE		4
+ 
+@@ -32,6 +33,7 @@ enum {
+ 	INT33FE_NODE_FUSB302,
+ 	INT33FE_NODE_MAX17047,
+ 	INT33FE_NODE_PI3USB30532,
++	INT33FE_NODE_USB_CONNECTOR,
+ 	INT33FE_NODE_MAX,
+ };
+ 
+@@ -112,9 +114,29 @@ cht_int33fe_find_max17047(struct device *dev, struct cht_int33fe_data *data)
+ 
+ static const struct property_entry fusb302_props[] = {
+ 	PROPERTY_ENTRY_STRING("linux,extcon-name", "cht_wcove_pwrsrc"),
+-	PROPERTY_ENTRY_U32("fcs,max-sink-microvolt", 12000000),
+-	PROPERTY_ENTRY_U32("fcs,max-sink-microamp",   3000000),
+-	PROPERTY_ENTRY_U32("fcs,max-sink-microwatt", 36000000),
++	{ }
++};
 +
-+	fwnode_for_each_child_node(fwnode, child) {
-+		if (is_acpi_data_node(child)) {
-+			if (acpi_data_node_match(child, childname))
-+				return child;
-+			continue;
-+		}
++#define PDO_FIXED_FLAGS \
++	(PDO_FIXED_DUAL_ROLE | PDO_FIXED_DATA_SWAP | PDO_FIXED_USB_COMM)
 +
-+		status = acpi_get_name(ACPI_HANDLE_FWNODE(child),
-+				       ACPI_SINGLE_NAME, &path);
-+		if (ACPI_FAILURE(status))
-+			break;
++static const u32 src_pdo[] = {
++	PDO_FIXED(5000, 1500, PDO_FIXED_FLAGS),
++};
 +
-+		if (!strncmp(name, childname, ACPI_NAME_SIZE))
- 			return child;
++static const u32 snk_pdo[] = {
++	PDO_FIXED(5000, 400, PDO_FIXED_FLAGS),
++	PDO_VAR(5000, 12000, 3000),
++};
++
++static const struct property_entry usb_connector_props[] = {
++	PROPERTY_ENTRY_STRING("name", "connector"),
++	PROPERTY_ENTRY_STRING("data-role", "dual"),
++	PROPERTY_ENTRY_STRING("power-role", "dual"),
++	PROPERTY_ENTRY_STRING("try-power-role", "sink"),
++	PROPERTY_ENTRY_U32_ARRAY("source-pdos", src_pdo),
++	PROPERTY_ENTRY_U32_ARRAY("sink-pdos", snk_pdo),
++	PROPERTY_ENTRY_U32("op-sink-microwatt", 36000000),
+ 	{ }
+ };
+ 
+@@ -149,6 +171,15 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
+ 		data->node[i] = fwnode;
+ 	}
+ 
++	/* Node for the USB connector (FUSB302 is the parent) */
++	fwnode = fwnode_create_software_node(usb_connector_props,
++					     data->node[INT33FE_NODE_FUSB302]);
++	if (IS_ERR(fwnode)) {
++		ret = PTR_ERR(fwnode);
++		goto err_remove_nodes;
 +	}
++	data->node[INT33FE_NODE_USB_CONNECTOR] = fwnode;
++
+ 	return 0;
  
- 	return NULL;
- }
+ err_remove_nodes:
 -- 
 2.20.1
