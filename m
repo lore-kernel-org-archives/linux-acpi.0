@@ -1,68 +1,80 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 00/12] Software fwnode references
-Date: Wed, 10 Apr 2019 18:24:53 +0300
-Message-ID: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 05/12] driver core: Add helper device_find_child_by_name()
+Date: Wed, 10 Apr 2019 18:24:58 +0300
+Message-ID: <20190410152505.87041-6-heikki.krogerus@linux.intel.com>
+References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+It looks like the child device is often matched with a name.
+This introduces a helper that does it automatically.
 
-This is the second version of this series. In this version I'm
-introducing a new helper device_find_child_by_name() as proposed
-by Andy. Andy requested also another helper that could be used for
-chaining the fwnodes, but I decided not to add that now. I would like
-to still think about how we should handle exceptions like if there
-already is a secondary node assigned for a node.
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ drivers/base/core.c    | 31 +++++++++++++++++++++++++++++++
+ include/linux/device.h |  2 ++
+ 2 files changed, 33 insertions(+)
 
-The v1 commit message:
-
-This series adds support for software fwnode reference handling. In
-practice it means making fwnode_property_get_reference_args() function
-usable in the drivers also with software nodes. I send the series
-originally as RFC [1].
-
-As the first user for the software node references, I'm converting
-intel_cht_int33fe.c to use them as part of the series.
-
-[1] https://lkml.org/lkml/2019/3/15/457
-
-thanks,
-
-Heikki Krogerus (12):
-  software node: Allow node creation without properties
-  software node: Simplify software_node_release() function
-  software node: Add support for references
-  software node: Implement .get_reference_args fwnode operation
-  driver core: Add helper device_find_child_by_name()
-  ACPI / property: Don't limit named child node matching to data nodes
-  device connection: Find connections also by checking the references
-  usb: typec: Registering real device entries for the muxes
-  platform/x86: intel_cht_int33fe: Provide software nodes for the
-    devices
-  platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
-  platform/x86: intel_cht_int33fe: Link with external dependencies using
-    fwnodes
-  platform/x86: intel_cht_int33fe: Replacing the old connections with
-    references
-
- drivers/acpi/property.c                  |  26 +-
- drivers/base/core.c                      |  31 +++
- drivers/base/devcon.c                    |  28 ++
- drivers/base/swnode.c                    | 180 +++++++++++-
- drivers/platform/x86/intel_cht_int33fe.c | 339 +++++++++++++++++++----
- drivers/usb/typec/bus.h                  |  15 +
- drivers/usb/typec/class.c                |  17 +-
- drivers/usb/typec/mux.c                  | 221 ++++++++++-----
- drivers/usb/typec/mux/pi3usb30532.c      |  46 +--
- include/linux/device.h                   |   2 +
- include/linux/property.h                 |   8 +
- include/linux/usb/typec_mux.h            |  62 ++---
- 12 files changed, 791 insertions(+), 184 deletions(-)
-
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 4aeaa0c92bda..5819ba4c9d4c 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -2469,6 +2469,37 @@ struct device *device_find_child(struct device *parent, void *data,
+ }
+ EXPORT_SYMBOL_GPL(device_find_child);
+ 
++/**
++ * device_find_child_by_name - device iterator for locating a child device.
++ * @parent: parent struct device
++ * @name: name of the child device
++ *
++ * This is similar to the device_find_child() function above, but it
++ * returns a reference to a device that has the name @name.
++ *
++ * The callback should return NULL if the child is not found and a reference to
++ * the child device if it is found.
++ *
++ * NOTE: you will need to drop the reference with put_device() after use.
++ */
++struct device *device_find_child_by_name(struct device *parent,
++					 const char *name)
++{
++	struct klist_iter i;
++	struct device *child;
++
++	if (!parent)
++		return NULL;
++
++	klist_iter_init(&parent->p->klist_children, &i);
++	while ((child = next_device(&i)))
++		if (!strcmp(dev_name(child), name) && get_device(child))
++			break;
++	klist_iter_exit(&i);
++	return child;
++}
++EXPORT_SYMBOL_GPL(device_find_child_by_name);
++
+ int __init devices_init(void)
+ {
+ 	devices_kset = kset_create_and_add("devices", &device_uevent_ops, NULL);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 4457e560bc2b..fadb84dd07f9 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -1250,6 +1250,8 @@ extern int device_for_each_child_reverse(struct device *dev, void *data,
+ 		     int (*fn)(struct device *dev, void *data));
+ extern struct device *device_find_child(struct device *dev, void *data,
+ 				int (*match)(struct device *dev, void *data));
++extern struct device *device_find_child_by_name(struct device *parent,
++						const char *name);
+ extern int device_rename(struct device *dev, const char *new_name);
+ extern int device_move(struct device *dev, struct device *new_parent,
+ 		       enum dpm_order dpm_order);
 -- 
 2.20.1
