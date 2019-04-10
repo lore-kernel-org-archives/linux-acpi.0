@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2 02/12] software node: Simplify software_node_release() function
-Date: Wed, 10 Apr 2019 18:24:55 +0300
-Message-ID: <20190410152505.87041-3-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 04/12] software node: Implement .get_reference_args fwnode operation
+Date: Wed, 10 Apr 2019 18:24:57 +0300
+Message-ID: <20190410152505.87041-5-heikki.krogerus@linux.intel.com>
 References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,67 +12,87 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-It's possible to release the node ID immediately when
-fwnode_remove_software_node() is called, no need to wait for
-software_node_release() with that. This change has no
-functional effect.
+This makes it possible to support drivers that use
+fwnode_property_get_reference_args() function.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/base/swnode.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/base/swnode.c | 56 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
 diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 30077454eb68..7b321bf8424c 100644
+index 39b8f8f35cfe..d6a9b56cb073 100644
 --- a/drivers/base/swnode.c
 +++ b/drivers/base/swnode.c
-@@ -557,13 +557,6 @@ static void software_node_release(struct kobject *kobj)
- {
- 	struct software_node *swnode = kobj_to_swnode(kobj);
- 
--	if (swnode->parent) {
--		ida_simple_remove(&swnode->parent->child_ids, swnode->id);
--		list_del(&swnode->entry);
--	} else {
--		ida_simple_remove(&swnode_root_ids, swnode->id);
--	}
--
- 	ida_destroy(&swnode->child_ids);
- 	property_entries_free(swnode->properties);
- 	kfree(swnode);
-@@ -610,9 +603,6 @@ fwnode_create_software_node(const struct property_entry *properties,
- 	INIT_LIST_HEAD(&swnode->children);
- 	swnode->parent = p;
- 
--	if (p)
--		list_add_tail(&swnode->entry, &p->children);
--
- 	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
- 				   p ? &p->kobj : NULL, "node%d", swnode->id);
- 	if (ret) {
-@@ -626,6 +616,9 @@ fwnode_create_software_node(const struct property_entry *properties,
- 		return ERR_PTR(ret);
- 	}
- 
-+	if (p)
-+		list_add_tail(&swnode->entry, &p->children);
-+
- 	kobject_uevent(&swnode->kobj, KOBJ_ADD);
- 	return &swnode->fwnode;
+@@ -534,6 +534,61 @@ software_node_get_named_child_node(const struct fwnode_handle *fwnode,
+ 	return NULL;
  }
-@@ -638,6 +631,13 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
- 	if (!swnode)
- 		return;
  
-+	if (swnode->parent) {
-+		ida_simple_remove(&swnode->parent->child_ids, swnode->id);
-+		list_del(&swnode->entry);
-+	} else {
-+		ida_simple_remove(&swnode_root_ids, swnode->id);
++static int
++software_node_get_reference_args(const struct fwnode_handle *fwnode,
++				 const char *propname, const char *nargs_prop,
++				 unsigned int nargs, unsigned int index,
++				 struct fwnode_reference_args *args)
++{
++	struct software_node *swnode = to_software_node(fwnode);
++	struct software_node_reference *ref;
++	const struct property_entry *prop;
++	int ret = -ENOENT;
++	int i;
++
++	mutex_lock(&swnode->lock);
++
++	if (!swnode || list_empty(&swnode->references))
++		goto err_unlock;
++
++	if (nargs_prop) {
++		prop = property_entry_get(swnode->properties, nargs_prop);
++		if (!prop) {
++			ret = -EINVAL;
++			goto err_unlock;
++		}
++
++		nargs = prop->value.u32_data;
 +	}
 +
- 	kobject_put(&swnode->kobj);
- }
- EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
++	if (nargs > NR_FWNODE_REFERENCE_ARGS) {
++		ret = -EINVAL;
++		goto err_unlock;
++	}
++
++	list_for_each_entry(ref, &swnode->references, list) {
++		if (strcmp(ref->name, propname))
++			continue;
++
++		if (index > (ref->nrefs - 1))
++			break;
++
++		args->nargs = nargs;
++		args->fwnode = software_node_get(ref->args[index].fwnode);
++
++		for (i = 0; i < nargs; i++)
++			args->args[i] = ref->args[index].args[i];
++
++		ret = 0;
++		break;
++	}
++
++err_unlock:
++	mutex_unlock(&swnode->lock);
++
++	return ret;
++}
++
+ static const struct fwnode_operations software_node_ops = {
+ 	.get = software_node_get,
+ 	.put = software_node_put,
+@@ -543,6 +598,7 @@ static const struct fwnode_operations software_node_ops = {
+ 	.get_parent = software_node_get_parent,
+ 	.get_next_child_node = software_node_get_next_child,
+ 	.get_named_child_node = software_node_get_named_child_node,
++	.get_reference_args = software_node_get_reference_args,
+ };
+ 
+ /* -------------------------------------------------------------------------- */
 -- 
 2.20.1
