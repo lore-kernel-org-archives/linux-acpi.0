@@ -1,98 +1,68 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2 04/12] software node: Implement .get_reference_args fwnode operation
-Date: Wed, 10 Apr 2019 18:24:57 +0300
-Message-ID: <20190410152505.87041-5-heikki.krogerus@linux.intel.com>
-References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
+Subject: [PATCH 00/12] Software fwnode references
+Date: Wed, 10 Apr 2019 18:24:53 +0300
+Message-ID: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This makes it possible to support drivers that use
-fwnode_property_get_reference_args() function.
+Hi,
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/base/swnode.c | 56 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+This is the second version of this series. In this version I'm
+introducing a new helper device_find_child_by_name() as proposed
+by Andy. Andy requested also another helper that could be used for
+chaining the fwnodes, but I decided not to add that now. I would like
+to still think about how we should handle exceptions like if there
+already is a secondary node assigned for a node.
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 39b8f8f35cfe..d6a9b56cb073 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -534,6 +534,61 @@ software_node_get_named_child_node(const struct fwnode_handle *fwnode,
- 	return NULL;
- }
- 
-+static int
-+software_node_get_reference_args(const struct fwnode_handle *fwnode,
-+				 const char *propname, const char *nargs_prop,
-+				 unsigned int nargs, unsigned int index,
-+				 struct fwnode_reference_args *args)
-+{
-+	struct software_node *swnode = to_software_node(fwnode);
-+	struct software_node_reference *ref;
-+	const struct property_entry *prop;
-+	int ret = -ENOENT;
-+	int i;
-+
-+	mutex_lock(&swnode->lock);
-+
-+	if (!swnode || list_empty(&swnode->references))
-+		goto err_unlock;
-+
-+	if (nargs_prop) {
-+		prop = property_entry_get(swnode->properties, nargs_prop);
-+		if (!prop) {
-+			ret = -EINVAL;
-+			goto err_unlock;
-+		}
-+
-+		nargs = prop->value.u32_data;
-+	}
-+
-+	if (nargs > NR_FWNODE_REFERENCE_ARGS) {
-+		ret = -EINVAL;
-+		goto err_unlock;
-+	}
-+
-+	list_for_each_entry(ref, &swnode->references, list) {
-+		if (strcmp(ref->name, propname))
-+			continue;
-+
-+		if (index > (ref->nrefs - 1))
-+			break;
-+
-+		args->nargs = nargs;
-+		args->fwnode = software_node_get(ref->args[index].fwnode);
-+
-+		for (i = 0; i < nargs; i++)
-+			args->args[i] = ref->args[index].args[i];
-+
-+		ret = 0;
-+		break;
-+	}
-+
-+err_unlock:
-+	mutex_unlock(&swnode->lock);
-+
-+	return ret;
-+}
-+
- static const struct fwnode_operations software_node_ops = {
- 	.get = software_node_get,
- 	.put = software_node_put,
-@@ -543,6 +598,7 @@ static const struct fwnode_operations software_node_ops = {
- 	.get_parent = software_node_get_parent,
- 	.get_next_child_node = software_node_get_next_child,
- 	.get_named_child_node = software_node_get_named_child_node,
-+	.get_reference_args = software_node_get_reference_args,
- };
- 
- /* -------------------------------------------------------------------------- */
+The v1 commit message:
+
+This series adds support for software fwnode reference handling. In
+practice it means making fwnode_property_get_reference_args() function
+usable in the drivers also with software nodes. I send the series
+originally as RFC [1].
+
+As the first user for the software node references, I'm converting
+intel_cht_int33fe.c to use them as part of the series.
+
+[1] https://lkml.org/lkml/2019/3/15/457
+
+thanks,
+
+Heikki Krogerus (12):
+  software node: Allow node creation without properties
+  software node: Simplify software_node_release() function
+  software node: Add support for references
+  software node: Implement .get_reference_args fwnode operation
+  driver core: Add helper device_find_child_by_name()
+  ACPI / property: Don't limit named child node matching to data nodes
+  device connection: Find connections also by checking the references
+  usb: typec: Registering real device entries for the muxes
+  platform/x86: intel_cht_int33fe: Provide software nodes for the
+    devices
+  platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
+  platform/x86: intel_cht_int33fe: Link with external dependencies using
+    fwnodes
+  platform/x86: intel_cht_int33fe: Replacing the old connections with
+    references
+
+ drivers/acpi/property.c                  |  26 +-
+ drivers/base/core.c                      |  31 +++
+ drivers/base/devcon.c                    |  28 ++
+ drivers/base/swnode.c                    | 180 +++++++++++-
+ drivers/platform/x86/intel_cht_int33fe.c | 339 +++++++++++++++++++----
+ drivers/usb/typec/bus.h                  |  15 +
+ drivers/usb/typec/class.c                |  17 +-
+ drivers/usb/typec/mux.c                  | 221 ++++++++++-----
+ drivers/usb/typec/mux/pi3usb30532.c      |  46 +--
+ include/linux/device.h                   |   2 +
+ include/linux/property.h                 |   8 +
+ include/linux/usb/typec_mux.h            |  62 ++---
+ 12 files changed, 791 insertions(+), 184 deletions(-)
+
 -- 
 2.20.1
