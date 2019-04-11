@@ -1,124 +1,124 @@
-Return-Path: <SRS0=P5bh=SM=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=iZuV=SN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2BB5C10F14
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 23:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C07DEC10F13
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 12:34:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8CDE720674
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Apr 2019 23:09:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1554937745;
-	bh=5kMn9Q2IlsLj3RyfZToYiqc1eTQJxy4xWKrdbuQ5UtU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=KXv2tSHIDzXMy4jLfASpmDXSP4cWB+wReQeuXQJ6gJWvxIN/2RXHRtn0fux5Fv9KF
-	 QR6oCMqXvciydQkWR/mZftl3oXxoL34RVqbSLzG4Si3KDsU7eKmP83APvgVtCE/LYr
-	 kzBhWp4EaRM89rAePaQS7CelY8qKI/WOYL8XznYU=
+	by mail.kernel.org (Postfix) with ESMTP id 90E982073F
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 12:34:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Rt8amp4h"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725982AbfDJXI7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Apr 2019 19:08:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49446 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725782AbfDJXI6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Apr 2019 19:08:58 -0400
-Received: from localhost (unknown [69.71.4.100])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BDB8420850;
-        Wed, 10 Apr 2019 23:08:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1554937737;
-        bh=5kMn9Q2IlsLj3RyfZToYiqc1eTQJxy4xWKrdbuQ5UtU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=hXArNhAhOvz5G15mQjTs6R1Qcgt7VxDj12gyNaDnxrpgTOpqLeiUs19f+jrTzek2N
-         rVwcZJkApWf+czA7BeKWoF0iqIDwrKos1bMbZybd1RCZCMiA2NzQJnI4cGUEIJtUhI
-         YEwKWJR0rNSdFHPQ+4g6oebfHDJgZg5iBVAvCPlA=
-Date:   Wed, 10 Apr 2019 18:08:55 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     sathyanarayanan kuppuswamy 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        ashok.raj@intel.com, keith.busch@intel.com
-Subject: Re: [PATCH v2 2/2] PCI/DPC: Add Error Disconnect Recover (EDR)
- support
-Message-ID: <20190410230855.GN256045@google.com>
-References: <cover.1553027719.git.sathyanarayanan.kuppuswamy@linux.intel.com>
- <4818f4dfa41bddc3968da4717c453897d4ad5717.1553027719.git.sathyanarayanan.kuppuswamy@linux.intel.com>
- <20190410184124.GF256045@google.com>
- <dc4e2bcf-44c9-1ffb-ab4f-75c04340b8dd@linux.intel.com>
+        id S1726145AbfDKMep (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Apr 2019 08:34:45 -0400
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:46281 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726014AbfDKMep (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 08:34:45 -0400
+Received: by mail-pf1-f196.google.com with SMTP id 9so3377617pfj.13;
+        Thu, 11 Apr 2019 05:34:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=KMdKIIiHipKQKDZGpqrpYyWUnjQx+WvOjRbBgeImJsA=;
+        b=Rt8amp4hd8F2GS9qXUQci8A5SLByOiPZyEU6I1c9Y5aeqYpjSdyOTrdiTJw7nNHsdD
+         CBOvJW1x7kzByhlAfmg4aQXZZlxz1ksg1Ahp9qTJk7R1/9ysIhQlBZFp7ejaeuMMBXUG
+         ZBb3Rly4LN40bCD3A3vmtqXrUS8sYQ/i90qs9GDxxcqonUu0ydPZb/HyLUdwioySw+9N
+         diU1R5MQ1bVai+zzxRxgGw9sxbC8cdhv1bhEwtEkGdvWe5CfuWwGuxTQehecCaU6bpKl
+         bHIaKgac80i7Mxxob/KKsy43HabtlvIqkd8t59F9kNa204swlvmX9SQzosi6G1inylXl
+         OVJQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=KMdKIIiHipKQKDZGpqrpYyWUnjQx+WvOjRbBgeImJsA=;
+        b=uDbl0iy0Q65pHqi25NtSjPXcSrxc3hN5iJO3ACwjtuTgYxMQ6ollWNYHhzn8N+j05h
+         l/j+rKgMg6hiV13DssZDwdRlywMFiL36WB4cRc/EraE6qfo7tw1ajyYfbmj+fCNSmDyR
+         sYu/L6qE6R3+2nhsJXvHE+CKeWxllFFWQtZEgLaeWFCZr5QKrmKL3T7ZekmS19+0oejZ
+         jvZiy44IxJ5YMIkDuS7ZUgTu+7j5E0afubP7q9rJx9zWvNQ1L+0zdQ9Lql64EupaGnan
+         y04gbbpHT12y36qLnoXNcWYuQxW/uInhqnJwwSRV0Dq5vhVjYmtfLtM873sjVqPn+zIW
+         93xg==
+X-Gm-Message-State: APjAAAU+ol0wqYViVKjCWJf70cgvWqKfJnKuFlZX+BQh1LlPaV5Jlijo
+        1VbEGb25KZp6Oqw5vAufNQ+NN8gM1TPxHBCKE1HLXR7H
+X-Google-Smtp-Source: APXvYqzbF8eYfOavSgWa1wDzm1HtE4UJ6VkeikDJE1ncgZm6EHoMgDdMML/PKDzNgxDmySUiXZzSWxgNNHigMIs7feI=
+X-Received: by 2002:a65:4302:: with SMTP id j2mr44574088pgq.291.1554986084822;
+ Thu, 11 Apr 2019 05:34:44 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com> <20190410152505.87041-9-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20190410152505.87041-9-heikki.krogerus@linux.intel.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Thu, 11 Apr 2019 15:34:33 +0300
+Message-ID:
+ <CAHp75Vca6EdAYK=mQhrUfwyZZL75sQWHB2czWec1RSUvWcTEgA@mail.gmail.com>
+Subject: Re: [PATCH v2 08/12] usb: typec: Registering real device entries for
+ the muxes
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <dc4e2bcf-44c9-1ffb-ab4f-75c04340b8dd@linux.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190410230855.F90uSi468FeyuppkVLBnYtt9iFfV5oiEh4bHecsyNoM@z>
+Message-ID: <20190411123433.SQ1O8dBe9QOWZYa4BK-7Ja4N_OpkDtVBKhjx2oaL8Uc@z>
 
-On Wed, Apr 10, 2019 at 03:12:05PM -0700, sathyanarayanan kuppuswamy wrote:
-> On 4/10/19 11:41 AM, Bjorn Helgaas wrote:
-> > On Tue, Mar 19, 2019 at 01:47:29PM -0700, sathyanarayanan.kuppuswamy@linux.intel.com wrote:
-> > > From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-> > > 
-> > > As per PCI firmware specification v3.2 ECN
-> > > (https://members.pcisig.com/wg/PCI-SIG/document/12614), when firmware
-> > > owns Downstream Port Containment (DPC), its expected to use the "Error
-> > > Disconnect Recover" (EDR) notification to alert OSPM of a DPC event and
-> > > if OS supports EDR, its expected to handle the software state invalidation
-> > > and port recovery in OS and let firmware know the recovery status via _OST
-> > > ACPI call.
-> > > 
-> > > Since EDR is a hybrid service, DPC service shall be enabled in OS even
-> > > if AER is not natively enabled in OS.
+On Wed, Apr 10, 2019 at 6:25 PM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
+>
+> Registering real device entries (struct device) for the mode
+> muxes as well as for the orientation switches.
+>
+> The Type-C mux code was deliberately attempting to avoid
+> creation of separate device entries for the orientation
+> switch and the mode switch (alternate modes) because they
+> are not physical devices. They are functions of a single
+> physical multiplexer/demultiplexer switch device.
+>
+> Unfortunately because of the dependency we still have on the
+> underlying mux device driver, we had to put in hacks like
+> the one in the commit 3e3b81965cbf ("usb: typec: mux: Take
+> care of driver module reference counting") to make sure the
+> driver does not disappear from underneath us. Even with
+> those hacks we were still left with a potential NUll pointer
+> dereference scenario, so just creating the device entries,
+> and letting the core take care of the dependencies. No more
+> hacks needed.
 
-> > > +	bool			native_dpc;
-> > This is going to be way too confusing with a "native_dpc" in both the
-> > struct pci_host_bridge and the struct dpc_dev.
-> Any suggestions? what about native_mode ?
+>  drivers/platform/x86/intel_cht_int33fe.c |   4 +-
 
-"native_mode" is different but doesn't contain any additional
-information.  I haven't worked out what this new symbol actually does;
-if it's related to EDR, maybe that could be incorporated somehow?
+> diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
+> index 6fa3cced6f8e..657b8d61554c 100644
+> --- a/drivers/platform/x86/intel_cht_int33fe.c
+> +++ b/drivers/platform/x86/intel_cht_int33fe.c
+> @@ -173,10 +173,10 @@ static int cht_int33fe_probe(struct platform_device *pdev)
+>         }
+>
+>         data->connections[0].endpoint[0] = "port0";
+> -       data->connections[0].endpoint[1] = "i2c-pi3usb30532";
+> +       data->connections[0].endpoint[1] = "i2c-pi3usb30532-switch";
+>         data->connections[0].id = "orientation-switch";
+>         data->connections[1].endpoint[0] = "port0";
+> -       data->connections[1].endpoint[1] = "i2c-pi3usb30532";
+> +       data->connections[1].endpoint[1] = "i2c-pi3usb30532-mux";
+>         data->connections[1].id = "mode-switch";
+>         data->connections[2].endpoint[0] = "i2c-fusb302";
+>         data->connections[2].endpoint[1] = "intel_xhci_usb_sw-role-switch";
 
-> > > +		/* Register ACPI notifier for EDR event */
-> > "Register handler for System events, one of which is the EDR event"?
-> In our case, we only handle EDR event. So I just explicitly mentioned it.
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-Right.  As a courtesy to the reader, I think it's worth making
-the comment match the code, i.e., you can't pass an event type to
-acpi_install_notify_handler(), so obviously the handler will be called
-for *all* System events.  By saying "one of which is the EDR event",
-you give the reader a hint that the handler will have to filter out
-the others.
-
-The reason I noticed this is because I read "Register notifier for EDR
-event" and wondered to myself "Hmmm, how does this work?  I don't see
-anything passed to acpi_install_notify_handler() that would identify
-an EDR event."
-
-> > > +	/*
-> > > +	 * If EDR support is enabled in OS, then even if AER is not handled in
-> > > +	 * OS, DPC service can be enabled.
-> > > +	 */
-> > >   	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
-> > > -	    pci_aer_available() && services & PCIE_PORT_SERVICE_AER &&
-> > > -	    (pcie_ports_native || host->native_dpc))
-> > > +	    ((IS_ENABLED(CONFIG_PCIE_EDR) && !host->native_dpc) ||
-> > > +	    (pci_aer_available() && services & PCIE_PORT_SERVICE_AER &&
-> > > +	    (pcie_ports_native || host->native_dpc))))
-> > Holy cow, I think I'll have to schedule an hour sometime to figure
-> > out what's going on here :)
-> Please check the previous patch in this series for details related to
-> host->native_dpc.
-
-Yeah, I'm just saying that conditional is starting to look pretty
-gnarly.  Possibly there's nothing to do about it.
-
-Bjorn
+-- 
+With Best Regards,
+Andy Shevchenko
