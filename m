@@ -2,112 +2,235 @@ Return-Path: <SRS0=iZuV=SN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 737A8C10F13
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A43C10F13
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:29:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 40A9D2133D
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:02:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 672D32083E
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:29:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aEb8cyH3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726145AbfDKNCh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Apr 2019 09:02:37 -0400
-Received: from mga14.intel.com ([192.55.52.115]:55028 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726014AbfDKNCh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 11 Apr 2019 09:02:37 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 11 Apr 2019 06:02:36 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,337,1549958400"; 
-   d="scan'208";a="163381047"
-Received: from unknown (HELO kuha.fi.intel.com) ([10.237.72.189])
-  by fmsmga001.fm.intel.com with SMTP; 11 Apr 2019 06:02:33 -0700
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Thu, 11 Apr 2019 16:02:33 +0300
-Date:   Thu, 11 Apr 2019 16:02:33 +0300
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        id S1726629AbfDKN3K (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Apr 2019 09:29:10 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:46121 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726106AbfDKN3K (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 09:29:10 -0400
+Received: by mail-pg1-f194.google.com with SMTP id q1so3509856pgv.13;
+        Thu, 11 Apr 2019 06:29:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=NfP06EvcsQ3On/5zQPU72LK3QwG/JvDoL9SymndWhmI=;
+        b=aEb8cyH3JmTFiDSBFR9MkEp2uRiaE+NQ30H9XX7rmV3WN8U8RopiryENF0ojIy4QMZ
+         WOh7zAH4oDXx3qKPwdJx58Q/oLlrk2X+Np+IkxyToXKTP6WPQ8GRBokHxArztgSyhHaX
+         B0On5jABRWJsKKOis6UPlmLcWE6ggzdq+qmCQ/u4aoQRVVhQD5LqWWHyny3Dh1smYWDj
+         JmXHWAvvaoo8nn0/wt2y0ugvEnGjFXpiNOOm7IBTYKd4mlKUWKfUz8jDt3lmwneHb9KU
+         tltt/BhdhZ/BDLeXQs8N2tE9DqdF+drX4fDriivt731eqHnSBhmAHJCqFVsjA/0AO6I2
+         fxVg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=NfP06EvcsQ3On/5zQPU72LK3QwG/JvDoL9SymndWhmI=;
+        b=l0VV5tVVoOGQEoYxztmXWsTq5H12gzivNw96NDVKKJqO15pMR5yJ3nN9G2aABY1XYq
+         UAka2wz46YUH+XmKYyryR+EosubLBcNL4XHhuZXeswGGncdlB3h6dJL0mCwf7/Jkh+E1
+         vlTMZhFYe+7GtVvA47pCGDeUCJO17f5A2OvnhmouxafjPeZORxk2Enl0jOg+J56NqxMW
+         zddKC1QhC+tjz0e/UXAtybHEgyjHGsno0L1w0gsfnDMarib63gClknVKbDDL3QWuyIR4
+         oCKlCv4MuR6jRkjDz10Zg8SRKXcWVKkvd4uN04OTeFiWbpe0/lsDq6apAW3uOFWnm9gc
+         yghA==
+X-Gm-Message-State: APjAAAXbJW/Anh8yb9WVvQO/wtUTbK6EJFzPy2Ko86i98bjBMG7Sb6WW
+        0FQeH5W/4RK5OwGxGCywznpvRirDmEv85frzAh2hIAWsciI=
+X-Google-Smtp-Source: APXvYqyEfigOdB9v+oFd0RSoaMES3H3XziyNaQIxzjXqu2/BzTTB8NLCEBwvD/ffqh1Sg+4vv7nSftLt4BxYXk2kCN8=
+X-Received: by 2002:a63:530e:: with SMTP id h14mr11464957pgb.136.1554989349740;
+ Thu, 11 Apr 2019 06:29:09 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com> <20190410152505.87041-12-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20190410152505.87041-12-heikki.krogerus@linux.intel.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Thu, 11 Apr 2019 16:28:58 +0300
+Message-ID:
+ <CAHp75VeM8Ob-Q9FToNxt7Rwrcoodpphc10=PpDw9CB6xd=3eUA@mail.gmail.com>
+Subject: Re: [PATCH v2 11/12] platform/x86: intel_cht_int33fe: Link with
+ external dependencies using fwnodes
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans de Goede <hdegoede@redhat.com>,
         Darren Hart <dvhart@infradead.org>,
         Andy Shevchenko <andy@infradead.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v2 06/12] ACPI / property: Don't limit named child node
- matching to data nodes
-Message-ID: <20190411130233.GA29292@kuha.fi.intel.com>
-References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
- <20190410152505.87041-7-heikki.krogerus@linux.intel.com>
-MIME-Version: 1.0
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <20190410152505.87041-7-heikki.krogerus@linux.intel.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190411130233.KoLN4v12ce97g0W0UGxCeKbsn5trX34Uo2I_MAVl5oU@z>
+Message-ID: <20190411132858.uqlwNbpYL4Gd9ZknAJyu9Lk4kKrVJljFsXoQ9MLld2E@z>
 
-Hi Rafael,
+On Wed, Apr 10, 2019 at 6:25 PM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
+>
+> Supplying also external devices - the DisplayPort connector
+> and the USB role switch - software fwnodes. After this the
+> driver has access to all the components tied to the USB
+> Type-C connector and can start creating software node
+> references to actually associate them with the USB Type-C
+> connector device.
+>
 
-On Wed, Apr 10, 2019 at 06:24:59PM +0300, Heikki Krogerus wrote:
-> There is no reason why we should limit the use of
-> fwnode_get_named_child_node() to data nodes only.
-> 
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+
 > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 > ---
->  drivers/acpi/property.c | 26 ++++++++++++++++++++------
->  1 file changed, 20 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 77abe0ec4043..c3fb52c387a6 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -602,15 +602,29 @@ static struct fwnode_handle *
->  acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
->  				 const char *childname)
+>  drivers/platform/x86/intel_cht_int33fe.c | 92 ++++++++++++++++++++++++
+>  1 file changed, 92 insertions(+)
+>
+> diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
+> index 0707afd39ca5..0687aa23fcfe 100644
+> --- a/drivers/platform/x86/intel_cht_int33fe.c
+> +++ b/drivers/platform/x86/intel_cht_int33fe.c
+> @@ -33,6 +33,8 @@ enum {
+>         INT33FE_NODE_FUSB302,
+>         INT33FE_NODE_MAX17047,
+>         INT33FE_NODE_PI3USB30532,
+> +       INT33FE_NODE_DISPLAYPORT,
+> +       INT33FE_NODE_ROLE_SWITCH,
+>         INT33FE_NODE_USB_CONNECTOR,
+>         INT33FE_NODE_MAX,
+>  };
+> @@ -44,6 +46,7 @@ struct cht_int33fe_data {
+>         /* Contain a list-head must be per device */
+>         struct device_connection connections[4];
+>
+> +       struct fwnode_handle *dp;
+>         struct fwnode_handle *node[INT33FE_NODE_MAX];
+>  };
+>
+> @@ -144,8 +147,71 @@ static const struct property_entry *props[] = {
+>         [INT33FE_NODE_FUSB302]          = fusb302_props,
+>         [INT33FE_NODE_MAX17047]         = max17047_props,
+>         [INT33FE_NODE_PI3USB30532]      = NULL,
+> +       [INT33FE_NODE_DISPLAYPORT]      = NULL,
+> +       [INT33FE_NODE_ROLE_SWITCH]      = NULL,
+>  };
+>
+> +static int cht_int33fe_setup_mux(struct cht_int33fe_data *data)
+> +{
+> +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_ROLE_SWITCH];
+> +       struct pci_dev *pdev;
+> +       struct device *dev;
+> +       struct device *p;
+> +
+> +       /* First let's find xHCI PCI device */
+> +       pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, NULL);
+> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> +               return -ENODEV;
+> +
+> +       /* Then the child platform device */
+> +       p = device_find_child_by_name(&pdev->dev, "intel_xhci_usb_sw");
+> +       pci_dev_put(pdev);
+> +       if (!p)
+> +               return -EPROBE_DEFER;
+> +
+> +       /* Finally the mux device */
+> +       dev = device_find_child_by_name(p, "intel_xhci_usb_sw-role-switch");
+> +       put_device(p);
+> +       if (!dev)
+> +               return -EPROBE_DEFER;
+> +
+> +       /* If there already is a node for the mux, using that one. */
+> +       if (dev->fwnode) {
+> +               fwnode_handle_get(dev->fwnode);
+> +               fwnode_remove_software_node(fwnode);
+> +               data->node[INT33FE_NODE_ROLE_SWITCH] = dev->fwnode;
+> +       } else {
+> +               /* The node can be tied to the lifetime of the device. */
+> +               dev->fwnode = fwnode_handle_get(dev->fwnode);
+> +       }
+> +
+> +       put_device(dev);
+> +
+> +       return 0;
+> +}
+> +
+> +static int cht_int33fe_setup_dp(struct cht_int33fe_data *data)
+> +{
+> +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
+> +       struct pci_dev *pdev;
+> +
+> +       /* First let's find the GPU PCI device */
+> +       pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, NULL);
+> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
+> +               return -ENODEV;
+> +
+> +       /* Then the DP child device node */
+> +       data->dp = device_get_named_child_node(&pdev->dev, "DD02");
+> +       pci_dev_put(pdev);
+> +       if (!data->dp)
+> +               return -ENODEV;
+> +
+> +       fwnode->secondary = ERR_PTR(-ENODEV);
+> +       data->dp->secondary = fwnode;
+> +
+> +       return 0;
+> +}
+> +
+>  static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
 >  {
-> +	char name[ACPI_PATH_SEGMENT_LENGTH];
->  	struct fwnode_handle *child;
-> +	struct acpi_buffer path;
-> +	acpi_status status;
->  
-> -	/*
-> -	 * Find first matching named child node of this fwnode.
-> -	 * For ACPI this will be a data only sub-node.
-> -	 */
-> -	fwnode_for_each_child_node(fwnode, child)
-> -		if (acpi_data_node_match(child, childname))
-> +	path.length = sizeof(name);
-> +	path.pointer = name;
+>         int i;
+> @@ -154,6 +220,12 @@ static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
+>                 fwnode_remove_software_node(data->node[i]);
+>                 data->node[i] = NULL;
+>         }
 > +
-> +	fwnode_for_each_child_node(fwnode, child) {
-> +		if (is_acpi_data_node(child)) {
-> +			if (acpi_data_node_match(child, childname))
-> +				return child;
-> +			continue;
-> +		}
+> +       if (data->dp) {
+> +               data->dp->secondary = NULL;
+> +               fwnode_handle_put(data->dp);
+> +               data->dp = NULL;
+> +       }
+>  }
+>
+>  static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
+> @@ -180,6 +252,26 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
+>         }
+>         data->node[INT33FE_NODE_USB_CONNECTOR] = fwnode;
+>
+> +       /* The devices that are not created in this driver need extra steps. */
 > +
-> +		status = acpi_get_name(ACPI_HANDLE_FWNODE(child),
-> +				       ACPI_SINGLE_NAME, &path);
-> +		if (ACPI_FAILURE(status))
-> +			break;
+> +       /*
+> +        * There is no ACPI device node for the USB role mux, so we need to find
+> +        * the mux device and assign our node directly to it. That means we
+> +        * depend on the mux driver. This function will return -PROBE_DEFER
+> +        * until the mux device is registered.
+> +        */
+> +       ret = cht_int33fe_setup_mux(data);
+> +       if (ret)
+> +               goto err_remove_nodes;
 > +
-> +		if (!strncmp(name, childname, ACPI_NAME_SIZE))
+> +       /*
+> +        * The DP connector does have ACPI device node. In this case we can just
+> +        * find that ACPI node and assing our node as the secondary node to it.
+> +        */
+> +       ret = cht_int33fe_setup_dp(data);
+> +       if (ret)
+> +               goto err_remove_nodes;
+> +
+>         return 0;
+>
+>  err_remove_nodes:
+> --
+> 2.20.1
+>
 
-I rebased these on of todays linux-next, and noticed that Bob renamed
-ACPI_NAME_SIZE to ACPI_NAMESEG_SIZE in commit 3278675567df ("ACPICA:
-Rename nameseg length macro/define for clarity").
 
-I'll fix that and resend these tomorrow.
-
-thanks,
-
--- 
-heikki
+--
+With Best Regards,
+Andy Shevchenko
