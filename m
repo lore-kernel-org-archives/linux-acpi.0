@@ -2,148 +2,130 @@ Return-Path: <SRS0=iZuV=SN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78696C10F13
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 15:12:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 066EEC282CE
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 15:39:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 36BA32083E
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 15:12:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JnENka0u"
+	by mail.kernel.org (Postfix) with ESMTP id CC8FF2083E
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 15:39:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726646AbfDKPMp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Apr 2019 11:12:45 -0400
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:40296 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726073AbfDKPMp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 11:12:45 -0400
-Received: by mail-pf1-f196.google.com with SMTP id c207so3600924pfc.7;
-        Thu, 11 Apr 2019 08:12:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=IWQcftR6mH8d1KaUspZb8lK78X37q469Ady0BoKgdz8=;
-        b=JnENka0uLW4/bYOvKYXucMlA0PqmhaQN4jjoSSPtLZgun9glviYOrJYqWEW3Vj/Lr5
-         QG6gpe3m2SVTNy7B4+paCcUwbFC5PezIDayv7Xxalr7VvgwDEHLuX3GP9MmnQv2G+pve
-         Gxv4wi6006IbHxeBMWFuwrrny5QpDU2nExPD5fJj6gKmR3nmXFYXjrL1uQN/kSkqtqFg
-         t9b4Hg7fjV+It+BIoVd4QGePOIpMlxZbRwjpGQZH/zSZDBZaKwfNsLZSB+08rVQomHgT
-         To7wlOARDh0wXBhfsLCzzaU6KE8+K8sHELq+lBeADieE8yiR6NIkaFnriOyW7pEQM2k6
-         CNjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=IWQcftR6mH8d1KaUspZb8lK78X37q469Ady0BoKgdz8=;
-        b=d36KkyBUOg+ENiEObMN3i4bkVZFiWL5PMuhEtjyl8ikZEe2hWsh8N1sLyYB6aZGW94
-         +hreq18wZIbxHEvfShY3ZgrA5aCDSxv5ck4ztqwfnsAa1YOadHHbIq1THUHDpv3jTRKf
-         ptDQaQoHqpXsXOjTLEggPy0xX9l3QUZ5QjTotn7r6ZbzyxDcx58KFwg8hDXhqf2VFTGq
-         iqIih+ix2SvDF3d8A7EcIkqBnpufROq9zFwRbcPSKDMW6WD4L6dlFVOGyFvQWCWZYSC0
-         I4EwRxS14l1s0sno4QuM52pusDDKdDiYdXBszrfweNrSeMWL8l30kTMix1oswFOifTZX
-         POTQ==
-X-Gm-Message-State: APjAAAXbIdM7HIGeKb8QIF9sZI+BB+RqE3V/gLHJ7EgJrGNhz5UD9lcA
-        OVlxrDmiWpEf7nptXXHUDuA=
-X-Google-Smtp-Source: APXvYqw5S5JCU7PeLgtcxICw1HN/OU/WskTXIm/GKqIQpZzK6MPJ77+RPnXBn0E3YBi+H77Idhye2A==
-X-Received: by 2002:a63:f212:: with SMTP id v18mr46169864pgh.231.1554995564657;
-        Thu, 11 Apr 2019 08:12:44 -0700 (PDT)
-Received: from mail.google.com ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id w11sm27887221pfi.37.2019.04.11.08.12.40
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 11 Apr 2019 08:12:43 -0700 (PDT)
-Date:   Thu, 11 Apr 2019 23:12:36 +0800
-From:   Changbin Du <changbin.du@gmail.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Jonathan Corbet <corbet@lwn.net>,
-        Changbin Du <changbin.du@gmail.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        id S1726805AbfDKPjQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Apr 2019 11:39:16 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:36356 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726073AbfDKPjP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 Apr 2019 11:39:15 -0400
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id CE506308B232;
+        Thu, 11 Apr 2019 15:39:14 +0000 (UTC)
+Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4DF405D961;
+        Thu, 11 Apr 2019 15:39:10 +0000 (UTC)
+Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
+        by colo-mx.corp.redhat.com (Postfix) with ESMTP id C61B741F3C;
+        Thu, 11 Apr 2019 15:39:06 +0000 (UTC)
+Date:   Thu, 11 Apr 2019 11:39:06 -0400 (EDT)
+From:   Pankaj Gupta <pagupta@redhat.com>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     linux-nvdimm <linux-nvdimm@lists.01.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Message-ID: <20190411151234.fvowhdqbfmwc6icr@mail.google.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
- <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
- <20190403133613.13f3fd75@lwn.net>
- <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
- <20190409152638.5b20c77f@lwn.net>
- <CAJZ5v0jgbvixMJTVPfEHMX0z-ssc9ZcMRCwS-QEyqtkFWcNh5Q@mail.gmail.com>
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Christoph Hellwig <hch@infradead.org>,
+        Len Brown <lenb@kernel.org>, Jan Kara <jack@suse.cz>,
+        Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
+        Igor Mammedov <imammedo@redhat.com>,
+        jmoyer <jmoyer@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Rik van Riel <riel@surriel.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        david <david@fromorbit.com>, cohuck@redhat.com,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
+        yuval shaia <yuval.shaia@oracle.com>
+Message-ID: <393821092.21153045.1554997146416.JavaMail.zimbra@redhat.com>
+In-Reply-To: <CAPcyv4gXwE2k3JU94GPav0xn2LEgR6-7ZEVYyTHFRjCfTYjerw@mail.gmail.com>
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-4-pagupta@redhat.com> <CAPcyv4gXwE2k3JU94GPav0xn2LEgR6-7ZEVYyTHFRjCfTYjerw@mail.gmail.com>
+Subject: Re: [PATCH v5 3/6] libnvdimm: add dax_dev sync flag
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jgbvixMJTVPfEHMX0z-ssc9ZcMRCwS-QEyqtkFWcNh5Q@mail.gmail.com>
-User-Agent: NeoMutt/20180716
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.67.116.71, 10.4.195.19]
+Thread-Topic: libnvdimm: add dax_dev sync flag
+Thread-Index: c0h6aJgeiBnDRJuQUzBrBpkw3+vU/Q==
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.47]); Thu, 11 Apr 2019 15:39:15 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190411151236.V1c0tGJBQT5--FHM7_Ns2u-GtiyYKrI45G1PuYe8wIQ@z>
+Message-ID: <20190411153906.T4m6W13e2f3ITObRa9va0U1ceYkYsGbetk8sScyeZGk@z>
 
-On Tue, Apr 09, 2019 at 11:44:11PM +0200, Rafael J. Wysocki wrote:
-> On Tue, Apr 9, 2019 at 11:26 PM Jonathan Corbet <corbet@lwn.net> wrote:
-> >
-> > On Tue, 9 Apr 2019 18:42:59 +0200
-> > "Rafael J. Wysocki" <rafael@kernel.org> wrote:
-> >
-> > > > Hardware guide
-> > >
-> > > This is more about documenting the expectations regarding the platform
-> > > firmware, so what about firmware-guide instead?
-> >
-> > I had imagined a slightly wider focus, but this seems OK for now.  We can
-> > always rename it later :)
-> >
-> > > So what about this:
-> > >
-> > > - Create a new firmware-guide under Documentation and add an acpi/
-> > > directory to it for starters.  Put the following files into it:
-> > >
-> > >          acpi-lid
-> > >          aml-debugger
-> > >          debug (ditto)
-> > >          DSD-properties-rules
-> > >          gpio-properties
-> > >          i2c-muxes
-> > >
-> > > - Add an acpi/ subdirectory to Documentation/admin-guide and put the
-> > > following files into it:
-> > >
-> > >          cppc_sysfs
-> > >          initrd_table_override
-> > >          dsdt-override
-> >
-> > I do wonder if, rather than creating a new directory, we shouldn't just
-> > make a single acpi.rst and put that information into it?
-> >
-> > > - Add an acpi/ subdirectory to Documentation/driver-api and put the
-> > > following files into it:
-> > >
-> > >          enumeration
-> > >          scan_handlers
-> >
-> > ...and something similar here?  I guess that would be my preference, but I
-> > don't feel all that strongly about it if there's reasons to do otherwise.
-> 
-> The primary reason would be to retain the correspondence between the
-> old and the new files.
-> 
-> I guess they could be combined, but that would be two sort of
-> different changes in one go.
-> 
-> > In general the plan seems good.
-> 
-> OK, thanks!
-> 
-> Cheers,
-> Rafael
-Ok, if we have reached this greement, I probably do it this weekend. Thanks for your
-comments.
 
--- 
-Cheers,
-Changbin Du
+Hi Dan,
+
+Thank you for the review.
+
+> >
+> > This patch adds 'DAXDEV_SYNC' flag which is set
+> > for nd_region doing synchronous flush. This later
+> > is used to disable MAP_SYNC functionality for
+> > ext4 & xfs filesystem for devices don't support
+> > synchronous flush.
+> >
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  drivers/dax/bus.c            |  2 +-
+> >  drivers/dax/super.c          | 13 ++++++++++++-
+> >  drivers/md/dm.c              |  2 +-
+> >  drivers/nvdimm/pmem.c        |  3 ++-
+> >  drivers/nvdimm/region_devs.c |  7 +++++++
+> >  include/linux/dax.h          |  9 +++++++--
+> >  include/linux/libnvdimm.h    |  1 +
+> >  7 files changed, 31 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> > index 2109cfe80219..431bf7d2a7f9 100644
+> > --- a/drivers/dax/bus.c
+> > +++ b/drivers/dax/bus.c
+> > @@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region
+> > *dax_region, int id,
+> >          * No 'host' or dax_operations since there is no access to this
+> >          * device outside of mmap of the resulting character device.
+> >          */
+> > -       dax_dev = alloc_dax(dev_dax, NULL, NULL);
+> > +       dax_dev = alloc_dax(dev_dax, NULL, NULL, true);
+> 
+> I find apis that take a boolean as unreadable. What does 'true' mean?
+> It wastes time to go look at the function definition vs something
+> like:
+> 
+>     alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
+
+Agree. Will change as suggested.
+
+Best regards,
+Pankaj
+> 
