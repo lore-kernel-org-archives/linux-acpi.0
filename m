@@ -7,58 +7,58 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A43C10F13
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:29:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A931C10F13
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:30:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 672D32083E
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:29:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EF112184B
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:30:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aEb8cyH3"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qj7uOvhg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726629AbfDKN3K (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Apr 2019 09:29:10 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:46121 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726106AbfDKN3K (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 09:29:10 -0400
-Received: by mail-pg1-f194.google.com with SMTP id q1so3509856pgv.13;
-        Thu, 11 Apr 2019 06:29:10 -0700 (PDT)
+        id S1726615AbfDKNai (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Apr 2019 09:30:38 -0400
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:37620 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726517AbfDKNai (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 09:30:38 -0400
+Received: by mail-pl1-f193.google.com with SMTP id w23so3429897ply.4;
+        Thu, 11 Apr 2019 06:30:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=NfP06EvcsQ3On/5zQPU72LK3QwG/JvDoL9SymndWhmI=;
-        b=aEb8cyH3JmTFiDSBFR9MkEp2uRiaE+NQ30H9XX7rmV3WN8U8RopiryENF0ojIy4QMZ
-         WOh7zAH4oDXx3qKPwdJx58Q/oLlrk2X+Np+IkxyToXKTP6WPQ8GRBokHxArztgSyhHaX
-         B0On5jABRWJsKKOis6UPlmLcWE6ggzdq+qmCQ/u4aoQRVVhQD5LqWWHyny3Dh1smYWDj
-         JmXHWAvvaoo8nn0/wt2y0ugvEnGjFXpiNOOm7IBTYKd4mlKUWKfUz8jDt3lmwneHb9KU
-         tltt/BhdhZ/BDLeXQs8N2tE9DqdF+drX4fDriivt731eqHnSBhmAHJCqFVsjA/0AO6I2
-         fxVg==
+        bh=QlwbzU2RBKO9Nn8+4r6gh/M3eH3CzEshhtHVomqF3KQ=;
+        b=Qj7uOvhguLviyZQ97IZwU7MSaVUpOPNfaEa87bz3vyZIUoU4JICV3zvDF4Dm9SRgOA
+         EqtYrhHfZqprg/nqVGX0JHYXz6cesbHhCEylAbBO72ysgDKbBjXqp4H+auAwY5gvdCXc
+         sEJHi5Sjw0tSquGLynDuMEAgY0TNbRIZHpujXCFesjgFzZO2ckMA4CEcyRW/gXpG2ppM
+         Jc4IZRnBYN5BiesTNFuz9cCayS52OlP66WXqV1txQ1v+Mtfed30V1qFPcGS9lSnu8m84
+         pln3eC3GMGCsjvdpOeOawbfcY4iD+jkPmxBot2Bq2EXIRV1nQi6So8uy6EPLX1HIl3kw
+         Q3/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=NfP06EvcsQ3On/5zQPU72LK3QwG/JvDoL9SymndWhmI=;
-        b=l0VV5tVVoOGQEoYxztmXWsTq5H12gzivNw96NDVKKJqO15pMR5yJ3nN9G2aABY1XYq
-         UAka2wz46YUH+XmKYyryR+EosubLBcNL4XHhuZXeswGGncdlB3h6dJL0mCwf7/Jkh+E1
-         vlTMZhFYe+7GtVvA47pCGDeUCJO17f5A2OvnhmouxafjPeZORxk2Enl0jOg+J56NqxMW
-         zddKC1QhC+tjz0e/UXAtybHEgyjHGsno0L1w0gsfnDMarib63gClknVKbDDL3QWuyIR4
-         oCKlCv4MuR6jRkjDz10Zg8SRKXcWVKkvd4uN04OTeFiWbpe0/lsDq6apAW3uOFWnm9gc
-         yghA==
-X-Gm-Message-State: APjAAAXbJW/Anh8yb9WVvQO/wtUTbK6EJFzPy2Ko86i98bjBMG7Sb6WW
-        0FQeH5W/4RK5OwGxGCywznpvRirDmEv85frzAh2hIAWsciI=
-X-Google-Smtp-Source: APXvYqyEfigOdB9v+oFd0RSoaMES3H3XziyNaQIxzjXqu2/BzTTB8NLCEBwvD/ffqh1Sg+4vv7nSftLt4BxYXk2kCN8=
-X-Received: by 2002:a63:530e:: with SMTP id h14mr11464957pgb.136.1554989349740;
- Thu, 11 Apr 2019 06:29:09 -0700 (PDT)
+        bh=QlwbzU2RBKO9Nn8+4r6gh/M3eH3CzEshhtHVomqF3KQ=;
+        b=jAosOAn06eXrbo2nPxe7O17As6sfe/tAmcXFjObG14Ih6uS7zXgG9Syg55ndz/gV9v
+         lqyY8xLnI1NaxYtGopFqnGpfh0xUzKd2poY/ZUYU751t4rhT9OF/mtMAuRn+qxUpqRt0
+         4xdjO/DUfWM2Du7BVZ7svKXweF/9fUP4DfnRfXKJDnxxGl4wA4fryf2NRKOX5GGXlEOk
+         8/tp0qs1ewRqc0Pl1Kg3H9TJ2s8oEvPA41Yj6qgPE/OCXkrMeiMk/221p6uSsOIMoLI3
+         WWQYsvM9XECqVklTNYW4yBy99/SWkx0U06AigxRE85e6gBQsUSGQd8uK+d5eHOJgsvdW
+         EptA==
+X-Gm-Message-State: APjAAAU2ztoGFzGFpWhLlYdZ6+fFBBEUWmFqDVN20d0l5CcfJaY7prvS
+        DzxRLAZvUp7OcxytOG82q6CcZbxF98iBxvm/aig=
+X-Google-Smtp-Source: APXvYqw5aApG1kOM7K1rRJvvsa7YiDjOtgK36/Xhkg45zY7r52Rl6njtGJqvZIaG1iq9L3bSIva4Is5xDbrVnP+cJ5g=
+X-Received: by 2002:a17:902:9686:: with SMTP id n6mr8294568plp.282.1554989437133;
+ Thu, 11 Apr 2019 06:30:37 -0700 (PDT)
 MIME-Version: 1.0
-References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com> <20190410152505.87041-12-heikki.krogerus@linux.intel.com>
-In-Reply-To: <20190410152505.87041-12-heikki.krogerus@linux.intel.com>
+References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com> <20190410152505.87041-13-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20190410152505.87041-13-heikki.krogerus@linux.intel.com>
 From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 11 Apr 2019 16:28:58 +0300
+Date:   Thu, 11 Apr 2019 16:30:26 +0300
 Message-ID:
- <CAHp75VeM8Ob-Q9FToNxt7Rwrcoodpphc10=PpDw9CB6xd=3eUA@mail.gmail.com>
-Subject: Re: [PATCH v2 11/12] platform/x86: intel_cht_int33fe: Link with
- external dependencies using fwnodes
+ <CAHp75VdtNAAHPSPji6h1hQU+Yehu5pqaD3RCEfqLud12NvtTfA@mail.gmail.com>
+Subject: Re: [PATCH v2 12/12] platform/x86: intel_cht_int33fe: Replacing the
+ old connections with references
 To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -73,164 +73,188 @@ Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190411132858.uqlwNbpYL4Gd9ZknAJyu9Lk4kKrVJljFsXoQ9MLld2E@z>
+Message-ID: <20190411133026.mY46_6g5POKTIuRXSNpNiM7hYA5MkpGa3gf8quYICX8@z>
 
 On Wed, Apr 10, 2019 at 6:25 PM Heikki Krogerus
 <heikki.krogerus@linux.intel.com> wrote:
 >
-> Supplying also external devices - the DisplayPort connector
-> and the USB role switch - software fwnodes. After this the
-> driver has access to all the components tied to the USB
-> Type-C connector and can start creating software node
-> references to actually associate them with the USB Type-C
-> connector device.
+> Now that the software nodes support references, and the
+> device connection API support parsing fwnode references,
+> replacing the old connection descriptions with software node
+> references. Relying on device names when matching the
+> connection would not have been possible to link the USB
+> Type-C connector and the DisplayPort connector together, but
+> with real references it's not problem.
+>
+> The DisplayPort ACPI node is dag up, and the drivers own
+> software node for the DisplayPort is set as the secondary
+> node for it. The USB Type-C connector refers the software
+> node, but it is now tied to the ACPI node, and therefore any
+> device entry (struct drm_connector in practice) that the
+> node combo is assigned to.
+>
+> The USB role switch device does not have ACPI node, so we
+> have to wait for the device to appear. Then we can simply
+> assign our software node for the to the device.
 >
 
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
 > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 > ---
->  drivers/platform/x86/intel_cht_int33fe.c | 92 ++++++++++++++++++++++++
->  1 file changed, 92 insertions(+)
+>  drivers/platform/x86/intel_cht_int33fe.c | 94 +++++++++++++++++++-----
+>  1 file changed, 77 insertions(+), 17 deletions(-)
 >
 > diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-> index 0707afd39ca5..0687aa23fcfe 100644
+> index 0687aa23fcfe..8d9f890ec000 100644
 > --- a/drivers/platform/x86/intel_cht_int33fe.c
 > +++ b/drivers/platform/x86/intel_cht_int33fe.c
-> @@ -33,6 +33,8 @@ enum {
->         INT33FE_NODE_FUSB302,
->         INT33FE_NODE_MAX17047,
->         INT33FE_NODE_PI3USB30532,
-> +       INT33FE_NODE_DISPLAYPORT,
-> +       INT33FE_NODE_ROLE_SWITCH,
->         INT33FE_NODE_USB_CONNECTOR,
+> @@ -39,15 +39,22 @@ enum {
 >         INT33FE_NODE_MAX,
 >  };
-> @@ -44,6 +46,7 @@ struct cht_int33fe_data {
->         /* Contain a list-head must be per device */
->         struct device_connection connections[4];
 >
-> +       struct fwnode_handle *dp;
+> +enum {
+> +       INT33FE_REF_ORIENTATION,
+> +       INT33FE_REF_MODE_MUX,
+> +       INT33FE_REF_DISPLAYPORT,
+> +       INT33FE_REF_ROLE_SWITCH,
+> +       INT33FE_REF_MAX,
+> +};
+> +
+>  struct cht_int33fe_data {
+>         struct i2c_client *max17047;
+>         struct i2c_client *fusb302;
+>         struct i2c_client *pi3usb30532;
+> -       /* Contain a list-head must be per device */
+> -       struct device_connection connections[4];
+>
+>         struct fwnode_handle *dp;
 >         struct fwnode_handle *node[INT33FE_NODE_MAX];
+> +       struct software_node_reference *ref[INT33FE_REF_MAX];
 >  };
 >
-> @@ -144,8 +147,71 @@ static const struct property_entry *props[] = {
->         [INT33FE_NODE_FUSB302]          = fusb302_props,
->         [INT33FE_NODE_MAX17047]         = max17047_props,
->         [INT33FE_NODE_PI3USB30532]      = NULL,
-> +       [INT33FE_NODE_DISPLAYPORT]      = NULL,
-> +       [INT33FE_NODE_ROLE_SWITCH]      = NULL,
->  };
->
-> +static int cht_int33fe_setup_mux(struct cht_int33fe_data *data)
-> +{
-> +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_ROLE_SWITCH];
-> +       struct pci_dev *pdev;
-> +       struct device *dev;
-> +       struct device *p;
-> +
-> +       /* First let's find xHCI PCI device */
-> +       pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, NULL);
-> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
-> +               return -ENODEV;
-> +
-> +       /* Then the child platform device */
-> +       p = device_find_child_by_name(&pdev->dev, "intel_xhci_usb_sw");
-> +       pci_dev_put(pdev);
-> +       if (!p)
-> +               return -EPROBE_DEFER;
-> +
-> +       /* Finally the mux device */
-> +       dev = device_find_child_by_name(p, "intel_xhci_usb_sw-role-switch");
-> +       put_device(p);
-> +       if (!dev)
-> +               return -EPROBE_DEFER;
-> +
-> +       /* If there already is a node for the mux, using that one. */
-> +       if (dev->fwnode) {
-> +               fwnode_handle_get(dev->fwnode);
-> +               fwnode_remove_software_node(fwnode);
-> +               data->node[INT33FE_NODE_ROLE_SWITCH] = dev->fwnode;
-> +       } else {
-> +               /* The node can be tied to the lifetime of the device. */
-> +               dev->fwnode = fwnode_handle_get(dev->fwnode);
-> +       }
-> +
-> +       put_device(dev);
-> +
-> +       return 0;
-> +}
-> +
-> +static int cht_int33fe_setup_dp(struct cht_int33fe_data *data)
-> +{
-> +       struct fwnode_handle *fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
-> +       struct pci_dev *pdev;
-> +
-> +       /* First let's find the GPU PCI device */
-> +       pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, NULL);
-> +       if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
-> +               return -ENODEV;
-> +
-> +       /* Then the DP child device node */
-> +       data->dp = device_get_named_child_node(&pdev->dev, "DD02");
-> +       pci_dev_put(pdev);
-> +       if (!data->dp)
-> +               return -ENODEV;
-> +
-> +       fwnode->secondary = ERR_PTR(-ENODEV);
-> +       data->dp->secondary = fwnode;
-> +
-> +       return 0;
-> +}
-> +
->  static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
->  {
->         int i;
-> @@ -154,6 +220,12 @@ static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
->                 fwnode_remove_software_node(data->node[i]);
->                 data->node[i] = NULL;
->         }
-> +
-> +       if (data->dp) {
-> +               data->dp->secondary = NULL;
-> +               fwnode_handle_put(data->dp);
-> +               data->dp = NULL;
-> +       }
+>  /*
+> @@ -280,6 +287,65 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
+>         return ret;
 >  }
 >
->  static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
-> @@ -180,6 +252,26 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
->         }
->         data->node[INT33FE_NODE_USB_CONNECTOR] = fwnode;
+> +static void cht_int33fe_remove_references(struct cht_int33fe_data *data)
+> +{
+> +       int i;
+> +
+> +       for (i = 0; i < INT33FE_REF_MAX; i++)
+> +               fwnode_remove_software_node_reference(data->ref[i]);
+> +}
+> +
+> +static int cht_int33fe_add_references(struct cht_int33fe_data *data)
+> +{
+> +       struct fwnode_reference_args args[2] = { };
+> +       struct software_node_reference *ref;
+> +       struct fwnode_handle *con;
+> +
+> +       con = data->node[INT33FE_NODE_USB_CONNECTOR];
+> +
+> +       /* USB Type-C muxes */
+> +       args[0].fwnode = data->node[INT33FE_NODE_PI3USB30532];
+> +       args[1].fwnode = NULL;
+> +
+> +       ref = fwnode_create_software_node_reference(con, "orientation-switch",
+> +                                                   args);
+> +       if (IS_ERR(ref))
+> +               return PTR_ERR(ref);
+> +       data->ref[INT33FE_REF_ORIENTATION] = ref;
+> +
+> +       ref = fwnode_create_software_node_reference(con, "mode-switch", args);
+> +       if (IS_ERR(ref)) {
+> +               cht_int33fe_remove_references(data);
+> +               return PTR_ERR(ref);
+> +       }
+> +       data->ref[INT33FE_REF_MODE_MUX] = ref;
+> +
+> +       /* USB role switch */
+> +       args[0].fwnode = data->node[INT33FE_NODE_ROLE_SWITCH];
+> +       args[1].fwnode = NULL;
+> +
+> +       ref = fwnode_create_software_node_reference(con, "usb-role-switch",
+> +                                                   args);
+> +       if (IS_ERR(ref)) {
+> +               cht_int33fe_remove_references(data);
+> +               return PTR_ERR(ref);
+> +       }
+> +       data->ref[INT33FE_REF_ROLE_SWITCH] = ref;
+> +
+> +       /* DisplayPort */
+> +       args[0].fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
+> +       args[1].fwnode = NULL;
+> +
+> +       ref = fwnode_create_software_node_reference(con, "displayport", args);
+> +       if (IS_ERR(ref)) {
+> +               cht_int33fe_remove_references(data);
+> +               return PTR_ERR(ref);
+> +       }
+> +       data->ref[INT33FE_REF_DISPLAYPORT] = ref;
+> +
+> +       return 0;
+> +}
+> +
+>  static int cht_int33fe_probe(struct platform_device *pdev)
+>  {
+>         struct device *dev = &pdev->dev;
+> @@ -348,22 +414,14 @@ static int cht_int33fe_probe(struct platform_device *pdev)
+>         if (ret)
+>                 return ret;
 >
-> +       /* The devices that are not created in this driver need extra steps. */
-> +
-> +       /*
-> +        * There is no ACPI device node for the USB role mux, so we need to find
-> +        * the mux device and assign our node directly to it. That means we
-> +        * depend on the mux driver. This function will return -PROBE_DEFER
-> +        * until the mux device is registered.
-> +        */
-> +       ret = cht_int33fe_setup_mux(data);
+> -       /* Work around BIOS bug, see comment on cht_int33fe_check_for_max17047 */
+> -       ret = cht_int33fe_find_max17047(dev, data);
+> +       ret = cht_int33fe_add_references(data);
+>         if (ret)
+>                 goto out_remove_nodes;
+>
+> -       data->connections[0].endpoint[0] = "port0";
+> -       data->connections[0].endpoint[1] = "i2c-pi3usb30532-switch";
+> -       data->connections[0].id = "orientation-switch";
+> -       data->connections[1].endpoint[0] = "port0";
+> -       data->connections[1].endpoint[1] = "i2c-pi3usb30532-mux";
+> -       data->connections[1].id = "mode-switch";
+> -       data->connections[2].endpoint[0] = "i2c-fusb302";
+> -       data->connections[2].endpoint[1] = "intel_xhci_usb_sw-role-switch";
+> -       data->connections[2].id = "usb-role-switch";
+> -
+> -       device_connections_add(data->connections);
+> +       /* Work around BIOS bug, see comment on cht_int33fe_check_for_max17047 */
+> +       ret = cht_int33fe_find_max17047(dev, data);
 > +       if (ret)
-> +               goto err_remove_nodes;
+> +               goto out_remove_references;
+>
+>         memset(&board_info, 0, sizeof(board_info));
+>         strlcpy(board_info.type, "typec_fusb302", I2C_NAME_SIZE);
+> @@ -396,9 +454,11 @@ static int cht_int33fe_probe(struct platform_device *pdev)
+>         i2c_unregister_device(data->fusb302);
+>
+>  out_unregister_max17047:
+> -       device_connections_remove(data->connections);
+>         i2c_unregister_device(data->max17047);
+>
+> +out_remove_references:
+> +       cht_int33fe_remove_references(data);
 > +
-> +       /*
-> +        * The DP connector does have ACPI device node. In this case we can just
-> +        * find that ACPI node and assing our node as the secondary node to it.
-> +        */
-> +       ret = cht_int33fe_setup_dp(data);
-> +       if (ret)
-> +               goto err_remove_nodes;
-> +
+>  out_remove_nodes:
+>         cht_int33fe_remove_nodes(data);
+>
+> @@ -413,7 +473,7 @@ static int cht_int33fe_remove(struct platform_device *pdev)
+>         i2c_unregister_device(data->fusb302);
+>         i2c_unregister_device(data->max17047);
+>
+> -       device_connections_remove(data->connections);
+> +       cht_int33fe_remove_references(data);
+>         cht_int33fe_remove_nodes(data);
+>
 >         return 0;
->
->  err_remove_nodes:
 > --
 > 2.20.1
 >
 
 
---
+-- 
 With Best Regards,
 Andy Shevchenko
