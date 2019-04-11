@@ -2,254 +2,190 @@ Return-Path: <SRS0=iZuV=SN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9A37C10F13
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 14:42:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0102DC10F13
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 14:52:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6BC1321850
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 14:42:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1554993778;
-	bh=Gokb2CWQpNw9Yv8hl7LKzoV9ol8iog8Q5lkS6SK5gzo=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=V1EnGy8WlLUAD2oFI8a4/AUHPaSw2pdW2ggQS3iyC+xzoeKPHh4PFi6KJgsZCkedn
-	 BcMe5FcTFM1ZxMvbavk+GktDYceY4YPfyTrBWkLjXOV1t5M3EDqzJQ/ui2ixDbQZ5t
-	 H1xgoGo4X8x/xiB/h3gTgyiuP3Vb2BsaxRQtQv1g=
+	by mail.kernel.org (Postfix) with ESMTP id C53FA21850
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 14:52:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="zi4I18XM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726713AbfDKOm6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Apr 2019 10:42:58 -0400
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:38848 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726708AbfDKOm5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 10:42:57 -0400
-Received: by mail-oi1-f195.google.com with SMTP id a6so5102441oie.5;
-        Thu, 11 Apr 2019 07:42:57 -0700 (PDT)
+        id S1726636AbfDKOwB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Apr 2019 10:52:01 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:43173 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726595AbfDKOwB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 10:52:01 -0400
+Received: by mail-ot1-f65.google.com with SMTP id u15so5453484otq.10
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Apr 2019 07:52:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=HrHI1yUQh4ijcB7YHVwA9JPy3wKlBzvWJG6Efesd/f0=;
+        b=zi4I18XMGtYXeCFOI7IgUdbB0EOZdbnJeoa3l20X2Gqlcl0YR55UhU5luYmUa6cHU5
+         EqcmShYr64nYFlNtn7Rd+1lIJH9XABBmZCQPUOavNMLs+0n9I8m1OuY2+KD0JtN93YcX
+         3rvvNLyeug/w5aNDC5fj4CjwQPXARfaplfRzq12KFQ4x2cbAHrzA+mENqSKh1c617RSg
+         xlJAToPXjpLqe1zcSJodjCgmY5dhUdHQiVkQchFEI36jgwV1c+a/Zf73ibOfskPgdlC8
+         PjhIrDB/UX3hLAtfZ9Gz/P0KisQxQ6VH57FKrSFjl+UerDKSD8YHx1TPbaLhBc3i7fUT
+         dpzg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=crbSSw9RRq2gqjnga1aijJ75H8zXaneGIClC4ImS2/0=;
-        b=LrsHmxcBXNx/dVoNen4xM2AyLXLcPTWSCFw99vZwD3ILxoXgK6dJ4Q7IjQO3nNy99d
-         r3Uj9q9LHY9vAFVSgUNsjEQQizbai7OaL53BoSUOuf3rUWARseaiZ6js4cB1n7eZUvtc
-         d2bxFUD2bzc1vFatWaG/aXkfh77WQiSt7EfrOrtwySw6YeIvfJPLAx6AmC4k5vH6vF67
-         /RTc2d+1zeUTnfrb4Y3iWmhWsV8aTxIr3mKzf26mL4motwsDe0tEJuqvWP9cimWoTHu+
-         BVl5uaexRxMwHGklRoPHaHQetxP/a26kEdwmW5kXnrVmXIdvCQ4426Rb2ISuz7UxBAAB
-         xc1A==
-X-Gm-Message-State: APjAAAUwoG37ZJwIGpXkjlPDDaeVIDDIvloAVIfN1fURZ3ur/GhI7krG
-        nwAuJdgLnmEiwNHgpf3G5u+6vsLz2sbSnYi0kMY=
-X-Google-Smtp-Source: APXvYqzFQAIrlFxpwlyEWoq6CpQY9y7nONO4rSZruvAoVkbHDac1JeCFyyQ2POUfLRzzHqsFQ84OyxDxuZpXgiMC5Vs=
-X-Received: by 2002:aca:eb93:: with SMTP id j141mr6329300oih.178.1554993776444;
- Thu, 11 Apr 2019 07:42:56 -0700 (PDT)
+        bh=HrHI1yUQh4ijcB7YHVwA9JPy3wKlBzvWJG6Efesd/f0=;
+        b=hF3dAzc0qtboMQcPEAkQIBPCCtsZSeKPfx7Aze+VFVxcfRcq81vBxjAXaPObgKnDoe
+         NKD9yzSjbFjYUJ5h96xAN3LfkKa/QV3y7kiSqRyCr2DO8fR7DKq5MmotfgL47srP6/7t
+         yBIqgq3WbvRvNniuVtMk0TtMi26zvTFjcyP90s+4cCb9WPrJYOYGkQtcPZpPqzQqm3OY
+         8WTBdaPItZcuToS2YVFa1Br6S0Fvxy2eZmwhS6ENAy5uinM2gq79uPnN83Y+0kkWxkrE
+         JT8M8E4SOqpercsW877sUV3jvrpoBPPE6z8aTr3yti1lL6bqtTxB69VQS2WefNgwuZTC
+         LoEA==
+X-Gm-Message-State: APjAAAViiX7hmyirt0ISqVYHPDlSA+ra8Qw69UsFcXK5VQX0EX9RVit0
+        8uQxENipDwLSz0xDLaWy6W6QTtf9XHZ6e29AAB/F7g==
+X-Google-Smtp-Source: APXvYqzmftlTRUTwhQDYzvgypbDnyLvMFUn2U/nKPouHN/rEyYp+JGo6QjH+KjaSpQBo5LMn3j6ZwzdKIOwlKbwUyTU=
+X-Received: by 2002:a9d:3f4b:: with SMTP id m69mr32615377otc.246.1554994319729;
+ Thu, 11 Apr 2019 07:51:59 -0700 (PDT)
 MIME-Version: 1.0
-References: <20190409214415.3722-1-keith.busch@intel.com>
-In-Reply-To: <20190409214415.3722-1-keith.busch@intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 11 Apr 2019 16:42:45 +0200
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com>
+In-Reply-To: <20190410040826.24371-2-pagupta@redhat.com>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Thu, 11 Apr 2019 07:51:48 -0700
 Message-ID:
- <CAJZ5v0gOuHSoMd6dnGKN5fW1xKF89b2ak0F4mo+07FBpFUCP6A@mail.gmail.com>
-Subject: Re: [PATCH] hmat: Register attributes for memory hot add
-To:     Keith Busch <keith.busch@intel.com>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        Rafael Wysocki <rafael@kernel.org>,
-        Dave Hansen <dave.hansen@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Brice Goglin <Brice.Goglin@inria.fr>
+ <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+To:     Pankaj Gupta <pagupta@redhat.com>
+Cc:     linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Christoph Hellwig <hch@infradead.org>,
+        Len Brown <lenb@kernel.org>, Jan Kara <jack@suse.cz>,
+        "Theodore Ts'o" <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
+        Igor Mammedov <imammedo@redhat.com>,
+        jmoyer <jmoyer@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Rik van Riel <riel@surriel.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        david <david@fromorbit.com>, cohuck@redhat.com,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
+        yuval.shaia@oracle.com
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190411144245.RT09subAz-h77sgoyNPvwjt0n4hHbebWCRx_4e80yKA@z>
+Message-ID: <20190411145148.q88nT7tIAWZ_2UAAYo7YnSddeydu4sN2w7ieMI1iLyQ@z>
 
-On Tue, Apr 9, 2019 at 11:42 PM Keith Busch <keith.busch@intel.com> wrote:
+On Tue, Apr 9, 2019 at 9:09 PM Pankaj Gupta <pagupta@redhat.com> wrote:
 >
-> Some types of memory nodes that HMAT describes may not be online at the
-> time we initially parse their nodes' tables. If the node should be set
-> to online later, as can happen when using PMEM as RAM after boot, the
-> node's attributes will be missing their initiator links and performance.
+> This patch adds functionality to perform flush from guest
+> to host over VIRTIO. We are registering a callback based
+> on 'nd_region' type. virtio_pmem driver requires this special
+> flush function. For rest of the region types we are registering
+> existing flush function. Report error returned by host fsync
+> failure to userspace.
 >
-> Regsiter a memory notifier callback and set the memory attributes when
-> a node is initially brought online with hot added memory, and don't try
-> to register node attributes if the node is not online during initial
-> scanning.
+> This also handles asynchronous flush requests from the block layer
+> by creating a child bio and chaining it with parent bio.
 >
-> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 > ---
->  drivers/acpi/hmat/hmat.c | 63 ++++++++++++++++++++++++++++++++++++++----------
->  1 file changed, 50 insertions(+), 13 deletions(-)
+[..]
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index b4ef7d9ff22e..fb1041ab32a6 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -295,7 +295,9 @@ static ssize_t deep_flush_store(struct device *dev, struct device_attribute *att
+>                 return rc;
+>         if (!flush)
+>                 return -EINVAL;
+> -       nvdimm_flush(nd_region);
+> +       rc = nvdimm_flush(nd_region, NULL, false);
+> +       if (rc)
+> +               return rc;
 >
-> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-> index b275016ff648..cf24b885feb5 100644
-> --- a/drivers/acpi/hmat/hmat.c
-> +++ b/drivers/acpi/hmat/hmat.c
-> @@ -14,14 +14,15 @@
->  #include <linux/init.h>
->  #include <linux/list.h>
->  #include <linux/list_sort.h>
-> +#include <linux/memory.h>
->  #include <linux/node.h>
->  #include <linux/sysfs.h>
->
-> -static __initdata u8 hmat_revision;
-> +static u8 hmat_revision;
->
-> -static __initdata LIST_HEAD(targets);
-> -static __initdata LIST_HEAD(initiators);
-> -static __initdata LIST_HEAD(localities);
-> +static LIST_HEAD(targets);
-> +static LIST_HEAD(initiators);
-> +static LIST_HEAD(localities);
->
->  /*
->   * The defined enum order is used to prioritize attributes to break ties when
-> @@ -41,6 +42,7 @@ struct memory_target {
->         unsigned int memory_pxm;
->         unsigned int processor_pxm;
->         struct node_hmem_attrs hmem_attrs;
-> +       bool registered;
->  };
->
->  struct memory_initiator {
-> @@ -53,7 +55,7 @@ struct memory_locality {
->         struct acpi_hmat_locality *hmat_loc;
->  };
->
-> -static __init struct memory_initiator *find_mem_initiator(unsigned int cpu_pxm)
-> +static struct memory_initiator *find_mem_initiator(unsigned int cpu_pxm)
->  {
->         struct memory_initiator *initiator;
->
-> @@ -63,7 +65,7 @@ static __init struct memory_initiator *find_mem_initiator(unsigned int cpu_pxm)
->         return NULL;
+>         return len;
 >  }
->
-> -static __init struct memory_target *find_mem_target(unsigned int mem_pxm)
-> +static struct memory_target *find_mem_target(unsigned int mem_pxm)
->  {
->         struct memory_target *target;
->
-> @@ -148,7 +150,7 @@ static __init const char *hmat_data_type_suffix(u8 type)
->         }
->  }
->
-> -static __init u32 hmat_normalize(u16 entry, u64 base, u8 type)
-> +static u32 hmat_normalize(u16 entry, u64 base, u8 type)
->  {
->         u32 value;
->
-> @@ -183,7 +185,7 @@ static __init u32 hmat_normalize(u16 entry, u64 base, u8 type)
->         return value;
->  }
->
-> -static __init void hmat_update_target_access(struct memory_target *target,
-> +static void hmat_update_target_access(struct memory_target *target,
->                                              u8 type, u32 value)
->  {
->         switch (type) {
-> @@ -435,7 +437,7 @@ static __init int srat_parse_mem_affinity(union acpi_subtable_headers *header,
->         return 0;
->  }
->
-> -static __init u32 hmat_initiator_perf(struct memory_target *target,
-> +static u32 hmat_initiator_perf(struct memory_target *target,
->                                struct memory_initiator *initiator,
->                                struct acpi_hmat_locality *hmat_loc)
->  {
-> @@ -473,7 +475,7 @@ static __init u32 hmat_initiator_perf(struct memory_target *target,
->                               hmat_loc->data_type);
->  }
->
-> -static __init bool hmat_update_best(u8 type, u32 value, u32 *best)
-> +static bool hmat_update_best(u8 type, u32 value, u32 *best)
->  {
->         bool updated = false;
->
-> @@ -517,7 +519,7 @@ static int initiator_cmp(void *priv, struct list_head *a, struct list_head *b)
->         return ia->processor_pxm - ib->processor_pxm;
->  }
->
-> -static __init void hmat_register_target_initiators(struct memory_target *target)
-> +static void hmat_register_target_initiators(struct memory_target *target)
->  {
->         static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
->         struct memory_initiator *initiator;
-> @@ -577,22 +579,53 @@ static __init void hmat_register_target_initiators(struct memory_target *target)
->         }
->  }
->
-> -static __init void hmat_register_target_perf(struct memory_target *target)
-> +static void hmat_register_target_perf(struct memory_target *target)
->  {
->         unsigned mem_nid = pxm_to_node(target->memory_pxm);
->         node_set_perf_attrs(mem_nid, &target->hmem_attrs, 0);
->  }
->
-> -static __init void hmat_register_targets(void)
-> +static void hmat_register_targets(void)
->  {
->         struct memory_target *target;
->
->         list_for_each_entry(target, &targets, node) {
-> +               if (!node_online(pxm_to_node(target->memory_pxm)))
-> +                       continue;
+> @@ -1085,6 +1087,11 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+>         dev->of_node = ndr_desc->of_node;
+>         nd_region->ndr_size = resource_size(ndr_desc->res);
+>         nd_region->ndr_start = ndr_desc->res->start;
+> +       if (ndr_desc->flush)
+> +               nd_region->flush = ndr_desc->flush;
+> +       else
+> +               nd_region->flush = generic_nvdimm_flush;
 > +
->                 hmat_register_target_initiators(target);
->                 hmat_register_target_perf(target);
-> +               target->registered = true;
->         }
->  }
+>         nd_device_register(dev);
 >
-> +static int hmat_callback(struct notifier_block *self,
-> +                        unsigned long action, void *arg)
+>         return nd_region;
+> @@ -1125,11 +1132,36 @@ struct nd_region *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
+>  }
+>  EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
+>
+> +int nvdimm_flush(struct nd_region *nd_region, struct bio *bio, bool async)
 > +{
-> +       struct memory_notify *mnb = arg;
-> +       int pxm, nid = mnb->status_change_nid;
-> +       struct memory_target *target;
-> +
-> +       if (nid == NUMA_NO_NODE || action != MEM_ONLINE)
-> +               return NOTIFY_OK;
-> +
-> +       pxm = node_to_pxm(nid);
-> +       target = find_mem_target(pxm);
-> +       if (!target || target->registered)
-> +               return NOTIFY_OK;
-> +
-> +       hmat_register_target_initiators(target);
-> +       hmat_register_target_perf(target);
-> +       target->registered = true;
-> +
-> +       return NOTIFY_OK;
-> +}
 
-This appears to assume that there will never be any races between the
-two functions above.
+I don't quite see the point of the 'async' argument. All the usages of
+this routine are either
 
-It this guaranteed to be the case?
+nvdimm_flush(nd_region, bio, true)
+...or:
+nvdimm_flush(nd_region, NULL, false)
 
+...so why not gate async behavior on the presence of the 'bio' argument?
+
+
+> +       int rc = 0;
 > +
-> +static struct notifier_block hmat_callback_nb = {
-> +       .notifier_call = hmat_callback,
-> +       .priority = 2,
-> +};
+> +       /* Create child bio for asynchronous flush and chain with
+> +        * parent bio. Otherwise directly call nd_region flush.
+> +        */
+> +       if (async && bio->bi_iter.bi_sector != -1) {
 > +
->  static __init void hmat_free_structures(void)
->  {
->         struct memory_target *target, *tnext;
-> @@ -658,6 +691,10 @@ static __init int hmat_init(void)
->                 }
->         }
->         hmat_register_targets();
+> +               struct bio *child = bio_alloc(GFP_ATOMIC, 0);
 > +
-> +       /* Keep the table and structures if the notifier may use them */
-> +       if (!register_hotmemory_notifier(&hmat_callback_nb))
-> +               return 0;
->  out_put:
->         hmat_free_structures();
->         acpi_put_table(tbl);
-> --
+> +               if (!child)
+> +                       return -ENOMEM;
+> +               bio_copy_dev(child, bio);
+> +               child->bi_opf = REQ_PREFLUSH;
+> +               child->bi_iter.bi_sector = -1;
+> +               bio_chain(child, bio);
+> +               submit_bio(child);
+
+I understand how this works, but it's a bit too "magical" for my
+taste. I would prefer that all flush implementations take an optional
+'bio' argument rather than rely on the make_request implementation to
+stash the bio away on a driver specific list.
+
+> +       } else {
+> +               if (nd_region->flush(nd_region))
+> +                       rc = -EIO;
+
+Given the common case wants to be fast and synchronous I think we
+should try to avoid retpoline overhead by default. So something like
+this:
+
+if (nd_region->flush == generic_nvdimm_flush)
+    rc = generic_nvdimm_flush(...);
