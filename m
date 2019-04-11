@@ -1,53 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
-Date: Fri, 12 Apr 2019 01:09:17 +0200
-Message-ID: <2719325.nu6fPkO1U5@kreacher>
-References: <20190404103925.25652-1-yuehaibing@huawei.com> <20190405142112.26592-1-yuehaibing@huawei.com> <20190405145009.GD9224@smile.fi.intel.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v2] extcon: axp288: Add a depends on ACPI to the Kconfig
+ entry
+Date: Fri, 12 Apr 2019 08:30:27 +0900
+Message-ID: <c11e2ae8-d785-902d-1469-4ff538ebe2ab@samsung.com>
+References: <20190404104222.23900-1-yuehaibing@huawei.com>
+        <CGME20190404142002epcas1p1a86f6d0d5d1a694581630a99532af633@epcas1p1.samsung.com>
+        <20190404141748.27048-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190405145009.GD9224@smile.fi.intel.com>
+In-Reply-To: <20190404141748.27048-1-yuehaibing@huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Yue Haibing <yuehaibing@huawei.com>, linus.walleij@linaro.org, bgolaszewski@baylibre.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Yue Haibing <yuehaibing@huawei.com>, myungjoo.ham@samsung.com, wens@csie.org, hdegoede@redhat.com, rjw@rjwysocki.net
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, April 5, 2019 4:50:09 PM CEST Andy Shevchenko wrote:
-> On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
-> > From: YueHaibing <yuehaibing@huawei.com>
-> > 
-> > When building CONFIG_ACPI is not set
-> > gcc warn this:
-> > 
-> > drivers/gpio/gpio-merrifield.c: In function
-> > mrfld_gpio_get_pinctrl_dev_name: drivers/gpio/gpio-merrifield.c:388:19:
-> > error: dereferencing pointer to incomplete type struct acpi_device> 
-> >    put_device(&adev->dev);
-> >    
-> >                    ^
-> > 
-> > Reported-by: Hulk Robot <hulkci@huawei.com>
-> > Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Fixes:d00d2109c367 ("gpio: merrifield: Convert to use
-> > acpi_dev_get_first_match_dev()") Signed-off-by: YueHaibing
-> > <yuehaibing@huawei.com>
+On 19. 4. 4. 오후 11:17, Yue Haibing wrote:
+> From: YueHaibing <yuehaibing@huawei.com>
 > 
-> Thank you for an update, I have a comment below, but before sending v3, let
-> Rafael to have a chance to look at it.
+> As Hans de Goede pointed, using this driver without ACPI
+> makes little sense, so add ACPI dependency to Kconfig entry
+> to fix a build error while CONFIG_ACPI is not set.
 > 
-> >  #ifdef CONFIG_ACPI
-> >  extern int acpi_platform_notify(struct device *dev, enum kobject_action
-> >  action);> 
-> > +
-> > +static inline void put_acpi_device(struct acpi_device *adev)
-> > +{
-> > +	put_device(&adev->dev);
-> > +}
+> drivers/extcon/extcon-axp288.c: In function 'axp288_extcon_probe':
+> drivers/extcon/extcon-axp288.c:363:20: error: dereferencing pointer to incomplete type
+>     put_device(&adev->dev);
 > 
-> This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
-> And talking to Mika we agreed that naming would be better as acpi_dev_put().
+> Fixes: 0cf064db948a ("extcon: axp288: Convert to use acpi_dev_get_first_match_dev()")
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Suggested-by: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+> v2: rework patch
+> ---
+>  drivers/extcon/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
+> index 1ed4b45..de06faf 100644
+> --- a/drivers/extcon/Kconfig
+> +++ b/drivers/extcon/Kconfig
+> @@ -30,7 +30,7 @@ config EXTCON_ARIZONA
+>  
+>  config EXTCON_AXP288
+>  	tristate "X-Power AXP288 EXTCON support"
+> -	depends on MFD_AXP20X && USB_SUPPORT && X86
+> +	depends on MFD_AXP20X && USB_SUPPORT && X86 && ACPI
+>  	select USB_ROLE_SWITCH
+>  	help
+>  	  Say Y here to enable support for USB peripheral detection
+> 
 
-Agreed on both accounts.
+Applied it. Thanks.
 
-Thanks!
+-- 
+Best Regards,
+Chanwoo Choi
+Samsung Electronics
