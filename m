@@ -2,192 +2,82 @@ Return-Path: <SRS0=iZuV=SN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87BC3C10F13
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 16:23:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A96C10F13
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 18:41:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4F7C22073F
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 16:23:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54BAC2083E
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 18:41:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726391AbfDKQXD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Apr 2019 12:23:03 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:58814 "EHLO mx1.redhat.com"
+        id S1726640AbfDKSlY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Apr 2019 14:41:24 -0400
+Received: from mga14.intel.com ([192.55.52.115]:13356 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726264AbfDKQXD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 11 Apr 2019 12:23:03 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 2E7A03134342;
-        Thu, 11 Apr 2019 16:23:03 +0000 (UTC)
-Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id DCC38183DC;
-        Thu, 11 Apr 2019 16:23:01 +0000 (UTC)
-Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
-        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 5DC143FB10;
-        Thu, 11 Apr 2019 16:23:00 +0000 (UTC)
-Date:   Thu, 11 Apr 2019 12:23:00 -0400 (EDT)
-From:   Pankaj Gupta <pagupta@redhat.com>
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     cohuck@redhat.com, Jan Kara <jack@suse.cz>,
-        KVM list <kvm@vger.kernel.org>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>,
-        Qemu Developers <qemu-devel@nongnu.org>,
-        virtualization@lists.linux-foundation.org,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Ross Zwisler <zwisler@kernel.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        linux-nvdimm <linux-nvdimm@lists.01.org>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        David Hildenbrand <david@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        jmoyer <jmoyer@redhat.com>,
-        linux-ext4 <linux-ext4@vger.kernel.org>,
-        Len Brown <lenb@kernel.org>, kilobyte@angband.pl,
-        Rik van Riel <riel@surriel.com>,
-        yuval shaia <yuval.shaia@oracle.com>,
-        Stefan Hajnoczi <stefanha@redhat.com>,
-        Paolo Bonzini <pbonzini@redhat.com>, lcapitulino@redhat.com,
-        Kevin Wolf <kwolf@redhat.com>,
-        Nitesh Narayan Lal <nilal@redhat.com>,
-        Theodore Ts'o <tytso@mit.edu>,
-        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
-        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        id S1726603AbfDKSlX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 Apr 2019 14:41:23 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 11 Apr 2019 11:41:23 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,338,1549958400"; 
+   d="scan'208";a="148442189"
+Received: from orsmsx103.amr.corp.intel.com ([10.22.225.130])
+  by FMSMGA003.fm.intel.com with ESMTP; 11 Apr 2019 11:36:23 -0700
+Received: from orsmsx122.amr.corp.intel.com ([169.254.11.68]) by
+ ORSMSX103.amr.corp.intel.com ([169.254.5.76]) with mapi id 14.03.0415.000;
+ Thu, 11 Apr 2019 11:36:22 -0700
+From:   "Schmauss, Erik" <erik.schmauss@intel.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+CC:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-xfs <linux-xfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Igor Mammedov <imammedo@redhat.com>
-Message-ID: <1150671088.21162726.1554999780030.JavaMail.zimbra@redhat.com>
-In-Reply-To: <CAPcyv4gOPtgmVyk+zayRBtkbSivEvBNn1tyKL2ycT_q_nTHUUA@mail.gmail.com>
-References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com> <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com> <1463291806.21158433.1554998258746.JavaMail.zimbra@redhat.com> <CAPcyv4gOPtgmVyk+zayRBtkbSivEvBNn1tyKL2ycT_q_nTHUUA@mail.gmail.com>
-Subject: Re: [Qemu-devel] [PATCH v5 1/6] libnvdimm: nd_region flush callback
- support
+        "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 3/8] ACPICA: Rename nameseg length macro/define for
+ clarity
+Thread-Topic: [PATCH 3/8] ACPICA: Rename nameseg length macro/define for
+ clarity
+Thread-Index: AQHU7k0JS3XoAACCIkelRDDDNr/5cqY0BkQAgANH+GA=
+Date:   Thu, 11 Apr 2019 18:36:22 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED53C5A1445@ORSMSX122.amr.corp.intel.com>
+References: <20190408204230.4335-1-erik.schmauss@intel.com>
+ <20190408204230.4335-4-erik.schmauss@intel.com>
+ <CAJZ5v0j1ondAX_jK==YaoPdejDeinb7cirBR2W6H89uAx7crMA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0j1ondAX_jK==YaoPdejDeinb7cirBR2W6H89uAx7crMA@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.22.254.140]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.67.116.71, 10.4.195.1]
-Thread-Topic: libnvdimm: nd_region flush callback support
-Thread-Index: gw3ZQ9aBgaO/mtRYQSpGSYATa+Jryw==
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.49]); Thu, 11 Apr 2019 16:23:03 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190411162300.7jwu3Gh0VXaX_WDw8w5W7MPaKOoeo6zJgqJmhyGGBiE@z>
 
-
-> > > > This patch adds functionality to perform flush from guest
-> > > > to host over VIRTIO. We are registering a callback based
-> > > > on 'nd_region' type. virtio_pmem driver requires this special
-> > > > flush function. For rest of the region types we are registering
-> > > > existing flush function. Report error returned by host fsync
-> > > > failure to userspace.
-> > > >
-> > > > This also handles asynchronous flush requests from the block layer
-> > > > by creating a child bio and chaining it with parent bio.
-> > > >
-> > > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> > > > ---bio_chain Dan williams
-> > > [..]
-> > > > diff --git a/drivers/nvdimm/region_devs.c
-> > > > b/drivers/nvdimm/region_devs.c
-> > > > index b4ef7d9ff22e..fb1041ab32a6 100644
-> > > > --- a/drivers/nvdimm/region_devs.c
-> > > > +++ b/drivers/nvdimm/region_devs.c
-> > > > @@ -295,7 +295,9 @@ static ssize_t deep_flush_store(struct device *dev,
-> > > > struct device_attribute *att
-> > > >                 return rc;
-> > > >         if (!flush)
-> > > >                 return -EINVAL;
-> > > > -       nvdimm_flush(nd_region);
-> > > > +       rc = nvdimm_flush(nd_region, NULL, false);
-> > > > +       if (rc)
-> > > > +               return rc;
-> > > >
-> > > >         return len;
-> > > >  }
-> > > > @@ -1085,6 +1087,11 @@ static struct nd_region *nd_region_create(struct
-> > > > nvdimm_bus *nvdimm_bus,
-> > > >         dev->of_node = ndr_desc->of_node;
-> > > >         nd_region->ndr_size = resource_size(ndr_desc->res);
-> > > >         nd_region->ndr_start = ndr_desc->res->start;
-> > > > +       if (ndr_desc->flush)
-> > > > +               nd_region->flush = ndr_desc->flush;
-> > > > +       else
-> > > > +               nd_region->flush = generic_nvdimm_flush;
-> > > > +
-> > > >         nd_device_register(dev);
-> > > >
-> > > >         return nd_region;
-> > > > @@ -1125,11 +1132,36 @@ struct nd_region
-> > > > *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
-> > > >
-> > > > +int nvdimm_flush(struct nd_region *nd_region, struct bio *bio, bool
-> > > > async)
-> > > > +{
-> > >
-> > > I don't quite see the point of the 'async' argument. All the usages of
-> > > this routine are either
-> > >
-> > > nvdimm_flush(nd_region, bio, true)
-> > > ...or:
-> > > nvdimm_flush(nd_region, NULL, false)
-> >
-> > Agree.
-> >
-> > >
-> > > ...so why not gate async behavior on the presence of the 'bio' argument?
-> >
-> > Sure.
-> >
-> > >
-> > >
-> > > > +       int rc = 0;
-> > > > +
-> > > > +       /* Create child bio for asynchronous flush and chain with
-> > > > +        * parent bio. Otherwise directly call nd_region flush.
-> > > > +        */
-> > > > +       if (async && bio->bi_iter.bi_sector != -1) {
-> > > > +
-> > > > +               struct bio *child = bio_alloc(GFP_ATOMIC, 0);
-> > > > +
-> > > > +               if (!child)
-> > > > +                       return -ENOMEM;
-> > > > +               bio_copy_dev(child, bio);
-> > > > +               child->bi_opf = REQ_PREFLUSH;
-> > > > +               child->bi_iter.bi_sector = -1;
-> > > > +               bio_chain(child, bio);
-> > > > +               submit_bio(child);
-> > >
-> > > I understand how this works, but it's a bit too "magical" for my
-> > > taste. I would prefer that all flush implementations take an optional
-> > > 'bio' argument rather than rely on the make_request implementation to
-> > > stash the bio away on a driver specific list.
-> >
-> > I did this to make use of "bio_chain" for chaining child bio for async
-> > flush
-> > suggested [1]. Are you saying to remove this and just call "flush" based on
-> > bio argument? Or I implemented the 'bio_chain' request entirely wrong?
-> 
-> No, I think you implemented it correctly. I'm just asking for the
-> chaining to be performed internal to the ->flush() callback rather
-> than in the common nvdimm_flush() front-end.
-
-Sure. Perfect!
-
-Thank you very much for all the suggestions. 
-
-Best regards,
-Pankaj
-> 
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtYWNwaS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBUdWVzZGF5LCBB
+cHJpbCA5LCAyMDE5IDI6MzAgQU0NCj4gVG86IFNjaG1hdXNzLCBFcmlrIDxlcmlrLnNjaG1hdXNz
+QGludGVsLmNvbT4NCj4gQ2M6IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3QgPGxpbnV4LWFjcGlAdmdl
+ci5rZXJuZWwub3JnPjsgUmFmYWVsIEouDQo+IFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0Pjsg
+TW9vcmUsIFJvYmVydA0KPiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gU3ViamVjdDogUmU6
+IFtQQVRDSCAzLzhdIEFDUElDQTogUmVuYW1lIG5hbWVzZWcgbGVuZ3RoDQo+IG1hY3JvL2RlZmlu
+ZSBmb3IgY2xhcml0eQ0KPiANCj4gT24gTW9uLCBBcHIgOCwgMjAxOSBhdCAxMDo1MiBQTSBFcmlr
+IFNjaG1hdXNzDQo+IDxlcmlrLnNjaG1hdXNzQGludGVsLmNvbT4gd3JvdGU6DQo+ID4NCj4gPiBG
+cm9tOiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4NCj4gPiBBQ1BJQ0Eg
+Y29tbWl0IDI0ODcwYmQ5ZTczZDcxZTJhMWZmMGExZTk0NTE5ZjhmODQwOWU1N2QNCj4gPg0KPiA+
+IEFDUElfTkFNRV9TSVpFIGNoYW5nZWQgdG8gQUNQSV9OQU1FU0VHX1NJWkUgVGhpcyBjbGFyaWZp
+ZXMgdGhhdA0KPiB0aGlzDQo+ID4gaXMgdGhlIGxlbmd0aCBvZiBhbiBpbmRpdmlkdWFsIG5hbWVz
+ZWcsIG5vdCB0aGUgbGVuZ3RoIG9mIGEgZ2VuZXJpYw0KPiA+IG5hbWVzdHJpbmcvbmFtZXBhdGgu
+DQo+ID4gSW1wcm92ZXMgdW5kZXJzdGFuZGluZyBvZiB0aGUgY29kZS4NCj4gPg0KPiA+IExpbms6
+IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL2NvbW1pdC8yNDg3MGJkOQ0KPiA+IFNp
+Z25lZC1vZmYtYnk6IEJvYiBNb29yZSA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gPiBTaWdu
+ZWQtb2ZmLWJ5OiBFcmlrIFNjaG1hdXNzIDxlcmlrLnNjaG1hdXNzQGludGVsLmNvbT4NCj4gDQo+
+IFRoaXMgbWlzc2VkIHNvbWUgTGludXgtc3BlY2lmaWMgZmlsZXMgcmVmZXJyaW5nIHRvIEFDUElf
+TkFNRV9TSVpFLA0KPiBidXQgSSBmaXhlZCBpdCB1cC4NCg0KVGhhbmtzIGZvciBjYXRjaGluZyBp
+dCENCg==
