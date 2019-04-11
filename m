@@ -1,84 +1,61 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
-Date: Thu, 11 Apr 2019 23:12:36 +0800
-Message-ID: <20190411151234.fvowhdqbfmwc6icr@mail.google.com>
-References: <20190329001135.15847-1-changbin.du@gmail.com>
- <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
- <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
- <20190403133613.13f3fd75@lwn.net>
- <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
- <20190409152638.5b20c77f@lwn.net>
- <CAJZ5v0jgbvixMJTVPfEHMX0z-ssc9ZcMRCwS-QEyqtkFWcNh5Q@mail.gmail.com>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [PATCH v5 3/6] libnvdimm: add dax_dev sync flag
+Date: Thu, 11 Apr 2019 11:39:06 -0400 (EDT)
+Message-ID: <393821092.21153045.1554997146416.JavaMail.zimbra@redhat.com>
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-4-pagupta@redhat.com> <CAPcyv4gXwE2k3JU94GPav0xn2LEgR6-7ZEVYyTHFRjCfTYjerw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jgbvixMJTVPfEHMX0z-ssc9ZcMRCwS-QEyqtkFWcNh5Q@mail.gmail.com>
+In-Reply-To: <CAPcyv4gXwE2k3JU94GPav0xn2LEgR6-7ZEVYyTHFRjCfTYjerw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, virtualization@lists.linux-foundation.org, KVM list <kvm@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, Matthew Wilcox <willy@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Christoph Hellwig <hch@infradead.org>, Len Brown <lenb@kernel.org>, Jan Kara <jack@suse.cz>, Theodore
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 09, 2019 at 11:44:11PM +0200, Rafael J. Wysocki wrote:
-> On Tue, Apr 9, 2019 at 11:26 PM Jonathan Corbet <corbet@lwn.net> wrote:
-> >
-> > On Tue, 9 Apr 2019 18:42:59 +0200
-> > "Rafael J. Wysocki" <rafael@kernel.org> wrote:
-> >
-> > > > Hardware guide
-> > >
-> > > This is more about documenting the expectations regarding the platform
-> > > firmware, so what about firmware-guide instead?
-> >
-> > I had imagined a slightly wider focus, but this seems OK for now.  We can
-> > always rename it later :)
-> >
-> > > So what about this:
-> > >
-> > > - Create a new firmware-guide under Documentation and add an acpi/
-> > > directory to it for starters.  Put the following files into it:
-> > >
-> > >          acpi-lid
-> > >          aml-debugger
-> > >          debug (ditto)
-> > >          DSD-properties-rules
-> > >          gpio-properties
-> > >          i2c-muxes
-> > >
-> > > - Add an acpi/ subdirectory to Documentation/admin-guide and put the
-> > > following files into it:
-> > >
-> > >          cppc_sysfs
-> > >          initrd_table_override
-> > >          dsdt-override
-> >
-> > I do wonder if, rather than creating a new directory, we shouldn't just
-> > make a single acpi.rst and put that information into it?
-> >
-> > > - Add an acpi/ subdirectory to Documentation/driver-api and put the
-> > > following files into it:
-> > >
-> > >          enumeration
-> > >          scan_handlers
-> >
-> > ...and something similar here?  I guess that would be my preference, but I
-> > don't feel all that strongly about it if there's reasons to do otherwise.
-> 
-> The primary reason would be to retain the correspondence between the
-> old and the new files.
-> 
-> I guess they could be combined, but that would be two sort of
-> different changes in one go.
-> 
-> > In general the plan seems good.
-> 
-> OK, thanks!
-> 
-> Cheers,
-> Rafael
-Ok, if we have reached this greement, I probably do it this weekend. Thanks for your
-comments.
 
--- 
-Cheers,
-Changbin Du
+Hi Dan,
+
+Thank you for the review.
+
+> >
+> > This patch adds 'DAXDEV_SYNC' flag which is set
+> > for nd_region doing synchronous flush. This later
+> > is used to disable MAP_SYNC functionality for
+> > ext4 & xfs filesystem for devices don't support
+> > synchronous flush.
+> >
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  drivers/dax/bus.c            |  2 +-
+> >  drivers/dax/super.c          | 13 ++++++++++++-
+> >  drivers/md/dm.c              |  2 +-
+> >  drivers/nvdimm/pmem.c        |  3 ++-
+> >  drivers/nvdimm/region_devs.c |  7 +++++++
+> >  include/linux/dax.h          |  9 +++++++--
+> >  include/linux/libnvdimm.h    |  1 +
+> >  7 files changed, 31 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> > index 2109cfe80219..431bf7d2a7f9 100644
+> > --- a/drivers/dax/bus.c
+> > +++ b/drivers/dax/bus.c
+> > @@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region
+> > *dax_region, int id,
+> >          * No 'host' or dax_operations since there is no access to this
+> >          * device outside of mmap of the resulting character device.
+> >          */
+> > -       dax_dev = alloc_dax(dev_dax, NULL, NULL);
+> > +       dax_dev = alloc_dax(dev_dax, NULL, NULL, true);
+> 
+> I find apis that take a boolean as unreadable. What does 'true' mean?
+> It wastes time to go look at the function definition vs something
+> like:
+> 
+>     alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
+
+Agree. Will change as suggested.
+
+Best regards,
+Pankaj
+> 
