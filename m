@@ -1,123 +1,99 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH v5 1/6] libnvdimm: nd_region flush callback
- support
-Date: Thu, 11 Apr 2019 12:23:00 -0400 (EDT)
-Message-ID: <1150671088.21162726.1554999780030.JavaMail.zimbra@redhat.com>
-References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com> <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com> <1463291806.21158433.1554998258746.JavaMail.zimbra@redhat.com> <CAPcyv4gOPtgmVyk+zayRBtkbSivEvBNn1tyKL2ycT_q_nTHUUA@mail.gmail.com>
+From: "Robert R. Howell" <RHowell@uwyo.edu>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+Date: Thu, 11 Apr 2019 19:50:06 +0000
+Message-ID: <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
+ <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4gOPtgmVyk+zayRBtkbSivEvBNn1tyKL2ycT_q_nTHUUA@mail.gmail.com>
+In-Reply-To: <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
+Content-Language: en-US
+Content-ID: <D16BFB7A35251D49BD198ED859E83233@namprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: cohuck@redhat.com, Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>, Qemu Developers <qemu-devel@nongnu.org>, virtualization@lists.linux-foundation.org, Andreas Dilger <adilger.kernel@dilger.ca>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Vishal L Verma <vishal.l.verma@intel.com>, David Hildenbrand <david@redhat.com>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, linux-ext4 <linux-ext4@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-> > > > This patch adds functionality to perform flush from guest
-> > > > to host over VIRTIO. We are registering a callback based
-> > > > on 'nd_region' type. virtio_pmem driver requires this special
-> > > > flush function. For rest of the region types we are registering
-> > > > existing flush function. Report error returned by host fsync
-> > > > failure to userspace.
-> > > >
-> > > > This also handles asynchronous flush requests from the block layer
-> > > > by creating a child bio and chaining it with parent bio.
-> > > >
-> > > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> > > > ---bio_chain Dan williams
-> > > [..]
-> > > > diff --git a/drivers/nvdimm/region_devs.c
-> > > > b/drivers/nvdimm/region_devs.c
-> > > > index b4ef7d9ff22e..fb1041ab32a6 100644
-> > > > --- a/drivers/nvdimm/region_devs.c
-> > > > +++ b/drivers/nvdimm/region_devs.c
-> > > > @@ -295,7 +295,9 @@ static ssize_t deep_flush_store(struct device *dev,
-> > > > struct device_attribute *att
-> > > >                 return rc;
-> > > >         if (!flush)
-> > > >                 return -EINVAL;
-> > > > -       nvdimm_flush(nd_region);
-> > > > +       rc = nvdimm_flush(nd_region, NULL, false);
-> > > > +       if (rc)
-> > > > +               return rc;
-> > > >
-> > > >         return len;
-> > > >  }
-> > > > @@ -1085,6 +1087,11 @@ static struct nd_region *nd_region_create(struct
-> > > > nvdimm_bus *nvdimm_bus,
-> > > >         dev->of_node = ndr_desc->of_node;
-> > > >         nd_region->ndr_size = resource_size(ndr_desc->res);
-> > > >         nd_region->ndr_start = ndr_desc->res->start;
-> > > > +       if (ndr_desc->flush)
-> > > > +               nd_region->flush = ndr_desc->flush;
-> > > > +       else
-> > > > +               nd_region->flush = generic_nvdimm_flush;
-> > > > +
-> > > >         nd_device_register(dev);
-> > > >
-> > > >         return nd_region;
-> > > > @@ -1125,11 +1132,36 @@ struct nd_region
-> > > > *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
-> > > >
-> > > > +int nvdimm_flush(struct nd_region *nd_region, struct bio *bio, bool
-> > > > async)
-> > > > +{
-> > >
-> > > I don't quite see the point of the 'async' argument. All the usages of
-> > > this routine are either
-> > >
-> > > nvdimm_flush(nd_region, bio, true)
-> > > ...or:
-> > > nvdimm_flush(nd_region, NULL, false)
-> >
-> > Agree.
-> >
-> > >
-> > > ...so why not gate async behavior on the presence of the 'bio' argument?
-> >
-> > Sure.
-> >
-> > >
-> > >
-> > > > +       int rc = 0;
-> > > > +
-> > > > +       /* Create child bio for asynchronous flush and chain with
-> > > > +        * parent bio. Otherwise directly call nd_region flush.
-> > > > +        */
-> > > > +       if (async && bio->bi_iter.bi_sector != -1) {
-> > > > +
-> > > > +               struct bio *child = bio_alloc(GFP_ATOMIC, 0);
-> > > > +
-> > > > +               if (!child)
-> > > > +                       return -ENOMEM;
-> > > > +               bio_copy_dev(child, bio);
-> > > > +               child->bi_opf = REQ_PREFLUSH;
-> > > > +               child->bi_iter.bi_sector = -1;
-> > > > +               bio_chain(child, bio);
-> > > > +               submit_bio(child);
-> > >
-> > > I understand how this works, but it's a bit too "magical" for my
-> > > taste. I would prefer that all flush implementations take an optional
-> > > 'bio' argument rather than rely on the make_request implementation to
-> > > stash the bio away on a driver specific list.
-> >
-> > I did this to make use of "bio_chain" for chaining child bio for async
-> > flush
-> > suggested [1]. Are you saying to remove this and just call "flush" based on
-> > bio argument? Or I implemented the 'bio_chain' request entirely wrong?
-> 
-> No, I think you implemented it correctly. I'm just asking for the
-> chaining to be performed internal to the ->flush() callback rather
-> than in the common nvdimm_flush() front-end.
-
-Sure. Perfect!
-
-Thank you very much for all the suggestions. 
-
-Best regards,
-Pankaj
-> 
+T24gNC84LzE5IDI6MTYgQU0sIEhhbnMgZGUgR29lZGUgd3JvdGU6PiANCj4gDQo+IEhtbSwgaW50
+ZXJlc3Rpbmcgc28geW91IGhhdmUgaGliZXJuYXRpb24gd29ya2luZyBvbiBhIFQxMDBUQQ0KPiAo
+d2l0aCA1LjAgKyAwMmU0NTY0NmQ1M2IgcmV2ZXJ0ZWQpLCByaWdodCA/DQo+IA0KSGkgSGFucyBh
+bmQgS2FpLUhlbmcNCg0KRmlyc3QsIGFwb2xvZ2llcyBmb3IgaG93IGxvbmcgaXQgdG9vayBtZSB0
+byByZXBseSB0byBib3RoIHlvdXIgaW5xdWlyaWVzLiAgDQpJbiB0cnlpbmcgdG8gYW5zd2VyIHRo
+ZW0gSSBkaXNjb3ZlcmVkIHNvbWUgaW5jb25zaXN0ZW5jaWVzIGluIGhvdyB0aGUgVDEwMFRBIHdh
+cyANCmJlaGF2aW5nIG9uIGRpZmZlcmVudCBoaWJlcm5hdGlvbiBhdHRlbXB0cyBhbmQgSSd2ZSBi
+ZWVuIHRyeWluZyB0byBzb3J0IHRob3NlIG91dC4gIA0KSSBoYXZlbid0IGJlZW4gY29tcGxldGVs
+eSBzdWNjZXNzZnVsIGluIHRoYXQsIGJ1dCBoZXJlJ3MgYSBicmllZiBzdW1tYXJ5Lg0KDQpZZXMg
+SSBkbyBoYXZlIGhpYmVybmF0aW9uIHdvcmtpbmcgKGF0IGxlYXN0IG1vc3Qgb2YgdGhlIHRpbWUp
+IG9uIGEgVDEwMFRBLCANCndpdGggNS4wICsgMDJlNDU2NDZkNTNiIHJldmVydGVkIChtb3JlIGFi
+b3V0IHRoYXQgYmVsb3cpLCBhbmQgd2l0aCBhIHN5c3RlbWQgDQpoaWJlcm5hdGUgc2NyaXB0IGFs
+c28gZGVzY3JpYmVkIGJlbG93Lg0KDQpUcnlpbmcgdG8gYmUgbW9yZSBxdWFudGl0YXRpdmUgYWJv
+dXQgIm1vc3Qgb2YgdGhlIHRpbWUiIGlzIGluIHBhcnQgd2FudCBJJ3ZlIGJlZW4gDQp0ZXN0aW5n
+IHRoZSBsYXN0IGZldyBkYXlzLiAgSSBqdXN0IGZpbmlzaGVkIGEgY3ljbGUgb2YgMjAgaGliZXJu
+YXRlcy9yZXN1bWVzIA0Kd2hpY2ggd2VyZSBhbGwgc3VjY2Vzc2Z1bCBhdCBsZWFzdCBpbiB0aGUg
+c2Vuc2UgdGhhdCBhZnRlciByZXN1bWUgaW50ZXJuYWwgDQpzb3VuZCB3YXMgd29ya2luZywgYWxv
+bmcgd2l0aCBhbGwgdGhlIG90aGVyIGNyaXRpY2FsIGZ1bmN0aW9ucyBJIGNhcmUgYWJvdXQgDQoo
+V2lGaSwgQmx1ZXRvb3RoLCBldGMuKS4gIEhvd2V2ZXIgSSBoYXZlIG9jY2FzaW9uYWxseSAocGVy
+aGFwcyAxIGluIDEwIHRpbWVzKSANCnNlZW4gc29tZXRoaW5nIGdvIHdyb25nIHdpdGggc291bmQg
+b24gcmVzdW1lIGFuZCB0aGUgb25seSB3YXkgdG8gZ2V0IGl0IA0Kd29ya2luZyBhZ2FpbiB3YXMg
+dG8gYSBmdWxsIHJlYm9vdC4gIER1cmluZyB0aGUgc3VjY2Vzc2Z1bCBjeWNsZXMgSSBhbHNvIA0K
+c29tZXRpbWVzIHNlZSBpMmNfZGVzaWdud2FyZSBvciBpbnRlbF9zc3RfYWNwaSBlcnJvciBtZXNz
+YWdlcyBidXQgdGhleSANCmRvbid0IHNlZW0gdG8gaW5kaWNhdGUgYW4gdW5yZWNvdmVyYWJsZSBm
+YWlsdXJlLiAgSSB3YXMgaG9waW5nIHRvIHNvcnQgb3V0IA0Kd2hhdCBlcnJvcnMgSSB3YXMgc2Vl
+biBvbiB0aGUgb2NjYXNpb25zIHdoZXJlIHNvdW5kIHdhcyBsb3N0IHRpbGwgYSByZWJvb3QsIA0K
+YnV0IHRob3NlIGFyZSByYXJlIGVub3VnaCBJIGhhdmVuJ3QgYmVlbiBhYmxlIHRvIHNvcnQgb3V0
+IHRoZSBkaWZmZXJlbmNlIA0KYmV0d2VlbiB0aG9zZSBhbmQgdGhlICJyZWNvdmVyYWJsZSIgZXJy
+b3JzLg0KDQpSZWdhcmRpbmcgdGhlIHJldmVydCBvZiAwMmU0NTY0NmQ1M2IsIHRoZXJlIHdlcmUg
+c29tZSBjb2RlIGNoYW5nZXMgaW4gDQphZGphY2VudCBsaW5lcyBzbyBhIHNpbXBsZSByZXZlcnQg
+d291bGRuJ3QgYXBwbHkgY2xlYW5seSB0byA1LjAuMCANCmJ1dCB0aGUgY2hhbmdlcyB3ZXJlIHNt
+YWxsIGVub3VnaCB0aGF0IEkgd2FzIGFibGUgdG8gbWFudWFsbHkgIm1lcmdlIiANCnRoZSByZXZl
+cnQgYW5kIHRoZSA1LjAuMCBjaGFuZ2VzLiAgSSBoYXZlIHBvc3RlZCBhIHBhdGNoIGZpbGUgdW5k
+ZXINCkJ1Z3ppbGxhOiA8aHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9p
+ZD0yMDIxMzk+DQpzaG93aW5nIHdoYXQgSSBhY3R1YWxseSBkaWQgdG8gcmV2ZXJ0IDAyZTQ1NjQ2
+ZDUzYiBmb3IgNS4wLjAuICBBcyBJIG1lbnRpb25lZCANCmluIGFuIGVhcmxpZXIgbWVzc2FnZSwg
+SSBoYXZlIE5PVCBiZWVuIGFibGUgdG8gcHJvZHVjZSBhIHdvcmtpbmcgcmV2ZXJ0IG9mIA0KMDJl
+NDU2NDZkNTNiIGZvciB0aGUgNS4xLXJjMyBrZXJuZWwuDQoNClRvIG1ha2UgaGliZXJuYXRpb24g
+d29yayBvbiB0aGUgVDEwMCBJIGFsc28gaGFkIHRvIGNyZWF0ZSBhIHNjcmlwdCAgDQovdXNyL2xp
+Yi9zeXN0ZW1kL3N5c3RlbS1zbGVlcC90MTAwX2hpYmVybmF0ZS5zaCB3aGljaCB1bmxvYWRzIHZh
+cmlvdXMgZHJpdmVycyANCihpbmNsdWRpbmcgc291bmQpIGJlZm9yZSBoaWJlcm5hdGUsIHRoZW4g
+cmVzdGFydHMgdGhlbSBhZnRlcndvcmRzLiAgSSd2ZSBpbnNlcnRlZCANCml0IGJlbG93LiAgSSdt
+IG5vdCBjZXJ0YWluIGFsbCB0aGUgc3RlcHMgaW4gaXQgYXJlIHN0aWxsIG5lY2Vzc2FyeSwgYnV0
+IHRoZSANCmludGVybWl0dGVudCBmYWlsdXJlcyBtYWtlIGl0IHZlcnkgZGlmZmljdWx0IHRvIGRl
+dGVybWluZSB3aGF0IGlzIGFic29sdXRlbHkgZXNzZW50aWFsLg0KDQotLS0tLXQxMDBfaGliZXJu
+YXRlLnNoICBzeXN0ZW1kIHNjcmlwdC0tLS0tLS0NCiMhL2Jpbi9iYXNoDQplY2hvICJIaWJlcm5h
+dGUgc2NyaXB0ICQxICQyIg0KWyAkMiAhPSAnaGliZXJuYXRlJyBdICYmIGV4aXQgMA0KDQpjYXNl
+ICQxIGluDQogICAgICAgIHByZSkNCiAgICBlY2hvICJHb2luZyB0byAkMi4uLiINCiAgICAvc2Jp
+bi9tb2Rwcm9iZSAtciBicmNtZm1hYw0KICAgIC9zYmluL21vZHByb2JlIC1yIGhjaV91YXJ0DQog
+ICAgL3NiaW4vbW9kcHJvYmUgLXIgYmF0dGVyeQ0KICAgIC9zYmluL21vZHByb2JlIC1yIGhpZF9t
+dWx0aXRvdWNoDQogICAgL3Vzci9iaW4va2lsbGFsbCBwdWxzZWF1ZGlvDQogICAgL3NiaW4vbW9k
+cHJvYmUgLXIgc25kX3NvY19zc3RfYnl0Y3JfcnQ1NjQwDQogICAgL3NiaW4vbW9kcHJvYmUgLXIg
+c25kX3NvY19ydDU2NDANCiAgICAvc2Jpbi9tb2Rwcm9iZSAtciBzbmRfc29jX3NzdF9hY3BpDQog
+ICAgICAgIDs7DQogICAgICAgIHBvc3QpDQogICAgZWNobyAiV2FraW5nIGZyb20gJDIuLi4iDQog
+ICAgL3NiaW4vbW9kcHJvYmUgYnJjbWZtYWMNCiAgICAvc2Jpbi9tb2Rwcm9iZSBoY2lfdWFydA0K
+ICAgIC9zYmluL21vZHByb2JlIGJhdHRlcnkNCiAgICAvc2Jpbi9tb2Rwcm9iZSBoaWRfbXVsdGl0
+b3VjaA0KICAgICMgSnVzdCBsb2FkIHRoZSBmb2xsb3dpbmcgYW5kIGl0IHdpbGwgcHVsbCBpbiBv
+dGhlciBzbmQgbW9kdWxlcw0KICAgIC9zYmluL21vZHByb2JlIHNuZF9zb2Nfc3N0X2FjcGkNCiAg
+ICAvdXNyL3NiaW4vc2VydmljZSBOZXR3b3JrTWFuYWdlciByZXN0YXJ0DQogICAgL3Vzci9zYmlu
+L3NlcnZpY2Ugd3BhX3N1cHBsaWNhbnQgcmVzdGFydA0KICAgICMgVGhlIGFib3ZlIGlzIHVzdWFs
+bHkgZW5vdWdoIGJ1dCBvY2Nhc2lvbmFsbHkgc291bmQgZG9lc24ndCBjb21lIHVwIHByb3Blcmx5
+DQogICAgIyBhbmQgZG9pbmcgdGhlIGZvbGxvd2luZyBzZWVtcyB0byByZXN0b3JlIGl0IGluIHRo
+b3NlIGNhc2VzLg0KICAgIC91c3IvYmluL2tpbGxhbGwgcHVsc2VhdWRpbw0KICAgIC91c3Ivc2Jp
+bi9ybW1vZCBzbmRfc29jX3NzdF9ieXRjcl9ydDU2NDANCiAgICAvdXNyL3NiaW4vcm1tb2Qgc25k
+X3NvY19ydDU2NDANCiAgICAvdXNyL3NiaW4gbW9kcHJvYmUgc25kX3NvY19ydDU2NDANCiAgICAv
+dXNyL3NiaW4gbW9kcHJvYmUgc25kX3NvY19zc3RfYnl0Y3JfcnQ1NjQwDQogICAgICAgIDs7DQpl
+c2FjDQotLS0tLWVuZCBvZiBzY3JpcHQtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoN
+CkknbGwgc2VuZCBhIHNlY29uZCBtZXNzYWdlIHdpdGggdGhlIHN5c3RlbSBsb2dzIHdoaWNoIEth
+aS1IZW5nIHJlcXVlc3RlZCwNCndpdGggaGlzIHBhdGNoIGFwcGxpZWQgdG8gNS4xLXJjMy4NCg0K
+Qm9iIEhvd2VsbA0KDQo+IEkgbXVzdCBhZG1pdCBJIG5ldmVyIHRyeSBoaWJlcm5hdGlvbiBteXNl
+bGYsIGluIGV4cGVyaWVuY2UgaXQgdGVuZHMgdG8NCj4gaGF2ZSBtb3JlIGlzc3VlcyB0aGVuIHJl
+Z3VsYXIgc3VzcGVuZC9yZXN1bWUgYW5kIHRoZXJlIGFyZSBhbHJlYWR5IGVub3VnaA0KPiBvdGhl
+ciBpc3N1ZXMgdG8gd29ycnkgYWJvdXQgb24gQmF5IGFuZCBDaGVycnkgVHJhaWwgYmFzZWQgZGV2
+aWNlcy4NCj4gDQo+IEJ1dCBpZiBpdCB3b3JrcyBvbiB0aGUgVDEwMFRBIGFuZCAwMmU0NTY0NmQ1
+M2IgYnJva2UgaXQgdGhlbiBJIHdpbGwNCj4gdHJ5IHRvIGZpeCB0aGlzLCBJJ3ZlIGEgVDEwMFRB
+IG15c2VsZi4gQ3VycmVudGx5IG15IFQxMDBUQSBpcyBhdCBteQ0KPiBsb2NhbCBoYWNrZXJzcGFj
+ZSwgc28gSSB3aWxsIG5vdCBoYXZlIGFjY2VzcyB0byBpdCB1bnRpbCBjb21pbmcgRnJpZGF5Lg0K
+PiANCj4gUmVnYXJkcywNCj4gDQo+IEhhbnMNCj4gDQo=
