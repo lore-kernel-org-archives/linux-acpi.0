@@ -1,79 +1,62 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2 2/2] PCI/DPC: Add Error Disconnect Recover (EDR)
- support
-Date: Wed, 10 Apr 2019 18:08:55 -0500
-Message-ID: <20190410230855.GN256045@google.com>
-References: <cover.1553027719.git.sathyanarayanan.kuppuswamy@linux.intel.com>
- <4818f4dfa41bddc3968da4717c453897d4ad5717.1553027719.git.sathyanarayanan.kuppuswamy@linux.intel.com>
- <20190410184124.GF256045@google.com>
- <dc4e2bcf-44c9-1ffb-ab4f-75c04340b8dd@linux.intel.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2 08/12] usb: typec: Registering real device entries for
+ the muxes
+Date: Thu, 11 Apr 2019 15:34:33 +0300
+Message-ID: <CAHp75Vca6EdAYK=mQhrUfwyZZL75sQWHB2czWec1RSUvWcTEgA@mail.gmail.com>
+References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com> <20190410152505.87041-9-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <dc4e2bcf-44c9-1ffb-ab4f-75c04340b8dd@linux.intel.com>
+In-Reply-To: <20190410152505.87041-9-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: sathyanarayanan kuppuswamy <sathyanarayanan.kuppuswamy@linux.intel.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ashok.raj@intel.com, keith.busch@intel.com
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 10, 2019 at 03:12:05PM -0700, sathyanarayanan kuppuswamy wrote:
-> On 4/10/19 11:41 AM, Bjorn Helgaas wrote:
-> > On Tue, Mar 19, 2019 at 01:47:29PM -0700, sathyanarayanan.kuppuswamy@linux.intel.com wrote:
-> > > From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-> > > 
-> > > As per PCI firmware specification v3.2 ECN
-> > > (https://members.pcisig.com/wg/PCI-SIG/document/12614), when firmware
-> > > owns Downstream Port Containment (DPC), its expected to use the "Error
-> > > Disconnect Recover" (EDR) notification to alert OSPM of a DPC event and
-> > > if OS supports EDR, its expected to handle the software state invalidation
-> > > and port recovery in OS and let firmware know the recovery status via _OST
-> > > ACPI call.
-> > > 
-> > > Since EDR is a hybrid service, DPC service shall be enabled in OS even
-> > > if AER is not natively enabled in OS.
+On Wed, Apr 10, 2019 at 6:25 PM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
+>
+> Registering real device entries (struct device) for the mode
+> muxes as well as for the orientation switches.
+>
+> The Type-C mux code was deliberately attempting to avoid
+> creation of separate device entries for the orientation
+> switch and the mode switch (alternate modes) because they
+> are not physical devices. They are functions of a single
+> physical multiplexer/demultiplexer switch device.
+>
+> Unfortunately because of the dependency we still have on the
+> underlying mux device driver, we had to put in hacks like
+> the one in the commit 3e3b81965cbf ("usb: typec: mux: Take
+> care of driver module reference counting") to make sure the
+> driver does not disappear from underneath us. Even with
+> those hacks we were still left with a potential NUll pointer
+> dereference scenario, so just creating the device entries,
+> and letting the core take care of the dependencies. No more
+> hacks needed.
 
-> > > +	bool			native_dpc;
-> > This is going to be way too confusing with a "native_dpc" in both the
-> > struct pci_host_bridge and the struct dpc_dev.
-> Any suggestions? what about native_mode ?
+>  drivers/platform/x86/intel_cht_int33fe.c |   4 +-
 
-"native_mode" is different but doesn't contain any additional
-information.  I haven't worked out what this new symbol actually does;
-if it's related to EDR, maybe that could be incorporated somehow?
+> diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
+> index 6fa3cced6f8e..657b8d61554c 100644
+> --- a/drivers/platform/x86/intel_cht_int33fe.c
+> +++ b/drivers/platform/x86/intel_cht_int33fe.c
+> @@ -173,10 +173,10 @@ static int cht_int33fe_probe(struct platform_device *pdev)
+>         }
+>
+>         data->connections[0].endpoint[0] = "port0";
+> -       data->connections[0].endpoint[1] = "i2c-pi3usb30532";
+> +       data->connections[0].endpoint[1] = "i2c-pi3usb30532-switch";
+>         data->connections[0].id = "orientation-switch";
+>         data->connections[1].endpoint[0] = "port0";
+> -       data->connections[1].endpoint[1] = "i2c-pi3usb30532";
+> +       data->connections[1].endpoint[1] = "i2c-pi3usb30532-mux";
+>         data->connections[1].id = "mode-switch";
+>         data->connections[2].endpoint[0] = "i2c-fusb302";
+>         data->connections[2].endpoint[1] = "intel_xhci_usb_sw-role-switch";
 
-> > > +		/* Register ACPI notifier for EDR event */
-> > "Register handler for System events, one of which is the EDR event"?
-> In our case, we only handle EDR event. So I just explicitly mentioned it.
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-Right.  As a courtesy to the reader, I think it's worth making
-the comment match the code, i.e., you can't pass an event type to
-acpi_install_notify_handler(), so obviously the handler will be called
-for *all* System events.  By saying "one of which is the EDR event",
-you give the reader a hint that the handler will have to filter out
-the others.
-
-The reason I noticed this is because I read "Register notifier for EDR
-event" and wondered to myself "Hmmm, how does this work?  I don't see
-anything passed to acpi_install_notify_handler() that would identify
-an EDR event."
-
-> > > +	/*
-> > > +	 * If EDR support is enabled in OS, then even if AER is not handled in
-> > > +	 * OS, DPC service can be enabled.
-> > > +	 */
-> > >   	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
-> > > -	    pci_aer_available() && services & PCIE_PORT_SERVICE_AER &&
-> > > -	    (pcie_ports_native || host->native_dpc))
-> > > +	    ((IS_ENABLED(CONFIG_PCIE_EDR) && !host->native_dpc) ||
-> > > +	    (pci_aer_available() && services & PCIE_PORT_SERVICE_AER &&
-> > > +	    (pcie_ports_native || host->native_dpc))))
-> > Holy cow, I think I'll have to schedule an hour sometime to figure
-> > out what's going on here :)
-> Please check the previous patch in this series for details related to
-> host->native_dpc.
-
-Yeah, I'm just saying that conditional is starting to look pretty
-gnarly.  Possibly there's nothing to do about it.
-
-Bjorn
+-- 
+With Best Regards,
+Andy Shevchenko
