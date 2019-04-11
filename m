@@ -1,66 +1,84 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCH] hmat: Register attributes for memory hot add
-Date: Thu, 11 Apr 2019 09:00:57 -0600
-Message-ID: <20190411150057.GA7247@localhost.localdomain>
-References: <20190409214415.3722-1-keith.busch@intel.com>
- <CAJZ5v0gOuHSoMd6dnGKN5fW1xKF89b2ak0F4mo+07FBpFUCP6A@mail.gmail.com>
+From: Changbin Du <changbin.du@gmail.com>
+Subject: Re: [PATCH v2 00/24] Include linux ACPI docs into Sphinx TOC tree
+Date: Thu, 11 Apr 2019 23:12:36 +0800
+Message-ID: <20190411151234.fvowhdqbfmwc6icr@mail.google.com>
+References: <20190329001135.15847-1-changbin.du@gmail.com>
+ <CAJZ5v0gKX9E+U_9eKfTr7pWGH=jxMLz_Jr850-6BcbG3xBz5qg@mail.gmail.com>
+ <CAJZ5v0jbCi3Jgn5YXPCP+zgs-O7z-9_3p3XZGvm40_6RDsJqkQ@mail.gmail.com>
+ <20190403133613.13f3fd75@lwn.net>
+ <CAJZ5v0gWmmNwiNW=5XgpO6EJw6cAXpwOOePOtuGmR_JzrC+64g@mail.gmail.com>
+ <20190409152638.5b20c77f@lwn.net>
+ <CAJZ5v0jgbvixMJTVPfEHMX0z-ssc9ZcMRCwS-QEyqtkFWcNh5Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gOuHSoMd6dnGKN5fW1xKF89b2ak0F4mo+07FBpFUCP6A@mail.gmail.com>
+In-Reply-To: <CAJZ5v0jgbvixMJTVPfEHMX0z-ssc9ZcMRCwS-QEyqtkFWcNh5Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Jonathan Corbet <corbet@lwn.net>, Changbin Du <changbin.du@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 11, 2019 at 04:42:45PM +0200, Rafael J. Wysocki wrote:
-> On Tue, Apr 9, 2019 at 11:42 PM Keith Busch <keith.busch@intel.com> wrote:
-> > -static __init void hmat_register_targets(void)
-> > +static void hmat_register_targets(void)
-> >  {
-> >         struct memory_target *target;
+On Tue, Apr 09, 2019 at 11:44:11PM +0200, Rafael J. Wysocki wrote:
+> On Tue, Apr 9, 2019 at 11:26 PM Jonathan Corbet <corbet@lwn.net> wrote:
 > >
-> >         list_for_each_entry(target, &targets, node) {
-> > +               if (!node_online(pxm_to_node(target->memory_pxm)))
-> > +                       continue;
-> > +
-> >                 hmat_register_target_initiators(target);
-> >                 hmat_register_target_perf(target);
-> > +               target->registered = true;
-> >         }
-> >  }
+> > On Tue, 9 Apr 2019 18:42:59 +0200
+> > "Rafael J. Wysocki" <rafael@kernel.org> wrote:
 > >
-> > +static int hmat_callback(struct notifier_block *self,
-> > +                        unsigned long action, void *arg)
-> > +{
-> > +       struct memory_notify *mnb = arg;
-> > +       int pxm, nid = mnb->status_change_nid;
-> > +       struct memory_target *target;
-> > +
-> > +       if (nid == NUMA_NO_NODE || action != MEM_ONLINE)
-> > +               return NOTIFY_OK;
-> > +
-> > +       pxm = node_to_pxm(nid);
-> > +       target = find_mem_target(pxm);
-> > +       if (!target || target->registered)
-> > +               return NOTIFY_OK;
-> > +
-> > +       hmat_register_target_initiators(target);
-> > +       hmat_register_target_perf(target);
-> > +       target->registered = true;
-> > +
-> > +       return NOTIFY_OK;
-> > +}
+> > > > Hardware guide
+> > >
+> > > This is more about documenting the expectations regarding the platform
+> > > firmware, so what about firmware-guide instead?
+> >
+> > I had imagined a slightly wider focus, but this seems OK for now.  We can
+> > always rename it later :)
+> >
+> > > So what about this:
+> > >
+> > > - Create a new firmware-guide under Documentation and add an acpi/
+> > > directory to it for starters.  Put the following files into it:
+> > >
+> > >          acpi-lid
+> > >          aml-debugger
+> > >          debug (ditto)
+> > >          DSD-properties-rules
+> > >          gpio-properties
+> > >          i2c-muxes
+> > >
+> > > - Add an acpi/ subdirectory to Documentation/admin-guide and put the
+> > > following files into it:
+> > >
+> > >          cppc_sysfs
+> > >          initrd_table_override
+> > >          dsdt-override
+> >
+> > I do wonder if, rather than creating a new directory, we shouldn't just
+> > make a single acpi.rst and put that information into it?
+> >
+> > > - Add an acpi/ subdirectory to Documentation/driver-api and put the
+> > > following files into it:
+> > >
+> > >          enumeration
+> > >          scan_handlers
+> >
+> > ...and something similar here?  I guess that would be my preference, but I
+> > don't feel all that strongly about it if there's reasons to do otherwise.
 > 
-> This appears to assume that there will never be any races between the
-> two functions above.
+> The primary reason would be to retain the correspondence between the
+> old and the new files.
 > 
-> It this guaranteed to be the case?
+> I guess they could be combined, but that would be two sort of
+> different changes in one go.
+> 
+> > In general the plan seems good.
+> 
+> OK, thanks!
+> 
+> Cheers,
+> Rafael
+Ok, if we have reached this greement, I probably do it this weekend. Thanks for your
+comments.
 
-The hmat_init() will call this directly before registering the memory
-notifier callback, so those two paths should be 'ok'.
-
-I may have assumed memory notification callbacks were single threaded,
-but after taking a quick look, I think I do need additional locking for
-this to be safe. I'll get that fixed up, thanks for the catch.
+-- 
+Cheers,
+Changbin Du
