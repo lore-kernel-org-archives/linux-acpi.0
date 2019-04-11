@@ -2,123 +2,112 @@ Return-Path: <SRS0=iZuV=SN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C07DEC10F13
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 12:34:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 737A8C10F13
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:02:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 90E982073F
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 12:34:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Rt8amp4h"
+	by mail.kernel.org (Postfix) with ESMTP id 40A9D2133D
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Apr 2019 13:02:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726145AbfDKMep (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Apr 2019 08:34:45 -0400
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:46281 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726014AbfDKMep (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 08:34:45 -0400
-Received: by mail-pf1-f196.google.com with SMTP id 9so3377617pfj.13;
-        Thu, 11 Apr 2019 05:34:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=KMdKIIiHipKQKDZGpqrpYyWUnjQx+WvOjRbBgeImJsA=;
-        b=Rt8amp4hd8F2GS9qXUQci8A5SLByOiPZyEU6I1c9Y5aeqYpjSdyOTrdiTJw7nNHsdD
-         CBOvJW1x7kzByhlAfmg4aQXZZlxz1ksg1Ahp9qTJk7R1/9ysIhQlBZFp7ejaeuMMBXUG
-         ZBb3Rly4LN40bCD3A3vmtqXrUS8sYQ/i90qs9GDxxcqonUu0ydPZb/HyLUdwioySw+9N
-         diU1R5MQ1bVai+zzxRxgGw9sxbC8cdhv1bhEwtEkGdvWe5CfuWwGuxTQehecCaU6bpKl
-         bHIaKgac80i7Mxxob/KKsy43HabtlvIqkd8t59F9kNa204swlvmX9SQzosi6G1inylXl
-         OVJQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KMdKIIiHipKQKDZGpqrpYyWUnjQx+WvOjRbBgeImJsA=;
-        b=uDbl0iy0Q65pHqi25NtSjPXcSrxc3hN5iJO3ACwjtuTgYxMQ6ollWNYHhzn8N+j05h
-         l/j+rKgMg6hiV13DssZDwdRlywMFiL36WB4cRc/EraE6qfo7tw1ajyYfbmj+fCNSmDyR
-         sYu/L6qE6R3+2nhsJXvHE+CKeWxllFFWQtZEgLaeWFCZr5QKrmKL3T7ZekmS19+0oejZ
-         jvZiy44IxJ5YMIkDuS7ZUgTu+7j5E0afubP7q9rJx9zWvNQ1L+0zdQ9Lql64EupaGnan
-         y04gbbpHT12y36qLnoXNcWYuQxW/uInhqnJwwSRV0Dq5vhVjYmtfLtM873sjVqPn+zIW
-         93xg==
-X-Gm-Message-State: APjAAAU+ol0wqYViVKjCWJf70cgvWqKfJnKuFlZX+BQh1LlPaV5Jlijo
-        1VbEGb25KZp6Oqw5vAufNQ+NN8gM1TPxHBCKE1HLXR7H
-X-Google-Smtp-Source: APXvYqzbF8eYfOavSgWa1wDzm1HtE4UJ6VkeikDJE1ncgZm6EHoMgDdMML/PKDzNgxDmySUiXZzSWxgNNHigMIs7feI=
-X-Received: by 2002:a65:4302:: with SMTP id j2mr44574088pgq.291.1554986084822;
- Thu, 11 Apr 2019 05:34:44 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com> <20190410152505.87041-9-heikki.krogerus@linux.intel.com>
-In-Reply-To: <20190410152505.87041-9-heikki.krogerus@linux.intel.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 11 Apr 2019 15:34:33 +0300
-Message-ID:
- <CAHp75Vca6EdAYK=mQhrUfwyZZL75sQWHB2czWec1RSUvWcTEgA@mail.gmail.com>
-Subject: Re: [PATCH v2 08/12] usb: typec: Registering real device entries for
- the muxes
-To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        id S1726145AbfDKNCh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Apr 2019 09:02:37 -0400
+Received: from mga14.intel.com ([192.55.52.115]:55028 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726014AbfDKNCh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 Apr 2019 09:02:37 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 11 Apr 2019 06:02:36 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,337,1549958400"; 
+   d="scan'208";a="163381047"
+Received: from unknown (HELO kuha.fi.intel.com) ([10.237.72.189])
+  by fmsmga001.fm.intel.com with SMTP; 11 Apr 2019 06:02:33 -0700
+Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Thu, 11 Apr 2019 16:02:33 +0300
+Date:   Thu, 11 Apr 2019 16:02:33 +0300
+From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans de Goede <hdegoede@redhat.com>,
         Darren Hart <dvhart@infradead.org>,
         Andy Shevchenko <andy@infradead.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v2 06/12] ACPI / property: Don't limit named child node
+ matching to data nodes
+Message-ID: <20190411130233.GA29292@kuha.fi.intel.com>
+References: <20190410152505.87041-1-heikki.krogerus@linux.intel.com>
+ <20190410152505.87041-7-heikki.krogerus@linux.intel.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <20190410152505.87041-7-heikki.krogerus@linux.intel.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190411123433.SQ1O8dBe9QOWZYa4BK-7Ja4N_OpkDtVBKhjx2oaL8Uc@z>
+Message-ID: <20190411130233.KoLN4v12ce97g0W0UGxCeKbsn5trX34Uo2I_MAVl5oU@z>
 
-On Wed, Apr 10, 2019 at 6:25 PM Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
->
-> Registering real device entries (struct device) for the mode
-> muxes as well as for the orientation switches.
->
-> The Type-C mux code was deliberately attempting to avoid
-> creation of separate device entries for the orientation
-> switch and the mode switch (alternate modes) because they
-> are not physical devices. They are functions of a single
-> physical multiplexer/demultiplexer switch device.
->
-> Unfortunately because of the dependency we still have on the
-> underlying mux device driver, we had to put in hacks like
-> the one in the commit 3e3b81965cbf ("usb: typec: mux: Take
-> care of driver module reference counting") to make sure the
-> driver does not disappear from underneath us. Even with
-> those hacks we were still left with a potential NUll pointer
-> dereference scenario, so just creating the device entries,
-> and letting the core take care of the dependencies. No more
-> hacks needed.
+Hi Rafael,
 
->  drivers/platform/x86/intel_cht_int33fe.c |   4 +-
+On Wed, Apr 10, 2019 at 06:24:59PM +0300, Heikki Krogerus wrote:
+> There is no reason why we should limit the use of
+> fwnode_get_named_child_node() to data nodes only.
+> 
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  drivers/acpi/property.c | 26 ++++++++++++++++++++------
+>  1 file changed, 20 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 77abe0ec4043..c3fb52c387a6 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -602,15 +602,29 @@ static struct fwnode_handle *
+>  acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+>  				 const char *childname)
+>  {
+> +	char name[ACPI_PATH_SEGMENT_LENGTH];
+>  	struct fwnode_handle *child;
+> +	struct acpi_buffer path;
+> +	acpi_status status;
+>  
+> -	/*
+> -	 * Find first matching named child node of this fwnode.
+> -	 * For ACPI this will be a data only sub-node.
+> -	 */
+> -	fwnode_for_each_child_node(fwnode, child)
+> -		if (acpi_data_node_match(child, childname))
+> +	path.length = sizeof(name);
+> +	path.pointer = name;
+> +
+> +	fwnode_for_each_child_node(fwnode, child) {
+> +		if (is_acpi_data_node(child)) {
+> +			if (acpi_data_node_match(child, childname))
+> +				return child;
+> +			continue;
+> +		}
+> +
+> +		status = acpi_get_name(ACPI_HANDLE_FWNODE(child),
+> +				       ACPI_SINGLE_NAME, &path);
+> +		if (ACPI_FAILURE(status))
+> +			break;
+> +
+> +		if (!strncmp(name, childname, ACPI_NAME_SIZE))
 
-> diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-> index 6fa3cced6f8e..657b8d61554c 100644
-> --- a/drivers/platform/x86/intel_cht_int33fe.c
-> +++ b/drivers/platform/x86/intel_cht_int33fe.c
-> @@ -173,10 +173,10 @@ static int cht_int33fe_probe(struct platform_device *pdev)
->         }
->
->         data->connections[0].endpoint[0] = "port0";
-> -       data->connections[0].endpoint[1] = "i2c-pi3usb30532";
-> +       data->connections[0].endpoint[1] = "i2c-pi3usb30532-switch";
->         data->connections[0].id = "orientation-switch";
->         data->connections[1].endpoint[0] = "port0";
-> -       data->connections[1].endpoint[1] = "i2c-pi3usb30532";
-> +       data->connections[1].endpoint[1] = "i2c-pi3usb30532-mux";
->         data->connections[1].id = "mode-switch";
->         data->connections[2].endpoint[0] = "i2c-fusb302";
->         data->connections[2].endpoint[1] = "intel_xhci_usb_sw-role-switch";
+I rebased these on of todays linux-next, and noticed that Bob renamed
+ACPI_NAME_SIZE to ACPI_NAMESEG_SIZE in commit 3278675567df ("ACPICA:
+Rename nameseg length macro/define for clarity").
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+I'll fix that and resend these tomorrow.
+
+thanks,
 
 -- 
-With Best Regards,
-Andy Shevchenko
+heikki
