@@ -2,101 +2,102 @@ Return-Path: <SRS0=tbVn=SO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E154C10F0E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:26:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45819C282CE
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:41:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DBF73206BA
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:26:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D9052084D
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:41:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726832AbfDLN0x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Apr 2019 09:26:53 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6178 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726244AbfDLN0w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Apr 2019 09:26:52 -0400
-Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 2DC81A45623B1C5A690B;
-        Fri, 12 Apr 2019 21:26:47 +0800 (CST)
-Received: from [127.0.0.1] (10.177.31.96) by DGGEMS404-HUB.china.huawei.com
- (10.3.19.204) with Microsoft SMTP Server id 14.3.408.0; Fri, 12 Apr 2019
- 21:26:42 +0800
-Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-References: <20190404103925.25652-1-yuehaibing@huawei.com>
- <20190405142112.26592-1-yuehaibing@huawei.com>
- <20190405145009.GD9224@smile.fi.intel.com> <2719325.nu6fPkO1U5@kreacher>
- <CAHp75VccF9-ax8nJ9qOfAFMvLR19K6NqwyePEf-86r4ifMnJKA@mail.gmail.com>
-CC:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-From:   YueHaibing <yuehaibing@huawei.com>
-Message-ID: <241a0251-3d2d-b304-c103-a6d240e89ce6@huawei.com>
-Date:   Fri, 12 Apr 2019 21:26:41 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.2.0
+        id S1727136AbfDLNlp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Apr 2019 09:41:45 -0400
+Received: from mga07.intel.com ([134.134.136.100]:9855 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727122AbfDLNln (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Apr 2019 09:41:43 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Apr 2019 06:41:42 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,341,1549958400"; 
+   d="scan'208";a="163824258"
+Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
+  by fmsmga001.fm.intel.com with ESMTP; 12 Apr 2019 06:41:39 -0700
+From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+Subject: [PATCH v3 06/13] ACPI / property: Don't limit named child node matching to data nodes
+Date:   Fri, 12 Apr 2019 16:41:15 +0300
+Message-Id: <20190412134122.82903-7-heikki.krogerus@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
+References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHp75VccF9-ax8nJ9qOfAFMvLR19K6NqwyePEf-86r4ifMnJKA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.177.31.96]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190412132641.fXGUf4DG8FsupI8MfpsB3ul3PWW_j2v2QbV3BmwAks8@z>
+Content-Type: text/plain; charset="UTF-8"
+Message-ID: <20190412134115.VLjVMFYvVaQepdwdU_zK7wsZu_OOdFRTWq3j7sHm-rw@z>
 
-On 2019/4/12 21:13, Andy Shevchenko wrote:
-> On Fri, Apr 12, 2019 at 3:55 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Friday, April 5, 2019 4:50:09 PM CEST Andy Shevchenko wrote:
->>> On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
->>>> From: YueHaibing <yuehaibing@huawei.com>
->>>>
->>>> When building CONFIG_ACPI is not set
->>>> gcc warn this:
->>>>
->>>> drivers/gpio/gpio-merrifield.c: In function
->>>> mrfld_gpio_get_pinctrl_dev_name: drivers/gpio/gpio-merrifield.c:388:19:
->>>> error: dereferencing pointer to incomplete type struct acpi_device>
->>>>    put_device(&adev->dev);
->>>>
->>>>                    ^
->>>>
->>>> Reported-by: Hulk Robot <hulkci@huawei.com>
->>>> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->>>> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use
->>>> acpi_dev_get_first_match_dev()") Signed-off-by: YueHaibing
->>>> <yuehaibing@huawei.com>
->>>
->>> Thank you for an update, I have a comment below, but before sending v3, let
->>> Rafael to have a chance to look at it.
->>>
->>>>  #ifdef CONFIG_ACPI
->>>>  extern int acpi_platform_notify(struct device *dev, enum kobject_action
->>>>  action);>
->>>> +
->>>> +static inline void put_acpi_device(struct acpi_device *adev)
->>>> +{
->>>> +   put_device(&adev->dev);
->>>> +}
->>>
->>> This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
->>> And talking to Mika we agreed that naming would be better as acpi_dev_put().
->>
->> Agreed on both accounts.
-> 
-> Thanks!
-> YueHaibing, please, send v3 with suggested changes.
+There is no reason why we should limit the use of
+fwnode_get_named_child_node() to data nodes only.
 
-Ok.
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ drivers/acpi/property.c | 26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-> 
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 77abe0ec4043..572a6868ff2e 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -602,15 +602,29 @@ static struct fwnode_handle *
+ acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+ 				 const char *childname)
+ {
++	char name[ACPI_PATH_SEGMENT_LENGTH];
+ 	struct fwnode_handle *child;
++	struct acpi_buffer path;
++	acpi_status status;
+ 
+-	/*
+-	 * Find first matching named child node of this fwnode.
+-	 * For ACPI this will be a data only sub-node.
+-	 */
+-	fwnode_for_each_child_node(fwnode, child)
+-		if (acpi_data_node_match(child, childname))
++	path.length = sizeof(name);
++	path.pointer = name;
++
++	fwnode_for_each_child_node(fwnode, child) {
++		if (is_acpi_data_node(child)) {
++			if (acpi_data_node_match(child, childname))
++				return child;
++			continue;
++		}
++
++		status = acpi_get_name(ACPI_HANDLE_FWNODE(child),
++				       ACPI_SINGLE_NAME, &path);
++		if (ACPI_FAILURE(status))
++			break;
++
++		if (!strncmp(name, childname, ACPI_NAMESEG_SIZE))
+ 			return child;
++	}
+ 
+ 	return NULL;
+ }
+-- 
+2.20.1
 
