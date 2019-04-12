@@ -2,173 +2,95 @@ Return-Path: <SRS0=tbVn=SO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
+	T_DKIMWL_WL_HIGH autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27334C10F13
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 00:58:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FF68C10F0E
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 08:11:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A03732084D
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 00:58:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="IYmOOA+V"
+	by mail.kernel.org (Postfix) with ESMTP id F1CF420818
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 08:11:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1555056700;
+	bh=f6LNNY1sP63m2YWoANx0b9cAojzOKzrFAB7+nliWhuU=;
+	h=From:Date:Subject:To:Cc:List-ID:From;
+	b=gEAdCdzCvSiA6JEBZk7g/o4kIpsah4RfIpMSC9IQ7ANSamCI3i7MVuYdEjYU06/lM
+	 LGZEOFeePM+dZXdTQ3W/qifpR/c5G67112Oa/47Tf8leJtEx+4UNJY8wauVfN0FRrZ
+	 cK0WO/IAKPxjXWOA1LCuip8qOOb4onVZJs6tT1sU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726677AbfDLA6h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Apr 2019 20:58:37 -0400
-Received: from mailout2.samsung.com ([203.254.224.25]:61562 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726661AbfDLA6h (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Apr 2019 20:58:37 -0400
-Received: from epcas1p1.samsung.com (unknown [182.195.41.45])
-        by mailout2.samsung.com (KnoxPortal) with ESMTP id 20190412005834epoutp02ef9cb6ce959506b1358a96dee998978b~UlDI1X15z0656506565epoutp024
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Apr 2019 00:58:34 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20190412005834epoutp02ef9cb6ce959506b1358a96dee998978b~UlDI1X15z0656506565epoutp024
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-        s=mail20170921; t=1555030714;
-        bh=vKSoFW2zwZcUclRwrPJJfW0HdEH+OTQjHoyIwUvQqEw=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=IYmOOA+Vwn8hUIU/FoXLcDq6C1PL/2jbN42ZCM9SDjr7oo4So718dX4x1ONG4vY8f
-         Zn0cD+/DLEt1gA2alhnWoqZUN/jJJfdULEFToz0jFUT/F7qRnIW2L8rw1cOMs1e6sL
-         yJPliIhCh7Y7YzkvEYBHwsnIQwCcTIm9pZUO8iyM=
-Received: from epsmges1p1.samsung.com (unknown [182.195.40.153]) by
-        epcas1p2.samsung.com (KnoxPortal) with ESMTP id
-        20190412005832epcas1p2561040aa30b44a3535c05f5827a59eea~UlDGlpvM31678516785epcas1p2J;
-        Fri, 12 Apr 2019 00:58:32 +0000 (GMT)
-Received: from epcas1p4.samsung.com ( [182.195.41.48]) by
-        epsmges1p1.samsung.com (Symantec Messaging Gateway) with SMTP id
-        67.BF.04139.8B2EFAC5; Fri, 12 Apr 2019 09:58:32 +0900 (KST)
-Received: from epsmtrp2.samsung.com (unknown [182.195.40.14]) by
-        epcas1p1.samsung.com (KnoxPortal) with ESMTPA id
-        20190412005832epcas1p11b1351c142ccce92759a0959f95b37c0~UlDGT1Lm81541715417epcas1p1T;
-        Fri, 12 Apr 2019 00:58:32 +0000 (GMT)
-Received: from epsmgms1p2new.samsung.com (unknown [182.195.42.42]) by
-        epsmtrp2.samsung.com (KnoxPortal) with ESMTP id
-        20190412005831epsmtrp27023528758a8f6bf938a94301a2bb450~UlDGTE3rq0981909819epsmtrp2J;
-        Fri, 12 Apr 2019 00:58:31 +0000 (GMT)
-X-AuditID: b6c32a35-973ff7000000102b-b7-5cafe2b8a007
-Received: from epsmtip1.samsung.com ( [182.195.34.30]) by
-        epsmgms1p2new.samsung.com (Symantec Messaging Gateway) with SMTP id
-        42.37.03662.7B2EFAC5; Fri, 12 Apr 2019 09:58:31 +0900 (KST)
-Received: from [10.113.221.102] (unknown [10.113.221.102]) by
-        epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-        20190412005831epsmtip149f5a594696e24b3a28728553c66a956~UlDGLDQWs1973419734epsmtip12;
-        Fri, 12 Apr 2019 00:58:31 +0000 (GMT)
-Subject: Re: [PATCH v2] extcon: axp288: Add a depends on ACPI to the Kconfig
- entry
-From:   Chanwoo Choi <cw00.choi@samsung.com>
-To:     myungjoo.ham@samsung.com, wens@csie.org, hdegoede@redhat.com,
-        rjw@rjwysocki.net,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Organization: Samsung Electronics
-Message-ID: <df1f3722-28a1-30eb-7dbf-e4d4586c9bc3@samsung.com>
-Date:   Fri, 12 Apr 2019 09:59:21 +0900
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
-        Thunderbird/60.6.1
+        id S1726914AbfDLILj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Apr 2019 04:11:39 -0400
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:46635 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726838AbfDLILj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Apr 2019 04:11:39 -0400
+Received: by mail-oi1-f195.google.com with SMTP id x188so7220889oia.13;
+        Fri, 12 Apr 2019 01:11:39 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=B2IpjxM0aHzY+BVWhPSCyxpoJj0L1vnQLxYTiu6TxCs=;
+        b=lDcSDVIk4T2bVb+9ePDwNX+tJY+a59P04GYT70jPzjjuZE0wrAF9ueZGSXRKEtRC+T
+         XH5gegFI7u5BjIdYYMctziQ6giSREX1bdn3Eds9Wa5F+9bW6VCzcKVFd8z50PcX7API0
+         iSkRxf4eqURK1a/9aTSMn7PI3nGQ/1HbByXOZB5yilkaw0ylvu7kw0HLm5BLhjbt31ST
+         aKTUIitdZr+tPQYG8iQQcd3fj3COXcM5Atu9reElpfR2sDV6lIgXVc0XM5ct5fz3IETN
+         ebV/rbFPu6Rfwq0B+Y7nPlCm7tezG0GPdrwR3pOe6l2a62rng3ty2w0qrm47RS5cBqEf
+         DNSQ==
+X-Gm-Message-State: APjAAAWspNLIRp470tNZngXFp7EOomZKLFryEjfL+HT2AskehJUnreOY
+        RB0zTMp8ymngpzS7kI/rmo0Y9kiPL4KgKFqp+rWyUNbi
+X-Google-Smtp-Source: APXvYqyRYORwJW6QFGk0f+pfk4tTnKz+gNdusOG1/sIxLp+Y59bqHv0rg7SioxcChLVB9Za0KTrV894wbsxNI9PZGYk=
+X-Received: by 2002:aca:6289:: with SMTP id w131mr9223111oib.84.1555056698489;
+ Fri, 12 Apr 2019 01:11:38 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <c11e2ae8-d785-902d-1469-4ff538ebe2ab@samsung.com>
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Se0hTcRTH+W2716nNfq7XyaLmjYoEbbe1usZmg6QGRQj5R5SmF71M2eOO
-        3U3KCAojy9QeWqEWRWJvmKnFEnS1XmqWlkgP6YEZPYhZrdf+6HGv18j/Pr/zO99zzvf3O2ql
-        tolMUhe7vJzHxTooMk519eYifWpg2J+j73+PmY93jymYs50HEDPQfpxkhnadI5nee48I5tTl
-        YcREQ30KS4y1efgiYR3tHCStbYPlKmt12wVkjbTMySI22U1FHFvIeXScq4AvLHbZzNTaDXmr
-        8ozL9HQqnc4sp3Qu1smZqcx1Wamrix3iGJSuhHX4xFAWKwjU4gyTh/d5OV0RL3jNFOcudLjT
-        3WkC6xR8LltaAe9cQev1S4xiYr69KNxahdzRSVv91bXKnehGXAWKVQNeCk/6ekmJtTiAYORd
-        bAWKE/kLgvbafTHy4TuCQPlB1T/F6boulXzRgeDhnheEfBhFUNV6TZSo1VNwNvzq1UkCEqdA
-        8N0TUsqZivciGG0MEdKFEpugsb8HSTwZJ8Pgz9djrMEZcKL569hMKjwfztQOKiSehjfCyzvN
-        hJyTCN11I2MTxeKVUNG3WyHXnAHPRk6O81wou9KglBoDjpBw++nRGNlCJkTLBgiZp8CHu23j
-        8SSIhDtImbfD+e5bpCwWp24L9o8LDBBsqlFILpV4EfjbF8vNEiD8rZKQwoA1sHePVs6eBwOv
-        nitkngmN5fvGy1uh4tcPdBAl10+wUz/BQv0EC/X/m51CqgtoOucWnDZOoN30xN9uQWMrmmIM
-        oNoH60IIqxE1SXPO5M/REmyJsM0ZQqBWUlM12SoxpClkt5VyHj7P43NwQggZxdc+pEyaVsCL
-        C+/y5tHGJQaDgVlKLzPSNDVD47esytFiG+vl7Bzn5jz/dAp1bNJOZCQfh8/wlU8/1/x+Yw+v
-        Lu379P3Sl/1N+c7AkeKtpu5Ke9SQaA5mXvzxwVJl4l7M2vIx7dB6pmFBfFfuz8o1XZHsryOz
-        c5OPP/R1ZJwFW1Z0B295GyxLyEyGE+U9B+LN82/Nul9a0pM+VP28WXs4fmieJe4N/2fzwrKZ
-        kdbrRP4QpRKKWDpF6RHYvxsqWZC4AwAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprAIsWRmVeSWpSXmKPExsWy7bCSnO72R+tjDM51W1m8OT6dyWL5vn5G
-        i8u75rBZ3G5cwWZx5vQlVosFGx8xWvw8dJ7Jgd1jw6PVrB7v911l89hytZ3Fo2/LKkaPz5vk
-        AlijuGxSUnMyy1KL9O0SuDLebe5lLPjJU7G+bwpzA+NBri5GTg4JAROJRTNPsHQxcnEICexm
-        lPjQfIkFIiEpMe3iUeYuRg4gW1ji8OFiiJq3jBI7ulcxgsSFBUIk/p5RAClnE9CS2P/iBhtI
-        jYhAB6PEomVX2UESzAI2EosvnGKEaP7CKNF+dj0zSIJfQFHi6o/HjCA2r4CdxNwNX9hAbBYB
-        VYllU64ygdiiAhESZ96vYIGoEZQ4OfMJmM0pYC/Rdb6FCWKBusSfeZeYIWxxiVtP5kPF5SWa
-        t85mnsAoPAtJ+ywkLbOQtMxC0rKAkWUVo2RqQXFuem6xYYFRXmq5XnFibnFpXrpecn7uJkZw
-        PGlp7WA8cSL+EKMAB6MSD+8Km/UxQqyJZcWVuYcYJTiYlUR4Q1iAQrwpiZVVqUX58UWlOanF
-        hxilOViUxHnl849FCgmkJ5akZqemFqQWwWSZODilGhjNH385p8+ZXGuU4RF4XqHr5esHnjP4
-        447usT+5oCgtqTT41Quuy7Of/56ybe3r9wVcIirqHAcslvu/bpmqY9W1m8/pqLTBgdADbJs+
-        zuzqKmj84H9+/nr5jndl81QDf2zakWATHHRb3y0tcuLVF8t3p+/RYl0qdsd81nrj6tkzFtm9
-        vhJodldciaU4I9FQi7moOBEAvGUKiqMCAAA=
-X-CMS-MailID: 20190412005832epcas1p11b1351c142ccce92759a0959f95b37c0
-X-Msg-Generator: CA
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 12 Apr 2019 10:11:27 +0200
+Message-ID:
+ <CAJZ5v0jfyUSTRs909hsPhDSEt__MGPKC+1UBsG8oieWE07nn5A@mail.gmail.com>
+Subject: [GIT PULL] ACPI fix for v5.1-rc5
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-CMS-TYPE: 101P
-DLP-Filter: Pass
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20190404142002epcas1p1a86f6d0d5d1a694581630a99532af633
-References: <20190404104222.23900-1-yuehaibing@huawei.com>
-        <CGME20190404142002epcas1p1a86f6d0d5d1a694581630a99532af633@epcas1p1.samsung.com>
-        <20190404141748.27048-1-yuehaibing@huawei.com>
-        <c11e2ae8-d785-902d-1469-4ff538ebe2ab@samsung.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190412005921.1xgiQtwbfmgVsBvEucZlkGxf7BJW-Qa5m4T7SnyGNW4@z>
+Message-ID: <20190412081127.mfnDumyiKdemhpelgLqJHQpY44tkYaVjJO6FTv9WSPQ@z>
 
-Dear all,
- 
-+ stable@vger.kernel.org 
- 
-It should be posted to stable@vger.kernel.org
-in order to merge it to stable tree.
- 
-Regards,
-Chanwoo Choi
+Hi Linus,
 
+Please pull from the tag
 
-On 19. 4. 12. 오전 8:30, Chanwoo Choi wrote:
-> On 19. 4. 4. 오후 11:17, Yue Haibing wrote:
->> From: YueHaibing <yuehaibing@huawei.com>
->>
->> As Hans de Goede pointed, using this driver without ACPI
->> makes little sense, so add ACPI dependency to Kconfig entry
->> to fix a build error while CONFIG_ACPI is not set.
->>
->> drivers/extcon/extcon-axp288.c: In function 'axp288_extcon_probe':
->> drivers/extcon/extcon-axp288.c:363:20: error: dereferencing pointer to incomplete type
->>     put_device(&adev->dev);
->>
->> Fixes: 0cf064db948a ("extcon: axp288: Convert to use acpi_dev_get_first_match_dev()")
->> Reported-by: Hulk Robot <hulkci@huawei.com>
->> Suggested-by: Hans de Goede <hdegoede@redhat.com>
->> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
->> ---
->> v2: rework patch
->> ---
->>  drivers/extcon/Kconfig | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
->> index 1ed4b45..de06faf 100644
->> --- a/drivers/extcon/Kconfig
->> +++ b/drivers/extcon/Kconfig
->> @@ -30,7 +30,7 @@ config EXTCON_ARIZONA
->>  
->>  config EXTCON_AXP288
->>  	tristate "X-Power AXP288 EXTCON support"
->> -	depends on MFD_AXP20X && USB_SUPPORT && X86
->> +	depends on MFD_AXP20X && USB_SUPPORT && X86 && ACPI
->>  	select USB_ROLE_SWITCH
->>  	help
->>  	  Say Y here to enable support for USB peripheral detection
->>
-> 
-> Applied it. Thanks.
-> 
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-5.1-rc5
+
+with top-most commit c5781ffbbd4f742a58263458145fe7f0ac01d9e0
+
+ ACPICA: Namespace: remove address node from global list after method
+termination
+
+on top of commit 15ade5d2e7775667cf191cf2f94327a4889f8b9d
+
+ Linux 5.1-rc4
+
+to receive an ACPI fix for 5.1-rc5.
+
+This fixes an ACPICA issue introduced during the 4.20 development cycle
+and causing some systems to crash because of leftover operation region
+data still maintained after the operation region in question has gone
+away (Erik Schmauss).
+
+Thanks!
 
 
--- 
-Best Regards,
-Chanwoo Choi
-Samsung Electronics
+---------------
+
+Erik Schmauss (1):
+      ACPICA: Namespace: remove address node from global list after
+method termination
+
+---------------
+
+ drivers/acpi/acpica/nsobject.c | 4 ++++
+ 1 file changed, 4 insertions(+)
