@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v3 13/13] platform/x86: intel_cht_int33fe: Replacing the old connections with references
-Date: Fri, 12 Apr 2019 16:41:22 +0300
-Message-ID: <20190412134122.82903-14-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v3 03/13] software node: Add support for references
+Date: Fri, 12 Apr 2019 16:41:12 +0300
+Message-ID: <20190412134122.82903-4-heikki.krogerus@linux.intel.com>
 References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,175 +9,231 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now that the software nodes support references, and the
-device connection API support parsing fwnode references,
-replacing the old connection descriptions with software node
-references. Relying on device names when matching the
-connection would not have been possible to link the USB
-Type-C connector and the DisplayPort connector together, but
-with real references it's not problem.
+Introducing functions that can be used for adding and
+removing references to other software nodes. The goal is to
+support fwnode_property_get_reference_args() also with
+software nodes, however, get_reference_args fwnode operation
+callback is not yet implemented in this commit for the
+software nodes. This commit will only add support for
+reference addition/removal.
 
-The DisplayPort ACPI node is dag up, and the drivers own
-software node for the DisplayPort is set as the secondary
-node for it. The USB Type-C connector refers the software
-node, but it is now tied to the ACPI node, and therefore any
-device entry (struct drm_connector in practice) that the
-node combo is assigned to.
+The next example shows how to add references to GPIOs using the
+format described in Documentation/acpi/gpio-properties.txt:
 
-The USB role switch device does not have ACPI node, so we
-have to wait for the device to appear. Then we can simply
-assign our software node for the to the device.
+/* Array with two GPIOs */
+static struct fwnode_reference_args gpioargs[] __initdata = {
+	{
+		.nargs = 3,
+		.args[0]= 19, /* index */
+		.args[1]= 0,  /* pin */
+		.args[2]= 0,  /* active_low */
+	},
+	{
+		.nargs = 3,
+		.args[0]= 20, /* index */
+		.args[1]= 0,  /* pin */
+		.args[2]= 0,  /* active_low */
+	},
+	{ }
+};
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+static int myinit(void)
+{
+	struct software_node_reference *ref;
+	struct fwnode_handle *gpio_node;
+	struct fwnode_handle *my_node;
+
+	/* Creating the nodes */
+	gpio_node = fwnode_create_software_node(gpio_props, NULL);
+	...
+	my_node = fwnode_create_software_node(my_props, NULL);
+	...
+
+	/* gpio_node is associated with a GPIO/Pin controller in this example */
+	...
+
+	/* Assigning the actual node references */
+	gpioargs[0].fwnode = gpio_node;
+	gpioargs[1].fwnode = gpio_node;
+
+	/* my_node will now have a named ("gpios") reference to the two GPIOs */
+	ref = fwnode_create_software_node_reference(my_node, "gpios", gpioargs);
+	...
+	return 0;
+}
+
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/platform/x86/intel_cht_int33fe.c | 93 +++++++++++++++++++-----
- 1 file changed, 76 insertions(+), 17 deletions(-)
+ drivers/base/swnode.c    | 101 +++++++++++++++++++++++++++++++++++++++
+ include/linux/property.h |   8 ++++
+ 2 files changed, 109 insertions(+)
 
-diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-index 7711667a3454..e6a1ea7f33af 100644
---- a/drivers/platform/x86/intel_cht_int33fe.c
-+++ b/drivers/platform/x86/intel_cht_int33fe.c
-@@ -39,15 +39,22 @@ enum {
- 	INT33FE_NODE_MAX,
- };
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 7b321bf8424c..39b8f8f35cfe 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -11,10 +11,19 @@
+ #include <linux/property.h>
+ #include <linux/slab.h>
  
-+enum {
-+	INT33FE_REF_ORIENTATION,
-+	INT33FE_REF_MODE_MUX,
-+	INT33FE_REF_DISPLAYPORT,
-+	INT33FE_REF_ROLE_SWITCH,
-+	INT33FE_REF_MAX,
++struct software_node_reference {
++	struct list_head list;
++	const char *name;
++	int nrefs;
++	struct fwnode_reference_args *args;
 +};
 +
- struct cht_int33fe_data {
- 	struct i2c_client *max17047;
- 	struct i2c_client *fusb302;
- 	struct i2c_client *pi3usb30532;
--	/* Contain a list-head must be per device */
--	struct device_connection connections[4];
+ struct software_node {
+ 	int id;
+ 	struct kobject kobj;
+ 	struct fwnode_handle fwnode;
++	struct list_head references;
++	struct mutex lock; /* node lock */
  
- 	struct fwnode_handle *dp;
- 	struct fwnode_handle *node[INT33FE_NODE_MAX];
-+	struct software_node_reference *ref[INT33FE_REF_MAX];
- };
+ 	/* hierarchy */
+ 	struct ida child_ids;
+@@ -598,9 +607,11 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 	swnode->kobj.kset = swnode_kset;
+ 	swnode->fwnode.ops = &software_node_ops;
  
- /*
-@@ -280,6 +287,65 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
- 	return ret;
++	mutex_init(&swnode->lock);
+ 	ida_init(&swnode->child_ids);
+ 	INIT_LIST_HEAD(&swnode->entry);
+ 	INIT_LIST_HEAD(&swnode->children);
++	INIT_LIST_HEAD(&swnode->references);
+ 	swnode->parent = p;
+ 
+ 	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
+@@ -631,6 +642,11 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
+ 	if (!swnode)
+ 		return;
+ 
++	mutex_lock(&swnode->lock);
++	WARN(!list_empty(&swnode->references),
++	     "\"%s\" has still references", kobject_name(&swnode->kobj));
++	mutex_unlock(&swnode->lock);
++
+ 	if (swnode->parent) {
+ 		ida_simple_remove(&swnode->parent->child_ids, swnode->id);
+ 		list_del(&swnode->entry);
+@@ -642,6 +658,91 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
  }
+ EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
  
-+static void cht_int33fe_remove_references(struct cht_int33fe_data *data)
++/**
++ * fwnode_create_software_node_reference - Create named reference description
++ * @fwnode: The software node to have the references
++ * @name: Name given to reference description
++ * @args: Zero terminated array of software node references with arguments
++ *
++ * Associates software nodes listed in @args with @fwnode. The association is
++ * named @name. The reference count is incremented for the nodes in @args.
++ *
++ * Returns pointer to software node reference description on success, or ERR_PTR
++ * on failure.
++ */
++struct software_node_reference *
++fwnode_create_software_node_reference(const struct fwnode_handle *fwnode,
++				      const char *name,
++				      const struct fwnode_reference_args *args)
 +{
-+	int i;
-+
-+	for (i = 0; i < INT33FE_REF_MAX; i++)
-+		fwnode_remove_software_node_reference(data->ref[i]);
-+}
-+
-+static int cht_int33fe_add_references(struct cht_int33fe_data *data)
-+{
-+	struct fwnode_reference_args args[2] = { };
++	struct software_node *swnode = to_software_node(fwnode);
 +	struct software_node_reference *ref;
-+	struct fwnode_handle *con;
++	int n;
 +
-+	con = data->node[INT33FE_NODE_USB_CONNECTOR];
++	if (!swnode)
++		return ERR_PTR(-EINVAL);
 +
-+	/* USB Type-C muxes */
-+	args[0].fwnode = data->node[INT33FE_NODE_PI3USB30532];
-+	args[1].fwnode = NULL;
++	for (n = 0; args[n].fwnode; n++)
++		if (!is_software_node(args[n].fwnode))
++			return ERR_PTR(-EINVAL);
 +
-+	ref = fwnode_create_software_node_reference(con, "orientation-switch",
-+						    args);
-+	if (IS_ERR(ref))
-+		return PTR_ERR(ref);
-+	data->ref[INT33FE_REF_ORIENTATION] = ref;
++	ref = kzalloc(sizeof(*ref), GFP_KERNEL);
++	if (!ref)
++		return ERR_PTR(-ENOMEM);
 +
-+	ref = fwnode_create_software_node_reference(con, "mode-switch", args);
-+	if (IS_ERR(ref)) {
-+		cht_int33fe_remove_references(data);
-+		return PTR_ERR(ref);
++	ref->nrefs = n;
++
++	ref->name = kstrdup(name, GFP_KERNEL);
++	if (!ref->name) {
++		kfree(ref);
++		return ERR_PTR(-ENOMEM);
 +	}
-+	data->ref[INT33FE_REF_MODE_MUX] = ref;
 +
-+	/* USB role switch */
-+	args[0].fwnode = data->node[INT33FE_NODE_ROLE_SWITCH];
-+	args[1].fwnode = NULL;
-+
-+	ref = fwnode_create_software_node_reference(con, "usb-role-switch",
-+						    args);
-+	if (IS_ERR(ref)) {
-+		cht_int33fe_remove_references(data);
-+		return PTR_ERR(ref);
++	ref->args = kcalloc(ref->nrefs, sizeof(*ref->args), GFP_KERNEL);
++	if (!ref->args) {
++		kfree(ref->name);
++		kfree(ref);
++		return ERR_PTR(-ENOMEM);
 +	}
-+	data->ref[INT33FE_REF_ROLE_SWITCH] = ref;
 +
-+	/* DisplayPort */
-+	args[0].fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
-+	args[1].fwnode = NULL;
-+
-+	ref = fwnode_create_software_node_reference(con, "displayport", args);
-+	if (IS_ERR(ref)) {
-+		cht_int33fe_remove_references(data);
-+		return PTR_ERR(ref);
++	for (n = 0; n < ref->nrefs; n++) {
++		ref->args[n] = args[n];
++		software_node_get(ref->args[n].fwnode);
 +	}
-+	data->ref[INT33FE_REF_DISPLAYPORT] = ref;
 +
-+	return 0;
++	mutex_lock(&swnode->lock);
++	list_add_tail(&ref->list, &swnode->references);
++	mutex_unlock(&swnode->lock);
++
++	return ref;
 +}
++EXPORT_SYMBOL_GPL(fwnode_create_software_node_reference);
 +
- static int cht_int33fe_probe(struct platform_device *pdev)
++/**
++ * fwnode_remove_software_node_reference - Remove named reference description
++ * @ref: Software node reference description
++ *
++ * Remove named reference @ref. Decrements the software node reference count of
++ * each node in @ref, and removes the association that was created in
++ * fwnode_create_software_node_reference().
++ */
++void fwnode_remove_software_node_reference(struct software_node_reference *ref)
++{
++	int n;
++
++	if (IS_ERR_OR_NULL(ref))
++		return;
++
++	for (n = 0; n < ref->nrefs; n++)
++		kobject_put(&to_software_node(ref->args[n].fwnode)->kobj);
++
++	list_del(&ref->list);
++	kfree(ref->args);
++	kfree(ref->name);
++	kfree(ref);
++}
++EXPORT_SYMBOL_GPL(fwnode_remove_software_node_reference);
++
+ int software_node_notify(struct device *dev, unsigned long action)
  {
- 	struct device *dev = &pdev->dev;
-@@ -348,22 +414,14 @@ static int cht_int33fe_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
+ 	struct fwnode_handle *fwnode = dev_fwnode(dev);
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 65d3420dd5d1..40e12ca43556 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -314,6 +314,8 @@ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ /* -------------------------------------------------------------------------- */
+ /* Software fwnode support - when HW description is incomplete or missing */
  
--	/* Work around BIOS bug, see comment on cht_int33fe_check_for_max17047 */
--	ret = cht_int33fe_register_max17047(dev, data);
-+	ret = cht_int33fe_add_references(data);
- 	if (ret)
- 		goto out_remove_nodes;
++struct sofware_node_reference;
++
+ bool is_software_node(const struct fwnode_handle *fwnode);
  
--	data->connections[0].endpoint[0] = "port0";
--	data->connections[0].endpoint[1] = "i2c-pi3usb30532-switch";
--	data->connections[0].id = "orientation-switch";
--	data->connections[1].endpoint[0] = "port0";
--	data->connections[1].endpoint[1] = "i2c-pi3usb30532-mux";
--	data->connections[1].id = "mode-switch";
--	data->connections[2].endpoint[0] = "i2c-fusb302";
--	data->connections[2].endpoint[1] = "intel_xhci_usb_sw-role-switch";
--	data->connections[2].id = "usb-role-switch";
--
--	device_connections_add(data->connections);
-+	/* Work around BIOS bug, see comment on cht_int33fe_check_for_max17047 */
-+	ret = cht_int33fe_register_max17047(dev, data);
-+	if (ret)
-+		goto out_remove_references;
+ int software_node_notify(struct device *dev, unsigned long action);
+@@ -323,4 +325,10 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 			    const struct fwnode_handle *parent);
+ void fwnode_remove_software_node(struct fwnode_handle *fwnode);
  
- 	memset(&board_info, 0, sizeof(board_info));
- 	strlcpy(board_info.type, "typec_fusb302", I2C_NAME_SIZE);
-@@ -398,7 +456,8 @@ static int cht_int33fe_probe(struct platform_device *pdev)
- out_unregister_max17047:
- 	i2c_unregister_device(data->max17047);
- 
--	device_connections_remove(data->connections);
-+out_remove_references:
-+	cht_int33fe_remove_references(data);
- 
- out_remove_nodes:
- 	cht_int33fe_remove_nodes(data);
-@@ -414,7 +473,7 @@ static int cht_int33fe_remove(struct platform_device *pdev)
- 	i2c_unregister_device(data->fusb302);
- 	i2c_unregister_device(data->max17047);
- 
--	device_connections_remove(data->connections);
-+	cht_int33fe_remove_references(data);
- 	cht_int33fe_remove_nodes(data);
- 
- 	return 0;
++struct software_node_reference *
++fwnode_create_software_node_reference(const struct fwnode_handle *fwnode,
++				      const char *name,
++				      const struct fwnode_reference_args *args);
++void fwnode_remove_software_node_reference(struct software_node_reference *ref);
++
+ #endif /* _LINUX_PROPERTY_H_ */
 -- 
 2.20.1
