@@ -2,126 +2,99 @@ Return-Path: <SRS0=tbVn=SO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2E84C10F0E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 08:15:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28E1AC10F14
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 08:32:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AACBA2083E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 08:15:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA0F92084D
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 08:32:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726024AbfDLIP2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Apr 2019 04:15:28 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:54725 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725973AbfDLIP2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Apr 2019 04:15:28 -0400
-Received: from 79.184.255.221.ipv4.supernova.orange.pl (79.184.255.221) (HELO aspire.rjw.lan)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.213)
- id 4b5092bbe3964eb8; Fri, 12 Apr 2019 10:15:25 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Chunfeng Yun <chunfeng.yun@mediatek.com>,
-        Biju Das <biju.das@bp.renesas.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/3] device property: Add fwnode_is_compatible() and device_is_compatible() helpers
-Date:   Fri, 12 Apr 2019 10:13:11 +0200
-Message-ID: <2845758.HqtfGXT4y5@aspire.rjw.lan>
-In-Reply-To: <20190327164339.31205-2-heikki.krogerus@linux.intel.com>
-References: <20190327164339.31205-1-heikki.krogerus@linux.intel.com> <20190327164339.31205-2-heikki.krogerus@linux.intel.com>
+        id S1726875AbfDLIce (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Apr 2019 04:32:34 -0400
+Received: from mx2.suse.de ([195.135.220.15]:52270 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725973AbfDLIce (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Apr 2019 04:32:34 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id A5FDCAECB;
+        Fri, 12 Apr 2019 08:32:31 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id EBF6F1E429B; Fri, 12 Apr 2019 10:32:30 +0200 (CEST)
+Date:   Fri, 12 Apr 2019 10:32:30 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     Pankaj Gupta <pagupta@redhat.com>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Christoph Hellwig <hch@infradead.org>,
+        Len Brown <lenb@kernel.org>, Jan Kara <jack@suse.cz>,
+        Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
+        Igor Mammedov <imammedo@redhat.com>,
+        jmoyer <jmoyer@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Rik van Riel <riel@surriel.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        david <david@fromorbit.com>, cohuck@redhat.com,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
+        yuval.shaia@oracle.com
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+Message-ID: <20190412083230.GA29850@quack2.suse.cz>
+References: <20190410040826.24371-1-pagupta@redhat.com>
+ <20190410040826.24371-2-pagupta@redhat.com>
+ <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190412081311.akryEmEUp-jx5xeDDFBbI01Stt4rCkfxFbd4RWeFBdA@z>
+Message-ID: <20190412083230.QbuP8-hR48eAmo8kYMVMrCl--CI-HqWAQj_c77tz1CE@z>
 
-On Wednesday, March 27, 2019 5:43:37 PM CEST Heikki Krogerus wrote:
-> Since there are also some ACPI platforms where the
-> "compatible" property is used, introducing a generic helper
-> function fwnode_is_compatible() that can be used with
-> DT, ACPI and swnodes, and a wrapper function
-> device_is_compatible() with it.
+On Thu 11-04-19 07:51:48, Dan Williams wrote:
+> On Tue, Apr 9, 2019 at 9:09 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+> > +       } else {
+> > +               if (nd_region->flush(nd_region))
+> > +                       rc = -EIO;
 > 
-> The function calls of_device_is_comaptible() with OF nodes,
-> and with ACPI and swnodes it matches the given string
-> against the "compatible" string property array.
+> Given the common case wants to be fast and synchronous I think we
+> should try to avoid retpoline overhead by default. So something like
+> this:
 > 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
->  drivers/base/property.c  | 35 +++++++++++++++++++++++++++++++++++
->  include/linux/property.h |  3 +++
->  2 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 8b91ab380d14..af9f5aac5d02 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -1006,3 +1006,38 @@ const void *device_get_match_data(struct device *dev)
->  	return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data, dev);
->  }
->  EXPORT_SYMBOL_GPL(device_get_match_data);
-> +
-> +/**
-> + * fwnode_is_compatible - Check does fwnode have the given compatible string
-> + * @fwnode: fwnode with the "compatible" property
-> + * @compat: The compatible string
-> + *
-> + * Match the compatible strings of @fwnode against @compat. Returns positive
-> + * value on match, and 0 when no matching compatible string is found.
-> + */
-> +int fwnode_is_compatible(struct fwnode_handle *fwnode, const char *compat)
-> +{
-> +	int ret;
-> +
-> +	if (is_of_node(fwnode))
-> +		return of_device_is_compatible(to_of_node(fwnode), compat);
-> +
-> +	ret = fwnode_property_match_string(fwnode, "compatible", compat);
-> +
-> +	return ret < 0 ? 0 : 1;
-> +}
-> +EXPORT_SYMBOL_GPL(fwnode_is_compatible);
-> +
-> +/**
-> + * device_is_compatible - Check does a device have the given compatible string
-> + * @dev: Device with the "compatible" property
-> + * @compat: The compatible string
-> + *
-> + * Match the compatible strings of @dev against @compat. Returns positive value
-> + * on match, and 0 when no matching compatible string is found.
-> + */
-> +int device_is_compatible(struct device *dev, const char *compat)
-> +{
-> +	return fwnode_is_compatible(dev_fwnode(dev), compat);
-> +}
-> +EXPORT_SYMBOL_GPL(device_is_compatible);
-> diff --git a/include/linux/property.h b/include/linux/property.h
-> index 65d3420dd5d1..d22788ec36cd 100644
-> --- a/include/linux/property.h
-> +++ b/include/linux/property.h
-> @@ -311,6 +311,9 @@ fwnode_graph_get_remote_node(const struct fwnode_handle *fwnode, u32 port,
->  int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
->  				struct fwnode_endpoint *endpoint);
->  
-> +int fwnode_is_compatible(struct fwnode_handle *fwnode, const char *compat);
-> +int device_is_compatible(struct device *dev, const char *compat);
-> +
->  /* -------------------------------------------------------------------------- */
->  /* Software fwnode support - when HW description is incomplete or missing */
->  
-> 
+> if (nd_region->flush == generic_nvdimm_flush)
+>     rc = generic_nvdimm_flush(...);
 
-The new helpers would not be used anywhere for the time being, so it is better to
-add them along with the first user IMO.
+I'd either add a comment about avoiding retpoline overhead here or just
+make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
+get confused by the code.
 
-Please resend when this is needed.
-
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
