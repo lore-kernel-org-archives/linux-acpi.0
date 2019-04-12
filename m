@@ -2,119 +2,101 @@ Return-Path: <SRS0=tbVn=SO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 344BCC10F0E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:13:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E154C10F0E
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:26:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 005EC2082E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:13:27 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W2vZKP7M"
+	by mail.kernel.org (Postfix) with ESMTP id DBF73206BA
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:26:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726867AbfDLNN1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Apr 2019 09:13:27 -0400
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:36937 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726714AbfDLNN1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Apr 2019 09:13:27 -0400
-Received: by mail-pf1-f196.google.com with SMTP id 8so5154583pfr.4;
-        Fri, 12 Apr 2019 06:13:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9julFFNnjjmpRPEwh1/7ZmyWUlZl64V1L5pTrjM48n0=;
-        b=W2vZKP7M4kf7G4UubRsddkMr/LDrMMxPetvcBihAXO0pjawdyrD18x95p9nWKLqIpE
-         kb/PUhQSA7jWbzavgm8YyfMfqnQiQT5J+MMN5h3XnMgJXSygzmGuzN5UzGXgtk+dsTz5
-         vyVPKKPeZqgLoTgi6eKGTgCec0XIUKOiv5bXVe/qhsas/HcN68XIoz0FEpQaQSYK4eKF
-         xrFtewY5zZbMWo/pFvdJpssCPh0S03neu0B4sbXKjlM13lEUCWws5pseRQwRKoQNmOoK
-         K0x2o5lUL+OWjtmOQJwQ06kNSEObvJd+MHeMmKQht5bXkoaFg6Z/e+nbKPz/ppL31kCl
-         L1ew==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9julFFNnjjmpRPEwh1/7ZmyWUlZl64V1L5pTrjM48n0=;
-        b=aCngDAn+hr9bcHYBgqw5JiJUeOdKEuULhZFTiGt7NoWR9oLqFPr+awbLK/y4XtUza0
-         9J9xQ/kdY+smchB96MEGy8E7PhNijUxaHo6rhhqdMBERlSx3m77DZIaBeoM7CAFSsMfO
-         bgwFo7UHJmdtr76spI5jBqHJj23CwzSaGP1cyOICniL1k/WdVCzmi/TZGIdDTjqAKmEM
-         mceGEyQq/6ApWhcThii8aNGH8Lx7w2kCtVuXRtA7Bl4QzRpi/XPQwEXdEvPfEe3QodSt
-         ZEt2FVuud391N4GBO/QyoR/Lp9dWpHHpH7gAnRzagKbkMzSe7AZ+1hCJrMYgPcYCxx4Q
-         UP9A==
-X-Gm-Message-State: APjAAAVePfIU/n+fgXd11D7C4GkriDlBpva4gAKPuzdjXgtWqZs973VU
-        vgYajIv1SutYJrrG8vZYzEv9lTgv5cjgWnx2gfI=
-X-Google-Smtp-Source: APXvYqxkuX6py0td5Df1zd06ScNAAg5QEhoQbMz9ORZBsVgWsBMMIG4/0ZC50dtitehPFIh4YmUsJIeEYlF68JT2QNk=
-X-Received: by 2002:a63:fd49:: with SMTP id m9mr53719071pgj.16.1555074806560;
- Fri, 12 Apr 2019 06:13:26 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190404103925.25652-1-yuehaibing@huawei.com> <20190405142112.26592-1-yuehaibing@huawei.com>
- <20190405145009.GD9224@smile.fi.intel.com> <2719325.nu6fPkO1U5@kreacher>
-In-Reply-To: <2719325.nu6fPkO1U5@kreacher>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Fri, 12 Apr 2019 16:13:14 +0300
-Message-ID:
- <CAHp75VccF9-ax8nJ9qOfAFMvLR19K6NqwyePEf-86r4ifMnJKA@mail.gmail.com>
+        id S1726832AbfDLN0x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Apr 2019 09:26:53 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6178 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726244AbfDLN0w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Apr 2019 09:26:52 -0400
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 2DC81A45623B1C5A690B;
+        Fri, 12 Apr 2019 21:26:47 +0800 (CST)
+Received: from [127.0.0.1] (10.177.31.96) by DGGEMS404-HUB.china.huawei.com
+ (10.3.19.204) with Microsoft SMTP Server id 14.3.408.0; Fri, 12 Apr 2019
+ 21:26:42 +0800
 Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Yue Haibing <yuehaibing@huawei.com>,
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+References: <20190404103925.25652-1-yuehaibing@huawei.com>
+ <20190405142112.26592-1-yuehaibing@huawei.com>
+ <20190405145009.GD9224@smile.fi.intel.com> <2719325.nu6fPkO1U5@kreacher>
+ <CAHp75VccF9-ax8nJ9qOfAFMvLR19K6NqwyePEf-86r4ifMnJKA@mail.gmail.com>
+CC:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+From:   YueHaibing <yuehaibing@huawei.com>
+Message-ID: <241a0251-3d2d-b304-c103-a6d240e89ce6@huawei.com>
+Date:   Fri, 12 Apr 2019 21:26:41 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101
+ Thunderbird/45.2.0
+MIME-Version: 1.0
+In-Reply-To: <CAHp75VccF9-ax8nJ9qOfAFMvLR19K6NqwyePEf-86r4ifMnJKA@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.177.31.96]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190412131314.HXlDqv5tvBXZ0A1oEZBdZ_ZgHItGRW-p8APxid4115I@z>
+Message-ID: <20190412132641.fXGUf4DG8FsupI8MfpsB3ul3PWW_j2v2QbV3BmwAks8@z>
 
-On Fri, Apr 12, 2019 at 3:55 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, April 5, 2019 4:50:09 PM CEST Andy Shevchenko wrote:
-> > On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
-> > > From: YueHaibing <yuehaibing@huawei.com>
-> > >
-> > > When building CONFIG_ACPI is not set
-> > > gcc warn this:
-> > >
-> > > drivers/gpio/gpio-merrifield.c: In function
-> > > mrfld_gpio_get_pinctrl_dev_name: drivers/gpio/gpio-merrifield.c:388:19:
-> > > error: dereferencing pointer to incomplete type struct acpi_device>
-> > >    put_device(&adev->dev);
-> > >
-> > >                    ^
-> > >
-> > > Reported-by: Hulk Robot <hulkci@huawei.com>
-> > > Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > Fixes:d00d2109c367 ("gpio: merrifield: Convert to use
-> > > acpi_dev_get_first_match_dev()") Signed-off-by: YueHaibing
-> > > <yuehaibing@huawei.com>
-> >
-> > Thank you for an update, I have a comment below, but before sending v3, let
-> > Rafael to have a chance to look at it.
-> >
-> > >  #ifdef CONFIG_ACPI
-> > >  extern int acpi_platform_notify(struct device *dev, enum kobject_action
-> > >  action);>
-> > > +
-> > > +static inline void put_acpi_device(struct acpi_device *adev)
-> > > +{
-> > > +   put_device(&adev->dev);
-> > > +}
-> >
-> > This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
-> > And talking to Mika we agreed that naming would be better as acpi_dev_put().
->
-> Agreed on both accounts.
+On 2019/4/12 21:13, Andy Shevchenko wrote:
+> On Fri, Apr 12, 2019 at 3:55 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> On Friday, April 5, 2019 4:50:09 PM CEST Andy Shevchenko wrote:
+>>> On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
+>>>> From: YueHaibing <yuehaibing@huawei.com>
+>>>>
+>>>> When building CONFIG_ACPI is not set
+>>>> gcc warn this:
+>>>>
+>>>> drivers/gpio/gpio-merrifield.c: In function
+>>>> mrfld_gpio_get_pinctrl_dev_name: drivers/gpio/gpio-merrifield.c:388:19:
+>>>> error: dereferencing pointer to incomplete type struct acpi_device>
+>>>>    put_device(&adev->dev);
+>>>>
+>>>>                    ^
+>>>>
+>>>> Reported-by: Hulk Robot <hulkci@huawei.com>
+>>>> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>>>> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use
+>>>> acpi_dev_get_first_match_dev()") Signed-off-by: YueHaibing
+>>>> <yuehaibing@huawei.com>
+>>>
+>>> Thank you for an update, I have a comment below, but before sending v3, let
+>>> Rafael to have a chance to look at it.
+>>>
+>>>>  #ifdef CONFIG_ACPI
+>>>>  extern int acpi_platform_notify(struct device *dev, enum kobject_action
+>>>>  action);>
+>>>> +
+>>>> +static inline void put_acpi_device(struct acpi_device *adev)
+>>>> +{
+>>>> +   put_device(&adev->dev);
+>>>> +}
+>>>
+>>> This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
+>>> And talking to Mika we agreed that naming would be better as acpi_dev_put().
+>>
+>> Agreed on both accounts.
+> 
+> Thanks!
+> YueHaibing, please, send v3 with suggested changes.
 
-Thanks!
-YueHaibing, please, send v3 with suggested changes.
+Ok.
 
--- 
-With Best Regards,
-Andy Shevchenko
+> 
+
