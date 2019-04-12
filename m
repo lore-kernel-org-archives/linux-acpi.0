@@ -1,78 +1,79 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v3 00/13] Software fwnode references
-Date: Fri, 12 Apr 2019 16:41:09 +0300
-Message-ID: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
+From: Yue Haibing <yuehaibing@huawei.com>
+Subject: [PATCH v3] gpio: merrifield: Fix build err without CONFIG_ACPI
+Date: Fri, 12 Apr 2019 23:19:11 +0800
+Message-ID: <20190412151911.12084-1-yuehaibing@huawei.com>
+References: <20190405142112.26592-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190405142112.26592-1-yuehaibing@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, rjw@rjwysocki.net
+Cc: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: YueHaibing <yuehaibing@huawei.com>
 
-This is the third version of my proposal to add reference handling to
-the software node code. In this version I renamed ACPI_NAME_SIZE to
-ACPI_NAMESEG_SIZE in 6/13, and slit patch 9/13 in two separate patches
-(9/13 and 10/13) as suggested by Andy. Patch 9/13 will now only move
-the registration of max17047 out of probe, and 10/13 will introduce
-the software nodes.
+When building CONFIG_ACPI is not set
+gcc warn this:
 
-v2 commit message:
+drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+   put_device(&adev->dev);
+                   ^~
 
-This is the second version of this series. In this version I'm
-introducing a new helper device_find_child_by_name() as proposed
-by Andy. Andy requested also another helper that could be used for
-chaining the fwnodes, but I decided not to add that now. I would like
-to still think about how we should handle exceptions like if there
-already is a secondary node assigned for a node.
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+v3: move helper to acpi_bus.h, and change name to acpi_dev_put
+---
+ drivers/gpio/gpio-merrifield.c | 2 +-
+ include/acpi/acpi_bus.h        | 4 ++++
+ include/linux/acpi.h           | 2 ++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-v1 commit message:
-
-This series adds support for software fwnode reference handling. In
-practice it means making fwnode_property_get_reference_args() function
-usable in the drivers also with software nodes. I send the series
-originally as RFC [1].
-
-As the first user for the software node references, I'm converting
-intel_cht_int33fe.c to use them as part of the series.
-
-[1] https://lkml.org/lkml/2019/3/15/457
-
-thanks,
-
-Heikki Krogerus (13):
-  software node: Allow node creation without properties
-  software node: Simplify software_node_release() function
-  software node: Add support for references
-  software node: Implement .get_reference_args fwnode operation
-  driver core: Add helper device_find_child_by_name()
-  ACPI / property: Don't limit named child node matching to data nodes
-  device connection: Find connections also by checking the references
-  usb: typec: Registering real device entries for the muxes
-  platform/x86: intel_cht_int33fe: Register max17047 in its own function
-  platform/x86: intel_cht_int33fe: Provide software nodes for the
-    devices
-  platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
-  platform/x86: intel_cht_int33fe: Link with external dependencies using
-    fwnodes
-  platform/x86: intel_cht_int33fe: Replacing the old connections with
-    references
-
- drivers/acpi/property.c                  |  26 +-
- drivers/base/core.c                      |  31 +++
- drivers/base/devcon.c                    |  28 ++
- drivers/base/swnode.c                    | 180 +++++++++++-
- drivers/platform/x86/intel_cht_int33fe.c | 339 +++++++++++++++++++----
- drivers/usb/typec/bus.h                  |  15 +
- drivers/usb/typec/class.c                |  17 +-
- drivers/usb/typec/mux.c                  | 221 ++++++++++-----
- drivers/usb/typec/mux/pi3usb30532.c      |  46 +--
- include/linux/device.h                   |   2 +
- include/linux/property.h                 |   8 +
- include/linux/usb/typec_mux.h            |  62 ++---
- 12 files changed, 791 insertions(+), 184 deletions(-)
-
+diff --git a/drivers/gpio/gpio-merrifield.c b/drivers/gpio/gpio-merrifield.c
+index 2383dc7..3302125 100644
+--- a/drivers/gpio/gpio-merrifield.c
++++ b/drivers/gpio/gpio-merrifield.c
+@@ -385,7 +385,7 @@ static const char *mrfld_gpio_get_pinctrl_dev_name(struct mrfld_gpio *priv)
+ 	adev = acpi_dev_get_first_match_dev("INTC1002", NULL, -1);
+ 	if (adev) {
+ 		name = devm_kstrdup(priv->dev, acpi_dev_name(adev), GFP_KERNEL);
+-		put_device(&adev->dev);
++		acpi_dev_put(adev);
+ 	} else {
+ 		name = "pinctrl-merrifield";
+ 	}
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index f798175..2a462cf 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -687,6 +687,10 @@ static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
+ 		adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set);
+ }
+ 
++static inline void acpi_dev_put(struct acpi_device *adev)
++{
++	put_device(&adev->dev);
++}
+ #else	/* CONFIG_ACPI */
+ 
+ static inline int register_acpi_bus_type(void *bus) { return 0; }
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index a1bd789..e22c237 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -679,6 +679,8 @@ acpi_dev_get_first_match_dev(const char *hid, const char *uid, s64 hrv)
+ 	return NULL;
+ }
+ 
++static inline void acpi_dev_put(struct acpi_device *adev) {}
++
+ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ {
+ 	return false;
 -- 
-2.20.1
+2.7.4
