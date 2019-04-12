@@ -1,41 +1,59 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
-Date: Fri, 12 Apr 2019 09:12:10 -0400
-Message-ID: <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
-References: <20190410040826.24371-1-pagupta@redhat.com>
-        <20190410040826.24371-2-pagupta@redhat.com>
-        <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
-        <20190412083230.GA29850@quack2.suse.cz>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2] gpio: merrifield: Fix build err without CONFIG_ACPI
+Date: Fri, 12 Apr 2019 16:13:14 +0300
+Message-ID: <CAHp75VccF9-ax8nJ9qOfAFMvLR19K6NqwyePEf-86r4ifMnJKA@mail.gmail.com>
+References: <20190404103925.25652-1-yuehaibing@huawei.com> <20190405142112.26592-1-yuehaibing@huawei.com>
+ <20190405145009.GD9224@smile.fi.intel.com> <2719325.nu6fPkO1U5@kreacher>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190412083230.GA29850@quack2.suse.cz> (Jan Kara's message of
-        "Fri, 12 Apr 2019 10:32:30 +0200")
+In-Reply-To: <2719325.nu6fPkO1U5@kreacher>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>, Pankaj Gupta <pagupta@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, virtualization@lists.linux-foundation.org, KVM list <kvm@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, Matthew Wilcox <willy@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Christoph Hellwig <hch@infr>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Yue Haibing <yuehaibing@huawei.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Jan Kara <jack@suse.cz> writes:
-
-> On Thu 11-04-19 07:51:48, Dan Williams wrote:
->> On Tue, Apr 9, 2019 at 9:09 PM Pankaj Gupta <pagupta@redhat.com> wrote:
->> > +       } else {
->> > +               if (nd_region->flush(nd_region))
->> > +                       rc = -EIO;
->> 
->> Given the common case wants to be fast and synchronous I think we
->> should try to avoid retpoline overhead by default. So something like
->> this:
->> 
->> if (nd_region->flush == generic_nvdimm_flush)
->>     rc = generic_nvdimm_flush(...);
+On Fri, Apr 12, 2019 at 3:55 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Friday, April 5, 2019 4:50:09 PM CEST Andy Shevchenko wrote:
+> > On Fri, Apr 05, 2019 at 10:21:12PM +0800, Yue Haibing wrote:
+> > > From: YueHaibing <yuehaibing@huawei.com>
+> > >
+> > > When building CONFIG_ACPI is not set
+> > > gcc warn this:
+> > >
+> > > drivers/gpio/gpio-merrifield.c: In function
+> > > mrfld_gpio_get_pinctrl_dev_name: drivers/gpio/gpio-merrifield.c:388:19:
+> > > error: dereferencing pointer to incomplete type struct acpi_device>
+> > >    put_device(&adev->dev);
+> > >
+> > >                    ^
+> > >
+> > > Reported-by: Hulk Robot <hulkci@huawei.com>
+> > > Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > Fixes:d00d2109c367 ("gpio: merrifield: Convert to use
+> > > acpi_dev_get_first_match_dev()") Signed-off-by: YueHaibing
+> > > <yuehaibing@huawei.com>
+> >
+> > Thank you for an update, I have a comment below, but before sending v3, let
+> > Rafael to have a chance to look at it.
+> >
+> > >  #ifdef CONFIG_ACPI
+> > >  extern int acpi_platform_notify(struct device *dev, enum kobject_action
+> > >  action);>
+> > > +
+> > > +static inline void put_acpi_device(struct acpi_device *adev)
+> > > +{
+> > > +   put_device(&adev->dev);
+> > > +}
+> >
+> > This should probably go to acpi_bus.h under acpi_dev_get_first_match_dev().
+> > And talking to Mika we agreed that naming would be better as acpi_dev_put().
 >
-> I'd either add a comment about avoiding retpoline overhead here or just
-> make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
-> get confused by the code.
+> Agreed on both accounts.
 
-Isn't this premature optimization?  I really don't like adding things
-like this without some numbers to show it's worth it.
+Thanks!
+YueHaibing, please, send v3 with suggested changes.
 
--Jeff
+-- 
+With Best Regards,
+Andy Shevchenko
