@@ -1,86 +1,92 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 7/7] irqchip/al-msi: Add ACPI support
-Date: Fri, 12 Apr 2019 17:45:34 +0100
-Message-ID: <20190412164534.GA9071@red-moon>
-References: <1554035733-11827-1-git-send-email-hhhawa@amazon.com>
- <1554035733-11827-3-git-send-email-hhhawa@amazon.com>
- <86pnq65v48.wl-marc.zyngier@arm.com>
- <cc40b029-b06e-1367-2411-1ec325d3b97b@amazon.com>
- <a882317e-1f19-3bed-b790-10b8b8a3e839@arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3] gpio: merrifield: Fix build err without CONFIG_ACPI
+Date: Fri, 12 Apr 2019 20:56:15 +0300
+Message-ID: <20190412175615.GB9224@smile.fi.intel.com>
+References: <20190405142112.26592-1-yuehaibing@huawei.com>
+ <20190412151911.12084-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <a882317e-1f19-3bed-b790-10b8b8a3e839@arm.com>
+In-Reply-To: <20190412151911.12084-1-yuehaibing@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Zeev Zilberman <zeev@amazon.com>, Hanna Hawa <hhhawa@amazon.com>, tsahee@annapurnalabs.com, antoine.tenart@bootlin.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, ronenk@amazon.com, dwmw@amazon.co.uk, vaerov@amazon.com, alisaidi@amazon.com, talel@amazon.com, jonnyc@amazon.com, hanochu@amazon.com, barakw@amazon.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Yue Haibing <yuehaibing@huawei.com>
+Cc: linus.walleij@linaro.org, bgolaszewski@baylibre.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 12, 2019 at 01:08:00PM +0100, Marc Zyngier wrote:
-> Hi Zeev,
+On Fri, Apr 12, 2019 at 11:19:11PM +0800, Yue Haibing wrote:
+> From: YueHaibing <yuehaibing@huawei.com>
 > 
-> On 04/04/2019 15:45, Zeev Zilberman wrote:
-> > Hi Marc,
-> > 
-> > We have considered exposing our interrupt controller both via MADT 
-> > OEM-specific entry and via DSDT.
-> > We've chosen MADT OEM-specific entry, because it seemed like a 
-> > reasonable placeholder for custom interrupt controller, but we can move 
-> > to DSDT, if this seems like a better way to represent it.
-> > 
-> > Either way we chose, we'll need to solve the ordering issue of the 
-> > drivers probing.
-> > The desired order of driver probing in the system, because of the 
-> > dependencies, is:
-> > GIC -> AL MSIX controller driver -> PCI
-> > If we keep using MADT, we can't just use IRQCHIP_DECLARE, because there 
-> > is no way we found to control ordering of MADT probing. So, GIC might be 
-> > probed after our driver in this case.
-> > The reason we used early_initcall, is that the early_initcalls are 
-> > invoked after MADT probing in the system (and before DSDT probing).
-> > 
-> > If we move to using DSDT we need to solve the ordering problem from 
-> > another direction - make sure that MSIX driver is probed before PCI.
-> > In the patches that were posted for xgene interrupt controller (and 
-> > weren't accepted) we saw that they proposed to solve the same issue
-> > by modifying ACPI subsystem code by defining a new type for msi drivers 
-> > and probing them before PCI drivers 
-> > (https://patchwork.ozlabs.org/patch/818771/).
-> >  From the feedback on that patch 
-> > (https://patchwork.ozlabs.org/cover/818767/#1788415) it seemed that 
-> > alternative solution is in the works,
-> > but we didn't manage to find any followup on this.
-> > 
-> > We would be glad to hear what you propose for fixing the ordering issue 
-> > and rework the patches accordingly.
+> When building CONFIG_ACPI is not set
+> gcc warn this:
 > 
-> There are multiple issues here, but the main one is that you're trying
-> to do something that is completely contrary to the ACPI spec by
-> inventing a new interrupt controller.
+> drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+> drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+>    put_device(&adev->dev);
+>                    ^~
 > 
-> The use case for ACPI is quite simple: you have HW that matches the ACPI
-> spec, and everything will work out of the box. This means GICv2+GICv2m
-> or GICv3+ITS. There is zero space for creativity. Now, if you want your
-> own interrupt controller, the only choice is to stick with DT. That's
-> the place for weird and wonderful stuff that ACPI cannot support.
-> 
-> We've been around the block with XGene, and every "solution" was just
-> utter crap, prone to failure and in the end unmaintainable. Anything
-> involving an initcall definitely falls into that category.
-> 
-> I'll let Lorenzo speak his mind as the arm64 ACPI maintainer, but from
-> an irqchip perspective, I can't see how to support this unless we get
-> the ACPI spec to support this type of configuration.
 
-That's pretty much it, as a matter of fact there is not much we can do,
-actually it is a problem that {should have been/can be} solved first at
-ACPI spec level, every kludge we put together to fix eg Xgene ended up
-having implicit dependencies/requirements on firmware that are
-non-existing from an ACPI spec binding perspective (eg DSDT objects
-ordering).
+Thank you.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-It is not a kernel problem, however we put it, we can't guess an
-IRQ controllers dependency that can't be described.
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+> v3: move helper to acpi_bus.h, and change name to acpi_dev_put
+> ---
+>  drivers/gpio/gpio-merrifield.c | 2 +-
+>  include/acpi/acpi_bus.h        | 4 ++++
+>  include/linux/acpi.h           | 2 ++
+>  3 files changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/gpio/gpio-merrifield.c b/drivers/gpio/gpio-merrifield.c
+> index 2383dc7..3302125 100644
+> --- a/drivers/gpio/gpio-merrifield.c
+> +++ b/drivers/gpio/gpio-merrifield.c
+> @@ -385,7 +385,7 @@ static const char *mrfld_gpio_get_pinctrl_dev_name(struct mrfld_gpio *priv)
+>  	adev = acpi_dev_get_first_match_dev("INTC1002", NULL, -1);
+>  	if (adev) {
+>  		name = devm_kstrdup(priv->dev, acpi_dev_name(adev), GFP_KERNEL);
+> -		put_device(&adev->dev);
+> +		acpi_dev_put(adev);
+>  	} else {
+>  		name = "pinctrl-merrifield";
+>  	}
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index f798175..2a462cf 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -687,6 +687,10 @@ static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
+>  		adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set);
+>  }
+>  
+> +static inline void acpi_dev_put(struct acpi_device *adev)
+> +{
+> +	put_device(&adev->dev);
+> +}
+>  #else	/* CONFIG_ACPI */
+>  
+>  static inline int register_acpi_bus_type(void *bus) { return 0; }
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index a1bd789..e22c237 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -679,6 +679,8 @@ acpi_dev_get_first_match_dev(const char *hid, const char *uid, s64 hrv)
+>  	return NULL;
+>  }
+>  
+> +static inline void acpi_dev_put(struct acpi_device *adev) {}
+> +
+>  static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+>  {
+>  	return false;
+> -- 
+> 2.7.4
+> 
+> 
 
-Lorenzo
+-- 
+With Best Regards,
+Andy Shevchenko
