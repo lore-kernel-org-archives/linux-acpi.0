@@ -6,27 +6,27 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10BB5C10F0E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FCD0C282CE
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC42F2084D
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37A7C2084D
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727104AbfDLNll (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Apr 2019 09:41:41 -0400
+        id S1727043AbfDLNli (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Apr 2019 09:41:38 -0400
 Received: from mga07.intel.com ([134.134.136.100]:9855 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727097AbfDLNlk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Apr 2019 09:41:40 -0400
+        id S1726833AbfDLNlh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Apr 2019 09:41:37 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Apr 2019 06:41:39 -0700
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Apr 2019 06:41:37 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.60,341,1549958400"; 
-   d="scan'208";a="163824256"
+   d="scan'208";a="163824252"
 Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 12 Apr 2019 06:41:37 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 12 Apr 2019 06:41:34 -0700
 From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -35,9 +35,9 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Andy Shevchenko <andy@infradead.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
-Subject: [PATCH v3 05/13] driver core: Add helper device_find_child_by_name()
-Date:   Fri, 12 Apr 2019 16:41:14 +0300
-Message-Id: <20190412134122.82903-6-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v3 04/13] software node: Implement .get_reference_args fwnode operation
+Date:   Fri, 12 Apr 2019 16:41:13 +0300
+Message-Id: <20190412134122.82903-5-heikki.krogerus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
 References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
@@ -48,72 +48,90 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190412134114.DKTGkyaPbrdDJVx7LpjQhYZzaUJ7DsL9ucBDpjNQWoA@z>
+Message-ID: <20190412134113.PTPa9wTSU2OEjKoGzD79oDONlU1KXmH8T8TBugBF95w@z>
 
-It looks like the child device is often matched with a name.
-This introduces a helper that does it automatically.
+This makes it possible to support drivers that use
+fwnode_property_get_reference_args() function.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/base/core.c    | 31 +++++++++++++++++++++++++++++++
- include/linux/device.h |  2 ++
- 2 files changed, 33 insertions(+)
+ drivers/base/swnode.c | 56 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 4aeaa0c92bda..5819ba4c9d4c 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -2469,6 +2469,37 @@ struct device *device_find_child(struct device *parent, void *data,
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 39b8f8f35cfe..d6a9b56cb073 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -534,6 +534,61 @@ software_node_get_named_child_node(const struct fwnode_handle *fwnode,
+ 	return NULL;
  }
- EXPORT_SYMBOL_GPL(device_find_child);
  
-+/**
-+ * device_find_child_by_name - device iterator for locating a child device.
-+ * @parent: parent struct device
-+ * @name: name of the child device
-+ *
-+ * This is similar to the device_find_child() function above, but it
-+ * returns a reference to a device that has the name @name.
-+ *
-+ * The callback should return NULL if the child is not found and a reference to
-+ * the child device if it is found.
-+ *
-+ * NOTE: you will need to drop the reference with put_device() after use.
-+ */
-+struct device *device_find_child_by_name(struct device *parent,
-+					 const char *name)
++static int
++software_node_get_reference_args(const struct fwnode_handle *fwnode,
++				 const char *propname, const char *nargs_prop,
++				 unsigned int nargs, unsigned int index,
++				 struct fwnode_reference_args *args)
 +{
-+	struct klist_iter i;
-+	struct device *child;
++	struct software_node *swnode = to_software_node(fwnode);
++	struct software_node_reference *ref;
++	const struct property_entry *prop;
++	int ret = -ENOENT;
++	int i;
 +
-+	if (!parent)
-+		return NULL;
++	mutex_lock(&swnode->lock);
 +
-+	klist_iter_init(&parent->p->klist_children, &i);
-+	while ((child = next_device(&i)))
-+		if (!strcmp(dev_name(child), name) && get_device(child))
++	if (!swnode || list_empty(&swnode->references))
++		goto err_unlock;
++
++	if (nargs_prop) {
++		prop = property_entry_get(swnode->properties, nargs_prop);
++		if (!prop) {
++			ret = -EINVAL;
++			goto err_unlock;
++		}
++
++		nargs = prop->value.u32_data;
++	}
++
++	if (nargs > NR_FWNODE_REFERENCE_ARGS) {
++		ret = -EINVAL;
++		goto err_unlock;
++	}
++
++	list_for_each_entry(ref, &swnode->references, list) {
++		if (strcmp(ref->name, propname))
++			continue;
++
++		if (index > (ref->nrefs - 1))
 +			break;
-+	klist_iter_exit(&i);
-+	return child;
-+}
-+EXPORT_SYMBOL_GPL(device_find_child_by_name);
 +
- int __init devices_init(void)
- {
- 	devices_kset = kset_create_and_add("devices", &device_uevent_ops, NULL);
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 4457e560bc2b..fadb84dd07f9 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -1250,6 +1250,8 @@ extern int device_for_each_child_reverse(struct device *dev, void *data,
- 		     int (*fn)(struct device *dev, void *data));
- extern struct device *device_find_child(struct device *dev, void *data,
- 				int (*match)(struct device *dev, void *data));
-+extern struct device *device_find_child_by_name(struct device *parent,
-+						const char *name);
- extern int device_rename(struct device *dev, const char *new_name);
- extern int device_move(struct device *dev, struct device *new_parent,
- 		       enum dpm_order dpm_order);
++		args->nargs = nargs;
++		args->fwnode = software_node_get(ref->args[index].fwnode);
++
++		for (i = 0; i < nargs; i++)
++			args->args[i] = ref->args[index].args[i];
++
++		ret = 0;
++		break;
++	}
++
++err_unlock:
++	mutex_unlock(&swnode->lock);
++
++	return ret;
++}
++
+ static const struct fwnode_operations software_node_ops = {
+ 	.get = software_node_get,
+ 	.put = software_node_put,
+@@ -543,6 +598,7 @@ static const struct fwnode_operations software_node_ops = {
+ 	.get_parent = software_node_get_parent,
+ 	.get_next_child_node = software_node_get_next_child,
+ 	.get_named_child_node = software_node_get_named_child_node,
++	.get_reference_args = software_node_get_reference_args,
+ };
+ 
+ /* -------------------------------------------------------------------------- */
 -- 
 2.20.1
 
