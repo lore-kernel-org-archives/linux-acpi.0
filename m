@@ -6,73 +6,109 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 524FDC10F0E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4032C10F0E
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 15:19:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 26E9E2084D
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 714132171F
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 15:19:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726931AbfDLNla (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Apr 2019 09:41:30 -0400
-Received: from mga07.intel.com ([134.134.136.100]:9855 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726780AbfDLNla (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Apr 2019 09:41:30 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Apr 2019 06:41:28 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,341,1549958400"; 
-   d="scan'208";a="163824234"
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 12 Apr 2019 06:41:25 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH v3 01/13] software node: Allow node creation without properties
-Date:   Fri, 12 Apr 2019 16:41:10 +0300
-Message-Id: <20190412134122.82903-2-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
-References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
+        id S1726964AbfDLPT7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Apr 2019 11:19:59 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:33540 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726327AbfDLPT6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Apr 2019 11:19:58 -0400
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 2FEC83D1CC4337667563;
+        Fri, 12 Apr 2019 23:19:54 +0800 (CST)
+Received: from localhost (10.177.31.96) by DGGEMS412-HUB.china.huawei.com
+ (10.3.19.212) with Microsoft SMTP Server id 14.3.408.0; Fri, 12 Apr 2019
+ 23:19:47 +0800
+From:   Yue Haibing <yuehaibing@huawei.com>
+To:     <andriy.shevchenko@linux.intel.com>, <linus.walleij@linaro.org>,
+        <bgolaszewski@baylibre.com>, <rjw@rjwysocki.net>
+CC:     <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>, YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH v3] gpio: merrifield: Fix build err without CONFIG_ACPI
+Date:   Fri, 12 Apr 2019 23:19:11 +0800
+Message-ID: <20190412151911.12084-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
+In-Reply-To: <20190405142112.26592-1-yuehaibing@huawei.com>
+References: <20190405142112.26592-1-yuehaibing@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+X-Originating-IP: [10.177.31.96]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190412134110.stJ-nUlojOGWy2HiWZ5xImGFDSIDuq-KfIhaeVy-rKI@z>
+Message-ID: <20190412151911.HPO7laoBXvx5L3sKNWn1XBcx0LdUvqtaw9D0kd-x_d4@z>
 
-Software nodes are not forced to have device properties.
-Adding check to property_entries_dup() to make it possible
-to create software nodes that don't have any properties.
+From: YueHaibing <yuehaibing@huawei.com>
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+When building CONFIG_ACPI is not set
+gcc warn this:
+
+drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+   put_device(&adev->dev);
+                   ^~
+
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- drivers/base/swnode.c | 3 +++
- 1 file changed, 3 insertions(+)
+v3: move helper to acpi_bus.h, and change name to acpi_dev_put
+---
+ drivers/gpio/gpio-merrifield.c | 2 +-
+ include/acpi/acpi_bus.h        | 4 ++++
+ include/linux/acpi.h           | 2 ++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 7fc5a18e02ad..30077454eb68 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -383,6 +383,9 @@ property_entries_dup(const struct property_entry *properties)
- 	int i, n = 0;
- 	int ret;
+diff --git a/drivers/gpio/gpio-merrifield.c b/drivers/gpio/gpio-merrifield.c
+index 2383dc7..3302125 100644
+--- a/drivers/gpio/gpio-merrifield.c
++++ b/drivers/gpio/gpio-merrifield.c
+@@ -385,7 +385,7 @@ static const char *mrfld_gpio_get_pinctrl_dev_name(struct mrfld_gpio *priv)
+ 	adev = acpi_dev_get_first_match_dev("INTC1002", NULL, -1);
+ 	if (adev) {
+ 		name = devm_kstrdup(priv->dev, acpi_dev_name(adev), GFP_KERNEL);
+-		put_device(&adev->dev);
++		acpi_dev_put(adev);
+ 	} else {
+ 		name = "pinctrl-merrifield";
+ 	}
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index f798175..2a462cf 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -687,6 +687,10 @@ static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
+ 		adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set);
+ }
  
-+	if (!properties)
-+		return NULL;
++static inline void acpi_dev_put(struct acpi_device *adev)
++{
++	put_device(&adev->dev);
++}
+ #else	/* CONFIG_ACPI */
+ 
+ static inline int register_acpi_bus_type(void *bus) { return 0; }
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index a1bd789..e22c237 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -679,6 +679,8 @@ acpi_dev_get_first_match_dev(const char *hid, const char *uid, s64 hrv)
+ 	return NULL;
+ }
+ 
++static inline void acpi_dev_put(struct acpi_device *adev) {}
 +
- 	while (properties[n].name)
- 		n++;
- 
+ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ {
+ 	return false;
 -- 
-2.20.1
+2.7.4
+
 
