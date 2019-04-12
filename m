@@ -6,27 +6,27 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6B31C10F0E
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA36EC10F14
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87B322084D
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 914652084D
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Apr 2019 13:42:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726624AbfDLNmN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Apr 2019 09:42:13 -0400
+        id S1727287AbfDLNmD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Apr 2019 09:42:03 -0400
 Received: from mga07.intel.com ([134.134.136.100]:9855 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727303AbfDLNmF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Apr 2019 09:42:05 -0400
+        id S1727281AbfDLNmC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Apr 2019 09:42:02 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Apr 2019 06:42:04 -0700
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Apr 2019 06:42:01 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.60,341,1549958400"; 
-   d="scan'208";a="163824304"
+   d="scan'208";a="163824290"
 Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 12 Apr 2019 06:42:01 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 12 Apr 2019 06:41:58 -0700
 From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -36,9 +36,9 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         platform-driver-x86@vger.kernel.org,
         Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH v3 13/13] platform/x86: intel_cht_int33fe: Replacing the old connections with references
-Date:   Fri, 12 Apr 2019 16:41:22 +0300
-Message-Id: <20190412134122.82903-14-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v3 12/13] platform/x86: intel_cht_int33fe: Link with external dependencies using fwnodes
+Date:   Fri, 12 Apr 2019 16:41:21 +0300
+Message-Id: <20190412134122.82903-13-heikki.krogerus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
 References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
@@ -49,175 +49,162 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190412134122._b2w4wwWh9m0ENZ1ZwLB5tehtXt4Lgw-GlbgzrCl0L0@z>
+Message-ID: <20190412134121.VWmNV6GR7PDLTqoOvD5CdYAedJjCv4cpYnKMAjZi2N0@z>
 
-Now that the software nodes support references, and the
-device connection API support parsing fwnode references,
-replacing the old connection descriptions with software node
-references. Relying on device names when matching the
-connection would not have been possible to link the USB
-Type-C connector and the DisplayPort connector together, but
-with real references it's not problem.
-
-The DisplayPort ACPI node is dag up, and the drivers own
-software node for the DisplayPort is set as the secondary
-node for it. The USB Type-C connector refers the software
-node, but it is now tied to the ACPI node, and therefore any
-device entry (struct drm_connector in practice) that the
-node combo is assigned to.
-
-The USB role switch device does not have ACPI node, so we
-have to wait for the device to appear. Then we can simply
-assign our software node for the to the device.
+Supplying also external devices - the DisplayPort connector
+and the USB role switch - software fwnodes. After this the
+driver has access to all the components tied to the USB
+Type-C connector and can start creating software node
+references to actually associate them with the USB Type-C
+connector device.
 
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/platform/x86/intel_cht_int33fe.c | 93 +++++++++++++++++++-----
- 1 file changed, 76 insertions(+), 17 deletions(-)
+ drivers/platform/x86/intel_cht_int33fe.c | 93 ++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
 
 diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-index 7711667a3454..e6a1ea7f33af 100644
+index eff5990322ff..7711667a3454 100644
 --- a/drivers/platform/x86/intel_cht_int33fe.c
 +++ b/drivers/platform/x86/intel_cht_int33fe.c
-@@ -39,15 +39,22 @@ enum {
+@@ -21,6 +21,7 @@
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
++#include <linux/pci.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+@@ -32,6 +33,8 @@ enum {
+ 	INT33FE_NODE_FUSB302,
+ 	INT33FE_NODE_MAX17047,
+ 	INT33FE_NODE_PI3USB30532,
++	INT33FE_NODE_DISPLAYPORT,
++	INT33FE_NODE_ROLE_SWITCH,
+ 	INT33FE_NODE_USB_CONNECTOR,
  	INT33FE_NODE_MAX,
  };
+@@ -43,6 +46,7 @@ struct cht_int33fe_data {
+ 	/* Contain a list-head must be per device */
+ 	struct device_connection connections[4];
  
-+enum {
-+	INT33FE_REF_ORIENTATION,
-+	INT33FE_REF_MODE_MUX,
-+	INT33FE_REF_DISPLAYPORT,
-+	INT33FE_REF_ROLE_SWITCH,
-+	INT33FE_REF_MAX,
-+};
-+
- struct cht_int33fe_data {
- 	struct i2c_client *max17047;
- 	struct i2c_client *fusb302;
- 	struct i2c_client *pi3usb30532;
--	/* Contain a list-head must be per device */
--	struct device_connection connections[4];
- 
- 	struct fwnode_handle *dp;
++	struct fwnode_handle *dp;
  	struct fwnode_handle *node[INT33FE_NODE_MAX];
-+	struct software_node_reference *ref[INT33FE_REF_MAX];
  };
  
- /*
-@@ -280,6 +287,65 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
- 	return ret;
- }
+@@ -143,8 +147,71 @@ static const struct property_entry *props[] = {
+ 	[INT33FE_NODE_FUSB302]		= fusb302_props,
+ 	[INT33FE_NODE_MAX17047]		= max17047_props,
+ 	[INT33FE_NODE_PI3USB30532]	= NULL,
++	[INT33FE_NODE_DISPLAYPORT]	= NULL,
++	[INT33FE_NODE_ROLE_SWITCH]	= NULL,
+ };
  
-+static void cht_int33fe_remove_references(struct cht_int33fe_data *data)
++static int cht_int33fe_setup_mux(struct cht_int33fe_data *data)
 +{
-+	int i;
++	struct fwnode_handle *fwnode = data->node[INT33FE_NODE_ROLE_SWITCH];
++	struct pci_dev *pdev;
++	struct device *dev;
++	struct device *p;
 +
-+	for (i = 0; i < INT33FE_REF_MAX; i++)
-+		fwnode_remove_software_node_reference(data->ref[i]);
-+}
++	/* First let's find xHCI PCI device */
++	pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, NULL);
++	if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
++		return -ENODEV;
 +
-+static int cht_int33fe_add_references(struct cht_int33fe_data *data)
-+{
-+	struct fwnode_reference_args args[2] = { };
-+	struct software_node_reference *ref;
-+	struct fwnode_handle *con;
++	/* Then the child platform device */
++	p = device_find_child_by_name(&pdev->dev, "intel_xhci_usb_sw");
++	pci_dev_put(pdev);
++	if (!p)
++		return -EPROBE_DEFER;
 +
-+	con = data->node[INT33FE_NODE_USB_CONNECTOR];
++	/* Finally the mux device */
++	dev = device_find_child_by_name(p, "intel_xhci_usb_sw-role-switch");
++	put_device(p);
++	if (!dev)
++		return -EPROBE_DEFER;
 +
-+	/* USB Type-C muxes */
-+	args[0].fwnode = data->node[INT33FE_NODE_PI3USB30532];
-+	args[1].fwnode = NULL;
-+
-+	ref = fwnode_create_software_node_reference(con, "orientation-switch",
-+						    args);
-+	if (IS_ERR(ref))
-+		return PTR_ERR(ref);
-+	data->ref[INT33FE_REF_ORIENTATION] = ref;
-+
-+	ref = fwnode_create_software_node_reference(con, "mode-switch", args);
-+	if (IS_ERR(ref)) {
-+		cht_int33fe_remove_references(data);
-+		return PTR_ERR(ref);
++	/* If there already is a node for the mux, using that one. */
++	if (dev->fwnode) {
++		fwnode_handle_get(dev->fwnode);
++		fwnode_remove_software_node(fwnode);
++		data->node[INT33FE_NODE_ROLE_SWITCH] = dev->fwnode;
++	} else {
++		/* The node can be tied to the lifetime of the device. */
++		dev->fwnode = fwnode_handle_get(dev->fwnode);
 +	}
-+	data->ref[INT33FE_REF_MODE_MUX] = ref;
 +
-+	/* USB role switch */
-+	args[0].fwnode = data->node[INT33FE_NODE_ROLE_SWITCH];
-+	args[1].fwnode = NULL;
-+
-+	ref = fwnode_create_software_node_reference(con, "usb-role-switch",
-+						    args);
-+	if (IS_ERR(ref)) {
-+		cht_int33fe_remove_references(data);
-+		return PTR_ERR(ref);
-+	}
-+	data->ref[INT33FE_REF_ROLE_SWITCH] = ref;
-+
-+	/* DisplayPort */
-+	args[0].fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
-+	args[1].fwnode = NULL;
-+
-+	ref = fwnode_create_software_node_reference(con, "displayport", args);
-+	if (IS_ERR(ref)) {
-+		cht_int33fe_remove_references(data);
-+		return PTR_ERR(ref);
-+	}
-+	data->ref[INT33FE_REF_DISPLAYPORT] = ref;
++	put_device(dev);
 +
 +	return 0;
 +}
 +
- static int cht_int33fe_probe(struct platform_device *pdev)
++static int cht_int33fe_setup_dp(struct cht_int33fe_data *data)
++{
++	struct fwnode_handle *fwnode = data->node[INT33FE_NODE_DISPLAYPORT];
++	struct pci_dev *pdev;
++
++	/* First let's find the GPU PCI device */
++	pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, NULL);
++	if (!pdev || (pdev->vendor != PCI_VENDOR_ID_INTEL))
++		return -ENODEV;
++
++	/* Then the DP child device node */
++	data->dp = device_get_named_child_node(&pdev->dev, "DD02");
++	pci_dev_put(pdev);
++	if (!data->dp)
++		return -ENODEV;
++
++	fwnode->secondary = ERR_PTR(-ENODEV);
++	data->dp->secondary = fwnode;
++
++	return 0;
++}
++
+ static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
  {
- 	struct device *dev = &pdev->dev;
-@@ -348,22 +414,14 @@ static int cht_int33fe_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
+ 	int i;
+@@ -153,6 +220,12 @@ static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
+ 		fwnode_remove_software_node(data->node[i]);
+ 		data->node[i] = NULL;
+ 	}
++
++	if (data->dp) {
++		data->dp->secondary = NULL;
++		fwnode_handle_put(data->dp);
++		data->dp = NULL;
++	}
+ }
  
--	/* Work around BIOS bug, see comment on cht_int33fe_check_for_max17047 */
--	ret = cht_int33fe_register_max17047(dev, data);
-+	ret = cht_int33fe_add_references(data);
- 	if (ret)
- 		goto out_remove_nodes;
+ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
+@@ -179,6 +252,26 @@ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
+ 	}
+ 	data->node[INT33FE_NODE_USB_CONNECTOR] = fwnode;
  
--	data->connections[0].endpoint[0] = "port0";
--	data->connections[0].endpoint[1] = "i2c-pi3usb30532-switch";
--	data->connections[0].id = "orientation-switch";
--	data->connections[1].endpoint[0] = "port0";
--	data->connections[1].endpoint[1] = "i2c-pi3usb30532-mux";
--	data->connections[1].id = "mode-switch";
--	data->connections[2].endpoint[0] = "i2c-fusb302";
--	data->connections[2].endpoint[1] = "intel_xhci_usb_sw-role-switch";
--	data->connections[2].id = "usb-role-switch";
--
--	device_connections_add(data->connections);
-+	/* Work around BIOS bug, see comment on cht_int33fe_check_for_max17047 */
-+	ret = cht_int33fe_register_max17047(dev, data);
++	/* The devices that are not created in this driver need extra steps. */
++
++	/*
++	 * There is no ACPI device node for the USB role mux, so we need to find
++	 * the mux device and assign our node directly to it. That means we
++	 * depend on the mux driver. This function will return -PROBE_DEFER
++	 * until the mux device is registered.
++	 */
++	ret = cht_int33fe_setup_mux(data);
 +	if (ret)
-+		goto out_remove_references;
- 
- 	memset(&board_info, 0, sizeof(board_info));
- 	strlcpy(board_info.type, "typec_fusb302", I2C_NAME_SIZE);
-@@ -398,7 +456,8 @@ static int cht_int33fe_probe(struct platform_device *pdev)
- out_unregister_max17047:
- 	i2c_unregister_device(data->max17047);
- 
--	device_connections_remove(data->connections);
-+out_remove_references:
-+	cht_int33fe_remove_references(data);
- 
- out_remove_nodes:
- 	cht_int33fe_remove_nodes(data);
-@@ -414,7 +473,7 @@ static int cht_int33fe_remove(struct platform_device *pdev)
- 	i2c_unregister_device(data->fusb302);
- 	i2c_unregister_device(data->max17047);
- 
--	device_connections_remove(data->connections);
-+	cht_int33fe_remove_references(data);
- 	cht_int33fe_remove_nodes(data);
- 
++		goto err_remove_nodes;
++
++	/*
++	 * The DP connector does have ACPI device node. In this case we can just
++	 * find that ACPI node and assing our node as the secondary node to it.
++	 */
++	ret = cht_int33fe_setup_dp(data);
++	if (ret)
++		goto err_remove_nodes;
++
  	return 0;
+ 
+ err_remove_nodes:
 -- 
 2.20.1
 
