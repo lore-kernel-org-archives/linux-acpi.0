@@ -1,64 +1,103 @@
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Subject: [PATCH] ACPI / device_sysfs: change _ADR representation to 64 bits
-Date: Mon, 15 Apr 2019 10:18:57 -0500
-Message-ID: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com>
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH 0/4 V3] ACPI: Support generic initiator proximity domains
+Date: Tue, 16 Apr 2019 01:49:03 +0800
+Message-ID: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: alsa-devel@alsa-project.org
-Cc: linux-kernel@vger.kernel.org, tiwai@suse.de, broonie@kernel.org, vkoul@kernel.org, gregkh@linuxfoundation.org, liam.r.girdwood@linux.intel.com, jank@cadence.com, joe@perches.com, srinivas.kandagatla@linaro.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT ARCHITECTURE ACPICA" <devel@acpica.org>
+To: linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Keith Busch <keith.busch@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linuxarm@huawei.com, Andrew Morton <akpm@linux-foundation.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Standards such as the MIPI DisCo for SoundWire 1.0 specification
-assume the _ADR field is 64 bits.
+Changes since RFC V2.
+* RFC dropped as now we have x86 support, so the lack of guards in in the
+ACPI code etc should now be fine.
+* Added x86 support.  Note this has only been tested on QEMU as I don't have
+a convenient x86 NUMA machine to play with.  Note that this fitted together
+rather differently form arm64 so I'm particularly interested in feedback
+on the two solutions.
 
-_ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
-released in 2002. The low levels already use _ADR as 64 bits, e.g. in
-struct acpi_device_info.
+Since RFC V1.
+* Fix incorrect interpretation of the ACPI entry noted by Keith Busch
+* Use the acpica headers definitions that are now in mmotm.
 
-This patch bumps the representation used for sysfs to 64 bits.
+It's worth noting that, to safely put a given device in a GI node, may
+require changes to the existing drivers as it's not unusual to assume
+you have local memory or processor core. There may be futher constraints
+not yet covered by this patch.
 
-Example with a SoundWire device, the results show the complete
-vendorID and linkID which were omitted before:
+Original cover letter...
 
-Before:
-$ more /sys/bus/acpi/devices/device\:38/adr
-0x5d070000
-After:
-$ more /sys/bus/acpi/devices/device\:38/adr
-0x000010025d070000
+ACPI 6.3 introduced a new entity that can be part of a NUMA proximity domain.
+It may share such a domain with the existing options (memory, cpu etc) but it
+may also exist on it's own.
 
-Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
----
- drivers/acpi/device_sysfs.c | 3 +--
- include/acpi/acpi_bus.h     | 2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+The intent is to allow the description of the NUMA properties (particulary
+via HMAT) of accelerators and other initiators of memory activity that are not
+the host processor running the operating system.
 
-diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-index 8940054d6250..f8d73ae42529 100644
---- a/drivers/acpi/device_sysfs.c
-+++ b/drivers/acpi/device_sysfs.c
-@@ -428,8 +428,7 @@ static ssize_t acpi_device_adr_show(struct device *dev,
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 
--	return sprintf(buf, "0x%08x\n",
--		       (unsigned int)(acpi_dev->pnp.bus_address));
-+	return sprintf(buf, "0x%016llx\n", acpi_dev->pnp.bus_address);
- }
- static DEVICE_ATTR(adr, 0444, acpi_device_adr_show, NULL);
- 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index f7981751ac77..9075e28ea60a 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -230,7 +230,7 @@ struct acpi_device_dir {
- /* Plug and Play */
- 
- typedef char acpi_bus_id[8];
--typedef unsigned long acpi_bus_address;
-+typedef u64 acpi_bus_address;
- typedef char acpi_device_name[40];
- typedef char acpi_device_class[20];
- 
+This patch set introduces 'just enough' to make them work for arm64 and x86.
+It should be trivial to support other architectures, I just don't suitable
+NUMA systems readily available to test.
+
+There are a few quirks that need to be considered.
+
+1. Fall back nodes
+******************
+
+As pre ACPI 6.3 supporting operating systems do not have Generic Initiator
+Proximity Domains it is possible to specify, via _PXM in DSDT that another
+device is part of such a GI only node.  This currently blows up spectacularly.
+
+Whilst we can obviously 'now' protect against such a situation (see the related
+thread on PCI _PXM support and the  threadripper board identified there as
+also falling into the  problem of using non existent nodes
+https://patchwork.kernel.org/patch/10723311/ ), there is no way to  be sure
+we will never have legacy OSes that are not protected  against this.  It would
+also be 'non ideal' to fallback to  a default node as there may be a better
+(non GI) node to pick  if GI nodes aren't available.
+
+The work around is that we also have a new system wide OSC bit that allows
+an operating system to 'annouce' that it supports Generic Initiators.  This
+allows, the firmware to us DSDT magic to 'move' devices between the nodes
+dependent on whether our new nodes are there or not.
+
+2. New ways of assigning a proximity domain for devices
+*******************************************************
+
+Until now, the only way firmware could indicate that a particular device
+(outside the 'special' set of cpus etc) was to be found in a particular
+Proximity Domain by the use of _PXM in DSDT.
+
+That is equally valid with GI domains, but we have new options. The SRAT
+affinity structure includes a handle (ACPI or PCI) to identify devices
+with the system and specify their proximity domain that way.  If both _PXM
+and this are provided, they should give the same answer.
+
+For now this patch set completely ignores that feature as we don't need
+it to start the discussion.  It will form a follow up set at some point
+(if no one else fancies doing it).
+
+Jonathan Cameron (4):
+  ACPI: Support Generic Initiator only domains
+  arm64: Support Generic Initiator only domains
+  x86: Support Generic Initiator only proximity domains
+  ACPI: Let ACPI know we support Generic Initiator Affinity Structures
+
+ arch/arm64/kernel/smp.c        |  8 +++++
+ arch/x86/include/asm/numa.h    |  2 ++
+ arch/x86/kernel/setup.c        |  1 +
+ arch/x86/mm/numa.c             | 14 ++++++++
+ drivers/acpi/bus.c             |  1 +
+ drivers/acpi/numa.c            | 62 +++++++++++++++++++++++++++++++++-
+ drivers/base/node.c            |  3 ++
+ include/asm-generic/topology.h |  3 ++
+ include/linux/acpi.h           |  1 +
+ include/linux/nodemask.h       |  1 +
+ include/linux/topology.h       |  7 ++++
+ 11 files changed, 102 insertions(+), 1 deletion(-)
+
 -- 
-2.17.1
+2.19.1
