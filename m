@@ -2,28 +2,28 @@ Return-Path: <SRS0=A1TZ=SR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6475CC10F0E
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:49:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DC53C10F0E
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:50:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3BA8520848
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:49:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A70A20848
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:50:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727920AbfDORtp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 Apr 2019 13:49:45 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:49622 "EHLO huawei.com"
+        id S1728075AbfDORuB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 15 Apr 2019 13:50:01 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:49796 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727916AbfDORtp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 15 Apr 2019 13:49:45 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id DB9D932B0FF3B7868F30;
-        Tue, 16 Apr 2019 01:49:41 +0800 (CST)
+        id S1728036AbfDORtx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 Apr 2019 13:49:53 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 02E473ED7A4E7FCD7631;
+        Tue, 16 Apr 2019 01:49:52 +0800 (CST)
 Received: from FRA1000014316.huawei.com (100.126.230.97) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.408.0; Tue, 16 Apr 2019 01:49:31 +0800
+ 14.3.408.0; Tue, 16 Apr 2019 01:49:42 +0800
 From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>,
@@ -33,10 +33,12 @@ CC:     =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>, <linuxarm@huawei.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         "Jonathan Cameron" <Jonathan.Cameron@huawei.com>
-Subject: [PATCH 0/4 V3] ACPI: Support generic initiator proximity domains
-Date:   Tue, 16 Apr 2019 01:49:03 +0800
-Message-ID: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
+Subject: [PATCH 4/4 V3] ACPI: Let ACPI know we support Generic Initiator Affinity Structures
+Date:   Tue, 16 Apr 2019 01:49:07 +0800
+Message-ID: <20190415174907.102307-5-Jonathan.Cameron@huawei.com>
 X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
+References: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type: text/plain; charset="UTF-8"
@@ -46,96 +48,48 @@ Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190415174903.pBvbLZtIshcY78ooEgzMug2x5eMm9N3se1r8uBMHUQs@z>
+Message-ID: <20190415174907.lseWnisAWwqEXj9HIk7KlFVnPs7zB6Qd2cUq8iJHXBw@z>
 
-Changes since RFC V2.
-* RFC dropped as now we have x86 support, so the lack of guards in in the
-ACPI code etc should now be fine.
-* Added x86 support.  Note this has only been tested on QEMU as I don't have
-a convenient x86 NUMA machine to play with.  Note that this fitted together
-rather differently form arm64 so I'm particularly interested in feedback
-on the two solutions.
+Until we tell ACPI that we support generic initiators, it will have
+to operate in fall back domain mode and all _PXM entries should
+be on existing non GI domains.
 
-Since RFC V1.
-* Fix incorrect interpretation of the ACPI entry noted by Keith Busch
-* Use the acpica headers definitions that are now in mmotm.
+This patch sets the relevant OSC bit to make that happen.
 
-It's worth noting that, to safely put a given device in a GI node, may
-require changes to the existing drivers as it's not unusual to assume
-you have local memory or processor core. There may be futher constraints
-not yet covered by this patch.
+Note that this currently doesn't take into account whether we have the relevant
+setup code for a given architecture.  Do we want to make this optional, or
+should the initial patch set just enable it for all ACPI supporting architectures?
 
-Original cover letter...
+Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/acpi/bus.c   | 1 +
+ include/linux/acpi.h | 1 +
+ 2 files changed, 2 insertions(+)
 
-ACPI 6.3 introduced a new entity that can be part of a NUMA proximity domain.
-It may share such a domain with the existing options (memory, cpu etc) but it
-may also exist on it's own.
-
-The intent is to allow the description of the NUMA properties (particulary
-via HMAT) of accelerators and other initiators of memory activity that are not
-the host processor running the operating system.
-
-This patch set introduces 'just enough' to make them work for arm64 and x86.
-It should be trivial to support other architectures, I just don't suitable
-NUMA systems readily available to test.
-
-There are a few quirks that need to be considered.
-
-1. Fall back nodes
-******************
-
-As pre ACPI 6.3 supporting operating systems do not have Generic Initiator
-Proximity Domains it is possible to specify, via _PXM in DSDT that another
-device is part of such a GI only node.  This currently blows up spectacularly.
-
-Whilst we can obviously 'now' protect against such a situation (see the related
-thread on PCI _PXM support and the  threadripper board identified there as
-also falling into the  problem of using non existent nodes
-https://patchwork.kernel.org/patch/10723311/ ), there is no way to  be sure
-we will never have legacy OSes that are not protected  against this.  It would
-also be 'non ideal' to fallback to  a default node as there may be a better
-(non GI) node to pick  if GI nodes aren't available.
-
-The work around is that we also have a new system wide OSC bit that allows
-an operating system to 'annouce' that it supports Generic Initiators.  This
-allows, the firmware to us DSDT magic to 'move' devices between the nodes
-dependent on whether our new nodes are there or not.
-
-2. New ways of assigning a proximity domain for devices
-*******************************************************
-
-Until now, the only way firmware could indicate that a particular device
-(outside the 'special' set of cpus etc) was to be found in a particular
-Proximity Domain by the use of _PXM in DSDT.
-
-That is equally valid with GI domains, but we have new options. The SRAT
-affinity structure includes a handle (ACPI or PCI) to identify devices
-with the system and specify their proximity domain that way.  If both _PXM
-and this are provided, they should give the same answer.
-
-For now this patch set completely ignores that feature as we don't need
-it to start the discussion.  It will form a follow up set at some point
-(if no one else fancies doing it).
-
-Jonathan Cameron (4):
-  ACPI: Support Generic Initiator only domains
-  arm64: Support Generic Initiator only domains
-  x86: Support Generic Initiator only proximity domains
-  ACPI: Let ACPI know we support Generic Initiator Affinity Structures
-
- arch/arm64/kernel/smp.c        |  8 +++++
- arch/x86/include/asm/numa.h    |  2 ++
- arch/x86/kernel/setup.c        |  1 +
- arch/x86/mm/numa.c             | 14 ++++++++
- drivers/acpi/bus.c             |  1 +
- drivers/acpi/numa.c            | 62 +++++++++++++++++++++++++++++++++-
- drivers/base/node.c            |  3 ++
- include/asm-generic/topology.h |  3 ++
- include/linux/acpi.h           |  1 +
- include/linux/nodemask.h       |  1 +
- include/linux/topology.h       |  7 ++++
- 11 files changed, 102 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index eec263c9019e..ef251f454a5b 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -315,6 +315,7 @@ static void acpi_bus_osc_support(void)
+ 
+ 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+ 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
++	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_GENERIC_INITIATOR_SUPPORT;
+ 
+ #ifdef CONFIG_X86
+ 	if (boot_cpu_has(X86_FEATURE_HWP)) {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index d5dcebd7aad3..cc68b2ad0630 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -503,6 +503,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
+ #define OSC_SB_PCLPI_SUPPORT			0x00000080
+ #define OSC_SB_OSLPI_SUPPORT			0x00000100
+ #define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
++#define OSC_SB_GENERIC_INITIATOR_SUPPORT	0x00002000
+ 
+ extern bool osc_sb_apei_support_acked;
+ extern bool osc_pc_lpi_support_confirmed;
 -- 
 2.19.1
 
