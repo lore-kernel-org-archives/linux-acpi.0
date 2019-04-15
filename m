@@ -6,24 +6,24 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DC53C10F0E
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:50:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2529C10F0E
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:50:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A70A20848
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:50:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E70520848
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:50:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728075AbfDORuB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 Apr 2019 13:50:01 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:49796 "EHLO huawei.com"
+        id S1728052AbfDORtv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 15 Apr 2019 13:49:51 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:6747 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728036AbfDORtx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 15 Apr 2019 13:49:53 -0400
+        id S1727992AbfDORtt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 Apr 2019 13:49:49 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 02E473ED7A4E7FCD7631;
-        Tue, 16 Apr 2019 01:49:52 +0800 (CST)
+        by Forcepoint Email with ESMTP id E4BA485083B4B38C348A;
+        Tue, 16 Apr 2019 01:49:46 +0800 (CST)
 Received: from FRA1000014316.huawei.com (100.126.230.97) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.408.0; Tue, 16 Apr 2019 01:49:42 +0800
+ 14.3.408.0; Tue, 16 Apr 2019 01:49:37 +0800
 From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>,
@@ -33,9 +33,9 @@ CC:     =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>, <linuxarm@huawei.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         "Jonathan Cameron" <Jonathan.Cameron@huawei.com>
-Subject: [PATCH 4/4 V3] ACPI: Let ACPI know we support Generic Initiator Affinity Structures
-Date:   Tue, 16 Apr 2019 01:49:07 +0800
-Message-ID: <20190415174907.102307-5-Jonathan.Cameron@huawei.com>
+Subject: [PATCH 2/4 V3] arm64: Support Generic Initiator only domains
+Date:   Tue, 16 Apr 2019 01:49:05 +0800
+Message-ID: <20190415174907.102307-3-Jonathan.Cameron@huawei.com>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
 References: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
@@ -48,48 +48,48 @@ Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190415174907.lseWnisAWwqEXj9HIk7KlFVnPs7zB6Qd2cUq8iJHXBw@z>
+Message-ID: <20190415174905.02dWwbTEP_X0mr6meXtsbK08b4tLWu9w2NEEgegWaEk@z>
 
-Until we tell ACPI that we support generic initiators, it will have
-to operate in fall back domain mode and all _PXM entries should
-be on existing non GI domains.
+The one thing that currently needs doing from an architecture
+point of view is associating the GI domain with its nearest
+memory domain.  This allows all the standard NUMA aware code
+to get a 'reasonable' answer.
 
-This patch sets the relevant OSC bit to make that happen.
-
-Note that this currently doesn't take into account whether we have the relevant
-setup code for a given architecture.  Do we want to make this optional, or
-should the initial patch set just enable it for all ACPI supporting architectures?
+A clever driver might elect to do load balancing etc
+if there are multiple host / memory domains nearby, but
+that's a decision for the driver.
 
 Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 ---
- drivers/acpi/bus.c   | 1 +
- include/linux/acpi.h | 1 +
- 2 files changed, 2 insertions(+)
+ arch/arm64/kernel/smp.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index eec263c9019e..ef251f454a5b 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -315,6 +315,7 @@ static void acpi_bus_osc_support(void)
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 824de7038967..7c419bf92374 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -731,6 +731,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+ {
+ 	int err;
+ 	unsigned int cpu;
++	unsigned int node;
+ 	unsigned int this_cpu;
  
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
-+	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_GENERIC_INITIATOR_SUPPORT;
+ 	init_cpu_topology();
+@@ -769,6 +770,13 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+ 		set_cpu_present(cpu, true);
+ 		numa_store_cpu_info(cpu);
+ 	}
++
++	/*
++	 * Walk the numa domains and set the node to numa memory reference
++	 * for any that are Generic Initiator Only.
++	 */
++	for_each_node_state(node, N_GENERIC_INITIATOR)
++		set_gi_numa_mem(node, local_memory_node(node));
+ }
  
- #ifdef CONFIG_X86
- 	if (boot_cpu_has(X86_FEATURE_HWP)) {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d5dcebd7aad3..cc68b2ad0630 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -503,6 +503,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- #define OSC_SB_PCLPI_SUPPORT			0x00000080
- #define OSC_SB_OSLPI_SUPPORT			0x00000100
- #define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
-+#define OSC_SB_GENERIC_INITIATOR_SUPPORT	0x00002000
- 
- extern bool osc_sb_apei_support_acked;
- extern bool osc_pc_lpi_support_confirmed;
+ void (*__smp_cross_call)(const struct cpumask *, unsigned int);
 -- 
 2.19.1
 
