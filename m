@@ -1,120 +1,60 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v2 1/7] ACPI/IORT: Check ATS capability in root complex
- nodes
-Date: Mon, 15 Apr 2019 19:31:18 +0100
-Message-ID: <c10c7adb-c7f6-f8c6-05cc-f4f143427a2d@arm.com>
-References: <20190409165245.26500-1-jean-philippe.brucker@arm.com>
- <20190409165245.26500-2-jean-philippe.brucker@arm.com>
+From: Janakarajan Natarajan <jnataraj@amd.com>
+Subject: Re: [PATCH v2 0/7] CPPC optional registers AMD support
+Date: Mon, 15 Apr 2019 22:35:48 +0000
+Message-ID: <d44f4893-0b67-4993-2942-6e03d29dffa1@amd.com>
+References: <cover.1554410643.git.Janakarajan.Natarajan@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190409165245.26500-2-jean-philippe.brucker@arm.com>
-Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, will.deacon@arm.com
-Cc: lorenzo.pieralisi@arm.com, eric.auger@redhat.com, zhongmiao@hisilicon.com, okaya@kernel.org, joro@8bytes.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1554410643.git.Janakarajan.Natarajan@amd.com>
+Content-Language: en-US
+Content-ID: <B4C29D8A2FA3B345ADAA26B77C37F46D@namprd12.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/04/2019 17:52, Jean-Philippe Brucker wrote:
-> Root complex node in IORT has a bit telling whether it supports ATS or
-> not. Store this bit in the IOMMU fwspec when setting up a device, so it
-> can be accessed later by an IOMMU driver.
-
-Hmm, it doesn't feel quite right to store a copy of the same RC/SMMU 
-integration property for every endpoint...
-
-It seems like it might be more logical to track this at the SMMU end, 
-i.e. only allow ARM_SMMU_FEAT_ATS to be set if all RCs targeting that 
-SMMU also support ATS. For the moment that seems sufficiently realistic, 
-and unless some wacky topology ever actually shows up in silicon to 
-complain, I'm inclined not to care too much about it being potentially 
-overly restrictive.
-
-Furthermore, I'm now wondering whether it would make sense to push this 
-into the PCI layer as well (or instead), i.e. hook into pci_init_ats() 
-or pci_enable_ats() and it the device is untrusted or the topology 
-doesn't support ATS, prevent the capability from ever being enabled at 
-all, rather than trying to mitigate it later at the SMMU end. What do 
-you reckon?
-
-> Use the negative version (NO_ATS) at the moment because it's not clear
-> if/how the bit needs to be integrated in other firmware descriptions. The
-> SMMU has a feature bit telling if it supports ATS, which might be
-> sufficient in most systems for deciding whether or not we should enable
-> the ATS capability in endpoints.
-
-I can fairly confidently guarantee that it won't. For instance, MMU-600 
-reports IDR0.ATS==1 because MMU-600 implements the SMMUv3 architectural 
-ATS support. Actually making use of that support, though, still requires 
-an RC capable of generating the appropriate DTI-ATS messages, and that a 
-DTI interface is wired up correctly between the two.
-
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-> ---
->   drivers/acpi/arm64/iort.c | 11 +++++++++++
->   include/linux/iommu.h     |  4 ++++
->   2 files changed, 15 insertions(+)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e48894e002ba..7f2c1c9c6b38 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1028,6 +1028,14 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
->   	dev_dbg(dev, "dma_pfn_offset(%#08llx)\n", offset);
->   }
->   
-> +static bool iort_pci_rc_supports_ats(struct acpi_iort_node *node)
-> +{
-> +	struct acpi_iort_root_complex *pci_rc;
-> +
-> +	pci_rc = (struct acpi_iort_root_complex *)node->node_data;
-> +	return pci_rc->ats_attribute & ACPI_IORT_ATS_SUPPORTED;
-> +}
-> +
->   /**
->    * iort_iommu_configure - Set-up IOMMU configuration for a device.
->    *
-> @@ -1063,6 +1071,9 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->   		info.node = node;
->   		err = pci_for_each_dma_alias(to_pci_dev(dev),
->   					     iort_pci_iommu_init, &info);
-> +
-> +		if (!err && !iort_pci_rc_supports_ats(node))
-> +			dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_NO_ATS;
->   	} else {
->   		int i = 0;
->   
-> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index 3dbeb457fb16..ed6738c358ca 100644
-> --- a/include/linux/iommu.h
-> +++ b/include/linux/iommu.h
-> @@ -509,10 +509,14 @@ struct iommu_fwspec {
->   	const struct iommu_ops	*ops;
->   	struct fwnode_handle	*iommu_fwnode;
->   	void			*iommu_priv;
-> +	u32			flags;
->   	unsigned int		num_ids;
->   	u32			ids[1];
->   };
->   
-> +/* Firmware disabled ATS in the root complex */
-
-More likely firmware is just describing how the hardware was built ;)
-
-Robin.
-
-> +#define IOMMU_FWSPEC_PCI_NO_ATS			(1 << 0)
-> +
->   int iommu_fwspec_init(struct device *dev, struct fwnode_handle *iommu_fwnode,
->   		      const struct iommu_ops *ops);
->   void iommu_fwspec_free(struct device *dev);
-> 
+T24gNC80LzE5IDQ6MjUgUE0sIE5hdGFyYWphbiwgSmFuYWthcmFqYW4gd3JvdGU6DQo+IENQUEMg
+KENvbGxhYm9yYXRpdmUgUHJvY2Vzc29yIFBlcmZvcm1hbmNlIENvbnRyb2wpIG9mZmVycyBvcHRp
+b25hbA0KPiByZWdpc3RlcnMgd2hpY2ggY2FuIGJlIHVzZWQgdG8gdHVuZSB0aGUgc3lzdGVtIGJh
+c2VkIG9uIGVuZXJneSBhbmQvb3INCj4gcGVyZm9ybWFuY2UgcmVxdWlyZW1lbnRzLg0KPg0KPiBO
+ZXdlciBBTUQgcHJvY2Vzc29ycyBhZGQgc3VwcG9ydCBmb3IgYSBzdWJzZXQgb2YgdGhlc2Ugb3B0
+aW9uYWwgQ1BQQw0KPiByZWdpc3RlcnMsIGJhc2VkIG9uIEFDUEkgdjYuMS4NCj4NCj4gVGhlIGZv
+bGxvd2luZyBhcmUgdGhlIHN1cHBvcnRlZCBDUFBDIHJlZ2lzdGVycyBmb3Igd2hpY2ggc3lzZnMg
+ZW50cmllcw0KPiBhcmUgY3JlYXRlZDoNCj4gKiBlbmFibGUgICAgICAgICAgICAgICAgKE5FVykN
+Cj4gKiBtYXhfcGVyZiAgICAgICAgICAgICAgKE5FVykNCj4gKiBtaW5fcGVyZiAgICAgICAgICAg
+ICAgKE5FVykNCj4gKiBlbmVyZ3lfcGVyZg0KPiAqIGxvd2VzdF9wZXJmDQo+ICogbm9taW5hbF9w
+ZXJmDQo+ICogZGVzaXJlZF9wZXJmICAgICAgICAgIChORVcpDQo+ICogZmVlZGJhY2tfY3Rycw0K
+PiAqIGF1dG9fc2VsX2VuYWJsZSAgICAgICAoTkVXKQ0KPiAqIGxvd2VzdF9ub25saW5lYXJfcGVy
+Zg0KPg0KPiBUaGUgQ1BQQyBkcml2ZXIgaXMgdXBkYXRlZCB0byBlbmFibGUgdGhlIE9TUE0gYW5k
+IHRoZSB1c2Vyc3BhY2UgdG8NCj4gYWNjZXNzDQo+IHRoZSBuZXdseSBzdXBwb3J0ZWQgcmVnaXN0
+ZXJzLg0KPg0KPiBUaGUgcHVycG9zZSBvZiBleHBvc2luZyB0aGUgcmVnaXN0ZXJzIHZpYSB0aGUg
+c3lzZnMgZW50cmllcyBpcyB0byBhbGxvdw0KPiB0aGUgdXNlcnNwYWNlIHRvOg0KPiAqIFR3ZWFr
+IHRoZSB2YWx1ZXMgdG8gZml0IGl0cyB3b3JrbG9hZC4NCj4gKiBBcHBseSBhIHByb2ZpbGUgZnJv
+bSBBTUQncyBvcHRpbWl6YXRpb24gZ3VpZGVzLg0KPg0KPiBQcm9maWxlcyB3aWxsIGJlIGRvY3Vt
+ZW50ZWQgaW4gdGhlIHBlcmZvcm1hbmNlL29wdGltaXphdGlvbiBndWlkZXMuDQo+DQo+IE5vdGU6
+DQo+ICogQU1EIHN5c3RlbXMgd2lsbCBub3QgaGF2ZSBhIHBvbGljeSBhcHBsaWVkIGluIHRoZSBr
+ZXJuZWwgYXQgdGhpcyB0aW1lLg0KPiAqIEJ5IGRlZmF1bHQsIGFjcGlfY3B1ZnJlcSB3aWxsIHN0
+aWxsIGJlIHVzZWQuDQo+DQo+IFRPRE86DQo+ICogQ3JlYXRlIGEgbGludXggdXNlcnNwYWNlIHRv
+b2wgdGhhdCB3aWxsIGhlbHAgdXNlcnMgZ2VuZXJhdGUgYSBDUFBDDQo+ICogcHJvZmlsZQ0KPiAg
+ICBmb3IgdGhlaXIgdGFyZ2V0IHdvcmtsb2FkLg0KPiAqIENyZWF0ZSBvciB1cGRhdGUgYSBkcml2
+ZXIgdG8gYXBwbHkgYSBnZW5lcmFsIENQUEMgcG9saWN5IGluIHRoZQ0KPiAqIGtlcm5lbC4NCj4N
+Cj4gdjEtPnYyOg0KPiAqIEFkZCBtYWNybyB0byBlbnN1cmUgQlVGRkVSIG9ubHkgcmVnaXN0ZXJz
+IGhhdmUgQlVGRkVSIHR5cGUuDQo+ICogQWRkIHN1cHBvcnQgbWFjcm8gdG8gbWFrZSB0aGUgcmln
+aHQgY2hlY2sgYmFzZWQgb24gcmVnaXN0ZXIgdHlwZS4NCj4gKiBSZW1vdmUgc3VwcG9ydCBjaGVj
+a3MgZm9yIHJlZ2lzdGVycyB3aGljaCBhcmUgbWFuZGF0b3J5Lg0KDQoNCkFyZSB0aGVyZSBhbnkg
+Y29uY2VybnMgcmVnYXJkaW5nIHRoaXMgcGF0Y2hzZXQ/DQoNCg0KVGhhbmtzLg0KDQoNCj4NCj4g
+SmFuYWthcmFqYW4gTmF0YXJhamFuICgyKToNCj4gICAgYWNwaS9jcHBjOiBBZGQgbWFjcm8gZm9y
+IENQUEMgcmVnaXN0ZXIgQlVGRkVSIG9ubHkgY2hlY2sNCj4gICAgYWNwaS9jcHBjOiBFbnN1cmUg
+b25seSBzdXBwb3J0ZWQgQ1BQQyBzeXNmcyBlbnRyaWVzIGFyZSBjcmVhdGVkDQo+DQo+IFlhemVu
+IEdoYW5uYW0gKDUpOg0KPiAgICBhY3BpL2NwcGM6IE1vZGlmeSBzaG93X2NwcGNfZGF0YSBtYWNy
+bw0KPiAgICBhY3BpL2NwcGM6IFJld29yayBjcHBjX3NldF9wZXJmKCkgdG8gdXNlIGNwcGNfcmVn
+cyBpbmRleA0KPiAgICBhY3BpL2NwcGM6IEFkZCBtYWNyb3MgdG8gZGVmaW5lIGEgUi9XIHN5c2Zz
+IGVudHJ5IGZvciBDUFBDIHJlZ2lzdGVycw0KPiAgICBhY3BpL2NwcGM6IEFkZCBzdXBwb3J0IGZv
+ciBvcHRpb25hbCBDUFBDIHJlZ2lzdGVycw0KPiAgICBhY3BpL2NwcGM6IEFkZCBzdXBwb3J0IGZv
+ciBDUFBDIEVuYWJsZSByZWdpc3Rlcg0KPg0KPiAgIGRyaXZlcnMvYWNwaS9jcHBjX2FjcGkuYyAg
+ICAgICB8IDQwMiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0NCj4gICBkcml2ZXJz
+L2NwdWZyZXEvY3BwY19jcHVmcmVxLmMgfCAgIDYgKy0NCj4gICBpbmNsdWRlL2FjcGkvY3BwY19h
+Y3BpLmggICAgICAgfCAgIDYgKy0NCj4gICAzIGZpbGVzIGNoYW5nZWQsIDM3MiBpbnNlcnRpb25z
+KCspLCA0MiBkZWxldGlvbnMoLSkNCj4NCg==
