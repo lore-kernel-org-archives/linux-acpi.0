@@ -1,57 +1,86 @@
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH 4/4 V3] ACPI: Let ACPI know we support Generic Initiator Affinity Structures
-Date: Tue, 16 Apr 2019 01:49:07 +0800
-Message-ID: <20190415174907.102307-5-Jonathan.Cameron@huawei.com>
-References: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 1/7] ACPI/IORT: Check ATS capability in root complex
+	nodes
+Date: Mon, 15 Apr 2019 19:00:04 +0100
+Message-ID: <ca0bf1eb-dc8f-97b5-6577-f72bdb60e5bd@arm.com>
+References: <20190409165245.26500-1-jean-philippe.brucker@arm.com>
+	<20190409165245.26500-2-jean-philippe.brucker@arm.com>
+	<20190415132108.GB15023@fuggles.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Keith Busch <keith.busch@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linuxarm@huawei.com, Andrew Morton <akpm@linux-foundation.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20190415132108.GB15023-UDVVEH7NWB15pKCnmE3YQBJ8xKzm50AiAL8bYrjMMd8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: zhongmiao-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, okaya-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Until we tell ACPI that we support generic initiators, it will have
-to operate in fall back domain mode and all _PXM entries should
-be on existing non GI domains.
+On 15/04/2019 14:21, Will Deacon wrote:
+> On Tue, Apr 09, 2019 at 05:52:39PM +0100, Jean-Philippe Brucker wrote:
+>> Root complex node in IORT has a bit telling whether it supports ATS or
+>> not. Store this bit in the IOMMU fwspec when setting up a device, so it
+>> can be accessed later by an IOMMU driver.
+>>
+>> Use the negative version (NO_ATS) at the moment because it's not clear
+>> if/how the bit needs to be integrated in other firmware descriptions. The
+>> SMMU has a feature bit telling if it supports ATS, which might be
+>> sufficient in most systems for deciding whether or not we should enable
+>> the ATS capability in endpoints.
+> 
+> Hmm, the SMMUv3 architecture manual is pretty explicit about this:
+> 
+>   | It [SMMU_IDR0.ATS] does not guarantee that client devices and intermediate
+>   | components also support ATS and this must be determined separately.
+> 
+> so we may need to extend the PCI bindings to describe this. I think the
+> negative logic is likely to get in the way if that's the case.
 
-This patch sets the relevant OSC bit to make that happen.
+Right. For devicetree I can resurrect the patch I proposed a while ago
+[1]. Rob wasn't keen on adding an "ats-supported" property to PCI host
+bridge nodes. Instead the host controller drivers should deduce whether
+ATS is supported from the compatible string. But I'll resend that patch
+adding the property only to pci-host-ecam-generic.
 
-Note that this currently doesn't take into account whether we have the relevant
-setup code for a given architecture.  Do we want to make this optional, or
-should the initial patch set just enable it for all ACPI supporting architectures?
+[1] https://lists.linuxfoundation.org/pipermail/iommu/2017-May/022043.html
 
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
----
- drivers/acpi/bus.c   | 1 +
- include/linux/acpi.h | 1 +
- 2 files changed, 2 insertions(+)
+>> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+>> ---
+>>  drivers/acpi/arm64/iort.c | 11 +++++++++++
+>>  include/linux/iommu.h     |  4 ++++
+>>  2 files changed, 15 insertions(+)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index e48894e002ba..7f2c1c9c6b38 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -1028,6 +1028,14 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+>>  	dev_dbg(dev, "dma_pfn_offset(%#08llx)\n", offset);
+>>  }
+>>  
+>> +static bool iort_pci_rc_supports_ats(struct acpi_iort_node *node)
+>> +{
+>> +	struct acpi_iort_root_complex *pci_rc;
+>> +
+>> +	pci_rc = (struct acpi_iort_root_complex *)node->node_data;
+>> +	return pci_rc->ats_attribute & ACPI_IORT_ATS_SUPPORTED;
+>> +}
+> 
+> Do we need to worry about the "noats" command-line option here? It feels
+> like we should be checking with the PCI subsystem before telling the SMMU
+> we're good to go.
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index eec263c9019e..ef251f454a5b 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -315,6 +315,7 @@ static void acpi_bus_osc_support(void)
- 
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
-+	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_GENERIC_INITIATOR_SUPPORT;
- 
- #ifdef CONFIG_X86
- 	if (boot_cpu_has(X86_FEATURE_HWP)) {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d5dcebd7aad3..cc68b2ad0630 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -503,6 +503,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- #define OSC_SB_PCLPI_SUPPORT			0x00000080
- #define OSC_SB_OSLPI_SUPPORT			0x00000100
- #define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
-+#define OSC_SB_GENERIC_INITIATOR_SUPPORT	0x00002000
- 
- extern bool osc_sb_apei_support_acked;
- extern bool osc_pc_lpi_support_confirmed;
--- 
-2.19.1
+I'm checking the noats option in arm_smmu_enable_ats() at the moment,
+using the pci_ats_disabled() helper.
+
+Thanks,
+Jean
