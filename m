@@ -2,107 +2,140 @@ Return-Path: <SRS0=A1TZ=SR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA21DC10F0E
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 15:19:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6475CC10F0E
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:49:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A42D52147C
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 15:19:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BA8520848
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Apr 2019 17:49:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727129AbfDOPTb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 Apr 2019 11:19:31 -0400
-Received: from mga09.intel.com ([134.134.136.24]:2071 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726094AbfDOPTa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 15 Apr 2019 11:19:30 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 15 Apr 2019 08:19:30 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,354,1549958400"; 
-   d="scan'208";a="149586833"
-Received: from pmmacken-mobl.amr.corp.intel.com (HELO pbossart-mobl3.intel.com) ([10.251.139.191])
-  by FMSMGA003.fm.intel.com with ESMTP; 15 Apr 2019 08:19:28 -0700
-From:   Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-To:     alsa-devel@alsa-project.org
-Cc:     linux-kernel@vger.kernel.org, tiwai@suse.de, broonie@kernel.org,
-        vkoul@kernel.org, gregkh@linuxfoundation.org,
-        liam.r.girdwood@linux.intel.com, jank@cadence.com, joe@perches.com,
-        srinivas.kandagatla@linaro.org,
-        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Schmauss <erik.schmauss@intel.com>,
-        linux-acpi@vger.kernel.org (open list:ACPI),
-        devel@acpica.org (open list:ACPI COMPONENT ARCHITECTURE (ACPICA))
-Subject: [PATCH] ACPI / device_sysfs: change _ADR representation to 64 bits
-Date:   Mon, 15 Apr 2019 10:18:57 -0500
-Message-Id: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com>
-X-Mailer: git-send-email 2.17.1
+        id S1727920AbfDORtp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 15 Apr 2019 13:49:45 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:49622 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727916AbfDORtp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 Apr 2019 13:49:45 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id DB9D932B0FF3B7868F30;
+        Tue, 16 Apr 2019 01:49:41 +0800 (CST)
+Received: from FRA1000014316.huawei.com (100.126.230.97) by
+ DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
+ 14.3.408.0; Tue, 16 Apr 2019 01:49:31 +0800
+From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+CC:     =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
+        Keith Busch <keith.busch@intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>, <linuxarm@huawei.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "Jonathan Cameron" <Jonathan.Cameron@huawei.com>
+Subject: [PATCH 0/4 V3] ACPI: Support generic initiator proximity domains
+Date:   Tue, 16 Apr 2019 01:49:03 +0800
+Message-ID: <20190415174907.102307-1-Jonathan.Cameron@huawei.com>
+X-Mailer: git-send-email 2.19.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+X-Originating-IP: [100.126.230.97]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190415151857.smcKKsq7Nas7tV2lPyXM6mxBdfJ-zhFUE_xFpRFC_6U@z>
+Message-ID: <20190415174903.pBvbLZtIshcY78ooEgzMug2x5eMm9N3se1r8uBMHUQs@z>
 
-Standards such as the MIPI DisCo for SoundWire 1.0 specification
-assume the _ADR field is 64 bits.
+Changes since RFC V2.
+* RFC dropped as now we have x86 support, so the lack of guards in in the
+ACPI code etc should now be fine.
+* Added x86 support.  Note this has only been tested on QEMU as I don't have
+a convenient x86 NUMA machine to play with.  Note that this fitted together
+rather differently form arm64 so I'm particularly interested in feedback
+on the two solutions.
 
-_ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
-released in 2002. The low levels already use _ADR as 64 bits, e.g. in
-struct acpi_device_info.
+Since RFC V1.
+* Fix incorrect interpretation of the ACPI entry noted by Keith Busch
+* Use the acpica headers definitions that are now in mmotm.
 
-This patch bumps the representation used for sysfs to 64 bits.
+It's worth noting that, to safely put a given device in a GI node, may
+require changes to the existing drivers as it's not unusual to assume
+you have local memory or processor core. There may be futher constraints
+not yet covered by this patch.
 
-Example with a SoundWire device, the results show the complete
-vendorID and linkID which were omitted before:
+Original cover letter...
 
-Before:
-$ more /sys/bus/acpi/devices/device\:38/adr
-0x5d070000
-After:
-$ more /sys/bus/acpi/devices/device\:38/adr
-0x000010025d070000
+ACPI 6.3 introduced a new entity that can be part of a NUMA proximity domain.
+It may share such a domain with the existing options (memory, cpu etc) but it
+may also exist on it's own.
 
-Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
----
- drivers/acpi/device_sysfs.c | 3 +--
- include/acpi/acpi_bus.h     | 2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+The intent is to allow the description of the NUMA properties (particulary
+via HMAT) of accelerators and other initiators of memory activity that are not
+the host processor running the operating system.
 
-diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-index 8940054d6250..f8d73ae42529 100644
---- a/drivers/acpi/device_sysfs.c
-+++ b/drivers/acpi/device_sysfs.c
-@@ -428,8 +428,7 @@ static ssize_t acpi_device_adr_show(struct device *dev,
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 
--	return sprintf(buf, "0x%08x\n",
--		       (unsigned int)(acpi_dev->pnp.bus_address));
-+	return sprintf(buf, "0x%016llx\n", acpi_dev->pnp.bus_address);
- }
- static DEVICE_ATTR(adr, 0444, acpi_device_adr_show, NULL);
- 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index f7981751ac77..9075e28ea60a 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -230,7 +230,7 @@ struct acpi_device_dir {
- /* Plug and Play */
- 
- typedef char acpi_bus_id[8];
--typedef unsigned long acpi_bus_address;
-+typedef u64 acpi_bus_address;
- typedef char acpi_device_name[40];
- typedef char acpi_device_class[20];
- 
+This patch set introduces 'just enough' to make them work for arm64 and x86.
+It should be trivial to support other architectures, I just don't suitable
+NUMA systems readily available to test.
+
+There are a few quirks that need to be considered.
+
+1. Fall back nodes
+******************
+
+As pre ACPI 6.3 supporting operating systems do not have Generic Initiator
+Proximity Domains it is possible to specify, via _PXM in DSDT that another
+device is part of such a GI only node.  This currently blows up spectacularly.
+
+Whilst we can obviously 'now' protect against such a situation (see the related
+thread on PCI _PXM support and the  threadripper board identified there as
+also falling into the  problem of using non existent nodes
+https://patchwork.kernel.org/patch/10723311/ ), there is no way to  be sure
+we will never have legacy OSes that are not protected  against this.  It would
+also be 'non ideal' to fallback to  a default node as there may be a better
+(non GI) node to pick  if GI nodes aren't available.
+
+The work around is that we also have a new system wide OSC bit that allows
+an operating system to 'annouce' that it supports Generic Initiators.  This
+allows, the firmware to us DSDT magic to 'move' devices between the nodes
+dependent on whether our new nodes are there or not.
+
+2. New ways of assigning a proximity domain for devices
+*******************************************************
+
+Until now, the only way firmware could indicate that a particular device
+(outside the 'special' set of cpus etc) was to be found in a particular
+Proximity Domain by the use of _PXM in DSDT.
+
+That is equally valid with GI domains, but we have new options. The SRAT
+affinity structure includes a handle (ACPI or PCI) to identify devices
+with the system and specify their proximity domain that way.  If both _PXM
+and this are provided, they should give the same answer.
+
+For now this patch set completely ignores that feature as we don't need
+it to start the discussion.  It will form a follow up set at some point
+(if no one else fancies doing it).
+
+Jonathan Cameron (4):
+  ACPI: Support Generic Initiator only domains
+  arm64: Support Generic Initiator only domains
+  x86: Support Generic Initiator only proximity domains
+  ACPI: Let ACPI know we support Generic Initiator Affinity Structures
+
+ arch/arm64/kernel/smp.c        |  8 +++++
+ arch/x86/include/asm/numa.h    |  2 ++
+ arch/x86/kernel/setup.c        |  1 +
+ arch/x86/mm/numa.c             | 14 ++++++++
+ drivers/acpi/bus.c             |  1 +
+ drivers/acpi/numa.c            | 62 +++++++++++++++++++++++++++++++++-
+ drivers/base/node.c            |  3 ++
+ include/asm-generic/topology.h |  3 ++
+ include/linux/acpi.h           |  1 +
+ include/linux/nodemask.h       |  1 +
+ include/linux/topology.h       |  7 ++++
+ 11 files changed, 102 insertions(+), 1 deletion(-)
+
 -- 
-2.17.1
+2.19.1
 
