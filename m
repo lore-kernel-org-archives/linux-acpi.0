@@ -1,81 +1,40 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 4/4] perf: arm_spe: Enable ACPI/Platform automatic module
- loading
-Date: Tue, 16 Apr 2019 14:50:55 +0100
-Message-ID: <20190416135055.GA3313@fuggles.cambridge.arm.com>
-References: <20190326223938.5365-1-jeremy.linton@arm.com>
- <20190326223938.5365-5-jeremy.linton@arm.com>
- <20190404170423.GC28932@fuggles.cambridge.arm.com>
- <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
+From: Changbin Du <changbin.du@gmail.com>
+Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
+Date: Tue, 16 Apr 2019 14:55:19 +0000
+Message-ID: <20190416145518.xigzqsawvbrospir@mail.google.com>
+References: <cover.1555382110.git.mchehab+samsung@kernel.org>
+ <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
+ <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
+In-Reply-To: <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Changbin Du <changbin.du@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 04, 2019 at 12:24:38PM -0500, Jeremy Linton wrote:
-> On 4/4/19 12:04 PM, Will Deacon wrote:
-> > On Tue, Mar 26, 2019 at 05:39:38PM -0500, Jeremy Linton wrote:
-> > > Lets add the MODULE_TABLE and platform id_table entries so that
-> > > the SPE driver can attach to the ACPI platform device created by
-> > > the core pmu code.
-> > > 
-> > > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> > > Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-> > > ---
-> > >   drivers/perf/arm_spe_pmu.c | 11 +++++++++--
-> > >   1 file changed, 9 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
-> > > index 7cb766dafe85..ffa2c76c08bb 100644
-> > > --- a/drivers/perf/arm_spe_pmu.c
-> > > +++ b/drivers/perf/arm_spe_pmu.c
-> > > @@ -1176,7 +1176,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
-> > >   };
-> > >   MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
-> > > -static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
-> > > +static const struct platform_device_id arm_spe_match[] = {
-> > > +	{ "arm,spe-v1", 0},
-> > 
-> > It would be nice if we could avoid duplicating this string from the ACPI
-> > parsing code.
+On Tue, Apr 16, 2019 at 10:17:11AM +0200, Rafael J. Wysocki wrote:
+> On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+> >
+> > Most of the files are already in good shape, making easier to
+> > convert them to ReST by adding proper title markups and
+> > addressing some identation and markups to properly format the
+> > document.
 > 
-> Ok sure, I just need to find a good common place for it.
+> There is concurrent work on this under way, please see
+> https://marc.info/?t=155381845300002&r=2&w=2
 > 
-> > 
-> > > +	{ }
-> > > +};
-> > > +MODULE_DEVICE_TABLE(platform, arm_spe_match);
-> > > +
-> > > +static int arm_spe_pmu_device_probe(struct platform_device *pdev)
-> > >   {
-> > >   	int ret;
-> > >   	struct arm_spe_pmu *spe_pmu;
-> > > @@ -1236,11 +1242,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
-> > >   }
-> > >   static struct platform_driver arm_spe_pmu_driver = {
-> > > +	.id_table = arm_spe_match,
-> > >   	.driver	= {
-> > >   		.name		= DRVNAME,
-> > >   		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
-> > 
-> > Hmm, so some other drivers don't hook .id_table like you do, but instead
-> > hook .acpi_match_table in the driver structure. Is that not better?
+I will update the serias asap. I am just a little busy these days. My
+conversion includes pci, acpi and x86, others are not touched.
+
+> I'd prefer that one to continue, honestly.
 > 
-> This isn't actually an ACPI device, (aka not defined in the namespace), so
-> its missing much of the ACPI functionality. I think that also means its
-> needs to be declared this way.
+> Thanks,
+> Rafael
 
-Looking at platform_match(), I'd really like to avoid having both an
-.id_table and an .of_match_table field.
-
-acpi_of_match_device() will actually use the .of_match_table, but it relies
-on ACPI_COMPANION returning a valid acpi_device. If we don't have one of
-those, perhaps we can use the .id_table exclusively and drop the
-.of_match_table instead?
-
-Will
+-- 
+Cheers,
+Changbin Du
