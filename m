@@ -2,113 +2,106 @@ Return-Path: <SRS0=f16E=SS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47FF5C10F14
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 13:51:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A796EC10F14
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 14:55:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2313322327
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 13:51:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73C802077C
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 14:55:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pCz+2X8O"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729543AbfDPNvD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Apr 2019 09:51:03 -0400
-Received: from foss.arm.com ([217.140.101.70]:55474 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726215AbfDPNvD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Apr 2019 09:51:03 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 740AEEBD;
-        Tue, 16 Apr 2019 06:51:02 -0700 (PDT)
-Received: from fuggles.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.72.51.249])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5F0AC3F59C;
-        Tue, 16 Apr 2019 06:51:00 -0700 (PDT)
-Date:   Tue, 16 Apr 2019 14:50:55 +0100
-From:   Will Deacon <will.deacon@arm.com>
-To:     Jeremy Linton <jeremy.linton@arm.com>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, catalin.marinas@arm.com,
-        rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com,
-        sudeep.holla@arm.com, james.morse@arm.com,
-        lorenzo.pieralisi@arm.com, linuxarm@huawei.com
-Subject: Re: [PATCH 4/4] perf: arm_spe: Enable ACPI/Platform automatic module
- loading
-Message-ID: <20190416135055.GA3313@fuggles.cambridge.arm.com>
-References: <20190326223938.5365-1-jeremy.linton@arm.com>
- <20190326223938.5365-5-jeremy.linton@arm.com>
- <20190404170423.GC28932@fuggles.cambridge.arm.com>
- <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
+        id S1729559AbfDPOzW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Apr 2019 10:55:22 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:36756 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726751AbfDPOzW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Apr 2019 10:55:22 -0400
+Received: by mail-pg1-f194.google.com with SMTP id 85so10477056pgc.3;
+        Tue, 16 Apr 2019 07:55:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=h5lj1gghN6sLzB8P8PsOd/8lnM1lSwrScwwzcgsBFOw=;
+        b=pCz+2X8ORA0fAd5nUseqMAAc9lxUBn0sZvkyN38GmYew8mjAIw+7jqTa+xiYR1hP6v
+         6/9kvDbg2V8TaljcUSR8T22xSOW0U9IQumqAMGVsipzxYi5bmzEeReHKHGEXAuePfX1B
+         Gtc8TKl2RVx/R+GmUQCzQwtvw0kUR/GVFwUCSpQPYU8LFv+6tUtui7lI2fCtzYPR6xrq
+         F4fWCbn9fDwZf6nMvMft2glCyd4+7KKzN3sCL8PkDv1za6KNPzkSCdkWTBSPrLL33X/c
+         y1vP+F+nVrFPpNOQEqYiAuljeIaVpccNdR+uokGHhzV9IVqOAmg2YBQcyvuCCaX/KP9s
+         JQyA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=h5lj1gghN6sLzB8P8PsOd/8lnM1lSwrScwwzcgsBFOw=;
+        b=AJiV+Qlyf1UOkT5OjIdtdYJE3V+C49yU6pbNpvag9njTnklzURlbk3VhuWsu2gNYoc
+         ZD5E120rsB/LyKXYfMNQvDZOcADuHswduYcCtIM5Y7sAIyvpVoRWoz4DghL/UCdqimiC
+         oQvVcUobWZ/jKvGMw/qghAxaenLFnAsQywj2qmOUE7GXUSXCxvcFtSu2S62Qs0FaW+6g
+         Lxy9wQztGMDXA+SalV39yfHlhsp+M4n67PBUud9G/Sov8liBTwtkZcj+fHqHYpdQ1uEK
+         NBjHQdtqCxwnSTJBjUaXGQDaA9GCrGDQOE1v0YjQnj5NG3HvR9ITsMxereUPl++Jo/1j
+         8z5g==
+X-Gm-Message-State: APjAAAWjFio47dzD5bZl186B3UlyWt+uXOr0PLpZjmuh9h1Lckd4ufNi
+        Hs3HBXLgDM0fM+2DtgXWaeM=
+X-Google-Smtp-Source: APXvYqxeWtbapT2u2GF2ntnqZTAq1Ax39Q3nJiPgpPse0X/k+7MdHqGHJTijrBnlTJsLTx3UWSbSoQ==
+X-Received: by 2002:a62:61c2:: with SMTP id v185mr83648369pfb.117.1555426521601;
+        Tue, 16 Apr 2019 07:55:21 -0700 (PDT)
+Received: from mail.google.com ([104.238.181.70])
+        by smtp.gmail.com with ESMTPSA id l4sm36189479pgh.17.2019.04.16.07.55.20
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 16 Apr 2019 07:55:20 -0700 (PDT)
+Date:   Tue, 16 Apr 2019 14:55:19 +0000
+From:   Changbin Du <changbin.du@gmail.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Changbin Du <changbin.du@gmail.com>
+Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
+Message-ID: <20190416145518.xigzqsawvbrospir@mail.google.com>
+References: <cover.1555382110.git.mchehab+samsung@kernel.org>
+ <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
+ <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Disposition: inline
-In-Reply-To: <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
-User-Agent: Mutt/1.11.1+86 (6f28e57d73f2) ()
+In-Reply-To: <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
+User-Agent: NeoMutt/20180716-508-7c9a6d
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190416135055.vRi6V4W3zPA6QNurwUzogYL_rLvNjDsXLDsS-T41EVY@z>
+Message-ID: <20190416145519.q8q08NAogtRQjIDsT-IBHBLNn55ex3TXZ75iRFADPjU@z>
 
-On Thu, Apr 04, 2019 at 12:24:38PM -0500, Jeremy Linton wrote:
-> On 4/4/19 12:04 PM, Will Deacon wrote:
-> > On Tue, Mar 26, 2019 at 05:39:38PM -0500, Jeremy Linton wrote:
-> > > Lets add the MODULE_TABLE and platform id_table entries so that
-> > > the SPE driver can attach to the ACPI platform device created by
-> > > the core pmu code.
-> > > 
-> > > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> > > Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-> > > ---
-> > >   drivers/perf/arm_spe_pmu.c | 11 +++++++++--
-> > >   1 file changed, 9 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
-> > > index 7cb766dafe85..ffa2c76c08bb 100644
-> > > --- a/drivers/perf/arm_spe_pmu.c
-> > > +++ b/drivers/perf/arm_spe_pmu.c
-> > > @@ -1176,7 +1176,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
-> > >   };
-> > >   MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
-> > > -static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
-> > > +static const struct platform_device_id arm_spe_match[] = {
-> > > +	{ "arm,spe-v1", 0},
-> > 
-> > It would be nice if we could avoid duplicating this string from the ACPI
-> > parsing code.
+On Tue, Apr 16, 2019 at 10:17:11AM +0200, Rafael J. Wysocki wrote:
+> On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+> >
+> > Most of the files are already in good shape, making easier to
+> > convert them to ReST by adding proper title markups and
+> > addressing some identation and markups to properly format the
+> > document.
 > 
-> Ok sure, I just need to find a good common place for it.
+> There is concurrent work on this under way, please see
+> https://marc.info/?t=155381845300002&r=2&w=2
 > 
-> > 
-> > > +	{ }
-> > > +};
-> > > +MODULE_DEVICE_TABLE(platform, arm_spe_match);
-> > > +
-> > > +static int arm_spe_pmu_device_probe(struct platform_device *pdev)
-> > >   {
-> > >   	int ret;
-> > >   	struct arm_spe_pmu *spe_pmu;
-> > > @@ -1236,11 +1242,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
-> > >   }
-> > >   static struct platform_driver arm_spe_pmu_driver = {
-> > > +	.id_table = arm_spe_match,
-> > >   	.driver	= {
-> > >   		.name		= DRVNAME,
-> > >   		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
-> > 
-> > Hmm, so some other drivers don't hook .id_table like you do, but instead
-> > hook .acpi_match_table in the driver structure. Is that not better?
+I will update the serias asap. I am just a little busy these days. My
+conversion includes pci, acpi and x86, others are not touched.
+
+> I'd prefer that one to continue, honestly.
 > 
-> This isn't actually an ACPI device, (aka not defined in the namespace), so
-> its missing much of the ACPI functionality. I think that also means its
-> needs to be declared this way.
+> Thanks,
+> Rafael
 
-Looking at platform_match(), I'd really like to avoid having both an
-.id_table and an .of_match_table field.
-
-acpi_of_match_device() will actually use the .of_match_table, but it relies
-on ACPI_COMPANION returning a valid acpi_device. If we don't have one of
-those, perhaps we can use the .id_table exclusively and drop the
-.of_match_table instead?
-
-Will
+-- 
+Cheers,
+Changbin Du
