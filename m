@@ -1,40 +1,43 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
-Date: Tue, 16 Apr 2019 14:55:19 +0000
-Message-ID: <20190416145518.xigzqsawvbrospir@mail.google.com>
-References: <cover.1555382110.git.mchehab+samsung@kernel.org>
- <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
- <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
+From: Keith Busch <keith.busch@intel.com>
+Subject: Re: [PATCHv2 2/2] hmat: Register attributes for memory hot add
+Date: Tue, 16 Apr 2019 09:01:30 -0600
+Message-ID: <20190416150130.GA20546@localhost.localdomain>
+References: <20190415151654.15913-1-keith.busch@intel.com>
+ <20190415151654.15913-3-keith.busch@intel.com>
+ <9f130b73-e5ae-0529-69a1-28bd2ca29581@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
+In-Reply-To: <9f130b73-e5ae-0529-69a1-28bd2ca29581@inria.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Changbin Du <changbin.du@gmail.com>
+To: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 16, 2019 at 10:17:11AM +0200, Rafael J. Wysocki wrote:
-> On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org> wrote:
-> >
-> > Most of the files are already in good shape, making easier to
-> > convert them to ReST by adding proper title markups and
-> > addressing some identation and markups to properly format the
-> > document.
+On Tue, Apr 16, 2019 at 04:55:21PM +0200, Brice Goglin wrote:
+> Hello Keith
 > 
-> There is concurrent work on this under way, please see
-> https://marc.info/?t=155381845300002&r=2&w=2
+> Several issues:
 > 
-I will update the serias asap. I am just a little busy these days. My
-conversion includes pci, acpi and x86, others are not touched.
+> * We always get a memory_side_cache, even if nothing was found in ACPI.
+>   You should at least ignore the cache if size==0?
+> 
+> * Your code seems to only work with a single level of cache, since
+>   there's a single cache_attrs entry in each target structure.
+> 
+> * I was getting a section mismatch warning and a crash on PMEM node
+>   hotplug until I applied the patch below.
+> 
+> WARNING: vmlinux.o(.text+0x47d3f7): Section mismatch in reference from the function hmat_callback() to the function .init.text:hmat_register_target()
+> The function hmat_callback() references
+> the function __init hmat_register_target().
+> This is often because hmat_callback lacks a __init 
+> annotation or the annotation of hmat_register_target is wrong.
+> 
+> Thanks
+> 
+> Brice
 
-> I'd prefer that one to continue, honestly.
-> 
-> Thanks,
-> Rafael
-
--- 
-Cheers,
-Changbin Du
+Oh, thanks for the notice. I'll add multi-level and no-caches into my
+test, as I had it fixed to one. Will need to respin this series.
