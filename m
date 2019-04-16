@@ -2,73 +2,113 @@ Return-Path: <SRS0=f16E=SS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 229FDC10F13
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 10:53:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47FF5C10F14
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 13:51:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E37072075B
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 10:53:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2313322327
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 13:51:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726313AbfDPKxp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Apr 2019 06:53:45 -0400
-Received: from foss.arm.com ([217.140.101.70]:52212 "EHLO foss.arm.com"
+        id S1729543AbfDPNvD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Apr 2019 09:51:03 -0400
+Received: from foss.arm.com ([217.140.101.70]:55474 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726241AbfDPKxp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Apr 2019 06:53:45 -0400
+        id S1726215AbfDPNvD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Apr 2019 09:51:03 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E267380D;
-        Tue, 16 Apr 2019 03:53:44 -0700 (PDT)
-Received: from [10.37.12.114] (unknown [10.37.12.114])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A957F3F68F;
-        Tue, 16 Apr 2019 03:53:40 -0700 (PDT)
-Subject: Re: [RESEND][PATCH v2 27/36] drivers: Add a generic helper to match
- device by fwnode handle
-To:     rafael@kernel.org
-Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        coresight@lists.linaro.org, mathieu.poirier@linaro.org,
-        gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org
-References: <1555344260-12375-28-git-send-email-suzuki.poulose@arm.com>
- <1555411164-26399-1-git-send-email-suzuki.poulose@arm.com>
- <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com>
-From:   Suzuki K Poulose <suzuki.poulose@arm.com>
-Message-ID: <ebb13205-2548-1c30-fd65-bdfe4c7d9c08@arm.com>
-Date:   Tue, 16 Apr 2019 11:56:00 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.7.0
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 740AEEBD;
+        Tue, 16 Apr 2019 06:51:02 -0700 (PDT)
+Received: from fuggles.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.72.51.249])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5F0AC3F59C;
+        Tue, 16 Apr 2019 06:51:00 -0700 (PDT)
+Date:   Tue, 16 Apr 2019 14:50:55 +0100
+From:   Will Deacon <will.deacon@arm.com>
+To:     Jeremy Linton <jeremy.linton@arm.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, catalin.marinas@arm.com,
+        rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com,
+        sudeep.holla@arm.com, james.morse@arm.com,
+        lorenzo.pieralisi@arm.com, linuxarm@huawei.com
+Subject: Re: [PATCH 4/4] perf: arm_spe: Enable ACPI/Platform automatic module
+ loading
+Message-ID: <20190416135055.GA3313@fuggles.cambridge.arm.com>
+References: <20190326223938.5365-1-jeremy.linton@arm.com>
+ <20190326223938.5365-5-jeremy.linton@arm.com>
+ <20190404170423.GC28932@fuggles.cambridge.arm.com>
+ <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format="flowed"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
+User-Agent: Mutt/1.11.1+86 (6f28e57d73f2) ()
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190416105600.z3NZNM8dn4tD-ukzHzfHjIYMSm8VQAOhQ5IxcrfkrMg@z>
+Message-ID: <20190416135055.vRi6V4W3zPA6QNurwUzogYL_rLvNjDsXLDsS-T41EVY@z>
 
-On 04/16/2019 11:48 AM, Rafael J. Wysocki wrote:
-> On Tue, Apr 16, 2019 at 12:39 PM Suzuki K Poulose
-> <suzuki.poulose@arm.com> wrote:
->>
->> Make the device_fwnode_match() a generic helper to match device
->> by fwnode handle for use with bus_find_device(). This will be
->> also used by coresight.
->>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
->> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
->> ---
->>
->> Resending with linux-acpi in Cc, as requested by Rafael.
+On Thu, Apr 04, 2019 at 12:24:38PM -0500, Jeremy Linton wrote:
+> On 4/4/19 12:04 PM, Will Deacon wrote:
+> > On Tue, Mar 26, 2019 at 05:39:38PM -0500, Jeremy Linton wrote:
+> > > Lets add the MODULE_TABLE and platform id_table entries so that
+> > > the SPE driver can attach to the ACPI platform device created by
+> > > the core pmu code.
+> > > 
+> > > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> > > Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+> > > ---
+> > >   drivers/perf/arm_spe_pmu.c | 11 +++++++++--
+> > >   1 file changed, 9 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
+> > > index 7cb766dafe85..ffa2c76c08bb 100644
+> > > --- a/drivers/perf/arm_spe_pmu.c
+> > > +++ b/drivers/perf/arm_spe_pmu.c
+> > > @@ -1176,7 +1176,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
+> > >   };
+> > >   MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
+> > > -static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
+> > > +static const struct platform_device_id arm_spe_match[] = {
+> > > +	{ "arm,spe-v1", 0},
+> > 
+> > It would be nice if we could avoid duplicating this string from the ACPI
+> > parsing code.
 > 
-> Do any other patches in your series depend on this one?
+> Ok sure, I just need to find a good common place for it.
+> 
+> > 
+> > > +	{ }
+> > > +};
+> > > +MODULE_DEVICE_TABLE(platform, arm_spe_match);
+> > > +
+> > > +static int arm_spe_pmu_device_probe(struct platform_device *pdev)
+> > >   {
+> > >   	int ret;
+> > >   	struct arm_spe_pmu *spe_pmu;
+> > > @@ -1236,11 +1242,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
+> > >   }
+> > >   static struct platform_driver arm_spe_pmu_driver = {
+> > > +	.id_table = arm_spe_match,
+> > >   	.driver	= {
+> > >   		.name		= DRVNAME,
+> > >   		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
+> > 
+> > Hmm, so some other drivers don't hook .id_table like you do, but instead
+> > hook .acpi_match_table in the driver structure. Is that not better?
+> 
+> This isn't actually an ACPI device, (aka not defined in the namespace), so
+> its missing much of the ACPI functionality. I think that also means its
+> needs to be declared this way.
 
-Yes, I do. But they are in the middle of a big series of changes and
-I don't expect this series to go into 5.2. So, if you plan to pull this
-please go ahead.
+Looking at platform_match(), I'd really like to avoid having both an
+.id_table and an .of_match_table field.
 
-Suzuki
+acpi_of_match_device() will actually use the .of_match_table, but it relies
+on ACPI_COMPANION returning a valid acpi_device. If we don't have one of
+those, perhaps we can use the .id_table exclusively and drop the
+.of_match_table instead?
+
+Will
