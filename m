@@ -2,83 +2,107 @@ Return-Path: <SRS0=f16E=SS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,USER_AGENT_MUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AD68C10F13
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 08:17:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F9B4C10F13
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 09:09:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D397620821
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 08:17:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CD9B20651
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 09:09:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555402644;
-	bh=hdXhWy1CSh2QxvC07T9SLLzVG53VqiIH8m00Mk8CYKE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=n59FwMFdelcGV3/tIMh/FMAAIGm6e4Z4pXBNUJsNWHF98zoKf14WRzpxeXBHeZjK0
-	 wYvbxbGnBEKKQ0FtVzMuRT9q+EZQGIcLcQvquTztYBHEQghabHirxAhp4N6Etwj9CZ
-	 WlBdS3St5DK31d0zb0fo1WteJlEjCcDMXUqTUX64=
+	s=default; t=1555405781;
+	bh=W6ngLSMgrHr0W3U4Bw4UbqBajEV6+Q7wlh9FAZZkBh4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=JAiVM1Jwa+O3XBD+72ohv7aPvqrUjJohxeMkzwTPgxf2KZMycE1y7bUIR2R7Z2C74
+	 LpCvgccR8V9uefFrNcfZRw5TYMIqWE9ct5Be41YpraDfdChgmvHMN5AP5Wau2gnsXa
+	 HwtGvc3m624u8JT35u3X67XzO1/CkTPrrKQpmy8o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726605AbfDPIRY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Apr 2019 04:17:24 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:38725 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725840AbfDPIRY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Apr 2019 04:17:24 -0400
-Received: by mail-oi1-f196.google.com with SMTP id a6so16191401oie.5;
-        Tue, 16 Apr 2019 01:17:23 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=hdXhWy1CSh2QxvC07T9SLLzVG53VqiIH8m00Mk8CYKE=;
-        b=LnTuHTM3PeD6zB5kI1Kv7UnSOsUVcnYSZrqcV8FSID+A+I9q5kZ5ZrlBGqfxdIVkHI
-         n+KY0TogeUYiDVVuigOjHxvitrs+RwlwHj2mD1DroVz8J3bqri7n1fA6295umcIMH5Xe
-         OlDil7En5Uca8puGRngBh+DikXUoIeA9Wu62yOIknzs0w6AyZjJwEVOFLQCcR6q4pXrI
-         K9LfJgtWScq6Io4p5oJ3qof1vs0dvhG8h9VVyp87+nx++JfVM0DBHCz1r1+Gj9naJ+Bf
-         Sz+u7C6WdJzOPpA/ysCr+/nUragx141WGTQDuBjkoy2Y4vn+M6DobJ1nMAMWUsWJs9nv
-         grxw==
-X-Gm-Message-State: APjAAAXJjspp4xy7uB954macQsTv0kXkA9jYr6ODnGw27AqYusMB3OWd
-        9h4uxMe41xR8V8UBkKwsfU8r/XkC75I8e2/9j4c=
-X-Google-Smtp-Source: APXvYqw3JaTshwmeP+ePDfp8RonesZuH8b7593v/zcl1/zsuSUHm12jf2hIdHvJAglYRJ9AoJBvKmQWTsqCl3F9mQO4=
-X-Received: by 2002:aca:6289:: with SMTP id w131mr22187407oib.84.1555402643214;
- Tue, 16 Apr 2019 01:17:23 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1555382110.git.mchehab+samsung@kernel.org> <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
-In-Reply-To: <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 16 Apr 2019 10:17:11 +0200
-Message-ID:
- <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
-Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        id S1727783AbfDPJJk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Apr 2019 05:09:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38602 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726770AbfDPJJk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Apr 2019 05:09:40 -0400
+Received: from localhost (unknown [27.5.36.118])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 236FA20645;
+        Tue, 16 Apr 2019 09:09:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1555405779;
+        bh=W6ngLSMgrHr0W3U4Bw4UbqBajEV6+Q7wlh9FAZZkBh4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=HbEmy3YIoZJbYM+xh03pVXKo0B/ONW0B08iQkD0+49f3EQ7WTkSOUzFc0foEne8c6
+         HLWY60V72VYQpM0rfsY1sr7l6UKJXL7xHtWi7sX+gkquBy/Q1UO5Ba9AEFGpqJCadp
+         y2Oqmxxm899RJHzpHDrEk0P9Iyx+HDpr7l6cIDrw=
+Date:   Tue, 16 Apr 2019 14:39:35 +0530
+From:   Vinod Koul <vkoul@kernel.org>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." 
+        <alsa-devel@alsa-project.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
+        Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Liam Girdwood <liam.r.girdwood@linux.intel.com>,
+        jank@cadence.com, Joe Perches <joe@perches.com>,
+        Srini Kandagatla <srinivas.kandagatla@linaro.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Changbin Du <changbin.du@gmail.com>
+        Robert Moore <robert.moore@intel.com>,
+        Erik Schmauss <erik.schmauss@intel.com>,
+        "open list:ACPI" <linux-acpi@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
+Subject: Re: [PATCH] ACPI / device_sysfs: change _ADR representation to 64
+ bits
+Message-ID: <20190416090935.GT28103@vkoul-mobl>
+References: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com>
+ <20190416032923.GQ28103@vkoul-mobl>
+ <CAJZ5v0jOkQ7aWn6B_yVTYd7y+78mpGSzBoGuWe3uCdzDRNE94Q@mail.gmail.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0jOkQ7aWn6B_yVTYd7y+78mpGSzBoGuWe3uCdzDRNE94Q@mail.gmail.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190416081711.-oHUaAztxHLdYVoaq02hI_krgQSh5VZUoW0KdMXStAU@z>
+Message-ID: <20190416090935.-shcB4zWS06dv9HaBDrUPikVObLqfy_tZXLnRCeY-Rs@z>
 
-On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
->
-> Most of the files are already in good shape, making easier to
-> convert them to ReST by adding proper title markups and
-> addressing some identation and markups to properly format the
-> document.
+On 16-04-19, 10:09, Rafael J. Wysocki wrote:
+> On Tue, Apr 16, 2019 at 5:29 AM Vinod Koul <vkoul@kernel.org> wrote:
+> >
+> > On 15-04-19, 10:18, Pierre-Louis Bossart wrote:
+> > > Standards such as the MIPI DisCo for SoundWire 1.0 specification
+> > > assume the _ADR field is 64 bits.
+> > >
+> > > _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
+> > > released in 2002. The low levels already use _ADR as 64 bits, e.g. in
+> > > struct acpi_device_info.
+> > >
+> > > This patch bumps the representation used for sysfs to 64 bits.
+> > >
+> > > Example with a SoundWire device, the results show the complete
+> > > vendorID and linkID which were omitted before:
+> > >
+> > > Before:
+> > > $ more /sys/bus/acpi/devices/device\:38/adr
+> > > 0x5d070000
+> > > After:
+> > > $ more /sys/bus/acpi/devices/device\:38/adr
+> > > 0x000010025d070000
+> >
+> > This looks fine but the sysfs file is an ABI. Not sure if we can modify
+> > the value returned this way.. Though it should not cause userspace
+> > reading 32bits to break...
+> 
+> Well, IIRC using "08" instead of "016" in the format field would
+> preserve the existing behavior for 32-bit values, wouldn't it?
 
-There is concurrent work on this under way, please see
-https://marc.info/?t=155381845300002&r=2&w=2
+Yeah that should do :)
 
-I'd prefer that one to continue, honestly.
-
-Thanks,
-Rafael
+-- 
+~Vinod
