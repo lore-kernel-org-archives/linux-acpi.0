@@ -2,177 +2,178 @@ Return-Path: <SRS0=f16E=SS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B3E1C10F13
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 16:27:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EF88C10F13
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 17:02:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6575020821
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 16:27:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 471B820872
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 17:02:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726816AbfDPQ1z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Apr 2019 12:27:55 -0400
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:59222 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726230AbfDPQ1y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Apr 2019 12:27:54 -0400
+        id S1727180AbfDPRCV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Apr 2019 13:02:21 -0400
+Received: from foss.arm.com ([217.140.101.70]:59812 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726860AbfDPRCV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Apr 2019 13:02:21 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1967B80D;
-        Tue, 16 Apr 2019 09:27:54 -0700 (PDT)
-Received: from [10.1.196.129] (ostrya.cambridge.arm.com [10.1.196.129])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D15B13F59C;
-        Tue, 16 Apr 2019 09:27:51 -0700 (PDT)
-Subject: Re: [PATCH v2 1/7] ACPI/IORT: Check ATS capability in root complex
- nodes
-To:     Robin Murphy <robin.murphy@arm.com>,
-        Will Deacon <Will.Deacon@arm.com>
-Cc:     "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "joro@8bytes.org" <joro@8bytes.org>,
-        "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>,
-        Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>,
-        Sudeep Holla <Sudeep.Holla@arm.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "okaya@kernel.org" <okaya@kernel.org>,
-        "zhongmiao@hisilicon.com" <zhongmiao@hisilicon.com>,
-        "eric.auger@redhat.com" <eric.auger@redhat.com>
-References: <20190409165245.26500-1-jean-philippe.brucker@arm.com>
- <20190409165245.26500-2-jean-philippe.brucker@arm.com>
- <c10c7adb-c7f6-f8c6-05cc-f4f143427a2d@arm.com>
-From:   Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Message-ID: <9fef7037-3d55-8955-fc14-6f823d996b81@arm.com>
-Date:   Tue, 16 Apr 2019 17:27:29 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.3
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CD68480D;
+        Tue, 16 Apr 2019 10:02:20 -0700 (PDT)
+Received: from red-moon (unknown [10.1.197.39])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 760D63F59C;
+        Tue, 16 Apr 2019 10:02:19 -0700 (PDT)
+Date:   Tue, 16 Apr 2019 18:02:20 +0100
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     Kefeng Wang <wangkefeng.wang@huawei.com>, will.deacon@arm.com
+Cc:     Robin Murphy <robin.murphy@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3] ACPI/IORT: Reject platform device creation on NUMA
+ node mapping failure
+Message-ID: <20190416170220.GF14705@red-moon>
+References: <20190408104658.GB2727@red-moon>
+ <20190408152112.42056-1-wangkefeng.wang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <c10c7adb-c7f6-f8c6-05cc-f4f143427a2d@arm.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <20190408152112.42056-1-wangkefeng.wang@huawei.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190416162729.qDVyrd74xuJjjG-XfC4W-hGWDsO7-m3wzriwK4faElk@z>
+Message-ID: <20190416170220.zd0GQUK_pGF1-XM-i2BqFqGWa58bIFWN9I9wNZdAqB8@z>
 
-On 15/04/2019 19:31, Robin Murphy wrote:
-> On 09/04/2019 17:52, Jean-Philippe Brucker wrote:
->> Root complex node in IORT has a bit telling whether it supports ATS or
->> not. Store this bit in the IOMMU fwspec when setting up a device, so it
->> can be accessed later by an IOMMU driver.
-> 
-> Hmm, it doesn't feel quite right to store a copy of the same RC/SMMU 
-> integration property for every endpoint...
-> 
-> It seems like it might be more logical to track this at the SMMU end, 
-> i.e. only allow ARM_SMMU_FEAT_ATS to be set if all RCs targeting that 
-> SMMU also support ATS. For the moment that seems sufficiently realistic, 
-> and unless some wacky topology ever actually shows up in silicon to 
-> complain, I'm inclined not to care too much about it being potentially 
-> overly restrictive.
+[+Will]
 
-Doesn't that require us to implement a reverse lookup of smmu-node ->
-RC-node using the iommu maps, in both DT and IORT? Seems like a lot of
-work for little gain. Putting the bit in fwspec isn't ideal, but I don't
-find aggregating properties of RCs into ARM_SMMU_FEAT_ATS much nicer.
+Hi Will,
 
-> Furthermore, I'm now wondering whether it would make sense to push this 
-> into the PCI layer as well (or instead), i.e. hook into pci_init_ats() 
-> or pci_enable_ats() and it the device is untrusted or the topology 
-> doesn't support ATS, prevent the capability from ever being enabled at 
-> all, rather than trying to mitigate it later at the SMMU end. What do 
-> you reckon?
-
-For the RC property it's a bit difficult because everyone does it
-differently. All of DMAR, IVRS, IORT and DT-based implementations would
-have to call into the PCI core to declare whether a device is allowed to
-do ATS or not. Which is essentially what the IOMMU drivers do now by
-calling pci_enable_ats() themselves.
-
-Having pci_enable_ats() check the untrusted bit seems like a good
-cleanup. I'm not sure yet but given that it has side effects (AMD IOMMU
-doesn't check that bit at the moment) it would probably fit better in a
-separate series.
-
->> Use the negative version (NO_ATS) at the moment because it's not clear
->> if/how the bit needs to be integrated in other firmware descriptions. The
->> SMMU has a feature bit telling if it supports ATS, which might be
->> sufficient in most systems for deciding whether or not we should enable
->> the ATS capability in endpoints.
-> 
-> I can fairly confidently guarantee that it won't. For instance, MMU-600 
-> reports IDR0.ATS==1 because MMU-600 implements the SMMUv3 architectural 
-> ATS support. Actually making use of that support, though, still requires 
-> an RC capable of generating the appropriate DTI-ATS messages, and that a 
-> DTI interface is wired up correctly between the two.
-
-Right, we need to explicitly validate that the RC understands ATS. If we
-enable ATS but the root complex doesn't support it, in addition to being
-unusable it might be possible for the EP to corrupt memory, because to
-an RC that ignores the AT field, a Translation Request looks like a
-Memory Read Request. The endpoint could end up storing the content of
-memory in its ATC instead of a translated address, and later use that
-as address of a write.
-
->> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
->> ---
->>   drivers/acpi/arm64/iort.c | 11 +++++++++++
->>   include/linux/iommu.h     |  4 ++++
->>   2 files changed, 15 insertions(+)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index e48894e002ba..7f2c1c9c6b38 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -1028,6 +1028,14 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
->>   	dev_dbg(dev, "dma_pfn_offset(%#08llx)\n", offset);
->>   }
->>   
->> +static bool iort_pci_rc_supports_ats(struct acpi_iort_node *node)
->> +{
->> +	struct acpi_iort_root_complex *pci_rc;
->> +
->> +	pci_rc = (struct acpi_iort_root_complex *)node->node_data;
->> +	return pci_rc->ats_attribute & ACPI_IORT_ATS_SUPPORTED;
->> +}
->> +
->>   /**
->>    * iort_iommu_configure - Set-up IOMMU configuration for a device.
->>    *
->> @@ -1063,6 +1071,9 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->>   		info.node = node;
->>   		err = pci_for_each_dma_alias(to_pci_dev(dev),
->>   					     iort_pci_iommu_init, &info);
->> +
->> +		if (!err && !iort_pci_rc_supports_ats(node))
->> +			dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_NO_ATS;
->>   	} else {
->>   		int i = 0;
->>   
->> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
->> index 3dbeb457fb16..ed6738c358ca 100644
->> --- a/include/linux/iommu.h
->> +++ b/include/linux/iommu.h
->> @@ -509,10 +509,14 @@ struct iommu_fwspec {
->>   	const struct iommu_ops	*ops;
->>   	struct fwnode_handle	*iommu_fwnode;
->>   	void			*iommu_priv;
->> +	u32			flags;
->>   	unsigned int		num_ids;
->>   	u32			ids[1];
->>   };
->>   
->> +/* Firmware disabled ATS in the root complex */
-> 
-> More likely firmware is just describing how the hardware was built ;)
-
-Right, I'll fix this
+there is not enough material for an IORT pull request this cycle but
+this patch should be merged and IORT code goes usually via arm64, can
+you pick it up or if you prefer I can resend it on LAKML and CC you in
+if it makes it any simpler ?
 
 Thanks,
-Jean
+Lorenzo
 
+On Mon, Apr 08, 2019 at 11:21:12PM +0800, Kefeng Wang wrote:
+> In a system where, through IORT firmware mappings, the SMMU device is
+> mapped to a NUMA node that is not online, the kernel bootstrap results
+> in the following crash:
+> 
+>   Unable to handle kernel paging request at virtual address 0000000000001388
+>   Mem abort info:
+>     ESR = 0x96000004
+>     Exception class = DABT (current EL), IL = 32 bits
+>     SET = 0, FnV = 0
+>     EA = 0, S1PTW = 0
+>   Data abort info:
+>     ISV = 0, ISS = 0x00000004
+>     CM = 0, WnR = 0
+>   [0000000000001388] user address but active_mm is swapper
+>   Internal error: Oops: 96000004 [#1] SMP
+>   Modules linked in:
+>   CPU: 5 PID: 1 Comm: swapper/0 Not tainted 5.0.0 #15
+>   pstate: 80c00009 (Nzcv daif +PAN +UAO)
+>   pc : __alloc_pages_nodemask+0x13c/0x1068
+>   lr : __alloc_pages_nodemask+0xdc/0x1068
+>   ...
+>   Process swapper/0 (pid: 1, stack limit = 0x(____ptrval____))
+>   Call trace:
+>    __alloc_pages_nodemask+0x13c/0x1068
+>    new_slab+0xec/0x570
+>    ___slab_alloc+0x3e0/0x4f8
+>    __slab_alloc+0x60/0x80
+>    __kmalloc_node_track_caller+0x10c/0x478
+>    devm_kmalloc+0x44/0xb0
+>    pinctrl_bind_pins+0x4c/0x188
+>    really_probe+0x78/0x2b8
+>    driver_probe_device+0x64/0x110
+>    device_driver_attach+0x74/0x98
+>    __driver_attach+0x9c/0xe8
+>    bus_for_each_dev+0x84/0xd8
+>    driver_attach+0x30/0x40
+>    bus_add_driver+0x170/0x218
+>    driver_register+0x64/0x118
+>    __platform_driver_register+0x54/0x60
+>    arm_smmu_driver_init+0x24/0x2c
+>    do_one_initcall+0xbc/0x328
+>    kernel_init_freeable+0x304/0x3ac
+>    kernel_init+0x18/0x110
+>    ret_from_fork+0x10/0x1c
+>   Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
+>   ---[ end trace dfeaed4c373a32da ]--
+> 
+> Change the dev_set_proximity() hook prototype so that it returns a
+> value and make it return failure if the PXM->NUMA-node mapping
+> corresponds to an offline node, fixing the crash.
+> 
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> Link: https://lore.kernel.org/linux-arm-kernel/20190315021940.86905-1-wangkefeng.wang@huawei.com/
+> ---
+> v2->v3:
+> -Update changelog according to Lorenzo Pieralisi's comment and add acked-by.
+> 
+>  drivers/acpi/arm64/iort.c | 19 ++++++++++++++-----
+>  1 file changed, 14 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e48894e002ba..a46c2c162c03 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1232,18 +1232,24 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>  /*
+>   * set numa proximity domain for smmuv3 device
+>   */
+> -static void  __init arm_smmu_v3_set_proximity(struct device *dev,
+> +static int  __init arm_smmu_v3_set_proximity(struct device *dev,
+>  					      struct acpi_iort_node *node)
+>  {
+>  	struct acpi_iort_smmu_v3 *smmu;
+>  
+>  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>  	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+> -		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+> +		int node = acpi_map_pxm_to_node(smmu->pxm);
+> +
+> +		if (node != NUMA_NO_NODE && !node_online(node))
+> +			return -EINVAL;
+> +
+> +		set_dev_node(dev, node);
+>  		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
+>  			smmu->base_address,
+>  			smmu->pxm);
+>  	}
+> +	return 0;
+>  }
+>  #else
+>  #define arm_smmu_v3_set_proximity NULL
+> @@ -1318,7 +1324,7 @@ struct iort_dev_config {
+>  	int (*dev_count_resources)(struct acpi_iort_node *node);
+>  	void (*dev_init_resources)(struct resource *res,
+>  				     struct acpi_iort_node *node);
+> -	void (*dev_set_proximity)(struct device *dev,
+> +	int (*dev_set_proximity)(struct device *dev,
+>  				    struct acpi_iort_node *node);
+>  };
+>  
+> @@ -1369,8 +1375,11 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>  	if (!pdev)
+>  		return -ENOMEM;
+>  
+> -	if (ops->dev_set_proximity)
+> -		ops->dev_set_proximity(&pdev->dev, node);
+> +	if (ops->dev_set_proximity) {
+> +		ret = ops->dev_set_proximity(&pdev->dev, node);
+> +		if (ret)
+> +			goto dev_put;
+> +	}
+>  
+>  	count = ops->dev_count_resources(node);
+>  
+> -- 
+> 2.20.1
+> 
