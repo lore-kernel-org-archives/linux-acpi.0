@@ -2,178 +2,65 @@ Return-Path: <SRS0=f16E=SS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EF88C10F13
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 17:02:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E7BC10F13
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 17:05:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 471B820872
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 17:02:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1721920872
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 17:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727180AbfDPRCV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Apr 2019 13:02:21 -0400
-Received: from foss.arm.com ([217.140.101.70]:59812 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726860AbfDPRCV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Apr 2019 13:02:21 -0400
+        id S1728052AbfDPRFl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Apr 2019 13:05:41 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:59900 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726860AbfDPRFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Apr 2019 13:05:41 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CD68480D;
-        Tue, 16 Apr 2019 10:02:20 -0700 (PDT)
-Received: from red-moon (unknown [10.1.197.39])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 760D63F59C;
-        Tue, 16 Apr 2019 10:02:19 -0700 (PDT)
-Date:   Tue, 16 Apr 2019 18:02:20 +0100
-From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-To:     Kefeng Wang <wangkefeng.wang@huawei.com>, will.deacon@arm.com
-Cc:     Robin Murphy <robin.murphy@arm.com>,
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D483C80D;
+        Tue, 16 Apr 2019 10:05:38 -0700 (PDT)
+Received: from fuggles.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.72.51.249])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7E1893F59C;
+        Tue, 16 Apr 2019 10:05:37 -0700 (PDT)
+Date:   Tue, 16 Apr 2019 18:05:35 +0100
+From:   Will Deacon <will.deacon@arm.com>
+To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc:     Kefeng Wang <wangkefeng.wang@huawei.com>,
+        Robin Murphy <robin.murphy@arm.com>,
         Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net,
         linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Subject: Re: [PATCH v3] ACPI/IORT: Reject platform device creation on NUMA
  node mapping failure
-Message-ID: <20190416170220.GF14705@red-moon>
+Message-ID: <20190416170535.GB7342@fuggles.cambridge.arm.com>
 References: <20190408104658.GB2727@red-moon>
  <20190408152112.42056-1-wangkefeng.wang@huawei.com>
+ <20190416170220.GF14705@red-moon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Disposition: inline
-In-Reply-To: <20190408152112.42056-1-wangkefeng.wang@huawei.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <20190416170220.GF14705@red-moon>
+User-Agent: Mutt/1.11.1+86 (6f28e57d73f2) ()
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190416170220.zd0GQUK_pGF1-XM-i2BqFqGWa58bIFWN9I9wNZdAqB8@z>
+Message-ID: <20190416170535.MEVv-PkdJS6GAxD-rFrvWWH90xm4lIv63Yh0lyx1IZc@z>
 
-[+Will]
+On Tue, Apr 16, 2019 at 06:02:20PM +0100, Lorenzo Pieralisi wrote:
+> [+Will]
+> 
+> there is not enough material for an IORT pull request this cycle but
+> this patch should be merged and IORT code goes usually via arm64, can
+> you pick it up or if you prefer I can resend it on LAKML and CC you in
+> if it makes it any simpler ?
+> 
+> On Mon, Apr 08, 2019 at 11:21:12PM +0800, Kefeng Wang wrote:
+> > In a system where, through IORT firmware mappings, the SMMU device is
+> > mapped to a NUMA node that is not online, the kernel bootstrap results
+> > in the following crash:
 
-Hi Will,
+Queued for 5.2. Thanks for the heads-up.
 
-there is not enough material for an IORT pull request this cycle but
-this patch should be merged and IORT code goes usually via arm64, can
-you pick it up or if you prefer I can resend it on LAKML and CC you in
-if it makes it any simpler ?
-
-Thanks,
-Lorenzo
-
-On Mon, Apr 08, 2019 at 11:21:12PM +0800, Kefeng Wang wrote:
-> In a system where, through IORT firmware mappings, the SMMU device is
-> mapped to a NUMA node that is not online, the kernel bootstrap results
-> in the following crash:
-> 
->   Unable to handle kernel paging request at virtual address 0000000000001388
->   Mem abort info:
->     ESR = 0x96000004
->     Exception class = DABT (current EL), IL = 32 bits
->     SET = 0, FnV = 0
->     EA = 0, S1PTW = 0
->   Data abort info:
->     ISV = 0, ISS = 0x00000004
->     CM = 0, WnR = 0
->   [0000000000001388] user address but active_mm is swapper
->   Internal error: Oops: 96000004 [#1] SMP
->   Modules linked in:
->   CPU: 5 PID: 1 Comm: swapper/0 Not tainted 5.0.0 #15
->   pstate: 80c00009 (Nzcv daif +PAN +UAO)
->   pc : __alloc_pages_nodemask+0x13c/0x1068
->   lr : __alloc_pages_nodemask+0xdc/0x1068
->   ...
->   Process swapper/0 (pid: 1, stack limit = 0x(____ptrval____))
->   Call trace:
->    __alloc_pages_nodemask+0x13c/0x1068
->    new_slab+0xec/0x570
->    ___slab_alloc+0x3e0/0x4f8
->    __slab_alloc+0x60/0x80
->    __kmalloc_node_track_caller+0x10c/0x478
->    devm_kmalloc+0x44/0xb0
->    pinctrl_bind_pins+0x4c/0x188
->    really_probe+0x78/0x2b8
->    driver_probe_device+0x64/0x110
->    device_driver_attach+0x74/0x98
->    __driver_attach+0x9c/0xe8
->    bus_for_each_dev+0x84/0xd8
->    driver_attach+0x30/0x40
->    bus_add_driver+0x170/0x218
->    driver_register+0x64/0x118
->    __platform_driver_register+0x54/0x60
->    arm_smmu_driver_init+0x24/0x2c
->    do_one_initcall+0xbc/0x328
->    kernel_init_freeable+0x304/0x3ac
->    kernel_init+0x18/0x110
->    ret_from_fork+0x10/0x1c
->   Code: f90013b5 b9410fa1 1a9f0694 b50014c2 (b9400804)
->   ---[ end trace dfeaed4c373a32da ]--
-> 
-> Change the dev_set_proximity() hook prototype so that it returns a
-> value and make it return failure if the PXM->NUMA-node mapping
-> corresponds to an offline node, fixing the crash.
-> 
-> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> Link: https://lore.kernel.org/linux-arm-kernel/20190315021940.86905-1-wangkefeng.wang@huawei.com/
-> ---
-> v2->v3:
-> -Update changelog according to Lorenzo Pieralisi's comment and add acked-by.
-> 
->  drivers/acpi/arm64/iort.c | 19 ++++++++++++++-----
->  1 file changed, 14 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e48894e002ba..a46c2c162c03 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1232,18 +1232,24 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
->  /*
->   * set numa proximity domain for smmuv3 device
->   */
-> -static void  __init arm_smmu_v3_set_proximity(struct device *dev,
-> +static int  __init arm_smmu_v3_set_proximity(struct device *dev,
->  					      struct acpi_iort_node *node)
->  {
->  	struct acpi_iort_smmu_v3 *smmu;
->  
->  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
->  	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> -		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> +		int node = acpi_map_pxm_to_node(smmu->pxm);
-> +
-> +		if (node != NUMA_NO_NODE && !node_online(node))
-> +			return -EINVAL;
-> +
-> +		set_dev_node(dev, node);
->  		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
->  			smmu->base_address,
->  			smmu->pxm);
->  	}
-> +	return 0;
->  }
->  #else
->  #define arm_smmu_v3_set_proximity NULL
-> @@ -1318,7 +1324,7 @@ struct iort_dev_config {
->  	int (*dev_count_resources)(struct acpi_iort_node *node);
->  	void (*dev_init_resources)(struct resource *res,
->  				     struct acpi_iort_node *node);
-> -	void (*dev_set_proximity)(struct device *dev,
-> +	int (*dev_set_proximity)(struct device *dev,
->  				    struct acpi_iort_node *node);
->  };
->  
-> @@ -1369,8 +1375,11 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->  	if (!pdev)
->  		return -ENOMEM;
->  
-> -	if (ops->dev_set_proximity)
-> -		ops->dev_set_proximity(&pdev->dev, node);
-> +	if (ops->dev_set_proximity) {
-> +		ret = ops->dev_set_proximity(&pdev->dev, node);
-> +		if (ret)
-> +			goto dev_put;
-> +	}
->  
->  	count = ops->dev_count_resources(node);
->  
-> -- 
-> 2.20.1
-> 
+Will
