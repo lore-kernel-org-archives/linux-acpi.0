@@ -1,42 +1,81 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: Re: [RESEND][PATCH v2 27/36] drivers: Add a generic helper to match
- device by fwnode handle
-Date: Tue, 16 Apr 2019 11:56:00 +0100
-Message-ID: <ebb13205-2548-1c30-fd65-bdfe4c7d9c08@arm.com>
-References: <1555344260-12375-28-git-send-email-suzuki.poulose@arm.com>
- <1555411164-26399-1-git-send-email-suzuki.poulose@arm.com>
- <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 4/4] perf: arm_spe: Enable ACPI/Platform automatic module
+ loading
+Date: Tue, 16 Apr 2019 14:50:55 +0100
+Message-ID: <20190416135055.GA3313@fuggles.cambridge.arm.com>
+References: <20190326223938.5365-1-jeremy.linton@arm.com>
+ <20190326223938.5365-5-jeremy.linton@arm.com>
+ <20190404170423.GC28932@fuggles.cambridge.arm.com>
+ <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rafael@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, coresight@lists.linaro.org, mathieu.poirier@linaro.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/16/2019 11:48 AM, Rafael J. Wysocki wrote:
-> On Tue, Apr 16, 2019 at 12:39 PM Suzuki K Poulose
-> <suzuki.poulose@arm.com> wrote:
->>
->> Make the device_fwnode_match() a generic helper to match device
->> by fwnode handle for use with bus_find_device(). This will be
->> also used by coresight.
->>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
->> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
->> ---
->>
->> Resending with linux-acpi in Cc, as requested by Rafael.
+On Thu, Apr 04, 2019 at 12:24:38PM -0500, Jeremy Linton wrote:
+> On 4/4/19 12:04 PM, Will Deacon wrote:
+> > On Tue, Mar 26, 2019 at 05:39:38PM -0500, Jeremy Linton wrote:
+> > > Lets add the MODULE_TABLE and platform id_table entries so that
+> > > the SPE driver can attach to the ACPI platform device created by
+> > > the core pmu code.
+> > > 
+> > > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> > > Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+> > > ---
+> > >   drivers/perf/arm_spe_pmu.c | 11 +++++++++--
+> > >   1 file changed, 9 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
+> > > index 7cb766dafe85..ffa2c76c08bb 100644
+> > > --- a/drivers/perf/arm_spe_pmu.c
+> > > +++ b/drivers/perf/arm_spe_pmu.c
+> > > @@ -1176,7 +1176,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
+> > >   };
+> > >   MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
+> > > -static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
+> > > +static const struct platform_device_id arm_spe_match[] = {
+> > > +	{ "arm,spe-v1", 0},
+> > 
+> > It would be nice if we could avoid duplicating this string from the ACPI
+> > parsing code.
 > 
-> Do any other patches in your series depend on this one?
+> Ok sure, I just need to find a good common place for it.
+> 
+> > 
+> > > +	{ }
+> > > +};
+> > > +MODULE_DEVICE_TABLE(platform, arm_spe_match);
+> > > +
+> > > +static int arm_spe_pmu_device_probe(struct platform_device *pdev)
+> > >   {
+> > >   	int ret;
+> > >   	struct arm_spe_pmu *spe_pmu;
+> > > @@ -1236,11 +1242,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
+> > >   }
+> > >   static struct platform_driver arm_spe_pmu_driver = {
+> > > +	.id_table = arm_spe_match,
+> > >   	.driver	= {
+> > >   		.name		= DRVNAME,
+> > >   		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
+> > 
+> > Hmm, so some other drivers don't hook .id_table like you do, but instead
+> > hook .acpi_match_table in the driver structure. Is that not better?
+> 
+> This isn't actually an ACPI device, (aka not defined in the namespace), so
+> its missing much of the ACPI functionality. I think that also means its
+> needs to be declared this way.
 
-Yes, I do. But they are in the middle of a big series of changes and
-I don't expect this series to go into 5.2. So, if you plan to pull this
-please go ahead.
+Looking at platform_match(), I'd really like to avoid having both an
+.id_table and an .of_match_table field.
 
-Suzuki
+acpi_of_match_device() will actually use the .of_match_table, but it relies
+on ACPI_COMPANION returning a valid acpi_device. If we don't have one of
+those, perhaps we can use the .id_table exclusively and drop the
+.of_match_table instead?
+
+Will
