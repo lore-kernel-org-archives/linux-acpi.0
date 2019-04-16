@@ -2,131 +2,103 @@ Return-Path: <SRS0=f16E=SS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91695C10F0E
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 03:29:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BA09C10F13
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 08:10:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5FC572086A
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 03:29:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0C25206BA
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 08:10:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555385375;
-	bh=S7524Hn0HsoZQxPZhKoDOVrUlWVDRrcs6YksGPq0Fro=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=ZSm1yBczTpx5WRD9C85lm3kRsbHt4i/aki8TWrZw1R5do9B/vgoAG0J7LrOLg9LJy
-	 5HmIG7MUYQ/8v3O6+EIqTIe0ExOipA4uXijyyuLukR9y8rMPaO0ozECHfTQRiXUGvE
-	 DJqiGRiATwqN5VSsIH6kufQBuG1l8SK0sA6671lU=
+	s=default; t=1555402211;
+	bh=omy8/etVNGwu4Qd+wMmhCrZqRi6mgdzE98GMd5ctQCs=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=K8ON7VO9W5K3LUJjLL1OFYwO5xf/KYQIxG7UHMtVWke3yoGdkA9dcj62qr+mzqZc7
+	 +M49vwNrdf7VCv66jCBqGRWFMCVa/n6ZotOabHnVadelZ/r1X8RjN/7SIR/UjSpFYa
+	 wvsaIezomUvk4XhY0rMVyRKmjQfv1n8rPis2ZwsY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726237AbfDPD3e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 Apr 2019 23:29:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45522 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725827AbfDPD3e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 15 Apr 2019 23:29:34 -0400
-Received: from localhost (unknown [106.199.96.150])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0099E2075B;
-        Tue, 16 Apr 2019 03:29:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1555385374;
-        bh=S7524Hn0HsoZQxPZhKoDOVrUlWVDRrcs6YksGPq0Fro=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=twvVivsM+f4tlLpdSvuu/8x7MMGC6Kugnthfs9+QFwy5Wunl3Gcvus0Rpce3g97A0
-         FZmlMHnEZT/LqDSvwoKcUih+imKb2slQDAmBxKWxbUMcssU1cUcEEzXRtVcKI9IzyH
-         Nt78Qq8ZZfo1yP9y7+UtUDYjsdrWLhgToLolgIyc=
-Date:   Tue, 16 Apr 2019 08:59:23 +0530
-From:   Vinod Koul <vkoul@kernel.org>
-To:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc:     alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        tiwai@suse.de, broonie@kernel.org, gregkh@linuxfoundation.org,
-        liam.r.girdwood@linux.intel.com, jank@cadence.com, joe@perches.com,
-        srinivas.kandagatla@linaro.org,
+        id S1728709AbfDPIKK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Apr 2019 04:10:10 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:39703 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728654AbfDPIKK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Apr 2019 04:10:10 -0400
+Received: by mail-ot1-f65.google.com with SMTP id f10so16844003otb.6;
+        Tue, 16 Apr 2019 01:10:09 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=omy8/etVNGwu4Qd+wMmhCrZqRi6mgdzE98GMd5ctQCs=;
+        b=koGTuLTwGVBjZhhLtrTWwu/l83Jez8UezZKVuTQswqLJeEIgG1KFZPQrxqDXw7nxKE
+         lmDl2yJt8ty5M3u1PpzarAdxu2s8Q9sMQz1OiulusYQreluZRess0T3hFLFaLeHz/e52
+         nfYJLw2ny4VA0o0FNjcN5bqb/ms1iwL3QGUKMz7KY2y8lTXLAYCruQbEC7rTNGTHD0R6
+         hxbpT5jZYls6JX0R0nVffqEbGuMEMv/3703ylwsXedWx5OMpqo/8UwEePyZ2qJgfmDnI
+         2DHK4ghf/ypqcZy6UMuNQTqibDVWhIiHv3W4C+NdA5+hStDROhaBh5wdZp06fjjfFWFW
+         pBJA==
+X-Gm-Message-State: APjAAAVsO/0KX470PhIXciTMtAuM9VJ3themCbO/FRi7Bhef1RdYGGJB
+        sqMVe/d0v3tqK4nStB8wZAZfIrGPXp9Y2J+bNN4=
+X-Google-Smtp-Source: APXvYqzJya6FMiPevXlWBCEOghCT3aGYfbfMgS3t85w/PXsrmJJP4ikN5Ta4nO+RhsPbvP5ijAmvOFNotGgziuQbS6o=
+X-Received: by 2002:a05:6830:11d0:: with SMTP id v16mr16449079otq.159.1555402209366;
+ Tue, 16 Apr 2019 01:10:09 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com> <20190416032923.GQ28103@vkoul-mobl>
+In-Reply-To: <20190416032923.GQ28103@vkoul-mobl>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 16 Apr 2019 10:09:57 +0200
+Message-ID:
+ <CAJZ5v0jOkQ7aWn6B_yVTYd7y+78mpGSzBoGuWe3uCdzDRNE94Q@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / device_sysfs: change _ADR representation to 64 bits
+To:     Vinod Koul <vkoul@kernel.org>
+Cc:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." 
+        <alsa-devel@alsa-project.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Liam Girdwood <liam.r.girdwood@linux.intel.com>,
+        jank@cadence.com, Joe Perches <joe@perches.com>,
+        Srini Kandagatla <srinivas.kandagatla@linaro.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
         Robert Moore <robert.moore@intel.com>,
         Erik Schmauss <erik.schmauss@intel.com>,
         "open list:ACPI" <linux-acpi@vger.kernel.org>,
         "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
-Subject: Re: [PATCH] ACPI / device_sysfs: change _ADR representation to 64
- bits
-Message-ID: <20190416032923.GQ28103@vkoul-mobl>
-References: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190416032923.q66UVthGi4mojoGN1LQdgLubPaMEp2VkpIebnBkKAwQ@z>
+Message-ID: <20190416080957.2p9TeOjNXiRcqSgkhxMxboJC7SKxXm8SYTk_7GO1Yx4@z>
 
-On 15-04-19, 10:18, Pierre-Louis Bossart wrote:
-> Standards such as the MIPI DisCo for SoundWire 1.0 specification
-> assume the _ADR field is 64 bits.
-> 
-> _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
-> released in 2002. The low levels already use _ADR as 64 bits, e.g. in
-> struct acpi_device_info.
-> 
-> This patch bumps the representation used for sysfs to 64 bits.
-> 
-> Example with a SoundWire device, the results show the complete
-> vendorID and linkID which were omitted before:
-> 
-> Before:
-> $ more /sys/bus/acpi/devices/device\:38/adr
-> 0x5d070000
-> After:
-> $ more /sys/bus/acpi/devices/device\:38/adr
-> 0x000010025d070000
+On Tue, Apr 16, 2019 at 5:29 AM Vinod Koul <vkoul@kernel.org> wrote:
+>
+> On 15-04-19, 10:18, Pierre-Louis Bossart wrote:
+> > Standards such as the MIPI DisCo for SoundWire 1.0 specification
+> > assume the _ADR field is 64 bits.
+> >
+> > _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
+> > released in 2002. The low levels already use _ADR as 64 bits, e.g. in
+> > struct acpi_device_info.
+> >
+> > This patch bumps the representation used for sysfs to 64 bits.
+> >
+> > Example with a SoundWire device, the results show the complete
+> > vendorID and linkID which were omitted before:
+> >
+> > Before:
+> > $ more /sys/bus/acpi/devices/device\:38/adr
+> > 0x5d070000
+> > After:
+> > $ more /sys/bus/acpi/devices/device\:38/adr
+> > 0x000010025d070000
+>
+> This looks fine but the sysfs file is an ABI. Not sure if we can modify
+> the value returned this way.. Though it should not cause userspace
+> reading 32bits to break...
 
-This looks fine but the sysfs file is an ABI. Not sure if we can modify
-the value returned this way.. Though it should not cause userspace
-reading 32bits to break...
-
-
-> 
-> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-> ---
->  drivers/acpi/device_sysfs.c | 3 +--
->  include/acpi/acpi_bus.h     | 2 +-
->  2 files changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-> index 8940054d6250..f8d73ae42529 100644
-> --- a/drivers/acpi/device_sysfs.c
-> +++ b/drivers/acpi/device_sysfs.c
-> @@ -428,8 +428,7 @@ static ssize_t acpi_device_adr_show(struct device *dev,
->  {
->  	struct acpi_device *acpi_dev = to_acpi_device(dev);
->  
-> -	return sprintf(buf, "0x%08x\n",
-> -		       (unsigned int)(acpi_dev->pnp.bus_address));
-> +	return sprintf(buf, "0x%016llx\n", acpi_dev->pnp.bus_address);
->  }
->  static DEVICE_ATTR(adr, 0444, acpi_device_adr_show, NULL);
->  
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index f7981751ac77..9075e28ea60a 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -230,7 +230,7 @@ struct acpi_device_dir {
->  /* Plug and Play */
->  
->  typedef char acpi_bus_id[8];
-> -typedef unsigned long acpi_bus_address;
-> +typedef u64 acpi_bus_address;
->  typedef char acpi_device_name[40];
->  typedef char acpi_device_class[20];
->  
-> -- 
-> 2.17.1
-
--- 
-~Vinod
+Well, IIRC using "08" instead of "016" in the format field would
+preserve the existing behavior for 32-bit values, wouldn't it?
