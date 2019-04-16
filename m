@@ -1,29 +1,52 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
-Date: Tue, 16 Apr 2019 10:17:11 +0200
-Message-ID: <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
-References: <cover.1555382110.git.mchehab+samsung@kernel.org> <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
+From: Vinod Koul <vkoul@kernel.org>
+Subject: Re: [PATCH] ACPI / device_sysfs: change _ADR representation to 64
+ bits
+Date: Tue, 16 Apr 2019 14:39:35 +0530
+Message-ID: <20190416090935.GT28103@vkoul-mobl>
+References: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com>
+ <20190416032923.GQ28103@vkoul-mobl>
+ <CAJZ5v0jOkQ7aWn6B_yVTYd7y+78mpGSzBoGuWe3uCdzDRNE94Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0jOkQ7aWn6B_yVTYd7y+78mpGSzBoGuWe3uCdzDRNE94Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Changbin Du <changbin.du@gmail.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, jank@cadence.com, Joe Perches <joe@perches.com>, Srini Kandagatla <srinivas.kandagatla@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
->
-> Most of the files are already in good shape, making easier to
-> convert them to ReST by adding proper title markups and
-> addressing some identation and markups to properly format the
-> document.
+On 16-04-19, 10:09, Rafael J. Wysocki wrote:
+> On Tue, Apr 16, 2019 at 5:29 AM Vinod Koul <vkoul@kernel.org> wrote:
+> >
+> > On 15-04-19, 10:18, Pierre-Louis Bossart wrote:
+> > > Standards such as the MIPI DisCo for SoundWire 1.0 specification
+> > > assume the _ADR field is 64 bits.
+> > >
+> > > _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
+> > > released in 2002. The low levels already use _ADR as 64 bits, e.g. in
+> > > struct acpi_device_info.
+> > >
+> > > This patch bumps the representation used for sysfs to 64 bits.
+> > >
+> > > Example with a SoundWire device, the results show the complete
+> > > vendorID and linkID which were omitted before:
+> > >
+> > > Before:
+> > > $ more /sys/bus/acpi/devices/device\:38/adr
+> > > 0x5d070000
+> > > After:
+> > > $ more /sys/bus/acpi/devices/device\:38/adr
+> > > 0x000010025d070000
+> >
+> > This looks fine but the sysfs file is an ABI. Not sure if we can modify
+> > the value returned this way.. Though it should not cause userspace
+> > reading 32bits to break...
+> 
+> Well, IIRC using "08" instead of "016" in the format field would
+> preserve the existing behavior for 32-bit values, wouldn't it?
 
-There is concurrent work on this under way, please see
-https://marc.info/?t=155381845300002&r=2&w=2
+Yeah that should do :)
 
-I'd prefer that one to continue, honestly.
-
-Thanks,
-Rafael
+-- 
+~Vinod
