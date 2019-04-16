@@ -2,106 +2,78 @@ Return-Path: <SRS0=f16E=SS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A796EC10F14
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 14:55:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC4A0C10F13
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 14:59:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73C802077C
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 14:55:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pCz+2X8O"
+	by mail.kernel.org (Postfix) with ESMTP id 94CD620674
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Apr 2019 14:59:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729559AbfDPOzW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Apr 2019 10:55:22 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:36756 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726751AbfDPOzW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Apr 2019 10:55:22 -0400
-Received: by mail-pg1-f194.google.com with SMTP id 85so10477056pgc.3;
-        Tue, 16 Apr 2019 07:55:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=h5lj1gghN6sLzB8P8PsOd/8lnM1lSwrScwwzcgsBFOw=;
-        b=pCz+2X8ORA0fAd5nUseqMAAc9lxUBn0sZvkyN38GmYew8mjAIw+7jqTa+xiYR1hP6v
-         6/9kvDbg2V8TaljcUSR8T22xSOW0U9IQumqAMGVsipzxYi5bmzEeReHKHGEXAuePfX1B
-         Gtc8TKl2RVx/R+GmUQCzQwtvw0kUR/GVFwUCSpQPYU8LFv+6tUtui7lI2fCtzYPR6xrq
-         F4fWCbn9fDwZf6nMvMft2glCyd4+7KKzN3sCL8PkDv1za6KNPzkSCdkWTBSPrLL33X/c
-         y1vP+F+nVrFPpNOQEqYiAuljeIaVpccNdR+uokGHhzV9IVqOAmg2YBQcyvuCCaX/KP9s
-         JQyA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=h5lj1gghN6sLzB8P8PsOd/8lnM1lSwrScwwzcgsBFOw=;
-        b=AJiV+Qlyf1UOkT5OjIdtdYJE3V+C49yU6pbNpvag9njTnklzURlbk3VhuWsu2gNYoc
-         ZD5E120rsB/LyKXYfMNQvDZOcADuHswduYcCtIM5Y7sAIyvpVoRWoz4DghL/UCdqimiC
-         oQvVcUobWZ/jKvGMw/qghAxaenLFnAsQywj2qmOUE7GXUSXCxvcFtSu2S62Qs0FaW+6g
-         Lxy9wQztGMDXA+SalV39yfHlhsp+M4n67PBUud9G/Sov8liBTwtkZcj+fHqHYpdQ1uEK
-         NBjHQdtqCxwnSTJBjUaXGQDaA9GCrGDQOE1v0YjQnj5NG3HvR9ITsMxereUPl++Jo/1j
-         8z5g==
-X-Gm-Message-State: APjAAAWjFio47dzD5bZl186B3UlyWt+uXOr0PLpZjmuh9h1Lckd4ufNi
-        Hs3HBXLgDM0fM+2DtgXWaeM=
-X-Google-Smtp-Source: APXvYqxeWtbapT2u2GF2ntnqZTAq1Ax39Q3nJiPgpPse0X/k+7MdHqGHJTijrBnlTJsLTx3UWSbSoQ==
-X-Received: by 2002:a62:61c2:: with SMTP id v185mr83648369pfb.117.1555426521601;
-        Tue, 16 Apr 2019 07:55:21 -0700 (PDT)
-Received: from mail.google.com ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id l4sm36189479pgh.17.2019.04.16.07.55.20
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 16 Apr 2019 07:55:20 -0700 (PDT)
-Date:   Tue, 16 Apr 2019 14:55:19 +0000
-From:   Changbin Du <changbin.du@gmail.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
-Message-ID: <20190416145518.xigzqsawvbrospir@mail.google.com>
-References: <cover.1555382110.git.mchehab+samsung@kernel.org>
- <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
- <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
+        id S1729839AbfDPO7i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Apr 2019 10:59:38 -0400
+Received: from mga17.intel.com ([192.55.52.151]:21870 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726860AbfDPO7i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Apr 2019 10:59:38 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Apr 2019 07:59:38 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,358,1549958400"; 
+   d="scan'208";a="143410589"
+Received: from unknown (HELO localhost.localdomain) ([10.232.112.69])
+  by fmsmga007.fm.intel.com with ESMTP; 16 Apr 2019 07:59:37 -0700
+Date:   Tue, 16 Apr 2019 09:01:30 -0600
+From:   Keith Busch <keith.busch@intel.com>
+To:     Brice Goglin <Brice.Goglin@inria.fr>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-mm@kvack.org, Rafael Wysocki <rafael@kernel.org>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCHv2 2/2] hmat: Register attributes for memory hot add
+Message-ID: <20190416150130.GA20546@localhost.localdomain>
+References: <20190415151654.15913-1-keith.busch@intel.com>
+ <20190415151654.15913-3-keith.busch@intel.com>
+ <9f130b73-e5ae-0529-69a1-28bd2ca29581@inria.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
-User-Agent: NeoMutt/20180716-508-7c9a6d
+In-Reply-To: <9f130b73-e5ae-0529-69a1-28bd2ca29581@inria.fr>
+User-Agent: Mutt/1.9.1 (2017-09-22)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190416145519.q8q08NAogtRQjIDsT-IBHBLNn55ex3TXZ75iRFADPjU@z>
+Message-ID: <20190416150130.FfmriIxZrOPNceDwHw1TkFOEJBPR-1HAZy71D1-DQvA@z>
 
-On Tue, Apr 16, 2019 at 10:17:11AM +0200, Rafael J. Wysocki wrote:
-> On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org> wrote:
-> >
-> > Most of the files are already in good shape, making easier to
-> > convert them to ReST by adding proper title markups and
-> > addressing some identation and markups to properly format the
-> > document.
+On Tue, Apr 16, 2019 at 04:55:21PM +0200, Brice Goglin wrote:
+> Hello Keith
 > 
-> There is concurrent work on this under way, please see
-> https://marc.info/?t=155381845300002&r=2&w=2
+> Several issues:
 > 
-I will update the serias asap. I am just a little busy these days. My
-conversion includes pci, acpi and x86, others are not touched.
+> * We always get a memory_side_cache, even if nothing was found in ACPI.
+>   You should at least ignore the cache if size==0?
+> 
+> * Your code seems to only work with a single level of cache, since
+>   there's a single cache_attrs entry in each target structure.
+> 
+> * I was getting a section mismatch warning and a crash on PMEM node
+>   hotplug until I applied the patch below.
+> 
+> WARNING: vmlinux.o(.text+0x47d3f7): Section mismatch in reference from the function hmat_callback() to the function .init.text:hmat_register_target()
+> The function hmat_callback() references
+> the function __init hmat_register_target().
+> This is often because hmat_callback lacks a __init 
+> annotation or the annotation of hmat_register_target is wrong.
+> 
+> Thanks
+> 
+> Brice
 
-> I'd prefer that one to continue, honestly.
-> 
-> Thanks,
-> Rafael
-
--- 
-Cheers,
-Changbin Du
+Oh, thanks for the notice. I'll add multi-level and no-caches into my
+test, as I had it fixed to one. Will need to respin this series.
