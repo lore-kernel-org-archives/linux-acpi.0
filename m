@@ -2,139 +2,107 @@ Return-Path: <SRS0=8JUk=ST=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55684C10F12
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 06:39:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B1AAC10F12
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 07:54:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F732204FD
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 06:39:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D02320835
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 07:54:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1555487673;
+	bh=lbTW7zadAZ8ruO4angxDY3WxpNRJw53Vap5WXBY/vbg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=ZJ9nRrtdgav1Yi8IRy8+bl/H6dRh7JA2TyycA+jAfq9HA72lG0o0TxJYH8DPUtm8w
+	 Anw+3y7wJ2MXVpCQVSyMqeT1ZZKOW9/hWpJJ8p1MEUm/tDSk6MJr3LcL6z3BV8DUtA
+	 foufpXOnOYd+5I+UXs1jjyaXikA7iww1Qg83tt2o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730076AbfDQGjX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Apr 2019 02:39:23 -0400
-Received: from mga12.intel.com ([192.55.52.136]:28759 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725767AbfDQGjX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 Apr 2019 02:39:23 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Apr 2019 23:39:22 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,360,1549958400"; 
-   d="scan'208";a="165434551"
-Received: from kuha.fi.intel.com ([10.237.72.189])
-  by fmsmga001.fm.intel.com with SMTP; 16 Apr 2019 23:39:20 -0700
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Wed, 17 Apr 2019 09:39:18 +0300
-Date:   Wed, 17 Apr 2019 09:39:18 +0300
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Hans de Goede <hdegoede@redhat.com>
+        id S1727087AbfDQHyc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Apr 2019 03:54:32 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:35693 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726895AbfDQHyc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 03:54:32 -0400
+Received: by mail-ot1-f68.google.com with SMTP id m10so19951003otp.2;
+        Wed, 17 Apr 2019 00:54:31 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vTl9T3JQQQHfT1Ga9K8gTFeYcNPuJ9Df/lhTAgdftzM=;
+        b=hDeHwe92DHKLqi1uTpKeu5aZa5gg31mMLvuqclpGbfulyj57o/eMWhzwp9yF+sxePX
+         eDlAU4ljFzbpZpsPDWL5DKyvwcOOrsIEts0AcPTokOCbpq1qFlmuw0RlxVyhCm7pA13F
+         3rtYH7oQGNNcxEeInXBygS6c2NWj40S1zhnHV98SNmq7i7iMd/vGq5oAbiVtIvh28hod
+         KCrkxABs/JbJ0yGiWLcKck8Xdyp1jmrRpHpIRnylDmxnIZsodW7hUJWuOhMvULrXWWuP
+         qqz4MOneXoeme7LcSZI8fA3dXtC87Re1qUi6s3mlnMlSPHGy4P4WyzuQfu8dBUp/xE7Z
+         PxFg==
+X-Gm-Message-State: APjAAAXBBxSsfaiKuXho9kcQ7UvXTjz7TPfsT64YHI0QKctua9U2SvjJ
+        XFiRuZY8uOmYDHN2v1MHUeuDqPD11yRbrgMZ8ek=
+X-Google-Smtp-Source: APXvYqzQRITJNcLXGTXGHKccQwdKNMDXWuhl2GHkroxxxcLCPqmvDeS3wx042E4Uvg1Kho2fIVWCMQRc0KSgFtValnY=
+X-Received: by 2002:a9d:2dea:: with SMTP id g97mr34508351otb.20.1555487671198;
+ Wed, 17 Apr 2019 00:54:31 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 17 Apr 2019 09:54:19 +0200
+Message-ID:
+ <CAJZ5v0gg9cwbNXS=88CdC6dioYaxPCVKx-PSU86PFjvU77MdRg@mail.gmail.com>
+Subject: Re: [PATCH v3 00/13] Software fwnode references
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans de Goede <hdegoede@redhat.com>,
         Darren Hart <dvhart@infradead.org>,
         Andy Shevchenko <andy@infradead.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 13/13] platform/x86: intel_cht_int33fe: Replacing the
- old connections with references
-Message-ID: <20190417063918.GI1747@kuha.fi.intel.com>
-References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
- <20190412134122.82903-14-heikki.krogerus@linux.intel.com>
- <a91a1d75-f224-9c9d-873a-f80467d2fb0c@redhat.com>
-MIME-Version: 1.0
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <a91a1d75-f224-9c9d-873a-f80467d2fb0c@redhat.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190417063918.YRVU-Lg2oK4Z3HDfDV82A__3VrLBDsUtHkvPJi7GadY@z>
+Message-ID: <20190417075419.Dd7sEWMEVBUWoOS7thA86I5DMZauTlN1penwflrP6Ic@z>
 
-On Tue, Apr 16, 2019 at 11:35:36PM +0200, Hans de Goede wrote:
+On Fri, Apr 12, 2019 at 3:42 PM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
+>
 > Hi,
-> 
-> On 12-04-19 15:41, Heikki Krogerus wrote:
-> > Now that the software nodes support references, and the
-> > device connection API support parsing fwnode references,
-> > replacing the old connection descriptions with software node
-> > references. Relying on device names when matching the
-> > connection would not have been possible to link the USB
-> > Type-C connector and the DisplayPort connector together, but
-> > with real references it's not problem.
-> > 
-> > The DisplayPort ACPI node is dag up, and the drivers own
-> > software node for the DisplayPort is set as the secondary
-> > node for it. The USB Type-C connector refers the software
-> > node, but it is now tied to the ACPI node, and therefore any
-> > device entry (struct drm_connector in practice) that the
-> > node combo is assigned to.
-> > 
-> > The USB role switch device does not have ACPI node, so we
-> > have to wait for the device to appear. Then we can simply
-> > assign our software node for the to the device.
-> > 
-> > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> 
-> So as promised I've been testing this series and this commit
-> breaks type-c functionality on devices using this driver.
-> 
-> The problem is that typec_switch_get() and  typec_mux_get()
-> after this both return the same pointer, which is pointing
-> to the switch, so typec_mux_get() is returning the wrong
-> pointer.
-> 
-> This is not surprising since the references for both are
-> both pointing to the fwnode attached to the piusb30532 devices:
-> 
-> 	args[0].fwnode = data->node[INT33FE_NODE_PI3USB30532];
-> 
-> So the class_find_device here:
-> 
-> static void *typec_switch_match(struct device_connection *con, int ep,
->                                 void *data)
-> {
->         struct device *dev;
-> 
->         if (con->fwnode) {
->                 if (con->id && !fwnode_property_present(con->fwnode, con->id))
->                         return NULL;
-> 
->                 dev = class_find_device(&typec_mux_class, NULL, con->fwnode,
->                                         fwnode_match);
->         } else {
->                 dev = class_find_device(&typec_mux_class, NULL,
->                                         con->endpoint[ep], name_match);
->         }
-> 
->         return dev ? to_typec_switch(dev) : ERR_PTR(-EPROBE_DEFER);
-> }
-> 
-> Simply returns the first typec_mux_class device registered.
-> 
-> I see 2 possible solutions to this problem:
-> 
-> 1) Use separate typec_mux_class and typec_orientation_switch_class-es
-> 
-> 2) Merge struct typec_switch and struct typec_mux into a single struct,
-> so that all typec_mux_class devices have the same memory layout, add
-> a subclass enum to this new merged struct and use that to identify
-> which of the typec_mux_class devices with the same fwnode pointer we
-> want.
-> 
-> Any other suggestions?
+>
+> This is the third version of my proposal to add reference handling to
+> the software node code. In this version I renamed ACPI_NAME_SIZE to
+> ACPI_NAMESEG_SIZE in 6/13, and slit patch 9/13 in two separate patches
+> (9/13 and 10/13) as suggested by Andy. Patch 9/13 will now only move
+> the registration of max17047 out of probe, and 10/13 will introduce
+> the software nodes.
+>
+> v2 commit message:
+>
+> This is the second version of this series. In this version I'm
+> introducing a new helper device_find_child_by_name() as proposed
+> by Andy. Andy requested also another helper that could be used for
+> chaining the fwnodes, but I decided not to add that now. I would like
+> to still think about how we should handle exceptions like if there
+> already is a secondary node assigned for a node.
+>
+> v1 commit message:
+>
+> This series adds support for software fwnode reference handling. In
+> practice it means making fwnode_property_get_reference_args() function
+> usable in the drivers also with software nodes. I send the series
+> originally as RFC [1].
+>
+> As the first user for the software node references, I'm converting
+> intel_cht_int33fe.c to use them as part of the series.
+>
+> [1] https://lkml.org/lkml/2019/3/15/457
 
-I think the correct fix is that we supply separate nodes for both
-device entries.
+I added this series to the bleeding-edge branch last night and it
+triggered some warnings from various checkers and there was a breakage
+report from Hans.  All of that needs to be fixed IMO, so I'm expecting
+an update.
 
-
-thanks,
-
--- 
-heikki
+Thanks!
