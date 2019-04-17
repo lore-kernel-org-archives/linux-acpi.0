@@ -2,97 +2,84 @@ Return-Path: <SRS0=8JUk=ST=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F28EC282DA
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 18:10:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FC5C282DA
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 18:28:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4F8E020663
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 18:10:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B953520693
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 18:28:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727013AbfDQSKs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Apr 2019 14:10:48 -0400
-Received: from mga17.intel.com ([192.55.52.151]:37532 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725848AbfDQSKr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 Apr 2019 14:10:47 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 17 Apr 2019 11:10:47 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,362,1549958400"; 
-   d="scan'208";a="316802634"
-Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.53])
-  by orsmga005.jf.intel.com with ESMTP; 17 Apr 2019 11:10:47 -0700
-From:   Alison Schofield <alison.schofield@intel.com>
-To:     rjw@rjwysocki.net
-Cc:     Alison Schofield <alison.schofield@intel.com>,
-        robert.moore@intel.com, erik.schmauss@intel.com,
-        keith.busch@intel.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] acpi/hmat: Update acpi_hmat_type enum with ACPI_HMAT_TYPE_PROXIMITY
-Date:   Wed, 17 Apr 2019 11:13:10 -0700
-Message-Id: <20190417181310.27613-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.17.1
+        id S1730361AbfDQS2K (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Apr 2019 14:28:10 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:49664 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728373AbfDQS2K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 Apr 2019 14:28:10 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7675E15AB;
+        Wed, 17 Apr 2019 11:28:09 -0700 (PDT)
+Received: from ostrya.cambridge.arm.com (ostrya.cambridge.arm.com [10.1.196.129])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id C687B3F59C;
+        Wed, 17 Apr 2019 11:28:06 -0700 (PDT)
+From:   Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+To:     will.deacon@arm.com, lorenzo.pieralisi@arm.com, bhelgaas@google.com
+Cc:     iommu@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        robin.murphy@arm.com, joro@8bytes.org, hanjun.guo@linaro.org,
+        sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
+        okaya@kernel.org, zhongmiao@hisilicon.com, eric.auger@redhat.com,
+        linux-pci@vger.kernel.org
+Subject: [PATCH v3 0/9] Add PCI ATS support to Arm SMMUv3
+Date:   Wed, 17 Apr 2019 19:24:39 +0100
+Message-Id: <20190417182448.12382-1-jean-philippe.brucker@arm.com>
+X-Mailer: git-send-email 2.21.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190417181310.GMQ4Z8WgENBrsXX46aKm_4BuXZVYGI-a8XSBU5BZh8A@z>
+Message-ID: <20190417182439.RE48GpydDIkqr4ViSCKlKzRjJY-t2wX7--hTTGHC9js@z>
 
-ACPI 6.3 changed the subtable "Memory Subsystem Address Range Structure"
-to "Memory Proximity Domain Attributes Structure".
+This series enables PCI ATS in SMMUv3. Changes since v2 [1]:
 
-Updating and renaming of the structure was included in commit:
-ACPICA: ACPI 6.3: HMAT updates (9a8d961f1ef835b0d338fbe13da03cb424e87ae5)
+* Fix build failure when building arm-smmu-v3 without CONFIG_PCI
+  Patches 1 and 2 are new.
 
-Rename the enum type to match the subtable and structure naming.
+* Only enable ATS if the root complex supports it. For the moment, only
+  IORT provides this information. I have patches for devicetree but
+  they are less mature and I'd rather make it a separate series.
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- drivers/acpi/hmat/hmat.c | 4 ++--
- include/acpi/actbl1.h    | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+* Tried to address most comments. I'll see if I can improve the firmware
+  code when adding devicetree support (see [2]).
 
-diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-index b7824a0309f7..3e32120e2dab 100644
---- a/drivers/acpi/hmat/hmat.c
-+++ b/drivers/acpi/hmat/hmat.c
-@@ -411,7 +411,7 @@ static int __init hmat_parse_subtable(union acpi_subtable_headers *header,
- 		return -EINVAL;
- 
- 	switch (hdr->type) {
--	case ACPI_HMAT_TYPE_ADDRESS_RANGE:
-+	case ACPI_HMAT_TYPE_PROXIMITY:
- 		return hmat_parse_proximity_domain(header, end);
- 	case ACPI_HMAT_TYPE_LOCALITY:
- 		return hmat_parse_locality(header, end);
-@@ -649,7 +649,7 @@ static __init int hmat_init(void)
- 		goto out_put;
- 	}
- 
--	for (i = ACPI_HMAT_TYPE_ADDRESS_RANGE; i < ACPI_HMAT_TYPE_RESERVED; i++) {
-+	for (i = ACPI_HMAT_TYPE_PROXIMITY; i < ACPI_HMAT_TYPE_RESERVED; i++) {
- 		if (acpi_table_parse_entries(ACPI_SIG_HMAT,
- 					     sizeof(struct acpi_table_hmat), i,
- 					     hmat_parse_subtable, 0) < 0) {
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index d14037ddf108..22c039ebc6c5 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1395,7 +1395,7 @@ struct acpi_table_hmat {
- /* Values for HMAT structure types */
- 
- enum acpi_hmat_type {
--	ACPI_HMAT_TYPE_ADDRESS_RANGE = 0,	/* Memory subsystem address range */
-+	ACPI_HMAT_TYPE_PROXIMITY = 0,	/* Memory proximity domain attributes */
- 	ACPI_HMAT_TYPE_LOCALITY = 1,	/* System locality latency and bandwidth information */
- 	ACPI_HMAT_TYPE_CACHE = 2,	/* Memory side cache information */
- 	ACPI_HMAT_TYPE_RESERVED = 3	/* 3 and greater are reserved */
+Note that there is a small conflict with the SVA API. This series
+applies on top of Joerg's api-features branch for v5.2.
+
+[1] https://www.spinics.net/lists/arm-kernel/msg719722.html
+[2] git://linux-arm.org/linux-jpb.git ats/current
+
+Jean-Philippe Brucker (9):
+  PCI: Move ATS declarations outside of CONFIG_PCI
+  PCI: Add a stub for pci_ats_disabled()
+  ACPI/IORT: Check ATS capability in root complex nodes
+  iommu/arm-smmu-v3: Rename arm_smmu_master_data to arm_smmu_master
+  iommu/arm-smmu-v3: Store SteamIDs in master
+  iommu/arm-smmu-v3: Add a master->domain pointer
+  iommu/arm-smmu-v3: Link domains and devices
+  iommu/arm-smmu-v3: Add support for PCI ATS
+  iommu/arm-smmu-v3: Disable tagged pointers
+
+ drivers/acpi/arm64/iort.c   |  11 ++
+ drivers/iommu/arm-smmu-v3.c | 345 ++++++++++++++++++++++++++++--------
+ include/linux/iommu.h       |   4 +
+ include/linux/pci.h         |  31 ++--
+ 4 files changed, 306 insertions(+), 85 deletions(-)
+
 -- 
-2.14.1
+2.21.0
 
