@@ -1,61 +1,84 @@
-From: Alison Schofield <alison.schofield@intel.com>
-Subject: [PATCH] acpi/hmat: Update acpi_hmat_type enum with ACPI_HMAT_TYPE_PROXIMITY
-Date: Wed, 17 Apr 2019 11:13:10 -0700
-Message-ID: <20190417181310.27613-1-alison.schofield@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: Alison Schofield <alison.schofield@intel.com>, robert.moore@intel.com, erik.schmauss@intel.com, keith.busch@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH v3 1/9] PCI: Move ATS declarations outside of CONFIG_PCI
+Date: Wed, 17 Apr 2019 19:24:40 +0100
+Message-ID: <20190417182448.12382-2-jean-philippe.brucker@arm.com>
+References: <20190417182448.12382-1-jean-philippe.brucker@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20190417182448.12382-1-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: will.deacon-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
+Cc: zhongmiao-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, okaya-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.3 changed the subtable "Memory Subsystem Address Range Structure"
-to "Memory Proximity Domain Attributes Structure".
+At the moment, the ATS functions are only defined when CONFIG_PCI is
+enabled. Since we're about to use them in the Arm SMMUv3 driver, which
+could be built with CONFIG_PCI disabled, and they are already guarded by
+CONFIG_PCI_ATS which depends on CONFIG_PCI, move the definitions outside
+of CONFIG_PCI.
 
-Updating and renaming of the structure was included in commit:
-ACPICA: ACPI 6.3: HMAT updates (9a8d961f1ef835b0d338fbe13da03cb424e87ae5)
-
-Rename the enum type to match the subtable and structure naming.
-
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 ---
- drivers/acpi/hmat/hmat.c | 4 ++--
- include/acpi/actbl1.h    | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/pci.h | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-index b7824a0309f7..3e32120e2dab 100644
---- a/drivers/acpi/hmat/hmat.c
-+++ b/drivers/acpi/hmat/hmat.c
-@@ -411,7 +411,7 @@ static int __init hmat_parse_subtable(union acpi_subtable_headers *header,
- 		return -EINVAL;
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 77448215ef5b..169c6a18d0b0 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1521,21 +1521,6 @@ static inline void pcie_ecrc_get_policy(char *str) { }
  
- 	switch (hdr->type) {
--	case ACPI_HMAT_TYPE_ADDRESS_RANGE:
-+	case ACPI_HMAT_TYPE_PROXIMITY:
- 		return hmat_parse_proximity_domain(header, end);
- 	case ACPI_HMAT_TYPE_LOCALITY:
- 		return hmat_parse_locality(header, end);
-@@ -649,7 +649,7 @@ static __init int hmat_init(void)
- 		goto out_put;
- 	}
+ bool pci_ats_disabled(void);
  
--	for (i = ACPI_HMAT_TYPE_ADDRESS_RANGE; i < ACPI_HMAT_TYPE_RESERVED; i++) {
-+	for (i = ACPI_HMAT_TYPE_PROXIMITY; i < ACPI_HMAT_TYPE_RESERVED; i++) {
- 		if (acpi_table_parse_entries(ACPI_SIG_HMAT,
- 					     sizeof(struct acpi_table_hmat), i,
- 					     hmat_parse_subtable, 0) < 0) {
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index d14037ddf108..22c039ebc6c5 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1395,7 +1395,7 @@ struct acpi_table_hmat {
- /* Values for HMAT structure types */
+-#ifdef CONFIG_PCI_ATS
+-/* Address Translation Service */
+-void pci_ats_init(struct pci_dev *dev);
+-int pci_enable_ats(struct pci_dev *dev, int ps);
+-void pci_disable_ats(struct pci_dev *dev);
+-int pci_ats_queue_depth(struct pci_dev *dev);
+-int pci_ats_page_aligned(struct pci_dev *dev);
+-#else
+-static inline void pci_ats_init(struct pci_dev *d) { }
+-static inline int pci_enable_ats(struct pci_dev *d, int ps) { return -ENODEV; }
+-static inline void pci_disable_ats(struct pci_dev *d) { }
+-static inline int pci_ats_queue_depth(struct pci_dev *d) { return -ENODEV; }
+-static inline int pci_ats_page_aligned(struct pci_dev *dev) { return 0; }
+-#endif
+-
+ #ifdef CONFIG_PCIE_PTM
+ int pci_enable_ptm(struct pci_dev *dev, u8 *granularity);
+ #else
+@@ -1730,6 +1715,21 @@ static inline const struct pci_device_id *pci_match_id(const struct pci_device_i
+ { return NULL; }
+ #endif /* CONFIG_PCI */
  
- enum acpi_hmat_type {
--	ACPI_HMAT_TYPE_ADDRESS_RANGE = 0,	/* Memory subsystem address range */
-+	ACPI_HMAT_TYPE_PROXIMITY = 0,	/* Memory proximity domain attributes */
- 	ACPI_HMAT_TYPE_LOCALITY = 1,	/* System locality latency and bandwidth information */
- 	ACPI_HMAT_TYPE_CACHE = 2,	/* Memory side cache information */
- 	ACPI_HMAT_TYPE_RESERVED = 3	/* 3 and greater are reserved */
++#ifdef CONFIG_PCI_ATS
++/* Address Translation Service */
++void pci_ats_init(struct pci_dev *dev);
++int pci_enable_ats(struct pci_dev *dev, int ps);
++void pci_disable_ats(struct pci_dev *dev);
++int pci_ats_queue_depth(struct pci_dev *dev);
++int pci_ats_page_aligned(struct pci_dev *dev);
++#else
++static inline void pci_ats_init(struct pci_dev *d) { }
++static inline int pci_enable_ats(struct pci_dev *d, int ps) { return -ENODEV; }
++static inline void pci_disable_ats(struct pci_dev *d) { }
++static inline int pci_ats_queue_depth(struct pci_dev *d) { return -ENODEV; }
++static inline int pci_ats_page_aligned(struct pci_dev *dev) { return 0; }
++#endif
++
+ /* Include architecture-dependent settings and functions */
+ 
+ #include <asm/pci.h>
 -- 
-2.14.1
+2.21.0
