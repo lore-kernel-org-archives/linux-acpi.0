@@ -1,174 +1,79 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v3 13/13] platform/x86: intel_cht_int33fe: Replacing the
- old connections with references
-Date: Wed, 17 Apr 2019 18:03:03 +0200
-Message-ID: <cb7cf930-cf76-ef73-49de-222895b133ea@redhat.com>
-References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
- <20190412134122.82903-14-heikki.krogerus@linux.intel.com>
- <a91a1d75-f224-9c9d-873a-f80467d2fb0c@redhat.com>
- <20190417063918.GI1747@kuha.fi.intel.com>
- <76d9ab79-a1d0-f3cd-ba5d-2325740c72ff@redhat.com>
- <20190417093252.GO1747@kuha.fi.intel.com>
- <2fcb2e2c-c390-1b49-7228-197f23401271@redhat.com>
- <20190417104454.GQ1747@kuha.fi.intel.com>
+From: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
+Subject: RE: [PATCH v2 0/7] CPPC optional registers AMD support
+Date: Wed, 17 Apr 2019 17:28:32 +0000
+Message-ID: <SN6PR12MB26396618BAC0F6600D786E08F8250@SN6PR12MB2639.namprd12.prod.outlook.com>
+References: <cover.1554410643.git.Janakarajan.Natarajan@amd.com>
+ <d44f4893-0b67-4993-2942-6e03d29dffa1@amd.com>
+ <CAJZ5v0jh0Yn1fy5bO3wett5AsjBA55_Z-8L_M8eRyy5cePqwaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------C16F2A63C9CF340E7A34C72F"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190417104454.GQ1747@kuha.fi.intel.com>
+In-Reply-To: <CAJZ5v0jh0Yn1fy5bO3wett5AsjBA55_Z-8L_M8eRyy5cePqwaw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------C16F2A63C9CF340E7A34C72F
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi,
-
-On 17-04-19 12:44, Heikki Krogerus wrote:
-> On Wed, Apr 17, 2019 at 12:15:18PM +0200, Hans de Goede wrote:
->> Hi,
->>
->> On 17-04-19 11:32, Heikki Krogerus wrote:
->>> On Wed, Apr 17, 2019 at 11:19:28AM +0200, Hans de Goede wrote:
->>
->> <snip>
->>
->>>> That is not going to work since the (virtual) mux / orientation-switch
->>>> devices are only registered once the driver binds to the piusb30532 i2c
->>>> device, so when creating the nodes we only have the piusb30532 i2c device.
->>>
->>> It's not a problem, that's why we have the software nodes. The nodes
->>> can be created before the device entires. The node for pi3usb30532
->>> will just be the parent node for the new nodes we add for the mux and
->>> switch.
->>>
->>>> I've been thinking some more about this and an easy fix is to have separate
->>>> fwnode_match functions for typec_switch_match and typec_mux_match and have
->>>> them check that the dev_name ends in "-mux" resp. "-switch" that requires
->>>> only a very minimal change to "usb: typec: Registering real device entries for the muxes"
->>>> and then everything should be fine.
->>>
->>> I don't want to do anymore device name matching unless we have to, and
->>> here we don't have to. We can name the nodes for those virtual mux and
->>> switch, and then just do fwnode_find_named_child_node() in
->>> pi3usb30532.c for both of them.
->>
->> Thinking more about this, I have a feeling that this makes things needlessly
->> complicated, checking the dev_name *ends* in "-mux" resp. "-switch" should be
->> 100% reliable since we call:
->>
->>          dev_set_name(&sw->dev, "%s-switch", dev_name(parent));
->>          dev_set_name(&mux->dev, "%s-mux", dev_name(parent));
->>
->> When registering the switch / mux, so I believe doing name (suffix) comparison
->> here is fine and much simpler. Anyways this is just my 2 cents on this, I'm
->> happy with either solution, your choice.
-> 
-> You do have a point. I'll take a look how the two options look like,
-> but maybe your way is better after all.
-
-I whipped up a quick fix using my approach so that I can start working
-on debugging the usb_role_switch_get call in tcpm.c returning NULL.
-
-I've attached it, feel free to use this for v4 of the series if you
-decide to go with this approach.
-
-Regards,
-
-Hans
-
-
-> 
-> thanks,
-> 
-
---------------C16F2A63C9CF340E7A34C72F
-Content-Type: text/x-patch;
- name="0001-FIXUP-usb-typec-Registering-real-device-entries-for-.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-FIXUP-usb-typec-Registering-real-device-entries-for-.pa";
- filename*1="tch"
-
->From 47154195c05dc7c8b3373de9603b06c2f435588a Mon Sep 17 00:00:00 2001
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 17 Apr 2019 17:58:17 +0200
-Subject: [PATCH v2] FIXUP: "usb: typec: Registering real device entries for
- the muxes"
-
-Check the dev_name suffix so that we do not return the first registered
-device when a mux and switch share the same parent and fwnode.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/usb/typec/mux.c | 25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/usb/typec/mux.c b/drivers/usb/typec/mux.c
-index c7d4a2dd454e..a28803544301 100644
---- a/drivers/usb/typec/mux.c
-+++ b/drivers/usb/typec/mux.c
-@@ -22,9 +22,21 @@ static int name_match(struct device *dev, const void *name)
- 	return !strcmp((const char *)name, dev_name(dev));
- }
- 
--static int fwnode_match(struct device *dev, const void *fwnode)
-+static bool dev_name_ends_with(struct device *dev, const char *suffix)
- {
--	return dev_fwnode(dev) == fwnode;
-+	const char *name = dev_name(dev);
-+	const int name_len = strlen(name);
-+	const int suffix_len = strlen(suffix);
-+
-+	if (suffix_len > name_len)
-+		return false;
-+
-+	return strcmp(name + (name_len - suffix_len), suffix) == 0;
-+}
-+
-+static int switch_fwnode_match(struct device *dev, const void *fwnode)
-+{
-+	return dev_fwnode(dev) == fwnode && dev_name_ends_with(dev, "-switch");
- }
- 
- static void *typec_switch_match(struct device_connection *con, int ep,
-@@ -37,7 +49,7 @@ static void *typec_switch_match(struct device_connection *con, int ep,
- 			return NULL;
- 
- 		dev = class_find_device(&typec_mux_class, NULL, con->fwnode,
--					fwnode_match);
-+					switch_fwnode_match);
- 	} else {
- 		dev = class_find_device(&typec_mux_class, NULL,
- 					con->endpoint[ep], name_match);
-@@ -167,6 +179,11 @@ EXPORT_SYMBOL_GPL(typec_switch_get_drvdata);
- 
- /* ------------------------------------------------------------------------- */
- 
-+static int mux_fwnode_match(struct device *dev, const void *fwnode)
-+{
-+	return dev_fwnode(dev) == fwnode && dev_name_ends_with(dev, "-mux");
-+}
-+
- static void *typec_mux_match(struct device_connection *con, int ep, void *data)
- {
- 	const struct typec_altmode_desc *desc = data;
-@@ -226,7 +243,7 @@ static void *typec_mux_match(struct device_connection *con, int ep, void *data)
- 
- find_mux:
- 	dev = class_find_device(&typec_mux_class, NULL, con->fwnode,
--				fwnode_match);
-+				mux_fwnode_match);
- 
- 	return dev ? to_typec_switch(dev) : ERR_PTR(-EPROBE_DEFER);
- }
--- 
-2.21.0
-
-
---------------C16F2A63C9CF340E7A34C72F--
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSA8
+cmFmYWVsQGtlcm5lbC5vcmc+DQo+IFNlbnQ6IFR1ZXNkYXksIEFwcmlsIDE2LCAyMDE5IDQ6MzQg
+QU0NCj4gVG86IE5hdGFyYWphbiwgSmFuYWthcmFqYW4gPEphbmFrYXJhamFuLk5hdGFyYWphbkBh
+bWQuY29tPg0KPiBDYzogTmF0YXJhamFuLCBKYW5ha2FyYWphbiA8SmFuYWthcmFqYW4uTmF0YXJh
+amFuQGFtZC5jb20+OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZn
+ZXIua2VybmVsLm9yZzsgbGludXgtDQo+IHBtQHZnZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNh
+Lm9yZzsgUmFmYWVsIEogLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IExlbiBCcm93biA8
+bGVuYkBrZXJuZWwub3JnPjsgVmlyZXNoIEt1bWFyDQo+IDx2aXJlc2gua3VtYXJAbGluYXJvLm9y
+Zz47IFJvYmVydCBNb29yZSA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IEVyaWsgU2NobWF1c3Mg
+PGVyaWsuc2NobWF1c3NAaW50ZWwuY29tPjsgR2hhbm5hbSwgWWF6ZW4NCj4gPFlhemVuLkdoYW5u
+YW1AYW1kLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MiAwLzddIENQUEMgb3B0aW9uYWwg
+cmVnaXN0ZXJzIEFNRCBzdXBwb3J0DQo+IA0KPiBPbiBUdWUsIEFwciAxNiwgMjAxOSBhdCAxMjoz
+NSBBTSBKYW5ha2FyYWphbiBOYXRhcmFqYW4gPGpuYXRhcmFqQGFtZC5jb20+IHdyb3RlOg0KPiA+
+DQo+ID4gT24gNC80LzE5IDQ6MjUgUE0sIE5hdGFyYWphbiwgSmFuYWthcmFqYW4gd3JvdGU6DQo+
+ID4gPiBDUFBDIChDb2xsYWJvcmF0aXZlIFByb2Nlc3NvciBQZXJmb3JtYW5jZSBDb250cm9sKSBv
+ZmZlcnMgb3B0aW9uYWwNCj4gPiA+IHJlZ2lzdGVycyB3aGljaCBjYW4gYmUgdXNlZCB0byB0dW5l
+IHRoZSBzeXN0ZW0gYmFzZWQgb24gZW5lcmd5IGFuZC9vcg0KPiA+ID4gcGVyZm9ybWFuY2UgcmVx
+dWlyZW1lbnRzLg0KPiA+ID4NCj4gPiA+IE5ld2VyIEFNRCBwcm9jZXNzb3JzIGFkZCBzdXBwb3J0
+IGZvciBhIHN1YnNldCBvZiB0aGVzZSBvcHRpb25hbCBDUFBDDQo+ID4gPiByZWdpc3RlcnMsIGJh
+c2VkIG9uIEFDUEkgdjYuMS4NCj4gPiA+DQo+ID4gPiBUaGUgZm9sbG93aW5nIGFyZSB0aGUgc3Vw
+cG9ydGVkIENQUEMgcmVnaXN0ZXJzIGZvciB3aGljaCBzeXNmcyBlbnRyaWVzDQo+ID4gPiBhcmUg
+Y3JlYXRlZDoNCj4gPiA+ICogZW5hYmxlICAgICAgICAgICAgICAgIChORVcpDQo+ID4gPiAqIG1h
+eF9wZXJmICAgICAgICAgICAgICAoTkVXKQ0KPiA+ID4gKiBtaW5fcGVyZiAgICAgICAgICAgICAg
+KE5FVykNCj4gPiA+ICogZW5lcmd5X3BlcmYNCj4gPiA+ICogbG93ZXN0X3BlcmYNCj4gPiA+ICog
+bm9taW5hbF9wZXJmDQo+ID4gPiAqIGRlc2lyZWRfcGVyZiAgICAgICAgICAoTkVXKQ0KPiA+ID4g
+KiBmZWVkYmFja19jdHJzDQo+ID4gPiAqIGF1dG9fc2VsX2VuYWJsZSAgICAgICAoTkVXKQ0KPiA+
+ID4gKiBsb3dlc3Rfbm9ubGluZWFyX3BlcmYNCj4gPiA+DQo+ID4gPiBUaGUgQ1BQQyBkcml2ZXIg
+aXMgdXBkYXRlZCB0byBlbmFibGUgdGhlIE9TUE0gYW5kIHRoZSB1c2Vyc3BhY2UgdG8NCj4gPiA+
+IGFjY2Vzcw0KPiA+ID4gdGhlIG5ld2x5IHN1cHBvcnRlZCByZWdpc3RlcnMuDQo+ID4gPg0KPiA+
+ID4gVGhlIHB1cnBvc2Ugb2YgZXhwb3NpbmcgdGhlIHJlZ2lzdGVycyB2aWEgdGhlIHN5c2ZzIGVu
+dHJpZXMgaXMgdG8gYWxsb3cNCj4gPiA+IHRoZSB1c2Vyc3BhY2UgdG86DQo+ID4gPiAqIFR3ZWFr
+IHRoZSB2YWx1ZXMgdG8gZml0IGl0cyB3b3JrbG9hZC4NCj4gPiA+ICogQXBwbHkgYSBwcm9maWxl
+IGZyb20gQU1EJ3Mgb3B0aW1pemF0aW9uIGd1aWRlcy4NCj4gPiA+DQo+ID4gPiBQcm9maWxlcyB3
+aWxsIGJlIGRvY3VtZW50ZWQgaW4gdGhlIHBlcmZvcm1hbmNlL29wdGltaXphdGlvbiBndWlkZXMu
+DQo+ID4gPg0KPiA+ID4gTm90ZToNCj4gPiA+ICogQU1EIHN5c3RlbXMgd2lsbCBub3QgaGF2ZSBh
+IHBvbGljeSBhcHBsaWVkIGluIHRoZSBrZXJuZWwgYXQgdGhpcyB0aW1lLg0KPiA+ID4gKiBCeSBk
+ZWZhdWx0LCBhY3BpX2NwdWZyZXEgd2lsbCBzdGlsbCBiZSB1c2VkLg0KPiA+ID4NCj4gPiA+IFRP
+RE86DQo+ID4gPiAqIENyZWF0ZSBhIGxpbnV4IHVzZXJzcGFjZSB0b29sIHRoYXQgd2lsbCBoZWxw
+IHVzZXJzIGdlbmVyYXRlIGEgQ1BQQw0KPiA+ID4gKiBwcm9maWxlDQo+ID4gPiAgICBmb3IgdGhl
+aXIgdGFyZ2V0IHdvcmtsb2FkLg0KPiA+ID4gKiBDcmVhdGUgb3IgdXBkYXRlIGEgZHJpdmVyIHRv
+IGFwcGx5IGEgZ2VuZXJhbCBDUFBDIHBvbGljeSBpbiB0aGUNCj4gPiA+ICoga2VybmVsLg0KPiA+
+ID4NCj4gPiA+IHYxLT52MjoNCj4gPiA+ICogQWRkIG1hY3JvIHRvIGVuc3VyZSBCVUZGRVIgb25s
+eSByZWdpc3RlcnMgaGF2ZSBCVUZGRVIgdHlwZS4NCj4gPiA+ICogQWRkIHN1cHBvcnQgbWFjcm8g
+dG8gbWFrZSB0aGUgcmlnaHQgY2hlY2sgYmFzZWQgb24gcmVnaXN0ZXIgdHlwZS4NCj4gPiA+ICog
+UmVtb3ZlIHN1cHBvcnQgY2hlY2tzIGZvciByZWdpc3RlcnMgd2hpY2ggYXJlIG1hbmRhdG9yeS4N
+Cj4gPg0KPiA+DQo+ID4gQXJlIHRoZXJlIGFueSBjb25jZXJucyByZWdhcmRpbmcgdGhpcyBwYXRj
+aHNldD8NCj4gDQo+IFllcywgdGhlcmUgYXJlLg0KPiANCj4gVW5mb3J0dW5hdGVseSwgaXQgaXMg
+Z2VuZXJhbGx5IHByb2JsZW1hdGljLg0KPiANCj4gRmlyc3Qgb2ZmLCB0aGUgYmVoYXZpb3Igb2Yg
+ZXhpc3Rpbmcgc3lzZnMgZmlsZXMgY2Fubm90IGJlIGNoYW5nZWQgYXQNCj4gd2lsbCwgYXMgdGhl
+cmUgbWF5IGJlIHVzZXJzIG9mIHRoZW0gb3V0IHRoZXJlIGFscmVhZHkgZGVwZW5kaW5nIG9uIHRo
+ZQ0KPiBjdXJyZW50IGJlaGF2aW9yLg0KPiANCg0KVGhlIGludGVudCBpcyB0byBhZGQgbmV3IHN5
+c2ZzIGZpbGVzIHdpdGhvdXQgY2hhbmdpbmcgdGhlIGV4aXN0aW5nIGZpbGVzLiBJcyB0aGF0IG9r
+YXk/DQoNCk9yIGlzIHRoZSBhZGRpdGlvbiBvZiBuZXcgZmlsZXMgYWxzbyBub3QgYWNjZXB0YWJs
+ZT8NCg0KPiBTZWNvbmQsIGF0IGxlYXN0IHNvbWUgQ1BQQyBjb250cm9sIHJlZ2lzdGVycyBhcmUg
+dXNlZCBieSBjcHVmcmVxDQo+IGRyaXZlcnMgKGNwcGNfY3B1ZnJlcSBhbmQgaW50ZWxfcHN0YXRl
+KSwgc28gbW9kaWZ5aW5nIHRoZW0gYmVoaW5kIHRoZQ0KPiBkcml2ZXJzJyBiYWNrcyBpcyBub3Qg
+YSBnb29kIGlkZWEgaW4gZ2VuZXJhbC4gIEZvciB0aGlzIHJlYXNvbiwgYWRkaW5nDQo+IG5ldyBz
+eXNmcyBhdHRyaWJ1dGVzIHRvIGFsbG93IHVzZXIgc3BhY2UgdG8gZG8gdGhhdCBpcyBxdWl0ZQ0K
+PiBxdWVzdGlvbmFibGUuDQo+IA0KDQpZZXMsIGdvb2QgcG9pbnQuDQoNCldoYXQgaWYgYSBjaGVj
+ayBpcyBhZGRlZCBzbyB0aGF0IHdyaXRlcyBvbmx5IHN1Y2NlZWQgaWYgdGhlIENQVUZSRVEgZ292
+ZXJub3IgaXMgc2V0IHRvIHVzZXJzcGFjZT8NCg0KVGhhbmtzLA0KWWF6ZW4NCg==
