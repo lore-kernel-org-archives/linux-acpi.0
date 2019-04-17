@@ -2,56 +2,35 @@ Return-Path: <SRS0=8JUk=ST=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
+X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B1AAC10F12
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 07:54:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39AFFC10F12
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 08:13:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D02320835
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 07:54:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555487673;
-	bh=lbTW7zadAZ8ruO4angxDY3WxpNRJw53Vap5WXBY/vbg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=ZJ9nRrtdgav1Yi8IRy8+bl/H6dRh7JA2TyycA+jAfq9HA72lG0o0TxJYH8DPUtm8w
-	 Anw+3y7wJ2MXVpCQVSyMqeT1ZZKOW9/hWpJJ8p1MEUm/tDSk6MJr3LcL6z3BV8DUtA
-	 foufpXOnOYd+5I+UXs1jjyaXikA7iww1Qg83tt2o=
+	by mail.kernel.org (Postfix) with ESMTP id 081A52073F
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 08:13:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727087AbfDQHyc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Apr 2019 03:54:32 -0400
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:35693 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726895AbfDQHyc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 03:54:32 -0400
-Received: by mail-ot1-f68.google.com with SMTP id m10so19951003otp.2;
-        Wed, 17 Apr 2019 00:54:31 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=vTl9T3JQQQHfT1Ga9K8gTFeYcNPuJ9Df/lhTAgdftzM=;
-        b=hDeHwe92DHKLqi1uTpKeu5aZa5gg31mMLvuqclpGbfulyj57o/eMWhzwp9yF+sxePX
-         eDlAU4ljFzbpZpsPDWL5DKyvwcOOrsIEts0AcPTokOCbpq1qFlmuw0RlxVyhCm7pA13F
-         3rtYH7oQGNNcxEeInXBygS6c2NWj40S1zhnHV98SNmq7i7iMd/vGq5oAbiVtIvh28hod
-         KCrkxABs/JbJ0yGiWLcKck8Xdyp1jmrRpHpIRnylDmxnIZsodW7hUJWuOhMvULrXWWuP
-         qqz4MOneXoeme7LcSZI8fA3dXtC87Re1qUi6s3mlnMlSPHGy4P4WyzuQfu8dBUp/xE7Z
-         PxFg==
-X-Gm-Message-State: APjAAAXBBxSsfaiKuXho9kcQ7UvXTjz7TPfsT64YHI0QKctua9U2SvjJ
-        XFiRuZY8uOmYDHN2v1MHUeuDqPD11yRbrgMZ8ek=
-X-Google-Smtp-Source: APXvYqzQRITJNcLXGTXGHKccQwdKNMDXWuhl2GHkroxxxcLCPqmvDeS3wx042E4Uvg1Kho2fIVWCMQRc0KSgFtValnY=
-X-Received: by 2002:a9d:2dea:: with SMTP id g97mr34508351otb.20.1555487671198;
- Wed, 17 Apr 2019 00:54:31 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
-In-Reply-To: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 17 Apr 2019 09:54:19 +0200
-Message-ID:
- <CAJZ5v0gg9cwbNXS=88CdC6dioYaxPCVKx-PSU86PFjvU77MdRg@mail.gmail.com>
-Subject: Re: [PATCH v3 00/13] Software fwnode references
-To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+        id S1727177AbfDQINN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Apr 2019 04:13:13 -0400
+Received: from mga02.intel.com ([134.134.136.20]:12059 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727013AbfDQINN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 Apr 2019 04:13:13 -0400
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 17 Apr 2019 01:13:12 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,361,1549958400"; 
+   d="scan'208";a="165456069"
+Received: from kuha.fi.intel.com ([10.237.72.189])
+  by fmsmga001.fm.intel.com with SMTP; 17 Apr 2019 01:13:09 -0700
+Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Wed, 17 Apr 2019 11:13:08 +0300
+Date:   Wed, 17 Apr 2019 11:13:08 +0300
+From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans de Goede <hdegoede@redhat.com>,
@@ -60,49 +39,63 @@ Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Platform Driver <platform-driver-x86@vger.kernel.org>
+Subject: Re: [PATCH v3 00/13] Software fwnode references
+Message-ID: <20190417081308.GM1747@kuha.fi.intel.com>
+References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
+ <CAJZ5v0gg9cwbNXS=88CdC6dioYaxPCVKx-PSU86PFjvU77MdRg@mail.gmail.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gg9cwbNXS=88CdC6dioYaxPCVKx-PSU86PFjvU77MdRg@mail.gmail.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190417075419.Dd7sEWMEVBUWoOS7thA86I5DMZauTlN1penwflrP6Ic@z>
+Message-ID: <20190417081308.leuhu7d3Zi0ZV9ktL6Ifh_SixAKdQcYWwqp33QvkEdM@z>
 
-On Fri, Apr 12, 2019 at 3:42 PM Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
->
-> Hi,
->
-> This is the third version of my proposal to add reference handling to
-> the software node code. In this version I renamed ACPI_NAME_SIZE to
-> ACPI_NAMESEG_SIZE in 6/13, and slit patch 9/13 in two separate patches
-> (9/13 and 10/13) as suggested by Andy. Patch 9/13 will now only move
-> the registration of max17047 out of probe, and 10/13 will introduce
-> the software nodes.
->
-> v2 commit message:
->
-> This is the second version of this series. In this version I'm
-> introducing a new helper device_find_child_by_name() as proposed
-> by Andy. Andy requested also another helper that could be used for
-> chaining the fwnodes, but I decided not to add that now. I would like
-> to still think about how we should handle exceptions like if there
-> already is a secondary node assigned for a node.
->
-> v1 commit message:
->
-> This series adds support for software fwnode reference handling. In
-> practice it means making fwnode_property_get_reference_args() function
-> usable in the drivers also with software nodes. I send the series
-> originally as RFC [1].
->
-> As the first user for the software node references, I'm converting
-> intel_cht_int33fe.c to use them as part of the series.
->
-> [1] https://lkml.org/lkml/2019/3/15/457
+On Wed, Apr 17, 2019 at 09:54:19AM +0200, Rafael J. Wysocki wrote:
+> On Fri, Apr 12, 2019 at 3:42 PM Heikki Krogerus
+> <heikki.krogerus@linux.intel.com> wrote:
+> >
+> > Hi,
+> >
+> > This is the third version of my proposal to add reference handling to
+> > the software node code. In this version I renamed ACPI_NAME_SIZE to
+> > ACPI_NAMESEG_SIZE in 6/13, and slit patch 9/13 in two separate patches
+> > (9/13 and 10/13) as suggested by Andy. Patch 9/13 will now only move
+> > the registration of max17047 out of probe, and 10/13 will introduce
+> > the software nodes.
+> >
+> > v2 commit message:
+> >
+> > This is the second version of this series. In this version I'm
+> > introducing a new helper device_find_child_by_name() as proposed
+> > by Andy. Andy requested also another helper that could be used for
+> > chaining the fwnodes, but I decided not to add that now. I would like
+> > to still think about how we should handle exceptions like if there
+> > already is a secondary node assigned for a node.
+> >
+> > v1 commit message:
+> >
+> > This series adds support for software fwnode reference handling. In
+> > practice it means making fwnode_property_get_reference_args() function
+> > usable in the drivers also with software nodes. I send the series
+> > originally as RFC [1].
+> >
+> > As the first user for the software node references, I'm converting
+> > intel_cht_int33fe.c to use them as part of the series.
+> >
+> > [1] https://lkml.org/lkml/2019/3/15/457
+> 
+> I added this series to the bleeding-edge branch last night and it
+> triggered some warnings from various checkers and there was a breakage
+> report from Hans.  All of that needs to be fixed IMO, so I'm expecting
+> an update.
 
-I added this series to the bleeding-edge branch last night and it
-triggered some warnings from various checkers and there was a breakage
-report from Hans.  All of that needs to be fixed IMO, so I'm expecting
-an update.
+I'm on it.
 
-Thanks!
+thanks,
+
+-- 
+heikki
