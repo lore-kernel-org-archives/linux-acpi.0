@@ -2,45 +2,45 @@ Return-Path: <SRS0=8JUk=ST=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9774C10F12
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 09:52:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6439BC10F12
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 10:15:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A45902173C
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 09:52:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 342642073F
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 10:15:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731554AbfDQJwT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Apr 2019 05:52:19 -0400
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:37974 "EHLO
+        id S1731446AbfDQKPV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Apr 2019 06:15:21 -0400
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:44543 "EHLO
         mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728108AbfDQJwS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 05:52:18 -0400
-Received: by mail-ed1-f67.google.com with SMTP id d13so20428096edr.5
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Apr 2019 02:52:17 -0700 (PDT)
+        with ESMTP id S1729578AbfDQKPV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 06:15:21 -0400
+Received: by mail-ed1-f67.google.com with SMTP id i13so9784932edf.11
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Apr 2019 03:15:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=0QDAFWJzTDCsMR5a8aWngWZoH/o61wzefj40665LFTI=;
-        b=dzdiy29HcKoC7CDw4g8jJTyRgNeVmtM8lYVtuebw1JIxdQRLZrEWdheGaDjQZF/cp0
-         XGEg3jzCQNh22eanWUnwr+tvASwyztNLyYm4k+XSRF3tyhIPELBd1lcP1DojK/kuLStq
-         6N/14UoXccOtjwGHq0IYOBi69VOCZOX5HjPj+bmOuBxb72Fb0sYWbufvYlCg2d9s1pU+
-         UWRGJRQJx1MwozuydppEMkSbeEysEVm/UiS7kKq7ZDPFA80e6CRo7XMwlx6G2bol8Z9v
-         XPvBW5WIU8+O2Dq7NY5642oP4NnYpnyyYhbSPPHor8GOzJArlTnOo2qWN0oTC1veS47V
-         mUTQ==
-X-Gm-Message-State: APjAAAUTR+iRJ4jsEbHhXeEa9wRjmLfJvyAG0Oocewtn4OT3iE3fKvDj
-        4i021vnL0+588Cp2s3swoLfExw==
-X-Google-Smtp-Source: APXvYqyr0dIS87DAhb3TM+g+66FGpd+o/6t8nat0fgoP2dQBsWTot3XNe2IeCrCSqD5uif/ryx7WNA==
-X-Received: by 2002:aa7:da19:: with SMTP id r25mr42092715eds.130.1555494736617;
-        Wed, 17 Apr 2019 02:52:16 -0700 (PDT)
+        bh=Fl5I4IhsegfAfYhYg7yGpZzu65bju11pI6HhhderbX8=;
+        b=ASG/E2AM/aVFC8KivfN6FI78O/+WZCVoDWhqTMiwHXxBFDrsCsPQEfgjY7viJIn7+e
+         FQIWicPEdgKTBIk0Qs+U07NgrYNErdDxDoZGloUPFJUsw1ehuhvbV4erh0n3MnGyFX7T
+         DFrxdel482LGsw5Uhr1nXGl/Xv4FAsF+jN22BYOVBFo+VIclSUEI+oq8bjux53kYN+s2
+         a57peemLWSU6lxhdoL+DfMBFH5wCGdb1jaPdigImzyZ88kvLDiPRtuiVR7PUIPeFJGGV
+         Ty6wTNJzc7fLHwNWL7eCBqavp5q0n0bixgQJ30EHIITNyODw4kvzQHF+FQBL5F2F//3+
+         LU4w==
+X-Gm-Message-State: APjAAAXw7cUw3tTj3WtlsviFaIHiLMp18bhEeQMxHkVXvy6Pv5dJ9ULn
+        YZC2zmqPS8/B1pjn0ttjTMAAD3ttdr4=
+X-Google-Smtp-Source: APXvYqyPw7z+jXLieQdseap8u5P9jYpx6tTPQdsSrnQmEbRKDKKSZ0jSnMryatOZQ0UNJhEodbQAvQ==
+X-Received: by 2002:a17:906:a311:: with SMTP id j17mr48588209ejz.269.1555496119888;
+        Wed, 17 Apr 2019 03:15:19 -0700 (PDT)
 Received: from shalem.localdomain (84-106-84-65.cable.dynamic.v4.ziggo.nl. [84.106.84.65])
-        by smtp.gmail.com with ESMTPSA id h10sm2341755ede.21.2019.04.17.02.52.15
+        by smtp.gmail.com with ESMTPSA id g11sm1379557eda.12.2019.04.17.03.15.18
         (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Wed, 17 Apr 2019 02:52:15 -0700 (PDT)
+        Wed, 17 Apr 2019 03:15:18 -0700 (PDT)
 Subject: Re: [PATCH v3 13/13] platform/x86: intel_cht_int33fe: Replacing the
  old connections with references
 To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
@@ -58,8 +58,8 @@ References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
  <76d9ab79-a1d0-f3cd-ba5d-2325740c72ff@redhat.com>
  <20190417093252.GO1747@kuha.fi.intel.com>
 From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <9304d771-df1f-aea4-43d2-7db540953cdd@redhat.com>
-Date:   Wed, 17 Apr 2019 11:52:15 +0200
+Message-ID: <2fcb2e2c-c390-1b49-7228-197f23401271@redhat.com>
+Date:   Wed, 17 Apr 2019 12:15:18 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.6.1
 MIME-Version: 1.0
@@ -71,92 +71,15 @@ Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190417095215.YEOloWhvkw-iCyznFyvNNkCNMaSi8qNYlePxqP7e7uo@z>
+Message-ID: <20190417101518.c1XEwD_ZOldXg5FH5MJHzZ1xQ12RN8dpA477yQqi1Ug@z>
 
 Hi,
 
 On 17-04-19 11:32, Heikki Krogerus wrote:
 > On Wed, Apr 17, 2019 at 11:19:28AM +0200, Hans de Goede wrote:
->> Hi,
->>
->> On 17-04-19 08:39, Heikki Krogerus wrote:
->>> On Tue, Apr 16, 2019 at 11:35:36PM +0200, Hans de Goede wrote:
->>>> Hi,
->>>>
->>>> On 12-04-19 15:41, Heikki Krogerus wrote:
->>>>> Now that the software nodes support references, and the
->>>>> device connection API support parsing fwnode references,
->>>>> replacing the old connection descriptions with software node
->>>>> references. Relying on device names when matching the
->>>>> connection would not have been possible to link the USB
->>>>> Type-C connector and the DisplayPort connector together, but
->>>>> with real references it's not problem.
->>>>>
->>>>> The DisplayPort ACPI node is dag up, and the drivers own
->>>>> software node for the DisplayPort is set as the secondary
->>>>> node for it. The USB Type-C connector refers the software
->>>>> node, but it is now tied to the ACPI node, and therefore any
->>>>> device entry (struct drm_connector in practice) that the
->>>>> node combo is assigned to.
->>>>>
->>>>> The USB role switch device does not have ACPI node, so we
->>>>> have to wait for the device to appear. Then we can simply
->>>>> assign our software node for the to the device.
->>>>>
->>>>> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->>>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->>>>
->>>> So as promised I've been testing this series and this commit
->>>> breaks type-c functionality on devices using this driver.
->>>>
->>>> The problem is that typec_switch_get() and  typec_mux_get()
->>>> after this both return the same pointer, which is pointing
->>>> to the switch, so typec_mux_get() is returning the wrong
->>>> pointer.
->>>>
->>>> This is not surprising since the references for both are
->>>> both pointing to the fwnode attached to the piusb30532 devices:
->>>>
->>>> 	args[0].fwnode = data->node[INT33FE_NODE_PI3USB30532];
->>>>
->>>> So the class_find_device here:
->>>>
->>>> static void *typec_switch_match(struct device_connection *con, int ep,
->>>>                                   void *data)
->>>> {
->>>>           struct device *dev;
->>>>
->>>>           if (con->fwnode) {
->>>>                   if (con->id && !fwnode_property_present(con->fwnode, con->id))
->>>>                           return NULL;
->>>>
->>>>                   dev = class_find_device(&typec_mux_class, NULL, con->fwnode,
->>>>                                           fwnode_match);
->>>>           } else {
->>>>                   dev = class_find_device(&typec_mux_class, NULL,
->>>>                                           con->endpoint[ep], name_match);
->>>>           }
->>>>
->>>>           return dev ? to_typec_switch(dev) : ERR_PTR(-EPROBE_DEFER);
->>>> }
->>>>
->>>> Simply returns the first typec_mux_class device registered.
->>>>
->>>> I see 2 possible solutions to this problem:
->>>>
->>>> 1) Use separate typec_mux_class and typec_orientation_switch_class-es
->>>>
->>>> 2) Merge struct typec_switch and struct typec_mux into a single struct,
->>>> so that all typec_mux_class devices have the same memory layout, add
->>>> a subclass enum to this new merged struct and use that to identify
->>>> which of the typec_mux_class devices with the same fwnode pointer we
->>>> want.
->>>>
->>>> Any other suggestions?
->>>
->>> I think the correct fix is that we supply separate nodes for both
->>> device entries.
->>
+
+<snip>
+
 >> That is not going to work since the (virtual) mux / orientation-switch
 >> devices are only registered once the driver binds to the piusb30532 i2c
 >> device, so when creating the nodes we only have the piusb30532 i2c device.
@@ -177,25 +100,16 @@ On 17-04-19 11:32, Heikki Krogerus wrote:
 > switch, and then just do fwnode_find_named_child_node() in
 > pi3usb30532.c for both of them.
 
-Ok.
+Thinking more about this, I have a feeling that this makes things needlessly
+complicated, checking the dev_name *ends* in "-mux" resp. "-switch" should be
+100% reliable since we call:
 
->> Note that another problem with this series which I noticed while testing
->> is that the usb-role-switch is not being found at all anymore after
->> this ("Replacing the old connections with references") patch. I still need
->> start debugging that.
-> 
-> OK, I'll wait for you results on that.
+         dev_set_name(&sw->dev, "%s-switch", dev_name(parent));
+         dev_set_name(&mux->dev, "%s-mux", dev_name(parent));
 
-I understand that you want to wait with doing a v4 until this is resolved,
-but can you (privately) send me a v3.5 fixing the mux/switch issue so that
-I can test that (and get the problem out of the way for debugging the other
-stuff) ?
-
-I've also just replied to the following patch with a review remark:
-[PATCH v3 11/13] platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
-
-Since you need to respin the series anyways, it would be good if you can
-address that too.
+When registering the switch / mux, so I believe doing name (suffix) comparison
+here is fine and much simpler. Anyways this is just my 2 cents on this, I'm
+happy with either solution, your choice.
 
 Regards,
 
