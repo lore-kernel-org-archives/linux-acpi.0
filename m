@@ -2,238 +2,165 @@ Return-Path: <SRS0=8JUk=ST=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 365F8C282DA
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 21:14:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2FA4C282DA
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 22:11:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F23F6217FA
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 21:14:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7714820693
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 22:11:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1555539078;
+	bh=q1XR7/+I/uhh7vydXyIxyZjUhp3iukwS4YtTMXBwIl0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=cFRx6WmqO2r/mYlck+1lu/FB3tg7zKyDwstMwBWoCiNxRzBp3b/3pmBOI3q8VayPp
+	 w5s0BLcU6JEI4SI8mXA5BlxJu7q3baMoKOjqk6w61YvnFdw8JT9YLaOD1MFse6DFO+
+	 VJEmNg0SaRPKCypR/I8QHivCJcGmVfW+ahP2LgDI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729331AbfDQVOZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Apr 2019 17:14:25 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:36984 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727340AbfDQVOZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 17:14:25 -0400
-Received: by mail-ed1-f66.google.com with SMTP id f53so35075ede.4
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Apr 2019 14:14:23 -0700 (PDT)
+        id S1733274AbfDQWLN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Apr 2019 18:11:13 -0400
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:43015 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728237AbfDQWLN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 18:11:13 -0400
+Received: by mail-ot1-f66.google.com with SMTP id u15so2076otq.10;
+        Wed, 17 Apr 2019 15:11:12 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:cc:references:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language;
-        bh=rvhXfISQ7guv1dC5rFPpKfGzEoCWMWQYMb15jsxNn0U=;
-        b=LRVepUaSEH6nCu6+6EINYosOezmoyMzWAo7SUq3aEYZSAnrZobq39dJis08TZsndD7
-         XuZ2kXeC8686Q4ezaPYNgPrHJ2DQOQmYV+sGGzQ+lIT1zLh5YRyDBB1UjtQsv+dKIJsk
-         yr05XIJMvGog81cPIV2mqXmqo1+7UcXOIgyDLm8kRMxTXpqfJdQa+SEGOsvjwewp0jSY
-         opXazeYKXoX6684f7tO3Kmp2h+ZzKNx4V8TsuPmSmtuKRhi7fv7Z4cxn5i0KECWvHHmQ
-         7i8cgjp/uaFNv4pmLfdTMrXpHKzyEdTAXyk60jSYblsUPsFB8/mj+NEJG/WY6DsFsNfv
-         jt6A==
-X-Gm-Message-State: APjAAAVekLTvjvjmOeWCu6PgLGQ60/krUqNxKzRzG5WLpMqBNQT5TJiJ
-        JQ7ZrgDb/3j/QcAuED7lwxFecQ==
-X-Google-Smtp-Source: APXvYqyVGU9BerZ/mw5GMj61gG+a284w/dfQZCSugtLtMtB0SblY5WAKUz5hVdGB8EuRksfbVSMUYQ==
-X-Received: by 2002:a17:906:27da:: with SMTP id k26mr48207770ejc.175.1555535663142;
-        Wed, 17 Apr 2019 14:14:23 -0700 (PDT)
-Received: from shalem.localdomain (84-106-84-65.cable.dynamic.v4.ziggo.nl. [84.106.84.65])
-        by smtp.gmail.com with ESMTPSA id j10sm10340751eja.58.2019.04.17.14.14.20
-        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Wed, 17 Apr 2019 14:14:21 -0700 (PDT)
-Subject: Re: [PATCH v3 13/13] platform/x86: intel_cht_int33fe: Replacing the
- old connections with references
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        Andy Shevchenko <andy.shevchenko@gmail.com>
-References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
- <20190412134122.82903-14-heikki.krogerus@linux.intel.com>
- <a91a1d75-f224-9c9d-873a-f80467d2fb0c@redhat.com>
- <20190417063918.GI1747@kuha.fi.intel.com>
- <76d9ab79-a1d0-f3cd-ba5d-2325740c72ff@redhat.com>
-Message-ID: <6f08b4b6-8303-5dc9-eb9e-30196bd95692@redhat.com>
-Date:   Wed, 17 Apr 2019 23:14:19 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=i/SMcLR60pTb8GHWCFJb8vDfzN0yXO1auw51WJ143aM=;
+        b=MzLs64D21/i6dz4Wcp9rEEjaDTWXhDGx3GD3okENLrwdQzsmjRNz1BXr2K2j/mx1IE
+         OqjZF/xjclhhALOp5XPeTZbuyO3zAy22O/dQgadXr1Ydg9Xtdc5lDGt/qiGvEgcX1E5Y
+         INO1XLOWrskDaCyV3lncejoOlb3SBEgimITk6NUTZ4Jn7YmCht3k9bdBPNGjSDg4u3Nm
+         kdOLKw1I3KY+T9UsWEadK0n8E82qbluq8IWz/bs9V5dCGrDiWPr8byRFO/QgAznK29FP
+         RWV59BiO50rLO9SEJYFSGjDypmcRSixeX8729ZI8vJ4StELudID5m/MTCLBmjTpys01b
+         kK3A==
+X-Gm-Message-State: APjAAAXSSzxTUg9aiHDpvGu6tPIMlR/uUyGblFFVq/RiC67Eq0gStkZz
+        DpL6kyy/Ed/98G6uxgG6aGpvG+JOC7L/X5s/uYs=
+X-Google-Smtp-Source: APXvYqwpEt+M3lTny3H4KeeWmAXm8F5FWDSQQCr2VkvfpK+L+/tEWCct/7FaPolUgo95oM6Jr1OrfNQBaeewW+GrK48=
+X-Received: by 2002:a05:6830:20cd:: with SMTP id z13mr57759947otq.168.1555539071987;
+ Wed, 17 Apr 2019 15:11:11 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <76d9ab79-a1d0-f3cd-ba5d-2325740c72ff@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------D211A57CD2C7E9759BD27377"
-Content-Language: en-US
+References: <cover.1554410643.git.Janakarajan.Natarajan@amd.com>
+ <d44f4893-0b67-4993-2942-6e03d29dffa1@amd.com> <CAJZ5v0jh0Yn1fy5bO3wett5AsjBA55_Z-8L_M8eRyy5cePqwaw@mail.gmail.com>
+ <SN6PR12MB26396618BAC0F6600D786E08F8250@SN6PR12MB2639.namprd12.prod.outlook.com>
+In-Reply-To: <SN6PR12MB26396618BAC0F6600D786E08F8250@SN6PR12MB2639.namprd12.prod.outlook.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 18 Apr 2019 00:10:59 +0200
+Message-ID:
+ <CAJZ5v0hJpYROLJup0mvCp2G8ekeDyBrp+hdhHdsd+vhBq5RxVQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/7] CPPC optional registers AMD support
+To:     "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
+        "devel@acpica.org" <devel@acpica.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Schmauss <erik.schmauss@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190417211419.7eEbctYthApla6ZLxZeEQeceKV9ZlE52Lf3_44oMDZs@z>
+Message-ID: <20190417221059.QzWRxk88qBN78SVdwiZ4dDTTHKxYoetsWBJpTIk9ClM@z>
 
-This is a multi-part message in MIME format.
---------------D211A57CD2C7E9759BD27377
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, Apr 17, 2019 at 7:28 PM Ghannam, Yazen <Yazen.Ghannam@amd.com> wrote:
+>
+> > -----Original Message-----
+> > From: Rafael J. Wysocki <rafael@kernel.org>
+> > Sent: Tuesday, April 16, 2019 4:34 AM
+> > To: Natarajan, Janakarajan <Janakarajan.Natarajan@amd.com>
+> > Cc: Natarajan, Janakarajan <Janakarajan.Natarajan@amd.com>; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> > pm@vger.kernel.org; devel@acpica.org; Rafael J . Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>; Viresh Kumar
+> > <viresh.kumar@linaro.org>; Robert Moore <robert.moore@intel.com>; Erik Schmauss <erik.schmauss@intel.com>; Ghannam, Yazen
+> > <Yazen.Ghannam@amd.com>
+> > Subject: Re: [PATCH v2 0/7] CPPC optional registers AMD support
+> >
+> > On Tue, Apr 16, 2019 at 12:35 AM Janakarajan Natarajan <jnataraj@amd.com> wrote:
+> > >
+> > > On 4/4/19 4:25 PM, Natarajan, Janakarajan wrote:
+> > > > CPPC (Collaborative Processor Performance Control) offers optional
+> > > > registers which can be used to tune the system based on energy and/or
+> > > > performance requirements.
+> > > >
+> > > > Newer AMD processors add support for a subset of these optional CPPC
+> > > > registers, based on ACPI v6.1.
+> > > >
+> > > > The following are the supported CPPC registers for which sysfs entries
+> > > > are created:
+> > > > * enable                (NEW)
+> > > > * max_perf              (NEW)
+> > > > * min_perf              (NEW)
+> > > > * energy_perf
+> > > > * lowest_perf
+> > > > * nominal_perf
+> > > > * desired_perf          (NEW)
+> > > > * feedback_ctrs
+> > > > * auto_sel_enable       (NEW)
+> > > > * lowest_nonlinear_perf
+> > > >
+> > > > The CPPC driver is updated to enable the OSPM and the userspace to
+> > > > access
+> > > > the newly supported registers.
+> > > >
+> > > > The purpose of exposing the registers via the sysfs entries is to allow
+> > > > the userspace to:
+> > > > * Tweak the values to fit its workload.
+> > > > * Apply a profile from AMD's optimization guides.
+> > > >
+> > > > Profiles will be documented in the performance/optimization guides.
+> > > >
+> > > > Note:
+> > > > * AMD systems will not have a policy applied in the kernel at this time.
+> > > > * By default, acpi_cpufreq will still be used.
+> > > >
+> > > > TODO:
+> > > > * Create a linux userspace tool that will help users generate a CPPC
+> > > > * profile
+> > > >    for their target workload.
+> > > > * Create or update a driver to apply a general CPPC policy in the
+> > > > * kernel.
+> > > >
+> > > > v1->v2:
+> > > > * Add macro to ensure BUFFER only registers have BUFFER type.
+> > > > * Add support macro to make the right check based on register type.
+> > > > * Remove support checks for registers which are mandatory.
+> > >
+> > >
+> > > Are there any concerns regarding this patchset?
+> >
+> > Yes, there are.
+> >
+> > Unfortunately, it is generally problematic.
+> >
+> > First off, the behavior of existing sysfs files cannot be changed at
+> > will, as there may be users of them out there already depending on the
+> > current behavior.
+> >
+>
+> The intent is to add new sysfs files without changing the existing files. Is that okay?
+>
+> Or is the addition of new files also not acceptable?
+>
+> > Second, at least some CPPC control registers are used by cpufreq
+> > drivers (cppc_cpufreq and intel_pstate), so modifying them behind the
+> > drivers' backs is not a good idea in general.  For this reason, adding
+> > new sysfs attributes to allow user space to do that is quite
+> > questionable.
+> >
+>
+> Yes, good point.
+>
+> What if a check is added so that writes only succeed if the CPUFREQ governor is set to userspace?
 
-Hi,
+That wouldn't be particularly straightforward IMO.
 
-On 17-04-19 11:19, Hans de Goede wrote:
-> Note that another problem with this series which I noticed while testing
-> is that the usb-role-switch is not being found at all anymore after
-> this ("Replacing the old connections with references") patch. I still need
-> start debugging that.
-
-Ok, I've just finished debugging this and I'm attaching 2 FIXUP
-patches (to be squased) and a new patch, which those 3 small fixes
-added the problem of tcpm.c being unable to get the role-switch
-goes away.
-
-The second FIXUP patch might be a bit controversial; and we may
-need another solution for the problem it fixes. I've tried to
-explain it in more detail in the commit msg.
-
-Regards,
-
-Hans
-
---------------D211A57CD2C7E9759BD27377
-Content-Type: text/x-patch;
- name="0001-FIXUP-platform-x86-intel_cht_int33fe-Link-with-exter.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-FIXUP-platform-x86-intel_cht_int33fe-Link-with-exter.pa";
- filename*1="tch"
-
-From 3a2e047608a53caaefe8364eceb7e315ec413698 Mon Sep 17 00:00:00 2001
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 17 Apr 2019 22:54:47 +0200
-Subject: [PATCH v2 1/3] FIXUP: "platform/x86: intel_cht_int33fe: Link with
- external dependencies using fwnodes"
-
-In the else path of: if (dev->fwnode) ... else ..., we should set
-dev->fwnode to our own fwnode not to dev->fwnode, which is NULL as we
-just tested.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/platform/x86/intel_cht_int33fe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-index e6a1ea7f33af..07bf92ece6cd 100644
---- a/drivers/platform/x86/intel_cht_int33fe.c
-+++ b/drivers/platform/x86/intel_cht_int33fe.c
-@@ -189,7 +189,7 @@ static int cht_int33fe_setup_mux(struct cht_int33fe_data *data)
- 		data->node[INT33FE_NODE_ROLE_SWITCH] = dev->fwnode;
- 	} else {
- 		/* The node can be tied to the lifetime of the device. */
--		dev->fwnode = fwnode_handle_get(dev->fwnode);
-+		dev->fwnode = fwnode_handle_get(fwnode);
- 	}
- 
- 	put_device(dev);
--- 
-2.21.0
-
-
---------------D211A57CD2C7E9759BD27377
-Content-Type: text/x-patch;
- name="0002-FIXUP-device-connection-Find-connections-also-by-che.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0002-FIXUP-device-connection-Find-connections-also-by-che.pa";
- filename*1="tch"
-
-From 5133467f116dff6e111d4bc0610ccbcedb397f1d Mon Sep 17 00:00:00 2001
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 17 Apr 2019 23:00:59 +0200
-Subject: [PATCH v2 2/3] FIXUP: "device connection: Find connections also by
- checking the references"
-
-The reference we are looking for might be in a child node, rather then
-directly in the device's own fwnode. A typical example of this is a
-usb connector node with references to various muxes / switches.
-
-Note that we do not hit this problem for the device_connection_find_match
-calls in typec_switch_get and typec_mux_get because these get called
-from typec_register_port and typec_register_port creates a new device
-with its fwnode pointing to the usb-connector fwnode and that new
-device (rather then the parent) is passed to typec_switch/mux_get and
-thus to device_connection_find_match.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/base/devcon.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/base/devcon.c b/drivers/base/devcon.c
-index 4cdf95532b63..6f6f870c21eb 100644
---- a/drivers/base/devcon.c
-+++ b/drivers/base/devcon.c
-@@ -76,7 +76,7 @@ fwnode_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
- void *device_connection_find_match(struct device *dev, const char *con_id,
- 				   void *data, devcon_match_fn_t match)
- {
--	struct fwnode_handle *fwnode = dev_fwnode(dev);
-+	struct fwnode_handle *child, *fwnode = dev_fwnode(dev);
- 	const char *devname = dev_name(dev);
- 	struct device_connection *con;
- 	void *ret = NULL;
-@@ -93,6 +93,12 @@ void *device_connection_find_match(struct device *dev, const char *con_id,
- 		ret = fwnode_devcon_match(fwnode, con_id, data, match);
- 		if (ret)
- 			return ret;
-+
-+		fwnode_for_each_child_node(fwnode, child) {
-+			ret = fwnode_devcon_match(child, con_id, data, match);
-+			if (ret)
-+				return ret;
-+		}
- 	}
- 
- 	mutex_lock(&devcon_lock);
--- 
-2.21.0
-
-
---------------D211A57CD2C7E9759BD27377
-Content-Type: text/x-patch;
- name="0003-usb-roles-Check-for-NULL-con_id.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0003-usb-roles-Check-for-NULL-con_id.patch"
-
-From a69f76993dfe5f43d3e6c4b2bcfbaacf2c247d6e Mon Sep 17 00:00:00 2001
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 17 Apr 2019 22:57:00 +0200
-Subject: [PATCH v2 3/3] usb: roles: Check for NULL con_id
-
-When usb_role_switch_match gets called by device_connection_find_match
-because of a fwnode_reference matching the con_id passed to
-device_connection_find_match, then con->id will be NULL and in this
-case we do not need to check it since our caller has already checked it.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/usb/roles/class.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/usb/roles/class.c b/drivers/usb/roles/class.c
-index f45d8df5cfb8..86defca6623e 100644
---- a/drivers/usb/roles/class.c
-+++ b/drivers/usb/roles/class.c
-@@ -101,7 +101,7 @@ static void *usb_role_switch_match(struct device_connection *con, int ep,
- 	struct device *dev;
- 
- 	if (con->fwnode) {
--		if (!fwnode_property_present(con->fwnode, con->id))
-+		if (con->id && !fwnode_property_present(con->fwnode, con->id))
- 			return NULL;
- 
- 		dev = class_find_device(role_class, NULL, con->fwnode,
--- 
-2.21.0
-
-
---------------D211A57CD2C7E9759BD27377--
+What about handling this like the others do, through a proper cpufreq driver?
