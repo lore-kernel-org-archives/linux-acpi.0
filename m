@@ -2,45 +2,44 @@ Return-Path: <SRS0=8JUk=ST=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0111C282DA
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 11:15:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D884FC282DA
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 16:03:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9EBCC21773
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 11:15:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A82E5206BA
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 16:03:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731888AbfDQLPi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Apr 2019 07:15:38 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:37610 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731472AbfDQLPi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 07:15:38 -0400
-Received: by mail-ed1-f66.google.com with SMTP id f53so19051937ede.4
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Apr 2019 04:15:36 -0700 (PDT)
+        id S1731959AbfDQQDI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Apr 2019 12:03:08 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:32819 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732007AbfDQQDH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 12:03:07 -0400
+Received: by mail-ed1-f68.google.com with SMTP id d55so20665978ede.0
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Apr 2019 09:03:06 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=6K5NKfItYk8CDgP3+DIGgzU/HnaXA4PccSHLlaRaT6c=;
-        b=Xz7RYfLsyAOM8hykRrGiT3tidvRytPcPuhRnHeUbLCwGv8XQwxpLU1j4ht6hypgRBv
-         W5qi2+ipD6eIfsNjfzrE8X97aB97v4Mq82dinsridIdSaMhn0VhhDYIyaqfRJHBpv1Uf
-         XFKv5wgJuG+yEOr9xrM9RGmhiNIL2F3eq7Q1EzMW10BKczyHr1TIrPP8/qvQPqAZJmjx
-         GR7qos3tvl+iKZWgkHLxaPc86rGUuCUW9LuvHK0+VFkCnOCwmypC8s2B+Rlx0/O2k4iJ
-         2qD/421S4urkwXn2mRsKLsRlLFqrn4LoIfuDOJKU4e+ENa8Bo/ykLNAycM6nu9CY3ebB
-         DKcQ==
-X-Gm-Message-State: APjAAAVt1j8o7mWrxWKV6bOi/ZS7CrcnJF5avpUAZd4uusDb/0DosHvw
-        Ug0wOwgjUbOjEWbAiBa4bIbrvA==
-X-Google-Smtp-Source: APXvYqyTQ/yN3UbqS1lkXsR0TWutOGx4k1JTQzFvzdATxW4GKfwrVpqGzaSXxn2plreLgd2c0J1KYA==
-X-Received: by 2002:a17:906:938d:: with SMTP id l13mr46950849ejx.250.1555499736051;
-        Wed, 17 Apr 2019 04:15:36 -0700 (PDT)
+         :user-agent:mime-version:in-reply-to:content-language;
+        bh=TrOSUukhnqSg/DvgTstF5Ra/HwZaX5omSNw3ixRKxT4=;
+        b=om6foua2HMEJt77RRS5Sh90b1JL+QM85zYS8Wpb3h4eeyTP2ZmVQ/BDskTwRXlz/Ec
+         bQxyKtU/Xw7Mou47pFFYJP9LP+siFlOpwGa/uC8Q4TZX1vOvLDLlQxqYLMTy3n/tPNvM
+         hnkYRp1vY0+3Sd+1h48EfAwCTG/hC9MNKblzqx+O4ErrQtodbNYQFdOZ1B4y1XQ6Q3Bp
+         TP1New7HrFJZLv1gnP2a1XR3RhA/yWV9HIEjllfqEwxWrNhy0T7ngM+dqVo3Fm7OW0s6
+         L7XvW88VVMxqKVLWtmpbPfKat9PXWt4C1KKkTK50WiQqrfas1Rl0Q3OyCXkTO2nMO90V
+         4K8w==
+X-Gm-Message-State: APjAAAWKpmtfInCCvecB1Fn1sGMfXmCM+8G/RxWrxdPp2h+f/+bgniKa
+        uJAX3c/T+eujp7C6aF9XAkD67A==
+X-Google-Smtp-Source: APXvYqxWr0QLqtiFtdv0dgY9WvcEWr1O2Jmxx2IgDRDN0ZU4uOYaN0tLN8hmV2cRcCclrgA2osXEjg==
+X-Received: by 2002:a17:906:6d58:: with SMTP id a24mr48618747ejt.195.1555516985764;
+        Wed, 17 Apr 2019 09:03:05 -0700 (PDT)
 Received: from shalem.localdomain (84-106-84-65.cable.dynamic.v4.ziggo.nl. [84.106.84.65])
-        by smtp.gmail.com with ESMTPSA id l18sm16411220edc.17.2019.04.17.04.15.34
+        by smtp.gmail.com with ESMTPSA id s14sm6590730eda.26.2019.04.17.09.03.04
         (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Wed, 17 Apr 2019 04:15:35 -0700 (PDT)
+        Wed, 17 Apr 2019 09:03:04 -0700 (PDT)
 Subject: Re: [PATCH v3 13/13] platform/x86: intel_cht_int33fe: Replacing the
  old connections with references
 To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
@@ -57,112 +56,40 @@ References: <20190412134122.82903-1-heikki.krogerus@linux.intel.com>
  <20190417063918.GI1747@kuha.fi.intel.com>
  <76d9ab79-a1d0-f3cd-ba5d-2325740c72ff@redhat.com>
  <20190417093252.GO1747@kuha.fi.intel.com>
- <9304d771-df1f-aea4-43d2-7db540953cdd@redhat.com>
- <20190417110413.GR1747@kuha.fi.intel.com>
+ <2fcb2e2c-c390-1b49-7228-197f23401271@redhat.com>
+ <20190417104454.GQ1747@kuha.fi.intel.com>
 From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <733600c0-c216-5159-5f7c-b1114593f5de@redhat.com>
-Date:   Wed, 17 Apr 2019 13:15:34 +0200
+Message-ID: <cb7cf930-cf76-ef73-49de-222895b133ea@redhat.com>
+Date:   Wed, 17 Apr 2019 18:03:03 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.6.1
 MIME-Version: 1.0
-In-Reply-To: <20190417110413.GR1747@kuha.fi.intel.com>
-Content-Type: text/plain; charset="UTF-8"; format="flowed"
+In-Reply-To: <20190417104454.GQ1747@kuha.fi.intel.com>
+Content-Type: multipart/mixed;
+ boundary="------------C16F2A63C9CF340E7A34C72F"
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190417111534.ZVDYtyaxMtjDFAetpKMGunRbtsZXxv-BDqFEfqeqYjA@z>
+Message-ID: <20190417160303.ZDs25CW4o5m8-otdPoaWxi-LGHEV4LxTSF_EpNBse2Y@z>
+
+This is a multi-part message in MIME format.
+--------------C16F2A63C9CF340E7A34C72F
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
 Hi,
 
-On 17-04-19 13:04, Heikki Krogerus wrote:
-> On Wed, Apr 17, 2019 at 11:52:15AM +0200, Hans de Goede wrote:
+On 17-04-19 12:44, Heikki Krogerus wrote:
+> On Wed, Apr 17, 2019 at 12:15:18PM +0200, Hans de Goede wrote:
 >> Hi,
 >>
 >> On 17-04-19 11:32, Heikki Krogerus wrote:
 >>> On Wed, Apr 17, 2019 at 11:19:28AM +0200, Hans de Goede wrote:
->>>> Hi,
->>>>
->>>> On 17-04-19 08:39, Heikki Krogerus wrote:
->>>>> On Tue, Apr 16, 2019 at 11:35:36PM +0200, Hans de Goede wrote:
->>>>>> Hi,
->>>>>>
->>>>>> On 12-04-19 15:41, Heikki Krogerus wrote:
->>>>>>> Now that the software nodes support references, and the
->>>>>>> device connection API support parsing fwnode references,
->>>>>>> replacing the old connection descriptions with software node
->>>>>>> references. Relying on device names when matching the
->>>>>>> connection would not have been possible to link the USB
->>>>>>> Type-C connector and the DisplayPort connector together, but
->>>>>>> with real references it's not problem.
->>>>>>>
->>>>>>> The DisplayPort ACPI node is dag up, and the drivers own
->>>>>>> software node for the DisplayPort is set as the secondary
->>>>>>> node for it. The USB Type-C connector refers the software
->>>>>>> node, but it is now tied to the ACPI node, and therefore any
->>>>>>> device entry (struct drm_connector in practice) that the
->>>>>>> node combo is assigned to.
->>>>>>>
->>>>>>> The USB role switch device does not have ACPI node, so we
->>>>>>> have to wait for the device to appear. Then we can simply
->>>>>>> assign our software node for the to the device.
->>>>>>>
->>>>>>> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->>>>>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->>>>>>
->>>>>> So as promised I've been testing this series and this commit
->>>>>> breaks type-c functionality on devices using this driver.
->>>>>>
->>>>>> The problem is that typec_switch_get() and  typec_mux_get()
->>>>>> after this both return the same pointer, which is pointing
->>>>>> to the switch, so typec_mux_get() is returning the wrong
->>>>>> pointer.
->>>>>>
->>>>>> This is not surprising since the references for both are
->>>>>> both pointing to the fwnode attached to the piusb30532 devices:
->>>>>>
->>>>>> 	args[0].fwnode = data->node[INT33FE_NODE_PI3USB30532];
->>>>>>
->>>>>> So the class_find_device here:
->>>>>>
->>>>>> static void *typec_switch_match(struct device_connection *con, int ep,
->>>>>>                                    void *data)
->>>>>> {
->>>>>>            struct device *dev;
->>>>>>
->>>>>>            if (con->fwnode) {
->>>>>>                    if (con->id && !fwnode_property_present(con->fwnode, con->id))
->>>>>>                            return NULL;
->>>>>>
->>>>>>                    dev = class_find_device(&typec_mux_class, NULL, con->fwnode,
->>>>>>                                            fwnode_match);
->>>>>>            } else {
->>>>>>                    dev = class_find_device(&typec_mux_class, NULL,
->>>>>>                                            con->endpoint[ep], name_match);
->>>>>>            }
->>>>>>
->>>>>>            return dev ? to_typec_switch(dev) : ERR_PTR(-EPROBE_DEFER);
->>>>>> }
->>>>>>
->>>>>> Simply returns the first typec_mux_class device registered.
->>>>>>
->>>>>> I see 2 possible solutions to this problem:
->>>>>>
->>>>>> 1) Use separate typec_mux_class and typec_orientation_switch_class-es
->>>>>>
->>>>>> 2) Merge struct typec_switch and struct typec_mux into a single struct,
->>>>>> so that all typec_mux_class devices have the same memory layout, add
->>>>>> a subclass enum to this new merged struct and use that to identify
->>>>>> which of the typec_mux_class devices with the same fwnode pointer we
->>>>>> want.
->>>>>>
->>>>>> Any other suggestions?
->>>>>
->>>>> I think the correct fix is that we supply separate nodes for both
->>>>> device entries.
->>>>
+>>
+>> <snip>
+>>
 >>>> That is not going to work since the (virtual) mux / orientation-switch
 >>>> devices are only registered once the driver binds to the piusb30532 i2c
 >>>> device, so when creating the nodes we only have the piusb30532 i2c device.
@@ -183,34 +110,117 @@ On 17-04-19 13:04, Heikki Krogerus wrote:
 >>> switch, and then just do fwnode_find_named_child_node() in
 >>> pi3usb30532.c for both of them.
 >>
->> Ok.
+>> Thinking more about this, I have a feeling that this makes things needlessly
+>> complicated, checking the dev_name *ends* in "-mux" resp. "-switch" should be
+>> 100% reliable since we call:
 >>
->>>> Note that another problem with this series which I noticed while testing
->>>> is that the usb-role-switch is not being found at all anymore after
->>>> this ("Replacing the old connections with references") patch. I still need
->>>> start debugging that.
->>>
->>> OK, I'll wait for you results on that.
+>>          dev_set_name(&sw->dev, "%s-switch", dev_name(parent));
+>>          dev_set_name(&mux->dev, "%s-mux", dev_name(parent));
 >>
->> I understand that you want to wait with doing a v4 until this is resolved,
->> but can you (privately) send me a v3.5 fixing the mux/switch issue so that
->> I can test that (and get the problem out of the way for debugging the other
->> stuff) ?
->>
->> I've also just replied to the following patch with a review remark:
->> [PATCH v3 11/13] platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
->>
->> Since you need to respin the series anyways, it would be good if you can
->> address that too.
+>> When registering the switch / mux, so I believe doing name (suffix) comparison
+>> here is fine and much simpler. Anyways this is just my 2 cents on this, I'm
+>> happy with either solution, your choice.
 > 
-> Sure thing. I don't have time today to prepare the patches for you to
-> test today, nor tomorrow depending I'm a travelling or not, so this may
-> have wait for next week (Friday's off) :-(
+> You do have a point. I'll take a look how the two options look like,
+> but maybe your way is better after all.
 
-Note I'm on vacation myself next week, Monday I'm still reading email and
-I can run some tests, next week Tuesday - Friday I'm off.
+I whipped up a quick fix using my approach so that I can start working
+on debugging the usb_role_switch_get call in tcpm.c returning NULL.
+
+I've attached it, feel free to use this for v4 of the series if you
+decide to go with this approach.
 
 Regards,
 
 Hans
 
+
+> 
+> thanks,
+> 
+
+--------------C16F2A63C9CF340E7A34C72F
+Content-Type: text/x-patch;
+ name="0001-FIXUP-usb-typec-Registering-real-device-entries-for-.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-FIXUP-usb-typec-Registering-real-device-entries-for-.pa";
+ filename*1="tch"
+
+From 47154195c05dc7c8b3373de9603b06c2f435588a Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Wed, 17 Apr 2019 17:58:17 +0200
+Subject: [PATCH v2] FIXUP: "usb: typec: Registering real device entries for
+ the muxes"
+
+Check the dev_name suffix so that we do not return the first registered
+device when a mux and switch share the same parent and fwnode.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/usb/typec/mux.c | 25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/typec/mux.c b/drivers/usb/typec/mux.c
+index c7d4a2dd454e..a28803544301 100644
+--- a/drivers/usb/typec/mux.c
++++ b/drivers/usb/typec/mux.c
+@@ -22,9 +22,21 @@ static int name_match(struct device *dev, const void *name)
+ 	return !strcmp((const char *)name, dev_name(dev));
+ }
+ 
+-static int fwnode_match(struct device *dev, const void *fwnode)
++static bool dev_name_ends_with(struct device *dev, const char *suffix)
+ {
+-	return dev_fwnode(dev) == fwnode;
++	const char *name = dev_name(dev);
++	const int name_len = strlen(name);
++	const int suffix_len = strlen(suffix);
++
++	if (suffix_len > name_len)
++		return false;
++
++	return strcmp(name + (name_len - suffix_len), suffix) == 0;
++}
++
++static int switch_fwnode_match(struct device *dev, const void *fwnode)
++{
++	return dev_fwnode(dev) == fwnode && dev_name_ends_with(dev, "-switch");
+ }
+ 
+ static void *typec_switch_match(struct device_connection *con, int ep,
+@@ -37,7 +49,7 @@ static void *typec_switch_match(struct device_connection *con, int ep,
+ 			return NULL;
+ 
+ 		dev = class_find_device(&typec_mux_class, NULL, con->fwnode,
+-					fwnode_match);
++					switch_fwnode_match);
+ 	} else {
+ 		dev = class_find_device(&typec_mux_class, NULL,
+ 					con->endpoint[ep], name_match);
+@@ -167,6 +179,11 @@ EXPORT_SYMBOL_GPL(typec_switch_get_drvdata);
+ 
+ /* ------------------------------------------------------------------------- */
+ 
++static int mux_fwnode_match(struct device *dev, const void *fwnode)
++{
++	return dev_fwnode(dev) == fwnode && dev_name_ends_with(dev, "-mux");
++}
++
+ static void *typec_mux_match(struct device_connection *con, int ep, void *data)
+ {
+ 	const struct typec_altmode_desc *desc = data;
+@@ -226,7 +243,7 @@ static void *typec_mux_match(struct device_connection *con, int ep, void *data)
+ 
+ find_mux:
+ 	dev = class_find_device(&typec_mux_class, NULL, con->fwnode,
+-				fwnode_match);
++				mux_fwnode_match);
+ 
+ 	return dev ? to_typec_switch(dev) : ERR_PTR(-EPROBE_DEFER);
+ }
+-- 
+2.21.0
+
+
+--------------C16F2A63C9CF340E7A34C72F--
