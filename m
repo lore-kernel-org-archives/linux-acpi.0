@@ -1,127 +1,115 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Date: Thu, 18 Apr 2019 13:42:02 +0200
-Message-ID: <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com>
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
- <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
- <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
- <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
- <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: Avoiding merge conflicts while adding new docs - Was: Re: [PATCH
+ 00/57] Convert files to ReST
+Date: Thu, 18 Apr 2019 09:42:23 -0300
+Message-ID: <20190418091526.00e074d1@coco.lan>
+References: <cover.1555382110.git.mchehab+samsung@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
-Content-Language: en-US
+In-Reply-To: <cover.1555382110.git.mchehab+samsung@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Robert R. Howell" <RHowell@uwyo.edu>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-s390@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-watchdog@vger.kernel.org, xdp-newbies@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, bpf@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-scsi@vger.kernel.org, linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, x86@kernel.org, dm-devel@redhat.com, target-devel@vger.kernel.org, netdev@vger.kernel.org, kexec@lists.infradead.org, linux-fpga@vger.kernel.org, linux-rdma@vger.ke
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Robert,
+Jon,
 
-On 11-04-19 21:50, Robert R. Howell wrote:
-> On 4/8/19 2:16 AM, Hans de Goede wrote:>
->>
->> Hmm, interesting so you have hibernation working on a T100TA
->> (with 5.0 + 02e45646d53b reverted), right ?
->>
-> Hi Hans and Kai-Heng
-> 
-> First, apologies for how long it took me to reply to both your inquiries.
-> In trying to answer them I discovered some inconsistencies in how the T100TA was
-> behaving on different hibernation attempts and I've been trying to sort those out.
-> I haven't been completely successful in that, but here's a brief summary.
-> 
-> Yes I do have hibernation working (at least most of the time) on a T100TA,
-> with 5.0 + 02e45646d53b reverted (more about that below), and with a systemd
-> hibernate script also described below.
-> 
-> Trying to be more quantitative about "most of the time" is in part want I've been
-> testing the last few days.  I just finished a cycle of 20 hibernates/resumes
-> which were all successful at least in the sense that after resume internal
-> sound was working, along with all the other critical functions I care about
-> (WiFi, Bluetooth, etc.).  However I have occasionally (perhaps 1 in 10 times)
-> seen something go wrong with sound on resume and the only way to get it
-> working again was to a full reboot.  During the successful cycles I also
-> sometimes see i2c_designware or intel_sst_acpi error messages but they
-> don't seem to indicate an unrecoverable failure.  I was hoping to sort out
-> what errors I was seen on the occasions where sound was lost till a reboot,
-> but those are rare enough I haven't been able to sort out the difference
-> between those and the "recoverable" errors.
-> 
-> Regarding the revert of 02e45646d53b, there were some code changes in
-> adjacent lines so a simple revert wouldn't apply cleanly to 5.0.0
-> but the changes were small enough that I was able to manually "merge"
-> the revert and the 5.0.0 changes.  I have posted a patch file under
-> Bugzilla: <https://bugzilla.kernel.org/show_bug.cgi?id=202139>
-> showing what I actually did to revert 02e45646d53b for 5.0.0.  As I mentioned
-> in an earlier message, I have NOT been able to produce a working revert of
-> 02e45646d53b for the 5.1-rc3 kernel.
-> 
-> To make hibernation work on the T100 I also had to create a script
-> /usr/lib/systemd/system-sleep/t100_hibernate.sh which unloads various drivers
-> (including sound) before hibernate, then restarts them afterwords.  I've inserted
-> it below.  I'm not certain all the steps in it are still necessary, but the
-> intermittent failures make it very difficult to determine what is absolutely essential.
-> 
-> -----t100_hibernate.sh  systemd script-------
-> #!/bin/bash
-> echo "Hibernate script $1 $2"
-> [ $2 != 'hibernate' ] && exit 0
-> 
-> case $1 in
->          pre)
->      echo "Going to $2..."
->      /sbin/modprobe -r brcmfmac
->      /sbin/modprobe -r hci_uart
->      /sbin/modprobe -r battery
->      /sbin/modprobe -r hid_multitouch
->      /usr/bin/killall pulseaudio
->      /sbin/modprobe -r snd_soc_sst_bytcr_rt5640
->      /sbin/modprobe -r snd_soc_rt5640
->      /sbin/modprobe -r snd_soc_sst_acpi
->          ;;
->          post)
->      echo "Waking from $2..."
->      /sbin/modprobe brcmfmac
->      /sbin/modprobe hci_uart
->      /sbin/modprobe battery
->      /sbin/modprobe hid_multitouch
->      # Just load the following and it will pull in other snd modules
->      /sbin/modprobe snd_soc_sst_acpi
->      /usr/sbin/service NetworkManager restart
->      /usr/sbin/service wpa_supplicant restart
->      # The above is usually enough but occasionally sound doesn't come up properly
->      # and doing the following seems to restore it in those cases.
->      /usr/bin/killall pulseaudio
->      /usr/sbin/rmmod snd_soc_sst_bytcr_rt5640
->      /usr/sbin/rmmod snd_soc_rt5640
->      /usr/sbin modprobe snd_soc_rt5640
->      /usr/sbin modprobe snd_soc_sst_bytcr_rt5640
->          ;;
-> esac
-> -----end of script-------------------------------
-> 
-> I'll send a second message with the system logs which Kai-Heng requested,
-> with his patch applied to 5.1-rc3.
+Em Mon, 15 Apr 2019 23:55:25 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 
-Ok, so you have hibernation sort of working, with a bunch of hacks.
+> I have a separate patch series with do the actual rename and
+> adjustment of references. I opted to submit this first, as it
+> sounds easier to merge this way, as each subsystem maintainer
+> can apply the conversion directly on their trees (or at docs
+> tree), avoiding merge conflects.
 
-This is exactly why I usually do not spend any time on trying to get
-hibernation to work.
+Based on the number of feedbacks we have about this, I'm
+considering to submit a second version of my conversion patch
+series that would be doing the rename together with each patch,
+adding the rst files to an index file.
 
-Still since my patch is regressing things for you I will try to
-take a look at this and see if I can reproduce and come up with
-a fix. But this is not going to be a high priority thing for me to
-work on.
+However, doing that would produce lots of warnings. We have
+already lots of those at linux-next:
 
-In the mean time I've gone ahead and submitted my version of the
-fix for the problem Kai-Heng was seeing, since that does not seem
-to make your problem worse; and it will be good to get that problem
-fixed.
+	checking consistency... 
+
+	docs/Documentation/accelerators/ocxl.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/admin-guide/mm/numaperf.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/allocators.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/attributes.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/bigalloc.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/bitmaps.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/blockgroup.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/blocks.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/checksums.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/directory.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/eainode.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/group_descr.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/ifork.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/inlinedata.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/inodes.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/journal.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/mmp.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/special_inodes.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/super.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/fmc/index.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/gpu/msm-crash-dump.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/interconnect/interconnect.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/laptops/lg-laptop.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/virtual/kvm/amd-memory-encryption.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/virtual/kvm/vcpu-requests.rst: WARNING: document isn't included in any toctree
+
+After thinking a little bit and doing some tests, I think a good solution
+would be to add ":orphan:" markup to the new .rst files that were not
+added yet into the main body (e. g. something like the enclosed example).
+
+That will make Sphinx suppress the:
+	"WARNING: document isn't included in any toctree"
+warning for the new files, while they're not included at the main indexes.
+
+This way, maintainers can do all the hard work of doing/applying the ReST
+file conversion/addition patch series on their own trees, and, once
+everything gets merged, submit a patch against the latest docs-next
+tree, removing the :orphan: tag and add them to the common index.rst
+files.
+
+That should largely avoid merging conflicts.
+
+For example, assuming that someone converts the stuff at
+Documentation/accounting and rename the text files there to
+RST (I'm actually doing that), he could add the enclosed change on
+the top of its index file:
+
+	diff --git a/Documentation/accounting/index.rst b/Documentation/accounting/index.rst
+	index e7dda5afa73f..e1f6284b5ff3 100644
+	--- a/Documentation/accounting/index.rst
+	+++ b/Documentation/accounting/index.rst
+	@@ -1,3 +1,5 @@
+	+:orphan:
+	+
+	 ==========
+	 Accounting
+	 ==========
+
+With would make Sphinx to ignore the subdir index file while
+reporting errors. It will still build the documentation, allowing
+the developer to test the changes.
+
+One of the advantages is that checking the orphaned docs is as
+easy as running:
+
+	$ git grep -l ":orphan:" Documentation/
+	...
+	Documentation/accounting/index.rst
+	...
+
+Making easy for people to check the orphaned files and send a fixup
+patch if something got orphaned after the merge window and send a
+fixes patches to be applied upstream.
+
+What do you think?
 
 Regards,
-
-Hans
+Mauro
