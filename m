@@ -2,64 +2,32 @@ Return-Path: <SRS0=Z37m=SU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1767C10F0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 16:05:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22CE4C10F14
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 16:11:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF7D520693
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 16:05:24 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="ATWDxkO+"
+	by mail.kernel.org (Postfix) with ESMTP id F0FD221479
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 16:11:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389488AbfDRQFS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Apr 2019 12:05:18 -0400
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:32981 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388495AbfDRQFS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 12:05:18 -0400
-Received: by mail-oi1-f195.google.com with SMTP id e5so2036907oii.0
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Apr 2019 09:05:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9656FNKKp4cUVga3XUcreKMqWUBjOMnkCExkfsBvcE0=;
-        b=ATWDxkO+EzohN5YWedA5OnfOl7z0C5wosAmTrDF5hxxtYtjNdCK/9PHgnZhYETJJ8t
-         vacr+rHkJxxNGOmeI1vTif1Vl4SIwdCSz21szdtTalMtQ8a/1Obxe+VdKwZnY8xrFtd+
-         ciBIJxCm9FZlAQVPiOTKZr8Xdghbnp/hQTXS/ucudKTmB79U11kjETh4fqNlfW3T1gK0
-         Zu87he2RHQTC+AM19urSAzmn3PITVUqT2oXHTybHWlpO7u1bFfMxyXZLHVTzCvZ6mXjc
-         bD19cp4gsnL0R2s/7Y3bFqcAI2a5/xvDNGJEJYE3ed3iSmhC+ui2TozfrYHnQqDdah3m
-         ZD3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9656FNKKp4cUVga3XUcreKMqWUBjOMnkCExkfsBvcE0=;
-        b=hFvrvQOhVOo/y8Cm4/z0jjwSCmT5Su0lJcFLzly//voisPI2C5Bv6AiyvY+Fk3skwr
-         n/gVBzWbd+RcycyTq/aP+TmmJMNKwBCCMxL59MZAnys4d+Oagwx5hNNZ5oxwMGAD3kwS
-         A5nRvS6wDdpZIWU6D3jHC7w6V2N4jWk3ARehWxPjBvXFTl4E3t5+JarfIu+BdIGEjLXS
-         7XllF9fEH4xrmnZt9D+zftZUkrjP/3NIWjPFFvcREucmxHV6NJsg/p8aGdp/h5YX9DfM
-         wKJeLYN8kKDAwgXMIMUcd3FgnI4yvWejg6Jtp4zk5uXJgiaQbY92WI+A4JUBcEztsRSG
-         E6Wg==
-X-Gm-Message-State: APjAAAVS1z//cd8KQ+nRLJsWjs9ep+t1khBPKaUMB7ry7wBY4UPuQ4N1
-        SUzSG3HyWRV2YM1xxP3QLIB0iMISo1Gg/DhsMFRrGw==
-X-Google-Smtp-Source: APXvYqzTGVz9ejtUV0liyJEyYqaIHrUyuHEbCYPG5pgMNrA7E3qjZWVF7XUM3SvNiTSOlLSiE2pi4l5w04d9dnUuvxA=
-X-Received: by 2002:aca:ed88:: with SMTP id l130mr2422676oih.70.1555603517276;
- Thu, 18 Apr 2019 09:05:17 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com>
- <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
- <20190412083230.GA29850@quack2.suse.cz> <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
-In-Reply-To: <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
-From:   Dan Williams <dan.j.williams@intel.com>
-Date:   Thu, 18 Apr 2019 09:05:05 -0700
-Message-ID:
- <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
-Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
-To:     Jeff Moyer <jmoyer@redhat.com>
+        id S1733192AbfDRQLA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 12:11:00 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:41390 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725888AbfDRQLA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 Apr 2019 12:11:00 -0400
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 042CB306C3EC;
+        Thu, 18 Apr 2019 16:11:00 +0000 (UTC)
+Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 024235C206;
+        Thu, 18 Apr 2019 16:10:45 +0000 (UTC)
+From:   Jeff Moyer <jmoyer@redhat.com>
+To:     Dan Williams <dan.j.williams@intel.com>
 Cc:     Jan Kara <jack@suse.cz>, Pankaj Gupta <pagupta@redhat.com>,
         linux-nvdimm <linux-nvdimm@lists.01.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -92,38 +60,63 @@ Cc:     Jan Kara <jack@suse.cz>, Pankaj Gupta <pagupta@redhat.com>,
         Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
         Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
         yuval shaia <yuval.shaia@oracle.com>
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+References: <20190410040826.24371-1-pagupta@redhat.com>
+        <20190410040826.24371-2-pagupta@redhat.com>
+        <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
+        <20190412083230.GA29850@quack2.suse.cz>
+        <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+        <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date:   Thu, 18 Apr 2019 12:10:44 -0400
+In-Reply-To: <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
+        (Dan Williams's message of "Thu, 18 Apr 2019 09:05:05 -0700")
+Message-ID: <x49lg07cn0b.fsf@segfault.boston.devel.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.45]); Thu, 18 Apr 2019 16:11:00 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190418160505.chawP8X-zx-YMDrlKtvZaOa322koS5T_Ph7Oq9qji_Q@z>
+Message-ID: <20190418161044.Ua9lb2la_xEmRrGe6713RwW8GgBCDzDKtSBE1bv_Piw@z>
 
-On Fri, Apr 12, 2019 at 6:12 AM Jeff Moyer <jmoyer@redhat.com> wrote:
->
-> Jan Kara <jack@suse.cz> writes:
->
-> > On Thu 11-04-19 07:51:48, Dan Williams wrote:
-> >> On Tue, Apr 9, 2019 at 9:09 PM Pankaj Gupta <pagupta@redhat.com> wrote:
-> >> > +       } else {
-> >> > +               if (nd_region->flush(nd_region))
-> >> > +                       rc = -EIO;
-> >>
-> >> Given the common case wants to be fast and synchronous I think we
-> >> should try to avoid retpoline overhead by default. So something like
-> >> this:
-> >>
-> >> if (nd_region->flush == generic_nvdimm_flush)
-> >>     rc = generic_nvdimm_flush(...);
-> >
-> > I'd either add a comment about avoiding retpoline overhead here or just
-> > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
-> > get confused by the code.
->
-> Isn't this premature optimization?  I really don't like adding things
-> like this without some numbers to show it's worth it.
+Dan Williams <dan.j.williams@intel.com> writes:
 
-I don't think it's premature given this optimization technique is
-already being deployed elsewhere, see:
+> On Fri, Apr 12, 2019 at 6:12 AM Jeff Moyer <jmoyer@redhat.com> wrote:
+>>
+>> Jan Kara <jack@suse.cz> writes:
+>>
+>> > On Thu 11-04-19 07:51:48, Dan Williams wrote:
+>> >> On Tue, Apr 9, 2019 at 9:09 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+>> >> > +       } else {
+>> >> > +               if (nd_region->flush(nd_region))
+>> >> > +                       rc = -EIO;
+>> >>
+>> >> Given the common case wants to be fast and synchronous I think we
+>> >> should try to avoid retpoline overhead by default. So something like
+>> >> this:
+>> >>
+>> >> if (nd_region->flush == generic_nvdimm_flush)
+>> >>     rc = generic_nvdimm_flush(...);
+>> >
+>> > I'd either add a comment about avoiding retpoline overhead here or just
+>> > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
+>> > get confused by the code.
+>>
+>> Isn't this premature optimization?  I really don't like adding things
+>> like this without some numbers to show it's worth it.
+>
+> I don't think it's premature given this optimization technique is
+> already being deployed elsewhere, see:
+>
+> https://lwn.net/Articles/774347/
 
-https://lwn.net/Articles/774347/
+The technique is fine, but that doesn't mean it should be applied
+everywhere.  Is *this* code path really going to benefit from the
+optimization?
+
+-Jeff
