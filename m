@@ -1,97 +1,127 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 3/9] ACPI/IORT: Check ATS capability in root complex
- nodes
-Date: Thu, 18 Apr 2019 12:20:29 +0100
-Message-ID: <20190418112018.GA20470@red-moon>
-References: <20190417182448.12382-1-jean-philippe.brucker@arm.com>
- <20190417182448.12382-4-jean-philippe.brucker@arm.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+Date: Thu, 18 Apr 2019 13:42:02 +0200
+Message-ID: <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com>
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
+ <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
+ <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190417182448.12382-4-jean-philippe.brucker@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Cc: eric.auger@redhat.com, zhongmiao@hisilicon.com, rjw@rjwysocki.net, joro@8bytes.org, will.deacon@arm.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, bhelgaas@google.com, okaya@kernel.org, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Robert R. Howell" <RHowell@uwyo.edu>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 17, 2019 at 07:24:42PM +0100, Jean-Philippe Brucker wrote:
-> Root complex node in IORT has a bit telling whether it supports ATS or
-> not. Store this bit in the IOMMU fwspec when setting up a device, so it
-> can be accessed later by an IOMMU driver. In the future we'll probably
-> want to store this bit at the host bridge or SMMU rather than in each
-> endpoint.
+Hello Robert,
+
+On 11-04-19 21:50, Robert R. Howell wrote:
+> On 4/8/19 2:16 AM, Hans de Goede wrote:>
+>>
+>> Hmm, interesting so you have hibernation working on a T100TA
+>> (with 5.0 + 02e45646d53b reverted), right ?
+>>
+> Hi Hans and Kai-Heng
 > 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-> ---
->  drivers/acpi/arm64/iort.c | 11 +++++++++++
->  include/linux/iommu.h     |  4 ++++
->  2 files changed, 15 insertions(+)
-
-For the IORT portion:
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e48894e002ba..4000902e57f0 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1028,6 +1028,14 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
->  	dev_dbg(dev, "dma_pfn_offset(%#08llx)\n", offset);
->  }
->  
-> +static bool iort_pci_rc_supports_ats(struct acpi_iort_node *node)
-> +{
-> +	struct acpi_iort_root_complex *pci_rc;
-> +
-> +	pci_rc = (struct acpi_iort_root_complex *)node->node_data;
-> +	return pci_rc->ats_attribute & ACPI_IORT_ATS_SUPPORTED;
-> +}
-> +
->  /**
->   * iort_iommu_configure - Set-up IOMMU configuration for a device.
->   *
-> @@ -1063,6 +1071,9 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->  		info.node = node;
->  		err = pci_for_each_dma_alias(to_pci_dev(dev),
->  					     iort_pci_iommu_init, &info);
-> +
-> +		if (!err && iort_pci_rc_supports_ats(node))
-> +			dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
->  	} else {
->  		int i = 0;
->  
-> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index 480921dfbadf..51ab006d348e 100644
-> --- a/include/linux/iommu.h
-> +++ b/include/linux/iommu.h
-> @@ -446,6 +446,7 @@ struct iommu_fwspec {
->  	const struct iommu_ops	*ops;
->  	struct fwnode_handle	*iommu_fwnode;
->  	void			*iommu_priv;
-> +	u32			flags;
->  	unsigned int		num_ids;
->  	u32			ids[1];
->  };
-> @@ -458,6 +459,9 @@ struct iommu_sva {
->  	const struct iommu_sva_ops	*ops;
->  };
->  
-> +/* ATS is supported */
-> +#define IOMMU_FWSPEC_PCI_RC_ATS			(1 << 0)
-> +
->  int iommu_fwspec_init(struct device *dev, struct fwnode_handle *iommu_fwnode,
->  		      const struct iommu_ops *ops);
->  void iommu_fwspec_free(struct device *dev);
-> -- 
-> 2.21.0
+> First, apologies for how long it took me to reply to both your inquiries.
+> In trying to answer them I discovered some inconsistencies in how the T100TA was
+> behaving on different hibernation attempts and I've been trying to sort those out.
+> I haven't been completely successful in that, but here's a brief summary.
 > 
+> Yes I do have hibernation working (at least most of the time) on a T100TA,
+> with 5.0 + 02e45646d53b reverted (more about that below), and with a systemd
+> hibernate script also described below.
+> 
+> Trying to be more quantitative about "most of the time" is in part want I've been
+> testing the last few days.  I just finished a cycle of 20 hibernates/resumes
+> which were all successful at least in the sense that after resume internal
+> sound was working, along with all the other critical functions I care about
+> (WiFi, Bluetooth, etc.).  However I have occasionally (perhaps 1 in 10 times)
+> seen something go wrong with sound on resume and the only way to get it
+> working again was to a full reboot.  During the successful cycles I also
+> sometimes see i2c_designware or intel_sst_acpi error messages but they
+> don't seem to indicate an unrecoverable failure.  I was hoping to sort out
+> what errors I was seen on the occasions where sound was lost till a reboot,
+> but those are rare enough I haven't been able to sort out the difference
+> between those and the "recoverable" errors.
+> 
+> Regarding the revert of 02e45646d53b, there were some code changes in
+> adjacent lines so a simple revert wouldn't apply cleanly to 5.0.0
+> but the changes were small enough that I was able to manually "merge"
+> the revert and the 5.0.0 changes.  I have posted a patch file under
+> Bugzilla: <https://bugzilla.kernel.org/show_bug.cgi?id=202139>
+> showing what I actually did to revert 02e45646d53b for 5.0.0.  As I mentioned
+> in an earlier message, I have NOT been able to produce a working revert of
+> 02e45646d53b for the 5.1-rc3 kernel.
+> 
+> To make hibernation work on the T100 I also had to create a script
+> /usr/lib/systemd/system-sleep/t100_hibernate.sh which unloads various drivers
+> (including sound) before hibernate, then restarts them afterwords.  I've inserted
+> it below.  I'm not certain all the steps in it are still necessary, but the
+> intermittent failures make it very difficult to determine what is absolutely essential.
+> 
+> -----t100_hibernate.sh  systemd script-------
+> #!/bin/bash
+> echo "Hibernate script $1 $2"
+> [ $2 != 'hibernate' ] && exit 0
+> 
+> case $1 in
+>          pre)
+>      echo "Going to $2..."
+>      /sbin/modprobe -r brcmfmac
+>      /sbin/modprobe -r hci_uart
+>      /sbin/modprobe -r battery
+>      /sbin/modprobe -r hid_multitouch
+>      /usr/bin/killall pulseaudio
+>      /sbin/modprobe -r snd_soc_sst_bytcr_rt5640
+>      /sbin/modprobe -r snd_soc_rt5640
+>      /sbin/modprobe -r snd_soc_sst_acpi
+>          ;;
+>          post)
+>      echo "Waking from $2..."
+>      /sbin/modprobe brcmfmac
+>      /sbin/modprobe hci_uart
+>      /sbin/modprobe battery
+>      /sbin/modprobe hid_multitouch
+>      # Just load the following and it will pull in other snd modules
+>      /sbin/modprobe snd_soc_sst_acpi
+>      /usr/sbin/service NetworkManager restart
+>      /usr/sbin/service wpa_supplicant restart
+>      # The above is usually enough but occasionally sound doesn't come up properly
+>      # and doing the following seems to restore it in those cases.
+>      /usr/bin/killall pulseaudio
+>      /usr/sbin/rmmod snd_soc_sst_bytcr_rt5640
+>      /usr/sbin/rmmod snd_soc_rt5640
+>      /usr/sbin modprobe snd_soc_rt5640
+>      /usr/sbin modprobe snd_soc_sst_bytcr_rt5640
+>          ;;
+> esac
+> -----end of script-------------------------------
+> 
+> I'll send a second message with the system logs which Kai-Heng requested,
+> with his patch applied to 5.1-rc3.
+
+Ok, so you have hibernation sort of working, with a bunch of hacks.
+
+This is exactly why I usually do not spend any time on trying to get
+hibernation to work.
+
+Still since my patch is regressing things for you I will try to
+take a look at this and see if I can reproduce and come up with
+a fix. But this is not going to be a high priority thing for me to
+work on.
+
+In the mean time I've gone ahead and submitted my version of the
+fix for the problem Kai-Heng was seeing, since that does not seem
+to make your problem worse; and it will be good to get that problem
+fixed.
+
+Regards,
+
+Hans
