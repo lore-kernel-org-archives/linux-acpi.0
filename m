@@ -2,209 +2,175 @@ Return-Path: <SRS0=Z37m=SU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 867B5C10F0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 12:20:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F29BAC10F14
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 12:43:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E8DD217D7
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 12:20:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9E1E21850
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 12:43:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1555591380;
+	bh=h9qyoCxbFTiFLg18zOHH1LOvqUQw+0hkZKUNirVyBWA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=eP4Zw8+Um/irkCZGtCVbhqmkW5eBpSd8ISlLXiao77l5RgROe/w6nfYqVCNpux9xf
+	 UVqbnXpLQTfpviuwiR/eGUyv5vXPC2V7/8e4XXSvk+tt37/HfXbRRPpCZRtGq/Vb5g
+	 mlFEg6wjAk4FIrraezhRu/KvvH14ALtcQVva3MoA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387519AbfDRMU1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Apr 2019 08:20:27 -0400
-Received: from retiisi.org.uk ([95.216.213.190]:58572 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727807AbfDRMU0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Apr 2019 08:20:26 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 46FFD634C7F;
-        Thu, 18 Apr 2019 15:18:48 +0300 (EEST)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1hH609-0004a8-0Q; Thu, 18 Apr 2019 15:18:49 +0300
-Date:   Thu, 18 Apr 2019 15:18:48 +0300
-From:   Sakari Ailus <sakari.ailus@iki.fi>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rob Herring <robh@kernel.org>
-Cc:     linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 1/1] device property: Add
- fwnode_graph_get_endpoint_by_id
-Message-ID: <20190418121848.qdaoi6ibn5opjg6z@valkosipuli.retiisi.org.uk>
-References: <20190402103037.8517-1-sakari.ailus@linux.intel.com>
+        id S2388175AbfDRMmm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 08:42:42 -0400
+Received: from casper.infradead.org ([85.118.1.10]:49308 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726162AbfDRMmm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 08:42:42 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=FVaqqPnygq1+XAL2fV0XyKGzQwLVOq4vtfOZzXdI+DY=; b=mhYX69b7VKfQqcoKdU0MCUDY48
+        wz7J5q7ip7jfFijvK+A2ZbRvvIroxJe506D3ZMQrb3CoLvm9xyPHHWa/5V6VVBpMznpOnG3TfkBul
+        kz42uT6vbsEoSWFDuxWpELrhXI3brxwrB2rUkFxbS3l/dQ1clL/hYTVu4waRAQlFVAZ3+DkBqFnzm
+        gqZN/EwyZolsR5K1343i6maSxSww63KZgfyNN3MAFzgqy9B9T+AHfzMgzbhHjdvpwUt4XzdVhma0k
+        h/lt7McRzt4geBfeCA+wuguIFyeSB89NrhZTxPp/AqEhMrzdLLhaX7EmpBQ/MpRtZ2kCWwpclFQTQ
+        +L6+vL3A==;
+Received: from 177.132.233.55.dynamic.adsl.gvt.net.br ([177.132.233.55] helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1hH6N8-0000gI-FO; Thu, 18 Apr 2019 12:42:35 +0000
+Date:   Thu, 18 Apr 2019 09:42:23 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Jonathan Corbet <corbet@lwn.net>
+Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-fbdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-watchdog@vger.kernel.org, xdp-newbies@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com, bpf@vger.kernel.org,
+        linux-ide@vger.kernel.org, linux-pm@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-scsi@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        x86@kernel.org, dm-devel@redhat.com, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, kexec@lists.infradead.org,
+        linux-fpga@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kbuild@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
+        linux-security-module@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Avoiding merge conflicts while adding new docs - Was: Re: [PATCH
+ 00/57] Convert files to ReST
+Message-ID: <20190418091526.00e074d1@coco.lan>
+In-Reply-To: <cover.1555382110.git.mchehab+samsung@kernel.org>
+References: <cover.1555382110.git.mchehab+samsung@kernel.org>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190402103037.8517-1-sakari.ailus@linux.intel.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
+Message-ID: <20190418124223.paHfdTt6Zlx4VpbuFj8YRxm7rNdFlcoM4Q-Ra0woWww@z>
 
-On Tue, Apr 02, 2019 at 01:30:37PM +0300, Sakari Ailus wrote:
-> fwnode_graph_get_endpoint_by_id() is intended for obtaining local
-> endpoints by a given local port. fwnode_graph_get_endpoint_by_id() is
-> slightly different from its OF counterpart is
-> of_graph_get_endpoint_by_regs(): instead of using -1 as a value to signify
-> that a port or an endpoint number does not matter, it uses flags to look
-> for equal or greater endpoint. The port number is always fixed. It also
-> returns only remote endpoints that belong to an available device, a
-> behaviour that can be turned off with a flag.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Jon,
 
-Ping?
+Em Mon, 15 Apr 2019 23:55:25 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 
-> ---
-> since v2:
-> 
-> - Improved function synopsis and argument descriptions, including flags
-> 
-> - Make flags unsigned long (was an enum)
-> 
-> - Change the disabled bool to enabled_only and reversed its meaning
-> 
-> - Cleaned up figuring out whether a remote device related to and endpoint
->   is available
-> 
-> - Removed not so useful comments and improved some of the remaining ones
-> 
-> - Converted the flags enum to pre-processor macros
-> 
->  drivers/base/property.c  | 75 ++++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/property.h | 18 ++++++++++++
->  2 files changed, 93 insertions(+)
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 8b91ab380d14..348b37e64944 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -984,6 +984,81 @@ fwnode_graph_get_remote_node(const struct fwnode_handle *fwnode, u32 port_id,
->  EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_node);
->  
->  /**
-> + * fwnode_graph_get_endpoint_by_id - get endpoint by port and endpoint numbers
-> + * @fwnode: parent fwnode_handle containing the graph
-> + * @port: identifier of the port node
-> + * @endpoint: identifier of the endpoint node under the port node
-> + * @flags: fwnode lookup flags
-> + *
-> + * Return the fwnode handle of the local endpoint corresponding the port and
-> + * endpoint IDs or NULL if not found.
-> + *
-> + * If FWNODE_GRAPH_ENDPOINT_NEXT is passed in @flags and the specified endpoint
-> + * has not been found, look for the closest endpoint ID greater than the
-> + * specified one and return the endpoint that corresponds to it, if present.
-> + *
-> + * Do not return endpoints that belong to disabled devices, unless
-> + * FWNODE_GRAPH_DEVICE_DISABLED is passed in @flags.
-> + *
-> + * The returned endpoint needs to be released by calling fwnode_handle_put() on
-> + * it when it is not needed any more.
-> + */
-> +struct fwnode_handle *
-> +fwnode_graph_get_endpoint_by_id(const struct fwnode_handle *fwnode,
-> +				u32 port, u32 endpoint, unsigned long flags)
-> +{
-> +	struct fwnode_handle *ep = NULL, *best_ep = NULL;
-> +	unsigned int best_ep_id = 0;
-> +	bool endpoint_next = flags & FWNODE_GRAPH_ENDPOINT_NEXT;
-> +	bool enabled_only = !(flags & FWNODE_GRAPH_DEVICE_DISABLED);
-> +
-> +	while ((ep = fwnode_graph_get_next_endpoint(fwnode, ep))) {
-> +		struct fwnode_endpoint fwnode_ep = { 0 };
-> +		int ret;
-> +
-> +		if (enabled_only) {
-> +			struct fwnode_handle *dev_node;
-> +			bool available;
-> +
-> +			dev_node = fwnode_graph_get_remote_port_parent(ep);
-> +			available = fwnode_device_is_available(dev_node);
-> +			fwnode_handle_put(dev_node);
-> +			if (!available)
-> +				continue;
-> +		}
-> +
-> +		ret = fwnode_graph_parse_endpoint(ep, &fwnode_ep);
-> +		if (ret < 0)
-> +			continue;
-> +
-> +		if (fwnode_ep.port != port)
-> +			continue;
-> +
-> +		if (fwnode_ep.id == endpoint)
-> +			return ep;
-> +
-> +		if (!endpoint_next)
-> +			continue;
-> +
-> +		/*
-> +		 * If the endpoint that has just been found is not the first
-> +		 * matching one and the ID of the one found previously is closer
-> +		 * to the requested endpoint ID, skip it.
-> +		 */
-> +		if (fwnode_ep.id < endpoint ||
-> +		    (best_ep && best_ep_id < fwnode_ep.id))
-> +			continue;
-> +
-> +		fwnode_handle_put(best_ep);
-> +		best_ep = fwnode_handle_get(ep);
-> +		best_ep_id = fwnode_ep.id;
-> +	}
-> +
-> +	return best_ep;
-> +}
-> +EXPORT_SYMBOL_GPL(fwnode_graph_get_endpoint_by_id);
-> +
-> +/**
->   * fwnode_graph_parse_endpoint - parse common endpoint node properties
->   * @fwnode: pointer to endpoint fwnode_handle
->   * @endpoint: pointer to the fwnode endpoint data structure
-> diff --git a/include/linux/property.h b/include/linux/property.h
-> index 65d3420dd5d1..a29369c89e6e 100644
-> --- a/include/linux/property.h
-> +++ b/include/linux/property.h
-> @@ -13,6 +13,7 @@
->  #ifndef _LINUX_PROPERTY_H_
->  #define _LINUX_PROPERTY_H_
->  
-> +#include <linux/bits.h>
->  #include <linux/fwnode.h>
->  #include <linux/types.h>
->  
-> @@ -304,6 +305,23 @@ struct fwnode_handle *
->  fwnode_graph_get_remote_node(const struct fwnode_handle *fwnode, u32 port,
->  			     u32 endpoint);
->  
-> +/*
-> + * Fwnode lookup flags
-> + *
-> + * @FWNODE_GRAPH_ENDPOINT_NEXT: In the case of no exact match, look for the
-> + *				closest endpoint ID greater than the specified
-> + *				one.
-> + * @FWNODE_GRAPH_DEVICE_DISABLED: That the device to which the remote
-> + *				  endpoint of the given endpoint belongs to,
-> + *				  may be disabled.
-> + */
-> +#define FWNODE_GRAPH_ENDPOINT_NEXT	BIT(0)
-> +#define FWNODE_GRAPH_DEVICE_DISABLED	BIT(1)
-> +
-> +struct fwnode_handle *
-> +fwnode_graph_get_endpoint_by_id(const struct fwnode_handle *fwnode,
-> +				u32 port, u32 endpoint, unsigned long flags);
-> +
->  #define fwnode_graph_for_each_endpoint(fwnode, child)			\
->  	for (child = NULL;						\
->  	     (child = fwnode_graph_get_next_endpoint(fwnode, child)); )
-> -- 
-> 2.11.0
-> 
+> I have a separate patch series with do the actual rename and
+> adjustment of references. I opted to submit this first, as it
+> sounds easier to merge this way, as each subsystem maintainer
+> can apply the conversion directly on their trees (or at docs
+> tree), avoiding merge conflects.
 
--- 
-Sakari Ailus
+Based on the number of feedbacks we have about this, I'm
+considering to submit a second version of my conversion patch
+series that would be doing the rename together with each patch,
+adding the rst files to an index file.
+
+However, doing that would produce lots of warnings. We have
+already lots of those at linux-next:
+
+	checking consistency... 
+
+	docs/Documentation/accelerators/ocxl.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/admin-guide/mm/numaperf.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/allocators.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/attributes.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/bigalloc.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/bitmaps.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/blockgroup.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/blocks.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/checksums.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/directory.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/eainode.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/group_descr.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/ifork.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/inlinedata.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/inodes.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/journal.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/mmp.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/special_inodes.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/filesystems/ext4/super.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/fmc/index.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/gpu/msm-crash-dump.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/interconnect/interconnect.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/laptops/lg-laptop.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/virtual/kvm/amd-memory-encryption.rst: WARNING: document isn't included in any toctree
+	docs/Documentation/virtual/kvm/vcpu-requests.rst: WARNING: document isn't included in any toctree
+
+After thinking a little bit and doing some tests, I think a good solution
+would be to add ":orphan:" markup to the new .rst files that were not
+added yet into the main body (e. g. something like the enclosed example).
+
+That will make Sphinx suppress the:
+	"WARNING: document isn't included in any toctree"
+warning for the new files, while they're not included at the main indexes.
+
+This way, maintainers can do all the hard work of doing/applying the ReST
+file conversion/addition patch series on their own trees, and, once
+everything gets merged, submit a patch against the latest docs-next
+tree, removing the :orphan: tag and add them to the common index.rst
+files.
+
+That should largely avoid merging conflicts.
+
+For example, assuming that someone converts the stuff at
+Documentation/accounting and rename the text files there to
+RST (I'm actually doing that), he could add the enclosed change on
+the top of its index file:
+
+	diff --git a/Documentation/accounting/index.rst b/Documentation/accounting/index.rst
+	index e7dda5afa73f..e1f6284b5ff3 100644
+	--- a/Documentation/accounting/index.rst
+	+++ b/Documentation/accounting/index.rst
+	@@ -1,3 +1,5 @@
+	+:orphan:
+	+
+	 ==========
+	 Accounting
+	 ==========
+
+With would make Sphinx to ignore the subdir index file while
+reporting errors. It will still build the documentation, allowing
+the developer to test the changes.
+
+One of the advantages is that checking the orphaned docs is as
+easy as running:
+
+	$ git grep -l ":orphan:" Documentation/
+	...
+	Documentation/accounting/index.rst
+	...
+
+Making easy for people to check the orphaned files and send a fixup
+patch if something got orphaned after the merge window and send a
+fixes patches to be applied upstream.
+
+What do you think?
+
+Regards,
+Mauro
