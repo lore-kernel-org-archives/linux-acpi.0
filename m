@@ -1,166 +1,120 @@
-Return-Path: <SRS0=8JUk=ST=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=Z37m=SU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2FA4C282DA
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 22:11:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 462DCC10F0B
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 06:27:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7714820693
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Apr 2019 22:11:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555539078;
-	bh=q1XR7/+I/uhh7vydXyIxyZjUhp3iukwS4YtTMXBwIl0=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=cFRx6WmqO2r/mYlck+1lu/FB3tg7zKyDwstMwBWoCiNxRzBp3b/3pmBOI3q8VayPp
-	 w5s0BLcU6JEI4SI8mXA5BlxJu7q3baMoKOjqk6w61YvnFdw8JT9YLaOD1MFse6DFO+
-	 VJEmNg0SaRPKCypR/I8QHivCJcGmVfW+ahP2LgDI=
+	by mail.kernel.org (Postfix) with ESMTP id 20EE421479
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 06:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733274AbfDQWLN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Apr 2019 18:11:13 -0400
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:43015 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728237AbfDQWLN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Apr 2019 18:11:13 -0400
-Received: by mail-ot1-f66.google.com with SMTP id u15so2076otq.10;
-        Wed, 17 Apr 2019 15:11:12 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=i/SMcLR60pTb8GHWCFJb8vDfzN0yXO1auw51WJ143aM=;
-        b=MzLs64D21/i6dz4Wcp9rEEjaDTWXhDGx3GD3okENLrwdQzsmjRNz1BXr2K2j/mx1IE
-         OqjZF/xjclhhALOp5XPeTZbuyO3zAy22O/dQgadXr1Ydg9Xtdc5lDGt/qiGvEgcX1E5Y
-         INO1XLOWrskDaCyV3lncejoOlb3SBEgimITk6NUTZ4Jn7YmCht3k9bdBPNGjSDg4u3Nm
-         kdOLKw1I3KY+T9UsWEadK0n8E82qbluq8IWz/bs9V5dCGrDiWPr8byRFO/QgAznK29FP
-         RWV59BiO50rLO9SEJYFSGjDypmcRSixeX8729ZI8vJ4StELudID5m/MTCLBmjTpys01b
-         kK3A==
-X-Gm-Message-State: APjAAAXSSzxTUg9aiHDpvGu6tPIMlR/uUyGblFFVq/RiC67Eq0gStkZz
-        DpL6kyy/Ed/98G6uxgG6aGpvG+JOC7L/X5s/uYs=
-X-Google-Smtp-Source: APXvYqwpEt+M3lTny3H4KeeWmAXm8F5FWDSQQCr2VkvfpK+L+/tEWCct/7FaPolUgo95oM6Jr1OrfNQBaeewW+GrK48=
-X-Received: by 2002:a05:6830:20cd:: with SMTP id z13mr57759947otq.168.1555539071987;
- Wed, 17 Apr 2019 15:11:11 -0700 (PDT)
+        id S2387990AbfDRG1D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 02:27:03 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:59990 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725864AbfDRG1D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 Apr 2019 02:27:03 -0400
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id A3BA6307D853;
+        Thu, 18 Apr 2019 06:27:02 +0000 (UTC)
+Received: from colo-mx.corp.redhat.com (colo-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.20])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 3C65F60BF7;
+        Thu, 18 Apr 2019 06:27:02 +0000 (UTC)
+Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
+        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 1A4C3181AC43;
+        Thu, 18 Apr 2019 06:27:01 +0000 (UTC)
+Date:   Thu, 18 Apr 2019 02:27:00 -0400 (EDT)
+From:   Pankaj Gupta <pagupta@redhat.com>
+To:     Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.cz>,
+        Dan Williams <dan.j.williams@intel.com>
+Cc:     cohuck@redhat.com, KVM list <kvm@vger.kernel.org>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        virtualization@lists.linux-foundation.org,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        Len Brown <lenb@kernel.org>, kilobyte@angband.pl,
+        Rik van Riel <riel@surriel.com>,
+        yuval shaia <yuval.shaia@oracle.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, lcapitulino@redhat.com,
+        Kevin Wolf <kwolf@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Theodore Ts'o <tytso@mit.edu>,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Igor Mammedov <imammedo@redhat.com>
+Message-ID: <695036448.22376013.1555568820649.JavaMail.zimbra@redhat.com>
+In-Reply-To: <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com> <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com> <20190412083230.GA29850@quack2.suse.cz> <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: [Qemu-devel] [PATCH v5 1/6] libnvdimm: nd_region flush callback
+ support
 MIME-Version: 1.0
-References: <cover.1554410643.git.Janakarajan.Natarajan@amd.com>
- <d44f4893-0b67-4993-2942-6e03d29dffa1@amd.com> <CAJZ5v0jh0Yn1fy5bO3wett5AsjBA55_Z-8L_M8eRyy5cePqwaw@mail.gmail.com>
- <SN6PR12MB26396618BAC0F6600D786E08F8250@SN6PR12MB2639.namprd12.prod.outlook.com>
-In-Reply-To: <SN6PR12MB26396618BAC0F6600D786E08F8250@SN6PR12MB2639.namprd12.prod.outlook.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 18 Apr 2019 00:10:59 +0200
-Message-ID:
- <CAJZ5v0hJpYROLJup0mvCp2G8ekeDyBrp+hdhHdsd+vhBq5RxVQ@mail.gmail.com>
-Subject: Re: [PATCH v2 0/7] CPPC optional registers AMD support
-To:     "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Schmauss <erik.schmauss@intel.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.65.16.113, 10.4.195.14]
+Thread-Topic: libnvdimm: nd_region flush callback support
+Thread-Index: RQT8Mi0vbK6u7EvKBqBlDf90vecY1Q==
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.48]); Thu, 18 Apr 2019 06:27:03 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190417221059.QzWRxk88qBN78SVdwiZ4dDTTHKxYoetsWBJpTIk9ClM@z>
+Message-ID: <20190418062700.KrBdCxzvVg_jAmXx1dipEJEGpYPDSX1exPusQtpJaZo@z>
 
-On Wed, Apr 17, 2019 at 7:28 PM Ghannam, Yazen <Yazen.Ghannam@amd.com> wrote:
->
-> > -----Original Message-----
-> > From: Rafael J. Wysocki <rafael@kernel.org>
-> > Sent: Tuesday, April 16, 2019 4:34 AM
-> > To: Natarajan, Janakarajan <Janakarajan.Natarajan@amd.com>
-> > Cc: Natarajan, Janakarajan <Janakarajan.Natarajan@amd.com>; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> > pm@vger.kernel.org; devel@acpica.org; Rafael J . Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>; Viresh Kumar
-> > <viresh.kumar@linaro.org>; Robert Moore <robert.moore@intel.com>; Erik Schmauss <erik.schmauss@intel.com>; Ghannam, Yazen
-> > <Yazen.Ghannam@amd.com>
-> > Subject: Re: [PATCH v2 0/7] CPPC optional registers AMD support
-> >
-> > On Tue, Apr 16, 2019 at 12:35 AM Janakarajan Natarajan <jnataraj@amd.com> wrote:
-> > >
-> > > On 4/4/19 4:25 PM, Natarajan, Janakarajan wrote:
-> > > > CPPC (Collaborative Processor Performance Control) offers optional
-> > > > registers which can be used to tune the system based on energy and/or
-> > > > performance requirements.
-> > > >
-> > > > Newer AMD processors add support for a subset of these optional CPPC
-> > > > registers, based on ACPI v6.1.
-> > > >
-> > > > The following are the supported CPPC registers for which sysfs entries
-> > > > are created:
-> > > > * enable                (NEW)
-> > > > * max_perf              (NEW)
-> > > > * min_perf              (NEW)
-> > > > * energy_perf
-> > > > * lowest_perf
-> > > > * nominal_perf
-> > > > * desired_perf          (NEW)
-> > > > * feedback_ctrs
-> > > > * auto_sel_enable       (NEW)
-> > > > * lowest_nonlinear_perf
-> > > >
-> > > > The CPPC driver is updated to enable the OSPM and the userspace to
-> > > > access
-> > > > the newly supported registers.
-> > > >
-> > > > The purpose of exposing the registers via the sysfs entries is to allow
-> > > > the userspace to:
-> > > > * Tweak the values to fit its workload.
-> > > > * Apply a profile from AMD's optimization guides.
-> > > >
-> > > > Profiles will be documented in the performance/optimization guides.
-> > > >
-> > > > Note:
-> > > > * AMD systems will not have a policy applied in the kernel at this time.
-> > > > * By default, acpi_cpufreq will still be used.
-> > > >
-> > > > TODO:
-> > > > * Create a linux userspace tool that will help users generate a CPPC
-> > > > * profile
-> > > >    for their target workload.
-> > > > * Create or update a driver to apply a general CPPC policy in the
-> > > > * kernel.
-> > > >
-> > > > v1->v2:
-> > > > * Add macro to ensure BUFFER only registers have BUFFER type.
-> > > > * Add support macro to make the right check based on register type.
-> > > > * Remove support checks for registers which are mandatory.
-> > >
-> > >
-> > > Are there any concerns regarding this patchset?
-> >
-> > Yes, there are.
-> >
-> > Unfortunately, it is generally problematic.
-> >
-> > First off, the behavior of existing sysfs files cannot be changed at
-> > will, as there may be users of them out there already depending on the
-> > current behavior.
-> >
->
-> The intent is to add new sysfs files without changing the existing files. Is that okay?
->
-> Or is the addition of new files also not acceptable?
->
-> > Second, at least some CPPC control registers are used by cpufreq
-> > drivers (cppc_cpufreq and intel_pstate), so modifying them behind the
-> > drivers' backs is not a good idea in general.  For this reason, adding
-> > new sysfs attributes to allow user space to do that is quite
-> > questionable.
-> >
->
-> Yes, good point.
->
-> What if a check is added so that writes only succeed if the CPUFREQ governor is set to userspace?
 
-That wouldn't be particularly straightforward IMO.
+Hello,
 
-What about handling this like the others do, through a proper cpufreq driver?
+Thank you for the suggestions on this.
+
+> 
+> > On Thu 11-04-19 07:51:48, Dan Williams wrote:
+> >> On Tue, Apr 9, 2019 at 9:09 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+> >> > +       } else {
+> >> > +               if (nd_region->flush(nd_region))
+> >> > +                       rc = -EIO;
+> >> 
+> >> Given the common case wants to be fast and synchronous I think we
+> >> should try to avoid retpoline overhead by default. So something like
+> >> this:
+> >> 
+> >> if (nd_region->flush == generic_nvdimm_flush)
+> >>     rc = generic_nvdimm_flush(...);
+> >
+> > I'd either add a comment about avoiding retpoline overhead here or just
+> > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
+> > get confused by the code.
+> 
+> Isn't this premature optimization?  I really don't like adding things
+> like this without some numbers to show it's worth it.
+
+Can we add the optimization after this version is merged.
+
+Best regards,
+Pankaj 
+
+> 
+> -Jeff
+> 
+> 
