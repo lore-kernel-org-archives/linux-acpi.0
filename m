@@ -4,95 +4,90 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_DKIMWL_WL_HIGH,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81299C10F0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 14:40:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFA05C10F0E
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 14:49:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3FE84217D7
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 14:40:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3E80206B6
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 14:49:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555598404;
-	bh=tekO43nJXxpaaeevEmdoVFA6o1lSPhmSz0QpgCW8LDc=;
+	s=default; t=1555598962;
+	bh=B7HTXH2MS0ycclyt2mejnrgJuhsMVFgrm1YNhEY/tSI=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=XOK1DtPrXnzWn2IlmlUFjLOOLdy7dRElRJHi3lmW8f9aYqf0t5iZNjmR6SDDCTb6F
-	 ksOpE/nEkETBmCYXZhKFeKsJWNT24iDDV7lWewJwCcMgQMROJlfJNonzDyYieyv+qF
-	 HN7H8ElN2Dh9/Y9///lROuBqQEdfL38h2kGHlEQI=
+	b=q/jkP2e5b0iDDjtMOohegKzqMoZATVM80TaxYxeJyFx3NePN+UZViRidoPZPz280M
+	 Iq1Mb2W1cylyGbU8SFdDgvx2xqK7FsVbjgZmPxyLWz9xmDIcWLnzv0S0a+3jHZWv6l
+	 nJ8uRtqg7pm38cb8CCdF/UR86ZgcxfS4B+vN+RzU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388343AbfDROkD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Apr 2019 10:40:03 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:33338 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388277AbfDROkD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 10:40:03 -0400
-Received: by mail-oi1-f196.google.com with SMTP id e5so1808363oii.0;
-        Thu, 18 Apr 2019 07:40:03 -0700 (PDT)
+        id S2389212AbfDROtV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 10:49:21 -0400
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:46671 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1733192AbfDROtV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 10:49:21 -0400
+Received: by mail-oi1-f194.google.com with SMTP id x188so1778854oia.13
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Apr 2019 07:49:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=hwMyiCrXg7F4EhT0zxsPBDwK6KZEo1cltBW0EokSJ4o=;
-        b=qCb5xupsBvym06K1m0cG3VYd7rsQ0OBpY18rdj9iYKYbU4PsE6MUC+t4HZxBWX1bq1
-         Oz512pMCrIKHzhHbJAGwwpXoDnvelAod78RSTzJB9hXTEBVwjXfp/0j/qrBjuWvGtugv
-         lKD1JtVw/OvieApObOgK+YJdWq+Y4Q18moRU5pvIRTpa1WKUs/yRGWVoWQr7iE8msr7N
-         rZEEEX9ObLUibCSceowEwZy1Jr8/FTyATmRdROuM76953Q2E52iDj4nBtq6mNQVakMsc
-         MBHltiKDYVlnzXheZZaJwj45PXLQX4dRiXXHkg2kIvji/Tgt1DhyeuumaFkenDy1GqbT
-         LyMg==
-X-Gm-Message-State: APjAAAXJbqxosTVHtechah+EOPrLTFtUwLsc1egJlSgPz0cYC1CeAcft
-        YKy+MMkTdE61YTRMGxCnPzFdUa1upP2Okv+jM08=
-X-Google-Smtp-Source: APXvYqxQJ/eZGM8YukG2KhMNqstirXgSqSvnFEPXxKBHamuwMHGBG+l9h7Dzxjo3nnwli0OutOYXLps3SHxCfZOsprI=
-X-Received: by 2002:aca:ba82:: with SMTP id k124mr2368438oif.110.1555598402635;
- Thu, 18 Apr 2019 07:40:02 -0700 (PDT)
+        bh=B7HTXH2MS0ycclyt2mejnrgJuhsMVFgrm1YNhEY/tSI=;
+        b=YuL2i3r6Q+CLuDm375cSoCF+jd6Ta5cSBhYS6wSxQedkhS/bCcE+NQYIesa1BHPoiJ
+         UwqiCB2Ir130AuQaP/wk6vpcoAVlegqcJMGn4GKdbCeDppMxggrEwj5PFg0sGgNzV6+8
+         M3lTCH4T8H5H5o/4/d/uXUK8ihna1NtsuCMrSkdj0h9tSHa3JVMuwjlw6Du/BxKdOdEt
+         jeNSDOa5Vs12CjAxjXAvlDTrgqDEOGunFJnWmiEfmypunvn0vkLRYDeg4Eo+ZmhukGCT
+         8KhS96vQMaaAbRxxbw3//7WvOMSWH9ezjpYs0vQXmhBJ/kddKF3vkDUmfFs4pGlLw5t2
+         bfyA==
+X-Gm-Message-State: APjAAAWom0HkcWlw4HTtrEk/aDjMVDTtNoyuORNZL0eSsr5KJw7rDSNK
+        fN8HOQp+k3U3mLkIFauCk3OU4X78b4GRyruUTTk=
+X-Google-Smtp-Source: APXvYqwQR6FvDmbmhGrUcSVwVmb7V3ufY1PC8GRPxDG4CHuSe86+ufp0mVoOj2M/bn6HDQz3BfMglp+DJfCmFBRuj/E=
+X-Received: by 2002:aca:ab06:: with SMTP id u6mr2075791oie.68.1555598959618;
+ Thu, 18 Apr 2019 07:49:19 -0700 (PDT)
 MIME-Version: 1.0
-References: <1555344260-12375-28-git-send-email-suzuki.poulose@arm.com>
- <1555411164-26399-1-git-send-email-suzuki.poulose@arm.com>
- <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com> <ebb13205-2548-1c30-fd65-bdfe4c7d9c08@arm.com>
-In-Reply-To: <ebb13205-2548-1c30-fd65-bdfe4c7d9c08@arm.com>
+References: <20190418113933.11158-1-hdegoede@redhat.com>
+In-Reply-To: <20190418113933.11158-1-hdegoede@redhat.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 18 Apr 2019 16:39:51 +0200
-Message-ID:
- <CAJZ5v0jXioEAELmHqMhR0wJQkzLQpp1WA-zuWHdFkSWjiX0kVw@mail.gmail.com>
-Subject: Re: [RESEND][PATCH v2 27/36] drivers: Add a generic helper to match
- device by fwnode handle
-To:     Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        coresight@lists.linaro.org,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Date:   Thu, 18 Apr 2019 16:49:08 +0200
+Message-ID: <CAJZ5v0g614gPUL9p-Tn4bRRwDcqd+F+-RSr50xXrMTpDzSnd+A@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / LPSS: Use acpi_lpss_* instead of acpi_subsys_*
+ functions for hibernate
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        "Robert R . Howell" <RHowell@uwyo.edu>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190418143951.E7t9Tkhj--o91t_FJGQpaVshBp1CRp_Gn9YABadQs28@z>
 
-On Tue, Apr 16, 2019 at 12:53 PM Suzuki K Poulose
-<suzuki.poulose@arm.com> wrote:
+On Thu, Apr 18, 2019 at 1:39 PM Hans de Goede <hdegoede@redhat.com> wrote:
 >
-> On 04/16/2019 11:48 AM, Rafael J. Wysocki wrote:
-> > On Tue, Apr 16, 2019 at 12:39 PM Suzuki K Poulose
-> > <suzuki.poulose@arm.com> wrote:
-> >>
-> >> Make the device_fwnode_match() a generic helper to match device
-> >> by fwnode handle for use with bus_find_device(). This will be
-> >> also used by coresight.
-> >>
-> >> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> >> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> >> Cc: linux-acpi@vger.kernel.org
-> >> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
-> >> ---
-> >>
-> >> Resending with linux-acpi in Cc, as requested by Rafael.
-> >
-> > Do any other patches in your series depend on this one?
+> Commit 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from
+> resume_noirq") makes acpi_lpss_{suspend_late,resume_early}() bail early
+> on BYT/CHT as resume_from_noirq is set.
 >
-> Yes, I do. But they are in the middle of a big series of changes and
-> I don't expect this series to go into 5.2. So, if you plan to pull this
-> please go ahead.
+> This means that on resume from hibernate dw_i2c_plat_resume() doesn't get
+> called by the restore_early callback, acpi_lpss_resume_early(). Instead it
+> should be called by the restore_noirq callback matching how things are done
+> when resume_from_noirq is set and we are doing a regular resume.
+>
+> Change the restore_noirq callback to acpi_lpss_resume_noirq so that
+> dw_i2c_plat_resume() gets properly called when resume_from_noirq is set
+> and we are resuming from hibernate.
+>
+> Likewise also change the poweroff_noirq callback so that
+> dw_i2c_plat_suspend gets called properly.
+>
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=202139
+> Fixes: 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from resume_noirq")
+> Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> Reported-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-I would prefer the new exported function to return bool.  With that
-changed, I can apply the patch I think.
+Queued up, thanks!
+
+I've tentatively tagged it for 4.20+ "stable" inclusion, please let me
+know if you think that's not appropriate.
