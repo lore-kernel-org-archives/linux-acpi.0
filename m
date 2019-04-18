@@ -2,83 +2,91 @@ Return-Path: <SRS0=Z37m=SU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72940C10F0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2266C10F0E
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:15:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D7CB205F4
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:07:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555600045;
-	bh=MUhdhFrOLM4zcc4C4CsZIl2+GLyD2pt4jCtnmd9DaK4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=O8Wy/T32si9pe3sFgW3uOlum1AvDvF9/OvI1F/a+5oIAfHlyccEDNro1XZ0/bYDZJ
-	 KKExr/oYg5JOt1CLKRdb+Mm7w7DGD6c+I/oWEjhiJIU/PU9vNHmZoLzV6PzV0WuapG
-	 PBmjSnGA7dAsm9LcLTQqyhOI+JHaX2ZmzsIsotvs=
+	by mail.kernel.org (Postfix) with ESMTP id CF57820651
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:15:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389160AbfDRPHY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Apr 2019 11:07:24 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:37355 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389141AbfDRPHY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 11:07:24 -0400
-Received: by mail-oi1-f194.google.com with SMTP id v84so1863242oif.4;
-        Thu, 18 Apr 2019 08:07:23 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=MUhdhFrOLM4zcc4C4CsZIl2+GLyD2pt4jCtnmd9DaK4=;
-        b=tU7GTQ22vRr1vwO0MtH2G05n+E16tQ5K7gSMnW3XN3oViQ9lkVDt8UaIjpT8TCWLF9
-         C94g1QLEuwc9fAx98dVIkEIuUsX03kb7n9KJZO1oME8i4Fb20zVck8fG8WnRjrZFQIqj
-         Pw8uC0jMiKyv/M0WB8K20PecCZVWxCYEUbavKCJc+fe4hq1lWABVo0Si89+wKMTDehJj
-         2mNbfpnwoEiPsSScMl+o4DvFfdG6F2jsHL1frXmvRkIWpzAoi9ofUJ9fbDmsjhTWuDG2
-         jS1XDsrrmZSTHZNM58PA5WdDXzGNSpjcZvdcr5XUqk9y9iYDi/Nc3H7fektVf54QPpFe
-         AsMQ==
-X-Gm-Message-State: APjAAAWDqx7kDPjkqJBjn2yedYAYe9KnFJKn4yCwrIFC55kZ9N/jUgpG
-        xBZ6/jLTuwrQkg2T97Kfh4zP+GvR19i9FKM3+GzOhA==
-X-Google-Smtp-Source: APXvYqyf06lSGGJZvjXf57aOXckOfNwtOToTZ7LYtWQ4NrH5rRlG4Xz39OTc10mZNbVZOnc/M28WeD2MnSWsoGWi2Kg=
-X-Received: by 2002:aca:ab06:: with SMTP id u6mr2133902oie.68.1555600043240;
- Thu, 18 Apr 2019 08:07:23 -0700 (PDT)
+        id S2388495AbfDRPP5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 11:15:57 -0400
+Received: from foss.arm.com ([217.140.101.70]:35548 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731317AbfDRPP5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 Apr 2019 11:15:57 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6555815AB;
+        Thu, 18 Apr 2019 08:15:56 -0700 (PDT)
+Received: from [10.37.12.22] (unknown [10.37.12.22])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9E0093F5AF;
+        Thu, 18 Apr 2019 08:15:51 -0700 (PDT)
+Subject: Re: [RESEND][PATCH v2 27/36] drivers: Add a generic helper to match
+ device by fwnode handle
+To:     rafael@kernel.org
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        coresight@lists.linaro.org, mathieu.poirier@linaro.org,
+        gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org
+References: <1555344260-12375-28-git-send-email-suzuki.poulose@arm.com>
+ <1555411164-26399-1-git-send-email-suzuki.poulose@arm.com>
+ <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com>
+ <ebb13205-2548-1c30-fd65-bdfe4c7d9c08@arm.com>
+ <CAJZ5v0jXioEAELmHqMhR0wJQkzLQpp1WA-zuWHdFkSWjiX0kVw@mail.gmail.com>
+From:   Suzuki K Poulose <suzuki.poulose@arm.com>
+Message-ID: <1379e9d4-c020-6180-69e8-f15a9e0983bc@arm.com>
+Date:   Thu, 18 Apr 2019 16:18:11 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.7.0
 MIME-Version: 1.0
-References: <20190417181310.27613-1-alison.schofield@intel.com> <20190418145640.GA7659@localhost.localdomain>
-In-Reply-To: <20190418145640.GA7659@localhost.localdomain>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 18 Apr 2019 17:07:12 +0200
-Message-ID:
- <CAJZ5v0g1EZbzr6BJhVBVb8JZGnVQg2Sz8NHtz_0Ji9R_58wMbA@mail.gmail.com>
-Subject: Re: [PATCH] acpi/hmat: Update acpi_hmat_type enum with ACPI_HMAT_TYPE_PROXIMITY
-To:     Keith Busch <keith.busch@intel.com>
-Cc:     Alison Schofield <alison.schofield@intel.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Robert Moore <robert.moore@intel.com>,
-        "Schmauss, Erik" <erik.schmauss@intel.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAJZ5v0jXioEAELmHqMhR0wJQkzLQpp1WA-zuWHdFkSWjiX0kVw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format="flowed"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190418150712.nf9PDjGl3LbJ5RWE5EfJFVB6o14hwy-JzFhgkAhZJC0@z>
+Message-ID: <20190418151811.alRv3oan7YCcxDql4dRM37VWFx1Jo4vQJxnrqQy9lvw@z>
 
-On Thu, Apr 18, 2019 at 5:02 PM Keith Busch <keith.busch@intel.com> wrote:
->
-> On Wed, Apr 17, 2019 at 11:13:10AM -0700, Alison Schofield wrote:
-> > ACPI 6.3 changed the subtable "Memory Subsystem Address Range Structure"
-> > to "Memory Proximity Domain Attributes Structure".
-> >
-> > Updating and renaming of the structure was included in commit:
-> > ACPICA: ACPI 6.3: HMAT updates (9a8d961f1ef835b0d338fbe13da03cb424e87ae5)
->
-> I was not really happy with that HMAT update. Platforms implementing
-> 6.2's HMAT continue to exist even if 6.3 isn't backward compatible. We
-> just lost the original subtable definition.
+On 04/18/2019 03:39 PM, Rafael J. Wysocki wrote:
+> On Tue, Apr 16, 2019 at 12:53 PM Suzuki K Poulose
+> <suzuki.poulose@arm.com> wrote:
+>>
+>> On 04/16/2019 11:48 AM, Rafael J. Wysocki wrote:
+>>> On Tue, Apr 16, 2019 at 12:39 PM Suzuki K Poulose
+>>> <suzuki.poulose@arm.com> wrote:
+>>>>
+>>>> Make the device_fwnode_match() a generic helper to match device
+>>>> by fwnode handle for use with bus_find_device(). This will be
+>>>> also used by coresight.
+>>>>
+>>>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>>> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+>>>> Cc: linux-acpi@vger.kernel.org
+>>>> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+>>>> ---
+>>>>
+>>>> Resending with linux-acpi in Cc, as requested by Rafael.
+>>>
+>>> Do any other patches in your series depend on this one?
+>>
+>> Yes, I do. But they are in the middle of a big series of changes and
+>> I don't expect this series to go into 5.2. So, if you plan to pull this
+>> please go ahead.
+> 
+> I would prefer the new exported function to return bool.  With that
+> changed, I can apply the patch I think.
+> 
 
-Well, that's true, sadly, but the question is what to do in the kernel.
 
-Definitely, the 6.3 format needs to be supported, but if the 6.2 ships
-anywhere in practice, that will need to be supported too.
+That will need changes to all the other callers of bus_find_device()
+to fix their match(). I guess that is a bit of an invasive change, so
+I would rather do it in the "consolidation" series with
+class_find_device().
+
+Hope you're fine with that.
+
+Suzuki
