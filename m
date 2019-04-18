@@ -1,31 +1,60 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] acpi/hmat: Update acpi_hmat_type enum with ACPI_HMAT_TYPE_PROXIMITY
-Date: Thu, 18 Apr 2019 17:07:12 +0200
-Message-ID: <CAJZ5v0g1EZbzr6BJhVBVb8JZGnVQg2Sz8NHtz_0Ji9R_58wMbA@mail.gmail.com>
-References: <20190417181310.27613-1-alison.schofield@intel.com> <20190418145640.GA7659@localhost.localdomain>
+From: Suzuki K Poulose <suzuki.poulose@arm.com>
+Subject: Re: [RESEND][PATCH v2 27/36] drivers: Add a generic helper to match
+ device by fwnode handle
+Date: Thu, 18 Apr 2019 16:18:11 +0100
+Message-ID: <1379e9d4-c020-6180-69e8-f15a9e0983bc@arm.com>
+References: <1555344260-12375-28-git-send-email-suzuki.poulose@arm.com>
+ <1555411164-26399-1-git-send-email-suzuki.poulose@arm.com>
+ <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com>
+ <ebb13205-2548-1c30-fd65-bdfe4c7d9c08@arm.com>
+ <CAJZ5v0jXioEAELmHqMhR0wJQkzLQpp1WA-zuWHdFkSWjiX0kVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190418145640.GA7659@localhost.localdomain>
+In-Reply-To: <CAJZ5v0jXioEAELmHqMhR0wJQkzLQpp1WA-zuWHdFkSWjiX0kVw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: rafael@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, coresight@lists.linaro.org, mathieu.poirier@linaro.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 18, 2019 at 5:02 PM Keith Busch <keith.busch@intel.com> wrote:
->
-> On Wed, Apr 17, 2019 at 11:13:10AM -0700, Alison Schofield wrote:
-> > ACPI 6.3 changed the subtable "Memory Subsystem Address Range Structure"
-> > to "Memory Proximity Domain Attributes Structure".
-> >
-> > Updating and renaming of the structure was included in commit:
-> > ACPICA: ACPI 6.3: HMAT updates (9a8d961f1ef835b0d338fbe13da03cb424e87ae5)
->
-> I was not really happy with that HMAT update. Platforms implementing
-> 6.2's HMAT continue to exist even if 6.3 isn't backward compatible. We
-> just lost the original subtable definition.
+On 04/18/2019 03:39 PM, Rafael J. Wysocki wrote:
+> On Tue, Apr 16, 2019 at 12:53 PM Suzuki K Poulose
+> <suzuki.poulose@arm.com> wrote:
+>>
+>> On 04/16/2019 11:48 AM, Rafael J. Wysocki wrote:
+>>> On Tue, Apr 16, 2019 at 12:39 PM Suzuki K Poulose
+>>> <suzuki.poulose@arm.com> wrote:
+>>>>
+>>>> Make the device_fwnode_match() a generic helper to match device
+>>>> by fwnode handle for use with bus_find_device(). This will be
+>>>> also used by coresight.
+>>>>
+>>>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>>> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+>>>> Cc: linux-acpi@vger.kernel.org
+>>>> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+>>>> ---
+>>>>
+>>>> Resending with linux-acpi in Cc, as requested by Rafael.
+>>>
+>>> Do any other patches in your series depend on this one?
+>>
+>> Yes, I do. But they are in the middle of a big series of changes and
+>> I don't expect this series to go into 5.2. So, if you plan to pull this
+>> please go ahead.
+> 
+> I would prefer the new exported function to return bool.  With that
+> changed, I can apply the patch I think.
+> 
 
-Well, that's true, sadly, but the question is what to do in the kernel.
 
-Definitely, the 6.3 format needs to be supported, but if the 6.2 ships
-anywhere in practice, that will need to be supported too.
+That will need changes to all the other callers of bus_find_device()
+to fix their match(). I guess that is a bit of an invasive change, so
+I would rather do it in the "consolidation" series with
+class_find_device().
+
+Hope you're fine with that.
+
+Suzuki
