@@ -2,59 +2,83 @@ Return-Path: <SRS0=Z37m=SU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 606A0C10F0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:02:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72940C10F0E
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:07:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3932B206B6
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:02:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D7CB205F4
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:07:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1555600045;
+	bh=MUhdhFrOLM4zcc4C4CsZIl2+GLyD2pt4jCtnmd9DaK4=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=O8Wy/T32si9pe3sFgW3uOlum1AvDvF9/OvI1F/a+5oIAfHlyccEDNro1XZ0/bYDZJ
+	 KKExr/oYg5JOt1CLKRdb+Mm7w7DGD6c+I/oWEjhiJIU/PU9vNHmZoLzV6PzV0WuapG
+	 PBmjSnGA7dAsm9LcLTQqyhOI+JHaX2ZmzsIsotvs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388548AbfDRPCy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Apr 2019 11:02:54 -0400
-Received: from mga14.intel.com ([192.55.52.115]:12637 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388528AbfDRPCy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Apr 2019 11:02:54 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Apr 2019 08:02:54 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,366,1549958400"; 
-   d="scan'208";a="150471242"
-Received: from unknown (HELO localhost.localdomain) ([10.232.112.69])
-  by FMSMGA003.fm.intel.com with ESMTP; 18 Apr 2019 08:02:53 -0700
-Date:   Thu, 18 Apr 2019 08:56:40 -0600
-From:   Keith Busch <keith.busch@intel.com>
-To:     Alison Schofield <alison.schofield@intel.com>
-Cc:     rjw@rjwysocki.net, robert.moore@intel.com, erik.schmauss@intel.com,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] acpi/hmat: Update acpi_hmat_type enum with
- ACPI_HMAT_TYPE_PROXIMITY
-Message-ID: <20190418145640.GA7659@localhost.localdomain>
-References: <20190417181310.27613-1-alison.schofield@intel.com>
+        id S2389160AbfDRPHY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 11:07:24 -0400
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:37355 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389141AbfDRPHY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 11:07:24 -0400
+Received: by mail-oi1-f194.google.com with SMTP id v84so1863242oif.4;
+        Thu, 18 Apr 2019 08:07:23 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=MUhdhFrOLM4zcc4C4CsZIl2+GLyD2pt4jCtnmd9DaK4=;
+        b=tU7GTQ22vRr1vwO0MtH2G05n+E16tQ5K7gSMnW3XN3oViQ9lkVDt8UaIjpT8TCWLF9
+         C94g1QLEuwc9fAx98dVIkEIuUsX03kb7n9KJZO1oME8i4Fb20zVck8fG8WnRjrZFQIqj
+         Pw8uC0jMiKyv/M0WB8K20PecCZVWxCYEUbavKCJc+fe4hq1lWABVo0Si89+wKMTDehJj
+         2mNbfpnwoEiPsSScMl+o4DvFfdG6F2jsHL1frXmvRkIWpzAoi9ofUJ9fbDmsjhTWuDG2
+         jS1XDsrrmZSTHZNM58PA5WdDXzGNSpjcZvdcr5XUqk9y9iYDi/Nc3H7fektVf54QPpFe
+         AsMQ==
+X-Gm-Message-State: APjAAAWDqx7kDPjkqJBjn2yedYAYe9KnFJKn4yCwrIFC55kZ9N/jUgpG
+        xBZ6/jLTuwrQkg2T97Kfh4zP+GvR19i9FKM3+GzOhA==
+X-Google-Smtp-Source: APXvYqyf06lSGGJZvjXf57aOXckOfNwtOToTZ7LYtWQ4NrH5rRlG4Xz39OTc10mZNbVZOnc/M28WeD2MnSWsoGWi2Kg=
+X-Received: by 2002:aca:ab06:: with SMTP id u6mr2133902oie.68.1555600043240;
+ Thu, 18 Apr 2019 08:07:23 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190417181310.27613-1-alison.schofield@intel.com> <20190418145640.GA7659@localhost.localdomain>
+In-Reply-To: <20190418145640.GA7659@localhost.localdomain>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 18 Apr 2019 17:07:12 +0200
+Message-ID:
+ <CAJZ5v0g1EZbzr6BJhVBVb8JZGnVQg2Sz8NHtz_0Ji9R_58wMbA@mail.gmail.com>
+Subject: Re: [PATCH] acpi/hmat: Update acpi_hmat_type enum with ACPI_HMAT_TYPE_PROXIMITY
+To:     Keith Busch <keith.busch@intel.com>
+Cc:     Alison Schofield <alison.schofield@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Robert Moore <robert.moore@intel.com>,
+        "Schmauss, Erik" <erik.schmauss@intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <20190417181310.27613-1-alison.schofield@intel.com>
-User-Agent: Mutt/1.9.1 (2017-09-22)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190418145640.oEqc1CzSQ-c82J9mTjKLbqumEo2iwcWA944BO47D4X8@z>
+Message-ID: <20190418150712.nf9PDjGl3LbJ5RWE5EfJFVB6o14hwy-JzFhgkAhZJC0@z>
 
-On Wed, Apr 17, 2019 at 11:13:10AM -0700, Alison Schofield wrote:
-> ACPI 6.3 changed the subtable "Memory Subsystem Address Range Structure"
-> to "Memory Proximity Domain Attributes Structure".
-> 
-> Updating and renaming of the structure was included in commit:
-> ACPICA: ACPI 6.3: HMAT updates (9a8d961f1ef835b0d338fbe13da03cb424e87ae5)
+On Thu, Apr 18, 2019 at 5:02 PM Keith Busch <keith.busch@intel.com> wrote:
+>
+> On Wed, Apr 17, 2019 at 11:13:10AM -0700, Alison Schofield wrote:
+> > ACPI 6.3 changed the subtable "Memory Subsystem Address Range Structure"
+> > to "Memory Proximity Domain Attributes Structure".
+> >
+> > Updating and renaming of the structure was included in commit:
+> > ACPICA: ACPI 6.3: HMAT updates (9a8d961f1ef835b0d338fbe13da03cb424e87ae5)
+>
+> I was not really happy with that HMAT update. Platforms implementing
+> 6.2's HMAT continue to exist even if 6.3 isn't backward compatible. We
+> just lost the original subtable definition.
 
-I was not really happy with that HMAT update. Platforms implementing
-6.2's HMAT continue to exist even if 6.3 isn't backward compatible. We
-just lost the original subtable definition.
+Well, that's true, sadly, but the question is what to do in the kernel.
+
+Definitely, the 6.3 format needs to be supported, but if the 6.2 ships
+anywhere in practice, that will need to be supported too.
