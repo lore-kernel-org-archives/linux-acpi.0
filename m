@@ -2,88 +2,178 @@ Return-Path: <SRS0=Z37m=SU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1B0CC10F0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 11:39:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D3E8C10F0E
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 11:42:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C2CAF217D7
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 11:39:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D685E2183F
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 11:42:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388375AbfDRLjg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Apr 2019 07:39:36 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:53016 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728074AbfDRLjg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Apr 2019 07:39:36 -0400
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id DC2F230BA368;
-        Thu, 18 Apr 2019 11:39:35 +0000 (UTC)
-Received: from shalem.localdomain.com (ovpn-117-101.ams2.redhat.com [10.36.117.101])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 919541001F41;
-        Thu, 18 Apr 2019 11:39:34 +0000 (UTC)
+        id S2388548AbfDRLmG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 07:42:06 -0400
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:34413 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728074AbfDRLmG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 07:42:06 -0400
+Received: by mail-wr1-f68.google.com with SMTP id w16so2609524wrl.1
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Apr 2019 04:42:04 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=PPNVvj2myBt2QeHAMt5EoRNrApWzBDH4PJTi3ss/nPA=;
+        b=PXD25Imb81lkni6BjaU1JvONGJID044nILez3svwsenSkIYjEd9etFuIKj4Tc1PtvF
+         ZRez0h79Qngf1xsByQ93CweOfC5NCAvCOxke3FzbUIGT1pjYSP8i35FQqumGLrtOHyXm
+         3Zx2TjXFKSZkm+Q6RZmVyNZyV16z5fwzLCNOLeyTh4XvhhboEoSpPs2gTiSs+PyxPXbr
+         jNX3fi/XW5EQbBDHjdbnZcjZN2DKuzSy0nD5zufefN3HwUVuD1+v2miyZrs7YpqrlowG
+         NgQDKV4VhcSAeKMMyWtUohARApoAR1UaU8yBpONtF6jy0EpxAtOXDYi+6NQsB1p4cN62
+         0pMg==
+X-Gm-Message-State: APjAAAUAr/kvOJ/GbSPmpU9x0+EEhxkRoBgt5JAavO3eQxPIFGIqUjr6
+        EUEVJaSP82eWv1m5jSXebG6wHQ==
+X-Google-Smtp-Source: APXvYqy8Lo66Fou0Ee8rujqq8FgI1HCN8U0t8icBvhwcy4YUrdi4pho7M6s+6rglq26Edo97X8dURQ==
+X-Received: by 2002:adf:db05:: with SMTP id s5mr63275734wri.247.1555587723693;
+        Thu, 18 Apr 2019 04:42:03 -0700 (PDT)
+Received: from shalem.localdomain (84-106-84-65.cable.dynamic.v4.ziggo.nl. [84.106.84.65])
+        by smtp.gmail.com with ESMTPSA id e12sm1481740wrt.94.2019.04.18.04.42.02
+        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
+        Thu, 18 Apr 2019 04:42:03 -0700 (PDT)
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+To:     "Robert R. Howell" <RHowell@uwyo.edu>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc:     "lenb@kernel.org" <lenb@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
+ <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
+ <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
 From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        "Robert R . Howell" <RHowell@uwyo.edu>, linux-acpi@vger.kernel.org,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH] ACPI / LPSS: Use acpi_lpss_* instead of acpi_subsys_* functions for hibernate
-Date:   Thu, 18 Apr 2019 13:39:33 +0200
-Message-Id: <20190418113933.11158-1-hdegoede@redhat.com>
+Message-ID: <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com>
+Date:   Thu, 18 Apr 2019 13:42:02 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.49]); Thu, 18 Apr 2019 11:39:36 +0000 (UTC)
+In-Reply-To: <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+Content-Type: text/plain; charset="UTF-8"; format="flowed"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
+Message-ID: <20190418114202.U1-zv9X-JBWRknLckPFd4pP6XtKOG4J2y6AeP3mmUTk@z>
 
-Commit 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from
-resume_noirq") makes acpi_lpss_{suspend_late,resume_early}() bail early
-on BYT/CHT as resume_from_noirq is set.
+Hello Robert,
 
-This means that on resume from hibernate dw_i2c_plat_resume() doesn't get
-called by the restore_early callback, acpi_lpss_resume_early(). Instead it
-should be called by the restore_noirq callback matching how things are done
-when resume_from_noirq is set and we are doing a regular resume.
+On 11-04-19 21:50, Robert R. Howell wrote:
+> On 4/8/19 2:16 AM, Hans de Goede wrote:>
+>>
+>> Hmm, interesting so you have hibernation working on a T100TA
+>> (with 5.0 + 02e45646d53b reverted), right ?
+>>
+> Hi Hans and Kai-Heng
+> 
+> First, apologies for how long it took me to reply to both your inquiries.
+> In trying to answer them I discovered some inconsistencies in how the T100TA was
+> behaving on different hibernation attempts and I've been trying to sort those out.
+> I haven't been completely successful in that, but here's a brief summary.
+> 
+> Yes I do have hibernation working (at least most of the time) on a T100TA,
+> with 5.0 + 02e45646d53b reverted (more about that below), and with a systemd
+> hibernate script also described below.
+> 
+> Trying to be more quantitative about "most of the time" is in part want I've been
+> testing the last few days.  I just finished a cycle of 20 hibernates/resumes
+> which were all successful at least in the sense that after resume internal
+> sound was working, along with all the other critical functions I care about
+> (WiFi, Bluetooth, etc.).  However I have occasionally (perhaps 1 in 10 times)
+> seen something go wrong with sound on resume and the only way to get it
+> working again was to a full reboot.  During the successful cycles I also
+> sometimes see i2c_designware or intel_sst_acpi error messages but they
+> don't seem to indicate an unrecoverable failure.  I was hoping to sort out
+> what errors I was seen on the occasions where sound was lost till a reboot,
+> but those are rare enough I haven't been able to sort out the difference
+> between those and the "recoverable" errors.
+> 
+> Regarding the revert of 02e45646d53b, there were some code changes in
+> adjacent lines so a simple revert wouldn't apply cleanly to 5.0.0
+> but the changes were small enough that I was able to manually "merge"
+> the revert and the 5.0.0 changes.  I have posted a patch file under
+> Bugzilla: <https://bugzilla.kernel.org/show_bug.cgi?id=202139>
+> showing what I actually did to revert 02e45646d53b for 5.0.0.  As I mentioned
+> in an earlier message, I have NOT been able to produce a working revert of
+> 02e45646d53b for the 5.1-rc3 kernel.
+> 
+> To make hibernation work on the T100 I also had to create a script
+> /usr/lib/systemd/system-sleep/t100_hibernate.sh which unloads various drivers
+> (including sound) before hibernate, then restarts them afterwords.  I've inserted
+> it below.  I'm not certain all the steps in it are still necessary, but the
+> intermittent failures make it very difficult to determine what is absolutely essential.
+> 
+> -----t100_hibernate.sh  systemd script-------
+> #!/bin/bash
+> echo "Hibernate script $1 $2"
+> [ $2 != 'hibernate' ] && exit 0
+> 
+> case $1 in
+>          pre)
+>      echo "Going to $2..."
+>      /sbin/modprobe -r brcmfmac
+>      /sbin/modprobe -r hci_uart
+>      /sbin/modprobe -r battery
+>      /sbin/modprobe -r hid_multitouch
+>      /usr/bin/killall pulseaudio
+>      /sbin/modprobe -r snd_soc_sst_bytcr_rt5640
+>      /sbin/modprobe -r snd_soc_rt5640
+>      /sbin/modprobe -r snd_soc_sst_acpi
+>          ;;
+>          post)
+>      echo "Waking from $2..."
+>      /sbin/modprobe brcmfmac
+>      /sbin/modprobe hci_uart
+>      /sbin/modprobe battery
+>      /sbin/modprobe hid_multitouch
+>      # Just load the following and it will pull in other snd modules
+>      /sbin/modprobe snd_soc_sst_acpi
+>      /usr/sbin/service NetworkManager restart
+>      /usr/sbin/service wpa_supplicant restart
+>      # The above is usually enough but occasionally sound doesn't come up properly
+>      # and doing the following seems to restore it in those cases.
+>      /usr/bin/killall pulseaudio
+>      /usr/sbin/rmmod snd_soc_sst_bytcr_rt5640
+>      /usr/sbin/rmmod snd_soc_rt5640
+>      /usr/sbin modprobe snd_soc_rt5640
+>      /usr/sbin modprobe snd_soc_sst_bytcr_rt5640
+>          ;;
+> esac
+> -----end of script-------------------------------
+> 
+> I'll send a second message with the system logs which Kai-Heng requested,
+> with his patch applied to 5.1-rc3.
 
-Change the restore_noirq callback to acpi_lpss_resume_noirq so that
-dw_i2c_plat_resume() gets properly called when resume_from_noirq is set
-and we are resuming from hibernate.
+Ok, so you have hibernation sort of working, with a bunch of hacks.
 
-Likewise also change the poweroff_noirq callback so that
-dw_i2c_plat_suspend gets called properly.
+This is exactly why I usually do not spend any time on trying to get
+hibernation to work.
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=202139
-Fixes: 48402cee6889 ("ACPI / LPSS: Resume BYT/CHT I2C controllers from resume_noirq")
-Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Reported-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/acpi_lpss.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Still since my patch is regressing things for you I will try to
+take a look at this and see if I can reproduce and come up with
+a fix. But this is not going to be a high priority thing for me to
+work on.
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 1e2a10a06b9d..cf768608437e 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -1142,8 +1142,8 @@ static struct dev_pm_domain acpi_lpss_pm_domain = {
- 		.thaw_noirq = acpi_subsys_thaw_noirq,
- 		.poweroff = acpi_subsys_suspend,
- 		.poweroff_late = acpi_lpss_suspend_late,
--		.poweroff_noirq = acpi_subsys_suspend_noirq,
--		.restore_noirq = acpi_subsys_resume_noirq,
-+		.poweroff_noirq = acpi_lpss_suspend_noirq,
-+		.restore_noirq = acpi_lpss_resume_noirq,
- 		.restore_early = acpi_lpss_resume_early,
- #endif
- 		.runtime_suspend = acpi_lpss_runtime_suspend,
--- 
-2.21.0
+In the mean time I've gone ahead and submitted my version of the
+fix for the problem Kai-Heng was seeing, since that does not seem
+to make your problem worse; and it will be good to get that problem
+fixed.
+
+Regards,
+
+Hans
 
