@@ -2,91 +2,128 @@ Return-Path: <SRS0=Z37m=SU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2266C10F0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1767C10F0E
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 16:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CF57820651
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 15:15:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF7D520693
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Apr 2019 16:05:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="ATWDxkO+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388495AbfDRPP5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Apr 2019 11:15:57 -0400
-Received: from foss.arm.com ([217.140.101.70]:35548 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731317AbfDRPP5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Apr 2019 11:15:57 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6555815AB;
-        Thu, 18 Apr 2019 08:15:56 -0700 (PDT)
-Received: from [10.37.12.22] (unknown [10.37.12.22])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9E0093F5AF;
-        Thu, 18 Apr 2019 08:15:51 -0700 (PDT)
-Subject: Re: [RESEND][PATCH v2 27/36] drivers: Add a generic helper to match
- device by fwnode handle
-To:     rafael@kernel.org
-Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        coresight@lists.linaro.org, mathieu.poirier@linaro.org,
-        gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org
-References: <1555344260-12375-28-git-send-email-suzuki.poulose@arm.com>
- <1555411164-26399-1-git-send-email-suzuki.poulose@arm.com>
- <CAJZ5v0i2-11rgH5Y+83U041Eyp=SA56oPqDmS2g24SyYYJH3jg@mail.gmail.com>
- <ebb13205-2548-1c30-fd65-bdfe4c7d9c08@arm.com>
- <CAJZ5v0jXioEAELmHqMhR0wJQkzLQpp1WA-zuWHdFkSWjiX0kVw@mail.gmail.com>
-From:   Suzuki K Poulose <suzuki.poulose@arm.com>
-Message-ID: <1379e9d4-c020-6180-69e8-f15a9e0983bc@arm.com>
-Date:   Thu, 18 Apr 2019 16:18:11 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.7.0
+        id S2389488AbfDRQFS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Apr 2019 12:05:18 -0400
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:32981 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388495AbfDRQFS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Apr 2019 12:05:18 -0400
+Received: by mail-oi1-f195.google.com with SMTP id e5so2036907oii.0
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Apr 2019 09:05:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=9656FNKKp4cUVga3XUcreKMqWUBjOMnkCExkfsBvcE0=;
+        b=ATWDxkO+EzohN5YWedA5OnfOl7z0C5wosAmTrDF5hxxtYtjNdCK/9PHgnZhYETJJ8t
+         vacr+rHkJxxNGOmeI1vTif1Vl4SIwdCSz21szdtTalMtQ8a/1Obxe+VdKwZnY8xrFtd+
+         ciBIJxCm9FZlAQVPiOTKZr8Xdghbnp/hQTXS/ucudKTmB79U11kjETh4fqNlfW3T1gK0
+         Zu87he2RHQTC+AM19urSAzmn3PITVUqT2oXHTybHWlpO7u1bFfMxyXZLHVTzCvZ6mXjc
+         bD19cp4gsnL0R2s/7Y3bFqcAI2a5/xvDNGJEJYE3ed3iSmhC+ui2TozfrYHnQqDdah3m
+         ZD3A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=9656FNKKp4cUVga3XUcreKMqWUBjOMnkCExkfsBvcE0=;
+        b=hFvrvQOhVOo/y8Cm4/z0jjwSCmT5Su0lJcFLzly//voisPI2C5Bv6AiyvY+Fk3skwr
+         n/gVBzWbd+RcycyTq/aP+TmmJMNKwBCCMxL59MZAnys4d+Oagwx5hNNZ5oxwMGAD3kwS
+         A5nRvS6wDdpZIWU6D3jHC7w6V2N4jWk3ARehWxPjBvXFTl4E3t5+JarfIu+BdIGEjLXS
+         7XllF9fEH4xrmnZt9D+zftZUkrjP/3NIWjPFFvcREucmxHV6NJsg/p8aGdp/h5YX9DfM
+         wKJeLYN8kKDAwgXMIMUcd3FgnI4yvWejg6Jtp4zk5uXJgiaQbY92WI+A4JUBcEztsRSG
+         E6Wg==
+X-Gm-Message-State: APjAAAVS1z//cd8KQ+nRLJsWjs9ep+t1khBPKaUMB7ry7wBY4UPuQ4N1
+        SUzSG3HyWRV2YM1xxP3QLIB0iMISo1Gg/DhsMFRrGw==
+X-Google-Smtp-Source: APXvYqzTGVz9ejtUV0liyJEyYqaIHrUyuHEbCYPG5pgMNrA7E3qjZWVF7XUM3SvNiTSOlLSiE2pi4l5w04d9dnUuvxA=
+X-Received: by 2002:aca:ed88:: with SMTP id l130mr2422676oih.70.1555603517276;
+ Thu, 18 Apr 2019 09:05:17 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAJZ5v0jXioEAELmHqMhR0wJQkzLQpp1WA-zuWHdFkSWjiX0kVw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format="flowed"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com>
+ <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
+ <20190412083230.GA29850@quack2.suse.cz> <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Thu, 18 Apr 2019 09:05:05 -0700
+Message-ID:
+ <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+To:     Jeff Moyer <jmoyer@redhat.com>
+Cc:     Jan Kara <jack@suse.cz>, Pankaj Gupta <pagupta@redhat.com>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Christoph Hellwig <hch@infradead.org>,
+        Len Brown <lenb@kernel.org>, "Theodore Ts'o" <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
+        Igor Mammedov <imammedo@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Rik van Riel <riel@surriel.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        david <david@fromorbit.com>, cohuck@redhat.com,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
+        yuval shaia <yuval.shaia@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190418151811.alRv3oan7YCcxDql4dRM37VWFx1Jo4vQJxnrqQy9lvw@z>
+Message-ID: <20190418160505.chawP8X-zx-YMDrlKtvZaOa322koS5T_Ph7Oq9qji_Q@z>
 
-On 04/18/2019 03:39 PM, Rafael J. Wysocki wrote:
-> On Tue, Apr 16, 2019 at 12:53 PM Suzuki K Poulose
-> <suzuki.poulose@arm.com> wrote:
->>
->> On 04/16/2019 11:48 AM, Rafael J. Wysocki wrote:
->>> On Tue, Apr 16, 2019 at 12:39 PM Suzuki K Poulose
->>> <suzuki.poulose@arm.com> wrote:
->>>>
->>>> Make the device_fwnode_match() a generic helper to match device
->>>> by fwnode handle for use with bus_find_device(). This will be
->>>> also used by coresight.
->>>>
->>>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->>>> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
->>>> Cc: linux-acpi@vger.kernel.org
->>>> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
->>>> ---
->>>>
->>>> Resending with linux-acpi in Cc, as requested by Rafael.
->>>
->>> Do any other patches in your series depend on this one?
->>
->> Yes, I do. But they are in the middle of a big series of changes and
->> I don't expect this series to go into 5.2. So, if you plan to pull this
->> please go ahead.
-> 
-> I would prefer the new exported function to return bool.  With that
-> changed, I can apply the patch I think.
-> 
+On Fri, Apr 12, 2019 at 6:12 AM Jeff Moyer <jmoyer@redhat.com> wrote:
+>
+> Jan Kara <jack@suse.cz> writes:
+>
+> > On Thu 11-04-19 07:51:48, Dan Williams wrote:
+> >> On Tue, Apr 9, 2019 at 9:09 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+> >> > +       } else {
+> >> > +               if (nd_region->flush(nd_region))
+> >> > +                       rc = -EIO;
+> >>
+> >> Given the common case wants to be fast and synchronous I think we
+> >> should try to avoid retpoline overhead by default. So something like
+> >> this:
+> >>
+> >> if (nd_region->flush == generic_nvdimm_flush)
+> >>     rc = generic_nvdimm_flush(...);
+> >
+> > I'd either add a comment about avoiding retpoline overhead here or just
+> > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
+> > get confused by the code.
+>
+> Isn't this premature optimization?  I really don't like adding things
+> like this without some numbers to show it's worth it.
 
+I don't think it's premature given this optimization technique is
+already being deployed elsewhere, see:
 
-That will need changes to all the other callers of bus_find_device()
-to fix their match(). I guess that is a bit of an invasive change, so
-I would rather do it in the "consolidation" series with
-class_find_device().
-
-Hope you're fine with that.
-
-Suzuki
+https://lwn.net/Articles/774347/
