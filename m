@@ -1,178 +1,350 @@
-From: Yurii Pavlovskyi <yurii.pavlovskyi@gmail.com>
-Subject: [PATCH v3 04/11] platform/x86: asus-wmi: Improve DSTS WMI method ID
- detection
-Date: Fri, 19 Apr 2019 12:08:42 +0200
-Message-ID: <d6ee51cc-eb0f-2bb9-fef9-f8b4bf849076@gmail.com>
-References: <7acd57fe-604a-a96a-4ca2-a25bc88d6405@gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v1 2/3] PCI / ACPI: Remove the need for 'struct
+ hotplug_params'
+Date: Fri, 19 Apr 2019 15:07:45 -0500
+Message-ID: <20190419200745.GH173520@google.com>
+References: <20190208162414.3996-1-mr.nuke.me@gmail.com>
+ <20190208162414.3996-3-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7acd57fe-604a-a96a-4ca2-a25bc88d6405@gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190208162414.3996-3-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: Corentin Chary <corentin.chary@gmail.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Daniel Drake <drake@endlessm.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The DSTS method detection mistakenly selects DCTS instead of DSTS if
-nothing is returned when the method ID is not defined in WMNB. As a result,
-the control of keyboard backlight is not functional for TUF Gaming series
-laptops. Implement another detection method instead.
+On Fri, Feb 08, 2019 at 10:24:12AM -0600, Alexandru Gagniuc wrote:
+> We used to first parse all the _HPP and _HPX tables before using the
+> information to program registers of PCIe devices. Up until HPX type 2,
+> there was only one structure of each type, so we could cheat and store
+> it on the stack.
+> 
+> With HPX type 3 we get an arbitrary number of entries, so the above
+> model doesn't scale that well. Instead of parsing all tables at once,
+> parse and program each entry separately. For _HPP and _HPX 0 thru 2,
+> this is functionally equivalent. The change enables the upcoming _HPX3
+> to integrate more easily.
 
-There is evidence that DCTS is handled by ACPI WMI devices that have _UID
-ASUSWMI, whereas none of the devices without ASUSWMI respond to DCTS and
-DSTS is used instead [1]. To check the _UID a new method is added to wmi.h
-/ wmi.c. It returns _UID of the ACPI WMI device that declares WMI object
-with given GUID.
+I think this is tremendous!  It's going to simplify this code
+dramatically.  Two comments below.
 
-Generally, it is possible that multiple PNP0C14 ACPI devices are present in
-the system as mentioned in the commit message of commit bff431e49ff5
-("ACPI: WMI: Add ACPI-WMI mapping driver").
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+> ---
+>  drivers/pci/pci-acpi.c      | 108 +++++++++++++++++++-----------------
+>  drivers/pci/probe.c         |  16 ++----
+>  include/linux/pci_hotplug.h |  18 +++---
+>  3 files changed, 72 insertions(+), 70 deletions(-)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index b25e5fa9d1c9..95f4f86d2f34 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -119,7 +119,7 @@ phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
+>  }
+>  
+>  static acpi_status decode_type0_hpx_record(union acpi_object *record,
+> -					   struct hotplug_params *hpx)
+> +					   struct hpp_type0 *hpx0)
+>  {
+>  	int i;
+>  	union acpi_object *fields = record->package.elements;
+> @@ -132,12 +132,11 @@ static acpi_status decode_type0_hpx_record(union acpi_object *record,
+>  		for (i = 2; i < 6; i++)
+>  			if (fields[i].type != ACPI_TYPE_INTEGER)
+>  				return AE_ERROR;
+> -		hpx->t0 = &hpx->type0_data;
+> -		hpx->t0->revision        = revision;
+> -		hpx->t0->cache_line_size = fields[2].integer.value;
+> -		hpx->t0->latency_timer   = fields[3].integer.value;
+> -		hpx->t0->enable_serr     = fields[4].integer.value;
+> -		hpx->t0->enable_perr     = fields[5].integer.value;
+> +		hpx0->revision        = revision;
+> +		hpx0->cache_line_size = fields[2].integer.value;
+> +		hpx0->latency_timer   = fields[3].integer.value;
+> +		hpx0->enable_serr     = fields[4].integer.value;
+> +		hpx0->enable_perr     = fields[5].integer.value;
+>  		break;
+>  	default:
+>  		printk(KERN_WARNING
+> @@ -149,7 +148,7 @@ static acpi_status decode_type0_hpx_record(union acpi_object *record,
+>  }
+>  
+>  static acpi_status decode_type1_hpx_record(union acpi_object *record,
+> -					   struct hotplug_params *hpx)
+> +					   struct hpp_type1 *hpx1)
+>  {
+>  	int i;
+>  	union acpi_object *fields = record->package.elements;
+> @@ -162,11 +161,10 @@ static acpi_status decode_type1_hpx_record(union acpi_object *record,
+>  		for (i = 2; i < 5; i++)
+>  			if (fields[i].type != ACPI_TYPE_INTEGER)
+>  				return AE_ERROR;
+> -		hpx->t1 = &hpx->type1_data;
+> -		hpx->t1->revision      = revision;
+> -		hpx->t1->max_mem_read  = fields[2].integer.value;
+> -		hpx->t1->avg_max_split = fields[3].integer.value;
+> -		hpx->t1->tot_max_split = fields[4].integer.value;
+> +		hpx1->revision      = revision;
+> +		hpx1->max_mem_read  = fields[2].integer.value;
+> +		hpx1->avg_max_split = fields[3].integer.value;
+> +		hpx1->tot_max_split = fields[4].integer.value;
+>  		break;
+>  	default:
+>  		printk(KERN_WARNING
+> @@ -178,7 +176,7 @@ static acpi_status decode_type1_hpx_record(union acpi_object *record,
+>  }
+>  
+>  static acpi_status decode_type2_hpx_record(union acpi_object *record,
+> -					   struct hotplug_params *hpx)
+> +					   struct hpp_type2 *hpx2)
+>  {
+>  	int i;
+>  	union acpi_object *fields = record->package.elements;
+> @@ -191,24 +189,23 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
+>  		for (i = 2; i < 18; i++)
+>  			if (fields[i].type != ACPI_TYPE_INTEGER)
+>  				return AE_ERROR;
+> -		hpx->t2 = &hpx->type2_data;
+> -		hpx->t2->revision      = revision;
+> -		hpx->t2->unc_err_mask_and      = fields[2].integer.value;
+> -		hpx->t2->unc_err_mask_or       = fields[3].integer.value;
+> -		hpx->t2->unc_err_sever_and     = fields[4].integer.value;
+> -		hpx->t2->unc_err_sever_or      = fields[5].integer.value;
+> -		hpx->t2->cor_err_mask_and      = fields[6].integer.value;
+> -		hpx->t2->cor_err_mask_or       = fields[7].integer.value;
+> -		hpx->t2->adv_err_cap_and       = fields[8].integer.value;
+> -		hpx->t2->adv_err_cap_or        = fields[9].integer.value;
+> -		hpx->t2->pci_exp_devctl_and    = fields[10].integer.value;
+> -		hpx->t2->pci_exp_devctl_or     = fields[11].integer.value;
+> -		hpx->t2->pci_exp_lnkctl_and    = fields[12].integer.value;
+> -		hpx->t2->pci_exp_lnkctl_or     = fields[13].integer.value;
+> -		hpx->t2->sec_unc_err_sever_and = fields[14].integer.value;
+> -		hpx->t2->sec_unc_err_sever_or  = fields[15].integer.value;
+> -		hpx->t2->sec_unc_err_mask_and  = fields[16].integer.value;
+> -		hpx->t2->sec_unc_err_mask_or   = fields[17].integer.value;
+> +		hpx2->revision      = revision;
+> +		hpx2->unc_err_mask_and      = fields[2].integer.value;
+> +		hpx2->unc_err_mask_or       = fields[3].integer.value;
+> +		hpx2->unc_err_sever_and     = fields[4].integer.value;
+> +		hpx2->unc_err_sever_or      = fields[5].integer.value;
+> +		hpx2->cor_err_mask_and      = fields[6].integer.value;
+> +		hpx2->cor_err_mask_or       = fields[7].integer.value;
+> +		hpx2->adv_err_cap_and       = fields[8].integer.value;
+> +		hpx2->adv_err_cap_or        = fields[9].integer.value;
+> +		hpx2->pci_exp_devctl_and    = fields[10].integer.value;
+> +		hpx2->pci_exp_devctl_or     = fields[11].integer.value;
+> +		hpx2->pci_exp_lnkctl_and    = fields[12].integer.value;
+> +		hpx2->pci_exp_lnkctl_or     = fields[13].integer.value;
+> +		hpx2->sec_unc_err_sever_and = fields[14].integer.value;
+> +		hpx2->sec_unc_err_sever_or  = fields[15].integer.value;
+> +		hpx2->sec_unc_err_mask_and  = fields[16].integer.value;
+> +		hpx2->sec_unc_err_mask_or   = fields[17].integer.value;
+>  		break;
+>  	default:
+>  		printk(KERN_WARNING
+> @@ -219,17 +216,18 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
+>  	return AE_OK;
+>  }
+>  
+> -static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
+> +static acpi_status acpi_run_hpx(struct pci_dev *dev, acpi_handle handle,
+> +				const struct hotplug_program_ops *hp_ops)
+>  {
+>  	acpi_status status;
+>  	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+>  	union acpi_object *package, *record, *fields;
+> +	struct hpp_type0 hpx0;
+> +	struct hpp_type1 hpx1;
+> +	struct hpp_type2 hpx2;
+>  	u32 type;
+>  	int i;
+>  
+> -	/* Clear the return buffer with zeros */
+> -	memset(hpx, 0, sizeof(struct hotplug_params));
+> -
+>  	status = acpi_evaluate_object(handle, "_HPX", NULL, &buffer);
+>  	if (ACPI_FAILURE(status))
+>  		return status;
+> @@ -257,19 +255,25 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
+>  		type = fields[0].integer.value;
+>  		switch (type) {
+>  		case 0:
+> -			status = decode_type0_hpx_record(record, hpx);
+> +			memset(&hpx0, 0, sizeof(hpx0));
+> +			status = decode_type0_hpx_record(record, &hpx0);
+>  			if (ACPI_FAILURE(status))
+>  				goto exit;
+> +			hp_ops->program_type0(dev, &hpx0);
+>  			break;
+>  		case 1:
+> -			status = decode_type1_hpx_record(record, hpx);
+> +			memset(&hpx1, 0, sizeof(hpx1));
+> +			status = decode_type1_hpx_record(record, &hpx1);
+>  			if (ACPI_FAILURE(status))
+>  				goto exit;
+> +			hp_ops->program_type1(dev, &hpx1);
+>  			break;
+>  		case 2:
+> -			status = decode_type2_hpx_record(record, hpx);
+> +			memset(&hpx2, 0, sizeof(hpx2));
+> +			status = decode_type2_hpx_record(record, &hpx2);
+>  			if (ACPI_FAILURE(status))
+>  				goto exit;
+> +			hp_ops->program_type2(dev, &hpx2);
+>  			break;
+>  		default:
+>  			printk(KERN_ERR "%s: Type %d record not supported\n",
+> @@ -283,14 +287,16 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
+>  	return status;
+>  }
+>  
+> -static acpi_status acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
+> +static acpi_status acpi_run_hpp(struct pci_dev *dev, acpi_handle handle,
+> +				const struct hotplug_program_ops *hp_ops)
+>  {
+>  	acpi_status status;
+>  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>  	union acpi_object *package, *fields;
+> +	struct hpp_type0 hpp0;
+>  	int i;
+>  
+> -	memset(hpp, 0, sizeof(struct hotplug_params));
+> +	memset(&hpp0, 0, sizeof(hpp0));
+>  
+>  	status = acpi_evaluate_object(handle, "_HPP", NULL, &buffer);
+>  	if (ACPI_FAILURE(status))
+> @@ -311,12 +317,13 @@ static acpi_status acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
+>  		}
+>  	}
+>  
+> -	hpp->t0 = &hpp->type0_data;
+> -	hpp->t0->revision        = 1;
+> -	hpp->t0->cache_line_size = fields[0].integer.value;
+> -	hpp->t0->latency_timer   = fields[1].integer.value;
+> -	hpp->t0->enable_serr     = fields[2].integer.value;
+> -	hpp->t0->enable_perr     = fields[3].integer.value;
+> +	hpp0.revision        = 1;
+> +	hpp0.cache_line_size = fields[0].integer.value;
+> +	hpp0.latency_timer   = fields[1].integer.value;
+> +	hpp0.enable_serr     = fields[2].integer.value;
+> +	hpp0.enable_perr     = fields[3].integer.value;
+> +
+> +	hp_ops->program_type0(dev, &hpp0);
+>  
+>  exit:
+>  	kfree(buffer.pointer);
+> @@ -328,7 +335,8 @@ static acpi_status acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
+>   * @dev - the pci_dev for which we want parameters
+>   * @hpp - allocated by the caller
+>   */
+> -int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+> +int pci_acpi_program_hp_params(struct pci_dev *dev,
+> +			       const struct hotplug_program_ops *hp_ops)
+>  {
+>  	acpi_status status;
+>  	acpi_handle handle, phandle;
+> @@ -351,10 +359,10 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+>  	 * this pci dev.
+>  	 */
+>  	while (handle) {
+> -		status = acpi_run_hpx(handle, hpp);
+> +		status = acpi_run_hpx(dev, handle, hp_ops);
+>  		if (ACPI_SUCCESS(status))
+>  			return 0;
+> -		status = acpi_run_hpp(handle, hpp);
+> +		status = acpi_run_hpp(dev, handle, hp_ops);
+>  		if (ACPI_SUCCESS(status))
+>  			return 0;
+>  		if (acpi_is_root_bridge(handle))
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 257b9f6f2ebb..527c209f0c94 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -2131,8 +2131,11 @@ static void pci_configure_eetlp_prefix(struct pci_dev *dev)
+>  
+>  static void pci_configure_device(struct pci_dev *dev)
+>  {
+> -	struct hotplug_params hpp;
+> -	int ret;
+> +	static const struct hotplug_program_ops hp_ops = {
+> +		.program_type0 = program_hpp_type0,
+> +		.program_type1 = program_hpp_type1,
+> +		.program_type2 = program_hpp_type2,
+> +	};
 
-Therefore the _UID is checked for given GUID that maps to a specific ACPI
-device, to which it is also mapped by other methods of wmi module.
+What if we just moved program_hpp_type0(), etc from probe.c to
+pci-acpi.c?  The only reason I see to have it in probe.c is for
+pci_default_type0, and I think that is a pretty obtuse way of doing
+default configuration.  I would have no problem at all just hardcoding
+those defaults in probe.c and then potentially having them overwritten
+by _HPP/_HPX.
 
-DSDT examples:
+If we moved program_hpp_type0(), etc to pci-acpi.c, we could get rid
+of the function pointers and all the ACPI-related code would be in one
+place.
 
-FX505GM:
-Method (WMNB, 3, Serialized)
-{ ...
-    If ((Local0 == 0x53545344))
-    {
-        ...
-        Return (Zero)
-    }
-    ...
-    // No return
-}
+>  	pci_configure_mps(dev);
+>  	pci_configure_extended_tags(dev, NULL);
+> @@ -2140,14 +2143,7 @@ static void pci_configure_device(struct pci_dev *dev)
+>  	pci_configure_ltr(dev);
+>  	pci_configure_eetlp_prefix(dev);
+>  
+> -	memset(&hpp, 0, sizeof(hpp));
+> -	ret = pci_get_hp_params(dev, &hpp);
+> -	if (ret)
+> -		return;
+> -
+> -	program_hpp_type2(dev, hpp.t2);
+> -	program_hpp_type1(dev, hpp.t1);
+> -	program_hpp_type0(dev, hpp.t0);
+> +	pci_acpi_program_hp_params(dev, &hp_ops);
+>  }
+>  
+>  static void pci_release_capabilities(struct pci_dev *dev)
+> diff --git a/include/linux/pci_hotplug.h b/include/linux/pci_hotplug.h
+> index 7acc9f91e72b..c85378edf235 100644
+> --- a/include/linux/pci_hotplug.h
+> +++ b/include/linux/pci_hotplug.h
+> @@ -124,26 +124,24 @@ struct hpp_type2 {
+>  	u32 sec_unc_err_mask_or;
+>  };
+>  
+> -struct hotplug_params {
+> -	struct hpp_type0 *t0;		/* Type0: NULL if not available */
+> -	struct hpp_type1 *t1;		/* Type1: NULL if not available */
+> -	struct hpp_type2 *t2;		/* Type2: NULL if not available */
+> -	struct hpp_type0 type0_data;
+> -	struct hpp_type1 type1_data;
+> -	struct hpp_type2 type2_data;
+> +struct hotplug_program_ops {
+> +	void (*program_type0)(struct pci_dev *dev, struct hpp_type0 *hpp);
+> +	void (*program_type1)(struct pci_dev *dev, struct hpp_type1 *hpp);
+> +	void (*program_type2)(struct pci_dev *dev, struct hpp_type2 *hpp);
+>  };
 
-K54C:
-Method (WMNB, 3, Serialized)
-{ ...
-    If ((Local0 == 0x53545344))
-    {
-        ...
-        Return (0x02)
-    }
-    ...
-    Return (0xFFFFFFFE)
-}
+I think a lot of this stuff is only used in drivers/pci, so it could
+be moved from include/linux/pci_hotplug.h to drivers/pci/pci.h.
 
-[1] https://lkml.org/lkml/2019/4/11/322
-
-Signed-off-by: Yurii Pavlovskyi <yurii.pavlovskyi@gmail.com>
-Suggested-by: Daniel Drake <drake@endlessm.com>
----
- drivers/platform/x86/asus-wmi.c            | 20 ++++++++++++++++++--
- drivers/platform/x86/wmi.c                 | 19 +++++++++++++++++++
- include/linux/acpi.h                       |  1 +
- include/linux/platform_data/x86/asus-wmi.h |  4 ++--
- 4 files changed, 40 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index ba04737ece0d..266d0eda5476 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -80,6 +80,8 @@ MODULE_LICENSE("GPL");
- #define USB_INTEL_XUSB2PR		0xD0
- #define PCI_DEVICE_ID_INTEL_LYNXPOINT_LP_XHCI	0x9c31
- 
-+#define ASUS_ACPI_UID_ASUSWMI		"ASUSWMI"
-+
- static const char * const ashs_ids[] = { "ATK4001", "ATK4002", NULL };
- 
- static bool ashs_present(void)
-@@ -1847,6 +1849,7 @@ static int asus_wmi_sysfs_init(struct platform_device *device)
- static int asus_wmi_platform_init(struct asus_wmi *asus)
- {
- 	int rv;
-+	char *wmi_uid;
- 
- 	/* INIT enable hotkeys on some models */
- 	if (!asus_wmi_evaluate_method(ASUS_WMI_METHODID_INIT, 0, 0, &rv))
-@@ -1875,11 +1878,24 @@ static int asus_wmi_platform_init(struct asus_wmi *asus)
- 	 * Note, on most Eeepc, there is no way to check if a method exist
- 	 * or note, while on notebooks, they returns 0xFFFFFFFE on failure,
- 	 * but once again, SPEC may probably be used for that kind of things.
-+	 *
-+	 * Additionally at least TUF Gaming series laptops return nothing for
-+	 * unknown methods, so the detection in this way is not possible.
-+	 *
-+	 * There is strong indication that only ACPI WMI devices that have _UID
-+	 * equal to "ASUSWMI" use DCTS whereas those with "ATK" use DSTS.
- 	 */
--	if (!asus_wmi_evaluate_method(ASUS_WMI_METHODID_DSTS, 0, 0, NULL))
-+	wmi_uid = wmi_get_acpi_device_uid(ASUS_WMI_MGMT_GUID);
-+	if (!wmi_uid)
-+		return -ENODEV;
-+
-+	if (!strcmp(wmi_uid, ASUS_ACPI_UID_ASUSWMI)) {
-+		pr_info("Detected ASUSWMI, use DCTS\n");
- 		asus->dsts_id = ASUS_WMI_METHODID_DSTS;
--	else
-+	} else {
-+		pr_info("Detected %s, not ASUSWMI, use DSTS\n", wmi_uid);
- 		asus->dsts_id = ASUS_WMI_METHODID_DSTS2;
-+	}
- 
- 	/* CWAP allow to define the behavior of the Fn+F2 key,
- 	 * this method doesn't seems to be present on Eee PCs */
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 7b26b6ccf1a0..b08ffb769cbe 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -635,6 +635,25 @@ bool wmi_has_guid(const char *guid_string)
- }
- EXPORT_SYMBOL_GPL(wmi_has_guid);
- 
-+/**
-+ * wmi_get_acpi_device_uid() - Get _UID name of ACPI device that defines GUID
-+ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
-+ *
-+ * Find the _UID of ACPI device associated with this WMI GUID.
-+ *
-+ * Return: The ACPI _UID field value or NULL if the WMI GUID was not found
-+ */
-+char *wmi_get_acpi_device_uid(const char *guid_string)
-+{
-+	struct wmi_block *wblock = NULL;
-+
-+	if (!find_guid(guid_string, &wblock))
-+		return NULL;
-+
-+	return acpi_device_uid(wblock->acpi_device);
-+}
-+EXPORT_SYMBOL_GPL(wmi_get_acpi_device_uid);
-+
- static struct wmi_block *dev_to_wblock(struct device *dev)
- {
- 	return container_of(dev, struct wmi_block, dev.dev);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d5dcebd7aad3..d31c7fd66f97 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -376,6 +376,7 @@ extern acpi_status wmi_install_notify_handler(const char *guid,
- extern acpi_status wmi_remove_notify_handler(const char *guid);
- extern acpi_status wmi_get_event_data(u32 event, struct acpi_buffer *out);
- extern bool wmi_has_guid(const char *guid);
-+extern char *wmi_get_acpi_device_uid(const char *guid);
- 
- #endif	/* CONFIG_ACPI_WMI */
- 
-diff --git a/include/linux/platform_data/x86/asus-wmi.h b/include/linux/platform_data/x86/asus-wmi.h
-index 53dfc2541960..a5fe7e68944b 100644
---- a/include/linux/platform_data/x86/asus-wmi.h
-+++ b/include/linux/platform_data/x86/asus-wmi.h
-@@ -18,8 +18,8 @@
- #define ASUS_WMI_METHODID_GDSP		0x50534447 /* Get DiSPlay output */
- #define ASUS_WMI_METHODID_DEVP		0x50564544 /* DEVice Policy */
- #define ASUS_WMI_METHODID_OSVR		0x5256534F /* OS VeRsion */
--#define ASUS_WMI_METHODID_DSTS		0x53544344 /* Device STatuS */
--#define ASUS_WMI_METHODID_DSTS2		0x53545344 /* Device STatuS #2*/
-+#define ASUS_WMI_METHODID_DSTS		0x53544344 /* Device STatuS (DCTS) */
-+#define ASUS_WMI_METHODID_DSTS2		0x53545344 /* Device STatuS (DSTS) */
- #define ASUS_WMI_METHODID_BSTS		0x53545342 /* Bios STatuS ? */
- #define ASUS_WMI_METHODID_DEVS		0x53564544 /* DEVice Set */
- #define ASUS_WMI_METHODID_CFVS		0x53564643 /* CPU Frequency Volt Set */
--- 
-2.17.1
+>  #ifdef CONFIG_ACPI
+>  #include <linux/acpi.h>
+> -int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp);
+> +int pci_acpi_program_hp_params(struct pci_dev *dev,
+> +			       const struct hotplug_program_ops *hp_ops);
+>  bool pciehp_is_native(struct pci_dev *bridge);
+>  int acpi_get_hp_hw_control_from_firmware(struct pci_dev *bridge);
+>  bool shpchp_is_native(struct pci_dev *bridge);
+>  int acpi_pci_check_ejectable(struct pci_bus *pbus, acpi_handle handle);
+>  int acpi_pci_detect_ejectable(acpi_handle handle);
+>  #else
+> -static inline int pci_get_hp_params(struct pci_dev *dev,
+> -				    struct hotplug_params *hpp)
+> +int pci_acpi_program_hp_params(struct pci_dev *dev,
+> +			       const struct hotplug_program_ops *hp_ops);
+>  {
+>  	return -ENODEV;
+>  }
+> -- 
+> 2.19.2
+> 
