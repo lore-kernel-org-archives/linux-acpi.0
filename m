@@ -1,58 +1,28 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v1 2/3] PCI / ACPI: Remove the need for 'struct
- hotplug_params'
-Date: Fri, 19 Apr 2019 17:02:20 -0500
-Message-ID: <20190419220220.GI173520@google.com>
-References: <20190208162414.3996-1-mr.nuke.me@gmail.com>
- <20190208162414.3996-3-mr.nuke.me@gmail.com>
- <20190419200745.GH173520@google.com>
+From: Jonathan Corbet <corbet@lwn.net>
+Subject: Re: Avoiding merge conflicts while adding new docs - Was: Re:
+ [PATCH 00/57] Convert files to ReST
+Date: Fri, 19 Apr 2019 16:10:58 -0600
+Message-ID: <20190419161058.3628a29b@lwn.net>
+References: <cover.1555382110.git.mchehab+samsung@kernel.org>
+        <20190418091526.00e074d1@coco.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190419200745.GH173520@google.com>
+In-Reply-To: <20190418091526.00e074d1@coco.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-s390@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-watchdog@vger.kernel.org, xdp-newbies@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, bpf@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-scsi@vger.kernel.org, linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, x86@kernel.org, dm-devel@redhat.com, target-devel@vger.kernel.org, netdev@vger.kernel.org, kexec@lists.infradead.org, linux-fpga@vger.kernel.org, linux-rdma@vger.ke
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 19, 2019 at 03:07:45PM -0500, Bjorn Helgaas wrote:
-> On Fri, Feb 08, 2019 at 10:24:12AM -0600, Alexandru Gagniuc wrote:
-> > We used to first parse all the _HPP and _HPX tables before using the
-> > information to program registers of PCIe devices. Up until HPX type 2,
-> > there was only one structure of each type, so we could cheat and store
-> > it on the stack.
-> > 
-> > With HPX type 3 we get an arbitrary number of entries, so the above
-> > model doesn't scale that well. Instead of parsing all tables at once,
-> > parse and program each entry separately. For _HPP and _HPX 0 thru 2,
-> > this is functionally equivalent. The change enables the upcoming _HPX3
-> > to integrate more easily.
-> 
-> I think this is tremendous!  It's going to simplify this code
-> dramatically.  Two comments below.
+On Thu, 18 Apr 2019 09:42:23 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
 
-> >  static void pci_configure_device(struct pci_dev *dev)
-> >  {
-> > -	struct hotplug_params hpp;
-> > -	int ret;
-> > +	static const struct hotplug_program_ops hp_ops = {
-> > +		.program_type0 = program_hpp_type0,
-> > +		.program_type1 = program_hpp_type1,
-> > +		.program_type2 = program_hpp_type2,
-> > +	};
-> 
-> What if we just moved program_hpp_type0(), etc from probe.c to
-> pci-acpi.c?  The only reason I see to have it in probe.c is for
-> pci_default_type0, and I think that is a pretty obtuse way of doing
-> default configuration.  I would have no problem at all just hardcoding
-> those defaults in probe.c and then potentially having them overwritten
-> by _HPP/_HPX.
+> After thinking a little bit and doing some tests, I think a good solution
+> would be to add ":orphan:" markup to the new .rst files that were not
+> added yet into the main body (e. g. something like the enclosed example).
 
-Actually, never mind about this.  This would be a perfect project for
-mentoring a Linux newbie.
+Interesting...I didn't know about that.  Yes, I think it makes sense to
+put that in...
 
-I'll merge this series as-is and any restructuring/cleanup can happen
-later, since it's not related to this series anyway.
-
-Bjorn
+jon
