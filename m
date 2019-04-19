@@ -1,28 +1,70 @@
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: Avoiding merge conflicts while adding new docs - Was: Re:
- [PATCH 00/57] Convert files to ReST
-Date: Fri, 19 Apr 2019 16:10:58 -0600
-Message-ID: <20190419161058.3628a29b@lwn.net>
-References: <cover.1555382110.git.mchehab+samsung@kernel.org>
-        <20190418091526.00e074d1@coco.lan>
+From: "Robert R. Howell" <RHowell@uwyo.edu>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+Date: Fri, 19 Apr 2019 22:44:04 +0000
+Message-ID: <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
+ <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
+ <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+ <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190418091526.00e074d1@coco.lan>
+In-Reply-To: <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com>
+Content-Language: en-US
+Content-ID: <B5503D6600E9354FA5A0BF32F78DB661@namprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-s390@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-watchdog@vger.kernel.org, xdp-newbies@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, bpf@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-scsi@vger.kernel.org, linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, x86@kernel.org, dm-devel@redhat.com, target-devel@vger.kernel.org, netdev@vger.kernel.org, kexec@lists.infradead.org, linux-fpga@vger.kernel.org, linux-rdma@vger.ke
+To: Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Robert R. Howell" <RHowell@uwyo.edu>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 18 Apr 2019 09:42:23 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
-
-> After thinking a little bit and doing some tests, I think a good solution
-> would be to add ":orphan:" markup to the new .rst files that were not
-> added yet into the main body (e. g. something like the enclosed example).
-
-Interesting...I didn't know about that.  Yes, I think it makes sense to
-put that in...
-
-jon
+T24gNC8xOC8xOSA1OjQyIEFNLCBIYW5zIGRlIEdvZWRlIHdyb3RlOg0KDQo+PiBPbiA0LzgvMTkg
+MjoxNiBBTSwgSGFucyBkZSBHb2VkZSB3cm90ZTo+DQo+Pj4NCj4+PiBIbW0sIGludGVyZXN0aW5n
+IHNvIHlvdSBoYXZlIGhpYmVybmF0aW9uIHdvcmtpbmcgb24gYSBUMTAwVEENCj4+PiAod2l0aCA1
+LjAgKyAwMmU0NTY0NmQ1M2IgcmV2ZXJ0ZWQpLCByaWdodCA/DQo+Pj4NCg0KPiBTdGlsbCBzaW5j
+ZSBteSBwYXRjaCBpcyByZWdyZXNzaW5nIHRoaW5ncyBmb3IgeW91IEkgd2lsbCB0cnkgdG8NCj4g
+dGFrZSBhIGxvb2sgYXQgdGhpcyBhbmQgc2VlIGlmIEkgY2FuIHJlcHJvZHVjZSBhbmQgY29tZSB1
+cCB3aXRoDQo+IGEgZml4LiBCdXQgdGhpcyBpcyBub3QgZ29pbmcgdG8gYmUgYSBoaWdoIHByaW9y
+aXR5IHRoaW5nIGZvciBtZSB0bw0KPiB3b3JrIG9uLg0KPiANCj4gSW4gdGhlIG1lYW4gdGltZSBJ
+J3ZlIGdvbmUgYWhlYWQgYW5kIHN1Ym1pdHRlZCBteSB2ZXJzaW9uIG9mIHRoZQ0KPiBmaXggZm9y
+IHRoZSBwcm9ibGVtIEthaS1IZW5nIHdhcyBzZWVpbmcsIHNpbmNlIHRoYXQgZG9lcyBub3Qgc2Vl
+bQ0KPiB0byBtYWtlIHlvdXIgcHJvYmxlbSB3b3JzZTsgYW5kIGl0IHdpbGwgYmUgZ29vZCB0byBn
+ZXQgdGhhdCBwcm9ibGVtDQo+IGZpeGVkLg0KPiANCj4gUmVnYXJkcywNCj4gDQo+IEhhbnMNCj4g
+DQoNCkkndmUgbWFuYWdlZCB0byBmaW5kIGEgd2F5IGFyb3VuZCB0aGUgaTJjX2Rlc2lnbndhcmUg
+dGltZW91dCBpc3N1ZXMNCm9uIHRoZSBUMTAwVEEncy4gIFRoZSBrZXkgaXMgdG8gTk9UIHNldCBE
+UE1fRkxBR19TTUFSVF9TVVNQRU5ELA0Kd2hpY2ggd2FzIGFkZGVkIGluIHRoZSAwMmU0NTY0NmQ1
+M2IgY29tbWl0Lg0KDQpUbyB0ZXN0IHRoYXQgSSd2ZSBzdGFydGVkIHdpdGggYSA1LjEtcmM1IGtl
+cm5lbCwgYXBwbGllZCB5b3VyIHJlY2VudCBwYXRjaA0KdG8gYWNwaV9scHNzLmMsIHRoZW4gYXBw
+bHkgdGhlIGZvbGxvd2luZyBwYXRjaCBvZiBtaW5lLCByZW1vdmluZyANCkRQTV9GTEFHX1NNQVJU
+X1NVU1BFTkQuICAoRm9yIHRoZSBUMTAwIGhhcmR3YXJlIEkgbmVlZCB0byBhcHBseSBzb21lIA0K
+b3RoZXIgcGF0Y2hlcyBhcyB3ZWxsIGJ1dCB0aG9zZSBhcmUgbm90IHJlbGF0ZWQgdG8gdGhlIGky
+Yy1kZXNpZ253YXJlIG9yIA0KYWNwaSBpc3N1ZXMgYWRkcmVzc2VkIGhlcmUuKSAgDQoNCk9uIGEg
+cmVzdW1lIGZyb20gaGliZXJuYXRpb24gSSBzdGlsbCBzZWUgb25lIGVycm9yOg0KICAiaTJjX2Rl
+c2lnbndhcmUgODA4NjBGNDE6MDA6IEVycm9yIGkyY19kd194ZmVyIGNhbGxlZCB3aGlsZSBzdXNw
+ZW5kZWQiDQpidXQgSSBubyBsb25nZXIgZ2V0IHRoZSBpMmNfZGVzaWdud2FyZSB0aW1lb3V0cywg
+YW5kIGF1ZGlvIGRvZXMgbm93IHdvcmsNCmFmdGVyIHRoZSByZXN1bWUuDQoNClJlbW92aW5nIERQ
+TV9GTEFHX1NNQVJUX1NVU1BFTkQgbWF5IG5vdCBiZSB3aGF0IHlvdSB3YW50IGZvciBvdGhlciAN
+CmhhcmR3YXJlLCBidXQgcGVyaGFwcyB0aGlzIHdpbGwgZ2l2ZSB5b3UgYSBjbHVlIGFzIHRvIHdo
+YXQgaXMgZ29pbmcNCndyb25nIHdpdGggaGliZXJuYXRlL3Jlc3VtZSBvbiB0aGUgVDEwMFRBJ3Mu
+DQoNCldpdGggdGhlIGFib3ZlIG5vdyB3b3JraW5nIEkndmUgYWxzbyBleHBlcmltZW50ZWQgd2l0
+aCBteSBzeXN0ZW1kDQpoaWJlcm5hdGUgc2NyaXB0IGFuZCBhdCBsZWFzdCBpbiBsaW1pdGVkIHRl
+c3RpbmcgSSBvbmx5IG5lZWQgdG8NCnJlbW92ZSB0aGUgYnJjbWZtYWMgYW5kIGhjaV91YXJ0IGRy
+aXZlcnMgYmVmb3JlIGhpYmVybmF0ZS4NCkkgbm8gbG9uZ2VyIG5lZWQgdG8gcmVtb3ZlIHNvdW5k
+IGRyaXZlcnMgb3IgdGhlIG90aGVyIG9uZXMgc2hvd24gaW4gDQpteSBlYXJsaWVyIHNjcmlwdC4g
+IFdpdGhvdXQgbW9yZSB0ZXN0aW5nIEknbSBub3Qgc3VyZSBhdCB3aGF0IHBvaW50DQppbiBrZXJu
+ZWwgZGV2ZWxvcG1lbnQgdGhvc2Ugb3RoZXIgZHJpdmVyIHJlbW92YWxzIHN0b3BwZWQgYmVpbmcg
+bmVjZXNzYXJ5Lg0KDQpMZXQgbWUga25vdyBpZiBJIGNhbiBkbyBhbnkgb3RoZXIgdGVzdHMgdG8g
+aGVscC4NCg0KQm9iIEhvd2VsbA0KDQoNCg0KLS0tDQpkaWZmIC11cHJOIGxpbnV4X29yaWdpbmFs
+L2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtZGVzaWdud2FyZS1wbGF0ZHJ2LmMgbGludXgvZHJpdmVy
+cy9pMmMvYnVzc2VzL2kyYy1kZXNpZ253YXJlLXBsYXRkcnYuYw0KLS0tIGxpbnV4X29yaWdpbmFs
+L2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtZGVzaWdud2FyZS1wbGF0ZHJ2LmMJMjAxOS0wNC0xNCAx
+NjoxNzo0MS4wMDAwMDAwMDAgLTA2MDANCisrKyBsaW51eC9kcml2ZXJzL2kyYy9idXNzZXMvaTJj
+LWRlc2lnbndhcmUtcGxhdGRydi5jCTIwMTktMDQtMTggMjI6NDU6NTguODM2MjQ2ODg5IC0wNjAw
+DQpAQCAtMzY3LDcgKzM2Nyw2IEBAIHN0YXRpYyBpbnQgZHdfaTJjX3BsYXRfcHJvYmUoc3RydWN0
+IHBsYXQNCg0KIAlkZXZfcG1fc2V0X2RyaXZlcl9mbGFncygmcGRldi0+ZGV2LA0KIAkJCQlEUE1f
+RkxBR19TTUFSVF9QUkVQQVJFIHwNCi0JCQkJRFBNX0ZMQUdfU01BUlRfU1VTUEVORCB8DQogCQkJ
+CURQTV9GTEFHX0xFQVZFX1NVU1BFTkRFRCk7DQoNCiAJLyogVGhlIGNvZGUgYmVsb3cgYXNzdW1l
+cyBydW50aW1lIFBNIHRvIGJlIGRpc2FibGVkLiAqLw0KLS0tDQo=
