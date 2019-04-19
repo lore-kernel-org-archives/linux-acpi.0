@@ -1,61 +1,40 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
-Date: Thu, 18 Apr 2019 11:14:59 -0700
-Message-ID: <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
-References: <20190410040826.24371-1-pagupta@redhat.com>
- <20190410040826.24371-2-pagupta@redhat.com>
- <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
- <20190412083230.GA29850@quack2.suse.cz>
- <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
- <20190418161833.GA22970@infradead.org>
+From: Alison Schofield <alison.schofield@intel.com>
+Subject: Re: [PATCH] acpi/hmat: Update acpi_hmat_type enum with
+ ACPI_HMAT_TYPE_PROXIMITY
+Date: Fri, 19 Apr 2019 09:54:35 -0700
+Message-ID: <20190419165435.GA2284@alison-desk.jf.intel.com>
+References: <20190417181310.27613-1-alison.schofield@intel.com>
+ <20190418145640.GA7659@localhost.localdomain>
+ <CAJZ5v0g1EZbzr6BJhVBVb8JZGnVQg2Sz8NHtz_0Ji9R_58wMbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190418161833.GA22970-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: cohuck-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, david <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andreas Dilger <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ext4 <linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, yuval shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Theodore
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0g1EZbzr6BJhVBVb8JZGnVQg2Sz8NHtz_0Ji9R_58wMbA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Keith Busch <keith.busch@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
->
-> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
-> > > > I'd either add a comment about avoiding retpoline overhead here or just
-> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
-> > > > get confused by the code.
+On Thu, Apr 18, 2019 at 05:07:12PM +0200, Rafael J. Wysocki wrote:
+> On Thu, Apr 18, 2019 at 5:02 PM Keith Busch <keith.busch@intel.com> wrote:
+> >
+> > On Wed, Apr 17, 2019 at 11:13:10AM -0700, Alison Schofield wrote:
+> > > ACPI 6.3 changed the subtable "Memory Subsystem Address Range Structure"
+> > > to "Memory Proximity Domain Attributes Structure".
 > > >
-> > > Isn't this premature optimization?  I really don't like adding things
-> > > like this without some numbers to show it's worth it.
+> > > Updating and renaming of the structure was included in commit:
+> > > ACPICA: ACPI 6.3: HMAT updates (9a8d961f1ef835b0d338fbe13da03cb424e87ae5)
 > >
-> > I don't think it's premature given this optimization technique is
-> > already being deployed elsewhere, see:
-> >
-> > https://lwn.net/Articles/774347/
->
-> For one this one was backed by numbers, and second after feedback
-> from Linux we switched to the NULL pointer check instead.
+> > I was not really happy with that HMAT update. Platforms implementing
+> > 6.2's HMAT continue to exist even if 6.3 isn't backward compatible. We
+> > just lost the original subtable definition.
+> 
+> Well, that's true, sadly, but the question is what to do in the kernel.
+> 
+> Definitely, the 6.3 format needs to be supported, but if the 6.2 ships
+> anywhere in practice, that will need to be supported too.
 
-Ok I should have noticed the switch to NULL pointer check. However,
-the question still stands do we want everyone to run numbers to
-justify this optimization, or make it a new common kernel coding
-practice to do:
-
-    if (!object->op)
-        generic_op(object);
-    else
-        object->op(object);
-
-...in hot paths? I agree with not doing premature optimization in
-principle, but this hack is minimally intrusive from a readability
-perspective similar to likely()/unlikely() usage which also don't come
-with numbers on a per patch basis.
+So, what's the usual practice when ACPI tables are updated?
+Do we define separate 6.2 and 6.3 versions of this subtable and let
+the kernel figure out which one its looking at?
