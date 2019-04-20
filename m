@@ -1,70 +1,76 @@
-From: "Robert R. Howell" <RHowell@uwyo.edu>
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Date: Fri, 19 Apr 2019 22:44:04 +0000
-Message-ID: <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
- <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com>
- <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
- <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com>
- <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
- <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Mohan Kumar <mohankumar718@gmail.com>
+Subject: [PATCH 1/3] PCI: Cleanup printk logging
+Date: Sat, 20 Apr 2019 07:03:46 +0300
+Message-ID: <1555733026-19609-1-git-send-email-mohankumar718@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com>
-Content-Language: en-US
-Content-ID: <B5503D6600E9354FA5A0BF32F78DB661@namprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Robert R. Howell" <RHowell@uwyo.edu>
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gNC8xOC8xOSA1OjQyIEFNLCBIYW5zIGRlIEdvZWRlIHdyb3RlOg0KDQo+PiBPbiA0LzgvMTkg
-MjoxNiBBTSwgSGFucyBkZSBHb2VkZSB3cm90ZTo+DQo+Pj4NCj4+PiBIbW0sIGludGVyZXN0aW5n
-IHNvIHlvdSBoYXZlIGhpYmVybmF0aW9uIHdvcmtpbmcgb24gYSBUMTAwVEENCj4+PiAod2l0aCA1
-LjAgKyAwMmU0NTY0NmQ1M2IgcmV2ZXJ0ZWQpLCByaWdodCA/DQo+Pj4NCg0KPiBTdGlsbCBzaW5j
-ZSBteSBwYXRjaCBpcyByZWdyZXNzaW5nIHRoaW5ncyBmb3IgeW91IEkgd2lsbCB0cnkgdG8NCj4g
-dGFrZSBhIGxvb2sgYXQgdGhpcyBhbmQgc2VlIGlmIEkgY2FuIHJlcHJvZHVjZSBhbmQgY29tZSB1
-cCB3aXRoDQo+IGEgZml4LiBCdXQgdGhpcyBpcyBub3QgZ29pbmcgdG8gYmUgYSBoaWdoIHByaW9y
-aXR5IHRoaW5nIGZvciBtZSB0bw0KPiB3b3JrIG9uLg0KPiANCj4gSW4gdGhlIG1lYW4gdGltZSBJ
-J3ZlIGdvbmUgYWhlYWQgYW5kIHN1Ym1pdHRlZCBteSB2ZXJzaW9uIG9mIHRoZQ0KPiBmaXggZm9y
-IHRoZSBwcm9ibGVtIEthaS1IZW5nIHdhcyBzZWVpbmcsIHNpbmNlIHRoYXQgZG9lcyBub3Qgc2Vl
-bQ0KPiB0byBtYWtlIHlvdXIgcHJvYmxlbSB3b3JzZTsgYW5kIGl0IHdpbGwgYmUgZ29vZCB0byBn
-ZXQgdGhhdCBwcm9ibGVtDQo+IGZpeGVkLg0KPiANCj4gUmVnYXJkcywNCj4gDQo+IEhhbnMNCj4g
-DQoNCkkndmUgbWFuYWdlZCB0byBmaW5kIGEgd2F5IGFyb3VuZCB0aGUgaTJjX2Rlc2lnbndhcmUg
-dGltZW91dCBpc3N1ZXMNCm9uIHRoZSBUMTAwVEEncy4gIFRoZSBrZXkgaXMgdG8gTk9UIHNldCBE
-UE1fRkxBR19TTUFSVF9TVVNQRU5ELA0Kd2hpY2ggd2FzIGFkZGVkIGluIHRoZSAwMmU0NTY0NmQ1
-M2IgY29tbWl0Lg0KDQpUbyB0ZXN0IHRoYXQgSSd2ZSBzdGFydGVkIHdpdGggYSA1LjEtcmM1IGtl
-cm5lbCwgYXBwbGllZCB5b3VyIHJlY2VudCBwYXRjaA0KdG8gYWNwaV9scHNzLmMsIHRoZW4gYXBw
-bHkgdGhlIGZvbGxvd2luZyBwYXRjaCBvZiBtaW5lLCByZW1vdmluZyANCkRQTV9GTEFHX1NNQVJU
-X1NVU1BFTkQuICAoRm9yIHRoZSBUMTAwIGhhcmR3YXJlIEkgbmVlZCB0byBhcHBseSBzb21lIA0K
-b3RoZXIgcGF0Y2hlcyBhcyB3ZWxsIGJ1dCB0aG9zZSBhcmUgbm90IHJlbGF0ZWQgdG8gdGhlIGky
-Yy1kZXNpZ253YXJlIG9yIA0KYWNwaSBpc3N1ZXMgYWRkcmVzc2VkIGhlcmUuKSAgDQoNCk9uIGEg
-cmVzdW1lIGZyb20gaGliZXJuYXRpb24gSSBzdGlsbCBzZWUgb25lIGVycm9yOg0KICAiaTJjX2Rl
-c2lnbndhcmUgODA4NjBGNDE6MDA6IEVycm9yIGkyY19kd194ZmVyIGNhbGxlZCB3aGlsZSBzdXNw
-ZW5kZWQiDQpidXQgSSBubyBsb25nZXIgZ2V0IHRoZSBpMmNfZGVzaWdud2FyZSB0aW1lb3V0cywg
-YW5kIGF1ZGlvIGRvZXMgbm93IHdvcmsNCmFmdGVyIHRoZSByZXN1bWUuDQoNClJlbW92aW5nIERQ
-TV9GTEFHX1NNQVJUX1NVU1BFTkQgbWF5IG5vdCBiZSB3aGF0IHlvdSB3YW50IGZvciBvdGhlciAN
-CmhhcmR3YXJlLCBidXQgcGVyaGFwcyB0aGlzIHdpbGwgZ2l2ZSB5b3UgYSBjbHVlIGFzIHRvIHdo
-YXQgaXMgZ29pbmcNCndyb25nIHdpdGggaGliZXJuYXRlL3Jlc3VtZSBvbiB0aGUgVDEwMFRBJ3Mu
-DQoNCldpdGggdGhlIGFib3ZlIG5vdyB3b3JraW5nIEkndmUgYWxzbyBleHBlcmltZW50ZWQgd2l0
-aCBteSBzeXN0ZW1kDQpoaWJlcm5hdGUgc2NyaXB0IGFuZCBhdCBsZWFzdCBpbiBsaW1pdGVkIHRl
-c3RpbmcgSSBvbmx5IG5lZWQgdG8NCnJlbW92ZSB0aGUgYnJjbWZtYWMgYW5kIGhjaV91YXJ0IGRy
-aXZlcnMgYmVmb3JlIGhpYmVybmF0ZS4NCkkgbm8gbG9uZ2VyIG5lZWQgdG8gcmVtb3ZlIHNvdW5k
-IGRyaXZlcnMgb3IgdGhlIG90aGVyIG9uZXMgc2hvd24gaW4gDQpteSBlYXJsaWVyIHNjcmlwdC4g
-IFdpdGhvdXQgbW9yZSB0ZXN0aW5nIEknbSBub3Qgc3VyZSBhdCB3aGF0IHBvaW50DQppbiBrZXJu
-ZWwgZGV2ZWxvcG1lbnQgdGhvc2Ugb3RoZXIgZHJpdmVyIHJlbW92YWxzIHN0b3BwZWQgYmVpbmcg
-bmVjZXNzYXJ5Lg0KDQpMZXQgbWUga25vdyBpZiBJIGNhbiBkbyBhbnkgb3RoZXIgdGVzdHMgdG8g
-aGVscC4NCg0KQm9iIEhvd2VsbA0KDQoNCg0KLS0tDQpkaWZmIC11cHJOIGxpbnV4X29yaWdpbmFs
-L2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtZGVzaWdud2FyZS1wbGF0ZHJ2LmMgbGludXgvZHJpdmVy
-cy9pMmMvYnVzc2VzL2kyYy1kZXNpZ253YXJlLXBsYXRkcnYuYw0KLS0tIGxpbnV4X29yaWdpbmFs
-L2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtZGVzaWdud2FyZS1wbGF0ZHJ2LmMJMjAxOS0wNC0xNCAx
-NjoxNzo0MS4wMDAwMDAwMDAgLTA2MDANCisrKyBsaW51eC9kcml2ZXJzL2kyYy9idXNzZXMvaTJj
-LWRlc2lnbndhcmUtcGxhdGRydi5jCTIwMTktMDQtMTggMjI6NDU6NTguODM2MjQ2ODg5IC0wNjAw
-DQpAQCAtMzY3LDcgKzM2Nyw2IEBAIHN0YXRpYyBpbnQgZHdfaTJjX3BsYXRfcHJvYmUoc3RydWN0
-IHBsYXQNCg0KIAlkZXZfcG1fc2V0X2RyaXZlcl9mbGFncygmcGRldi0+ZGV2LA0KIAkJCQlEUE1f
-RkxBR19TTUFSVF9QUkVQQVJFIHwNCi0JCQkJRFBNX0ZMQUdfU01BUlRfU1VTUEVORCB8DQogCQkJ
-CURQTV9GTEFHX0xFQVZFX1NVU1BFTkRFRCk7DQoNCiAJLyogVGhlIGNvZGUgYmVsb3cgYXNzdW1l
-cyBydW50aW1lIFBNIHRvIGJlIGRpc2FibGVkLiAqLw0KLS0tDQo=
+Replace printk with pr_* to avoid checkpatch warnings.
+
+Signed-off-by: Mohan Kumar <mohankumar718@gmail.com>
+---
+ drivers/pci/pci-acpi.c | 11 ++++-------
+ drivers/pci/quirks.c   |  2 +-
+ 2 files changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index e1949f7..3ada026 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -140,8 +140,7 @@ static acpi_status decode_type0_hpx_record(union acpi_object *record,
+ 		hpx->t0->enable_perr     = fields[5].integer.value;
+ 		break;
+ 	default:
+-		printk(KERN_WARNING
+-		       "%s: Type 0 Revision %d record not supported\n",
++		pr_warn("%s: Type 0 Revision %d record not supported\n",
+ 		       __func__, revision);
+ 		return AE_ERROR;
+ 	}
+@@ -169,8 +168,7 @@ static acpi_status decode_type1_hpx_record(union acpi_object *record,
+ 		hpx->t1->tot_max_split = fields[4].integer.value;
+ 		break;
+ 	default:
+-		printk(KERN_WARNING
+-		       "%s: Type 1 Revision %d record not supported\n",
++		pr_warn("%s: Type 1 Revision %d record not supported\n",
+ 		       __func__, revision);
+ 		return AE_ERROR;
+ 	}
+@@ -211,8 +209,7 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
+ 		hpx->t2->sec_unc_err_mask_or   = fields[17].integer.value;
+ 		break;
+ 	default:
+-		printk(KERN_WARNING
+-		       "%s: Type 2 Revision %d record not supported\n",
++		pr_warn("%s: Type 2 Revision %d record not supported\n",
+ 		       __func__, revision);
+ 		return AE_ERROR;
+ 	}
+@@ -272,7 +269,7 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
+ 				goto exit;
+ 			break;
+ 		default:
+-			printk(KERN_ERR "%s: Type %d record not supported\n",
++			pr_err("%s: Type %d record not supported\n",
+ 			       __func__, type);
+ 			status = AE_ERROR;
+ 			goto exit;
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index f9cd4d4..06af0c3 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -2613,7 +2613,7 @@ static void nvbridge_check_legacy_irq_routing(struct pci_dev *dev)
+ 	pci_read_config_dword(dev, 0x74, &cfg);
+ 
+ 	if (cfg & ((1 << 2) | (1 << 15))) {
+-		printk(KERN_INFO "Rewriting IRQ routing register on MCP55\n");
++		pr_info("Rewriting IRQ routing register on MCP55\n");
+ 		cfg &= ~((1 << 2) | (1 << 15));
+ 		pci_write_config_dword(dev, 0x74, cfg);
+ 	}
+-- 
+2.7.4
