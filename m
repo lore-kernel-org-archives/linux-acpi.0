@@ -2,100 +2,144 @@ Return-Path: <SRS0=2tY1=SY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5F1EC10F11
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 17:03:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 164A2C10F11
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 20:06:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8C86E20685
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 17:03:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0D3520643
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 20:06:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="MZnMJSvs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727428AbfDVRD1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 22 Apr 2019 13:03:27 -0400
-Received: from gateway23.websitewelcome.com ([192.185.50.141]:40452 "EHLO
-        gateway23.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726098AbfDVRD1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Apr 2019 13:03:27 -0400
-X-Greylist: delayed 1430 seconds by postgrey-1.27 at vger.kernel.org; Mon, 22 Apr 2019 13:03:26 EDT
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway23.websitewelcome.com (Postfix) with ESMTP id F23FE5B37
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Apr 2019 11:39:35 -0500 (CDT)
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with SMTP
-        id IbyhhJSzlYTGMIbyhhPtsa; Mon, 22 Apr 2019 11:39:35 -0500
-X-Authority-Reason: nr=8
-Received: from [189.250.104.103] (port=39364 helo=embeddedor)
-        by gator4166.hostgator.com with esmtpa (Exim 4.91)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1hIbyh-001iky-5S; Mon, 22 Apr 2019 11:39:35 -0500
-Date:   Mon, 22 Apr 2019 11:39:34 -0500
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] ACPI: event: replace strcpy() by strscpy()
-Message-ID: <20190422163934.GA2636@embeddedor>
+        id S1729506AbfDVTod (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 22 Apr 2019 15:44:33 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:35384 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729486AbfDVTod (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2019 15:44:33 -0400
+Received: by mail-oi1-f196.google.com with SMTP id j132so9394029oib.2
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Apr 2019 12:44:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=be6f2f0XIlqFU7RHgEDNHdFLaZKAoDs5ON2xf3GreVs=;
+        b=MZnMJSvszGOJ69yW2f92BRR2//4YgYRkKKac5Gqy7Awh1bsWzu6rOOSWtZwJtx/tcG
+         eDw1eDkllfmunatVZlfYdB6E/H0sEhYx56nkD9/3BTyiQhK1cK3ohxtnncyN808QU9Ip
+         EHjb1faIflXV5qJO4U85TcW+zBgo6JUqMcJpYrNghYuo1YIWP/jnyZ0my2UTfw52gR0p
+         0x1xVJYtgpLLMZiiVV2/R/giaXcjlq2VvA7Z8shcCNAngnJ6VI6G+ScfLPtwzKJEy1HA
+         MzWZ1/YUvj5/eXdhJA+Ieta7O8ADe/tnz1YT0d9DikYe3aJrHMlfOTBTM/lY7uViDVxI
+         lLQQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=be6f2f0XIlqFU7RHgEDNHdFLaZKAoDs5ON2xf3GreVs=;
+        b=mLqUPijpKUpIoCFpvUmT2S+UIIupHng8Edsdix8jVYVMLiI1EIsttQlem/7V9xTiX6
+         Q7caz9607ngNNPp6jk7r7jR+7gkUzcxi3coe8uaXvsGH5H3WiQzShOVgGjfckBR/j0fJ
+         185M3PP6x4JRomlHNdg5bWqg01imQIxVmFgQN7A4vHqR3VI1z7cNRRaoMRkNbo46BPEO
+         7YQ2qj7NlPOT6AjFYtZmXcN8+HcQnfAGyl+3xKemqfBMDaKJM3KcWPUFNreq1JFZgGyo
+         XGvxvAqI6LG0kzMbSlNgkKuvIh1UQS148hFU4iEgQYAEwPpce8ySOtcffWzxWqs3h+Pk
+         bhHA==
+X-Gm-Message-State: APjAAAVK54pGjwnZjZXaceBg2va31GsK46k6v1OgMR+Bl9U0LnkCGfl7
+        sSy9Li7eJquKUlKM2dynIp/IqJv/xmP+EJoiLIkbTg==
+X-Google-Smtp-Source: APXvYqy9oEwsfMU6Hmi4yVBnW8LZ4gUZmwS+KAWSnUmv484C2kN850KPfxFBG55AG8ix9yht3mk81r/aARykAzdCsRE=
+X-Received: by 2002:aca:f581:: with SMTP id t123mr11818692oih.0.1555962272101;
+ Mon, 22 Apr 2019 12:44:32 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com>
+ <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
+ <20190412083230.GA29850@quack2.suse.cz> <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
+ <20190418161833.GA22970@infradead.org> <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
+ <x497ebm82d4.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <x497ebm82d4.fsf@segfault.boston.devel.redhat.com>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Mon, 22 Apr 2019 12:44:21 -0700
+Message-ID:
+ <CAPcyv4gGmN2LLMPy6BzWpYhRyV7fFNVgh=xAWSAdnnAWu5APtg@mail.gmail.com>
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+To:     Jeff Moyer <jmoyer@redhat.com>
+Cc:     Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>,
+        Pankaj Gupta <pagupta@redhat.com>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, "Theodore Ts'o" <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
+        Igor Mammedov <imammedo@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Rik van Riel <riel@surriel.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        david <david@fromorbit.com>, cohuck@redhat.com,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
+        yuval shaia <yuval.shaia@oracle.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 189.250.104.103
-X-Source-L: No
-X-Exim-ID: 1hIbyh-001iky-5S
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: (embeddedor) [189.250.104.103]:39364
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 22
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190422163934.sPSNdHr1Qc1k62LFvq0MPxyYdiIy2Z9iUyWyOICTktM@z>
+Message-ID: <20190422194421.OUGqROi9yd3YedV9Of50TzM2LMXcixltaVzDuYY1Upk@z>
 
-The strcpy() function is being deprecated. Replace it by the safer
-strscpy() and fix the following Coverity warnings:
+On Mon, Apr 22, 2019 at 8:59 AM Jeff Moyer <jmoyer@redhat.com> wrote:
+>
+> Dan Williams <dan.j.williams@intel.com> writes:
+>
+> > On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch@infradead.org> wrote:
+> >>
+> >> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
+> >> > > > I'd either add a comment about avoiding retpoline overhead here or just
+> >> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
+> >> > > > get confused by the code.
+> >> > >
+> >> > > Isn't this premature optimization?  I really don't like adding things
+> >> > > like this without some numbers to show it's worth it.
+> >> >
+> >> > I don't think it's premature given this optimization technique is
+> >> > already being deployed elsewhere, see:
+> >> >
+> >> > https://lwn.net/Articles/774347/
+> >>
+> >> For one this one was backed by numbers, and second after feedback
+> >> from Linux we switched to the NULL pointer check instead.
+> >
+> > Ok I should have noticed the switch to NULL pointer check. However,
+> > the question still stands do we want everyone to run numbers to
+> > justify this optimization, or make it a new common kernel coding
+> > practice to do:
+> >
+> >     if (!object->op)
+> >         generic_op(object);
+> >     else
+> >         object->op(object);
+> >
+> > ...in hot paths?
+>
+> I don't think nvdimm_flush is a hot path.  Numbers of some
+> representative workload would prove one of us right.
 
-"You might overrun the 15-character fixed-size string event->bus_id
-by copying bus_id without checking the length."
-
-"You might overrun the 20-character fixed-size string event->device_class
-by copying device_class without checking the length."
-
-Addresses-Coverity-ID: 139001 ("Copy into fixed size buffer")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/acpi/event.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
-index 5a127f3f2d5c..47f21599f2ab 100644
---- a/drivers/acpi/event.c
-+++ b/drivers/acpi/event.c
-@@ -131,8 +131,8 @@ int acpi_bus_generate_netlink_event(const char *device_class,
- 	event = nla_data(attr);
- 	memset(event, 0, sizeof(struct acpi_genl_event));
- 
--	strcpy(event->device_class, device_class);
--	strcpy(event->bus_id, bus_id);
-+	strscpy(event->device_class, device_class, sizeof(event->device_class));
-+	strscpy(event->bus_id, bus_id, sizeof(event->bus_id));
- 	event->type = type;
- 	event->data = data;
- 
--- 
-2.21.0
-
+I'd rather say that the if "if (!op) do_generic()" pattern is more
+readable in the general case, saves grepping for who set the op in the
+common case. The fact that it has the potential to be faster is gravy
+at that point.
