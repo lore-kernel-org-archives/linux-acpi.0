@@ -1,136 +1,104 @@
-Return-Path: <SRS0=2IkD=SW=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=2tY1=SY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
+	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBEE7C282DD
-	for <linux-acpi@archiver.kernel.org>; Sat, 20 Apr 2019 04:04:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B92CBC282CE
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 13:31:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 84D8521479
-	for <linux-acpi@archiver.kernel.org>; Sat, 20 Apr 2019 04:04:01 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cOT0Kz5L"
+	by mail.kernel.org (Postfix) with ESMTP id 88EAE2064A
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 13:31:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1555939899;
+	bh=H1tDZvzwDTD/HEEn/0lKOv0+7a2JbpsvU5Jknab2IBE=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=L0Kd2lGUWeMjAiTDmJeyk6vHkCi+sICCp2ZGhrKvRg1qhs6jTGxM2SlifSko1VSb1
+	 lUkvQurqw0dNsgzVec5MPN/rc4WbTYS2a3StCoF8NCQCr0vXnVVcd2t296t0h8qI9X
+	 SLhHYmJkgyvyxgXwPkpQVSZ+8tqDcn+LEeH2QjVM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725912AbfDTEEB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 20 Apr 2019 00:04:01 -0400
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:37400 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725910AbfDTEEA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Apr 2019 00:04:00 -0400
-Received: by mail-lf1-f65.google.com with SMTP id o19so5250512lfl.4;
-        Fri, 19 Apr 2019 21:03:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=W7EuQ38Jk5ir6uq2mAZGOW3QIER8a/X6pBTKduTAxU0=;
-        b=cOT0Kz5LDOzXz2f4n/ryXXvF89jL5Zy7fwTSex89VHz5rJHMUS6LsUFwrazN+bPUM9
-         dg5MbYjN4UFqUL/YczbI9ZmwYdoAjiepF/c9e2hOjaxu1lq/U2E4Ta1OS9UxShuJRlMj
-         Kx504f+IlzsV0mIGnz8WbmcW+xPPVEwDcP4e7nybULJ9ukcStQrCoRCbCB/2vvnAuEZx
-         XFNMOhkskGCfSdh3aQ/grOmyVU7lKQfZfEYi/iTgg1oy8M1oh3akr1ClSQeBRnrLKtS/
-         J9Rx44TilvwWJR3xDnkiw1zIjGw4C1K+WRH/WxcrfruCypUApT+uUc3WY2HL1LCYEL4I
-         Gy6A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=W7EuQ38Jk5ir6uq2mAZGOW3QIER8a/X6pBTKduTAxU0=;
-        b=nVPnHlAQGz0rBqI8DdY0oxtAifzDUiPzxkC8Nex/a5NVP/vENZVwnhjFAIO+QRpPjY
-         gCaUm19Rr+MlYSc4Y0uDElwEUEl4cqNcHnuOY0q3JjTSuWfgH8B9w6gsftWNIuJ69ODs
-         dISj2R/5rv+5I1NI3Lni3a3fmTk/0v71TnLqI23CgW4JKKWkGxbZ3YltZZLG6zaBfLTt
-         L+dQoXzWrBTgVGm9PKqtntVkJ3y6xRhd32cPCnh2DBAgPujRObSlCKO30XgSCRcO9523
-         xdrrkZsaC40ni9mw5BlL+J/kP6QGqG9gs1jZmHA7ifo3hfrMAFXPkD8uH5rlMeUyPcg1
-         tujQ==
-X-Gm-Message-State: APjAAAXq9LTaL9tejEAWwOzX/x2asUgRRpLyUDWTOZ+/8w7N/utIvTaL
-        q51ZfMwagBg6v+RT/zd8bGA=
-X-Google-Smtp-Source: APXvYqzqmBc0b7EyiVkU95u1ViIKH3O9RtfeKCGUvfFIwixXqpOM3PBF0+AGuSYtDdrZ//GqKyxHYw==
-X-Received: by 2002:ac2:5a11:: with SMTP id q17mr4042073lfn.145.1555733038211;
-        Fri, 19 Apr 2019 21:03:58 -0700 (PDT)
-Received: from localhost.localdomain (93-96-157.netrun.cytanet.com.cy. [93.109.96.157])
-        by smtp.gmail.com with ESMTPSA id s2sm1551503lfp.20.2019.04.19.21.03.56
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Fri, 19 Apr 2019 21:03:57 -0700 (PDT)
-From:   Mohan Kumar <mohankumar718@gmail.com>
-To:     rjw@rjwysocki.net
-Cc:     lenb@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] PCI: Cleanup printk logging
-Date:   Sat, 20 Apr 2019 07:03:46 +0300
-Message-Id: <1555733026-19609-1-git-send-email-mohankumar718@gmail.com>
-X-Mailer: git-send-email 2.7.4
+        id S1726587AbfDVNbc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 22 Apr 2019 09:31:32 -0400
+Received: from casper.infradead.org ([85.118.1.10]:57646 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727532AbfDVNbM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2019 09:31:12 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=Q6KL5I4jVoQO8RAy9pB/vCGH8qrbuTSbr0+4nRI4u78=; b=PYGwrJSI+PJfANSallDvOmdv3f
+        AGZQWl8SckrfnUjk/9s5mANwHc9zvYTzDeYDNgWBCGwesfTqxB5KvZTNTUSLQrJDGzMzAfdlV6XBF
+        IH7bufbh/lv8oN+Qusj4t0/EBEAvhhLhwIil/iqXDIwtvPciKvkcQ9ALq0KU3wmp7wPxhTdvLElOA
+        FmJ/mnrRM8DM/X73y9ZoBRQFS1iLZPl9+iERGlzYXDbKI5kt93l4qqo33HgjWUtvZ7pyqlAdxbKyU
+        RftFX9GHajGqKP/8tTVxeLNjZpZ/9WdbP6hHFSNYEYvmHlugNBGMoFZQnjV+1GbzFEnckKzyhUlsp
+        ar17Qp2A==;
+Received: from 179.176.125.229.dynamic.adsl.gvt.net.br ([179.176.125.229] helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1hIZ2K-0003bB-8c; Mon, 22 Apr 2019 13:31:08 +0000
+Date:   Mon, 22 Apr 2019 10:31:02 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Changbin Du <changbin.du@gmail.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
+Message-ID: <20190422103102.03f9548a@coco.lan>
+In-Reply-To: <20190416145518.xigzqsawvbrospir@mail.google.com>
+References: <cover.1555382110.git.mchehab+samsung@kernel.org>
+        <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
+        <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
+        <20190416145518.xigzqsawvbrospir@mail.google.com>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190420040346.w45pMsrYgBgCI2qbUgV5gqzQ9mox5dl3YshFXEUGe1k@z>
+Message-ID: <20190422133102.57d1xp8k_uHSr9iZH4KfE6W97dxXnjo2xHe_84P5b5k@z>
 
-Replace printk with pr_* to avoid checkpatch warnings.
+Em Tue, 16 Apr 2019 14:55:19 +0000
+Changbin Du <changbin.du@gmail.com> escreveu:
 
-Signed-off-by: Mohan Kumar <mohankumar718@gmail.com>
----
- drivers/pci/pci-acpi.c | 11 ++++-------
- drivers/pci/quirks.c   |  2 +-
- 2 files changed, 5 insertions(+), 8 deletions(-)
+> On Tue, Apr 16, 2019 at 10:17:11AM +0200, Rafael J. Wysocki wrote:
+> > On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
+> > <mchehab+samsung@kernel.org> wrote:  
+> > >
+> > > Most of the files are already in good shape, making easier to
+> > > convert them to ReST by adding proper title markups and
+> > > addressing some identation and markups to properly format the
+> > > document.  
+> > 
+> > There is concurrent work on this under way, please see
+> > https://marc.info/?t=155381845300002&r=2&w=2
+> >   
+> I will update the serias asap. I am just a little busy these days. My
+> conversion includes pci, acpi and x86, others are not touched.
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index e1949f7..3ada026 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -140,8 +140,7 @@ static acpi_status decode_type0_hpx_record(union acpi_object *record,
- 		hpx->t0->enable_perr     = fields[5].integer.value;
- 		break;
- 	default:
--		printk(KERN_WARNING
--		       "%s: Type 0 Revision %d record not supported\n",
-+		pr_warn("%s: Type 0 Revision %d record not supported\n",
- 		       __func__, revision);
- 		return AE_ERROR;
- 	}
-@@ -169,8 +168,7 @@ static acpi_status decode_type1_hpx_record(union acpi_object *record,
- 		hpx->t1->tot_max_split = fields[4].integer.value;
- 		break;
- 	default:
--		printk(KERN_WARNING
--		       "%s: Type 1 Revision %d record not supported\n",
-+		pr_warn("%s: Type 1 Revision %d record not supported\n",
- 		       __func__, revision);
- 		return AE_ERROR;
- 	}
-@@ -211,8 +209,7 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
- 		hpx->t2->sec_unc_err_mask_or   = fields[17].integer.value;
- 		break;
- 	default:
--		printk(KERN_WARNING
--		       "%s: Type 2 Revision %d record not supported\n",
-+		pr_warn("%s: Type 2 Revision %d record not supported\n",
- 		       __func__, revision);
- 		return AE_ERROR;
- 	}
-@@ -272,7 +269,7 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
- 				goto exit;
- 			break;
- 		default:
--			printk(KERN_ERR "%s: Type %d record not supported\n",
-+			pr_err("%s: Type %d record not supported\n",
- 			       __func__, type);
- 			status = AE_ERROR;
- 			goto exit;
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index f9cd4d4..06af0c3 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -2613,7 +2613,7 @@ static void nvbridge_check_legacy_irq_routing(struct pci_dev *dev)
- 	pci_read_config_dword(dev, 0x74, &cfg);
- 
- 	if (cfg & ((1 << 2) | (1 << 15))) {
--		printk(KERN_INFO "Rewriting IRQ routing register on MCP55\n");
-+		pr_info("Rewriting IRQ routing register on MCP55\n");
- 		cfg &= ~((1 << 2) | (1 << 15));
- 		pci_write_config_dword(dev, 0x74, cfg);
- 	}
--- 
-2.7.4
+Ok, I sent a new patch series without pci, acpi and x86.
 
+While these aren't merged upstream, I'm keeping my old patches
+on my tree:
+
+	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=convert_rst_v2&id=805b16dd336dd3c27733f02ec8164b2a182972a3
+	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=convert_rst_v2&id=c950031ccb87ea14ff4c56f2433072d580db3572
+	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=convert_rst_v2&id=4f8afce866dcd8067206b3ee493ed0b682694f49
+
+If you find anything there that would be interesting for your 
+series, feel free to pick from them. Everything is based on
+linux-next.
+
+Thanks,
+Mauro
