@@ -2,103 +2,123 @@ Return-Path: <SRS0=2tY1=SY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B92CBC282CE
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 13:31:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2931C10F11
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 15:51:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 88EAE2064A
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 13:31:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555939899;
-	bh=H1tDZvzwDTD/HEEn/0lKOv0+7a2JbpsvU5Jknab2IBE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=L0Kd2lGUWeMjAiTDmJeyk6vHkCi+sICCp2ZGhrKvRg1qhs6jTGxM2SlifSko1VSb1
-	 lUkvQurqw0dNsgzVec5MPN/rc4WbTYS2a3StCoF8NCQCr0vXnVVcd2t296t0h8qI9X
-	 SLhHYmJkgyvyxgXwPkpQVSZ+8tqDcn+LEeH2QjVM=
+	by mail.kernel.org (Postfix) with ESMTP id 8AE4F2077C
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 15:51:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726587AbfDVNbc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 22 Apr 2019 09:31:32 -0400
-Received: from casper.infradead.org ([85.118.1.10]:57646 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727532AbfDVNbM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2019 09:31:12 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=Q6KL5I4jVoQO8RAy9pB/vCGH8qrbuTSbr0+4nRI4u78=; b=PYGwrJSI+PJfANSallDvOmdv3f
-        AGZQWl8SckrfnUjk/9s5mANwHc9zvYTzDeYDNgWBCGwesfTqxB5KvZTNTUSLQrJDGzMzAfdlV6XBF
-        IH7bufbh/lv8oN+Qusj4t0/EBEAvhhLhwIil/iqXDIwtvPciKvkcQ9ALq0KU3wmp7wPxhTdvLElOA
-        FmJ/mnrRM8DM/X73y9ZoBRQFS1iLZPl9+iERGlzYXDbKI5kt93l4qqo33HgjWUtvZ7pyqlAdxbKyU
-        RftFX9GHajGqKP/8tTVxeLNjZpZ/9WdbP6hHFSNYEYvmHlugNBGMoFZQnjV+1GbzFEnckKzyhUlsp
-        ar17Qp2A==;
-Received: from 179.176.125.229.dynamic.adsl.gvt.net.br ([179.176.125.229] helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1hIZ2K-0003bB-8c; Mon, 22 Apr 2019 13:31:08 +0000
-Date:   Mon, 22 Apr 2019 10:31:02 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Changbin Du <changbin.du@gmail.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        id S1727190AbfDVPvt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 22 Apr 2019 11:51:49 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:60968 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726945AbfDVPvt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Apr 2019 11:51:49 -0400
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id A5B52C049E20;
+        Mon, 22 Apr 2019 15:51:48 +0000 (UTC)
+Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 389081018A0D;
+        Mon, 22 Apr 2019 15:51:36 +0000 (UTC)
+From:   Jeff Moyer <jmoyer@redhat.com>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>,
+        Pankaj Gupta <pagupta@redhat.com>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH 02/57] docs: acpi: convert text files to ReST
-Message-ID: <20190422103102.03f9548a@coco.lan>
-In-Reply-To: <20190416145518.xigzqsawvbrospir@mail.google.com>
-References: <cover.1555382110.git.mchehab+samsung@kernel.org>
-        <10802a7ac16958a2786c2fc083fb5cb50eb7ebb9.1555382110.git.mchehab+samsung@kernel.org>
-        <CAJZ5v0hZK07zQzmD6J0J5dBUAecpE_31_W5Ade5UpWrsWBeU+Q@mail.gmail.com>
-        <20190416145518.xigzqsawvbrospir@mail.google.com>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Len Brown <lenb@kernel.org>, "Theodore Ts'o" <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
+        Igor Mammedov <imammedo@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Rik van Riel <riel@surriel.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        david <david@fromorbit.com>, cohuck@redhat.com,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
+        yuval shaia <yuval.shaia@oracle.com>
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+References: <20190410040826.24371-1-pagupta@redhat.com>
+        <20190410040826.24371-2-pagupta@redhat.com>
+        <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
+        <20190412083230.GA29850@quack2.suse.cz>
+        <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+        <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
+        <20190418161833.GA22970@infradead.org>
+        <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date:   Mon, 22 Apr 2019 11:51:35 -0400
+In-Reply-To: <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
+        (Dan Williams's message of "Thu, 18 Apr 2019 11:14:59 -0700")
+Message-ID: <x497ebm82d4.fsf@segfault.boston.devel.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.31]); Mon, 22 Apr 2019 15:51:49 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190422133102.57d1xp8k_uHSr9iZH4KfE6W97dxXnjo2xHe_84P5b5k@z>
+Message-ID: <20190422155135.pI0tt987BF0Hefjhm8FfBW-auvCaJ0dS4Q-WwgGIJQo@z>
 
-Em Tue, 16 Apr 2019 14:55:19 +0000
-Changbin Du <changbin.du@gmail.com> escreveu:
+Dan Williams <dan.j.williams@intel.com> writes:
 
-> On Tue, Apr 16, 2019 at 10:17:11AM +0200, Rafael J. Wysocki wrote:
-> > On Tue, Apr 16, 2019 at 5:02 AM Mauro Carvalho Chehab
-> > <mchehab+samsung@kernel.org> wrote:  
-> > >
-> > > Most of the files are already in good shape, making easier to
-> > > convert them to ReST by adding proper title markups and
-> > > addressing some identation and markups to properly format the
-> > > document.  
-> > 
-> > There is concurrent work on this under way, please see
-> > https://marc.info/?t=155381845300002&r=2&w=2
-> >   
-> I will update the serias asap. I am just a little busy these days. My
-> conversion includes pci, acpi and x86, others are not touched.
+> On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch@infradead.org> wrote:
+>>
+>> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
+>> > > > I'd either add a comment about avoiding retpoline overhead here or just
+>> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
+>> > > > get confused by the code.
+>> > >
+>> > > Isn't this premature optimization?  I really don't like adding things
+>> > > like this without some numbers to show it's worth it.
+>> >
+>> > I don't think it's premature given this optimization technique is
+>> > already being deployed elsewhere, see:
+>> >
+>> > https://lwn.net/Articles/774347/
+>>
+>> For one this one was backed by numbers, and second after feedback
+>> from Linux we switched to the NULL pointer check instead.
+>
+> Ok I should have noticed the switch to NULL pointer check. However,
+> the question still stands do we want everyone to run numbers to
+> justify this optimization, or make it a new common kernel coding
+> practice to do:
+>
+>     if (!object->op)
+>         generic_op(object);
+>     else
+>         object->op(object);
+>
+> ...in hot paths?
 
-Ok, I sent a new patch series without pci, acpi and x86.
+I don't think nvdimm_flush is a hot path.  Numbers of some
+representative workload would prove one of us right.
 
-While these aren't merged upstream, I'm keeping my old patches
-on my tree:
-
-	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=convert_rst_v2&id=805b16dd336dd3c27733f02ec8164b2a182972a3
-	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=convert_rst_v2&id=c950031ccb87ea14ff4c56f2433072d580db3572
-	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=convert_rst_v2&id=4f8afce866dcd8067206b3ee493ed0b682694f49
-
-If you find anything there that would be interesting for your 
-series, feel free to pick from them. Everything is based on
-linux-next.
-
-Thanks,
-Mauro
+-Jeff
