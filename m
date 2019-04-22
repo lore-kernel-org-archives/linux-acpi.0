@@ -1,60 +1,46 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
-Date: Mon, 22 Apr 2019 12:44:21 -0700
-Message-ID: <CAPcyv4gGmN2LLMPy6BzWpYhRyV7fFNVgh=xAWSAdnnAWu5APtg@mail.gmail.com>
-References: <20190410040826.24371-1-pagupta@redhat.com> <20190410040826.24371-2-pagupta@redhat.com>
- <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
- <20190412083230.GA29850@quack2.suse.cz> <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
- <20190418161833.GA22970@infradead.org> <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
- <x497ebm82d4.fsf@segfault.boston.devel.redhat.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v1 1/3] PCI / ACPI: Do not export pci_get_hp_params()
+Date: Mon, 22 Apr 2019 15:58:46 -0500
+Message-ID: <20190422205845.GM173520@google.com>
+References: <20190208162414.3996-1-mr.nuke.me@gmail.com>
+ <20190208162414.3996-2-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <x497ebm82d4.fsf@segfault.boston.devel.redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20190208162414.3996-2-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, Pankaj Gupta <pagupta@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, virtualization@lists.linux-foundation.org, KVM list <kvm@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, Matthew Wilcox <willy@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 22, 2019 at 8:59 AM Jeff Moyer <jmoyer@redhat.com> wrote:
->
-> Dan Williams <dan.j.williams@intel.com> writes:
->
-> > On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch@infradead.org> wrote:
-> >>
-> >> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
-> >> > > > I'd either add a comment about avoiding retpoline overhead here or just
-> >> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
-> >> > > > get confused by the code.
-> >> > >
-> >> > > Isn't this premature optimization?  I really don't like adding things
-> >> > > like this without some numbers to show it's worth it.
-> >> >
-> >> > I don't think it's premature given this optimization technique is
-> >> > already being deployed elsewhere, see:
-> >> >
-> >> > https://lwn.net/Articles/774347/
-> >>
-> >> For one this one was backed by numbers, and second after feedback
-> >> from Linux we switched to the NULL pointer check instead.
-> >
-> > Ok I should have noticed the switch to NULL pointer check. However,
-> > the question still stands do we want everyone to run numbers to
-> > justify this optimization, or make it a new common kernel coding
-> > practice to do:
-> >
-> >     if (!object->op)
-> >         generic_op(object);
-> >     else
-> >         object->op(object);
-> >
-> > ...in hot paths?
->
-> I don't think nvdimm_flush is a hot path.  Numbers of some
-> representative workload would prove one of us right.
+On Fri, Feb 08, 2019 at 10:24:11AM -0600, Alexandru Gagniuc wrote:
+> This is only used within drivers/pci, and there is no reason to make
+> it available outside of the PCI core.
+> 
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
 
-I'd rather say that the if "if (!op) do_generic()" pattern is more
-readable in the general case, saves grepping for who set the op in the
-common case. The fact that it has the potential to be faster is gravy
-at that point.
+Applied the whole series to pci/hotplug for v5.2, thanks!
+
+I dropped the "list" member from struct hpx_type3 because it didn't
+seem to be used.
+
+> ---
+>  drivers/pci/pci-acpi.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index e1949f7efd9c..b25e5fa9d1c9 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -366,7 +366,6 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+>  	}
+>  	return -ENODEV;
+>  }
+> -EXPORT_SYMBOL_GPL(pci_get_hp_params);
+>  
+>  /**
+>   * pciehp_is_native - Check whether a hotplug port is handled by the OS
+> -- 
+> 2.19.2
+> 
