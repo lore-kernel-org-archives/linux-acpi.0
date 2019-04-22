@@ -1,58 +1,45 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
-Date: Mon, 22 Apr 2019 11:51:35 -0400
-Message-ID: <x497ebm82d4.fsf@segfault.boston.devel.redhat.com>
-References: <20190410040826.24371-1-pagupta@redhat.com>
-        <20190410040826.24371-2-pagupta@redhat.com>
-        <CAPcyv4i1FjBzfcWtzeCvj-giHa9xaX0dMQ==q4LZC_L8VEqkHg@mail.gmail.com>
-        <20190412083230.GA29850@quack2.suse.cz>
-        <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
-        <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
-        <20190418161833.GA22970@infradead.org>
-        <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] ACPI: event: replace strcpy() by strscpy()
+Date: Mon, 22 Apr 2019 11:39:34 -0500
+Message-ID: <20190422163934.GA2636@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
-        (Dan Williams's message of "Thu, 18 Apr 2019 11:14:59 -0700")
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, Pankaj Gupta <pagupta@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, virtualization@lists.linux-foundation.org, KVM list <kvm@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, Matthew Wilcox <willy@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Dan Williams <dan.j.williams@intel.com> writes:
+The strcpy() function is being deprecated. Replace it by the safer
+strscpy() and fix the following Coverity warnings:
 
-> On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch@infradead.org> wrote:
->>
->> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
->> > > > I'd either add a comment about avoiding retpoline overhead here or just
->> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that people don't
->> > > > get confused by the code.
->> > >
->> > > Isn't this premature optimization?  I really don't like adding things
->> > > like this without some numbers to show it's worth it.
->> >
->> > I don't think it's premature given this optimization technique is
->> > already being deployed elsewhere, see:
->> >
->> > https://lwn.net/Articles/774347/
->>
->> For one this one was backed by numbers, and second after feedback
->> from Linux we switched to the NULL pointer check instead.
->
-> Ok I should have noticed the switch to NULL pointer check. However,
-> the question still stands do we want everyone to run numbers to
-> justify this optimization, or make it a new common kernel coding
-> practice to do:
->
->     if (!object->op)
->         generic_op(object);
->     else
->         object->op(object);
->
-> ...in hot paths?
+"You might overrun the 15-character fixed-size string event->bus_id
+by copying bus_id without checking the length."
 
-I don't think nvdimm_flush is a hot path.  Numbers of some
-representative workload would prove one of us right.
+"You might overrun the 20-character fixed-size string event->device_class
+by copying device_class without checking the length."
 
--Jeff
+Addresses-Coverity-ID: 139001 ("Copy into fixed size buffer")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ drivers/acpi/event.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
+index 5a127f3f2d5c..47f21599f2ab 100644
+--- a/drivers/acpi/event.c
++++ b/drivers/acpi/event.c
+@@ -131,8 +131,8 @@ int acpi_bus_generate_netlink_event(const char *device_class,
+ 	event = nla_data(attr);
+ 	memset(event, 0, sizeof(struct acpi_genl_event));
+ 
+-	strcpy(event->device_class, device_class);
+-	strcpy(event->bus_id, bus_id);
++	strscpy(event->device_class, device_class, sizeof(event->device_class));
++	strscpy(event->bus_id, bus_id, sizeof(event->bus_id));
+ 	event->type = type;
+ 	event->data = data;
+ 
+-- 
+2.21.0
