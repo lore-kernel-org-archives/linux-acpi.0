@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 41/63] Documentation: x86: convert kernel-stacks to reST
-Date: Wed, 24 Apr 2019 00:29:10 +0800
-Message-ID: <20190423162932.21428-42-changbin.du@gmail.com>
+Subject: [PATCH v4 42/63] Documentation: x86: convert entry_64.txt to reST
+Date: Wed, 24 Apr 2019 00:29:11 +0800
+Message-ID: <20190423162932.21428-43-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,76 +17,63 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- Documentation/x86/index.rst                   |  1 +
- .../x86/{kernel-stacks => kernel-stacks.rst}  | 20 ++++++++++++-------
- 2 files changed, 14 insertions(+), 7 deletions(-)
- rename Documentation/x86/{kernel-stacks => kernel-stacks.rst} (92%)
+ Documentation/x86/{entry_64.txt => entry_64.rst} | 12 +++++++++---
+ Documentation/x86/index.rst                      |  1 +
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+ rename Documentation/x86/{entry_64.txt => entry_64.rst} (95%)
 
-diff --git a/Documentation/x86/index.rst b/Documentation/x86/index.rst
-index c0bfd0bd6000..489f4f4179c4 100644
---- a/Documentation/x86/index.rst
-+++ b/Documentation/x86/index.rst
-@@ -11,3 +11,4 @@ Linux x86 Support
-    boot
-    topology
-    exception-tables
-+   kernel-stacks
-diff --git a/Documentation/x86/kernel-stacks b/Documentation/x86/kernel-stacks.rst
-similarity index 92%
-rename from Documentation/x86/kernel-stacks
-rename to Documentation/x86/kernel-stacks.rst
-index 9a0aa4d3a866..3e6bf5940db0 100644
---- a/Documentation/x86/kernel-stacks
-+++ b/Documentation/x86/kernel-stacks.rst
-@@ -1,5 +1,11 @@
+diff --git a/Documentation/x86/entry_64.txt b/Documentation/x86/entry_64.rst
+similarity index 95%
+rename from Documentation/x86/entry_64.txt
+rename to Documentation/x86/entry_64.rst
+index c1df8eba9dfd..a48b3f6ebbe8 100644
+--- a/Documentation/x86/entry_64.txt
++++ b/Documentation/x86/entry_64.rst
+@@ -1,3 +1,9 @@
 +.. SPDX-License-Identifier: GPL-2.0
 +
-+=============
-+Kernel Stacks
-+=============
++==============
++Kernel Entries
++==============
 +
- Kernel stacks on x86-64 bit
-----------------------------
-+===========================
+ This file documents some of the kernel entries in
+ arch/x86/entry/entry_64.S.  A lot of this explanation is adapted from
+ an email from Ingo Molnar:
+@@ -59,7 +65,7 @@ Now, there's a secondary complication: there's a cheap way to test
+ which mode the CPU is in and an expensive way.
  
- Most of the text from Keith Owens, hacked by AK
+ The cheap way is to pick this info off the entry frame on the kernel
+-stack, from the CS of the ptregs area of the kernel stack:
++stack, from the CS of the ptregs area of the kernel stack::
  
-@@ -57,7 +63,7 @@ IST events with the same code to be nested.  However in most cases, the
- stack size allocated to an IST assumes no nesting for the same code.
- If that assumption is ever broken then the stacks will become corrupt.
+ 	xorl %ebx,%ebx
+ 	testl $3,CS+8(%rsp)
+@@ -67,7 +73,7 @@ stack, from the CS of the ptregs area of the kernel stack:
+ 	SWAPGS
  
--The currently assigned IST stacks are :-
-+The currently assigned IST stacks are :
+ The expensive (paranoid) way is to read back the MSR_GS_BASE value
+-(which is what SWAPGS modifies):
++(which is what SWAPGS modifies)::
  
- * DOUBLEFAULT_STACK.  EXCEPTION_STKSZ (PAGE_SIZE).
+ 	movl $1,%ebx
+ 	movl $MSR_GS_BASE,%ecx
+@@ -76,7 +82,7 @@ The expensive (paranoid) way is to read back the MSR_GS_BASE value
+ 	js 1f   /* negative -> in kernel */
+ 	SWAPGS
+ 	xorl %ebx,%ebx
+-1:	ret
++  1:	ret
  
-@@ -98,7 +104,7 @@ For more details see the Intel IA32 or AMD AMD64 architecture manuals.
- 
- 
- Printing backtraces on x86
----------------------------
-+==========================
- 
- The question about the '?' preceding function names in an x86 stacktrace
- keeps popping up, here's an indepth explanation. It helps if the reader
-@@ -108,7 +114,7 @@ arch/x86/kernel/dumpstack.c.
- Adapted from Ingo's mail, Message-ID: <20150521101614.GA10889@gmail.com>:
- 
- We always scan the full kernel stack for return addresses stored on
--the kernel stack(s) [*], from stack top to stack bottom, and print out
-+the kernel stack(s) [1]_, from stack top to stack bottom, and print out
- anything that 'looks like' a kernel text address.
- 
- If it fits into the frame pointer chain, we print it without a question
-@@ -136,6 +142,6 @@ that look like kernel text addresses, so if debug information is wrong,
- we still print out the real call chain as well - just with more question
- marks than ideal.
- 
--[*] For things like IRQ and IST stacks, we also scan those stacks, in
--    the right order, and try to cross from one stack into another
--    reconstructing the call chain. This works most of the time.
-+.. [1] For things like IRQ and IST stacks, we also scan those stacks, in
-+       the right order, and try to cross from one stack into another
-+       reconstructing the call chain. This works most of the time.
+ If we are at an interrupt or user-trap/gate-alike boundary then we can
+ use the faster check: the stack will be a reliable indicator of
+diff --git a/Documentation/x86/index.rst b/Documentation/x86/index.rst
+index 489f4f4179c4..8a666c5abc85 100644
+--- a/Documentation/x86/index.rst
++++ b/Documentation/x86/index.rst
+@@ -12,3 +12,4 @@ Linux x86 Support
+    topology
+    exception-tables
+    kernel-stacks
++   entry_64
 -- 
 2.20.1
