@@ -2,69 +2,120 @@ Return-Path: <SRS0=tfVV=SZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32ACFC282E1
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 11:21:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5713BC10F14
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 14:27:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0572820811
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 11:21:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D5B121738
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 14:27:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726934AbfDWLVn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Apr 2019 07:21:43 -0400
-Received: from foss.arm.com ([217.140.101.70]:54756 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726150AbfDWLVn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Apr 2019 07:21:43 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1E91D374;
-        Tue, 23 Apr 2019 04:21:43 -0700 (PDT)
-Received: from fuggles.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.72.51.249])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 710193F557;
-        Tue, 23 Apr 2019 04:21:40 -0700 (PDT)
-Date:   Tue, 23 Apr 2019 12:21:38 +0100
-From:   Will Deacon <will.deacon@arm.com>
-To:     Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Cc:     lorenzo.pieralisi@arm.com, bhelgaas@google.com,
-        iommu@lists.linux-foundation.org,
-        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        robin.murphy@arm.com, joro@8bytes.org, hanjun.guo@linaro.org,
-        sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        okaya@kernel.org, zhongmiao@hisilicon.com, eric.auger@redhat.com,
-        linux-pci@vger.kernel.org
-Subject: Re: [PATCH v3 0/9] Add PCI ATS support to Arm SMMUv3
-Message-ID: <20190423112138.GC3439@fuggles.cambridge.arm.com>
-References: <20190417182448.12382-1-jean-philippe.brucker@arm.com>
+        id S1728024AbfDWO12 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Apr 2019 10:27:28 -0400
+Received: from mx2.suse.de ([195.135.220.15]:42794 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726659AbfDWO11 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Apr 2019 10:27:27 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id 8B5DAACB8;
+        Tue, 23 Apr 2019 14:27:25 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 9F7B41E15B7; Tue, 23 Apr 2019 16:27:23 +0200 (CEST)
+Date:   Tue, 23 Apr 2019 16:27:23 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Pankaj Gupta <pagupta@redhat.com>
+Cc:     linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
+        virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        qemu-devel@nongnu.org, linux-ext4@vger.kernel.org,
+        linux-xfs@vger.kernel.org, dan.j.williams@intel.com,
+        zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
+        mst@redhat.com, jasowang@redhat.com, willy@infradead.org,
+        rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org,
+        jack@suse.cz, tytso@mit.edu, adilger.kernel@dilger.ca,
+        darrick.wong@oracle.com, lcapitulino@redhat.com, kwolf@redhat.com,
+        imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com,
+        riel@surriel.com, stefanha@redhat.com, aarcange@redhat.com,
+        david@redhat.com, david@fromorbit.com, cohuck@redhat.com,
+        xiaoguangrong.eric@gmail.com, pbonzini@redhat.com,
+        yuval.shaia@oracle.com, kilobyte@angband.pl
+Subject: Re: [PATCH v6 4/6]  dax: check synchronous mapping is supported
+Message-ID: <20190423142723.GD9910@quack2.suse.cz>
+References: <20190423080612.15361-1-pagupta@redhat.com>
+ <20190423080612.15361-5-pagupta@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Disposition: inline
-In-Reply-To: <20190417182448.12382-1-jean-philippe.brucker@arm.com>
-User-Agent: Mutt/1.11.1+86 (6f28e57d73f2) ()
+In-Reply-To: <20190423080612.15361-5-pagupta@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190423112138.aTeUYvykx6IZHkFSjKvVx7n4xOuwYFieqWadarvnTzE@z>
+Message-ID: <20190423142723.0c4-8UvsCHzucAESSjCPzjHT32b8911RBqkKoQ53QGk@z>
 
-On Wed, Apr 17, 2019 at 07:24:39PM +0100, Jean-Philippe Brucker wrote:
-> This series enables PCI ATS in SMMUv3. Changes since v2 [1]:
+On Tue 23-04-19 13:36:10, Pankaj Gupta wrote:
+> This patch introduces 'daxdev_mapping_supported' helper
+> which checks if 'MAP_SYNC' is supported with filesystem
+> mapping. It also checks if corresponding dax_device is
+> synchronous. Virtio pmem device is asynchronous and
+> does not not support VM_SYNC. 
 > 
-> * Fix build failure when building arm-smmu-v3 without CONFIG_PCI
->   Patches 1 and 2 are new.
-> 
-> * Only enable ATS if the root complex supports it. For the moment, only
->   IORT provides this information. I have patches for devicetree but
->   they are less mature and I'd rather make it a separate series.
-> 
-> * Tried to address most comments. I'll see if I can improve the firmware
->   code when adding devicetree support (see [2]).
-> 
-> Note that there is a small conflict with the SVA API. This series
-> applies on top of Joerg's api-features branch for v5.2.
+> Suggested-by: Jan Kara <jack@suse.cz>
+> Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 
-I'll pick this up via the SMMU queue, since the conflict with api-features
-is trivial to resolve.
+The patch looks good to me. You can add:
 
-Will
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+
+> ---
+>  include/linux/dax.h | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index c97fc0cc7167..41b4a5db6305 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -41,6 +41,18 @@ void kill_dax(struct dax_device *dax_dev);
+>  void dax_write_cache(struct dax_device *dax_dev, bool wc);
+>  bool dax_write_cache_enabled(struct dax_device *dax_dev);
+>  bool dax_synchronous(struct dax_device *dax_dev);
+> +/*
+> + * Check if given mapping is supported by the file / underlying device.
+> + */
+> +static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+> +				struct dax_device *dax_dev)
+> +{
+> +	if (!(vma->vm_flags & VM_SYNC))
+> +		return true;
+> +	if (!IS_DAX(file_inode(vma->vm_file)))
+> +		return false;
+> +	return dax_synchronous(dax_dev);
+> +}
+>  #else
+>  static inline struct dax_device *dax_get_by_host(const char *host)
+>  {
+> @@ -68,6 +80,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+>  {
+>  	return false;
+>  }
+> +static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+> +				struct dax_device *dax_dev)
+> +{
+> +	return !(vma->flags & VM_SYNC);
+> +}
+>  #endif
+>  
+>  struct writeback_control;
+> -- 
+> 2.20.1
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
