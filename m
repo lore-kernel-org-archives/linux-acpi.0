@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 11/63] Documentation: ACPI: move dsdt-override.txt to admin-guide/acpi and convert to reST
-Date: Wed, 24 Apr 2019 00:28:40 +0800
-Message-ID: <20190423162932.21428-12-changbin.du@gmail.com>
+Subject: [PATCH v4 13/63] Documentation: ACPI: move acpi-lid.txt to firmware-guide/acpi and convert to reST
+Date: Wed, 24 Apr 2019 00:28:42 +0800
+Message-ID: <20190423162932.21428-14-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,40 +17,145 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- .../acpi/dsdt-override.rst}                               | 8 +++++++-
- Documentation/admin-guide/acpi/index.rst                  | 1 +
- 2 files changed, 8 insertions(+), 1 deletion(-)
- rename Documentation/{acpi/dsdt-override.txt => admin-guide/acpi/dsdt-override.rst} (56%)
+ .../acpi/acpi-lid.rst}                        | 48 ++++++++++++-------
+ Documentation/firmware-guide/acpi/index.rst   |  1 +
+ 2 files changed, 33 insertions(+), 16 deletions(-)
+ rename Documentation/{acpi/acpi-lid.txt => firmware-guide/acpi/acpi-lid.rst} (77%)
 
-diff --git a/Documentation/acpi/dsdt-override.txt b/Documentation/admin-guide/acpi/dsdt-override.rst
-similarity index 56%
-rename from Documentation/acpi/dsdt-override.txt
-rename to Documentation/admin-guide/acpi/dsdt-override.rst
-index 784841caa6e6..50bd7f194bf4 100644
---- a/Documentation/acpi/dsdt-override.txt
-+++ b/Documentation/admin-guide/acpi/dsdt-override.rst
-@@ -1,6 +1,12 @@
+diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/firmware-guide/acpi/acpi-lid.rst
+similarity index 77%
+rename from Documentation/acpi/acpi-lid.txt
+rename to Documentation/firmware-guide/acpi/acpi-lid.rst
+index effe7af3a5af..1d19e15a6945 100644
+--- a/Documentation/acpi/acpi-lid.txt
++++ b/Documentation/firmware-guide/acpi/acpi-lid.rst
+@@ -1,25 +1,29 @@
+-Special Usage Model of the ACPI Control Method Lid Device
 +.. SPDX-License-Identifier: GPL-2.0
++.. include:: <isonum.txt>
+ 
+-Copyright (C) 2016, Intel Corporation
+-Author: Lv Zheng <lv.zheng@intel.com>
++=========================================================
++Special Usage Model of the ACPI Control Method Lid Device
++=========================================================
+ 
++:Copyright: |copy| 2016, Intel Corporation
+ 
+-Abstract:
++:Author: Lv Zheng <lv.zheng@intel.com>
+ 
+-Platforms containing lids convey lid state (open/close) to OSPMs using a
+-control method lid device. To implement this, the AML tables issue
+-Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
+-changed. The _LID control method for the lid device must be implemented to
+-report the "current" state of the lid as either "opened" or "closed".
++:Abstract: Platforms containing lids convey lid state (open/close) to OSPMs
++  using a control method lid device. To implement this, the AML tables issue
++  Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
++  changed. The _LID control method for the lid device must be implemented to
++  report the "current" state of the lid as either "opened" or "closed".
+ 
+-For most platforms, both the _LID method and the lid notifications are
+-reliable. However, there are exceptions. In order to work with these
+-exceptional buggy platforms, special restrictions and expections should be
+-taken into account. This document describes the restrictions and the
+-expections of the Linux ACPI lid device driver.
++  For most platforms, both the _LID method and the lid notifications are
++  reliable. However, there are exceptions. In order to work with these
++  exceptional buggy platforms, special restrictions and expections should be
++  taken into account. This document describes the restrictions and the
++  expections of the Linux ACPI lid device driver.
+ 
+ 
+ 1. Restrictions of the returning value of the _LID control method
++=================================================================
+ 
+ The _LID control method is described to return the "current" lid state.
+ However the word of "current" has ambiguity, some buggy AML tables return
+@@ -31,6 +35,7 @@ with cached value, the initial returning value is likely not reliable.
+ There are platforms always retun "closed" as initial lid state.
+ 
+ 2. Restrictions of the lid state change notifications
++=====================================================
+ 
+ There are buggy AML tables never notifying when the lid device state is
+ changed to "opened". Thus the "opened" notification is not guaranteed. But
+@@ -40,17 +45,21 @@ trigger some system power saving operations on Windows. Since it is fully
+ tested, it is reliable from all AML tables.
+ 
+ 3. Expections for the userspace users of the ACPI lid device driver
++===================================================================
+ 
+ The ACPI button driver exports the lid state to the userspace via the
+-following file:
++following file::
 +
-+===============
-+Overriding DSDT
-+===============
+   /proc/acpi/button/lid/LID0/state
 +
- Linux supports a method of overriding the BIOS DSDT:
+ This file actually calls the _LID control method described above. And given
+ the previous explanation, it is not reliable enough on some platforms. So
+ it is advised for the userspace program to not to solely rely on this file
+ to determine the actual lid state.
  
--CONFIG_ACPI_CUSTOM_DSDT builds the image into the kernel.
-+CONFIG_ACPI_CUSTOM_DSDT - builds the image into the kernel.
- 
- When to use this method is described in detail on the
- Linux/ACPI home page:
-diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-index 09e4e81e4fb7..d68e9914c5ff 100644
---- a/Documentation/admin-guide/acpi/index.rst
-+++ b/Documentation/admin-guide/acpi/index.rst
-@@ -9,3 +9,4 @@ the Linux ACPI support.
-    :maxdepth: 1
- 
-    initrd_table_override
-+   dsdt-override
+ The ACPI button driver emits the following input event to the userspace:
+-  SW_LID
++  * SW_LID
++
+ The ACPI lid device driver is implemented to try to deliver the platform
+ triggered events to the userspace. However, given the fact that the buggy
+ firmware cannot make sure "opened"/"closed" events are paired, the ACPI
+@@ -59,20 +68,25 @@ button driver uses the following 3 modes in order not to trigger issues.
+ If the userspace hasn't been prepared to ignore the unreliable "opened"
+ events and the unreliable initial state notification, Linux users can use
+ the following kernel parameters to handle the possible issues:
++
+ A. button.lid_init_state=method:
+    When this option is specified, the ACPI button driver reports the
+    initial lid state using the returning value of the _LID control method
+    and whether the "opened"/"closed" events are paired fully relies on the
+    firmware implementation.
++
+    This option can be used to fix some platforms where the returning value
+    of the _LID control method is reliable but the initial lid state
+    notification is missing.
++
+    This option is the default behavior during the period the userspace
+    isn't ready to handle the buggy AML tables.
++
+ B. button.lid_init_state=open:
+    When this option is specified, the ACPI button driver always reports the
+    initial lid state as "opened" and whether the "opened"/"closed" events
+    are paired fully relies on the firmware implementation.
++
+    This may fix some platforms where the returning value of the _LID
+    control method is not reliable and the initial lid state notification is
+    missing.
+@@ -80,6 +94,7 @@ B. button.lid_init_state=open:
+ If the userspace has been prepared to ignore the unreliable "opened" events
+ and the unreliable initial state notification, Linux users should always
+ use the following kernel parameter:
++
+ C. button.lid_init_state=ignore:
+    When this option is specified, the ACPI button driver never reports the
+    initial lid state and there is a compensation mechanism implemented to
+@@ -89,6 +104,7 @@ C. button.lid_init_state=ignore:
+    notifications can be delivered to the userspace when the lid is actually
+    opens given that some AML tables do not send "opened" notifications
+    reliably.
++
+    In this mode, if everything is correctly implemented by the platform
+    firmware, the old userspace programs should still work. Otherwise, the
+    new userspace programs are required to work with the ACPI button driver.
+diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+index 1c89888f6ee8..bedcb0b242a2 100644
+--- a/Documentation/firmware-guide/acpi/index.rst
++++ b/Documentation/firmware-guide/acpi/index.rst
+@@ -14,3 +14,4 @@ ACPI Support
+    DSD-properties-rules
+    gpio-properties
+    i2c-muxes
++   acpi-lid
+\ No newline at end of file
 -- 
 2.20.1
