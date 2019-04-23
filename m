@@ -1,21 +1,21 @@
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [PATCH v4 11/63] Documentation: ACPI: move dsdt-override.txt to
- admin-guide/acpi and convert to reST
-Date: Tue, 23 Apr 2019 18:08:45 -0300
-Message-ID: <20190423180845.603542d5@coco.lan>
+Subject: Re: [PATCH v4 12/63] Documentation: ACPI: move i2c-muxes.txt to
+ firmware-guide/acpi and convert to reST
+Date: Tue, 23 Apr 2019 18:09:48 -0300
+Message-ID: <20190423180948.326fd3d8@coco.lan>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
-        <20190423162932.21428-12-changbin.du@gmail.com>
+        <20190423162932.21428-13-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190423162932.21428-12-changbin.du@gmail.com>
+In-Reply-To: <20190423162932.21428-13-changbin.du@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Changbin Du <changbin.du@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Em Wed, 24 Apr 2019 00:28:40 +0800
+Em Wed, 24 Apr 2019 00:28:41 +0800
 Changbin Du <changbin.du@gmail.com> escreveu:
 
 > This converts the plain text documentation to reStructuredText format and
@@ -23,44 +23,161 @@ Changbin Du <changbin.du@gmail.com> escreveu:
 > 
 > Signed-off-by: Changbin Du <changbin.du@gmail.com>
 
+For the conversion itself:
+
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
 > ---
->  .../acpi/dsdt-override.rst}                               | 8 +++++++-
->  Documentation/admin-guide/acpi/index.rst                  | 1 +
->  2 files changed, 8 insertions(+), 1 deletion(-)
->  rename Documentation/{acpi/dsdt-override.txt => admin-guide/acpi/dsdt-override.rst} (56%)
+>  Documentation/acpi/i2c-muxes.txt              | 58 ------------------
+>  .../firmware-guide/acpi/i2c-muxes.rst         | 61 +++++++++++++++++++
+>  Documentation/firmware-guide/acpi/index.rst   |  3 +-
+>  3 files changed, 63 insertions(+), 59 deletions(-)
+>  delete mode 100644 Documentation/acpi/i2c-muxes.txt
+>  create mode 100644 Documentation/firmware-guide/acpi/i2c-muxes.rst
 > 
-> diff --git a/Documentation/acpi/dsdt-override.txt b/Documentation/admin-guide/acpi/dsdt-override.rst
-> similarity index 56%
-> rename from Documentation/acpi/dsdt-override.txt
-> rename to Documentation/admin-guide/acpi/dsdt-override.rst
-> index 784841caa6e6..50bd7f194bf4 100644
-> --- a/Documentation/acpi/dsdt-override.txt
-> +++ b/Documentation/admin-guide/acpi/dsdt-override.rst
-> @@ -1,6 +1,12 @@
+> diff --git a/Documentation/acpi/i2c-muxes.txt b/Documentation/acpi/i2c-muxes.txt
+> deleted file mode 100644
+> index 9fcc4f0b885e..000000000000
+> --- a/Documentation/acpi/i2c-muxes.txt
+> +++ /dev/null
+> @@ -1,58 +0,0 @@
+> -ACPI I2C Muxes
+> ---------------
+> -
+> -Describing an I2C device hierarchy that includes I2C muxes requires an ACPI
+> -Device () scope per mux channel.
+> -
+> -Consider this topology:
+> -
+> -+------+   +------+
+> -| SMB1 |-->| MUX0 |--CH00--> i2c client A (0x50)
+> -|      |   | 0x70 |--CH01--> i2c client B (0x50)
+> -+------+   +------+
+> -
+> -which corresponds to the following ASL:
+> -
+> -Device (SMB1)
+> -{
+> -    Name (_HID, ...)
+> -    Device (MUX0)
+> -    {
+> -        Name (_HID, ...)
+> -        Name (_CRS, ResourceTemplate () {
+> -            I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
+> -                          AddressingMode7Bit, "^SMB1", 0x00,
+> -                          ResourceConsumer,,)
+> -        }
+> -
+> -        Device (CH00)
+> -        {
+> -            Name (_ADR, 0)
+> -
+> -            Device (CLIA)
+> -            {
+> -                Name (_HID, ...)
+> -                Name (_CRS, ResourceTemplate () {
+> -                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+> -                                  AddressingMode7Bit, "^CH00", 0x00,
+> -                                  ResourceConsumer,,)
+> -                }
+> -            }
+> -        }
+> -
+> -        Device (CH01)
+> -        {
+> -            Name (_ADR, 1)
+> -
+> -            Device (CLIB)
+> -            {
+> -                Name (_HID, ...)
+> -                Name (_CRS, ResourceTemplate () {
+> -                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+> -                                  AddressingMode7Bit, "^CH01", 0x00,
+> -                                  ResourceConsumer,,)
+> -                }
+> -            }
+> -        }
+> -    }
+> -}
+> diff --git a/Documentation/firmware-guide/acpi/i2c-muxes.rst b/Documentation/firmware-guide/acpi/i2c-muxes.rst
+> new file mode 100644
+> index 000000000000..3a8997ccd7c4
+> --- /dev/null
+> +++ b/Documentation/firmware-guide/acpi/i2c-muxes.rst
+> @@ -0,0 +1,61 @@
 > +.. SPDX-License-Identifier: GPL-2.0
 > +
-> +===============
-> +Overriding DSDT
-> +===============
+> +==============
+> +ACPI I2C Muxes
+> +==============
 > +
->  Linux supports a method of overriding the BIOS DSDT:
->  
-> -CONFIG_ACPI_CUSTOM_DSDT builds the image into the kernel.
-> +CONFIG_ACPI_CUSTOM_DSDT - builds the image into the kernel.
->  
->  When to use this method is described in detail on the
->  Linux/ACPI home page:
-> diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-> index 09e4e81e4fb7..d68e9914c5ff 100644
-> --- a/Documentation/admin-guide/acpi/index.rst
-> +++ b/Documentation/admin-guide/acpi/index.rst
-> @@ -9,3 +9,4 @@ the Linux ACPI support.
->     :maxdepth: 1
->  
->     initrd_table_override
-> +   dsdt-override
+> +Describing an I2C device hierarchy that includes I2C muxes requires an ACPI
+> +Device () scope per mux channel.
+> +
+> +Consider this topology::
+> +
+> +    +------+   +------+
+> +    | SMB1 |-->| MUX0 |--CH00--> i2c client A (0x50)
+> +    |      |   | 0x70 |--CH01--> i2c client B (0x50)
+> +    +------+   +------+
+> +
+> +which corresponds to the following ASL::
+> +
+> +    Device (SMB1)
+> +    {
+> +        Name (_HID, ...)
+> +        Device (MUX0)
+> +        {
+> +            Name (_HID, ...)
+> +            Name (_CRS, ResourceTemplate () {
+> +                I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
+> +                            AddressingMode7Bit, "^SMB1", 0x00,
+> +                            ResourceConsumer,,)
+> +            }
+> +
+> +            Device (CH00)
+> +            {
+> +                Name (_ADR, 0)
+> +
+> +                Device (CLIA)
+> +                {
+> +                    Name (_HID, ...)
+> +                    Name (_CRS, ResourceTemplate () {
+> +                        I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+> +                                    AddressingMode7Bit, "^CH00", 0x00,
+> +                                    ResourceConsumer,,)
+> +                    }
+> +                }
+> +            }
+> +
+> +            Device (CH01)
+> +            {
+> +                Name (_ADR, 1)
+> +
+> +                Device (CLIB)
+> +                {
+> +                    Name (_HID, ...)
+> +                    Name (_CRS, ResourceTemplate () {
+> +                        I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+> +                                    AddressingMode7Bit, "^CH01", 0x00,
+> +                                    ResourceConsumer,,)
+> +                    }
+> +                }
+> +            }
+> +        }
+> +    }
+> diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+> index d1d069b26bbc..1c89888f6ee8 100644
+> --- a/Documentation/firmware-guide/acpi/index.rst
+> +++ b/Documentation/firmware-guide/acpi/index.rst
+> @@ -12,4 +12,5 @@ ACPI Support
+>     osi
+>     method-customizing
+>     DSD-properties-rules
+> -   gpio-properties
+> \ No newline at end of file
+> +   gpio-properties
+> +   i2c-muxes
 
 
 
