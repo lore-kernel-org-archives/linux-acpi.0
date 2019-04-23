@@ -2,136 +2,151 @@ Return-Path: <SRS0=tfVV=SZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,T_DKIMWL_WL_HIGH,UNPARSEABLE_RELAY,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DD34C10F03
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 21:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36FDCC282DD
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 22:12:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5AD93218DA
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 21:38:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1556055533;
-	bh=zlxJ1tukSLQQU5TfXIRgzzp22Xini9DlTE0pPHr7nSE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=iX8wVs3etkkoBA9pfQZ/EJ7UZJlUkNxdZbtJl2amPtY6IHCp229lT1Z3704vn8O0p
-	 KxYmidoAapwv0OgeLC/jmIZmX03PHeUaAd5CrStbpCiP3H/ahYKsZuQV7cH93SMm8f
-	 V4EmUVqU4COgJnfSjxXQdtQimAV22FZTzPatYBZs=
+	by mail.kernel.org (Postfix) with ESMTP id 03DA421738
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 22:12:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="AhdCKmBV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726941AbfDWViw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Apr 2019 17:38:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47984 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726665AbfDWViw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Apr 2019 17:38:52 -0400
-Received: from localhost (unknown [69.71.4.100])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5AB9F218D3;
-        Tue, 23 Apr 2019 21:38:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1556055531;
-        bh=zlxJ1tukSLQQU5TfXIRgzzp22Xini9DlTE0pPHr7nSE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=f7q1MNzV+F/cuT/gL7XlsHK++mDIH4Knj0eDf7+G0ojEsChC3ukNtk7QOkrO/EB4k
-         TKgrDnoMHEqLL7VwyvhSYtBdsJAZfBGFQS9pGH5HyVv0JHOnDIYq1BtgCddjfJecg/
-         z/NZicr8Z0eoc1COkubZzxws3g5uFcV0zlBx7wrI=
-Date:   Tue, 23 Apr 2019 16:38:50 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Cc:     austin_bolen@dell.com, alex_gagniuc@dellteam.com,
-        keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de,
-        okaya@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 4/4] PCI/ACPI: Advertise HPX type 3 support via _OSC
-Message-ID: <20190423213850.GG14616@google.com>
-References: <20190307213834.5914-1-mr.nuke.me@gmail.com>
- <20190315192947.13807-1-mr.nuke.me@gmail.com>
+        id S1728473AbfDWWM0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Apr 2019 18:12:26 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:43272 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726325AbfDWWM0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Apr 2019 18:12:26 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x3NM4iVc124778;
+        Tue, 23 Apr 2019 22:10:24 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2018-07-02;
+ bh=l0VzuwK7fWj7U7YTxx4jiGO26nwCCDX522qiPNeC+/Y=;
+ b=AhdCKmBVc8BIdraythvZytA3kVTqYzt3V1UvkKa8Xfe7HC6YDSnfPPTDrmy/WFLKpdLi
+ ybqnDXcxozLtDQZSJb/CyE/DswT9j6XDoINpoqLbd6fOf2weWsI9t9Vt+ibJCOhqPJzw
+ zGO2+HapNtynOsBUnzXoIU6Pc/S2ZpFJ3nH0vY8pOzQxRYNAIzglWCXbOjBv1lu+6J+7
+ ySjy/HIHmQFoQfRXMyTRrFIvGvIeczjvrUJP4emcLz7EwfM87kUd7rVf3KgiZCVQFjSy
+ FjbRSFpgfPWnPRLuDOYrsPj2Y3KqDGi6HU6LDXE9hYrQP/SLd8jpFIC+4tXpBOwTFwR3 Qw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2120.oracle.com with ESMTP id 2ryv2q6uyp-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 23 Apr 2019 22:10:24 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x3NM8hPQ066650;
+        Tue, 23 Apr 2019 22:10:24 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3020.oracle.com with ESMTP id 2s0dwegm54-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 23 Apr 2019 22:10:24 +0000
+Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x3NMAFaf014717;
+        Tue, 23 Apr 2019 22:10:15 GMT
+Received: from localhost (/10.145.179.89)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Tue, 23 Apr 2019 15:10:15 -0700
+Date:   Tue, 23 Apr 2019 15:10:11 -0700
+From:   "Darrick J. Wong" <darrick.wong@oracle.com>
+To:     Pankaj Gupta <pagupta@redhat.com>
+Cc:     Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org,
+        linux-kernel@vger.kernel.org,
+        virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        qemu-devel@nongnu.org, linux-ext4@vger.kernel.org,
+        linux-xfs@vger.kernel.org, dan.j.williams@intel.com,
+        zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
+        mst@redhat.com, jasowang@redhat.com, willy@infradead.org,
+        rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org,
+        jack@suse.cz, tytso@mit.edu, adilger.kernel@dilger.ca,
+        lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com,
+        jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com,
+        stefanha@redhat.com, aarcange@redhat.com, david@redhat.com,
+        cohuck@redhat.com, xiaoguangrong.eric@gmail.com,
+        pbonzini@redhat.com, yuval.shaia@oracle.com, kilobyte@angband.pl
+Subject: Re: [PATCH v6 6/6] xfs: disable map_sync for async flush
+Message-ID: <20190423221011.GD178290@magnolia>
+References: <20190423080612.15361-1-pagupta@redhat.com>
+ <20190423080612.15361-7-pagupta@redhat.com>
+ <20190423220217.GA29573@dread.disaster.area>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Disposition: inline
-In-Reply-To: <20190315192947.13807-1-mr.nuke.me@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190423220217.GA29573@dread.disaster.area>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9236 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1810050000 definitions=main-1904230157
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9236 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
+ definitions=main-1904230157
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190423213850.69LpN2N0m9hSLZl7meDsWMwKsbtVBmoba1j-2XqxmU4@z>
+Message-ID: <20190423221011.EvZtiU5z_AR9RMKR1J4th-99gkrBOIkGlOr2SjhcxWk@z>
 
-On Fri, Mar 15, 2019 at 02:29:40PM -0500, Alexandru Gagniuc wrote:
-> _OSC now has a way to inform firmware that OS has the capability to
-> interpret HPX type 3 tables. Since ACPI 6.3 deprecated _OSC specifics,
-> these are now part of the PCI Firmware Specification.
-> 
-> The following is the document describing the changes:
-> ECN:	_HPX and PCIe Completion Timeout related _OSC Enhancements
-> Date:	September 12, 2018
-> Affected Document: PCI Firmware Specification, Rev. 3.2
-> 
-> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+On Wed, Apr 24, 2019 at 08:02:17AM +1000, Dave Chinner wrote:
+> On Tue, Apr 23, 2019 at 01:36:12PM +0530, Pankaj Gupta wrote:
+> > Dont support 'MAP_SYNC' with non-DAX files and DAX files
+> > with asynchronous dax_device. Virtio pmem provides
+> > asynchronous host page cache flush mechanism. We don't
+> > support 'MAP_SYNC' with virtio pmem and xfs.
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  fs/xfs/xfs_file.c | 10 ++++++----
+> >  1 file changed, 6 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> > index 1f2e2845eb76..0e59be018511 100644
+> > --- a/fs/xfs/xfs_file.c
+> > +++ b/fs/xfs/xfs_file.c
+> > @@ -1196,11 +1196,13 @@ xfs_file_mmap(
+> >  	struct file	*filp,
+> >  	struct vm_area_struct *vma)
+> >  {
+> > -	/*
+> > -	 * We don't support synchronous mappings for non-DAX files. At least
+> > -	 * until someone comes with a sensible use case.
+> > +	struct dax_device *dax_dev = xfs_find_daxdev_for_inode
+> > +						(file_inode(filp));
 
-Applied to pci/hotplug for v5.2, thanks!
+    tab separation here ^^^                   ^^^^ and cut
+                                                       down the indent
+                                             while you're at
+						    it, please:
 
-> ---
+	struct dax_device	*dax_dev;
+
+	dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
+	if (!dax_is_frobbed(dax))
+		return -EMEWANTCOOKIE;
+
+--D
+
+> > +
+> > +	/* We don't support synchronous mappings for non-DAX files and
+> > +	 * for DAX files if underneath dax_device is not synchronous.
+> >  	 */
 > 
-> This patch is designed to go on top of the following series
-> "PCI: ACPI: Implement support for _HPX Type 3 tables"
-> 	https://lkml.org/lkml/2019/3/7/790
+> 	/*
+> 	 * This is the correct multi-line comment format. Please
+> 	 * update the patch to maintain the existing comment format.
+> 	 */
 > 
-> Although the patch can technically be applied independently, it
-> doesn't make sense without the rest of the series.
+> Cheers,
 > 
-> The HPX3 capability bit, to my understanding, is designed to be
-> informational. i.e. Setting or not setting it would not affect whether
-> firmware would export HPX3 tables. It may have implications in FFS
-> systems, where FW might need to make sure things like the completion
-> timeout value is set correctly throughout the tree.
-> 
-> My understanding is that firmware will prefer to set these with HPX3,
-> in lieu of firing up SMM on hotplug and other events. Firmware can use
-> the HPX3 support bit to know how to proceed.
-> 
->  drivers/acpi/pci_root.c | 2 ++
->  include/linux/acpi.h    | 3 ++-
->  2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 707aafc7c2aa..0bee23893297 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -145,6 +145,7 @@ static struct pci_osc_bit_struct pci_osc_support_bit[] = {
->  	{ OSC_PCI_CLOCK_PM_SUPPORT, "ClockPM" },
->  	{ OSC_PCI_SEGMENT_GROUPS_SUPPORT, "Segments" },
->  	{ OSC_PCI_MSI_SUPPORT, "MSI" },
-> +	{ OSC_PCI_HPX_TYPE_3_SUPPORT, "HPX-type3" },
->  };
->  
->  static struct pci_osc_bit_struct pci_osc_control_bit[] = {
-> @@ -446,6 +447,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
->  	 * PCI domains, so we indicate this in _OSC support capabilities.
->  	 */
->  	support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-> +	support |= OSC_PCI_HPX_TYPE_3_SUPPORT;
->  	if (pci_ext_cfg_avail())
->  		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
->  	if (pcie_aspm_support_enabled())
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 87715f20b69a..028c138b9082 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -508,7 +508,8 @@ extern bool osc_pc_lpi_support_confirmed;
->  #define OSC_PCI_CLOCK_PM_SUPPORT		0x00000004
->  #define OSC_PCI_SEGMENT_GROUPS_SUPPORT		0x00000008
->  #define OSC_PCI_MSI_SUPPORT			0x00000010
-> -#define OSC_PCI_SUPPORT_MASKS			0x0000001f
-> +#define OSC_PCI_HPX_TYPE_3_SUPPORT		0x00000100
-> +#define OSC_PCI_SUPPORT_MASKS			0x0000011f
->  
->  /* PCI Host Bridge _OSC: Capabilities DWORD 3: Control Field */
->  #define OSC_PCI_EXPRESS_NATIVE_HP_CONTROL	0x00000001
+> Dave.
 > -- 
-> 2.19.2
-> 
+> Dave Chinner
+> david@fromorbit.com
