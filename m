@@ -1,61 +1,63 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v6 4/6]  dax: check synchronous mapping is supported
-Date: Tue, 23 Apr 2019 13:36:10 +0530
-Message-ID: <20190423080612.15361-5-pagupta@redhat.com>
-References: <20190423080612.15361-1-pagupta@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+Date: Tue, 23 Apr 2019 10:07:40 +0200
+Message-ID: <CAJZ5v0j9U20cFbRx6QKeQv6wyDg6nL71L0U_Rec5+W1JoD8-=w@mail.gmail.com>
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com> <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com> <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+ <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com> <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190423080612.15361-1-pagupta@redhat.com>
+In-Reply-To: <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu, adilger.kernel@dilger.ca, darrick.wong@oracle.com, lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, aarcange@redhat.com, david@redhat.com, david@fromorbit.com, cohuck@redhat.com, xiaoguangrong.eric@gmail.com, pagupta@redhat.com, pbonzini@redhat.com, yuval.shaia@oracle.com, kilobyte@angband.pl
+To: "Robert R. Howell" <RHowell@uwyo.edu>
+Cc: Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch introduces 'daxdev_mapping_supported' helper
-which checks if 'MAP_SYNC' is supported with filesystem
-mapping. It also checks if corresponding dax_device is
-synchronous. Virtio pmem device is asynchronous and
-does not not support VM_SYNC. 
+On Sat, Apr 20, 2019 at 12:44 AM Robert R. Howell <RHowell@uwyo.edu> wrote:
+>
+> On 4/18/19 5:42 AM, Hans de Goede wrote:
+>
+> >> On 4/8/19 2:16 AM, Hans de Goede wrote:>
+> >>>
+> >>> Hmm, interesting so you have hibernation working on a T100TA
+> >>> (with 5.0 + 02e45646d53b reverted), right ?
+> >>>
+>
+> > Still since my patch is regressing things for you I will try to
+> > take a look at this and see if I can reproduce and come up with
+> > a fix. But this is not going to be a high priority thing for me to
+> > work on.
+> >
+> > In the mean time I've gone ahead and submitted my version of the
+> > fix for the problem Kai-Heng was seeing, since that does not seem
+> > to make your problem worse; and it will be good to get that problem
+> > fixed.
+> >
+> > Regards,
+> >
+> > Hans
+> >
+>
+> I've managed to find a way around the i2c_designware timeout issues
+> on the T100TA's.  The key is to NOT set DPM_FLAG_SMART_SUSPEND,
+> which was added in the 02e45646d53b commit.
+>
+> To test that I've started with a 5.1-rc5 kernel, applied your recent patch
+> to acpi_lpss.c, then apply the following patch of mine, removing
+> DPM_FLAG_SMART_SUSPEND.  (For the T100 hardware I need to apply some
+> other patches as well but those are not related to the i2c-designware or
+> acpi issues addressed here.)
+>
+> On a resume from hibernation I still see one error:
+>   "i2c_designware 80860F41:00: Error i2c_dw_xfer called while suspended"
+> but I no longer get the i2c_designware timeouts, and audio does now work
+> after the resume.
+>
+> Removing DPM_FLAG_SMART_SUSPEND may not be what you want for other
+> hardware, but perhaps this will give you a clue as to what is going
+> wrong with hibernate/resume on the T100TA's.
 
-Suggested-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
----
- include/linux/dax.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
-
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index c97fc0cc7167..41b4a5db6305 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -41,6 +41,18 @@ void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
- bool dax_synchronous(struct dax_device *dax_dev);
-+/*
-+ * Check if given mapping is supported by the file / underlying device.
-+ */
-+static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
-+				struct dax_device *dax_dev)
-+{
-+	if (!(vma->vm_flags & VM_SYNC))
-+		return true;
-+	if (!IS_DAX(file_inode(vma->vm_file)))
-+		return false;
-+	return dax_synchronous(dax_dev);
-+}
- #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
-@@ -68,6 +80,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
- {
- 	return false;
- }
-+static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
-+				struct dax_device *dax_dev)
-+{
-+	return !(vma->flags & VM_SYNC);
-+}
- #endif
- 
- struct writeback_control;
--- 
-2.20.1
+What if you drop DPM_FLAG_LEAVE_SUSPENDED alone instead?
