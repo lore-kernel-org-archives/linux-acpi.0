@@ -1,183 +1,180 @@
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [PATCH v4 12/63] Documentation: ACPI: move i2c-muxes.txt to
+Subject: Re: [PATCH v4 13/63] Documentation: ACPI: move acpi-lid.txt to
  firmware-guide/acpi and convert to reST
-Date: Tue, 23 Apr 2019 18:09:48 -0300
-Message-ID: <20190423180948.326fd3d8@coco.lan>
+Date: Tue, 23 Apr 2019 18:12:36 -0300
+Message-ID: <20190423181236.18e4b6a0@coco.lan>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
-        <20190423162932.21428-13-changbin.du@gmail.com>
+        <20190423162932.21428-14-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190423162932.21428-13-changbin.du@gmail.com>
+In-Reply-To: <20190423162932.21428-14-changbin.du@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Changbin Du <changbin.du@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Em Wed, 24 Apr 2019 00:28:41 +0800
+Em Wed, 24 Apr 2019 00:28:42 +0800
 Changbin Du <changbin.du@gmail.com> escreveu:
 
 > This converts the plain text documentation to reStructuredText format and
 > add it to Sphinx TOC tree. No essential content change.
 > 
 > Signed-off-by: Changbin Du <changbin.du@gmail.com>
+> ---
+>  .../acpi/acpi-lid.rst}                        | 48 ++++++++++++-------
+>  Documentation/firmware-guide/acpi/index.rst   |  1 +
+>  2 files changed, 33 insertions(+), 16 deletions(-)
+>  rename Documentation/{acpi/acpi-lid.txt => firmware-guide/acpi/acpi-lid.rst} (77%)
+> 
+> diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/firmware-guide/acpi/acpi-lid.rst
+> similarity index 77%
+> rename from Documentation/acpi/acpi-lid.txt
+> rename to Documentation/firmware-guide/acpi/acpi-lid.rst
+> index effe7af3a5af..1d19e15a6945 100644
+> --- a/Documentation/acpi/acpi-lid.txt
+> +++ b/Documentation/firmware-guide/acpi/acpi-lid.rst
+> @@ -1,25 +1,29 @@
+> -Special Usage Model of the ACPI Control Method Lid Device
+> +.. SPDX-License-Identifier: GPL-2.0
+> +.. include:: <isonum.txt>
+>  
+> -Copyright (C) 2016, Intel Corporation
+> -Author: Lv Zheng <lv.zheng@intel.com>
+> +=========================================================
+> +Special Usage Model of the ACPI Control Method Lid Device
+> +=========================================================
+>  
+> +:Copyright: |copy| 2016, Intel Corporation
+>  
+> -Abstract:
+> +:Author: Lv Zheng <lv.zheng@intel.com>
+>  
+> -Platforms containing lids convey lid state (open/close) to OSPMs using a
+> -control method lid device. To implement this, the AML tables issue
+> -Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
+> -changed. The _LID control method for the lid device must be implemented to
+> -report the "current" state of the lid as either "opened" or "closed".
+> +:Abstract: Platforms containing lids convey lid state (open/close) to OSPMs
+> +  using a control method lid device. To implement this, the AML tables issue
+> +  Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
+> +  changed. The _LID control method for the lid device must be implemented to
+> +  report the "current" state of the lid as either "opened" or "closed".
 
-For the conversion itself:
+Same comment for the abstract.
+>  
+> -For most platforms, both the _LID method and the lid notifications are
+> -reliable. However, there are exceptions. In order to work with these
+> -exceptional buggy platforms, special restrictions and expections should be
+> -taken into account. This document describes the restrictions and the
+> -expections of the Linux ACPI lid device driver.
+> +  For most platforms, both the _LID method and the lid notifications are
+> +  reliable. However, there are exceptions. In order to work with these
+> +  exceptional buggy platforms, special restrictions and expections should be
+> +  taken into account. This document describes the restrictions and the
+> +  expections of the Linux ACPI lid device driver.
+>  
+>  
+>  1. Restrictions of the returning value of the _LID control method
+> +=================================================================
+>  
+>  The _LID control method is described to return the "current" lid state.
+>  However the word of "current" has ambiguity, some buggy AML tables return
+> @@ -31,6 +35,7 @@ with cached value, the initial returning value is likely not reliable.
+>  There are platforms always retun "closed" as initial lid state.
+>  
+>  2. Restrictions of the lid state change notifications
+> +=====================================================
+>  
+>  There are buggy AML tables never notifying when the lid device state is
+>  changed to "opened". Thus the "opened" notification is not guaranteed. But
+> @@ -40,17 +45,21 @@ trigger some system power saving operations on Windows. Since it is fully
+>  tested, it is reliable from all AML tables.
+>  
+>  3. Expections for the userspace users of the ACPI lid device driver
+> +===================================================================
+>  
+>  The ACPI button driver exports the lid state to the userspace via the
+> -following file:
+> +following file::
+> +
+>    /proc/acpi/button/lid/LID0/state
+> +
+>  This file actually calls the _LID control method described above. And given
+>  the previous explanation, it is not reliable enough on some platforms. So
+>  it is advised for the userspace program to not to solely rely on this file
+>  to determine the actual lid state.
+>  
+>  The ACPI button driver emits the following input event to the userspace:
+> -  SW_LID
+> +  * SW_LID
+> +
+>  The ACPI lid device driver is implemented to try to deliver the platform
+>  triggered events to the userspace. However, given the fact that the buggy
+>  firmware cannot make sure "opened"/"closed" events are paired, the ACPI
+> @@ -59,20 +68,25 @@ button driver uses the following 3 modes in order not to trigger issues.
+>  If the userspace hasn't been prepared to ignore the unreliable "opened"
+>  events and the unreliable initial state notification, Linux users can use
+>  the following kernel parameters to handle the possible issues:
+> +
+>  A. button.lid_init_state=method:
+
+Just for the sake of a better visual at the html output, I would place those
+button.* as:
+
+  A. ``button.lid_init_state=method``:
+
+Anyway, with or without such change:
 
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-> ---
->  Documentation/acpi/i2c-muxes.txt              | 58 ------------------
->  .../firmware-guide/acpi/i2c-muxes.rst         | 61 +++++++++++++++++++
->  Documentation/firmware-guide/acpi/index.rst   |  3 +-
->  3 files changed, 63 insertions(+), 59 deletions(-)
->  delete mode 100644 Documentation/acpi/i2c-muxes.txt
->  create mode 100644 Documentation/firmware-guide/acpi/i2c-muxes.rst
-> 
-> diff --git a/Documentation/acpi/i2c-muxes.txt b/Documentation/acpi/i2c-muxes.txt
-> deleted file mode 100644
-> index 9fcc4f0b885e..000000000000
-> --- a/Documentation/acpi/i2c-muxes.txt
-> +++ /dev/null
-> @@ -1,58 +0,0 @@
-> -ACPI I2C Muxes
-> ---------------
-> -
-> -Describing an I2C device hierarchy that includes I2C muxes requires an ACPI
-> -Device () scope per mux channel.
-> -
-> -Consider this topology:
-> -
-> -+------+   +------+
-> -| SMB1 |-->| MUX0 |--CH00--> i2c client A (0x50)
-> -|      |   | 0x70 |--CH01--> i2c client B (0x50)
-> -+------+   +------+
-> -
-> -which corresponds to the following ASL:
-> -
-> -Device (SMB1)
-> -{
-> -    Name (_HID, ...)
-> -    Device (MUX0)
-> -    {
-> -        Name (_HID, ...)
-> -        Name (_CRS, ResourceTemplate () {
-> -            I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
-> -                          AddressingMode7Bit, "^SMB1", 0x00,
-> -                          ResourceConsumer,,)
-> -        }
-> -
-> -        Device (CH00)
-> -        {
-> -            Name (_ADR, 0)
-> -
-> -            Device (CLIA)
-> -            {
-> -                Name (_HID, ...)
-> -                Name (_CRS, ResourceTemplate () {
-> -                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
-> -                                  AddressingMode7Bit, "^CH00", 0x00,
-> -                                  ResourceConsumer,,)
-> -                }
-> -            }
-> -        }
-> -
-> -        Device (CH01)
-> -        {
-> -            Name (_ADR, 1)
-> -
-> -            Device (CLIB)
-> -            {
-> -                Name (_HID, ...)
-> -                Name (_CRS, ResourceTemplate () {
-> -                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
-> -                                  AddressingMode7Bit, "^CH01", 0x00,
-> -                                  ResourceConsumer,,)
-> -                }
-> -            }
-> -        }
-> -    }
-> -}
-> diff --git a/Documentation/firmware-guide/acpi/i2c-muxes.rst b/Documentation/firmware-guide/acpi/i2c-muxes.rst
-> new file mode 100644
-> index 000000000000..3a8997ccd7c4
-> --- /dev/null
-> +++ b/Documentation/firmware-guide/acpi/i2c-muxes.rst
-> @@ -0,0 +1,61 @@
-> +.. SPDX-License-Identifier: GPL-2.0
+>     When this option is specified, the ACPI button driver reports the
+>     initial lid state using the returning value of the _LID control method
+>     and whether the "opened"/"closed" events are paired fully relies on the
+>     firmware implementation.
 > +
-> +==============
-> +ACPI I2C Muxes
-> +==============
+>     This option can be used to fix some platforms where the returning value
+>     of the _LID control method is reliable but the initial lid state
+>     notification is missing.
 > +
-> +Describing an I2C device hierarchy that includes I2C muxes requires an ACPI
-> +Device () scope per mux channel.
+>     This option is the default behavior during the period the userspace
+>     isn't ready to handle the buggy AML tables.
 > +
-> +Consider this topology::
+>  B. button.lid_init_state=open:
+>     When this option is specified, the ACPI button driver always reports the
+>     initial lid state as "opened" and whether the "opened"/"closed" events
+>     are paired fully relies on the firmware implementation.
 > +
-> +    +------+   +------+
-> +    | SMB1 |-->| MUX0 |--CH00--> i2c client A (0x50)
-> +    |      |   | 0x70 |--CH01--> i2c client B (0x50)
-> +    +------+   +------+
+>     This may fix some platforms where the returning value of the _LID
+>     control method is not reliable and the initial lid state notification is
+>     missing.
+> @@ -80,6 +94,7 @@ B. button.lid_init_state=open:
+>  If the userspace has been prepared to ignore the unreliable "opened" events
+>  and the unreliable initial state notification, Linux users should always
+>  use the following kernel parameter:
 > +
-> +which corresponds to the following ASL::
+>  C. button.lid_init_state=ignore:
+>     When this option is specified, the ACPI button driver never reports the
+>     initial lid state and there is a compensation mechanism implemented to
+> @@ -89,6 +104,7 @@ C. button.lid_init_state=ignore:
+>     notifications can be delivered to the userspace when the lid is actually
+>     opens given that some AML tables do not send "opened" notifications
+>     reliably.
 > +
-> +    Device (SMB1)
-> +    {
-> +        Name (_HID, ...)
-> +        Device (MUX0)
-> +        {
-> +            Name (_HID, ...)
-> +            Name (_CRS, ResourceTemplate () {
-> +                I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
-> +                            AddressingMode7Bit, "^SMB1", 0x00,
-> +                            ResourceConsumer,,)
-> +            }
-> +
-> +            Device (CH00)
-> +            {
-> +                Name (_ADR, 0)
-> +
-> +                Device (CLIA)
-> +                {
-> +                    Name (_HID, ...)
-> +                    Name (_CRS, ResourceTemplate () {
-> +                        I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
-> +                                    AddressingMode7Bit, "^CH00", 0x00,
-> +                                    ResourceConsumer,,)
-> +                    }
-> +                }
-> +            }
-> +
-> +            Device (CH01)
-> +            {
-> +                Name (_ADR, 1)
-> +
-> +                Device (CLIB)
-> +                {
-> +                    Name (_HID, ...)
-> +                    Name (_CRS, ResourceTemplate () {
-> +                        I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
-> +                                    AddressingMode7Bit, "^CH01", 0x00,
-> +                                    ResourceConsumer,,)
-> +                    }
-> +                }
-> +            }
-> +        }
-> +    }
+>     In this mode, if everything is correctly implemented by the platform
+>     firmware, the old userspace programs should still work. Otherwise, the
+>     new userspace programs are required to work with the ACPI button driver.
 > diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-> index d1d069b26bbc..1c89888f6ee8 100644
+> index 1c89888f6ee8..bedcb0b242a2 100644
 > --- a/Documentation/firmware-guide/acpi/index.rst
 > +++ b/Documentation/firmware-guide/acpi/index.rst
-> @@ -12,4 +12,5 @@ ACPI Support
->     osi
->     method-customizing
+> @@ -14,3 +14,4 @@ ACPI Support
 >     DSD-properties-rules
-> -   gpio-properties
+>     gpio-properties
+>     i2c-muxes
+> +   acpi-lid
 > \ No newline at end of file
-> +   gpio-properties
-> +   i2c-muxes
 
 
 
