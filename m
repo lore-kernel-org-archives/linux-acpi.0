@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 16/63] Documentation: ACPI: move debug.txt to firmware-guide/acpi and convert to reST
-Date: Wed, 24 Apr 2019 00:28:45 +0800
-Message-ID: <20190423162932.21428-17-changbin.du@gmail.com>
+Subject: [PATCH v4 18/63] Documentation: ACPI: move aml-debugger.txt to firmware-guide/acpi and convert to reST
+Date: Wed, 24 Apr 2019 00:28:47 +0800
+Message-ID: <20190423162932.21428-19-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,132 +17,177 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- .../acpi/debug.rst}                           | 31 ++++++++++---------
- Documentation/firmware-guide/acpi/index.rst   |  3 +-
- 2 files changed, 19 insertions(+), 15 deletions(-)
- rename Documentation/{acpi/debug.txt => firmware-guide/acpi/debug.rst} (91%)
+ Documentation/acpi/aml-debugger.txt           | 66 ----------------
+ .../firmware-guide/acpi/aml-debugger.rst      | 75 +++++++++++++++++++
+ Documentation/firmware-guide/acpi/index.rst   |  1 +
+ 3 files changed, 76 insertions(+), 66 deletions(-)
+ delete mode 100644 Documentation/acpi/aml-debugger.txt
+ create mode 100644 Documentation/firmware-guide/acpi/aml-debugger.rst
 
-diff --git a/Documentation/acpi/debug.txt b/Documentation/firmware-guide/acpi/debug.rst
-similarity index 91%
-rename from Documentation/acpi/debug.txt
-rename to Documentation/firmware-guide/acpi/debug.rst
-index 65bf47c46b6d..1a152dd1d765 100644
---- a/Documentation/acpi/debug.txt
-+++ b/Documentation/firmware-guide/acpi/debug.rst
-@@ -1,18 +1,21 @@
--			ACPI Debug Output
+diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
+deleted file mode 100644
+index 75ebeb64ab29..000000000000
+--- a/Documentation/acpi/aml-debugger.txt
++++ /dev/null
+@@ -1,66 +0,0 @@
+-The AML Debugger
+-
+-Copyright (C) 2016, Intel Corporation
+-Author: Lv Zheng <lv.zheng@intel.com>
+-
+-
+-This document describes the usage of the AML debugger embedded in the Linux
+-kernel.
+-
+-1. Build the debugger
+-
+-   The following kernel configuration items are required to enable the AML
+-   debugger interface from the Linux kernel:
+-
+-   CONFIG_ACPI_DEBUGGER=y
+-   CONFIG_ACPI_DEBUGGER_USER=m
+-
+-   The userspace utilities can be built from the kernel source tree using
+-   the following commands:
+-
+-   $ cd tools
+-   $ make acpi
+-
+-   The resultant userspace tool binary is then located at:
+-
+-     tools/power/acpi/acpidbg
+-
+-   It can be installed to system directories by running "make install" (as a
+-   sufficiently privileged user).
+-
+-2. Start the userspace debugger interface
+-
+-   After booting the kernel with the debugger built-in, the debugger can be
+-   started by using the following commands:
+-
+-   # mount -t debugfs none /sys/kernel/debug
+-   # modprobe acpi_dbg
+-   # tools/power/acpi/acpidbg
+-
+-   That spawns the interactive AML debugger environment where you can execute
+-   debugger commands.
+-
+-   The commands are documented in the "ACPICA Overview and Programmer Reference"
+-   that can be downloaded from
+-
+-   https://acpica.org/documentation
+-
+-   The detailed debugger commands reference is located in Chapter 12 "ACPICA
+-   Debugger Reference".  The "help" command can be used for a quick reference.
+-
+-3. Stop the userspace debugger interface
+-
+-   The interactive debugger interface can be closed by pressing Ctrl+C or using
+-   the "quit" or "exit" commands.  When finished, unload the module with:
+-
+-   # rmmod acpi_dbg
+-
+-   The module unloading may fail if there is an acpidbg instance running.
+-
+-4. Run the debugger in a script
+-
+-   It may be useful to run the AML debugger in a test script. "acpidbg" supports
+-   this in a special "batch" mode.  For example, the following command outputs
+-   the entire ACPI namespace:
+-
+-   # acpidbg -b "namespace"
+diff --git a/Documentation/firmware-guide/acpi/aml-debugger.rst b/Documentation/firmware-guide/acpi/aml-debugger.rst
+new file mode 100644
+index 000000000000..a889d43bc6c5
+--- /dev/null
++++ b/Documentation/firmware-guide/acpi/aml-debugger.rst
+@@ -0,0 +1,75 @@
 +.. SPDX-License-Identifier: GPL-2.0
- 
-+=================
-+ACPI Debug Output
-+=================
- 
- The ACPI CA, the Linux ACPI core, and some ACPI drivers can generate debug
- output.  This document describes how to use this facility.
- 
- Compile-time configuration
----------------------------
-+==========================
- 
- ACPI debug output is globally enabled by CONFIG_ACPI_DEBUG.  If this config
- option is turned off, the debug messages are not even built into the
- kernel.
- 
- Boot- and run-time configuration
----------------------------------
-+================================
- 
- When CONFIG_ACPI_DEBUG=y, you can select the component and level of messages
- you're interested in.  At boot-time, use the acpi.debug_layer and
-@@ -21,7 +24,7 @@ debug_layer and debug_level files in /sys/module/acpi/parameters/ to control
- the debug messages.
- 
- debug_layer (component)
-------------------------
-+=======================
- 
- The "debug_layer" is a mask that selects components of interest, e.g., a
- specific driver or part of the ACPI interpreter.  To build the debug_layer
-@@ -33,7 +36,7 @@ to /sys/module/acpi/parameters/debug_layer.
- 
- The possible components are defined in include/acpi/acoutput.h and
- include/acpi/acpi_drivers.h.  Reading /sys/module/acpi/parameters/debug_layer
--shows the supported mask values, currently these:
-+shows the supported mask values, currently these::
- 
-     ACPI_UTILITIES                  0x00000001
-     ACPI_HARDWARE                   0x00000002
-@@ -65,7 +68,7 @@ shows the supported mask values, currently these:
-     ACPI_PROCESSOR_COMPONENT        0x20000000
- 
- debug_level
-------------
-+===========
- 
- The "debug_level" is a mask that selects different types of messages, e.g.,
- those related to initialization, method execution, informational messages, etc.
-@@ -81,7 +84,7 @@ to /sys/module/acpi/parameters/debug_level.
- 
- The possible levels are defined in include/acpi/acoutput.h.  Reading
- /sys/module/acpi/parameters/debug_level shows the supported mask values,
--currently these:
-+currently these::
- 
-     ACPI_LV_INIT                    0x00000001
-     ACPI_LV_DEBUG_OBJECT            0x00000002
-@@ -113,9 +116,9 @@ currently these:
-     ACPI_LV_EVENTS                  0x80000000
- 
- Examples
----------
-+========
- 
--For example, drivers/acpi/bus.c contains this:
-+For example, drivers/acpi/bus.c contains this::
- 
-     #define _COMPONENT              ACPI_BUS_COMPONENT
-     ...
-@@ -127,22 +130,22 @@ statement uses ACPI_DB_INFO, which is macro based on the ACPI_LV_INFO
- definition.)
- 
- Enable all AML "Debug" output (stores to the Debug object while interpreting
--AML) during boot:
-+AML) during boot::
- 
-     acpi.debug_layer=0xffffffff acpi.debug_level=0x2
- 
--Enable PCI and PCI interrupt routing debug messages:
-+Enable PCI and PCI interrupt routing debug messages::
- 
-     acpi.debug_layer=0x400000 acpi.debug_level=0x4
- 
--Enable all ACPI hardware-related messages:
-+Enable all ACPI hardware-related messages::
- 
-     acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
- 
--Enable all ACPI_DB_INFO messages after boot:
-+Enable all ACPI_DB_INFO messages after boot::
- 
-     # echo 0x4 > /sys/module/acpi/parameters/debug_level
- 
--Show all valid component values:
-+Show all valid component values::
- 
-     # cat /sys/module/acpi/parameters/debug_layer
++.. include:: <isonum.txt>
++
++================
++The AML Debugger
++================
++
++:Copyright: |copy| 2016, Intel Corporation
++:Author: Lv Zheng <lv.zheng@intel.com>
++
++
++This document describes the usage of the AML debugger embedded in the Linux
++kernel.
++
++1. Build the debugger
++=====================
++
++The following kernel configuration items are required to enable the AML
++debugger interface from the Linux kernel::
++
++   CONFIG_ACPI_DEBUGGER=y
++   CONFIG_ACPI_DEBUGGER_USER=m
++
++The userspace utilities can be built from the kernel source tree using
++the following commands::
++
++   $ cd tools
++   $ make acpi
++
++The resultant userspace tool binary is then located at::
++
++   tools/power/acpi/acpidbg
++
++It can be installed to system directories by running "make install" (as a
++sufficiently privileged user).
++
++2. Start the userspace debugger interface
++=========================================
++
++After booting the kernel with the debugger built-in, the debugger can be
++started by using the following commands::
++
++   # mount -t debugfs none /sys/kernel/debug
++   # modprobe acpi_dbg
++   # tools/power/acpi/acpidbg
++
++That spawns the interactive AML debugger environment where you can execute
++debugger commands.
++
++The commands are documented in the "ACPICA Overview and Programmer Reference"
++that can be downloaded from
++
++https://acpica.org/documentation
++
++The detailed debugger commands reference is located in Chapter 12 "ACPICA
++Debugger Reference".  The "help" command can be used for a quick reference.
++
++3. Stop the userspace debugger interface
++========================================
++
++The interactive debugger interface can be closed by pressing Ctrl+C or using
++the "quit" or "exit" commands.  When finished, unload the module with::
++
++   # rmmod acpi_dbg
++
++The module unloading may fail if there is an acpidbg instance running.
++
++4. Run the debugger in a script
++===============================
++
++It may be useful to run the AML debugger in a test script. "acpidbg" supports
++this in a special "batch" mode.  For example, the following command outputs
++the entire ACPI namespace::
++
++   # acpidbg -b "namespace"
 diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index 6d4e0df4f063..a45fea11f998 100644
+index 287a7cbd82ac..e9f253d54897 100644
 --- a/Documentation/firmware-guide/acpi/index.rst
 +++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -14,6 +14,7 @@ ACPI Support
-    osi
-    method-customizing
+@@ -16,6 +16,7 @@ ACPI Support
+    method-tracing
     DSD-properties-rules
-+   debug
+    debug
++   aml-debugger
     gpio-properties
     i2c-muxes
--   acpi-lid
-\ No newline at end of file
-+   acpi-lid
+    acpi-lid
 -- 
 2.20.1
