@@ -1,100 +1,149 @@
-Return-Path: <SRS0=2tY1=SY=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=tfVV=SZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78C8BC10F11
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 23:45:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC1CC282DD
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 04:07:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B2C020674
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Apr 2019 23:45:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B6pYsKUP"
+	by mail.kernel.org (Postfix) with ESMTP id 6966D20843
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 04:07:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730754AbfDVXpb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 22 Apr 2019 19:45:31 -0400
-Received: from mail-it1-f196.google.com ([209.85.166.196]:54268 "EHLO
-        mail-it1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728831AbfDVXpb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2019 19:45:31 -0400
-Received: by mail-it1-f196.google.com with SMTP id y204so20555782itf.3;
-        Mon, 22 Apr 2019 16:45:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=DqDA/Qes9q8m3B2HqjXGZEMMl+zuf4YvngpRBo4X+PI=;
-        b=B6pYsKUPqRTCn2zgRgKWbuADyrY7nrtHY2IYO1Y7Plin/gkWg7LDyPesnH4Ou2/Ipy
-         IP58jpnCkgXqKiPXpoh3/WOEgcv8+w4QUYglhBFASkrrH1w6BcLtpVG9oS4OgNGwiwGE
-         E4x5pD6sNKAMBWhER2nHbOFpRn8ItFc0vPxBR3+LXmuO8LBhv6EHMwAARu5hYbMRwW3G
-         LO0fhMIkjJOA47nuMBtG6L1ekVkJlLrcNZQZvB62HySo0sUGD1L+Z7NRYgw5dN0DYEDA
-         Eip18/SxxtHIa/pbPoN7Xmp4RV4YTi0dzU26vemRzMitua2Vr+/vbnOSspK1UQKPVMg0
-         IUWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=DqDA/Qes9q8m3B2HqjXGZEMMl+zuf4YvngpRBo4X+PI=;
-        b=m0C5sm/3Ne7G54Z2YyrT4JJxsL2TBEPyD5YNlSUUKWP7js9WRlX8nrW2jsNej1F7iQ
-         Uu73fZHMWgKIgfzfMjITGJgDe4gv7sr5ffB+69bLj6+kc+axwA4vLtFbt0ihl9Ltnn9T
-         E3rulXz6mg3J67/XsGNciyBsTohm4atYg2cp4PN/+atQ0OEa/GgY8hUshfrN4a13+vFj
-         1YvrVBCe0laZR00Kfn1Ebuo1vgIhVLlhk1tJdhRdNbzB1g8NCH3iEOQmkeyJvyhPked9
-         jKm1wA3Y2cwzGL2GuTjh7pqqsEJdNl1yyST/3ucTv+KFqv/9Mig7DzmKtyJO+a5gYOsd
-         VDlw==
-X-Gm-Message-State: APjAAAXIZa+rroC2BJndILakUcA7GX7DlEcRt0tabJwbKQYoHipLK0qY
-        j7j2Wtei++K8TqFAFm1q9JUiDr5z
-X-Google-Smtp-Source: APXvYqwJ4j9w2Jj7DwgcnfiaSt1xw23s8MhVaZm+HFdK/i3btrmwL8mRvU9HD8NWxp3Nz//dcXfcMA==
-X-Received: by 2002:a05:660c:209:: with SMTP id y9mr661675itj.31.1555976729838;
-        Mon, 22 Apr 2019 16:45:29 -0700 (PDT)
-Received: from nukespec.gtech ([2601:2c1:8501:182d::6fe])
-        by smtp.gmail.com with ESMTPSA id t2sm6887344itb.37.2019.04.22.16.45.27
-        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Mon, 22 Apr 2019 16:45:29 -0700 (PDT)
-Subject: Re: [PATCH v1 1/3] PCI / ACPI: Do not export pci_get_hp_params()
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     austin_bolen@dell.com, alex_gagniuc@dellteam.com,
-        keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de,
-        okaya@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20190208162414.3996-1-mr.nuke.me@gmail.com>
- <20190208162414.3996-2-mr.nuke.me@gmail.com>
- <20190422205845.GM173520@google.com>
-From:   Alex G <mr.nuke.me@gmail.com>
-Message-ID: <0b2b2396-b60b-ad25-d4ab-e3633fd93d0c@gmail.com>
-Date:   Mon, 22 Apr 2019 18:45:27 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        id S1726222AbfDWEHG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Apr 2019 00:07:06 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:48734 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726204AbfDWEHG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Apr 2019 00:07:06 -0400
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 39ADB85A04;
+        Tue, 23 Apr 2019 04:07:05 +0000 (UTC)
+Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8FBE41001DDC;
+        Tue, 23 Apr 2019 04:07:04 +0000 (UTC)
+Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
+        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 902C241F3C;
+        Tue, 23 Apr 2019 04:07:03 +0000 (UTC)
+Date:   Tue, 23 Apr 2019 00:07:03 -0400 (EDT)
+From:   Pankaj Gupta <pagupta@redhat.com>
+To:     Jeff Moyer <jmoyer@redhat.com>
+Cc:     Dan Williams <dan.j.williams@intel.com>,
+        Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
+        Igor Mammedov <imammedo@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Rik van Riel <riel@surriel.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        david <david@fromorbit.com>, cohuck@redhat.com,
+        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
+        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
+        yuval shaia <yuval.shaia@oracle.com>
+Message-ID: <1744824090.22901808.1555992423081.JavaMail.zimbra@redhat.com>
+In-Reply-To: <x49ef5t7nwp.fsf@segfault.boston.devel.redhat.com>
+References: <20190410040826.24371-1-pagupta@redhat.com> <x494l73z7th.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com> <20190418161833.GA22970@infradead.org> <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com> <x497ebm82d4.fsf@segfault.boston.devel.redhat.com> <CAPcyv4gGmN2LLMPy6BzWpYhRyV7fFNVgh=xAWSAdnnAWu5APtg@mail.gmail.com> <x49ef5t7nwp.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
 MIME-Version: 1.0
-In-Reply-To: <20190422205845.GM173520@google.com>
-Content-Type: text/plain; charset="UTF-8"; format="flowed"
-Content-Language: en-US
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.65.16.97, 10.4.195.5]
+Thread-Topic: libnvdimm: nd_region flush callback support
+Thread-Index: Nrs/K0iSToe0tO+hWxMTOjkrnUwU2A==
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.26]); Tue, 23 Apr 2019 04:07:05 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190422234527.bCa91A3TDWs9uO8tY5-hse_L13qQsCkSkv__99vWpyE@z>
+Message-ID: <20190423040703.5bvsti4bh6RU8QquQP70Hk-PzVXBX5THS-E_aIwj09s@z>
 
-On 4/22/19 3:58 PM, Bjorn Helgaas wrote:
-> On Fri, Feb 08, 2019 at 10:24:11AM -0600, Alexandru Gagniuc wrote:
->> This is only used within drivers/pci, and there is no reason to make
->> it available outside of the PCI core.
->>
->> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+
 > 
-> Applied the whole series to pci/hotplug for v5.2, thanks!
+> Dan Williams <dan.j.williams@intel.com> writes:
 > 
-> I dropped the "list" member from struct hpx_type3 because it didn't
-> seem to be used.
+> > On Mon, Apr 22, 2019 at 8:59 AM Jeff Moyer <jmoyer@redhat.com> wrote:
+> >>
+> >> Dan Williams <dan.j.williams@intel.com> writes:
+> >>
+> >> > On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch@infradead.org>
+> >> > wrote:
+> >> >>
+> >> >> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
+> >> >> > > > I'd either add a comment about avoiding retpoline overhead here
+> >> >> > > > or just
+> >> >> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that
+> >> >> > > > people don't
+> >> >> > > > get confused by the code.
+> >> >> > >
+> >> >> > > Isn't this premature optimization?  I really don't like adding
+> >> >> > > things
+> >> >> > > like this without some numbers to show it's worth it.
+> >> >> >
+> >> >> > I don't think it's premature given this optimization technique is
+> >> >> > already being deployed elsewhere, see:
+> >> >> >
+> >> >> > https://lwn.net/Articles/774347/
+> >> >>
+> >> >> For one this one was backed by numbers, and second after feedback
+> >> >> from Linux we switched to the NULL pointer check instead.
+> >> >
+> >> > Ok I should have noticed the switch to NULL pointer check. However,
+> >> > the question still stands do we want everyone to run numbers to
+> >> > justify this optimization, or make it a new common kernel coding
+> >> > practice to do:
+> >> >
+> >> >     if (!object->op)
+> >> >         generic_op(object);
+> >> >     else
+> >> >         object->op(object);
+> >> >
+> >> > ...in hot paths?
+> >>
+> >> I don't think nvdimm_flush is a hot path.  Numbers of some
+> >> representative workload would prove one of us right.
+> >
+> > I'd rather say that the if "if (!op) do_generic()" pattern is more
+> > readable in the general case, saves grepping for who set the op in the
+> > common case. The fact that it has the potential to be faster is gravy
+> > at that point.
+> 
+> If the primary motivation is performance, then I'd expect performance
+> numbers to back it up.  If that isn't the primary motivation, then
+> choose whichever way you feel is appropriate.
 
-That's a good call. That was a vestigial appendage from when I first 
-intended to store a list of registers in memory. I'm glad we didn't end 
-up needing a list.
+Agree. This change enhances the code readability. Will add this change in
+v6 with other changes.
 
-Alex
+Thank you! 
+
+Pankaj
+
+> 
+> Cheers,
+> Jeff
+> 
