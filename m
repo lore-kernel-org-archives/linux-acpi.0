@@ -2,148 +2,76 @@ Return-Path: <SRS0=tfVV=SZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC1CC282DD
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 04:07:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECCC9C10F14
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 07:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6966D20843
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 04:07:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C43DE20645
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 07:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726222AbfDWEHG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Apr 2019 00:07:06 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:48734 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726204AbfDWEHG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Apr 2019 00:07:06 -0400
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 39ADB85A04;
-        Tue, 23 Apr 2019 04:07:05 +0000 (UTC)
-Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8FBE41001DDC;
-        Tue, 23 Apr 2019 04:07:04 +0000 (UTC)
-Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
-        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 902C241F3C;
-        Tue, 23 Apr 2019 04:07:03 +0000 (UTC)
-Date:   Tue, 23 Apr 2019 00:07:03 -0400 (EDT)
-From:   Pankaj Gupta <pagupta@redhat.com>
-To:     Jeff Moyer <jmoyer@redhat.com>
-Cc:     Dan Williams <dan.j.williams@intel.com>,
-        Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>,
-        linux-nvdimm <linux-nvdimm@lists.01.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        virtualization@lists.linux-foundation.org,
-        KVM list <kvm@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Qemu Developers <qemu-devel@nongnu.org>,
-        linux-ext4 <linux-ext4@vger.kernel.org>,
-        linux-xfs <linux-xfs@vger.kernel.org>,
-        Ross Zwisler <zwisler@kernel.org>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Jason Wang <jasowang@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>,
+        id S1726416AbfDWHkQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Apr 2019 03:40:16 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6680 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726364AbfDWHkQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Apr 2019 03:40:16 -0400
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id D35034C2A2796E794A24;
+        Tue, 23 Apr 2019 15:40:12 +0800 (CST)
+Received: from localhost.localdomain.localdomain (10.175.113.25) by
+ DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
+ 14.3.439.0; Tue, 23 Apr 2019 15:40:02 +0800
+From:   Kefeng Wang <wangkefeng.wang@huawei.com>
+To:     <linux-kernel@vger.kernel.org>
+CC:     Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        "Darrick J. Wong" <darrick.wong@oracle.com>,
-        lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>,
-        Igor Mammedov <imammedo@redhat.com>,
-        Nitesh Narayan Lal <nilal@redhat.com>,
-        Rik van Riel <riel@surriel.com>,
-        Stefan Hajnoczi <stefanha@redhat.com>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        David Hildenbrand <david@redhat.com>,
-        david <david@fromorbit.com>, cohuck@redhat.com,
-        Xiao Guangrong <xiaoguangrong.eric@gmail.com>,
-        Paolo Bonzini <pbonzini@redhat.com>, kilobyte@angband.pl,
-        yuval shaia <yuval.shaia@oracle.com>
-Message-ID: <1744824090.22901808.1555992423081.JavaMail.zimbra@redhat.com>
-In-Reply-To: <x49ef5t7nwp.fsf@segfault.boston.devel.redhat.com>
-References: <20190410040826.24371-1-pagupta@redhat.com> <x494l73z7th.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com> <20190418161833.GA22970@infradead.org> <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com> <x497ebm82d4.fsf@segfault.boston.devel.redhat.com> <CAPcyv4gGmN2LLMPy6BzWpYhRyV7fFNVgh=xAWSAdnnAWu5APtg@mail.gmail.com> <x49ef5t7nwp.fsf@segfault.boston.devel.redhat.com>
-Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        <linux-acpi@vger.kernel.org>
+Subject: [PATCH next 01/25] ACPI / DPTF: Use dev_get_drvdata()
+Date:   Tue, 23 Apr 2019 15:49:56 +0800
+Message-ID: <20190423075020.173734-2-wangkefeng.wang@huawei.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190423075020.173734-1-wangkefeng.wang@huawei.com>
+References: <20190423075020.173734-1-wangkefeng.wang@huawei.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.65.16.97, 10.4.195.5]
-Thread-Topic: libnvdimm: nd_region flush callback support
-Thread-Index: Nrs/K0iSToe0tO+hWxMTOjkrnUwU2A==
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.26]); Tue, 23 Apr 2019 04:07:05 +0000 (UTC)
+X-Originating-IP: [10.175.113.25]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190423040703.5bvsti4bh6RU8QquQP70Hk-PzVXBX5THS-E_aIwj09s@z>
+Message-ID: <20190423074956.H8uhAAtKMLeKQdFoRzyspA6pNK2IRAY1mRGKrGn-o40@z>
 
+Using dev_get_drvdata directly.
 
-> 
-> Dan Williams <dan.j.williams@intel.com> writes:
-> 
-> > On Mon, Apr 22, 2019 at 8:59 AM Jeff Moyer <jmoyer@redhat.com> wrote:
-> >>
-> >> Dan Williams <dan.j.williams@intel.com> writes:
-> >>
-> >> > On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch@infradead.org>
-> >> > wrote:
-> >> >>
-> >> >> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
-> >> >> > > > I'd either add a comment about avoiding retpoline overhead here
-> >> >> > > > or just
-> >> >> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that
-> >> >> > > > people don't
-> >> >> > > > get confused by the code.
-> >> >> > >
-> >> >> > > Isn't this premature optimization?  I really don't like adding
-> >> >> > > things
-> >> >> > > like this without some numbers to show it's worth it.
-> >> >> >
-> >> >> > I don't think it's premature given this optimization technique is
-> >> >> > already being deployed elsewhere, see:
-> >> >> >
-> >> >> > https://lwn.net/Articles/774347/
-> >> >>
-> >> >> For one this one was backed by numbers, and second after feedback
-> >> >> from Linux we switched to the NULL pointer check instead.
-> >> >
-> >> > Ok I should have noticed the switch to NULL pointer check. However,
-> >> > the question still stands do we want everyone to run numbers to
-> >> > justify this optimization, or make it a new common kernel coding
-> >> > practice to do:
-> >> >
-> >> >     if (!object->op)
-> >> >         generic_op(object);
-> >> >     else
-> >> >         object->op(object);
-> >> >
-> >> > ...in hot paths?
-> >>
-> >> I don't think nvdimm_flush is a hot path.  Numbers of some
-> >> representative workload would prove one of us right.
-> >
-> > I'd rather say that the if "if (!op) do_generic()" pattern is more
-> > readable in the general case, saves grepping for who set the op in the
-> > common case. The fact that it has the potential to be faster is gravy
-> > at that point.
-> 
-> If the primary motivation is performance, then I'd expect performance
-> numbers to back it up.  If that isn't the primary motivation, then
-> choose whichever way you feel is appropriate.
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+---
+ drivers/acpi/dptf/dptf_power.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Agree. This change enhances the code readability. Will add this change in
-v6 with other changes.
+diff --git a/drivers/acpi/dptf/dptf_power.c b/drivers/acpi/dptf/dptf_power.c
+index e1c242568341..0c081390930a 100644
+--- a/drivers/acpi/dptf/dptf_power.c
++++ b/drivers/acpi/dptf/dptf_power.c
+@@ -31,8 +31,7 @@ static ssize_t name##_show(struct device *dev,\
+ 			   struct device_attribute *attr,\
+ 			   char *buf)\
+ {\
+-	struct platform_device *pdev = to_platform_device(dev);\
+-	struct acpi_device *acpi_dev = platform_get_drvdata(pdev);\
++	struct acpi_device *acpi_dev = dev_get_drvdata(dev);\
+ 	unsigned long long val;\
+ 	acpi_status status;\
+ \
+-- 
+2.20.1
 
-Thank you! 
-
-Pankaj
-
-> 
-> Cheers,
-> Jeff
-> 
