@@ -7,53 +7,53 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2838AC10F03
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD8FC282DD
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E9BC52183E
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C5F420645
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="coyxeucB"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mSEjJqm1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729065AbfDWQi6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Apr 2019 12:38:58 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:41948 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729310AbfDWQi5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Apr 2019 12:38:57 -0400
-Received: by mail-pg1-f193.google.com with SMTP id f6so7867085pgs.8;
-        Tue, 23 Apr 2019 09:38:56 -0700 (PDT)
+        id S1729239AbfDWQjS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Apr 2019 12:39:18 -0400
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:37210 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729241AbfDWQjR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Apr 2019 12:39:17 -0400
+Received: by mail-pg1-f195.google.com with SMTP id e6so7882963pgc.4;
+        Tue, 23 Apr 2019 09:39:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=EltilnvvP1BvvyVI1MTgDNOjtPuzRRDurGYU5XZhXEs=;
-        b=coyxeucBNGGhBbnV73diQjJV3jm5TDF3tMdaPUePlSg6BotQ7xRr8M5n2zX6PrlHt1
-         3Ae0DPUAGysP3kj8j1dKipqRw65axuiJEzzVVVZHbLK8gf1PKgfc4EqB768qZ9cVGBHs
-         eVilF0ZRilDMPU71yj3vLg4GNbosiEDVmFer+K+BzLdHwQnbkJghdnynmefiPK10It7i
-         nrtNvsl//0wL6yEFImn8U5zL186PDocy0ngOxfZSXvNuwPFVOjgYCV/rj52WucpIUUQA
-         e8LA1nHjNRsWgN8odwwcnWuT6c212DPe71bDZLEESdQHv47y7wXMibOprMTz5r6asJij
-         5wbw==
+        bh=/yvtB3uaTRGxnRgaWP7FcK1I6Vvjpy6XLjw84eVyA1w=;
+        b=mSEjJqm1Uh9lERZuTImsCQu6ENHXJ7Tv3P2SgTBOwRN1RA1F+W22zdJSFHOTxfQ8mv
+         iKtnE+HwXt6ZnFfUgDAbJZX4w1xVglJs5Qpk8+qyIhYSfX0nLYaMnc8xC26DxSQf4A6Y
+         uz9aBRqpV1z6edqMo5qfAhfSrQwishu34hMCLkXioD1UQZMbiKBO7ZGOLIJPdxX3YeDX
+         YfXaZrsPtQDIDqyB4hIZ4+qvtC99RaX/eZ9Xq9snN66BQxGdY74tEBvqlLNpQkofen7p
+         rZYuHJSG2XVCSC4GdFvQ/jM2UjJltMSeP0O7LAExvKoqh00S7h5gpWD0kWt+KB5UXSMx
+         yfPg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=EltilnvvP1BvvyVI1MTgDNOjtPuzRRDurGYU5XZhXEs=;
-        b=iRU92An6wOk1mvsBiAZamF5jufiB2DvmMVCuFbTo2qSny7o2EgN1+y8YYX6qJapr9F
-         WcZntHQcKli4QMjVULm9R4RReYTsyMpAtc1cR3wdbq4UXPLitUzp9gge5cazomLkIqL2
-         JbZrSDsA19ANKLosbyS3gDzLYXgq4LprwIGwculbjCUZHCES182AlXQzwIdcEnEb4tSd
-         1lg/WqxgTQZ1V27R7AZFDZwRGHyzcxmL+Wt3p7NvzsFEoI9y9nGe/Zhz+dEraRsj30iY
-         VHz8N0GqAC36/dZLLjYgZNP9zf0HFeF1ggklpSBBjCgwFNLNLIWynpbtfOa3GkHERYpS
-         qrlA==
-X-Gm-Message-State: APjAAAXMretK7McxFRxwWa4ATAyXLqFsCV7u/HEpRP20AYQdL6Q+CqCg
-        rqm7QpyzW2eVTUKggJQ5xRI=
-X-Google-Smtp-Source: APXvYqzkyH8ljChilcA9oqAwHnGb+wLCqzfGLkYCxxZLoHY2/GdaWRvJA+BlOeCdr9U8J7apOAleWQ==
-X-Received: by 2002:a63:3287:: with SMTP id y129mr26124874pgy.9.1556037536417;
-        Tue, 23 Apr 2019 09:38:56 -0700 (PDT)
+        bh=/yvtB3uaTRGxnRgaWP7FcK1I6Vvjpy6XLjw84eVyA1w=;
+        b=j4wfMkqfax/1e1OWYOvsc0HJwozVt2gz2HgJJJyPYilI0FnarstmTLzxixunpPlTAE
+         Hna9IFxLX7scKFk7LycTsIBFb8P++LOf5hWnuwuGeIjxgRNxXO62Pc8Kcbubzghgn7Zd
+         a40AfzUoaA4+PQWbdnCNRvg2EK0oF9UTnBcUrsdgDa3IGinVaSUjCIxnS1fwyxwxuHnH
+         r4bl29q4KWKYdzs0mlpONrDhnHU1EtiEknFOSxfQOjTZhLu8m422CxgXTg22tublUAN1
+         mxyYFAHvkHJ7Ft9HaGKTTMBYuZCUWPzdLtLuIBIAMlLqElwa37JeiuMABz0BTu5uiy+8
+         I0Ng==
+X-Gm-Message-State: APjAAAVSKJjQONtM2UuGJU9sMPO1AqwdaFHJSYS5TH3upmldTmIkOw0/
+        SKiMCMo6NKnuFCcRi/7or5s=
+X-Google-Smtp-Source: APXvYqz7nIbYvWFGQ7St8YWnYNdpaoYF3I5r3o/MDQqQCS+rkAvyEtbbpVhd8SKQZLRUyxQ8J7eGrA==
+X-Received: by 2002:a63:de0a:: with SMTP id f10mr15896380pgg.418.1556037556886;
+        Tue, 23 Apr 2019 09:39:16 -0700 (PDT)
 Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id v1sm24364801pff.81.2019.04.23.09.38.51
+        by smtp.gmail.com with ESMTPSA id v1sm24364801pff.81.2019.04.23.09.39.12
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 23 Apr 2019 09:38:55 -0700 (PDT)
+        Tue, 23 Apr 2019 09:39:15 -0700 (PDT)
 From:   Changbin Du <changbin.du@gmail.com>
 To:     Jonathan Corbet <corbet@lwn.net>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net,
@@ -63,9 +63,9 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
         Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 58/63] Documentation: x86: convert x86_64/uefi.txt to reST
-Date:   Wed, 24 Apr 2019 00:29:27 +0800
-Message-Id: <20190423162932.21428-59-changbin.du@gmail.com>
+Subject: [PATCH v4 62/63] Documentation: x86: convert x86_64/cpu-hotplug-spec to reST
+Date:   Wed, 24 Apr 2019 00:29:31 +0800
+Message-Id: <20190423162932.21428-63-changbin.du@gmail.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190423162932.21428-1-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
@@ -76,93 +76,44 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190423162927.er4OxIfc3ozX3QkdWBsCIV1Uq6Zt4qZj3a42Uy-Cx2Q@z>
+Message-ID: <20190423162931.8hTcG-Dm1T8bbfA_O67Pd5LVilSNPpwZ5hIvIRtNPZs@z>
 
 This converts the plain text documentation to reStructuredText format and
 add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- Documentation/x86/x86_64/index.rst            |  1 +
- .../x86/x86_64/{uefi.txt => uefi.rst}         | 30 ++++++++++++++-----
- 2 files changed, 24 insertions(+), 7 deletions(-)
- rename Documentation/x86/x86_64/{uefi.txt => uefi.rst} (79%)
+ .../x86/x86_64/{cpu-hotplug-spec => cpu-hotplug-spec.rst}    | 5 ++++-
+ Documentation/x86/x86_64/index.rst                           | 1 +
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+ rename Documentation/x86/x86_64/{cpu-hotplug-spec => cpu-hotplug-spec.rst} (88%)
 
-diff --git a/Documentation/x86/x86_64/index.rst b/Documentation/x86/x86_64/index.rst
-index a8cf7713cac9..ddfa1f9d4193 100644
---- a/Documentation/x86/x86_64/index.rst
-+++ b/Documentation/x86/x86_64/index.rst
-@@ -8,3 +8,4 @@ x86_64 Support
-    :maxdepth: 2
- 
-    boot-options
-+   uefi
-diff --git a/Documentation/x86/x86_64/uefi.txt b/Documentation/x86/x86_64/uefi.rst
-similarity index 79%
-rename from Documentation/x86/x86_64/uefi.txt
-rename to Documentation/x86/x86_64/uefi.rst
-index a5e2b4fdb170..88c3ba32546f 100644
---- a/Documentation/x86/x86_64/uefi.txt
-+++ b/Documentation/x86/x86_64/uefi.rst
+diff --git a/Documentation/x86/x86_64/cpu-hotplug-spec b/Documentation/x86/x86_64/cpu-hotplug-spec.rst
+similarity index 88%
+rename from Documentation/x86/x86_64/cpu-hotplug-spec
+rename to Documentation/x86/x86_64/cpu-hotplug-spec.rst
+index 3c23e0587db3..8d1c91f0c880 100644
+--- a/Documentation/x86/x86_64/cpu-hotplug-spec
++++ b/Documentation/x86/x86_64/cpu-hotplug-spec.rst
 @@ -1,5 +1,8 @@
 +.. SPDX-License-Identifier: GPL-2.0
 +
-+=====================================
- General note on [U]EFI x86_64 support
---------------------------------------
-+=====================================
++===================================================
+ Firmware support for CPU hotplug under Linux/x86-64
+----------------------------------------------------
++===================================================
  
- The nomenclature EFI and UEFI are used interchangeably in this document.
- 
-@@ -14,29 +17,42 @@ with EFI firmware and specifications are listed below.
- 
- 3. x86_64 platform with EFI/UEFI firmware.
- 
--Mechanics:
-+Mechanics
- ---------
--- Build the kernel with the following configuration.
-+
-+- Build the kernel with the following configuration::
-+
- 	CONFIG_FB_EFI=y
- 	CONFIG_FRAMEBUFFER_CONSOLE=y
-+
-   If EFI runtime services are expected, the following configuration should
--  be selected.
-+  be selected::
-+
- 	CONFIG_EFI=y
- 	CONFIG_EFI_VARS=y or m		# optional
-+
- - Create a VFAT partition on the disk
- - Copy the following to the VFAT partition:
-+
- 	elilo bootloader with x86_64 support, elilo configuration file,
- 	kernel image built in first step and corresponding
- 	initrd. Instructions on building elilo	and its dependencies
- 	can be found in the elilo sourceforge project.
-+
- - Boot to EFI shell and invoke elilo choosing the kernel image built
-   in first step.
- - If some or all EFI runtime services don't work, you can try following
-   kernel command line parameters to turn off some or all EFI runtime
-   services.
--	noefi		turn off all EFI runtime services
--	reboot_type=k	turn off EFI reboot runtime service
-+
-+	noefi
-+		turn off all EFI runtime services
-+	reboot_type=k
-+		turn off EFI reboot runtime service
-+
- - If the EFI memory map has additional entries not in the E820 map,
-   you can include those entries in the kernels memory map of available
-   physical RAM by using the following kernel command line parameter.
--	add_efi_memmap	include EFI memory map of available physical RAM
-+
-+	add_efi_memmap
-+		include EFI memory map of available physical RAM
+ Linux/x86-64 supports CPU hotplug now. For various reasons Linux wants to
+ know in advance of boot time the maximum number of CPUs that could be plugged
+diff --git a/Documentation/x86/x86_64/index.rst b/Documentation/x86/x86_64/index.rst
+index e2a324cde671..c04b6eab3c76 100644
+--- a/Documentation/x86/x86_64/index.rst
++++ b/Documentation/x86/x86_64/index.rst
+@@ -12,3 +12,4 @@ x86_64 Support
+    mm
+    5level-paging
+    fake-numa-for-cpusets
++   cpu-hotplug-spec
 -- 
 2.20.1
 
