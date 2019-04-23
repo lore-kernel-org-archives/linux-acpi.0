@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 44/63] Documentation: x86: convert zero-page.txt to reST
-Date: Wed, 24 Apr 2019 00:29:13 +0800
-Message-ID: <20190423162932.21428-45-changbin.du@gmail.com>
+Subject: [PATCH v4 45/63] Documentation: x86: convert tlb.txt to reST
+Date: Wed, 24 Apr 2019 00:29:14 +0800
+Message-ID: <20190423162932.21428-46-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,120 +17,97 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- Documentation/x86/index.rst     |  1 +
- Documentation/x86/zero-page.rst | 47 +++++++++++++++++++++++++++++++++
- Documentation/x86/zero-page.txt | 40 ----------------------------
- 3 files changed, 48 insertions(+), 40 deletions(-)
- create mode 100644 Documentation/x86/zero-page.rst
- delete mode 100644 Documentation/x86/zero-page.txt
+ Documentation/x86/index.rst            |  1 +
+ Documentation/x86/{tlb.txt => tlb.rst} | 30 ++++++++++++++++----------
+ 2 files changed, 20 insertions(+), 11 deletions(-)
+ rename Documentation/x86/{tlb.txt => tlb.rst} (81%)
 
 diff --git a/Documentation/x86/index.rst b/Documentation/x86/index.rst
-index 7b8388ebd43d..9a0b5f38ef6b 100644
+index 9a0b5f38ef6b..fd54b859db9b 100644
 --- a/Documentation/x86/index.rst
 +++ b/Documentation/x86/index.rst
-@@ -14,3 +14,4 @@ Linux x86 Support
-    kernel-stacks
+@@ -15,3 +15,4 @@ Linux x86 Support
     entry_64
     earlyprintk
-+   zero-page
-diff --git a/Documentation/x86/zero-page.rst b/Documentation/x86/zero-page.rst
-new file mode 100644
-index 000000000000..deedbc84454d
---- /dev/null
-+++ b/Documentation/x86/zero-page.rst
-@@ -0,0 +1,47 @@
+    zero-page
++   tlb
+diff --git a/Documentation/x86/tlb.txt b/Documentation/x86/tlb.rst
+similarity index 81%
+rename from Documentation/x86/tlb.txt
+rename to Documentation/x86/tlb.rst
+index 6a0607b99ed8..82ec58ae63a8 100644
+--- a/Documentation/x86/tlb.txt
++++ b/Documentation/x86/tlb.rst
+@@ -1,5 +1,12 @@
 +.. SPDX-License-Identifier: GPL-2.0
 +
-+=========
-+Zero Page
-+=========
++=======
++The TLB
++=======
 +
-+The additional fields in struct boot_params as a part of 32-bit boot
-+protocol of kernel. These should be filled by bootloader or 16-bit
-+real-mode setup code of the kernel. References/settings to it mainly
-+are in::
+ When the kernel unmaps or modified the attributes of a range of
+ memory, it has two choices:
 +
-+  arch/x86/include/uapi/asm/bootparam.h
+  1. Flush the entire TLB with a two-instruction sequence.  This is
+     a quick operation, but it causes collateral damage: TLB entries
+     from areas other than the one we are trying to flush will be
+@@ -10,6 +17,7 @@ memory, it has two choices:
+     damage to other TLB entries.
+ 
+ Which method to do depends on a few things:
 +
-+::
-+
-+	Offset	Proto	Name		Meaning
-+	/Size
-+
-+	000/040	ALL	screen_info	Text mode or frame buffer information
-+					(struct screen_info)
-+	040/014	ALL	apm_bios_info	APM BIOS information (struct apm_bios_info)
-+	058/008	ALL	tboot_addr      Physical address of tboot shared page
-+	060/010	ALL	ist_info	Intel SpeedStep (IST) BIOS support information
-+					(struct ist_info)
-+	080/010	ALL	hd0_info	hd0 disk parameter, OBSOLETE!!
-+	090/010	ALL	hd1_info	hd1 disk parameter, OBSOLETE!!
-+	0A0/010	ALL	sys_desc_table	System description table (struct sys_desc_table),
-+					OBSOLETE!!
-+	0B0/010	ALL	olpc_ofw_header	OLPC's OpenFirmware CIF and friends
-+	0C0/004	ALL	ext_ramdisk_image ramdisk_image high 32bits
-+	0C4/004	ALL	ext_ramdisk_size  ramdisk_size high 32bits
-+	0C8/004	ALL	ext_cmd_line_ptr  cmd_line_ptr high 32bits
-+	140/080	ALL	edid_info	Video mode setup (struct edid_info)
-+	1C0/020	ALL	efi_info	EFI 32 information (struct efi_info)
-+	1E0/004	ALL	alt_mem_k	Alternative mem check, in KB
-+	1E4/004	ALL	scratch		Scratch field for the kernel setup code
-+	1E8/001	ALL	e820_entries	Number of entries in e820_table (below)
-+	1E9/001	ALL	eddbuf_entries	Number of entries in eddbuf (below)
-+	1EA/001	ALL	edd_mbr_sig_buf_entries	Number of entries in edd_mbr_sig_buffer
-+					(below)
-+	1EB/001	ALL     kbd_status      Numlock is enabled
-+	1EC/001	ALL     secure_boot	Secure boot is enabled in the firmware
-+	1EF/001	ALL	sentinel	Used to detect broken bootloaders
-+	290/040	ALL	edd_mbr_sig_buffer EDD MBR signatures
-+	2D0/A00	ALL	e820_table	E820 memory map table
-+					(array of struct e820_entry)
-+	D00/1EC	ALL	eddbuf		EDD data (array of struct edd_info)
-diff --git a/Documentation/x86/zero-page.txt b/Documentation/x86/zero-page.txt
-deleted file mode 100644
-index 68aed077f7b6..000000000000
---- a/Documentation/x86/zero-page.txt
-+++ /dev/null
-@@ -1,40 +0,0 @@
--The additional fields in struct boot_params as a part of 32-bit boot
--protocol of kernel. These should be filled by bootloader or 16-bit
--real-mode setup code of the kernel. References/settings to it mainly
--are in:
--
--  arch/x86/include/uapi/asm/bootparam.h
--
--
--Offset	Proto	Name		Meaning
--/Size
--
--000/040	ALL	screen_info	Text mode or frame buffer information
--				(struct screen_info)
--040/014	ALL	apm_bios_info	APM BIOS information (struct apm_bios_info)
--058/008	ALL	tboot_addr      Physical address of tboot shared page
--060/010	ALL	ist_info	Intel SpeedStep (IST) BIOS support information
--				(struct ist_info)
--080/010	ALL	hd0_info	hd0 disk parameter, OBSOLETE!!
--090/010	ALL	hd1_info	hd1 disk parameter, OBSOLETE!!
--0A0/010	ALL	sys_desc_table	System description table (struct sys_desc_table),
--				OBSOLETE!!
--0B0/010	ALL	olpc_ofw_header	OLPC's OpenFirmware CIF and friends
--0C0/004	ALL	ext_ramdisk_image ramdisk_image high 32bits
--0C4/004	ALL	ext_ramdisk_size  ramdisk_size high 32bits
--0C8/004	ALL	ext_cmd_line_ptr  cmd_line_ptr high 32bits
--140/080	ALL	edid_info	Video mode setup (struct edid_info)
--1C0/020	ALL	efi_info	EFI 32 information (struct efi_info)
--1E0/004	ALL	alt_mem_k	Alternative mem check, in KB
--1E4/004	ALL	scratch		Scratch field for the kernel setup code
--1E8/001	ALL	e820_entries	Number of entries in e820_table (below)
--1E9/001	ALL	eddbuf_entries	Number of entries in eddbuf (below)
--1EA/001	ALL	edd_mbr_sig_buf_entries	Number of entries in edd_mbr_sig_buffer
--				(below)
--1EB/001	ALL     kbd_status      Numlock is enabled
--1EC/001	ALL     secure_boot	Secure boot is enabled in the firmware
--1EF/001	ALL	sentinel	Used to detect broken bootloaders
--290/040	ALL	edd_mbr_sig_buffer EDD MBR signatures
--2D0/A00	ALL	e820_table	E820 memory map table
--				(array of struct e820_entry)
--D00/1EC	ALL	eddbuf		EDD data (array of struct edd_info)
+  1. The size of the flush being performed.  A flush of the entire
+     address space is obviously better performed by flushing the
+     entire TLB than doing 2^48/PAGE_SIZE individual flushes.
+@@ -33,7 +41,7 @@ well.  There is essentially no "right" point to choose.
+ You may be doing too many individual invalidations if you see the
+ invlpg instruction (or instructions _near_ it) show up high in
+ profiles.  If you believe that individual invalidations being
+-called too often, you can lower the tunable:
++called too often, you can lower the tunable::
+ 
+ 	/sys/kernel/debug/x86/tlb_single_page_flush_ceiling
+ 
+@@ -43,7 +51,7 @@ Setting it to 1 is a very conservative setting and it should
+ never need to be 0 under normal circumstances.
+ 
+ Despite the fact that a single individual flush on x86 is
+-guaranteed to flush a full 2MB [1], hugetlbfs always uses the full
++guaranteed to flush a full 2MB [1]_, hugetlbfs always uses the full
+ flushes.  THP is treated exactly the same as normal memory.
+ 
+ You might see invlpg inside of flush_tlb_mm_range() show up in
+@@ -54,15 +62,15 @@ Essentially, you are balancing the cycles you spend doing invlpg
+ with the cycles that you spend refilling the TLB later.
+ 
+ You can measure how expensive TLB refills are by using
+-performance counters and 'perf stat', like this:
++performance counters and 'perf stat', like this::
+ 
+-perf stat -e
+-	cpu/event=0x8,umask=0x84,name=dtlb_load_misses_walk_duration/,
+-	cpu/event=0x8,umask=0x82,name=dtlb_load_misses_walk_completed/,
+-	cpu/event=0x49,umask=0x4,name=dtlb_store_misses_walk_duration/,
+-	cpu/event=0x49,umask=0x2,name=dtlb_store_misses_walk_completed/,
+-	cpu/event=0x85,umask=0x4,name=itlb_misses_walk_duration/,
+-	cpu/event=0x85,umask=0x2,name=itlb_misses_walk_completed/
++  perf stat -e
++    cpu/event=0x8,umask=0x84,name=dtlb_load_misses_walk_duration/,
++    cpu/event=0x8,umask=0x82,name=dtlb_load_misses_walk_completed/,
++    cpu/event=0x49,umask=0x4,name=dtlb_store_misses_walk_duration/,
++    cpu/event=0x49,umask=0x2,name=dtlb_store_misses_walk_completed/,
++    cpu/event=0x85,umask=0x4,name=itlb_misses_walk_duration/,
++    cpu/event=0x85,umask=0x2,name=itlb_misses_walk_completed/
+ 
+ That works on an IvyBridge-era CPU (i5-3320M).  Different CPUs
+ may have differently-named counters, but they should at least
+@@ -70,6 +78,6 @@ be there in some form.  You can use pmu-tools 'ocperf list'
+ (https://github.com/andikleen/pmu-tools) to find the right
+ counters for a given CPU.
+ 
+-1. A footnote in Intel's SDM "4.10.4.2 Recommended Invalidation"
++.. [1] A footnote in Intel's SDM "4.10.4.2 Recommended Invalidation"
+    says: "One execution of INVLPG is sufficient even for a page
+    with size greater than 4 KBytes."
 -- 
 2.20.1
