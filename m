@@ -1,63 +1,50 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Date: Tue, 23 Apr 2019 10:07:40 +0200
-Message-ID: <CAJZ5v0j9U20cFbRx6QKeQv6wyDg6nL71L0U_Rec5+W1JoD8-=w@mail.gmail.com>
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
- <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com> <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
- <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com> <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
- <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com> <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v6 5/6] ext4: disable map_sync for async flush
+Date: Tue, 23 Apr 2019 13:36:11 +0530
+Message-ID: <20190423080612.15361-6-pagupta@redhat.com>
+References: <20190423080612.15361-1-pagupta@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
+In-Reply-To: <20190423080612.15361-1-pagupta@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Robert R. Howell" <RHowell@uwyo.edu>
-Cc: Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu, adilger.kernel@dilger.ca, darrick.wong@oracle.com, lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, aarcange@redhat.com, david@redhat.com, david@fromorbit.com, cohuck@redhat.com, xiaoguangrong.eric@gmail.com, pagupta@redhat.com, pbonzini@redhat.com, yuval.shaia@oracle.com, kilobyte@angband.pl
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Apr 20, 2019 at 12:44 AM Robert R. Howell <RHowell@uwyo.edu> wrote:
->
-> On 4/18/19 5:42 AM, Hans de Goede wrote:
->
-> >> On 4/8/19 2:16 AM, Hans de Goede wrote:>
-> >>>
-> >>> Hmm, interesting so you have hibernation working on a T100TA
-> >>> (with 5.0 + 02e45646d53b reverted), right ?
-> >>>
->
-> > Still since my patch is regressing things for you I will try to
-> > take a look at this and see if I can reproduce and come up with
-> > a fix. But this is not going to be a high priority thing for me to
-> > work on.
-> >
-> > In the mean time I've gone ahead and submitted my version of the
-> > fix for the problem Kai-Heng was seeing, since that does not seem
-> > to make your problem worse; and it will be good to get that problem
-> > fixed.
-> >
-> > Regards,
-> >
-> > Hans
-> >
->
-> I've managed to find a way around the i2c_designware timeout issues
-> on the T100TA's.  The key is to NOT set DPM_FLAG_SMART_SUSPEND,
-> which was added in the 02e45646d53b commit.
->
-> To test that I've started with a 5.1-rc5 kernel, applied your recent patch
-> to acpi_lpss.c, then apply the following patch of mine, removing
-> DPM_FLAG_SMART_SUSPEND.  (For the T100 hardware I need to apply some
-> other patches as well but those are not related to the i2c-designware or
-> acpi issues addressed here.)
->
-> On a resume from hibernation I still see one error:
->   "i2c_designware 80860F41:00: Error i2c_dw_xfer called while suspended"
-> but I no longer get the i2c_designware timeouts, and audio does now work
-> after the resume.
->
-> Removing DPM_FLAG_SMART_SUSPEND may not be what you want for other
-> hardware, but perhaps this will give you a clue as to what is going
-> wrong with hibernate/resume on the T100TA's.
+Dont support 'MAP_SYNC' with non-DAX files and DAX files
+with asynchronous dax_device. Virtio pmem provides 
+asynchronous host page cache flush mechanism. We don't
+support 'MAP_SYNC' with virtio pmem and ext4.
 
-What if you drop DPM_FLAG_LEAVE_SUSPENDED alone instead?
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+---
+ fs/ext4/file.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 69d65d49837b..4b2ccaf1932e 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -360,15 +360,16 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
+ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct inode *inode = file->f_mapping->host;
++	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
++	struct dax_device *dax_dev = sbi->s_daxdev;
+ 
+-	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
++	if (unlikely(ext4_forced_shutdown(sbi)))
+ 		return -EIO;
+ 
+-	/*
+-	 * We don't support synchronous mappings for non-DAX files. At least
+-	 * until someone comes with a sensible use case.
++	/* We don't support synchronous mappings for non-DAX files and
++	 * for DAX files if underneath dax_device is not synchronous.
+ 	 */
+-	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
++	if (!daxdev_mapping_supported(vma, dax_dev))
+ 		return -EOPNOTSUPP;
+ 
+ 	file_accessed(file);
+-- 
+2.20.1
