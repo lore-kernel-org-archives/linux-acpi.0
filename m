@@ -2,230 +2,115 @@ Return-Path: <SRS0=tfVV=SZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6754C282DD
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 08:07:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FE8EC10F14
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 08:08:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 82D622077C
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 08:07:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE09521738
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 08:08:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1556006882;
+	bh=McUNjshzy37vbxJiA9SbmoYWmiG/6VcekJEDStYjTb8=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=LJxVADnvfWalx/g20Eo7SYYTrfFkxDWoRLrD6/dOoxrvpx1Az2KEJzEI5RxRWl4is
+	 yGFZJfiiyK0uOFYR0BwoUuMiaDho+tE8/Ax3sr0+RVQkP0n4E1VdCZSyszrMTqVctP
+	 PX1QzQIynggsBZDplbCbkq0mvAuE8vRkRfVkqt/o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726011AbfDWIHa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Apr 2019 04:07:30 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:39878 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725888AbfDWIH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Apr 2019 04:07:29 -0400
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 6060F3092665;
-        Tue, 23 Apr 2019 08:07:29 +0000 (UTC)
-Received: from dhcp201-121.englab.pnq.redhat.com (unknown [10.65.16.97])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 999DD1001E84;
-        Tue, 23 Apr 2019 08:07:04 +0000 (UTC)
-From:   Pankaj Gupta <pagupta@redhat.com>
-To:     linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        qemu-devel@nongnu.org, linux-ext4@vger.kernel.org,
-        linux-xfs@vger.kernel.org
-Cc:     dan.j.williams@intel.com, zwisler@kernel.org,
-        vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com,
-        jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net,
-        hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu,
-        adilger.kernel@dilger.ca, darrick.wong@oracle.com,
-        lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com,
-        jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com,
-        stefanha@redhat.com, aarcange@redhat.com, david@redhat.com,
-        david@fromorbit.com, cohuck@redhat.com,
-        xiaoguangrong.eric@gmail.com, pagupta@redhat.com,
-        pbonzini@redhat.com, yuval.shaia@oracle.com, kilobyte@angband.pl
-Subject: [PATCH v6 3/6] libnvdimm: add dax_dev sync flag
-Date:   Tue, 23 Apr 2019 13:36:09 +0530
-Message-Id: <20190423080612.15361-4-pagupta@redhat.com>
-In-Reply-To: <20190423080612.15361-1-pagupta@redhat.com>
-References: <20190423080612.15361-1-pagupta@redhat.com>
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.43]); Tue, 23 Apr 2019 08:07:29 +0000 (UTC)
+        id S1725939AbfDWIH4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Apr 2019 04:07:56 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:33826 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726847AbfDWIH4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Apr 2019 04:07:56 -0400
+Received: by mail-oi1-f196.google.com with SMTP id v10so10579732oib.1;
+        Tue, 23 Apr 2019 01:07:55 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ACYuZFm53+zM/QdTlUn6BcSxreTpWAn7/bi9ZqwcX0c=;
+        b=B1RVCC4YtLEEn/atVdjrs6BYNR1nshXs8ABLwWXXoyk/e8pymxGbp/wQfRwSAP8xQR
+         1zFaKsSVkxb/0YHcWspmYWnOcBguxppOWloROnf5dt2gDEHLEAD3xsRLoaOIeyA17JEa
+         WYOoKx151Lzc8IdALrECgzoatVh2Hz8krKyL0N+BenECSY9a3Ka6ggD7WYnOQCO4wLps
+         76OrMCwXEJl75ion2JGW3RihT0sDtU5AGtawbueAt6KumgCZS5PxNmGRaGjve/D8g5nw
+         u3PVCB8x3ejrwWrsWH9roY32FQssay6pmepGZ2D/+4ySjwTOgoAxMH/N5csdIB6cGf2N
+         76Lg==
+X-Gm-Message-State: APjAAAWy/qhx7agsr6QpnLHqE+vuBg3KEWs/Shj2cqQU8Z9kq/TouK/6
+        vCgbK/oCdQ2bi8AGbwHaxktVD99VH/nBJlP4U6I=
+X-Google-Smtp-Source: APXvYqzbICNOPmSMWhZ8xkfw6tIMbENNQ72Ga4mNWl6VJrWA1w0WYONLtlWNMmewKC8MHhl9HwxX766yUeBMSc9UhwY=
+X-Received: by 2002:aca:b841:: with SMTP id i62mr961321oif.103.1556006875241;
+ Tue, 23 Apr 2019 01:07:55 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com> <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com> <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+ <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com> <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
+In-Reply-To: <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 23 Apr 2019 10:07:40 +0200
+Message-ID:
+ <CAJZ5v0j9U20cFbRx6QKeQv6wyDg6nL71L0U_Rec5+W1JoD8-=w@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+To:     "Robert R. Howell" <RHowell@uwyo.edu>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190423080609.QHzAk32lZGv_gdjDHu9Qi4x7h6yRCT51fcuturIy-7w@z>
+Message-ID: <20190423080740.ug4pyMbTLwm5VFTQq46hD627ZjkQg024RDL14eb7VM8@z>
 
-This patch adds 'DAXDEV_SYNC' flag which is set
-for nd_region doing synchronous flush. This later
-is used to disable MAP_SYNC functionality for
-ext4 & xfs filesystem for devices don't support
-synchronous flush.
+On Sat, Apr 20, 2019 at 12:44 AM Robert R. Howell <RHowell@uwyo.edu> wrote:
+>
+> On 4/18/19 5:42 AM, Hans de Goede wrote:
+>
+> >> On 4/8/19 2:16 AM, Hans de Goede wrote:>
+> >>>
+> >>> Hmm, interesting so you have hibernation working on a T100TA
+> >>> (with 5.0 + 02e45646d53b reverted), right ?
+> >>>
+>
+> > Still since my patch is regressing things for you I will try to
+> > take a look at this and see if I can reproduce and come up with
+> > a fix. But this is not going to be a high priority thing for me to
+> > work on.
+> >
+> > In the mean time I've gone ahead and submitted my version of the
+> > fix for the problem Kai-Heng was seeing, since that does not seem
+> > to make your problem worse; and it will be good to get that problem
+> > fixed.
+> >
+> > Regards,
+> >
+> > Hans
+> >
+>
+> I've managed to find a way around the i2c_designware timeout issues
+> on the T100TA's.  The key is to NOT set DPM_FLAG_SMART_SUSPEND,
+> which was added in the 02e45646d53b commit.
+>
+> To test that I've started with a 5.1-rc5 kernel, applied your recent patch
+> to acpi_lpss.c, then apply the following patch of mine, removing
+> DPM_FLAG_SMART_SUSPEND.  (For the T100 hardware I need to apply some
+> other patches as well but those are not related to the i2c-designware or
+> acpi issues addressed here.)
+>
+> On a resume from hibernation I still see one error:
+>   "i2c_designware 80860F41:00: Error i2c_dw_xfer called while suspended"
+> but I no longer get the i2c_designware timeouts, and audio does now work
+> after the resume.
+>
+> Removing DPM_FLAG_SMART_SUSPEND may not be what you want for other
+> hardware, but perhaps this will give you a clue as to what is going
+> wrong with hibernate/resume on the T100TA's.
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
----
- drivers/dax/bus.c            |  2 +-
- drivers/dax/super.c          | 13 ++++++++++++-
- drivers/md/dm.c              |  3 ++-
- drivers/nvdimm/pmem.c        |  3 ++-
- drivers/nvdimm/region_devs.c |  7 +++++++
- include/linux/dax.h          |  8 ++++++--
- include/linux/libnvdimm.h    |  1 +
- 7 files changed, 31 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 2109cfe80219..5f184e751c82 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
- 	 * No 'host' or dax_operations since there is no access to this
- 	 * device outside of mmap of the resulting character device.
- 	 */
--	dax_dev = alloc_dax(dev_dax, NULL, NULL);
-+	dax_dev = alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
- 	if (!dax_dev)
- 		goto err;
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 0a339b85133e..bd6509308d05 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -186,6 +186,8 @@ enum dax_device_flags {
- 	DAXDEV_ALIVE,
- 	/* gate whether dax_flush() calls the low level flush routine */
- 	DAXDEV_WRITE_CACHE,
-+	/* flag to check if device supports synchronous flush */
-+	DAXDEV_SYNC,
- };
- 
- /**
-@@ -354,6 +356,12 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
- 
-+bool dax_synchronous(struct dax_device *dax_dev)
-+{
-+	return test_bit(DAXDEV_SYNC, &dax_dev->flags);
-+}
-+EXPORT_SYMBOL_GPL(dax_synchronous);
-+
- bool dax_alive(struct dax_device *dax_dev)
- {
- 	lockdep_assert_held(&dax_srcu);
-@@ -511,7 +519,7 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
- }
- 
- struct dax_device *alloc_dax(void *private, const char *__host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, bool sync)
- {
- 	struct dax_device *dax_dev;
- 	const char *host;
-@@ -534,6 +542,9 @@ struct dax_device *alloc_dax(void *private, const char *__host,
- 	dax_add_host(dax_dev, host);
- 	dax_dev->ops = ops;
- 	dax_dev->private = private;
-+	if (sync)
-+		set_bit(DAXDEV_SYNC, &dax_dev->flags);
-+
- 	return dax_dev;
- 
-  err_dev:
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 68d24056d0b1..dd5266fb5471 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1965,7 +1965,8 @@ static struct mapped_device *alloc_dev(int minor)
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
- 
- 	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
--		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
-+		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops,
-+							DAXDEV_F_SYNC);
- 		if (!dax_dev)
- 			goto bad;
- 	}
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index f719245da170..34fa20381c05 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -466,7 +466,8 @@ static int pmem_attach_disk(struct device *dev,
- 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
- 	disk->bb = &pmem->bb;
- 
--	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
-+	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops,
-+					is_nvdimm_sync(nd_region));
- 	if (!dax_dev) {
- 		put_disk(disk);
- 		return -ENOMEM;
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index e5b59708865e..427cf28380c6 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1219,6 +1219,13 @@ int nvdimm_has_cache(struct nd_region *nd_region)
- }
- EXPORT_SYMBOL_GPL(nvdimm_has_cache);
- 
-+bool is_nvdimm_sync(struct nd_region *nd_region)
-+{
-+	return is_nd_pmem(&nd_region->dev) &&
-+		!test_bit(ND_REGION_ASYNC, &nd_region->flags);
-+}
-+EXPORT_SYMBOL_GPL(is_nvdimm_sync);
-+
- struct conflict_context {
- 	struct nd_region *nd_region;
- 	resource_size_t start, size;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0dd316a74a29..c97fc0cc7167 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -7,6 +7,9 @@
- #include <linux/radix-tree.h>
- #include <asm/pgtable.h>
- 
-+/* Flag for synchronous flush */
-+#define DAXDEV_F_SYNC true
-+
- typedef unsigned long dax_entry_t;
- 
- struct iomap_ops;
-@@ -32,18 +35,19 @@ extern struct attribute_group dax_attribute_group;
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *dax_get_by_host(const char *host);
- struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops);
-+		const struct dax_operations *ops, bool sync);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
-+bool dax_synchronous(struct dax_device *dax_dev);
- #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
- 	return NULL;
- }
- static inline struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, bool sync)
- {
- 	/*
- 	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index a5f369ec3726..8ae6b65d67e2 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -270,6 +270,7 @@ int generic_nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
- int nvdimm_in_overwrite(struct nvdimm *nvdimm);
-+bool is_nvdimm_sync(struct nd_region *nd_region);
- 
- static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
--- 
-2.20.1
-
+What if you drop DPM_FLAG_LEAVE_SUSPENDED alone instead?
