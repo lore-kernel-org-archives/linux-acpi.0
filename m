@@ -1,175 +1,90 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [PATCH v4 16/63] Documentation: ACPI: move debug.txt to
- firmware-guide/acpi and convert to reST
-Date: Tue, 23 Apr 2019 18:21:08 -0300
-Message-ID: <20190423182108.2bf06960@coco.lan>
-References: <20190423162932.21428-1-changbin.du@gmail.com>
-        <20190423162932.21428-17-changbin.du@gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v1 4/4] PCI/ACPI: Advertise HPX type 3 support via _OSC
+Date: Tue, 23 Apr 2019 16:38:50 -0500
+Message-ID: <20190423213850.GG14616@google.com>
+References: <20190307213834.5914-1-mr.nuke.me@gmail.com>
+ <20190315192947.13807-1-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190423162932.21428-17-changbin.du@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190315192947.13807-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Changbin Du <changbin.du@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Em Wed, 24 Apr 2019 00:28:45 +0800
-Changbin Du <changbin.du@gmail.com> escreveu:
-
-> This converts the plain text documentation to reStructuredText format and
-> add it to Sphinx TOC tree. No essential content change.
+On Fri, Mar 15, 2019 at 02:29:40PM -0500, Alexandru Gagniuc wrote:
+> _OSC now has a way to inform firmware that OS has the capability to
+> interpret HPX type 3 tables. Since ACPI 6.3 deprecated _OSC specifics,
+> these are now part of the PCI Firmware Specification.
 > 
-> Signed-off-by: Changbin Du <changbin.du@gmail.com>
+> The following is the document describing the changes:
+> ECN:	_HPX and PCIe Completion Timeout related _OSC Enhancements
+> Date:	September 12, 2018
+> Affected Document: PCI Firmware Specification, Rev. 3.2
+> 
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+
+Applied to pci/hotplug for v5.2, thanks!
+
 > ---
->  .../acpi/debug.rst}                           | 31 ++++++++++---------
->  Documentation/firmware-guide/acpi/index.rst   |  3 +-
->  2 files changed, 19 insertions(+), 15 deletions(-)
->  rename Documentation/{acpi/debug.txt => firmware-guide/acpi/debug.rst} (91%)
 > 
-> diff --git a/Documentation/acpi/debug.txt b/Documentation/firmware-guide/acpi/debug.rst
-> similarity index 91%
-> rename from Documentation/acpi/debug.txt
-> rename to Documentation/firmware-guide/acpi/debug.rst
-> index 65bf47c46b6d..1a152dd1d765 100644
-> --- a/Documentation/acpi/debug.txt
-> +++ b/Documentation/firmware-guide/acpi/debug.rst
-> @@ -1,18 +1,21 @@
-> -			ACPI Debug Output
-> +.. SPDX-License-Identifier: GPL-2.0
+> This patch is designed to go on top of the following series
+> "PCI: ACPI: Implement support for _HPX Type 3 tables"
+> 	https://lkml.org/lkml/2019/3/7/790
+> 
+> Although the patch can technically be applied independently, it
+> doesn't make sense without the rest of the series.
+> 
+> The HPX3 capability bit, to my understanding, is designed to be
+> informational. i.e. Setting or not setting it would not affect whether
+> firmware would export HPX3 tables. It may have implications in FFS
+> systems, where FW might need to make sure things like the completion
+> timeout value is set correctly throughout the tree.
+> 
+> My understanding is that firmware will prefer to set these with HPX3,
+> in lieu of firing up SMM on hotplug and other events. Firmware can use
+> the HPX3 support bit to know how to proceed.
+> 
+>  drivers/acpi/pci_root.c | 2 ++
+>  include/linux/acpi.h    | 3 ++-
+>  2 files changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 707aafc7c2aa..0bee23893297 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -145,6 +145,7 @@ static struct pci_osc_bit_struct pci_osc_support_bit[] = {
+>  	{ OSC_PCI_CLOCK_PM_SUPPORT, "ClockPM" },
+>  	{ OSC_PCI_SEGMENT_GROUPS_SUPPORT, "Segments" },
+>  	{ OSC_PCI_MSI_SUPPORT, "MSI" },
+> +	{ OSC_PCI_HPX_TYPE_3_SUPPORT, "HPX-type3" },
+>  };
 >  
-> +=================
-> +ACPI Debug Output
-> +=================
+>  static struct pci_osc_bit_struct pci_osc_control_bit[] = {
+> @@ -446,6 +447,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
+>  	 * PCI domains, so we indicate this in _OSC support capabilities.
+>  	 */
+>  	support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
+> +	support |= OSC_PCI_HPX_TYPE_3_SUPPORT;
+>  	if (pci_ext_cfg_avail())
+>  		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
+>  	if (pcie_aspm_support_enabled())
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 87715f20b69a..028c138b9082 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -508,7 +508,8 @@ extern bool osc_pc_lpi_support_confirmed;
+>  #define OSC_PCI_CLOCK_PM_SUPPORT		0x00000004
+>  #define OSC_PCI_SEGMENT_GROUPS_SUPPORT		0x00000008
+>  #define OSC_PCI_MSI_SUPPORT			0x00000010
+> -#define OSC_PCI_SUPPORT_MASKS			0x0000001f
+> +#define OSC_PCI_HPX_TYPE_3_SUPPORT		0x00000100
+> +#define OSC_PCI_SUPPORT_MASKS			0x0000011f
 >  
->  The ACPI CA, the Linux ACPI core, and some ACPI drivers can generate debug
->  output.  This document describes how to use this facility.
->  
->  Compile-time configuration
-> ---------------------------
-> +==========================
->  
->  ACPI debug output is globally enabled by CONFIG_ACPI_DEBUG.  If this config
->  option is turned off, the debug messages are not even built into the
->  kernel.
->  
->  Boot- and run-time configuration
-> ---------------------------------
-> +================================
->  
->  When CONFIG_ACPI_DEBUG=y, you can select the component and level of messages
->  you're interested in.  At boot-time, use the acpi.debug_layer and
-> @@ -21,7 +24,7 @@ debug_layer and debug_level files in /sys/module/acpi/parameters/ to control
->  the debug messages.
->  
->  debug_layer (component)
-> ------------------------
-> +=======================
->  
->  The "debug_layer" is a mask that selects components of interest, e.g., a
->  specific driver or part of the ACPI interpreter.  To build the debug_layer
-> @@ -33,7 +36,7 @@ to /sys/module/acpi/parameters/debug_layer.
->  
->  The possible components are defined in include/acpi/acoutput.h and
->  include/acpi/acpi_drivers.h.  Reading /sys/module/acpi/parameters/debug_layer
-> -shows the supported mask values, currently these:
-> +shows the supported mask values, currently these::
->  
->      ACPI_UTILITIES                  0x00000001
->      ACPI_HARDWARE                   0x00000002
-> @@ -65,7 +68,7 @@ shows the supported mask values, currently these:
->      ACPI_PROCESSOR_COMPONENT        0x20000000
-
-This is one way of doing. The other one, with would likely produce a
-better visual, would be to use tables, e. g.:
-
-     ==============                  ==========
-     ACPI_UTILITIES                  0x00000001
-     ACPI_HARDWARE                   0x00000002
-     ==============                  ==========
-
-Of course, if you use tables here, you need to be consistent along
-similar cases inside the document.
-
-while both works, I prefer using tables on such cases.
-
-Either way:
-
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-
->  
->  debug_level
-> ------------
-> +===========
->  
->  The "debug_level" is a mask that selects different types of messages, e.g.,
->  those related to initialization, method execution, informational messages, etc.
-> @@ -81,7 +84,7 @@ to /sys/module/acpi/parameters/debug_level.
->  
->  The possible levels are defined in include/acpi/acoutput.h.  Reading
->  /sys/module/acpi/parameters/debug_level shows the supported mask values,
-> -currently these:
-> +currently these::
->  
->      ACPI_LV_INIT                    0x00000001
->      ACPI_LV_DEBUG_OBJECT            0x00000002
-> @@ -113,9 +116,9 @@ currently these:
->      ACPI_LV_EVENTS                  0x80000000
->  
->  Examples
-> ---------
-> +========
->  
-> -For example, drivers/acpi/bus.c contains this:
-> +For example, drivers/acpi/bus.c contains this::
->  
->      #define _COMPONENT              ACPI_BUS_COMPONENT
->      ...
-> @@ -127,22 +130,22 @@ statement uses ACPI_DB_INFO, which is macro based on the ACPI_LV_INFO
->  definition.)
->  
->  Enable all AML "Debug" output (stores to the Debug object while interpreting
-> -AML) during boot:
-> +AML) during boot::
->  
->      acpi.debug_layer=0xffffffff acpi.debug_level=0x2
->  
-> -Enable PCI and PCI interrupt routing debug messages:
-> +Enable PCI and PCI interrupt routing debug messages::
->  
->      acpi.debug_layer=0x400000 acpi.debug_level=0x4
->  
-> -Enable all ACPI hardware-related messages:
-> +Enable all ACPI hardware-related messages::
->  
->      acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
->  
-> -Enable all ACPI_DB_INFO messages after boot:
-> +Enable all ACPI_DB_INFO messages after boot::
->  
->      # echo 0x4 > /sys/module/acpi/parameters/debug_level
->  
-> -Show all valid component values:
-> +Show all valid component values::
->   
->      # cat /sys/module/acpi/parameters/debug_layer
-> diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-> index 6d4e0df4f063..a45fea11f998 100644
-> --- a/Documentation/firmware-guide/acpi/index.rst
-> +++ b/Documentation/firmware-guide/acpi/index.rst
-> @@ -14,6 +14,7 @@ ACPI Support
->     osi
->     method-customizing
->     DSD-properties-rules
-> +   debug
->     gpio-properties
->     i2c-muxes
-> -   acpi-lid
-> \ No newline at end of file
-> +   acpi-lid
-
-
-
-Thanks,
-Mauro
+>  /* PCI Host Bridge _OSC: Capabilities DWORD 3: Control Field */
+>  #define OSC_PCI_EXPRESS_NATIVE_HP_CONTROL	0x00000001
+> -- 
+> 2.19.2
+> 
