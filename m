@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 58/63] Documentation: x86: convert x86_64/uefi.txt to reST
-Date: Wed, 24 Apr 2019 00:29:27 +0800
-Message-ID: <20190423162932.21428-59-changbin.du@gmail.com>
+Subject: [PATCH v4 61/63] Documentation: x86: convert x86_64/fake-numa-for-cpusets to reST
+Date: Wed, 24 Apr 2019 00:29:30 +0800
+Message-ID: <20190423162932.21428-62-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,85 +17,77 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- Documentation/x86/x86_64/index.rst            |  1 +
- .../x86/x86_64/{uefi.txt => uefi.rst}         | 30 ++++++++++++++-----
- 2 files changed, 24 insertions(+), 7 deletions(-)
- rename Documentation/x86/x86_64/{uefi.txt => uefi.rst} (79%)
+ ...a-for-cpusets => fake-numa-for-cpusets.rst} | 18 +++++++++++++-----
+ Documentation/x86/x86_64/index.rst             |  1 +
+ 2 files changed, 14 insertions(+), 5 deletions(-)
+ rename Documentation/x86/x86_64/{fake-numa-for-cpusets => fake-numa-for-cpusets.rst} (90%)
 
-diff --git a/Documentation/x86/x86_64/index.rst b/Documentation/x86/x86_64/index.rst
-index a8cf7713cac9..ddfa1f9d4193 100644
---- a/Documentation/x86/x86_64/index.rst
-+++ b/Documentation/x86/x86_64/index.rst
-@@ -8,3 +8,4 @@ x86_64 Support
-    :maxdepth: 2
- 
-    boot-options
-+   uefi
-diff --git a/Documentation/x86/x86_64/uefi.txt b/Documentation/x86/x86_64/uefi.rst
-similarity index 79%
-rename from Documentation/x86/x86_64/uefi.txt
-rename to Documentation/x86/x86_64/uefi.rst
-index a5e2b4fdb170..88c3ba32546f 100644
---- a/Documentation/x86/x86_64/uefi.txt
-+++ b/Documentation/x86/x86_64/uefi.rst
-@@ -1,5 +1,8 @@
+diff --git a/Documentation/x86/x86_64/fake-numa-for-cpusets b/Documentation/x86/x86_64/fake-numa-for-cpusets.rst
+similarity index 90%
+rename from Documentation/x86/x86_64/fake-numa-for-cpusets
+rename to Documentation/x86/x86_64/fake-numa-for-cpusets.rst
+index 4b09f18831f8..3c23f45d38f6 100644
+--- a/Documentation/x86/x86_64/fake-numa-for-cpusets
++++ b/Documentation/x86/x86_64/fake-numa-for-cpusets.rst
+@@ -1,5 +1,12 @@
 +.. SPDX-License-Identifier: GPL-2.0
 +
-+=====================================
- General note on [U]EFI x86_64 support
---------------------------------------
-+=====================================
++=====================
++Fake NUMA For CPUSets
++=====================
++
++:Author: David Rientjes <rientjes@cs.washington.edu>
++
+ Using numa=fake and CPUSets for Resource Management
+-Written by David Rientjes <rientjes@cs.washington.edu>
  
- The nomenclature EFI and UEFI are used interchangeably in this document.
+ This document describes how the numa=fake x86_64 command-line option can be used
+ in conjunction with cpusets for coarse memory management.  Using this feature,
+@@ -20,7 +27,7 @@ you become more familiar with using this combination for resource control,
+ you'll determine a better setup to minimize the number of nodes you have to deal
+ with.
  
-@@ -14,29 +17,42 @@ with EFI firmware and specifications are listed below.
+-A machine may be split as follows with "numa=fake=4*512," as reported by dmesg:
++A machine may be split as follows with "numa=fake=4*512," as reported by dmesg::
  
- 3. x86_64 platform with EFI/UEFI firmware.
+ 	Faking node 0 at 0000000000000000-0000000020000000 (512MB)
+ 	Faking node 1 at 0000000020000000-0000000040000000 (512MB)
+@@ -34,7 +41,7 @@ A machine may be split as follows with "numa=fake=4*512," as reported by dmesg:
  
--Mechanics:
-+Mechanics
- ---------
--- Build the kernel with the following configuration.
+ Now following the instructions for mounting the cpusets filesystem from
+ Documentation/cgroup-v1/cpusets.txt, you can assign fake nodes (i.e. contiguous memory
+-address spaces) to individual cpusets:
++address spaces) to individual cpusets::
+ 
+ 	[root@xroads /]# mkdir exampleset
+ 	[root@xroads /]# mount -t cpuset none exampleset
+@@ -47,7 +54,7 @@ Now this cpuset, 'ddset', will only allowed access to fake nodes 0 and 1 for
+ memory allocations (1G).
+ 
+ You can now assign tasks to these cpusets to limit the memory resources
+-available to them according to the fake nodes assigned as mems:
++available to them according to the fake nodes assigned as mems::
+ 
+ 	[root@xroads /exampleset/ddset]# echo $$ > tasks
+ 	[root@xroads /exampleset/ddset]# dd if=/dev/zero of=tmp bs=1024 count=1G
+@@ -56,7 +63,8 @@ available to them according to the fake nodes assigned as mems:
+ Notice the difference between the system memory usage as reported by
+ /proc/meminfo between the restricted cpuset case above and the unrestricted
+ case (i.e. running the same 'dd' command without assigning it to a fake NUMA
+-cpuset):
++cpuset)::
 +
-+- Build the kernel with the following configuration::
-+
- 	CONFIG_FB_EFI=y
- 	CONFIG_FRAMEBUFFER_CONSOLE=y
-+
-   If EFI runtime services are expected, the following configuration should
--  be selected.
-+  be selected::
-+
- 	CONFIG_EFI=y
- 	CONFIG_EFI_VARS=y or m		# optional
-+
- - Create a VFAT partition on the disk
- - Copy the following to the VFAT partition:
-+
- 	elilo bootloader with x86_64 support, elilo configuration file,
- 	kernel image built in first step and corresponding
- 	initrd. Instructions on building elilo	and its dependencies
- 	can be found in the elilo sourceforge project.
-+
- - Boot to EFI shell and invoke elilo choosing the kernel image built
-   in first step.
- - If some or all EFI runtime services don't work, you can try following
-   kernel command line parameters to turn off some or all EFI runtime
-   services.
--	noefi		turn off all EFI runtime services
--	reboot_type=k	turn off EFI reboot runtime service
-+
-+	noefi
-+		turn off all EFI runtime services
-+	reboot_type=k
-+		turn off EFI reboot runtime service
-+
- - If the EFI memory map has additional entries not in the E820 map,
-   you can include those entries in the kernels memory map of available
-   physical RAM by using the following kernel command line parameter.
--	add_efi_memmap	include EFI memory map of available physical RAM
-+
-+	add_efi_memmap
-+		include EFI memory map of available physical RAM
+ 				Unrestricted	Restricted
+ 	MemTotal:		3091900 kB	3091900 kB
+ 	MemFree:		  42113 kB	1513236 kB
+diff --git a/Documentation/x86/x86_64/index.rst b/Documentation/x86/x86_64/index.rst
+index 7b8c82151358..e2a324cde671 100644
+--- a/Documentation/x86/x86_64/index.rst
++++ b/Documentation/x86/x86_64/index.rst
+@@ -11,3 +11,4 @@ x86_64 Support
+    uefi
+    mm
+    5level-paging
++   fake-numa-for-cpusets
 -- 
 2.20.1
