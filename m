@@ -1,90 +1,65 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v1 4/4] PCI/ACPI: Advertise HPX type 3 support via _OSC
-Date: Tue, 23 Apr 2019 16:38:50 -0500
-Message-ID: <20190423213850.GG14616@google.com>
-References: <20190307213834.5914-1-mr.nuke.me@gmail.com>
- <20190315192947.13807-1-mr.nuke.me@gmail.com>
+From: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
+Subject: Re: [PATCH v6 6/6] xfs: disable map_sync for async flush
+Date: Wed, 24 Apr 2019 08:02:17 +1000
+Message-ID: <20190423220217.GA29573@dread.disaster.area>
+References: <20190423080612.15361-1-pagupta@redhat.com>
+ <20190423080612.15361-7-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190315192947.13807-1-mr.nuke.me@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20190423080612.15361-7-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: cohuck-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 15, 2019 at 02:29:40PM -0500, Alexandru Gagniuc wrote:
-> _OSC now has a way to inform firmware that OS has the capability to
-> interpret HPX type 3 tables. Since ACPI 6.3 deprecated _OSC specifics,
-> these are now part of the PCI Firmware Specification.
+On Tue, Apr 23, 2019 at 01:36:12PM +0530, Pankaj Gupta wrote:
+> Dont support 'MAP_SYNC' with non-DAX files and DAX files
+> with asynchronous dax_device. Virtio pmem provides
+> asynchronous host page cache flush mechanism. We don't
+> support 'MAP_SYNC' with virtio pmem and xfs.
 > 
-> The following is the document describing the changes:
-> ECN:	_HPX and PCIe Completion Timeout related _OSC Enhancements
-> Date:	September 12, 2018
-> Affected Document: PCI Firmware Specification, Rev. 3.2
-> 
-> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-
-Applied to pci/hotplug for v5.2, thanks!
-
+> Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 > ---
+>  fs/xfs/xfs_file.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 > 
-> This patch is designed to go on top of the following series
-> "PCI: ACPI: Implement support for _HPX Type 3 tables"
-> 	https://lkml.org/lkml/2019/3/7/790
-> 
-> Although the patch can technically be applied independently, it
-> doesn't make sense without the rest of the series.
-> 
-> The HPX3 capability bit, to my understanding, is designed to be
-> informational. i.e. Setting or not setting it would not affect whether
-> firmware would export HPX3 tables. It may have implications in FFS
-> systems, where FW might need to make sure things like the completion
-> timeout value is set correctly throughout the tree.
-> 
-> My understanding is that firmware will prefer to set these with HPX3,
-> in lieu of firing up SMM on hotplug and other events. Firmware can use
-> the HPX3 support bit to know how to proceed.
-> 
->  drivers/acpi/pci_root.c | 2 ++
->  include/linux/acpi.h    | 3 ++-
->  2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 707aafc7c2aa..0bee23893297 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -145,6 +145,7 @@ static struct pci_osc_bit_struct pci_osc_support_bit[] = {
->  	{ OSC_PCI_CLOCK_PM_SUPPORT, "ClockPM" },
->  	{ OSC_PCI_SEGMENT_GROUPS_SUPPORT, "Segments" },
->  	{ OSC_PCI_MSI_SUPPORT, "MSI" },
-> +	{ OSC_PCI_HPX_TYPE_3_SUPPORT, "HPX-type3" },
->  };
->  
->  static struct pci_osc_bit_struct pci_osc_control_bit[] = {
-> @@ -446,6 +447,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
->  	 * PCI domains, so we indicate this in _OSC support capabilities.
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index 1f2e2845eb76..0e59be018511 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -1196,11 +1196,13 @@ xfs_file_mmap(
+>  	struct file	*filp,
+>  	struct vm_area_struct *vma)
+>  {
+> -	/*
+> -	 * We don't support synchronous mappings for non-DAX files. At least
+> -	 * until someone comes with a sensible use case.
+> +	struct dax_device *dax_dev = xfs_find_daxdev_for_inode
+> +						(file_inode(filp));
+> +
+> +	/* We don't support synchronous mappings for non-DAX files and
+> +	 * for DAX files if underneath dax_device is not synchronous.
 >  	 */
->  	support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-> +	support |= OSC_PCI_HPX_TYPE_3_SUPPORT;
->  	if (pci_ext_cfg_avail())
->  		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
->  	if (pcie_aspm_support_enabled())
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 87715f20b69a..028c138b9082 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -508,7 +508,8 @@ extern bool osc_pc_lpi_support_confirmed;
->  #define OSC_PCI_CLOCK_PM_SUPPORT		0x00000004
->  #define OSC_PCI_SEGMENT_GROUPS_SUPPORT		0x00000008
->  #define OSC_PCI_MSI_SUPPORT			0x00000010
-> -#define OSC_PCI_SUPPORT_MASKS			0x0000001f
-> +#define OSC_PCI_HPX_TYPE_3_SUPPORT		0x00000100
-> +#define OSC_PCI_SUPPORT_MASKS			0x0000011f
->  
->  /* PCI Host Bridge _OSC: Capabilities DWORD 3: Control Field */
->  #define OSC_PCI_EXPRESS_NATIVE_HP_CONTROL	0x00000001
-> -- 
-> 2.19.2
-> 
+
+	/*
+	 * This is the correct multi-line comment format. Please
+	 * update the patch to maintain the existing comment format.
+	 */
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
