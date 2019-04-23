@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 04/63] Documentation: ACPI: move osi.txt to firmware-guide/acpi and convert to reST
-Date: Wed, 24 Apr 2019 00:28:33 +0800
-Message-ID: <20190423162932.21428-5-changbin.du@gmail.com>
+Subject: [PATCH v4 05/63] Documentation: ACPI: move linuxized-acpica.txt to driver-api/acpi and convert to  reST
+Date: Wed, 24 Apr 2019 00:28:34 +0800
+Message-ID: <20190423162932.21428-6-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,81 +17,234 @@ add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- Documentation/firmware-guide/acpi/index.rst       |  1 +
- .../{acpi/osi.txt => firmware-guide/acpi/osi.rst} | 15 +++++++++------
- 2 files changed, 10 insertions(+), 6 deletions(-)
- rename Documentation/{acpi/osi.txt => firmware-guide/acpi/osi.rst} (97%)
+ Documentation/driver-api/acpi/index.rst       |   1 +
+ .../acpi/linuxized-acpica.rst}                | 115 ++++++++++--------
+ 2 files changed, 66 insertions(+), 50 deletions(-)
+ rename Documentation/{acpi/linuxized-acpica.txt => driver-api/acpi/linuxized-acpica.rst} (78%)
 
-diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index 99677c73f1fb..868bd25a3398 100644
---- a/Documentation/firmware-guide/acpi/index.rst
-+++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -9,3 +9,4 @@ ACPI Support
+diff --git a/Documentation/driver-api/acpi/index.rst b/Documentation/driver-api/acpi/index.rst
+index 898b0c60671a..12649947b19b 100644
+--- a/Documentation/driver-api/acpi/index.rst
++++ b/Documentation/driver-api/acpi/index.rst
+@@ -5,3 +5,4 @@ ACPI Support
+ .. toctree::
+    :maxdepth: 2
  
-    namespace
-    enumeration
-+   osi
-diff --git a/Documentation/acpi/osi.txt b/Documentation/firmware-guide/acpi/osi.rst
-similarity index 97%
-rename from Documentation/acpi/osi.txt
-rename to Documentation/firmware-guide/acpi/osi.rst
-index 50cde0ceb9b0..29e9ef79ebc0 100644
---- a/Documentation/acpi/osi.txt
-+++ b/Documentation/firmware-guide/acpi/osi.rst
-@@ -1,5 +1,8 @@
++   linuxized-acpica
+diff --git a/Documentation/acpi/linuxized-acpica.txt b/Documentation/driver-api/acpi/linuxized-acpica.rst
+similarity index 78%
+rename from Documentation/acpi/linuxized-acpica.txt
+rename to Documentation/driver-api/acpi/linuxized-acpica.rst
+index 3ad7b0dfb083..f8aaea668e41 100644
+--- a/Documentation/acpi/linuxized-acpica.txt
++++ b/Documentation/driver-api/acpi/linuxized-acpica.rst
+@@ -1,31 +1,35 @@
+-Linuxized ACPICA - Introduction to ACPICA Release Automation
 +.. SPDX-License-Identifier: GPL-2.0
++.. include:: <isonum.txt>
+ 
+-Copyright (C) 2013-2016, Intel Corporation
+-Author: Lv Zheng <lv.zheng@intel.com>
++============================================================
++Linuxized ACPICA - Introduction to ACPICA Release Automation
++============================================================
+ 
++:Copyright: |copy| 2013-2016, Intel Corporation
+ 
+-Abstract:
++:Author: Lv Zheng <lv.zheng@intel.com>
+ 
+-This document describes the ACPICA project and the relationship between
+-ACPICA and Linux.  It also describes how ACPICA code in drivers/acpi/acpica,
+-include/acpi and tools/power/acpi is automatically updated to follow the
+-upstream.
++:Abstract: This document describes the ACPICA project and the relationship
++           between ACPICA and Linux.  It also describes how ACPICA code in
++           drivers/acpi/acpica, include/acpi and tools/power/acpi is
++           automatically updated to follow the upstream.
+ 
+ 
+-1. ACPICA Project
++ACPICA Project
++==============
+ 
+-   The ACPI Component Architecture (ACPICA) project provides an operating
+-   system (OS)-independent reference implementation of the Advanced
+-   Configuration and Power Interface Specification (ACPI).  It has been
+-   adapted by various host OSes.  By directly integrating ACPICA, Linux can
+-   also benefit from the application experiences of ACPICA from other host
+-   OSes.
++The ACPI Component Architecture (ACPICA) project provides an operating
++system (OS)-independent reference implementation of the Advanced
++Configuration and Power Interface Specification (ACPI).  It has been
++adapted by various host OSes.  By directly integrating ACPICA, Linux can
++also benefit from the application experiences of ACPICA from other host
++OSes.
+ 
+-   The homepage of ACPICA project is: www.acpica.org, it is maintained and
+-   supported by Intel Corporation.
++The homepage of ACPICA project is: www.acpica.org, it is maintained and
++supported by Intel Corporation.
+ 
+-   The following figure depicts the Linux ACPI subsystem where the ACPICA
+-   adaptation is included:
++The following figure depicts the Linux ACPI subsystem where the ACPICA
++adaptation is included::
+ 
+       +---------------------------------------------------------+
+       |                                                         |
+@@ -71,21 +75,27 @@ upstream.
+ 
+                  Figure 1. Linux ACPI Software Components
+ 
+-   NOTE:
++.. note::
+     A. OS Service Layer - Provided by Linux to offer OS dependent
+        implementation of the predefined ACPICA interfaces (acpi_os_*).
++       ::
 +
-+==========================
- ACPI _OSI and _REV methods
----------------------------
-+==========================
+          include/acpi/acpiosxf.h
+          drivers/acpi/osl.c
+          include/acpi/platform
+          include/asm/acenv.h
+     B. ACPICA Functionality - Released from ACPICA code base to offer
+        OS independent implementation of the ACPICA interfaces (acpi_*).
++       ::
++
+          drivers/acpi/acpica
+          include/acpi/ac*.h
+          tools/power/acpi
+     C. Linux/ACPI Functionality - Providing Linux specific ACPI
+        functionality to the other Linux kernel subsystems and user space
+        programs.
++       ::
++
+          drivers/acpi
+          include/linux/acpi.h
+          include/linux/acpi*.h
+@@ -95,24 +105,27 @@ upstream.
+        ACPI subsystem to offer architecture specific implementation of the
+        ACPI interfaces.  They are Linux specific components and are out of
+        the scope of this document.
++       ::
++
+          include/asm/acpi.h
+          include/asm/acpi*.h
+          arch/*/acpi
  
- An ACPI BIOS can use the "Operating System Interfaces" method (_OSI)
- to find out what the operating system supports. Eg. If BIOS
-@@ -14,7 +17,7 @@ This document explains how and why the BIOS and Linux should use these methods.
- It also explains how and why they are widely misused.
+-2. ACPICA Release
++ACPICA Release
++==============
  
- How to use _OSI
-----------------
-+===============
+-   The ACPICA project maintains its code base at the following repository URL:
+-   https://github.com/acpica/acpica.git. As a rule, a release is made every
+-   month.
++The ACPICA project maintains its code base at the following repository URL:
++https://github.com/acpica/acpica.git. As a rule, a release is made every
++month.
  
- Linux runs on two groups of machines -- those that are tested by the OEM
- to be compatible with Linux, and those that were never tested with Linux,
-@@ -62,7 +65,7 @@ the string when that support is added to the kernel.
- That was easy.  Read on, to find out how to do it wrong.
+-   As the coding style adopted by the ACPICA project is not acceptable by
+-   Linux, there is a release process to convert the ACPICA git commits into
+-   Linux patches.  The patches generated by this process are referred to as
+-   "linuxized ACPICA patches".  The release process is carried out on a local
+-   copy the ACPICA git repository.  Each commit in the monthly release is
+-   converted into a linuxized ACPICA patch.  Together, they form the monthly
+-   ACPICA release patchset for the Linux ACPI community.  This process is
+-   illustrated in the following figure:
++As the coding style adopted by the ACPICA project is not acceptable by
++Linux, there is a release process to convert the ACPICA git commits into
++Linux patches.  The patches generated by this process are referred to as
++"linuxized ACPICA patches".  The release process is carried out on a local
++copy the ACPICA git repository.  Each commit in the monthly release is
++converted into a linuxized ACPICA patch.  Together, they form the monthly
++ACPICA release patchset for the Linux ACPI community.  This process is
++illustrated in the following figure::
  
- Before _OSI, there was _OS
----------------------------
-+==========================
+     +-----------------------------+
+     | acpica / master (-) commits |
+@@ -153,7 +166,7 @@ upstream.
  
- ACPI 1.0 specified "_OS" as an
- "object that evaluates to a string that identifies the operating system."
-@@ -96,7 +99,7 @@ That is the *only* viable strategy, as that is what modern Windows does,
- and so doing otherwise could steer the BIOS down an untested path.
+                 Figure 2. ACPICA -> Linux Upstream Process
  
- _OSI is born, and immediately misused
----------------------------------------
-+=====================================
+-   NOTE:
++.. note::
+     A. Linuxize Utilities - Provided by the ACPICA repository, including a
+        utility located in source/tools/acpisrc folder and a number of
+        scripts located in generate/linux folder.
+@@ -170,19 +183,20 @@ upstream.
+    following kernel configuration options:
+    CONFIG_ACPI/CONFIG_ACPI_DEBUG/CONFIG_ACPI_DEBUGGER
  
- With _OSI, the *BIOS* provides the string describing an interface,
- and asks the OS: "YES/NO, are you compatible with this interface?"
-@@ -144,7 +147,7 @@ catastrophic failure resulting from the BIOS taking paths that
- were never validated under *any* OS.
+-3. ACPICA Divergences
++ACPICA Divergences
++==================
  
- Do not use _REV
-----------------
-+===============
+-   Ideally, all of the ACPICA commits should be converted into Linux patches
+-   automatically without manual modifications, the "linux / master" tree should
+-   contain the ACPICA code that exactly corresponds to the ACPICA code
+-   contained in "new linuxized acpica" tree and it should be possible to run
+-   the release process fully automatically.
++Ideally, all of the ACPICA commits should be converted into Linux patches
++automatically without manual modifications, the "linux / master" tree should
++contain the ACPICA code that exactly corresponds to the ACPICA code
++contained in "new linuxized acpica" tree and it should be possible to run
++the release process fully automatically.
  
- Since _OSI("Linux") went away, some BIOS writers used _REV
- to support Linux and Windows differences in the same BIOS.
-@@ -164,7 +167,7 @@ from mid-2015 onward.  The ACPI specification will also be updated
- to reflect that _REV is deprecated, and always returns 2.
+-   As a matter of fact, however, there are source code differences between
+-   the ACPICA code in Linux and the upstream ACPICA code, referred to as
+-   "ACPICA Divergences".
++As a matter of fact, however, there are source code differences between
++the ACPICA code in Linux and the upstream ACPICA code, referred to as
++"ACPICA Divergences".
  
- Apple Mac and _OSI("Darwin")
------------------------------
-+============================
+-   The various sources of ACPICA divergences include:
++The various sources of ACPICA divergences include:
+    1. Legacy divergences - Before the current ACPICA release process was
+       established, there already had been divergences between Linux and
+       ACPICA. Over the past several years those divergences have been greatly
+@@ -213,11 +227,12 @@ upstream.
+       rebased on the ACPICA side in order to offer better solutions, new ACPICA
+       divergences are generated.
  
- On Apple's Mac platforms, the ACPI BIOS invokes _OSI("Darwin")
- to determine if the machine is running Apple OSX.
+-4. ACPICA Development
++ACPICA Development
++==================
+ 
+-   This paragraph guides Linux developers to use the ACPICA upstream release
+-   utilities to obtain Linux patches corresponding to upstream ACPICA commits
+-   before they become available from the ACPICA release process.
++This paragraph guides Linux developers to use the ACPICA upstream release
++utilities to obtain Linux patches corresponding to upstream ACPICA commits
++before they become available from the ACPICA release process.
+ 
+    1. Cherry-pick an ACPICA commit
+ 
+@@ -225,7 +240,7 @@ upstream.
+    you want to cherry pick must be committed into the local repository.
+ 
+    Then the gen-patch.sh command can help to cherry-pick an ACPICA commit
+-   from the ACPICA local repository:
++   from the ACPICA local repository::
+ 
+    $ git clone https://github.com/acpica/acpica
+    $ cd acpica
+@@ -240,7 +255,7 @@ upstream.
+    changes that haven't been applied to Linux yet.
+ 
+    You can generate the ACPICA release series yourself and rebase your code on
+-   top of the generated ACPICA release patches:
++   top of the generated ACPICA release patches::
+ 
+    $ git clone https://github.com/acpica/acpica
+    $ cd acpica
+@@ -254,7 +269,7 @@ upstream.
+    3. Inspect the current divergences
+ 
+    If you have local copies of both Linux and upstream ACPICA, you can generate
+-   a diff file indicating the state of the current divergences:
++   a diff file indicating the state of the current divergences::
+ 
+    # git clone https://github.com/acpica/acpica
+    # git clone http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 -- 
 2.20.1
