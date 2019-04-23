@@ -7,53 +7,53 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA19BC10F03
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64556C10F03
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A992520645
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34F2720645
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Apr 2019 16:39:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dyMyEVWD"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SkJq64AJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729241AbfDWQjX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Apr 2019 12:39:23 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:43267 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729258AbfDWQjW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Apr 2019 12:39:22 -0400
-Received: by mail-pg1-f194.google.com with SMTP id z9so7869061pgu.10;
-        Tue, 23 Apr 2019 09:39:22 -0700 (PDT)
+        id S1729353AbfDWQjN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Apr 2019 12:39:13 -0400
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:45781 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729241AbfDWQjM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Apr 2019 12:39:12 -0400
+Received: by mail-pf1-f196.google.com with SMTP id e24so7747634pfi.12;
+        Tue, 23 Apr 2019 09:39:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=6w+/ukhBs5A+/Cpc4cy3lRbWsMEd9es6i7ZvKVBddzs=;
-        b=dyMyEVWDLZJEfWEezbupnV/PWKS/cnXhuL4Ok400eGTQf28IPq7U9hBqT6GPyhUH80
-         xDkmV3xv83ujk8WxZWoltaWP3SYsH/9s+aQGQ+o0mT64b33NneoSTzbUdCjA0oVoiAze
-         eO0RCeeEyMHUAe1vHZ8wZgRLqdmnGICiW/GaTDXgF0/LK16RQfHfxdOwXq67v4q/qhcA
-         6UfRD/SJD/2pvUTATCa4HyeBKxNpO7eQPNt2y9Nu9R24VfM86aOK69kWgYrqk1LIYd7j
-         4c++D5x73S5bs6WuPzV21ONTCFYQxFjDcEWKcKoKGYVOB+mGdYBMFF6M2smIfrGZWb+b
-         S7hA==
+        bh=2yFOemuN+eolbcMH+/FkuAihsixlocXPgjBOPtuP6bo=;
+        b=SkJq64AJRj6L/JcconR1RzVxUNwJaE89UyLSCrjykYgm7VHed/1sbOtWWVRdlN8niw
+         +nS3i5yl0ZH25GUu9DKrpYujqNabEnuDfZdg8N5pxdkLXCbB3DShZBR1ytrKAiS+ppzy
+         RoPxBTK6zcETwFyC1cXvKGmL+1VsMJi3qt6ny4MWT7jWMEIGnPNhuKnCSg7b5zfbcw/1
+         SVz53xsAnmOhCU7hII/u/ATPEQ+7gKaT+0LWaDisMPg6Rl1N8fBFOIapvUfQnVL36Scw
+         b/zH3Kv1YUz/k9t35DB6/mDhqL4nfvVz8XKYIgtm2DY1ACYvbFSZ5kSZYBClu0TjzObG
+         1YeA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=6w+/ukhBs5A+/Cpc4cy3lRbWsMEd9es6i7ZvKVBddzs=;
-        b=VyWIILRoInwAH4O5DtS6RW+0TZ0YPITgxkUujI+VKyLLk8LFVIE+5TBC3F3pZB/BHj
-         8DGZmfoJA6CupJcpcEvpV0ckpkwmosdhJbozTqG0NP6VqRGaQkYnDvDo1kEjCjr14hYi
-         5OoeJ9fKkT+nqXZPs3L8/z0p/iNlwsF6ZqO03NhmbSt2ImhC0izG5maJcWtQb3+sg5kN
-         MZjsN6e/ewvRkOcfuLb4rU6QIrPkesjLuJlwRcttN+qCDcgon9z3oduTrT8pDR9lVeQT
-         Pc2rkFf3Fmr+3nfmMdEFCTLLj4KOuMWcepRFdtm1y7hGObuz8jarNIaLdDB8PkZa2PIF
-         7zXg==
-X-Gm-Message-State: APjAAAW0CwWnvH6Ocm5IS7C3ttmTB09gFc1iy+RwzTVCGBFmevsPzqrO
-        kDmaKSYOdk22ZUxOFHSFxxg=
-X-Google-Smtp-Source: APXvYqx276i5IPfOnVxMQNuxIDAAkHLbEiVeWvrYnY1fHoBHgUWH60klV/bze67U67znXMVhhTJctg==
-X-Received: by 2002:a63:5059:: with SMTP id q25mr18784756pgl.314.1556037561717;
-        Tue, 23 Apr 2019 09:39:21 -0700 (PDT)
+        bh=2yFOemuN+eolbcMH+/FkuAihsixlocXPgjBOPtuP6bo=;
+        b=Zj7mfXZ6PC0WHCx0UYn1IzoezWtyWvTJp2AdVM4CzPkJ5LtmZLbOGH3f3xs2smhfQl
+         W6tdKkT6FSnXmMgFm/TdtjIeSdk/TOQB+dP19npWEuwMPZ7H5+E5NEWyJ6D0JY608h6u
+         o3r1Tv4AqInpu7vVb0nl5uzfXfdVMiMiuPNNaI3SxJZBOQ3zAnYPZCvLIdmdOn2XvySS
+         WkEG1dbZwZV01bZMMp2f1HDrjL4bJbR5vMebLuq7gda4bQv30Ea7jR5jGQkAmVKY031X
+         jVe0ZDgSDedXApJ5Kkb+PO6GOjgYNwhIgpJLXXvaz6fuMs4MYeG18fOtsm2X/QdnVo7s
+         e3Lw==
+X-Gm-Message-State: APjAAAUgoFBBXlpCTa+EB1Dvx7PipRNmC8cvOcJW65GUL0WVYUmn31Fq
+        noQ2hbNkNO5XaE9egiMD6j4=
+X-Google-Smtp-Source: APXvYqyt0eJT3NkmhT2J6r3iHijPGVxGT07haTkb6FEPB0c4A+sKOygu+96OyFnqj/Mw0nYRxCYdsw==
+X-Received: by 2002:a63:4b21:: with SMTP id y33mr26241568pga.37.1556037551867;
+        Tue, 23 Apr 2019 09:39:11 -0700 (PDT)
 Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id v1sm24364801pff.81.2019.04.23.09.39.17
+        by smtp.gmail.com with ESMTPSA id v1sm24364801pff.81.2019.04.23.09.39.07
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 23 Apr 2019 09:39:20 -0700 (PDT)
+        Tue, 23 Apr 2019 09:39:11 -0700 (PDT)
 From:   Changbin Du <changbin.du@gmail.com>
 To:     Jonathan Corbet <corbet@lwn.net>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net,
@@ -63,9 +63,9 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
         Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v4 63/63] Documentation: x86: convert x86_64/machinecheck to reST
-Date:   Wed, 24 Apr 2019 00:29:32 +0800
-Message-Id: <20190423162932.21428-64-changbin.du@gmail.com>
+Subject: [PATCH v4 61/63] Documentation: x86: convert x86_64/fake-numa-for-cpusets to reST
+Date:   Wed, 24 Apr 2019 00:29:30 +0800
+Message-Id: <20190423162932.21428-62-changbin.du@gmail.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190423162932.21428-1-changbin.du@gmail.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
@@ -76,61 +76,85 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190423162932.-YmfbsBAkqgvjUV-YpZ2pOJU3Liay2Pm6ZCJhl-YIpg@z>
+Message-ID: <20190423162930.07G16bZqBT1-yMuppma9Dm994Ec4g8IrTeebURns598@z>
 
 This converts the plain text documentation to reStructuredText format and
 add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- Documentation/x86/x86_64/index.rst                    |  1 +
- .../x86/x86_64/{machinecheck => machinecheck.rst}     | 11 ++++++-----
- 2 files changed, 7 insertions(+), 5 deletions(-)
- rename Documentation/x86/x86_64/{machinecheck => machinecheck.rst} (92%)
+ ...a-for-cpusets => fake-numa-for-cpusets.rst} | 18 +++++++++++++-----
+ Documentation/x86/x86_64/index.rst             |  1 +
+ 2 files changed, 14 insertions(+), 5 deletions(-)
+ rename Documentation/x86/x86_64/{fake-numa-for-cpusets => fake-numa-for-cpusets.rst} (90%)
 
+diff --git a/Documentation/x86/x86_64/fake-numa-for-cpusets b/Documentation/x86/x86_64/fake-numa-for-cpusets.rst
+similarity index 90%
+rename from Documentation/x86/x86_64/fake-numa-for-cpusets
+rename to Documentation/x86/x86_64/fake-numa-for-cpusets.rst
+index 4b09f18831f8..3c23f45d38f6 100644
+--- a/Documentation/x86/x86_64/fake-numa-for-cpusets
++++ b/Documentation/x86/x86_64/fake-numa-for-cpusets.rst
+@@ -1,5 +1,12 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++=====================
++Fake NUMA For CPUSets
++=====================
++
++:Author: David Rientjes <rientjes@cs.washington.edu>
++
+ Using numa=fake and CPUSets for Resource Management
+-Written by David Rientjes <rientjes@cs.washington.edu>
+ 
+ This document describes how the numa=fake x86_64 command-line option can be used
+ in conjunction with cpusets for coarse memory management.  Using this feature,
+@@ -20,7 +27,7 @@ you become more familiar with using this combination for resource control,
+ you'll determine a better setup to minimize the number of nodes you have to deal
+ with.
+ 
+-A machine may be split as follows with "numa=fake=4*512," as reported by dmesg:
++A machine may be split as follows with "numa=fake=4*512," as reported by dmesg::
+ 
+ 	Faking node 0 at 0000000000000000-0000000020000000 (512MB)
+ 	Faking node 1 at 0000000020000000-0000000040000000 (512MB)
+@@ -34,7 +41,7 @@ A machine may be split as follows with "numa=fake=4*512," as reported by dmesg:
+ 
+ Now following the instructions for mounting the cpusets filesystem from
+ Documentation/cgroup-v1/cpusets.txt, you can assign fake nodes (i.e. contiguous memory
+-address spaces) to individual cpusets:
++address spaces) to individual cpusets::
+ 
+ 	[root@xroads /]# mkdir exampleset
+ 	[root@xroads /]# mount -t cpuset none exampleset
+@@ -47,7 +54,7 @@ Now this cpuset, 'ddset', will only allowed access to fake nodes 0 and 1 for
+ memory allocations (1G).
+ 
+ You can now assign tasks to these cpusets to limit the memory resources
+-available to them according to the fake nodes assigned as mems:
++available to them according to the fake nodes assigned as mems::
+ 
+ 	[root@xroads /exampleset/ddset]# echo $$ > tasks
+ 	[root@xroads /exampleset/ddset]# dd if=/dev/zero of=tmp bs=1024 count=1G
+@@ -56,7 +63,8 @@ available to them according to the fake nodes assigned as mems:
+ Notice the difference between the system memory usage as reported by
+ /proc/meminfo between the restricted cpuset case above and the unrestricted
+ case (i.e. running the same 'dd' command without assigning it to a fake NUMA
+-cpuset):
++cpuset)::
++
+ 				Unrestricted	Restricted
+ 	MemTotal:		3091900 kB	3091900 kB
+ 	MemFree:		  42113 kB	1513236 kB
 diff --git a/Documentation/x86/x86_64/index.rst b/Documentation/x86/x86_64/index.rst
-index c04b6eab3c76..d6eaaa5a35fc 100644
+index 7b8c82151358..e2a324cde671 100644
 --- a/Documentation/x86/x86_64/index.rst
 +++ b/Documentation/x86/x86_64/index.rst
-@@ -13,3 +13,4 @@ x86_64 Support
+@@ -11,3 +11,4 @@ x86_64 Support
+    uefi
+    mm
     5level-paging
-    fake-numa-for-cpusets
-    cpu-hotplug-spec
-+   machinecheck
-diff --git a/Documentation/x86/x86_64/machinecheck b/Documentation/x86/x86_64/machinecheck.rst
-similarity index 92%
-rename from Documentation/x86/x86_64/machinecheck
-rename to Documentation/x86/x86_64/machinecheck.rst
-index d0648a74fceb..8e9d2d529a8d 100644
---- a/Documentation/x86/x86_64/machinecheck
-+++ b/Documentation/x86/x86_64/machinecheck.rst
-@@ -1,5 +1,8 @@
-+.. SPDX-License-Identifier: GPL-2.0
- 
--Configurable sysfs parameters for the x86-64 machine check code.
-+===============================================================
-+Configurable sysfs parameters for the x86-64 machine check code
-+===============================================================
- 
- Machine checks report internal hardware error conditions detected
- by the CPU. Uncorrected errors typically cause a machine check
-@@ -16,14 +19,12 @@ log then mcelog should run to collect and decode machine check entries
- from /dev/mcelog. Normally mcelog should be run regularly from a cronjob.
- 
- Each CPU has a directory in /sys/devices/system/machinecheck/machinecheckN
--(N = CPU number)
-+(N = CPU number).
- 
- The directory contains some configurable entries:
- 
--Entries:
--
- bankNctl
--(N bank number)
-+	(N bank number)
- 	64bit Hex bitmask enabling/disabling specific subevents for bank N
- 	When a bit in the bitmask is zero then the respective
- 	subevent will not be reported.
++   fake-numa-for-cpusets
 -- 
 2.20.1
 
