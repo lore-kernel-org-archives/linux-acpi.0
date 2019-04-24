@@ -5,55 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56575C10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E171BC282CE
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:55:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 11095218D3
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:55:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E81B21773
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:55:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VixoaMN7"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WTW9i5Vg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390648AbfDXRzT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 13:55:19 -0400
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:46090 "EHLO
+        id S2390370AbfDXRzn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 13:55:43 -0400
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:43030 "EHLO
         mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390486AbfDXRzP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 13:55:15 -0400
-Received: by mail-pl1-f196.google.com with SMTP id o7so7417891pll.13;
-        Wed, 24 Apr 2019 10:55:15 -0700 (PDT)
+        with ESMTP id S2389157AbfDXRzm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 13:55:42 -0400
+Received: by mail-pl1-f196.google.com with SMTP id n8so9642462plp.10;
+        Wed, 24 Apr 2019 10:55:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Nt9Hzadmk3IfOZGZ4NISzwcFzm/IxLMb6ukyabMZ2m8=;
-        b=VixoaMN7iS4CLmoPtjSm3dWFrXYImAKMW48zVIO3q7IPmZjyHVhYjRD9Stqv75m7gG
-         CMwkETZl56gkjgogld3WIhFa/2POR+ad3Y0rwDVHqtRLgwgjmNJMusyEhrwaO/mj5pBk
-         cvRLXMOT5ugRL/1rzE9b2M1bW+9pLfDETcxtNWBfgISNl0W/qXqzigcpunLCrRPSTnor
-         DpydRV4DKydyh8dTuX6qV7R6hvB7422/d5o3ninzjmiTmPkUMczAKC/zsMdxpGK7jA8G
-         2Jgc6vg1nPbER0vNg07g3VMIeEp9hSlkvpLhFAXxJpf9d8HmUqzbL7a75WKnPQhLIuiV
-         0fHg==
+        bh=q7X/TpVUy9MOoo+OOx4gvhRbEBFHOPzvaja1yF/wQgs=;
+        b=WTW9i5VgWtI2OfLYQkSS9UPt9XqxYG6P1DhQTWbRz7blDTUUvxHgQdoaYlPCbMLC5d
+         ivEtgQcm9F1lDlhxmHAaBeDTmKNlc7IU4FiEsuZdjaducRwm86e3hk0S3E7dpWAOjwFn
+         +S7UV+y3eM3d30yYMi3ADrOAG979aRU7MfbVuw3FKMDMv2n/kE9g4fdiSv8Y0Nbz32ja
+         OsKuQg3U090U80ZtZZABbb3bqq8WXAvA8Wc4XQgHrI4rRtIz7c9LPiv12+k+8K7ieZAw
+         Pzcgra8BLK7NvxYxr3do9lrVKfR+vO8ZRcbk2MMi2QMLCv4vQRKz0nI6ZKY5rWr2/4v+
+         TE1Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Nt9Hzadmk3IfOZGZ4NISzwcFzm/IxLMb6ukyabMZ2m8=;
-        b=VRemdj7wH8/IuKKo+WVHBTnSLbQbHGrDVROLytmRc9/4LuApgzS1F/oy5NJR9QX0hS
-         6OgzpsYJqLHCSOMFe0GnothJrABY2AHCGSDrdRhlpYUtNNPWtwDLhckpslDNqEShaSy5
-         rRiPZ56ei/AUxpkaSmPa1V9wGObLG3N1Od/5+XCHTiyZfbzplTVqtd1Mz1rRaqI3gfjP
-         f+opfwpz/TYEamB+4XCYhBx98oKNVNhWZP5uu5q52cgRxandKu55qblXoH8Fw1RrIviA
-         HTbB8CRoX21gh5Low9BYqtxgF8tngq5vxtTOI2PJr8OMjJyWqYhH33r5tBMqlsuZAt/X
-         4nMg==
-X-Gm-Message-State: APjAAAXlPA1i6PpsgJGObQFQAreeVnvuf4SRqkrXQs5KVczT0x/DMDyr
-        b8ALTNUW4JOROj9vnOaN+A0=
-X-Google-Smtp-Source: APXvYqy93lNoyPwASUX10uUPq56fhgtZU2w5KgeE7Jsnc14n8UpmKnuUg7Rho5VfB7LI5taHU36ZDw==
-X-Received: by 2002:a17:902:2907:: with SMTP id g7mr33991261plb.238.1556128514958;
-        Wed, 24 Apr 2019 10:55:14 -0700 (PDT)
+        bh=q7X/TpVUy9MOoo+OOx4gvhRbEBFHOPzvaja1yF/wQgs=;
+        b=kDkkVb3oV2RtxFHA/wudDTlycxrffmCllzBAViwbMEqtnL5+Ru05eRs6HSK7V94PGN
+         YP1D4s5uymPr0YBCsXWA4FoaCRc/dybSGUTquV6PNyPSiZy8YvWu2ESkOPWgnUn87YEd
+         VVb+toFHZRQHXkR4ZFg//37n7ZVg5RNGYNK9YAikgJQpVSlkKcTWmLipBqwsRz22727O
+         kYgtfuX1MZ2ounllEi3bBFlowdyZ2OnMC2WIGExqXUPIMiUkB5xwaXwOhk9k2FmMOepq
+         fBzbu/ple7XbuLHCJ0/m5hGVo5937BL+F1yxBHF0iuZ+/Qp1t0AZYIH7UcpVQre+NYfb
+         ORag==
+X-Gm-Message-State: APjAAAV6sa7tSqvIGEXwhN1vxCRaCindzokMuvKh6Ro/t89Xidi5DF5K
+        x3SHTtkUVOIVXDCMty0zRWU=
+X-Google-Smtp-Source: APXvYqzTEEjOuY3iZlYpBg/MSO92IWFem0Ato+mbCxPNrERh9adJIkWgrus6M64aBoyf321dn54YUw==
+X-Received: by 2002:a17:902:4481:: with SMTP id l1mr14850672pld.75.1556128541686;
+        Wed, 24 Apr 2019 10:55:41 -0700 (PDT)
 Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id 6sm29275630pfp.143.2019.04.24.10.55.06
+        by smtp.gmail.com with ESMTPSA id 6sm29275630pfp.143.2019.04.24.10.55.35
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 24 Apr 2019 10:55:14 -0700 (PDT)
+        Wed, 24 Apr 2019 10:55:40 -0700 (PDT)
 From:   Changbin Du <changbin.du@gmail.com>
 To:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
@@ -61,20 +62,20 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
         Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v5 09/23] Documentation: ACPI: move initrd_table_override.txt to admin-guide/acpi and convert to reST
-Date:   Thu, 25 Apr 2019 01:52:52 +0800
-Message-Id: <20190424175306.25880-10-changbin.du@gmail.com>
+Subject: [PATCH v5 13/23] Documentation: ACPI: move dsd/graph.txt to firmware-guide/acpi and convert to reST
+Date:   Thu, 25 Apr 2019 01:52:56 +0800
+Message-Id: <20190424175306.25880-14-changbin.du@gmail.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190424175306.25880-1-changbin.du@gmail.com>
 References: <20190424175306.25880-1-changbin.du@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190424175252.AVC_juz6veuctXoh9qZn-9XRVWuGmjMtyfDv7UWkzrU@z>
+Message-ID: <20190424175256.GtKc6HkCoc7V0zTS_cTuOXD05ZKUsgjMhHWr5iCVIMY@z>
 
 This converts the plain text documentation to reStructuredText format and
 add it to Sphinx TOC tree. No essential content change.
@@ -82,260 +83,259 @@ add it to Sphinx TOC tree. No essential content change.
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- Documentation/acpi/initrd_table_override.txt  | 111 -----------------
- Documentation/admin-guide/acpi/index.rst      |   1 +
- .../acpi/initrd_table_override.rst            | 115 ++++++++++++++++++
- 3 files changed, 116 insertions(+), 111 deletions(-)
- delete mode 100644 Documentation/acpi/initrd_table_override.txt
- create mode 100644 Documentation/admin-guide/acpi/initrd_table_override.rst
+ .../acpi/dsd/graph.rst}                       | 157 +++++++++---------
+ Documentation/firmware-guide/acpi/index.rst   |   1 +
+ 2 files changed, 81 insertions(+), 77 deletions(-)
+ rename Documentation/{acpi/dsd/graph.txt => firmware-guide/acpi/dsd/graph.rst} (56%)
 
-diff --git a/Documentation/acpi/initrd_table_override.txt b/Documentation/acpi/initrd_table_override.txt
-deleted file mode 100644
-index 30437a6db373..000000000000
---- a/Documentation/acpi/initrd_table_override.txt
-+++ /dev/null
-@@ -1,111 +0,0 @@
--Upgrading ACPI tables via initrd
--================================
--
--1) Introduction (What is this about)
--2) What is this for
--3) How does it work
--4) References (Where to retrieve userspace tools)
--
--1) What is this about
-----------------------
--
--If the ACPI_TABLE_UPGRADE compile option is true, it is possible to
--upgrade the ACPI execution environment that is defined by the ACPI tables
--via upgrading the ACPI tables provided by the BIOS with an instrumented,
--modified, more recent version one, or installing brand new ACPI tables.
--
--When building initrd with kernel in a single image, option
--ACPI_TABLE_OVERRIDE_VIA_BUILTIN_INITRD should also be true for this
--feature to work.
--
--For a full list of ACPI tables that can be upgraded/installed, take a look
--at the char *table_sigs[MAX_ACPI_SIGNATURE]; definition in
--drivers/acpi/tables.c.
--All ACPI tables iasl (Intel's ACPI compiler and disassembler) knows should
--be overridable, except:
--   - ACPI_SIG_RSDP (has a signature of 6 bytes)
--   - ACPI_SIG_FACS (does not have an ordinary ACPI table header)
--Both could get implemented as well.
--
--
--2) What is this for
+diff --git a/Documentation/acpi/dsd/graph.txt b/Documentation/firmware-guide/acpi/dsd/graph.rst
+similarity index 56%
+rename from Documentation/acpi/dsd/graph.txt
+rename to Documentation/firmware-guide/acpi/dsd/graph.rst
+index b9ce910781dc..e0baed35b037 100644
+--- a/Documentation/acpi/dsd/graph.txt
++++ b/Documentation/firmware-guide/acpi/dsd/graph.rst
+@@ -1,8 +1,11 @@
+-Graphs
++.. SPDX-License-Identifier: GPL-2.0
+ 
++======
++Graphs
++======
+ 
+ _DSD
+-----
++====
+ 
+ _DSD (Device Specific Data) [7] is a predefined ACPI device
+ configuration object that can be used to convey information on
+@@ -30,7 +33,7 @@ hierarchical data extension array on each depth.
+ 
+ 
+ Ports and endpoints
 --------------------
++===================
+ 
+ The port and endpoint concepts are very similar to those in Devicetree
+ [3]. A port represents an interface in a device, and an endpoint
+@@ -38,9 +41,9 @@ represents a connection to that interface.
+ 
+ All port nodes are located under the device's "_DSD" node in the hierarchical
+ data extension tree. The data extension related to each port node must begin
+-with "port" and must be followed by the "@" character and the number of the port
+-as its key. The target object it refers to should be called "PRTX", where "X" is
+-the number of the port. An example of such a package would be:
++with "port" and must be followed by the "@" character and the number of the
++port as its key. The target object it refers to should be called "PRTX", where
++"X" is the number of the port. An example of such a package would be::
+ 
+     Package() { "port@4", PRT4 }
+ 
+@@ -49,7 +52,7 @@ data extension key of the endpoint nodes must begin with
+ "endpoint" and must be followed by the "@" character and the number of the
+ endpoint. The object it refers to should be called "EPXY", where "X" is the
+ number of the port and "Y" is the number of the endpoint. An example of such a
+-package would be:
++package would be::
+ 
+     Package() { "endpoint@0", EP40 }
+ 
+@@ -62,85 +65,85 @@ of that port shall be zero. Similarly, if a port may only have a single
+ endpoint, the number of that endpoint shall be zero.
+ 
+ The endpoint reference uses property extension with "remote-endpoint" property
+-name followed by a reference in the same package. Such references consist of the
++name followed by a reference in the same package. Such references consist of
+ the remote device reference, the first package entry of the port data extension
+ reference under the device and finally the first package entry of the endpoint
+-data extension reference under the port. Individual references thus appear as:
++data extension reference under the port. Individual references thus appear as::
+ 
+     Package() { device, "port@X", "endpoint@Y" }
+ 
+-In the above example, "X" is the number of the port and "Y" is the number of the
+-endpoint.
++In the above example, "X" is the number of the port and "Y" is the number of
++the endpoint.
+ 
+ The references to endpoints must be always done both ways, to the
+ remote endpoint and back from the referred remote endpoint node.
+ 
+-A simple example of this is show below:
++A simple example of this is show below::
+ 
+     Scope (\_SB.PCI0.I2C2)
+     {
+-	Device (CAM0)
+-	{
+-	    Name (_DSD, Package () {
+-		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+-		Package () {
+-		    Package () { "compatible", Package () { "nokia,smia" } },
+-		},
+-		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+-		Package () {
+-		    Package () { "port@0", PRT0 },
+-		}
+-	    })
+-	    Name (PRT0, Package() {
+-		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+-		Package () {
+-		    Package () { "reg", 0 },
+-		},
+-		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+-		Package () {
+-		    Package () { "endpoint@0", EP00 },
+-		}
+-	    })
+-	    Name (EP00, Package() {
+-		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+-		Package () {
+-		    Package () { "reg", 0 },
+-		    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, "port@4", "endpoint@0" } },
+-		}
+-	    })
+-	}
++        Device (CAM0)
++        {
++            Name (_DSD, Package () {
++                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++                Package () {
++                    Package () { "compatible", Package () { "nokia,smia" } },
++                },
++                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++                Package () {
++                    Package () { "port@0", PRT0 },
++                }
++            })
++            Name (PRT0, Package() {
++                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++                Package () {
++                    Package () { "reg", 0 },
++                },
++                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++                Package () {
++                    Package () { "endpoint@0", EP00 },
++                }
++            })
++            Name (EP00, Package() {
++                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++                Package () {
++                    Package () { "reg", 0 },
++                    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, "port@4", "endpoint@0" } },
++                }
++            })
++        }
+     }
+ 
+     Scope (\_SB.PCI0)
+     {
+-	Device (ISP)
+-	{
+-	    Name (_DSD, Package () {
+-		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+-		Package () {
+-		    Package () { "port@4", PRT4 },
+-		}
+-	    })
 -
--Complain to your platform/BIOS vendor if you find a bug which is so severe
--that a workaround is not accepted in the Linux kernel. And this facility
--allows you to upgrade the buggy tables before your platform/BIOS vendor
--releases an upgraded BIOS binary.
+-	    Name (PRT4, Package() {
+-		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+-		Package () {
+-		    Package () { "reg", 4 }, /* CSI-2 port number */
+-		},
+-		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+-		Package () {
+-		    Package () { "endpoint@0", EP40 },
+-		}
+-	    })
 -
--This facility can be used by platform/BIOS vendors to provide a Linux
--compatible environment without modifying the underlying platform firmware.
--
--This facility also provides a powerful feature to easily debug and test
--ACPI BIOS table compatibility with the Linux kernel by modifying old
--platform provided ACPI tables or inserting new ACPI tables.
--
--It can and should be enabled in any kernel because there is no functional
--change with not instrumented initrds.
--
--
--3) How does it work
---------------------
--
--# Extract the machine's ACPI tables:
--cd /tmp
--acpidump >acpidump
--acpixtract -a acpidump
--# Disassemble, modify and recompile them:
--iasl -d *.dat
--# For example add this statement into a _PRT (PCI Routing Table) function
--# of the DSDT:
--Store("HELLO WORLD", debug)
--# And increase the OEM Revision. For example, before modification:
--DefinitionBlock ("DSDT.aml", "DSDT", 2, "INTEL ", "TEMPLATE", 0x00000000)
--# After modification:
--DefinitionBlock ("DSDT.aml", "DSDT", 2, "INTEL ", "TEMPLATE", 0x00000001)
--iasl -sa dsdt.dsl
--# Add the raw ACPI tables to an uncompressed cpio archive.
--# They must be put into a /kernel/firmware/acpi directory inside the cpio
--# archive. Note that if the table put here matches a platform table
--# (similar Table Signature, and similar OEMID, and similar OEM Table ID)
--# with a more recent OEM Revision, the platform table will be upgraded by
--# this table. If the table put here doesn't match a platform table
--# (dissimilar Table Signature, or dissimilar OEMID, or dissimilar OEM Table
--# ID), this table will be appended.
--mkdir -p kernel/firmware/acpi
--cp dsdt.aml kernel/firmware/acpi
--# A maximum of "NR_ACPI_INITRD_TABLES (64)" tables are currently allowed
--# (see osl.c):
--iasl -sa facp.dsl
--iasl -sa ssdt1.dsl
--cp facp.aml kernel/firmware/acpi
--cp ssdt1.aml kernel/firmware/acpi
--# The uncompressed cpio archive must be the first. Other, typically
--# compressed cpio archives, must be concatenated on top of the uncompressed
--# one. Following command creates the uncompressed cpio archive and
--# concatenates the original initrd on top:
--find kernel | cpio -H newc --create > /boot/instrumented_initrd
--cat /boot/initrd >>/boot/instrumented_initrd
--# reboot with increased acpi debug level, e.g. boot params:
--acpi.debug_level=0x2 acpi.debug_layer=0xFFFFFFFF
--# and check your syslog:
--[    1.268089] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
--[    1.272091] [ACPI Debug]  String [0x0B] "HELLO WORLD"
--
--iasl is able to disassemble and recompile quite a lot different,
--also static ACPI tables.
--
--
--4) Where to retrieve userspace tools
--------------------------------------
--
--iasl and acpixtract are part of Intel's ACPICA project:
--http://acpica.org/
--and should be packaged by distributions (for example in the acpica package
--on SUSE).
--
--acpidump can be found in Len Browns pmtools:
--ftp://kernel.org/pub/linux/kernel/people/lenb/acpi/utils/pmtools/acpidump
--This tool is also part of the acpica package on SUSE.
--Alternatively, used ACPI tables can be retrieved via sysfs in latest kernels:
--/sys/firmware/acpi/tables
-diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-index 3e041206089d..09e4e81e4fb7 100644
---- a/Documentation/admin-guide/acpi/index.rst
-+++ b/Documentation/admin-guide/acpi/index.rst
-@@ -8,3 +8,4 @@ the Linux ACPI support.
- .. toctree::
+-	    Name (EP40, Package() {
+-		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+-		Package () {
+-		    Package () { "reg", 0 },
+-		    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, "port@0", "endpoint@0" } },
+-		}
+-	    })
+-	}
++        Device (ISP)
++        {
++            Name (_DSD, Package () {
++                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++                Package () {
++                    Package () { "port@4", PRT4 },
++                }
++            })
++
++            Name (PRT4, Package() {
++                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++                Package () {
++                    Package () { "reg", 4 }, /* CSI-2 port number */
++                },
++                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++                Package () {
++                    Package () { "endpoint@0", EP40 },
++                }
++            })
++
++            Name (EP40, Package() {
++                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++                Package () {
++                    Package () { "reg", 0 },
++                    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, "port@0", "endpoint@0" } },
++                }
++            })
++        }
+     }
+ 
+ Here, the port 0 of the "CAM0" device is connected to the port 4 of
+@@ -148,27 +151,27 @@ the "ISP" device and vice versa.
+ 
+ 
+ References
+-----------
++==========
+ 
+ [1] _DSD (Device Specific Data) Implementation Guide.
+-    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm>,
++    http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm,
+     referenced 2016-10-03.
+ 
+-[2] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
++[2] Devicetree. http://www.devicetree.org, referenced 2016-10-03.
+ 
+ [3] Documentation/devicetree/bindings/graph.txt
+ 
+ [4] Device Properties UUID For _DSD.
+-    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
++    http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf,
+     referenced 2016-10-04.
+ 
+ [5] Hierarchical Data Extension UUID For _DSD.
+-    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf>,
++    http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf,
+     referenced 2016-10-04.
+ 
+ [6] Advanced Configuration and Power Interface Specification.
+-    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
++    http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf,
+     referenced 2016-10-04.
+ 
+ [7] _DSD Device Properties Usage Rules.
+-    Documentation/acpi/DSD-properties-rules.txt
++    :doc:`../DSD-properties-rules`
+diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+index bedcb0b242a2..f81cfbcb6878 100644
+--- a/Documentation/firmware-guide/acpi/index.rst
++++ b/Documentation/firmware-guide/acpi/index.rst
+@@ -8,6 +8,7 @@ ACPI Support
     :maxdepth: 1
  
-+   initrd_table_override
-diff --git a/Documentation/admin-guide/acpi/initrd_table_override.rst b/Documentation/admin-guide/acpi/initrd_table_override.rst
-new file mode 100644
-index 000000000000..cbd768207631
---- /dev/null
-+++ b/Documentation/admin-guide/acpi/initrd_table_override.rst
-@@ -0,0 +1,115 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+================================
-+Upgrading ACPI tables via initrd
-+================================
-+
-+What is this about
-+==================
-+
-+If the ACPI_TABLE_UPGRADE compile option is true, it is possible to
-+upgrade the ACPI execution environment that is defined by the ACPI tables
-+via upgrading the ACPI tables provided by the BIOS with an instrumented,
-+modified, more recent version one, or installing brand new ACPI tables.
-+
-+When building initrd with kernel in a single image, option
-+ACPI_TABLE_OVERRIDE_VIA_BUILTIN_INITRD should also be true for this
-+feature to work.
-+
-+For a full list of ACPI tables that can be upgraded/installed, take a look
-+at the char `*table_sigs[MAX_ACPI_SIGNATURE];` definition in
-+drivers/acpi/tables.c.
-+
-+All ACPI tables iasl (Intel's ACPI compiler and disassembler) knows should
-+be overridable, except:
-+
-+  - ACPI_SIG_RSDP (has a signature of 6 bytes)
-+  - ACPI_SIG_FACS (does not have an ordinary ACPI table header)
-+
-+Both could get implemented as well.
-+
-+
-+What is this for
-+================
-+
-+Complain to your platform/BIOS vendor if you find a bug which is so severe
-+that a workaround is not accepted in the Linux kernel. And this facility
-+allows you to upgrade the buggy tables before your platform/BIOS vendor
-+releases an upgraded BIOS binary.
-+
-+This facility can be used by platform/BIOS vendors to provide a Linux
-+compatible environment without modifying the underlying platform firmware.
-+
-+This facility also provides a powerful feature to easily debug and test
-+ACPI BIOS table compatibility with the Linux kernel by modifying old
-+platform provided ACPI tables or inserting new ACPI tables.
-+
-+It can and should be enabled in any kernel because there is no functional
-+change with not instrumented initrds.
-+
-+
-+How does it work
-+================
-+::
-+
-+  # Extract the machine's ACPI tables:
-+  cd /tmp
-+  acpidump >acpidump
-+  acpixtract -a acpidump
-+  # Disassemble, modify and recompile them:
-+  iasl -d *.dat
-+  # For example add this statement into a _PRT (PCI Routing Table) function
-+  # of the DSDT:
-+  Store("HELLO WORLD", debug)
-+  # And increase the OEM Revision. For example, before modification:
-+  DefinitionBlock ("DSDT.aml", "DSDT", 2, "INTEL ", "TEMPLATE", 0x00000000)
-+  # After modification:
-+  DefinitionBlock ("DSDT.aml", "DSDT", 2, "INTEL ", "TEMPLATE", 0x00000001)
-+  iasl -sa dsdt.dsl
-+  # Add the raw ACPI tables to an uncompressed cpio archive.
-+  # They must be put into a /kernel/firmware/acpi directory inside the cpio
-+  # archive. Note that if the table put here matches a platform table
-+  # (similar Table Signature, and similar OEMID, and similar OEM Table ID)
-+  # with a more recent OEM Revision, the platform table will be upgraded by
-+  # this table. If the table put here doesn't match a platform table
-+  # (dissimilar Table Signature, or dissimilar OEMID, or dissimilar OEM Table
-+  # ID), this table will be appended.
-+  mkdir -p kernel/firmware/acpi
-+  cp dsdt.aml kernel/firmware/acpi
-+  # A maximum of "NR_ACPI_INITRD_TABLES (64)" tables are currently allowed
-+  # (see osl.c):
-+  iasl -sa facp.dsl
-+  iasl -sa ssdt1.dsl
-+  cp facp.aml kernel/firmware/acpi
-+  cp ssdt1.aml kernel/firmware/acpi
-+  # The uncompressed cpio archive must be the first. Other, typically
-+  # compressed cpio archives, must be concatenated on top of the uncompressed
-+  # one. Following command creates the uncompressed cpio archive and
-+  # concatenates the original initrd on top:
-+  find kernel | cpio -H newc --create > /boot/instrumented_initrd
-+  cat /boot/initrd >>/boot/instrumented_initrd
-+  # reboot with increased acpi debug level, e.g. boot params:
-+  acpi.debug_level=0x2 acpi.debug_layer=0xFFFFFFFF
-+  # and check your syslog:
-+  [    1.268089] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-+  [    1.272091] [ACPI Debug]  String [0x0B] "HELLO WORLD"
-+
-+iasl is able to disassemble and recompile quite a lot different,
-+also static ACPI tables.
-+
-+
-+Where to retrieve userspace tools
-+=================================
-+
-+iasl and acpixtract are part of Intel's ACPICA project:
-+http://acpica.org/
-+
-+and should be packaged by distributions (for example in the acpica package
-+on SUSE).
-+
-+acpidump can be found in Len Browns pmtools:
-+ftp://kernel.org/pub/linux/kernel/people/lenb/acpi/utils/pmtools/acpidump
-+
-+This tool is also part of the acpica package on SUSE.
-+Alternatively, used ACPI tables can be retrieved via sysfs in latest kernels:
-+/sys/firmware/acpi/tables
+    namespace
++   dsd/graph
+    enumeration
+    osi
+    method-customizing
 -- 
 2.20.1
 
