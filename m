@@ -2,44 +2,37 @@ Return-Path: <SRS0=Qzs7=S2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CABE6C10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 09:45:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA9F7C10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 09:48:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E81A2077C
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 09:45:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F10F218B0
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 09:48:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726480AbfDXJpL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 05:45:11 -0400
-Received: from mga04.intel.com ([192.55.52.120]:60057 "EHLO mga04.intel.com"
+        id S1726307AbfDXJsU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 05:48:20 -0400
+Received: from gecko.sbs.de ([194.138.37.40]:49025 "EHLO gecko.sbs.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726216AbfDXJpL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 Apr 2019 05:45:11 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Apr 2019 02:45:10 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,389,1549958400"; 
-   d="scan'208";a="167441332"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
-  by fmsmga001.fm.intel.com with SMTP; 24 Apr 2019 02:45:07 -0700
-Received: by lahna (sSMTP sendmail emulation); Wed, 24 Apr 2019 12:45:06 +0300
-Date:   Wed, 24 Apr 2019 12:45:06 +0300
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     Jan Kiszka <jan.kiszka@siemens.com>
+        id S1726216AbfDXJsT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Apr 2019 05:48:19 -0400
+Received: from mail2.sbs.de (mail2.sbs.de [192.129.41.66])
+        by gecko.sbs.de (8.15.2/8.15.2) with ESMTPS id x3O9mBR1022138
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 24 Apr 2019 11:48:11 +0200
+Received: from [139.22.114.195] ([139.22.114.195])
+        by mail2.sbs.de (8.15.2/8.15.2) with ESMTP id x3O9mAhw022291;
+        Wed, 24 Apr 2019 11:48:10 +0200
+Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
-Message-ID: <20190424094506.GA2654@lahna.fi.intel.com>
 References: <cover.1555579429.git.jan.kiszka@siemens.com>
  <c9f40465c6effc7b8efd6cbf8461d71d80c80033.1555579429.git.jan.kiszka@siemens.com>
  <20190424075816.GU2654@lahna.fi.intel.com>
@@ -48,24 +41,43 @@ References: <cover.1555579429.git.jan.kiszka@siemens.com>
  <5a28f22c-22f7-760a-d076-68ff19800d44@siemens.com>
  <20190424084259.GW2654@lahna.fi.intel.com>
  <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
+ <20190424094506.GA2654@lahna.fi.intel.com>
+From:   Jan Kiszka <jan.kiszka@siemens.com>
+Message-ID: <292e6eff-82cc-6e4d-925b-77a60399e2e0@siemens.com>
+Date:   Wed, 24 Apr 2019 11:48:09 +0200
+User-Agent: Mozilla/5.0 (X11; U; Linux i686 (x86_64); de; rv:1.8.1.12)
+ Gecko/20080226 SUSE/2.0.0.12-1.1 Thunderbird/2.0.0.12 Mnenhy/0.7.5.666
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.11.3 (2019-02-01)
+In-Reply-To: <20190424094506.GA2654@lahna.fi.intel.com>
+Content-Type: text/plain; charset="UTF-8"; format="flowed"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424094506.EdfSANV3kAUPK0szJWERE0a5W9EGI08cXuSM9F0-CYo@z>
+Message-ID: <20190424094809.3WIs-nNN28J_jQjjJJfEE6paGVTkdYwNs3RAzDIfoeg@z>
 
-On Wed, Apr 24, 2019 at 11:36:58AM +0200, Jan Kiszka wrote:
-> OK, there is that table, but what is it supposed to tell me about the
-> event and where to hook into it better?
-...
-> [02Eh 0046   2]                SCI Interrupt : 0009
+On 24.04.19 11:45, Mika Westerberg wrote:
+> On Wed, Apr 24, 2019 at 11:36:58AM +0200, Jan Kiszka wrote:
+>> OK, there is that table, but what is it supposed to tell me about the
+>> event and where to hook into it better?
+> ...
+>> [02Eh 0046   2]                SCI Interrupt : 0009
+> 
+> This is the SCI interrupt GSI number. IIRC it maps 1:1 to Linux
+> interrupt number so you should see it in /proc/interrupts. When a GPE
+> event is triggered it should be handled in the ACPI core.
+> 
 
-This is the SCI interrupt GSI number. IIRC it maps 1:1 to Linux
-interrupt number so you should see it in /proc/interrupts. When a GPE
-event is triggered it should be handled in the ACPI core.
+Yes, clear, all this happens already. But I need to link the core with the sch 
+gpio handler so that the gpio event is filtered out and the right virtual gpio 
+interrupt is triggered. So, other than acpi_install_sci_handler, how should I 
+establish that link?
+
+Jan
+
+
+-- 
+Siemens AG, Corporate Technology, CT RDA IOT SES-DE
+Corporate Competence Center Embedded Linux
