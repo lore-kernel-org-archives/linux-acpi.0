@@ -6,35 +6,35 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A127C10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 05:10:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97EA6C282CE
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 05:21:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5458D2089F
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 05:10:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F707218D2
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 05:21:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726232AbfDXFKa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 01:10:30 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:52782 "EHLO mx1.redhat.com"
+        id S1728775AbfDXFVp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 01:21:45 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:33256 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725919AbfDXFKa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 Apr 2019 01:10:30 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        id S1726184AbfDXFVp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Apr 2019 01:21:45 -0400
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 80890309C9BC;
-        Wed, 24 Apr 2019 05:10:29 +0000 (UTC)
+        by mx1.redhat.com (Postfix) with ESMTPS id EE0839D51C;
+        Wed, 24 Apr 2019 05:21:44 +0000 (UTC)
 Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 338ED17979;
-        Wed, 24 Apr 2019 05:10:29 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id D21345D719;
+        Wed, 24 Apr 2019 05:21:44 +0000 (UTC)
 Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
-        by colo-mx.corp.redhat.com (Postfix) with ESMTP id BBD9E3FB10;
-        Wed, 24 Apr 2019 05:10:28 +0000 (UTC)
-Date:   Wed, 24 Apr 2019 01:10:28 -0400 (EDT)
+        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 7A2163FB10;
+        Wed, 24 Apr 2019 05:21:44 +0000 (UTC)
+Date:   Wed, 24 Apr 2019 01:21:44 -0400 (EDT)
 From:   Pankaj Gupta <pagupta@redhat.com>
-To:     "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc:     jack@suse.cz, kvm@vger.kernel.org, mst@redhat.com,
-        jasowang@redhat.com, Dave Chinner <david@fromorbit.com>,
-        qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org,
+To:     Jan Kara <jack@suse.cz>
+Cc:     cohuck@redhat.com, kvm@vger.kernel.org, mst@redhat.com,
+        jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org,
+        virtualization@lists.linux-foundation.org,
         adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org,
         aarcange@redhat.com, dave jiang <dave.jiang@intel.com>,
         linux-nvdimm@lists.01.org,
@@ -46,90 +46,87 @@ Cc:     jack@suse.cz, kvm@vger.kernel.org, mst@redhat.com,
         pbonzini@redhat.com, dan j williams <dan.j.williams@intel.com>,
         lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com,
         tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
-        cohuck@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org,
-        linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        imammedo@redhat.com
-Message-ID: <750624039.23167994.1556082628248.JavaMail.zimbra@redhat.com>
-In-Reply-To: <20190423221011.GD178290@magnolia>
-References: <20190423080612.15361-1-pagupta@redhat.com> <20190423080612.15361-7-pagupta@redhat.com> <20190423220217.GA29573@dread.disaster.area> <20190423221011.GD178290@magnolia>
-Subject: Re: [Qemu-devel] [PATCH v6 6/6] xfs: disable map_sync for async
+        darrick wong <darrick.wong@oracle.com>, rjw@rjwysocki.net,
+        linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, imammedo@redhat.com
+Message-ID: <1325148804.23168491.1556083304080.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190423142748.GE9910@quack2.suse.cz>
+References: <20190423080612.15361-1-pagupta@redhat.com> <20190423080612.15361-6-pagupta@redhat.com> <20190423142748.GE9910@quack2.suse.cz>
+Subject: Re: [Qemu-devel] [PATCH v6 5/6] ext4: disable map_sync for async
  flush
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.65.16.97, 10.4.195.5]
-Thread-Topic: disable map_sync for async flush
-Thread-Index: hzHU3DAHAk2/uAw7Awgzqlnlwh05uw==
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.48]); Wed, 24 Apr 2019 05:10:29 +0000 (UTC)
+X-Originating-IP: [10.65.16.97, 10.4.195.9]
+Thread-Topic: ext4: disable map_sync for async flush
+Thread-Index: I6R5hXfMlzDnCoWVf4J0x3p7zay/cA==
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.39]); Wed, 24 Apr 2019 05:21:45 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424051028.jCdQ7UiLlYyouD4JI86W8kLkCnWaFp3fSQ5WkBC4NP4@z>
+Message-ID: <20190424052144.l7ZC-l28l2uvjt_x1__-TFExxQJBQ52dlXMH7f0E0_Y@z>
 
 
 > 
-> On Wed, Apr 24, 2019 at 08:02:17AM +1000, Dave Chinner wrote:
-> > On Tue, Apr 23, 2019 at 01:36:12PM +0530, Pankaj Gupta wrote:
-> > > Dont support 'MAP_SYNC' with non-DAX files and DAX files
-> > > with asynchronous dax_device. Virtio pmem provides
-> > > asynchronous host page cache flush mechanism. We don't
-> > > support 'MAP_SYNC' with virtio pmem and xfs.
-> > > 
-> > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> > > ---
-> > >  fs/xfs/xfs_file.c | 10 ++++++----
-> > >  1 file changed, 6 insertions(+), 4 deletions(-)
-> > > 
-> > > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> > > index 1f2e2845eb76..0e59be018511 100644
-> > > --- a/fs/xfs/xfs_file.c
-> > > +++ b/fs/xfs/xfs_file.c
-> > > @@ -1196,11 +1196,13 @@ xfs_file_mmap(
-> > >  	struct file	*filp,
-> > >  	struct vm_area_struct *vma)
-> > >  {
-> > > -	/*
-> > > -	 * We don't support synchronous mappings for non-DAX files. At least
-> > > -	 * until someone comes with a sensible use case.
-> > > +	struct dax_device *dax_dev = xfs_find_daxdev_for_inode
-> > > +						(file_inode(filp));
+> On Tue 23-04-19 13:36:11, Pankaj Gupta wrote:
+> > Dont support 'MAP_SYNC' with non-DAX files and DAX files
+> > with asynchronous dax_device. Virtio pmem provides
+> > asynchronous host page cache flush mechanism. We don't
+> > support 'MAP_SYNC' with virtio pmem and ext4.
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 > 
->     tab separation here ^^^                   ^^^^ and cut
->                                                        down the indent
->                                              while you're at
-> 						    it, please:
+> The patch looks good to me. You can add:
 > 
-> 	struct dax_device	*dax_dev;
-> 
-> 	dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
-> 	if (!dax_is_frobbed(dax))
-> 		return -EMEWANTCOOKIE;
+> Reviewed-by: Jan Kara <jack@suse.cz>
 
-Done. 
+Thank you. Will add this.
 
-Thanks,
+Best regards,
 Pankaj
 
 > 
-> --D
+> 								Honza
 > 
-> > > +
-> > > +	/* We don't support synchronous mappings for non-DAX files and
-> > > +	 * for DAX files if underneath dax_device is not synchronous.
-> > >  	 */
+> 
+> > ---
+> >  fs/ext4/file.c | 11 ++++++-----
+> >  1 file changed, 6 insertions(+), 5 deletions(-)
 > > 
-> > 	/*
-> > 	 * This is the correct multi-line comment format. Please
-> > 	 * update the patch to maintain the existing comment format.
-> > 	 */
-> > 
-> > Cheers,
-> > 
-> > Dave.
+> > diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> > index 69d65d49837b..4b2ccaf1932e 100644
+> > --- a/fs/ext4/file.c
+> > +++ b/fs/ext4/file.c
+> > @@ -360,15 +360,16 @@ static const struct vm_operations_struct
+> > ext4_file_vm_ops = {
+> >  static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+> >  {
+> >  	struct inode *inode = file->f_mapping->host;
+> > +	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
+> > +	struct dax_device *dax_dev = sbi->s_daxdev;
+> >  
+> > -	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
+> > +	if (unlikely(ext4_forced_shutdown(sbi)))
+> >  		return -EIO;
+> >  
+> > -	/*
+> > -	 * We don't support synchronous mappings for non-DAX files. At least
+> > -	 * until someone comes with a sensible use case.
+> > +	/* We don't support synchronous mappings for non-DAX files and
+> > +	 * for DAX files if underneath dax_device is not synchronous.
+> >  	 */
+> > -	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
+> > +	if (!daxdev_mapping_supported(vma, dax_dev))
+> >  		return -EOPNOTSUPP;
+> >  
+> >  	file_accessed(file);
 > > --
-> > Dave Chinner
-> > david@fromorbit.com
+> > 2.20.1
+> > 
+> --
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
 > 
 > 
