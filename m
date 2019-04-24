@@ -2,118 +2,285 @@ Return-Path: <SRS0=Qzs7=S2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C93EC10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 07:20:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94C36C10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 08:03:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16E2120685
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 07:20:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1556090443;
-	bh=rni+V//AQhwJI60hOiEBtbHqeDGaouyP06UShjZshgs=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=xcuehnw1snXfcpllFxCzVBlRZXp9983GMrird9Pou8LmdU/yNpOptGLnjvk4RINk+
-	 Rbopli11N1/hDyptL4d3FFMsTARvKpcauw4B8i4RGBBH/zY8q2yyVbSYo8Lc9MTcCv
-	 7HnVJh27yfzE1e7sp/yDVSY+lz/OrpVbv6Nfng38=
+	by mail.kernel.org (Postfix) with ESMTP id 6553F218D3
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 08:03:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728927AbfDXHUm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 03:20:42 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:45440 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728904AbfDXHUm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 03:20:42 -0400
-Received: by mail-oi1-f196.google.com with SMTP id y84so13416959oia.12;
-        Wed, 24 Apr 2019 00:20:42 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qlz/jTFbB35TazHt6RURpEdEs+qLpXbIqgsneSLwibs=;
-        b=VwO+toLqNpbRqXu3VtCvM+P3dwS4HB0jO3h69CZ2Ij5tQ15A+i4mBHewjSaxLPuP2S
-         if3wJr5tj/7mPt3GujufjYZBB1u7g/DSn5Q/FP97AXFrpPDsOyY3W4PTzeNLvHUCjNMo
-         aBh1Q3vFrUZJgJ6C0DZh1OXL1emw4sGx3Zmh1TpDZg2NRv0xkNGRmMwAse0mqVkCFwsj
-         13LYJJ65sG5S+I0P0Gj/y2nGKLG/NvyE37BnvBs49vIIB9+sgVn0+J9IoNBRI5camlU+
-         xuN8AE4NaGZU5eQCKKk9gCfhArE5UojfOCyT+IT3WXUupFsmoIUQePu76IAjNVOoZiEX
-         J47Q==
-X-Gm-Message-State: APjAAAVU5tJpM7k1x56R4zFtib354605cppO7ZqznYaBfPeTyCA/nwhi
-        qjghOR0IziE5+AyO0935ES9AFm0d8IYCeClFUfI=
-X-Google-Smtp-Source: APXvYqybS7c6y+CMjsK6KfZdX0AjHN7GPWCDQkmNbWb7gjc0hpRXuytL6tBsi4NHFhKo0TFX9ZfnC1xrT+GGi+7cdZE=
-X-Received: by 2002:aca:6c47:: with SMTP id h68mr4966666oic.57.1556090441401;
- Wed, 24 Apr 2019 00:20:41 -0700 (PDT)
+        id S1728095AbfDXIDX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 04:03:23 -0400
+Received: from mga14.intel.com ([192.55.52.115]:44317 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726451AbfDXIDW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Apr 2019 04:03:22 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Apr 2019 00:58:19 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,389,1549958400"; 
+   d="scan'208";a="167416330"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
+  by fmsmga001.fm.intel.com with SMTP; 24 Apr 2019 00:58:16 -0700
+Received: by lahna (sSMTP sendmail emulation); Wed, 24 Apr 2019 10:58:16 +0300
+Date:   Wed, 24 Apr 2019 10:58:16 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Jan Kiszka <jan.kiszka@siemens.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
+Message-ID: <20190424075816.GU2654@lahna.fi.intel.com>
+References: <cover.1555579429.git.jan.kiszka@siemens.com>
+ <c9f40465c6effc7b8efd6cbf8461d71d80c80033.1555579429.git.jan.kiszka@siemens.com>
 MIME-Version: 1.0
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
- <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com> <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
- <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com> <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
- <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com> <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
- <CAJZ5v0j9U20cFbRx6QKeQv6wyDg6nL71L0U_Rec5+W1JoD8-=w@mail.gmail.com> <144b56d4-54e6-bccd-4652-22303bcd9168@uwyo.edu>
-In-Reply-To: <144b56d4-54e6-bccd-4652-22303bcd9168@uwyo.edu>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 24 Apr 2019 09:20:28 +0200
-Message-ID:
- <CAJZ5v0jJEovXXiqs-tzPC7FsGjGL+qxfXCxbTrQZqAxSCv1oyQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-To:     "Robert R. Howell" <RHowell@uwyo.edu>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <c9f40465c6effc7b8efd6cbf8461d71d80c80033.1555579429.git.jan.kiszka@siemens.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424072028.IGucMQ_K-H_hZYOjdMlq5W4CMCMX8FvhULpUrww_5cU@z>
+Message-ID: <20190424075816.QbPhvMJnezOvY9fNN5geHPOyM9qZdo7Vx5C6Fo1TroA@z>
 
-On Tue, Apr 23, 2019 at 10:03 PM Robert R. Howell <RHowell@uwyo.edu> wrote:
->
-> On 4/23/19 2:07 AM, Rafael J. Wysocki wrote:
-> >
-> > On Sat, Apr 20, 2019 at 12:44 AM Robert R. Howell <RHowell@uwyo.edu> wrote:
-> >>
-> >> On 4/18/19 5:42 AM, Hans de Goede wrote:
-> >>
-> >>>> On 4/8/19 2:16 AM, Hans de Goede wrote:>
-> >>>>>
-> >>>>> Hmm, interesting so you have hibernation working on a T100TA
-> >>>>> (with 5.0 + 02e45646d53b reverted), right ?
-> >>>>>
-> >>
-> >>
-> >> I've managed to find a way around the i2c_designware timeout issues
-> >> on the T100TA's.  The key is to NOT set DPM_FLAG_SMART_SUSPEND,
-> >> which was added in the 02e45646d53b commit.
-> >>
-> >> To test that I've started with a 5.1-rc5 kernel, applied your recent patch
-> >> to acpi_lpss.c, then apply the following patch of mine, removing
-> >> DPM_FLAG_SMART_SUSPEND.  (For the T100 hardware I need to apply some
-> >> other patches as well but those are not related to the i2c-designware or
-> >> acpi issues addressed here.)
-> >>
-> >> On a resume from hibernation I still see one error:
-> >>   "i2c_designware 80860F41:00: Error i2c_dw_xfer called while suspended"
-> >> but I no longer get the i2c_designware timeouts, and audio does now work
-> >> after the resume.
-> >>
-> >> Removing DPM_FLAG_SMART_SUSPEND may not be what you want for other
-> >> hardware, but perhaps this will give you a clue as to what is going
-> >> wrong with hibernate/resume on the T100TA's.
-> >
-> > What if you drop DPM_FLAG_LEAVE_SUSPENDED alone instead?
-> >
->
-> I did try dropping just DPM_FLAG_LEAVE_SUSPENDED, dropping just
-> DPM_FLAG_SMART_SUSPEND, and dropping both flags.  When I just drop
-> DPM_FLAG_LEAVE_SUSPENDED I still get the i2c_designware timeouts
-> after the resume.  If I drop just DPM_FLAG_SMART_SUSPEND or drop both,
-> then the timeouts go away.
++Rafael and linux-acpi.
 
-OK, thanks!
+On Thu, Apr 18, 2019 at 11:23:49AM +0200, Jan Kiszka wrote:
+> From: Jan Kiszka <jan.kiszka@siemens.com>
+> 
+> Validated on the Quark platform, this adds interrupt support on rising
+> and/or falling edges.
 
-Is non-hibernation system suspend affected too?
+The irqchip parts look good to me but but the ACPI SCI handling seems
+weird. This is typically handled by ACPI core based on the values read
+from FADT ACPI table. What does it contain on this Quark platform?
+
+> Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+> ---
+>  drivers/gpio/gpio-sch.c | 142 +++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 135 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-sch.c b/drivers/gpio/gpio-sch.c
+> index fb143f28c386..9459f1920996 100644
+> --- a/drivers/gpio/gpio-sch.c
+> +++ b/drivers/gpio/gpio-sch.c
+> @@ -18,12 +18,17 @@
+>  #define GEN	0x00
+>  #define GIO	0x04
+>  #define GLV	0x08
+> +#define GTPE	0x0c
+> +#define GTNE	0x10
+> +#define GGPE	0x14
+> +#define GTS	0x1c
+>  
+>  struct sch_gpio {
+>  	struct gpio_chip chip;
+>  	spinlock_t lock;
+>  	unsigned short iobase;
+>  	unsigned short resume_base;
+> +	int irq_base;
+>  };
+>  
+>  static unsigned sch_gpio_offset(struct sch_gpio *sch, unsigned gpio,
+> @@ -79,10 +84,11 @@ static void sch_gpio_reg_set(struct sch_gpio *sch, unsigned gpio, unsigned reg,
+>  static int sch_gpio_direction_in(struct gpio_chip *gc, unsigned gpio_num)
+>  {
+>  	struct sch_gpio *sch = gpiochip_get_data(gc);
+> +	unsigned long flags;
+>  
+> -	spin_lock(&sch->lock);
+> +	spin_lock_irqsave(&sch->lock, flags);
+>  	sch_gpio_reg_set(sch, gpio_num, GIO, 1);
+> -	spin_unlock(&sch->lock);
+> +	spin_unlock_irqrestore(&sch->lock, flags);
+>  	return 0;
+>  }
+>  
+> @@ -95,20 +101,22 @@ static int sch_gpio_get(struct gpio_chip *gc, unsigned gpio_num)
+>  static void sch_gpio_set(struct gpio_chip *gc, unsigned gpio_num, int val)
+>  {
+>  	struct sch_gpio *sch = gpiochip_get_data(gc);
+> +	unsigned long flags;
+>  
+> -	spin_lock(&sch->lock);
+> +	spin_lock_irqsave(&sch->lock, flags);
+>  	sch_gpio_reg_set(sch, gpio_num, GLV, val);
+> -	spin_unlock(&sch->lock);
+> +	spin_unlock_irqrestore(&sch->lock, flags);
+>  }
+>  
+>  static int sch_gpio_direction_out(struct gpio_chip *gc, unsigned gpio_num,
+>  				  int val)
+>  {
+>  	struct sch_gpio *sch = gpiochip_get_data(gc);
+> +	unsigned long flags;
+>  
+> -	spin_lock(&sch->lock);
+> +	spin_lock_irqsave(&sch->lock, flags);
+>  	sch_gpio_reg_set(sch, gpio_num, GIO, 0);
+> -	spin_unlock(&sch->lock);
+> +	spin_unlock_irqrestore(&sch->lock, flags);
+>  
+>  	/*
+>  	 * according to the datasheet, writing to the level register has no
+> @@ -130,6 +138,12 @@ static int sch_gpio_get_direction(struct gpio_chip *gc, unsigned gpio_num)
+>  	return sch_gpio_reg_get(sch, gpio_num, GIO);
+>  }
+>  
+> +static int sch_gpio_to_irq(struct gpio_chip *gpio, unsigned int offset)
+> +{
+> +	struct sch_gpio *sch = gpiochip_get_data(gpio);
+> +	return sch->irq_base + offset;
+> +}
+> +
+>  static const struct gpio_chip sch_gpio_chip = {
+>  	.label			= "sch_gpio",
+>  	.owner			= THIS_MODULE,
+> @@ -138,12 +152,94 @@ static const struct gpio_chip sch_gpio_chip = {
+>  	.direction_output	= sch_gpio_direction_out,
+>  	.set			= sch_gpio_set,
+>  	.get_direction		= sch_gpio_get_direction,
+> +	.to_irq			= sch_gpio_to_irq,
+>  };
+>  
+> +static u32 sch_sci_handler(void *context)
+> +{
+> +	struct sch_gpio *sch = context;
+> +	unsigned long core_status, resume_status;
+> +	unsigned int resume_gpios, offset;
+> +
+> +	core_status = inl(sch->iobase + GTS);
+> +	resume_status = inl(sch->iobase + GTS + 0x20);
+> +
+> +	if (core_status == 0 && resume_status == 0)
+> +		return ACPI_INTERRUPT_NOT_HANDLED;
+> +
+> +	for_each_set_bit(offset, &core_status, sch->resume_base)
+> +		generic_handle_irq(sch->irq_base + offset);
+> +
+> +	resume_gpios = sch->chip.ngpio - sch->resume_base;
+> +	for_each_set_bit(offset, &resume_status, resume_gpios)
+> +		generic_handle_irq(sch->irq_base + sch->resume_base + offset);
+> +
+> +	outl(core_status, sch->iobase + GTS);
+> +	outl(resume_status, sch->iobase + GTS + 0x20);
+> +
+> +	return ACPI_INTERRUPT_HANDLED;
+> +}
+> +
+> +static int sch_irq_type(struct irq_data *d, unsigned int type)
+> +{
+> +	struct irq_chip_generic *gc = irq_data_get_irq_chip_data(d);
+> +	struct sch_gpio *sch = gc->private;
+> +	unsigned int gpio_num = d->irq - sch->irq_base;
+> +	int rising = 0;
+> +	int falling = 0;
+> +
+> +	switch (type & IRQ_TYPE_SENSE_MASK) {
+> +	case IRQ_TYPE_EDGE_RISING:
+> +		rising = 1;
+> +		break;
+> +	case IRQ_TYPE_EDGE_FALLING:
+> +		falling = 1;
+> +		break;
+> +	case IRQ_TYPE_EDGE_BOTH:
+> +		rising = 1;
+> +		falling = 1;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	spin_lock(&sch->lock);
+> +	sch_gpio_reg_set(sch, gpio_num, GTPE, rising);
+> +	sch_gpio_reg_set(sch, gpio_num, GTNE, falling);
+> +	spin_unlock(&sch->lock);
+> +
+> +	return 0;
+> +}
+> +
+> +static void sch_irq_set_enable(struct irq_data *d, int val)
+> +{
+> +	struct irq_chip_generic *gc = irq_data_get_irq_chip_data(d);
+> +	struct sch_gpio *sch = gc->private;
+> +	unsigned int gpio_num = d->irq - sch->irq_base;
+> +
+> +	spin_lock(&sch->lock);
+> +	sch_gpio_reg_set(sch, gpio_num, GGPE, val);
+> +	spin_unlock(&sch->lock);
+> +}
+> +
+> +static void sch_irq_mask(struct irq_data *d)
+> +{
+> +	sch_irq_set_enable(d, 0);
+> +}
+> +
+> +static void sch_irq_unmask(struct irq_data *d)
+> +{
+> +	sch_irq_set_enable(d, 1);
+> +}
+> +
+>  static int sch_gpio_probe(struct platform_device *pdev)
+>  {
+> +	struct irq_chip_generic *gc;
+> +	struct irq_chip_type *ct;
+>  	struct sch_gpio *sch;
+>  	struct resource *res;
+> +	acpi_status status;
+> +	int irq_base, ret;
+>  
+>  	sch = devm_kzalloc(&pdev->dev, sizeof(*sch), GFP_KERNEL);
+>  	if (!sch)
+> @@ -203,7 +299,39 @@ static int sch_gpio_probe(struct platform_device *pdev)
+>  
+>  	platform_set_drvdata(pdev, sch);
+>  
+> -	return devm_gpiochip_add_data(&pdev->dev, &sch->chip, sch);
+> +	ret = devm_gpiochip_add_data(&pdev->dev, &sch->chip, sch);
+> +	if (ret)
+> +		return ret;
+> +
+> +	irq_base = devm_irq_alloc_descs(&pdev->dev, -1, 0, sch->chip.ngpio,
+> +					NUMA_NO_NODE);
+> +	if (irq_base < 0)
+> +		return irq_base;
+> +	sch->irq_base = irq_base;
+> +
+> +	gc = devm_irq_alloc_generic_chip(&pdev->dev, "sch_gpio", 1, irq_base,
+> +					 NULL, handle_simple_irq);
+> +	if (!gc)
+> +		return -ENOMEM;
+> +
+> +	gc->private = sch;
+> +	ct = gc->chip_types;
+> +
+> +	ct->chip.irq_mask = sch_irq_mask;
+> +	ct->chip.irq_unmask = sch_irq_unmask;
+> +	ct->chip.irq_set_type = sch_irq_type;
+> +
+> +	ret = devm_irq_setup_generic_chip(&pdev->dev, gc,
+> +					  IRQ_MSK(sch->chip.ngpio),
+> +					  0, IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+> +	if (ret)
+> +		return ret;
+> +
+> +	status = acpi_install_sci_handler(sch_sci_handler, sch);
+> +	if (ACPI_FAILURE(status))
+> +		return -EINVAL;
+> +
+> +	return 0;
+>  }
+>  
+>  static struct platform_driver sch_gpio_driver = {
+> -- 
+> 2.16.4
