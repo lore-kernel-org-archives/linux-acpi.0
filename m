@@ -2,131 +2,118 @@ Return-Path: <SRS0=Qzs7=S2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97EA6C282CE
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 05:21:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C93EC10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 07:20:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F707218D2
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 05:21:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16E2120685
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 07:20:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1556090443;
+	bh=rni+V//AQhwJI60hOiEBtbHqeDGaouyP06UShjZshgs=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=xcuehnw1snXfcpllFxCzVBlRZXp9983GMrird9Pou8LmdU/yNpOptGLnjvk4RINk+
+	 Rbopli11N1/hDyptL4d3FFMsTARvKpcauw4B8i4RGBBH/zY8q2yyVbSYo8Lc9MTcCv
+	 7HnVJh27yfzE1e7sp/yDVSY+lz/OrpVbv6Nfng38=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728775AbfDXFVp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 01:21:45 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:33256 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726184AbfDXFVp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 Apr 2019 01:21:45 -0400
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id EE0839D51C;
-        Wed, 24 Apr 2019 05:21:44 +0000 (UTC)
-Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id D21345D719;
-        Wed, 24 Apr 2019 05:21:44 +0000 (UTC)
-Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
-        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 7A2163FB10;
-        Wed, 24 Apr 2019 05:21:44 +0000 (UTC)
-Date:   Wed, 24 Apr 2019 01:21:44 -0400 (EDT)
-From:   Pankaj Gupta <pagupta@redhat.com>
-To:     Jan Kara <jack@suse.cz>
-Cc:     cohuck@redhat.com, kvm@vger.kernel.org, mst@redhat.com,
-        jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org,
-        virtualization@lists.linux-foundation.org,
-        adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org,
-        aarcange@redhat.com, dave jiang <dave.jiang@intel.com>,
-        linux-nvdimm@lists.01.org,
-        vishal l verma <vishal.l.verma@intel.com>, david@redhat.com,
-        willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org,
-        jmoyer@redhat.com, linux-ext4@vger.kernel.org, lenb@kernel.org,
-        kilobyte@angband.pl, riel@surriel.com,
-        yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com,
-        pbonzini@redhat.com, dan j williams <dan.j.williams@intel.com>,
-        lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com,
-        tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
-        darrick wong <darrick.wong@oracle.com>, rjw@rjwysocki.net,
-        linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, imammedo@redhat.com
-Message-ID: <1325148804.23168491.1556083304080.JavaMail.zimbra@redhat.com>
-In-Reply-To: <20190423142748.GE9910@quack2.suse.cz>
-References: <20190423080612.15361-1-pagupta@redhat.com> <20190423080612.15361-6-pagupta@redhat.com> <20190423142748.GE9910@quack2.suse.cz>
-Subject: Re: [Qemu-devel] [PATCH v6 5/6] ext4: disable map_sync for async
- flush
+        id S1728927AbfDXHUm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 03:20:42 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:45440 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728904AbfDXHUm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 03:20:42 -0400
+Received: by mail-oi1-f196.google.com with SMTP id y84so13416959oia.12;
+        Wed, 24 Apr 2019 00:20:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=qlz/jTFbB35TazHt6RURpEdEs+qLpXbIqgsneSLwibs=;
+        b=VwO+toLqNpbRqXu3VtCvM+P3dwS4HB0jO3h69CZ2Ij5tQ15A+i4mBHewjSaxLPuP2S
+         if3wJr5tj/7mPt3GujufjYZBB1u7g/DSn5Q/FP97AXFrpPDsOyY3W4PTzeNLvHUCjNMo
+         aBh1Q3vFrUZJgJ6C0DZh1OXL1emw4sGx3Zmh1TpDZg2NRv0xkNGRmMwAse0mqVkCFwsj
+         13LYJJ65sG5S+I0P0Gj/y2nGKLG/NvyE37BnvBs49vIIB9+sgVn0+J9IoNBRI5camlU+
+         xuN8AE4NaGZU5eQCKKk9gCfhArE5UojfOCyT+IT3WXUupFsmoIUQePu76IAjNVOoZiEX
+         J47Q==
+X-Gm-Message-State: APjAAAVU5tJpM7k1x56R4zFtib354605cppO7ZqznYaBfPeTyCA/nwhi
+        qjghOR0IziE5+AyO0935ES9AFm0d8IYCeClFUfI=
+X-Google-Smtp-Source: APXvYqybS7c6y+CMjsK6KfZdX0AjHN7GPWCDQkmNbWb7gjc0hpRXuytL6tBsi4NHFhKo0TFX9ZfnC1xrT+GGi+7cdZE=
+X-Received: by 2002:aca:6c47:: with SMTP id h68mr4966666oic.57.1556090441401;
+ Wed, 24 Apr 2019 00:20:41 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com> <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com> <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+ <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com> <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
+ <CAJZ5v0j9U20cFbRx6QKeQv6wyDg6nL71L0U_Rec5+W1JoD8-=w@mail.gmail.com> <144b56d4-54e6-bccd-4652-22303bcd9168@uwyo.edu>
+In-Reply-To: <144b56d4-54e6-bccd-4652-22303bcd9168@uwyo.edu>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 24 Apr 2019 09:20:28 +0200
+Message-ID:
+ <CAJZ5v0jJEovXXiqs-tzPC7FsGjGL+qxfXCxbTrQZqAxSCv1oyQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+To:     "Robert R. Howell" <RHowell@uwyo.edu>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.65.16.97, 10.4.195.9]
-Thread-Topic: ext4: disable map_sync for async flush
-Thread-Index: I6R5hXfMlzDnCoWVf4J0x3p7zay/cA==
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.39]); Wed, 24 Apr 2019 05:21:45 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424052144.l7ZC-l28l2uvjt_x1__-TFExxQJBQ52dlXMH7f0E0_Y@z>
+Message-ID: <20190424072028.IGucMQ_K-H_hZYOjdMlq5W4CMCMX8FvhULpUrww_5cU@z>
 
+On Tue, Apr 23, 2019 at 10:03 PM Robert R. Howell <RHowell@uwyo.edu> wrote:
+>
+> On 4/23/19 2:07 AM, Rafael J. Wysocki wrote:
+> >
+> > On Sat, Apr 20, 2019 at 12:44 AM Robert R. Howell <RHowell@uwyo.edu> wrote:
+> >>
+> >> On 4/18/19 5:42 AM, Hans de Goede wrote:
+> >>
+> >>>> On 4/8/19 2:16 AM, Hans de Goede wrote:>
+> >>>>>
+> >>>>> Hmm, interesting so you have hibernation working on a T100TA
+> >>>>> (with 5.0 + 02e45646d53b reverted), right ?
+> >>>>>
+> >>
+> >>
+> >> I've managed to find a way around the i2c_designware timeout issues
+> >> on the T100TA's.  The key is to NOT set DPM_FLAG_SMART_SUSPEND,
+> >> which was added in the 02e45646d53b commit.
+> >>
+> >> To test that I've started with a 5.1-rc5 kernel, applied your recent patch
+> >> to acpi_lpss.c, then apply the following patch of mine, removing
+> >> DPM_FLAG_SMART_SUSPEND.  (For the T100 hardware I need to apply some
+> >> other patches as well but those are not related to the i2c-designware or
+> >> acpi issues addressed here.)
+> >>
+> >> On a resume from hibernation I still see one error:
+> >>   "i2c_designware 80860F41:00: Error i2c_dw_xfer called while suspended"
+> >> but I no longer get the i2c_designware timeouts, and audio does now work
+> >> after the resume.
+> >>
+> >> Removing DPM_FLAG_SMART_SUSPEND may not be what you want for other
+> >> hardware, but perhaps this will give you a clue as to what is going
+> >> wrong with hibernate/resume on the T100TA's.
+> >
+> > What if you drop DPM_FLAG_LEAVE_SUSPENDED alone instead?
+> >
+>
+> I did try dropping just DPM_FLAG_LEAVE_SUSPENDED, dropping just
+> DPM_FLAG_SMART_SUSPEND, and dropping both flags.  When I just drop
+> DPM_FLAG_LEAVE_SUSPENDED I still get the i2c_designware timeouts
+> after the resume.  If I drop just DPM_FLAG_SMART_SUSPEND or drop both,
+> then the timeouts go away.
 
-> 
-> On Tue 23-04-19 13:36:11, Pankaj Gupta wrote:
-> > Dont support 'MAP_SYNC' with non-DAX files and DAX files
-> > with asynchronous dax_device. Virtio pmem provides
-> > asynchronous host page cache flush mechanism. We don't
-> > support 'MAP_SYNC' with virtio pmem and ext4.
-> > 
-> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> 
-> The patch looks good to me. You can add:
-> 
-> Reviewed-by: Jan Kara <jack@suse.cz>
+OK, thanks!
 
-Thank you. Will add this.
-
-Best regards,
-Pankaj
-
-> 
-> 								Honza
-> 
-> 
-> > ---
-> >  fs/ext4/file.c | 11 ++++++-----
-> >  1 file changed, 6 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-> > index 69d65d49837b..4b2ccaf1932e 100644
-> > --- a/fs/ext4/file.c
-> > +++ b/fs/ext4/file.c
-> > @@ -360,15 +360,16 @@ static const struct vm_operations_struct
-> > ext4_file_vm_ops = {
-> >  static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
-> >  {
-> >  	struct inode *inode = file->f_mapping->host;
-> > +	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
-> > +	struct dax_device *dax_dev = sbi->s_daxdev;
-> >  
-> > -	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-> > +	if (unlikely(ext4_forced_shutdown(sbi)))
-> >  		return -EIO;
-> >  
-> > -	/*
-> > -	 * We don't support synchronous mappings for non-DAX files. At least
-> > -	 * until someone comes with a sensible use case.
-> > +	/* We don't support synchronous mappings for non-DAX files and
-> > +	 * for DAX files if underneath dax_device is not synchronous.
-> >  	 */
-> > -	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-> > +	if (!daxdev_mapping_supported(vma, dax_dev))
-> >  		return -EOPNOTSUPP;
-> >  
-> >  	file_accessed(file);
-> > --
-> > 2.20.1
-> > 
-> --
-> Jan Kara <jack@suse.com>
-> SUSE Labs, CR
-> 
-> 
+Is non-hibernation system suspend affected too?
