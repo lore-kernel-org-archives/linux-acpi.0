@@ -1,16 +1,16 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH v4 21/63] Documentation: ACPI: move cppc_sysfs.txt to
- admin-guide/acpi and convert to reST
-Date: Thu, 25 Apr 2019 01:22:34 +0800
-Message-ID: <20190424172232.qtzogm6sweaa4gva@mail.google.com>
+Subject: Re: [PATCH v4 24/63] Documentation: ACPI: move video_extension.txt
+ to firmware-guide/acpi and convert to reST
+Date: Thu, 25 Apr 2019 01:31:47 +0800
+Message-ID: <20190424173146.b7vwdswl3btxyq7p@mail.google.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
- <20190423162932.21428-22-changbin.du@gmail.com>
- <20190424114844.5de4cfa5@coco.lan>
+ <20190423162932.21428-25-changbin.du@gmail.com>
+ <20190424115647.092dec38@coco.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
 Content-Disposition: inline
-In-Reply-To: <20190424114844.5de4cfa5@coco.lan>
+In-Reply-To: <20190424115647.092dec38@coco.lan>
 List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
  <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
@@ -25,8 +25,8 @@ To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc: fenghua.yu@intel.com, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-pci@vger.kernel.org, linux-gpio@vger.kernel.org, linux-doc@vger.kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, Bjorn Helgaas <bhelgaas@google.com>, tglx@linutronix.de, linuxppc-dev@lists.ozlabs.org, Changbin Du <changbin.du@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 24, 2019 at 11:48:44AM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 24 Apr 2019 00:28:50 +0800
+On Wed, Apr 24, 2019 at 11:56:47AM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 24 Apr 2019 00:28:53 +0800
 > Changbin Du <changbin.du@gmail.com> escreveu:
 > 
 > > This converts the plain text documentation to reStructuredText format and
@@ -34,176 +34,188 @@ On Wed, Apr 24, 2019 at 11:48:44AM -0300, Mauro Carvalho Chehab wrote:
 > > 
 > > Signed-off-by: Changbin Du <changbin.du@gmail.com>
 > > ---
-> >  .../acpi/cppc_sysfs.rst}                      | 71 ++++++++++---------
-> >  Documentation/admin-guide/acpi/index.rst      |  1 +
-> >  2 files changed, 40 insertions(+), 32 deletions(-)
-> >  rename Documentation/{acpi/cppc_sysfs.txt => admin-guide/acpi/cppc_sysfs.rst} (51%)
+> >  Documentation/firmware-guide/acpi/index.rst   |  1 +
+> >  .../acpi/video_extension.rst}                 | 63 ++++++++++---------
+> >  2 files changed, 36 insertions(+), 28 deletions(-)
+> >  rename Documentation/{acpi/video_extension.txt => firmware-guide/acpi/video_extension.rst} (79%)
 > > 
-> > diff --git a/Documentation/acpi/cppc_sysfs.txt b/Documentation/admin-guide/acpi/cppc_sysfs.rst
-> > similarity index 51%
-> > rename from Documentation/acpi/cppc_sysfs.txt
-> > rename to Documentation/admin-guide/acpi/cppc_sysfs.rst
-> > index f20fb445135d..a4b99afbe331 100644
-> > --- a/Documentation/acpi/cppc_sysfs.txt
-> > +++ b/Documentation/admin-guide/acpi/cppc_sysfs.rst
-> > @@ -1,5 +1,11 @@
+> > diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+> > index 0e60f4b7129a..ae609eec4679 100644
+> > --- a/Documentation/firmware-guide/acpi/index.rst
+> > +++ b/Documentation/firmware-guide/acpi/index.rst
+> > @@ -23,3 +23,4 @@ ACPI Support
+> >     i2c-muxes
+> >     acpi-lid
+> >     lpit
+> > +   video_extension
+> > diff --git a/Documentation/acpi/video_extension.txt b/Documentation/firmware-guide/acpi/video_extension.rst
+> > similarity index 79%
+> > rename from Documentation/acpi/video_extension.txt
+> > rename to Documentation/firmware-guide/acpi/video_extension.rst
+> > index 79bf6a4921be..06f7e3230b6e 100644
+> > --- a/Documentation/acpi/video_extension.txt
+> > +++ b/Documentation/firmware-guide/acpi/video_extension.rst
+> > @@ -1,5 +1,8 @@
 > > +.. SPDX-License-Identifier: GPL-2.0
-> >  
-> > -	Collaborative Processor Performance Control (CPPC)
-> > +==================================================
-> > +Collaborative Processor Performance Control (CPPC)
-> > +==================================================
 > > +
-> > +CPPC
-> > +====
+> > +=====================
+> >  ACPI video extensions
+> > -~~~~~~~~~~~~~~~~~~~~~
+> > +=====================
 > >  
-> >  CPPC defined in the ACPI spec describes a mechanism for the OS to manage the
-> >  performance of a logical processor on a contigious and abstract performance
-> > @@ -10,31 +16,28 @@ For more details on CPPC please refer to the ACPI specification at:
+> >  This driver implement the ACPI Extensions For Display Adapters for
+> >  integrated graphics devices on motherboard, as specified in ACPI 2.0
+> > @@ -8,9 +11,10 @@ defining the video POST device, retrieving EDID information or to
+> >  setup a video output, etc.  Note that this is an ref. implementation
+> >  only.  It may or may not work for your integrated video device.
 > >  
-> >  http://uefi.org/specifications
+> > -The ACPI video driver does 3 things regarding backlight control:
+> > +The ACPI video driver does 3 things regarding backlight control.
 > >  
-> > -Some of the CPPC registers are exposed via sysfs under:
-> > -
-> > -/sys/devices/system/cpu/cpuX/acpi_cppc/
-> > -
+> > -1 Export a sysfs interface for user space to control backlight level
+> > +1. Export a sysfs interface for user space to control backlight level
+> > +=====================================================================
+> >  
+> >  If the ACPI table has a video device, and acpi_backlight=vendor kernel
+> >  command line is not present, the driver will register a backlight device
 > 
+> Hmm... you didn't touch on this part of the document:
 > 
-> > -for each cpu X
+> 	And what ACPI video driver does is:
+> 	actual_brightness: on read, control method _BQC will be evaluated to
+> 	get the brightness level the firmware thinks it is at;
+> 	bl_power: not implemented, will set the current brightness instead;
+> 	brightness: on write, control method _BCM will run to set the requested
+> 	brightness level;
+> 	max_brightness: Derived from the _BCL package(see below);
+> 	type: firmware
 > 
-> Hmm... removed by mistake?
+> You should touch it. My suggestion here is:
+> 
+> 	And what ACPI video driver does is:
+> 
+> 	actual_brightness:
+> 		on read, control method _BQC will be evaluated to
+> 		get the brightness level the firmware thinks it is at;
+> 	bl_power:
+> 		not implemented, will set the current brightness instead;
+> 	brightness:
+> 		on write, control method _BCM will run to set the requested
+> 		brightness level;
+> 	max_brightness:
+> 		Derived from the _BCL package(see below);
+> 	type:
+> 		firmware
 >
-I comfirmed that no content removed.
+Thanks, done.
 
-> > +Some of the CPPC registers are exposed via sysfs under::
+> > @@ -32,26 +36,26 @@ type: firmware
 > >  
-> > ---------------------------------------------------------------------------------
-> > +  /sys/devices/system/cpu/cpuX/acpi_cppc/
-> 
-> Did you parse this with Sphinx? It doesn't sound a valid ReST construction
-> to my eyes, as:
-> 
-> 1) I've seen some versions of Sphinx to abort with severe errors when 
->    there's no blank line after the horizontal bar markup;
-> 
-> 2) It will very likely ignore the "::" (I didn't test it myself), as you're
->    not indenting the horizontal bar. End of indentation will mean the end
->    of an (empty) literal block.
-> 
-> So, I would stick with:
-> 
-> 
-> 	Some of the CPPC registers are exposed via sysfs under:
-> 
-> 	  /sys/devices/system/cpu/cpuX/acpi_cppc/
-> 
-> 	---------------------------------------------------------------------------------
-> 
-> 	for each cpu X::
-> 
-> 
-> or:
-> 
-> 	Some of the CPPC registers are exposed via sysfs under:
-> 
-> 		/sys/devices/system/cpu/cpuX/acpi_cppc/
-> 
-> 	for each cpu X
-> 
-> 	--------------------------------------------------------------------------------
-> 
-> 	::
-> 
-> (with is closer to the original author's intent)
-> 
-> Same applies to the other similar changes on this document.
->
-I didn't seen any warning here and the generated html is good. So I think it is
-ok.
-
+> >  Note that ACPI video backlight driver will always use index for
+> >  brightness, actual_brightness and max_brightness. So if we have
+> > -the following _BCL package:
+> > +the following _BCL package::
 > >  
-> > -$ ls -lR  /sys/devices/system/cpu/cpu0/acpi_cppc/
-> > -/sys/devices/system/cpu/cpu0/acpi_cppc/:
-> > -total 0
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 feedback_ctrs
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 highest_perf
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_freq
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_nonlinear_perf
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_perf
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_freq
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_perf
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 reference_perf
-> > --r--r--r-- 1 root root 65536 Mar  5 19:38 wraparound_time
-> > +for each cpu X::
+> > -Method (_BCL, 0, NotSerialized)
+> > -{
+> > -	Return (Package (0x0C)
+> > +	Method (_BCL, 0, NotSerialized)
+> >  	{
+> > -		0x64,
+> > -		0x32,
+> > -		0x0A,
+> > -		0x14,
+> > -		0x1E,
+> > -		0x28,
+> > -		0x32,
+> > -		0x3C,
+> > -		0x46,
+> > -		0x50,
+> > -		0x5A,
+> > -		0x64
+> > -	})
+> > -}
+> > +		Return (Package (0x0C)
+> > +		{
+> > +			0x64,
+> > +			0x32,
+> > +			0x0A,
+> > +			0x14,
+> > +			0x1E,
+> > +			0x28,
+> > +			0x32,
+> > +			0x3C,
+> > +			0x46,
+> > +			0x50,
+> > +			0x5A,
+> > +			0x64
+> > +		})
+> > +	}
 > >  
-> > ---------------------------------------------------------------------------------
-> > +  $ ls -lR  /sys/devices/system/cpu/cpu0/acpi_cppc/
-> > +  /sys/devices/system/cpu/cpu0/acpi_cppc/:
-> > +  total 0
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 feedback_ctrs
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 highest_perf
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_freq
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_nonlinear_perf
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_perf
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_freq
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_perf
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 reference_perf
-> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 wraparound_time
+> >  The first two levels are for when laptop are on AC or on battery and are
+> >  not used by Linux currently. The remaining 10 levels are supported levels
+> > @@ -62,13 +66,15 @@ as a "brightness level" indicator. Thus from the user space perspective
+> >  the range of available brightness levels is from 0 to 9 (max_brightness)
+> >  inclusive.
 > >  
-> >  * highest_perf : Highest performance of this processor (abstract scale).
-> > -* nominal_perf : Highest sustained performance of this processor (abstract scale).
-> > +* nominal_perf : Highest sustained performance of this processor
-> > +  (abstract scale).
-> >  * lowest_nonlinear_perf : Lowest performance of this processor with nonlinear
-> >    power savings (abstract scale).
-> >  * lowest_perf : Lowest performance of this processor (abstract scale).
-> > @@ -48,22 +51,26 @@ total 0
-> >  * feedback_ctrs : Includes both Reference and delivered performance counter.
-> >    Reference counter ticks up proportional to processor's reference performance.
-> >    Delivered counter ticks up proportional to processor's delivered performance.
-> > -* wraparound_time: Minimum time for the feedback counters to wraparound (seconds).
-> > +* wraparound_time: Minimum time for the feedback counters to wraparound
-> > +  (seconds).
-> >  * reference_perf : Performance level at which reference performance counter
-> >    accumulates (abstract scale).
-> >  
-> > ---------------------------------------------------------------------------------
-> >  
-> > -		Computing Average Delivered Performance
-> > +Computing Average Delivered Performance
+> > -2 Notify user space about hotkey event
+> > +2. Notify user space about hotkey event
 > > +=======================================
+> >  
+> >  There are generally two cases for hotkey event reporting:
 > > +
-> > +Below describes the steps to compute the average performance delivered by
-> > +taking two different snapshots of feedback counters at time T1 and T2.
-> > +
-> > +  T1: Read feedback_ctrs as fbc_t1
-> > +      Wait or run some workload
+> >  i) For some laptops, when user presses the hotkey, a scancode will be
+> >     generated and sent to user space through the input device created by
+> >     the keyboard driver as a key type input event, with proper remap, the
+> > -   following key code will appear to user space:
+> > +   following key code will appear to user space::
 > >  
-> > -Below describes the steps to compute the average performance delivered by taking
-> > -two different snapshots of feedback counters at time T1 and T2.
-> > +  T2: Read feedback_ctrs as fbc_t2
+> >  	EV_KEY, KEY_BRIGHTNESSUP
+> >  	EV_KEY, KEY_BRIGHTNESSDOWN
+> > @@ -82,7 +88,7 @@ ii) For some laptops, the press of the hotkey will not generate the
+> >      about the event. The event value is defined in the ACPI spec. ACPI
+> >      video driver will generate an key type input event according to the
+> >      notify value it received and send the event to user space through the
+> > -    input device it created:
+> > +    input device it created::
 > >  
-> > -T1: Read feedback_ctrs as fbc_t1
-> > -    Wait or run some workload
-> > -T2: Read feedback_ctrs as fbc_t2
-> > +::
+> >  	event		keycode
+> >  	0x86		KEY_BRIGHTNESSUP
+> 
+> Perhaps making this as a table would work better:
+> 
+>     input device it created:
+> 
+> 	=====		===================
+> 	event		keycode
+> 	=====		===================
+> 	0x86		KEY_BRIGHTNESSUP
+> 	0x87		KEY_BRIGHTNESSDOWN
+> 	etc.
+> 	=====		===================
+> 
+> 
+Done.
+
+> > @@ -94,13 +100,14 @@ so this would lead to the same effect as case i) now.
+> >  Once user space tool receives this event, it can modify the backlight
+> >  level through the sysfs interface.
 > >  
-> > -delivered_counter_delta = fbc_t2[del] - fbc_t1[del]
-> > -reference_counter_delta = fbc_t2[ref] - fbc_t1[ref]
-> > +  delivered_counter_delta = fbc_t2[del] - fbc_t1[del]
-> > +  reference_counter_delta = fbc_t2[ref] - fbc_t1[ref]
+> > -3 Change backlight level in the kernel
+> > +3. Change backlight level in the kernel
+> > +=======================================
 > >  
-> > -delivered_perf = (refernce_perf x delivered_counter_delta) / reference_counter_delta
-> > +  delivered_perf = (refernce_perf x delivered_counter_delta) / reference_counter_delta
-> > diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-> > index d68e9914c5ff..9049a7b9f065 100644
-> > --- a/Documentation/admin-guide/acpi/index.rst
-> > +++ b/Documentation/admin-guide/acpi/index.rst
-> > @@ -10,3 +10,4 @@ the Linux ACPI support.
-> >  
-> >     initrd_table_override
-> >     dsdt-override
-> > +   cppc_sysfs
+> >  This works for machines covered by case ii) in Section 2. Once the driver
+> >  received a notification, it will set the backlight level accordingly. This does
+> >  not affect the sending of event to user space, they are always sent to user
+> >  space regardless of whether or not the video module controls the backlight level
+> >  directly. This behaviour can be controlled through the brightness_switch_enabled
+> > -module parameter as documented in admin-guide/kernel-parameters.rst. It is recommended to
+> > -disable this behaviour once a GUI environment starts up and wants to have full
+> > -control of the backlight level.
+> > +module parameter as documented in admin-guide/kernel-parameters.rst. It is
+> > +recommended to disable this behaviour once a GUI environment starts up and
+> > +wants to have full control of the backlight level.
 > 
 > 
 > 
