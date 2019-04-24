@@ -5,135 +5,269 @@ X-Spam-Level:
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12C33C282CE
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:58:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F911C10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 18:00:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CBA8120835
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:58:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C55120652
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 18:00:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rC7PI+Um"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IGVjJDZl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390213AbfDXR6h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 13:58:37 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:42645 "EHLO
+        id S2389983AbfDXSAr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 14:00:47 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:40859 "EHLO
         mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392551AbfDXR4l (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 13:56:41 -0400
-Received: by mail-pg1-f194.google.com with SMTP id p6so9740367pgh.9;
-        Wed, 24 Apr 2019 10:56:41 -0700 (PDT)
+        with ESMTP id S2388988AbfDXRWu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 13:22:50 -0400
+Received: by mail-pg1-f194.google.com with SMTP id d31so9702860pgl.7;
+        Wed, 24 Apr 2019 10:22:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=2sbwg0L9RWIY1yx4og9yDX54LDcD6lm1qQ96G7LSClM=;
-        b=rC7PI+Umnb6CVvmFeTKMN7ISacQYIp5JWx7K4j+/MoThvTNXN7DKRPDYZuFRkx+xej
-         i0m/SbyBO9wpeuFH4CZdqx+d1RsRX5A3vKccF2xgH0FzdffvCXrm3/kABVs47nkmtaln
-         EcKhcVUokYPdQZoTiF9Gg3+or+ZiiYZAh2+HFADT9Qgb+JtdjJV/7YZxzfvBkInJerJh
-         rNInXK1LJnOkyWXRdP7XJc6/mONGEuE6LWnaVJNcHp4cuZYpPiSVfBLNQzSruieHcGnT
-         mCOAjxpnEUDx49BadZbt5sGCu5y66Jol1LNsT2o/ll4OQb9ja496PorsMm8XSlXZ7FpO
-         9gCA==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=eoZsO429e0b+dEVgO5JVsEp5EuD0o0GJNOTorofbhd0=;
+        b=IGVjJDZlidZsAbiJUsDRZQzrGzGEcQwGdZDVp5GgTF8izs4Vfi6ynWeO+Pdqcyi+/N
+         C7/9w3RS5D3LT9p5Bd3/Gms2bf7xmwBF95Tak2vcxsJgUeHVyljIAu5lhZInoKy20Tfi
+         tfv10j13D5Fl+eADMH/7ndD940/cTKSs4Btehx3aLQ61iMG7ja8ULyTgmz72zYj0la51
+         wiSuVuegknSR+8upONyWx+hfrWEK+XqlYEEpGDN1y5ZrbQiaLJhuG9d6NghjuVP4iO7J
+         uTuS6Zm2zpu1Ft9ivA/7L+6EMmHpGo/FiRodlzxadw31ea2yqgUnbbVEeFQemGI7dnYN
+         r28Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=2sbwg0L9RWIY1yx4og9yDX54LDcD6lm1qQ96G7LSClM=;
-        b=ku3rjnuEOJBnf8NxDBwW+HC5ZmEqxhbd+CpCCrhCqo+Qt7L+S5VUWrnwZra1HyT8YY
-         4hf5nZSd9RhKB1s7U3BFjoyZijv/w3ELrpJf0umyPE0cLThaUkrG8l4I5GVHnhpjyrKg
-         Bw9j040z+2lr6E1eboLXRQfvjVl/KOJc4RDVpMsEByYo/oNWnuh7N0ZlQUldvfAiaR1H
-         2MY369UPPIQbm2nbveRZp9ymoZ2dmYKU2h3jcdnmIEmF1TDGRiKFghTF9grxtCTJiPR6
-         6+KojlunYUnIa2rgDXLg1AWWHsA0JImvIJfTaXrXH4poLekiEHNwinFyBqAf2KcRaK52
-         MqGw==
-X-Gm-Message-State: APjAAAV2SBG4tmVrOQq67u6xKWKuW7RJhofB7T6F4tZRPdwOlQLeRonV
-        jlrt+7PhGM3DjRnetoHFxrE=
-X-Google-Smtp-Source: APXvYqywpPJKgOpReGTP1RB2uUK+F9Ux/BhvqcLVN+Jg1BljPXHsv5ehNjMc0Jn3B4Fqjhdhhl/qhw==
-X-Received: by 2002:a63:d10:: with SMTP id c16mr19643000pgl.156.1556128600687;
-        Wed, 24 Apr 2019 10:56:40 -0700 (PDT)
-Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id 6sm29275630pfp.143.2019.04.24.10.56.33
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 24 Apr 2019 10:56:39 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=eoZsO429e0b+dEVgO5JVsEp5EuD0o0GJNOTorofbhd0=;
+        b=MnVbQ0s4xxbQbetAV9e9s4qQE/Bg8lmqx2g8ZA1vKOoC9HmsM9HCRRI6hiJilHPYTc
+         Mkk7ssLpRYLwjwZ8iGis6vwIIpytkK9e2BlNODNqBfHoqAksxML3Uhn9onpeeVub44Y6
+         ajU4hPs8EcaT1EHTDPerOgDDdw3pC7b8YEQ8QduBwcc0fulPqDTZzdLYfABEDBSA+yhS
+         GdZYLrJ4sI/8Yc/VFI8JYNJV2xBa70PCp6Wf7mr/9UOOmKz+xZ5cT/Voil6XImVnLveX
+         dHDD6Ss+xGOOUVO3BQXGVK2acZPklhe2UtIVpiRaGfLm9hxIStoFm8a/CLqDHe0KxA/R
+         tUSQ==
+X-Gm-Message-State: APjAAAUDmAJkJiO0JnWcQnXrb8crS1aflbB+reGa89CBrd9cq6Ih4jUW
+        FW9xE+wesj3XBBmvO7eRifU=
+X-Google-Smtp-Source: APXvYqxnpPk8YPTttYq6iD6geRJxmT/PnYrWdlm9nnsCYFTFBiRuuLfHN3ESOhDwzhPiAzWPNf7byQ==
+X-Received: by 2002:a65:4302:: with SMTP id j2mr31468636pgq.291.1556126569766;
+        Wed, 24 Apr 2019 10:22:49 -0700 (PDT)
+Received: from mail.google.com ([104.238.181.70])
+        by smtp.gmail.com with ESMTPSA id w190sm2410231pfb.101.2019.04.24.10.22.40
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 24 Apr 2019 10:22:49 -0700 (PDT)
+Date:   Thu, 25 Apr 2019 01:22:34 +0800
 From:   Changbin Du <changbin.du@gmail.com>
-To:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, fenghua.yu@intel.com,
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Changbin Du <changbin.du@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net,
+        linux-pci@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        x86@kernel.org, fenghua.yu@intel.com,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
-        linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
-        Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v5 21/23] Documentation: ACPI: move lpit.txt to firmware-guide/acpi and convert to reST
-Date:   Thu, 25 Apr 2019 01:53:04 +0800
-Message-Id: <20190424175306.25880-22-changbin.du@gmail.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190424175306.25880-1-changbin.du@gmail.com>
-References: <20190424175306.25880-1-changbin.du@gmail.com>
+        linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v4 21/63] Documentation: ACPI: move cppc_sysfs.txt to
+ admin-guide/acpi and convert to reST
+Message-ID: <20190424172232.qtzogm6sweaa4gva@mail.google.com>
+References: <20190423162932.21428-1-changbin.du@gmail.com>
+ <20190423162932.21428-22-changbin.du@gmail.com>
+ <20190424114844.5de4cfa5@coco.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+In-Reply-To: <20190424114844.5de4cfa5@coco.lan>
+User-Agent: NeoMutt/20180716
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424175304.Uu95gmeYcoC123f65WAErEdN7EII1ajz4zvomBq6xMY@z>
+Message-ID: <20190424172234.yM-CRtfxeT6j-9pNhdviFP_9ZsKsmYYOrILAshopTHE@z>
 
-This converts the plain text documentation to reStructuredText format and
-add it to Sphinx TOC tree. No essential content change.
+On Wed, Apr 24, 2019 at 11:48:44AM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 24 Apr 2019 00:28:50 +0800
+> Changbin Du <changbin.du@gmail.com> escreveu:
+> 
+> > This converts the plain text documentation to reStructuredText format and
+> > add it to Sphinx TOC tree. No essential content change.
+> > 
+> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
+> > ---
+> >  .../acpi/cppc_sysfs.rst}                      | 71 ++++++++++---------
+> >  Documentation/admin-guide/acpi/index.rst      |  1 +
+> >  2 files changed, 40 insertions(+), 32 deletions(-)
+> >  rename Documentation/{acpi/cppc_sysfs.txt => admin-guide/acpi/cppc_sysfs.rst} (51%)
+> > 
+> > diff --git a/Documentation/acpi/cppc_sysfs.txt b/Documentation/admin-guide/acpi/cppc_sysfs.rst
+> > similarity index 51%
+> > rename from Documentation/acpi/cppc_sysfs.txt
+> > rename to Documentation/admin-guide/acpi/cppc_sysfs.rst
+> > index f20fb445135d..a4b99afbe331 100644
+> > --- a/Documentation/acpi/cppc_sysfs.txt
+> > +++ b/Documentation/admin-guide/acpi/cppc_sysfs.rst
+> > @@ -1,5 +1,11 @@
+> > +.. SPDX-License-Identifier: GPL-2.0
+> >  
+> > -	Collaborative Processor Performance Control (CPPC)
+> > +==================================================
+> > +Collaborative Processor Performance Control (CPPC)
+> > +==================================================
+> > +
+> > +CPPC
+> > +====
+> >  
+> >  CPPC defined in the ACPI spec describes a mechanism for the OS to manage the
+> >  performance of a logical processor on a contigious and abstract performance
+> > @@ -10,31 +16,28 @@ For more details on CPPC please refer to the ACPI specification at:
+> >  
+> >  http://uefi.org/specifications
+> >  
+> > -Some of the CPPC registers are exposed via sysfs under:
+> > -
+> > -/sys/devices/system/cpu/cpuX/acpi_cppc/
+> > -
+> 
+> 
+> > -for each cpu X
+> 
+> Hmm... removed by mistake?
+>
+I comfirmed that no content removed.
 
-Signed-off-by: Changbin Du <changbin.du@gmail.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- Documentation/firmware-guide/acpi/index.rst    |  1 +
- .../lpit.txt => firmware-guide/acpi/lpit.rst}  | 18 +++++++++++++-----
- 2 files changed, 14 insertions(+), 5 deletions(-)
- rename Documentation/{acpi/lpit.txt => firmware-guide/acpi/lpit.rst} (68%)
+> > +Some of the CPPC registers are exposed via sysfs under::
+> >  
+> > ---------------------------------------------------------------------------------
+> > +  /sys/devices/system/cpu/cpuX/acpi_cppc/
+> 
+> Did you parse this with Sphinx? It doesn't sound a valid ReST construction
+> to my eyes, as:
+> 
+> 1) I've seen some versions of Sphinx to abort with severe errors when 
+>    there's no blank line after the horizontal bar markup;
+> 
+> 2) It will very likely ignore the "::" (I didn't test it myself), as you're
+>    not indenting the horizontal bar. End of indentation will mean the end
+>    of an (empty) literal block.
+> 
+> So, I would stick with:
+> 
+> 
+> 	Some of the CPPC registers are exposed via sysfs under:
+> 
+> 	  /sys/devices/system/cpu/cpuX/acpi_cppc/
+> 
+> 	---------------------------------------------------------------------------------
+> 
+> 	for each cpu X::
+> 
+> 
+> or:
+> 
+> 	Some of the CPPC registers are exposed via sysfs under:
+> 
+> 		/sys/devices/system/cpu/cpuX/acpi_cppc/
+> 
+> 	for each cpu X
+> 
+> 	--------------------------------------------------------------------------------
+> 
+> 	::
+> 
+> (with is closer to the original author's intent)
+> 
+> Same applies to the other similar changes on this document.
+>
+I didn't seen any warning here and the generated html is good. So I think it is
+ok.
 
-diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index fca854f017d8..0e60f4b7129a 100644
---- a/Documentation/firmware-guide/acpi/index.rst
-+++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -22,3 +22,4 @@ ACPI Support
-    gpio-properties
-    i2c-muxes
-    acpi-lid
-+   lpit
-diff --git a/Documentation/acpi/lpit.txt b/Documentation/firmware-guide/acpi/lpit.rst
-similarity index 68%
-rename from Documentation/acpi/lpit.txt
-rename to Documentation/firmware-guide/acpi/lpit.rst
-index b426398d2e97..aca928fab027 100644
---- a/Documentation/acpi/lpit.txt
-+++ b/Documentation/firmware-guide/acpi/lpit.rst
-@@ -1,3 +1,9 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+===========================
-+Low Power Idle Table (LPIT)
-+===========================
-+
- To enumerate platform Low Power Idle states, Intel platforms are using
- “Low Power Idle Table” (LPIT). More details about this table can be
- downloaded from:
-@@ -8,13 +14,15 @@ Residencies for each low power state can be read via FFH
- 
- On platforms supporting S0ix sleep states, there can be two types of
- residencies:
--- CPU PKG C10 (Read via FFH interface)
--- Platform Controller Hub (PCH) SLP_S0 (Read via memory mapped interface)
-+
-+  - CPU PKG C10 (Read via FFH interface)
-+  - Platform Controller Hub (PCH) SLP_S0 (Read via memory mapped interface)
- 
- The following attributes are added dynamically to the cpuidle
--sysfs attribute group:
--	/sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
--	/sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
-+sysfs attribute group::
-+
-+  /sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
-+  /sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
- 
- The "low_power_idle_cpu_residency_us" attribute shows time spent
- by the CPU package in PKG C10
+> >  
+> > -$ ls -lR  /sys/devices/system/cpu/cpu0/acpi_cppc/
+> > -/sys/devices/system/cpu/cpu0/acpi_cppc/:
+> > -total 0
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 feedback_ctrs
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 highest_perf
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_freq
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_nonlinear_perf
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_perf
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_freq
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_perf
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 reference_perf
+> > --r--r--r-- 1 root root 65536 Mar  5 19:38 wraparound_time
+> > +for each cpu X::
+> >  
+> > ---------------------------------------------------------------------------------
+> > +  $ ls -lR  /sys/devices/system/cpu/cpu0/acpi_cppc/
+> > +  /sys/devices/system/cpu/cpu0/acpi_cppc/:
+> > +  total 0
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 feedback_ctrs
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 highest_perf
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_freq
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_nonlinear_perf
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_perf
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_freq
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 nominal_perf
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 reference_perf
+> > +  -r--r--r-- 1 root root 65536 Mar  5 19:38 wraparound_time
+> >  
+> >  * highest_perf : Highest performance of this processor (abstract scale).
+> > -* nominal_perf : Highest sustained performance of this processor (abstract scale).
+> > +* nominal_perf : Highest sustained performance of this processor
+> > +  (abstract scale).
+> >  * lowest_nonlinear_perf : Lowest performance of this processor with nonlinear
+> >    power savings (abstract scale).
+> >  * lowest_perf : Lowest performance of this processor (abstract scale).
+> > @@ -48,22 +51,26 @@ total 0
+> >  * feedback_ctrs : Includes both Reference and delivered performance counter.
+> >    Reference counter ticks up proportional to processor's reference performance.
+> >    Delivered counter ticks up proportional to processor's delivered performance.
+> > -* wraparound_time: Minimum time for the feedback counters to wraparound (seconds).
+> > +* wraparound_time: Minimum time for the feedback counters to wraparound
+> > +  (seconds).
+> >  * reference_perf : Performance level at which reference performance counter
+> >    accumulates (abstract scale).
+> >  
+> > ---------------------------------------------------------------------------------
+> >  
+> > -		Computing Average Delivered Performance
+> > +Computing Average Delivered Performance
+> > +=======================================
+> > +
+> > +Below describes the steps to compute the average performance delivered by
+> > +taking two different snapshots of feedback counters at time T1 and T2.
+> > +
+> > +  T1: Read feedback_ctrs as fbc_t1
+> > +      Wait or run some workload
+> >  
+> > -Below describes the steps to compute the average performance delivered by taking
+> > -two different snapshots of feedback counters at time T1 and T2.
+> > +  T2: Read feedback_ctrs as fbc_t2
+> >  
+> > -T1: Read feedback_ctrs as fbc_t1
+> > -    Wait or run some workload
+> > -T2: Read feedback_ctrs as fbc_t2
+> > +::
+> >  
+> > -delivered_counter_delta = fbc_t2[del] - fbc_t1[del]
+> > -reference_counter_delta = fbc_t2[ref] - fbc_t1[ref]
+> > +  delivered_counter_delta = fbc_t2[del] - fbc_t1[del]
+> > +  reference_counter_delta = fbc_t2[ref] - fbc_t1[ref]
+> >  
+> > -delivered_perf = (refernce_perf x delivered_counter_delta) / reference_counter_delta
+> > +  delivered_perf = (refernce_perf x delivered_counter_delta) / reference_counter_delta
+> > diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
+> > index d68e9914c5ff..9049a7b9f065 100644
+> > --- a/Documentation/admin-guide/acpi/index.rst
+> > +++ b/Documentation/admin-guide/acpi/index.rst
+> > @@ -10,3 +10,4 @@ the Linux ACPI support.
+> >  
+> >     initrd_table_override
+> >     dsdt-override
+> > +   cppc_sysfs
+> 
+> 
+> 
+> Thanks,
+> Mauro
+
 -- 
-2.20.1
-
+Cheers,
+Changbin Du
