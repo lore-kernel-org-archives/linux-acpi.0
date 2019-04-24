@@ -1,344 +1,425 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [PATCH v4 33/63] Documentation: PCI: convert
- endpoint/pci-endpoint.txt to reST
-Date: Wed, 24 Apr 2019 12:55:45 -0300
-Message-ID: <20190424125545.52bff5b8@coco.lan>
+From: Changbin Du <changbin.du@gmail.com>
+Subject: Re: [PATCH v4 02/63] Documentation: ACPI: move namespace.txt to
+ firmware-guide/acpi and convert to reST
+Date: Thu, 25 Apr 2019 00:09:45 +0800
+Message-ID: <20190424160943.ujekxggejg6sb452@mail.google.com>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
-        <20190423162932.21428-34-changbin.du@gmail.com>
+ <20190423162932.21428-3-changbin.du@gmail.com>
+ <20190423173840.2e450b34@coco.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190423162932.21428-34-changbin.du@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190423173840.2e450b34@coco.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Changbin Du <changbin.du@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Changbin Du <changbin.du@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Em Wed, 24 Apr 2019 00:29:02 +0800
-Changbin Du <changbin.du@gmail.com> escreveu:
-
-> This converts the plain text documentation to reStructuredText format and
-> add it to Sphinx TOC tree. No essential content change.
+On Tue, Apr 23, 2019 at 05:38:40PM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 24 Apr 2019 00:28:31 +0800
+> Changbin Du <changbin.du@gmail.com> escreveu:
 > 
-> Signed-off-by: Changbin Du <changbin.du@gmail.com>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  Documentation/PCI/endpoint/index.rst          | 10 ++
->  .../{pci-endpoint.txt => pci-endpoint.rst}    | 95 +++++++++++--------
->  Documentation/PCI/index.rst                   |  1 +
->  3 files changed, 68 insertions(+), 38 deletions(-)
->  create mode 100644 Documentation/PCI/endpoint/index.rst
->  rename Documentation/PCI/endpoint/{pci-endpoint.txt => pci-endpoint.rst} (82%)
+> > This converts the plain text documentation to reStructuredText format and
+> > add it to Sphinx TOC tree. No essential content change.
+> > 
+> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
+> > ---
+> >  Documentation/firmware-guide/acpi/index.rst   |   1 +
+> >  .../acpi/namespace.rst}                       | 310 +++++++++---------
+> >  2 files changed, 161 insertions(+), 150 deletions(-)
+> >  rename Documentation/{acpi/namespace.txt => firmware-guide/acpi/namespace.rst} (54%)
+> > 
+> > diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+> > index 0ec7d072ba22..210ad8acd6df 100644
+> > --- a/Documentation/firmware-guide/acpi/index.rst
+> > +++ b/Documentation/firmware-guide/acpi/index.rst
+> > @@ -7,3 +7,4 @@ ACPI Support
+> >  .. toctree::
+> >     :maxdepth: 1
+> >  
+> > +   namespace
+> > diff --git a/Documentation/acpi/namespace.txt b/Documentation/firmware-guide/acpi/namespace.rst
+> > similarity index 54%
+> > rename from Documentation/acpi/namespace.txt
+> > rename to Documentation/firmware-guide/acpi/namespace.rst
+> > index 1860cb3865c6..443f0e5d0617 100644
+> > --- a/Documentation/acpi/namespace.txt
+> > +++ b/Documentation/firmware-guide/acpi/namespace.rst
+> > @@ -1,85 +1,88 @@
+> > +.. SPDX-License-Identifier: GPL-2.0
+> > +.. include:: <isonum.txt>
+> > +
+> > +===================================================
+> >  ACPI Device Tree - Representation of ACPI Namespace
+> > +===================================================
+> > +
+> > +:Copyright: |copy| 2013, Intel Corporation
+> > +
+> > +:Author: Lv Zheng <lv.zheng@intel.com>
+> > +
+> > +:Abstract: The Linux ACPI subsystem converts ACPI namespace objects into a Linux
+> > +           device tree under the /sys/devices/LNXSYSTEM:00 and updates it upon
+> > +           receiving ACPI hotplug notification events.  For each device object
+> > +           in this hierarchy there is a corresponding symbolic link in the
+> > +           /sys/bus/acpi/devices.
+> > +           This document illustrates the structure of the ACPI device tree.
 > 
-> diff --git a/Documentation/PCI/endpoint/index.rst b/Documentation/PCI/endpoint/index.rst
-> new file mode 100644
-> index 000000000000..0db4f2fcd7f0
-> --- /dev/null
-> +++ b/Documentation/PCI/endpoint/index.rst
-> @@ -0,0 +1,10 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +======================
-> +PCI Endpoint Framework
-> +======================
-> +
-> +.. toctree::
-> +   :maxdepth: 2
-> +
-> +   pci-endpoint
-> diff --git a/Documentation/PCI/endpoint/pci-endpoint.txt b/Documentation/PCI/endpoint/pci-endpoint.rst
-> similarity index 82%
-> rename from Documentation/PCI/endpoint/pci-endpoint.txt
-> rename to Documentation/PCI/endpoint/pci-endpoint.rst
-> index e86a96b66a6a..6674ce5425bf 100644
-> --- a/Documentation/PCI/endpoint/pci-endpoint.txt
-> +++ b/Documentation/PCI/endpoint/pci-endpoint.rst
-> @@ -1,11 +1,17 @@
-> -			    PCI ENDPOINT FRAMEWORK
-> -		    Kishon Vijay Abraham I <kishon@ti.com>
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +======================
-> +PCI Endpoint Framework
-> +======================
+> Well, this is a matter of preference. I would add Abstract as a chapter,
+> as this would make it part of the top index, with can be useful. 
+>
+Now it becomes a chapter. Thanks.
 
-Hmm... considering that you decided to create an index file for the
-endpoint, with the same title, I would just remove this from here.
+> In any case:
+> 
+> Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> 
+> > +
+> > +:Credit:   Thanks for the help from Zhang Rui <rui.zhang@intel.com> and
+> > +           Rafael J.Wysocki <rafael.j.wysocki@intel.com>.
+> > +
+> > +
+> > +ACPI Definition Blocks
+> > +======================
+> > +
+> > +The ACPI firmware sets up RSDP (Root System Description Pointer) in the
+> > +system memory address space pointing to the XSDT (Extended System
+> > +Description Table).  The XSDT always points to the FADT (Fixed ACPI
+> > +Description Table) using its first entry, the data within the FADT
+> > +includes various fixed-length entries that describe fixed ACPI features
+> > +of the hardware.  The FADT contains a pointer to the DSDT
+> > +(Differentiated System Descripition Table).  The XSDT also contains
+> > +entries pointing to possibly multiple SSDTs (Secondary System
+> > +Description Table).
+> > +
+> > +The DSDT and SSDT data is organized in data structures called definition
+> > +blocks that contain definitions of various objects, including ACPI
+> > +control methods, encoded in AML (ACPI Machine Language).  The data block
+> > +of the DSDT along with the contents of SSDTs represents a hierarchical
+> > +data structure called the ACPI namespace whose topology reflects the
+> > +structure of the underlying hardware platform.
+> > +
+> > +The relationships between ACPI System Definition Tables described above
+> > +are illustrated in the following diagram::
+> > +
+> > +   +---------+    +-------+    +--------+    +------------------------+
+> > +   |  RSDP   | +->| XSDT  | +->|  FADT  |    |  +-------------------+ |
+> > +   +---------+ |  +-------+ |  +--------+  +-|->|       DSDT        | |
+> > +   | Pointer | |  | Entry |-+  | ...... |  | |  +-------------------+ |
+> > +   +---------+ |  +-------+    | X_DSDT |--+ |  | Definition Blocks | |
+> > +   | Pointer |-+  | ..... |    | ...... |    |  +-------------------+ |
+> > +   +---------+    +-------+    +--------+    |  +-------------------+ |
+> > +                  | Entry |------------------|->|       SSDT        | |
+> > +                  +- - - -+                  |  +-------------------| |
+> > +                  | Entry | - - - - - - - -+ |  | Definition Blocks | |
+> > +                  +- - - -+                | |  +-------------------+ |
+> > +                                          | |  +- - - - - - - - - -+ |
+> > +                                          +-|->|       SSDT        | |
+> > +                                             |  +-------------------+ |
+> > +                                             |  | Definition Blocks | |
+> > +                                             |  +- - - - - - - - - -+ |
+> > +                                             +------------------------+
+> > +                                                         |
+> > +                                             OSPM Loading |
+> > +                                                         \|/
+> > +                                                   +----------------+
+> > +                                                   | ACPI Namespace |
+> > +                                                   +----------------+
+> > +
+> > +                  Figure 1. ACPI Definition Blocks
+> > +
+> > +.. note:: RSDP can also contain a pointer to the RSDT (Root System
+> > +   Description Table).  Platforms provide RSDT to enable
+> > +   compatibility with ACPI 1.0 operating systems.  The OS is expected
+> > +   to use XSDT, if present.
+> > +
+> > +
+> > +Example ACPI Namespace
+> > +======================
+> > +
+> > +All definition blocks are loaded into a single namespace.  The namespace
+> > +is a hierarchy of objects identified by names and paths.
+> > +The following naming conventions apply to object names in the ACPI
+> > +namespace:
+> >  
+> > -Copyright (C) 2013, Intel Corporation
+> > -Author: Lv Zheng <lv.zheng@intel.com>
+> > -
+> > -
+> > -Abstract:
+> > -
+> > -The Linux ACPI subsystem converts ACPI namespace objects into a Linux
+> > -device tree under the /sys/devices/LNXSYSTEM:00 and updates it upon
+> > -receiving ACPI hotplug notification events.  For each device object in this
+> > -hierarchy there is a corresponding symbolic link in the
+> > -/sys/bus/acpi/devices.
+> > -This document illustrates the structure of the ACPI device tree.
+> > -
+> > -
+> > -Credit:
+> > -
+> > -Thanks for the help from Zhang Rui <rui.zhang@intel.com> and Rafael J.
+> > -Wysocki <rafael.j.wysocki@intel.com>.
+> > -
+> > -
+> > -1. ACPI Definition Blocks
+> > -
+> > -   The ACPI firmware sets up RSDP (Root System Description Pointer) in the
+> > -   system memory address space pointing to the XSDT (Extended System
+> > -   Description Table).  The XSDT always points to the FADT (Fixed ACPI
+> > -   Description Table) using its first entry, the data within the FADT
+> > -   includes various fixed-length entries that describe fixed ACPI features
+> > -   of the hardware.  The FADT contains a pointer to the DSDT
+> > -   (Differentiated System Descripition Table).  The XSDT also contains
+> > -   entries pointing to possibly multiple SSDTs (Secondary System
+> > -   Description Table).
+> > -
+> > -   The DSDT and SSDT data is organized in data structures called definition
+> > -   blocks that contain definitions of various objects, including ACPI
+> > -   control methods, encoded in AML (ACPI Machine Language).  The data block
+> > -   of the DSDT along with the contents of SSDTs represents a hierarchical
+> > -   data structure called the ACPI namespace whose topology reflects the
+> > -   structure of the underlying hardware platform.
+> > -
+> > -   The relationships between ACPI System Definition Tables described above
+> > -   are illustrated in the following diagram.
+> > -
+> > -     +---------+    +-------+    +--------+    +------------------------+
+> > -     |  RSDP   | +->| XSDT  | +->|  FADT  |    |  +-------------------+ |
+> > -     +---------+ |  +-------+ |  +--------+  +-|->|       DSDT        | |
+> > -     | Pointer | |  | Entry |-+  | ...... |  | |  +-------------------+ |
+> > -     +---------+ |  +-------+    | X_DSDT |--+ |  | Definition Blocks | |
+> > -     | Pointer |-+  | ..... |    | ...... |    |  +-------------------+ |
+> > -     +---------+    +-------+    +--------+    |  +-------------------+ |
+> > -                    | Entry |------------------|->|       SSDT        | |
+> > -                    +- - - -+                  |  +-------------------| |
+> > -                    | Entry | - - - - - - - -+ |  | Definition Blocks | |
+> > -                    +- - - -+                | |  +-------------------+ |
+> > -                                             | |  +- - - - - - - - - -+ |
+> > -                                             +-|->|       SSDT        | |
+> > -                                               |  +-------------------+ |
+> > -                                               |  | Definition Blocks | |
+> > -                                               |  +- - - - - - - - - -+ |
+> > -                                               +------------------------+
+> > -                                                           |
+> > -                                              OSPM Loading |
+> > -                                                          \|/
+> > -                                                    +----------------+
+> > -                                                    | ACPI Namespace |
+> > -                                                    +----------------+
+> > -
+> > -                     Figure 1. ACPI Definition Blocks
+> > -
+> > -   NOTE: RSDP can also contain a pointer to the RSDT (Root System
+> > -         Description Table).  Platforms provide RSDT to enable
+> > -         compatibility with ACPI 1.0 operating systems.  The OS is expected
+> > -         to use XSDT, if present.
+> > -
+> > -
+> > -2. Example ACPI Namespace
+> > -
+> > -   All definition blocks are loaded into a single namespace.  The namespace
+> > -   is a hierarchy of objects identified by names and paths.
+> > -   The following naming conventions apply to object names in the ACPI
+> > -   namespace:
+> >     1. All names are 32 bits long.
+> >     2. The first byte of a name must be one of 'A' - 'Z', '_'.
+> >     3. Each of the remaining bytes of a name must be one of 'A' - 'Z', '0'
+> > @@ -91,7 +94,7 @@ Wysocki <rafael.j.wysocki@intel.com>.
+> >        (i.e. names prepended with '^' are relative to the parent of the
+> >        current namespace node).
+> >  
+> > -   The figure below shows an example ACPI namespace.
+> > +The figure below shows an example ACPI namespace::
+> >  
+> >     +------+
+> >     | \    |                     Root
+> > @@ -184,19 +187,20 @@ Wysocki <rafael.j.wysocki@intel.com>.
+> >                       Figure 2. Example ACPI Namespace
+> >  
+> >  
+> > -3. Linux ACPI Device Objects
+> > +Linux ACPI Device Objects
+> > +=========================
+> >  
+> > -   The Linux kernel's core ACPI subsystem creates struct acpi_device
+> > -   objects for ACPI namespace objects representing devices, power resources
+> > -   processors, thermal zones.  Those objects are exported to user space via
+> > -   sysfs as directories in the subtree under /sys/devices/LNXSYSTM:00.  The
+> > -   format of their names is <bus_id:instance>, where 'bus_id' refers to the
+> > -   ACPI namespace representation of the given object and 'instance' is used
+> > -   for distinguishing different object of the same 'bus_id' (it is
+> > -   two-digit decimal representation of an unsigned integer).
+> > +The Linux kernel's core ACPI subsystem creates struct acpi_device
+> > +objects for ACPI namespace objects representing devices, power resources
+> > +processors, thermal zones.  Those objects are exported to user space via
+> > +sysfs as directories in the subtree under /sys/devices/LNXSYSTM:00.  The
+> > +format of their names is <bus_id:instance>, where 'bus_id' refers to the
+> > +ACPI namespace representation of the given object and 'instance' is used
+> > +for distinguishing different object of the same 'bus_id' (it is
+> > +two-digit decimal representation of an unsigned integer).
+> >  
+> > -   The value of 'bus_id' depends on the type of the object whose name it is
+> > -   part of as listed in the table below.
+> > +The value of 'bus_id' depends on the type of the object whose name it is
+> > +part of as listed in the table below::
+> >  
+> >                  +---+-----------------+-------+----------+
+> >                  |   | Object/Feature  | Table | bus_id   |
+> > @@ -226,10 +230,11 @@ Wysocki <rafael.j.wysocki@intel.com>.
+> >  
+> >                   Table 1. ACPI Namespace Objects Mapping
+> >  
+> > -   The following rules apply when creating struct acpi_device objects on
+> > -   the basis of the contents of ACPI System Description Tables (as
+> > -   indicated by the letter in the first column and the notation in the
+> > -   second column of the table above):
+> > +The following rules apply when creating struct acpi_device objects on
+> > +the basis of the contents of ACPI System Description Tables (as
+> > +indicated by the letter in the first column and the notation in the
+> > +second column of the table above):
+> > +
+> >     N:
+> >        The object's source is an ACPI namespace node (as indicated by the
+> >        named object's type in the second column).  In that case the object's
+> > @@ -249,13 +254,14 @@ Wysocki <rafael.j.wysocki@intel.com>.
+> >        struct acpi_device object with LNXVIDEO 'bus_id' will be created for
+> >        it.
+> >  
+> > -   The third column of the above table indicates which ACPI System
+> > -   Description Tables contain information used for the creation of the
+> > -   struct acpi_device objects represented by the given row (xSDT means DSDT
+> > -   or SSDT).
+> > +The third column of the above table indicates which ACPI System
+> > +Description Tables contain information used for the creation of the
+> > +struct acpi_device objects represented by the given row (xSDT means DSDT
+> > +or SSDT).
+> > +
+> > +The forth column of the above table indicates the 'bus_id' generation
+> > +rule of the struct acpi_device object:
+> >  
+> > -   The forth column of the above table indicates the 'bus_id' generation
+> > -   rule of the struct acpi_device object:
+> >     _HID:
+> >        _HID in the last column of the table means that the object's bus_id
+> >        is derived from the _HID/_CID identification objects present under
+> > @@ -275,45 +281,47 @@ Wysocki <rafael.j.wysocki@intel.com>.
+> >        object's bus_id.
+> >  
+> >  
+> > -4. Linux ACPI Physical Device Glue
+> > -
+> > -   ACPI device (i.e. struct acpi_device) objects may be linked to other
+> > -   objects in the Linux' device hierarchy that represent "physical" devices
+> > -   (for example, devices on the PCI bus).  If that happens, it means that
+> > -   the ACPI device object is a "companion" of a device otherwise
+> > -   represented in a different way and is used (1) to provide configuration
+> > -   information on that device which cannot be obtained by other means and
+> > -   (2) to do specific things to the device with the help of its ACPI
+> > -   control methods.  One ACPI device object may be linked this way to
+> > -   multiple "physical" devices.
+> > -
+> > -   If an ACPI device object is linked to a "physical" device, its sysfs
+> > -   directory contains the "physical_node" symbolic link to the sysfs
+> > -   directory of the target device object.  In turn, the target device's
+> > -   sysfs directory will then contain the "firmware_node" symbolic link to
+> > -   the sysfs directory of the companion ACPI device object.
+> > -   The linking mechanism relies on device identification provided by the
+> > -   ACPI namespace.  For example, if there's an ACPI namespace object
+> > -   representing a PCI device (i.e. a device object under an ACPI namespace
+> > -   object representing a PCI bridge) whose _ADR returns 0x00020000 and the
+> > -   bus number of the parent PCI bridge is 0, the sysfs directory
+> > -   representing the struct acpi_device object created for that ACPI
+> > -   namespace object will contain the 'physical_node' symbolic link to the
+> > -   /sys/devices/pci0000:00/0000:00:02:0/ sysfs directory of the
+> > -   corresponding PCI device.
+> > -
+> > -   The linking mechanism is generally bus-specific.  The core of its
+> > -   implementation is located in the drivers/acpi/glue.c file, but there are
+> > -   complementary parts depending on the bus types in question located
+> > -   elsewhere.  For example, the PCI-specific part of it is located in
+> > -   drivers/pci/pci-acpi.c.
+> > -
+> > -
+> > -5. Example Linux ACPI Device Tree
+> > -
+> > -   The sysfs hierarchy of struct acpi_device objects corresponding to the
+> > -   example ACPI namespace illustrated in Figure 2 with the addition of
+> > -   fixed PWR_BUTTON/SLP_BUTTON devices is shown below.
+> > +Linux ACPI Physical Device Glue
+> > +===============================
+> > +
+> > +ACPI device (i.e. struct acpi_device) objects may be linked to other
+> > +objects in the Linux' device hierarchy that represent "physical" devices
+> > +(for example, devices on the PCI bus).  If that happens, it means that
+> > +the ACPI device object is a "companion" of a device otherwise
+> > +represented in a different way and is used (1) to provide configuration
+> > +information on that device which cannot be obtained by other means and
+> > +(2) to do specific things to the device with the help of its ACPI
+> > +control methods.  One ACPI device object may be linked this way to
+> > +multiple "physical" devices.
+> > +
+> > +If an ACPI device object is linked to a "physical" device, its sysfs
+> > +directory contains the "physical_node" symbolic link to the sysfs
+> > +directory of the target device object.  In turn, the target device's
+> > +sysfs directory will then contain the "firmware_node" symbolic link to
+> > +the sysfs directory of the companion ACPI device object.
+> > +The linking mechanism relies on device identification provided by the
+> > +ACPI namespace.  For example, if there's an ACPI namespace object
+> > +representing a PCI device (i.e. a device object under an ACPI namespace
+> > +object representing a PCI bridge) whose _ADR returns 0x00020000 and the
+> > +bus number of the parent PCI bridge is 0, the sysfs directory
+> > +representing the struct acpi_device object created for that ACPI
+> > +namespace object will contain the 'physical_node' symbolic link to the
+> > +/sys/devices/pci0000:00/0000:00:02:0/ sysfs directory of the
+> > +corresponding PCI device.
+> > +
+> > +The linking mechanism is generally bus-specific.  The core of its
+> > +implementation is located in the drivers/acpi/glue.c file, but there are
+> > +complementary parts depending on the bus types in question located
+> > +elsewhere.  For example, the PCI-specific part of it is located in
+> > +drivers/pci/pci-acpi.c.
+> > +
+> > +
+> > +Example Linux ACPI Device Tree
+> > +=================================
+> > +
+> > +The sysfs hierarchy of struct acpi_device objects corresponding to the
+> > +example ACPI namespace illustrated in Figure 2 with the addition of
+> > +fixed PWR_BUTTON/SLP_BUTTON devices is shown below::
+> >  
+> >     +--------------+---+-----------------+
+> >     | LNXSYSTEM:00 | \ | acpi:LNXSYSTEM: |
+> > @@ -377,12 +385,14 @@ Wysocki <rafael.j.wysocki@intel.com>.
+> >  
+> >                    Figure 3. Example Linux ACPI Device Tree
+> >  
+> > -   NOTE: Each node is represented as "object/path/modalias", where:
+> > -         1. 'object' is the name of the object's directory in sysfs.
+> > -         2. 'path' is the ACPI namespace path of the corresponding
+> > -            ACPI namespace object, as returned by the object's 'path'
+> > -            sysfs attribute.
+> > -         3. 'modalias' is the value of the object's 'modalias' sysfs
+> > -            attribute (as described earlier in this document).
+> > -   NOTE: N/A indicates the device object does not have the 'path' or the
+> > -         'modalias' attribute.
+> > +.. note:: Each node is represented as "object/path/modalias", where:
+> > +
+> > +   1. 'object' is the name of the object's directory in sysfs.
+> > +   2. 'path' is the ACPI namespace path of the corresponding
+> > +      ACPI namespace object, as returned by the object's 'path'
+> > +      sysfs attribute.
+> > +   3. 'modalias' is the value of the object's 'modalias' sysfs
+> > +      attribute (as described earlier in this document).
+> > +
+> > +.. note:: N/A indicates the device object does not have the 'path' or the
+> > +   'modalias' attribute.
+> 
+> 
+> 
+> Thanks,
+> Mauro
 
-> +
-> +:Author: Kishon Vijay Abraham I <kishon@ti.com>
->  
->  This document is a guide to use the PCI Endpoint Framework in order to create
->  endpoint controller driver, endpoint function driver, and using configfs
->  interface to bind the function driver to the controller driver.
->  
-> -1. Introduction
-> +Introduction
-> +============
->  
->  Linux has a comprehensive PCI subsystem to support PCI controllers that
->  operates in Root Complex mode. The subsystem has capability to scan PCI bus,
-> @@ -19,24 +25,27 @@ add endpoint mode support in Linux. This will help to run Linux in an
->  EP system which can have a wide variety of use cases from testing or
->  validation, co-processor accelerator, etc.
->  
-> -2. PCI Endpoint Core
-> +PCI Endpoint Core
-> +=================
->  
->  The PCI Endpoint Core layer comprises 3 components: the Endpoint Controller
->  library, the Endpoint Function library, and the configfs layer to bind the
->  endpoint function with the endpoint controller.
->  
-> -2.1 PCI Endpoint Controller(EPC) Library
-> +PCI Endpoint Controller(EPC) Library
-> +------------------------------------
->  
->  The EPC library provides APIs to be used by the controller that can operate
->  in endpoint mode. It also provides APIs to be used by function driver/library
->  in order to implement a particular endpoint function.
->  
-> -2.1.1 APIs for the PCI controller Driver
-> +APIs for the PCI controller Driver
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->  
->  This section lists the APIs that the PCI Endpoint core provides to be used
->  by the PCI controller driver.
->  
-> -*) devm_pci_epc_create()/pci_epc_create()
-> +* devm_pci_epc_create()/pci_epc_create()
-
-I would, instead, promote this as a sub-level. E. g. something like:
-
-devm_pci_epc_create()/pci_epc_create()
-......................................
-
-(if you do that, you'll need to also promote some similar function
-documentation within this doc)
-
-
->  
->     The PCI controller driver should implement the following ops:
->  	 * write_header: ops to populate configuration space header
-
-Better to add a blank line between those two lines. There's no sense
-(IMHO) on using bold font to the first line here.
-
-> @@ -51,110 +60,116 @@ by the PCI controller driver.
->     The PCI controller driver can then create a new EPC device by invoking
->     devm_pci_epc_create()/pci_epc_create().
->  
-> -*) devm_pci_epc_destroy()/pci_epc_destroy()
-> +* devm_pci_epc_destroy()/pci_epc_destroy()
->  
->     The PCI controller driver can destroy the EPC device created by either
->     devm_pci_epc_create() or pci_epc_create() using devm_pci_epc_destroy() or
->     pci_epc_destroy().
->  
-> -*) pci_epc_linkup()
-> +* pci_epc_linkup()
->  
->     In order to notify all the function devices that the EPC device to which
->     they are linked has established a link with the host, the PCI controller
->     driver should invoke pci_epc_linkup().
->  
-> -*) pci_epc_mem_init()
-> +* pci_epc_mem_init()
->  
->     Initialize the pci_epc_mem structure used for allocating EPC addr space.
->  
-> -*) pci_epc_mem_exit()
-> +* pci_epc_mem_exit()
->  
->     Cleanup the pci_epc_mem structure allocated during pci_epc_mem_init().
->  
-> -2.1.2 APIs for the PCI Endpoint Function Driver
-> +
-> +APIs for the PCI Endpoint Function Driver
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->  
->  This section lists the APIs that the PCI Endpoint core provides to be used
->  by the PCI endpoint function driver.
->  
-> -*) pci_epc_write_header()
-> +* pci_epc_write_header()
->  
->     The PCI endpoint function driver should use pci_epc_write_header() to
->     write the standard configuration header to the endpoint controller.
->  
-> -*) pci_epc_set_bar()
-> +* pci_epc_set_bar()
->  
->     The PCI endpoint function driver should use pci_epc_set_bar() to configure
->     the Base Address Register in order for the host to assign PCI addr space.
->     Register space of the function driver is usually configured
->     using this API.
->  
-> -*) pci_epc_clear_bar()
-> +* pci_epc_clear_bar()
->  
->     The PCI endpoint function driver should use pci_epc_clear_bar() to reset
->     the BAR.
->  
-> -*) pci_epc_raise_irq()
-> +* pci_epc_raise_irq()
->  
->     The PCI endpoint function driver should use pci_epc_raise_irq() to raise
->     Legacy Interrupt, MSI or MSI-X Interrupt.
->  
-> -*) pci_epc_mem_alloc_addr()
-> +* pci_epc_mem_alloc_addr()
->  
->     The PCI endpoint function driver should use pci_epc_mem_alloc_addr(), to
->     allocate memory address from EPC addr space which is required to access
->     RC's buffer
->  
-> -*) pci_epc_mem_free_addr()
-> +* pci_epc_mem_free_addr()
->  
->     The PCI endpoint function driver should use pci_epc_mem_free_addr() to
->     free the memory space allocated using pci_epc_mem_alloc_addr().
->  
-> -2.1.3 Other APIs
-> +Other APIs
-> +~~~~~~~~~~
->  
->  There are other APIs provided by the EPC library. These are used for binding
->  the EPF device with EPC device. pci-ep-cfs.c can be used as reference for
->  using these APIs.
->  
-> -*) pci_epc_get()
-> +* pci_epc_get()
->  
->     Get a reference to the PCI endpoint controller based on the device name of
->     the controller.
->  
-> -*) pci_epc_put()
-> +* pci_epc_put()
->  
->     Release the reference to the PCI endpoint controller obtained using
->     pci_epc_get()
->  
-> -*) pci_epc_add_epf()
-> +* pci_epc_add_epf()
->  
->     Add a PCI endpoint function to a PCI endpoint controller. A PCIe device
->     can have up to 8 functions according to the specification.
->  
-> -*) pci_epc_remove_epf()
-> +* pci_epc_remove_epf()
->  
->     Remove the PCI endpoint function from PCI endpoint controller.
->  
-> -*) pci_epc_start()
-> +* pci_epc_start()
->  
->     The PCI endpoint function driver should invoke pci_epc_start() once it
->     has configured the endpoint function and wants to start the PCI link.
->  
-> -*) pci_epc_stop()
-> +* pci_epc_stop()
->  
->     The PCI endpoint function driver should invoke pci_epc_stop() to stop
->     the PCI LINK.
->  
-> -2.2 PCI Endpoint Function(EPF) Library
-> +
-> +PCI Endpoint Function(EPF) Library
-> +----------------------------------
->  
->  The EPF library provides APIs to be used by the function driver and the EPC
->  library to provide endpoint mode functionality.
->  
-> -2.2.1 APIs for the PCI Endpoint Function Driver
-> +APIs for the PCI Endpoint Function Driver
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->  
->  This section lists the APIs that the PCI Endpoint core provides to be used
->  by the PCI endpoint function driver.
->  
-> -*) pci_epf_register_driver()
-> +* pci_epf_register_driver()
->  
->     The PCI Endpoint Function driver should implement the following ops:
->  	 * bind: ops to perform when a EPC device has been bound to EPF device
-> @@ -166,50 +181,54 @@ by the PCI endpoint function driver.
->    The PCI Function driver can then register the PCI EPF driver by using
->    pci_epf_register_driver().
->  
-> -*) pci_epf_unregister_driver()
-> +* pci_epf_unregister_driver()
->  
->    The PCI Function driver can unregister the PCI EPF driver by using
->    pci_epf_unregister_driver().
->  
-> -*) pci_epf_alloc_space()
-> +* pci_epf_alloc_space()
->  
->    The PCI Function driver can allocate space for a particular BAR using
->    pci_epf_alloc_space().
->  
-> -*) pci_epf_free_space()
-> +* pci_epf_free_space()
->  
->    The PCI Function driver can free the allocated space
->    (using pci_epf_alloc_space) by invoking pci_epf_free_space().
->  
-> -2.2.2 APIs for the PCI Endpoint Controller Library
-> +APIs for the PCI Endpoint Controller Library
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> +
->  This section lists the APIs that the PCI Endpoint core provides to be used
->  by the PCI endpoint controller library.
->  
-> -*) pci_epf_linkup()
-> +* pci_epf_linkup()
->  
->     The PCI endpoint controller library invokes pci_epf_linkup() when the
->     EPC device has established the connection to the host.
->  
-> -2.2.2 Other APIs
-> +Other APIs
-> +~~~~~~~~~~
-> +
->  There are other APIs provided by the EPF library. These are used to notify
->  the function driver when the EPF device is bound to the EPC device.
->  pci-ep-cfs.c can be used as reference for using these APIs.
->  
-> -*) pci_epf_create()
-> +* pci_epf_create()
->  
->     Create a new PCI EPF device by passing the name of the PCI EPF device.
->     This name will be used to bind the the EPF device to a EPF driver.
->  
-> -*) pci_epf_destroy()
-> +* pci_epf_destroy()
->  
->     Destroy the created PCI EPF device.
->  
-> -*) pci_epf_bind()
-> +* pci_epf_bind()
->  
->     pci_epf_bind() should be invoked when the EPF device has been bound to
->     a EPC device.
->  
-> -*) pci_epf_unbind()
-> +* pci_epf_unbind()
->  
->     pci_epf_unbind() should be invoked when the binding between EPC device
->     and EPF device is lost.
-> diff --git a/Documentation/PCI/index.rst b/Documentation/PCI/index.rst
-> index 86c76c22810b..c8ea2e626c20 100644
-> --- a/Documentation/PCI/index.rst
-> +++ b/Documentation/PCI/index.rst
-> @@ -15,3 +15,4 @@ Linux PCI Bus Subsystem
->     acpi-info
->     pci-error-recovery
->     pcieaer-howto
-> +   endpoint/index
-
-
-
-Thanks,
-Mauro
+-- 
+Cheers,
+Changbin Du
