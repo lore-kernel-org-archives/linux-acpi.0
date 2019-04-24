@@ -2,184 +2,95 @@ Return-Path: <SRS0=Qzs7=S2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9536C10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 16:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 207A8C10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 16:52:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98A1921901
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 16:44:41 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ue6fgFca"
+	by mail.kernel.org (Postfix) with ESMTP id E3A15218FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 16:52:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1556124761;
+	bh=sM+v7ZDY6mVJzeKMXOV8yBVhyCEOTmgUCZE+PRsJf3o=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=ESdkXwIqU5xysjvVM+n32TYFwuQefhcOOCFB5xg+H6Ymz4VdoBGKccPfBKovKHQfJ
+	 K4umX2VFv+YiUAaP3joW5pni9OzAysv6jxqqsZCeJg2D6FATxOu5G98CRufDN/ZuI/
+	 McVnDFcA/SLb1CUNv+/jPMH8pWMpi3asQqtjWjp0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731147AbfDXQol (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 12:44:41 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:38436 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726935AbfDXQol (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 12:44:41 -0400
-Received: by mail-pg1-f193.google.com with SMTP id j26so9653303pgl.5;
-        Wed, 24 Apr 2019 09:44:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=rdi04PqMLBm5A89mHKxVJWAwKBP+chl4VgE6VxuYN/4=;
-        b=ue6fgFcaWXCtvUQ4AZgjZXUar9PSH9NaBb+ZtE3nLwcNM1D3F61CleZEaILj/pVWrS
-         Wi5LyzBMSL0hGJ35gzr1K8Lz/EyAdXGV9PDB8C1rFSpAbUSWJdUrF4Gfusto3y+lky13
-         cYWFqtJOFSHQqWmGV+qpAUi1HwEf2kh6E9K5iaOuU0oQq7vyZXMKDrY8sFAv/9lSE5ko
-         M0DZeKP2agxmPhcShJxuXE3HNBNNY8p3mxNOD5utr4RQpZ1ZH2UTpwA2cqsbZYqFtylr
-         rcaKSqV32GkRjet1n95hQon6YQ8n9O6ntPgulAPwMh8t/07kiNQL0rQonHCeiTGPOmlW
-         uKOA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=rdi04PqMLBm5A89mHKxVJWAwKBP+chl4VgE6VxuYN/4=;
-        b=qTMrCz3g5y9L0Ox1jLkYCnIV0b1jjLjPH9Gscd5+2DRkQf2xzI1ekR/GvHhmPHAieK
-         UiUkv4g1/drisnc62IcWWx7VoUWI8OUQGhaqrU4w5wipe1np4SqmH9ag9HyzdRjhwkSH
-         vc6kQvbkwXLK+oYM7KyKDihr8O3z2GSEO5duCAH0dVf3kPNCAJoNXoc4wwa7mNXovfyJ
-         qNusv5s3seRwL/i8MIrydAgf8VACQHfL8JCghXIYyiNzA6joDNQYrj5LhgM31XEX4v+w
-         YLgTYuXqB/JhLp2sHcy7VHV1lKrgWi6bHWAb20yZaJ5VsP+BWX3hXpIAxXeBpGF1wwOa
-         sH4Q==
-X-Gm-Message-State: APjAAAVz15Rl7NYL6q2YAfauvUm3bqu4knE0BQE4kXm/A5hJYRhjcbSM
-        h7i8Hr2pHQnSv0bT+J468jvJnKSK
-X-Google-Smtp-Source: APXvYqwc1gd/8vmyhdxwaHK4g48HxCZu4kGxfp15JgXVeLS0PwSazeDkfGTmmyc21Il7yIo1S1LbOw==
-X-Received: by 2002:a63:1058:: with SMTP id 24mr27113008pgq.297.1556124279798;
-        Wed, 24 Apr 2019 09:44:39 -0700 (PDT)
-Received: from mail.google.com ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id c22sm27913390pfn.136.2019.04.24.09.44.33
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 24 Apr 2019 09:44:39 -0700 (PDT)
-Date:   Thu, 25 Apr 2019 00:44:30 +0800
-From:   Changbin Du <changbin.du@gmail.com>
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+        id S1732892AbfDXQwk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 12:52:40 -0400
+Received: from casper.infradead.org ([85.118.1.10]:35990 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732439AbfDXQwk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 12:52:40 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=dfaDfFq2WMrVb8w8teQDqmRHXr1poGmjBR5SGUSF5kk=; b=apvxgzVONgN/v/y+5LaL4ytTTf
+        Aa8u0hZek6p+EtyIurT9iVqxNcSSG7nAeEDrOgoAuw9O6V4llL44zOETEPP5d3ntzPFIKQKVcgAnP
+        7ai0Fk25T610ebHpVcR4WBFxIQKoTKNbzJZEz3JG6F9+Z9ZqCPxzTbw4XLfcRJKyzrYsD3Wy5QrKu
+        ruL/a/zP2acV+7fXDKqRxByfwOs/eb1KaMUw/uZ3YDdQwSkEpkjg6xdhOjnyR6ISII0T77srkfYKD
+        fO9rWmUEzvYnitf9qITragI3j2bGBreIKETC2eT81k0a29iLQI6DK2/arhQqfqu2VGH4ju9B8b/AA
+        6KiX3mPA==;
+Received: from 177.17.136.231.dynamic.adsl.gvt.net.br ([177.17.136.231] helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1hJL8M-0005a2-V1; Wed, 24 Apr 2019 16:52:35 +0000
+Date:   Wed, 24 Apr 2019 13:52:28 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Jonathan Corbet <corbet@lwn.net>
 Cc:     Changbin Du <changbin.du@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>,
         Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net,
         linux-pci@vger.kernel.org, linux-doc@vger.kernel.org,
         linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
         x86@kernel.org, fenghua.yu@intel.com,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v4 15/63] Documentation: ACPI: move
- dsd/data-node-references.txt to firmware-guide/acpi and convert to reST
-Message-ID: <20190424164428.r4wgyeexeuaoujuw@mail.google.com>
+Subject: Re: [PATCH v4 00/63] Include linux ACPI/PCI/X86 docs into Sphinx
+ TOC tree
+Message-ID: <20190424135228.58cdb9be@coco.lan>
+In-Reply-To: <20190424101846.7cc4bad7@lwn.net>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
- <20190423162932.21428-16-changbin.du@gmail.com>
- <20190423181748.24f8aed2@coco.lan>
+        <20190424101846.7cc4bad7@lwn.net>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <20190423181748.24f8aed2@coco.lan>
-User-Agent: NeoMutt/20180716
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424164430.zSZNpSXHBfQDIN4wF8bRoSPud5ePHbNuDrz6znW_3IA@z>
+Message-ID: <20190424165228.80UYXIIhnunB9_UIUdLsp-RrLYiV7tw8D9qfhnXGx1M@z>
 
-On Tue, Apr 23, 2019 at 06:17:48PM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 24 Apr 2019 00:28:44 +0800
-> Changbin Du <changbin.du@gmail.com> escreveu:
+Em Wed, 24 Apr 2019 10:18:46 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
+
+> On Wed, 24 Apr 2019 00:28:29 +0800
+> Changbin Du <changbin.du@gmail.com> wrote:
 > 
-> > This converts the plain text documentation to reStructuredText format and
-> > add it to Sphinx TOC tree. No essential content change.
+> > The kernel now uses Sphinx to generate intelligent and beautiful documentation
+> > from reStructuredText files. I converted all of the Linux ACPI/PCI/X86 docs to
+> > reST format in this serias.
 > > 
-> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
-> > ---
-> >  .../acpi/dsd/data-node-references.rst}        | 28 +++++++++++--------
-> >  Documentation/firmware-guide/acpi/index.rst   |  1 +
-> >  2 files changed, 17 insertions(+), 12 deletions(-)
-> >  rename Documentation/{acpi/dsd/data-node-references.txt => firmware-guide/acpi/dsd/data-node-references.rst} (79%)
-> > 
-> > diff --git a/Documentation/acpi/dsd/data-node-references.txt b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-> > similarity index 79%
-> > rename from Documentation/acpi/dsd/data-node-references.txt
-> > rename to Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-> > index c3871565c8cf..79c5368eaecf 100644
-> > --- a/Documentation/acpi/dsd/data-node-references.txt
-> > +++ b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-> > @@ -1,9 +1,12 @@
-> > -Copyright (C) 2018 Intel Corporation
-> > -Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > -
-> > +.. SPDX-License-Identifier: GPL-2.0
-> > +.. include:: <isonum.txt>
-> >  
-> > +===================================
-> >  Referencing hierarchical data nodes
-> > ------------------------------------
-> > +===================================
-> > +
-> > +:Copyright: |copy| 2018 Intel Corporation
-> > +:Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >  
-> >  ACPI in general allows referring to device objects in the tree only.
-> >  Hierarchical data extension nodes may not be referred to directly, hence this
-> > @@ -28,13 +31,14 @@ extension key.
-> >  
-> >  
-> >  Example
-> > --------
-> > +=======
-> >  
-> > -	In the ASL snippet below, the "reference" _DSD property [2] contains a
-> > -	device object reference to DEV0 and under that device object, a
-> > -	hierarchical data extension key "node@1" referring to the NOD1 object
-> > -	and lastly, a hierarchical data extension key "anothernode" referring to
-> > -	the ANOD object which is also the final target node of the reference.
-> > +In the ASL snippet below, the "reference" _DSD property [2] contains a
-> > +device object reference to DEV0 and under that device object, a
-> > +hierarchical data extension key "node@1" referring to the NOD1 object
-> > +and lastly, a hierarchical data extension key "anothernode" referring to
-> > +the ANOD object which is also the final target node of the reference.
-> > +::
-> >  
-> >  	Device (DEV0)
-> >  	{
-> > @@ -75,10 +79,10 @@ Example
-> >  	    })
-> >  	}
-> >  
-> > -Please also see a graph example in graph.txt .
-> > +Please also see a graph example in :doc:`graph`.
-> >  
-> >  References
-> > -----------
-> > +==========
-> >  
-> >  [1] Hierarchical Data Extension UUID For _DSD.
-> >      <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf>,
+> > In this version I combined ACPI and PCI docs, and added new x86 docs conversion.  
 > 
-> Hmm... on the previous patch, you replaced <URL:some_url> by some_url,
-> with makes sense. Please do the same here and on other patches on
-> this series with a similar way to describe URLs.
->
-Done, thanks.
+> As mentioned by others, this is a lot of stuff; I would really rather see
+> each of those groups as separate patch sets.
 
-> > diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-> > index f81cfbcb6878..6d4e0df4f063 100644
-> > --- a/Documentation/firmware-guide/acpi/index.rst
-> > +++ b/Documentation/firmware-guide/acpi/index.rst
-> > @@ -9,6 +9,7 @@ ACPI Support
-> >  
-> >     namespace
-> >     dsd/graph
-> > +   dsd/data-node-references
-> >     enumeration
-> >     osi
-> >     method-customizing
-> 
-> 
-> 
-> Thanks,
-> Mauro
+Yeah, makes sense to me, either to split into separate patchsets or to
+group the changes per sub-dir (or both).
 
--- 
-Cheers,
-Changbin Du
+> If you can do a reasonably quick turnaround with Mauro's suggestions
+> addressed and tags applied, we should be able to get at least some of this
+> into 5.2.  Thanks, Mauro, for looking at all of this stuff!
+
+Anytime! Just to make clear, I'm still reviewing it... I'm at patch 35/63
+now. So, expect more comments from my side.
+
+
+Thanks,
+Mauro
