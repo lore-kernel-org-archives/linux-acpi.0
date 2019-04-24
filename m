@@ -1,87 +1,65 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH v6 5/6] ext4: disable map_sync for async flush
-Date: Wed, 24 Apr 2019 01:21:44 -0400 (EDT)
-Message-ID: <1325148804.23168491.1556083304080.JavaMail.zimbra@redhat.com>
-References: <20190423080612.15361-1-pagupta@redhat.com>
-	<20190423080612.15361-6-pagupta@redhat.com>
-	<20190423142748.GE9910@quack2.suse.cz>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
+ on BYT/CHT
+Date: Wed, 24 Apr 2019 09:20:28 +0200
+Message-ID: <CAJZ5v0jJEovXXiqs-tzPC7FsGjGL+qxfXCxbTrQZqAxSCv1oyQ@mail.gmail.com>
+References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
+ <eb1462c9-ebef-7bd6-c263-3f4f2e8ba63d@redhat.com> <b6cd67d7-a4de-0fab-4512-25d732190d17@uwyo.edu>
+ <feb1808d-542c-83c2-5c70-9228473bb8d0@redhat.com> <0a770539-dfe9-2eb6-a90a-82f065a23a3f@uwyo.edu>
+ <f6db39bc-b8d1-fda8-ad37-a8b050ef0027@redhat.com> <37aee883-1253-adad-82b4-4a578cc72825@uwyo.edu>
+ <CAJZ5v0j9U20cFbRx6QKeQv6wyDg6nL71L0U_Rec5+W1JoD8-=w@mail.gmail.com> <144b56d4-54e6-bccd-4652-22303bcd9168@uwyo.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-In-Reply-To: <20190423142748.GE9910@quack2.suse.cz>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: Jan Kara <jack@suse.cz>
-Cc: kvm@vger.kernel.org, mst@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, dave jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org, vishal l verma <vishal.l.verma@intel.com>, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, imammedo@redhat.com, dan j williams <dan.j.williams@intel.com>, lcapitulino@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, cohuck@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com, darrick wong <darr>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <144b56d4-54e6-bccd-4652-22303bcd9168@uwyo.edu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Robert R. Howell" <RHowell@uwyo.edu>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Apr 23, 2019 at 10:03 PM Robert R. Howell <RHowell@uwyo.edu> wrote:
+>
+> On 4/23/19 2:07 AM, Rafael J. Wysocki wrote:
+> >
+> > On Sat, Apr 20, 2019 at 12:44 AM Robert R. Howell <RHowell@uwyo.edu> wrote:
+> >>
+> >> On 4/18/19 5:42 AM, Hans de Goede wrote:
+> >>
+> >>>> On 4/8/19 2:16 AM, Hans de Goede wrote:>
+> >>>>>
+> >>>>> Hmm, interesting so you have hibernation working on a T100TA
+> >>>>> (with 5.0 + 02e45646d53b reverted), right ?
+> >>>>>
+> >>
+> >>
+> >> I've managed to find a way around the i2c_designware timeout issues
+> >> on the T100TA's.  The key is to NOT set DPM_FLAG_SMART_SUSPEND,
+> >> which was added in the 02e45646d53b commit.
+> >>
+> >> To test that I've started with a 5.1-rc5 kernel, applied your recent patch
+> >> to acpi_lpss.c, then apply the following patch of mine, removing
+> >> DPM_FLAG_SMART_SUSPEND.  (For the T100 hardware I need to apply some
+> >> other patches as well but those are not related to the i2c-designware or
+> >> acpi issues addressed here.)
+> >>
+> >> On a resume from hibernation I still see one error:
+> >>   "i2c_designware 80860F41:00: Error i2c_dw_xfer called while suspended"
+> >> but I no longer get the i2c_designware timeouts, and audio does now work
+> >> after the resume.
+> >>
+> >> Removing DPM_FLAG_SMART_SUSPEND may not be what you want for other
+> >> hardware, but perhaps this will give you a clue as to what is going
+> >> wrong with hibernate/resume on the T100TA's.
+> >
+> > What if you drop DPM_FLAG_LEAVE_SUSPENDED alone instead?
+> >
+>
+> I did try dropping just DPM_FLAG_LEAVE_SUSPENDED, dropping just
+> DPM_FLAG_SMART_SUSPEND, and dropping both flags.  When I just drop
+> DPM_FLAG_LEAVE_SUSPENDED I still get the i2c_designware timeouts
+> after the resume.  If I drop just DPM_FLAG_SMART_SUSPEND or drop both,
+> then the timeouts go away.
 
-> 
-> On Tue 23-04-19 13:36:11, Pankaj Gupta wrote:
-> > Dont support 'MAP_SYNC' with non-DAX files and DAX files
-> > with asynchronous dax_device. Virtio pmem provides
-> > asynchronous host page cache flush mechanism. We don't
-> > support 'MAP_SYNC' with virtio pmem and ext4.
-> > 
-> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> 
-> The patch looks good to me. You can add:
-> 
-> Reviewed-by: Jan Kara <jack@suse.cz>
+OK, thanks!
 
-Thank you. Will add this.
-
-Best regards,
-Pankaj
-
-> 
-> 								Honza
-> 
-> 
-> > ---
-> >  fs/ext4/file.c | 11 ++++++-----
-> >  1 file changed, 6 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-> > index 69d65d49837b..4b2ccaf1932e 100644
-> > --- a/fs/ext4/file.c
-> > +++ b/fs/ext4/file.c
-> > @@ -360,15 +360,16 @@ static const struct vm_operations_struct
-> > ext4_file_vm_ops = {
-> >  static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
-> >  {
-> >  	struct inode *inode = file->f_mapping->host;
-> > +	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
-> > +	struct dax_device *dax_dev = sbi->s_daxdev;
-> >  
-> > -	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-> > +	if (unlikely(ext4_forced_shutdown(sbi)))
-> >  		return -EIO;
-> >  
-> > -	/*
-> > -	 * We don't support synchronous mappings for non-DAX files. At least
-> > -	 * until someone comes with a sensible use case.
-> > +	/* We don't support synchronous mappings for non-DAX files and
-> > +	 * for DAX files if underneath dax_device is not synchronous.
-> >  	 */
-> > -	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-> > +	if (!daxdev_mapping_supported(vma, dax_dev))
-> >  		return -EOPNOTSUPP;
-> >  
-> >  	file_accessed(file);
-> > --
-> > 2.20.1
-> > 
-> --
-> Jan Kara <jack@suse.com>
-> SUSE Labs, CR
-> 
-> 
+Is non-hibernation system suspend affected too?
