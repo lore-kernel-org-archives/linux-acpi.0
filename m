@@ -2,44 +2,37 @@ Return-Path: <SRS0=Qzs7=S2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE6D1C10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 10:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA0B9C10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 10:19:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C781F2089F
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 10:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9343A20878
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 10:19:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726307AbfDXKBu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 06:01:50 -0400
-Received: from mga11.intel.com ([192.55.52.93]:31739 "EHLO mga11.intel.com"
+        id S1726626AbfDXKTR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 06:19:17 -0400
+Received: from gecko.sbs.de ([194.138.37.40]:58231 "EHLO gecko.sbs.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726167AbfDXKBu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 Apr 2019 06:01:50 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Apr 2019 03:01:34 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,389,1549958400"; 
-   d="scan'208";a="167445573"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
-  by fmsmga001.fm.intel.com with SMTP; 24 Apr 2019 03:01:31 -0700
-Received: by lahna (sSMTP sendmail emulation); Wed, 24 Apr 2019 13:01:30 +0300
-Date:   Wed, 24 Apr 2019 13:01:30 +0300
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     Jan Kiszka <jan.kiszka@siemens.com>
+        id S1726039AbfDXKTR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Apr 2019 06:19:17 -0400
+Received: from mail2.sbs.de (mail2.sbs.de [192.129.41.66])
+        by gecko.sbs.de (8.15.2/8.15.2) with ESMTPS id x3OAJ379014948
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 24 Apr 2019 12:19:03 +0200
+Received: from [139.22.114.195] ([139.22.114.195])
+        by mail2.sbs.de (8.15.2/8.15.2) with ESMTP id x3OAJ2vF026053;
+        Wed, 24 Apr 2019 12:19:02 +0200
+Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
-Message-ID: <20190424100130.GB2654@lahna.fi.intel.com>
 References: <cover.1555579429.git.jan.kiszka@siemens.com>
  <c9f40465c6effc7b8efd6cbf8461d71d80c80033.1555579429.git.jan.kiszka@siemens.com>
  <20190424075816.GU2654@lahna.fi.intel.com>
@@ -50,39 +43,62 @@ References: <cover.1555579429.git.jan.kiszka@siemens.com>
  <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
  <20190424094506.GA2654@lahna.fi.intel.com>
  <292e6eff-82cc-6e4d-925b-77a60399e2e0@siemens.com>
+ <20190424100130.GB2654@lahna.fi.intel.com>
+From:   Jan Kiszka <jan.kiszka@siemens.com>
+Message-ID: <1200464b-f969-ebc2-ae82-1f8ca98aaca1@siemens.com>
+Date:   Wed, 24 Apr 2019 12:19:02 +0200
+User-Agent: Mozilla/5.0 (X11; U; Linux i686 (x86_64); de; rv:1.8.1.12)
+ Gecko/20080226 SUSE/2.0.0.12-1.1 Thunderbird/2.0.0.12 Mnenhy/0.7.5.666
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <292e6eff-82cc-6e4d-925b-77a60399e2e0@siemens.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.11.3 (2019-02-01)
+In-Reply-To: <20190424100130.GB2654@lahna.fi.intel.com>
+Content-Type: text/plain; charset="UTF-8"; format="flowed"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424100130.LJOCrbH1vEDJlJrt3QttNE0zP_qIfIe6D8nfIDexTsM@z>
+Message-ID: <20190424101902.W5-y9kQSep6Z_zJhtFhPLW3KoQPTjXGteyA8ytrxipQ@z>
 
-On Wed, Apr 24, 2019 at 11:48:09AM +0200, Jan Kiszka wrote:
-> On 24.04.19 11:45, Mika Westerberg wrote:
-> > On Wed, Apr 24, 2019 at 11:36:58AM +0200, Jan Kiszka wrote:
-> > > OK, there is that table, but what is it supposed to tell me about the
-> > > event and where to hook into it better?
-> > ...
-> > > [02Eh 0046   2]                SCI Interrupt : 0009
-> > 
-> > This is the SCI interrupt GSI number. IIRC it maps 1:1 to Linux
-> > interrupt number so you should see it in /proc/interrupts. When a GPE
-> > event is triggered it should be handled in the ACPI core.
-> > 
+On 24.04.19 12:01, Mika Westerberg wrote:
+> On Wed, Apr 24, 2019 at 11:48:09AM +0200, Jan Kiszka wrote:
+>> On 24.04.19 11:45, Mika Westerberg wrote:
+>>> On Wed, Apr 24, 2019 at 11:36:58AM +0200, Jan Kiszka wrote:
+>>>> OK, there is that table, but what is it supposed to tell me about the
+>>>> event and where to hook into it better?
+>>> ...
+>>>> [02Eh 0046   2]                SCI Interrupt : 0009
+>>>
+>>> This is the SCI interrupt GSI number. IIRC it maps 1:1 to Linux
+>>> interrupt number so you should see it in /proc/interrupts. When a GPE
+>>> event is triggered it should be handled in the ACPI core.
+>>>
+>>
+>> Yes, clear, all this happens already. But I need to link the core with the
+>> sch gpio handler so that the gpio event is filtered out and the right
+>> virtual gpio interrupt is triggered. So, other than
+>> acpi_install_sci_handler, how should I establish that link?
 > 
-> Yes, clear, all this happens already. But I need to link the core with the
-> sch gpio handler so that the gpio event is filtered out and the right
-> virtual gpio interrupt is triggered. So, other than
-> acpi_install_sci_handler, how should I establish that link?
+> I think what you want is "GPIO signaled ACPI event". It works so that
+> you declare _AEI method below the GPIO controller listing the GPIOs you
+> want to trigger events for and then either _Lxx, _Exx or _EVT method for
+> each of them under the same controller. GPIO core then handles it
+> automatically when you register the GPIO chip. See also
+> acpi_gpiochip_request_interrupts().
+> 
 
-I think what you want is "GPIO signaled ACPI event". It works so that
-you declare _AEI method below the GPIO controller listing the GPIOs you
-want to trigger events for and then either _Lxx, _Exx or _EVT method for
-each of them under the same controller. GPIO core then handles it
-automatically when you register the GPIO chip. See also
-acpi_gpiochip_request_interrupts().
+Right, that is was I read as well. Let's assume I would be able to patch the 
+tables: Would I describe all the logic of this patch in ACPI terms? Where to 
+enable interrupts, how to dispatch the SCI event, how to acknowledge it etc.? 
+Will it also take care of locking? (BTW, my locking seems to have some remaining 
+inconsistency, on second look.)
+
+And even if that were possible, we would be back to the square of existing 
+devices without those definitions. If this were a recent chipset, I would say, 
+"go, fix future firmware versions". But this one is legacy.
+
+Jan
+
+-- 
+Siemens AG, Corporate Technology, CT RDA IOT SES-DE
+Corporate Competence Center Embedded Linux
