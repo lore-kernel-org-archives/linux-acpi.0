@@ -1,7 +1,7 @@
 From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v5 22/23] Documentation: ACPI: move ssdt-overlays.txt to admin-guide/acpi and convert to reST
-Date: Thu, 25 Apr 2019 01:53:05 +0800
-Message-ID: <20190424175306.25880-23-changbin.du@gmail.com>
+Subject: [PATCH v5 23/23] Documentation: ACPI: move video_extension.txt to firmware-guide/acpi and convert to reST
+Date: Thu, 25 Apr 2019 01:53:06 +0800
+Message-ID: <20190424175306.25880-24-changbin.du@gmail.com>
 References: <20190424175306.25880-1-changbin.du@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -16,388 +16,167 @@ This converts the plain text documentation to reStructuredText format and
 add it to Sphinx TOC tree. No essential content change.
 
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- Documentation/acpi/ssdt-overlays.txt          | 172 -----------------
- Documentation/admin-guide/acpi/index.rst      |   1 +
- .../admin-guide/acpi/ssdt-overlays.rst        | 180 ++++++++++++++++++
- 3 files changed, 181 insertions(+), 172 deletions(-)
- delete mode 100644 Documentation/acpi/ssdt-overlays.txt
- create mode 100644 Documentation/admin-guide/acpi/ssdt-overlays.rst
+ Documentation/firmware-guide/acpi/index.rst   |  1 +
+ .../acpi/video_extension.rst}                 | 83 +++++++++++--------
+ 2 files changed, 50 insertions(+), 34 deletions(-)
+ rename Documentation/{acpi/video_extension.txt => firmware-guide/acpi/video_extension.rst} (70%)
 
-diff --git a/Documentation/acpi/ssdt-overlays.txt b/Documentation/acpi/ssdt-overlays.txt
-deleted file mode 100644
-index 5ae13f161ea2..000000000000
---- a/Documentation/acpi/ssdt-overlays.txt
-+++ /dev/null
-@@ -1,172 +0,0 @@
--
--In order to support ACPI open-ended hardware configurations (e.g. development
--boards) we need a way to augment the ACPI configuration provided by the firmware
--image. A common example is connecting sensors on I2C / SPI buses on development
--boards.
--
--Although this can be accomplished by creating a kernel platform driver or
--recompiling the firmware image with updated ACPI tables, neither is practical:
--the former proliferates board specific kernel code while the latter requires
--access to firmware tools which are often not publicly available.
--
--Because ACPI supports external references in AML code a more practical
--way to augment firmware ACPI configuration is by dynamically loading
--user defined SSDT tables that contain the board specific information.
--
--For example, to enumerate a Bosch BMA222E accelerometer on the I2C bus of the
--Minnowboard MAX development board exposed via the LSE connector [1], the
--following ASL code can be used:
--
--DefinitionBlock ("minnowmax.aml", "SSDT", 1, "Vendor", "Accel", 0x00000003)
--{
--    External (\_SB.I2C6, DeviceObj)
--
--    Scope (\_SB.I2C6)
--    {
--        Device (STAC)
--        {
--            Name (_ADR, Zero)
--            Name (_HID, "BMA222E")
--
--            Method (_CRS, 0, Serialized)
--            {
--                Name (RBUF, ResourceTemplate ()
--                {
--                    I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
--                                  AddressingMode7Bit, "\\_SB.I2C6", 0x00,
--                                  ResourceConsumer, ,)
--                    GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
--                             "\\_SB.GPO2", 0x00, ResourceConsumer, , )
--                    { // Pin list
--                        0
--                    }
--                })
--                Return (RBUF)
--            }
--        }
--    }
--}
--
--which can then be compiled to AML binary format:
--
--$ iasl minnowmax.asl
--
--Intel ACPI Component Architecture
--ASL Optimizing Compiler version 20140214-64 [Mar 29 2014]
--Copyright (c) 2000 - 2014 Intel Corporation
--
--ASL Input:     minnomax.asl - 30 lines, 614 bytes, 7 keywords
--AML Output:    minnowmax.aml - 165 bytes, 6 named objects, 1 executable opcodes
--
--[1] http://wiki.minnowboard.org/MinnowBoard_MAX#Low_Speed_Expansion_Connector_.28Top.29
--
--The resulting AML code can then be loaded by the kernel using one of the methods
--below.
--
--== Loading ACPI SSDTs from initrd ==
--
--This option allows loading of user defined SSDTs from initrd and it is useful
--when the system does not support EFI or when there is not enough EFI storage.
--
--It works in a similar way with initrd based ACPI tables override/upgrade: SSDT
--aml code must be placed in the first, uncompressed, initrd under the
--"kernel/firmware/acpi" path. Multiple files can be used and this will translate
--in loading multiple tables. Only SSDT and OEM tables are allowed. See
--initrd_table_override.txt for more details.
--
--Here is an example:
--
--# Add the raw ACPI tables to an uncompressed cpio archive.
--# They must be put into a /kernel/firmware/acpi directory inside the
--# cpio archive.
--# The uncompressed cpio archive must be the first.
--# Other, typically compressed cpio archives, must be
--# concatenated on top of the uncompressed one.
--mkdir -p kernel/firmware/acpi
--cp ssdt.aml kernel/firmware/acpi
--
--# Create the uncompressed cpio archive and concatenate the original initrd
--# on top:
--find kernel | cpio -H newc --create > /boot/instrumented_initrd
--cat /boot/initrd >>/boot/instrumented_initrd
--
--== Loading ACPI SSDTs from EFI variables ==
--
--This is the preferred method, when EFI is supported on the platform, because it
--allows a persistent, OS independent way of storing the user defined SSDTs. There
--is also work underway to implement EFI support for loading user defined SSDTs
--and using this method will make it easier to convert to the EFI loading
--mechanism when that will arrive.
--
--In order to load SSDTs from an EFI variable the efivar_ssdt kernel command line
--parameter can be used. The argument for the option is the variable name to
--use. If there are multiple variables with the same name but with different
--vendor GUIDs, all of them will be loaded.
--
--In order to store the AML code in an EFI variable the efivarfs filesystem can be
--used. It is enabled and mounted by default in /sys/firmware/efi/efivars in all
--recent distribution.
--
--Creating a new file in /sys/firmware/efi/efivars will automatically create a new
--EFI variable. Updating a file in /sys/firmware/efi/efivars will update the EFI
--variable. Please note that the file name needs to be specially formatted as
--"Name-GUID" and that the first 4 bytes in the file (little-endian format)
--represent the attributes of the EFI variable (see EFI_VARIABLE_MASK in
--include/linux/efi.h). Writing to the file must also be done with one write
--operation.
--
--For example, you can use the following bash script to create/update an EFI
--variable with the content from a given file:
--
--#!/bin/sh -e
--
--while ! [ -z "$1" ]; do
--        case "$1" in
--        "-f") filename="$2"; shift;;
--        "-g") guid="$2"; shift;;
--        *) name="$1";;
--        esac
--        shift
--done
--
--usage()
--{
--        echo "Syntax: ${0##*/} -f filename [ -g guid ] name"
--        exit 1
--}
--
--[ -n "$name" -a -f "$filename" ] || usage
--
--EFIVARFS="/sys/firmware/efi/efivars"
--
--[ -d "$EFIVARFS" ] || exit 2
--
--if stat -tf $EFIVARFS | grep -q -v de5e81e4; then
--        mount -t efivarfs none $EFIVARFS
--fi
--
--# try to pick up an existing GUID
--[ -n "$guid" ] || guid=$(find "$EFIVARFS" -name "$name-*" | head -n1 | cut -f2- -d-)
--
--# use a randomly generated GUID
--[ -n "$guid" ] || guid="$(cat /proc/sys/kernel/random/uuid)"
--
--# efivarfs expects all of the data in one write
--tmp=$(mktemp)
--/bin/echo -ne "\007\000\000\000" | cat - $filename > $tmp
--dd if=$tmp of="$EFIVARFS/$name-$guid" bs=$(stat -c %s $tmp)
--rm $tmp
--
--== Loading ACPI SSDTs from configfs ==
--
--This option allows loading of user defined SSDTs from userspace via the configfs
--interface. The CONFIG_ACPI_CONFIGFS option must be select and configfs must be
--mounted. In the following examples, we assume that configfs has been mounted in
--/config.
--
--New tables can be loading by creating new directories in /config/acpi/table/ and
--writing the SSDT aml code in the aml attribute:
--
--cd /config/acpi/table
--mkdir my_ssdt
--cat ~/ssdt.aml > my_ssdt/aml
-diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-index 9049a7b9f065..4d13eeea1eca 100644
---- a/Documentation/admin-guide/acpi/index.rst
-+++ b/Documentation/admin-guide/acpi/index.rst
-@@ -10,4 +10,5 @@ the Linux ACPI support.
- 
-    initrd_table_override
-    dsdt-override
-+   ssdt-overlays
-    cppc_sysfs
-diff --git a/Documentation/admin-guide/acpi/ssdt-overlays.rst b/Documentation/admin-guide/acpi/ssdt-overlays.rst
-new file mode 100644
-index 000000000000..da37455f96c9
---- /dev/null
-+++ b/Documentation/admin-guide/acpi/ssdt-overlays.rst
-@@ -0,0 +1,180 @@
+diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+index 0e60f4b7129a..ae609eec4679 100644
+--- a/Documentation/firmware-guide/acpi/index.rst
++++ b/Documentation/firmware-guide/acpi/index.rst
+@@ -23,3 +23,4 @@ ACPI Support
+    i2c-muxes
+    acpi-lid
+    lpit
++   video_extension
+diff --git a/Documentation/acpi/video_extension.txt b/Documentation/firmware-guide/acpi/video_extension.rst
+similarity index 70%
+rename from Documentation/acpi/video_extension.txt
+rename to Documentation/firmware-guide/acpi/video_extension.rst
+index 79bf6a4921be..099b8607e07b 100644
+--- a/Documentation/acpi/video_extension.txt
++++ b/Documentation/firmware-guide/acpi/video_extension.rst
+@@ -1,5 +1,8 @@
 +.. SPDX-License-Identifier: GPL-2.0
 +
-+=============
-+SSDT Overlays
-+=============
++=====================
+ ACPI video extensions
+-~~~~~~~~~~~~~~~~~~~~~
++=====================
+ 
+ This driver implement the ACPI Extensions For Display Adapters for
+ integrated graphics devices on motherboard, as specified in ACPI 2.0
+@@ -8,9 +11,10 @@ defining the video POST device, retrieving EDID information or to
+ setup a video output, etc.  Note that this is an ref. implementation
+ only.  It may or may not work for your integrated video device.
+ 
+-The ACPI video driver does 3 things regarding backlight control:
++The ACPI video driver does 3 things regarding backlight control.
+ 
+-1 Export a sysfs interface for user space to control backlight level
++Export a sysfs interface for user space to control backlight level
++==================================================================
+ 
+ If the ACPI table has a video device, and acpi_backlight=vendor kernel
+ command line is not present, the driver will register a backlight device
+@@ -22,36 +26,41 @@ The backlight sysfs interface has a standard definition here:
+ Documentation/ABI/stable/sysfs-class-backlight.
+ 
+ And what ACPI video driver does is:
+-actual_brightness: on read, control method _BQC will be evaluated to
+-get the brightness level the firmware thinks it is at;
+-bl_power: not implemented, will set the current brightness instead;
+-brightness: on write, control method _BCM will run to set the requested
+-brightness level;
+-max_brightness: Derived from the _BCL package(see below);
+-type: firmware
 +
-+In order to support ACPI open-ended hardware configurations (e.g. development
-+boards) we need a way to augment the ACPI configuration provided by the firmware
-+image. A common example is connecting sensors on I2C / SPI buses on development
-+boards.
++actual_brightness:
++  on read, control method _BQC will be evaluated to
++  get the brightness level the firmware thinks it is at;
++bl_power:
++  not implemented, will set the current brightness instead;
++brightness:
++  on write, control method _BCM will run to set the requested brightness level;
++max_brightness:
++  Derived from the _BCL package(see below);
++type:
++  firmware
+ 
+ Note that ACPI video backlight driver will always use index for
+ brightness, actual_brightness and max_brightness. So if we have
+-the following _BCL package:
++the following _BCL package::
+ 
+-Method (_BCL, 0, NotSerialized)
+-{
+-	Return (Package (0x0C)
++	Method (_BCL, 0, NotSerialized)
+ 	{
+-		0x64,
+-		0x32,
+-		0x0A,
+-		0x14,
+-		0x1E,
+-		0x28,
+-		0x32,
+-		0x3C,
+-		0x46,
+-		0x50,
+-		0x5A,
+-		0x64
+-	})
+-}
++		Return (Package (0x0C)
++		{
++			0x64,
++			0x32,
++			0x0A,
++			0x14,
++			0x1E,
++			0x28,
++			0x32,
++			0x3C,
++			0x46,
++			0x50,
++			0x5A,
++			0x64
++		})
++	}
+ 
+ The first two levels are for when laptop are on AC or on battery and are
+ not used by Linux currently. The remaining 10 levels are supported levels
+@@ -62,13 +71,15 @@ as a "brightness level" indicator. Thus from the user space perspective
+ the range of available brightness levels is from 0 to 9 (max_brightness)
+ inclusive.
+ 
+-2 Notify user space about hotkey event
++Notify user space about hotkey event
++====================================
+ 
+ There are generally two cases for hotkey event reporting:
 +
-+Although this can be accomplished by creating a kernel platform driver or
-+recompiling the firmware image with updated ACPI tables, neither is practical:
-+the former proliferates board specific kernel code while the latter requires
-+access to firmware tools which are often not publicly available.
-+
-+Because ACPI supports external references in AML code a more practical
-+way to augment firmware ACPI configuration is by dynamically loading
-+user defined SSDT tables that contain the board specific information.
-+
-+For example, to enumerate a Bosch BMA222E accelerometer on the I2C bus of the
-+Minnowboard MAX development board exposed via the LSE connector [1], the
-+following ASL code can be used::
-+
-+    DefinitionBlock ("minnowmax.aml", "SSDT", 1, "Vendor", "Accel", 0x00000003)
-+    {
-+        External (\_SB.I2C6, DeviceObj)
-+
-+        Scope (\_SB.I2C6)
-+        {
-+            Device (STAC)
-+            {
-+                Name (_ADR, Zero)
-+                Name (_HID, "BMA222E")
-+
-+                Method (_CRS, 0, Serialized)
-+                {
-+                    Name (RBUF, ResourceTemplate ()
-+                    {
-+                        I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
-+                                    AddressingMode7Bit, "\\_SB.I2C6", 0x00,
-+                                    ResourceConsumer, ,)
-+                        GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
-+                                "\\_SB.GPO2", 0x00, ResourceConsumer, , )
-+                        { // Pin list
-+                            0
-+                        }
-+                    })
-+                    Return (RBUF)
-+                }
-+            }
-+        }
-+    }
-+
-+which can then be compiled to AML binary format::
-+
-+    $ iasl minnowmax.asl
-+
-+    Intel ACPI Component Architecture
-+    ASL Optimizing Compiler version 20140214-64 [Mar 29 2014]
-+    Copyright (c) 2000 - 2014 Intel Corporation
-+
-+    ASL Input:     minnomax.asl - 30 lines, 614 bytes, 7 keywords
-+    AML Output:    minnowmax.aml - 165 bytes, 6 named objects, 1 executable opcodes
-+
-+[1] http://wiki.minnowboard.org/MinnowBoard_MAX#Low_Speed_Expansion_Connector_.28Top.29
-+
-+The resulting AML code can then be loaded by the kernel using one of the methods
-+below.
-+
-+Loading ACPI SSDTs from initrd
-+==============================
-+
-+This option allows loading of user defined SSDTs from initrd and it is useful
-+when the system does not support EFI or when there is not enough EFI storage.
-+
-+It works in a similar way with initrd based ACPI tables override/upgrade: SSDT
-+aml code must be placed in the first, uncompressed, initrd under the
-+"kernel/firmware/acpi" path. Multiple files can be used and this will translate
-+in loading multiple tables. Only SSDT and OEM tables are allowed. See
-+initrd_table_override.txt for more details.
-+
-+Here is an example::
-+
-+    # Add the raw ACPI tables to an uncompressed cpio archive.
-+    # They must be put into a /kernel/firmware/acpi directory inside the
-+    # cpio archive.
-+    # The uncompressed cpio archive must be the first.
-+    # Other, typically compressed cpio archives, must be
-+    # concatenated on top of the uncompressed one.
-+    mkdir -p kernel/firmware/acpi
-+    cp ssdt.aml kernel/firmware/acpi
-+
-+    # Create the uncompressed cpio archive and concatenate the original initrd
-+    # on top:
-+    find kernel | cpio -H newc --create > /boot/instrumented_initrd
-+    cat /boot/initrd >>/boot/instrumented_initrd
-+
-+Loading ACPI SSDTs from EFI variables
-+=====================================
-+
-+This is the preferred method, when EFI is supported on the platform, because it
-+allows a persistent, OS independent way of storing the user defined SSDTs. There
-+is also work underway to implement EFI support for loading user defined SSDTs
-+and using this method will make it easier to convert to the EFI loading
-+mechanism when that will arrive.
-+
-+In order to load SSDTs from an EFI variable the efivar_ssdt kernel command line
-+parameter can be used. The argument for the option is the variable name to
-+use. If there are multiple variables with the same name but with different
-+vendor GUIDs, all of them will be loaded.
-+
-+In order to store the AML code in an EFI variable the efivarfs filesystem can be
-+used. It is enabled and mounted by default in /sys/firmware/efi/efivars in all
-+recent distribution.
-+
-+Creating a new file in /sys/firmware/efi/efivars will automatically create a new
-+EFI variable. Updating a file in /sys/firmware/efi/efivars will update the EFI
-+variable. Please note that the file name needs to be specially formatted as
-+"Name-GUID" and that the first 4 bytes in the file (little-endian format)
-+represent the attributes of the EFI variable (see EFI_VARIABLE_MASK in
-+include/linux/efi.h). Writing to the file must also be done with one write
-+operation.
-+
-+For example, you can use the following bash script to create/update an EFI
-+variable with the content from a given file::
-+
-+    #!/bin/sh -e
-+
-+    while ! [ -z "$1" ]; do
-+            case "$1" in
-+            "-f") filename="$2"; shift;;
-+            "-g") guid="$2"; shift;;
-+            *) name="$1";;
-+            esac
-+            shift
-+    done
-+
-+    usage()
-+    {
-+            echo "Syntax: ${0##*/} -f filename [ -g guid ] name"
-+            exit 1
-+    }
-+
-+    [ -n "$name" -a -f "$filename" ] || usage
-+
-+    EFIVARFS="/sys/firmware/efi/efivars"
-+
-+    [ -d "$EFIVARFS" ] || exit 2
-+
-+    if stat -tf $EFIVARFS | grep -q -v de5e81e4; then
-+            mount -t efivarfs none $EFIVARFS
-+    fi
-+
-+    # try to pick up an existing GUID
-+    [ -n "$guid" ] || guid=$(find "$EFIVARFS" -name "$name-*" | head -n1 | cut -f2- -d-)
-+
-+    # use a randomly generated GUID
-+    [ -n "$guid" ] || guid="$(cat /proc/sys/kernel/random/uuid)"
-+
-+    # efivarfs expects all of the data in one write
-+    tmp=$(mktemp)
-+    /bin/echo -ne "\007\000\000\000" | cat - $filename > $tmp
-+    dd if=$tmp of="$EFIVARFS/$name-$guid" bs=$(stat -c %s $tmp)
-+    rm $tmp
-+
-+Loading ACPI SSDTs from configfs
-+================================
-+
-+This option allows loading of user defined SSDTs from userspace via the configfs
-+interface. The CONFIG_ACPI_CONFIGFS option must be select and configfs must be
-+mounted. In the following examples, we assume that configfs has been mounted in
-+/config.
-+
-+New tables can be loading by creating new directories in /config/acpi/table/ and
-+writing the SSDT aml code in the aml attribute::
-+
-+    cd /config/acpi/table
-+    mkdir my_ssdt
-+    cat ~/ssdt.aml > my_ssdt/aml
+ i) For some laptops, when user presses the hotkey, a scancode will be
+    generated and sent to user space through the input device created by
+    the keyboard driver as a key type input event, with proper remap, the
+-   following key code will appear to user space:
++   following key code will appear to user space::
+ 
+ 	EV_KEY, KEY_BRIGHTNESSUP
+ 	EV_KEY, KEY_BRIGHTNESSDOWN
+@@ -84,23 +95,27 @@ ii) For some laptops, the press of the hotkey will not generate the
+     notify value it received and send the event to user space through the
+     input device it created:
+ 
++	=====		==================
+ 	event		keycode
++	=====		==================
+ 	0x86		KEY_BRIGHTNESSUP
+ 	0x87		KEY_BRIGHTNESSDOWN
+ 	etc.
++	=====		==================
+ 
+ so this would lead to the same effect as case i) now.
+ 
+ Once user space tool receives this event, it can modify the backlight
+ level through the sysfs interface.
+ 
+-3 Change backlight level in the kernel
++Change backlight level in the kernel
++====================================
+ 
+ This works for machines covered by case ii) in Section 2. Once the driver
+ received a notification, it will set the backlight level accordingly. This does
+ not affect the sending of event to user space, they are always sent to user
+ space regardless of whether or not the video module controls the backlight level
+ directly. This behaviour can be controlled through the brightness_switch_enabled
+-module parameter as documented in admin-guide/kernel-parameters.rst. It is recommended to
+-disable this behaviour once a GUI environment starts up and wants to have full
+-control of the backlight level.
++module parameter as documented in admin-guide/kernel-parameters.rst. It is
++recommended to disable this behaviour once a GUI environment starts up and
++wants to have full control of the backlight level.
 -- 
 2.20.1
