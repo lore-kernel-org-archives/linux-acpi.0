@@ -1,75 +1,148 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v5 21/23] Documentation: ACPI: move lpit.txt to firmware-guide/acpi and convert to reST
-Date: Thu, 25 Apr 2019 01:53:04 +0800
-Message-ID: <20190424175306.25880-22-changbin.du@gmail.com>
-References: <20190424175306.25880-1-changbin.du@gmail.com>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: Re: [PATCH v4 21/63] Documentation: ACPI: move cppc_sysfs.txt to
+ admin-guide/acpi and convert to reST
+Date: Wed, 24 Apr 2019 15:04:28 -0300
+Message-ID: <20190424150428.7eb70014@coco.lan>
+References: <20190423162932.21428-1-changbin.du@gmail.com>
+        <20190423162932.21428-22-changbin.du@gmail.com>
+        <20190424114844.5de4cfa5@coco.lan>
+        <20190424172232.qtzogm6sweaa4gva@mail.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190424175306.25880-1-changbin.du@gmail.com>
+In-Reply-To: <20190424172232.qtzogm6sweaa4gva@mail.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org, Changbin Du <changbin.du@gmail.com>
+To: Changbin Du <changbin.du@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This converts the plain text documentation to reStructuredText format and
-add it to Sphinx TOC tree. No essential content change.
+Em Thu, 25 Apr 2019 01:22:34 +0800
+Changbin Du <changbin.du@gmail.com> escreveu:
 
-Signed-off-by: Changbin Du <changbin.du@gmail.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- Documentation/firmware-guide/acpi/index.rst    |  1 +
- .../lpit.txt => firmware-guide/acpi/lpit.rst}  | 18 +++++++++++++-----
- 2 files changed, 14 insertions(+), 5 deletions(-)
- rename Documentation/{acpi/lpit.txt => firmware-guide/acpi/lpit.rst} (68%)
+> On Wed, Apr 24, 2019 at 11:48:44AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Wed, 24 Apr 2019 00:28:50 +0800
+> > Changbin Du <changbin.du@gmail.com> escreveu:
+> >   
+> > > This converts the plain text documentation to reStructuredText format and
+> > > add it to Sphinx TOC tree. No essential content change.
+> > > 
+> > > Signed-off-by: Changbin Du <changbin.du@gmail.com>
+> > > ---
+> > >  .../acpi/cppc_sysfs.rst}                      | 71 ++++++++++---------
+> > >  Documentation/admin-guide/acpi/index.rst      |  1 +
+> > >  2 files changed, 40 insertions(+), 32 deletions(-)
+> > >  rename Documentation/{acpi/cppc_sysfs.txt => admin-guide/acpi/cppc_sysfs.rst} (51%)
+> > > 
+> > > diff --git a/Documentation/acpi/cppc_sysfs.txt b/Documentation/admin-guide/acpi/cppc_sysfs.rst
+> > > similarity index 51%
+> > > rename from Documentation/acpi/cppc_sysfs.txt
+> > > rename to Documentation/admin-guide/acpi/cppc_sysfs.rst
+> > > index f20fb445135d..a4b99afbe331 100644
+> > > --- a/Documentation/acpi/cppc_sysfs.txt
+> > > +++ b/Documentation/admin-guide/acpi/cppc_sysfs.rst
+> > > @@ -1,5 +1,11 @@
+> > > +.. SPDX-License-Identifier: GPL-2.0
+> > >  
+> > > -	Collaborative Processor Performance Control (CPPC)
+> > > +==================================================
+> > > +Collaborative Processor Performance Control (CPPC)
+> > > +==================================================
+> > > +
+> > > +CPPC
+> > > +====
+> > >  
+> > >  CPPC defined in the ACPI spec describes a mechanism for the OS to manage the
+> > >  performance of a logical processor on a contigious and abstract performance
+> > > @@ -10,31 +16,28 @@ For more details on CPPC please refer to the ACPI specification at:
+> > >  
+> > >  http://uefi.org/specifications
+> > >  
+> > > -Some of the CPPC registers are exposed via sysfs under:
+> > > -
+> > > -/sys/devices/system/cpu/cpuX/acpi_cppc/
+> > > -  
+> > 
+> >   
+> > > -for each cpu X  
+> > 
+> > Hmm... removed by mistake?
+> >  
+> I comfirmed that no content removed.
 
-diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index fca854f017d8..0e60f4b7129a 100644
---- a/Documentation/firmware-guide/acpi/index.rst
-+++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -22,3 +22,4 @@ ACPI Support
-    gpio-properties
-    i2c-muxes
-    acpi-lid
-+   lpit
-diff --git a/Documentation/acpi/lpit.txt b/Documentation/firmware-guide/acpi/lpit.rst
-similarity index 68%
-rename from Documentation/acpi/lpit.txt
-rename to Documentation/firmware-guide/acpi/lpit.rst
-index b426398d2e97..aca928fab027 100644
---- a/Documentation/acpi/lpit.txt
-+++ b/Documentation/firmware-guide/acpi/lpit.rst
-@@ -1,3 +1,9 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+===========================
-+Low Power Idle Table (LPIT)
-+===========================
-+
- To enumerate platform Low Power Idle states, Intel platforms are using
- “Low Power Idle Table” (LPIT). More details about this table can be
- downloaded from:
-@@ -8,13 +14,15 @@ Residencies for each low power state can be read via FFH
- 
- On platforms supporting S0ix sleep states, there can be two types of
- residencies:
--- CPU PKG C10 (Read via FFH interface)
--- Platform Controller Hub (PCH) SLP_S0 (Read via memory mapped interface)
-+
-+  - CPU PKG C10 (Read via FFH interface)
-+  - Platform Controller Hub (PCH) SLP_S0 (Read via memory mapped interface)
- 
- The following attributes are added dynamically to the cpuidle
--sysfs attribute group:
--	/sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
--	/sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
-+sysfs attribute group::
-+
-+  /sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
-+  /sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
- 
- The "low_power_idle_cpu_residency_us" attribute shows time spent
- by the CPU package in PKG C10
--- 
-2.20.1
+At this patch, it looks that you removed the line: "for each cpu X"
+(or am I reading it wrong?)
+
+> 
+> > > +Some of the CPPC registers are exposed via sysfs under::
+> > >  
+> > > ---------------------------------------------------------------------------------
+> > > +  /sys/devices/system/cpu/cpuX/acpi_cppc/  
+> > 
+> > Did you parse this with Sphinx? It doesn't sound a valid ReST construction
+> > to my eyes, as:
+> > 
+> > 1) I've seen some versions of Sphinx to abort with severe errors when 
+> >    there's no blank line after the horizontal bar markup;
+> > 
+> > 2) It will very likely ignore the "::" (I didn't test it myself), as you're
+> >    not indenting the horizontal bar. End of indentation will mean the end
+> >    of an (empty) literal block.
+> > 
+> > So, I would stick with:
+> > 
+> > 
+> > 	Some of the CPPC registers are exposed via sysfs under:
+> > 
+> > 	  /sys/devices/system/cpu/cpuX/acpi_cppc/
+> > 
+> > 	---------------------------------------------------------------------------------
+> > 
+> > 	for each cpu X::
+> > 
+> > 
+> > or:
+> > 
+> > 	Some of the CPPC registers are exposed via sysfs under:
+> > 
+> > 		/sys/devices/system/cpu/cpuX/acpi_cppc/
+> > 
+> > 	for each cpu X
+> > 
+> > 	--------------------------------------------------------------------------------
+> > 
+> > 	::
+> > 
+> > (with is closer to the original author's intent)
+> > 
+> > Same applies to the other similar changes on this document.
+> >  
+> I didn't seen any warning here and the generated html is good. So I think it is
+> ok.
+
+Basically, what you're doing is:
+
+<rst>
+
+::
+
+foo
+   literal-block bar
+
+</rst>
+
+(where "foo" is the horizontal bar markup)
+
+I would avoid such pattern for two reasons:
+
+1) it sounds a violation of ReST syntax to format an in
+   indented paragraph some non-blank lines after a non-indented
+   line. As such, I won't doubt that different versions of Sphinx
+   would handle it differently. I'm even tempted to open a BZ
+   to Sphinx in order for them to provide a fix for that, if the
+   latest version of Sphinx accepts such crazy markup.
+
+2) It is very confusing for any human reading it.
+
+Thanks,
+Mauro
