@@ -5,55 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79DFEC282CE
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:56:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EDF7C10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:56:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 439DD20685
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:56:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 554D620685
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 17:56:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Nwar+sNP"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fU1VC6HG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390794AbfDXRz7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 13:55:59 -0400
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:37962 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733024AbfDXRz6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 13:55:58 -0400
-Received: by mail-pf1-f195.google.com with SMTP id 10so9693593pfo.5;
-        Wed, 24 Apr 2019 10:55:57 -0700 (PDT)
+        id S1733024AbfDXR4M (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 13:56:12 -0400
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:34053 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2392289AbfDXR4L (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 13:56:11 -0400
+Received: by mail-pl1-f196.google.com with SMTP id y6so9680472plt.1;
+        Wed, 24 Apr 2019 10:56:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=4ANYEStqupVcUyOOdEhP27CWqrM1IUuJpSYFn0ATO6g=;
-        b=Nwar+sNP7OepVGzD2QfVm1FY2qQ+FQwXsNp3MxBu+Zqvkg0k41WoJkybX3e7/1Kys4
-         nMztQvg3SBNGEuYdez39sjBDopHypIGbBlEpH7g0P7AFWdft2KD1FL28K3IH6haW5Req
-         CTzcODMDL1eOiroz2EF8lGbfTk2Yg6pbtlkPzPsBcQlGW0W0vBEczw/AnHuGiBlxmTFU
-         LQnOKSzbGsUuLYvqcZErWI0Gmiq6KOsO+U6YUvG2dt4K9NePL6qxVVs9djk27vEleNIH
-         tqUNsX6Aa11/cwew2hlxCh5//Cwa+oHHksa3nadW0TBEkAcHvRuT0l8VO0b39+kC7NOy
-         i68w==
+        bh=SiNk3x+W/BJ3dxXGT9anGpXBInjJatxrO4dxNV7Y5gk=;
+        b=fU1VC6HGHYfYZuJvnjhMKmgzBWwP+nRp6UQItGoT7Pddcrrj7P9UvEScGXMCX0MPAE
+         N1kQOWrKjY9I7K8AHjvQUJCl5J9jFmn0NBrTvSH/fES0XMDmj11tCPQRZbOiPSim3BwG
+         Y2VWtytyJy21IryxI7t7S88bGHw3Jtl/+e1IKsGpc3d7xMk7duyG2VQ81cEr4n5Wt+Ey
+         OAtrU5BRQL+IUb8/WTeR7zTNSykqwouyincrxm/aNd/MjGaRiWXERbJqMHcQ1W8zFA4D
+         kcrubnIQ20CekKds5fdflSsZtM2Su8yXDgDV1VMKT/f0F08l3JSRAbTR7oqsRlhbuJrL
+         ZC1A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=4ANYEStqupVcUyOOdEhP27CWqrM1IUuJpSYFn0ATO6g=;
-        b=eHiWCOufwezFWVBFlQTDNE7zEizS8zMSqp+CNEWojGBHPG/d+OrHdlu5r+eYjoUy/L
-         u8I5Mn4GEXntypDDBR0fnZCpQ8r66pjnzGwKO4XCryA0OKfK4o1DCtaIbtLutoU27YtU
-         5jCRBMYoeCBwcMJtcghihjDf4Od+9lzH+Bm93goP99k0WmMTJ9CnfcFrwSwHhT5eRpkd
-         6f7w7p4ybOH7HfNyUabcd5cnRT1gyWTv/b19AC8gjxZH9t/ygsx5KHm4G7HnlAxjWikT
-         J7QL4sVRZA7Gpe9oYy6lcYfOroteybQJqruKXyXKE1BIGWMpZL5DaF5lsgTOlqF3yTP7
-         fOGA==
-X-Gm-Message-State: APjAAAWpYidVrt9jZ/fG7eA0Z/k1nchOz2YYvLoEOwGrdOYElo/tIDSG
-        vfAGE1ZYct4U3UfmUh89PU4=
-X-Google-Smtp-Source: APXvYqzlGCSUA4M0DN1NLn1445DIGw8wYMQGyM1Z4M/QGJ/NELTE6/4gc/ac7uibaSVeBJSypf87Lw==
-X-Received: by 2002:a62:f24e:: with SMTP id y14mr34875958pfl.209.1556128557561;
-        Wed, 24 Apr 2019 10:55:57 -0700 (PDT)
+        bh=SiNk3x+W/BJ3dxXGT9anGpXBInjJatxrO4dxNV7Y5gk=;
+        b=g6wzO8AWe1v+LsNQCpT3AAQ8zbWe3abkXXVATViLRrbdq5s8Eqb4FM4l6KA9QHTM4u
+         WNQQyVpnCjQlvqfNltnwpx7tn0CFKsWmeFHVWSm/QA93o2TsjmwU156NutqIGgYbyYBC
+         V9gCQ2Widef34jD0aa0+umhw1e51X8wGoXGExW3JkZJwz3jbTKJ3csvt8JsZzXil/2yJ
+         NsTnPJ5qTcmzxkp1/H2p250u7PucNrrord8Qld9mrQBunIAmB86yrG+1/QSiisLE9u9e
+         3g+S6QFxz0b+F/ldSkePAGja813rg5Q76pwZwWXU7ZLGMSdWnrpVSAaN1pEtCQSFbsh5
+         Ztkw==
+X-Gm-Message-State: APjAAAXAm6nQfpL0QVxS8WRN3lnljda7t7Sf/xlvxjbWAZJPURIX5Doc
+        vW3IlTb0vaJFNM6ROddxbts=
+X-Google-Smtp-Source: APXvYqwgZX6+jtEhxKCQSKMqzZ7iL6m64NxAllNsDMVg3l7V5O+EaMpe7PYzDy72lEM/M7mUw6AXog==
+X-Received: by 2002:a17:902:7241:: with SMTP id c1mr12932479pll.326.1556128571112;
+        Wed, 24 Apr 2019 10:56:11 -0700 (PDT)
 Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id 6sm29275630pfp.143.2019.04.24.10.55.50
+        by smtp.gmail.com with ESMTPSA id 6sm29275630pfp.143.2019.04.24.10.56.05
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 24 Apr 2019 10:55:56 -0700 (PDT)
+        Wed, 24 Apr 2019 10:56:10 -0700 (PDT)
 From:   Changbin Du <changbin.du@gmail.com>
 To:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
@@ -61,9 +62,9 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
         Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v5 15/23] Documentation: ACPI: move debug.txt to firmware-guide/acpi and convert to reST
-Date:   Thu, 25 Apr 2019 01:52:58 +0800
-Message-Id: <20190424175306.25880-16-changbin.du@gmail.com>
+Subject: [PATCH v5 17/23] Documentation: ACPI: move aml-debugger.txt to firmware-guide/acpi and convert to reST
+Date:   Thu, 25 Apr 2019 01:53:00 +0800
+Message-Id: <20190424175306.25880-18-changbin.du@gmail.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190424175306.25880-1-changbin.du@gmail.com>
 References: <20190424175306.25880-1-changbin.du@gmail.com>
@@ -74,7 +75,7 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190424175258.W2sh9heVDuLs_B62DD14fLZC34V1s8NaUv8jKKJc65g@z>
+Message-ID: <20190424175300.KfHic14NfRlWmV3_z55qHLLOg9O8EJVWLrVC4FKd77E@z>
 
 This converts the plain text documentation to reStructuredText format and
 add it to Sphinx TOC tree. No essential content change.
@@ -82,133 +83,178 @@ add it to Sphinx TOC tree. No essential content change.
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- .../acpi/debug.rst}                           | 31 ++++++++++---------
- Documentation/firmware-guide/acpi/index.rst   |  3 +-
- 2 files changed, 19 insertions(+), 15 deletions(-)
- rename Documentation/{acpi/debug.txt => firmware-guide/acpi/debug.rst} (91%)
+ Documentation/acpi/aml-debugger.txt           | 66 ----------------
+ .../firmware-guide/acpi/aml-debugger.rst      | 75 +++++++++++++++++++
+ Documentation/firmware-guide/acpi/index.rst   |  1 +
+ 3 files changed, 76 insertions(+), 66 deletions(-)
+ delete mode 100644 Documentation/acpi/aml-debugger.txt
+ create mode 100644 Documentation/firmware-guide/acpi/aml-debugger.rst
 
-diff --git a/Documentation/acpi/debug.txt b/Documentation/firmware-guide/acpi/debug.rst
-similarity index 91%
-rename from Documentation/acpi/debug.txt
-rename to Documentation/firmware-guide/acpi/debug.rst
-index 65bf47c46b6d..1a152dd1d765 100644
---- a/Documentation/acpi/debug.txt
-+++ b/Documentation/firmware-guide/acpi/debug.rst
-@@ -1,18 +1,21 @@
--			ACPI Debug Output
+diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
+deleted file mode 100644
+index 75ebeb64ab29..000000000000
+--- a/Documentation/acpi/aml-debugger.txt
++++ /dev/null
+@@ -1,66 +0,0 @@
+-The AML Debugger
+-
+-Copyright (C) 2016, Intel Corporation
+-Author: Lv Zheng <lv.zheng@intel.com>
+-
+-
+-This document describes the usage of the AML debugger embedded in the Linux
+-kernel.
+-
+-1. Build the debugger
+-
+-   The following kernel configuration items are required to enable the AML
+-   debugger interface from the Linux kernel:
+-
+-   CONFIG_ACPI_DEBUGGER=y
+-   CONFIG_ACPI_DEBUGGER_USER=m
+-
+-   The userspace utilities can be built from the kernel source tree using
+-   the following commands:
+-
+-   $ cd tools
+-   $ make acpi
+-
+-   The resultant userspace tool binary is then located at:
+-
+-     tools/power/acpi/acpidbg
+-
+-   It can be installed to system directories by running "make install" (as a
+-   sufficiently privileged user).
+-
+-2. Start the userspace debugger interface
+-
+-   After booting the kernel with the debugger built-in, the debugger can be
+-   started by using the following commands:
+-
+-   # mount -t debugfs none /sys/kernel/debug
+-   # modprobe acpi_dbg
+-   # tools/power/acpi/acpidbg
+-
+-   That spawns the interactive AML debugger environment where you can execute
+-   debugger commands.
+-
+-   The commands are documented in the "ACPICA Overview and Programmer Reference"
+-   that can be downloaded from
+-
+-   https://acpica.org/documentation
+-
+-   The detailed debugger commands reference is located in Chapter 12 "ACPICA
+-   Debugger Reference".  The "help" command can be used for a quick reference.
+-
+-3. Stop the userspace debugger interface
+-
+-   The interactive debugger interface can be closed by pressing Ctrl+C or using
+-   the "quit" or "exit" commands.  When finished, unload the module with:
+-
+-   # rmmod acpi_dbg
+-
+-   The module unloading may fail if there is an acpidbg instance running.
+-
+-4. Run the debugger in a script
+-
+-   It may be useful to run the AML debugger in a test script. "acpidbg" supports
+-   this in a special "batch" mode.  For example, the following command outputs
+-   the entire ACPI namespace:
+-
+-   # acpidbg -b "namespace"
+diff --git a/Documentation/firmware-guide/acpi/aml-debugger.rst b/Documentation/firmware-guide/acpi/aml-debugger.rst
+new file mode 100644
+index 000000000000..a889d43bc6c5
+--- /dev/null
++++ b/Documentation/firmware-guide/acpi/aml-debugger.rst
+@@ -0,0 +1,75 @@
 +.. SPDX-License-Identifier: GPL-2.0
- 
-+=================
-+ACPI Debug Output
-+=================
- 
- The ACPI CA, the Linux ACPI core, and some ACPI drivers can generate debug
- output.  This document describes how to use this facility.
- 
- Compile-time configuration
----------------------------
-+==========================
- 
- ACPI debug output is globally enabled by CONFIG_ACPI_DEBUG.  If this config
- option is turned off, the debug messages are not even built into the
- kernel.
- 
- Boot- and run-time configuration
----------------------------------
-+================================
- 
- When CONFIG_ACPI_DEBUG=y, you can select the component and level of messages
- you're interested in.  At boot-time, use the acpi.debug_layer and
-@@ -21,7 +24,7 @@ debug_layer and debug_level files in /sys/module/acpi/parameters/ to control
- the debug messages.
- 
- debug_layer (component)
-------------------------
-+=======================
- 
- The "debug_layer" is a mask that selects components of interest, e.g., a
- specific driver or part of the ACPI interpreter.  To build the debug_layer
-@@ -33,7 +36,7 @@ to /sys/module/acpi/parameters/debug_layer.
- 
- The possible components are defined in include/acpi/acoutput.h and
- include/acpi/acpi_drivers.h.  Reading /sys/module/acpi/parameters/debug_layer
--shows the supported mask values, currently these:
-+shows the supported mask values, currently these::
- 
-     ACPI_UTILITIES                  0x00000001
-     ACPI_HARDWARE                   0x00000002
-@@ -65,7 +68,7 @@ shows the supported mask values, currently these:
-     ACPI_PROCESSOR_COMPONENT        0x20000000
- 
- debug_level
-------------
-+===========
- 
- The "debug_level" is a mask that selects different types of messages, e.g.,
- those related to initialization, method execution, informational messages, etc.
-@@ -81,7 +84,7 @@ to /sys/module/acpi/parameters/debug_level.
- 
- The possible levels are defined in include/acpi/acoutput.h.  Reading
- /sys/module/acpi/parameters/debug_level shows the supported mask values,
--currently these:
-+currently these::
- 
-     ACPI_LV_INIT                    0x00000001
-     ACPI_LV_DEBUG_OBJECT            0x00000002
-@@ -113,9 +116,9 @@ currently these:
-     ACPI_LV_EVENTS                  0x80000000
- 
- Examples
----------
-+========
- 
--For example, drivers/acpi/bus.c contains this:
-+For example, drivers/acpi/bus.c contains this::
- 
-     #define _COMPONENT              ACPI_BUS_COMPONENT
-     ...
-@@ -127,22 +130,22 @@ statement uses ACPI_DB_INFO, which is macro based on the ACPI_LV_INFO
- definition.)
- 
- Enable all AML "Debug" output (stores to the Debug object while interpreting
--AML) during boot:
-+AML) during boot::
- 
-     acpi.debug_layer=0xffffffff acpi.debug_level=0x2
- 
--Enable PCI and PCI interrupt routing debug messages:
-+Enable PCI and PCI interrupt routing debug messages::
- 
-     acpi.debug_layer=0x400000 acpi.debug_level=0x4
- 
--Enable all ACPI hardware-related messages:
-+Enable all ACPI hardware-related messages::
- 
-     acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
- 
--Enable all ACPI_DB_INFO messages after boot:
-+Enable all ACPI_DB_INFO messages after boot::
- 
-     # echo 0x4 > /sys/module/acpi/parameters/debug_level
- 
--Show all valid component values:
-+Show all valid component values::
- 
-     # cat /sys/module/acpi/parameters/debug_layer
++.. include:: <isonum.txt>
++
++================
++The AML Debugger
++================
++
++:Copyright: |copy| 2016, Intel Corporation
++:Author: Lv Zheng <lv.zheng@intel.com>
++
++
++This document describes the usage of the AML debugger embedded in the Linux
++kernel.
++
++1. Build the debugger
++=====================
++
++The following kernel configuration items are required to enable the AML
++debugger interface from the Linux kernel::
++
++   CONFIG_ACPI_DEBUGGER=y
++   CONFIG_ACPI_DEBUGGER_USER=m
++
++The userspace utilities can be built from the kernel source tree using
++the following commands::
++
++   $ cd tools
++   $ make acpi
++
++The resultant userspace tool binary is then located at::
++
++   tools/power/acpi/acpidbg
++
++It can be installed to system directories by running "make install" (as a
++sufficiently privileged user).
++
++2. Start the userspace debugger interface
++=========================================
++
++After booting the kernel with the debugger built-in, the debugger can be
++started by using the following commands::
++
++   # mount -t debugfs none /sys/kernel/debug
++   # modprobe acpi_dbg
++   # tools/power/acpi/acpidbg
++
++That spawns the interactive AML debugger environment where you can execute
++debugger commands.
++
++The commands are documented in the "ACPICA Overview and Programmer Reference"
++that can be downloaded from
++
++https://acpica.org/documentation
++
++The detailed debugger commands reference is located in Chapter 12 "ACPICA
++Debugger Reference".  The "help" command can be used for a quick reference.
++
++3. Stop the userspace debugger interface
++========================================
++
++The interactive debugger interface can be closed by pressing Ctrl+C or using
++the "quit" or "exit" commands.  When finished, unload the module with::
++
++   # rmmod acpi_dbg
++
++The module unloading may fail if there is an acpidbg instance running.
++
++4. Run the debugger in a script
++===============================
++
++It may be useful to run the AML debugger in a test script. "acpidbg" supports
++this in a special "batch" mode.  For example, the following command outputs
++the entire ACPI namespace::
++
++   # acpidbg -b "namespace"
 diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index 6d4e0df4f063..a45fea11f998 100644
+index 287a7cbd82ac..e9f253d54897 100644
 --- a/Documentation/firmware-guide/acpi/index.rst
 +++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -14,6 +14,7 @@ ACPI Support
-    osi
-    method-customizing
+@@ -16,6 +16,7 @@ ACPI Support
+    method-tracing
     DSD-properties-rules
-+   debug
+    debug
++   aml-debugger
     gpio-properties
     i2c-muxes
--   acpi-lid
-\ No newline at end of file
-+   acpi-lid
+    acpi-lid
 -- 
 2.20.1
 
