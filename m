@@ -1,118 +1,45 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH v4 15/63] Documentation: ACPI: move
- dsd/data-node-references.txt to firmware-guide/acpi and convert to reST
-Date: Thu, 25 Apr 2019 00:44:30 +0800
-Message-ID: <20190424164428.r4wgyeexeuaoujuw@mail.google.com>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: Re: [PATCH v4 00/63] Include linux ACPI/PCI/X86 docs into Sphinx
+ TOC tree
+Date: Wed, 24 Apr 2019 13:52:28 -0300
+Message-ID: <20190424135228.58cdb9be@coco.lan>
 References: <20190423162932.21428-1-changbin.du@gmail.com>
- <20190423162932.21428-16-changbin.du@gmail.com>
- <20190423181748.24f8aed2@coco.lan>
+        <20190424101846.7cc4bad7@lwn.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190423181748.24f8aed2@coco.lan>
+In-Reply-To: <20190424101846.7cc4bad7@lwn.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Changbin Du <changbin.du@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Changbin Du <changbin.du@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 23, 2019 at 06:17:48PM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 24 Apr 2019 00:28:44 +0800
-> Changbin Du <changbin.du@gmail.com> escreveu:
-> 
-> > This converts the plain text documentation to reStructuredText format and
-> > add it to Sphinx TOC tree. No essential content change.
-> > 
-> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
-> > ---
-> >  .../acpi/dsd/data-node-references.rst}        | 28 +++++++++++--------
-> >  Documentation/firmware-guide/acpi/index.rst   |  1 +
-> >  2 files changed, 17 insertions(+), 12 deletions(-)
-> >  rename Documentation/{acpi/dsd/data-node-references.txt => firmware-guide/acpi/dsd/data-node-references.rst} (79%)
-> > 
-> > diff --git a/Documentation/acpi/dsd/data-node-references.txt b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-> > similarity index 79%
-> > rename from Documentation/acpi/dsd/data-node-references.txt
-> > rename to Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-> > index c3871565c8cf..79c5368eaecf 100644
-> > --- a/Documentation/acpi/dsd/data-node-references.txt
-> > +++ b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-> > @@ -1,9 +1,12 @@
-> > -Copyright (C) 2018 Intel Corporation
-> > -Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > -
-> > +.. SPDX-License-Identifier: GPL-2.0
-> > +.. include:: <isonum.txt>
-> >  
-> > +===================================
-> >  Referencing hierarchical data nodes
-> > ------------------------------------
-> > +===================================
-> > +
-> > +:Copyright: |copy| 2018 Intel Corporation
-> > +:Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >  
-> >  ACPI in general allows referring to device objects in the tree only.
-> >  Hierarchical data extension nodes may not be referred to directly, hence this
-> > @@ -28,13 +31,14 @@ extension key.
-> >  
-> >  
-> >  Example
-> > --------
-> > +=======
-> >  
-> > -	In the ASL snippet below, the "reference" _DSD property [2] contains a
-> > -	device object reference to DEV0 and under that device object, a
-> > -	hierarchical data extension key "node@1" referring to the NOD1 object
-> > -	and lastly, a hierarchical data extension key "anothernode" referring to
-> > -	the ANOD object which is also the final target node of the reference.
-> > +In the ASL snippet below, the "reference" _DSD property [2] contains a
-> > +device object reference to DEV0 and under that device object, a
-> > +hierarchical data extension key "node@1" referring to the NOD1 object
-> > +and lastly, a hierarchical data extension key "anothernode" referring to
-> > +the ANOD object which is also the final target node of the reference.
-> > +::
-> >  
-> >  	Device (DEV0)
-> >  	{
-> > @@ -75,10 +79,10 @@ Example
-> >  	    })
-> >  	}
-> >  
-> > -Please also see a graph example in graph.txt .
-> > +Please also see a graph example in :doc:`graph`.
-> >  
-> >  References
-> > -----------
-> > +==========
-> >  
-> >  [1] Hierarchical Data Extension UUID For _DSD.
-> >      <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf>,
-> 
-> Hmm... on the previous patch, you replaced <URL:some_url> by some_url,
-> with makes sense. Please do the same here and on other patches on
-> this series with a similar way to describe URLs.
->
-Done, thanks.
+Em Wed, 24 Apr 2019 10:18:46 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-> > diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-> > index f81cfbcb6878..6d4e0df4f063 100644
-> > --- a/Documentation/firmware-guide/acpi/index.rst
-> > +++ b/Documentation/firmware-guide/acpi/index.rst
-> > @@ -9,6 +9,7 @@ ACPI Support
-> >  
-> >     namespace
-> >     dsd/graph
-> > +   dsd/data-node-references
-> >     enumeration
-> >     osi
-> >     method-customizing
+> On Wed, 24 Apr 2019 00:28:29 +0800
+> Changbin Du <changbin.du@gmail.com> wrote:
 > 
+> > The kernel now uses Sphinx to generate intelligent and beautiful documentation
+> > from reStructuredText files. I converted all of the Linux ACPI/PCI/X86 docs to
+> > reST format in this serias.
+> > 
+> > In this version I combined ACPI and PCI docs, and added new x86 docs conversion.  
 > 
-> 
-> Thanks,
-> Mauro
+> As mentioned by others, this is a lot of stuff; I would really rather see
+> each of those groups as separate patch sets.
 
--- 
-Cheers,
-Changbin Du
+Yeah, makes sense to me, either to split into separate patchsets or to
+group the changes per sub-dir (or both).
+
+> If you can do a reasonably quick turnaround with Mauro's suggestions
+> addressed and tags applied, we should be able to get at least some of this
+> into 5.2.  Thanks, Mauro, for looking at all of this stuff!
+
+Anytime! Just to make clear, I'm still reviewing it... I'm at patch 35/63
+now. So, expect more comments from my side.
+
+
+Thanks,
+Mauro
