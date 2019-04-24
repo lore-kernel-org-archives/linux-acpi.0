@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFFE4C10F11
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 18:09:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70B2CC10F11
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 18:10:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98DA020685
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 18:09:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 439A120684
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Apr 2019 18:10:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1556129349;
-	bh=wToHujuOLWcjerZxzICOO1r8wigCrHnaRq95DOiAb78=;
+	s=default; t=1556129435;
+	bh=cQNzVi2vJ2cQmXFDeXXqFETe/LEfvO7+TCvxwPjyA4o=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=YhUztGYFnuqk8EszM7AHSd3Rq1PvkjCTxjKxVHWUGcwKNlcN137kSdxEhUsAxOBZF
-	 do9fdGdc59yYMzFjHF+csxIoTk/TDnLqK360O/2j/gurSOAHBB+y0Y4XPaL4GaLGlH
-	 yeylmV5e2z7XAlZeSOq05CVsEOjcZu+3m4uN+4Po=
+	b=EYQbO3SY2IKEZFFsiafuBvO8KxV3LVwBAU3xJ9fDmj4YPdXQQowjVHAuhsyAajmC2
+	 g2y3mFtCe3/5g2oELXWU0wIkxFUi4YLRbX/Ct9fwDzrEexYdlzBVCpwa6fJR1f4cpr
+	 wLePbl79I5ep82/jqS6VK6k4su9CptqB1tONzR3I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387938AbfDXSJC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Apr 2019 14:09:02 -0400
-Received: from casper.infradead.org ([85.118.1.10]:48580 "EHLO
+        id S2389014AbfDXSK3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Apr 2019 14:10:29 -0400
+Received: from casper.infradead.org ([85.118.1.10]:48756 "EHLO
         casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725978AbfDXSJB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 14:09:01 -0400
+        with ESMTP id S2388807AbfDXSK3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Apr 2019 14:10:29 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
         MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
         :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=HhQ7jYzghgIqKgaAgfN76700l4OvgCKkOAd2ol9E0lU=; b=HxlYlSpmH7r5MFlhylXWNgWOFx
-        pTx99hWG4+DIyjCa/WBRRbokCmSxtYMlWfXUuPkuUJ9gwnUINs5JGuwXSvw5I44vVxOhC3iRHXp7u
-        Z1iCmkBWtIT2gKRLi5h4nEle7u3PTMjbfGyLvqJN5qbXyxfVWEytpkuIFJTA4gifT2If8ap94O+jL
-        79F5TWQ5txbqkjlLKe2K9XoUn65IiQM/5h3WQEwNzFR4hmDj6K8oir9+tGEJgA3gSAqzncFpvuDi4
-        vNiU5/QL+zLJCyFogbpW8Qrn+N9Y0NNTz2nVw86kV0KgVe7VdAcLqmYW3u9Hsf1lU4MsZs8zz3+r6
-        BUPvEmxQ==;
+        bh=d+dDVPR0m38MbRKD/xgSDYv2iaJ3D1TOHrXAP3UsC/0=; b=VtZaOJBUNkTV4G6Vvt5H2TOwxv
+        eZOXu6uG9Y6Lfow92VCRCJmn7xHGmlMkdeK4zTGYEJuqhutf09DboYU8kJ8+bp3qS7zSuNVW89YKg
+        8iNVzHiSHQUBAcWguL6QBTiYCM2N3hdor0YzuiP+OwafWYbAH7HfIHyx6v6K7bn0M32BITb2BsKOt
+        7tkA6nuQSIC+mhR7JnOkprersSvXWJFtheAGxJneU8QP7pvng8MjbUw02Y8hWyysb5a4aAz3ZC16j
+        hKx7XIyKKwNTmqvW9+gQx0oKp7OB80sgLvsu8/i0JuRU8/ROIXNHLfeICc8KcM4kCToZvCF83Hkdf
+        PTATqA4A==;
 Received: from 177.17.136.231.dynamic.adsl.gvt.net.br ([177.17.136.231] helo=coco.lan)
         by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1hJMKH-0001uS-M8; Wed, 24 Apr 2019 18:08:58 +0000
-Date:   Wed, 24 Apr 2019 15:08:52 -0300
+        id 1hJMLh-0001wh-EO; Wed, 24 Apr 2019 18:10:26 +0000
+Date:   Wed, 24 Apr 2019 15:10:20 -0300
 From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To:     Changbin Du <changbin.du@gmail.com>
 Cc:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>,
@@ -49,12 +49,12 @@ Cc:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>,
         linux-kernel@vger.kernel.org, fenghua.yu@intel.com,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v5 08/23] Documentation: ACPI: move
- method-customizing.txt to firmware-guide/acpi and convert to reST
-Message-ID: <20190424150852.0e415da1@coco.lan>
-In-Reply-To: <20190424175306.25880-9-changbin.du@gmail.com>
+Subject: Re: [PATCH v5 14/23] Documentation: ACPI: move
+ dsd/data-node-references.txt to firmware-guide/acpi and convert to reST
+Message-ID: <20190424151020.406b81ef@coco.lan>
+In-Reply-To: <20190424175306.25880-15-changbin.du@gmail.com>
 References: <20190424175306.25880-1-changbin.du@gmail.com>
-        <20190424175306.25880-9-changbin.du@gmail.com>
+        <20190424175306.25880-15-changbin.du@gmail.com>
 X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -63,9 +63,9 @@ Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190424180852.Cod9MXz0cbaNF70VbjrmsN8c8x0FYNwEzVhWmCArAzQ@z>
+Message-ID: <20190424181020.5guin4mEdy16QOqvp-TX1FdelcgB7axiLhYG-7MtMKg@z>
 
-Em Thu, 25 Apr 2019 01:52:51 +0800
+Em Thu, 25 Apr 2019 01:52:57 +0800
 Changbin Du <changbin.du@gmail.com> escreveu:
 
 > This converts the plain text documentation to reStructuredText format and
@@ -76,200 +76,90 @@ Changbin Du <changbin.du@gmail.com> escreveu:
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
 > ---
->  Documentation/acpi/method-customizing.txt     | 73 ---------------
->  Documentation/firmware-guide/acpi/index.rst   |  3 +-
->  .../acpi/method-customizing.rst               | 89 +++++++++++++++++++
->  3 files changed, 91 insertions(+), 74 deletions(-)
->  delete mode 100644 Documentation/acpi/method-customizing.txt
->  create mode 100644 Documentation/firmware-guide/acpi/method-customizing.rst
+>  .../acpi/dsd/data-node-references.rst}        | 36 ++++++++++---------
+>  Documentation/firmware-guide/acpi/index.rst   |  1 +
+>  2 files changed, 21 insertions(+), 16 deletions(-)
+>  rename Documentation/{acpi/dsd/data-node-references.txt => firmware-guide/acpi/dsd/data-node-references.rst} (71%)
 > 
-> diff --git a/Documentation/acpi/method-customizing.txt b/Documentation/acpi/method-customizing.txt
-> deleted file mode 100644
-> index 7235da975f23..000000000000
-> --- a/Documentation/acpi/method-customizing.txt
-> +++ /dev/null
-> @@ -1,73 +0,0 @@
-> -Linux ACPI Custom Control Method How To
-> -=======================================
+> diff --git a/Documentation/acpi/dsd/data-node-references.txt b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
+> similarity index 71%
+> rename from Documentation/acpi/dsd/data-node-references.txt
+> rename to Documentation/firmware-guide/acpi/dsd/data-node-references.rst
+> index c3871565c8cf..1351984e767c 100644
+> --- a/Documentation/acpi/dsd/data-node-references.txt
+> +++ b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
+> @@ -1,9 +1,12 @@
+> -Copyright (C) 2018 Intel Corporation
+> -Author: Sakari Ailus <sakari.ailus@linux.intel.com>
 > -
-> -Written by Zhang Rui <rui.zhang@intel.com>
-> -
-> -
-> -Linux supports customizing ACPI control methods at runtime.
-> -
-> -Users can use this to
-> -1. override an existing method which may not work correctly,
-> -   or just for debugging purposes.
-> -2. insert a completely new method in order to create a missing
-> -   method such as _OFF, _ON, _STA, _INI, etc.
-> -For these cases, it is far simpler to dynamically install a single
-> -control method rather than override the entire DSDT, because kernel
-> -rebuild/reboot is not needed and test result can be got in minutes.
-> -
-> -Note: Only ACPI METHOD can be overridden, any other object types like
-> -      "Device", "OperationRegion", are not recognized. Methods
-> -      declared inside scope operators are also not supported.
-> -Note: The same ACPI control method can be overridden for many times,
-> -      and it's always the latest one that used by Linux/kernel.
-> -Note: To get the ACPI debug object output (Store (AAAA, Debug)),
-> -      please run "echo 1 > /sys/module/acpi/parameters/aml_debug_output".
-> -
-> -1. override an existing method
-> -   a) get the ACPI table via ACPI sysfs I/F. e.g. to get the DSDT,
-> -      just run "cat /sys/firmware/acpi/tables/DSDT > /tmp/dsdt.dat"
-> -   b) disassemble the table by running "iasl -d dsdt.dat".
-> -   c) rewrite the ASL code of the method and save it in a new file,
-> -   d) package the new file (psr.asl) to an ACPI table format.
-> -      Here is an example of a customized \_SB._AC._PSR method,
-> -
-> -      DefinitionBlock ("", "SSDT", 1, "", "", 0x20080715)
-> -      {
-> -	Method (\_SB_.AC._PSR, 0, NotSerialized)
-> -	{
-> -		Store ("In AC _PSR", Debug)
-> -		Return (ACON)
-> -	}
-> -      }
-> -      Note that the full pathname of the method in ACPI namespace
-> -      should be used.
-> -   e) assemble the file to generate the AML code of the method.
-> -      e.g. "iasl -vw 6084 psr.asl" (psr.aml is generated as a result)
-> -      If parameter "-vw 6084" is not supported by your iASL compiler,
-> -      please try a newer version.
-> -   f) mount debugfs by "mount -t debugfs none /sys/kernel/debug"
-> -   g) override the old method via the debugfs by running
-> -      "cat /tmp/psr.aml > /sys/kernel/debug/acpi/custom_method"
-> -
-> -2. insert a new method
-> -   This is easier than overriding an existing method.
-> -   We just need to create the ASL code of the method we want to
-> -   insert and then follow the step c) ~ g) in section 1.
-> -
-> -3. undo your changes
-> -   The "undo" operation is not supported for a new inserted method
-> -   right now, i.e. we can not remove a method currently.
-> -   For an overridden method, in order to undo your changes, please
-> -   save a copy of the method original ASL code in step c) section 1,
-> -   and redo step c) ~ g) to override the method with the original one.
-> -
-> -
-> -Note: We can use a kernel with multiple custom ACPI method running,
-> -      But each individual write to debugfs can implement a SINGLE
-> -      method override. i.e. if we want to insert/override multiple
-> -      ACPI methods, we need to redo step c) ~ g) for multiple times.
-> -
-> -Note: Be aware that root can mis-use this driver to modify arbitrary
-> -      memory and gain additional rights, if root's privileges got
-> -      restricted (for example if root is not allowed to load additional
-> -      modules after boot).
+> +.. SPDX-License-Identifier: GPL-2.0
+> +.. include:: <isonum.txt>
+>  
+> +===================================
+>  Referencing hierarchical data nodes
+> ------------------------------------
+> +===================================
+> +
+> +:Copyright: |copy| 2018 Intel Corporation
+> +:Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+>  
+>  ACPI in general allows referring to device objects in the tree only.
+>  Hierarchical data extension nodes may not be referred to directly, hence this
+> @@ -28,13 +31,14 @@ extension key.
+>  
+>  
+>  Example
+> --------
+> +=======
+>  
+> -	In the ASL snippet below, the "reference" _DSD property [2] contains a
+> -	device object reference to DEV0 and under that device object, a
+> -	hierarchical data extension key "node@1" referring to the NOD1 object
+> -	and lastly, a hierarchical data extension key "anothernode" referring to
+> -	the ANOD object which is also the final target node of the reference.
+> +In the ASL snippet below, the "reference" _DSD property [2] contains a
+> +device object reference to DEV0 and under that device object, a
+> +hierarchical data extension key "node@1" referring to the NOD1 object
+> +and lastly, a hierarchical data extension key "anothernode" referring to
+> +the ANOD object which is also the final target node of the reference.
+> +::
+>  
+>  	Device (DEV0)
+>  	{
+> @@ -75,15 +79,15 @@ Example
+>  	    })
+>  	}
+>  
+> -Please also see a graph example in graph.txt .
+> +Please also see a graph example in :doc:`graph`.
+>  
+>  References
+> -----------
+> +==========
+>  
+>  [1] Hierarchical Data Extension UUID For _DSD.
+> -    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf>,
+> -    referenced 2018-07-17.
+> +<http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf>,
+> +referenced 2018-07-17.
+>  
+>  [2] Device Properties UUID For _DSD.
+> -    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
+> -    referenced 2016-10-04.
+> +<http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
+> +referenced 2016-10-04.
 > diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-> index 61d67763851b..d1d069b26bbc 100644
+> index f81cfbcb6878..6d4e0df4f063 100644
 > --- a/Documentation/firmware-guide/acpi/index.rst
 > +++ b/Documentation/firmware-guide/acpi/index.rst
-> @@ -10,5 +10,6 @@ ACPI Support
+> @@ -9,6 +9,7 @@ ACPI Support
+>  
 >     namespace
+>     dsd/graph
+> +   dsd/data-node-references
 >     enumeration
 >     osi
-> +   method-customizing
->     DSD-properties-rules
-> -   gpio-properties
-> +   gpio-properties
-> \ No newline at end of file
-> diff --git a/Documentation/firmware-guide/acpi/method-customizing.rst b/Documentation/firmware-guide/acpi/method-customizing.rst
-> new file mode 100644
-> index 000000000000..de3ebcaed4cf
-> --- /dev/null
-> +++ b/Documentation/firmware-guide/acpi/method-customizing.rst
-> @@ -0,0 +1,89 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +=======================================
-> +Linux ACPI Custom Control Method How To
-> +=======================================
-> +
-> +:Author: Zhang Rui <rui.zhang@intel.com>
-> +
-> +
-> +Linux supports customizing ACPI control methods at runtime.
-> +
-> +Users can use this to:
-> +
-> +1. override an existing method which may not work correctly,
-> +   or just for debugging purposes.
-> +2. insert a completely new method in order to create a missing
-> +   method such as _OFF, _ON, _STA, _INI, etc.
-> +
-> +For these cases, it is far simpler to dynamically install a single
-> +control method rather than override the entire DSDT, because kernel
-> +rebuild/reboot is not needed and test result can be got in minutes.
-> +
-> +.. note::
-> +
-> +  - Only ACPI METHOD can be overridden, any other object types like
-> +    "Device", "OperationRegion", are not recognized. Methods
-> +    declared inside scope operators are also not supported.
-> +
-> +  - The same ACPI control method can be overridden for many times,
-> +    and it's always the latest one that used by Linux/kernel.
-> +
-> +  - To get the ACPI debug object output (Store (AAAA, Debug)),
-> +    please run::
-> +
-> +      echo 1 > /sys/module/acpi/parameters/aml_debug_output
-> +
-> +
-> +1. override an existing method
-> +==============================
-> +a) get the ACPI table via ACPI sysfs I/F. e.g. to get the DSDT,
-> +   just run "cat /sys/firmware/acpi/tables/DSDT > /tmp/dsdt.dat"
-> +b) disassemble the table by running "iasl -d dsdt.dat".
-> +c) rewrite the ASL code of the method and save it in a new file,
-> +d) package the new file (psr.asl) to an ACPI table format.
-> +   Here is an example of a customized \_SB._AC._PSR method::
-> +
-> +      DefinitionBlock ("", "SSDT", 1, "", "", 0x20080715)
-> +      {
-> +         Method (\_SB_.AC._PSR, 0, NotSerialized)
-> +         {
-> +            Store ("In AC _PSR", Debug)
-> +            Return (ACON)
-> +         }
-> +      }
-> +
-> +   Note that the full pathname of the method in ACPI namespace
-> +   should be used.
-> +e) assemble the file to generate the AML code of the method.
-> +   e.g. "iasl -vw 6084 psr.asl" (psr.aml is generated as a result)
-> +   If parameter "-vw 6084" is not supported by your iASL compiler,
-> +   please try a newer version.
-> +f) mount debugfs by "mount -t debugfs none /sys/kernel/debug"
-> +g) override the old method via the debugfs by running
-> +   "cat /tmp/psr.aml > /sys/kernel/debug/acpi/custom_method"
-> +
-> +2. insert a new method
-> +======================
-> +This is easier than overriding an existing method.
-> +We just need to create the ASL code of the method we want to
-> +insert and then follow the step c) ~ g) in section 1.
-> +
-> +3. undo your changes
-> +====================
-> +The "undo" operation is not supported for a new inserted method
-> +right now, i.e. we can not remove a method currently.
-> +For an overridden method, in order to undo your changes, please
-> +save a copy of the method original ASL code in step c) section 1,
-> +and redo step c) ~ g) to override the method with the original one.
-> +
-> +
-> +.. note:: We can use a kernel with multiple custom ACPI method running,
-> +   But each individual write to debugfs can implement a SINGLE
-> +   method override. i.e. if we want to insert/override multiple
-> +   ACPI methods, we need to redo step c) ~ g) for multiple times.
-> +
-> +.. note:: Be aware that root can mis-use this driver to modify arbitrary
-> +   memory and gain additional rights, if root's privileges got
-> +   restricted (for example if root is not allowed to load additional
-> +   modules after boot).
+>     method-customizing
 
 
 
