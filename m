@@ -1,80 +1,30 @@
-From: Changbin Du <changbin.du@gmail.com>
-Subject: Re: [PATCH v5 20/23] Documentation: ACPI: move cppc_sysfs.txt to
- admin-guide/acpi and convert to reST
-Date: Thu, 25 Apr 2019 00:44:51 +0000
-Message-ID: <20190425004450.qdajhnzlanufxhx3@mail.google.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v5 00/23] Include linux ACPI docs into Sphinx TOC tree
+Date: Thu, 25 Apr 2019 10:44:14 +0200
+Message-ID: <CAJZ5v0i3iEyn1vBjPkA0X=8h_UrSeTNV_JduJq9qfYpgCOAPjQ@mail.gmail.com>
 References: <20190424175306.25880-1-changbin.du@gmail.com>
- <20190424175306.25880-21-changbin.du@gmail.com>
- <20190424151236.776d9678@coco.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190424151236.776d9678@coco.lan>
+In-Reply-To: <20190424175306.25880-1-changbin.du@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Changbin Du <changbin.du@gmail.com>, rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, fenghua.yu@intel.com, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+To: Changbin Du <changbin.du@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jonathan Corbet <corbet@lwn.net>, Bjorn Helgaas <bhelgaas@google.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-gpio@vger.kernel.org, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 24, 2019 at 03:12:36PM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 25 Apr 2019 01:53:03 +0800
-> Changbin Du <changbin.du@gmail.com> escreveu:
-> 
-> > This converts the plain text documentation to reStructuredText format and
-> > add it to Sphinx TOC tree. No essential content change.
-> > 
-> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
-> > ---
-> >  .../acpi/cppc_sysfs.rst}                      | 71 ++++++++++---------
-> >  Documentation/admin-guide/acpi/index.rst      |  1 +
-> >  2 files changed, 40 insertions(+), 32 deletions(-)
-> >  rename Documentation/{acpi/cppc_sysfs.txt => admin-guide/acpi/cppc_sysfs.rst} (51%)
-> > 
-> > diff --git a/Documentation/acpi/cppc_sysfs.txt b/Documentation/admin-guide/acpi/cppc_sysfs.rst
-> > similarity index 51%
-> > rename from Documentation/acpi/cppc_sysfs.txt
-> > rename to Documentation/admin-guide/acpi/cppc_sysfs.rst
-> > index f20fb445135d..a4b99afbe331 100644
-> > --- a/Documentation/acpi/cppc_sysfs.txt
-> > +++ b/Documentation/admin-guide/acpi/cppc_sysfs.rst
-> > @@ -1,5 +1,11 @@
-> > +.. SPDX-License-Identifier: GPL-2.0
-> >  
-> > -	Collaborative Processor Performance Control (CPPC)
-> > +==================================================
-> > +Collaborative Processor Performance Control (CPPC)
-> > +==================================================
-> > +
-> > +CPPC
-> > +====
-> >  
-> >  CPPC defined in the ACPI spec describes a mechanism for the OS to manage the
-> >  performance of a logical processor on a contigious and abstract performance
-> > @@ -10,31 +16,28 @@ For more details on CPPC please refer to the ACPI specification at:
-> >  
-> >  http://uefi.org/specifications
-> >  
-> > -Some of the CPPC registers are exposed via sysfs under:
-> > -
-> > -/sys/devices/system/cpu/cpuX/acpi_cppc/
-> 
-> 
-> > -
-> > -for each cpu X
-> 
-> Yeah, there it is: you're removing those two lines.
+.On Wed, Apr 24, 2019 at 7:54 PM Changbin Du <changbin.du@gmail.com> wrote:
 >
-They are indented, see below diffs. I did remove "-----...." two lines.
-> > +Some of the CPPC registers are exposed via sysfs under::
-> >  
-> > ---------------------------------------------------------------------------------
-> > +  /sys/devices/system/cpu/cpuX/acpi_cppc/
-> 
-> As per my reply to v4.
-> 
-> Thanks,
-> Mauro
+> Hi All,
+> The kernel now uses Sphinx to generate intelligent and beautiful documentation
+> from reStructuredText files. I converted all of the Linux ACPI/PCI/X86 docs to
+> reST format in this serias.
+>
+> The hieararchy of ACPI docs are based on Corbet's suggestion:
+> https://lkml.org/lkml/2019/4/3/1047
+> I did some adjustment according to the content and finally they are placed as:
+> Documentation/firmware-guide/acpi/
 
--- 
-Cheers,
-Changbin Du
+I'd like to queue up this series, but it is missing a patch to create
+Documentation/firmware-guide/acpi/index.rst.
+
+Care to provide one?
