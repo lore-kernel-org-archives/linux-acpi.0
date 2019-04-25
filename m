@@ -5,56 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67957C43218
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:34:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A43CC43218
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:34:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 82F1A205ED
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:34:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9FC53205ED
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:34:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g0sH47aL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bQb9AJGQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730286AbfDYPdx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Apr 2019 11:33:53 -0400
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:42120 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728408AbfDYPdw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Apr 2019 11:33:52 -0400
-Received: by mail-pl1-f196.google.com with SMTP id x15so6917808pln.9;
-        Thu, 25 Apr 2019 08:33:51 -0700 (PDT)
+        id S1730136AbfDYPd3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Apr 2019 11:33:29 -0400
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:34814 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730180AbfDYPd2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Apr 2019 11:33:28 -0400
+Received: by mail-pf1-f193.google.com with SMTP id b3so105497pfd.1;
+        Thu, 25 Apr 2019 08:33:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=eQK94c4zZAtumhgmTwNsNEW3BA1lT2WXfVq6QQQWN4U=;
-        b=g0sH47aL0oeLR8xfs9eO3bez//V9ySlDMQSI+r4PYmml99g2swydX+4X/vaMWUsie2
-         Hw+7wk1POm+E9KjQ5Lb+yABZIO4ynb1RcUSLggTnchHveDmRdtXWLIkfkw3M4l+UG4eo
-         H51FF6wPU8urV1V9qfp/jw9iJdQO6yx+6WcUiIIBD7noDdQBQ1qMrIfpwzQZL9BNcQA/
-         1Nrm669E2a0UItkFh9T2rue4jiBh65lUgUyLc3gcIHXBIvbhd4MzxsOY5TM+tOQDGSfT
-         RMdC3pg8r2WymHUadw9LT9xrAfHNxopsYGTEznPhB6C0Pgv+0+YAKW5cyq/MsgsURTMv
-         iHuA==
+        bh=5a/6MPsR4urKp6yQEMyiUcAMrF2FenVOvePurxnpdZ8=;
+        b=bQb9AJGQlPSOo3LXhEGmCcLePbpXt3ZDwN9IY0TD8i+MWU/1jfz8mKaZXqgEs8kxP3
+         TCE4C68S2MhbovfNZlQbpwJTewaK5rayecNA3fRKvT2ECRT2ITGgSaDcwsor+iBi3HUm
+         sK8hNOcFZTx57HYoHgfj97irLlieOolVxiEa7K5PhsnbADqj8AvCt3ulIdtYltd1jGA9
+         UahPsFHLftmQRA0Ii0eUyjITyj2+Ck2vdwKp3SGLfvPaRxpf1k22ZwPLaIXsOspEf25E
+         1Bz+OaX/eAEfuGfCDQEquq+vwsfCk9rPqz7yq8DGcmKOJWu3ZfA2k/yNC5Q/y7TpDyii
+         j0nw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=eQK94c4zZAtumhgmTwNsNEW3BA1lT2WXfVq6QQQWN4U=;
-        b=a8iSXpHjQ99f+6YvYh18KCrkHnOVE7odrD6FhYOwO8Q6lXjt2uPmi3KtZcbykDApgA
-         JehPwoqsTambG6qLGIdGnIhBXZOaVEFX0g4FRIzzXFZTOaZXkHibFcS+V9r6vYFpcAvc
-         5aJIAnDDLtk24oevB9e9Xg85lbdDzJtqB2fuLYoq81MRL35jEmPteG7iD+L4Uu8STNVQ
-         pShqF7VQd76HHgNBkwToC+vVK5w7ZOhuqfhneVIFELzzz7AS1mEc2a+m4r0Kv8Di8VNO
-         K0owljrbrCA1AAPX9WyNpMGmx8oE1ONGBi+PgcKxqI5bKlm5VD+XxMgAGtWyLvSn1bt0
-         kl2Q==
-X-Gm-Message-State: APjAAAVFazsEPQHFRRRHTbNf9co7wtY2MT69MtuWI/UjJ0Mak6eCS2K1
-        P64BfdM7s7FFwNYWAF2gSv4=
-X-Google-Smtp-Source: APXvYqyZ4gMNkcA32jIUIZFllDomQDknam+JjU9xXodByeeaWs3HKay6EAUnGMGAx4gRpjRNftUvsw==
-X-Received: by 2002:a17:902:7b97:: with SMTP id w23mr31895957pll.335.1556206431358;
-        Thu, 25 Apr 2019 08:33:51 -0700 (PDT)
+        bh=5a/6MPsR4urKp6yQEMyiUcAMrF2FenVOvePurxnpdZ8=;
+        b=GZdYlO2TsS1Ptut+P6AmZ/d1H3j4mUCrkt8pYzDE2ViLz3VuU0cxdxKGUKt/pPGc1q
+         K+RRIijfT7cRSU6e24bvXpdyqe5QjRL6Y42vjqb8glhqggGygldXuIPOhMiKKfPRc9R8
+         BUMkJQn2SO2dKuMdMTwbs7HRGGBTePazG7yLpt6cPiRcKM37TdWxSxpLnpZfWV+SE/7M
+         FPkDHdFQiDWT8FpuPu3LDUnigzKt9Br84oKAji7Tqxixtn5/TWptj8FomOLjr/ejda8S
+         TC927kaGSc+c2GuFyiXFS6VCVSlhDKI2cS1ylAZNcGmEJgAvfu4p2BUsx0wdDc+bDnNa
+         YETg==
+X-Gm-Message-State: APjAAAWS+gYpuy8VLVDv7SbdCySVcEUE+Uyf0k8ZqyWynSxGatKrGnNC
+        O5b6CmI/KbvRSp2oY45v8C2PBTnc
+X-Google-Smtp-Source: APXvYqyD82rg0mi82mhLm44kgfK1nVbiS1CcHAwNaq0u8ox19Zj+Cp7hQO6CnorxaLYLJIXtAwc90A==
+X-Received: by 2002:a63:6581:: with SMTP id z123mr38514410pgb.243.1556206406976;
+        Thu, 25 Apr 2019 08:33:26 -0700 (PDT)
 Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id c14sm2643363pgj.94.2019.04.25.08.33.45
+        by smtp.gmail.com with ESMTPSA id c14sm2643363pgj.94.2019.04.25.08.33.21
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 25 Apr 2019 08:33:50 -0700 (PDT)
+        Thu, 25 Apr 2019 08:33:26 -0700 (PDT)
 From:   Changbin Du <changbin.du@gmail.com>
 To:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
@@ -62,9 +61,9 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
         Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v6 23/24] Documentation: ACPI: move ssdt-overlays.txt to admin-guide/acpi and convert to reST
-Date:   Thu, 25 Apr 2019 23:31:16 +0800
-Message-Id: <20190425153117.16057-24-changbin.du@gmail.com>
+Subject: [PATCH v6 19/24] Documentation: ACPI: move apei/output_format.txt to firmware-guide/acpi and convert to reST
+Date:   Thu, 25 Apr 2019 23:31:12 +0800
+Message-Id: <20190425153117.16057-20-changbin.du@gmail.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190425153117.16057-1-changbin.du@gmail.com>
 References: <20190425153117.16057-1-changbin.du@gmail.com>
@@ -75,7 +74,7 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190425153116.oYcGEMKMxbBAVfgv3CpHiIErlL-67KV9gRcawrRBYXw@z>
+Message-ID: <20190425153112.ZvAuFMR5S75yqgxP6CW7tEOevPFgU_lWd4X3AFsNPJI@z>
 
 This converts the plain text documentation to reStructuredText format and
 add it to Sphinx TOC tree. No essential content change.
@@ -83,387 +82,334 @@ add it to Sphinx TOC tree. No essential content change.
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- Documentation/acpi/ssdt-overlays.txt          | 172 -----------------
- Documentation/admin-guide/acpi/index.rst      |   1 +
- .../admin-guide/acpi/ssdt-overlays.rst        | 180 ++++++++++++++++++
- 3 files changed, 181 insertions(+), 172 deletions(-)
- delete mode 100644 Documentation/acpi/ssdt-overlays.txt
- create mode 100644 Documentation/admin-guide/acpi/ssdt-overlays.rst
+ Documentation/acpi/apei/output_format.txt     | 147 -----------------
+ .../acpi/apei/output_format.rst               | 150 ++++++++++++++++++
+ Documentation/firmware-guide/acpi/index.rst   |   1 +
+ 3 files changed, 151 insertions(+), 147 deletions(-)
+ delete mode 100644 Documentation/acpi/apei/output_format.txt
+ create mode 100644 Documentation/firmware-guide/acpi/apei/output_format.rst
 
-diff --git a/Documentation/acpi/ssdt-overlays.txt b/Documentation/acpi/ssdt-overlays.txt
+diff --git a/Documentation/acpi/apei/output_format.txt b/Documentation/acpi/apei/output_format.txt
 deleted file mode 100644
-index 5ae13f161ea2..000000000000
---- a/Documentation/acpi/ssdt-overlays.txt
+index 0c49c197c47a..000000000000
+--- a/Documentation/acpi/apei/output_format.txt
 +++ /dev/null
-@@ -1,172 +0,0 @@
+@@ -1,147 +0,0 @@
+-                     APEI output format
+-                     ~~~~~~~~~~~~~~~~~~
 -
--In order to support ACPI open-ended hardware configurations (e.g. development
--boards) we need a way to augment the ACPI configuration provided by the firmware
--image. A common example is connecting sensors on I2C / SPI buses on development
--boards.
+-APEI uses printk as hardware error reporting interface, the output
+-format is as follow.
 -
--Although this can be accomplished by creating a kernel platform driver or
--recompiling the firmware image with updated ACPI tables, neither is practical:
--the former proliferates board specific kernel code while the latter requires
--access to firmware tools which are often not publicly available.
+-<error record> :=
+-APEI generic hardware error status
+-severity: <integer>, <severity string>
+-section: <integer>, severity: <integer>, <severity string>
+-flags: <integer>
+-<section flags strings>
+-fru_id: <uuid string>
+-fru_text: <string>
+-section_type: <section type string>
+-<section data>
 -
--Because ACPI supports external references in AML code a more practical
--way to augment firmware ACPI configuration is by dynamically loading
--user defined SSDT tables that contain the board specific information.
+-<severity string>* := recoverable | fatal | corrected | info
 -
--For example, to enumerate a Bosch BMA222E accelerometer on the I2C bus of the
--Minnowboard MAX development board exposed via the LSE connector [1], the
--following ASL code can be used:
+-<section flags strings># :=
+-[primary][, containment warning][, reset][, threshold exceeded]\
+-[, resource not accessible][, latent error]
 -
--DefinitionBlock ("minnowmax.aml", "SSDT", 1, "Vendor", "Accel", 0x00000003)
--{
--    External (\_SB.I2C6, DeviceObj)
+-<section type string> := generic processor error | memory error | \
+-PCIe error | unknown, <uuid string>
 -
--    Scope (\_SB.I2C6)
--    {
--        Device (STAC)
--        {
--            Name (_ADR, Zero)
--            Name (_HID, "BMA222E")
+-<section data> :=
+-<generic processor section data> | <memory section data> | \
+-<pcie section data> | <null>
 -
--            Method (_CRS, 0, Serialized)
--            {
--                Name (RBUF, ResourceTemplate ()
--                {
--                    I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
--                                  AddressingMode7Bit, "\\_SB.I2C6", 0x00,
--                                  ResourceConsumer, ,)
--                    GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
--                             "\\_SB.GPO2", 0x00, ResourceConsumer, , )
--                    { // Pin list
--                        0
--                    }
--                })
--                Return (RBUF)
--            }
--        }
--    }
--}
+-<generic processor section data> :=
+-[processor_type: <integer>, <proc type string>]
+-[processor_isa: <integer>, <proc isa string>]
+-[error_type: <integer>
+-<proc error type strings>]
+-[operation: <integer>, <proc operation string>]
+-[flags: <integer>
+-<proc flags strings>]
+-[level: <integer>]
+-[version_info: <integer>]
+-[processor_id: <integer>]
+-[target_address: <integer>]
+-[requestor_id: <integer>]
+-[responder_id: <integer>]
+-[IP: <integer>]
 -
--which can then be compiled to AML binary format:
+-<proc type string>* := IA32/X64 | IA64
 -
--$ iasl minnowmax.asl
+-<proc isa string>* := IA32 | IA64 | X64
 -
--Intel ACPI Component Architecture
--ASL Optimizing Compiler version 20140214-64 [Mar 29 2014]
--Copyright (c) 2000 - 2014 Intel Corporation
+-<processor error type strings># :=
+-[cache error][, TLB error][, bus error][, micro-architectural error]
 -
--ASL Input:     minnomax.asl - 30 lines, 614 bytes, 7 keywords
--AML Output:    minnowmax.aml - 165 bytes, 6 named objects, 1 executable opcodes
+-<proc operation string>* := unknown or generic | data read | data write | \
+-instruction execution
 -
--[1] http://wiki.minnowboard.org/MinnowBoard_MAX#Low_Speed_Expansion_Connector_.28Top.29
+-<proc flags strings># :=
+-[restartable][, precise IP][, overflow][, corrected]
 -
--The resulting AML code can then be loaded by the kernel using one of the methods
--below.
+-<memory section data> :=
+-[error_status: <integer>]
+-[physical_address: <integer>]
+-[physical_address_mask: <integer>]
+-[node: <integer>]
+-[card: <integer>]
+-[module: <integer>]
+-[bank: <integer>]
+-[device: <integer>]
+-[row: <integer>]
+-[column: <integer>]
+-[bit_position: <integer>]
+-[requestor_id: <integer>]
+-[responder_id: <integer>]
+-[target_id: <integer>]
+-[error_type: <integer>, <mem error type string>]
 -
--== Loading ACPI SSDTs from initrd ==
+-<mem error type string>* :=
+-unknown | no error | single-bit ECC | multi-bit ECC | \
+-single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
+-target abort | parity error | watchdog timeout | invalid address | \
+-mirror Broken | memory sparing | scrub corrected error | \
+-scrub uncorrected error
 -
--This option allows loading of user defined SSDTs from initrd and it is useful
--when the system does not support EFI or when there is not enough EFI storage.
+-<pcie section data> :=
+-[port_type: <integer>, <pcie port type string>]
+-[version: <integer>.<integer>]
+-[command: <integer>, status: <integer>]
+-[device_id: <integer>:<integer>:<integer>.<integer>
+-slot: <integer>
+-secondary_bus: <integer>
+-vendor_id: <integer>, device_id: <integer>
+-class_code: <integer>]
+-[serial number: <integer>, <integer>]
+-[bridge: secondary_status: <integer>, control: <integer>]
+-[aer_status: <integer>, aer_mask: <integer>
+-<aer status string>
+-[aer_uncor_severity: <integer>]
+-aer_layer=<aer layer string>, aer_agent=<aer agent string>
+-aer_tlp_header: <integer> <integer> <integer> <integer>]
 -
--It works in a similar way with initrd based ACPI tables override/upgrade: SSDT
--aml code must be placed in the first, uncompressed, initrd under the
--"kernel/firmware/acpi" path. Multiple files can be used and this will translate
--in loading multiple tables. Only SSDT and OEM tables are allowed. See
--initrd_table_override.txt for more details.
+-<pcie port type string>* := PCIe end point | legacy PCI end point | \
+-unknown | unknown | root port | upstream switch port | \
+-downstream switch port | PCIe to PCI/PCI-X bridge | \
+-PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
+-root complex event collector
 -
--Here is an example:
--
--# Add the raw ACPI tables to an uncompressed cpio archive.
--# They must be put into a /kernel/firmware/acpi directory inside the
--# cpio archive.
--# The uncompressed cpio archive must be the first.
--# Other, typically compressed cpio archives, must be
--# concatenated on top of the uncompressed one.
--mkdir -p kernel/firmware/acpi
--cp ssdt.aml kernel/firmware/acpi
--
--# Create the uncompressed cpio archive and concatenate the original initrd
--# on top:
--find kernel | cpio -H newc --create > /boot/instrumented_initrd
--cat /boot/initrd >>/boot/instrumented_initrd
--
--== Loading ACPI SSDTs from EFI variables ==
--
--This is the preferred method, when EFI is supported on the platform, because it
--allows a persistent, OS independent way of storing the user defined SSDTs. There
--is also work underway to implement EFI support for loading user defined SSDTs
--and using this method will make it easier to convert to the EFI loading
--mechanism when that will arrive.
--
--In order to load SSDTs from an EFI variable the efivar_ssdt kernel command line
--parameter can be used. The argument for the option is the variable name to
--use. If there are multiple variables with the same name but with different
--vendor GUIDs, all of them will be loaded.
--
--In order to store the AML code in an EFI variable the efivarfs filesystem can be
--used. It is enabled and mounted by default in /sys/firmware/efi/efivars in all
--recent distribution.
--
--Creating a new file in /sys/firmware/efi/efivars will automatically create a new
--EFI variable. Updating a file in /sys/firmware/efi/efivars will update the EFI
--variable. Please note that the file name needs to be specially formatted as
--"Name-GUID" and that the first 4 bytes in the file (little-endian format)
--represent the attributes of the EFI variable (see EFI_VARIABLE_MASK in
--include/linux/efi.h). Writing to the file must also be done with one write
--operation.
--
--For example, you can use the following bash script to create/update an EFI
--variable with the content from a given file:
--
--#!/bin/sh -e
--
--while ! [ -z "$1" ]; do
--        case "$1" in
--        "-f") filename="$2"; shift;;
--        "-g") guid="$2"; shift;;
--        *) name="$1";;
--        esac
--        shift
--done
--
--usage()
--{
--        echo "Syntax: ${0##*/} -f filename [ -g guid ] name"
--        exit 1
--}
--
--[ -n "$name" -a -f "$filename" ] || usage
--
--EFIVARFS="/sys/firmware/efi/efivars"
--
--[ -d "$EFIVARFS" ] || exit 2
--
--if stat -tf $EFIVARFS | grep -q -v de5e81e4; then
--        mount -t efivarfs none $EFIVARFS
+-if section severity is fatal or recoverable
+-<aer status string># :=
+-unknown | unknown | unknown | unknown | Data Link Protocol | \
+-unknown | unknown | unknown | unknown | unknown | unknown | unknown | \
+-Poisoned TLP | Flow Control Protocol | Completion Timeout | \
+-Completer Abort | Unexpected Completion | Receiver Overflow | \
+-Malformed TLP | ECRC | Unsupported Request
+-else
+-<aer status string># :=
+-Receiver Error | unknown | unknown | unknown | unknown | unknown | \
+-Bad TLP | Bad DLLP | RELAY_NUM Rollover | unknown | unknown | unknown | \
+-Replay Timer Timeout | Advisory Non-Fatal
 -fi
 -
--# try to pick up an existing GUID
--[ -n "$guid" ] || guid=$(find "$EFIVARFS" -name "$name-*" | head -n1 | cut -f2- -d-)
+-<aer layer string> :=
+-Physical Layer | Data Link Layer | Transaction Layer
 -
--# use a randomly generated GUID
--[ -n "$guid" ] || guid="$(cat /proc/sys/kernel/random/uuid)"
+-<aer agent string> :=
+-Receiver ID | Requester ID | Completer ID | Transmitter ID
 -
--# efivarfs expects all of the data in one write
--tmp=$(mktemp)
--/bin/echo -ne "\007\000\000\000" | cat - $filename > $tmp
--dd if=$tmp of="$EFIVARFS/$name-$guid" bs=$(stat -c %s $tmp)
--rm $tmp
+-Where, [] designate corresponding content is optional
 -
--== Loading ACPI SSDTs from configfs ==
+-All <field string> description with * has the following format:
 -
--This option allows loading of user defined SSDTs from userspace via the configfs
--interface. The CONFIG_ACPI_CONFIGFS option must be select and configfs must be
--mounted. In the following examples, we assume that configfs has been mounted in
--/config.
+-field: <integer>, <field string>
 -
--New tables can be loading by creating new directories in /config/acpi/table/ and
--writing the SSDT aml code in the aml attribute:
+-Where value of <integer> should be the position of "string" in <field
+-string> description. Otherwise, <field string> will be "unknown".
 -
--cd /config/acpi/table
--mkdir my_ssdt
--cat ~/ssdt.aml > my_ssdt/aml
-diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-index 9049a7b9f065..4d13eeea1eca 100644
---- a/Documentation/admin-guide/acpi/index.rst
-+++ b/Documentation/admin-guide/acpi/index.rst
-@@ -10,4 +10,5 @@ the Linux ACPI support.
- 
-    initrd_table_override
-    dsdt-override
-+   ssdt-overlays
-    cppc_sysfs
-diff --git a/Documentation/admin-guide/acpi/ssdt-overlays.rst b/Documentation/admin-guide/acpi/ssdt-overlays.rst
+-All <field strings> description with # has the following format:
+-
+-field: <integer>
+-<field strings>
+-
+-Where each string in <fields strings> corresponding to one set bit of
+-<integer>. The bit position is the position of "string" in <field
+-strings> description.
+-
+-For more detailed explanation of every field, please refer to UEFI
+-specification version 2.3 or later, section Appendix N: Common
+-Platform Error Record.
+diff --git a/Documentation/firmware-guide/acpi/apei/output_format.rst b/Documentation/firmware-guide/acpi/apei/output_format.rst
 new file mode 100644
-index 000000000000..da37455f96c9
+index 000000000000..c2e7ebddb529
 --- /dev/null
-+++ b/Documentation/admin-guide/acpi/ssdt-overlays.rst
-@@ -0,0 +1,180 @@
++++ b/Documentation/firmware-guide/acpi/apei/output_format.rst
+@@ -0,0 +1,150 @@
 +.. SPDX-License-Identifier: GPL-2.0
 +
-+=============
-+SSDT Overlays
-+=============
++==================
++APEI output format
++==================
 +
-+In order to support ACPI open-ended hardware configurations (e.g. development
-+boards) we need a way to augment the ACPI configuration provided by the firmware
-+image. A common example is connecting sensors on I2C / SPI buses on development
-+boards.
++APEI uses printk as hardware error reporting interface, the output
++format is as follow::
 +
-+Although this can be accomplished by creating a kernel platform driver or
-+recompiling the firmware image with updated ACPI tables, neither is practical:
-+the former proliferates board specific kernel code while the latter requires
-+access to firmware tools which are often not publicly available.
++        <error record> :=
++        APEI generic hardware error status
++        severity: <integer>, <severity string>
++        section: <integer>, severity: <integer>, <severity string>
++        flags: <integer>
++        <section flags strings>
++        fru_id: <uuid string>
++        fru_text: <string>
++        section_type: <section type string>
++        <section data>
 +
-+Because ACPI supports external references in AML code a more practical
-+way to augment firmware ACPI configuration is by dynamically loading
-+user defined SSDT tables that contain the board specific information.
++        <severity string>* := recoverable | fatal | corrected | info
 +
-+For example, to enumerate a Bosch BMA222E accelerometer on the I2C bus of the
-+Minnowboard MAX development board exposed via the LSE connector [1], the
-+following ASL code can be used::
++        <section flags strings># :=
++        [primary][, containment warning][, reset][, threshold exceeded]\
++        [, resource not accessible][, latent error]
 +
-+    DefinitionBlock ("minnowmax.aml", "SSDT", 1, "Vendor", "Accel", 0x00000003)
-+    {
-+        External (\_SB.I2C6, DeviceObj)
++        <section type string> := generic processor error | memory error | \
++        PCIe error | unknown, <uuid string>
 +
-+        Scope (\_SB.I2C6)
-+        {
-+            Device (STAC)
-+            {
-+                Name (_ADR, Zero)
-+                Name (_HID, "BMA222E")
++        <section data> :=
++        <generic processor section data> | <memory section data> | \
++        <pcie section data> | <null>
 +
-+                Method (_CRS, 0, Serialized)
-+                {
-+                    Name (RBUF, ResourceTemplate ()
-+                    {
-+                        I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
-+                                    AddressingMode7Bit, "\\_SB.I2C6", 0x00,
-+                                    ResourceConsumer, ,)
-+                        GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
-+                                "\\_SB.GPO2", 0x00, ResourceConsumer, , )
-+                        { // Pin list
-+                            0
-+                        }
-+                    })
-+                    Return (RBUF)
-+                }
-+            }
-+        }
-+    }
++        <generic processor section data> :=
++        [processor_type: <integer>, <proc type string>]
++        [processor_isa: <integer>, <proc isa string>]
++        [error_type: <integer>
++        <proc error type strings>]
++        [operation: <integer>, <proc operation string>]
++        [flags: <integer>
++        <proc flags strings>]
++        [level: <integer>]
++        [version_info: <integer>]
++        [processor_id: <integer>]
++        [target_address: <integer>]
++        [requestor_id: <integer>]
++        [responder_id: <integer>]
++        [IP: <integer>]
 +
-+which can then be compiled to AML binary format::
++        <proc type string>* := IA32/X64 | IA64
 +
-+    $ iasl minnowmax.asl
++        <proc isa string>* := IA32 | IA64 | X64
 +
-+    Intel ACPI Component Architecture
-+    ASL Optimizing Compiler version 20140214-64 [Mar 29 2014]
-+    Copyright (c) 2000 - 2014 Intel Corporation
++        <processor error type strings># :=
++        [cache error][, TLB error][, bus error][, micro-architectural error]
 +
-+    ASL Input:     minnomax.asl - 30 lines, 614 bytes, 7 keywords
-+    AML Output:    minnowmax.aml - 165 bytes, 6 named objects, 1 executable opcodes
++        <proc operation string>* := unknown or generic | data read | data write | \
++        instruction execution
 +
-+[1] http://wiki.minnowboard.org/MinnowBoard_MAX#Low_Speed_Expansion_Connector_.28Top.29
++        <proc flags strings># :=
++        [restartable][, precise IP][, overflow][, corrected]
 +
-+The resulting AML code can then be loaded by the kernel using one of the methods
-+below.
++        <memory section data> :=
++        [error_status: <integer>]
++        [physical_address: <integer>]
++        [physical_address_mask: <integer>]
++        [node: <integer>]
++        [card: <integer>]
++        [module: <integer>]
++        [bank: <integer>]
++        [device: <integer>]
++        [row: <integer>]
++        [column: <integer>]
++        [bit_position: <integer>]
++        [requestor_id: <integer>]
++        [responder_id: <integer>]
++        [target_id: <integer>]
++        [error_type: <integer>, <mem error type string>]
 +
-+Loading ACPI SSDTs from initrd
-+==============================
++        <mem error type string>* :=
++        unknown | no error | single-bit ECC | multi-bit ECC | \
++        single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
++        target abort | parity error | watchdog timeout | invalid address | \
++        mirror Broken | memory sparing | scrub corrected error | \
++        scrub uncorrected error
 +
-+This option allows loading of user defined SSDTs from initrd and it is useful
-+when the system does not support EFI or when there is not enough EFI storage.
++        <pcie section data> :=
++        [port_type: <integer>, <pcie port type string>]
++        [version: <integer>.<integer>]
++        [command: <integer>, status: <integer>]
++        [device_id: <integer>:<integer>:<integer>.<integer>
++        slot: <integer>
++        secondary_bus: <integer>
++        vendor_id: <integer>, device_id: <integer>
++        class_code: <integer>]
++        [serial number: <integer>, <integer>]
++        [bridge: secondary_status: <integer>, control: <integer>]
++        [aer_status: <integer>, aer_mask: <integer>
++        <aer status string>
++        [aer_uncor_severity: <integer>]
++        aer_layer=<aer layer string>, aer_agent=<aer agent string>
++        aer_tlp_header: <integer> <integer> <integer> <integer>]
 +
-+It works in a similar way with initrd based ACPI tables override/upgrade: SSDT
-+aml code must be placed in the first, uncompressed, initrd under the
-+"kernel/firmware/acpi" path. Multiple files can be used and this will translate
-+in loading multiple tables. Only SSDT and OEM tables are allowed. See
-+initrd_table_override.txt for more details.
++        <pcie port type string>* := PCIe end point | legacy PCI end point | \
++        unknown | unknown | root port | upstream switch port | \
++        downstream switch port | PCIe to PCI/PCI-X bridge | \
++        PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
++        root complex event collector
 +
-+Here is an example::
++        if section severity is fatal or recoverable
++        <aer status string># :=
++        unknown | unknown | unknown | unknown | Data Link Protocol | \
++        unknown | unknown | unknown | unknown | unknown | unknown | unknown | \
++        Poisoned TLP | Flow Control Protocol | Completion Timeout | \
++        Completer Abort | Unexpected Completion | Receiver Overflow | \
++        Malformed TLP | ECRC | Unsupported Request
++        else
++        <aer status string># :=
++        Receiver Error | unknown | unknown | unknown | unknown | unknown | \
++        Bad TLP | Bad DLLP | RELAY_NUM Rollover | unknown | unknown | unknown | \
++        Replay Timer Timeout | Advisory Non-Fatal
++        fi
 +
-+    # Add the raw ACPI tables to an uncompressed cpio archive.
-+    # They must be put into a /kernel/firmware/acpi directory inside the
-+    # cpio archive.
-+    # The uncompressed cpio archive must be the first.
-+    # Other, typically compressed cpio archives, must be
-+    # concatenated on top of the uncompressed one.
-+    mkdir -p kernel/firmware/acpi
-+    cp ssdt.aml kernel/firmware/acpi
++        <aer layer string> :=
++        Physical Layer | Data Link Layer | Transaction Layer
 +
-+    # Create the uncompressed cpio archive and concatenate the original initrd
-+    # on top:
-+    find kernel | cpio -H newc --create > /boot/instrumented_initrd
-+    cat /boot/initrd >>/boot/instrumented_initrd
++        <aer agent string> :=
++        Receiver ID | Requester ID | Completer ID | Transmitter ID
 +
-+Loading ACPI SSDTs from EFI variables
-+=====================================
++Where, [] designate corresponding content is optional
 +
-+This is the preferred method, when EFI is supported on the platform, because it
-+allows a persistent, OS independent way of storing the user defined SSDTs. There
-+is also work underway to implement EFI support for loading user defined SSDTs
-+and using this method will make it easier to convert to the EFI loading
-+mechanism when that will arrive.
++All <field string> description with * has the following format::
 +
-+In order to load SSDTs from an EFI variable the efivar_ssdt kernel command line
-+parameter can be used. The argument for the option is the variable name to
-+use. If there are multiple variables with the same name but with different
-+vendor GUIDs, all of them will be loaded.
++        field: <integer>, <field string>
 +
-+In order to store the AML code in an EFI variable the efivarfs filesystem can be
-+used. It is enabled and mounted by default in /sys/firmware/efi/efivars in all
-+recent distribution.
++Where value of <integer> should be the position of "string" in <field
++string> description. Otherwise, <field string> will be "unknown".
 +
-+Creating a new file in /sys/firmware/efi/efivars will automatically create a new
-+EFI variable. Updating a file in /sys/firmware/efi/efivars will update the EFI
-+variable. Please note that the file name needs to be specially formatted as
-+"Name-GUID" and that the first 4 bytes in the file (little-endian format)
-+represent the attributes of the EFI variable (see EFI_VARIABLE_MASK in
-+include/linux/efi.h). Writing to the file must also be done with one write
-+operation.
++All <field strings> description with # has the following format::
 +
-+For example, you can use the following bash script to create/update an EFI
-+variable with the content from a given file::
++        field: <integer>
++        <field strings>
 +
-+    #!/bin/sh -e
++Where each string in <fields strings> corresponding to one set bit of
++<integer>. The bit position is the position of "string" in <field
++strings> description.
 +
-+    while ! [ -z "$1" ]; do
-+            case "$1" in
-+            "-f") filename="$2"; shift;;
-+            "-g") guid="$2"; shift;;
-+            *) name="$1";;
-+            esac
-+            shift
-+    done
-+
-+    usage()
-+    {
-+            echo "Syntax: ${0##*/} -f filename [ -g guid ] name"
-+            exit 1
-+    }
-+
-+    [ -n "$name" -a -f "$filename" ] || usage
-+
-+    EFIVARFS="/sys/firmware/efi/efivars"
-+
-+    [ -d "$EFIVARFS" ] || exit 2
-+
-+    if stat -tf $EFIVARFS | grep -q -v de5e81e4; then
-+            mount -t efivarfs none $EFIVARFS
-+    fi
-+
-+    # try to pick up an existing GUID
-+    [ -n "$guid" ] || guid=$(find "$EFIVARFS" -name "$name-*" | head -n1 | cut -f2- -d-)
-+
-+    # use a randomly generated GUID
-+    [ -n "$guid" ] || guid="$(cat /proc/sys/kernel/random/uuid)"
-+
-+    # efivarfs expects all of the data in one write
-+    tmp=$(mktemp)
-+    /bin/echo -ne "\007\000\000\000" | cat - $filename > $tmp
-+    dd if=$tmp of="$EFIVARFS/$name-$guid" bs=$(stat -c %s $tmp)
-+    rm $tmp
-+
-+Loading ACPI SSDTs from configfs
-+================================
-+
-+This option allows loading of user defined SSDTs from userspace via the configfs
-+interface. The CONFIG_ACPI_CONFIGFS option must be select and configfs must be
-+mounted. In the following examples, we assume that configfs has been mounted in
-+/config.
-+
-+New tables can be loading by creating new directories in /config/acpi/table/ and
-+writing the SSDT aml code in the aml attribute::
-+
-+    cd /config/acpi/table
-+    mkdir my_ssdt
-+    cat ~/ssdt.aml > my_ssdt/aml
++For more detailed explanation of every field, please refer to UEFI
++specification version 2.3 or later, section Appendix N: Common
++Platform Error Record.
+diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+index e9f253d54897..869badba6d7a 100644
+--- a/Documentation/firmware-guide/acpi/index.rst
++++ b/Documentation/firmware-guide/acpi/index.rst
+@@ -17,6 +17,7 @@ ACPI Support
+    DSD-properties-rules
+    debug
+    aml-debugger
++   apei/output_format
+    gpio-properties
+    i2c-muxes
+    acpi-lid
 -- 
 2.20.1
 
