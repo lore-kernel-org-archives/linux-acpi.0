@@ -5,55 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC279C43219
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:32:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 962F0C43219
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:32:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F02220891
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:32:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C73102084F
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:32:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R295VI7Q"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KUL3wLbT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729455AbfDYPb7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Apr 2019 11:31:59 -0400
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:34656 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729450AbfDYPb6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Apr 2019 11:31:58 -0400
-Received: by mail-pl1-f194.google.com with SMTP id y6so11298721plt.1;
-        Thu, 25 Apr 2019 08:31:58 -0700 (PDT)
+        id S2387489AbfDYPcK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Apr 2019 11:32:10 -0400
+Received: from mail-pl1-f195.google.com ([209.85.214.195]:39810 "EHLO
+        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387427AbfDYPcJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Apr 2019 11:32:09 -0400
+Received: by mail-pl1-f195.google.com with SMTP id e92so9486535plb.6;
+        Thu, 25 Apr 2019 08:32:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=DKtDv1X/aYP4TvJqarXB9+14q+P9ROu4ceFb9isBfF8=;
-        b=R295VI7QFzX47fOQliJT6SAB8a4Lo15a8oqc1uIuMm5o6eMQC71L5udxtmk9/ez9ox
-         0vWb/JikCzyXtGGZJ/P2dArZRjXMniipAU1IUAiENYMsuGvsBHtn6n0hMiC1+72OxuKq
-         KJGZzI4XUNhRNJuWinqG1bj2KdzTL5ojoE1I3rcVGDQwzIlf5s5c/Qd0sQxiJ5bcJr9X
-         MeO8WZEf5tZlxg1Gfzul6U0jVsfq/n+RxJrmkUJh2B1YLpw7PjToMljCWr4oLrziUDqV
-         C6sMPzX8CqOd71wcnccdojH48oj2bsVyZZZoglzFh3bZeu+km4+u2sNVYCGT02ajwxyV
-         53ag==
+        bh=ydaAtanhe5luQq8qrhQiH95JS2NmsbhYg1m6ekwdf5o=;
+        b=KUL3wLbTWkZ/awIyUBXXP9ac/jSSDNu3AYL9u+nQRWFMeHakhphPZ1wxSCkmAqOR8F
+         5+Zu5d/LjV9ur73c0TTstD9iFQfbPRxljSjbx/ljhkL/Idm8ucEuEhk4I60ugxbpMI+3
+         wGZ5Q/hvtHYcFLIBBPPrS7aD6xXffzHc2QSgdtU8D8MGLTPVX51s1F+aaHJ/j1Bb1SSw
+         jsrcnbQYcZ6ByyQdwQPNc8crfWBKu/Bk8vvI8scVR6T3Tw0PP7mS2Jb1NjMHIKGXWL70
+         Feoz6FjMeBFHgwqatHYMHvBkhs/KxDvgD/szIbBUVQ2FfhcM/fMQ0vdVWjyncKzg6SwP
+         D90Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=DKtDv1X/aYP4TvJqarXB9+14q+P9ROu4ceFb9isBfF8=;
-        b=AF0NnnVp3tm/R31p6ymRc1z5HZB5rm+2l8kOQoyIPtWoGZ7qw7iPO/l1NAb6v/Stpb
-         EKTEY7YXtlbx7gpgoSTBfZAtCJUUdekuzCftfxCRcw9fBmADc+5+1azdclFqS3wbXRPV
-         1IW85Fa/wLX/TkmDvKrXfL5Zha8E+R0sBIkYAkoKDSiXW0QYcQuSM/vXWKx3JlIyqCZ3
-         qD567+wiJnONkUwuMIO0PHHpyOd+FyFv852umTcQo+YxALxUabb+ef7OshXLW73hIeee
-         EDt7yaCCDrX2LO8giCMfME2N4k76uSF1nJ7rJSmMOVuVpkn3fLXEpIMIianwnwdouxor
-         G9aw==
-X-Gm-Message-State: APjAAAUWyqnyC8eXLmuE+b3Uhpm4irQux8NcgpkmRwFRuNpvbPYSu850
-        g1lWt7RYGSKs90JvtebyZvc=
-X-Google-Smtp-Source: APXvYqxJKD93yI70xJjG8VmbHvuBA/uvF1Cv7d9MawmQ55dp/SRwX4ZAs/UZLWeCGgmvDN5p25We7Q==
-X-Received: by 2002:a17:902:1003:: with SMTP id b3mr40279344pla.306.1556206318027;
-        Thu, 25 Apr 2019 08:31:58 -0700 (PDT)
+        bh=ydaAtanhe5luQq8qrhQiH95JS2NmsbhYg1m6ekwdf5o=;
+        b=Hb+4/FcTI73p7AJLxCvaIRTNY3ivA3q0jSsAD6bh0DK44GlUMuuBskXNkoUd94z3vQ
+         2OLHB3CwgJu55bDX022431Mt9TKybs9wg1L8xNyKaqH8fv5T15fgJVwshQi0gFQVQpwE
+         KBYI53GK4PJaME3QVyLjMLik7ybvd5jtYRu241vz29GwhCgcDYxAcg2fEWyHO7LTy+OQ
+         /lqOFO7ZELgTJr/VyH1CT+yG2pt8MMw64oBJWHxfXZ/yNXOVvzFD7LC2YqyLTOrzOMB2
+         +Z1e6dYdM3H03vWEf3rQkUa57c2yWTYoXF83jBeDWPIRyLIP9gxHOLYxfImVv0Ik44/2
+         9IVg==
+X-Gm-Message-State: APjAAAVfGGz15vD9aaHtYH6q6qpzkKfG/DY6oDPWQMAR5IzSCN4GdXf2
+        20K1BVXUFCUXTqOuIdVquus=
+X-Google-Smtp-Source: APXvYqwm0yZSg35X3LIazXcrJL8hxnm+1neXBMlhHHKv6ctFLzmozDzwjXR32bGKzWRmKzMGEQlCUg==
+X-Received: by 2002:a17:902:2c01:: with SMTP id m1mr41198162plb.22.1556206329043;
+        Thu, 25 Apr 2019 08:32:09 -0700 (PDT)
 Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id c14sm2643363pgj.94.2019.04.25.08.31.52
+        by smtp.gmail.com with ESMTPSA id c14sm2643363pgj.94.2019.04.25.08.32.04
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 25 Apr 2019 08:31:57 -0700 (PDT)
+        Thu, 25 Apr 2019 08:32:08 -0700 (PDT)
 From:   Changbin Du <changbin.du@gmail.com>
 To:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
@@ -61,9 +62,9 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
         Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v6 04/24] Documentation: ACPI: move osi.txt to firmware-guide/acpi and convert to reST
-Date:   Thu, 25 Apr 2019 23:30:57 +0800
-Message-Id: <20190425153117.16057-5-changbin.du@gmail.com>
+Subject: [PATCH v6 06/24] Documentation: ACPI: move scan_handlers.txt to driver-api/acpi and convert to reST
+Date:   Thu, 25 Apr 2019 23:30:59 +0800
+Message-Id: <20190425153117.16057-7-changbin.du@gmail.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190425153117.16057-1-changbin.du@gmail.com>
 References: <20190425153117.16057-1-changbin.du@gmail.com>
@@ -74,7 +75,7 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190425153057.5R83JN1_2eKdsdDxwM0_l9nyI5CadwSgqU97fkpxcVU@z>
+Message-ID: <20190425153059.9-7VDnmVDiZWYmodVDr2ayOQQdJCMJJyidFA2BunWuU@z>
 
 This converts the plain text documentation to reStructuredText format and
 add it to Sphinx TOC tree. No essential content change.
@@ -82,82 +83,65 @@ add it to Sphinx TOC tree. No essential content change.
 Signed-off-by: Changbin Du <changbin.du@gmail.com>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- Documentation/firmware-guide/acpi/index.rst       |  1 +
- .../{acpi/osi.txt => firmware-guide/acpi/osi.rst} | 15 +++++++++------
- 2 files changed, 10 insertions(+), 6 deletions(-)
- rename Documentation/{acpi/osi.txt => firmware-guide/acpi/osi.rst} (97%)
+ Documentation/driver-api/acpi/index.rst       |  1 +
+ .../acpi/scan_handlers.rst}                   | 24 ++++++++++++-------
+ 2 files changed, 16 insertions(+), 9 deletions(-)
+ rename Documentation/{acpi/scan_handlers.txt => driver-api/acpi/scan_handlers.rst} (90%)
 
-diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index 99677c73f1fb..868bd25a3398 100644
---- a/Documentation/firmware-guide/acpi/index.rst
-+++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -9,3 +9,4 @@ ACPI Support
+diff --git a/Documentation/driver-api/acpi/index.rst b/Documentation/driver-api/acpi/index.rst
+index 12649947b19b..ace0008e54c2 100644
+--- a/Documentation/driver-api/acpi/index.rst
++++ b/Documentation/driver-api/acpi/index.rst
+@@ -6,3 +6,4 @@ ACPI Support
+    :maxdepth: 2
  
-    namespace
-    enumeration
-+   osi
-diff --git a/Documentation/acpi/osi.txt b/Documentation/firmware-guide/acpi/osi.rst
-similarity index 97%
-rename from Documentation/acpi/osi.txt
-rename to Documentation/firmware-guide/acpi/osi.rst
-index 50cde0ceb9b0..29e9ef79ebc0 100644
---- a/Documentation/acpi/osi.txt
-+++ b/Documentation/firmware-guide/acpi/osi.rst
-@@ -1,5 +1,8 @@
+    linuxized-acpica
++   scan_handlers
+diff --git a/Documentation/acpi/scan_handlers.txt b/Documentation/driver-api/acpi/scan_handlers.rst
+similarity index 90%
+rename from Documentation/acpi/scan_handlers.txt
+rename to Documentation/driver-api/acpi/scan_handlers.rst
+index 3246ccf15992..7a197b3a33fc 100644
+--- a/Documentation/acpi/scan_handlers.txt
++++ b/Documentation/driver-api/acpi/scan_handlers.rst
+@@ -1,7 +1,13 @@
 +.. SPDX-License-Identifier: GPL-2.0
++.. include:: <isonum.txt>
 +
-+==========================
- ACPI _OSI and _REV methods
----------------------------
-+==========================
++==================
+ ACPI Scan Handlers
++==================
++
++:Copyright: |copy| 2012, Intel Corporation
  
- An ACPI BIOS can use the "Operating System Interfaces" method (_OSI)
- to find out what the operating system supports. Eg. If BIOS
-@@ -14,7 +17,7 @@ This document explains how and why the BIOS and Linux should use these methods.
- It also explains how and why they are widely misused.
+-Copyright (C) 2012, Intel Corporation
+-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++:Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
  
- How to use _OSI
-----------------
-+===============
+ During system initialization and ACPI-based device hot-add, the ACPI namespace
+ is scanned in search of device objects that generally represent various pieces
+@@ -30,14 +36,14 @@ to configure that link so that the kernel can use it.
+ Those additional configuration tasks usually depend on the type of the hardware
+ component represented by the given device node which can be determined on the
+ basis of the device node's hardware ID (HID).  They are performed by objects
+-called ACPI scan handlers represented by the following structure:
++called ACPI scan handlers represented by the following structure::
  
- Linux runs on two groups of machines -- those that are tested by the OEM
- to be compatible with Linux, and those that were never tested with Linux,
-@@ -62,7 +65,7 @@ the string when that support is added to the kernel.
- That was easy.  Read on, to find out how to do it wrong.
+-struct acpi_scan_handler {
+-	const struct acpi_device_id *ids;
+-	struct list_head list_node;
+-	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
+-	void (*detach)(struct acpi_device *dev);
+-};
++	struct acpi_scan_handler {
++		const struct acpi_device_id *ids;
++		struct list_head list_node;
++		int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
++		void (*detach)(struct acpi_device *dev);
++	};
  
- Before _OSI, there was _OS
----------------------------
-+==========================
- 
- ACPI 1.0 specified "_OS" as an
- "object that evaluates to a string that identifies the operating system."
-@@ -96,7 +99,7 @@ That is the *only* viable strategy, as that is what modern Windows does,
- and so doing otherwise could steer the BIOS down an untested path.
- 
- _OSI is born, and immediately misused
----------------------------------------
-+=====================================
- 
- With _OSI, the *BIOS* provides the string describing an interface,
- and asks the OS: "YES/NO, are you compatible with this interface?"
-@@ -144,7 +147,7 @@ catastrophic failure resulting from the BIOS taking paths that
- were never validated under *any* OS.
- 
- Do not use _REV
-----------------
-+===============
- 
- Since _OSI("Linux") went away, some BIOS writers used _REV
- to support Linux and Windows differences in the same BIOS.
-@@ -164,7 +167,7 @@ from mid-2015 onward.  The ACPI specification will also be updated
- to reflect that _REV is deprecated, and always returns 2.
- 
- Apple Mac and _OSI("Darwin")
------------------------------
-+============================
- 
- On Apple's Mac platforms, the ACPI BIOS invokes _OSI("Darwin")
- to determine if the machine is running Apple OSX.
+ where ids is the list of IDs of device nodes the given handler is supposed to
+ take care of, list_node is the hook to the global list of ACPI scan handlers
 -- 
 2.20.1
 
