@@ -2,209 +2,134 @@ Return-Path: <SRS0=/XBo=S3=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 199ADC43218
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:34:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C316C43218
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:42:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48BD6206C0
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:34:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6047A206C1
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Apr 2019 15:42:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jdEaSoZL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YIxieLUP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729204AbfDYPbm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Apr 2019 11:31:42 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:46464 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726026AbfDYPbl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Apr 2019 11:31:41 -0400
-Received: by mail-pg1-f193.google.com with SMTP id n2so10028pgg.13;
-        Thu, 25 Apr 2019 08:31:40 -0700 (PDT)
+        id S1727218AbfDYPmT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Apr 2019 11:42:19 -0400
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:45377 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727210AbfDYPmT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Apr 2019 11:42:19 -0400
+Received: by mail-pg1-f195.google.com with SMTP id y3so25928pgk.12;
+        Thu, 25 Apr 2019 08:42:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=V9nzDmKVs6B2fvIsmgDPfkl3yh4fpAvQzb9wSqlneGU=;
-        b=jdEaSoZLj73TAFcApF7rENFfh01EaZJ0MNw6sKz8qO15YAR2btCXKvoiH1ROxCGsmb
-         LOjTQbz38X/Ftk6b4J/+ARuHkYBbKB5BnqRTU39PzG+B6msfh55wIGebHkA9y8pYfKu4
-         72rC5xAyZd89c0tOIx+kSIt3oPYnMECIjaLg1n02H2oHHqb/NTUIybYqAQVNn1aqZ0GF
-         BF6zEoDnbSA8lMewxePuT7QCf2njcJKBoj1YCO6yn9hb4T3nKoHtuCS0vuKkylh8B+uF
-         vpwNnGtVMAww5FJ0RY3PEh83mNV4QKwPOVG4U5rHqDrPowmSWBIo/hH8b5WGpgryg2sa
-         uzCg==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=fdGRNyUQlpc4HjiFlwZawue24kiF5g7GyMltLZfo7cE=;
+        b=YIxieLUPcMA5EY/ryz/w3MSDrHtVKhB0buP5Ib9v2TtDcrgrLatRkRvmwcaFgImjog
+         rxhPiSaeNOz5dkfMh7ZHxpqoA4NqsqKw89f3Z+JMEyoau91GLZmMdnvke0dUQAZcO7J+
+         O0lfbBVh/k3/SnSW3V8u8M2e5//l8DeJXd2AKiB7uaMwWIXoQ5gOvC5If6VwBDVWffzL
+         V+flPXi9xp3Dj5DOxTJjJDjnHOChw+HGMGDQebfCEq5LNIgNeMAKxqLq+Taa/fdxXpve
+         H/LlHOz/jS+mZ1iN7+bGG1Jfb1a1EwwCRpNnJlHmjTnmhbfUozKFuMCCbJ5YXwtJ5ksW
+         0rvw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=V9nzDmKVs6B2fvIsmgDPfkl3yh4fpAvQzb9wSqlneGU=;
-        b=bQTqMJfSzI2EjffFz6/tby9Wk4vQ4Cyo2wudkYv8/yXNuOLyov4zYo3MLRw/IWfcFu
-         ImYdRO18hXwIgN3+qcCXsPL0K8R+RMIGHtFrKvAqGJeGK53oIyaAEgBZHUeSee1bRfA5
-         0qn9O8JUw1JvDV0F2TbAtYw99kdfKBIBFgLiB4LW6rTxtf4Nkn+I/OydaBkZ70VCZgKo
-         vohsk6PH8tjhIG79QIrRWHs6B7LSW91l542iTBJ+U05GdVgB1hPsDrSjRr7ftKGHovm9
-         Qc4rbjuaU6BPPcaqFqPBJ3sYtwvRtlbKvci+u8EneU0J1nb+PmJaXr5wdOGb+A0PojKS
-         cEGA==
-X-Gm-Message-State: APjAAAXJm/V6wQGrqI63Oy+Bwh2N0ycjupcahucMiOUljZBv0ROL8j6p
-        0U5Zd7WJ3k/dgQ6Jt4MGUC4=
-X-Google-Smtp-Source: APXvYqzFTgC2Jvs/yOKKDftQRRa8InUlkgNmWcPljHcVsijce2GVeWByOsQVXdkq/P8gVAE9yeSpqw==
-X-Received: by 2002:a63:5d44:: with SMTP id o4mr37785200pgm.15.1556206300285;
-        Thu, 25 Apr 2019 08:31:40 -0700 (PDT)
-Received: from localhost.localdomain ([104.238.181.70])
-        by smtp.gmail.com with ESMTPSA id c14sm2643363pgj.94.2019.04.25.08.31.34
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 25 Apr 2019 08:31:39 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=fdGRNyUQlpc4HjiFlwZawue24kiF5g7GyMltLZfo7cE=;
+        b=RgEvKRCiBFptdy5dV7DSyg7CoxXJb2uM1BCtHiKW01xDLhhUJY4s4IObSGKwPOYkSi
+         S7d6A1O3Z4laHAuOJrM4XCB/3nd4ou2PxVjR0JvlWloxnSL12p5hj9XPH+sHnO2LB/P/
+         hdkeIEVYt8ZnNZ3pu2Y/Ufbs6+BJOsH5u3IWLvGdnrKAXZAfoYUprIRJOS+YTDgqOc0I
+         C2ZpHbUkqGEylQqTF1E5O7gFOQ5Gadc0OAR9bzNWsRKpYqONJrG3gwnFBSXCa+ODYftY
+         OSwPobQJIzjv7F+PQHFaZeo6WFkLl6TB2nEpjVKttEi9bXf2Sz2qsL3zWPCcuywBdebO
+         aKHg==
+X-Gm-Message-State: APjAAAXl4vWXR8WarLq9UaC5IOFcWNy1rAgZlPDeguNpn7A3lIPD8K0v
+        kV/SwSUmqpVG9Y3scGGFUys=
+X-Google-Smtp-Source: APXvYqyeeWmVX0kg2+bRmqQrJjqbejE5dDoGnKIs4kkB8kuPCsHm+s3GgBBlCTp7tZUOrfb0T+9NTg==
+X-Received: by 2002:aa7:8092:: with SMTP id v18mr40431342pff.35.1556206938879;
+        Thu, 25 Apr 2019 08:42:18 -0700 (PDT)
+Received: from mail.google.com ([104.238.181.70])
+        by smtp.gmail.com with ESMTPSA id z22sm23504071pgv.23.2019.04.25.08.42.12
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 25 Apr 2019 08:42:17 -0700 (PDT)
+Date:   Thu, 25 Apr 2019 23:42:08 +0800
 From:   Changbin Du <changbin.du@gmail.com>
-To:     rjw@rjwysocki.net, Jonathan Corbet <corbet@lwn.net>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, fenghua.yu@intel.com,
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Changbin Du <changbin.du@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net,
+        linux-pci@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        x86@kernel.org, fenghua.yu@intel.com,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
-        linux-gpio@vger.kernel.org, mchehab+samsung@kernel.org,
-        Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v6 01/24] Documentation: add Linux ACPI to Sphinx TOC tree
-Date:   Thu, 25 Apr 2019 23:30:54 +0800
-Message-Id: <20190425153117.16057-2-changbin.du@gmail.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190425153117.16057-1-changbin.du@gmail.com>
-References: <20190425153117.16057-1-changbin.du@gmail.com>
+        linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v4 25/63] Documentation: add Linux PCI to Sphinx TOC tree
+Message-ID: <20190425154207.admsorr4ztmqxqv2@mail.google.com>
+References: <20190423162932.21428-1-changbin.du@gmail.com>
+ <20190423162932.21428-26-changbin.du@gmail.com>
+ <20190424120336.4f66cbb8@coco.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+In-Reply-To: <20190424120336.4f66cbb8@coco.lan>
+User-Agent: NeoMutt/20180716
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190425153054.uZzFhcVW7I5BnF9wcbXt7Rm7eudvwrAiGpSD97eJ4c4@z>
+Message-ID: <20190425154208.88h5QhDsP7gZOEjLM9d5ofYwrulS1mbABth-_UYMOJU@z>
 
-Add below index.rst files for ACPI subsystem. More docs will be added later.
-  o admin-guide/acpi/index.rst
-  o driver-api/acpi/index.rst
-  o firmware-guide/index.rst
+On Wed, Apr 24, 2019 at 12:03:43PM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 24 Apr 2019 00:28:54 +0800
+> Changbin Du <changbin.du@gmail.com> escreveu:
+> 
+> > Add a index.rst for PCI subsystem. More docs will be added later.
+> > 
+> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
+> > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> > ---
+> >  Documentation/PCI/index.rst | 9 +++++++++
+> 
+> On a past discussion at docs ML, we've agreed to use lowercase for new
+> stuff. My suggestion here would be to use lowercase for "pci".
+> 
+> Also, there's already a pci directory under driver-api, added on this
+> commit:
+> 
+> 	commit fcc78f9c22474d60c65d522e50ea07006ec1b9fc
+> 	Author: Logan Gunthorpe <logang@deltatee.com>
+> 	Date:   Thu Oct 4 15:27:39 2018 -0600
+> 
+> 	    docs-rst: Add a new directory for PCI documentation
+> 
+> I would just add a new section at Documentation/driver-api/pci/index.rst
+> with something like:
+> 
+> 	Legacy PCI documentation
+> 	========================
+> 
+> 	.. note::
+> 
+> 	   The files here were written a long time ago and need some serious
+> 	   work. Use their contents with caution.
+> 
+> 	.. toctree::
+> 	    :maxdepth: 1
+> 
+> 	    <files converted from Documentation/PCI>
+> 
+> And add those documents from Documentation/PCI into it.
+>
+Bjorn, Jonathan,
+Do you agree with this? By this all Documentation/PCI/* will be moved to
+Documentation/driver-api/pci.
 
-Signed-off-by: Changbin Du <changbin.du@gmail.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- Documentation/admin-guide/acpi/index.rst    | 10 ++++++++++
- Documentation/admin-guide/index.rst         |  1 +
- Documentation/driver-api/acpi/index.rst     |  7 +++++++
- Documentation/driver-api/index.rst          |  1 +
- Documentation/firmware-guide/acpi/index.rst |  9 +++++++++
- Documentation/firmware-guide/index.rst      | 13 +++++++++++++
- Documentation/index.rst                     | 10 ++++++++++
- 7 files changed, 51 insertions(+)
- create mode 100644 Documentation/admin-guide/acpi/index.rst
- create mode 100644 Documentation/driver-api/acpi/index.rst
- create mode 100644 Documentation/firmware-guide/acpi/index.rst
- create mode 100644 Documentation/firmware-guide/index.rst
+> 
+> Thanks,
+> Mauro
 
-diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-new file mode 100644
-index 000000000000..3e041206089d
---- /dev/null
-+++ b/Documentation/admin-guide/acpi/index.rst
-@@ -0,0 +1,10 @@
-+============
-+ACPI Support
-+============
-+
-+Here we document in detail how to interact with various mechanisms in
-+the Linux ACPI support.
-+
-+.. toctree::
-+   :maxdepth: 1
-+
-diff --git a/Documentation/admin-guide/index.rst b/Documentation/admin-guide/index.rst
-index 0a491676685e..5b8286fdd91b 100644
---- a/Documentation/admin-guide/index.rst
-+++ b/Documentation/admin-guide/index.rst
-@@ -77,6 +77,7 @@ configure specific aspects of kernel behavior to your liking.
-    LSM/index
-    mm/index
-    perf-security
-+   acpi/index
- 
- .. only::  subproject and html
- 
-diff --git a/Documentation/driver-api/acpi/index.rst b/Documentation/driver-api/acpi/index.rst
-new file mode 100644
-index 000000000000..898b0c60671a
---- /dev/null
-+++ b/Documentation/driver-api/acpi/index.rst
-@@ -0,0 +1,7 @@
-+============
-+ACPI Support
-+============
-+
-+.. toctree::
-+   :maxdepth: 2
-+
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index c0b600ed9961..aa87075c7846 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -56,6 +56,7 @@ available subsections can be seen below.
-    slimbus
-    soundwire/index
-    fpga/index
-+   acpi/index
- 
- .. only::  subproject and html
- 
-diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-new file mode 100644
-index 000000000000..0ec7d072ba22
---- /dev/null
-+++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -0,0 +1,9 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+============
-+ACPI Support
-+============
-+
-+.. toctree::
-+   :maxdepth: 1
-+
-diff --git a/Documentation/firmware-guide/index.rst b/Documentation/firmware-guide/index.rst
-new file mode 100644
-index 000000000000..5355784ca0a2
---- /dev/null
-+++ b/Documentation/firmware-guide/index.rst
-@@ -0,0 +1,13 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+===============================
-+The Linux kernel firmware guide
-+===============================
-+
-+This section describes the ACPI subsystem in Linux from firmware perspective.
-+
-+.. toctree::
-+   :maxdepth: 1
-+
-+   acpi/index
-+
-diff --git a/Documentation/index.rst b/Documentation/index.rst
-index 80a421cb935e..fdfa85c56a50 100644
---- a/Documentation/index.rst
-+++ b/Documentation/index.rst
-@@ -35,6 +35,16 @@ trying to get it to work optimally on a given system.
- 
-    admin-guide/index
- 
-+Firmware-related documentation
-+------------------------------
-+The following holds information on the kernel's expectations regarding the
-+platform firmwares.
-+
-+.. toctree::
-+   :maxdepth: 2
-+
-+   firmware-guide/index
-+
- Application-developer documentation
- -----------------------------------
- 
 -- 
-2.20.1
-
+Cheers,
+Changbin Du
