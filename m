@@ -1,123 +1,227 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH 4/4] perf: arm_spe: Enable ACPI/Platform automatic module
- loading
-Date: Thu, 25 Apr 2019 19:58:28 -0500
-Message-ID: <1345818a-3a4a-e919-2168-e2950cee07b6@arm.com>
-References: <20190326223938.5365-1-jeremy.linton@arm.com>
- <20190326223938.5365-5-jeremy.linton@arm.com>
- <20190404170423.GC28932@fuggles.cambridge.arm.com>
- <065cc8ae-f2c0-e493-b0a6-5c7340db37f5@arm.com>
- <20190416135055.GA3313@fuggles.cambridge.arm.com>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v7 0/6] virtio pmem driver
+Date: Fri, 26 Apr 2019 10:30:33 +0530
+Message-ID: <20190426050039.17460-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190416135055.GA3313@fuggles.cambridge.arm.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, mark.rutland@arm.com, sudeep.holla@arm.com, james.morse@arm.com, lorenzo.pieralisi@arm.com, linuxarm@huawei.com
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com, willy@infradead.org, rjw@rjwysocki.net, hch@infradead.org, lenb@kernel.org, jack@suse.cz, tytso@mit.edu, adilger.kernel@dilger.ca, darrick.wong@oracle.com, lcapitulino@redhat.com, kwolf@redhat.com, imammedo@redhat.com, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, aarcange@redhat.com, david@redhat.com, david@fromorbit.com, cohuck@redhat.com, xiaoguangrong.eric@gmail.com, pbonzini@redhat.com, kilobyte@angband.pl, yuval.shaia@oracle.com, pagupta@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+ This patch series has implementation for "virtio pmem". 
+ "virtio pmem" is fake persistent memory(nvdimm) in guest 
+ which allows to bypass the guest page cache. This also
+ implements a VIRTIO based asynchronous flush mechanism.  
+ 
+ Sharing guest kernel driver in this patchset with the 
+ changes suggested in v4. Tested with Qemu side device 
+ emulation [6] for virtio-pmem. Documented the impact of
+ possible page cache side channel attacks with suggested
+ countermeasures.
 
-On 4/16/19 8:50 AM, Will Deacon wrote:
-> On Thu, Apr 04, 2019 at 12:24:38PM -0500, Jeremy Linton wrote:
->> On 4/4/19 12:04 PM, Will Deacon wrote:
->>> On Tue, Mar 26, 2019 at 05:39:38PM -0500, Jeremy Linton wrote:
->>>> Lets add the MODULE_TABLE and platform id_table entries so that
->>>> the SPE driver can attach to the ACPI platform device created by
->>>> the core pmu code.
->>>>
->>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>>> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
->>>> ---
->>>>    drivers/perf/arm_spe_pmu.c | 11 +++++++++--
->>>>    1 file changed, 9 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
->>>> index 7cb766dafe85..ffa2c76c08bb 100644
->>>> --- a/drivers/perf/arm_spe_pmu.c
->>>> +++ b/drivers/perf/arm_spe_pmu.c
->>>> @@ -1176,7 +1176,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
->>>>    };
->>>>    MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
->>>> -static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
->>>> +static const struct platform_device_id arm_spe_match[] = {
->>>> +	{ "arm,spe-v1", 0},
->>>
->>> It would be nice if we could avoid duplicating this string from the ACPI
->>> parsing code.
->>
->> Ok sure, I just need to find a good common place for it.
+ Incorporated all the review suggestions. 
+ 
+ Details of project idea for 'virtio pmem' flushing interface 
+ is shared [3] & [4].
 
-There doesn't appear to be a good common place for this, so maybe 
-arm_pmu.h, which can then be included in the spe driver is the right thing.
+ Implementation is divided into two parts:
+ New virtio pmem guest driver and qemu code changes for new 
+ virtio pmem paravirtualized device.
 
+1. Guest virtio-pmem kernel driver
+---------------------------------
+   - Reads persistent memory range from paravirt device and 
+     registers with 'nvdimm_bus'.  
+   - 'nvdimm/pmem' driver uses this information to allocate 
+     persistent memory region and setup filesystem operations 
+     to the allocated memory. 
+   - virtio pmem driver implements asynchronous flushing 
+     interface to flush from guest to host.
 
->>
->>>
->>>> +	{ }
->>>> +};
->>>> +MODULE_DEVICE_TABLE(platform, arm_spe_match);
->>>> +
->>>> +static int arm_spe_pmu_device_probe(struct platform_device *pdev)
->>>>    {
->>>>    	int ret;
->>>>    	struct arm_spe_pmu *spe_pmu;
->>>> @@ -1236,11 +1242,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
->>>>    }
->>>>    static struct platform_driver arm_spe_pmu_driver = {
->>>> +	.id_table = arm_spe_match,
->>>>    	.driver	= {
->>>>    		.name		= DRVNAME,
->>>>    		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
->>>
->>> Hmm, so some other drivers don't hook .id_table like you do, but instead
->>> hook .acpi_match_table in the driver structure. Is that not better?
->>
->> This isn't actually an ACPI device, (aka not defined in the namespace), so
->> its missing much of the ACPI functionality. I think that also means its
->> needs to be declared this way.
-> 
-> Looking at platform_match(), I'd really like to avoid having both an
-> .id_table and an .of_match_table field.
+2. Qemu virtio-pmem device
+---------------------------------
+   - Creates virtio pmem device and exposes a memory range to 
+     KVM guest. 
+   - At host side this is file backed memory which acts as 
+     persistent memory. 
+   - Qemu side flush uses aio thread pool API's and virtio 
+     for asynchronous guest multi request handling. 
 
+   David Hildenbrand CCed also posted a modified version[7] of 
+   qemu virtio-pmem code based on updated Qemu memory device API. 
 
-> 
-> acpi_of_match_device() will actually use the .of_match_table, but it relies
-> on ACPI_COMPANION returning a valid acpi_device. If we don't have one of
+ Virtio-pmem security implications and countermeasures:
+ -----------------------------------------------------
 
-Right, via the fwnode it can cause an acpi DSDT defined device with a 
-_DSD "compatible" property to match an entry in the of_match_table 
-compatible string. I don't think this is us...
+ In previous posting of kernel driver, there was discussion [9]
+ on possible implications of page cache side channel attacks with 
+ virtio pmem. After thorough analysis of details of known side 
+ channel attacks, below are the suggestions:
 
-> those, perhaps we can use the .id_table exclusively and drop the
-> .of_match_table instead?
+ - Depends entirely on how host backing image file is mapped 
+   into guest address space. 
 
-This definitely made me do my homework, the following is AFAIK:
+ - virtio-pmem device emulation, by default shared mapping is used
+   to map host backing file. It is recommended to use separate
+   backing file at host side for every guest. This will prevent
+   any possibility of executing common code from multiple guests
+   and any chance of inferring guest local data based based on 
+   execution time.
 
-Its possible to match on just a .id_table, but this requires matching 
-the OF device name against the id_table name rather than against the OF 
-compatible string (*). This doesn't seem like a good idea, despite 
-platform_device_id entries being significantly smaller than the 
-of_device_id ones. Plus, I think we end up with two duplicate tables 
-because we still need the MODULE_TABLE(of,xxx) to assure that userspace 
-can associate the modalias with the module.
+ - If backing file is required to be shared among multiple guests 
+   it is recommended to don't support host page cache eviction 
+   commands from the guest driver. This will avoid any possibility
+   of inferring guest local data or host data from another guest. 
 
-OTOH, it seems possible to match on module name directly 
-('arm_spe_pmu'), but this limits us to only a single device type for all 
-ACPI device variations unless we put platform checks in the module 
-itself (ick!). I suspect in the future if a spe.v2 were to come out this 
-would be a problem unless a separate module were created. Then there is 
-the fact this still needs a platform_device_id table, as the modalias 
-will read "platform:arm_spe_pmu". Which will cause people to question 
-why its not just assigned and matched against the .id_table.
+ - Proposed device specification [8] for virtio-pmem device with 
+   details of possible security implications and suggested 
+   countermeasures for device emulation.
 
+ Virtio-pmem errors handling:
+ ----------------------------------------
+  Checked behaviour of virtio-pmem for below types of errors
+  Need suggestions on expected behaviour for handling these errors?
 
-*(interestingly trivia: There doesn't appear to be a single arm64 module 
-which matches on a MODULE_TABLE OF name. They only match type or 
-compatible. Out of the 3534 modules on my machine only three do any OF 
-table type matching, ipmi_si and two drivers for freescale networking 
-fsl_pq_mdio and gianfar_driver. In those cases, i'm not even sure its 
-actually necessary.)
+  - Hardware Errors: Uncorrectable recoverable Errors: 
+  a] virtio-pmem: 
+    - As per current logic if error page belongs to Qemu process, 
+      host MCE handler isolates(hwpoison) that page and send SIGBUS. 
+      Qemu SIGBUS handler injects exception to KVM guest. 
+    - KVM guest then isolates the page and send SIGBUS to guest 
+      userspace process which has mapped the page. 
+  
+  b] Existing implementation for ACPI pmem driver: 
+    - Handles such errors with MCE notifier and creates a list 
+      of bad blocks. Read/direct access DAX operation return EIO 
+      if accessed memory page fall in bad block list.
+    - It also starts backgound scrubbing.  
+    - Similar functionality can be reused in virtio-pmem with MCE 
+      notifier but without scrubbing(no ACPI/ARS)? Need inputs to 
+      confirm if this behaviour is ok or needs any change?
+
+Changes from PATCH v6: [1]
+ - Corrected comment format in patch 5 & patch 6. [Dave]
+ - Changed variable declaration indentation in patch 6 [Darrick]
+ - Add Reviewed-by tag by 'Jan Kara' in patch 4 & patch 5
+
+Changes from PATCH v5: [2]
+  Changes suggested in by - [Cornelia, Yuval]
+- Remove assignment chaining in virtio driver
+- Better error message and remove not required free
+- Check nd_region before use
+
+  Changes suggested by - [Jan Kara]
+- dax_synchronous() for !CONFIG_DAX
+- Correct 'daxdev_mapping_supported' comment and non-dax implementation
+
+  Changes suggested by - [Dan Williams]
+- Pass meaningful flag 'DAXDEV_F_SYNC' to alloc_dax
+- Gate nvdimm_flush instead of additional async parameter
+- Move block chaining logic to flush callback than common nvdimm_flush
+- Use NULL flush callback for generic flush for better readability [Dan, Jan]
+
+- Use virtio device id 27 from 25(already used) - [MST]
+
+Changes from PATCH v4:
+- Factor out MAP_SYNC supported functionality to a common helper
+				[Dave, Darrick, Jan]
+- Comment, indentation and virtqueue_kick failure handle - Yuval Shaia
+
+Changes from PATCH v3: 
+- Use generic dax_synchronous() helper to check for DAXDEV_SYNC 
+  flag - [Dan, Darrick, Jan]
+- Add 'is_nvdimm_async' function
+- Document page cache side channel attacks implications & 
+  countermeasures - [Dave Chinner, Michael]
+
+Changes from PATCH v2: 
+- Disable MAP_SYNC for ext4 & XFS filesystems - [Dan] 
+- Use name 'virtio pmem' in place of 'fake dax' 
+
+Changes from PATCH v1: 
+- 0-day build test for build dependency on libnvdimm 
+
+ Changes suggested by - [Dan Williams]
+- Split the driver into two parts virtio & pmem  
+- Move queuing of async block request to block layer
+- Add "sync" parameter in nvdimm_flush function
+- Use indirect call for nvdimm_flush
+- Don’t move declarations to common global header e.g nd.h
+- nvdimm_flush() return 0 or -EIO if it fails
+- Teach nsio_rw_bytes() that the flush can fail
+- Rename nvdimm_flush() to generic_nvdimm_flush()
+- Use 'nd_region->provider_data' for long dereferencing
+- Remove virtio_pmem_freeze/restore functions
+- Remove BSD license text with SPDX license text
+
+- Add might_sleep() in virtio_pmem_flush - [Luiz]
+- Make spin_lock_irqsave() narrow
+
+Changes from RFC v3
+- Rebase to latest upstream - Luiz
+- Call ndregion->flush in place of nvdimm_flush- Luiz
+- kmalloc return check - Luiz
+- virtqueue full handling - Stefan
+- Don't map entire virtio_pmem_req to device - Stefan
+- request leak, correct sizeof req - Stefan
+- Move declaration to virtio_pmem.c
+
+Changes from RFC v2:
+- Add flush function in the nd_region in place of switching
+  on a flag - Dan & Stefan
+- Add flush completion function with proper locking and wait
+  for host side flush completion - Stefan & Dan
+- Keep userspace API in uapi header file - Stefan, MST
+- Use LE fields & New device id - MST
+- Indentation & spacing suggestions - MST & Eric
+- Remove extra header files & add licensing - Stefan
+
+Changes from RFC v1:
+- Reuse existing 'pmem' code for registering persistent 
+  memory and other operations instead of creating an entirely 
+  new block driver.
+- Use VIRTIO driver to register memory information with 
+  nvdimm_bus and create region_type accordingly. 
+- Call VIRTIO flush from existing pmem driver.
+
+Pankaj Gupta (6):
+   libnvdimm: nd_region flush callback support
+   virtio-pmem: Add virtio-pmem guest driver
+   libnvdimm: add nd_region buffered dax_dev flag
+   dax: check synchronous mapping is supported
+   ext4: disable map_sync for virtio pmem
+   xfs: disable map_sync for virtio pmem
+
+[1] https://lkml.org/lkml/2019/4/23/1092
+[2] https://lkml.org/lkml/2019/4/10/3
+[3] https://www.spinics.net/lists/kvm/msg149761.html
+[4] https://www.spinics.net/lists/kvm/msg153095.html  
+[5] https://lkml.org/lkml/2018/8/31/413
+[6] https://marc.info/?l=linux-kernel&m=153572228719237&w=2 
+[7] https://marc.info/?l=qemu-devel&m=153555721901824&w=2
+[8] https://lists.oasis-open.org/archives/virtio-dev/201903/msg00083.html
+[9] https://lkml.org/lkml/2019/1/9/1191
+
+ drivers/acpi/nfit/core.c         |    4 -
+ drivers/dax/bus.c                |    2 
+ drivers/dax/super.c              |   13 +++-
+ drivers/md/dm.c                  |    3 
+ drivers/nvdimm/claim.c           |    6 +
+ drivers/nvdimm/nd.h              |    1 
+ drivers/nvdimm/pmem.c            |   16 +++--
+ drivers/nvdimm/region_devs.c     |   33 ++++++++++
+ drivers/nvdimm/virtio_pmem.c     |  114 +++++++++++++++++++++++++++++++++++++
+ drivers/virtio/Kconfig           |   10 +++
+ drivers/virtio/Makefile          |    1 
+ drivers/virtio/pmem.c            |  118 +++++++++++++++++++++++++++++++++++++++
+ fs/ext4/file.c                   |   10 +--
+ fs/xfs/xfs_file.c                |    9 +-
+ include/linux/dax.h              |   25 +++++++-
+ include/linux/libnvdimm.h        |    9 ++
+ include/linux/virtio_pmem.h      |   60 +++++++++++++++++++
+ include/uapi/linux/virtio_ids.h  |    1 
+ include/uapi/linux/virtio_pmem.h |   10 +++
+ 19 files changed, 420 insertions(+), 25 deletions(-)
