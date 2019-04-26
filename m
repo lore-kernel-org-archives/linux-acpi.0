@@ -1,69 +1,65 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
-Date: Fri, 26 Apr 2019 21:26:50 +0300
-Message-ID: <CAHp75Vd6CtNRFZ1-7OSe5xzqNXNYQQP4-vck=3rMeq2QVZ7pCw@mail.gmail.com>
-References: <1200464b-f969-ebc2-ae82-1f8ca98aaca1@siemens.com>
- <20190424103306.GC2654@lahna.fi.intel.com> <9377620b-d74a-04d9-a51e-8590400b1c0f@siemens.com>
- <20190426130615.GT9224@smile.fi.intel.com> <bd5453e1-0279-02ab-3304-edc6ebf509dc@siemens.com>
- <bc856e19-470d-7655-5680-a031831ab513@metux.net> <2f3da791-4a10-c2c4-dc5a-22ad16ed7be6@siemens.com>
- <CAHp75VfonL_f1GjRFFhp59R8U+bGzT9pcC7p8XDJ32-_cxT29g@mail.gmail.com>
- <20190426173329.GA31161@Mani-XPS-13-9360> <CAHp75VdcS_LaKNhaKsFaWa9ReQw4KRDRpc-81kv0Hb9wbZFCTg@mail.gmail.com>
- <20190426175237.GA31751@Mani-XPS-13-9360>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v2 0/5] arm64: SPE ACPI enablement
+Date: Fri, 26 Apr 2019 17:03:04 -0500
+Message-ID: <20190426220309.55654-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190426175237.GA31751@Mani-XPS-13-9360>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>, "Enrico Weigelt, metux IT consult" <lkml@metux.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, will.deacon@arm.com, sudeep.holla@arm.com, rjw@rjwysocki.net, linuxarm@huawei.com, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 26, 2019 at 8:52 PM Manivannan Sadhasivam
-<manivannan.sadhasivam@linaro.org> wrote:
-> On Fri, Apr 26, 2019 at 08:44:36PM +0300, Andy Shevchenko wrote:
-> > On Fri, Apr 26, 2019 at 8:33 PM Manivannan Sadhasivam
-> > <manivannan.sadhasivam@linaro.org> wrote:
-> > > On Fri, Apr 26, 2019 at 08:20:19PM +0300, Andy Shevchenko wrote:
-> > > > On Fri, Apr 26, 2019 at 7:05 PM Jan Kiszka <jan.kiszka@siemens.com> wrote:
-> > > > > On 26.04.19 16:42, Enrico Weigelt, metux IT consult wrote:
-> > > > > > On 26.04.19 15:36, Jan Kiszka wrote:
-> >
-> > > > The problem here is opaque number. This has to be chip + *relative* pin number/
-> > > > See this:
-> > > > https://stackoverflow.com/questions/55532410/how-do-linux-gpio-numbers-get-their-values/55579640#55579640
-> > > >
-> > >
-> > > But for platform like 96Boards we don't need controller specific lookup, these
-> > > are all handled by the platform code [1] so that the users can use the standard
-> > > pinout number to access GPIOs.
-> >
-> > This is a complete mistake.
-> >
-> > There is *no* global GPIO numbers anymore in Linux. (I don't count
-> > very old legacy platforms)
-> > Read above, it applies to DT or whatever resource provider.
-> >
->
-> I think you misunderstood what I said.
+This patch series enables the Arm Statistical Profiling
+Extension (SPE) on ACPI platforms.
 
-I think you misunderstood what I said. :)
+This is possible because ACPI 6.3 uses a previously
+reserved field in the MADT to store the SPE interrupt
+number, similarly to how the normal PMU is described.
+If a consistent valid interrupt exists across all the
+cores in the system, a platform device is registered.
+That then triggers the SPE module, which runs as normal.
 
->  I referred the standard 96Boards
-> pinout and in the MRAA platform code, individual boards just map their
-> GPIO chip and line number based on that. I didn't mean the deprecated
-> global linux numbering.
+This version also adds the ability to parse the PPTT for
+IDENTICAL cores. We then use this to sanity check the
+single SPE device we create. This creates a bit of a
+problem with respect to the specification though. The
+specification says that its legal for multiple tree's
+to exist in the PPTT. We handle this fine, but what
+happens in the case of multiple tree's is that the lack
+of a common node with IDENTICAL set forces us to assume
+that there are multiple non IDENTICAL cores in the
+machine.
 
-It can be easily broken by shuffling DT, kernel cnfiguration and
-adding some GPIO expanders. Note, no C-code mangling is involved.
+v1->v2: Wrap the code which creates the SPE device in
+    a new CONFIG_ARM_SPE_ACPI ifdef.
+	Move arm,spe-v1 device name into common header file
+	Some comment/case sensitivity/function name changes.
 
->
-> https://github.com/intel-iot-devkit/mraa/blob/master/src/arm/96boards.c#L109
->
-> And of couse as Jan mentioned, the chip number will change when some
-> other external GPIO controller got probed before but so far we haven't
-> got to it!
+Jeremy Linton (5):
+  ACPI/PPTT: Trivial, Modify the case of CPU
+  ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
+  ACPI/PPTT: Modify node flag detection to find last IDENTICAL
+  arm_pmu: acpi: spe: Add initial MADT/SPE probing
+  perf: arm_spe: Enable ACPI/Platform automatic module loading
 
+ arch/arm64/include/asm/acpi.h |   3 +
+ drivers/acpi/pptt.c           | 130 +++++++++++++++++++++++++---------
+ drivers/perf/Kconfig          |   5 ++
+ drivers/perf/arm_pmu_acpi.c   |  76 ++++++++++++++++++++
+ drivers/perf/arm_spe_pmu.c    |  12 +++-
+ include/linux/acpi.h          |   5 ++
+ include/linux/perf/arm_pmu.h  |   2 +
+ 7 files changed, 196 insertions(+), 37 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.20.1
