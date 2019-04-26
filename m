@@ -1,7 +1,7 @@
 From: Jan Kiszka <jan.kiszka@siemens.com>
 Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
-Date: Fri, 26 Apr 2019 17:44:10 +0200
-Message-ID: <63b179c9-242d-ae90-9c33-49ed256bde28@siemens.com>
+Date: Fri, 26 Apr 2019 18:03:47 +0200
+Message-ID: <2f3da791-4a10-c2c4-dc5a-22ad16ed7be6@siemens.com>
 References: <20190424081802.GV2654@lahna.fi.intel.com>
  <5a28f22c-22f7-760a-d076-68ff19800d44@siemens.com>
  <20190424084259.GW2654@lahna.fi.intel.com>
@@ -13,58 +13,58 @@ References: <20190424081802.GV2654@lahna.fi.intel.com>
  <20190424103306.GC2654@lahna.fi.intel.com>
  <9377620b-d74a-04d9-a51e-8590400b1c0f@siemens.com>
  <20190426130615.GT9224@smile.fi.intel.com>
- <CACRpkdY=m1QJVqvERiAY+7taUgjPXn=9U2Eajx7d7NPo-iNhiA@mail.gmail.com>
+ <bd5453e1-0279-02ab-3304-edc6ebf509dc@siemens.com>
+ <bc856e19-470d-7655-5680-a031831ab513@metux.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdY=m1QJVqvERiAY+7taUgjPXn=9U2Eajx7d7NPo-iNhiA@mail.gmail.com>
+In-Reply-To: <bc856e19-470d-7655-5680-a031831ab513@metux.net>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: "Enrico Weigelt, metux IT consult" <lkml@metux.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 26.04.19 16:41, Linus Walleij wrote:
-> On Fri, Apr 26, 2019 at 3:06 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
->> On Wed, Apr 24, 2019 at 12:39:35PM +0200, Jan Kiszka wrote:
->>> On 24.04.19 12:33, Mika Westerberg wrote:
->>>> On Wed, Apr 24, 2019 at 12:19:02PM +0200, Jan Kiszka wrote:
->>
->>>>> And even if that were possible, we would be back to the square of existing
->>>>> devices without those definitions. If this were a recent chipset, I would
->>>>> say, "go, fix future firmware versions". But this one is legacy.
->>>>
->>>> Is it fixing some real issue with these legacy platforms? I mean without
->>>> the patch some GPE event is not handled properly? It was not clear to me
->>>> from the commit message.
->>>>
->>>
->>> Without that patch, you are forced to poll for event changes in your
->>> application, timer-driven. There are application that cannot process these
->>> GPIOs because they lack such logic (mraa with node-red-node-intel-gpio is a
->>> public example).
->>
->> Just a side note: MRAA is a hack itself. It abuses almost all interfaces Linux
->> kernel provides.
+On 26.04.19 16:42, Enrico Weigelt, metux IT consult wrote:
+> On 26.04.19 15:36, Jan Kiszka wrote:
 > 
-> I think it's pretty clean for GPIOs these days. My colleague Manivannan
-> was part of cleaning it up a while back and since then it is doing
-> what userspace should be doing if userspace absolutely cannot
-> abstain from using GPIOs directly (i.e. uses the character device).
-> https://github.com/intel-iot-devkit/mraa/blob/master/src/gpio/gpio_chardev.c
+>> At the same time, there are no real alternatives - to my> knowledge - for the value it brings (various bindings) to simply
+> switch> the engine.
+> Which value exactly does that collection of crude wrappers and broken
+> attempts to buypass the kernel (driving gpios via /dev/mem *facepalm*)
+> provide ?
+
+Leaving that blunt hack aside:
+
+import mraa
+
+pin = mraa.Gpio(13)
+pin.dir(mraa.DIR_OUT)
+pin.write(1)
+
+And the same goes for nodejs, java and c++.
+
+Moreover, this allows you to abstract away where "Pin 13" actually came from on 
+that board if the kernel changes (BSP -> upstream...) or the extension board or 
+... We will exploit that when moving to a completely different base hardware 
+with the next revision or our IOT2000.
+
 > 
-> I don't know about other resources than GPIOs though.
+> mraa belongs to the category of software, I would never put onto any
+> production system. (yes, I already had a client who asked me to repair
+> his mraa-based software. finally, I've replaced mraa w/ a few LoC ...)
 
-That's valuable progress!
+You also have to keep the class of "cool, I've just created my first Node.RED 
+node!" IoT newbies in mind. These higher abstraction help to keep them away from 
+the wrong lower APIs - or enable them to do something at all ("Cool, I've just 
+connected my first two nodes!"). By far not all of them have consultants at hand.
 
-OTOH, there still seem to be the broken pattern to address pins via hard-coded 
-GPIO numbers. This broke our neck, e.g., when trying to replace the hacky BSP 
-kernel with upstream. I started to create better infrastructure but never fished 
-that.
+And while we only ship our IOT2000 image with mraa and all the fun as reference 
+image, it's way more for quite a few users. Even if you do not want to look 
+behind the curtains of certain software components (that we primarily inherited 
+and then started to clean up), they are working, or we would have heard.
 
-Thanks,
 Jan
 
 -- 
