@@ -2,71 +2,43 @@ Return-Path: <SRS0=A6Sl=S4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EBB3C43219
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 15:32:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC28CC43219
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 15:44:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D53C02077B
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 15:32:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Loe0zQsX"
+	by mail.kernel.org (Postfix) with ESMTP id C10A3208CB
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 15:44:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726462AbfDZPcA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Apr 2019 11:32:00 -0400
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:33429 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726399AbfDZPb7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Apr 2019 11:31:59 -0400
-Received: by mail-pf1-f194.google.com with SMTP id h5so1920866pfo.0
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Apr 2019 08:31:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=YdenmkYf08ijkzIciU/t9HCcpllEEpM9kySg53BytIE=;
-        b=Loe0zQsXKQxnou5F3tAX2ubrqPsmELvblvGNH8HLznjRolmJyaehH7kaKneBjvpAjp
-         5Sxqz0lvt7kAtimfJgE0yA58yKU1WWrkJ7GH2+vcYtxyfrEKXvqhnfmb/2yr7TWY/9W+
-         1jPwR/B6DBQ+6GJX8HkSjAFCZEhkYuVejcJcSZ2IL5NGgj7DGklqowsTEt6XtJrxS5yb
-         v7J024dfb6RKhjl0ToZKztSE1jKmg4ZoEI3NBwJ72KG+olvtk8lb6VmJmjEbVzugqqxn
-         +UTx6k+QKTHCc53Z536JttWYavgtIQsWqf0y1QOk5Hp3X8/OGbt8y69uE964ZO3Hp+4i
-         VMhw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=YdenmkYf08ijkzIciU/t9HCcpllEEpM9kySg53BytIE=;
-        b=ELJ9FGXLp0Gb/obkRk7GAk7KBh6MHmYn5FKRWm4Yt3nGvm5sx4jER7EJP79gC1DMIR
-         1fOSBIpf1dbxtw3Oc/VHFuTWmrY6YvaHfLirNaAOYrFuQOohG4RjufA7Ir8cXn8cv8pE
-         hmILMG2MLrkkMpert7dUAAOspyvR8rsOTRJ//TWKceVFC8D0TOrLP68GU0tEw+Cmxouz
-         NFh4tHjBtpZtRhQz4ineAmjKAZ2MaP8es+6TDDvfu8Kwbq2srUwwdqoItu0BYy7JMMgl
-         vvVUgfR7dnvVd0XxXiUWM2yfJ39B/aiCVcCzcRvAYELoN8ufQTDbiV7027nz44XkcAOS
-         ZEzA==
-X-Gm-Message-State: APjAAAXXs9gKww3kJ8exdJggIkRoxOQRLTIHxylA/i6taTYT/1x87ui+
-        kefyb2G6GXFMSxVNg4g4gIBqbHmAEA==
-X-Google-Smtp-Source: APXvYqy3ZQHF3f8OLRDEBmiDk8x/FTYEKk9HIMSckYO5S3vJyyxFGvlMQAzFgf6mJqchsnjCtdUfLA==
-X-Received: by 2002:a63:4144:: with SMTP id o65mr44118909pga.241.1556292718872;
-        Fri, 26 Apr 2019 08:31:58 -0700 (PDT)
-Received: from Mani-XPS-13-9360 ([2405:204:72c4:4b94:e0ad:83b0:3987:aa05])
-        by smtp.gmail.com with ESMTPSA id e184sm24541623pfc.102.2019.04.26.08.31.52
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 26 Apr 2019 08:31:57 -0700 (PDT)
-Date:   Fri, 26 Apr 2019 21:01:50 +0530
-From:   Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-To:     "Enrico Weigelt, metux IT consult" <lkml@metux.net>
-Cc:     Jan Kiszka <jan.kiszka@siemens.com>,
+        id S1726271AbfDZPoY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Apr 2019 11:44:24 -0400
+Received: from gecko.sbs.de ([194.138.37.40]:39988 "EHLO gecko.sbs.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726255AbfDZPoY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Apr 2019 11:44:24 -0400
+Received: from mail1.sbs.de (mail1.sbs.de [192.129.41.35])
+        by gecko.sbs.de (8.15.2/8.15.2) with ESMTPS id x3QFiCJG019432
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 26 Apr 2019 17:44:12 +0200
+Received: from [167.87.22.130] ([167.87.22.130])
+        by mail1.sbs.de (8.15.2/8.15.2) with ESMTP id x3QFiBTm030321;
+        Fri, 26 Apr 2019 17:44:11 +0200
+Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
+To:     Linus Walleij <linus.walleij@linaro.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
+        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
-Message-ID: <20190426153150.GA28444@Mani-XPS-13-9360>
-References: <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
+References: <20190424081802.GV2654@lahna.fi.intel.com>
+ <5a28f22c-22f7-760a-d076-68ff19800d44@siemens.com>
+ <20190424084259.GW2654@lahna.fi.intel.com>
+ <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
  <20190424094506.GA2654@lahna.fi.intel.com>
  <292e6eff-82cc-6e4d-925b-77a60399e2e0@siemens.com>
  <20190424100130.GB2654@lahna.fi.intel.com>
@@ -74,45 +46,65 @@ References: <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
  <20190424103306.GC2654@lahna.fi.intel.com>
  <9377620b-d74a-04d9-a51e-8590400b1c0f@siemens.com>
  <20190426130615.GT9224@smile.fi.intel.com>
- <bd5453e1-0279-02ab-3304-edc6ebf509dc@siemens.com>
- <bc856e19-470d-7655-5680-a031831ab513@metux.net>
+ <CACRpkdY=m1QJVqvERiAY+7taUgjPXn=9U2Eajx7d7NPo-iNhiA@mail.gmail.com>
+From:   Jan Kiszka <jan.kiszka@siemens.com>
+Message-ID: <63b179c9-242d-ae90-9c33-49ed256bde28@siemens.com>
+Date:   Fri, 26 Apr 2019 17:44:10 +0200
+User-Agent: Mozilla/5.0 (X11; U; Linux i686 (x86_64); de; rv:1.8.1.12)
+ Gecko/20080226 SUSE/2.0.0.12-1.1 Thunderbird/2.0.0.12 Mnenhy/0.7.5.666
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Disposition: inline
-In-Reply-To: <bc856e19-470d-7655-5680-a031831ab513@metux.net>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+In-Reply-To: <CACRpkdY=m1QJVqvERiAY+7taUgjPXn=9U2Eajx7d7NPo-iNhiA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format="flowed"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190426153150.tqPElB4ySnKzdI784Vz69uEInJsfLvvQN1fTk8jhQDM@z>
+Message-ID: <20190426154410.4Qz2uINN8TkP5D2zLWcErcxYm_JCp1-Nun09Wny_yTA@z>
 
-On Fri, Apr 26, 2019 at 04:42:35PM +0200, Enrico Weigelt, metux IT consult wrote:
-> On 26.04.19 15:36, Jan Kiszka wrote:
+On 26.04.19 16:41, Linus Walleij wrote:
+> On Fri, Apr 26, 2019 at 3:06 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+>> On Wed, Apr 24, 2019 at 12:39:35PM +0200, Jan Kiszka wrote:
+>>> On 24.04.19 12:33, Mika Westerberg wrote:
+>>>> On Wed, Apr 24, 2019 at 12:19:02PM +0200, Jan Kiszka wrote:
+>>
+>>>>> And even if that were possible, we would be back to the square of existing
+>>>>> devices without those definitions. If this were a recent chipset, I would
+>>>>> say, "go, fix future firmware versions". But this one is legacy.
+>>>>
+>>>> Is it fixing some real issue with these legacy platforms? I mean without
+>>>> the patch some GPE event is not handled properly? It was not clear to me
+>>>> from the commit message.
+>>>>
+>>>
+>>> Without that patch, you are forced to poll for event changes in your
+>>> application, timer-driven. There are application that cannot process these
+>>> GPIOs because they lack such logic (mraa with node-red-node-intel-gpio is a
+>>> public example).
+>>
+>> Just a side note: MRAA is a hack itself. It abuses almost all interfaces Linux
+>> kernel provides.
 > 
-> > At the same time, there are no real alternatives - to my> knowledge - for the value it brings (various bindings) to simply
-> switch> the engine.
-> Which value exactly does that collection of crude wrappers and broken
-> attempts to buypass the kernel (driving gpios via /dev/mem *facepalm*)
-> provide ?
+> I think it's pretty clean for GPIOs these days. My colleague Manivannan
+> was part of cleaning it up a while back and since then it is doing
+> what userspace should be doing if userspace absolutely cannot
+> abstain from using GPIOs directly (i.e. uses the character device).
+> https://github.com/intel-iot-devkit/mraa/blob/master/src/gpio/gpio_chardev.c
 > 
+> I don't know about other resources than GPIOs though.
 
-/dev/mem access to gpio's were done during the sysfs days (yes to bypass
-the kernel interface) but now mraa will use chardev if the kernel is
-chardev supported. Still, it just behaves the way you want (/dev/mem was
-also optional back then) and I couldn't find a better alternative for playing
-in the userspace with multiple languages.
+That's valuable progress!
 
--Mani
+OTOH, there still seem to be the broken pattern to address pins via hard-coded 
+GPIO numbers. This broke our neck, e.g., when trying to replace the hacky BSP 
+kernel with upstream. I started to create better infrastructure but never fished 
+that.
 
-> mraa belongs to the category of software, I would never put onto any
-> production system. (yes, I already had a client who asked me to repair
-> his mraa-based software. finally, I've replaced mraa w/ a few LoC ...)
-> 
-> 
-> --mtx
-> 
-> -- 
-> Enrico Weigelt, metux IT consult
-> Free software and Linux embedded engineering
-> info@metux.net -- +49-151-27565287
+Thanks,
+Jan
+
+-- 
+Siemens AG, Corporate Technology, CT RDA IOT SES-DE
+Corporate Competence Center Embedded Linux
