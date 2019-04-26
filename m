@@ -2,132 +2,90 @@ Return-Path: <SRS0=A6Sl=S4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CD5DC43218
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 18:27:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D08C43219
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 22:03:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F4332077B
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 18:27:03 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RUh/0jFC"
+	by mail.kernel.org (Postfix) with ESMTP id 7C04320869
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 22:03:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726167AbfDZS1D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Apr 2019 14:27:03 -0400
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:39595 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726005AbfDZS1C (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Apr 2019 14:27:02 -0400
-Received: by mail-pg1-f196.google.com with SMTP id l18so2001371pgj.6;
-        Fri, 26 Apr 2019 11:27:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JAjwuc39AddYOCTUpAuM9uE4idFBuger2xGgrN2miVE=;
-        b=RUh/0jFCU1wSaTlGkPOqd9JdA1mmukszuCuzVJkC3yKTKpX/FKI5j482VscslFYIYP
-         EkexQ7pIWzp1E83GR5ehEjLx3pPKqba7sJiRNU7AklOg9KENkctWngHvRLuVk2SY3c5W
-         BymIkkjqUyQufNvjUluUg/nHstHXvcY61rCE0tTqeZlbrzS5cHe3dddJXf51tyHXa2G2
-         q38FwTamVd/Y/CU6hyUnW8uB2dKiY/co6apEdfxu0M9iaEavdRYwtfxVyDz1LeeZ7LqI
-         vV1TPVQGXuTtN8qCxLLTCDpLXKPkZt1SERfM5MfV6OTCSKZuVEoDZV5nBc+2k4BYDemE
-         U4Kw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JAjwuc39AddYOCTUpAuM9uE4idFBuger2xGgrN2miVE=;
-        b=ublt4NhcG8DAoqomnehQCPDHIerJkKQ55MBvz+e106uaVe8AIyGIyZkfJrVdgaoihL
-         qjFBKqHimEkqFJRdX7dH7TyIsuyD4tpuzc/3uNrno7ooWJWbLnfnPTr55LdrXfd4Mllm
-         xIIb4gwkSOdkBxBckFiSifTQayY1QXgDSN1xx2piN42w1v+cpPqkfPUNvKwbe0wg4xwW
-         muNPMKpUqIE03zGnuvvpoXgY/wNvauANe8w8ogCVJXs1EULptIgBXAHWVmtHXgQoSo42
-         TEDhXWGdTiYHQpU1i7yGgb61eWUwWMKLH95Dey+GE9JmJEZonWTwE4RPC0RYdoRrZ2Rr
-         08aA==
-X-Gm-Message-State: APjAAAV8sEb6db1wmssjqdM0TeX7FxxUGYkPSUURx1sb2ZPhGXhF9fOx
-        DLahH0Vuc5LUFuhIVc+wmhXpDTetHyQlCtRk5nw=
-X-Google-Smtp-Source: APXvYqxF5luGqSNZCj/7rH2W4AWnNqj5mPAi3G2Cx8X+JCPt3U/Lrtzw+SgE/OCJbGZ1NID8nc/N93rx7rfPe1hAj8A=
-X-Received: by 2002:a62:2603:: with SMTP id m3mr9679339pfm.232.1556303221827;
- Fri, 26 Apr 2019 11:27:01 -0700 (PDT)
+        id S1727113AbfDZWDV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Apr 2019 18:03:21 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:52844 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727111AbfDZWDV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Apr 2019 18:03:21 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 11076A78;
+        Fri, 26 Apr 2019 15:03:21 -0700 (PDT)
+Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.29.246])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 7A0493F557;
+        Fri, 26 Apr 2019 15:03:20 -0700 (PDT)
+From:   Jeremy Linton <jeremy.linton@arm.com>
+To:     linux-arm-kernel@lists.infradead.org
+Cc:     linux-acpi@vger.kernel.org, catalin.marinas@arm.com,
+        will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
+        mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
+        sudeep.holla@arm.com, linuxarm@huawei.com, john.garry@huawei.com,
+        Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v2 0/5] arm64: SPE ACPI enablement
+Date:   Fri, 26 Apr 2019 17:03:04 -0500
+Message-Id: <20190426220309.55654-1-jeremy.linton@arm.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <1200464b-f969-ebc2-ae82-1f8ca98aaca1@siemens.com>
- <20190424103306.GC2654@lahna.fi.intel.com> <9377620b-d74a-04d9-a51e-8590400b1c0f@siemens.com>
- <20190426130615.GT9224@smile.fi.intel.com> <bd5453e1-0279-02ab-3304-edc6ebf509dc@siemens.com>
- <bc856e19-470d-7655-5680-a031831ab513@metux.net> <2f3da791-4a10-c2c4-dc5a-22ad16ed7be6@siemens.com>
- <CAHp75VfonL_f1GjRFFhp59R8U+bGzT9pcC7p8XDJ32-_cxT29g@mail.gmail.com>
- <20190426173329.GA31161@Mani-XPS-13-9360> <CAHp75VdcS_LaKNhaKsFaWa9ReQw4KRDRpc-81kv0Hb9wbZFCTg@mail.gmail.com>
- <20190426175237.GA31751@Mani-XPS-13-9360>
-In-Reply-To: <20190426175237.GA31751@Mani-XPS-13-9360>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Fri, 26 Apr 2019 21:26:50 +0300
-Message-ID:
- <CAHp75Vd6CtNRFZ1-7OSe5xzqNXNYQQP4-vck=3rMeq2QVZ7pCw@mail.gmail.com>
-Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
-To:     Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Cc:     Jan Kiszka <jan.kiszka@siemens.com>,
-        "Enrico Weigelt, metux IT consult" <lkml@metux.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190426182650.bJY82Iz3tX6dNrvx6r-OPFy7iEm4QZs7qoEIEHY3z3I@z>
+Content-Type: text/plain; charset="UTF-8"
+Message-ID: <20190426220304.3mrnQkeJvlUoP4l_RAubWwaoMXUZznUafEVQag3RjYs@z>
 
-On Fri, Apr 26, 2019 at 8:52 PM Manivannan Sadhasivam
-<manivannan.sadhasivam@linaro.org> wrote:
-> On Fri, Apr 26, 2019 at 08:44:36PM +0300, Andy Shevchenko wrote:
-> > On Fri, Apr 26, 2019 at 8:33 PM Manivannan Sadhasivam
-> > <manivannan.sadhasivam@linaro.org> wrote:
-> > > On Fri, Apr 26, 2019 at 08:20:19PM +0300, Andy Shevchenko wrote:
-> > > > On Fri, Apr 26, 2019 at 7:05 PM Jan Kiszka <jan.kiszka@siemens.com> wrote:
-> > > > > On 26.04.19 16:42, Enrico Weigelt, metux IT consult wrote:
-> > > > > > On 26.04.19 15:36, Jan Kiszka wrote:
-> >
-> > > > The problem here is opaque number. This has to be chip + *relative* pin number/
-> > > > See this:
-> > > > https://stackoverflow.com/questions/55532410/how-do-linux-gpio-numbers-get-their-values/55579640#55579640
-> > > >
-> > >
-> > > But for platform like 96Boards we don't need controller specific lookup, these
-> > > are all handled by the platform code [1] so that the users can use the standard
-> > > pinout number to access GPIOs.
-> >
-> > This is a complete mistake.
-> >
-> > There is *no* global GPIO numbers anymore in Linux. (I don't count
-> > very old legacy platforms)
-> > Read above, it applies to DT or whatever resource provider.
-> >
->
-> I think you misunderstood what I said.
+This patch series enables the Arm Statistical Profiling
+Extension (SPE) on ACPI platforms.
 
-I think you misunderstood what I said. :)
+This is possible because ACPI 6.3 uses a previously
+reserved field in the MADT to store the SPE interrupt
+number, similarly to how the normal PMU is described.
+If a consistent valid interrupt exists across all the
+cores in the system, a platform device is registered.
+That then triggers the SPE module, which runs as normal.
 
->  I referred the standard 96Boards
-> pinout and in the MRAA platform code, individual boards just map their
-> GPIO chip and line number based on that. I didn't mean the deprecated
-> global linux numbering.
+This version also adds the ability to parse the PPTT for
+IDENTICAL cores. We then use this to sanity check the
+single SPE device we create. This creates a bit of a
+problem with respect to the specification though. The
+specification says that its legal for multiple tree's
+to exist in the PPTT. We handle this fine, but what
+happens in the case of multiple tree's is that the lack
+of a common node with IDENTICAL set forces us to assume
+that there are multiple non IDENTICAL cores in the
+machine.
 
-It can be easily broken by shuffling DT, kernel cnfiguration and
-adding some GPIO expanders. Note, no C-code mangling is involved.
+v1->v2: Wrap the code which creates the SPE device in
+    a new CONFIG_ARM_SPE_ACPI ifdef.
+	Move arm,spe-v1 device name into common header file
+	Some comment/case sensitivity/function name changes.
 
->
-> https://github.com/intel-iot-devkit/mraa/blob/master/src/arm/96boards.c#L109
->
-> And of couse as Jan mentioned, the chip number will change when some
-> other external GPIO controller got probed before but so far we haven't
-> got to it!
+Jeremy Linton (5):
+  ACPI/PPTT: Trivial, Modify the case of CPU
+  ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
+  ACPI/PPTT: Modify node flag detection to find last IDENTICAL
+  arm_pmu: acpi: spe: Add initial MADT/SPE probing
+  perf: arm_spe: Enable ACPI/Platform automatic module loading
 
+ arch/arm64/include/asm/acpi.h |   3 +
+ drivers/acpi/pptt.c           | 130 +++++++++++++++++++++++++---------
+ drivers/perf/Kconfig          |   5 ++
+ drivers/perf/arm_pmu_acpi.c   |  76 ++++++++++++++++++++
+ drivers/perf/arm_spe_pmu.c    |  12 +++-
+ include/linux/acpi.h          |   5 ++
+ include/linux/perf/arm_pmu.h  |   2 +
+ 7 files changed, 196 insertions(+), 37 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.20.1
+
