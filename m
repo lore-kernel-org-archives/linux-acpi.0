@@ -1,52 +1,46 @@
-From: Linus Walleij <linus.walleij@linaro.org>
+From: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
 Subject: Re: [PATCH 2/2] gpio: sch: Add interrupt support
-Date: Fri, 26 Apr 2019 16:41:16 +0200
-Message-ID: <CACRpkdY=m1QJVqvERiAY+7taUgjPXn=9U2Eajx7d7NPo-iNhiA@mail.gmail.com>
-References: <20190424081802.GV2654@lahna.fi.intel.com> <5a28f22c-22f7-760a-d076-68ff19800d44@siemens.com>
- <20190424084259.GW2654@lahna.fi.intel.com> <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
- <20190424094506.GA2654@lahna.fi.intel.com> <292e6eff-82cc-6e4d-925b-77a60399e2e0@siemens.com>
- <20190424100130.GB2654@lahna.fi.intel.com> <1200464b-f969-ebc2-ae82-1f8ca98aaca1@siemens.com>
- <20190424103306.GC2654@lahna.fi.intel.com> <9377620b-d74a-04d9-a51e-8590400b1c0f@siemens.com>
+Date: Fri, 26 Apr 2019 16:42:35 +0200
+Message-ID: <bc856e19-470d-7655-5680-a031831ab513@metux.net>
+References: <20190424081802.GV2654@lahna.fi.intel.com>
+ <5a28f22c-22f7-760a-d076-68ff19800d44@siemens.com>
+ <20190424084259.GW2654@lahna.fi.intel.com>
+ <7e328b7e-f4f0-851a-4152-a9ffd058201c@siemens.com>
+ <20190424094506.GA2654@lahna.fi.intel.com>
+ <292e6eff-82cc-6e4d-925b-77a60399e2e0@siemens.com>
+ <20190424100130.GB2654@lahna.fi.intel.com>
+ <1200464b-f969-ebc2-ae82-1f8ca98aaca1@siemens.com>
+ <20190424103306.GC2654@lahna.fi.intel.com>
+ <9377620b-d74a-04d9-a51e-8590400b1c0f@siemens.com>
  <20190426130615.GT9224@smile.fi.intel.com>
+ <bd5453e1-0279-02ab-3304-edc6ebf509dc@siemens.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190426130615.GT9224@smile.fi.intel.com>
+In-Reply-To: <bd5453e1-0279-02ab-3304-edc6ebf509dc@siemens.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Jan Kiszka <jan.kiszka@siemens.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 26, 2019 at 3:06 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Wed, Apr 24, 2019 at 12:39:35PM +0200, Jan Kiszka wrote:
-> > On 24.04.19 12:33, Mika Westerberg wrote:
-> > > On Wed, Apr 24, 2019 at 12:19:02PM +0200, Jan Kiszka wrote:
->
-> > > > And even if that were possible, we would be back to the square of existing
-> > > > devices without those definitions. If this were a recent chipset, I would
-> > > > say, "go, fix future firmware versions". But this one is legacy.
-> > >
-> > > Is it fixing some real issue with these legacy platforms? I mean without
-> > > the patch some GPE event is not handled properly? It was not clear to me
-> > > from the commit message.
-> > >
-> >
-> > Without that patch, you are forced to poll for event changes in your
-> > application, timer-driven. There are application that cannot process these
-> > GPIOs because they lack such logic (mraa with node-red-node-intel-gpio is a
-> > public example).
->
-> Just a side note: MRAA is a hack itself. It abuses almost all interfaces Linux
-> kernel provides.
+On 26.04.19 15:36, Jan Kiszka wrote:
 
-I think it's pretty clean for GPIOs these days. My colleague Manivannan
-was part of cleaning it up a while back and since then it is doing
-what userspace should be doing if userspace absolutely cannot
-abstain from using GPIOs directly (i.e. uses the character device).
-https://github.com/intel-iot-devkit/mraa/blob/master/src/gpio/gpio_chardev.c
+> At the same time, there are no real alternatives - to my> knowledge - for the value it brings (various bindings) to simply
+switch> the engine.
+Which value exactly does that collection of crude wrappers and broken
+attempts to buypass the kernel (driving gpios via /dev/mem *facepalm*)
+provide ?
 
-I don't know about other resources than GPIOs though.
+mraa belongs to the category of software, I would never put onto any
+production system. (yes, I already had a client who asked me to repair
+his mraa-based software. finally, I've replaced mraa w/ a few LoC ...)
 
-Yours,
-Linus Walleij
+
+--mtx
+
+-- 
+Enrico Weigelt, metux IT consult
+Free software and Linux embedded engineering
+info@metux.net -- +49-151-27565287
