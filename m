@@ -1,82 +1,45 @@
-From: Alexander Graf <agraf@csgraf.de>
-Subject: Re: [PATCH 7/7] irqchip/al-msi: Add ACPI support
-Date: Fri, 26 Apr 2019 11:49:06 +0200
-Message-ID: <a1eb85a9-3fd0-db0a-67a5-8286afac875b@csgraf.de>
-References: <1554035733-11827-1-git-send-email-hhhawa@amazon.com>
- <1554035733-11827-3-git-send-email-hhhawa@amazon.com>
- <86pnq65v48.wl-marc.zyngier@arm.com>
- <cc40b029-b06e-1367-2411-1ec325d3b97b@amazon.com>
- <a882317e-1f19-3bed-b790-10b8b8a3e839@arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3] gpio: merrifield: Fix build err without CONFIG_ACPI
+Date: Fri, 26 Apr 2019 15:23:17 +0300
+Message-ID: <20190426122317.GP9224@smile.fi.intel.com>
+References: <20190405142112.26592-1-yuehaibing@huawei.com>
+ <20190412151911.12084-1-yuehaibing@huawei.com>
+ <CACRpkda_xw2rdzSLcreHnfdwsmUMTR=+BRHJWjrE31COaZhtZw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a882317e-1f19-3bed-b790-10b8b8a3e839@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CACRpkda_xw2rdzSLcreHnfdwsmUMTR=+BRHJWjrE31COaZhtZw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Zeev Zilberman <zeev@amazon.com>, Hanna Hawa <hhhawa@amazon.com>
-Cc: tsahee@annapurnalabs.com, antoine.tenart@bootlin.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, ronenk@amazon.com, dwmw@amazon.co.uk, vaerov@amazon.com, alisaidi@amazon.com, talel@amazon.com, jonnyc@amazon.com, hanochu@amazon.com, barakw@amazon.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Yue Haibing <yuehaibing@huawei.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12.04.19 14:08, Marc Zyngier wrote:
-> Hi Zeev,
+On Tue, Apr 23, 2019 at 11:17:32AM +0200, Linus Walleij wrote:
+> On Fri, Apr 12, 2019 at 5:20 PM Yue Haibing <yuehaibing@huawei.com> wrote:
 > 
-> On 04/04/2019 15:45, Zeev Zilberman wrote:
->> Hi Marc,
->>
->> We have considered exposing our interrupt controller both via MADT 
->> OEM-specific entry and via DSDT.
->> We've chosen MADT OEM-specific entry, because it seemed like a 
->> reasonable placeholder for custom interrupt controller, but we can move 
->> to DSDT, if this seems like a better way to represent it.
->>
->> Either way we chose, we'll need to solve the ordering issue of the 
->> drivers probing.
->> The desired order of driver probing in the system, because of the 
->> dependencies, is:
->> GIC -> AL MSIX controller driver -> PCI
->> If we keep using MADT, we can't just use IRQCHIP_DECLARE, because there 
->> is no way we found to control ordering of MADT probing. So, GIC might be 
->> probed after our driver in this case.
->> The reason we used early_initcall, is that the early_initcalls are 
->> invoked after MADT probing in the system (and before DSDT probing).
->>
->> If we move to using DSDT we need to solve the ordering problem from 
->> another direction - make sure that MSIX driver is probed before PCI.
->> In the patches that were posted for xgene interrupt controller (and 
->> weren't accepted) we saw that they proposed to solve the same issue
->> by modifying ACPI subsystem code by defining a new type for msi drivers 
->> and probing them before PCI drivers 
->> (https://patchwork.ozlabs.org/patch/818771/).
->>  From the feedback on that patch 
->> (https://patchwork.ozlabs.org/cover/818767/#1788415) it seemed that 
->> alternative solution is in the works,
->> but we didn't manage to find any followup on this.
->>
->> We would be glad to hear what you propose for fixing the ordering issue 
->> and rework the patches accordingly.
+> > From: YueHaibing <yuehaibing@huawei.com>
+> >
+> > When building CONFIG_ACPI is not set
+> > gcc warn this:
+> >
+> > drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+> > drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+> >    put_device(&adev->dev);
+> >                    ^~
+> >
+> > Reported-by: Hulk Robot <hulkci@huawei.com>
+> > Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+> > Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 > 
-> There are multiple issues here, but the main one is that you're trying
-> to do something that is completely contrary to the ACPI spec by
-> inventing a new interrupt controller.
-> 
-> The use case for ACPI is quite simple: you have HW that matches the ACPI
-> spec, and everything will work out of the box. This means GICv2+GICv2m
-> or GICv3+ITS. There is zero space for creativity. Now, if you want your
-> own interrupt controller, the only choice is to stick with DT. That's
-> the place for weird and wonderful stuff that ACPI cannot support.
+> This doesn't apply cleanly to any GPIO branch (devel or fixes)
+> so I assume it is supposed to be applied to the ACPI tree.
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-I've had a quick chat about this with Marc at Linaro Connect and there
-might be a 3rd viable option: Create a standard ACPI binding for
-GICv3+MBI (akin to GICv2m) and use that.
+Thanks!
+Rafael, can this be applied to your tree?
 
-Zeev, Hanna, what exactly is the reason you need to use your own MSI
-translation engine here? Can't you just reuse the GICv3 built-in one?
-After all, I would assume that your PCIe complex is able to send DMA
-requests to external devices?
-
-If you could, we could start working towards an ACPI definition for that
-instead and make everyone happy.
-
-
-Alex
+-- 
+With Best Regards,
+Andy Shevchenko
