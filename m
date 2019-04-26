@@ -2,119 +2,87 @@ Return-Path: <SRS0=A6Sl=S4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFA70C43219
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 09:55:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECE50C43218
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 12:23:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BC50D20679
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 09:55:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C381F2077B
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Apr 2019 12:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725923AbfDZJz4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Apr 2019 05:55:56 -0400
-Received: from zulu616.server4you.de ([188.138.100.120]:59572 "EHLO
-        zulu616.server4you.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725901AbfDZJz4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Apr 2019 05:55:56 -0400
-X-Greylist: delayed 406 seconds by postgrey-1.27 at vger.kernel.org; Fri, 26 Apr 2019 05:55:55 EDT
-Received: from macbook-2.local (x4d092da9.dyn.telefonica.de [77.9.45.169])
-        by csgraf.de (Postfix) with ESMTPSA id C037439003CF;
-        Fri, 26 Apr 2019 11:49:06 +0200 (CEST)
-Subject: Re: [PATCH 7/7] irqchip/al-msi: Add ACPI support
-To:     Marc Zyngier <marc.zyngier@arm.com>,
-        Zeev Zilberman <zeev@amazon.com>,
-        Hanna Hawa <hhhawa@amazon.com>
-Cc:     tsahee@annapurnalabs.com, antoine.tenart@bootlin.com,
-        linux@armlinux.org.uk, catalin.marinas@arm.com,
-        will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        tglx@linutronix.de, jason@lakedaemon.net, ronenk@amazon.com,
-        dwmw@amazon.co.uk, vaerov@amazon.com, alisaidi@amazon.com,
-        talel@amazon.com, jonnyc@amazon.com, hanochu@amazon.com,
-        barakw@amazon.com, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-References: <1554035733-11827-1-git-send-email-hhhawa@amazon.com>
- <1554035733-11827-3-git-send-email-hhhawa@amazon.com>
- <86pnq65v48.wl-marc.zyngier@arm.com>
- <cc40b029-b06e-1367-2411-1ec325d3b97b@amazon.com>
- <a882317e-1f19-3bed-b790-10b8b8a3e839@arm.com>
-From:   Alexander Graf <agraf@csgraf.de>
-Message-ID: <a1eb85a9-3fd0-db0a-67a5-8286afac875b@csgraf.de>
-Date:   Fri, 26 Apr 2019 11:49:06 +0200
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:60.0)
- Gecko/20100101 Thunderbird/60.6.1
+        id S1726025AbfDZMXV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Apr 2019 08:23:21 -0400
+Received: from mga03.intel.com ([134.134.136.65]:34564 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725877AbfDZMXV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Apr 2019 08:23:21 -0400
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Apr 2019 05:23:20 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,397,1549958400"; 
+   d="scan'208";a="137676704"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.72.86])
+  by orsmga008.jf.intel.com with ESMTP; 26 Apr 2019 05:23:18 -0700
+Received: from andy by smile with local (Exim 4.92)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1hJzsr-0003mt-Jh; Fri, 26 Apr 2019 15:23:17 +0300
+Date:   Fri, 26 Apr 2019 15:23:17 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     Yue Haibing <yuehaibing@huawei.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH v3] gpio: merrifield: Fix build err without CONFIG_ACPI
+Message-ID: <20190426122317.GP9224@smile.fi.intel.com>
+References: <20190405142112.26592-1-yuehaibing@huawei.com>
+ <20190412151911.12084-1-yuehaibing@huawei.com>
+ <CACRpkda_xw2rdzSLcreHnfdwsmUMTR=+BRHJWjrE31COaZhtZw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <a882317e-1f19-3bed-b790-10b8b8a3e839@arm.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <CACRpkda_xw2rdzSLcreHnfdwsmUMTR=+BRHJWjrE31COaZhtZw@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Message-ID: <20190426094906.QKLw8Y4KAoz7q30eAMmly6EGycRrPn28KQgqGlI55Ng@z>
+Message-ID: <20190426122317.wbUcB2u_b5Oj3HvnBjD2GzPIloRBhjluKF7OOV1BLNM@z>
 
-On 12.04.19 14:08, Marc Zyngier wrote:
-> Hi Zeev,
+On Tue, Apr 23, 2019 at 11:17:32AM +0200, Linus Walleij wrote:
+> On Fri, Apr 12, 2019 at 5:20 PM Yue Haibing <yuehaibing@huawei.com> wrote:
 > 
-> On 04/04/2019 15:45, Zeev Zilberman wrote:
->> Hi Marc,
->>
->> We have considered exposing our interrupt controller both via MADT 
->> OEM-specific entry and via DSDT.
->> We've chosen MADT OEM-specific entry, because it seemed like a 
->> reasonable placeholder for custom interrupt controller, but we can move 
->> to DSDT, if this seems like a better way to represent it.
->>
->> Either way we chose, we'll need to solve the ordering issue of the 
->> drivers probing.
->> The desired order of driver probing in the system, because of the 
->> dependencies, is:
->> GIC -> AL MSIX controller driver -> PCI
->> If we keep using MADT, we can't just use IRQCHIP_DECLARE, because there 
->> is no way we found to control ordering of MADT probing. So, GIC might be 
->> probed after our driver in this case.
->> The reason we used early_initcall, is that the early_initcalls are 
->> invoked after MADT probing in the system (and before DSDT probing).
->>
->> If we move to using DSDT we need to solve the ordering problem from 
->> another direction - make sure that MSIX driver is probed before PCI.
->> In the patches that were posted for xgene interrupt controller (and 
->> weren't accepted) we saw that they proposed to solve the same issue
->> by modifying ACPI subsystem code by defining a new type for msi drivers 
->> and probing them before PCI drivers 
->> (https://patchwork.ozlabs.org/patch/818771/).
->>  From the feedback on that patch 
->> (https://patchwork.ozlabs.org/cover/818767/#1788415) it seemed that 
->> alternative solution is in the works,
->> but we didn't manage to find any followup on this.
->>
->> We would be glad to hear what you propose for fixing the ordering issue 
->> and rework the patches accordingly.
+> > From: YueHaibing <yuehaibing@huawei.com>
+> >
+> > When building CONFIG_ACPI is not set
+> > gcc warn this:
+> >
+> > drivers/gpio/gpio-merrifield.c: In function mrfld_gpio_get_pinctrl_dev_name:
+> > drivers/gpio/gpio-merrifield.c:388:19: error: dereferencing pointer to incomplete type struct acpi_device
+> >    put_device(&adev->dev);
+> >                    ^~
+> >
+> > Reported-by: Hulk Robot <hulkci@huawei.com>
+> > Fixes:d00d2109c367 ("gpio: merrifield: Convert to use acpi_dev_get_first_match_dev()")
+> > Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 > 
-> There are multiple issues here, but the main one is that you're trying
-> to do something that is completely contrary to the ACPI spec by
-> inventing a new interrupt controller.
-> 
-> The use case for ACPI is quite simple: you have HW that matches the ACPI
-> spec, and everything will work out of the box. This means GICv2+GICv2m
-> or GICv3+ITS. There is zero space for creativity. Now, if you want your
-> own interrupt controller, the only choice is to stick with DT. That's
-> the place for weird and wonderful stuff that ACPI cannot support.
+> This doesn't apply cleanly to any GPIO branch (devel or fixes)
+> so I assume it is supposed to be applied to the ACPI tree.
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-I've had a quick chat about this with Marc at Linaro Connect and there
-might be a 3rd viable option: Create a standard ACPI binding for
-GICv3+MBI (akin to GICv2m) and use that.
+Thanks!
+Rafael, can this be applied to your tree?
 
-Zeev, Hanna, what exactly is the reason you need to use your own MSI
-translation engine here? Can't you just reuse the GICv3 built-in one?
-After all, I would assume that your PCIe complex is able to send DMA
-requests to external devices?
-
-If you could, we could start working towards an ACPI definition for that
-instead and make everyone happy.
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
-Alex
