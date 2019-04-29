@@ -2,109 +2,72 @@ Return-Path: <SRS0=MnCX=S7=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9BA9C04AA6
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Apr 2019 14:50:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FC1C43219
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Apr 2019 22:53:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F23020656
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Apr 2019 14:50:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nifty.com header.i=@nifty.com header.b="x3p/1yoT"
+	by mail.kernel.org (Postfix) with ESMTP id AB180215EA
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Apr 2019 22:53:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728318AbfD2Oup (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Apr 2019 10:50:45 -0400
-Received: from condef-03.nifty.com ([202.248.20.68]:46648 "EHLO
-        condef-03.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728350AbfD2Oup (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Apr 2019 10:50:45 -0400
-Received: from conuserg-08.nifty.com ([10.126.8.71])by condef-03.nifty.com with ESMTP id x3TEkG9M011741
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Apr 2019 23:46:16 +0900
-Received: from grover.flets-west.jp (softbank126125154137.bbtec.net [126.125.154.137]) (authenticated)
-        by conuserg-08.nifty.com with ESMTP id x3TEjcf1013725;
-        Mon, 29 Apr 2019 23:45:38 +0900
-DKIM-Filter: OpenDKIM Filter v2.10.3 conuserg-08.nifty.com x3TEjcf1013725
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
-        s=dec2015msa; t=1556549139;
-        bh=KazEk9hxi8U+torRKasXD0v/5Dw35CGY2jNpa95zJ0k=;
-        h=From:To:Cc:Subject:Date:From;
-        b=x3p/1yoTt1qfBJ8BtWa/94gnwhth+mOGtXYdZrowO8QhSTpN7y82EP7/u3zdrRv79
-         b4eqIxKtVy9ER/h7dUGxDCT+7U8Rc8dVwzL9l0yvpAsyqRHhs9irkjuoUiWHK2peHz
-         ElHU7+A7RnA+O+EJaHNTwi3ajpDNSFOGWFtu8QX6i5UQdh1j0YDCupXuiB6S/2IcY7
-         s5IhzdeztEupu1nWn4LcYWSh2B6d8p3yDWgVzjXfW2sICRxxtfxi3lSFMzICQyMxrj
-         8yshP3fcBlqwU23KKddnq6cQxFvkt7kdn6VObZDd65LvV6VwTEFoCgjcxIDb0+FShJ
-         U7JRKPlkDHkAw==
-X-Nifty-SrcIP: [126.125.154.137]
-From:   Masahiro Yamada <yamada.masahiro@socionext.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc:     Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Robert Moore <robert.moore@intel.com>,
-        linux-kernel@vger.kernel.org,
-        Erik Schmauss <erik.schmauss@intel.com>, devel@acpica.org
-Subject: [PATCH] tools/power/acpi: exclude tools/* from .gitignore pattern
-Date:   Mon, 29 Apr 2019 23:45:06 +0900
-Message-Id: <1556549106-16119-1-git-send-email-yamada.masahiro@socionext.com>
-X-Mailer: git-send-email 2.7.4
+        id S1729662AbfD2Wx0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Apr 2019 18:53:26 -0400
+Received: from mga12.intel.com ([192.55.52.136]:42516 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729601AbfD2WxZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 29 Apr 2019 18:53:25 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Apr 2019 15:53:25 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,411,1549958400"; 
+   d="scan'208";a="139921004"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga006.jf.intel.com with ESMTP; 29 Apr 2019 15:53:24 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1hLF9H-0000Tq-KK; Tue, 30 Apr 2019 06:53:23 +0800
+Date:   Tue, 30 Apr 2019 06:52:56 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Len Brown <len.brown@intel.com>
+Cc:     kbuild-all@01.org, linux-pm@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [RFC PATCH acpi] x86 topology: calculate_max_logical_die() can be
+ static
+Message-ID: <20190429225256.GA9491@lkp-kbuild15>
+References: <201904300624.FRc2x66b%lkp@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201904300624.FRc2x66b%lkp@intel.com>
+X-Patchwork-Hint: ignore
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190429144506.6HyzOqysx3rbQtZo0ukzlz3hNZ1P3mvCCRWmM_9Q0Qo@z>
 
-tools/power/acpi/.gitignore has the following entries:
 
-  acpidbg
-  acpidump
-  ec
-
-They are intended to ignore the following build artifacts:
-
-  tools/power/acpi/acpidbg
-  tools/power/acpi/acpidump
-  tools/power/acpi/ec
-
-However, those .gitignore entries are effective not only for the
-current directory, but also for any sub-directories.
-
-So, the following directories are also considered to be ignored:
-
-  tools/power/acpi/tools/acpidbg
-  tools/power/acpi/tools/acpidump
-  tools/power/acpi/tools/ec
-
-They are obviously version-controlled, so should be excluded from the
-.gitignore patterns.
-
-You can fix it by prefixing the patterns with '/', which means they
-are only effective in the current directory.
-
-I also prefixed the "include" consistently. IMHO, '/' prefixing is
-safer when you intend to ignore specific files or directories.
-
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Fixes: ae18cd4e0b58 ("x86 topology: create topology_max_die_per_package")
+Signed-off-by: kbuild test robot <lkp@intel.com>
 ---
+ smpboot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- tools/power/acpi/.gitignore | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/tools/power/acpi/.gitignore b/tools/power/acpi/.gitignore
-index cba3d99..f698a0e 100644
---- a/tools/power/acpi/.gitignore
-+++ b/tools/power/acpi/.gitignore
-@@ -1,4 +1,4 @@
--acpidbg
--acpidump
--ec
--include
-+/acpidbg
-+/acpidump
-+/ec
-+/include/
--- 
-2.7.4
-
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index f6c9c98..ff03d325 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -1414,7 +1414,7 @@ void __init calculate_max_logical_packages(void)
+ 	__max_logical_packages = DIV_ROUND_UP(total_cpus, ncpus);
+ 	pr_info("Max logical packages: %u\n", __max_logical_packages);
+ }
+-void __init calculate_max_logical_die(void)
++static void __init calculate_max_logical_die(void)
+ {
+ 	struct cpuinfo_x86 *c = &cpu_data(0);
+ 
