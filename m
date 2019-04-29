@@ -1,7 +1,7 @@
 From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH v2 3/4] irqchip/exiu: implement ACPI support
-Date: Mon, 29 Apr 2019 15:12:07 +0200
-Message-ID: <20190429131208.3620-4-ard.biesheuvel@linaro.org>
+Subject: [PATCH v2 4/4] gpio: mb86s7x: enable ACPI support
+Date: Mon, 29 Apr 2019 15:12:08 +0200
+Message-ID: <20190429131208.3620-5-ard.biesheuvel@linaro.org>
 References: <20190429131208.3620-1-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,121 +21,134 @@ To: linux-gpio@vger.kernel.org
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Masahisa Kojima <masahisa.kojima@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Expose the existing EXIU hierarchical irqchip domain code to permit
-the interrupt controller to be used as the irqchip component of a
-GPIO controller on ACPI systems, or as the target of ordinary
-interrupt resources.
+Make the mb86s7x GPIO block discoverable via ACPI. In addition, add
+support for ACPI GPIO interrupts routed via platform interrupts, by
+wiring the two together via the to_irq() gpiochip callback.
 
 Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- drivers/irqchip/irq-sni-exiu.c | 72 +++++++++++++++++---
- 1 file changed, 64 insertions(+), 8 deletions(-)
+ drivers/gpio/gpio-mb86s7x.c | 57 ++++++++++++++++----
+ 1 file changed, 48 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/irqchip/irq-sni-exiu.c b/drivers/irqchip/irq-sni-exiu.c
-index 52ce662334d4..68394f804af1 100644
---- a/drivers/irqchip/irq-sni-exiu.c
-+++ b/drivers/irqchip/irq-sni-exiu.c
-@@ -20,6 +20,7 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
- #include <linux/of_irq.h>
-+#include <linux/platform_device.h>
+diff --git a/drivers/gpio/gpio-mb86s7x.c b/drivers/gpio/gpio-mb86s7x.c
+index 3134c0d2bfe4..61ad95c3e3d2 100644
+--- a/drivers/gpio/gpio-mb86s7x.c
++++ b/drivers/gpio/gpio-mb86s7x.c
+@@ -14,6 +14,7 @@
+  *  GNU General Public License for more details.
+  */
  
- #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <linux/acpi.h>
+ #include <linux/io.h>
+ #include <linux/init.h>
+ #include <linux/clk.h>
+@@ -27,6 +28,8 @@
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
  
-@@ -134,9 +135,13 @@ static int exiu_domain_translate(struct irq_domain *domain,
- 
- 		*hwirq = fwspec->param[1] - info->spi_base;
- 		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
--		return 0;
-+	} else {
-+		if (fwspec->param_count != 2)
-+			return -EINVAL;
-+		*hwirq = fwspec->param[0];
-+		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
- 	}
--	return -EINVAL;
-+	return 0;
- }
- 
- static int exiu_domain_alloc(struct irq_domain *dom, unsigned int virq,
-@@ -147,16 +152,21 @@ static int exiu_domain_alloc(struct irq_domain *dom, unsigned int virq,
- 	struct exiu_irq_data *info = dom->host_data;
- 	irq_hw_number_t hwirq;
- 
--	if (fwspec->param_count != 3)
--		return -EINVAL;	/* Not GIC compliant */
--	if (fwspec->param[0] != GIC_SPI)
--		return -EINVAL;	/* No PPI should point to this domain */
-+	parent_fwspec = *fwspec;
-+	if (is_of_node(dom->parent->fwnode)) {
-+		if (fwspec->param_count != 3)
-+			return -EINVAL;	/* Not GIC compliant */
-+		if (fwspec->param[0] != GIC_SPI)
-+			return -EINVAL;	/* No PPI should point to this domain */
- 
-+		hwirq = fwspec->param[1] - info->spi_base;
-+	} else {
-+		hwirq = fwspec->param[0];
-+		parent_fwspec.param[0] = hwirq + info->spi_base + 32;
-+	}
- 	WARN_ON(nr_irqs != 1);
--	hwirq = fwspec->param[1] - info->spi_base;
- 	irq_domain_set_hwirq_and_chip(dom, virq, hwirq, &exiu_irq_chip, info);
- 
--	parent_fwspec = *fwspec;
- 	parent_fwspec.fwnode = dom->parent->fwnode;
- 	return irq_domain_alloc_irqs_parent(dom, virq, nr_irqs, &parent_fwspec);
- }
-@@ -244,3 +254,49 @@ static int __init exiu_dt_init(struct device_node *node,
- 	return 0;
- }
- IRQCHIP_DECLARE(exiu, "socionext,synquacer-exiu", exiu_dt_init);
++#include "gpiolib.h"
 +
-+#ifdef CONFIG_ACPI
-+static int exiu_acpi_probe(struct platform_device *pdev)
+ /*
+  * Only first 8bits of a register correspond to each pin,
+  * so there are 4 registers for 32 pins.
+@@ -143,6 +146,20 @@ static void mb86s70_gpio_set(struct gpio_chip *gc, unsigned gpio, int value)
+ 	spin_unlock_irqrestore(&gchip->lock, flags);
+ }
+ 
++static int mb86s70_gpio_to_irq(struct gpio_chip *gc, unsigned int offset)
 +{
-+	struct irq_domain *parent_domain, *domain;
-+	struct resource *res;
++	int irq, index;
 +
-+	parent_domain = acpi_get_gsi_irqdomain();
-+	if (!parent_domain) {
-+		dev_err(&pdev->dev, "unable to obtain parent domain\n");
-+		return -ENODEV;
++	for (index = 0;; index++) {
++		irq = platform_get_irq(to_platform_device(gc->parent), index);
++		if (irq <= 0)
++			break;
++		if (irq_get_irq_data(irq)->hwirq == offset)
++			return irq;
 +	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(&pdev->dev, "failed to parse memory resource\n");
-+		return -ENXIO;
-+	}
-+
-+	domain = exiu_init(parent_domain, dev_fwnode(&pdev->dev), res);
-+	if (IS_ERR(domain)) {
-+		dev_err(&pdev->dev, "failed to create IRQ domain (%ld)\n",
-+			PTR_ERR(domain));
-+		return PTR_ERR(domain);
-+	}
-+
-+	dev_info(&pdev->dev, "%d interrupts forwarded\n", NUM_IRQS);
-+
-+	return 0;
++	return -EINVAL;
 +}
 +
-+static const struct acpi_device_id exiu_acpi_ids[] = {
-+	{ "SCX0008" },
+ static int mb86s70_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct mb86s70_gpio_chip *gchip;
+@@ -160,13 +177,15 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
+ 	if (IS_ERR(gchip->base))
+ 		return PTR_ERR(gchip->base);
+ 
+-	gchip->clk = devm_clk_get(&pdev->dev, NULL);
+-	if (IS_ERR(gchip->clk))
+-		return PTR_ERR(gchip->clk);
++	if (!ACPI_COMPANION(&pdev->dev)) {
++		gchip->clk = devm_clk_get(&pdev->dev, NULL);
++		if (IS_ERR(gchip->clk))
++			return PTR_ERR(gchip->clk);
+ 
+-	ret = clk_prepare_enable(gchip->clk);
+-	if (ret)
+-		return ret;
++		ret = clk_prepare_enable(gchip->clk);
++		if (ret)
++			return ret;
++	}
+ 
+ 	spin_lock_init(&gchip->lock);
+ 
+@@ -182,21 +201,32 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
+ 	gchip->gc.parent = &pdev->dev;
+ 	gchip->gc.base = -1;
+ 
++	if (ACPI_COMPANION(&pdev->dev))
++		gchip->gc.to_irq = mb86s70_gpio_to_irq;
++
+ 	ret = gpiochip_add_data(&gchip->gc, gchip);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "couldn't register gpio driver\n");
+-		clk_disable_unprepare(gchip->clk);
++		if (gchip->clk)
++			clk_disable_unprepare(gchip->clk);
++		return ret;
+ 	}
+ 
+-	return ret;
++	if (ACPI_COMPANION(&pdev->dev))
++		acpi_gpiochip_request_interrupts(&gchip->gc);
++
++	return 0;
+ }
+ 
+ static int mb86s70_gpio_remove(struct platform_device *pdev)
+ {
+ 	struct mb86s70_gpio_chip *gchip = platform_get_drvdata(pdev);
+ 
++	if (ACPI_COMPANION(&pdev->dev))
++		acpi_gpiochip_free_interrupts(&gchip->gc);
+ 	gpiochip_remove(&gchip->gc);
+-	clk_disable_unprepare(gchip->clk);
++	if (gchip->clk)
++		clk_disable_unprepare(gchip->clk);
+ 
+ 	return 0;
+ }
+@@ -207,10 +237,19 @@ static const struct of_device_id mb86s70_gpio_dt_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(of, mb86s70_gpio_dt_ids);
+ 
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id mb86s70_gpio_acpi_ids[] = {
++	{ "SCX0007" },
 +	{ /* sentinel */ }
 +};
-+MODULE_DEVICE_TABLE(acpi, exiu_acpi_ids);
-+
-+static struct platform_driver exiu_driver = {
-+	.driver = {
-+		.name = "exiu",
-+		.acpi_match_table = exiu_acpi_ids,
-+	},
-+	.probe = exiu_acpi_probe,
-+};
-+builtin_platform_driver(exiu_driver);
++MODULE_DEVICE_TABLE(acpi, mb86s70_gpio_acpi_ids);
 +#endif
++
+ static struct platform_driver mb86s70_gpio_driver = {
+ 	.driver = {
+ 		.name = "mb86s70-gpio",
+ 		.of_match_table = mb86s70_gpio_dt_ids,
++		.acpi_match_table = ACPI_PTR(mb86s70_gpio_acpi_ids),
+ 	},
+ 	.probe = mb86s70_gpio_probe,
+ 	.remove = mb86s70_gpio_remove,
 -- 
 2.20.1
