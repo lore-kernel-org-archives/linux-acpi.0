@@ -1,30 +1,61 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2] gpio: sch: Add interrupt support
-Date: Mon, 29 Apr 2019 16:19:00 +0300
-Message-ID: <20190429131900.GD9224@smile.fi.intel.com>
-References: <046793ee-ba51-6a1b-1aa5-14560d849df7@siemens.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: [PATCH] tools/power/acpi: exclude tools/* from .gitignore pattern
+Date: Mon, 29 Apr 2019 23:45:06 +0900
+Message-ID: <1556549106-16119-1-git-send-email-yamada.masahiro@socionext.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <046793ee-ba51-6a1b-1aa5-14560d849df7@siemens.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J., Wysocki" <rafael.j.wysocki@intel.com>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 29, 2019 at 07:55:52AM +0200, Jan Kiszka wrote:
-> Validated on the Quark platform, this adds interrupt support on rising
-> and/or falling edges.
+tools/power/acpi/.gitignore has the following entries:
 
-Can we split it to two:
-- Add IRQ support on edge
-- Add ACPI handler (with explanation in the commit message why we do like this,
-  based on the thread from v1)
+  acpidbg
+  acpidump
+  ec
 
-?
+They are intended to ignore the following build artifacts:
 
+  tools/power/acpi/acpidbg
+  tools/power/acpi/acpidump
+  tools/power/acpi/ec
 
+However, those .gitignore entries are effective not only for the
+current directory, but also for any sub-directories.
+
+So, the following directories are also considered to be ignored:
+
+  tools/power/acpi/tools/acpidbg
+  tools/power/acpi/tools/acpidump
+  tools/power/acpi/tools/ec
+
+They are obviously version-controlled, so should be excluded from the
+.gitignore patterns.
+
+You can fix it by prefixing the patterns with '/', which means they
+are only effective in the current directory.
+
+I also prefixed the "include" consistently. IMHO, '/' prefixing is
+safer when you intend to ignore specific files or directories.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+---
+
+ tools/power/acpi/.gitignore | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/tools/power/acpi/.gitignore b/tools/power/acpi/.gitignore
+index cba3d99..f698a0e 100644
+--- a/tools/power/acpi/.gitignore
++++ b/tools/power/acpi/.gitignore
+@@ -1,4 +1,4 @@
+-acpidbg
+-acpidump
+-ec
+-include
++/acpidbg
++/acpidump
++/ec
++/include/
 -- 
-With Best Regards,
-Andy Shevchenko
+2.7.4
