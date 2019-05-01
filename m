@@ -1,101 +1,48 @@
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Subject: Re: [alsa-devel] [PATCH] ACPI / device_sysfs: change _ADR
- representation to 64 bits
-Date: Tue, 30 Apr 2019 13:23:38 -0500
-Message-ID: <eda0ed4e-fc36-a53a-225f-e7d54bb73413@linux.intel.com>
-References: <20190415151857.25531-1-pierre-louis.bossart@linux.intel.com>
- <20190416032923.GQ28103@vkoul-mobl>
- <CAJZ5v0jOkQ7aWn6B_yVTYd7y+78mpGSzBoGuWe3uCdzDRNE94Q@mail.gmail.com>
+From: Nishad Kamdar <nishadkamdar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi/nfit: Use the correct style for SPDX License Identifier
+Date: Wed, 1 May 2019 12:12:13 +0530
+Message-ID: <20190501064209.GA4716@nishad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jOkQ7aWn6B_yVTYd7y+78mpGSzBoGuWe3uCdzDRNE94Q@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Vinod Koul <vkoul@kernel.org>
-Cc: "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Srini Kandagatla <srinivas.kandagatla@linaro.org>, jank@cadence.com, Joe Perches <joe@perches.com>, "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>, Erik Schmauss <erik.schmauss@intel.com>, Len Brown <lenb@kernel.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+This patch corrects the SPDX License Identifier style
+in drivers/acpi/nfit/intel.h. For C header files
+Documentation/process/license-rules.rst mandates C-like comments
+(opposed to C source files where C++ style should be used)
 
+Changes made by using a script provided by Joe Perches here:
+https://lkml.org/lkml/2019/2/7/46
 
-On 4/16/19 3:09 AM, Rafael J. Wysocki wrote:
-> On Tue, Apr 16, 2019 at 5:29 AM Vinod Koul <vkoul@kernel.org> wrote:
->>
->> On 15-04-19, 10:18, Pierre-Louis Bossart wrote:
->>> Standards such as the MIPI DisCo for SoundWire 1.0 specification
->>> assume the _ADR field is 64 bits.
->>>
->>> _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
->>> released in 2002. The low levels already use _ADR as 64 bits, e.g. in
->>> struct acpi_device_info.
->>>
->>> This patch bumps the representation used for sysfs to 64 bits.
->>>
->>> Example with a SoundWire device, the results show the complete
->>> vendorID and linkID which were omitted before:
->>>
->>> Before:
->>> $ more /sys/bus/acpi/devices/device\:38/adr
->>> 0x5d070000
->>> After:
->>> $ more /sys/bus/acpi/devices/device\:38/adr
->>> 0x000010025d070000
->>
->> This looks fine but the sysfs file is an ABI. Not sure if we can modify
->> the value returned this way.. Though it should not cause userspace
->> reading 32bits to break...
-> 
-> Well, IIRC using "08" instead of "016" in the format field would
-> preserve the existing behavior for 32-bit values, wouldn't it?
+Suggested-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Nishad Kamdar <nishadkamdar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit/intel.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-yes, but it makes the 64-bit address not aligned depending on the number 
-of leading zeroes, see below. I get a migraine just looking at the results.
-
-Maybe add a test to use 08 for values that are below 0xFFFFFFFF and 16 
-for addresses who really need the full range, typically because of an 
-encoding?
-
-w/ value-dependent format:
-/sys/bus/acpi/devices# cat */*/adr
-
-0x00160000
-0x00140003
-0x000d0000
-0x000d0002
-0x000d0003
-0x00070000
-0x00070001
-0x00070002
-0x00070003
-0x000010025d070100
-0x000110025d070100
-0x000210025d070100
-0x000310025d070100
-0x000010025d070000
-0x000110025d070000
-0x000210025d070000
-0x000310025d070000
-0x00000000
-
-w/ 0x08 only:
-
-0x00160000
-0x00140003
-0x000d0000
-0x000d0002
-0x000d0003
-0x00070000
-0x00070001
-0x00070002
-0x00070003
-0x10025d070100
-0x110025d070100
-0x210025d070100
-0x310025d070100
-0x10025d070000
-0x110025d070000
-0x210025d070000
-0x310025d070000
-0x00000000
-0x00000000
+diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+index 0aca682ab9d7..8f5461c1dd9d 100644
+--- a/drivers/acpi/nfit/intel.h
++++ b/drivers/acpi/nfit/intel.h
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: GPL-2.0
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+  * Copyright(c) 2018 Intel Corporation. All rights reserved.
+  * Intel specific definitions for NVDIMM Firmware Interface Table - NFIT
+-- 
+2.17.1
