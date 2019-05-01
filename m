@@ -1,45 +1,49 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fix for v5.1-rc8
-Date: Wed, 1 May 2019 10:39:19 +0200
-Message-ID: <CAJZ5v0i73At_cTv2FJEgSzcqnWUuVnDY-cyX5XWDGFw1f9fnQA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: event: replace strcpy() by strscpy()
+Date: Wed, 01 May 2019 12:12:35 +0200
+Message-ID: <3853797.yZSUUGEqGl@kreacher>
+References: <20190422163934.GA2636@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190422163934.GA2636@embeddedor>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Monday, April 22, 2019 6:39:34 PM CEST Gustavo A. R. Silva wrote:
+> The strcpy() function is being deprecated. Replace it by the safer
+> strscpy() and fix the following Coverity warnings:
+> 
+> "You might overrun the 15-character fixed-size string event->bus_id
+> by copying bus_id without checking the length."
+> 
+> "You might overrun the 20-character fixed-size string event->device_class
+> by copying device_class without checking the length."
+> 
+> Addresses-Coverity-ID: 139001 ("Copy into fixed size buffer")
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+>  drivers/acpi/event.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
+> index 5a127f3f2d5c..47f21599f2ab 100644
+> --- a/drivers/acpi/event.c
+> +++ b/drivers/acpi/event.c
+> @@ -131,8 +131,8 @@ int acpi_bus_generate_netlink_event(const char *device_class,
+>  	event = nla_data(attr);
+>  	memset(event, 0, sizeof(struct acpi_genl_event));
+>  
+> -	strcpy(event->device_class, device_class);
+> -	strcpy(event->bus_id, bus_id);
+> +	strscpy(event->device_class, device_class, sizeof(event->device_class));
+> +	strscpy(event->bus_id, bus_id, sizeof(event->bus_id));
+>  	event->type = type;
+>  	event->data = data;
+>  
+> 
 
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.1-rc8
-
-with top-most commit 2c2a2fb1e2a9256714338875bede6b7cbd4b9542
-
- Revert "ACPICA: Clear status of GPEs before enabling them"
-
-on top of commit 37624b58542fb9f2d9a70e6ea006ef8a5f66c30b
-
- Linux 5.1-rc7
-
-to receive an ACPI fix for 5.1-rc8 (or final 5.1).
-
-This reverts a recent ACPICA change that caused initialization to
-fail on systems with Thunderbolt docking stations connected at the
-init time.
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (1):
-      Revert "ACPICA: Clear status of GPEs before enabling them"
-
----------------
-
- drivers/acpi/acpica/evgpe.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+Applied, thanks!
