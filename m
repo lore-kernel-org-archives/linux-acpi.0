@@ -1,49 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: event: replace strcpy() by strscpy()
-Date: Wed, 01 May 2019 12:12:35 +0200
-Message-ID: <3853797.yZSUUGEqGl@kreacher>
-References: <20190422163934.GA2636@embeddedor>
+Subject: Re: [PATCH next 01/25] ACPI / DPTF: Use dev_get_drvdata()
+Date: Wed, 01 May 2019 12:13:13 +0200
+Message-ID: <1630516.6fPAFj0BIz@kreacher>
+References: <20190423075020.173734-1-wangkefeng.wang@huawei.com> <20190423075020.173734-2-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190422163934.GA2636@embeddedor>
+In-Reply-To: <20190423075020.173734-2-wangkefeng.wang@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: linux-kernel@vger.kernel.org, Masahiro Yamada <yamada.masahiro@socionext.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, April 22, 2019 6:39:34 PM CEST Gustavo A. R. Silva wrote:
-> The strcpy() function is being deprecated. Replace it by the safer
-> strscpy() and fix the following Coverity warnings:
+On Tuesday, April 23, 2019 9:49:56 AM CEST Kefeng Wang wrote:
+> Using dev_get_drvdata directly.
 > 
-> "You might overrun the 15-character fixed-size string event->bus_id
-> by copying bus_id without checking the length."
-> 
-> "You might overrun the 20-character fixed-size string event->device_class
-> by copying device_class without checking the length."
-> 
-> Addresses-Coverity-ID: 139001 ("Copy into fixed size buffer")
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 > ---
->  drivers/acpi/event.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/acpi/dptf/dptf_power.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
-> index 5a127f3f2d5c..47f21599f2ab 100644
-> --- a/drivers/acpi/event.c
-> +++ b/drivers/acpi/event.c
-> @@ -131,8 +131,8 @@ int acpi_bus_generate_netlink_event(const char *device_class,
->  	event = nla_data(attr);
->  	memset(event, 0, sizeof(struct acpi_genl_event));
->  
-> -	strcpy(event->device_class, device_class);
-> -	strcpy(event->bus_id, bus_id);
-> +	strscpy(event->device_class, device_class, sizeof(event->device_class));
-> +	strscpy(event->bus_id, bus_id, sizeof(event->bus_id));
->  	event->type = type;
->  	event->data = data;
->  
+> diff --git a/drivers/acpi/dptf/dptf_power.c b/drivers/acpi/dptf/dptf_power.c
+> index e1c242568341..0c081390930a 100644
+> --- a/drivers/acpi/dptf/dptf_power.c
+> +++ b/drivers/acpi/dptf/dptf_power.c
+> @@ -31,8 +31,7 @@ static ssize_t name##_show(struct device *dev,\
+>  			   struct device_attribute *attr,\
+>  			   char *buf)\
+>  {\
+> -	struct platform_device *pdev = to_platform_device(dev);\
+> -	struct acpi_device *acpi_dev = platform_get_drvdata(pdev);\
+> +	struct acpi_device *acpi_dev = dev_get_drvdata(dev);\
+>  	unsigned long long val;\
+>  	acpi_status status;\
+>  \
 > 
 
 Applied, thanks!
