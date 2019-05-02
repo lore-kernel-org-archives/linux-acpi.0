@@ -1,180 +1,46 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] acpi/nfit: Add support for Intel DSM 1.8 commands
-Date: Thu, 2 May 2019 13:07:28 +0300
-Message-ID: <20190502100728.GA10650@mwanda>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH v2 4/4] gpio: mb86s7x: enable ACPI support
+Date: Thu, 2 May 2019 13:03:18 +0200
+Message-ID: <CAKv+Gu_TEpTuwE3zB1VxMojHnevNAUSX5PkaW_uCVtV6jNx-LA@mail.gmail.com>
+References: <20190429131208.3620-1-ard.biesheuvel@linaro.org>
+ <20190429131208.3620-5-ard.biesheuvel@linaro.org>
+ <20190502080255.GS26516@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190502080255.GS26516@lahna.fi.intel.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Masahisa Kojima <masahisa.kojima@linaro.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Dan Williams,
+On Thu, 2 May 2019 at 10:03, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+>
+> On Mon, Apr 29, 2019 at 03:12:08PM +0200, Ard Biesheuvel wrote:
+> > @@ -160,13 +177,15 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
+> >       if (IS_ERR(gchip->base))
+> >               return PTR_ERR(gchip->base);
+> >
+> > -     gchip->clk = devm_clk_get(&pdev->dev, NULL);
+> > -     if (IS_ERR(gchip->clk))
+> > -             return PTR_ERR(gchip->clk);
+> > +     if (!ACPI_COMPANION(&pdev->dev)) {
+>
+> Since you don't use the returned ACPI object, you can also use
+> has_acpi_companion(&pdev->dev) here and other similar places.
+>
+> Regardless of that,
+>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Commit 11189c1089da ("acpi/nfit: Fix command-supported detection") from
-Jan 19, 2019 leads to the following static checker warning:
-
-    drivers/acpi/nfit/core.c:503 acpi_nfit_ctl()
-    error: passing untrusted data 'func' to 'variable_test_bit()'
-
-Related but not critical:
-
-    drivers/acpi/nfit/core.c:3510 acpi_nfit_clear_to_send()
-    error: undefined (user controlled) shift '1 << func'
-
-drivers/nvdimm/bus.c
-  1062          buf = vmalloc(buf_len);
-  1063          if (!buf)
-  1064                  return -ENOMEM;
-  1065  
-  1066          if (copy_from_user(buf, p, buf_len)) {
-  1067                  rc = -EFAULT;
-  1068                  goto out;
-  1069          }
-  1070  
-  1071          nvdimm_bus_lock(&nvdimm_bus->dev);
-  1072          rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, func, buf);
-  1073          if (rc)
-  1074                  goto out_unlock;
-  1075  
-  1076          rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, &cmd_rc);
-  1077          if (rc < 0)
-  1078                  goto out_unlock;
-
-This is __nd_ioctl().  We get "buf" from the user and then pass it to
-acpi_nfit_clear_to_send() and then acpi_nfit_ctl().
-
-drivers/acpi/nfit/core.c
-   446  int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
-   447                  unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
-   448  {
-   449          struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
-   450          struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-   451          union acpi_object in_obj, in_buf, *out_obj;
-   452          const struct nd_cmd_desc *desc = NULL;
-   453          struct device *dev = acpi_desc->dev;
-   454          struct nd_cmd_pkg *call_pkg = NULL;
-   455          const char *cmd_name, *dimm_name;
-   456          unsigned long cmd_mask, dsm_mask;
-   457          u32 offset, fw_status = 0;
-   458          acpi_handle handle;
-   459          const guid_t *guid;
-   460          int func, rc, i;
-   461  
-   462          if (cmd_rc)
-   463                  *cmd_rc = -EINVAL;
-   464  
-   465          if (cmd == ND_CMD_CALL)
-   466                  call_pkg = buf;
-                        ^^^^^^^^^^^^^^
-
-   467          func = cmd_to_func(nfit_mem, cmd, call_pkg);
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-We set func = call_pkg->nd_command (0-s32max).
-
-
-   468          if (func < 0)
-   469                  return func;
-   470  
-   471          if (nvdimm) {
-   472                  struct acpi_device *adev = nfit_mem->adev;
-   473  
-   474                  if (!adev)
-   475                          return -ENOTTY;
-   476  
-   477                  dimm_name = nvdimm_name(nvdimm);
-   478                  cmd_name = nvdimm_cmd_name(cmd);
-   479                  cmd_mask = nvdimm_cmd_mask(nvdimm);
-   480                  dsm_mask = nfit_mem->dsm_mask;
-   481                  desc = nd_cmd_dimm_desc(cmd);
-   482                  guid = to_nfit_uuid(nfit_mem->family);
-   483                  handle = adev->handle;
-   484          } else {
-   485                  struct acpi_device *adev = to_acpi_dev(acpi_desc);
-   486  
-   487                  cmd_name = nvdimm_bus_cmd_name(cmd);
-   488                  cmd_mask = nd_desc->cmd_mask;
-   489                  dsm_mask = nd_desc->bus_dsm_mask;
-   490                  desc = nd_cmd_bus_desc(cmd);
-   491                  guid = to_nfit_uuid(NFIT_DEV_BUS);
-   492                  handle = adev->handle;
-   493                  dimm_name = "bus";
-   494          }
-   495  
-   496          if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
-   497                  return -ENOTTY;
-   498  
-   499          /*
-   500           * Check for a valid command.  For ND_CMD_CALL, we also have to
-   501           * make sure that the DSM function is supported.
-   502           */
-   503          if (cmd == ND_CMD_CALL && !test_bit(func, &dsm_mask))
-                                                    ^^^^
-
-"func" might be beyond the end of the bitmap so it could be an out of
-bounds read.  We do bounds check it to <= 31 in nfit_dsm_revid() but I
-couldn't see any range checking in acpi_evaluate_dsm().
-
-   504                  return -ENOTTY;
-   505          else if (!test_bit(cmd, &cmd_mask))
-   506                  return -ENOTTY;
-   507  
-   508          in_obj.type = ACPI_TYPE_PACKAGE;
-   509          in_obj.package.count = 1;
-   510          in_obj.package.elements = &in_buf;
-   511          in_buf.type = ACPI_TYPE_BUFFER;
-   512          in_buf.buffer.pointer = buf;
-   513          in_buf.buffer.length = 0;
-   514  
-   515          /* libnvdimm has already validated the input envelope */
-   516          for (i = 0; i < desc->in_num; i++)
-   517                  in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
-   518                                  i, buf);
-   519  
-   520          if (call_pkg) {
-   521                  /* skip over package wrapper */
-   522                  in_buf.buffer.pointer = (void *) &call_pkg->nd_payload;
-   523                  in_buf.buffer.length = call_pkg->nd_size_in;
-   524          }
-   525  
-   526          dev_dbg(dev, "%s cmd: %d: func: %d input length: %d\n",
-   527                  dimm_name, cmd, func, in_buf.buffer.length);
-   528          if (payload_dumpable(nvdimm, func))
-
-[ snip ]
-
-  3500  /* prevent security commands from being issued via ioctl */
-  3501  static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
-  3502                  struct nvdimm *nvdimm, unsigned int cmd, void *buf)
-  3503  {
-  3504          struct nd_cmd_pkg *call_pkg = buf;
-  3505          unsigned int func;
-  3506  
-  3507          if (nvdimm && cmd == ND_CMD_CALL &&
-  3508                          call_pkg->nd_family == NVDIMM_FAMILY_INTEL) {
-  3509                  func = call_pkg->nd_command;
-  3510                  if ((1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
-                             ^^^^^^^^^
-This is undefined and it would be nice to fix, but not important for
-run time.
-
-  3511                          return -EOPNOTSUPP;
-  3512          }
-  3513  
-  3514          return __acpi_nfit_clear_to_send(nd_desc, nvdimm, cmd);
-  3515  }
-
-regards,
-dan carpenter
+Thanks Mika. I will use has_acpi_companion() instead.
