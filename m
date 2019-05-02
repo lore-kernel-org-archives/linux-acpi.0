@@ -1,86 +1,41 @@
-From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH v2] ACPI / device_sysfs: change _ADR representation to 64
- bits
-Date: Thu, 2 May 2019 10:28:17 +0530
-Message-ID: <20190502045817.GZ3845@vkoul-mobl.Dlink>
-References: <20190501125322.23791-1-pierre-louis.bossart@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 4/4] gpio: mb86s7x: enable ACPI support
+Date: Thu, 2 May 2019 11:02:55 +0300
+Message-ID: <20190502080255.GS26516@lahna.fi.intel.com>
+References: <20190429131208.3620-1-ard.biesheuvel@linaro.org>
+ <20190429131208.3620-5-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190501125322.23791-1-pierre-louis.bossart@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, tiwai@suse.de, broonie@kernel.org, gregkh@linuxfoundation.org, liam.r.girdwood@linux.intel.com, jank@cadence.com, joe@perches.com, srinivas.kandagatla@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
+In-Reply-To: <20190429131208.3620-5-ard.biesheuvel@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org, Masahisa Kojima <masahisa.kojima@linaro.org>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 01-05-19, 07:53, Pierre-Louis Bossart wrote:
-> Standards such as the MIPI DisCo for SoundWire 1.0 specification
-> assume the _ADR field is 64 bits.
-> 
-> _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
-> released in 2002. The low levels already use _ADR as 64 bits, e.g. in
-> struct acpi_device_info.
-> 
-> This patch bumps the representation used for sysfs to 64 bits. To
-> avoid any compatibility/ABI issues, the printf format is only extended
-> to 16 characters when the actual _ADR value exceeds the 32 bit
-> maximum.
-> 
-> Example with a SoundWire device, the results show the complete
-> vendorID and linkID which were omitted before:
-> 
-> Before:
-> $ more /sys/bus/acpi/devices/device\:38/adr
-> 0x5d070000
-> After:
-> $ more /sys/bus/acpi/devices/device\:38/adr
-> 0x000010025d070000
-> 
-> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-> ---
-> v2: only use 64 bits when required to avoid compatibility issues
-> (feedback from Vinod and Rafael)
-> 
->  drivers/acpi/device_sysfs.c | 6 ++++--
->  include/acpi/acpi_bus.h     | 2 +-
->  2 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-> index 8940054d6250..7dda0ee05cd1 100644
-> --- a/drivers/acpi/device_sysfs.c
-> +++ b/drivers/acpi/device_sysfs.c
-> @@ -428,8 +428,10 @@ static ssize_t acpi_device_adr_show(struct device *dev,
->  {
->  	struct acpi_device *acpi_dev = to_acpi_device(dev);
+On Mon, Apr 29, 2019 at 03:12:08PM +0200, Ard Biesheuvel wrote:
+> @@ -160,13 +177,15 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
+>  	if (IS_ERR(gchip->base))
+>  		return PTR_ERR(gchip->base);
 >  
-> -	return sprintf(buf, "0x%08x\n",
-> -		       (unsigned int)(acpi_dev->pnp.bus_address));
-> +	if (acpi_dev->pnp.bus_address > 0xFFFFFFFF)
+> -	gchip->clk = devm_clk_get(&pdev->dev, NULL);
+> -	if (IS_ERR(gchip->clk))
+> -		return PTR_ERR(gchip->clk);
+> +	if (!ACPI_COMPANION(&pdev->dev)) {
 
-Would prefer to use U32_MAX instead of 0xFFFFFFFF
+Since you don't use the returned ACPI object, you can also use
+has_acpi_companion(&pdev->dev) here and other similar places.
 
-> +		return sprintf(buf, "0x%016llx\n", acpi_dev->pnp.bus_address);
-> +	else
-> +		return sprintf(buf, "0x%08llx\n", acpi_dev->pnp.bus_address);
->  }
->  static DEVICE_ATTR(adr, 0444, acpi_device_adr_show, NULL);
->  
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index f7981751ac77..9075e28ea60a 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -230,7 +230,7 @@ struct acpi_device_dir {
->  /* Plug and Play */
->  
->  typedef char acpi_bus_id[8];
-> -typedef unsigned long acpi_bus_address;
-> +typedef u64 acpi_bus_address;
->  typedef char acpi_device_name[40];
->  typedef char acpi_device_class[20];
->  
-> -- 
-> 2.17.1
+Regardless of that,
 
--- 
-~Vinod
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
