@@ -1,104 +1,77 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2] ACPI / device_sysfs: change _ADR representation to
- 64 bits
-Date: Fri, 3 May 2019 19:54:57 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B958C7AE@ORSMSX110.amr.corp.intel.com>
-References: <20190501125322.23791-1-pierre-louis.bossart@linux.intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v3 0/5] arm64: SPE ACPI enablement
+Date: Fri,  3 May 2019 18:24:02 -0500
+Message-ID: <20190503232407.37195-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190501125322.23791-1-pierre-louis.bossart@linux.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tiwai@suse.de" <tiwai@suse.de>, "broonie@kernel.org" <broonie@kernel.org>, "vkoul@kernel.org" <vkoul@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "jank@cadence.com" <jank@cadence.com>, "joe@perches.com" <joe@perches.com>, "srinivas.kandagatla@linaro.org" <srinivas.kandagatla@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, will.deacon@arm.com, sudeep.holla@arm.com, rjw@rjwysocki.net, linuxarm@huawei.com, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+This patch series enables the Arm Statistical Profiling
+Extension (SPE) on ACPI platforms.
 
+This is possible because ACPI 6.3 uses a previously
+reserved field in the MADT to store the SPE interrupt
+number, similarly to how the normal PMU is described.
+If a consistent valid interrupt exists across all the
+cores in the system, a platform device is registered.
+That then triggers the SPE module, which runs as normal.
 
-> -----Original Message-----
-> From: Pierre-Louis Bossart [mailto:pierre-louis.bossart@linux.intel.com]
-> Sent: Wednesday, May 1, 2019 5:53 AM
-> To: alsa-devel@alsa-project.org
-> Cc: linux-kernel@vger.kernel.org; tiwai@suse.de; broonie@kernel.org;
-> vkoul@kernel.org; gregkh@linuxfoundation.org;
-> liam.r.girdwood@linux.intel.com; jank@cadence.com; joe@perches.com;
-> srinivas.kandagatla@linaro.org; Pierre-Louis Bossart <pierre-
-> louis.bossart@linux.intel.com>; Rafael J. Wysocki <rjw@rjwysocki.net>;
-> Len Brown <lenb@kernel.org>; Moore, Robert <robert.moore@intel.com>;
-> Schmauss, Erik <erik.schmauss@intel.com>; open list:ACPI <linux-
-> acpi@vger.kernel.org>; open list:ACPI COMPONENT ARCHITECTURE (ACPICA)
-> <devel@acpica.org>
-> Subject: [PATCH v2] ACPI / device_sysfs: change _ADR representation to
-> 64 bits
-> 
-> Standards such as the MIPI DisCo for SoundWire 1.0 specification assume
-> the _ADR field is 64 bits.
-> 
-> _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
-> released in 2002. The low levels already use _ADR as 64 bits, e.g. in
-> struct acpi_device_info.
-> 
-[Moore, Robert] 
+We also add the ability to parse the PPTT for IDENTICAL
+cores. We then use this to sanity check the single SPE
+device we create. This creates a bit of a problem with
+respect to the specification though. The specification
+says that its legal for multiple tree's to exist in the
+PPTT. We handle this fine, but what happens in the
+case of multiple tree's is that the lack of a common
+node with IDENTICAL set forces us to assume that there
+are multiple non-IDENTICAL cores in the machine.
 
-Just to be precise: since acpi 2.0 the integer width is either 32 bits or 64 bits, depending on the version number of the DSDT (1-->32, 2 or greater --> 64).
+v2->v3: Previously a function pointer was being used
+	  to handle the more complex node checking
+	  required by the IDENTICAL flag. This version
+	  simply checks for the IDENTICAL flag and calls
+	  flag_identical() to preform the revision
+	  and next node checks. (I think after reading
+	  Raphael's comments for the Nth time, this is
+	  actually what he was suggesting, which I
+	  initially miss interpreted).
+	Modify subject of first patch so that its clear
+	  a that its a capitalization change rather,
+	  than a logical C 'case' change.
 
+v1->v2: Wrap the code which creates the SPE device in
+	    a new CONFIG_ARM_SPE_ACPI ifdef.
+	Move arm,spe-v1 device name into common header file
+	Some comment/case sensitivity/function name changes.
 
-> This patch bumps the representation used for sysfs to 64 bits. To avoid
-> any compatibility/ABI issues, the printf format is only extended to 16
-> characters when the actual _ADR value exceeds the 32 bit maximum.
-> 
-> Example with a SoundWire device, the results show the complete vendorID
-> and linkID which were omitted before:
-> 
-> Before:
-> $ more /sys/bus/acpi/devices/device\:38/adr
-> 0x5d070000
-> After:
-> $ more /sys/bus/acpi/devices/device\:38/adr
-> 0x000010025d070000
-> 
-> Signed-off-by: Pierre-Louis Bossart <pierre-
-> louis.bossart@linux.intel.com>
-> ---
-> v2: only use 64 bits when required to avoid compatibility issues
-> (feedback from Vinod and Rafael)
-> 
->  drivers/acpi/device_sysfs.c | 6 ++++--
->  include/acpi/acpi_bus.h     | 2 +-
->  2 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-> index 8940054d6250..7dda0ee05cd1 100644
-> --- a/drivers/acpi/device_sysfs.c
-> +++ b/drivers/acpi/device_sysfs.c
-> @@ -428,8 +428,10 @@ static ssize_t acpi_device_adr_show(struct device
-> *dev,  {
->  	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> 
-> -	return sprintf(buf, "0x%08x\n",
-> -		       (unsigned int)(acpi_dev->pnp.bus_address));
-> +	if (acpi_dev->pnp.bus_address > 0xFFFFFFFF)
-> +		return sprintf(buf, "0x%016llx\n", acpi_dev-
-> >pnp.bus_address);
-> +	else
-> +		return sprintf(buf, "0x%08llx\n", acpi_dev->pnp.bus_address);
->  }
->  static DEVICE_ATTR(adr, 0444, acpi_device_adr_show, NULL);
-> 
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h index
-> f7981751ac77..9075e28ea60a 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -230,7 +230,7 @@ struct acpi_device_dir {
->  /* Plug and Play */
-> 
->  typedef char acpi_bus_id[8];
-> -typedef unsigned long acpi_bus_address;
-> +typedef u64 acpi_bus_address;
->  typedef char acpi_device_name[40];
->  typedef char acpi_device_class[20];
-> 
-> --
-> 2.17.1
+Jeremy Linton (5):
+  ACPI/PPTT: Trivial, change the capitalization of CPU
+  ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
+  ACPI/PPTT: Modify node flag detection to find last IDENTICAL
+  arm_pmu: acpi: spe: Add initial MADT/SPE probing
+  perf: arm_spe: Enable ACPI/Platform automatic module loading
+
+ arch/arm64/include/asm/acpi.h |   3 +
+ drivers/acpi/pptt.c           | 102 +++++++++++++++++++++++++---------
+ drivers/perf/Kconfig          |   5 ++
+ drivers/perf/arm_pmu_acpi.c   |  76 +++++++++++++++++++++++++
+ drivers/perf/arm_spe_pmu.c    |  12 +++-
+ include/linux/acpi.h          |   5 ++
+ include/linux/perf/arm_pmu.h  |   2 +
+ 7 files changed, 176 insertions(+), 29 deletions(-)
+
+-- 
+2.21.0
