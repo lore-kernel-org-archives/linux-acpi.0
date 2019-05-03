@@ -2,200 +2,164 @@ Return-Path: <SRS0=ceNZ=TD=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS,T_DKIMWL_WL_MED,USER_IN_DEF_DKIM_WL
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C11E7C43219
-	for <linux-acpi@archiver.kernel.org>; Fri,  3 May 2019 23:24:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA195C46470
+	for <linux-acpi@archiver.kernel.org>; Fri,  3 May 2019 23:35:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9C84820C01
-	for <linux-acpi@archiver.kernel.org>; Fri,  3 May 2019 23:24:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0B7E206E0
+	for <linux-acpi@archiver.kernel.org>; Fri,  3 May 2019 23:35:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="HDskn1YS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726041AbfECXYb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 3 May 2019 19:24:31 -0400
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:40208 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726059AbfECXY3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 3 May 2019 19:24:29 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 229771684;
-        Fri,  3 May 2019 16:24:29 -0700 (PDT)
-Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.29.246])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 8D0243F557;
-        Fri,  3 May 2019 16:24:28 -0700 (PDT)
-From:   Jeremy Linton <jeremy.linton@arm.com>
-To:     linux-arm-kernel@lists.infradead.org
-Cc:     linux-acpi@vger.kernel.org, catalin.marinas@arm.com,
-        will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
-        sudeep.holla@arm.com, linuxarm@huawei.com, john.garry@huawei.com,
-        Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v3 4/5] arm_pmu: acpi: spe: Add initial MADT/SPE probing
-Date:   Fri,  3 May 2019 18:24:06 -0500
-Message-Id: <20190503232407.37195-5-jeremy.linton@arm.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190503232407.37195-1-jeremy.linton@arm.com>
-References: <20190503232407.37195-1-jeremy.linton@arm.com>
+        id S1726404AbfECXfR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 3 May 2019 19:35:17 -0400
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:37287 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726042AbfECXfQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 May 2019 19:35:16 -0400
+Received: by mail-oi1-f194.google.com with SMTP id 143so5712737oii.4
+        for <linux-acpi@vger.kernel.org>; Fri, 03 May 2019 16:35:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=MLniKeyCZOpahcUdSYJAe+ot7SuFR+G7B9LsqPznig0=;
+        b=HDskn1YS7k1QYZ+dsJLnQNeCPcK16/2pTj9ez8EsQ+gInQ3GZ0BR0iMYwxt27t5Q08
+         hqpBaeBjwOKtVQgCsUJvamW67feFI3qlTGT1KcmHb1GNFq6dCzpwgWTQP/JzQUPCoh2n
+         gh9O0YLeaKKrsmhKadRh0K76x6bY8P9sjfUVyINU6ITXamAF6EGiGsKDgBzi64vXN4ct
+         bI3LFVghfyoCDK7Dz4t2VyfzUyc9GObLwk+M40fnSIHaNJsKpyVb0A/uTNBX6Qn6G0yU
+         J5rd391xjjIx53CQ+uUMu0rkwlGPR4eJbG8SVKyh/iDNDWmPx94d8aD8Aa44bL92YFsJ
+         CikQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=MLniKeyCZOpahcUdSYJAe+ot7SuFR+G7B9LsqPznig0=;
+        b=XOSbMDPvlLiL+x0yiC7ldlS53tw3VqdFWyyWlyTiBaexxrLpxm51oUE1ybKnZnpdbn
+         U6hofHnZWZ93dGvKEaNZQqgs6xtDQdxp2o1KVdvapuGV99BlzNqc5J0rXGa07RbJQqg8
+         SeosWhyzZlav8OXnwC9aYWLodBn38EgbKNKHHUzRQo5yQm0493odAN4H4JWXx+nOKvCA
+         YRdb3WjBbQd23VDPqHIsA9DgrOAEE9ZF3a92dU26TZu7BRGR/VFYmF61sVSCSmZVt3lT
+         SwXWeYc6/aiQ85efHv0/44E6Zwni0XwguLthYwDxXgG+Jeuxy6tA06kBtjo2HvB3RfJP
+         BNVA==
+X-Gm-Message-State: APjAAAXfmYX4osJq0ZxM0nsG6xNlaDxAUmY0UlCLYgk1NCv0ctDlQjF5
+        L3Y2pNdh++V2xfkurCF0K0FUtBuIdkKyigasbyoGPw==
+X-Google-Smtp-Source: APXvYqy2Lu0/rrQmCa8ADPuIDsyZVIbwSsApFiDq4fylfiz6mfnP/sccRR8UgWJBV8TXH5UUr/Z/vBw+6dAjjeorUoo=
+X-Received: by 2002:aca:4f10:: with SMTP id d16mr875911oib.17.1556926515368;
+ Fri, 03 May 2019 16:35:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <s5hsgu0ihyg.wl-tiwai@suse.de> <EksOpJxc6GB@mike.franken.de>
+ <20190430090021.GF26516@lahna.fi.intel.com> <CAJZ5v0j_fYqtMv07C-V_9fCJ6=1ec3GjvT2M7PXVNSbZpoM67Q@mail.gmail.com>
+ <20190502114839.GC24696@kroah.com>
+In-Reply-To: <20190502114839.GC24696@kroah.com>
+From:   Furquan Shaikh <furquan@google.com>
+Date:   Fri, 3 May 2019 16:35:02 -0700
+Message-ID:
+ <CAEGmHFFGpUmK1VitkUxqXL29dBrKwbceT0pEOeR_7+_4+eLzvA@mail.gmail.com>
+Subject: Re: [REGRESSION 5.0.8] Dell thunderbolt dock broken (xhci_hcd and thunderbolt)
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        "Schmauss, Erik" <erik.schmauss@intel.com>, mh@mike.franken.de,
+        Lukas Wunner <lukas@wunner.de>, Takashi Iwai <tiwai@suse.de>,
+        Bjorn Helgaas <bhelgaas@google.com>, ckellner@redhat.com,
+        Jiri Slaby <jslaby@suse.cz>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Robert Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190503232406.Ds_0YQfFTM4prDH4vMWfk8UYDp3XsStXgdlP38pz3AQ@z>
+Message-ID: <20190503233502.KX9MrgdxnBCU_h3WPu_xj20EBNbRkw5bTdl9dzwJw78@z>
 
-ACPI 6.3 adds additional fields to the MADT GICC
-structure to describe SPE PPI's. We pick these out
-of the cached reference to the madt_gicc structure
-similarly to the core PMU code. We then create a platform
-device referring to the IRQ and let the user/module loader
-decide whether to load the SPE driver.
+On Thu, May 2, 2019 at 4:48 AM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Tue, Apr 30, 2019 at 11:37:48AM +0200, Rafael J. Wysocki wrote:
+> > On Tue, Apr 30, 2019 at 11:00 AM Mika Westerberg
+> > <mika.westerberg@linux.intel.com> wrote:
+> > >
+> > > +Rafael, Furquan and linux-acpi
+> > >
+> > > (The original thread is here https://lore.kernel.org/lkml/s5hy33siofw.wl-tiwai@suse.de/T/#u)
+> > >
+> > > On Tue, Apr 30, 2019 at 10:39:00AM +0200, Michael Hirmke wrote:
+> > > > Hi Takashi,
+> > > >
+> > > > [...]
+> > > > >>> I also have XPS 9370 but not that particular dock. I will check tomorrow
+> > > > >>> if I can reproduce it as well.
+> > > > >>
+> > > > >> There aren't too many changes between 5.0.7 and 5.0.8 that touch
+> > > > >> PCI/ACPI. This is just a shot in the dark but could you try to revert:
+> > > > >>
+> > > > >>   https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.gi
+> > > > >>   t/commit/?h=linux-5.0.y&id=da6a87fb0ad43ae811519d2e0aa325c7f792b13a
+> > > > >>
+> > > > >> and see if it makes any difference?
+> > > >
+> > > > >OK, I'm building a test kernel package with the revert in OBS
+> > > > >home:tiwai:bsc1133486 repo.  A new kernel will be
+> > > > >kernel-default-5.0.10-*g8edeab8:
+> > > > >  http://download.opensuse.org/repositories/home:/tiwai:/bsc1133486/standard/
+> > > >
+> > > > >Michael, once when the new kernel is ready, please give it a try.
+> > > >
+> > > > as far as I can see, state is back to normal with this kernel.
+> > > > No more error messages or crashing modules and all devices seem to work
+> > > > as expected.
+> > > > Only thing is, that the external devices connected to the Thunderbolt
+> > > > dock are coming up a little bit slower than with 5.0.7 - but this is
+> > > > nothing, I'd worry about.
+> > >
+> > > Thanks for testing.
+> > >
+> > > Rafael, it seems that commit c8b1917c8987 ("ACPICA: Clear status of GPEs
+> > > before enabling them") causes problem with Thunderbolt controllers if
+> > > you boot with device (dock) connected.
+> > >
+> > > I think the reason is the same that got fixed in v4.14 with commit
+> > > ecc1165b8b74 ("ACPICA: Dispatch active GPEs at init time") which the
+> > > above commit essentially undoes if I understand it correctly.
+> >
+> > OK, I'll queue up a revert of that one then, thanks!
+> >
+> > Erik, I think that commit c8b1917c8987 has been picked up by the
+> > upstream ACPICA already.  If I'm not mistaken, it needs to be reverted
+> > from there as well.
+>
+> I've queued the revert up in the stable trees as it has hit Linus's tree
+> now, and will push out a new round of stable kernels soon.
+>
+> thanks,
+>
+> greg k-h
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- arch/arm64/include/asm/acpi.h |  3 ++
- drivers/perf/Kconfig          |  5 +++
- drivers/perf/arm_pmu_acpi.c   | 76 +++++++++++++++++++++++++++++++++++
- include/linux/perf/arm_pmu.h  |  2 +
- 4 files changed, 86 insertions(+)
+Thanks for reporting the issue and apologize for the breakage. When I
+pushed the patch, my understanding was that the device drivers do not
+depend on stale GPE events to take any action.
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 7628efbe6c12..d10399b9f998 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -41,6 +41,9 @@
- 	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
- 	(unsigned long)(entry) + (entry)->header.length > (end))
- 
-+#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
-+	spe_interrupt) + sizeof(u16))
-+
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
- pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
-diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
-index af9bc178495d..bc2647c64c9d 100644
---- a/drivers/perf/Kconfig
-+++ b/drivers/perf/Kconfig
-@@ -52,6 +52,11 @@ config ARM_PMU_ACPI
- 	depends on ARM_PMU && ACPI
- 	def_bool y
- 
-+config ARM_SPE_ACPI
-+	depends on ARM_PMU_ACPI && ARM_SPE_PMU
-+	def_bool y
-+
-+
- config ARM_DSU_PMU
- 	tristate "ARM DynamIQ Shared Unit (DSU) PMU"
- 	depends on ARM64
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-index 0f197516d708..b0244e1e8c91 100644
---- a/drivers/perf/arm_pmu_acpi.c
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -74,6 +74,80 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
- 	acpi_unregister_gsi(gsi);
- }
- 
-+#ifdef CONFIG_ARM_SPE_ACPI
-+static struct resource spe_resources[] = {
-+	{
-+		/* irq */
-+		.flags          = IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device spe_dev = {
-+	.name = ARMV8_SPE_PDEV_NAME,
-+	.id = -1,
-+	.resource = spe_resources,
-+	.num_resources = ARRAY_SIZE(spe_resources)
-+};
-+
-+/*
-+ * For lack of a better place, hook the normal PMU MADT walk
-+ * and create a SPE device if we detect a recent MADT with
-+ * a homogeneous PPI mapping.
-+ */
-+static int arm_spe_acpi_register_device(void)
-+{
-+	int cpu, ret, irq;
-+	int hetid;
-+	u16 gsi = 0;
-+	bool first = true;
-+
-+	struct acpi_madt_generic_interrupt *gicc;
-+
-+	/*
-+	 * sanity check all the GICC tables for the same interrupt number
-+	 * for now we only support homogeneous ACPI/SPE machines.
-+	 */
-+	for_each_possible_cpu(cpu) {
-+		gicc = acpi_cpu_get_madt_gicc(cpu);
-+
-+		if (gicc->header.length < ACPI_MADT_GICC_SPE)
-+			return -ENODEV;
-+		if (first) {
-+			gsi = gicc->spe_interrupt;
-+			if (!gsi)
-+				return -ENODEV;
-+			hetid = find_acpi_cpu_topology_hetero_id(cpu);
-+			first = false;
-+		} else if ((gsi != gicc->spe_interrupt) ||
-+			   (hetid != find_acpi_cpu_topology_hetero_id(cpu))) {
-+			pr_warn("ACPI: SPE must be homogeneous\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	irq = acpi_register_gsi(NULL, gsi, ACPI_LEVEL_SENSITIVE,
-+				ACPI_ACTIVE_HIGH);
-+	if (irq < 0) {
-+		pr_warn("ACPI: SPE Unable to register interrupt: %d\n", gsi);
-+		return irq;
-+	}
-+
-+	spe_resources[0].start = irq;
-+	ret = platform_device_register(&spe_dev);
-+	if (ret < 0) {
-+		pr_warn("ACPI: SPE: Unable to register device\n");
-+		acpi_unregister_gsi(gsi);
-+	}
-+
-+	return ret;
-+}
-+#else
-+static inline int arm_spe_acpi_register_device(void)
-+{
-+	return -ENODEV;
-+}
-+#endif /* CONFIG_ARM_SPE_ACPI */
-+
- static int arm_pmu_acpi_parse_irqs(void)
- {
- 	int irq, cpu, irq_cpu, err;
-@@ -279,6 +353,8 @@ static int arm_pmu_acpi_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
-+	arm_spe_acpi_register_device(); /* failures are expected */
-+
- 	ret = arm_pmu_acpi_parse_irqs();
- 	if (ret)
- 		return ret;
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index 4641e850b204..784bc58f165a 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -175,4 +175,6 @@ void armpmu_free_irq(int irq, int cpu);
- 
- #endif /* CONFIG_ARM_PMU */
- 
-+#define ARMV8_SPE_PDEV_NAME "arm,spe-v1"
-+
- #endif /* __ARM_PMU_H__ */
--- 
-2.21.0
+I am curious to understand the behavior for the thunderbolt device
+since I do not have one to test with. The failure seems to be a result
+of either having a edge-triggered interrupt or a pulse interrupt which
+indicates some kind of ready condition to the kernel driver. All the
+runtime GPEs seem to be initialized as part of acpi_init before ACPI
+bus is scanned. So, is this some special kind of requirement for
+thunderbolt that requires GPE enabled before the device can actually
+be probed. And so the GPEs going active before being enabled are then
+used as a way to call into ACPI Method to enable something which is
+essential for probing of device?
 
+The other question I have is given that handling of GPE events that
+were active before being enabled is required at least for some set of
+devices (e.g. thunderbolt), what is a good way to solve the original
+problem that was being addressed by the patch being reverted i.e.
+stale events resulting in spurious wakes on wakeup GPEs. One way I can
+think of is clearing the status of GPEs when they are setup for
+wake(acpi_setup_gpe_for_wake). What do you think?
