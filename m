@@ -1,59 +1,104 @@
-From: Lenny Szubowicz <lszubowi@redhat.com>
-Subject: ACPI / LPIT: Correct LPIT end address for lpit_process()
-Date: Thu,  2 May 2019 16:00:52 -0400
-Message-ID: <20190502200052.26754-1-lszubowi@redhat.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2] ACPI / device_sysfs: change _ADR representation to
+ 64 bits
+Date: Fri, 3 May 2019 19:54:57 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B958C7AE@ORSMSX110.amr.corp.intel.com>
+References: <20190501125322.23791-1-pierre-louis.bossart@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190501125322.23791-1-pierre-louis.bossart@linux.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, srinivas.pandruvada@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tiwai@suse.de" <tiwai@suse.de>, "broonie@kernel.org" <broonie@kernel.org>, "vkoul@kernel.org" <vkoul@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "jank@cadence.com" <jank@cadence.com>, "joe@perches.com" <joe@perches.com>, "srinivas.kandagatla@linaro.org" <srinivas.kandagatla@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Correct the LPIT end address which is passed into lpit_process()
-and the end address limit test in lpit_process().
 
-The LPI state descriptor subtables follow the fixed sized
-acpi_lpit_header up to the end of the LPIT. The last LPI state
-descriptor can end at exactly the end of the LPIT.
 
-Note that this is a fix to a latent problem. Although incorrect,
-the unpatched version works because the passed in end address
-is just slightly beyond the actual end of the LPIT and the size
-of the ACPI LPIT header is smaller than the size of the only
-currently defined LPI state descriptor, acpi_lpit_native.
+> -----Original Message-----
+> From: Pierre-Louis Bossart [mailto:pierre-louis.bossart@linux.intel.com]
+> Sent: Wednesday, May 1, 2019 5:53 AM
+> To: alsa-devel@alsa-project.org
+> Cc: linux-kernel@vger.kernel.org; tiwai@suse.de; broonie@kernel.org;
+> vkoul@kernel.org; gregkh@linuxfoundation.org;
+> liam.r.girdwood@linux.intel.com; jank@cadence.com; joe@perches.com;
+> srinivas.kandagatla@linaro.org; Pierre-Louis Bossart <pierre-
+> louis.bossart@linux.intel.com>; Rafael J. Wysocki <rjw@rjwysocki.net>;
+> Len Brown <lenb@kernel.org>; Moore, Robert <robert.moore@intel.com>;
+> Schmauss, Erik <erik.schmauss@intel.com>; open list:ACPI <linux-
+> acpi@vger.kernel.org>; open list:ACPI COMPONENT ARCHITECTURE (ACPICA)
+> <devel@acpica.org>
+> Subject: [PATCH v2] ACPI / device_sysfs: change _ADR representation to
+> 64 bits
+> 
+> Standards such as the MIPI DisCo for SoundWire 1.0 specification assume
+> the _ADR field is 64 bits.
+> 
+> _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
+> released in 2002. The low levels already use _ADR as 64 bits, e.g. in
+> struct acpi_device_info.
+> 
+[Moore, Robert] 
 
-Signed-off-by: Lenny Szubowicz <lszubowi@redhat.com>
----
- drivers/acpi/acpi_lpit.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Just to be precise: since acpi 2.0 the integer width is either 32 bits or 64 bits, depending on the version number of the DSDT (1-->32, 2 or greater --> 64).
 
-diff --git a/drivers/acpi/acpi_lpit.c b/drivers/acpi/acpi_lpit.c
-index e43cb71b6972..8b170a07908a 100644
---- a/drivers/acpi/acpi_lpit.c
-+++ b/drivers/acpi/acpi_lpit.c
-@@ -137,7 +137,7 @@ static void lpit_update_residency(struct lpit_residency_info *info,
- 
- static void lpit_process(u64 begin, u64 end)
- {
--	while (begin + sizeof(struct acpi_lpit_native) < end) {
-+	while (begin + sizeof(struct acpi_lpit_native) <= end) {
- 		struct acpi_lpit_native *lpit_native = (struct acpi_lpit_native *)begin;
- 
- 		if (!lpit_native->header.type && !lpit_native->header.flags) {
-@@ -156,7 +156,6 @@ static void lpit_process(u64 begin, u64 end)
- void acpi_init_lpit(void)
- {
- 	acpi_status status;
--	u64 lpit_begin;
- 	struct acpi_table_lpit *lpit;
- 
- 	status = acpi_get_table(ACPI_SIG_LPIT, 0, (struct acpi_table_header **)&lpit);
-@@ -164,6 +163,6 @@ void acpi_init_lpit(void)
- 	if (ACPI_FAILURE(status))
- 		return;
- 
--	lpit_begin = (u64)lpit + sizeof(*lpit);
--	lpit_process(lpit_begin, lpit_begin + lpit->header.length);
-+	lpit_process((u64)lpit + sizeof(*lpit),
-+		     (u64)lpit + lpit->header.length);
- }
--- 
-2.18.1
+
+> This patch bumps the representation used for sysfs to 64 bits. To avoid
+> any compatibility/ABI issues, the printf format is only extended to 16
+> characters when the actual _ADR value exceeds the 32 bit maximum.
+> 
+> Example with a SoundWire device, the results show the complete vendorID
+> and linkID which were omitted before:
+> 
+> Before:
+> $ more /sys/bus/acpi/devices/device\:38/adr
+> 0x5d070000
+> After:
+> $ more /sys/bus/acpi/devices/device\:38/adr
+> 0x000010025d070000
+> 
+> Signed-off-by: Pierre-Louis Bossart <pierre-
+> louis.bossart@linux.intel.com>
+> ---
+> v2: only use 64 bits when required to avoid compatibility issues
+> (feedback from Vinod and Rafael)
+> 
+>  drivers/acpi/device_sysfs.c | 6 ++++--
+>  include/acpi/acpi_bus.h     | 2 +-
+>  2 files changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+> index 8940054d6250..7dda0ee05cd1 100644
+> --- a/drivers/acpi/device_sysfs.c
+> +++ b/drivers/acpi/device_sysfs.c
+> @@ -428,8 +428,10 @@ static ssize_t acpi_device_adr_show(struct device
+> *dev,  {
+>  	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> 
+> -	return sprintf(buf, "0x%08x\n",
+> -		       (unsigned int)(acpi_dev->pnp.bus_address));
+> +	if (acpi_dev->pnp.bus_address > 0xFFFFFFFF)
+> +		return sprintf(buf, "0x%016llx\n", acpi_dev-
+> >pnp.bus_address);
+> +	else
+> +		return sprintf(buf, "0x%08llx\n", acpi_dev->pnp.bus_address);
+>  }
+>  static DEVICE_ATTR(adr, 0444, acpi_device_adr_show, NULL);
+> 
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h index
+> f7981751ac77..9075e28ea60a 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -230,7 +230,7 @@ struct acpi_device_dir {
+>  /* Plug and Play */
+> 
+>  typedef char acpi_bus_id[8];
+> -typedef unsigned long acpi_bus_address;
+> +typedef u64 acpi_bus_address;
+>  typedef char acpi_device_name[40];
+>  typedef char acpi_device_class[20];
+> 
+> --
+> 2.17.1
