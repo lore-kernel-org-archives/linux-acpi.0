@@ -1,100 +1,138 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: Re: [PATCH v3 2/5] ACPI/PPTT: Add function to return ACPI 6.3
- Identical tokens
-Date: Sun, 5 May 2019 15:09:01 +0800
-Message-ID: <b52d15ab-de9c-8aa4-d2a4-dacdcb9d137e@huawei.com>
-References: <20190503232407.37195-1-jeremy.linton@arm.com>
- <20190503232407.37195-3-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190503232407.37195-3-jeremy.linton@arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, linuxarm@huawei.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lenb@kernel.org
+From: Ruslan Babayev <ruslan@babayev.com>
+Subject: [PATCH] net: phy: sfp: enable i2c-bus detection on ACPI based systems
+Date: Sun,  5 May 2019 12:34:34 -0700
+Message-ID: <20190505193435.3248-1-ruslan@babayev.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Russell King <linux@armlinux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>
+Cc: xe-linux-external@cisco.com, "David S. Miller" <davem@davemloft.net>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Signed-off-by: Ruslan Babayev <ruslan@babayev.com>
+Cc: xe-linux-external@cisco.com
+---
+ drivers/i2c/i2c-core-acpi.c |  3 ++-
+ drivers/net/phy/sfp.c       | 33 +++++++++++++++++++++++++--------
+ include/linux/i2c.h         |  6 ++++++
+ 3 files changed, 33 insertions(+), 9 deletions(-)
 
-On 2019/5/4 7:24, Jeremy Linton wrote:
-> ACPI 6.3 adds a flag to indicate that child nodes are all
-> identical cores. This is useful to authoritatively determine
-> if a set of (possibly offline) cores are identical or not.
->
-> Since the flag doesn't give us a unique id we can generate
-> one and use it to create bitmaps of sibling nodes, or simply
-> in a loop to determine if a subset of cores are identical.
->
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
->  include/linux/acpi.h |  5 +++++
->  2 files changed, 31 insertions(+)
->
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index 83a026765faa..1865515297ca 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -660,3 +660,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
->  	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
->  					  ACPI_PPTT_PHYSICAL_PACKAGE);
->  }
-> +
-> +/**
-> + * find_acpi_cpu_topology_hetero_id() - Get a core architecture tag
-> + * @cpu: Kernel logical CPU number
-> + *
-> + * Determine a unique heterogeneous tag for the given CPU. CPUs with the same
-> + * implementation should have matching tags.
-> + *
-> + * The returned tag can be used to group peers with identical implementation.
-> + *
-> + * The search terminates when a level is found with the identical implementation
-> + * flag set or we reach a root node.
-> + *
-> + * Due to limitations in the PPTT data structure, there may be rare situations
-> + * where two cores in a heterogeneous machine may be identical, but won't have
-> + * the same tag.
-> + *
-> + * Return: -ENOENT if the PPTT doesn't exist, or the CPU cannot be found.
-> + * Otherwise returns a value which represents a group of identical cores
-> + * similar to this CPU.
-> + */
-> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
-> +{
-> +	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
-> +					  ACPI_PPTT_ACPI_IDENTICAL);
-> +}
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index d5dcebd7aad3..1444fb042898 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1309,6 +1309,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
->  #ifdef CONFIG_ACPI_PPTT
->  int find_acpi_cpu_topology(unsigned int cpu, int level);
->  int find_acpi_cpu_topology_package(unsigned int cpu);
-> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
->  int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
->  #else
->  static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
-> @@ -1319,6 +1320,10 @@ static inline int find_acpi_cpu_topology_package(unsigned int cpu)
->  {
->  	return -EINVAL;
->  }
-static inline int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
-> +static int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
-> +{
-> +	return -EINVAL;
-> +}
->  static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
->  {
->  	return -EINVAL;
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 272800692088..964687534754 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -337,7 +337,7 @@ static int i2c_acpi_find_match_device(struct device *dev, void *data)
+ 	return ACPI_COMPANION(dev) == data;
+ }
+ 
+-static struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
++struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
+ {
+ 	struct device *dev;
+ 
+@@ -345,6 +345,7 @@ static struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
+ 			      i2c_acpi_find_match_adapter);
+ 	return dev ? i2c_verify_adapter(dev) : NULL;
+ }
++EXPORT_SYMBOL_GPL(i2c_acpi_find_adapter_by_handle);
+ 
+ static struct i2c_client *i2c_acpi_find_client_by_adev(struct acpi_device *adev)
+ {
+diff --git a/drivers/net/phy/sfp.c b/drivers/net/phy/sfp.c
+index d4635c2178d1..7a6c8df8899b 100644
+--- a/drivers/net/phy/sfp.c
++++ b/drivers/net/phy/sfp.c
+@@ -9,6 +9,7 @@
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
++#include <linux/acpi.h>
+ #include <linux/phy.h>
+ #include <linux/platform_device.h>
+ #include <linux/rtnetlink.h>
+@@ -1783,6 +1784,7 @@ static int sfp_probe(struct platform_device *pdev)
+ {
+ 	const struct sff_data *sff;
+ 	struct sfp *sfp;
++	struct i2c_adapter *i2c = NULL;
+ 	bool poll = false;
+ 	int irq, err, i;
+ 
+@@ -1801,7 +1803,6 @@ static int sfp_probe(struct platform_device *pdev)
+ 	if (pdev->dev.of_node) {
+ 		struct device_node *node = pdev->dev.of_node;
+ 		const struct of_device_id *id;
+-		struct i2c_adapter *i2c;
+ 		struct device_node *np;
+ 
+ 		id = of_match_node(sfp_of_match, node);
+@@ -1818,14 +1819,30 @@ static int sfp_probe(struct platform_device *pdev)
+ 
+ 		i2c = of_find_i2c_adapter_by_node(np);
+ 		of_node_put(np);
+-		if (!i2c)
+-			return -EPROBE_DEFER;
+-
+-		err = sfp_i2c_configure(sfp, i2c);
+-		if (err < 0) {
+-			i2c_put_adapter(i2c);
+-			return err;
++	} else if (ACPI_COMPANION(&pdev->dev)) {
++		struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
++		struct fwnode_handle *fw = acpi_fwnode_handle(adev);
++		struct fwnode_reference_args args;
++		struct acpi_handle *acpi_handle;
++		int ret;
++
++		ret = acpi_node_get_property_reference(fw, "i2c-bus", 0, &args);
++		if (ACPI_FAILURE(ret) || !is_acpi_device_node(args.fwnode)) {
++			dev_err(&pdev->dev, "missing 'i2c-bus' property\n");
++			return -ENODEV;
+ 		}
++
++		acpi_handle = ACPI_HANDLE_FWNODE(args.fwnode);
++		i2c = i2c_acpi_find_adapter_by_handle(acpi_handle);
++	}
++
++	if (!i2c)
++		return -EPROBE_DEFER;
++
++	err = sfp_i2c_configure(sfp, i2c);
++	if (err < 0) {
++		i2c_put_adapter(i2c);
++		return err;
+ 	}
+ 
+ 	for (i = 0; i < GPIO_MAX; i++)
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 383510b4f083..24859a26f167 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -33,6 +33,7 @@
+ #include <linux/rtmutex.h>
+ #include <linux/irqdomain.h>		/* for Host Notify IRQ */
+ #include <linux/of.h>		/* for struct device_node */
++#include <linux/acpi.h>		/* for acpi_handle */
+ #include <linux/swab.h>		/* for swab16 */
+ #include <uapi/linux/i2c.h>
+ 
+@@ -977,6 +978,7 @@ bool i2c_acpi_get_i2c_resource(struct acpi_resource *ares,
+ u32 i2c_acpi_find_bus_speed(struct device *dev);
+ struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
+ 				       struct i2c_board_info *info);
++struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle);
+ #else
+ static inline bool i2c_acpi_get_i2c_resource(struct acpi_resource *ares,
+ 					     struct acpi_resource_i2c_serialbus **i2c)
+@@ -992,6 +994,10 @@ static inline struct i2c_client *i2c_acpi_new_device(struct device *dev,
+ {
+ 	return NULL;
+ }
++struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
++{
++	return NULL;
++}
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /* _LINUX_I2C_H */
+-- 
+2.17.1
