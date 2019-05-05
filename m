@@ -1,13 +1,15 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v3 0/5] arm64: SPE ACPI enablement
-Date: Sat, 4 May 2019 19:06:19 +0800
-Message-ID: <5eaa1607-4bf0-a320-e9cf-2d51eca912c6@huawei.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH v3 2/5] ACPI/PPTT: Add function to return ACPI 6.3
+ Identical tokens
+Date: Sun, 5 May 2019 15:09:01 +0800
+Message-ID: <b52d15ab-de9c-8aa4-d2a4-dacdcb9d137e@huawei.com>
 References: <20190503232407.37195-1-jeremy.linton@arm.com>
+ <20190503232407.37195-3-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190503232407.37195-1-jeremy.linton@arm.com>
+In-Reply-To: <20190503232407.37195-3-jeremy.linton@arm.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -19,53 +21,80 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, will.deacon@arm.com, sudeep.holla@arm.com, rjw@rjwysocki.net, linuxarm@huawei.com, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, lenb@kernel.org
+Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, linuxarm@huawei.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jeremy, Mark,
 
 On 2019/5/4 7:24, Jeremy Linton wrote:
-> This patch series enables the Arm Statistical Profiling
-> Extension (SPE) on ACPI platforms.
-> 
-> This is possible because ACPI 6.3 uses a previously
-> reserved field in the MADT to store the SPE interrupt
-> number, similarly to how the normal PMU is described.
-> If a consistent valid interrupt exists across all the
-> cores in the system, a platform device is registered.
-> That then triggers the SPE module, which runs as normal.
-> 
-> We also add the ability to parse the PPTT for IDENTICAL
-> cores. We then use this to sanity check the single SPE
-> device we create. This creates a bit of a problem with
-> respect to the specification though. The specification
-> says that its legal for multiple tree's to exist in the
-> PPTT. We handle this fine, but what happens in the
-> case of multiple tree's is that the lack of a common
-> node with IDENTICAL set forces us to assume that there
-> are multiple non-IDENTICAL cores in the machine.
-
-Adding this patch set on top of latest mainline kernel,
-and tested on D06 which has the SPE feature, in boot message
-shows it was probed successfully:
-
-arm_spe_pmu arm,spe-v1: probed for CPUs 0-95 [max_record_sz 128, align 4, features 0x7]
-
-but when I test it with spe events such as
-
-perf record -c 1024 -e arm_spe_0/branch_filter=0/ -o spe ls
-
-it fails with:
-failed to mmap with 12 (Cannot allocate memory),
-
-Confirmed that patch [0] is merged and other perf events are working
-fine.
-
-I narrowed this issue down that mmap() failed to alloc 4M memory
-in perf tool but seems have no relationship with this SPE patch set,
-then I'm lost, could you take look please?
-
-Thanks
-Hanjun
-
-[0]: https://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git/commit/?id=528871b456026e6127d95b1b2bd8e3a003dc1614
+> ACPI 6.3 adds a flag to indicate that child nodes are all
+> identical cores. This is useful to authoritatively determine
+> if a set of (possibly offline) cores are identical or not.
+>
+> Since the flag doesn't give us a unique id we can generate
+> one and use it to create bitmaps of sibling nodes, or simply
+> in a loop to determine if a subset of cores are identical.
+>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
+>  include/linux/acpi.h |  5 +++++
+>  2 files changed, 31 insertions(+)
+>
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> index 83a026765faa..1865515297ca 100644
+> --- a/drivers/acpi/pptt.c
+> +++ b/drivers/acpi/pptt.c
+> @@ -660,3 +660,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
+>  	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
+>  					  ACPI_PPTT_PHYSICAL_PACKAGE);
+>  }
+> +
+> +/**
+> + * find_acpi_cpu_topology_hetero_id() - Get a core architecture tag
+> + * @cpu: Kernel logical CPU number
+> + *
+> + * Determine a unique heterogeneous tag for the given CPU. CPUs with the same
+> + * implementation should have matching tags.
+> + *
+> + * The returned tag can be used to group peers with identical implementation.
+> + *
+> + * The search terminates when a level is found with the identical implementation
+> + * flag set or we reach a root node.
+> + *
+> + * Due to limitations in the PPTT data structure, there may be rare situations
+> + * where two cores in a heterogeneous machine may be identical, but won't have
+> + * the same tag.
+> + *
+> + * Return: -ENOENT if the PPTT doesn't exist, or the CPU cannot be found.
+> + * Otherwise returns a value which represents a group of identical cores
+> + * similar to this CPU.
+> + */
+> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
+> +{
+> +	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
+> +					  ACPI_PPTT_ACPI_IDENTICAL);
+> +}
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index d5dcebd7aad3..1444fb042898 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1309,6 +1309,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
+>  #ifdef CONFIG_ACPI_PPTT
+>  int find_acpi_cpu_topology(unsigned int cpu, int level);
+>  int find_acpi_cpu_topology_package(unsigned int cpu);
+> +int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
+>  int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+>  #else
+>  static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
+> @@ -1319,6 +1320,10 @@ static inline int find_acpi_cpu_topology_package(unsigned int cpu)
+>  {
+>  	return -EINVAL;
+>  }
+static inline int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
+> +static int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
+> +{
+> +	return -EINVAL;
+> +}
+>  static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
+>  {
+>  	return -EINVAL;
