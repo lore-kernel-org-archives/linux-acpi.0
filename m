@@ -1,48 +1,104 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH net-next 2/2] net: phy: sfp: enable i2c-bus detection on
- ACPI based systems
-Date: Mon, 6 May 2019 21:40:19 +0200
-Message-ID: <20190506194019.GB25013@lunn.ch>
-References: <20190505220524.37266-3-ruslan@babayev.com>
- <20190506045951.GB2895@lahna.fi.intel.com>
+From: Gabriel C <nix.or.die@gmail.com>
+Subject: [Kernel 5.1] ACPI_DEBUG messages without CONFIG_ACPI_DEBUG being set
+Date: Tue, 7 May 2019 01:34:28 +0200
+Message-ID: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190506045951.GB2895@lahna.fi.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Ruslan Babayev <ruslan@babayev.com>, linux@armlinux.org.uk, f.fainelli@gmail.com, hkallweit1@gmail.com, wsa@the-dreams.de, davem@davemloft.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, xe-linux-external@cisco.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 06, 2019 at 07:59:51AM +0300, Mika Westerberg wrote:
-> On Sun, May 05, 2019 at 03:05:23PM -0700, Ruslan Babayev wrote:
-> > Lookup I2C adapter using the "i2c-bus" device property on ACPI based
-> > systems similar to how it's done with DT.
-> > 
-> > An example DSD describing an SFP on an ACPI based system:
-> > 
-> > Device (SFP0)
-> > {
-> >     Name (_HID, "PRP0001")
-> >     Name (_DSD, Package ()
-> >     {
-> >         ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> >         Package () {
-> >             Package () { "compatible", "sff,sfp" },
-> >             Package () { "i2c-bus", \_SB.PCI0.RP01.I2C.MUX.CH0 },
-> 
-> Hmm, ACPI has I2cSerialBusV2() resource for this purpose. Why you are not
-> using that?
+Hello,
 
-Hi Mika
+while testing kernel-5.1 I get on one of my Lenovo Laptops very
+strange 'ACPI Debug:' messages.
 
-Does that reference the bus as a whole, or a device on the bus?
+After some grepping I realized these are Debug messages from DSDT ,
+however my kernel does
+not have ACPI_DEBUG enabled.
 
-The SFP subsystem needs a reference to the bus as a whole. There can
-be an at24 like EEPROM at addresses 0x50 and 0x51. There can be an
-MDIO bus encapsulated in i2c at addresses 0x40-0x5f, excluding 0x50
-and 0x51. What actually is there depends on the SFP module which is
-plugged into the SFP cage, and it is all hot-plugable.
+I found out the module triggering this, on this Laptop is
+ideapad_laptop , but looking at the code
+I cannot see what would causes that.
 
-	Andrew
+Also on the same Laptop with any 5.0.X kernels I cannot see these.
+
+
+~$ grep -i ACPI_DEBUG /boot/config-5.1-fw1
+# CONFIG_ACPI_DEBUGGER is not set
+# CONFIG_ACPI_DEBUG is not set
+# CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
+# CONFIG_THINKPAD_ACPI_DEBUG is not set
+
+.. dmesg ..
+...
+[   68.020812] calling  ideapad_acpi_driver_init+0x0/0x1000
+[ideapad_laptop] @ 1322
+[   68.026708] input: Ideapad extra buttons as
+/devices/pci0000:00/0000:00:1f.0/PNP0C09:00/VPC2004:00/input/input16
+[   68.038236] ACPI Debug:  "=====QUERY_64====="
+[   68.050232] ACPI Debug:  "=====QUERY_65====="
+[   68.060218] ACPI Debug:  "=====QUERY_64====="
+[   68.092216] probe of VPC2004:00 returned 1 after 71386 usecs
+[   68.092245] initcall ideapad_acpi_driver_init+0x0/0x1000
+[ideapad_laptop] returned 0 after 69751 usecssg
+
+...
+
+These =====QUERY_XX===== messages are from DSDT:
+
+~/acpi$ grep QUERY dsdt.dsl
+               Debug = "=====QUERY_11====="
+               Debug = "=====QUERY_12====="
+               Debug = "=====QUERY_24====="
+               Debug = "=====QUERY_25====="
+               Debug = "=====QUERY_37====="
+               Debug = "=====QUERY_38====="
+               Debug = "=====QUERY_64====="
+               Debug = "=====QUERY_65====="
+
+Also this is the code from DSDT for QUERY 64 and 65:
+
+...
+            Method (_Q64, 0, NotSerialized)  // _Qxx: EC Query
+           {
+               Debug = "=====QUERY_64====="
+               If ((OSYS == 0x07D9))
+               {
+                   If (((WLEX == One) & (WLAT == One)))
+                   {
+                       SGOV (0x02040005, One)
+                   }
+                   Else
+                   {
+                       SGOV (0x02040005, Zero)
+                   }
+               }
+           }
+
+           Method (_Q65, 0, NotSerialized)  // _Qxx: EC Query
+           {
+               Debug = "=====QUERY_65====="
+               If ((OSYS == 0x07D9))
+               {
+                   If (((BTEX == One) & (BTAT == One)))
+                   {
+                       SGOV (0x0202000B, One)
+                   }
+                   Else
+                   {
+                       SGOV (0x0202000B, Zero)
+                   }
+               }
+           }
+
+...
+
+
+Any idea what would cause this ?
+
+BR,
+
+Gabriel C
