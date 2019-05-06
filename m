@@ -1,104 +1,69 @@
-From: Gabriel C <nix.or.die@gmail.com>
-Subject: [Kernel 5.1] ACPI_DEBUG messages without CONFIG_ACPI_DEBUG being set
-Date: Tue, 7 May 2019 01:34:28 +0200
-Message-ID: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: ACPI / LPIT: Correct LPIT end address for lpit_process()
+Date: Mon, 06 May 2019 16:46:15 -0700
+Message-ID: <a988c4cf340e9ae91d942bce02218de6e9c9815c.camel@linux.intel.com>
+References: <20190502200052.26754-1-lszubowi@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190502200052.26754-1-lszubowi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>
+To: Lenny Szubowicz <lszubowi@redhat.com>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Thu, 2019-05-02 at 16:00 -0400, Lenny Szubowicz wrote:
+> Correct the LPIT end address which is passed into lpit_process()
+> and the end address limit test in lpit_process().
+> 
+> The LPI state descriptor subtables follow the fixed sized
+> acpi_lpit_header up to the end of the LPIT. The last LPI state
+> descriptor can end at exactly the end of the LPIT.
+> 
+> Note that this is a fix to a latent problem. Although incorrect,
+> the unpatched version works because the passed in end address
+> is just slightly beyond the actual end of the LPIT and the size
+> of the ACPI LPIT header is smaller than the size of the only
+> currently defined LPI state descriptor, acpi_lpit_native.
+> 
+> Signed-off-by: Lenny Szubowicz <lszubowi@redhat.com>
+Reviewed-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-while testing kernel-5.1 I get on one of my Lenovo Laptops very
-strange 'ACPI Debug:' messages.
-
-After some grepping I realized these are Debug messages from DSDT ,
-however my kernel does
-not have ACPI_DEBUG enabled.
-
-I found out the module triggering this, on this Laptop is
-ideapad_laptop , but looking at the code
-I cannot see what would causes that.
-
-Also on the same Laptop with any 5.0.X kernels I cannot see these.
-
-
-~$ grep -i ACPI_DEBUG /boot/config-5.1-fw1
-# CONFIG_ACPI_DEBUGGER is not set
-# CONFIG_ACPI_DEBUG is not set
-# CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
-# CONFIG_THINKPAD_ACPI_DEBUG is not set
-
-.. dmesg ..
-...
-[   68.020812] calling  ideapad_acpi_driver_init+0x0/0x1000
-[ideapad_laptop] @ 1322
-[   68.026708] input: Ideapad extra buttons as
-/devices/pci0000:00/0000:00:1f.0/PNP0C09:00/VPC2004:00/input/input16
-[   68.038236] ACPI Debug:  "=====QUERY_64====="
-[   68.050232] ACPI Debug:  "=====QUERY_65====="
-[   68.060218] ACPI Debug:  "=====QUERY_64====="
-[   68.092216] probe of VPC2004:00 returned 1 after 71386 usecs
-[   68.092245] initcall ideapad_acpi_driver_init+0x0/0x1000
-[ideapad_laptop] returned 0 after 69751 usecssg
-
-...
-
-These =====QUERY_XX===== messages are from DSDT:
-
-~/acpi$ grep QUERY dsdt.dsl
-               Debug = "=====QUERY_11====="
-               Debug = "=====QUERY_12====="
-               Debug = "=====QUERY_24====="
-               Debug = "=====QUERY_25====="
-               Debug = "=====QUERY_37====="
-               Debug = "=====QUERY_38====="
-               Debug = "=====QUERY_64====="
-               Debug = "=====QUERY_65====="
-
-Also this is the code from DSDT for QUERY 64 and 65:
-
-...
-            Method (_Q64, 0, NotSerialized)  // _Qxx: EC Query
-           {
-               Debug = "=====QUERY_64====="
-               If ((OSYS == 0x07D9))
-               {
-                   If (((WLEX == One) & (WLAT == One)))
-                   {
-                       SGOV (0x02040005, One)
-                   }
-                   Else
-                   {
-                       SGOV (0x02040005, Zero)
-                   }
-               }
-           }
-
-           Method (_Q65, 0, NotSerialized)  // _Qxx: EC Query
-           {
-               Debug = "=====QUERY_65====="
-               If ((OSYS == 0x07D9))
-               {
-                   If (((BTEX == One) & (BTAT == One)))
-                   {
-                       SGOV (0x0202000B, One)
-                   }
-                   Else
-                   {
-                       SGOV (0x0202000B, Zero)
-                   }
-               }
-           }
-
-...
-
-
-Any idea what would cause this ?
-
-BR,
-
-Gabriel C
+> ---
+>  drivers/acpi/acpi_lpit.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_lpit.c b/drivers/acpi/acpi_lpit.c
+> index e43cb71b6972..8b170a07908a 100644
+> --- a/drivers/acpi/acpi_lpit.c
+> +++ b/drivers/acpi/acpi_lpit.c
+> @@ -137,7 +137,7 @@ static void lpit_update_residency(struct
+> lpit_residency_info *info,
+>  
+>  static void lpit_process(u64 begin, u64 end)
+>  {
+> -	while (begin + sizeof(struct acpi_lpit_native) < end) {
+> +	while (begin + sizeof(struct acpi_lpit_native) <= end) {
+>  		struct acpi_lpit_native *lpit_native = (struct
+> acpi_lpit_native *)begin;
+>  
+>  		if (!lpit_native->header.type && !lpit_native-
+> >header.flags) {
+> @@ -156,7 +156,6 @@ static void lpit_process(u64 begin, u64 end)
+>  void acpi_init_lpit(void)
+>  {
+>  	acpi_status status;
+> -	u64 lpit_begin;
+>  	struct acpi_table_lpit *lpit;
+>  
+>  	status = acpi_get_table(ACPI_SIG_LPIT, 0, (struct
+> acpi_table_header **)&lpit);
+> @@ -164,6 +163,6 @@ void acpi_init_lpit(void)
+>  	if (ACPI_FAILURE(status))
+>  		return;
+>  
+> -	lpit_begin = (u64)lpit + sizeof(*lpit);
+> -	lpit_process(lpit_begin, lpit_begin + lpit->header.length);
+> +	lpit_process((u64)lpit + sizeof(*lpit),
+> +		     (u64)lpit + lpit->header.length);
+>  }
