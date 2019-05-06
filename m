@@ -1,58 +1,63 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [REGRESSION 5.0.8] Dell thunderbolt dock broken (xhci_hcd and
- thunderbolt)
-Date: Mon, 6 May 2019 09:45:34 +0300
-Message-ID: <20190506064534.GG2895@lahna.fi.intel.com>
-References: <s5hsgu0ihyg.wl-tiwai@suse.de>
- <EksOpJxc6GB@mike.franken.de>
- <20190430090021.GF26516@lahna.fi.intel.com>
- <CAJZ5v0j_fYqtMv07C-V_9fCJ6=1ec3GjvT2M7PXVNSbZpoM67Q@mail.gmail.com>
- <20190502114839.GC24696@kroah.com>
- <CAEGmHFFGpUmK1VitkUxqXL29dBrKwbceT0pEOeR_7+_4+eLzvA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] ACPI / device_sysfs: change _ADR representation to 64 bits
+Date: Mon, 6 May 2019 10:36:22 +0200
+Message-ID: <CAJZ5v0i+M8y3ddr+Z5o5af8OatMXq3xqCF5CUg5PjnANrTOSHw@mail.gmail.com>
+References: <20190501125322.23791-1-pierre-louis.bossart@linux.intel.com> <20190502045817.GZ3845@vkoul-mobl.Dlink>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAEGmHFFGpUmK1VitkUxqXL29dBrKwbceT0pEOeR_7+_4+eLzvA@mail.gmail.com>
+In-Reply-To: <20190502045817.GZ3845@vkoul-mobl.Dlink>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Furquan Shaikh <furquan@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, mh@mike.franken.de, Lukas Wunner <lukas@wunner.de>, Takashi Iwai <tiwai@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, ckellner@redhat.com, Jiri Slaby <jslaby@suse.cz>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Robert Moore <robert.moore@intel.com>
+To: Vinod Koul <vkoul@kernel.org>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, jank@cadence.com, Joe Perches <joe@perches.com>, Srini Kandagatla <srinivas.kandagatla@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 03, 2019 at 04:35:02PM -0700, Furquan Shaikh wrote:
-> Thanks for reporting the issue and apologize for the breakage. When I
-> pushed the patch, my understanding was that the device drivers do not
-> depend on stale GPE events to take any action.
-> 
-> I am curious to understand the behavior for the thunderbolt device
-> since I do not have one to test with. The failure seems to be a result
-> of either having a edge-triggered interrupt or a pulse interrupt which
-> indicates some kind of ready condition to the kernel driver. All the
-> runtime GPEs seem to be initialized as part of acpi_init before ACPI
-> bus is scanned. So, is this some special kind of requirement for
-> thunderbolt that requires GPE enabled before the device can actually
-> be probed. And so the GPEs going active before being enabled are then
-> used as a way to call into ACPI Method to enable something which is
-> essential for probing of device?
+On Thu, May 2, 2019 at 6:58 AM Vinod Koul <vkoul@kernel.org> wrote:
+>
+> On 01-05-19, 07:53, Pierre-Louis Bossart wrote:
+> > Standards such as the MIPI DisCo for SoundWire 1.0 specification
+> > assume the _ADR field is 64 bits.
+> >
+> > _ADR is defined as an "Integer" represented as 64 bits since ACPI 2.0
+> > released in 2002. The low levels already use _ADR as 64 bits, e.g. in
+> > struct acpi_device_info.
+> >
+> > This patch bumps the representation used for sysfs to 64 bits. To
+> > avoid any compatibility/ABI issues, the printf format is only extended
+> > to 16 characters when the actual _ADR value exceeds the 32 bit
+> > maximum.
+> >
+> > Example with a SoundWire device, the results show the complete
+> > vendorID and linkID which were omitted before:
+> >
+> > Before:
+> > $ more /sys/bus/acpi/devices/device\:38/adr
+> > 0x5d070000
+> > After:
+> > $ more /sys/bus/acpi/devices/device\:38/adr
+> > 0x000010025d070000
+> >
+> > Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+> > ---
+> > v2: only use 64 bits when required to avoid compatibility issues
+> > (feedback from Vinod and Rafael)
+> >
+> >  drivers/acpi/device_sysfs.c | 6 ++++--
+> >  include/acpi/acpi_bus.h     | 2 +-
+> >  2 files changed, 5 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+> > index 8940054d6250..7dda0ee05cd1 100644
+> > --- a/drivers/acpi/device_sysfs.c
+> > +++ b/drivers/acpi/device_sysfs.c
+> > @@ -428,8 +428,10 @@ static ssize_t acpi_device_adr_show(struct device *dev,
+> >  {
+> >       struct acpi_device *acpi_dev = to_acpi_device(dev);
+> >
+> > -     return sprintf(buf, "0x%08x\n",
+> > -                    (unsigned int)(acpi_dev->pnp.bus_address));
+> > +     if (acpi_dev->pnp.bus_address > 0xFFFFFFFF)
+>
+> Would prefer to use U32_MAX instead of 0xFFFFFFFF
 
-IIRC the idea is that when you boot with a TBT device connected (this is
-only for the BIOS assisted/ACPI enumeration mode) the Thunderbolt host
-router (the device with PCIe switch + xHCI + NHI) is configured in two
-phases. The basic configuration is done in the ASL code that then waits
-for a synchronization event (signal) from the SMI hotplug handler that
-allows it to continue. The GPE which can be either edge or level is then
-used to call the SMI hotplug handler to initialize the host router and
-its resources properly.
-
-If this is not done the PCI stack finds the host router half-configured
-causing the failure.
-
-> The other question I have is given that handling of GPE events that
-> were active before being enabled is required at least for some set of
-> devices (e.g. thunderbolt), what is a good way to solve the original
-> problem that was being addressed by the patch being reverted i.e.
-> stale events resulting in spurious wakes on wakeup GPEs. One way I can
-> think of is clearing the status of GPEs when they are setup for
-> wake(acpi_setup_gpe_for_wake). What do you think?
-
-Sounds good to me.
+I would.
