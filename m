@@ -1,45 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/5] ACPI/PPTT: Trivial, Modify the case of CPU
-Date: Mon, 06 May 2019 14:07:52 +0200
-Message-ID: <9111298.efd3gzfPJI@kreacher>
-References: <20190426220309.55654-1-jeremy.linton@arm.com>
- <CAJZ5v0hNj-pWqxQkVjRrvEHswTk+qJsuj0JM8ckZWCbqzRuLGA@mail.gmail.com>
- <51abea94-15d6-e712-411e-bf7fcf2902b6@arm.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH net-next 2/2] net: phy: sfp: enable i2c-bus detection on
+ ACPI based systems
+Date: Mon, 6 May 2019 14:55:23 +0200
+Message-ID: <20190506125523.GA15291@lunn.ch>
+References: <20190505220524.37266-3-ruslan@babayev.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51abea94-15d6-e712-411e-bf7fcf2902b6@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, John Garry <john.garry@huawei.com>, Will Deacon <will.deacon@arm.com>, Linuxarm <linuxarm@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190505220524.37266-3-ruslan@babayev.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ruslan Babayev <ruslan@babayev.com>
+Cc: linux@armlinux.org.uk, f.fainelli@gmail.com, hkallweit1@gmail.com, mika.westerberg@linux.intel.com, wsa@the-dreams.de, davem@davemloft.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, xe-linux-external@cisco.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, May 1, 2019 5:46:49 PM CEST Jeremy Linton wrote:
-> Hi,
+On Sun, May 05, 2019 at 03:05:23PM -0700, Ruslan Babayev wrote:
+> Lookup I2C adapter using the "i2c-bus" device property on ACPI based
+> systems similar to how it's done with DT.
 > 
-> And sorry about the delay...
+> An example DSD describing an SFP on an ACPI based system:
 > 
-> On 4/29/19 3:50 AM, Rafael J. Wysocki wrote:
-> > On Sat, Apr 27, 2019 at 12:03 AM Jeremy Linton <jeremy.linton@arm.com> wrote:
-> >>
-> >> CPU is an acronym and customarily capitalized. Much of the
-> >> commenting in the PPTT code has been using "cpu" rather
-> >> than "CPU". Correct that, and other human readable strings.
-> >>
-> >> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> > 
-> > It would be better to say "Modify the spelling of CPU" in the subject
-> > IMO, but apart from that
-> 
-> Hmmm, spelling doesn't seem quite right either, how about "capitalization"?
+> Device (SFP0)
+> {
+>     Name (_HID, "PRP0001")
+>     Name (_DSD, Package ()
+>     {
+>         ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>         Package () {
+>             Package () { "compatible", "sff,sfp" },
+>             Package () { "i2c-bus", \_SB.PCI0.RP01.I2C.MUX.CH0 },
+>         },
+>     })
+> }
 
-That would work for me too.
+Hi Ruslan
+
+So this gives you the I2C bus. But what about the 6 GPIOs? And the
+maximum power property? You are defining the ACPI interface which from
+now on everybody has to follow. So it would be good to make it
+complete. ACPI also seems to be poorly documented. There does not
+appear to be anything like Documentation/devicetree. So having one
+patch, with a good commit message, which implements everything makes
+it easier for those that follow.
+
+This appears to be enough to get a very minimal SFP instantiated. But
+then what?  How are you using it? How do you instantiate a Phylink
+instance for the MAC? How do you link the SFP to the Phylink?
+
+Before accepting this patch, i would like to know more about the
+complete solution.
+
+Thanks
+	Andrew
