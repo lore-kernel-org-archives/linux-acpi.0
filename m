@@ -1,65 +1,45 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Device properties framework updates for v5.2-rc1
-Date: Mon, 6 May 2019 13:16:02 +0200
-Message-ID: <CAJZ5v0jx12=bmcDaVkgd1=mocwPQ2MwMNHOE6KiTSyS+CdhRyQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/5] ACPI/PPTT: Trivial, Modify the case of CPU
+Date: Mon, 06 May 2019 14:07:52 +0200
+Message-ID: <9111298.efd3gzfPJI@kreacher>
+References: <20190426220309.55654-1-jeremy.linton@arm.com>
+ <CAJZ5v0hNj-pWqxQkVjRrvEHswTk+qJsuj0JM8ckZWCbqzRuLGA@mail.gmail.com>
+ <51abea94-15d6-e712-411e-bf7fcf2902b6@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51abea94-15d6-e712-411e-bf7fcf2902b6@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, John Garry <john.garry@huawei.com>, Will Deacon <will.deacon@arm.com>, Linuxarm <linuxarm@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Wednesday, May 1, 2019 5:46:49 PM CEST Jeremy Linton wrote:
+> Hi,
+> 
+> And sorry about the delay...
+> 
+> On 4/29/19 3:50 AM, Rafael J. Wysocki wrote:
+> > On Sat, Apr 27, 2019 at 12:03 AM Jeremy Linton <jeremy.linton@arm.com> wrote:
+> >>
+> >> CPU is an acronym and customarily capitalized. Much of the
+> >> commenting in the PPTT code has been using "cpu" rather
+> >> than "CPU". Correct that, and other human readable strings.
+> >>
+> >> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> > 
+> > It would be better to say "Modify the spelling of CPU" in the subject
+> > IMO, but apart from that
+> 
+> Hmmm, spelling doesn't seem quite right either, how about "capitalization"?
 
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-5.2-rc1
-
-with top-most commit 23583f7795025e3c783b680d906509366b0906ad
-
- ACPI / property: fix handling of data_nodes in acpi_get_next_subnode()
-
-on top of commit dc4060a5dc2557e6b5aa813bf5b73677299d62d2
-
- Linux 5.1-rc5
-
-to receive device properties framework updates for 5.2-rc1.
-
-These fix the handling of data nodes in the ACPI properties support
-code, add a new helper for endpoint lookup in property graphs and
-restore a comment inadvertently removed by one of previous changes.
-
-Specifics:
-
- - Fix the handling of data nodes in the ACPI properties support
-   code for devices with child devices and hierarchical _DSD
-   properties (Pierre-Louis Bossart).
-
- - Add fwnode_graph_get_endpoint_by_id() helper for endpoint lookup
-   in device property graphs (Sakari Ailus).
-
- - Restore the _DSD data subnodes GUID comment inadvertently removed
-   by one of previous changes (Shunyong Yang).
-
-Thanks!
-
-
----------------
-
-Pierre-Louis Bossart (1):
-      ACPI / property: fix handling of data_nodes in acpi_get_next_subnode()
-
-Sakari Ailus (1):
-      device property: Add fwnode_graph_get_endpoint_by_id()
-
-Shunyong Yang (1):
-      ACPI: property: restore _DSD data subnodes GUID comment
-
----------------
-
- drivers/acpi/property.c  |  9 ++++++
- drivers/base/property.c  | 75 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/property.h | 18 ++++++++++++
- 3 files changed, 102 insertions(+)
+That would work for me too.
