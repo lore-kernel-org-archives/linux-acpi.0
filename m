@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 78/95] ACPICA: Namespace: remove address node from global list after method termination
-Date: Tue,  7 May 2019 01:38:07 -0400
-Message-ID: <20190507053826.31622-78-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 39/95] ACPICA: AML interpreter: add region addresses in global list during initialization
+Date: Tue,  7 May 2019 01:37:28 -0400
+Message-ID: <20190507053826.31622-39-sashal@kernel.org>
 References: <20190507053826.31622-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,66 +9,49 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Erik Schmauss <erik.schmauss@intel.com>, Michael J Gruber <mjg@fedoraproject.org>, Bob Moore <robert.moore@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <alexander.levin@microsoft.com>, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: Erik Schmauss <erik.schmauss@intel.com>, Jean-Marc Lenoir <archlinux@jihemel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <alexander.levin@microsoft.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
 From: Erik Schmauss <erik.schmauss@intel.com>
 
-[ Upstream commit c5781ffbbd4f742a58263458145fe7f0ac01d9e0 ]
+[ Upstream commit 4abb951b73ff0a8a979113ef185651aa3c8da19b ]
 
-ACPICA commit b233720031a480abd438f2e9c643080929d144c3
+The table load process omitted adding the operation region address
+range to the global list. This omission is problematic because the OS
+queries the global list to check for address range conflicts before
+deciding which drivers to load. This commit may result in warning
+messages that look like the following:
 
-ASL operation_regions declare a range of addresses that it uses. In a
-perfect world, the range of addresses should be used exclusively by
-the AML interpreter. The OS can use this information to decide which
-drivers to load so that the AML interpreter and device drivers use
-different regions of memory.
+[    7.871761] ACPI Warning: system_IO range 0x00000428-0x0000042F conflicts with op_region 0x00000400-0x0000047F (\PMIO) (20180531/utaddress-213)
+[    7.871769] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
 
-During table load, the address information is added to a global
-address range list. Each node in this list contains an address range
-as well as a namespace node of the operation_region. This list is
-deleted at ACPI shutdown.
+However, these messages do not signify regressions. It is a result of
+properly adding address ranges within the global address list.
 
-Unfortunately, ASL operation_regions can be declared inside of control
-methods. Although this is not recommended, modern firmware contains
-such code. New module level code changes unintentionally removed the
-functionality of adding and removing nodes to the global address
-range list.
-
-A few months ago, support for adding addresses has been re-
-implemented. However, the removal of the address range list was
-missed and resulted in some systems to crash due to the address list
-containing bogus namespace nodes from operation_regions declared in
-control methods. In order to fix the crash, this change removes
-dynamic operation_regions after control method termination.
-
-Link: https://github.com/acpica/acpica/commit/b2337200
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=202475
-Fixes: 4abb951b73ff ("ACPICA: AML interpreter: add region addresses in global list during initialization")
-Reported-by: Michael J Gruber <mjg@fedoraproject.org>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=200011
+Tested-by: Jean-Marc Lenoir <archlinux@jihemel.com>
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Cc: 4.20+ <stable@vger.kernel.org> # 4.20+
+Cc: All applicable <stable@vger.kernel.org>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
 ---
- drivers/acpi/acpica/nsobject.c | 4 ++++
+ drivers/acpi/acpica/dsopcode.c | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/drivers/acpi/acpica/nsobject.c b/drivers/acpi/acpica/nsobject.c
-index 707b2aa501e1..099be6424255 100644
---- a/drivers/acpi/acpica/nsobject.c
-+++ b/drivers/acpi/acpica/nsobject.c
-@@ -222,6 +222,10 @@ void acpi_ns_detach_object(struct acpi_namespace_node *node)
- 		}
- 	}
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index 0336df7ac47d..e8070f6ca835 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -451,6 +451,10 @@ acpi_ds_eval_region_operands(struct acpi_walk_state *walk_state,
+ 			  ACPI_FORMAT_UINT64(obj_desc->region.address),
+ 			  obj_desc->region.length));
  
-+	if (obj_desc->common.type == ACPI_TYPE_REGION) {
-+		acpi_ut_remove_address_range(obj_desc->region.space_id, node);
-+	}
++	status = acpi_ut_add_address_range(obj_desc->region.space_id,
++					   obj_desc->region.address,
++					   obj_desc->region.length, node);
 +
- 	/* Clear the Node entry in all cases */
+ 	/* Now the address and length are valid for this opregion */
  
- 	node->object = NULL;
+ 	obj_desc->region.flags |= AOPOBJ_DATA_VALID;
 -- 
 2.20.1
