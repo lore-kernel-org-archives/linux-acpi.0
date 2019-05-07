@@ -1,137 +1,235 @@
-From: =?UTF-8?Q?Jakub_Staro=c5=84?= <jstaron@google.com>
-Subject: Re: [Qemu-devel] [PATCH v7 2/6] virtio-pmem: Add virtio pmem driver
-Date: Tue, 7 May 2019 13:25:54 -0700
-Message-ID: <3d6479ae-6c39-d614-f1d9-aa1978e2e438@google.com>
-References: <20190426050039.17460-1-pagupta@redhat.com>
- <20190426050039.17460-3-pagupta@redhat.com>
+From: Gabriel C <nix.or.die@gmail.com>
+Subject: Re: [Kernel 5.1] ACPI_DEBUG messages without CONFIG_ACPI_DEBUG being set
+Date: Tue, 7 May 2019 23:39:13 +0200
+Message-ID: <CAEJqkgiTRo0K9YTAK6VaYoHKqae4Oz6q4pxboRMt+s99A=gG3w@mail.gmail.com>
+References: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
+ <CAJZ5v0gRWEL1shQE3im0VxiPRBYat86o=R_NVQbc3JgOX8uT6w@mail.gmail.com>
+ <CAEJqkgiNYXwsJaT0d3JyMW-2yJ2DV53FHPV5-iAy7b-NbAEAcw@mail.gmail.com>
+ <CAJZ5v0ghNMPMdc03T-is-=-k11rZ8K5O9Av+TnbBY_2mNr-eug@mail.gmail.com>
+ <CAEJqkgiB7woieNZ-vVm7x-GzVrqGpJWLXOM9JpSUgPgE7eA6gA@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED53C5A9EBD@ORSMSX122.amr.corp.intel.com>
+ <CAEJqkggvtYobXNjFbvqjajMcbZ_+3PrQJC-9kK+nn5cgXgOyWg@mail.gmail.com> <CF6A88132359CE47947DB4C6E1709ED53C5A9F1C@ORSMSX122.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190426050039.17460-3-pagupta@redhat.com>
-Content-Language: en-US
+In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53C5A9F1C@ORSMSX122.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pankaj Gupta <pagupta@redhat.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, dave.jiang@intel.com, darrick.wong@oracle.com, vishal.l.verma@intel.com, david@redhat.com, willy@infradead.org, hch@infradead.org, jmoyer@redhat.com, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, dan.j.williams@intel.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com, smbarber@google.com
+To: "Schmauss, Erik" <erik.schmauss@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 4/25/19 10:00 PM, Pankaj Gupta wrote:
+Am Di., 7. Mai 2019 um 22:17 Uhr schrieb Schmauss, Erik
+<erik.schmauss@intel.com>:
+>
+>
+>
+> > -----Original Message-----
+> > From: Gabriel C [mailto:nix.or.die@gmail.com]
+> > Sent: Tuesday, May 7, 2019 12:06 PM
+> > To: Schmauss, Erik <erik.schmauss@intel.com>
+> > Cc: Rafael J. Wysocki <rafael@kernel.org>; ACPI Devel Maling List <linux-
+> > acpi@vger.kernel.org>; LKML <linux-kernel@vger.kernel.org>; Moore,
+> > Robert <robert.moore@intel.com>
+> > Subject: Re: [Kernel 5.1] ACPI_DEBUG messages without
+> > CONFIG_ACPI_DEBUG being set
+> >
+> > Am Di., 7. Mai 2019 um 20:46 Uhr schrieb Schmauss, Erik
+> > <erik.schmauss@intel.com>:
+> > >
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: Gabriel C [mailto:nix.or.die@gmail.com]
+> > > > Sent: Tuesday, May 7, 2019 2:33 AM
+> > > > To: Rafael J. Wysocki <rafael@kernel.org>
+> > > > Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; LKML
+> > > > <linux- kernel@vger.kernel.org>; Schmauss, Erik
+> > > > <erik.schmauss@intel.com>
+> > > > Subject: Re: [Kernel 5.1] ACPI_DEBUG messages without
+> > > > CONFIG_ACPI_DEBUG being set
+> > > >
+> > > > Am Di., 7. Mai 2019 um 10:35 Uhr schrieb Rafael J. Wysocki
+> > > > <rafael@kernel.org>:
+> > > > >
+> > > > > On Tue, May 7, 2019 at 9:31 AM Gabriel C <nix.or.die@gmail.com>
+> > wrote:
+> > > > > >
+> > > > > > Am Di., 7. Mai 2019 um 09:01 Uhr schrieb Rafael J. Wysocki
+> > > > <rafael@kernel.org>:
+> > > > > > >
+> > > > > >  Hello Rafael ,  Erik
+> > > > > >
+> > > > > > > +Erik
+> > > > > > >
+> > > > > > > On Tue, May 7, 2019 at 1:33 AM Gabriel C
+> > > > > > > <nix.or.die@gmail.com>
+> > > > wrote:
+> > > > > > > >
+> > > > > > > > Hello,
+> > > > > > > >
+> > > > > > > > while testing kernel-5.1 I get on one of my Lenovo Laptops
+> > > > > > > > very strange 'ACPI Debug:' messages.
+> > > > > > > >
+> > > > > > > > After some grepping I realized these are Debug messages from
+> > > > > > > > DSDT , however my kernel does not have ACPI_DEBUG enabled.
+> > > > > > > >
+> > > > > > > > I found out the module triggering this, on this Laptop is
+> > > > > > > > ideapad_laptop , but looking at the code I cannot see what
+> > > > > > > > would causes that.
+> > > > > > > >
+> > > > > > > > Also on the same Laptop with any 5.0.X kernels I cannot see these.
+> > > > > > > >
+> > > > > > > >
+> > > > > > > > ~$ grep -i ACPI_DEBUG /boot/config-5.1-fw1 #
+> > > > > > > > CONFIG_ACPI_DEBUGGER is not set # CONFIG_ACPI_DEBUG is
+> > not
+> > > > set #
+> > > > > > > > CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set #
+> > > > > > > > CONFIG_THINKPAD_ACPI_DEBUG is not set
+> > > > > > > >
+> > > > > > > > .. dmesg ..
+> > > > > > > > ...
+> > > > > > > > [   68.020812] calling  ideapad_acpi_driver_init+0x0/0x1000
+> > > > > > > > [ideapad_laptop] @ 1322
+> > > > > > > > [   68.026708] input: Ideapad extra buttons as
+> > > > > > > >
+> > > > /devices/pci0000:00/0000:00:1f.0/PNP0C09:00/VPC2004:00/input/input16
+> > > > > > > > [   68.038236] ACPI Debug:  "=====QUERY_64====="
+> > > > > > > > [   68.050232] ACPI Debug:  "=====QUERY_65====="
+> > > > > > > > [   68.060218] ACPI Debug:  "=====QUERY_64====="
+> > > > > > > > [   68.092216] probe of VPC2004:00 returned 1 after 71386 usecs
+> > > > > > > > [   68.092245] initcall ideapad_acpi_driver_init+0x0/0x1000
+> > > > > > > > [ideapad_laptop] returned 0 after 69751 usecssg
+> > > > > > > >
+> > > > > > > > ...
+> > > > > > > >
+> > > > > > > > These =====QUERY_XX===== messages are from DSDT:
+> > > > > > > >
+> > > > > > > > ~/acpi$ grep QUERY dsdt.dsl
+> > > > > > > >                Debug = "=====QUERY_11====="
+> > > > > > > >                Debug = "=====QUERY_12====="
+> > > > > > > >                Debug = "=====QUERY_24====="
+> > > > > > > >                Debug = "=====QUERY_25====="
+> > > > > > > >                Debug = "=====QUERY_37====="
+> > > > > > > >                Debug = "=====QUERY_38====="
+> > > > > > > >                Debug = "=====QUERY_64====="
+> > > > > > > >                Debug = "=====QUERY_65====="
+> > > > > > > >
+> > > > > > > > Also this is the code from DSDT for QUERY 64 and 65:
+> > > > > > > >
+> > > > > > > > ...
+> > > > > > > >             Method (_Q64, 0, NotSerialized)  // _Qxx: EC Query
+> > > > > > > >            {
+> > > > > > > >                Debug = "=====QUERY_64====="
+> > > > > > > >                If ((OSYS == 0x07D9))
+> > > > > > > >                {
+> > > > > > > >                    If (((WLEX == One) & (WLAT == One)))
+> > > > > > > >                    {
+> > > > > > > >                        SGOV (0x02040005, One)
+> > > > > > > >                    }
+> > > > > > > >                    Else
+> > > > > > > >                    {
+> > > > > > > >                        SGOV (0x02040005, Zero)
+> > > > > > > >                    }
+> > > > > > > >                }
+> > > > > > > >            }
+> > > > > > > >
+> > > > > > > >            Method (_Q65, 0, NotSerialized)  // _Qxx: EC Query
+> > > > > > > >            {
+> > > > > > > >                Debug = "=====QUERY_65====="
+> > > > > > > >                If ((OSYS == 0x07D9))
+> > > > > > > >                {
+> > > > > > > >                    If (((BTEX == One) & (BTAT == One)))
+> > > > > > > >                    {
+> > > > > > > >                        SGOV (0x0202000B, One)
+> > > > > > > >                    }
+> > > > > > > >                    Else
+> > > > > > > >                    {
+> > > > > > > >                        SGOV (0x0202000B, Zero)
+> > > > > > > >                    }
+> > > > > > > >                }
+> > > > > > > >            }
+> > > > > > > >
+> > > > > > > > ...
+> > > > > > > >
+> > > > > > > >
+> > > > > > > > Any idea what would cause this ?
+> > > > > >
+> > > > > > I think I found what is causing that.
+> > > > > >
+> > > > > > Commit aa9aaa4d61c0048d3faad056893cd7860bbc084c is moving
+> > > > definition
+> > > > > > of Linux's  ACPI_DEBUG_DEFAULT to incude/acpi/platform/aclinux.h
+> > > > > > , however include/acpi/acpi.h didn't got updated and
+> > > > > > ACPI_DEBUG_DEFAULT now being always defined as  (ACPI_LV_INIT
+> > |
+> > > > > > ACPI_LV_DEBUG_OBJECT | ACPI_LV_EVALUATION |
+> > ACPI_LV_REPAIR)
+> > > > >
+> > > > > I'm not sure what you mean by this.
+> > > > >
+> > > > > include/acpi/acpi.h should get the right definitions through
+> > > > > include/acpi/platform/acenv.h and include/acpi/acoutput.h that are
+> > > > > included by it.
+> > > > >
+> > > >
+> > > > Hmm yes should , I missed that include. However it does not work.
+> > > >
+> > > > I've just put back old code back into drivers/acpi/bus.c to test and
+> > > > all working now fine without any other changes.
+> > > >
+> > > > > It looks like incude/acpi/platform/aclinux.h has not been included
+> > > > > by include/acpi/platform/acenv.h for some reason when building
+> > > > > this module.
+> > > >
+> > > > If this one getting it wrong all will do so , they all just include
+> > <linux/acpi.h>.
+> > > >
+> > > > Probably not so much users will notice that , I just did because my
+> > > > BIOS vendor forgot DEBUG around.
+> > >
+> > > Do you still get this issue after doing make clean and rebuilding your
+> > kernel?
+> >
+> > A clean build from tarball has this issue for me. I don't think is a building
+> > problem , any <5.1 kernel is fine , kernel 5.1 with your commit reverted is fine
+> > too , kernel 5.1 with your commit in but the removed hunk in bus.c re-added
+> > is fine also.
+>
+> I took a closer look. This was an obvious mistake on my part. Thanks for catching it.
+>
+> The following should fix it:
+>
 
-> +void host_ack(struct virtqueue *vq)
-> +{
-> +	unsigned int len;
-> +	unsigned long flags;
-> +	struct virtio_pmem_request *req, *req_buf;
-> +	struct virtio_pmem *vpmem = vq->vdev->priv;
+I can confirm it does fix the bug , thx.
+
+
+> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+> index 624b90b34085..70b55b8fe48b 100644
+> --- a/include/acpi/platform/aclinux.h
+> +++ b/include/acpi/platform/aclinux.h
+> @@ -66,6 +66,12 @@
+>
+>  #define ACPI_INIT_FUNCTION __init
+>
 > +
-> +	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-> +	while ((req = virtqueue_get_buf(vq, &len)) != NULL) {
-> +		req->done = true;
-> +		wake_up(&req->host_acked);
+> +/* Use a specific bugging default separate from ACPICA */
 > +
-> +		if (!list_empty(&vpmem->req_list)) {
-> +			req_buf = list_first_entry(&vpmem->req_list,
-> +					struct virtio_pmem_request, list);
-> +			list_del(&vpmem->req_list);
-
-Shouldn't it be rather `list_del(vpmem->req_list.next)`? We are trying to unlink
-first element of the list and `vpmem->req_list` is just the list head.
-
-> +int virtio_pmem_flush(struct nd_region *nd_region)
-> +{
-> +	int err;
-> +	unsigned long flags;
-> +	struct scatterlist *sgs[2], sg, ret;
-> +	struct virtio_device *vdev = nd_region->provider_data;
-> +	struct virtio_pmem *vpmem = vdev->priv;
-> +	struct virtio_pmem_request *req;
+> +#undef ACPI_DEBUG_DEFAULT
+> +#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INFO | ACPI_LV_REPAIR)
 > +
-> +	might_sleep();
-> +	req = kmalloc(sizeof(*req), GFP_KERNEL);
-> +	if (!req)
-> +		return -ENOMEM;
-> +
-> +	req->done = req->wq_buf_avail = false;
-> +	strcpy(req->name, "FLUSH");
-> +	init_waitqueue_head(&req->host_acked);
-> +	init_waitqueue_head(&req->wq_buf);
-> +	sg_init_one(&sg, req->name, strlen(req->name));
-> +	sgs[0] = &sg;
-> +	sg_init_one(&ret, &req->ret, sizeof(req->ret));
-> +	sgs[1] = &ret;
-> +
-> +	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-> +	err = virtqueue_add_sgs(vpmem->req_vq, sgs, 1, 1, req, GFP_ATOMIC);
-> +	if (err) {
-> +		dev_err(&vdev->dev, "failed to send command to virtio pmem device\n");
-> +
-> +		list_add_tail(&vpmem->req_list, &req->list);
-> +		spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-> +
-> +		/* When host has read buffer, this completes via host_ack */
-> +		wait_event(req->wq_buf, req->wq_buf_avail);
-> +		spin_lock_irqsave(&vpmem->pmem_lock, flags);
-> +	}
-
-Aren't the arguments in `list_add_tail` swapped? The element we are adding should
-be first, the list should be second. Also, shouldn't we resubmit the request after
-waking up from `wait_event(req->wq_buf, req->wq_buf_avail)`?
-
-I propose rewriting it like that:
-
-diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-index 66b582f751a3..ff0556b04e86 100644
---- a/drivers/nvdimm/virtio_pmem.c
-+++ b/drivers/nvdimm/virtio_pmem.c
-@@ -25,7 +25,7 @@ void host_ack(struct virtqueue *vq)
- 		if (!list_empty(&vpmem->req_list)) {
- 			req_buf = list_first_entry(&vpmem->req_list,
- 					struct virtio_pmem_request, list);
--			list_del(&vpmem->req_list);
-+			list_del(vpmem->req_list.next);
- 			req_buf->wq_buf_avail = true;
- 			wake_up(&req_buf->wq_buf);
- 		}
-@@ -59,17 +59,33 @@ int virtio_pmem_flush(struct nd_region *nd_region)
- 	sgs[1] = &ret;
- 
- 	spin_lock_irqsave(&vpmem->pmem_lock, flags);
--	err = virtqueue_add_sgs(vpmem->req_vq, sgs, 1, 1, req, GFP_ATOMIC);
--	if (err) {
--		dev_err(&vdev->dev, "failed to send command to virtio pmem device\n");
-+	/*
-+	 * If virtqueue_add_sgs returns -ENOSPC then req_vq virtual queue does not
-+	 * have free descriptor slots. We add the request to req_list and wait
-+	 * for host_ack to wake us up when free slots are available.
-+	 */
-+	while ((err = virtqueue_add_sgs(vpmem->req_vq, sgs, 1, 1, req, GFP_ATOMIC)) == -ENOSPC) {
-+		dev_err(&vdev->dev, "failed to send command to virtio pmem device, no free slots in the virtqueue, postponing request\n");
-+		req->wq_buf_avail = false;
- 
--		list_add_tail(&vpmem->req_list, &req->list);
-+		list_add_tail(&req->list, &vpmem->req_list);
- 		spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
- 
- 		/* When host has read buffer, this completes via host_ack */
- 		wait_event(req->wq_buf, req->wq_buf_avail);
- 		spin_lock_irqsave(&vpmem->pmem_lock, flags);
- 	}
-+
-+	/*
-+	 * virtqueue_add_sgs failed with error different than -ENOSPC, we can't
-+	 * do anything about that.
-+	 */
-+	if (err) {
-+		dev_info(&vdev->dev, "failed to send command to virtio pmem device, error code %d\n", err);
-+		spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+		err = -EIO;
-+		goto ret;
-+	}
- 	err = virtqueue_kick(vpmem->req_vq);
- 	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-
-
-Let me know if it looks reasonable to you.
-
-Thank you,
-Jakub Staron
+>  #ifndef CONFIG_ACPI
+>
+>  /* External globals for __KERNEL__, stubs is needed */
+> @@ -82,11 +88,6 @@
+>  #define ACPI_NO_ERROR_MESSAGES
+>  #undef ACPI_DEBUG_OUTPUT
+>
+> -/* Use a specific bugging default separate from ACPICA */
+> -
+> -#undef ACPI_DEBUG_DEFAULT
+> -#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INFO | ACPI_LV_REPAIR)
+> -
+>  /* External interface for __KERNEL__, stub is needed */
+>
+>  #define ACPI_EXTERNAL_RETURN_STATUS(prototype) \
