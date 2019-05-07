@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH AUTOSEL 5.0 04/99] acpi/nfit: Always dump _DSM output payload
-Date: Tue,  7 May 2019 01:30:58 -0400
-Message-ID: <20190507053235.29900-4-sashal@kernel.org>
-References: <20190507053235.29900-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 04/81] acpi/nfit: Always dump _DSM output payload
+Date: Tue,  7 May 2019 01:34:35 -0400
+Message-ID: <20190507053554.30848-4-sashal@kernel.org>
+References: <20190507053554.30848-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190507053235.29900-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20190507053554.30848-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -38,10 +38,10 @@ Signed-off-by: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 4be4dc3e8aa6..38ec79bb3edd 100644
+index 925dbc751322..8340c81b258b 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -563,6 +563,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+@@ -542,6 +542,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
  		goto out;
  	}
  
@@ -54,7 +54,7 @@ index 4be4dc3e8aa6..38ec79bb3edd 100644
  	if (call_pkg) {
  		call_pkg->nd_fw_size = out_obj->buffer.length;
  		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-@@ -581,12 +587,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+@@ -560,12 +566,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
  		return 0;
  	}
  
