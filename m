@@ -1,131 +1,47 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [Kernel 5.1] ACPI_DEBUG messages without CONFIG_ACPI_DEBUG being set
-Date: Tue, 7 May 2019 10:34:56 +0200
-Message-ID: <CAJZ5v0ghNMPMdc03T-is-=-k11rZ8K5O9Av+TnbBY_2mNr-eug@mail.gmail.com>
-References: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
- <CAJZ5v0gRWEL1shQE3im0VxiPRBYat86o=R_NVQbc3JgOX8uT6w@mail.gmail.com> <CAEJqkgiNYXwsJaT0d3JyMW-2yJ2DV53FHPV5-iAy7b-NbAEAcw@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH net-next 2/2] net: phy: sfp: enable i2c-bus detection on
+ ACPI based systems
+Date: Tue, 7 May 2019 12:29:46 +0300
+Message-ID: <20190507092946.GS2895@lahna.fi.intel.com>
+References: <20190505220524.37266-3-ruslan@babayev.com>
+ <20190506045951.GB2895@lahna.fi.intel.com>
+ <871s1bv4aw.fsf@babayev.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAEJqkgiNYXwsJaT0d3JyMW-2yJ2DV53FHPV5-iAy7b-NbAEAcw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <871s1bv4aw.fsf@babayev.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Gabriel C <nix.or.die@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>
+To: Ruslan Babayev <ruslan@babayev.com>
+Cc: linux@armlinux.org.uk, andrew@lunn.ch, f.fainelli@gmail.com, hkallweit1@gmail.com, wsa@the-dreams.de, davem@davemloft.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, xe-linux-external@cisco.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 7, 2019 at 9:31 AM Gabriel C <nix.or.die@gmail.com> wrote:
->
-> Am Di., 7. Mai 2019 um 09:01 Uhr schrieb Rafael J. Wysocki <rafael@kernel.org>:
+On Mon, May 06, 2019 at 11:14:15AM -0700, Ruslan Babayev wrote:
+> 
+> Mika Westerberg writes:
+> 
+> > On Sun, May 05, 2019 at 03:05:23PM -0700, Ruslan Babayev wrote:
+> >> Lookup I2C adapter using the "i2c-bus" device property on ACPI based
+> >> systems similar to how it's done with DT.
+> >> 
+> >> An example DSD describing an SFP on an ACPI based system:
+> >> 
+> >> Device (SFP0)
+> >> {
+> >>     Name (_HID, "PRP0001")
+> >>     Name (_DSD, Package ()
+> >>     {
+> >>         ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >>         Package () {
+> >>             Package () { "compatible", "sff,sfp" },
+> >>             Package () { "i2c-bus", \_SB.PCI0.RP01.I2C.MUX.CH0 },
 > >
->  Hello Rafael ,  Erik
->
-> > +Erik
-> >
-> > On Tue, May 7, 2019 at 1:33 AM Gabriel C <nix.or.die@gmail.com> wrote:
-> > >
-> > > Hello,
-> > >
-> > > while testing kernel-5.1 I get on one of my Lenovo Laptops very
-> > > strange 'ACPI Debug:' messages.
-> > >
-> > > After some grepping I realized these are Debug messages from DSDT ,
-> > > however my kernel does
-> > > not have ACPI_DEBUG enabled.
-> > >
-> > > I found out the module triggering this, on this Laptop is
-> > > ideapad_laptop , but looking at the code
-> > > I cannot see what would causes that.
-> > >
-> > > Also on the same Laptop with any 5.0.X kernels I cannot see these.
-> > >
-> > >
-> > > ~$ grep -i ACPI_DEBUG /boot/config-5.1-fw1
-> > > # CONFIG_ACPI_DEBUGGER is not set
-> > > # CONFIG_ACPI_DEBUG is not set
-> > > # CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
-> > > # CONFIG_THINKPAD_ACPI_DEBUG is not set
-> > >
-> > > .. dmesg ..
-> > > ...
-> > > [   68.020812] calling  ideapad_acpi_driver_init+0x0/0x1000
-> > > [ideapad_laptop] @ 1322
-> > > [   68.026708] input: Ideapad extra buttons as
-> > > /devices/pci0000:00/0000:00:1f.0/PNP0C09:00/VPC2004:00/input/input16
-> > > [   68.038236] ACPI Debug:  "=====QUERY_64====="
-> > > [   68.050232] ACPI Debug:  "=====QUERY_65====="
-> > > [   68.060218] ACPI Debug:  "=====QUERY_64====="
-> > > [   68.092216] probe of VPC2004:00 returned 1 after 71386 usecs
-> > > [   68.092245] initcall ideapad_acpi_driver_init+0x0/0x1000
-> > > [ideapad_laptop] returned 0 after 69751 usecssg
-> > >
-> > > ...
-> > >
-> > > These =====QUERY_XX===== messages are from DSDT:
-> > >
-> > > ~/acpi$ grep QUERY dsdt.dsl
-> > >                Debug = "=====QUERY_11====="
-> > >                Debug = "=====QUERY_12====="
-> > >                Debug = "=====QUERY_24====="
-> > >                Debug = "=====QUERY_25====="
-> > >                Debug = "=====QUERY_37====="
-> > >                Debug = "=====QUERY_38====="
-> > >                Debug = "=====QUERY_64====="
-> > >                Debug = "=====QUERY_65====="
-> > >
-> > > Also this is the code from DSDT for QUERY 64 and 65:
-> > >
-> > > ...
-> > >             Method (_Q64, 0, NotSerialized)  // _Qxx: EC Query
-> > >            {
-> > >                Debug = "=====QUERY_64====="
-> > >                If ((OSYS == 0x07D9))
-> > >                {
-> > >                    If (((WLEX == One) & (WLAT == One)))
-> > >                    {
-> > >                        SGOV (0x02040005, One)
-> > >                    }
-> > >                    Else
-> > >                    {
-> > >                        SGOV (0x02040005, Zero)
-> > >                    }
-> > >                }
-> > >            }
-> > >
-> > >            Method (_Q65, 0, NotSerialized)  // _Qxx: EC Query
-> > >            {
-> > >                Debug = "=====QUERY_65====="
-> > >                If ((OSYS == 0x07D9))
-> > >                {
-> > >                    If (((BTEX == One) & (BTAT == One)))
-> > >                    {
-> > >                        SGOV (0x0202000B, One)
-> > >                    }
-> > >                    Else
-> > >                    {
-> > >                        SGOV (0x0202000B, Zero)
-> > >                    }
-> > >                }
-> > >            }
-> > >
-> > > ...
-> > >
-> > >
-> > > Any idea what would cause this ?
->
-> I think I found what is causing that.
->
-> Commit aa9aaa4d61c0048d3faad056893cd7860bbc084c is moving
-> definition of Linux's  ACPI_DEBUG_DEFAULT to incude/acpi/platform/aclinux.h ,
-> however include/acpi/acpi.h didn't got updated and  ACPI_DEBUG_DEFAULT now
-> being always defined as  (ACPI_LV_INIT | ACPI_LV_DEBUG_OBJECT |
-> ACPI_LV_EVALUATION | ACPI_LV_REPAIR)
+> > Hmm, ACPI has I2cSerialBusV2() resource for this purpose. Why you are not
+> > using that?
+> 
+> I am not an ACPI expert, but my understanding is I2cSerialBusV2() is
+> used for slave connections. I am trying to reference an I2C controller
+> here.
 
-I'm not sure what you mean by this.
-
-include/acpi/acpi.h should get the right definitions through
-include/acpi/platform/acenv.h and include/acpi/acoutput.h that are
-included by it.
-
-It looks like incude/acpi/platform/aclinux.h has not been included by
-include/acpi/platform/acenv.h for some reason when building this
-module.
+Ah, the device itself is not sitting on an I2C bus? In that case I
+agree, I2CSerialBusV2() is not correct here.
