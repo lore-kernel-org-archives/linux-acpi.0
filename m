@@ -1,57 +1,110 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 39/95] ACPICA: AML interpreter: add region addresses in global list during initialization
-Date: Tue,  7 May 2019 01:37:28 -0400
-Message-ID: <20190507053826.31622-39-sashal@kernel.org>
-References: <20190507053826.31622-1-sashal@kernel.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [Kernel 5.1] ACPI_DEBUG messages without CONFIG_ACPI_DEBUG being set
+Date: Tue, 7 May 2019 09:01:34 +0200
+Message-ID: <CAJZ5v0gRWEL1shQE3im0VxiPRBYat86o=R_NVQbc3JgOX8uT6w@mail.gmail.com>
+References: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
+In-Reply-To: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Erik Schmauss <erik.schmauss@intel.com>, Jean-Marc Lenoir <archlinux@jihemel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <alexander.levin@microsoft.com>, linux-acpi@vger.kernel.org, devel@acpica.org
+To: Gabriel C <nix.or.die@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Erik Schmauss <erik.schmauss@intel.com>
++Erik
 
-[ Upstream commit 4abb951b73ff0a8a979113ef185651aa3c8da19b ]
-
-The table load process omitted adding the operation region address
-range to the global list. This omission is problematic because the OS
-queries the global list to check for address range conflicts before
-deciding which drivers to load. This commit may result in warning
-messages that look like the following:
-
-[    7.871761] ACPI Warning: system_IO range 0x00000428-0x0000042F conflicts with op_region 0x00000400-0x0000047F (\PMIO) (20180531/utaddress-213)
-[    7.871769] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
-
-However, these messages do not signify regressions. It is a result of
-properly adding address ranges within the global address list.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=200011
-Tested-by: Jean-Marc Lenoir <archlinux@jihemel.com>
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-Cc: All applicable <stable@vger.kernel.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
----
- drivers/acpi/acpica/dsopcode.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index 0336df7ac47d..e8070f6ca835 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -451,6 +451,10 @@ acpi_ds_eval_region_operands(struct acpi_walk_state *walk_state,
- 			  ACPI_FORMAT_UINT64(obj_desc->region.address),
- 			  obj_desc->region.length));
- 
-+	status = acpi_ut_add_address_range(obj_desc->region.space_id,
-+					   obj_desc->region.address,
-+					   obj_desc->region.length, node);
-+
- 	/* Now the address and length are valid for this opregion */
- 
- 	obj_desc->region.flags |= AOPOBJ_DATA_VALID;
--- 
-2.20.1
+On Tue, May 7, 2019 at 1:33 AM Gabriel C <nix.or.die@gmail.com> wrote:
+>
+> Hello,
+>
+> while testing kernel-5.1 I get on one of my Lenovo Laptops very
+> strange 'ACPI Debug:' messages.
+>
+> After some grepping I realized these are Debug messages from DSDT ,
+> however my kernel does
+> not have ACPI_DEBUG enabled.
+>
+> I found out the module triggering this, on this Laptop is
+> ideapad_laptop , but looking at the code
+> I cannot see what would causes that.
+>
+> Also on the same Laptop with any 5.0.X kernels I cannot see these.
+>
+>
+> ~$ grep -i ACPI_DEBUG /boot/config-5.1-fw1
+> # CONFIG_ACPI_DEBUGGER is not set
+> # CONFIG_ACPI_DEBUG is not set
+> # CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
+> # CONFIG_THINKPAD_ACPI_DEBUG is not set
+>
+> .. dmesg ..
+> ...
+> [   68.020812] calling  ideapad_acpi_driver_init+0x0/0x1000
+> [ideapad_laptop] @ 1322
+> [   68.026708] input: Ideapad extra buttons as
+> /devices/pci0000:00/0000:00:1f.0/PNP0C09:00/VPC2004:00/input/input16
+> [   68.038236] ACPI Debug:  "=====QUERY_64====="
+> [   68.050232] ACPI Debug:  "=====QUERY_65====="
+> [   68.060218] ACPI Debug:  "=====QUERY_64====="
+> [   68.092216] probe of VPC2004:00 returned 1 after 71386 usecs
+> [   68.092245] initcall ideapad_acpi_driver_init+0x0/0x1000
+> [ideapad_laptop] returned 0 after 69751 usecssg
+>
+> ...
+>
+> These =====QUERY_XX===== messages are from DSDT:
+>
+> ~/acpi$ grep QUERY dsdt.dsl
+>                Debug = "=====QUERY_11====="
+>                Debug = "=====QUERY_12====="
+>                Debug = "=====QUERY_24====="
+>                Debug = "=====QUERY_25====="
+>                Debug = "=====QUERY_37====="
+>                Debug = "=====QUERY_38====="
+>                Debug = "=====QUERY_64====="
+>                Debug = "=====QUERY_65====="
+>
+> Also this is the code from DSDT for QUERY 64 and 65:
+>
+> ...
+>             Method (_Q64, 0, NotSerialized)  // _Qxx: EC Query
+>            {
+>                Debug = "=====QUERY_64====="
+>                If ((OSYS == 0x07D9))
+>                {
+>                    If (((WLEX == One) & (WLAT == One)))
+>                    {
+>                        SGOV (0x02040005, One)
+>                    }
+>                    Else
+>                    {
+>                        SGOV (0x02040005, Zero)
+>                    }
+>                }
+>            }
+>
+>            Method (_Q65, 0, NotSerialized)  // _Qxx: EC Query
+>            {
+>                Debug = "=====QUERY_65====="
+>                If ((OSYS == 0x07D9))
+>                {
+>                    If (((BTEX == One) & (BTAT == One)))
+>                    {
+>                        SGOV (0x0202000B, One)
+>                    }
+>                    Else
+>                    {
+>                        SGOV (0x0202000B, Zero)
+>                    }
+>                }
+>            }
+>
+> ...
+>
+>
+> Any idea what would cause this ?
+>
+> BR,
+>
+> Gabriel C
