@@ -1,71 +1,74 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH AUTOSEL 4.19 04/81] acpi/nfit: Always dump _DSM output payload
-Date: Tue,  7 May 2019 01:34:35 -0400
-Message-ID: <20190507053554.30848-4-sashal@kernel.org>
-References: <20190507053554.30848-1-sashal@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 78/95] ACPICA: Namespace: remove address node from global list after method termination
+Date: Tue,  7 May 2019 01:38:07 -0400
+Message-ID: <20190507053826.31622-78-sashal@kernel.org>
+References: <20190507053826.31622-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190507053554.30848-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Erik Schmauss <erik.schmauss@intel.com>, Michael J Gruber <mjg@fedoraproject.org>, Bob Moore <robert.moore@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Sasha Levin <alexander.levin@microsoft.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Erik Schmauss <erik.schmauss@intel.com>
 
-[ Upstream commit 351f339faa308c1c1461314a18c832239a841ca0 ]
+[ Upstream commit c5781ffbbd4f742a58263458145fe7f0ac01d9e0 ]
 
-The dynamic-debug statements for command payload output only get emitted
-when the command is not ND_CMD_CALL. Move the output payload dumping
-ahead of the early return path for ND_CMD_CALL.
+ACPICA commit b233720031a480abd438f2e9c643080929d144c3
 
-Fixes: 31eca76ba2fc9 ("...whitelisted dimm command marshaling mechanism")
-Reported-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ASL operation_regions declare a range of addresses that it uses. In a
+perfect world, the range of addresses should be used exclusively by
+the AML interpreter. The OS can use this information to decide which
+drivers to load so that the AML interpreter and device drivers use
+different regions of memory.
+
+During table load, the address information is added to a global
+address range list. Each node in this list contains an address range
+as well as a namespace node of the operation_region. This list is
+deleted at ACPI shutdown.
+
+Unfortunately, ASL operation_regions can be declared inside of control
+methods. Although this is not recommended, modern firmware contains
+such code. New module level code changes unintentionally removed the
+functionality of adding and removing nodes to the global address
+range list.
+
+A few months ago, support for adding addresses has been re-
+implemented. However, the removal of the address range list was
+missed and resulted in some systems to crash due to the address list
+containing bogus namespace nodes from operation_regions declared in
+control methods. In order to fix the crash, this change removes
+dynamic operation_regions after control method termination.
+
+Link: https://github.com/acpica/acpica/commit/b2337200
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=202475
+Fixes: 4abb951b73ff ("ACPICA: AML interpreter: add region addresses in global list during initialization")
+Reported-by: Michael J Gruber <mjg@fedoraproject.org>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Cc: 4.20+ <stable@vger.kernel.org> # 4.20+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
 ---
- drivers/acpi/nfit/core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/nsobject.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 925dbc751322..8340c81b258b 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -542,6 +542,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		goto out;
+diff --git a/drivers/acpi/acpica/nsobject.c b/drivers/acpi/acpica/nsobject.c
+index 707b2aa501e1..099be6424255 100644
+--- a/drivers/acpi/acpica/nsobject.c
++++ b/drivers/acpi/acpica/nsobject.c
+@@ -222,6 +222,10 @@ void acpi_ns_detach_object(struct acpi_namespace_node *node)
+ 		}
  	}
  
-+	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
-+			cmd_name, out_obj->buffer.length);
-+	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
-+			out_obj->buffer.pointer,
-+			min_t(u32, 128, out_obj->buffer.length), true);
++	if (obj_desc->common.type == ACPI_TYPE_REGION) {
++		acpi_ut_remove_address_range(obj_desc->region.space_id, node);
++	}
 +
- 	if (call_pkg) {
- 		call_pkg->nd_fw_size = out_obj->buffer.length;
- 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-@@ -560,12 +566,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		return 0;
- 	}
+ 	/* Clear the Node entry in all cases */
  
--	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
--			cmd_name, out_obj->buffer.length);
--	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
--			out_obj->buffer.pointer,
--			min_t(u32, 128, out_obj->buffer.length), true);
--
- 	for (i = 0, offset = 0; i < desc->out_num; i++) {
- 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
- 				(u32 *) out_obj->buffer.pointer,
+ 	node->object = NULL;
 -- 
 2.20.1
