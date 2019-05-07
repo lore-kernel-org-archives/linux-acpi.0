@@ -2,111 +2,159 @@ Return-Path: <SRS0=qBNj=TH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,T_DKIMWL_WL_HIGH
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C53CCC004C9
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 06:01:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB2CCC004C9
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 07:01:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9498F20675
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 06:01:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 741CE20989
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 07:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1557208905;
-	bh=B/gkt7iNSmPmscq9jO/iJBG7GmmIjSdgYLzaZQRpVmA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=IYxYFDUdslIRHfrQiMDfJ8vCpF7vkHydX3anu57ZWbXw6DgZMhwTi0joiGs8H8qbV
-	 BFi9KfQzd93HXi/OBFRqlu/FNXhqlqwmJFrwA75SVCzdr9CPcP074pxQNX5kP9uGb/
-	 R4PRSOqs2UQy+x3MH/hQ3Wrf/EiLcgYokb6BQnUU=
+	s=default; t=1557212508;
+	bh=O7KdOdVyapD4tSCh0cvzdvPhsMRl+yh9MUrVvXsiLnw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=Hj5fs46J+OqOCQACgn2OjqkF4biAykzGhbIvQriyHpvYm7gYD3ehI80BdNuceggZI
+	 p4KG/nQ4QAGV1z2QY5Y8lgAPPux+llORTSGHeNNK/ar2BHFuW1dbbxz6TbJa/OImzy
+	 r0txnJoM5KubrSfKKvDgNKHq5pPv1brQd44misRM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726930AbfEGGBj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 May 2019 02:01:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56028 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726767AbfEGFgD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 May 2019 01:36:03 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A392420B7C;
-        Tue,  7 May 2019 05:36:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1557207362;
-        bh=B/gkt7iNSmPmscq9jO/iJBG7GmmIjSdgYLzaZQRpVmA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=2eFw6OY7htbyuF6kXuXcMlHCKY2VYGGSwXXA13vZUeb6EcqvAsW9unn6AFWuygK3p
-         Z0p7GPNBaq/Hb5QAuSJTyd0Z4wr8sAdNRlxJ0bC9hcs7S+3mkcm7GjS+TBvGhafYnO
-         zj/hovWJ09kQljXGkazMylYaXBlwG/qmG3N3WlUs=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 04/81] acpi/nfit: Always dump _DSM output payload
-Date:   Tue,  7 May 2019 01:34:35 -0400
-Message-Id: <20190507053554.30848-4-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190507053554.30848-1-sashal@kernel.org>
-References: <20190507053554.30848-1-sashal@kernel.org>
+        id S1726437AbfEGHBr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 May 2019 03:01:47 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:36504 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726322AbfEGHBr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 May 2019 03:01:47 -0400
+Received: by mail-ot1-f68.google.com with SMTP id b18so13917053otq.3;
+        Tue, 07 May 2019 00:01:47 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=zKMbIttCgzcVVkRNu5fztyhWx+BL/3mOVoqyvi0NAEI=;
+        b=INSgcKv8O9yM65+VKqHoMOrNHbmlcEnHOVbaCQOGmt0PIZC9v+jY+T8l/YedGA5NA/
+         Tz+qZPZ6yZNqFT/CK02u6QG74NWhUgkOr+nAw/XnxufPoizP/znYNYR6UvgAoH6RSot3
+         Qtnkr2Gu+NlLSZkbT1vC0qUNTcyBWXp0alwHZ0xOETpG2m5UoJaUs5b3siE7wEY2C44A
+         /VEzhFCZ/DsDN2t1bOfBmP3N1MOOvUF/3QZSD0OfwmuF2Gfz4gE/9nbeMkakfGUF+AVn
+         KjV97vEHwb4/wwI88lcpGfze914MRqPgIEf4fZsZGDYq2o3gzCIkEq/Z+usY809PiwxL
+         fA/g==
+X-Gm-Message-State: APjAAAWjshv6yrOs7FjIStrYJZnaE7Mu+mxWsg5RK/0NvCvpYmGmH3he
+        i5ztm6LkBFBO4cALu3OnYbeUbyxpo+gnkRebga8=
+X-Google-Smtp-Source: APXvYqx5HZyzDhKKw/pMsuceYuNU8AOS/SQGy+9vmSPw9U4np+bboCTLUqSXmY0Nhp2RD3+3Fq6+UQEkP8tUjoPf56M=
+X-Received: by 2002:a05:6830:1251:: with SMTP id s17mr17144503otp.186.1557212506581;
+ Tue, 07 May 2019 00:01:46 -0700 (PDT)
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+References: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
+In-Reply-To: <CAEJqkgh-eh0F0rNBChhurH0LWTLFP0DyfFzKj66p4Z2d1kM2gw@mail.gmail.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 7 May 2019 09:01:34 +0200
+Message-ID:
+ <CAJZ5v0gRWEL1shQE3im0VxiPRBYat86o=R_NVQbc3JgOX8uT6w@mail.gmail.com>
+Subject: Re: [Kernel 5.1] ACPI_DEBUG messages without CONFIG_ACPI_DEBUG being set
+To:     Gabriel C <nix.or.die@gmail.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Schmauss, Erik" <erik.schmauss@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190507053435.ZqcWalxaUFgJ2dpMt6JBIn7E-uRP4jEWanhZo8s6IM0@z>
+Message-ID: <20190507070134.xJkgYTbnBL2FgwJWjgM7XA3ynObSYCX54a3GW2sEfBE@z>
 
-From: Dan Williams <dan.j.williams@intel.com>
++Erik
 
-[ Upstream commit 351f339faa308c1c1461314a18c832239a841ca0 ]
-
-The dynamic-debug statements for command payload output only get emitted
-when the command is not ND_CMD_CALL. Move the output payload dumping
-ahead of the early return path for ND_CMD_CALL.
-
-Fixes: 31eca76ba2fc9 ("...whitelisted dimm command marshaling mechanism")
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/nfit/core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 925dbc751322..8340c81b258b 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -542,6 +542,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		goto out;
- 	}
- 
-+	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
-+			cmd_name, out_obj->buffer.length);
-+	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
-+			out_obj->buffer.pointer,
-+			min_t(u32, 128, out_obj->buffer.length), true);
-+
- 	if (call_pkg) {
- 		call_pkg->nd_fw_size = out_obj->buffer.length;
- 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-@@ -560,12 +566,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		return 0;
- 	}
- 
--	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
--			cmd_name, out_obj->buffer.length);
--	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
--			out_obj->buffer.pointer,
--			min_t(u32, 128, out_obj->buffer.length), true);
--
- 	for (i = 0, offset = 0; i < desc->out_num; i++) {
- 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
- 				(u32 *) out_obj->buffer.pointer,
--- 
-2.20.1
-
+On Tue, May 7, 2019 at 1:33 AM Gabriel C <nix.or.die@gmail.com> wrote:
+>
+> Hello,
+>
+> while testing kernel-5.1 I get on one of my Lenovo Laptops very
+> strange 'ACPI Debug:' messages.
+>
+> After some grepping I realized these are Debug messages from DSDT ,
+> however my kernel does
+> not have ACPI_DEBUG enabled.
+>
+> I found out the module triggering this, on this Laptop is
+> ideapad_laptop , but looking at the code
+> I cannot see what would causes that.
+>
+> Also on the same Laptop with any 5.0.X kernels I cannot see these.
+>
+>
+> ~$ grep -i ACPI_DEBUG /boot/config-5.1-fw1
+> # CONFIG_ACPI_DEBUGGER is not set
+> # CONFIG_ACPI_DEBUG is not set
+> # CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
+> # CONFIG_THINKPAD_ACPI_DEBUG is not set
+>
+> .. dmesg ..
+> ...
+> [   68.020812] calling  ideapad_acpi_driver_init+0x0/0x1000
+> [ideapad_laptop] @ 1322
+> [   68.026708] input: Ideapad extra buttons as
+> /devices/pci0000:00/0000:00:1f.0/PNP0C09:00/VPC2004:00/input/input16
+> [   68.038236] ACPI Debug:  "=====QUERY_64====="
+> [   68.050232] ACPI Debug:  "=====QUERY_65====="
+> [   68.060218] ACPI Debug:  "=====QUERY_64====="
+> [   68.092216] probe of VPC2004:00 returned 1 after 71386 usecs
+> [   68.092245] initcall ideapad_acpi_driver_init+0x0/0x1000
+> [ideapad_laptop] returned 0 after 69751 usecssg
+>
+> ...
+>
+> These =====QUERY_XX===== messages are from DSDT:
+>
+> ~/acpi$ grep QUERY dsdt.dsl
+>                Debug = "=====QUERY_11====="
+>                Debug = "=====QUERY_12====="
+>                Debug = "=====QUERY_24====="
+>                Debug = "=====QUERY_25====="
+>                Debug = "=====QUERY_37====="
+>                Debug = "=====QUERY_38====="
+>                Debug = "=====QUERY_64====="
+>                Debug = "=====QUERY_65====="
+>
+> Also this is the code from DSDT for QUERY 64 and 65:
+>
+> ...
+>             Method (_Q64, 0, NotSerialized)  // _Qxx: EC Query
+>            {
+>                Debug = "=====QUERY_64====="
+>                If ((OSYS == 0x07D9))
+>                {
+>                    If (((WLEX == One) & (WLAT == One)))
+>                    {
+>                        SGOV (0x02040005, One)
+>                    }
+>                    Else
+>                    {
+>                        SGOV (0x02040005, Zero)
+>                    }
+>                }
+>            }
+>
+>            Method (_Q65, 0, NotSerialized)  // _Qxx: EC Query
+>            {
+>                Debug = "=====QUERY_65====="
+>                If ((OSYS == 0x07D9))
+>                {
+>                    If (((BTEX == One) & (BTAT == One)))
+>                    {
+>                        SGOV (0x0202000B, One)
+>                    }
+>                    Else
+>                    {
+>                        SGOV (0x0202000B, Zero)
+>                    }
+>                }
+>            }
+>
+> ...
+>
+>
+> Any idea what would cause this ?
+>
+> BR,
+>
+> Gabriel C
