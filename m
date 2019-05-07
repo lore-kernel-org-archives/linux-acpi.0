@@ -7,50 +7,49 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE0D4C004C9
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 05:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C53CCC004C9
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 06:01:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B012A20675
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 05:51:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9498F20675
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 06:01:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1557208306;
-	bh=sz3G/G7S59Ufj57jzQemIJTIAXrIRuQ6U/WPK+vEEH4=;
+	s=default; t=1557208905;
+	bh=B/gkt7iNSmPmscq9jO/iJBG7GmmIjSdgYLzaZQRpVmA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=pzmxWv3ZuoSy7sbuYt+XvjJWwigVSvhtcH7/dhqoc6QcIXXjlDtDKbS+lceUdCfHn
-	 YQY/BDRh0Powx5+BflishbF+5f2RCSqSIpUD2iAjs5ajO08bgaV8nZ6lND2QXIM2a3
-	 EJgDwftPjedBsHPcFbu+ncZoNQdfhU0grJ8wFlxk=
+	b=IYxYFDUdslIRHfrQiMDfJ8vCpF7vkHydX3anu57ZWbXw6DgZMhwTi0joiGs8H8qbV
+	 BFi9KfQzd93HXi/OBFRqlu/FNXhqlqwmJFrwA75SVCzdr9CPcP074pxQNX5kP9uGb/
+	 R4PRSOqs2UQy+x3MH/hQ3Wrf/EiLcgYokb6BQnUU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727774AbfEGFvk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 May 2019 01:51:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59330 "EHLO mail.kernel.org"
+        id S1726930AbfEGGBj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 May 2019 02:01:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728935AbfEGFjt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 May 2019 01:39:49 -0400
+        id S1726767AbfEGFgD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 May 2019 01:36:03 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2908420675;
-        Tue,  7 May 2019 05:39:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A392420B7C;
+        Tue,  7 May 2019 05:36:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1557207589;
-        bh=sz3G/G7S59Ufj57jzQemIJTIAXrIRuQ6U/WPK+vEEH4=;
+        s=default; t=1557207362;
+        bh=B/gkt7iNSmPmscq9jO/iJBG7GmmIjSdgYLzaZQRpVmA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Satpoahixke2p4Zp9JZVVKOWs1CcyW3t1DJSB83E+AzV9BpY82ddC0SbXxJsNH21G
-         LbRoRAhgwY/SEtYNk74AdND7XsGRzdRSsFsP/GyGtKbaRSZw/ISkTQHIosKCp0+zCQ
-         YpZNaL8fZ/Ybg5gI0j2k1eplXFWNBAz+fiSv5iZo=
+        b=2eFw6OY7htbyuF6kXuXcMlHCKY2VYGGSwXXA13vZUeb6EcqvAsW9unn6AFWuygK3p
+         Z0p7GPNBaq/Hb5QAuSJTyd0Z4wr8sAdNRlxJ0bC9hcs7S+3mkcm7GjS+TBvGhafYnO
+         zj/hovWJ09kQljXGkazMylYaXBlwG/qmG3N3WlUs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Erik Schmauss <erik.schmauss@intel.com>,
-        Jean-Marc Lenoir <archlinux@jihemel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <alexander.levin@microsoft.com>,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 4.14 39/95] ACPICA: AML interpreter: add region addresses in global list during initialization
-Date:   Tue,  7 May 2019 01:37:28 -0400
-Message-Id: <20190507053826.31622-39-sashal@kernel.org>
+Cc:     Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 04/81] acpi/nfit: Always dump _DSM output payload
+Date:   Tue,  7 May 2019 01:34:35 -0400
+Message-Id: <20190507053554.30848-4-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
-References: <20190507053826.31622-1-sashal@kernel.org>
+In-Reply-To: <20190507053554.30848-1-sashal@kernel.org>
+References: <20190507053554.30848-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,49 +59,54 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190507053728.VV0nahClnmVRy8-jPUYcxTJDEGLva_J7sxr9IqjE1G8@z>
+Message-ID: <20190507053435.ZqcWalxaUFgJ2dpMt6JBIn7E-uRP4jEWanhZo8s6IM0@z>
 
-From: Erik Schmauss <erik.schmauss@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
 
-[ Upstream commit 4abb951b73ff0a8a979113ef185651aa3c8da19b ]
+[ Upstream commit 351f339faa308c1c1461314a18c832239a841ca0 ]
 
-The table load process omitted adding the operation region address
-range to the global list. This omission is problematic because the OS
-queries the global list to check for address range conflicts before
-deciding which drivers to load. This commit may result in warning
-messages that look like the following:
+The dynamic-debug statements for command payload output only get emitted
+when the command is not ND_CMD_CALL. Move the output payload dumping
+ahead of the early return path for ND_CMD_CALL.
 
-[    7.871761] ACPI Warning: system_IO range 0x00000428-0x0000042F conflicts with op_region 0x00000400-0x0000047F (\PMIO) (20180531/utaddress-213)
-[    7.871769] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
-
-However, these messages do not signify regressions. It is a result of
-properly adding address ranges within the global address list.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=200011
-Tested-by: Jean-Marc Lenoir <archlinux@jihemel.com>
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-Cc: All applicable <stable@vger.kernel.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+Fixes: 31eca76ba2fc9 ("...whitelisted dimm command marshaling mechanism")
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpica/dsopcode.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/nfit/core.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index 0336df7ac47d..e8070f6ca835 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -451,6 +451,10 @@ acpi_ds_eval_region_operands(struct acpi_walk_state *walk_state,
- 			  ACPI_FORMAT_UINT64(obj_desc->region.address),
- 			  obj_desc->region.length));
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 925dbc751322..8340c81b258b 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -542,6 +542,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		goto out;
+ 	}
  
-+	status = acpi_ut_add_address_range(obj_desc->region.space_id,
-+					   obj_desc->region.address,
-+					   obj_desc->region.length, node);
++	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
++			cmd_name, out_obj->buffer.length);
++	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
++			out_obj->buffer.pointer,
++			min_t(u32, 128, out_obj->buffer.length), true);
 +
- 	/* Now the address and length are valid for this opregion */
+ 	if (call_pkg) {
+ 		call_pkg->nd_fw_size = out_obj->buffer.length;
+ 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
+@@ -560,12 +566,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		return 0;
+ 	}
  
- 	obj_desc->region.flags |= AOPOBJ_DATA_VALID;
+-	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
+-			cmd_name, out_obj->buffer.length);
+-	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
+-			out_obj->buffer.pointer,
+-			min_t(u32, 128, out_obj->buffer.length), true);
+-
+ 	for (i = 0, offset = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
+ 				(u32 *) out_obj->buffer.pointer,
 -- 
 2.20.1
 
