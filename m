@@ -2,54 +2,56 @@ Return-Path: <SRS0=qBNj=TH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,URIBL_SBL,URIBL_SBL_A,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAD88C04AAD
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 05:32:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A75C004C9
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 05:48:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7D9D121019
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 05:32:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0638206A3
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 May 2019 05:48:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1557207165;
-	bh=B+Svool6OKtXekRVwUUtun6ODfXF2B3SY0gk1iyt/4U=;
+	s=default; t=1557208105;
+	bh=RigganWX4DUWno7wtAZgPTbcGgZR+KOR1pXcA44Ef6o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Z26jQw2lAS81TA5ffuxrAPxWjv53jyMQoA9Q2ITQmy7F2MPm5fNlBZJbryjeZNPUJ
-	 nCFEF7eCJmb5G1/pIapwNR/D9FVIxSNX4Mlb0oQfuOlL2zVMiGx4Ive2z95MMaN+WJ
-	 fPfNevN+QQI1BAw4Xw9FKDgUkpcWsZvILRwA0APU=
+	b=ik/FW86O6FaWsV4hk8PusZ24iUyGHlDB06nxuY5GLTreT+8T69Ed+pk2JXuHbP388
+	 L+F30twhA4aZ8dF4kA0tUXnafhPdYtlrCRqncsXJBJkU6Id3ZYHXvZBBwmuHABgbYI
+	 4rys8yKsz+0oPNxwRh9L9mmK0KZi/HxxsUF1dARI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726509AbfEGFco (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 May 2019 01:32:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52834 "EHLO mail.kernel.org"
+        id S1729219AbfEGFkv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 May 2019 01:40:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726503AbfEGFco (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 May 2019 01:32:44 -0400
+        id S1729211AbfEGFks (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 May 2019 01:40:48 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 80881206A3;
-        Tue,  7 May 2019 05:32:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AAD41205ED;
+        Tue,  7 May 2019 05:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1557207163;
-        bh=B+Svool6OKtXekRVwUUtun6ODfXF2B3SY0gk1iyt/4U=;
+        s=default; t=1557207647;
+        bh=RigganWX4DUWno7wtAZgPTbcGgZR+KOR1pXcA44Ef6o=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Gf0VOXHRy8xPceIUIOydy8DO6ZE65P4Hxxt7azVI01NZu2x29RRHzKacqcUR1U7WO
-         x2bHXFrRDCyvQVMH5xCrRvBQ81NcoycQRtDlFyi1gB5M3D0GF53/OvvIoKMc7sQBYu
-         gWXj1g5mi9/Vp1wqXwQS7OY9OhJbKPrGzF1eEXSI=
+        b=kh9FG/qwVqu591wUlHDIqR6BoGjZj0jjvJS2lSepx3Bp4CK6AYrZ7WdeBGGuknmJF
+         VwlplFsZTlPxnALWTg7zb/A4O4eSANgTOTdto47403ldtgW4FgtdiPo3OTZRbV0yR/
+         Jz9eGWhtRcDll+pVrDIxyCoOnZ9RW60LPRL3brPo=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.0 04/99] acpi/nfit: Always dump _DSM output payload
-Date:   Tue,  7 May 2019 01:30:58 -0400
-Message-Id: <20190507053235.29900-4-sashal@kernel.org>
+Cc:     Erik Schmauss <erik.schmauss@intel.com>,
+        Michael J Gruber <mjg@fedoraproject.org>,
+        Bob Moore <robert.moore@intel.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <alexander.levin@microsoft.com>,
+        linux-acpi@vger.kernel.org, devel@acpica.org
+Subject: [PATCH AUTOSEL 4.14 78/95] ACPICA: Namespace: remove address node from global list after method termination
+Date:   Tue,  7 May 2019 01:38:07 -0400
+Message-Id: <20190507053826.31622-78-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
-References: <20190507053235.29900-1-sashal@kernel.org>
+In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
+References: <20190507053826.31622-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,54 +61,66 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Message-ID: <20190507053058.Pq6KfodYB5N6hyo-qGGldELHRxWca5Z4MAE6ORW0Yq8@z>
+Message-ID: <20190507053807.AW4h3L8FrAXMUgwhEUAliIthBHaCzQJ99DMurROhDq4@z>
 
-From: Dan Williams <dan.j.williams@intel.com>
+From: Erik Schmauss <erik.schmauss@intel.com>
 
-[ Upstream commit 351f339faa308c1c1461314a18c832239a841ca0 ]
+[ Upstream commit c5781ffbbd4f742a58263458145fe7f0ac01d9e0 ]
 
-The dynamic-debug statements for command payload output only get emitted
-when the command is not ND_CMD_CALL. Move the output payload dumping
-ahead of the early return path for ND_CMD_CALL.
+ACPICA commit b233720031a480abd438f2e9c643080929d144c3
 
-Fixes: 31eca76ba2fc9 ("...whitelisted dimm command marshaling mechanism")
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+ASL operation_regions declare a range of addresses that it uses. In a
+perfect world, the range of addresses should be used exclusively by
+the AML interpreter. The OS can use this information to decide which
+drivers to load so that the AML interpreter and device drivers use
+different regions of memory.
+
+During table load, the address information is added to a global
+address range list. Each node in this list contains an address range
+as well as a namespace node of the operation_region. This list is
+deleted at ACPI shutdown.
+
+Unfortunately, ASL operation_regions can be declared inside of control
+methods. Although this is not recommended, modern firmware contains
+such code. New module level code changes unintentionally removed the
+functionality of adding and removing nodes to the global address
+range list.
+
+A few months ago, support for adding addresses has been re-
+implemented. However, the removal of the address range list was
+missed and resulted in some systems to crash due to the address list
+containing bogus namespace nodes from operation_regions declared in
+control methods. In order to fix the crash, this change removes
+dynamic operation_regions after control method termination.
+
+Link: https://github.com/acpica/acpica/commit/b2337200
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=202475
+Fixes: 4abb951b73ff ("ACPICA: AML interpreter: add region addresses in global list during initialization")
+Reported-by: Michael J Gruber <mjg@fedoraproject.org>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Cc: 4.20+ <stable@vger.kernel.org> # 4.20+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
 ---
- drivers/acpi/nfit/core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/nsobject.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 4be4dc3e8aa6..38ec79bb3edd 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -563,6 +563,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		goto out;
+diff --git a/drivers/acpi/acpica/nsobject.c b/drivers/acpi/acpica/nsobject.c
+index 707b2aa501e1..099be6424255 100644
+--- a/drivers/acpi/acpica/nsobject.c
++++ b/drivers/acpi/acpica/nsobject.c
+@@ -222,6 +222,10 @@ void acpi_ns_detach_object(struct acpi_namespace_node *node)
+ 		}
  	}
  
-+	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
-+			cmd_name, out_obj->buffer.length);
-+	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
-+			out_obj->buffer.pointer,
-+			min_t(u32, 128, out_obj->buffer.length), true);
++	if (obj_desc->common.type == ACPI_TYPE_REGION) {
++		acpi_ut_remove_address_range(obj_desc->region.space_id, node);
++	}
 +
- 	if (call_pkg) {
- 		call_pkg->nd_fw_size = out_obj->buffer.length;
- 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-@@ -581,12 +587,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		return 0;
- 	}
+ 	/* Clear the Node entry in all cases */
  
--	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
--			cmd_name, out_obj->buffer.length);
--	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
--			out_obj->buffer.pointer,
--			min_t(u32, 128, out_obj->buffer.length), true);
--
- 	for (i = 0, offset = 0; i < desc->out_num; i++) {
- 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
- 				(u32 *) out_obj->buffer.pointer,
+ 	node->object = NULL;
 -- 
 2.20.1
 
