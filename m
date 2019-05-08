@@ -1,92 +1,41 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 1/3] PCI: Cleanup printk logging
-Date: Tue, 7 May 2019 17:50:40 -0500
-Message-ID: <20190507225040.GF156478@google.com>
-References: <1555733026-19609-1-git-send-email-mohankumar718@gmail.com>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [Qemu-devel] [PATCH v7 4/6] dax: check synchronous mapping is
+ supported
+Date: Wed, 8 May 2019 01:31:18 -0400 (EDT)
+Message-ID: <1853101606.27182251.1557293478937.JavaMail.zimbra@redhat.com>
+References: <20190426050039.17460-1-pagupta@redhat.com> <20190426050039.17460-5-pagupta@redhat.com> <CA+nGSuOgCAoS4MkbuSL2q5Gyi4jG2oyJqLu_sDgexm5fSBmPLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1555733026-19609-1-git-send-email-mohankumar718@gmail.com>
+In-Reply-To: <CA+nGSuOgCAoS4MkbuSL2q5Gyi4jG2oyJqLu_sDgexm5fSBmPLQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mohan Kumar <mohankumar718@gmail.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jakub =?utf-8?Q?Staro=C5=84?= <jstaron@google.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, dave jiang <dave.jiang@intel.com>, darrick wong <darrick.wong@oracle.com>, vishal l verma <vishal.l.verma@intel.com>, david@redhat.com, willy@infradead.org, hch@infradead.org, jmoyer@redhat.com, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, pbonzini@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mohan,
 
-On Sat, Apr 20, 2019 at 07:03:46AM +0300, Mohan Kumar wrote:
-> Replace printk with pr_* to avoid checkpatch warnings.
-
-This looks fine, and I applied it to pci/printk with the intent of
-putting it in v5.2.  I squashed in some pieces of your second patch,
-and I'll respond to that one with the details.
-
-When you post more than one patch in a series, it's nice to include a
-cover letter where I can respond to the series as a whole.
-
-> Signed-off-by: Mohan Kumar <mohankumar718@gmail.com>
-> ---
->  drivers/pci/pci-acpi.c | 11 ++++-------
->  drivers/pci/quirks.c   |  2 +-
->  2 files changed, 5 insertions(+), 8 deletions(-)
 > 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index e1949f7..3ada026 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -140,8 +140,7 @@ static acpi_status decode_type0_hpx_record(union acpi_object *record,
->  		hpx->t0->enable_perr     = fields[5].integer.value;
->  		break;
->  	default:
-> -		printk(KERN_WARNING
-> -		       "%s: Type 0 Revision %d record not supported\n",
-> +		pr_warn("%s: Type 0 Revision %d record not supported\n",
->  		       __func__, revision);
->  		return AE_ERROR;
->  	}
-> @@ -169,8 +168,7 @@ static acpi_status decode_type1_hpx_record(union acpi_object *record,
->  		hpx->t1->tot_max_split = fields[4].integer.value;
->  		break;
->  	default:
-> -		printk(KERN_WARNING
-> -		       "%s: Type 1 Revision %d record not supported\n",
-> +		pr_warn("%s: Type 1 Revision %d record not supported\n",
->  		       __func__, revision);
->  		return AE_ERROR;
->  	}
-> @@ -211,8 +209,7 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
->  		hpx->t2->sec_unc_err_mask_or   = fields[17].integer.value;
->  		break;
->  	default:
-> -		printk(KERN_WARNING
-> -		       "%s: Type 2 Revision %d record not supported\n",
-> +		pr_warn("%s: Type 2 Revision %d record not supported\n",
->  		       __func__, revision);
->  		return AE_ERROR;
->  	}
-> @@ -272,7 +269,7 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
->  				goto exit;
->  			break;
->  		default:
-> -			printk(KERN_ERR "%s: Type %d record not supported\n",
-> +			pr_err("%s: Type %d record not supported\n",
->  			       __func__, type);
->  			status = AE_ERROR;
->  			goto exit;
-> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-> index f9cd4d4..06af0c3 100644
-> --- a/drivers/pci/quirks.c
-> +++ b/drivers/pci/quirks.c
-> @@ -2613,7 +2613,7 @@ static void nvbridge_check_legacy_irq_routing(struct pci_dev *dev)
->  	pci_read_config_dword(dev, 0x74, &cfg);
->  
->  	if (cfg & ((1 << 2) | (1 << 15))) {
-> -		printk(KERN_INFO "Rewriting IRQ routing register on MCP55\n");
-> +		pr_info("Rewriting IRQ routing register on MCP55\n");
->  		cfg &= ~((1 << 2) | (1 << 15));
->  		pci_write_config_dword(dev, 0x74, cfg);
->  	}
-> -- 
-> 2.7.4
+> From: Pankaj Gupta <pagupta@redhat.com>
+> Date: Thu, Apr 25, 2019 at 10:00 PM
+> 
+> > +static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+> > +                               struct dax_device *dax_dev)
+> > +{
+> > +       return !(vma->flags & VM_SYNC);
+> > +}
+> 
+> Shouldn't it be rather `return !(vma->vm_flags & VM_SYNC);`? There is
+> no field named `flags` in `struct vm_area_struct`.
+
+Thanks for catching. Sorry! for this. 
+
+Will correct in v8.
+
+Thank you,
+Pankaj 
+
+> 
+> Thank you,
+> Jakub
 > 
