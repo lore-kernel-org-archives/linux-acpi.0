@@ -1,41 +1,87 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH v7 4/6] dax: check synchronous mapping is
- supported
-Date: Wed, 8 May 2019 01:31:18 -0400 (EDT)
-Message-ID: <1853101606.27182251.1557293478937.JavaMail.zimbra@redhat.com>
-References: <20190426050039.17460-1-pagupta@redhat.com> <20190426050039.17460-5-pagupta@redhat.com> <CA+nGSuOgCAoS4MkbuSL2q5Gyi4jG2oyJqLu_sDgexm5fSBmPLQ@mail.gmail.com>
+From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH v7 6/6] xfs: disable map_sync for async flush
+Date: Wed, 8 May 2019 01:49:04 -0400 (EDT)
+Message-ID: <7976014.27184867.1557294544901.JavaMail.zimbra@redhat.com>
+References: <20190426050039.17460-1-pagupta@redhat.com>
+ <20190426050039.17460-7-pagupta@redhat.com>
+ <CAPcyv4hCP4E4xPkQx25tqhznon6ADwrYJB1yujkrO-A7LUnsmg@mail.gmail.com>
+ <20190507161736.GV5207@magnolia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+nGSuOgCAoS4MkbuSL2q5Gyi4jG2oyJqLu_sDgexm5fSBmPLQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jakub =?utf-8?Q?Staro=C5=84?= <jstaron@google.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, dave jiang <dave.jiang@intel.com>, darrick wong <darrick.wong@oracle.com>, vishal l verma <vishal.l.verma@intel.com>, david@redhat.com, willy@infradead.org, hch@infradead.org, jmoyer@redhat.com, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, pbonzini@redhat.com
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190507161736.GV5207@magnolia>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, david <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andreas Dilger <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ext4 <linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, yuval shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Igor Mammedov <imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal@redha>
 List-Id: linux-acpi@vger.kernel.org
 
 
 > 
-> From: Pankaj Gupta <pagupta@redhat.com>
-> Date: Thu, Apr 25, 2019 at 10:00 PM
+> On Tue, May 07, 2019 at 08:37:01AM -0700, Dan Williams wrote:
+> > On Thu, Apr 25, 2019 at 10:03 PM Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> > >
+> > > Dont support 'MAP_SYNC' with non-DAX files and DAX files
+> > > with asynchronous dax_device. Virtio pmem provides
+> > > asynchronous host page cache flush mechanism. We don't
+> > > support 'MAP_SYNC' with virtio pmem and xfs.
+> > >
+> > > Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > >  fs/xfs/xfs_file.c | 9 ++++++---
+> > >  1 file changed, 6 insertions(+), 3 deletions(-)
+> > 
+> > Darrick, does this look ok to take through the nvdimm tree?
 > 
-> > +static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
-> > +                               struct dax_device *dax_dev)
-> > +{
-> > +       return !(vma->flags & VM_SYNC);
-> > +}
+> <urk> forgot about this, sorry. :/
 > 
-> Shouldn't it be rather `return !(vma->vm_flags & VM_SYNC);`? There is
-> no field named `flags` in `struct vm_area_struct`.
+> > >
+> > > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> > > index a7ceae90110e..f17652cca5ff 100644
+> > > --- a/fs/xfs/xfs_file.c
+> > > +++ b/fs/xfs/xfs_file.c
+> > > @@ -1203,11 +1203,14 @@ xfs_file_mmap(
+> > >         struct file     *filp,
+> > >         struct vm_area_struct *vma)
+> > >  {
+> > > +       struct dax_device       *dax_dev;
+> > > +
+> > > +       dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
+> > >         /*
+> > > -        * We don't support synchronous mappings for non-DAX files. At
+> > > least
+> > > -        * until someone comes with a sensible use case.
+> > > +        * We don't support synchronous mappings for non-DAX files and
+> > > +        * for DAX files if underneath dax_device is not synchronous.
+> > >          */
+> > > -       if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+> > > +       if (!daxdev_mapping_supported(vma, dax_dev))
+> > >                 return -EOPNOTSUPP;
+> 
+> LGTM, and I'm fine with it going through nvdimm.  Nothing in
+> xfs-5.2-merge touches that function so it should be clean.
+> 
+> Reviewed-by: Darrick J. Wong <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Thanks for catching. Sorry! for this. 
+Thank you for the review.
 
-Will correct in v8.
-
-Thank you,
-Pankaj 
+Pankaj
 
 > 
-> Thank you,
-> Jakub
+> --D
+> 
+> > >
+> > >         file_accessed(filp);
+> > > --
+> > > 2.20.1
+> > >
+> 
 > 
