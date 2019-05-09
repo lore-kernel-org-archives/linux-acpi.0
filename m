@@ -1,13 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI source release updated (20030424)
-Date: Fri, 25 Apr 2003 16:31:28 -0700
+From: "linda starkey" <linda_starkey-8PHFbfy+9prRrITwlokTxGD2FQJk+8+b@public.gmane.org>
+Subject: Fwd:here is the information
+Date: 4/25/2003 8:04:48 PM
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A27C@orsmsx401.jf.intel.com>
+Message-ID: <164b7cc8$5b9e$2aca@NT5>
+Reply-To: linda_starkey-8PHFbfy+9prRrITwlokTxGD2FQJk+8+b@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_8518_7450_E1.4AF1780215A5"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,56 +19,228 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
 
-A new ACPI source release is now available from
-http://sf.net/projects/acpi . Due to most of the improvements already
-being in the latest 2.5 bk snapshots, there is only a 2.4 patch up there
-for the moment. Non-Linux source releases will be available
-hopefully by Monday morning, definitely by Monday evening.
+------=_NextPart_8518_7450_E1.4AF1780215A5
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 
-Regards -- Andy
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
 
-----------------------------------------
-24 April 2003.  Summary of changes for version 20030424.
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=iso-8859-1">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./micromsg_files/filelist.xml">
+<title>Untitled Document</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Admin</o:Author>
+  <o:LastAuthor>Admin</o:LastAuthor>
+  <o:Revision>3</o:Revision>
+  <o:TotalTime>1</o:TotalTime>
+  <o:Created>2003-04-19T16:38:00Z</o:Created>
+  <o:LastSaved>2003-04-19T16:42:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>245</o:Words>
+  <o:Characters>1399</o:Characters>
+  <o:Lines>11</o:Lines>
+  <o:Paragraphs>2</o:Paragraphs>
+  <o:CharactersWithSpaces>1718</o:CharactersWithSpaces>
+  <o:Version>9.3821</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	color:black;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+p
+	{margin-right:0in;
+	mso-margin-top-alt:auto;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	color:black;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:1508210404;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-840923750 -218187582 -1958700524 2107402470 -1374143370 -977268302 1200128482 720256206 -15292714 250399058;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:2034450726;
+	mso-list-type:hybrid;
+	mso-list-template-ids:192434174 1150419336 1009801622 1059062464 -252563958 -1809388426 126226876 -1086137134 401884534 1102711682;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext="edit" spidmax="1027"/>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext="edit">
+  <o:idmap v:ext="edit" data="1"/>
+ </o:shapelayout></xml><![endif]-->
+</head>
 
-1) ACPI CA Core Subsystem:
+<body bgcolor=white lang=EN-US link=blue vlink=blue style='tab-interval:.5in'>
 
-Support for big-endian systems has been implemented.  Most of the
-support has been invisibly added behind big-endian versions of
-the ACPI_MOVE_* macros.
+<div class=Section1>
 
-Fixed a problem in AcpiHwDisableGpeBlock() and
-AcpiHwClearGpeBlock() where an incorrect offset was passed to the
-low level hardware write routine.  The offset parameter was
-actually eliminated from the low level read/write routines
-because they had become obsolete.
+<p align=center style='text-align:center'><b><span style='font-size:24.0pt;
+font-family:Arial;color:red'>Want to know THE TRUTH???</span></b></p>
 
-Fixed a problem where a handler object was deleted twice during
-the removal of a fixed event handler.
+<p align=center style='text-align:center'><b><span style='font-family:Arial;
+color:navy'>Find out</span></b><b><span style='font-size:13.5pt;font-family:
+Arial'> </span></b><b><span style='font-size:13.5pt;font-family:Arial;
+color:red'>THE TRUTH</span></b><span style='font-size:13.5pt;font-family:Arial'>
+</span><b><span style='font-family:Arial;color:navy'>about</span></b><span
+style='font-size:13.5pt;font-family:Arial'> </span><b><span style='font-size:
+13.5pt;font-family:Arial;color:red'>ANYONE</span></b><span style='font-size:
+13.5pt;font-family:Arial;color:navy'> </span><span style='font-size:13.5pt;
+font-family:Arial'>. .</span></p>
 
+<p><b><span style='font-size:10.0pt;font-family:Arial;color:navy'>What do you
+really know about your girlfriend, boyfriend, employees, boss, spouse,
+neighbors or friends?</span></b></p>
 
-2) Linux:
+<p><strong><span style='font-size:10.0pt;font-family:Arial;color:navy'>Micro Detective
+knows and it will show you how to find all the information you need, quickly
+and easily.</span></strong><strong><span style='font-size:10.0pt;font-family:
+Arial'> </span></strong></p>
 
-A fix for SMP systems with link devices was contributed by
-Compaq's Dan Zink.
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
+     font-family:Arial'>Use Unlimited Times - FREE Lifetime Updates</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
+     font-family:Arial'>Uncover Your OWN Family History!</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
+     font-family:Arial'>Find Birth, Death, SOCIAL SECURITY, Adoption, DMV
+     Records &amp; More!</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
+     font-family:Arial'>Find UNLISTED Phone Numbers</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
+     font-family:Arial'>Powerful Reverse Search To Find Address, Phone Number
+     and Email Addresses FAST!</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
+     font-family:Arial'>Investigate Your Own CREDIT REPORTS!</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
+     font-family:Arial'>Uncover Exciting Job Opportunities World Wide!</span></li>
+</ul>
 
-(2.5) Return whether we handled the interrupt in our IRQ handler.
-(Linux ISRs no longer return void, so we can propagate the
-handler return value from the ACPI CA core back to the OS.)
+<p><span style='font-size:10.0pt;font-family:Arial'>Protect your family, your
+business and yourself. Expose the sordid past of criminals before they rob you
+too or harm your loved ones. Be your own detective for lawsuits, adoption,
+business disputes, child support, simple curiosity or reunions. Begin snooping,
+spying, researching and discovering the lowdown just minutes from now!</span></p>
 
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'><b><span style='font-size:
+     10.0pt;font-family:Arial;color:navy'>Find information easily</span></b><b><span
+     style='font-size:10.0pt;font-family:Arial;color:blue'><br>
+     </span></b><span style='font-size:10.0pt;font-family:Arial'>Look up
+     virtually anything about a person and/or a business at no per search
+     charge!</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'><b><span style='font-size:
+     10.0pt;font-family:Arial;color:navy'>Conduct researches</span></b><b><span
+     style='font-size:10.0pt;font-family:Arial;color:blue'><br>
+     </span></b><span style='font-size:10.0pt;font-family:Arial'>Perform your online
+     researches without the need of hiring expensive investigation firms.</span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'><b><span style='font-size:
+     10.0pt;font-family:Arial;color:navy'>Find lost friends &amp; family</span></b><b><span
+     style='font-size:10.0pt;font-family:Arial;color:blue'><br>
+     </span></b><span style='font-size:10.0pt;font-family:Arial'>Get unlisted
+     phone numbers and addresses from old friends or family members and contact
+     them. </span></li>
+</ul>
 
-3) Documentation:
+<p align=center style='text-align:center'><span style='font-size:13.5pt;
+font-family:Arial;color:navy'><a
+href="http://www.micro-detective.com/order.html">Click Here</a> To Order </span><b><span
+style='font-size:18.0pt;color:red'>ONLY 19.95</span></b></p>
 
-The ACPI CA Programmer Reference has been updated to reflect new
-interfaces and changes to existing interfaces.
+<p><b><span style='font-size:10.0pt;font-family:Arial;color:navy'>Do you want
+to know more? Visit us at<a href="http://www.micro-detective.com">
+www.micro-detective.com</a></span></b></p>
 
+<p>&nbsp;</p>
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+<p>To be optout from our future mailing please email
+optout-8PHFbfy+9prRrITwlokTxGD2FQJk+8+b@public.gmane.org </p>
 
+<p>You can also opt out by mail; Please send your request to: </p>
+
+<p>11314 Ventura Blvd Suite #141 <br>
+Studio City, CA 91604</p>
+
+<p>Or by Phone (213) 216 8305</p>
+
+</div>
+
+</body>
+
+</html>
+<!--7cf36955319810627b6b624222735f92280f54ac-->
+
+------=_NextPart_8518_7450_E1.4AF1780215A5--
 
 
 -------------------------------------------------------
