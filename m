@@ -2,189 +2,104 @@ Return-Path: <SRS0=lK0z=TK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A274C04AB2
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 09:46:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7E25C04A6B
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 756392175B
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 09:46:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92D9620881
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727219AbfEJJqB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 10 May 2019 05:46:01 -0400
-Received: from mga02.intel.com ([134.134.136.20]:41413 "EHLO mga02.intel.com"
+        id S1727234AbfEJKJ0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 10 May 2019 06:09:26 -0400
+Received: from mga18.intel.com ([134.134.136.126]:54995 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727160AbfEJJqA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 May 2019 05:46:00 -0400
+        id S1727053AbfEJKJ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 May 2019 06:09:26 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 May 2019 02:45:59 -0700
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 May 2019 03:09:26 -0700
 X-ExtLoop1: 1
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga001.jf.intel.com with ESMTP; 10 May 2019 02:45:57 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 10 May 2019 03:09:24 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 1A4F020800;
-        Fri, 10 May 2019 12:45:57 +0300 (EEST)
+        by paasikivi.fi.intel.com (Postfix) with ESMTPS id B3B12201EF;
+        Fri, 10 May 2019 13:09:23 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1hP26O-0003k8-6J; Fri, 10 May 2019 12:46:04 +0300
+        id 1hP2T4-0003ov-KY; Fri, 10 May 2019 13:09:30 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
-Cc:     andriy.shevchenko@linux.intel.com,
-        Changbin Du <changbin.du@gmail.com>
-Subject: [PATCH v2 1/2] Documentation: ACPI: Use tabs for indentation
-Date:   Fri, 10 May 2019 12:46:02 +0300
-Message-Id: <20190510094603.14345-2-sakari.ailus@linux.intel.com>
+Cc:     rajmohan.mani@intel.com, linux-media@vger.kernel.org
+Subject: [PATCH 0/5] Support running driver's probe for a device powered off
+Date:   Fri, 10 May 2019 13:09:25 +0300
+Message-Id: <20190510100930.14641-1-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190510094603.14345-1-sakari.ailus@linux.intel.com>
-References: <20190510094603.14345-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Use tabs to indent the graph documentation, not spaces.
+Hi all,
 
-Fixes: f2dde1ed0f28 ("Documentation: ACPI: move dsd/graph.txt to firmware-guide/acpi and convert to reST")
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/firmware-guide/acpi/dsd/graph.rst | 116 ++++++++++++------------
- 1 file changed, 58 insertions(+), 58 deletions(-)
+These patches enable calling (and finishing) a driver's probe function
+without powering on the respective device on busses where the practice is
+to power on the device for probe. While it generally is a driver's job to
+check the that the device is there, there are cases where it might be
+undesirable. (In this case it stems from a combination of hardware design
+and user expectations; see below.) The downside with this change is that
+if there is something wrong with the device, it will only be found at the
+time the device is used. In this case (the camera sensors + EEPROM in a
+sensor) I don't see any tangible harm from that though.
 
-diff --git a/Documentation/firmware-guide/acpi/dsd/graph.rst b/Documentation/firmware-guide/acpi/dsd/graph.rst
-index e0baed35b037e..8a9019a38b66d 100644
---- a/Documentation/firmware-guide/acpi/dsd/graph.rst
-+++ b/Documentation/firmware-guide/acpi/dsd/graph.rst
-@@ -82,68 +82,68 @@ A simple example of this is show below::
- 
-     Scope (\_SB.PCI0.I2C2)
-     {
--        Device (CAM0)
--        {
--            Name (_DSD, Package () {
--                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--                Package () {
--                    Package () { "compatible", Package () { "nokia,smia" } },
--                },
--                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--                Package () {
--                    Package () { "port@0", PRT0 },
--                }
--            })
--            Name (PRT0, Package() {
--                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--                Package () {
--                    Package () { "reg", 0 },
--                },
--                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--                Package () {
--                    Package () { "endpoint@0", EP00 },
--                }
--            })
--            Name (EP00, Package() {
--                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--                Package () {
--                    Package () { "reg", 0 },
--                    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, "port@4", "endpoint@0" } },
--                }
--            })
--        }
-+	Device (CAM0)
-+	{
-+	    Name (_DSD, Package () {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "compatible", Package () { "nokia,smia" } },
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "port@0", PRT0 },
-+		}
-+	    })
-+	    Name (PRT0, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "reg", 0 },
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "endpoint@0", EP00 },
-+		}
-+	    })
-+	    Name (EP00, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "reg", 0 },
-+		    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, "port@4", "endpoint@0" } },
-+		}
-+	    })
-+	}
-     }
- 
-     Scope (\_SB.PCI0)
-     {
--        Device (ISP)
--        {
--            Name (_DSD, Package () {
--                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--                Package () {
--                    Package () { "port@4", PRT4 },
--                }
--            })
--
--            Name (PRT4, Package() {
--                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--                Package () {
--                    Package () { "reg", 4 }, /* CSI-2 port number */
--                },
--                ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
--                Package () {
--                    Package () { "endpoint@0", EP40 },
--                }
--            })
--
--            Name (EP40, Package() {
--                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
--                Package () {
--                    Package () { "reg", 0 },
--                    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, "port@0", "endpoint@0" } },
--                }
--            })
--        }
-+	Device (ISP)
-+	{
-+	    Name (_DSD, Package () {
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "port@4", PRT4 },
-+		}
-+	    })
-+
-+	    Name (PRT4, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "reg", 4 }, /* CSI-2 port number */
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "endpoint@0", EP40 },
-+		}
-+	    })
-+
-+	    Name (EP40, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "reg", 0 },
-+		    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, "port@0", "endpoint@0" } },
-+		}
-+	    })
-+	}
-     }
- 
- Here, the port 0 of the "CAM0" device is connected to the port 4 of
+An indication both from the driver and the firmware is required to allow
+the device's power state to remain off during probe (see the first patch).
+
+
+The use case is such that there is a privacy LED next to an integrated
+user-facing laptop camera, and this LED is there to signal the user that
+the camera is recording a video or capturing images. That LED also happens
+to be wired to one of the power supplies of the camera, so whenever you
+power on the camera, the LED will be lit, whether images are captured from
+the camera --- or not. There's no way to implement this differently
+without additional software control (allowing of which is itself a
+hardware design decision) on most CSI-2-connected camera sensors as they
+simply have no pin to signal the camera streaming state.
+
+This is also what happens during driver probe: the camera will be powered
+on by the I²C subsystem calling dev_pm_domain_attach() and the device is
+already powered on when the driver's own probe function is called. To the
+user this visible during the boot process as a blink of the privacy LED,
+suggesting that the camera is recording without the user having used an
+application to do that. From the end user's point of view the behaviour is
+not expected and for someone unfamiliar with internal workings of a
+computer surely seems quite suspicious --- even if images are not being
+actually captured.
+
+Rajmohan Mani (1):
+  media: i2c: imx319: Support probe while the device is off
+
+Sakari Ailus (4):
+  ACPI: Enable driver and firmware hints to control power at probe time
+  ACPI: Add a convenience function to tell a device is suspended in
+    probe
+  ov5670: Support probe whilst the device is off
+  at24: Support probing while off
+
+ drivers/acpi/device_pm.c   | 42 ++++++++++++++++++++++++++++++++++++++++--
+ drivers/media/i2c/imx319.c | 25 ++++++++++++++-----------
+ drivers/media/i2c/ov5670.c | 25 ++++++++++++++-----------
+ drivers/misc/eeprom/at24.c | 30 ++++++++++++++++++++----------
+ include/linux/acpi.h       |  5 +++++
+ include/linux/device.h     |  6 ++++++
+ 6 files changed, 99 insertions(+), 34 deletions(-)
+
 -- 
 2.11.0
 
