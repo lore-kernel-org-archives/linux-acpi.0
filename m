@@ -2,124 +2,158 @@ Return-Path: <SRS0=lK0z=TK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A24DDC04AB4
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 078F5C04A6B
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 15:01:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F51D20881
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF8DF2177B
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 15:01:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727357AbfEJKJb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 10 May 2019 06:09:31 -0400
-Received: from mga07.intel.com ([134.134.136.100]:51551 "EHLO mga07.intel.com"
+        id S1727346AbfEJPBX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 10 May 2019 11:01:23 -0400
+Received: from mga01.intel.com ([192.55.52.88]:13081 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727341AbfEJKJ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 May 2019 06:09:28 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
+        id S1727402AbfEJPBX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 May 2019 11:01:23 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 May 2019 03:09:27 -0700
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 May 2019 08:01:22 -0700
 X-ExtLoop1: 1
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga008.fm.intel.com with ESMTP; 10 May 2019 03:09:26 -0700
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 3B44D201EF;
-        Fri, 10 May 2019 13:09:26 +0300 (EEST)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1hP2T7-0003p6-2J; Fri, 10 May 2019 13:09:33 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     rajmohan.mani@intel.com, linux-media@vger.kernel.org
-Subject: [PATCH 4/5] media: i2c: imx319: Support probe while the device is off
-Date:   Fri, 10 May 2019 13:09:29 +0300
-Message-Id: <20190510100930.14641-5-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190510100930.14641-1-sakari.ailus@linux.intel.com>
-References: <20190510100930.14641-1-sakari.ailus@linux.intel.com>
+Received: from smile.fi.intel.com (HELO smile) ([10.237.72.86])
+  by orsmga007.jf.intel.com with ESMTP; 10 May 2019 08:01:20 -0700
+Received: from andy by smile with local (Exim 4.92)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1hP71U-0004h0-3b; Fri, 10 May 2019 18:01:20 +0300
+Date:   Fri, 10 May 2019 18:01:20 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     linux-acpi@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
+Subject: Re: [PATCH v2 2/2] Documentation: ACPI: Direct references are
+ allowed to devices only
+Message-ID: <20190510150120.GC9224@smile.fi.intel.com>
+References: <20190510094603.14345-1-sakari.ailus@linux.intel.com>
+ <20190510094603.14345-3-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190510094603.14345-3-sakari.ailus@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rajmohan Mani <rajmohan.mani@intel.com>
+On Fri, May 10, 2019 at 12:46:03PM +0300, Sakari Ailus wrote:
+> In ACPI it is possible to make references to device objects only, not to
+> other objects inside a device. In practice this means that hierarchical
+> data extension targets must be in parentheses to make them strings.
+> 
+> Otherwise an acpica warning is produced.
+> 
 
-Tell ACPI device PM code that the driver supports the device being powered
-off when the driver's probe function is entered.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/imx319.c | 25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+> Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  .../firmware-guide/acpi/dsd/data-node-references.rst         |  6 +++---
+>  Documentation/firmware-guide/acpi/dsd/graph.rst              | 12 ++++++------
+>  2 files changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/Documentation/firmware-guide/acpi/dsd/data-node-references.rst b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
+> index 1351984e767c8..febccbc5689d0 100644
+> --- a/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
+> +++ b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
+> @@ -45,8 +45,8 @@ the ANOD object which is also the final target node of the reference.
+>  	    Name (_DSD, Package () {
+>  		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>  		Package () {
+> -		    Package () { "node@0", NOD0 },
+> -		    Package () { "node@1", NOD1 },
+> +		    Package () { "node@0", "NOD0" },
+> +		    Package () { "node@1", "NOD1" },
+>  		}
+>  	    })
+>  	    Name (NOD0, Package() {
+> @@ -58,7 +58,7 @@ the ANOD object which is also the final target node of the reference.
+>  	    Name (NOD1, Package() {
+>  		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>  		Package () {
+> -		    Package () { "anothernode", ANOD },
+> +		    Package () { "anothernode", "ANOD" },
+>  		}
+>  	    })
+>  	    Name (ANOD, Package() {
+> diff --git a/Documentation/firmware-guide/acpi/dsd/graph.rst b/Documentation/firmware-guide/acpi/dsd/graph.rst
+> index 8a9019a38b66d..1a6ce7afba5ea 100644
+> --- a/Documentation/firmware-guide/acpi/dsd/graph.rst
+> +++ b/Documentation/firmware-guide/acpi/dsd/graph.rst
+> @@ -45,7 +45,7 @@ with "port" and must be followed by the "@" character and the number of the
+>  port as its key. The target object it refers to should be called "PRTX", where
+>  "X" is the number of the port. An example of such a package would be::
+>  
+> -    Package() { "port@4", PRT4 }
+> +    Package() { "port@4", "PRT4" }
+>  
+>  Further on, endpoints are located under the port nodes. The hierarchical
+>  data extension key of the endpoint nodes must begin with
+> @@ -54,7 +54,7 @@ endpoint. The object it refers to should be called "EPXY", where "X" is the
+>  number of the port and "Y" is the number of the endpoint. An example of such a
+>  package would be::
+>  
+> -    Package() { "endpoint@0", EP40 }
+> +    Package() { "endpoint@0", "EP40" }
+>  
+>  Each port node contains a property extension key "port", the value of which is
+>  the number of the port. Each endpoint is similarly numbered with a property
+> @@ -91,7 +91,7 @@ A simple example of this is show below::
+>  		},
+>  		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>  		Package () {
+> -		    Package () { "port@0", PRT0 },
+> +		    Package () { "port@0", "PRT0" },
+>  		}
+>  	    })
+>  	    Name (PRT0, Package() {
+> @@ -101,7 +101,7 @@ A simple example of this is show below::
+>  		},
+>  		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>  		Package () {
+> -		    Package () { "endpoint@0", EP00 },
+> +		    Package () { "endpoint@0", "EP00" },
+>  		}
+>  	    })
+>  	    Name (EP00, Package() {
+> @@ -121,7 +121,7 @@ A simple example of this is show below::
+>  	    Name (_DSD, Package () {
+>  		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>  		Package () {
+> -		    Package () { "port@4", PRT4 },
+> +		    Package () { "port@4", "PRT4" },
+>  		}
+>  	    })
+>  
+> @@ -132,7 +132,7 @@ A simple example of this is show below::
+>  		},
+>  		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>  		Package () {
+> -		    Package () { "endpoint@0", EP40 },
+> +		    Package () { "endpoint@0", "EP40" },
+>  		}
+>  	    })
+>  
+> -- 
+> 2.11.0
+> 
 
-diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
-index 17c2e4b41221e..e929de86a8e22 100644
---- a/drivers/media/i2c/imx319.c
-+++ b/drivers/media/i2c/imx319.c
-@@ -2424,6 +2424,7 @@ static struct imx319_hwcfg *imx319_get_hwcfg(struct device *dev)
- static int imx319_probe(struct i2c_client *client)
- {
- 	struct imx319 *imx319;
-+	bool powered_off;
- 	int ret;
- 	u32 i;
- 
-@@ -2436,11 +2437,14 @@ static int imx319_probe(struct i2c_client *client)
- 	/* Initialize subdev */
- 	v4l2_i2c_subdev_init(&imx319->sd, client, &imx319_subdev_ops);
- 
--	/* Check module identity */
--	ret = imx319_identify_module(imx319);
--	if (ret) {
--		dev_err(&client->dev, "failed to find sensor: %d", ret);
--		goto error_probe;
-+	powered_off = acpi_dev_powered_off_for_probe(&client->dev);
-+	if (!powered_off) {
-+		/* Check module identity */
-+		ret = imx319_identify_module(imx319);
-+		if (ret) {
-+			dev_err(&client->dev, "failed to find sensor: %d", ret);
-+			goto error_probe;
-+		}
- 	}
- 
- 	imx319->hwcfg = imx319_get_hwcfg(&client->dev);
-@@ -2492,11 +2496,9 @@ static int imx319_probe(struct i2c_client *client)
- 	if (ret < 0)
- 		goto error_media_entity;
- 
--	/*
--	 * Device is already turned on by i2c-core with ACPI domain PM.
--	 * Enable runtime PM and turn off the device.
--	 */
--	pm_runtime_set_active(&client->dev);
-+	/* Don't set the device's state to active if it's powered off. */
-+	if (!powered_off)
-+		pm_runtime_set_active(&client->dev);
- 	pm_runtime_enable(&client->dev);
- 	pm_runtime_idle(&client->dev);
- 
-@@ -2536,7 +2538,7 @@ static const struct dev_pm_ops imx319_pm_ops = {
- };
- 
- static const struct acpi_device_id imx319_acpi_ids[] = {
--	{ "SONY319A" },
-+	{ "SONY319A", },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(acpi, imx319_acpi_ids);
-@@ -2544,6 +2546,7 @@ MODULE_DEVICE_TABLE(acpi, imx319_acpi_ids);
- static struct i2c_driver imx319_i2c_driver = {
- 	.driver = {
- 		.name = "imx319",
-+		.probe_powered_off = true,
- 		.pm = &imx319_pm_ops,
- 		.acpi_match_table = ACPI_PTR(imx319_acpi_ids),
- 	},
 -- 
-2.11.0
+With Best Regards,
+Andy Shevchenko
+
 
