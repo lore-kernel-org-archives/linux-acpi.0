@@ -4,41 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD65C04A6B
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD629C04AB2
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BEC3920881
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9176F20881
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 May 2019 10:09:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727351AbfEJKJb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1727341AbfEJKJb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 10 May 2019 06:09:31 -0400
 Received: from mga12.intel.com ([192.55.52.136]:53503 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727053AbfEJKJ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 May 2019 06:09:29 -0400
+        id S1727348AbfEJKJb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 May 2019 06:09:31 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
   by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 May 2019 03:09:28 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,453,1549958400"; 
-   d="scan'208";a="170275100"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga002.fm.intel.com with ESMTP; 10 May 2019 03:09:27 -0700
+  by fmsmga006.fm.intel.com with ESMTP; 10 May 2019 03:09:27 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id A7B1F20800;
-        Fri, 10 May 2019 13:09:26 +0300 (EEST)
+        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 7CD8420E12;
+        Fri, 10 May 2019 13:09:25 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1hP2T7-0003p9-Pv; Fri, 10 May 2019 13:09:33 +0300
+        id 1hP2T6-0003p3-EL; Fri, 10 May 2019 13:09:32 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rajmohan.mani@intel.com, linux-media@vger.kernel.org
-Subject: [PATCH 5/5] at24: Support probing while off
-Date:   Fri, 10 May 2019 13:09:30 +0300
-Message-Id: <20190510100930.14641-6-sakari.ailus@linux.intel.com>
+Subject: [PATCH 3/5] ov5670: Support probe whilst the device is off
+Date:   Fri, 10 May 2019 13:09:28 +0300
+Message-Id: <20190510100930.14641-4-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190510100930.14641-1-sakari.ailus@linux.intel.com>
 References: <20190510100930.14641-1-sakari.ailus@linux.intel.com>
@@ -47,87 +45,77 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In certain use cases (where the chip is part of a camera module, and the
-camera module is wired together with a camera privacy LED), powering on
-the device during probe is undesirable. Add support for the at24 to
-execute probe while being powered off. For this to happen, a hint in form
-of a device property is required from the firmware.
+Tell ACPI device PM code that the driver supports the device being powered
+off when the driver's probe function is entered.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/misc/eeprom/at24.c | 30 ++++++++++++++++++++----------
- 1 file changed, 20 insertions(+), 10 deletions(-)
+ drivers/media/i2c/ov5670.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
-index 63aa541c96088..b9dbe5b6a97be 100644
---- a/drivers/misc/eeprom/at24.c
-+++ b/drivers/misc/eeprom/at24.c
-@@ -579,6 +579,7 @@ static int at24_probe(struct i2c_client *client)
- 	bool i2c_fn_i2c, i2c_fn_block;
- 	unsigned int i, num_addresses;
- 	struct at24_data *at24;
+diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
+index 041fcbb4eebdf..57e8b92f90e09 100644
+--- a/drivers/media/i2c/ov5670.c
++++ b/drivers/media/i2c/ov5670.c
+@@ -2444,6 +2444,7 @@ static int ov5670_probe(struct i2c_client *client)
+ 	struct ov5670 *ov5670;
+ 	const char *err_msg;
+ 	u32 input_clk = 0;
 +	bool powered_off;
- 	struct regmap *regmap;
- 	size_t at24_size;
- 	bool writable;
-@@ -701,19 +702,24 @@ static int at24_probe(struct i2c_client *client)
+ 	int ret;
  
- 	i2c_set_clientdata(client, at24);
+ 	device_property_read_u32(&client->dev, "clock-frequency", &input_clk);
+@@ -2460,11 +2461,14 @@ static int ov5670_probe(struct i2c_client *client)
+ 	/* Initialize subdev */
+ 	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
  
--	/* enable runtime pm */
--	pm_runtime_set_active(dev);
+-	/* Check module identity */
+-	ret = ov5670_identify_module(ov5670);
+-	if (ret) {
+-		err_msg = "ov5670_identify_module() error";
+-		goto error_print;
 +	powered_off = acpi_dev_powered_off_for_probe(&client->dev);
-+	if (!powered_off)
-+		pm_runtime_set_active(dev);
-+
- 	pm_runtime_enable(dev);
- 
- 	/*
--	 * Perform a one-byte test read to verify that the
--	 * chip is functional.
-+	 * Perform a one-byte test read to verify that the chip is functional,
-+	 * unless powering on the device is to be avoided during probe (i.e.
-+	 * it's powered off right now).
- 	 */
--	err = at24_read(at24, 0, &test_byte, 1);
--	pm_runtime_idle(dev);
--	if (err) {
--		err = -ENODEV;
--		goto err_clients;
 +	if (!powered_off) {
-+		err = at24_read(at24, 0, &test_byte, 1);
-+		pm_runtime_idle(dev);
-+		if (err) {
-+			err = -ENODEV;
-+			goto err_clients;
++		/* Check module identity */
++		ret = ov5670_identify_module(ov5670);
++		if (ret) {
++			err_msg = "ov5670_identify_module() error";
++			goto error_print;
 +		}
  	}
  
- 	nvmem_config.name = dev_name(dev);
-@@ -752,12 +758,15 @@ static int at24_probe(struct i2c_client *client)
- static int at24_remove(struct i2c_client *client)
- {
- 	struct at24_data *at24;
-+	bool powered_off;
+ 	mutex_init(&ov5670->mutex);
+@@ -2500,11 +2504,9 @@ static int ov5670_probe(struct i2c_client *client)
  
- 	at24 = i2c_get_clientdata(client);
+ 	ov5670->streaming = false;
  
- 	at24_remove_dummy_clients(at24);
- 	pm_runtime_disable(&client->dev);
--	pm_runtime_set_suspended(&client->dev);
-+	powered_off = acpi_dev_powered_off_for_probe(&client->dev);
+-	/*
+-	 * Device is already turned on by i2c-core with ACPI domain PM.
+-	 * Enable runtime PM and turn off the device.
+-	 */
+-	pm_runtime_set_active(&client->dev);
++	/* Don't set the device's state to active if it's powered off. */
 +	if (!powered_off)
-+		pm_runtime_set_suspended(&client->dev);
++		pm_runtime_set_active(&client->dev);
+ 	pm_runtime_enable(&client->dev);
+ 	pm_runtime_idle(&client->dev);
  
- 	return 0;
- }
-@@ -765,6 +774,7 @@ static int at24_remove(struct i2c_client *client)
- static struct i2c_driver at24_driver = {
+@@ -2546,7 +2548,7 @@ static const struct dev_pm_ops ov5670_pm_ops = {
+ 
+ #ifdef CONFIG_ACPI
+ static const struct acpi_device_id ov5670_acpi_ids[] = {
+-	{"INT3479"},
++	{ "INT3479" },
+ 	{ /* sentinel */ }
+ };
+ 
+@@ -2556,6 +2558,7 @@ MODULE_DEVICE_TABLE(acpi, ov5670_acpi_ids);
+ static struct i2c_driver ov5670_i2c_driver = {
  	.driver = {
- 		.name = "at24",
+ 		.name = "ov5670",
 +		.probe_powered_off = true,
- 		.of_match_table = at24_of_match,
- 		.acpi_match_table = ACPI_PTR(at24_acpi_ids),
+ 		.pm = &ov5670_pm_ops,
+ 		.acpi_match_table = ACPI_PTR(ov5670_acpi_ids),
  	},
 -- 
 2.11.0
