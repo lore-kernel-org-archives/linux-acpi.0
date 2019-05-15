@@ -2,128 +2,135 @@ Return-Path: <SRS0=Cl+M=TP=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF70C04E53
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 May 2019 16:43:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E40A1C04E84
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 May 2019 20:46:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A6DEC20873
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 May 2019 16:43:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF1C12084E
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 May 2019 20:46:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="Cy2EIYX1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726672AbfEOQn2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 May 2019 12:43:28 -0400
-Received: from foss.arm.com ([217.140.101.70]:48622 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726645AbfEOQn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 May 2019 12:43:27 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 31B9B80D;
-        Wed, 15 May 2019 09:43:27 -0700 (PDT)
-Received: from e121166-lin.cambridge.arm.com (e121166-lin.cambridge.arm.com [10.1.196.255])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 870C83F703;
-        Wed, 15 May 2019 09:43:25 -0700 (PDT)
-Date:   Wed, 15 May 2019 17:41:10 +0100
-From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-To:     Robin Murphy <robin.murphy@arm.com>
-Cc:     Will Deacon <will.deacon@arm.com>,
-        Kefeng Wang <wangkefeng.wang@huawei.com>,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        guohanjun@huawei.com,
-        Jean-Philippe Brucker <jean-philippe.brucker@arm.com>,
-        Hulk Robot <hulkci@huawei.com>, joro@8bytes.org
-Subject: Re: [PATCH RESEND] ACPI/IORT: Fix build error when IOMMU_SUPPORT
- disabled
-Message-ID: <20190515164110.GA22536@e121166-lin.cambridge.arm.com>
-References: <20190515033406.79020-1-wangkefeng.wang@huawei.com>
- <20190515034253.79348-1-wangkefeng.wang@huawei.com>
- <20190515101534.GF24357@fuggles.cambridge.arm.com>
- <20190515120652.GA27269@e121166-lin.cambridge.arm.com>
- <a7efd571-d82e-1d8f-147f-3bf8d1152d0d@arm.com>
+        id S1727691AbfEOUqV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 May 2019 16:46:21 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:46850 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727622AbfEOUqU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 May 2019 16:46:20 -0400
+Received: by mail-ot1-f65.google.com with SMTP id j49so1297492otc.13
+        for <linux-acpi@vger.kernel.org>; Wed, 15 May 2019 13:46:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=kQMkVem+f5BUJTL0ohOK8s/LBe9AOQLQXzJAVF0NO2o=;
+        b=Cy2EIYX1Pq2jZ4OZSz2yQkq0F9kd5atoA7LKrqdgOhRjKiFVlVYA2gODEElFw67K45
+         tpjRxjmowCB5ex6K1svZPmFMGUJvDyewft/V9f+O8H7U1VGbN+OU4Z/xpXBeMQgdofxU
+         HwFKIrN+ZDE05AjnzxypOVzx8FHhxfQfSPDlE24jH7d0yRidX/qCp6tGapcyXMIsQ/FN
+         xTviZEpkXwuB4/hLQMP71dgjub+M7+e9+NQASiodAsRVquNojGSwTZ5hM/gNAMDb2yEk
+         Teybs5bgEInBpgzEo9DC1MccDV1z1SSDczRUyu9xTatdTpheOTQU+jZivdK6ZvGITWFx
+         bOkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kQMkVem+f5BUJTL0ohOK8s/LBe9AOQLQXzJAVF0NO2o=;
+        b=SuopmqbeCNae8bzVVSxhLW4v3wgaFOXmrCsjzvRlQf4NsdiVI8SklGIOHqgM9qZHE6
+         PTART6yLqe482kpQWpdT4DVejly+wkcLU4NjtqsMEkCX/ufhjfrcFySWG/53j9MIjiUm
+         cKFtcErc6W/si971+jP9mnyRl9leJ7Xb7DYRWpcMxXyTf6Ja4QskSrACpKhNC+dJELHw
+         13pBIRxHFvTr5UCZGvdQCl17nz85FQjaxGnmu05M42wd9ivn7nTm4ckl5nWCCyu8og2E
+         mK/f/vd8+sV5HfAyhS41Zvq8y1iNJcp0waIUcsZ1OplvQLY1ZKPKL/vHjafvfrzq+0RK
+         i/UQ==
+X-Gm-Message-State: APjAAAV/giguGya7XOX8ICVc3UHJs8SMQy0KBR+pNzoJXwC/+qtzLGGk
+        0Uz6MzAni+ar+zPDcJoz1U4AUvZYItFOyYjGXN+Ovg==
+X-Google-Smtp-Source: APXvYqzmFFlcg/jPSqhKzy3t5czXCo+ojmXW5WVgFrjk+NAmke64X9x4AGwl9LoR92w5/nxaP9HiWHsnxe/dpzoT3CE=
+X-Received: by 2002:a9d:6116:: with SMTP id i22mr26141595otj.13.1557953179336;
+ Wed, 15 May 2019 13:46:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a7efd571-d82e-1d8f-147f-3bf8d1152d0d@arm.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+References: <20190514145422.16923-1-pagupta@redhat.com> <20190514145422.16923-3-pagupta@redhat.com>
+ <c22d42f6-ef94-0310-36f2-e9085d3464c2@infradead.org> <1112624345.28705248.1557847520326.JavaMail.zimbra@redhat.com>
+In-Reply-To: <1112624345.28705248.1557847520326.JavaMail.zimbra@redhat.com>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Wed, 15 May 2019 13:46:08 -0700
+Message-ID: <CAPcyv4iK1ivHkdw3JQV1wVLeLi0TA++VgKDZvYjPGo_i1j_pbA@mail.gmail.com>
+Subject: Re: [Qemu-devel] [PATCH v9 2/7] virtio-pmem: Add virtio pmem driver
+To:     Pankaj Gupta <pagupta@redhat.com>
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        virtualization@lists.linux-foundation.org,
+        KVM list <kvm@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Qemu Developers <qemu-devel@nongnu.org>,
+        linux-ext4 <linux-ext4@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>, Jan Kara <jack@suse.cz>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>,
+        lcapitulino@redhat.com, adilger kernel <adilger.kernel@dilger.ca>,
+        Ross Zwisler <zwisler@kernel.org>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        dave jiang <dave.jiang@intel.com>, jstaron@google.com,
+        darrick wong <darrick.wong@oracle.com>,
+        vishal l verma <vishal.l.verma@intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        jmoyer <jmoyer@redhat.com>,
+        Nitesh Narayan Lal <nilal@redhat.com>,
+        Len Brown <lenb@kernel.org>,
+        Adam Borowski <kilobyte@angband.pl>,
+        Rik van Riel <riel@surriel.com>,
+        yuval shaia <yuval.shaia@oracle.com>,
+        Stefan Hajnoczi <stefanha@redhat.com>,
+        Paolo Bonzini <pbonzini@redhat.com>,
+        Kevin Wolf <kwolf@redhat.com>, "Theodore Ts'o" <tytso@mit.edu>,
+        xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
+        cohuck@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Igor Mammedov <imammedo@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, May 15, 2019 at 01:46:28PM +0100, Robin Murphy wrote:
-> On 15/05/2019 13:06, Lorenzo Pieralisi wrote:
-> > [+Joerg, Robin]
-> > 
-> > On Wed, May 15, 2019 at 11:15:34AM +0100, Will Deacon wrote:
-> > > On Wed, May 15, 2019 at 11:42:53AM +0800, Kefeng Wang wrote:
-> > > > drivers/acpi/arm64/iort.c: In function iort_iommu_configure:
-> > > > drivers/acpi/arm64/iort.c:1079:21: error: struct iommu_fwspec has no member named flags
-> > > >      dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
-> > > >                       ^~
-> > > > drivers/acpi/arm64/iort.c:1079:32: error: IOMMU_FWSPEC_PCI_RC_ATS
-> > > > undeclared (first use in this function)
-> > > >      dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
-> > > >                                  ^~~~~~~~~~~~~~~~~~~~~~~
-> > > > drivers/acpi/arm64/iort.c:1079:32: note: each undeclared identifier is reported only once for each function it appears in
-> > > > 
-> > > > If IOMMU_SUPPORT not enabled, struct iommu_fwspec without members and
-> > > > IOMMU_FWSPEC_PCI_RC_ATS not defined, add new iommu_fwspec_set_ats_flags()
-> > > > to set IOMMU_FWSPEC_PCI_RC_ATS flags to solve build error.
-> > > > 
-> > > > Cc: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-> > > > Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > > > Cc: Will Deacon <will.deacon@arm.com>
-> > > > Reported-by: Hulk Robot <hulkci@huawei.com>
-> > > 
-> > > What's this "Hulk Robot"? Does it report things publicly?
-> > 
-> > AFAIK it is Huawei CI system, I had some doubts about leaving
-> > that tag for other patches I dealt with, I am not sure it is
-> > really useful (other than giving Hulk some credit).
-> > 
-> > > Anyway, I can pick this up if Lorenzo acks it.
-> > 
-> > Actually I think we should compile out iort_iommu_configure() for
-> > !IOMMU_SUPPORT unless I am missing something, so that we are
-> > removing this source of errors.
-> 
-> Indeed, much as I like the compile coverage of not having things #ifdefed
-> out in general, this particular case seems like a fairly atypical
-> configuration so I'm not sure all the extra fluff of struct accessors is
-> really worth it.
+On Tue, May 14, 2019 at 8:25 AM Pankaj Gupta <pagupta@redhat.com> wrote:
+>
+>
+> > On 5/14/19 7:54 AM, Pankaj Gupta wrote:
+> > > diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
+> > > index 35897649c24f..94bad084ebab 100644
+> > > --- a/drivers/virtio/Kconfig
+> > > +++ b/drivers/virtio/Kconfig
+> > > @@ -42,6 +42,17 @@ config VIRTIO_PCI_LEGACY
+> > >
+> > >       If unsure, say Y.
+> > >
+> > > +config VIRTIO_PMEM
+> > > +   tristate "Support for virtio pmem driver"
+> > > +   depends on VIRTIO
+> > > +   depends on LIBNVDIMM
+> > > +   help
+> > > +   This driver provides access to virtio-pmem devices, storage devices
+> > > +   that are mapped into the physical address space - similar to NVDIMMs
+> > > +    - with a virtio-based flushing interface.
+> > > +
+> > > +   If unsure, say M.
+> >
+> > <beep>
+> > from Documentation/process/coding-style.rst:
+> > "Lines under a ``config`` definition
+> > are indented with one tab, while help text is indented an additional two
+> > spaces."
+>
+> ah... I changed help text and 'checkpatch' did not say anything :( .
+>
+> Will wait for Dan, If its possible to add two spaces to help text while applying
+> the series.
 
-Ok, I will send a patch shortly to address this issue, if Kefeng
-does not object I will drop the CI bot as reporter and add him
-instead.
-
-Thanks,
-Lorenzo
-
-> 
-> Robin.
-> 
-> > If that does not cut it, for this patch:
-> > 
-> > iommu_fwspec_set_ats_flags() should be iommu_fwspec_set_ats_flag()
-> > 
-> > The commit log should be fixed (it is pretty weird to start with the
-> > build error and then explain it):
-> > 
-> > "If IOMMU_SUPPORT is not enabled, struct iommu_fwspec is an empty
-> > struct and IOMMU_FWSPEC_PCI_RC_ATS is not defined, resulting in
-> > the following build error:
-> > 
-> > drivers/acpi/arm64/iort.c: In function iort_iommu_configure:
-> > drivers/acpi/arm64/iort.c:1079:21: error: struct iommu_fwspec has no member named flags
-> >      dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
-> >                       ^~
-> > drivers/acpi/arm64/iort.c:1079:32: error: IOMMU_FWSPEC_PCI_RC_ATS
-> > undeclared (first use in this function)
-> >      dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
-> >                                  ^~~~~~~~~~~~~~~~~~~~~~~
-> > drivers/acpi/arm64/iort.c:1079:32: note: each undeclared identifier is reported only once for each function it appears in
-> > 
-> > Add a iommu_fwspec_set_ats_flag() helper function (that is an empty
-> > stub on !IOMMU_SUPPORT) to fix it."
-> > 
+I'm inclined to handle this with a fixup appended to the end of the
+series just so the patchwork-bot does not get confused by the content
+changing from what was sent to the list.
