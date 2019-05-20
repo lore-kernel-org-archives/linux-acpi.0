@@ -2,117 +2,82 @@ Return-Path: <SRS0=BbTc=TU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10319C04AAF
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 May 2019 08:50:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48E38C04AAC
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 May 2019 10:34:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E451C2081C
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 May 2019 08:50:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26468206B6
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 May 2019 10:34:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730885AbfETIux (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 May 2019 04:50:53 -0400
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:44270 "EHLO
-        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726053AbfETIux (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 May 2019 04:50:53 -0400
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x4K8i3sj030392;
-        Mon, 20 May 2019 03:49:38 -0500
-Authentication-Results: ppops.net;
-        spf=none smtp.mailfrom=ckeepax@opensource.cirrus.com
-Received: from mail2.cirrus.com (mail2.cirrus.com [141.131.128.20])
-        by mx0b-001ae601.pphosted.com with ESMTP id 2sjefmt3ek-1;
-        Mon, 20 May 2019 03:49:37 -0500
-Received: from EDIEX01.ad.cirrus.com (unknown [198.61.84.80])
-        by mail2.cirrus.com (Postfix) with ESMTP id 55619605A6A0;
-        Mon, 20 May 2019 03:49:37 -0500 (CDT)
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1591.10; Mon, 20 May
- 2019 09:49:36 +0100
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server id 15.1.1591.10 via Frontend
- Transport; Mon, 20 May 2019 09:49:36 +0100
-Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 9BD602DB;
-        Mon, 20 May 2019 09:49:36 +0100 (BST)
-From:   Charles Keepax <ckeepax@opensource.cirrus.com>
-To:     <wsa@the-dreams.de>, <mika.westerberg@linux.intel.com>
-CC:     <linux-i2c@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <benjamin.tissoires@redhat.com>,
-        <jbroadus@gmail.com>, <patches@opensource.cirrus.com>
-Subject: [PATCH 4/5] i2c: core: Move ACPI gpio IRQ handling into i2c_acpi_get_irq
-Date:   Mon, 20 May 2019 09:49:35 +0100
-Message-ID: <20190520084936.10590-5-ckeepax@opensource.cirrus.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190520084936.10590-1-ckeepax@opensource.cirrus.com>
-References: <20190520084936.10590-1-ckeepax@opensource.cirrus.com>
+        id S1731473AbfETKe5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 20 May 2019 06:34:57 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7661 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731455AbfETKe5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 May 2019 06:34:57 -0400
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 926B8E26C95E4047DF58;
+        Mon, 20 May 2019 18:34:54 +0800 (CST)
+Received: from [127.0.0.1] (10.177.223.23) by DGGEMS407-HUB.china.huawei.com
+ (10.3.19.207) with Microsoft SMTP Server id 14.3.439.0; Mon, 20 May 2019
+ 18:34:51 +0800
+Subject: Re: [PATCH] ACPI/IORT: Fix build without CONFIG_IOMMU_API
+To:     Christoph Hellwig <hch@lst.de>, <will.deacon@arm.com>
+CC:     <jean-philippe.brucker@arm.com>, <lorenzo.pieralisi@arm.com>,
+        <linux-acpi@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20190520065746.17068-1-hch@lst.de>
+From:   Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <dc52ba2d-76d7-ebb1-7284-bdcd71f6e010@huawei.com>
+Date:   Mon, 20 May 2019 18:34:04 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.5.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=2 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=881 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
- definitions=main-1905200064
+In-Reply-To: <20190520065746.17068-1-hch@lst.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.177.223.23]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-It makes sense to contain all the ACPI IRQ handling in a single helper
-function.
+On 2019/5/20 14:57, Christoph Hellwig wrote:
+> IOMMU_FWSPEC_PCI_RC_ATS is only defined if CONFIG_IOMMU_API is
+> enabled.
+> 
+> Fixes: 5702ee24182f ("ACPI/IORT: Check ATS capability in root complex nodes")
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/acpi/arm64/iort.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 9058cb084b91..3e542b5d2a2d 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1074,9 +1074,10 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  		info.node = node;
+>  		err = pci_for_each_dma_alias(to_pci_dev(dev),
+>  					     iort_pci_iommu_init, &info);
+> -
+> +#ifdef CONFIG_IOMMU_API
+>  		if (!err && iort_pci_rc_supports_ats(node))
+>  			dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
+> +#endif
+>  	} else {
+>  		int i = 0;
 
-Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
----
+This was reported, please refer to this patch from Lorenzo:
 
-Note that this one is somewhat interesting, it seems the search
-through the resource list is done against the companion device
-of the adapter but the GPIO search is done against the companion
-device of the client. It feels to me like these really should
-be done on the same device, and certainly this is what SPI
-does (both against the equivalent of the adapter). Perhaps
-someone with more ACPI knowledge than myself could comment?
+https://patchwork.kernel.org/patch/10946845/
 
-Thanks,
-Charles
-
- drivers/i2c/i2c-core-acpi.c | 3 +++
- drivers/i2c/i2c-core-base.c | 4 ----
- 2 files changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index e332760bf9ebc..0c882d956e9a4 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -164,6 +164,9 @@ int i2c_acpi_get_irq(struct i2c_client *client, int *irq)
- 
- 	acpi_dev_free_resource_list(&resource_list);
- 
-+	if (*irq < 0)
-+		*irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(&client->dev), 0);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index c1afa17a76bfc..f958b50c78c04 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -336,10 +336,6 @@ static int i2c_device_probe(struct device *dev)
- 				irq = of_irq_get(dev->of_node, 0);
- 		} else if (ACPI_COMPANION(dev)) {
- 			i2c_acpi_get_irq(client, &irq);
--
--			if (irq == -ENOENT)
--				irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev),
--							    0);
- 		}
- 		if (irq == -EPROBE_DEFER)
- 			return irq;
--- 
-2.11.0
+Thanks
+Hanjun
 
