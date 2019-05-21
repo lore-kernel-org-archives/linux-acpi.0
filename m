@@ -2,119 +2,138 @@ Return-Path: <SRS0=DGDM=TV=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 403E2C04AAF
-	for <linux-acpi@archiver.kernel.org>; Tue, 21 May 2019 15:07:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A401CC04AAF
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 May 2019 16:24:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D3892173E
-	for <linux-acpi@archiver.kernel.org>; Tue, 21 May 2019 15:07:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DB1F208C3
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 May 2019 16:24:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728452AbfEUPHS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 21 May 2019 11:07:18 -0400
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:34890 "EHLO
-        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728316AbfEUPHS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 May 2019 11:07:18 -0400
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x4LExnXP029737;
-        Tue, 21 May 2019 10:05:04 -0500
-Authentication-Results: ppops.net;
-        spf=none smtp.mailfrom=ckeepax@opensource.cirrus.com
-Received: from mail1.cirrus.com (mail1.cirrus.com [141.131.3.20])
-        by mx0b-001ae601.pphosted.com with ESMTP id 2sjefmv1d9-1;
-        Tue, 21 May 2019 10:05:04 -0500
-Received: from EDIEX02.ad.cirrus.com (unknown [198.61.84.81])
-        by mail1.cirrus.com (Postfix) with ESMTP id D1C7A611C8D4;
-        Tue, 21 May 2019 10:05:03 -0500 (CDT)
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1591.10; Tue, 21 May
- 2019 16:05:02 +0100
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server id 15.1.1591.10 via Frontend
- Transport; Tue, 21 May 2019 16:05:02 +0100
-Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id B6A2845;
-        Tue, 21 May 2019 16:05:02 +0100 (BST)
-From:   Charles Keepax <ckeepax@opensource.cirrus.com>
-To:     <wsa@the-dreams.de>, <mika.westerberg@linux.intel.com>
-CC:     <jarkko.nikula@linux.intel.com>,
-        <andriy.shevchenko@linux.intel.com>, <linux-i2c@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <benjamin.tissoires@redhat.com>, <jbroadus@gmail.com>,
-        <patches@opensource.cirrus.com>
-Subject: [PATCH 4/5] i2c: core: Move ACPI gpio IRQ handling into i2c_acpi_get_irq
-Date:   Tue, 21 May 2019 16:05:01 +0100
-Message-ID: <20190521150502.27305-5-ckeepax@opensource.cirrus.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190521150502.27305-1-ckeepax@opensource.cirrus.com>
-References: <20190521150502.27305-1-ckeepax@opensource.cirrus.com>
+        id S1728897AbfEUQYk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 21 May 2019 12:24:40 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:39834 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728858AbfEUQYk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 21 May 2019 12:24:40 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 4368830833AF;
+        Tue, 21 May 2019 16:24:29 +0000 (UTC)
+Received: from colo-mx.corp.redhat.com (colo-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 1465F4387;
+        Tue, 21 May 2019 16:24:24 +0000 (UTC)
+Received: from zmail21.collab.prod.int.phx2.redhat.com (zmail21.collab.prod.int.phx2.redhat.com [10.5.83.24])
+        by colo-mx.corp.redhat.com (Postfix) with ESMTP id C3F6A5B423;
+        Tue, 21 May 2019 16:24:14 +0000 (UTC)
+Date:   Tue, 21 May 2019 12:24:14 -0400 (EDT)
+From:   Pankaj Gupta <pagupta@redhat.com>
+To:     "Michael S. Tsirkin" <mst@redhat.com>
+Cc:     cohuck@redhat.com, jack@suse.cz, kvm@vger.kernel.org,
+        david@redhat.com, jasowang@redhat.com, david@fromorbit.com,
+        qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org,
+        dm-devel@redhat.com, adilger kernel <adilger.kernel@dilger.ca>,
+        zwisler@kernel.org, aarcange@redhat.com,
+        dave jiang <dave.jiang@intel.com>, jstaron@google.com,
+        linux-nvdimm@lists.01.org,
+        vishal l verma <vishal.l.verma@intel.com>,
+        willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org,
+        jmoyer@redhat.com, linux-ext4@vger.kernel.org, lenb@kernel.org,
+        kilobyte@angband.pl, rdunlap@infradead.org, riel@surriel.com,
+        yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com,
+        pbonzini@redhat.com, dan j williams <dan.j.williams@intel.com>,
+        lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com,
+        tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
+        snitzer@redhat.com, darrick wong <darrick.wong@oracle.com>,
+        rjw@rjwysocki.net, linux-kernel@vger.kernel.org,
+        linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        imammedo@redhat.com
+Message-ID: <176786650.30122184.1558455854322.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190521094543-mutt-send-email-mst@kernel.org>
+References: <20190521133713.31653-1-pagupta@redhat.com> <20190521133713.31653-3-pagupta@redhat.com> <20190521094543-mutt-send-email-mst@kernel.org>
+Subject: Re: [Qemu-devel] [PATCH v10 2/7] virtio-pmem: Add virtio pmem
+ driver
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=2 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=872 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
- definitions=main-1905210094
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.67.116.105, 10.4.195.14]
+Thread-Topic: virtio-pmem: Add virtio pmem driver
+Thread-Index: 3AiQ7PJb9jLe5p+DRlEZBNdQ18HFYA==
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.44]); Tue, 21 May 2019 16:24:39 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-It makes sense to contain all the ACPI IRQ handling in a single helper
-function.
 
-Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
----
+> > diff --git a/include/uapi/linux/virtio_pmem.h
+> > b/include/uapi/linux/virtio_pmem.h
+> > new file mode 100644
+> > index 000000000000..7a3e2fe52415
+> > --- /dev/null
+> > +++ b/include/uapi/linux/virtio_pmem.h
+> > @@ -0,0 +1,35 @@
+> > +/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
+> > +/*
+> > + * Definitions for virtio-pmem devices.
+> > + *
+> > + * Copyright (C) 2019 Red Hat, Inc.
+> > + *
+> > + * Author(s): Pankaj Gupta <pagupta@redhat.com>
+> > + */
+> > +
+> > +#ifndef _UAPI_LINUX_VIRTIO_PMEM_H
+> > +#define _UAPI_LINUX_VIRTIO_PMEM_H
+> > +
+> > +#include <linux/types.h>
+> > +#include <linux/virtio_types.h>
+> > +#include <linux/virtio_ids.h>
+> > +#include <linux/virtio_config.h>
+> > +
+> > +struct virtio_pmem_config {
+> > +	__le64 start;
+> > +	__le64 size;
+> > +};
+> > +
+> 
+> config generally should be __u64.
+> Are you sure sparse does not complain?
 
-Note that this one is somewhat interesting, it seems the search
-through the resource list is done against the companion device
-of the adapter but the GPIO search is done against the companion
-device of the client. It feels to me like these really should
-be done on the same device, and certainly this is what SPI
-does (both against the equivalent of the adapter). Perhaps
-someone with more ACPI knowledge than myself could comment?
+I used this because VIRTIO 1.1 spec says: 
+"The device configuration space uses the little-endian format for multi-byte fields. "
 
+and __le64 looks ok to me. Also, its used in other driver config as welle.g virtio-vsock
+
+> 
+> 
+> > +#define VIRTIO_PMEM_REQ_TYPE_FLUSH      0
+> > +
+> > +struct virtio_pmem_resp {
+> > +	/* Host return status corresponding to flush request */
+> > +	__virtio32 ret;
+> > +};
+> > +
+> > +struct virtio_pmem_req {
+> > +	/* command type */
+> > +	__virtio32 type;
+> > +};
+> > +
+> > +#endif
+> > --
+> > 2.20.1
+> 
+> Sorry why are these __virtio32 not __le32?
+
+I used __virtio32 for data fields for guest and host supporting different endianess.
+ 
 Thanks,
-Charles
-
- drivers/i2c/i2c-core-acpi.c | 3 +++
- drivers/i2c/i2c-core-base.c | 4 ----
- 2 files changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index e332760bf9ebc..0c882d956e9a4 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -164,6 +164,9 @@ int i2c_acpi_get_irq(struct i2c_client *client, int *irq)
- 
- 	acpi_dev_free_resource_list(&resource_list);
- 
-+	if (*irq < 0)
-+		*irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(&client->dev), 0);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index c1afa17a76bfc..f958b50c78c04 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -336,10 +336,6 @@ static int i2c_device_probe(struct device *dev)
- 				irq = of_irq_get(dev->of_node, 0);
- 		} else if (ACPI_COMPANION(dev)) {
- 			i2c_acpi_get_irq(client, &irq);
--
--			if (irq == -ENOENT)
--				irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev),
--							    0);
- 		}
- 		if (irq == -EPROBE_DEFER)
- 			return irq;
--- 
-2.11.0
-
+Pankaj
+> 
+> --
+> MST
+> 
+> 
