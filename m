@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC8EFC282DD
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 19:47:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA0CC46470
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 20:01:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F48C2081C
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 19:47:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A38022089E
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 20:01:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1558554459;
-	bh=QlT26YYdEtmMsKVxKZWrjZyW6VUPexf7iGv2hu9dQTA=;
+	s=default; t=1558555303;
+	bh=1d31qTszdi2fYP3Hw1CE8fO2rZYLUMSnRKtGironcDA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=j+TUa3abGWkm/kRJqe9Ac+0/XGjI277Thani5iwGyJwT51/Hsr1j/ITHYSGvT2iOg
-	 AUb4qyeLl6EK3aRvMpCBED9fN19bqRH1+u2HMHh0Q/abBbj+ZQd1dvGHqo4z3VkmwP
-	 1b1e+RfsBT7lAHEw5HdxfdW5j9uo49EtQRrph8jM=
+	b=ILOkuedaBUybfvEEtKQY5DlRtaojhWsl8GRSE/+bE5Vn5baUOxG3LF0p9Og3Gg/44
+	 8AsIDdQlymrQUEWlGl03VJRwkALaIxT+Xqo5WKktaorIe1aCy2iAAWmRsJi8ASK3R+
+	 KqIq5nc1gKlPCrxmDCW/whlVFWiAH1IvjInkLq0E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731228AbfEVTre (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 May 2019 15:47:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49178 "EHLO mail.kernel.org"
+        id S1730261AbfEVUBh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 May 2019 16:01:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731403AbfEVT1R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 May 2019 15:27:17 -0400
+        id S1730431AbfEVTWW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 May 2019 15:22:22 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4DB7F21473;
-        Wed, 22 May 2019 19:27:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A3D6B2186A;
+        Wed, 22 May 2019 19:22:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1558553237;
-        bh=QlT26YYdEtmMsKVxKZWrjZyW6VUPexf7iGv2hu9dQTA=;
+        s=default; t=1558552942;
+        bh=1d31qTszdi2fYP3Hw1CE8fO2rZYLUMSnRKtGironcDA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EeGdPGUWPs6qnKB0TwLmMoi+UjRQ1ikyZEAzYmNSGdR4e39pA3fuChmpb1wrzr/Re
-         Q4zSJrd8ap9rMUk+D6BsWTv4api/uI3Bfluk5kZHYvXoGrGk+BFvQQ9ZpjjKbgbKLd
-         lBgWn3Oqu1M/DmnX6qBP/4roOb+wLyabeVA1dkYM=
+        b=1QV0bJsv4Mn/IlCGsE/NexPoF82rM6HcGX+OgbJ99q8Ak/TIk120U9Q27VR5XdOax
+         ldFDrrJhLljJGLBG5EEbBFugCkN4StEluPYTbhYkXg8lQfmNk4SCvNB5uxLIPULTD6
+         T0eUOM+e4IsPhXmhlrb3M83D0iJ6HQTL2mt+L640=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 028/244] ACPI / property: fix handling of data_nodes in acpi_get_next_subnode()
-Date:   Wed, 22 May 2019 15:22:54 -0400
-Message-Id: <20190522192630.24917-28-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 042/375] ACPI / property: fix handling of data_nodes in acpi_get_next_subnode()
+Date:   Wed, 22 May 2019 15:15:42 -0400
+Message-Id: <20190522192115.22666-42-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190522192630.24917-1-sashal@kernel.org>
-References: <20190522192630.24917-1-sashal@kernel.org>
+In-Reply-To: <20190522192115.22666-1-sashal@kernel.org>
+References: <20190522192115.22666-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -90,10 +90,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 693cf05b0cc44..288673cff85ea 100644
+index 77abe0ec40431..bd533f68b1dec 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -975,6 +975,14 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+@@ -1031,6 +1031,14 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
  		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
  		struct acpi_data_node *dn;
  
