@@ -2,76 +2,112 @@ Return-Path: <SRS0=B7gg=TW=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.1 required=3.0 tests=DATE_IN_PAST_03_06,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11CF7C282CE
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 12:54:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EB3FC282CE
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 14:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB57520868
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 12:54:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A86C20879
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 May 2019 14:46:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729381AbfEVMyg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 May 2019 08:54:36 -0400
-Received: from foss.arm.com ([217.140.101.70]:49970 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728761AbfEVMyg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 May 2019 08:54:36 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0364880D;
-        Wed, 22 May 2019 05:54:36 -0700 (PDT)
-Received: from fuggles.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.72.51.249])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C32D23F575;
-        Wed, 22 May 2019 05:54:34 -0700 (PDT)
-Date:   Wed, 22 May 2019 13:54:29 +0100
-From:   Will Deacon <will.deacon@arm.com>
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     jean-philippe.brucker@arm.com, lorenzo.pieralisi@arm.com,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ACPI/IORT: Fix build without CONFIG_IOMMU_API
-Message-ID: <20190522125429.GA7876@fuggles.cambridge.arm.com>
-References: <20190520065746.17068-1-hch@lst.de>
+        id S1729663AbfEVOqx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 May 2019 10:46:53 -0400
+Received: from 107-174-234-49-host.colocrossing.com ([107.174.234.49]:60214
+        "EHLO venetian.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727975AbfEVOqw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 May 2019 10:46:52 -0400
+X-Greylist: delayed 5310 seconds by postgrey-1.27 at vger.kernel.org; Wed, 22 May 2019 10:46:52 EDT
+To:     linux-acpi@vger.kernel.org
+Subject: Logo printing
+Message-ID: <b1d9937074b89c03598e4c69b323b3fb@walgreens.com>
+Date:   Wed, 22 May 2019 13:40:05 +0200
+From:   "David" <david@usbcustom.site>
+Reply-To: jensanke@aliyun.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190520065746.17068-1-hch@lst.de>
-User-Agent: Mutt/1.11.1+86 (6f28e57d73f2) ()
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Christoph,
+Hi,
 
-On Mon, May 20, 2019 at 08:57:46AM +0200, Christoph Hellwig wrote:
-> IOMMU_FWSPEC_PCI_RC_ATS is only defined if CONFIG_IOMMU_API is
-> enabled.
-> 
-> Fixes: 5702ee24182f ("ACPI/IORT: Check ATS capability in root complex nodes")
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  drivers/acpi/arm64/iort.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 9058cb084b91..3e542b5d2a2d 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1074,9 +1074,10 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->  		info.node = node;
->  		err = pci_for_each_dma_alias(to_pci_dev(dev),
->  					     iort_pci_iommu_init, &info);
-> -
-> +#ifdef CONFIG_IOMMU_API
->  		if (!err && iort_pci_rc_supports_ats(node))
->  			dev->iommu_fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
-> +#endif
+Not sure if you received my last email?
 
-Cheers, although there's an alternative fix from Lorenzo that I'll send up
-for -rc2.
+Are you interested in purchasing your LOGO promotional and marketing
+products for your company?
+We produce USB Drives with your Logo Printed or artwork printed to be used
+for gifts or marketing.
+Here is more info from our website:
 
-Sorry for the delay; been having email issues this week.
+We can pre-load your media files, images, presentations and files onto the
+drives for you.
 
-Will
+Some reasons to get the USB drives from us:
+We make Custom Shaped USB drives in the shape of your logo, product or
+anything you like.
+Our USB drives are Eco-friendly
+We supply USB drives to Fortune 100 companies.
+We have over 150 styles and colors to choose from.
+People will keep the USB drive you give them and show it to others
+increasing your marketing value
+
+Please click
+to see all of our stock models and get a quote.
+
+If you are nonprofit, have further discounts for schools and charities.
+
+Thanks,
+David
+USB Drive Specialist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+http://walgreens.com/mail/link.php?M=8181195&N=2777&L=65&F=T
+
