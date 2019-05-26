@@ -1,268 +1,220 @@
-Return-Path: <SRS0=1bZj=TZ=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=9M1Z=T2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AC49C282CE
-	for <linux-acpi@archiver.kernel.org>; Sat, 25 May 2019 05:31:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E101C282E3
+	for <linux-acpi@archiver.kernel.org>; Sun, 26 May 2019 20:35:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1C75B2175B
-	for <linux-acpi@archiver.kernel.org>; Sat, 25 May 2019 05:31:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=uwy.onmicrosoft.com header.i=@uwy.onmicrosoft.com header.b="gmzT2t3w"
+	by mail.kernel.org (Postfix) with ESMTP id EA8F02075B
+	for <linux-acpi@archiver.kernel.org>; Sun, 26 May 2019 20:35:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726095AbfEYFba (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 25 May 2019 01:31:30 -0400
-Received: from mail-eopbgr750125.outbound.protection.outlook.com ([40.107.75.125]:63656
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726091AbfEYFb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 25 May 2019 01:31:29 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uwy.onmicrosoft.com;
- s=selector1-uwy-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=//KsjXI2edA1XEWgelHXKgQgKolT6Le1wIwTDdyHrC0=;
- b=gmzT2t3wN7WVgKA1G9Va+VMvbf/w67/uI0BgDj/ZHzqGz/JOTy4gOeqU0HIssqHfo8vNALEiDCqGQaF0Rcf258C/YxA2ENN83rmIAvkycu5ZvQCEtYElG7kdt9ct2fUiLUtKwuNmtL6RJqneIuHq0DMPwjj73btmHN7pjpBnyLs=
-Received: from DM6PR05MB5259.namprd05.prod.outlook.com (20.177.223.223) by
- DM6PR05MB5818.namprd05.prod.outlook.com (20.178.25.219) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1922.9; Sat, 25 May 2019 05:31:21 +0000
-Received: from DM6PR05MB5259.namprd05.prod.outlook.com
- ([fe80::5982:9e02:1574:7513]) by DM6PR05MB5259.namprd05.prod.outlook.com
- ([fe80::5982:9e02:1574:7513%6]) with mapi id 15.20.1922.021; Sat, 25 May 2019
- 05:31:21 +0000
-From:   "Robert R. Howell" <RHowell@uwyo.edu>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Thread-Topic: [PATCH] ACPI / LPSS: Don't skip late system PM ops for hibernate
- on BYT/CHT
-Thread-Index: AQHU6eBClqunF/byekqefGejWfaC+aYqIfOAgAcThICAAL18AIAFeNOAgAp38wCAAktGAIAFVH4AgADH4wCAAL1BAIACLkCAgCCltACADcXeAA==
-Date:   Sat, 25 May 2019 05:31:20 +0000
-Message-ID: <e650be02-ec9b-742e-b34f-7944631107b5@uwyo.edu>
-References: <20190403054352.30120-1-kai.heng.feng@canonical.com>
- <CAJZ5v0jJEovXXiqs-tzPC7FsGjGL+qxfXCxbTrQZqAxSCv1oyQ@mail.gmail.com>
- <beab21cb-9f89-b934-e0a4-2fd85c69f4e6@uwyo.edu> <1588383.bXYZMuyLB9@kreacher>
-In-Reply-To: <1588383.bXYZMuyLB9@kreacher>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
-x-originating-ip: [70.57.208.29]
-x-clientproxiedby: CY4PR22CA0057.namprd22.prod.outlook.com
- (2603:10b6:903:ae::19) To DM6PR05MB5259.namprd05.prod.outlook.com
- (2603:10b6:5:7f::31)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=RHowell@uwyo.edu; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 386fc923-30e8-4162-689a-08d6e0d23803
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(5600148)(711020)(4605104)(1401327)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(2017052603328)(7193020);SRVR:DM6PR05MB5818;
-x-ms-traffictypediagnostic: DM6PR05MB5818:
-x-microsoft-antispam-prvs: <DM6PR05MB5818E869FA2FE1FF2AADE0FED3030@DM6PR05MB5818.namprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:9508;
-x-forefront-prvs: 0048BCF4DA
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(396003)(39840400004)(366004)(346002)(376002)(136003)(199004)(189003)(68736007)(99286004)(31696002)(54906003)(6486002)(86362001)(316002)(58126008)(6512007)(71190400001)(71200400001)(14454004)(5660300002)(786003)(65826007)(6916009)(75432002)(52116002)(76176011)(229853002)(6506007)(386003)(53546011)(305945005)(2906002)(102836004)(53936002)(7736002)(88552002)(6246003)(6436002)(66066001)(64126003)(31686004)(6116002)(36756003)(72206003)(80792005)(3846002)(25786009)(256004)(8936002)(81166006)(81156014)(186003)(4326008)(26005)(66446008)(64756008)(66556008)(66476007)(478600001)(73956011)(8676002)(66946007)(476003)(486006)(2616005)(14444005)(5024004)(11346002)(446003)(65956001)(65806001);DIR:OUT;SFP:1102;SCL:1;SRVR:DM6PR05MB5818;H:DM6PR05MB5259.namprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: uwyo.edu does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: 9y7LCpNvIOUiymsX1olIYuJwiPme3mV62hybiVgWFPFhgpFagAPFS3XV9nL8zGQ71sW68azVNiDly9fBGqJE5scffGGqM+50vIRC5OotQUSSg3MdliuZiWiI/Xv526ZTV/sKc5i75jsI6KRamAZTHSzKk0aRKCfo9DwK0GNOGMrsrj55hy2AsprK8qfQa0wgpMXkbhlgXVE7aeLL10f1+N03E1pWJVD+QT45xcD+LHmsZOvyqQT34uTc/IdsV6J5iRZoT1T0yjB3Z+X5fhulpDhSo/+j0RQhTjQScFi9RoM+Dz4FdBeG05ShXiD1co2nXV5sQ9KcdAih0vXS9UBddlFJHB/LX9MjgOt4rqCjnFVGDk3nszEWJWvB0c6dRuK5rLB64kUeiAbUW2DRvafg2VeMvfzw1S5SsHpK+mci4iE=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <D6A4BA0247914147B62185B63E7FFA45@namprd05.prod.outlook.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-X-OriginatorOrg: uwyo.edu
-X-MS-Exchange-CrossTenant-Network-Message-Id: 386fc923-30e8-4162-689a-08d6e0d23803
-X-MS-Exchange-CrossTenant-originalarrivaltime: 25 May 2019 05:31:20.9733
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: f9cdd7ad-825d-4601-8e9c-a325e02d52da
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: RHowell@uwyo.edu
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR05MB5818
+        id S1725780AbfEZUfU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 26 May 2019 16:35:20 -0400
+Received: from mga01.intel.com ([192.55.52.88]:15778 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725616AbfEZUfU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 26 May 2019 16:35:20 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 May 2019 13:35:19 -0700
+X-ExtLoop1: 1
+Received: from shaunak-z87x-ud5h.sc.intel.com ([10.3.62.50])
+  by orsmga002.jf.intel.com with ESMTP; 26 May 2019 13:35:19 -0700
+From:   Shaunak Saha <shaunak.saha@intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     rafael.j.wysocki@intel.com, mario_limonciello@dell.com,
+        Shaunak Saha <shaunak.saha@intel.com>
+Subject: drivers/acpi: Change the lpit function call flow
+Date:   Sun, 26 May 2019 13:27:50 -0700
+Message-Id: <20190526202750.4614-1-shaunak.saha@intel.com>
+X-Mailer: git-send-email 2.9.5
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-T24gNS8xNi8xOSA1OjExIEFNLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gDQo+IE9uIFRo
-dXJzZGF5LCBBcHJpbCAyNSwgMjAxOSA2OjM4OjM0IFBNIENFU1QgUm9iZXJ0IFIuIEhvd2VsbCB3
-cm90ZToNCj4+IE9uIDQvMjQvMTkgMToyMCBBTSwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+
-Pg0KPj4+IE9uIFR1ZSwgQXByIDIzLCAyMDE5IGF0IDEwOjAzIFBNIFJvYmVydCBSLiBIb3dlbGwg
-PFJIb3dlbGxAdXd5by5lZHU+IHdyb3RlOg0KPj4+Pg0KPj4+PiBPbiA0LzIzLzE5IDI6MDcgQU0s
-IFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPj4+Pj4NCj4+Pj4+IE9uIFNhdCwgQXByIDIwLCAy
-MDE5IGF0IDEyOjQ0IEFNIFJvYmVydCBSLiBIb3dlbGwgPFJIb3dlbGxAdXd5by5lZHU+IHdyb3Rl
-Og0KPj4+Pj4+DQo+Pj4+Pj4gT24gNC8xOC8xOSA1OjQyIEFNLCBIYW5zIGRlIEdvZWRlIHdyb3Rl
-Og0KPj4+Pj4+DQo+Pj4+Pj4+PiBPbiA0LzgvMTkgMjoxNiBBTSwgSGFucyBkZSBHb2VkZSB3cm90
-ZTo+DQo+Pj4+Pj4+Pj4NCj4+Pj4+Pj4+PiBIbW0sIGludGVyZXN0aW5nIHNvIHlvdSBoYXZlIGhp
-YmVybmF0aW9uIHdvcmtpbmcgb24gYSBUMTAwVEENCj4+Pj4+Pj4+PiAod2l0aCA1LjAgKyAwMmU0
-NTY0NmQ1M2IgcmV2ZXJ0ZWQpLCByaWdodCA/DQo+Pj4+Pj4+Pj4NCj4+Pj4+Pg0KPj4+Pj4+DQo+
-Pj4+Pj4gSSd2ZSBtYW5hZ2VkIHRvIGZpbmQgYSB3YXkgYXJvdW5kIHRoZSBpMmNfZGVzaWdud2Fy
-ZSB0aW1lb3V0IGlzc3Vlcw0KPj4+Pj4+IG9uIHRoZSBUMTAwVEEncy4gIFRoZSBrZXkgaXMgdG8g
-Tk9UIHNldCBEUE1fRkxBR19TTUFSVF9TVVNQRU5ELA0KPj4+Pj4+IHdoaWNoIHdhcyBhZGRlZCBp
-biB0aGUgMDJlNDU2NDZkNTNiIGNvbW1pdC4NCj4+Pj4+Pg0KPj4+Pj4+IFRvIHRlc3QgdGhhdCBJ
-J3ZlIHN0YXJ0ZWQgd2l0aCBhIDUuMS1yYzUga2VybmVsLCBhcHBsaWVkIHlvdXIgcmVjZW50IHBh
-dGNoDQo+Pj4+Pj4gdG8gYWNwaV9scHNzLmMsIHRoZW4gYXBwbHkgdGhlIGZvbGxvd2luZyBwYXRj
-aCBvZiBtaW5lLCByZW1vdmluZw0KPj4+Pj4+IERQTV9GTEFHX1NNQVJUX1NVU1BFTkQuICAoRm9y
-IHRoZSBUMTAwIGhhcmR3YXJlIEkgbmVlZCB0byBhcHBseSBzb21lDQo+Pj4+Pj4gb3RoZXIgcGF0
-Y2hlcyBhcyB3ZWxsIGJ1dCB0aG9zZSBhcmUgbm90IHJlbGF0ZWQgdG8gdGhlIGkyYy1kZXNpZ253
-YXJlIG9yDQo+Pj4+Pj4gYWNwaSBpc3N1ZXMgYWRkcmVzc2VkIGhlcmUuKQ0KPj4+Pj4+DQo+Pj4+
-Pj4gT24gYSByZXN1bWUgZnJvbSBoaWJlcm5hdGlvbiBJIHN0aWxsIHNlZSBvbmUgZXJyb3I6DQo+
-Pj4+Pj4gICAiaTJjX2Rlc2lnbndhcmUgODA4NjBGNDE6MDA6IEVycm9yIGkyY19kd194ZmVyIGNh
-bGxlZCB3aGlsZSBzdXNwZW5kZWQiDQo+Pj4+Pj4gYnV0IEkgbm8gbG9uZ2VyIGdldCB0aGUgaTJj
-X2Rlc2lnbndhcmUgdGltZW91dHMsIGFuZCBhdWRpbyBkb2VzIG5vdyB3b3JrDQo+Pj4+Pj4gYWZ0
-ZXIgdGhlIHJlc3VtZS4NCj4+Pj4+Pg0KPj4+Pj4+IFJlbW92aW5nIERQTV9GTEFHX1NNQVJUX1NV
-U1BFTkQgbWF5IG5vdCBiZSB3aGF0IHlvdSB3YW50IGZvciBvdGhlcg0KPj4+Pj4+IGhhcmR3YXJl
-LCBidXQgcGVyaGFwcyB0aGlzIHdpbGwgZ2l2ZSB5b3UgYSBjbHVlIGFzIHRvIHdoYXQgaXMgZ29p
-bmcNCj4+Pj4+PiB3cm9uZyB3aXRoIGhpYmVybmF0ZS9yZXN1bWUgb24gdGhlIFQxMDBUQSdzLg0K
-Pj4+Pj4NCj4+Pj4+IFdoYXQgaWYgeW91IGRyb3AgRFBNX0ZMQUdfTEVBVkVfU1VTUEVOREVEIGFs
-b25lIGluc3RlYWQ/DQo+Pj4+Pg0KPj4+Pg0KPj4+PiBJIGRpZCB0cnkgZHJvcHBpbmcganVzdCBE
-UE1fRkxBR19MRUFWRV9TVVNQRU5ERUQsIGRyb3BwaW5nIGp1c3QNCj4+Pj4gRFBNX0ZMQUdfU01B
-UlRfU1VTUEVORCwgYW5kIGRyb3BwaW5nIGJvdGggZmxhZ3MuICBXaGVuIEkganVzdCBkcm9wDQo+
-Pj4+IERQTV9GTEFHX0xFQVZFX1NVU1BFTkRFRCBJIHN0aWxsIGdldCB0aGUgaTJjX2Rlc2lnbndh
-cmUgdGltZW91dHMNCj4+Pj4gYWZ0ZXIgdGhlIHJlc3VtZS4gIElmIEkgZHJvcCBqdXN0IERQTV9G
-TEFHX1NNQVJUX1NVU1BFTkQgb3IgZHJvcCBib3RoLA0KPj4+PiB0aGVuIHRoZSB0aW1lb3V0cyBn
-byBhd2F5Lg0KPj4+DQo+Pj4gT0ssIHRoYW5rcyENCj4+Pg0KPj4+IElzIG5vbi1oaWJlcm5hdGlv
-biBzeXN0ZW0gc3VzcGVuZCBhZmZlY3RlZCB0b28/DQo+Pg0KPj4gSSBqdXN0IHJhbiBzb21lIHRl
-c3RzIG9uIGEgVDEwMFRBLCB1c2luZyB0aGUgNS4xLXJjNSBjb2RlIHdpdGggSGFucycgcGF0Y2gg
-YXBwbGllZA0KPj4gYnV0IHdpdGhvdXQgYW55IGNoYW5nZXMgdG8gaTJjLWRlc2lnbndhcmUtcGxh
-dGRydi5jLCBzbyB0aGUNCj4+IERQTV9GTEFHX1NNQVJUX1BSRVBBUkUsIERQTV9GTEFHX1NNQVJU
-X1NVU1BFTkQsIGFuZCBEUE1fRkxBR19MRUFWRV9TVVNQRU5ERUQgZmxhZ3MNCj4+IGFyZSBhbGwg
-c2V0Lg0KPj4NCj4+IFN1c3BlbmQgZG9lcyB3b3JrIE9LLCBhbmQgYWZ0ZXIgcmVzdW1lIEkgZG8g
-Tk9UIGdldCBhbnkgb2YgdGhlIGNyaXBwbGluZw0KPj4gaTJjX2Rlc2lnbndhcmUgdGltZW91dCBl
-cnJvcnMgd2hpY2ggY2F1c2Ugc291bmQgdG8gZmFpbCBhZnRlciBoaWJlcm5hdGUuICBJIERPIHNl
-ZSBvbmUNCj4+ICAgImkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAwOiBFcnJvciBpMmNfZHdfeGZl
-ciBjYWxsIHdoaWxlIHN1c3BlbmRlZCINCj4+IGVycm9yIG9uIHJlc3VtZSwganVzdCBhcyBJIGRv
-IG9uIGhpYmVybmF0ZS4gIEkndmUgYXR0YWNoZWQgYSBwb3J0aW9uIG9mIGRtZXNnIGJlbG93Lg0K
-Pj4gVGhlICJhc3VzX3dtaTogIFVua25vd24ga2V5IDc5IHByZXNzZWQiIGVycm9yIGlzIGEgZ2xp
-dGNoIHdoaWNoIG9jY3Vycw0KPj4gaW50ZXJtaXR0ZW50bHkgb24gdGhlc2UgbWFjaGluZXMsIGJ1
-dCBkb2Vzbid0IHNlZW0gcmVsYXRlZCB0byB0aGUgb3RoZXIgaXNzdWVzLg0KPj4gSSBoYWQgb25l
-IHRlc3QgcnVuIHdoZW4gaXQgd2FzIGFic2VudCBidXQgdGhlIHJlc3Qgb2YgdGhlIG1lc3NhZ2Vz
-IHdlcmUgdGhlDQo+PiBzYW1lIC0tIGJ1dCB0aGVuIGtlcHQgZ2V0dGluZyB0aGF0IHVua25vd24g
-a2V5IGVycm9yIG9uIGFsbCBteSBsYXRlciB0cmllcy4NCj4+DQo+PiBJIGRpZCBub3RpY2UgdGhl
-ICIyc2lkbGUiIGluIHRoZSBmb2xsb3dpbmcgcmF0aGVyIHRoYW4gInNoYWxsb3ciIG9yICJkZWVw
-Ii4gIEENCj4+IGNhdCBvZiAvc3lzL3Bvd2VyL3N0YXRlIHNob3dzICJmcmVlemUgbWVtIGRpc2si
-IGJ1dCBhDQo+PiBjYXQgb2YgL3N5cy9wb3dlci9tZW1fc2xlZXAiIHNob3dzIG9ubHkgIltzMmlk
-bGVdIHNvIGl0IGxvb2tzIGxpa2Ugc2hhbGxvdyBhbmQgZGVlcA0KPj4gYXJlIG5vdCBlbmFibGVk
-IGZvciB0aGlzIHN5c3RlbS4gIEkgZGlkIGNoZWNrIHRoZSBpbnB1dCBwb3dlciAob3IgcmVhbGx5
-IGN1cnJlbnQpDQo+PiBhcyBpdCB3ZW50IGludG8gc3VzcGVuZCBhbmQgdGhlIG1pY3JvLXVzYiBw
-b3dlciBpbnB1dCBkcm9wcyBmcm9tIGFib3V0DQo+PiAwLjUgYW1wcyB0byAwLjA1IGFtcHMuICBC
-dXQgY2xlYXJseSBhIGxvdCBvZiBkZXZpY2VzIGFyZSBzdGlsbCBhY3RpdmUsIGFzIG1vdmVtZW50
-DQo+PiBvZiBhIGJsdWV0b290aCBtb3VzZSAodGhlIE1YIEFueXdoZXJlIDIpIHdpbGwgd2FrZSBp
-dCBmcm9tIHN1c3BlbmQuICBUaGF0IHByZXN1bWFibHkgaXMNCj4+IHdoeSBzdXNwZW5kIGRvZXNu
-J3QgdHJpZ2dlciB0aGUgc2FtZSBpMmNfZGVzaWdud2FyZSBwcm9ibGVtcyBhcyBoaWJlcm5hdGUu
-DQo+Pg0KPj4gTGV0IG1lIGtub3cgaWYgSSBjYW4gZG8gYW55IG90aGVyIHRlc3RzLg0KPiANCj4g
-Q2FuIHlvdSBwbGVhc2UgY2hlY2sgaWYgdGhlIGFwcGVuZGVkIHBhdGNoIG1ha2VzIHRoZSBoaWJl
-cm5hdGUgaXNzdWUgZ28gYXdheSBmb3IgeW91LCB3aXRob3V0IGFueSBvdGhlciBjaGFuZ2VzPw0K
-PiANCj4gLS0tDQo+ICBkcml2ZXJzL3BjaS9wY2ktZHJpdmVyLmMgfCAgIDM2ICsrKysrKysrKyst
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDEwIGluc2VydGlv
-bnMoKyksIDI2IGRlbGV0aW9ucygtKQ0KPiANCj4gSW5kZXg6IGxpbnV4LXBtL2RyaXZlcnMvcGNp
-L3BjaS1kcml2ZXIuYw0KPiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09DQo+IC0tLSBsaW51eC1wbS5vcmlnL2RyaXZlcnMv
-cGNpL3BjaS1kcml2ZXIuYw0KPiArKysgbGludXgtcG0vZHJpdmVycy9wY2kvcGNpLWRyaXZlci5j
-DQo+IEBAIC05NTcsMTUgKzk1NywxNCBAQCBzdGF0aWMgaW50IHBjaV9wbV9mcmVlemUoc3RydWN0
-IGRldmljZSAqDQo+ICAgICAgICAgfQ0KPiANCj4gICAgICAgICAvKg0KPiAtICAgICAgICAqIFRo
-aXMgdXNlZCB0byBiZSBkb25lIGluIHBjaV9wbV9wcmVwYXJlKCkgZm9yIGFsbCBkZXZpY2VzIGFu
-ZCBzb21lDQo+IC0gICAgICAgICogZHJpdmVycyBtYXkgZGVwZW5kIG9uIGl0LCBzbyBkbyBpdCBo
-ZXJlLiAgSWRlYWxseSwgcnVudGltZS1zdXNwZW5kZWQNCj4gLSAgICAgICAgKiBkZXZpY2VzIHNo
-b3VsZCBub3QgYmUgdG91Y2hlZCBkdXJpbmcgZnJlZXplL3RoYXcgdHJhbnNpdGlvbnMsDQo+IC0g
-ICAgICAgICogaG93ZXZlci4NCj4gKyAgICAgICAgKiBSZXN1bWUgYWxsIHJ1bnRpbWUtc3VzcGVu
-ZGVkIGRldmljZXMgYmVmb3JlIGNyZWF0aW5nIGEgc25hcHNob3QNCj4gKyAgICAgICAgKiBpbWFn
-ZSBvZiBzeXN0ZW0gbWVtb3J5LCBiZWNhdXNlIHRoZSByZXN0b3JlIGtlcm5lbCBnZW5lcmFsbHkg
-Y2Fubm90DQo+ICsgICAgICAgICogYmUgZXhwZWN0ZWQgdG8gYWx3YXlzIGhhbmRsZSB0aGVtIGNv
-bnNpc3RlbnRseSBhbmQgcGNpX3BtX3Jlc3RvcmUoKQ0KPiArICAgICAgICAqIGFsd2F5cyBsZWF2
-ZXMgdGhlbSBhcyAiYWN0aXZlIiwgc28gZW5zdXJlIHRoYXQgdGhlIHN0YXRlIHNhdmVkIGluIHRo
-ZQ0KPiArICAgICAgICAqIGltYWdlIHdpbGwgYWx3YXlzIGJlIGNvbnNpc3RlbnQgd2l0aCB0aGF0
-Lg0KPiAgICAgICAgICAqLw0KPiAtICAgICAgIGlmICghZGV2X3BtX3NtYXJ0X3N1c3BlbmRfYW5k
-X3N1c3BlbmRlZChkZXYpKSB7DQo+IC0gICAgICAgICAgICAgICBwbV9ydW50aW1lX3Jlc3VtZShk
-ZXYpOw0KPiAtICAgICAgICAgICAgICAgcGNpX2Rldi0+c3RhdGVfc2F2ZWQgPSBmYWxzZTsNCj4g
-LSAgICAgICB9DQo+ICsgICAgICAgcG1fcnVudGltZV9yZXN1bWUoZGV2KTsNCj4gKyAgICAgICBw
-Y2lfZGV2LT5zdGF0ZV9zYXZlZCA9IGZhbHNlOw0KPiANCj4gICAgICAgICBpZiAocG0tPmZyZWV6
-ZSkgew0KPiAgICAgICAgICAgICAgICAgaW50IGVycm9yOw0KPiBAQCAtOTkyLDkgKzk5MSw2IEBA
-IHN0YXRpYyBpbnQgcGNpX3BtX2ZyZWV6ZV9ub2lycShzdHJ1Y3QgZGUNCj4gICAgICAgICBzdHJ1
-Y3QgcGNpX2RldiAqcGNpX2RldiA9IHRvX3BjaV9kZXYoZGV2KTsNCj4gICAgICAgICBzdHJ1Y3Qg
-ZGV2aWNlX2RyaXZlciAqZHJ2ID0gZGV2LT5kcml2ZXI7DQo+IA0KPiAtICAgICAgIGlmIChkZXZf
-cG1fc21hcnRfc3VzcGVuZF9hbmRfc3VzcGVuZGVkKGRldikpDQo+IC0gICAgICAgICAgICAgICBy
-ZXR1cm4gMDsNCj4gLQ0KPiAgICAgICAgIGlmIChwY2lfaGFzX2xlZ2FjeV9wbV9zdXBwb3J0KHBj
-aV9kZXYpKQ0KPiAgICAgICAgICAgICAgICAgcmV0dXJuIHBjaV9sZWdhY3lfc3VzcGVuZF9sYXRl
-KGRldiwgUE1TR19GUkVFWkUpOw0KPiANCj4gQEAgLTEwMjQsMTYgKzEwMjAsNiBAQCBzdGF0aWMg
-aW50IHBjaV9wbV90aGF3X25vaXJxKHN0cnVjdCBkZXZpDQo+ICAgICAgICAgc3RydWN0IGRldmlj
-ZV9kcml2ZXIgKmRydiA9IGRldi0+ZHJpdmVyOw0KPiAgICAgICAgIGludCBlcnJvciA9IDA7DQo+
-IA0KPiAtICAgICAgIC8qDQo+IC0gICAgICAgICogSWYgdGhlIGRldmljZSBpcyBpbiBydW50aW1l
-IHN1c3BlbmQsIHRoZSBjb2RlIGJlbG93IG1heSBub3Qgd29yaw0KPiAtICAgICAgICAqIGNvcnJl
-Y3RseSB3aXRoIGl0LCBzbyBza2lwIHRoYXQgY29kZSBhbmQgbWFrZSB0aGUgUE0gY29yZSBza2lw
-IGFsbCBvZg0KPiAtICAgICAgICAqIHRoZSBzdWJzZXF1ZW50ICJ0aGF3IiBjYWxsYmFja3MgZm9y
-IHRoZSBkZXZpY2UuDQo+IC0gICAgICAgICovDQo+IC0gICAgICAgaWYgKGRldl9wbV9zbWFydF9z
-dXNwZW5kX2FuZF9zdXNwZW5kZWQoZGV2KSkgew0KPiAtICAgICAgICAgICAgICAgZGV2X3BtX3Nr
-aXBfbmV4dF9yZXN1bWVfcGhhc2VzKGRldik7DQo+IC0gICAgICAgICAgICAgICByZXR1cm4gMDsN
-Cj4gLSAgICAgICB9DQo+IC0NCj4gICAgICAgICBpZiAocGNpYmlvc19wbV9vcHMudGhhd19ub2ly
-cSkgew0KPiAgICAgICAgICAgICAgICAgZXJyb3IgPSBwY2liaW9zX3BtX29wcy50aGF3X25vaXJx
-KGRldik7DQo+ICAgICAgICAgICAgICAgICBpZiAoZXJyb3IpDQo+IEBAIC0xMDkzLDggKzEwNzks
-MTAgQEAgc3RhdGljIGludCBwY2lfcG1fcG93ZXJvZmYoc3RydWN0IGRldmljZQ0KPiANCj4gICAg
-ICAgICAvKiBUaGUgcmVhc29uIHRvIGRvIHRoYXQgaXMgdGhlIHNhbWUgYXMgaW4gcGNpX3BtX3N1
-c3BlbmQoKS4gKi8NCj4gICAgICAgICBpZiAoIWRldl9wbV90ZXN0X2RyaXZlcl9mbGFncyhkZXYs
-IERQTV9GTEFHX1NNQVJUX1NVU1BFTkQpIHx8DQo+IC0gICAgICAgICAgICFwY2lfZGV2X2tlZXBf
-c3VzcGVuZGVkKHBjaV9kZXYpKQ0KPiArICAgICAgICAgICAhcGNpX2Rldl9rZWVwX3N1c3BlbmRl
-ZChwY2lfZGV2KSkgew0KPiAgICAgICAgICAgICAgICAgcG1fcnVudGltZV9yZXN1bWUoZGV2KTsN
-Cj4gKyAgICAgICAgICAgICAgIHBjaV9kZXYtPnN0YXRlX3NhdmVkID0gZmFsc2U7DQo+ICsgICAg
-ICAgfQ0KPiANCj4gICAgICAgICBwY2lfZGV2LT5zdGF0ZV9zYXZlZCA9IGZhbHNlOw0KPiAgICAg
-ICAgIGlmIChwbS0+cG93ZXJvZmYpIHsNCj4gQEAgLTExNjgsMTAgKzExNTYsNiBAQCBzdGF0aWMg
-aW50IHBjaV9wbV9yZXN0b3JlX25vaXJxKHN0cnVjdCBkDQo+ICAgICAgICAgc3RydWN0IGRldmlj
-ZV9kcml2ZXIgKmRydiA9IGRldi0+ZHJpdmVyOw0KPiAgICAgICAgIGludCBlcnJvciA9IDA7DQo+
-IA0KPiAtICAgICAgIC8qIFRoaXMgaXMgYW5hbG9nb3VzIHRvIHRoZSBwY2lfcG1fcmVzdW1lX25v
-aXJxKCkgY2FzZS4gKi8NCj4gLSAgICAgICBpZiAoZGV2X3BtX3NtYXJ0X3N1c3BlbmRfYW5kX3N1
-c3BlbmRlZChkZXYpKQ0KPiAtICAgICAgICAgICAgICAgcG1fcnVudGltZV9zZXRfYWN0aXZlKGRl
-dik7DQo+IC0NCj4gICAgICAgICBpZiAocGNpYmlvc19wbV9vcHMucmVzdG9yZV9ub2lycSkgew0K
-PiAgICAgICAgICAgICAgICAgZXJyb3IgPSBwY2liaW9zX3BtX29wcy5yZXN0b3JlX25vaXJxKGRl
-dik7DQo+ICAgICAgICAgICAgICAgICBpZiAoZXJyb3IpDQo+IA0KPiANCj4gDQoNCkkndmUgZmlu
-YWxseSBtYW5hZ2VkIHRvIGNvbXBsZXRlIGEgcmVhc29uYWJsZSBzZXQgb2YgdGVzdHMgb24gbXkg
-VDEwMFRBIHVzaW5nIHlvdXIgDQoybmQgcGF0Y2ggZnJvbSBhYm92ZSwgYW5kIG9uIGEgNS4xLjQg
-YmFzZWQga2VybmVsIHdpdGggT05MWSB0aGlzIHBhdGNoIGFwcGxpZWQgSSBjYW4gDQpzdWNjZXNz
-ZnVsbHkgc3VzcGVuZCBhbmQgaGliZXJuYXRlIHRoZSBzeXN0ZW0uICBPbiByZXN1bWUgdGhlIGky
-YyBkZXZpY2VzIChpbiBwYXJ0aWN1bGFyIHRoZSBzb3VuZCkNCmRvIHN0aWxsIHdvcmsgT0suICBP
-biB0aGUgZmlyc3QgcmVzdW1lIGZyb20gc3VzcGVuZCBvciBoaWJlcm5hdGUgSSBETyBzdGlsbCBz
-ZWUgDQp0aGUgImkyY19kZXNpZ253YXJlIDgwODYwRjQxOjAwOiBUcmFuc2ZlciB3aGlsZSBzdXNw
-ZW5kZWQiIGVycm9yLCBmb2xsb3dlZCBieSBhIA0Kc3RhY2sgdHJhY2UuICBIb3dldmVyIGFzIGJl
-Zm9yZSB0aGF0IGVycm9yIGRvZXNuJ3Qgc2VlbSB0byBjYXVzZSBhbnkgcGVybWFuZW50IHByb2Js
-ZW1zLiAgDQphbmQgd2l0aCB5b3VyIHBhdGNoIGFwcGxpZWQgSSBkbyBOT1QgZ2V0IHRoZSBzdWJz
-ZXF1ZW50IGkyYyB0aW1lb3V0IGVycm9ycyANCnRoYXQgcHJldmVudCBmdXJ0aGVyIHVzZSBvZiB0
-aGUgc291bmQgc3lzdGVtLiAgSSBkb24ndCBzZWUgYW55IG90aGVyIHJlcG9ydGVkIGVycm9ycy4g
-IA0KQXMgdXN1YWwgSSBuZWVkIHRvIGhhdmUgYSBzeXN0ZW1kIHNjcmlwdCB3aGljaCByZW1vdmVz
-IHRoZSBicmNtZm1hYyBhbmQgaGNpX3VhcnQgZHJpdmVycyANCmJlZm9yZSBoaWJlcm5hdGUsIHRo
-ZW4gaW5zdGFsbHMgdGhlbSBvbiByZXN1bWUsIG9yIHRob3NlIGRyaXZlcnMgZmFpbCB0byB3b3Jr
-IGFmdGVyIHJlc3VtZS4NCg0KSSBoYWQgaW5pdGlhbGx5IHRyaWVkIHRlc3RpbmcgeW91ciBwYXRj
-aCB3aXRoIHRoZSA1LjEuMCBrZXJuZWwgdGhhdCBJIGhhZCBiZWVuIA0KdXNpbmcgZm9yIHRlc3Rp
-bmcgYSBmZXcgd2Vla3MgYWdvLCBhbmQgYWxzbyB0aGUganVzdCByZWxlYXNlZCA1LjItcmMxIGtl
-cm5lbC4gIA0KSSB0aGluayB5b3VyIHBhdGNoIGlzIGFsc28gZml4aW5nIHRoZSBpMmMgdGltZW91
-dCBlcnJvcnMgd2l0aCB0aG9zZSwgYnV0IHdpdGggYm90aCBvZiB0aG9zZSANCm90aGVyIGtlcm5l
-bHMgSSBoYXZlIGEgbG90IG9mIG90aGVyIGlzc3VlcyB3aGljaCBoYXZlIGNvbmZ1c2VkIHRoZSBy
-ZXN1bHRzLiAgSSd2ZSBiZWVuIHRyeWluZyANCnRvIHNvcnQgb3V0IGV4YWN0bHkgd2hhdCBjYXVz
-ZXMgb3IgYXZvaWRzIHRob3NlIGlzc3VlcyBvdmVyIHRoZSBsYXN0IHNldmVyYWwgZGF5cy4gIA0K
-SG93ZXZlciB0aGF0IGhhcyB0dXJuZWQgaW50byBlbm91Z2ggb2YgYSBjYW4gb2Ygd29ybXMgdGhh
-dCB1bmxlc3MgeW91IHJlYWxseSB3YW50IA0KdG8ga25vdyB0aG9zZSBkZXRhaWxzLCBJJ2xsIGF2
-b2lkIHRoYXQgIm5vaXNlIiBoZXJlIGV4Y2VwdCBhIFZFUlkgYnJpZWYgc3VtbWFyeS4NCg0KV2l0
-aCA1LjEuMCBhbmQgT05MWSB5b3VyIHBhdGNoLCByZXN1bWUgZnJvbSBoaWJlcm5hdGUgZG9lcyBz
-ZWVtIHRvIHdvcmssIGFuZCBJIERPIE5PVCANCmdldCBpMmNfdGltZW91dCBlcnJvcnMsIGJ1dCBJ
-IGRvIHNlZSBhIG51bWJlciBvZiBlcnJvcnMgYW5kIHN0YWNrIHRyYWNlcyByZXBvcnRlZCANCmZy
-b20gb3RoZXIgaTJjIGRldmljZXMgc3VjaCBhcyB0aGUgQVRNTDEwMDAgdG91Y2hzY3JlZW4gY29u
-dHJvbGxlci4gIEhvd2V2ZXIgdGhlIGRldmljZXMgDQphbGwgZG8gc2VlbSB0byB3b3JrIG9uY2Ug
-dGhlIHJlc3VtZSBpcyBjb21wbGV0ZWQuICBUaGUganVzdCByZWxlYXNlZCA1LjItcmMxIGtlcm5l
-bCANCnNlZW1zIHRvIGhhdmUgaW50cm9kdWNlZCBwcm9ibGVtcyB3aXRoIGF0IGxlYXN0IG9uZSBv
-dGhlciBkZXZpY2UsIGJyY21mbWFjLCB3aXRoIA0Kb3Igd2l0aG91dCB5b3VyIHBhdGNoLiAgSSBo
-YXZlIHRvIGJsYWNrbGlzdCBpdCBvciB0aGUgc3lzdGVtIGhhbmdzIG9uIGVpdGhlciBzdXNwZW5k
-IA0Kb3IgaGliZXJuYXRlLiAgKEFuZCB3b3JraW5nIHdpZmkgbmV2ZXIgZGlkIGNvbWUgdXAgZXZl
-biBvbiB0aGUgaW5pdGlhbCBib290LikgIA0KQnV0IHdpdGggYnJjbWZtYWMgYmxhY2tsaXN0ZWQg
-eW91ciBwYXRjaCBzZWVtcyB0byBmaXggdGhlIGkyY19kZXNpZ253YXJlIFNPVU5EIHRpbWVvdXRz
-LiAgDQoNCkxldCBtZSBrbm93IGlmIEkgY2FuIGRvIGFueSBmdXJ0aGVyIHRlc3RpbmcuDQoNCkJv
-YiBIb3dlbGwNCg==
+In the present implementation sleep function was getting called in
+acpi_s2idle_prepare and as all the devices may not have suspended
+at that stage e.g. if we are telling ec about the S0ix then calling early
+can cause ec reply wrongly interpreted as spurious wake events.
+Here we call it at much later stage in acpi_s2idle_sync. As per the
+specification the entry _DSM function may be invoked when the OS state has
+reached sufficient criteria for processor idle state entry matching
+Entry Trigger defined in LPIT to be interpreted as a request for the
+platform to enter a Low Power S0 Idle (LPI) state. Here we are checking if
+the we reached the minimum D-State defined in the constraint function of
+the LPIT _DSM method before calling the sleep entry function. Also not
+checking for constraint in acpi_s2idle_wake anymore and also changed the
+acpi info loglevel to debug in lpi_check_constraint.
+
+Signed-off-by: Shaunak Saha <shaunak.saha@intel.com>
+---
+ drivers/acpi/Kconfig | 13 +++++++++
+ drivers/acpi/sleep.c | 76 +++++++++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 77 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 283ee94..57a9b2e 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -93,6 +93,19 @@ config ACPI_LPIT
+ 	depends on X86_64
+ 	default y
+ 
++config LPIT_CONSTRAINTS_CHECK_FAILURE
++	bool
++	depends on X86_64
++	default n
++	help
++	  For platforms defining the device constraints _DSM function in the
++	  Low Power Idle table this option allows the platform to choose
++	  if they wants to fail or succeed in calling the Low Power Entry
++	  Notification _DSM function. If this config is defined by a
++	  platform then the Low Power S0 Entry Notification _DSM function
++	  is not called if the idle state has not achieved the Entry Trigger
++	  defined in LPIT.
++
+ config ACPI_SLEEP
+ 	bool
+ 	depends on SUSPEND || HIBERNATION
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index e52f123..9f2359c 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -860,11 +860,25 @@ static void lpi_device_get_constraints(void)
+ 
+ free_acpi_buffer:
+ 	ACPI_FREE(out_obj);
++	/*
++	 * lpi_constraints_table_size only increments if we have proper package
++	 * definitions for the constraints, its done after parsing all the
++	 * fields for constraints. Memory is allocated for lpi_constraints_table
++	 * through kcalloc much before we start parsing the packages we need to
++	 * free the memory here in case of any failures.
++	 */
++	if (!lpi_constraints_table_size && lpi_constraints_table)
++		kfree(lpi_constraints_table);
+ }
+ 
+-static void lpi_check_constraints(void)
++static int lpi_check_constraints(void)
+ {
+ 	int i;
++	int lpi_error = 0;
++
++	/* We do not have any table so return from here */
++	if (!lpi_constraints_table_size)
++		return lpi_error;
+ 
+ 	for (i = 0; i < lpi_constraints_table_size; ++i) {
+ 		acpi_handle handle = lpi_constraints_table[i].handle;
+@@ -879,17 +893,21 @@ static void lpi_check_constraints(void)
+ 			acpi_power_state_string(adev->power.state));
+ 
+ 		if (!adev->flags.power_manageable) {
+-			acpi_handle_info(handle, "LPI: Device not power manageable\n");
++			acpi_handle_debug(handle, "LPI: Device not power manageable\n");
+ 			lpi_constraints_table[i].handle = NULL;
+ 			continue;
+ 		}
+ 
+-		if (adev->power.state < lpi_constraints_table[i].min_dstate)
+-			acpi_handle_info(handle,
++		if (adev->power.state < lpi_constraints_table[i].min_dstate) {
++			acpi_handle_debug(handle,
+ 				"LPI: Constraint not met; min power state:%s current power state:%s\n",
+ 				acpi_power_state_string(lpi_constraints_table[i].min_dstate),
+ 				acpi_power_state_string(adev->power.state));
++			/* Error is set here if any of the constraints fail */
++			lpi_error = 1;
++		}
+ 	}
++	return lpi_error;
+ }
+ 
+ static void acpi_sleep_run_lps0_dsm(unsigned int func)
+@@ -967,12 +985,8 @@ static int acpi_s2idle_begin(void)
+ 
+ static int acpi_s2idle_prepare(void)
+ {
+-	if (lps0_device_handle) {
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
+-
++	if (lps0_device_handle)
+ 		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
+-	}
+ 
+ 	if (acpi_sci_irq_valid())
+ 		enable_irq_wake(acpi_sci_irq);
+@@ -990,9 +1004,6 @@ static void acpi_s2idle_wake(void)
+ 	if (!lps0_device_handle)
+ 		return;
+ 
+-	if (pm_debug_messages_on)
+-		lpi_check_constraints();
+-
+ 	/*
+ 	 * If IRQD_WAKEUP_ARMED is not set for the SCI at this point, it means
+ 	 * that the SCI has triggered while suspended, so cancel the wakeup in
+@@ -1013,6 +1024,7 @@ static void acpi_s2idle_wake(void)
+ 
+ static void acpi_s2idle_sync(void)
+ {
++	int lpi_check;
+ 	/*
+ 	 * Process all pending events in case there are any wakeup ones.
+ 	 *
+@@ -1023,6 +1035,46 @@ static void acpi_s2idle_sync(void)
+ 	acpi_ec_flush_work();
+ 	acpi_os_wait_events_complete();	/* synchronize Notify handling */
+ 	s2idle_wakeup = false;
++
++	if (!lps0_device_handle)
++		return;
++
++	acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
++
++	/*
++	 * Check here if device constraints(Function 1) is defined.
++	 * If only the sleep functions are defined in lpit we run that here.
++	 */
++	if (!lpi_constraints_table_size)
++		goto lps0_entry;
++
++	lpi_check = lpi_check_constraints();
++
++	/*
++	 * _DSM function may be invoked when the OS state
++	 * has reached sufficient criteria for processor idle
++	 * state.
++	 */
++	if (lpi_check) {
++		/*
++		 * We check the config LPIT_CONSTRAINTS_FAILURE
++		 * here for the devices which defines the constraints
++		 * properly and LPIT_CONSTRAINTS_FAILURE config in kernel.
++		 * We fail here if constraints are not met. But we still run
++		 * the sleep function for the devices which do not define
++		 * the LPIT_CONSTRAINTS_FAILURE kernel config.
++		 */
++		if (!IS_ENABLED(CONFIG_LPIT_CONSTRAINTS_CHECK_FAILURE))
++			goto lps0_entry;
++
++		return;
++	}
++
++lps0_entry:
++	/*
++	 * If only the sleep functions are defined in lpit we run that here.
++	 */
++	acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
+ }
+ 
+ static void acpi_s2idle_restore(void)
+
