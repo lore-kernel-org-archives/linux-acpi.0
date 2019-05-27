@@ -4,31 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1C0C04AB3
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 May 2019 15:20:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1049AC04AB3
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 May 2019 15:20:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BD9FB217F4
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 May 2019 15:20:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6D3D21848
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 May 2019 15:20:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726905AbfE0PUA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1726645AbfE0PUA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 27 May 2019 11:20:00 -0400
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:57502 "EHLO
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:57500 "EHLO
         mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726297AbfE0PUA (ORCPT
+        by vger.kernel.org with ESMTP id S1726279AbfE0PT7 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 May 2019 11:20:00 -0400
+        Mon, 27 May 2019 11:19:59 -0400
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x4RFJEKg030074;
+        by mx0b-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x4RFJWWi030128;
         Mon, 27 May 2019 10:19:33 -0500
 Authentication-Results: ppops.net;
         spf=none smtp.mailfrom=ckeepax@opensource.cirrus.com
 Received: from mail4.cirrus.com ([87.246.98.35])
-        by mx0b-001ae601.pphosted.com with ESMTP id 2sq24q28p1-1;
+        by mx0b-001ae601.pphosted.com with ESMTP id 2sq24q28p4-1;
         Mon, 27 May 2019 10:19:33 -0500
 Received: from EDIEX01.ad.cirrus.com (ediex01.ad.cirrus.com [198.61.84.80])
-        by mail4.cirrus.com (Postfix) with ESMTP id 93021611C8AF;
+        by mail4.cirrus.com (Postfix) with ESMTP id A7B56611C8B2;
         Mon, 27 May 2019 10:20:24 -0500 (CDT)
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
@@ -38,7 +39,7 @@ Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.1591.10 via Frontend
  Transport; Mon, 27 May 2019 16:19:32 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 91C632DA;
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id B2B5C2DB;
         Mon, 27 May 2019 16:19:32 +0100 (BST)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <wsa@the-dreams.de>, <mika.westerberg@linux.intel.com>
@@ -47,9 +48,9 @@ CC:     <jarkko.nikula@linux.intel.com>,
         <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <benjamin.tissoires@redhat.com>, <jbroadus@gmail.com>,
         <patches@opensource.cirrus.com>
-Subject: [PATCH v2 3/6] i2c: acpi: Factor out getting the IRQ from ACPI
-Date:   Mon, 27 May 2019 16:19:29 +0100
-Message-ID: <20190527151932.14310-3-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 5/6] i2c: core: Move ACPI gpio IRQ handling into i2c_acpi_get_irq
+Date:   Mon, 27 May 2019 16:19:31 +0100
+Message-ID: <20190527151932.14310-5-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190527151932.14310-1-ckeepax@opensource.cirrus.com>
 References: <20190527151932.14310-1-ckeepax@opensource.cirrus.com>
@@ -57,7 +58,7 @@ MIME-Version: 1.0
 Content-Type: text/plain
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
  suspectscore=2 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=946 adultscore=0
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=872 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
  definitions=main-1905270108
 Sender: linux-acpi-owner@vger.kernel.org
@@ -65,79 +66,50 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In preparation for future refactoring factor out the fetch of the IRQ
-into its own helper function.
+It makes sense to contain all the ACPI IRQ handling in a single helper
+function.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
 
 Changes since v1:
- - Update function to just return the IRQ rather than use a pointer
-   argument.
+ - Use adev directly in i2c_acpi_get_irq
 
 Thanks,
 Charles
 
- drivers/i2c/i2c-core-acpi.c | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ drivers/i2c/i2c-core-acpi.c | 3 +++
+ drivers/i2c/i2c-core-base.c | 3 ---
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 4b0387d040698..f28d702dc6a89 100644
+index 133fa9fa239f7..5d612b99c569b 100644
 --- a/drivers/i2c/i2c-core-acpi.c
 +++ b/drivers/i2c/i2c-core-acpi.c
-@@ -148,14 +148,30 @@ static int i2c_acpi_add_resource(struct acpi_resource *ares, void *data)
- 	return 1; /* No need to add resource to the list */
+@@ -164,6 +164,9 @@ int i2c_acpi_get_irq(struct i2c_client *client)
+ 
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
++	if (irq == -ENOENT)
++		irq = acpi_dev_gpio_irq_get(adev, 0);
++
+ 	return irq;
  }
  
-+static int i2c_acpi_get_irq(struct acpi_device *adev)
-+{
-+	struct list_head resource_list;
-+	int irq = -ENOENT;
-+	int ret;
-+
-+	INIT_LIST_HEAD(&resource_list);
-+
-+	ret = acpi_dev_get_resources(adev, &resource_list,
-+				     i2c_acpi_add_resource, &irq);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	acpi_dev_free_resource_list(&resource_list);
-+
-+	return irq;
-+}
-+
- static int i2c_acpi_get_info(struct acpi_device *adev,
- 			     struct i2c_board_info *info,
- 			     struct i2c_adapter *adapter,
- 			     acpi_handle *adapter_handle)
- {
--	struct list_head resource_list;
- 	struct i2c_acpi_lookup lookup;
--	int irq = -ENOENT;
- 	int ret;
- 
- 	memset(&lookup, 0, sizeof(lookup));
-@@ -186,16 +202,9 @@ static int i2c_acpi_get_info(struct acpi_device *adev,
- 		*adapter_handle = lookup.adapter_handle;
- 
- 	/* Then fill IRQ number if any */
--	INIT_LIST_HEAD(&resource_list);
--	ret = acpi_dev_get_resources(adev, &resource_list,
--				     i2c_acpi_add_resource, &irq);
--	if (ret < 0)
--		return -EINVAL;
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index b6b009bfe842b..684ea2665d994 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -336,9 +336,6 @@ static int i2c_device_probe(struct device *dev)
+ 				irq = of_irq_get(dev->of_node, 0);
+ 		} else if (ACPI_COMPANION(dev)) {
+ 			irq = i2c_acpi_get_irq(client);
 -
--	if (irq >= 0)
--		info->irq = irq;
--
--	acpi_dev_free_resource_list(&resource_list);
-+	ret = i2c_acpi_get_irq(adev);
-+	if (ret >= 0)
-+		info->irq = ret;
- 
- 	acpi_set_modalias(adev, dev_name(&adev->dev), info->type,
- 			  sizeof(info->type));
+-			if (irq == -ENOENT)
+-				irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), 0);
+ 		}
+ 		if (irq == -EPROBE_DEFER)
+ 			return irq;
 -- 
 2.11.0
 
