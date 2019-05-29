@@ -2,85 +2,106 @@ Return-Path: <SRS0=p9Ck=T5=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E20C28CC0
-	for <linux-acpi@archiver.kernel.org>; Wed, 29 May 2019 10:51:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39D76C28CC0
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 May 2019 12:25:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3A8AA20B1F
-	for <linux-acpi@archiver.kernel.org>; Wed, 29 May 2019 10:51:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="EEG1Haat"
+	by mail.kernel.org (Postfix) with ESMTP id 18D8021670
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 May 2019 12:25:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726225AbfE2KvF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 29 May 2019 06:51:05 -0400
-Received: from mail-it1-f194.google.com ([209.85.166.194]:54463 "EHLO
-        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726016AbfE2KvF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2019 06:51:05 -0400
-Received: by mail-it1-f194.google.com with SMTP id h20so2927640itk.4
-        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2019 03:51:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=3LAgcjR7era76837ZVupJ1O8SoQVeLnh8cZfpeylJLY=;
-        b=EEG1HaatyVgH65b4dDbncceMTfLGdSGuXy3aR3ymfnN10mD1HnXAioDuMpjBF390dy
-         BGUI4mcrWKlfljrBm6+oAeE6NOJ/LLWkfpmRKOKwbR1pwNSe99mQJ7hF/Vd2fC2LhQ+c
-         QX8iPPaVGNyw+AtmTQ/xbVzsmCZW7Yrgdt2jXdIHAkax/onBAkcIN00lFOnLQtn/N++I
-         CYDKIqMzCi1ZujkbKqgkWi8ERRlsP4rvL4jxPZ/Lk9vVh4H1+KLSANN30Gsot4GJ1ebB
-         Mjy1nYTClXsu3oYHoh9eCNGACkfHs1grNeKctK0VRNXKKhRCEsT8UmQrHs+f9PKg95vU
-         Z7nQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=3LAgcjR7era76837ZVupJ1O8SoQVeLnh8cZfpeylJLY=;
-        b=KaXlrB3jI4TOxpSzMJMdVU3ASpcu5V7w0hYBMUoE6JhwM6XtnQcgANOACRYsD597ui
-         6NQrZ0WqRMnze8aVkjf1euDmox/smvt25R++HLvTnD/66C75iZaTOuSSbB3Bj379niGx
-         ZbmdhtZ6xyW6CMQJIvUd3MzHA8/ikSGJzN8jKwC3Nbfpob9Tiz6b0zfzPcyUTD38p2kX
-         n3X5z7oWenM0uub6dwibgPWQckwM8hTosNs8D7UC11HEdgx8p2ZZWEuNaDSQUG9KHj7X
-         4rb2YHebTAAh+kkRbK/OwPnKuy565rZQdqdhizDAUUyMmvE1bfGcG9fpgk3R8fd0Kj2U
-         YZrQ==
-X-Gm-Message-State: APjAAAV7kD+E2WyMNfIy8583l3I0x+iYUf+u51+/KW7+FZhgnBn1Qwej
-        m17NPw7/Ft76636FCbSz58PNEyfoyaNafHpZLtC5vQ==
-X-Google-Smtp-Source: APXvYqw7rzjT8QDzUeqqM6KMIsW4kP6oMm7U8AcW9PA716fmjdAA2zox27Ha8YQxOL1CTcIXB4QKLXBnckJa9XyN9Ys=
-X-Received: by 2002:a24:1614:: with SMTP id a20mr501136ita.153.1559127064365;
- Wed, 29 May 2019 03:51:04 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190529101342.30673-1-ard.biesheuvel@linaro.org> <20190529102747.GI2781@lahna.fi.intel.com>
-In-Reply-To: <20190529102747.GI2781@lahna.fi.intel.com>
-From:   Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date:   Wed, 29 May 2019 12:50:51 +0200
-Message-ID: <CAKv+Gu_N2OC6mMcpvmz+gqa2cNaCf+ALe-tc0z+s4kDDi1RK3w@mail.gmail.com>
-Subject: Re: [RFC PATCH] gpio/acpi: set direction for ACPI OpRegion GPIOs
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        id S1726897AbfE2MZf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 29 May 2019 08:25:35 -0400
+Received: from mail.steuer-voss.de ([85.183.69.95]:53044 "EHLO
+        mail.steuer-voss.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725935AbfE2MZf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2019 08:25:35 -0400
+X-Greylist: delayed 413 seconds by postgrey-1.27 at vger.kernel.org; Wed, 29 May 2019 08:25:34 EDT
+X-Virus-Scanned: Debian amavisd-new at mail.steuer-voss.de
+X-Amavis-Alert: BAD HEADER SECTION, Duplicate header field: "References"
+Received: from pc-niv.weinmann.com (localhost [127.0.0.1])
+        by mail.steuer-voss.de (Postfix) with ESMTP id 03DE24BDAE;
+        Wed, 29 May 2019 14:18:39 +0200 (CEST)
+From:   Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Schmauss <erik.schmauss@intel.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
+        Thierry Reding <thierry.reding@gmail.com>
+Cc:     Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>,
+        linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-leds@vger.kernel.org, linux-pwm@vger.kernel.org
+Subject: [PATCH 1/3] ACPI: Resolve objects on host-directed table loads
+Date:   Wed, 29 May 2019 14:18:20 +0200
+Message-Id: <8704391ae3004a6b4dd17975dbcc9e88bd28cf4b.1559127603.git.nikolaus.voss@loewensteinmedical.de>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <cover.1559127603.git.nikolaus.voss@loewensteinmedical.de>
+References: <cover.1559127603.git.nikolaus.voss@loewensteinmedical.de>
+In-Reply-To: <cover.1559127603.git.nikolaus.voss@loewensteinmedical.de>
+References: <cover.1559127603.git.nikolaus.voss@loewensteinmedical.de>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, 29 May 2019 at 12:27, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
->
-> On Wed, May 29, 2019 at 12:13:42PM +0200, Ard Biesheuvel wrote:
-> > The ACPI GPIO OpRegion code never sets the direction for GPIOs that
-> > it configures from scratch, leaving unconfigured GPIOs to be left
-> > at the default direction, which is typically input not output.
->
-> The code does:
->
->   enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio);
->
-> before it requests the GPIO. Isn't that sufficient?
+If an ACPI SSDT overlay is loaded after built-in tables
+have been loaded e.g. via configfs or efivar_ssdt_load()
+it is necessary to rewalk the namespace to resolve
+references. Without this, relative and absolute paths
+like ^PCI0.SBUS or \_SB.PCI0.SBUS are not resolved
+correctly.
 
-Yes, it works if I set the PullXxx value explicitly in the GpioIo() resource.
+Make configfs load use the same method as efivar_ssdt_load().
+
+Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+---
+ drivers/acpi/acpi_configfs.c   |  6 +-----
+ drivers/acpi/acpica/tbxfload.c | 11 +++++++++++
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
+index f92033661239..663f0d88f912 100644
+--- a/drivers/acpi/acpi_configfs.c
++++ b/drivers/acpi/acpi_configfs.c
+@@ -56,11 +56,7 @@ static ssize_t acpi_table_aml_write(struct config_item *cfg,
+ 	if (!table->header)
+ 		return -ENOMEM;
+ 
+-	ACPI_INFO(("Host-directed Dynamic ACPI Table Load:"));
+-	ret = acpi_tb_install_and_load_table(
+-			ACPI_PTR_TO_PHYSADDR(table->header),
+-			ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL, FALSE,
+-			&table->index);
++	ret = acpi_load_table(table->header);
+ 	if (ret) {
+ 		kfree(table->header);
+ 		table->header = NULL;
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 4f30f06a6f78..61f2d46e52ba 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -297,6 +297,17 @@ acpi_status acpi_load_table(struct acpi_table_header *table)
+ 	status = acpi_tb_install_and_load_table(ACPI_PTR_TO_PHYSADDR(table),
+ 						ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL,
+ 						FALSE, &table_index);
++
++	if (!ACPI_FAILURE(status)) {
++		/* Complete the initialization/resolution of package objects */
++
++		status = acpi_ns_walk_namespace(ACPI_TYPE_PACKAGE,
++						ACPI_ROOT_OBJECT,
++						ACPI_UINT32_MAX, 0,
++						acpi_ns_init_one_package,
++						NULL, NULL, NULL);
++	}
++
+ 	return_ACPI_STATUS(status);
+ }
+ 
+-- 
+2.17.1
+
