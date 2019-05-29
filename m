@@ -1,94 +1,66 @@
-Return-Path: <SRS0=amFs=T4=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=p9Ck=T5=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9C56C04AB6
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 May 2019 23:02:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E84C3C04AB3
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 May 2019 07:31:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7D11221019
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 May 2019 23:02:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=babayev.com header.i=@babayev.com header.b="ORAXNYMd"
+	by mail.kernel.org (Postfix) with ESMTP id CBD96208CB
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 May 2019 07:31:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727537AbfE1XCg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 May 2019 19:02:36 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:40845 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727768AbfE1XCf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 May 2019 19:02:35 -0400
-Received: by mail-pg1-f194.google.com with SMTP id d30so100393pgm.7
-        for <linux-acpi@vger.kernel.org>; Tue, 28 May 2019 16:02:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=babayev.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=OsPnb68aqrZ2ZEL+Z6uQ/zgrptCfKlha02TX65CwO3k=;
-        b=ORAXNYMduQ2zCqLfbl+PxYq02uNrg1zkNt12Vxh3KYFmCaONYogJWuwMacCSmBUB3z
-         sUTcCbL2dIhxwLIWC8pm3Q1vlYhtC0pc+er+aNxdVUT0xOw1QAwpPv/mZHHGMeIglJmX
-         abhnqKEuJEkn7LnH0WEWffxTmLD/g8IBJZPio=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=OsPnb68aqrZ2ZEL+Z6uQ/zgrptCfKlha02TX65CwO3k=;
-        b=RqYMzW3yzwWKFZEQLHrf40+7uEKmTFM5HHn6BgCMovA9RXc9DTlPdzi9+l48OfcQat
-         VacFQ1k9CNBOGRsTZcGe7Bli46WOGJD4CX/WPAdaSLWPo+vopEuRvVMfJ4tsyAodWW7e
-         QM9n/+RtTZckkBdIB3zzkPVuXHg2aSDSOd1R8ncFwYED2Hi3bUCbVGj40xcBkD5u0T7B
-         5QWkVGJxQAJFFgjCDjn61oAgYkr38p8JDt7g/oIDRyaWOmxte1pIM945y6ihaJVIzokZ
-         cbiRjWFDU+XEUFxcSX+b880o3feNU7XT4RvQRkddGPEd+wKthICQY8jXWgq9ML/HcWSz
-         3KZg==
-X-Gm-Message-State: APjAAAW6jm05Z8BUu6wWNd1RrFcRy4HZhzzHYXpqOgIHA2RKTc0Us75b
-        F8Qwc4W2Flzo4moArp7fWwywJQ==
-X-Google-Smtp-Source: APXvYqwoC/5IrkvcojJ1aNUdOQY1Rohcd2/rY0qY3WWwFrIz2yGjIqSW0v5fwGvlczNGaeU5LXG1cQ==
-X-Received: by 2002:a63:1e62:: with SMTP id p34mr49696657pgm.49.1559084554448;
-        Tue, 28 May 2019 16:02:34 -0700 (PDT)
-Received: from p50.cisco.com ([128.107.241.183])
-        by smtp.gmail.com with ESMTPSA id p16sm27028196pfq.153.2019.05.28.16.02.32
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 28 May 2019 16:02:33 -0700 (PDT)
-From:   Ruslan Babayev <ruslan@babayev.com>
-To:     mika.westerberg@linux.intel.com, wsa@the-dreams.de,
-        linux@armlinux.org.uk, andrew@lunn.ch, f.fainelli@gmail.com,
-        hkallweit1@gmail.com, davem@davemloft.net
-Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [net-next,v4 0/2] Enable SFP on ACPI based systems
-Date:   Tue, 28 May 2019 16:02:31 -0700
-Message-Id: <20190528230233.26772-1-ruslan@babayev.com>
-X-Mailer: git-send-email 2.19.2
+        id S1725895AbfE2Hbf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 29 May 2019 03:31:35 -0400
+Received: from mga02.intel.com ([134.134.136.20]:16628 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725911AbfE2Hbf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 May 2019 03:31:35 -0400
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 May 2019 00:31:34 -0700
+X-ExtLoop1: 1
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
+  by fmsmga001.fm.intel.com with SMTP; 29 May 2019 00:31:30 -0700
+Received: by lahna (sSMTP sendmail emulation); Wed, 29 May 2019 10:31:29 +0300
+Date:   Wed, 29 May 2019 10:31:29 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        linux-gpio@vger.kernel.org,
+        Masahisa Kojima <masahisa.kojima@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Marc Zyngier <marc.zyngier@arm.com>,
+        Graeme Gregory <graeme.gregory@linaro.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH v4 4/4] gpio: mb86s7x: enable ACPI support
+Message-ID: <20190529073129.GP2781@lahna.fi.intel.com>
+References: <20190528133647.3362-1-ard.biesheuvel@linaro.org>
+ <20190528133647.3362-5-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190528133647.3362-5-ard.biesheuvel@linaro.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Changes:
-v2:
-	- more descriptive commit body
-v3:
-	- made 'i2c_acpi_find_adapter_by_handle' static inline
-v4:
-	- don't initialize i2c_adapter to NULL. Instead see below...
-	- handle the case of neither DT nor ACPI present as invalid.
-	- alphabetical includes.
-	- use has_acpi_companion().
-	- use the same argument name in i2c_acpi_find_adapter_by_handle()
-	  in both stubbed and non-stubbed cases.
+On Tue, May 28, 2019 at 03:36:47PM +0200, Ard Biesheuvel wrote:
+> Make the mb86s7x GPIO block discoverable via ACPI. In addition, add
+> support for ACPI GPIO interrupts routed via platform interrupts, by
+> wiring the two together via the to_irq() gpiochip callback.
+> 
+> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-Ruslan Babayev (2):
-  i2c: acpi: export i2c_acpi_find_adapter_by_handle
-  net: phy: sfp: enable i2c-bus detection on ACPI based systems
+Hmm, I thought I reviewed this already? Well anyway,
 
- drivers/i2c/i2c-core-acpi.c |  3 ++-
- drivers/net/phy/sfp.c       | 35 +++++++++++++++++++++++++++--------
- include/linux/i2c.h         |  6 ++++++
- 3 files changed, 35 insertions(+), 9 deletions(-)
-
--- 
-2.19.2
-
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
