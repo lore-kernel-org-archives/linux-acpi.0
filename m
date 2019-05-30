@@ -2,100 +2,61 @@ Return-Path: <SRS0=wSSz=UC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=FREEMAIL_REPLYTO_END_DIGIT,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9545C28CC5
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Jun 2019 02:49:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF638C04AB6
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Jun 2019 05:40:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A8A9827AFA
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Jun 2019 02:49:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 999B7246FF
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Jun 2019 05:40:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726349AbfFCCtM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jun 2019 22:49:12 -0400
-Received: from smtp2.provo.novell.com ([137.65.250.81]:47830 "EHLO
-        smtp2.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726270AbfFCCtL (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-        Sun, 2 Jun 2019 22:49:11 -0400
-Received: from linux-8mug (prva10-snat226-2.provo.novell.com [137.65.226.36])
-        by smtp2.provo.novell.com with ESMTP (TLS encrypted); Sun, 02 Jun 2019 20:49:02 -0600
-Date:   Mon, 3 Jun 2019 10:48:50 +0800
-From:   Chester Lin <clin@suse.com>
-To:     Greg KH <gregkh@linuxfoundation.org>
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, jlee@suse.com, mhocko@suse.com,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/3] ACPI / device_sysfs: Add eject show attr to monitor
- eject status
-Message-ID: <20190603024850.GA664@linux-8mug>
-References: <20190531065642.13254-1-clin@suse.com>
- <20190531065642.13254-4-clin@suse.com>
- <20190531133859.GA18231@kroah.com>
+        id S1726573AbfFCFkO convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 3 Jun 2019 01:40:14 -0400
+Received: from mail.palitramed.ru ([84.53.237.5]:50452 "EHLO
+        mail.palitramed.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726520AbfFCFkO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jun 2019 01:40:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by mail.palitramed.ru (Postfix) with ESMTP id 4C365208BBEC
+        for <linux-acpi@vger.kernel.org>; Mon,  3 Jun 2019 08:40:06 +0300 (MSK)
+Received: from mail.palitramed.ru ([127.0.0.1])
+        by localhost (mail.palitramed.ru [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id rAA3dU9ycdf2 for <linux-acpi@vger.kernel.org>;
+        Mon,  3 Jun 2019 08:40:05 +0300 (MSK)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.palitramed.ru (Postfix) with ESMTP id BA39B20A0FB2
+        for <linux-acpi@vger.kernel.org>; Fri, 31 May 2019 01:45:11 +0300 (MSK)
+X-Virus-Scanned: amavisd-new at palitramed.ru
+Received: from mail.palitramed.ru ([127.0.0.1])
+        by localhost (mail.palitramed.ru [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id 44T7dtgMT-cr for <linux-acpi@vger.kernel.org>;
+        Fri, 31 May 2019 01:45:11 +0300 (MSK)
+Received: from [185.234.218.135] (unknown [185.234.218.135])
+        by mail.palitramed.ru (Postfix) with ESMTPA id E60CB2084A8D
+        for <linux-acpi@vger.kernel.org>; Fri, 31 May 2019 00:23:51 +0300 (MSK)
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190531133859.GA18231@kroah.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: In A Nutshell
+To:     linux-acpi@vger.kernel.org
+From:   "Emissary" <info@hikari-international.com>
+Date:   Thu, 30 May 2019 14:23:51 -0700
+Reply-To: "Emissary" <dannuar4@gmail.com>
+Message-Id: <20190530212352.E60CB2084A8D@mail.palitramed.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, May 31, 2019 at 06:38:59AM -0700, Greg KH wrote:
-> On Fri, May 31, 2019 at 02:56:42PM +0800, Chester Lin wrote:
-> > An acpi_eject_show attribute for users to monitor current status because
-> > sometimes it might take time to finish an ejection so we need to know
-> > whether it is still in progress or not.
-> > 
-> > Signed-off-by: Chester Lin <clin@suse.com>
-> > ---
-> >  drivers/acpi/device_sysfs.c | 20 +++++++++++++++++++-
-> >  drivers/acpi/internal.h     |  1 +
-> >  drivers/acpi/scan.c         | 27 +++++++++++++++++++++++++++
-> >  3 files changed, 47 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-> > index 78c2653bf020..70b22eec6bbc 100644
-> > --- a/drivers/acpi/device_sysfs.c
-> > +++ b/drivers/acpi/device_sysfs.c
-> > @@ -403,7 +403,25 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
-> >  	return status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
-> >  }
-> >  
-> > -static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
-> > +static ssize_t acpi_eject_show(struct device *d,
-> > +				struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct acpi_device *acpi_device = to_acpi_device(d);
-> > +	acpi_object_type not_used;
-> > +	acpi_status status;
-> > +
-> > +	if ((!acpi_device->handler || !acpi_device->handler->hotplug.enabled)
-> > +	    && !acpi_device->driver)
-> > +		return -ENODEV;
-> > +
-> > +	status = acpi_get_type(acpi_device->handle, &not_used);
-> > +	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
-> > +		return -ENODEV;
-> > +
-> > +	return sprintf(buf, "%s\n", acpi_eject_status_string(acpi_device));
-> > +}
-> > +
-> > +static DEVICE_ATTR(eject, 0644, acpi_eject_show, acpi_eject_store);
-> 
-> DEVICE_ATTR_RW()?
-> 
-> And you need to document the new sysfs file in Documentation/ABI/
-> 
-> thanks,
-> 
-> greg k-h
-> 
+Hello, 
 
-Hi Greg,
+We have a private business proposition for you,contact me for more details. 
 
-Thank you for the reminder and I will fix these two in v2.
+Thank you,     
 
-Regards,
-Chester
+Datuk.
+5.30.19/135p/28wwe.5
