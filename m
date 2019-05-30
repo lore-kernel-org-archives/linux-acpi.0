@@ -2,298 +2,314 @@ Return-Path: <SRS0=wrBS=T6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,T_DKIMWL_WL_HIGH autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57A5BC28CC0
-	for <linux-acpi@archiver.kernel.org>; Thu, 30 May 2019 01:07:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6DEAC28CC0
+	for <linux-acpi@archiver.kernel.org>; Thu, 30 May 2019 11:16:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E7E2C243DA
-	for <linux-acpi@archiver.kernel.org>; Thu, 30 May 2019 01:07:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE06725816
+	for <linux-acpi@archiver.kernel.org>; Thu, 30 May 2019 11:16:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="hMx3aGy5"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="rt3jAT9E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726973AbfE3BHM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 29 May 2019 21:07:12 -0400
-Received: from mx0a-00154904.pphosted.com ([148.163.133.20]:47636 "EHLO
-        mx0a-00154904.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726884AbfE3BHM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 May 2019 21:07:12 -0400
-X-Greylist: delayed 21396 seconds by postgrey-1.27 at vger.kernel.org; Wed, 29 May 2019 21:07:12 EDT
-Received: from pps.filterd (m0170392.ppops.net [127.0.0.1])
-        by mx0a-00154904.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x4TJAFc5004806
-        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2019 15:10:35 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=from : to : cc :
- subject : date : message-id : references : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=smtpout1;
- bh=qVmkS7iq5LvUsgvqZyT30GT4rWjXJkd+2oTu15AyTJA=;
- b=hMx3aGy5ivI47shMQXceKaxxLe+F2Tmwn+cvQNDzdpX8t6TuBm9WeS0+ohdxnhG8v0Vq
- oQbP0q44+ZSTWlv25HYRV1rbZagLtN2JFmhNBk/2Ckt/l9KRZwYRxY/PEWGRcres+IoC
- XNWlUNBWB6foLVHLp7FJy6n9j12DKtfmaOs9AzrtfxUnXjEEEtzIdjP2DFJ2QPlqyyPn
- Pyd3+FII7HqohHzHHhUW42zrGmmLvAYPjBD3Xf85o3JfhUxxc24RtCg3bVsc3rX1W9bt
- Ic+OleOOjC7RoUHUeUajuu0Jc6k8S7M+6mbiTXmdbI8GAMOa9wRE6rpJ7n9kp96DuWh7 gA== 
-Received: from mx0a-00154901.pphosted.com (mx0a-00154901.pphosted.com [67.231.149.39])
-        by mx0a-00154904.pphosted.com with ESMTP id 2sspwpjksj-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2019 15:10:35 -0400
-Received: from pps.filterd (m0133268.ppops.net [127.0.0.1])
-        by mx0a-00154901.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x4TJ8LeF120417
-        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2019 15:10:34 -0400
-Received: from ausxippc110.us.dell.com (AUSXIPPC110.us.dell.com [143.166.85.200])
-        by mx0a-00154901.pphosted.com with ESMTP id 2spyxvgk5e-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2019 15:10:34 -0400
-X-LoopCount0: from 10.166.132.130
-X-PREM-Routing: D-Outbound
-X-IronPort-AV: E=Sophos;i="5.60,349,1549951200"; 
-   d="scan'208";a="802413538"
-From:   <Mario.Limonciello@dell.com>
-To:     <shaunak.saha@intel.com>, <linux-acpi@vger.kernel.org>
-CC:     <rafael.j.wysocki@intel.com>
-Subject: RE: drivers/acpi: Change the lpit function call flow
-Thread-Topic: drivers/acpi: Change the lpit function call flow
-Thread-Index: AQHVFAKKjgBVcnZ72kWZF+/9z/EG9qaCe3Hg
-Date:   Wed, 29 May 2019 19:10:32 +0000
-Message-ID: <e194fa374cb64106b7a34fff616734c2@AUSX13MPC105.AMER.DELL.COM>
-References: <20190526202750.4614-1-shaunak.saha@intel.com>
-In-Reply-To: <20190526202750.4614-1-shaunak.saha@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.143.242.75]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S1726599AbfE3LQ5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 30 May 2019 07:16:57 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:42855 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725440AbfE3LQ5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2019 07:16:57 -0400
+Received: by mail-wr1-f66.google.com with SMTP id l2so3933694wrb.9
+        for <linux-acpi@vger.kernel.org>; Thu, 30 May 2019 04:16:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=xPPg1SCyHb64Fhr55IHPd5M7ZeQxhQTiEBH6THyaghI=;
+        b=rt3jAT9E+aS/pLbJBR6jccB06bJReZktWxsJpQQSpOAhpSMjOij7f9cPtX7U5PdSS4
+         Fs01nRwRVtHURRERGSIGy03+G0bE0HfKZ8mxG1BexzByLA1yAvm1voDXMS6c8+H5aZaT
+         jsgtrPfQ/dn3YLVyX3rGrnyuYo/t2gYuiGN7Jm+4g/HAoQUV2z7BE3d/siRYIXFmfWOS
+         d0itsFkNI97ncjX+Se94RSszYsUoAW5ouB7dde9MM+K6NY896VOMoOdR1ZsOVv5v5p0q
+         NmpT2Ot+x4Ows/7KhjP9N382udG4R5CWWkDbZXJIKfAfrjm8JZonkubSRdsEDzYMWpsv
+         1Bmg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=xPPg1SCyHb64Fhr55IHPd5M7ZeQxhQTiEBH6THyaghI=;
+        b=fbA5HzXCgtYJ8yeRdJihqM+AtTj71TDv6BdQY4fI3qpW7NAkgHtX1rY+/NLQI2Atqt
+         vnp5Zuzk+rJZ+Z2A9PHYRGmnbdZ9cdewtWh2gt9ArGs+f9C656TKAy/ltmRNmjfUNjvC
+         y2UqXaLIGqQ41Xs0M9fMXgl460p3/lb/JMfGfooH7Nmd99GkBBfBTOJQqcCvqJ5QyTF6
+         jIC/Tprj3PYrOM0FrtJTPEBCvyiNUSgUtI7f1EOFOcolw+xCQOg0VJClZQRWW54aBBjT
+         sCf8jrbO2q8FVPj2tIdEBBhuTCcBEESUud8Joln3fF4pJQBGh1p7Q/nf1frF0j9bRK0l
+         8oQA==
+X-Gm-Message-State: APjAAAVMyzk2RGsim67AXIOKCt4Yvpgr6JO96F6Z+KDMSjomcaS1Pu2g
+        KmZ7gXPghCbrMbgl1ivcj+aLLw==
+X-Google-Smtp-Source: APXvYqzQ5FrwLvBN/xB7X3um4IF6sE3DRNG/dXSXbLiz80G0B6joe2WRcKvDCpGfhQ/R+0mfQGDsHA==
+X-Received: by 2002:adf:c606:: with SMTP id n6mr2215648wrg.62.1559215014685;
+        Thu, 30 May 2019 04:16:54 -0700 (PDT)
+Received: from sudo.home ([2a01:cb1d:112:6f00:c225:e9ff:fe2e:ea8])
+        by smtp.gmail.com with ESMTPSA id z20sm2686421wmf.14.2019.05.30.04.16.53
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 30 May 2019 04:16:53 -0700 (PDT)
+From:   Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To:     linux-arm-kernel@lists.infradead.org
+Cc:     Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-spi@vger.kernel.org, broonie@kernel.org,
+        andy.shevchenko@gmail.com, masahisa.kojima@linaro.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Jarkko Nikula <jarkko.nikula@linux.intel.com>,
+        linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
+Subject: [PATCH v2] spi/acpi: enumerate all SPI slaves in the namespace
+Date:   Thu, 30 May 2019 13:16:34 +0200
+Message-Id: <20190530111634.32209-1-ard.biesheuvel@linaro.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-05-29_10:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1011 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=978 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1810050000 definitions=main-1905290124
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
- definitions=main-1905290124
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Currently, the ACPI enumeration that takes place when registering a
+SPI master only considers immediate child devices in the ACPI namespace,
+rather than checking the ResourceSource field in the SpiSerialBus()
+resource descriptor.
 
+This is incorrect: SPI slaves could reside anywhere in the ACPI
+namespace, and so we should enumerate the entire namespace and look for
+any device that refers to the newly registered SPI master in its
+resource descriptor.
 
-> -----Original Message-----
-> From: Shaunak Saha <shaunak.saha@intel.com>
-> Sent: Sunday, May 26, 2019 3:28 PM
-> To: linux-acpi@vger.kernel.org
-> Cc: rafael.j.wysocki@intel.com; Limonciello, Mario; Shaunak Saha
-> Subject: drivers/acpi: Change the lpit function call flow
->=20
->=20
-> [EXTERNAL EMAIL]
->=20
-> In the present implementation sleep function was getting called in
-> acpi_s2idle_prepare and as all the devices may not have suspended
-> at that stage e.g. if we are telling ec about the S0ix then calling early
-> can cause ec reply wrongly interpreted as spurious wake events.
-> Here we call it at much later stage in acpi_s2idle_sync. As per the
-> specification the entry _DSM function may be invoked when the OS state ha=
-s
-> reached sufficient criteria for processor idle state entry matching
-> Entry Trigger defined in LPIT to be interpreted as a request for the
-> platform to enter a Low Power S0 Idle (LPI) state. Here we are checking i=
-f
-> the we reached the minimum D-State defined in the constraint function of
-> the LPIT _DSM method before calling the sleep entry function. Also not
-> checking for constraint in acpi_s2idle_wake anymore and also changed the
-> acpi info loglevel to debug in lpi_check_constraint.
->=20
-> Signed-off-by: Shaunak Saha <shaunak.saha@intel.com>
+So refactor the existing code and use a lookup structure so that
+allocating the SPI device structure is deferred until we have identified
+the device as an actual child of the controller. This approach is
+loosely based on the way the I2C subsystem handles ACPI enumeration.
 
-I did test this patch on an XPS 9380 and can confirm that it prevents the d=
-evice from
-going in/out of S2I twice in a row.
+Note that Apple x86 hardware does not rely on SpiSerialBus() resources
+in _CRS but uses nested devices below the controller's device node in
+the ACPI namespace, with a special set of device properties. This means
+we have to take care to only parse those properties for device nodes
+that are direct children of the controller node.
 
-I was not able to test the config option related to constraints blocking en=
-try because
-an I2C device was preventing this on this system.
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-spi@vger.kernel.org
+Cc: broonie@kernel.org
+Cc: andy.shevchenko@gmail.com
+Cc: masahisa.kojima@linaro.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: Lukas Wunner <lukas@wunner.de>
 
-Tested-by: Mario Limonciello <mario.limonciello@dell.com>
-> ---
->  drivers/acpi/Kconfig | 13 +++++++++
->  drivers/acpi/sleep.c | 76 +++++++++++++++++++++++++++++++++++++++++++---=
------
-> -
->  2 files changed, 77 insertions(+), 12 deletions(-)
->=20
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 283ee94..57a9b2e 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -93,6 +93,19 @@ config ACPI_LPIT
->  	depends on X86_64
->  	default y
->=20
-> +config LPIT_CONSTRAINTS_CHECK_FAILURE
-> +	bool
-> +	depends on X86_64
-> +	default n
-> +	help
-> +	  For platforms defining the device constraints _DSM function in the
-> +	  Low Power Idle table this option allows the platform to choose
-> +	  if they wants to fail or succeed in calling the Low Power Entry
-> +	  Notification _DSM function. If this config is defined by a
-> +	  platform then the Low Power S0 Entry Notification _DSM function
-> +	  is not called if the idle state has not achieved the Entry Trigger
-> +	  defined in LPIT.
-> +
->  config ACPI_SLEEP
->  	bool
->  	depends on SUSPEND || HIBERNATION
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index e52f123..9f2359c 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -860,11 +860,25 @@ static void lpi_device_get_constraints(void)
->=20
->  free_acpi_buffer:
->  	ACPI_FREE(out_obj);
-> +	/*
-> +	 * lpi_constraints_table_size only increments if we have proper package
-> +	 * definitions for the constraints, its done after parsing all the
-> +	 * fields for constraints. Memory is allocated for lpi_constraints_tabl=
-e
-> +	 * through kcalloc much before we start parsing the packages we need to
-> +	 * free the memory here in case of any failures.
-> +	 */
-> +	if (!lpi_constraints_table_size && lpi_constraints_table)
-> +		kfree(lpi_constraints_table);
->  }
->=20
-> -static void lpi_check_constraints(void)
-> +static int lpi_check_constraints(void)
->  {
->  	int i;
-> +	int lpi_error =3D 0;
-> +
-> +	/* We do not have any table so return from here */
-> +	if (!lpi_constraints_table_size)
-> +		return lpi_error;
->=20
->  	for (i =3D 0; i < lpi_constraints_table_size; ++i) {
->  		acpi_handle handle =3D lpi_constraints_table[i].handle;
-> @@ -879,17 +893,21 @@ static void lpi_check_constraints(void)
->  			acpi_power_state_string(adev->power.state));
->=20
->  		if (!adev->flags.power_manageable) {
-> -			acpi_handle_info(handle, "LPI: Device not power
-> manageable\n");
-> +			acpi_handle_debug(handle, "LPI: Device not power
-> manageable\n");
->  			lpi_constraints_table[i].handle =3D NULL;
->  			continue;
->  		}
->=20
-> -		if (adev->power.state < lpi_constraints_table[i].min_dstate)
-> -			acpi_handle_info(handle,
-> +		if (adev->power.state < lpi_constraints_table[i].min_dstate) {
-> +			acpi_handle_debug(handle,
->  				"LPI: Constraint not met; min power state:%s
-> current power state:%s\n",
->=20
-> 	acpi_power_state_string(lpi_constraints_table[i].min_dstate),
->  				acpi_power_state_string(adev->power.state));
-> +			/* Error is set here if any of the constraints fail */
-> +			lpi_error =3D 1;
-> +		}
->  	}
-> +	return lpi_error;
->  }
->=20
->  static void acpi_sleep_run_lps0_dsm(unsigned int func)
-> @@ -967,12 +985,8 @@ static int acpi_s2idle_begin(void)
->=20
->  static int acpi_s2idle_prepare(void)
->  {
-> -	if (lps0_device_handle) {
-> -		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
-> -		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
-> -
-> +	if (lps0_device_handle)
->  		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
-> -	}
->=20
->  	if (acpi_sci_irq_valid())
->  		enable_irq_wake(acpi_sci_irq);
-> @@ -990,9 +1004,6 @@ static void acpi_s2idle_wake(void)
->  	if (!lps0_device_handle)
->  		return;
->=20
-> -	if (pm_debug_messages_on)
-> -		lpi_check_constraints();
-> -
->  	/*
->  	 * If IRQD_WAKEUP_ARMED is not set for the SCI at this point, it means
->  	 * that the SCI has triggered while suspended, so cancel the wakeup in
-> @@ -1013,6 +1024,7 @@ static void acpi_s2idle_wake(void)
->=20
->  static void acpi_s2idle_sync(void)
->  {
-> +	int lpi_check;
->  	/*
->  	 * Process all pending events in case there are any wakeup ones.
->  	 *
-> @@ -1023,6 +1035,46 @@ static void acpi_s2idle_sync(void)
->  	acpi_ec_flush_work();
->  	acpi_os_wait_events_complete();	/* synchronize Notify handling */
->  	s2idle_wakeup =3D false;
-> +
-> +	if (!lps0_device_handle)
-> +		return;
-> +
-> +	acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
-> +
-> +	/*
-> +	 * Check here if device constraints(Function 1) is defined.
-> +	 * If only the sleep functions are defined in lpit we run that here.
-> +	 */
-> +	if (!lpi_constraints_table_size)
-> +		goto lps0_entry;
-> +
-> +	lpi_check =3D lpi_check_constraints();
-> +
-> +	/*
-> +	 * _DSM function may be invoked when the OS state
-> +	 * has reached sufficient criteria for processor idle
-> +	 * state.
-> +	 */
-> +	if (lpi_check) {
-> +		/*
-> +		 * We check the config LPIT_CONSTRAINTS_FAILURE
-> +		 * here for the devices which defines the constraints
-> +		 * properly and LPIT_CONSTRAINTS_FAILURE config in kernel.
-> +		 * We fail here if constraints are not met. But we still run
-> +		 * the sleep function for the devices which do not define
-> +		 * the LPIT_CONSTRAINTS_FAILURE kernel config.
-> +		 */
-> +		if (!IS_ENABLED(CONFIG_LPIT_CONSTRAINTS_CHECK_FAILURE))
-> +			goto lps0_entry;
-> +
-> +		return;
-> +	}
-> +
-> +lps0_entry:
-> +	/*
-> +	 * If only the sleep functions are defined in lpit we run that here.
-> +	 */
-> +	acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
->  }
->=20
->  static void acpi_s2idle_restore(void)
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ drivers/spi/spi.c | 103 ++++++++++++++------
+ 1 file changed, 72 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 5e75944ad5d1..4661b219a7e7 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -1799,9 +1799,18 @@ static void of_register_spi_devices(struct spi_controller *ctlr) { }
+ #endif
+ 
+ #ifdef CONFIG_ACPI
+-static void acpi_spi_parse_apple_properties(struct spi_device *spi)
++struct acpi_spi_lookup {
++	struct spi_controller 	*ctlr;
++	u32			max_speed_hz;
++	u32			mode;
++	int			irq;
++	u8			bits_per_word;
++	u8			chip_select;
++};
++
++static void acpi_spi_parse_apple_properties(struct acpi_device *dev,
++					    struct acpi_spi_lookup *lookup)
+ {
+-	struct acpi_device *dev = ACPI_COMPANION(&spi->dev);
+ 	const union acpi_object *obj;
+ 
+ 	if (!x86_apple_machine)
+@@ -1809,35 +1818,46 @@ static void acpi_spi_parse_apple_properties(struct spi_device *spi)
+ 
+ 	if (!acpi_dev_get_property(dev, "spiSclkPeriod", ACPI_TYPE_BUFFER, &obj)
+ 	    && obj->buffer.length >= 4)
+-		spi->max_speed_hz  = NSEC_PER_SEC / *(u32 *)obj->buffer.pointer;
++		lookup->max_speed_hz  = NSEC_PER_SEC / *(u32 *)obj->buffer.pointer;
+ 
+ 	if (!acpi_dev_get_property(dev, "spiWordSize", ACPI_TYPE_BUFFER, &obj)
+ 	    && obj->buffer.length == 8)
+-		spi->bits_per_word = *(u64 *)obj->buffer.pointer;
++		lookup->bits_per_word = *(u64 *)obj->buffer.pointer;
+ 
+ 	if (!acpi_dev_get_property(dev, "spiBitOrder", ACPI_TYPE_BUFFER, &obj)
+ 	    && obj->buffer.length == 8 && !*(u64 *)obj->buffer.pointer)
+-		spi->mode |= SPI_LSB_FIRST;
++		lookup->mode |= SPI_LSB_FIRST;
+ 
+ 	if (!acpi_dev_get_property(dev, "spiSPO", ACPI_TYPE_BUFFER, &obj)
+ 	    && obj->buffer.length == 8 &&  *(u64 *)obj->buffer.pointer)
+-		spi->mode |= SPI_CPOL;
++		lookup->mode |= SPI_CPOL;
+ 
+ 	if (!acpi_dev_get_property(dev, "spiSPH", ACPI_TYPE_BUFFER, &obj)
+ 	    && obj->buffer.length == 8 &&  *(u64 *)obj->buffer.pointer)
+-		spi->mode |= SPI_CPHA;
++		lookup->mode |= SPI_CPHA;
+ }
+ 
+ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+ {
+-	struct spi_device *spi = data;
+-	struct spi_controller *ctlr = spi->controller;
++	struct acpi_spi_lookup *lookup = data;
++	struct spi_controller *ctlr = lookup->ctlr;
+ 
+ 	if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+ 		struct acpi_resource_spi_serialbus *sb;
++		acpi_handle parent_handle;
++		acpi_status status;
+ 
+ 		sb = &ares->data.spi_serial_bus;
+ 		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
++
++			status = acpi_get_handle(NULL,
++						 sb->resource_source.string_ptr,
++						 &parent_handle);
++
++			if (!status ||
++			    ACPI_HANDLE(ctlr->dev.parent) != parent_handle)
++				return -ENODEV;
++
+ 			/*
+ 			 * ACPI DeviceSelection numbering is handled by the
+ 			 * host controller driver in Windows and can vary
+@@ -1850,25 +1870,25 @@ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+ 						sb->device_selection);
+ 				if (cs < 0)
+ 					return cs;
+-				spi->chip_select = cs;
++				lookup->chip_select = cs;
+ 			} else {
+-				spi->chip_select = sb->device_selection;
++				lookup->chip_select = sb->device_selection;
+ 			}
+ 
+-			spi->max_speed_hz = sb->connection_speed;
++			lookup->max_speed_hz = sb->connection_speed;
+ 
+ 			if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
+-				spi->mode |= SPI_CPHA;
++				lookup->mode |= SPI_CPHA;
+ 			if (sb->clock_polarity == ACPI_SPI_START_HIGH)
+-				spi->mode |= SPI_CPOL;
++				lookup->mode |= SPI_CPOL;
+ 			if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
+-				spi->mode |= SPI_CS_HIGH;
++				lookup->mode |= SPI_CS_HIGH;
+ 		}
+-	} else if (spi->irq < 0) {
++	} else if (lookup->irq < 0) {
+ 		struct resource r;
+ 
+ 		if (acpi_dev_resource_interrupt(ares, 0, &r))
+-			spi->irq = r.start;
++			lookup->irq = r.start;
+ 	}
+ 
+ 	/* Always tell the ACPI core to skip this resource */
+@@ -1878,7 +1898,9 @@ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+ static acpi_status acpi_register_spi_device(struct spi_controller *ctlr,
+ 					    struct acpi_device *adev)
+ {
++	acpi_handle parent_handle = NULL;
+ 	struct list_head resource_list;
++	struct acpi_spi_lookup lookup;
+ 	struct spi_device *spi;
+ 	int ret;
+ 
+@@ -1886,28 +1908,44 @@ static acpi_status acpi_register_spi_device(struct spi_controller *ctlr,
+ 	    acpi_device_enumerated(adev))
+ 		return AE_OK;
+ 
+-	spi = spi_alloc_device(ctlr);
+-	if (!spi) {
+-		dev_err(&ctlr->dev, "failed to allocate SPI device for %s\n",
+-			dev_name(&adev->dev));
+-		return AE_NO_MEMORY;
+-	}
+-
+-	ACPI_COMPANION_SET(&spi->dev, adev);
+-	spi->irq = -1;
++	lookup.ctlr		= ctlr;
++	lookup.mode		= 0;
++	lookup.bits_per_word	= 0;
++	lookup.irq		= -1;
+ 
+ 	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_resources(adev, &resource_list,
+-				     acpi_spi_add_resource, spi);
++				     acpi_spi_add_resource, &lookup);
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
+-	acpi_spi_parse_apple_properties(spi);
++	if (ret < 0)
++		/* found SPI in _CRS but it points to another controller */
++		return AE_OK;
+ 
+-	if (ret < 0 || !spi->max_speed_hz) {
+-		spi_dev_put(spi);
++	if (!lookup.max_speed_hz &&
++	    !ACPI_FAILURE(acpi_get_parent(adev->handle, &parent_handle)) &&
++	    ACPI_HANDLE(ctlr->dev.parent) == parent_handle) {
++		/* Apple does not use _CRS but nested devices for SPI slaves */
++		acpi_spi_parse_apple_properties(adev, &lookup);
++	}
++
++	if (!lookup.max_speed_hz)
+ 		return AE_OK;
++
++	spi = spi_alloc_device(ctlr);
++	if (!spi) {
++		dev_err(&ctlr->dev, "failed to allocate SPI device for %s\n",
++			dev_name(&adev->dev));
++		return AE_NO_MEMORY;
+ 	}
+ 
++	ACPI_COMPANION_SET(&spi->dev, adev);
++	spi->max_speed_hz	= lookup.max_speed_hz;
++	spi->mode		= lookup.mode;
++	spi->irq		= lookup.irq;
++	spi->bits_per_word	= lookup.bits_per_word;
++	spi->chip_select	= lookup.chip_select;
++
+ 	acpi_set_modalias(adev, acpi_device_hid(adev), spi->modalias,
+ 			  sizeof(spi->modalias));
+ 
+@@ -1939,6 +1977,8 @@ static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
+ 	return acpi_register_spi_device(ctlr, adev);
+ }
+ 
++#define SPI_ACPI_ENUMERATE_MAX_DEPTH		32
++
+ static void acpi_register_spi_devices(struct spi_controller *ctlr)
+ {
+ 	acpi_status status;
+@@ -1948,7 +1988,8 @@ static void acpi_register_spi_devices(struct spi_controller *ctlr)
+ 	if (!handle)
+ 		return;
+ 
+-	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
++	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
++				     SPI_ACPI_ENUMERATE_MAX_DEPTH,
+ 				     acpi_spi_add_device, NULL, ctlr, NULL);
+ 	if (ACPI_FAILURE(status))
+ 		dev_warn(&ctlr->dev, "failed to enumerate SPI slaves\n");
+-- 
+2.20.1
 
