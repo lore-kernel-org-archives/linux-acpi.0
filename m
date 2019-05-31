@@ -2,138 +2,69 @@ Return-Path: <SRS0=pcJV=T7=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	T_DKIMWL_WL_HIGH autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62DE1C04AB6
-	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 14:17:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67579C28CC3
+	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 17:50:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 422F726A53
-	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 14:17:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DD6D26D69
+	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 17:50:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1559325021;
+	bh=1uNn4UV8s8gJqIbrHZ2bjVDwyLQo8Ul7KEirUnLw2H8=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=SI1CZDsOZGaZv07+qNQlqHLTa5Rr8R0umNjHM7QqvkMmk+UcJ3PMX8ZnTb3CWmZLy
+	 AHwh5pMjEjl0gYSUHEX+7/jEAGRmLsdoPsJSIzRHBN208J3ZEFVxPJ7fU8GDMnAune
+	 2LZCSdUIAefElLI5Z+UuguGGNzQOijtP53nRAXpQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726616AbfEaOPw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 31 May 2019 10:15:52 -0400
-Received: from mga05.intel.com ([192.55.52.43]:8345 "EHLO mga05.intel.com"
+        id S1726550AbfEaRuP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 31 May 2019 13:50:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726576AbfEaOPw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 May 2019 10:15:52 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 31 May 2019 07:15:50 -0700
-X-ExtLoop1: 1
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 31 May 2019 07:15:48 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH v5 00/16] Software fwnode references
-Date:   Fri, 31 May 2019 17:15:31 +0300
-Message-Id: <20190531141547.22728-1-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1726559AbfEaRuP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 May 2019 13:50:15 -0400
+Subject: Re: [GIT PULL] Power management fixes for v5.2-rc3
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1559325014;
+        bh=1uNn4UV8s8gJqIbrHZ2bjVDwyLQo8Ul7KEirUnLw2H8=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=YYyPrUzpoXk1ovcrAaM0FczXF8G1paH2rGUNujfLMPHNXK7evfI9u/8VCK0OOrTbC
+         rKczvo3WAWU8eH9U7m2eQXxHd/j7Lz5TYBM2b38pQ5Y5Pag+seeetOar5RkbBKm2yz
+         +iLwYk9J+8ZRBzfwQsyCvYxvjZAODUFdZ4ecyQKY=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0j_uQxWZRjJ_=S1b=NRpLfyf_0KHfyPwSj30SRWr9RzHg@mail.gmail.com>
+References: <CAJZ5v0j_uQxWZRjJ_=S1b=NRpLfyf_0KHfyPwSj30SRWr9RzHg@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0j_uQxWZRjJ_=S1b=NRpLfyf_0KHfyPwSj30SRWr9RzHg@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.2-rc3
+X-PR-Tracked-Commit-Id: d491f2b75237ef37d8867830ab7fad8d9659e853
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 702c31e8564c386dd5e304e46cf22fcaa40b1a66
+Message-Id: <155932501464.32255.6800544085473144174.pr-tracker-bot@kernel.org>
+Date:   Fri, 31 May 2019 17:50:14 +0000
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+The pull request you sent on Fri, 31 May 2019 11:21:57 +0200:
 
-This is the fourth, and hopefully the final version, of my proposal to
-make it possible to use fwnode_property_get_reference_args() also with
-software nodes. The two issues reported by Hans in v4 are now fixed,
-which were a typo in a comment, and the fwnode->secondary->secondary
-of max17074 needs to have value ERR_PTR(-ENODEV).
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.2-rc3
 
-v4 cover letter:
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/702c31e8564c386dd5e304e46cf22fcaa40b1a66
 
-I'm not splitting this series in two after all. After thinking about
-this for some time, I decided to add support for static software
-nodes. I did not want to support them because I don't want to make it
-easy to maintain board files, but in end they make the use of the
-software nodes so much more easier compared to if we always had to
-dynamically allocate them that it's a no-brainer. The references can
-now be also described statically. Actually, those can now only be
-described statically.
-
-Hans! I applied (hopefully) all of the fixes you proposed in v3. I
-hope you have time to test these.
-
-v3 cover letter:
-
-This is the third version of my proposal to add reference handling to
-the software node code. In this version I renamed ACPI_NAME_SIZE to
-ACPI_NAMESEG_SIZE in 6/13, and slit patch 9/13 in two separate patches
-(9/13 and 10/13) as suggested by Andy. Patch 9/13 will now only move
-the registration of max17047 out of probe, and 10/13 will introduce
-the software nodes.
-
-v2 cover letter:
-
-This is the second version of this series. In this version I'm
-introducing a new helper device_find_child_by_name() as proposed
-by Andy. Andy requested also another helper that could be used for
-chaining the fwnodes, but I decided not to add that now. I would like
-to still think about how we should handle exceptions like if there
-already is a secondary node assigned for a node.
-
-v1 cover letter:
-
-This series adds support for software fwnode reference handling. In
-practice it means making fwnode_property_get_reference_args() function
-usable in the drivers also with software nodes. I send the series
-originally as RFC [1].
-
-As the first user for the software node references, I'm converting
-intel_cht_int33fe.c to use them as part of the series.
-
-[1] https://lkml.org/lkml/2019/3/15/457
-
-thanks,
-
-Heikki Krogerus (16):
-  software node: Allow node creation without properties
-  software node: Simplify software_node_release() function
-  software node: Add support for static node descriptors
-  software node: Use kobject name when finding child nodes by name
-  software node: Add software_node_get_reference_args()
-  driver core: Add helper device_find_child_by_name()
-  ACPI / property: Don't limit named child node matching to data nodes
-  device property: Introduce fwnode_find_reference()
-  device connection: Find connections also by checking the references
-  usb: typec: Registering real device entries for the muxes
-  platform/x86: intel_cht_int33fe: Register max17047 in its own function
-  platform/x86: intel_cht_int33fe: Remove unused fusb302 device property
-  platform/x86: intel_cht_int33fe: Provide software nodes for the
-    devices
-  platform/x86: intel_cht_int33fe: Provide fwnode for the USB connector
-  platform/x86: intel_cht_int33fe: Supply fwnodes for the external
-    dependencies
-  platform/x86: intel_cht_int33fe: Replacing the old connections with
-    references
-
- drivers/acpi/property.c                  |  26 +-
- drivers/base/core.c                      |  28 ++
- drivers/base/devcon.c                    |  26 ++
- drivers/base/property.c                  |  24 ++
- drivers/base/swnode.c                    | 324 +++++++++++++++++------
- drivers/platform/x86/intel_cht_int33fe.c | 291 ++++++++++++++++----
- drivers/usb/roles/class.c                |   2 +-
- drivers/usb/typec/bus.h                  |  15 ++
- drivers/usb/typec/class.c                |  17 +-
- drivers/usb/typec/mux.c                  | 238 ++++++++++++-----
- drivers/usb/typec/mux/pi3usb30532.c      |  46 ++--
- include/linux/device.h                   |   2 +
- include/linux/property.h                 |  51 ++++
- include/linux/usb/typec_mux.h            |  62 ++---
- 14 files changed, 903 insertions(+), 249 deletions(-)
+Thank you!
 
 -- 
-2.20.1
-
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
