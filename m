@@ -6,37 +6,33 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87B34C04AB6
-	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 08:46:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20602C04AB6
+	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 09:10:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 62CA4265F9
-	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 08:46:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F20B026679
+	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 09:10:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726240AbfEaIqA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 31 May 2019 04:46:00 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:62478 "EHLO
+        id S1726483AbfEaJKe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 31 May 2019 05:10:34 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:48528 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726002AbfEaIqA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2019 04:46:00 -0400
+        with ESMTP id S1726002AbfEaJKe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2019 05:10:34 -0400
 Received: from 79.184.255.225.ipv4.supernova.orange.pl (79.184.255.225) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.213)
- id f191c577164177af; Fri, 31 May 2019 10:45:58 +0200
+ id c2b0c10174bd02aa; Fri, 31 May 2019 11:10:31 +0200
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-gpio@vger.kernel.org,
-        Masahisa Kojima <masahisa.kojima@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Marc Zyngier <marc.zyngier@arm.com>,
-        Graeme Gregory <graeme.gregory@linaro.org>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v4 1/4] acpi/irq: implement helper to create hierachical domains
-Date:   Fri, 31 May 2019 10:45:57 +0200
-Message-ID: <1909675.6iIoxqmsXk@kreacher>
-In-Reply-To: <20190528133647.3362-2-ard.biesheuvel@linaro.org>
-References: <20190528133647.3362-1-ard.biesheuvel@linaro.org> <20190528133647.3362-2-ard.biesheuvel@linaro.org>
+To:     Hans de Goede <hdegoede@redhat.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v4 13/16] platform/x86: intel_cht_int33fe: Provide software nodes for the devices
+Date:   Fri, 31 May 2019 11:10:31 +0200
+Message-ID: <9821910.95WSKUoubE@kreacher>
+In-Reply-To: <7468b83c-3d75-b43f-559b-68b3140a89e9@redhat.com>
+References: <20190522105113.11153-1-heikki.krogerus@linux.intel.com> <20190522105113.11153-14-heikki.krogerus@linux.intel.com> <7468b83c-3d75-b43f-559b-68b3140a89e9@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -45,122 +41,80 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tuesday, May 28, 2019 3:36:44 PM CEST Ard Biesheuvel wrote:
-> ACPI permits arbitrary producer->consumer interrupt links to be
-> described in AML, which means a topology such as the following
-> is perfectly legal:
+On Wednesday, May 29, 2019 11:30:58 AM CEST Hans de Goede wrote:
+> Hi,
 > 
->   Device (EXIU) {
->     Name (_HID, "SCX0008")
->     Name (_UID, Zero)
->     Name (_CRS, ResourceTemplate () {
->       ...
->     })
->   }
+> On 5/22/19 12:51 PM, Heikki Krogerus wrote:
+> > Software nodes provide two features that we will need later.
+> > 1) Software nodes can have references to other software nodes.
+> > 2) Software nodes can exist before a device entry is created.
+> > 
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > ---
+> >   drivers/platform/x86/intel_cht_int33fe.c | 53 ++++++++++++++++++++----
+> >   1 file changed, 45 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
+> > index 4ab47d6df413..a4ebd1d6b5b6 100644
+> > --- a/drivers/platform/x86/intel_cht_int33fe.c
+> > +++ b/drivers/platform/x86/intel_cht_int33fe.c
+> > @@ -27,6 +27,13 @@
+> >   
+> >   #define EXPECTED_PTYPE		4
+> >   
+> > +enum {
+> > +	INT33FE_NODE_FUSB302,
+> > +	INT33FE_NODE_MAX17047,
+> > +	INT33FE_NODE_PI3USB30532,
+> > +	INT33FE_NODE_MAX,
+> > +};
+> > +
+> >   struct cht_int33fe_data {
+> >   	struct i2c_client *max17047;
+> >   	struct i2c_client *fusb302;
+> > @@ -72,8 +79,13 @@ static const struct property_entry max17047_props[] = {
+> >   
+> >   static const struct property_entry fusb302_props[] = {
+> >   	PROPERTY_ENTRY_STRING("linux,extcon-name", "cht_wcove_pwrsrc"),
+> > -	PROPERTY_ENTRY_U32("fcs,max-sink-microvolt", 12000000),
+> > -	PROPERTY_ENTRY_U32("fcs,max-sink-microamp",   3000000),
+> > +	{ }
+> > +};
+> > +
+> > +static const struct software_node nodes[] = {
+> > +	{ "fusb302", NULL, fusb302_props },
+> > +	{ "max17047", NULL, max17047_props },
+> > +	{ "pi3usb30532" },
+> >   	{ }
+> >   };
+> >   
+> > @@ -82,14 +94,17 @@ cht_int33fe_register_max17047(struct device *dev, struct cht_int33fe_data *data)
+> >   {
+> >   	struct i2c_client *max17047 = NULL;
+> >   	struct i2c_board_info board_info;
+> > +	struct fwnode_handle *fwnode;
+> >   	int ret;
+> >   
+> > +	fwnode = software_node_fwnode(&nodes[INT33FE_NODE_MAX17047]);
+> > +	if (!fwnode)
+> > +		return -ENODEV;
+> > +
+> >   	i2c_for_each_dev(&max17047, cht_int33fe_check_for_max17047);
+> >   	if (max17047) {
+> >   		/* Pre-existing i2c-client for the max17047, add device-props */
+> > -		ret = device_add_properties(&max17047->dev, max17047_props);
+> > -		if (ret)
+> > -			return ret;
+> > +		max17047->dev.fwnode->secondary = fwnode;
 > 
->   Device (GPIO) {
->     Name (_HID, "SCX0007")
->     Name (_UID, Zero)
->     Name (_CRS, ResourceTemplate () {
->       Memory32Fixed (ReadWrite, SYNQUACER_GPIO_BASE, SYNQUACER_GPIO_SIZE)
->       Interrupt (ResourceConsumer, Edge, ActiveHigh, ExclusiveAndWake, 0, "\\_SB.EXIU") {
->         7,
->       }
->     })
->     ...
->   }
-> 
-> The EXIU in this example is the external interrupt unit as can be found
-> on Socionext SynQuacer based platforms, which converts a block of 32 SPIs
-> from arbitrary polarity/trigger into level-high, with a separate set
-> of config/mask/unmask/clear controls.
-> 
-> The existing DT based driver in drivers/irqchip/irq-sni-exiu.c models
-> this as a hierarchical domain stacked on top of the GIC's irqdomain.
-> Since the GIC is modeled as a DT node as well, obtaining a reference
-> to this irqdomain is easily done by going through the parent link.
-> 
-> On ACPI systems, however, the GIC is not modeled as an object in the
-> namespace, and so device objects cannot refer to it directly. So in
-> order to obtain the irqdomain reference when driving the EXIU in ACPI
-> mode, we need a helper that implicitly grabs the default domain as the
-> parent of the hierarchy for interrupts allocated out of the global GSI
-> pool.
-> 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> I believe that you should do:
+> 		fwnode->secondary = ERR_PTR(-ENODEV);
+> cht_int33fe_setup_dp
+> Before this call, as you are doing in the cht_int33fe_setup_dp function.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+So I'm inclined to defer this patch until it is improved and queue up the rest of the series.
 
-if that matters.
-
-> ---
->  drivers/acpi/irq.c   | 26 ++++++++++++++++++++
->  include/linux/acpi.h |  7 ++++++
->  2 files changed, 33 insertions(+)
-> 
-> diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-> index c3b2222e2129..ce6b25a3b7a7 100644
-> --- a/drivers/acpi/irq.c
-> +++ b/drivers/acpi/irq.c
-> @@ -295,3 +295,29 @@ void __init acpi_set_irq_model(enum acpi_irq_model_id model,
->  	acpi_irq_model = model;
->  	acpi_gsi_domain_id = fwnode;
->  }
-> +
-> +/**
-> + * acpi_irq_create_hierarchy - Create a hierarchical IRQ domain with the default
-> + *                             GSI domain as its parent.
-> + * @flags:      Irq domain flags associated with the domain
-> + * @size:       Size of the domain.
-> + * @fwnode:     Optional fwnode of the interrupt controller
-> + * @ops:        Pointer to the interrupt domain callbacks
-> + * @host_data:  Controller private data pointer
-> + */
-> +struct irq_domain *acpi_irq_create_hierarchy(unsigned int flags,
-> +					     unsigned int size,
-> +					     struct fwnode_handle *fwnode,
-> +					     const struct irq_domain_ops *ops,
-> +					     void *host_data)
-> +{
-> +	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-> +							DOMAIN_BUS_ANY);
-> +
-> +	if (!d)
-> +		return NULL;
-> +
-> +	return irq_domain_create_hierarchy(d, flags, size, fwnode, ops,
-> +					   host_data);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_irq_create_hierarchy);
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 98440df7fe42..70de4bc30cea 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -23,6 +23,7 @@
->  
->  #include <linux/errno.h>
->  #include <linux/ioport.h>	/* for struct resource */
-> +#include <linux/irqdomain.h>
->  #include <linux/resource_ext.h>
->  #include <linux/device.h>
->  #include <linux/property.h>
-> @@ -327,6 +328,12 @@ int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
->  void acpi_set_irq_model(enum acpi_irq_model_id model,
->  			struct fwnode_handle *fwnode);
->  
-> +struct irq_domain *acpi_irq_create_hierarchy(unsigned int flags,
-> +					     unsigned int size,
-> +					     struct fwnode_handle *fwnode,
-> +					     const struct irq_domain_ops *ops,
-> +					     void *host_data);
-> +
->  #ifdef CONFIG_X86_IO_APIC
->  extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
->  #else
-> 
-
+I can fix up the typo in the [15/16] while handling it.
 
 
 
