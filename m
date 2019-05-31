@@ -2,32 +2,29 @@ Return-Path: <SRS0=pcJV=T7=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78345C04AB6
-	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 13:46:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4414C28CC2
+	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 14:15:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 45796269BC
-	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 13:46:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A843C26A42
+	for <linux-acpi@archiver.kernel.org>; Fri, 31 May 2019 14:15:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726485AbfEaNqj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 31 May 2019 09:46:39 -0400
-Received: from mga04.intel.com ([192.55.52.120]:15798 "EHLO mga04.intel.com"
+        id S1726670AbfEaOPx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 31 May 2019 10:15:53 -0400
+Received: from mga05.intel.com ([192.55.52.43]:8345 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726330AbfEaNqj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 May 2019 09:46:39 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
+        id S1726576AbfEaOPx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 May 2019 10:15:53 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 31 May 2019 06:46:39 -0700
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 31 May 2019 07:15:52 -0700
 X-ExtLoop1: 1
-Received: from kuha.fi.intel.com ([10.237.72.189])
-  by fmsmga001.fm.intel.com with SMTP; 31 May 2019 06:46:36 -0700
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Fri, 31 May 2019 16:46:35 +0300
-Date:   Fri, 31 May 2019 16:46:35 +0300
+Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
+  by fmsmga001.fm.intel.com with ESMTP; 31 May 2019 07:15:50 -0700
 From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc:     Hans de Goede <hdegoede@redhat.com>,
@@ -35,102 +32,43 @@ Cc:     Hans de Goede <hdegoede@redhat.com>,
         Andy Shevchenko <andy@infradead.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v4 13/16] platform/x86: intel_cht_int33fe: Provide
- software nodes for the devices
-Message-ID: <20190531134635.GE7167@kuha.fi.intel.com>
-References: <20190522105113.11153-1-heikki.krogerus@linux.intel.com>
- <20190522105113.11153-14-heikki.krogerus@linux.intel.com>
- <7468b83c-3d75-b43f-559b-68b3140a89e9@redhat.com>
- <9821910.95WSKUoubE@kreacher>
+Subject: [PATCH v5 01/16] software node: Allow node creation without properties
+Date:   Fri, 31 May 2019 17:15:32 +0300
+Message-Id: <20190531141547.22728-2-heikki.krogerus@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190531141547.22728-1-heikki.krogerus@linux.intel.com>
+References: <20190531141547.22728-1-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9821910.95WSKUoubE@kreacher>
-User-Agent: Mutt/1.11.4 (2019-03-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, May 31, 2019 at 11:10:31AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, May 29, 2019 11:30:58 AM CEST Hans de Goede wrote:
-> > Hi,
-> > 
-> > On 5/22/19 12:51 PM, Heikki Krogerus wrote:
-> > > Software nodes provide two features that we will need later.
-> > > 1) Software nodes can have references to other software nodes.
-> > > 2) Software nodes can exist before a device entry is created.
-> > > 
-> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > > ---
-> > >   drivers/platform/x86/intel_cht_int33fe.c | 53 ++++++++++++++++++++----
-> > >   1 file changed, 45 insertions(+), 8 deletions(-)
-> > > 
-> > > diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-> > > index 4ab47d6df413..a4ebd1d6b5b6 100644
-> > > --- a/drivers/platform/x86/intel_cht_int33fe.c
-> > > +++ b/drivers/platform/x86/intel_cht_int33fe.c
-> > > @@ -27,6 +27,13 @@
-> > >   
-> > >   #define EXPECTED_PTYPE		4
-> > >   
-> > > +enum {
-> > > +	INT33FE_NODE_FUSB302,
-> > > +	INT33FE_NODE_MAX17047,
-> > > +	INT33FE_NODE_PI3USB30532,
-> > > +	INT33FE_NODE_MAX,
-> > > +};
-> > > +
-> > >   struct cht_int33fe_data {
-> > >   	struct i2c_client *max17047;
-> > >   	struct i2c_client *fusb302;
-> > > @@ -72,8 +79,13 @@ static const struct property_entry max17047_props[] = {
-> > >   
-> > >   static const struct property_entry fusb302_props[] = {
-> > >   	PROPERTY_ENTRY_STRING("linux,extcon-name", "cht_wcove_pwrsrc"),
-> > > -	PROPERTY_ENTRY_U32("fcs,max-sink-microvolt", 12000000),
-> > > -	PROPERTY_ENTRY_U32("fcs,max-sink-microamp",   3000000),
-> > > +	{ }
-> > > +};
-> > > +
-> > > +static const struct software_node nodes[] = {
-> > > +	{ "fusb302", NULL, fusb302_props },
-> > > +	{ "max17047", NULL, max17047_props },
-> > > +	{ "pi3usb30532" },
-> > >   	{ }
-> > >   };
-> > >   
-> > > @@ -82,14 +94,17 @@ cht_int33fe_register_max17047(struct device *dev, struct cht_int33fe_data *data)
-> > >   {
-> > >   	struct i2c_client *max17047 = NULL;
-> > >   	struct i2c_board_info board_info;
-> > > +	struct fwnode_handle *fwnode;
-> > >   	int ret;
-> > >   
-> > > +	fwnode = software_node_fwnode(&nodes[INT33FE_NODE_MAX17047]);
-> > > +	if (!fwnode)
-> > > +		return -ENODEV;
-> > > +
-> > >   	i2c_for_each_dev(&max17047, cht_int33fe_check_for_max17047);
-> > >   	if (max17047) {
-> > >   		/* Pre-existing i2c-client for the max17047, add device-props */
-> > > -		ret = device_add_properties(&max17047->dev, max17047_props);
-> > > -		if (ret)
-> > > -			return ret;
-> > > +		max17047->dev.fwnode->secondary = fwnode;
-> > 
-> > I believe that you should do:
-> > 		fwnode->secondary = ERR_PTR(-ENODEV);
-> > cht_int33fe_setup_dp
-> > Before this call, as you are doing in the cht_int33fe_setup_dp function.
-> 
-> So I'm inclined to defer this patch until it is improved and queue up the rest of the series.
-> 
-> I can fix up the typo in the [15/16] while handling it.
+Software nodes are not forced to have device properties.
+Adding check to property_entries_dup() to make it possible
+to create software nodes that don't have any properties.
 
-Thanks Rafael. I'll send v5, and fix both in any case.
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Tested-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/base/swnode.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Cheers,
-
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 7fc5a18e02ad..30077454eb68 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -383,6 +383,9 @@ property_entries_dup(const struct property_entry *properties)
+ 	int i, n = 0;
+ 	int ret;
+ 
++	if (!properties)
++		return NULL;
++
+ 	while (properties[n].name)
+ 		n++;
+ 
 -- 
-heikki
+2.20.1
+
