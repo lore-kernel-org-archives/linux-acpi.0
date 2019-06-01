@@ -2,196 +2,104 @@ Return-Path: <SRS0=OifG=UA=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-12.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95CACC28CC3
-	for <linux-acpi@archiver.kernel.org>; Sat,  1 Jun 2019 22:28:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 259C2C28CC3
+	for <linux-acpi@archiver.kernel.org>; Sat,  1 Jun 2019 23:22:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6D93D277E1
-	for <linux-acpi@archiver.kernel.org>; Sat,  1 Jun 2019 22:28:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7D95277C1
+	for <linux-acpi@archiver.kernel.org>; Sat,  1 Jun 2019 23:22:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=joelfernandes.org header.i=@joelfernandes.org header.b="u9hyOmtk"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZC4jPopi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726823AbfFAW2c (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 1 Jun 2019 18:28:32 -0400
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:34769 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726828AbfFAW15 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Jun 2019 18:27:57 -0400
-Received: by mail-pg1-f196.google.com with SMTP id h2so2810106pgg.1
-        for <linux-acpi@vger.kernel.org>; Sat, 01 Jun 2019 15:27:57 -0700 (PDT)
+        id S1726343AbfFAXWK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 1 Jun 2019 19:22:10 -0400
+Received: from mail-pf1-f176.google.com ([209.85.210.176]:41572 "EHLO
+        mail-pf1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726149AbfFAXWJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Jun 2019 19:22:09 -0400
+Received: by mail-pf1-f176.google.com with SMTP id q17so8388624pfq.8;
+        Sat, 01 Jun 2019 16:22:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=joelfernandes.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=rqX2p4uQomvAAMxsp9TEtCWxlekRzsNAShlcKhjjs7M=;
-        b=u9hyOmtkHjFodsqyuMvifQjLEIbjbOOqfRSX3tNRi9E8HhOlBJLdxvNGwOW85TGM/d
-         /w6VDCUiwLJcv7Fb35zChbFxWc5Oe2xie9SV8/YjahmmS9P/twVmlQw2oBBNNunqlPpK
-         BZ1sImNKFFdkr8E6qsjV9GEwobbs6bVeqYvoY=
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=bytKcnWl4DSJZnnGOOS5hiwowoQ6gtqAZ+8TrBMmas8=;
+        b=ZC4jPopia8riIAqC1pgw5kEc01ub5mspwVB4Wf3Lem5hJFgX7C2IaSVuItB4rkvBFT
+         O6vieJpn45PAjYgsVkhTXsMKKDo2TXq3kk78iOLbBE0Uqm41+kwIABYx4B6rQ7+4qx37
+         7XtcJL2CbMRfhODKsBOUCEH/nu1tCg9uwW9dAc9OeLSaMpy99vJlqVkujbmCHu1VbokQ
+         oHMlkjIEw7lQ4lHL6+IKQ9Q/lp42SEgQNjxiXPRZ+7oVVk4Tdj2jAEXnPq3dU1FpeC0G
+         crvBTnLRKHv9MDnYowazgTg2MzzIrp2y2bdYNwUruyuMaBmojPGJ30x75QsVYdZ5Tj4a
+         GrDg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=rqX2p4uQomvAAMxsp9TEtCWxlekRzsNAShlcKhjjs7M=;
-        b=CIBvnPDDzbdzjLwfJp086LxkZcdoEUO6toIDP2Gt/RPbqpocPARIh5H8HCXyzcUlum
-         HydQV3JMZHbUe4yBpUhgUWDoGloIKABWzx6o4XBWZqSWIHBxc5m2BFhS/M3tDzU8Iwjq
-         M/7qSBdo9IeGqzLAimfqzT4V2jmikVTuVjlnK1aVVu7WDtbgEPDqAAxtLee5oS2kv0nC
-         8vZ9kn9aX2l6W9xg/GTqgVFeLkwVgsYsGVh2F0MIV8xmTAP1w+CDF4GJ4adMhFyWv19o
-         jBW6IvYru6YQbiCBa696zD4aMMqpV3nvbhjJwcJKKW6eWd8hxedekqWP27f0Qiv1jrLk
-         vhEg==
-X-Gm-Message-State: APjAAAWMyzLm41RCbsmS0ck6vTcMe9CagpXfsy3y+11O8l7oI01JyNZa
-        u8dyMZG/Cx3aaSiLmbLRt391wA==
-X-Google-Smtp-Source: APXvYqyiCQj6LH72QpZ9kXjISAU3j1wiZHQ9UAorgqFGuK1ddmmKcw5Ut1EOXcWf5lfwMy2Ph2ZgdQ==
-X-Received: by 2002:a17:90b:d88:: with SMTP id bg8mr5074839pjb.70.1559428076902;
-        Sat, 01 Jun 2019 15:27:56 -0700 (PDT)
-Received: from joelaf.cam.corp.google.com ([2620:15c:6:12:9c46:e0da:efbf:69cc])
-        by smtp.gmail.com with ESMTPSA id t33sm9908018pjb.1.2019.06.01.15.27.53
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Sat, 01 Jun 2019 15:27:56 -0700 (PDT)
-From:   "Joel Fernandes (Google)" <joel@joelfernandes.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     "Joel Fernandes (Google)" <joel@joelfernandes.org>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Borislav Petkov <bp@alien8.de>,
-        "David S. Miller" <davem@davemloft.net>, edumazet@google.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        Josh Triplett <josh@joshtriplett.org>, keescook@chromium.org,
-        kernel-hardening@lists.openwall.com,
-        Lai Jiangshan <jiangshanlai@gmail.com>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-pm@vger.kernel.org,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-        neilb@suse.com, netdev@vger.kernel.org, oleg@redhat.com,
-        "Paul E. McKenney" <paulmck@linux.ibm.com>,
-        Pavel Machek <pavel@ucw.cz>, peterz@infradead.org,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>, rcu@vger.kernel.org,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Tejun Heo <tj@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        x86@kernel.org (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
-Subject: [RFC 3/6] driver/core: Convert to use built-in RCU list checking
-Date:   Sat,  1 Jun 2019 18:27:35 -0400
-Message-Id: <20190601222738.6856-4-joel@joelfernandes.org>
-X-Mailer: git-send-email 2.22.0.rc1.311.g5d7573a151-goog
-In-Reply-To: <20190601222738.6856-1-joel@joelfernandes.org>
-References: <20190601222738.6856-1-joel@joelfernandes.org>
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=bytKcnWl4DSJZnnGOOS5hiwowoQ6gtqAZ+8TrBMmas8=;
+        b=Xuy4eZabAAqnF76SgVnbLPHEci5TWqktboiGTNR9IC+9ChiTnPLmETnKgq/uF8Vy12
+         reG5i7UUMHaO6YO0c1H+IcLNaw2Bn3rGlg27PY/J/rpg2XsMqdfCvEYJsRKr65sH+GRc
+         bIV6OmDNrEv6IZM43PE3nV36jyHJ3NDneuaRRp+DCxF24Sb5DUJQXy7EQqKOPKY9yPJ4
+         Gjb9TSOwBnl0i57OR/ldPV2lFYEKNumoP3j65GvriwMx1zWRl7Ln639g490Yxa+OTiCN
+         EwlBRcMB0dP5cJjM9+Q/UL+hNx039KQZ6ivHvS328TBMdjKXiFNU45jTjXUpdx5Mq9hq
+         Ve4w==
+X-Gm-Message-State: APjAAAV8BfWZJvZziKU6AzdVK5yCdrZvo/TRhXu2tlmbHj16VntDngJt
+        6NsAYsWGIYtCTbjp8UukZiY=
+X-Google-Smtp-Source: APXvYqzoTrBsH3BR/eGzCZRW716vfkLIpcpbeen0ltSFQHkpgNlujb9zzby+KtzWvu1c+cEVCiMFbQ==
+X-Received: by 2002:a63:1e5b:: with SMTP id p27mr19021226pgm.213.1559431328871;
+        Sat, 01 Jun 2019 16:22:08 -0700 (PDT)
+Received: from localhost.localdomain ([2601:644:8201:32e0:7256:81ff:febd:926d])
+        by smtp.gmail.com with ESMTPSA id q10sm10112262pff.132.2019.06.01.16.22.07
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 01 Jun 2019 16:22:08 -0700 (PDT)
+Date:   Sat, 1 Jun 2019 16:22:06 -0700
+From:   Eduardo Valentin <edubezval@gmail.com>
+To:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Rui Zhang <rui.zhang@intel.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL] Thermal-SoC management fixes for v5.2-rc3
+Message-ID: <20190601232205.GA7411@localhost.localdomain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-list_for_each_entry_rcu has built-in RCU and lock checking. Make use of
-it in driver core.
+Please consider the following thermal soc changes for v5.2-rc3. This is really
+a single revert, detected to cause issues on the tsens driver.
 
-Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
----
- drivers/base/base.h          |  1 +
- drivers/base/core.c          | 10 ++++++++++
- drivers/base/power/runtime.c | 15 ++++++++++-----
- 3 files changed, 21 insertions(+), 5 deletions(-)
+The following changes since commit cd6c84d8f0cdc911df435bb075ba22ce3c605b07:
 
-diff --git a/drivers/base/base.h b/drivers/base/base.h
-index b405436ee28e..0d32544b6f91 100644
---- a/drivers/base/base.h
-+++ b/drivers/base/base.h
-@@ -165,6 +165,7 @@ static inline int devtmpfs_init(void) { return 0; }
- /* Device links support */
- extern int device_links_read_lock(void);
- extern void device_links_read_unlock(int idx);
-+extern int device_links_read_lock_held(void);
- extern int device_links_check_suppliers(struct device *dev);
- extern void device_links_driver_bound(struct device *dev);
- extern void device_links_driver_cleanup(struct device *dev);
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index fd7511e04e62..6c5ca9685647 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -68,6 +68,11 @@ void device_links_read_unlock(int idx)
- {
- 	srcu_read_unlock(&device_links_srcu, idx);
- }
-+
-+int device_links_read_lock_held(void)
-+{
-+	return srcu_read_lock_held(&device_links_srcu);
-+}
- #else /* !CONFIG_SRCU */
- static DECLARE_RWSEM(device_links_lock);
- 
-@@ -91,6 +96,11 @@ void device_links_read_unlock(int not_used)
- {
- 	up_read(&device_links_lock);
- }
-+
-+int device_links_read_lock_held(void)
-+{
-+	return lock_is_held(&device_links_lock);
-+}
- #endif /* !CONFIG_SRCU */
- 
- /**
-diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-index 952a1e7057c7..7a10e8379a70 100644
---- a/drivers/base/power/runtime.c
-+++ b/drivers/base/power/runtime.c
-@@ -287,7 +287,8 @@ static int rpm_get_suppliers(struct device *dev)
- {
- 	struct device_link *link;
- 
--	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node) {
-+	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node,
-+				device_links_read_lock_held()) {
- 		int retval;
- 
- 		if (!(link->flags & DL_FLAG_PM_RUNTIME) ||
-@@ -309,7 +310,8 @@ static void rpm_put_suppliers(struct device *dev)
- {
- 	struct device_link *link;
- 
--	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node) {
-+	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node,
-+				device_links_read_lock_held()) {
- 		if (READ_ONCE(link->status) == DL_STATE_SUPPLIER_UNBIND)
- 			continue;
- 
-@@ -1640,7 +1642,8 @@ void pm_runtime_clean_up_links(struct device *dev)
- 
- 	idx = device_links_read_lock();
- 
--	list_for_each_entry_rcu(link, &dev->links.consumers, s_node) {
-+	list_for_each_entry_rcu(link, &dev->links.consumers, s_node,
-+				device_links_read_lock_held()) {
- 		if (link->flags & DL_FLAG_STATELESS)
- 			continue;
- 
-@@ -1662,7 +1665,8 @@ void pm_runtime_get_suppliers(struct device *dev)
- 
- 	idx = device_links_read_lock();
- 
--	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node)
-+	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node,
-+				device_links_read_lock_held())
- 		if (link->flags & DL_FLAG_PM_RUNTIME) {
- 			link->supplier_preactivated = true;
- 			refcount_inc(&link->rpm_active);
-@@ -1683,7 +1687,8 @@ void pm_runtime_put_suppliers(struct device *dev)
- 
- 	idx = device_links_read_lock();
- 
--	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node)
-+	list_for_each_entry_rcu(link, &dev->links.suppliers, c_node,
-+				device_links_read_lock_held())
- 		if (link->supplier_preactivated) {
- 			link->supplier_preactivated = false;
- 			if (refcount_dec_not_one(&link->rpm_active))
--- 
-2.22.0.rc1.311.g5d7573a151-goog
+  Linux 5.2-rc2 (2019-05-26 16:49:19 -0700)
 
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+
+for you to fetch changes up to ca657468a0d4bcc25445f6636485a19a525267bd:
+
+  Revert "drivers: thermal: tsens: Add new operation to check if a sensor is enabled" (2019-05-28 19:30:33 -0700)
+
+Specifics:
+- Revert tsens change that is reported to cause issues.
+
+BR,
+
+----------------------------------------------------------------
+Eduardo Valentin (1):
+      Revert "drivers: thermal: tsens: Add new operation to check if a sensor is enabled"
+
+ drivers/thermal/qcom/tsens-common.c | 14 --------------
+ drivers/thermal/qcom/tsens-v0_1.c   |  1 -
+ drivers/thermal/qcom/tsens-v2.c     |  1 -
+ drivers/thermal/qcom/tsens.c        |  5 -----
+ drivers/thermal/qcom/tsens.h        |  1 -
+ 5 files changed, 22 deletions(-)
