@@ -4,84 +4,120 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE410C28CC5
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jun 2019 15:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DE66C28CC5
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jun 2019 19:06:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8404D206C3
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jun 2019 15:15:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E74FE20717
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jun 2019 19:06:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728565AbfFEPOp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Jun 2019 11:14:45 -0400
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:33472 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728200AbfFEPOl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Jun 2019 11:14:41 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E056715BF;
-        Wed,  5 Jun 2019 08:14:40 -0700 (PDT)
-Received: from en101.cambridge.arm.com (en101.cambridge.arm.com [10.1.196.93])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 612923F246;
-        Wed,  5 Jun 2019 08:14:39 -0700 (PDT)
-From:   Suzuki K Poulose <suzuki.poulose@arm.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     gregkh@linuxfoundation.org, rafael@kernel.org,
-        suzuki.poulose@arm.com, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org,
-        Mark Brown <broonie@kernel.org>
-Subject: [PATCH 07/13] drivers: Add generic match helper by ACPI_COMPANION device
-Date:   Wed,  5 Jun 2019 16:13:44 +0100
-Message-Id: <1559747630-28065-8-git-send-email-suzuki.poulose@arm.com>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1559747630-28065-1-git-send-email-suzuki.poulose@arm.com>
-References: <1559747630-28065-1-git-send-email-suzuki.poulose@arm.com>
+        id S1725950AbfFETGB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Jun 2019 15:06:01 -0400
+Received: from bmailout1.hostsharing.net ([83.223.95.100]:40609 "EHLO
+        bmailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726543AbfFETGA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jun 2019 15:06:00 -0400
+Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by bmailout1.hostsharing.net (Postfix) with ESMTPS id B11E23000BA08;
+        Wed,  5 Jun 2019 21:05:57 +0200 (CEST)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+        id 7B9E64B204; Wed,  5 Jun 2019 21:05:57 +0200 (CEST)
+Date:   Wed, 5 Jun 2019 21:05:57 +0200
+From:   Lukas Wunner <lukas@wunner.de>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Keith Busch <keith.busch@intel.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Alexandru Gagniuc <mr.nuke.me@gmail.com>,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Subject: Re: [PATCH 2/3] PCI: Do not poll for PME if the device is in D3cold
+Message-ID: <20190605190557.mbklbuq4fgwbi3wp@wunner.de>
+References: <20190605145820.37169-1-mika.westerberg@linux.intel.com>
+ <20190605145820.37169-3-mika.westerberg@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190605145820.37169-3-mika.westerberg@linux.intel.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a generic helper to match a device by the acpi device.
+On Wed, Jun 05, 2019 at 05:58:19PM +0300, Mika Westerberg wrote:
+> PME polling does not take into account that a device that is directly
+> connected to the host bridge may go into D3cold as well. This leads to a
+> situation where the PME poll thread reads from a config space of a
+> device that is in D3cold and gets incorrect information because the
+> config space is not accessible.
+> 
+> Here is an example from Intel Ice Lake system where two PCIe root ports
+> are in D3cold (I've instrumented the kernel to log the PMCSR register
+> contents):
+> 
+>   [   62.971442] pcieport 0000:00:07.1: Check PME status, PMCSR=0xffff
+>   [   62.971504] pcieport 0000:00:07.0: Check PME status, PMCSR=0xffff
+> 
+> Since 0xffff is interpreted so that PME is pending, the root ports will
+> be runtime resumed. This repeats over and over again essentially
+> blocking all runtime power management.
+> 
+> Prevent this from happening by checking whether the device is in D3cold
+> before its PME status is read.
 
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-spi@vger.kernel.org
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+There's more broken here.  The below patch fixes a PME polling race
+and should also fix the issue you're witnessing, could you verify that?
+
+The patch has been rotting on my development branch for several months,
+I just didn't get around to posting it, my apologies.
+
+-- >8 --
+Subject: [PATCH] PCI / PM: Fix race on PME polling
+
+Since commit df17e62e5bff ("PCI: Add support for polling PME state on
+suspended legacy PCI devices"), the work item pci_pme_list_scan() polls
+the PME status flag of devices and wakes them up if the bit is set.
+
+The function performs a check whether a device's upstream bridge is in
+D0 for otherwise the device is inaccessible, rendering PME polling
+impossible.  However the check is racy because it is performed before
+polling the device.  If the upstream bridge runtime suspends to D3hot
+after pci_pme_list_scan() checks its power state and before it invokes
+pci_pme_wakeup(), the latter will read the PMCSR as "all ones" and
+mistake it for a set PME status flag.  I am seeing this race play out as
+a Thunderbolt controller going to D3cold and occasionally immediately
+going to D0 again because PM polling was performed at just the wrong
+time.
+
+Avoid by checking for an "all ones" PMCSR in pci_check_pme_status().
+
+Fixes: 58ff463396ad ("PCI PM: Add function for checking PME status of devices")
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: stable@vger.kernel.org # v2.6.34+
 ---
- drivers/base/core.c    | 6 ++++++
- include/linux/device.h | 1 +
- 2 files changed, 7 insertions(+)
+ drivers/pci/pci.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index b827ca1..597095b 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -3346,3 +3346,9 @@ int device_match_devt(struct device *dev, const void *pdevt)
- 	return dev->devt == *(dev_t *)pdevt;
- }
- EXPORT_SYMBOL_GPL(device_match_devt);
-+
-+int device_match_acpi_dev(struct device *dev, const void *adev)
-+{
-+	return ACPI_COMPANION(dev) == adev;
-+}
-+EXPORT_SYMBOL(device_match_acpi_dev);
-diff --git a/include/linux/device.h b/include/linux/device.h
-index f315692..a03b50d 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -166,6 +166,7 @@ void subsys_dev_iter_exit(struct subsys_dev_iter *iter);
- int device_match_of_node(struct device *dev, const void *np);
- int device_match_fwnode(struct device *dev, const void *fwnode);
- int device_match_devt(struct device *dev, const void *pdevt);
-+int device_match_acpi_dev(struct device *dev, const void *adev);
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index b98a564..2e05348 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -1753,6 +1753,8 @@ bool pci_check_pme_status(struct pci_dev *dev)
+ 	pci_read_config_word(dev, pmcsr_pos, &pmcsr);
+ 	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
+ 		return false;
++	if (pmcsr == ~0)
++		return false;
  
- int bus_for_each_dev(struct bus_type *bus, struct device *start, void *data,
- 		     int (*fn)(struct device *dev, void *data));
+ 	/* Clear PME status. */
+ 	pmcsr |= PCI_PM_CTRL_PME_STATUS;
 -- 
-2.7.4
+2.20.1
 
