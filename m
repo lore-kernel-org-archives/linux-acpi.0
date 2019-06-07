@@ -2,86 +2,157 @@ Return-Path: <SRS0=V+yo=UG=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20FDAC2BCA1
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:52:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAB83C28CC3
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:57:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F32B7212F5
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:52:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 990FF20665
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:57:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726939AbfFGJwm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 7 Jun 2019 05:52:42 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:42886 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726996AbfFGJwm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Jun 2019 05:52:42 -0400
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id AC461D2F7002C7D59082;
-        Fri,  7 Jun 2019 17:52:39 +0800 (CST)
-Received: from localhost (10.202.226.61) by DGGEMS408-HUB.china.huawei.com
- (10.3.19.208) with Microsoft SMTP Server id 14.3.439.0; Fri, 7 Jun 2019
- 17:52:28 +0800
-Date:   Fri, 7 Jun 2019 10:52:20 +0100
-From:   Jonathan Cameron <jonathan.cameron@huawei.com>
-To:     <linux-acpi@vger.kernel.org>, <linux-mm@kvack.org>,
-        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [RFC] NUMA Description Under ACPI 6.3 White Paper (v0.93)
-Message-ID: <20190607105220.0000134e@huawei.com>
-Organization: Huawei
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; i686-w64-mingw32)
+        id S1726851AbfFGJ5e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 7 Jun 2019 05:57:34 -0400
+Received: from foss.arm.com ([217.140.110.172]:36964 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726844AbfFGJ5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Jun 2019 05:57:34 -0400
+X-Greylist: delayed 502 seconds by postgrey-1.27 at vger.kernel.org; Fri, 07 Jun 2019 05:57:33 EDT
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7B9BA367;
+        Fri,  7 Jun 2019 02:57:33 -0700 (PDT)
+Received: from e107155-lin (e107155-lin.cambridge.arm.com [10.1.196.42])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4D0123F96A;
+        Fri,  7 Jun 2019 02:59:12 -0700 (PDT)
+Date:   Fri, 7 Jun 2019 10:57:29 +0100
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     Jeremy Linton <jeremy.linton@arm.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net,
+        lenb@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
+        linuxarm@huawei.com, john.garry@huawei.com,
+        Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v3 4/5] arm_pmu: acpi: spe: Add initial MADT/SPE probing
+Message-ID: <20190607095729.GD2429@e107155-lin>
+References: <20190503232407.37195-1-jeremy.linton@arm.com>
+ <20190503232407.37195-5-jeremy.linton@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.226.61]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190503232407.37195-5-jeremy.linton@arm.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi all,
+On Fri, May 03, 2019 at 06:24:06PM -0500, Jeremy Linton wrote:
+> ACPI 6.3 adds additional fields to the MADT GICC
+> structure to describe SPE PPI's. We pick these out
+> of the cached reference to the madt_gicc structure
+> similarly to the core PMU code. We then create a platform
+> device referring to the IRQ and let the user/module loader
+> decide whether to load the SPE driver.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  arch/arm64/include/asm/acpi.h |  3 ++
+>  drivers/perf/Kconfig          |  5 +++
+>  drivers/perf/arm_pmu_acpi.c   | 76 +++++++++++++++++++++++++++++++++++
+>  include/linux/perf/arm_pmu.h  |  2 +
+>  4 files changed, 86 insertions(+)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 7628efbe6c12..d10399b9f998 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -41,6 +41,9 @@
+>  	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
+>  	(unsigned long)(entry) + (entry)->header.length > (end))
+>  
+> +#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
+> +	spe_interrupt) + sizeof(u16))
+> +
+>  /* Basic configuration for ACPI */
+>  #ifdef	CONFIG_ACPI
+>  pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
+> diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+> index af9bc178495d..bc2647c64c9d 100644
+> --- a/drivers/perf/Kconfig
+> +++ b/drivers/perf/Kconfig
+> @@ -52,6 +52,11 @@ config ARM_PMU_ACPI
+>  	depends on ARM_PMU && ACPI
+>  	def_bool y
+>  
+> +config ARM_SPE_ACPI
+> +	depends on ARM_PMU_ACPI && ARM_SPE_PMU
+> +	def_bool y
+> +
+> +
+>  config ARM_DSU_PMU
+>  	tristate "ARM DynamIQ Shared Unit (DSU) PMU"
+>  	depends on ARM64
+> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+> index 0f197516d708..b0244e1e8c91 100644
+> --- a/drivers/perf/arm_pmu_acpi.c
+> +++ b/drivers/perf/arm_pmu_acpi.c
+> @@ -74,6 +74,80 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
+>  	acpi_unregister_gsi(gsi);
+>  }
+>  
+> +#ifdef CONFIG_ARM_SPE_ACPI
+> +static struct resource spe_resources[] = {
+> +	{
+> +		/* irq */
+> +		.flags          = IORESOURCE_IRQ,
+> +	}
+> +};
+> +
+> +static struct platform_device spe_dev = {
+> +	.name = ARMV8_SPE_PDEV_NAME,
+> +	.id = -1,
+> +	.resource = spe_resources,
+> +	.num_resources = ARRAY_SIZE(spe_resources)
+> +};
+> +
+> +/*
+> + * For lack of a better place, hook the normal PMU MADT walk
+> + * and create a SPE device if we detect a recent MADT with
+> + * a homogeneous PPI mapping.
+> + */
+> +static int arm_spe_acpi_register_device(void)
+> +{
+> +	int cpu, ret, irq;
+> +	int hetid;
+> +	u16 gsi = 0;
+> +	bool first = true;
+> +
+> +	struct acpi_madt_generic_interrupt *gicc;
+> +
+> +	/*
+> +	 * sanity check all the GICC tables for the same interrupt number
+> +	 * for now we only support homogeneous ACPI/SPE machines.
+> +	 */
+> +	for_each_possible_cpu(cpu) {
+> +		gicc = acpi_cpu_get_madt_gicc(cpu);
+> +
+> +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
+> +			return -ENODEV;
+> +		if (first) {
+> +			gsi = gicc->spe_interrupt;
+> +			if (!gsi)
+> +				return -ENODEV;
+> +			hetid = find_acpi_cpu_topology_hetero_id(cpu);
+> +			first = false;
+> +		} else if ((gsi != gicc->spe_interrupt) ||
+> +			   (hetid != find_acpi_cpu_topology_hetero_id(cpu))) {
 
-This is a request for comment / review on a white paper, intended to
-provide an example lead guide on how to describe NUMA systems in ACPI 6.3.
+Sorry, I should have noticed this in patch 2 itself. Won't this break for
+multi-socket system ? The hetid in that case will be package id, no ?
 
-https://github.com/hisilicon/acpi-numa-whitepaper
-https://github.com/hisilicon/acpi-numa-whitepaper/releases/download/v0.93/NUMA_Description_Under_ACPI_6.3_v0.93.pdf
+Otherwise the patch looks good.
 
-It was prepared in conjunction with the Heterogeneous Memory Sub Team (HMST) of
-the UEFI forum which has a mix of firmware and OS people (Linux and others). 
-
-The original motivation for this was that we were writing some docs for a
-more specific project (to appear shortly) and realized that only reason
-some sections were necessary was because we couldn't find anything
-bridging the gap between the ACPI specification and docs like those in
-the kernel tree.  Hence this document targeting that hole which is hopefully
-of more general use.
-
-Exactly how this will be officially 'released' is yet to be resolved, but 
-however that happens we will be maintaining a public source repository,
-hopefully allowing this to be a living document, tracking future specs
-and also being updated to account for how OS usage of the provided information
-changes.
-
-The document is under Creative Commons Attribution 4.0 International License.
-It is a Sphinx document. Only output to pdf has been tested and
-the build scripts are a bit of a mess.
-
-Thanks to all those who have already given feedback on earlier drafts!
-Additional thanks to the members of HMST for some very interesting discussions,
-clarifying both my understanding and highlighting areas to focus on in this
-guide.
-
-I'm looking for all types of feedback including suggestions for
-missing content (as a patch is ideal of course - I'm more than happy
-to have some coauthors on this).
-
-Jonathan
-
-p.s. Please share with anyone you think may be interested!
-
-
+--
+Regards,
+Sudeep
