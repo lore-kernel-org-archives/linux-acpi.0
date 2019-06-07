@@ -4,28 +4,28 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAB83C28CC3
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:57:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E411C28CC3
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:58:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 990FF20665
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:57:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D974520B7C
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 09:58:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726851AbfFGJ5e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 7 Jun 2019 05:57:34 -0400
-Received: from foss.arm.com ([217.140.110.172]:36964 "EHLO foss.arm.com"
+        id S1727754AbfFGJ65 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 7 Jun 2019 05:58:57 -0400
+Received: from foss.arm.com ([217.140.110.172]:37002 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726844AbfFGJ5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Jun 2019 05:57:34 -0400
-X-Greylist: delayed 502 seconds by postgrey-1.27 at vger.kernel.org; Fri, 07 Jun 2019 05:57:33 EDT
+        id S1727111AbfFGJ65 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Jun 2019 05:58:57 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7B9BA367;
-        Fri,  7 Jun 2019 02:57:33 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 84F99337;
+        Fri,  7 Jun 2019 02:49:11 -0700 (PDT)
 Received: from e107155-lin (e107155-lin.cambridge.arm.com [10.1.196.42])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4D0123F96A;
-        Fri,  7 Jun 2019 02:59:12 -0700 (PDT)
-Date:   Fri, 7 Jun 2019 10:57:29 +0100
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 59F643F96A;
+        Fri,  7 Jun 2019 02:50:50 -0700 (PDT)
+Date:   Fri, 7 Jun 2019 10:49:07 +0100
 From:   Sudeep Holla <sudeep.holla@arm.com>
 To:     Jeremy Linton <jeremy.linton@arm.com>
 Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
@@ -33,125 +33,75 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
         lenb@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
         linuxarm@huawei.com, john.garry@huawei.com,
         Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 4/5] arm_pmu: acpi: spe: Add initial MADT/SPE probing
-Message-ID: <20190607095729.GD2429@e107155-lin>
+Subject: Re: [PATCH v3 2/5] ACPI/PPTT: Add function to return ACPI 6.3
+ Identical tokens
+Message-ID: <20190607094907.GB2429@e107155-lin>
 References: <20190503232407.37195-1-jeremy.linton@arm.com>
- <20190503232407.37195-5-jeremy.linton@arm.com>
+ <20190503232407.37195-3-jeremy.linton@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190503232407.37195-5-jeremy.linton@arm.com>
+In-Reply-To: <20190503232407.37195-3-jeremy.linton@arm.com>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, May 03, 2019 at 06:24:06PM -0500, Jeremy Linton wrote:
-> ACPI 6.3 adds additional fields to the MADT GICC
-> structure to describe SPE PPI's. We pick these out
-> of the cached reference to the madt_gicc structure
-> similarly to the core PMU code. We then create a platform
-> device referring to the IRQ and let the user/module loader
-> decide whether to load the SPE driver.
+On Fri, May 03, 2019 at 06:24:04PM -0500, Jeremy Linton wrote:
+> ACPI 6.3 adds a flag to indicate that child nodes are all
+> identical cores. This is useful to authoritatively determine
+> if a set of (possibly offline) cores are identical or not.
 > 
+> Since the flag doesn't give us a unique id we can generate
+> one and use it to create bitmaps of sibling nodes, or simply
+> in a loop to determine if a subset of cores are identical.
+>
+
+If possible reorder this patch with next just to be sure.
+I know the user is not introduced until 4/5, but 3/5 kind of fixes
+the implementation.
+
+
+Apart from that, this looks fine to me.
+
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+
 > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
->  arch/arm64/include/asm/acpi.h |  3 ++
->  drivers/perf/Kconfig          |  5 +++
->  drivers/perf/arm_pmu_acpi.c   | 76 +++++++++++++++++++++++++++++++++++
->  include/linux/perf/arm_pmu.h  |  2 +
->  4 files changed, 86 insertions(+)
+>  drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
+>  include/linux/acpi.h |  5 +++++
+>  2 files changed, 31 insertions(+)
 > 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 7628efbe6c12..d10399b9f998 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -41,6 +41,9 @@
->  	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
->  	(unsigned long)(entry) + (entry)->header.length > (end))
->  
-> +#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
-> +	spe_interrupt) + sizeof(u16))
-> +
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
->  pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
-> diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
-> index af9bc178495d..bc2647c64c9d 100644
-> --- a/drivers/perf/Kconfig
-> +++ b/drivers/perf/Kconfig
-> @@ -52,6 +52,11 @@ config ARM_PMU_ACPI
->  	depends on ARM_PMU && ACPI
->  	def_bool y
->  
-> +config ARM_SPE_ACPI
-> +	depends on ARM_PMU_ACPI && ARM_SPE_PMU
-> +	def_bool y
-> +
-> +
->  config ARM_DSU_PMU
->  	tristate "ARM DynamIQ Shared Unit (DSU) PMU"
->  	depends on ARM64
-> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-> index 0f197516d708..b0244e1e8c91 100644
-> --- a/drivers/perf/arm_pmu_acpi.c
-> +++ b/drivers/perf/arm_pmu_acpi.c
-> @@ -74,6 +74,80 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
->  	acpi_unregister_gsi(gsi);
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> index 83a026765faa..1865515297ca 100644
+> --- a/drivers/acpi/pptt.c
+> +++ b/drivers/acpi/pptt.c
+> @@ -660,3 +660,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
+>  	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
+>  					  ACPI_PPTT_PHYSICAL_PACKAGE);
 >  }
->  
-> +#ifdef CONFIG_ARM_SPE_ACPI
-> +static struct resource spe_resources[] = {
-> +	{
-> +		/* irq */
-> +		.flags          = IORESOURCE_IRQ,
-> +	}
-> +};
 > +
-> +static struct platform_device spe_dev = {
-> +	.name = ARMV8_SPE_PDEV_NAME,
-> +	.id = -1,
-> +	.resource = spe_resources,
-> +	.num_resources = ARRAY_SIZE(spe_resources)
-> +};
-> +
-> +/*
-> + * For lack of a better place, hook the normal PMU MADT walk
-> + * and create a SPE device if we detect a recent MADT with
-> + * a homogeneous PPI mapping.
-> + */
-> +static int arm_spe_acpi_register_device(void)
-> +{
-> +	int cpu, ret, irq;
-> +	int hetid;
-> +	u16 gsi = 0;
-> +	bool first = true;
-> +
-> +	struct acpi_madt_generic_interrupt *gicc;
-> +
-> +	/*
-> +	 * sanity check all the GICC tables for the same interrupt number
-> +	 * for now we only support homogeneous ACPI/SPE machines.
-> +	 */
-> +	for_each_possible_cpu(cpu) {
-> +		gicc = acpi_cpu_get_madt_gicc(cpu);
-> +
-> +		if (gicc->header.length < ACPI_MADT_GICC_SPE)
-> +			return -ENODEV;
-> +		if (first) {
-> +			gsi = gicc->spe_interrupt;
-> +			if (!gsi)
-> +				return -ENODEV;
-> +			hetid = find_acpi_cpu_topology_hetero_id(cpu);
-> +			first = false;
-> +		} else if ((gsi != gicc->spe_interrupt) ||
-> +			   (hetid != find_acpi_cpu_topology_hetero_id(cpu))) {
+> +/**
+> + * find_acpi_cpu_topology_hetero_id() - Get a core architecture tag
+> + * @cpu: Kernel logical CPU number
+> + *
+> + * Determine a unique heterogeneous tag for the given CPU. CPUs with the same
+> + * implementation should have matching tags.
+> + *
+> + * The returned tag can be used to group peers with identical implementation.
+> + *
+> + * The search terminates when a level is found with the identical implementation
+> + * flag set or we reach a root node.
+> + *
+> + * Due to limitations in the PPTT data structure, there may be rare situations
+> + * where two cores in a heterogeneous machine may be identical, but won't have
+> + * the same tag.
+> + *
 
-Sorry, I should have noticed this in patch 2 itself. Won't this break for
-multi-socket system ? The hetid in that case will be package id, no ?
-
-Otherwise the patch looks good.
+Indeed, it's unfortunate. I gave some thoughts if we can find ways to
+avoid this. Hope we don't have to see such weird combinations with ACPI
+based systems.
 
 --
 Regards,
