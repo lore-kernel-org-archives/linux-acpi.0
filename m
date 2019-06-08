@@ -1,137 +1,116 @@
-Return-Path: <SRS0=V+yo=UG=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=YOk6=UH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 448EEC2BCA1
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 19:21:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87841C468BC
+	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:45:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2646D208C3
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Jun 2019 19:21:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60AA8214AF
+	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:45:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1559994306;
+	bh=VbJ6OMaWH+tZgovy7MZ8puKAfpEhNIIolczFkw42pxg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=KbMhG2XeFZmdA6XVeTmOa5G3uHICyfqDQwqw8ygX2WSawhmGVGbt6CEpOx323P7Uh
+	 UlDhVikw+elp//OPtnZ09YNU/XOAfrVt0Jl/XmOSkA3qlTN1zmzbRr49+v0lX/2nn8
+	 AfgSb237O3sQWgdpFlI6ZHj6V4P3s8YdqznjnZdQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730038AbfFGTVg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 7 Jun 2019 15:21:36 -0400
-Received: from foss.arm.com ([217.140.110.172]:46106 "EHLO foss.arm.com"
+        id S1727604AbfFHLo4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 8 Jun 2019 07:44:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60838 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730111AbfFGTVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Jun 2019 15:21:36 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C42DC2B;
-        Fri,  7 Jun 2019 12:21:35 -0700 (PDT)
-Received: from [192.168.100.221] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7F99A3F718;
-        Fri,  7 Jun 2019 12:21:35 -0700 (PDT)
-Subject: Re: [PATCH 2/2] arm64: topology: Use PPTT to determine if PE is a
- thread
-To:     John Garry <john.garry@huawei.com>,
-        linux-arm-kernel@lists.infradead.org
-Cc:     linux-acpi@vger.kernel.org, catalin.marinas@arm.com,
-        will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        sudeep.holla@arm.com, Linuxarm <linuxarm@huawei.com>,
-        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
-        wanghuiqiang <wanghuiqiang@huawei.com>, yaohongbo@huawei.com
-References: <20190523224015.56270-1-jeremy.linton@arm.com>
- <20190523224015.56270-3-jeremy.linton@arm.com>
- <be03d428-b543-0233-a98b-233f367a6bd0@huawei.com>
-From:   Jeremy Linton <jeremy.linton@arm.com>
-Message-ID: <24541261-f86d-0d19-6275-6e110144e761@arm.com>
-Date:   Fri, 7 Jun 2019 14:21:34 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        id S1727817AbfFHLn3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 8 Jun 2019 07:43:29 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id D2ACE21530;
+        Sat,  8 Jun 2019 11:43:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1559994208;
+        bh=VbJ6OMaWH+tZgovy7MZ8puKAfpEhNIIolczFkw42pxg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=E8YJvEjlYkiJEwzAt3PPFrAsD8XemneITRv8ude8MHWVzpLPliliOFCogqt1y3CdC
+         /GmDTZrfaDNN1DUsEogZLZ1vUkicFMqgreIz6nVW474vFsPyb+GgN//cDHJWPEs1RH
+         Q0LaGF2aILkntUnmPBgCrlduVq+W/Q9y40+IELqM=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
+        linux-pci@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 20/49] ACPI/PCI: PM: Add missing wakeup.flags.valid checks
+Date:   Sat,  8 Jun 2019 07:42:01 -0400
+Message-Id: <20190608114232.8731-20-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190608114232.8731-1-sashal@kernel.org>
+References: <20190608114232.8731-1-sashal@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <be03d428-b543-0233-a98b-233f367a6bd0@huawei.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Thanks for testing and looking at this.
+[ Upstream commit 9a51c6b1f9e0239a9435db036b212498a2a3b75c ]
 
-On 6/6/19 3:49 AM, John Garry wrote:
-> On 23/05/2019 23:40, Jeremy Linton wrote:
->> ACPI 6.3 adds a thread flag to represent if a CPU/PE is
->> actually a thread. Given that the MPIDR_MT bit may not
->> represent this information consistently on homogeneous machines
->> we should prefer the PPTT flag if its available.
->>
-> 
-> Hi Jeremy,
-> 
-> I was just wondering if we should look to get this support backported 
-> (when merged)?
+Both acpi_pci_need_resume() and acpi_dev_needs_resume() check if the
+current ACPI wakeup configuration of the device matches what is
+expected as far as system wakeup from sleep states is concerned, as
+reflected by the device_may_wakeup() return value for the device.
 
-I imagine that will happen..
+However, they only should do that if wakeup.flags.valid is set for
+the device's ACPI companion, because otherwise the wakeup.prepare_count
+value for it is meaningless.
 
-> 
-> I worry about the case of a system with the CPU having MT bit in the 
-> MPIDR (while not actually threaded), i.e. the system for which these 
-> PPTT flags were added (as I understand).
+Add the missing wakeup.flags.valid checks to these functions.
 
-I have tested this patch on DAWN which happens to have the MT bit set, 
-but isn't threaded, and it appears to work.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/device_pm.c | 4 ++--
+ drivers/pci/pci-acpi.c   | 3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-> 
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>  arch/arm64/kernel/topology.c | 8 +++++---
->>  1 file changed, 5 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
->> index 0825c4a856e3..cbbedb53cf06 100644
->> --- a/arch/arm64/kernel/topology.c
->> +++ b/arch/arm64/kernel/topology.c
->> @@ -346,11 +346,9 @@ void remove_cpu_topology(unsigned int cpu)
->>   */
->>  static int __init parse_acpi_topology(void)
->>  {
->> -    bool is_threaded;
->> +    int is_threaded;
->>      int cpu, topology_id;
->>
->> -    is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
->> -
->>      for_each_possible_cpu(cpu) {
->>          int i, cache_id;
->>
->> @@ -358,6 +356,10 @@ static int __init parse_acpi_topology(void)
->>          if (topology_id < 0)
->>              return topology_id;
->>
->> +        is_threaded = acpi_pptt_cpu_is_thread(cpu);
->> +        if (is_threaded < 0)
->> +            is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
->> +
->>          if (is_threaded) {
->>              cpu_topology[cpu].thread_id = topology_id;
-> 
-> For described above scenario, this seems wrong.
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index a7c2673ffd36..1806260938e8 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -948,8 +948,8 @@ static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
+ 	u32 sys_target = acpi_target_system_state();
+ 	int ret, state;
+ 
+-	if (!pm_runtime_suspended(dev) || !adev ||
+-	    device_may_wakeup(dev) != !!adev->wakeup.prepare_count)
++	if (!pm_runtime_suspended(dev) || !adev || (adev->wakeup.flags.valid &&
++	    device_may_wakeup(dev) != !!adev->wakeup.prepare_count))
+ 		return true;
+ 
+ 	if (sys_target == ACPI_STATE_S0)
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index f8436d1c4d45..f7218c1673ce 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -625,7 +625,8 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
+ 	if (!adev || !acpi_device_power_manageable(adev))
+ 		return false;
+ 
+-	if (device_may_wakeup(&dev->dev) != !!adev->wakeup.prepare_count)
++	if (adev->wakeup.flags.valid &&
++	    device_may_wakeup(&dev->dev) != !!adev->wakeup.prepare_count)
+ 		return true;
+ 
+ 	if (acpi_target_system_state() == ACPI_STATE_S0)
+-- 
+2.20.1
 
-I'm not sure I understand the concern.
-
-This is going to ignore the MPIDR_MT bit on any machine with a PPTT 
-revision > 1. Are you worried about the topology_id assignment?
-
-
-> 
->>              topology_id = find_acpi_cpu_topology(cpu, 1);
->>
-> 
-> BTW, we did test an old kernel with 6.3 PPTT bios for this on D06 (some 
-> versions have MT bit set), and it looked ok. But I am still a bit 
-> skeptical.
-> 
-> Thanks,
-> John
-> 
-> 
-
-
-Thanks,
