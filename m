@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87841C468BC
-	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:45:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC07C28CC5
+	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:53:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 60AA8214AF
-	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:45:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58AFA21537
+	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:53:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1559994306;
-	bh=VbJ6OMaWH+tZgovy7MZ8puKAfpEhNIIolczFkw42pxg=;
+	s=default; t=1559994820;
+	bh=noleOwUoIG5PHZLpaj98UPxKciN2J1xZrQuRDb+DVgU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=KbMhG2XeFZmdA6XVeTmOa5G3uHICyfqDQwqw8ygX2WSawhmGVGbt6CEpOx323P7Uh
-	 UlDhVikw+elp//OPtnZ09YNU/XOAfrVt0Jl/XmOSkA3qlTN1zmzbRr49+v0lX/2nn8
-	 AfgSb237O3sQWgdpFlI6ZHj6V4P3s8YdqznjnZdQ=
+	b=PMLrjfDriYozxctMq4VuOf9g+Dh01YUfDa9Osvk+c0YMePFIapFBoTnXXGm0NgnAu
+	 XzO8wu9DHaeKbxBwxPmaGjxKwez6/dhSIEQUAIjHPL0turqGaE+iKP9ycKtBiY2gU6
+	 8X3fkKXaBFgwlVEl7xup/m6IZIiS/UgBNZ3H1s5M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727604AbfFHLo4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 8 Jun 2019 07:44:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60838 "EHLO mail.kernel.org"
+        id S1727827AbfFHLko (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 8 Jun 2019 07:40:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727817AbfFHLn3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 8 Jun 2019 07:43:29 -0400
+        id S1727810AbfFHLkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 8 Jun 2019 07:40:43 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D2ACE21530;
-        Sat,  8 Jun 2019 11:43:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1E486214AF;
+        Sat,  8 Jun 2019 11:40:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1559994208;
-        bh=VbJ6OMaWH+tZgovy7MZ8puKAfpEhNIIolczFkw42pxg=;
+        s=default; t=1559994042;
+        bh=noleOwUoIG5PHZLpaj98UPxKciN2J1xZrQuRDb+DVgU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=E8YJvEjlYkiJEwzAt3PPFrAsD8XemneITRv8ude8MHWVzpLPliliOFCogqt1y3CdC
-         /GmDTZrfaDNN1DUsEogZLZ1vUkicFMqgreIz6nVW474vFsPyb+GgN//cDHJWPEs1RH
-         Q0LaGF2aILkntUnmPBgCrlduVq+W/Q9y40+IELqM=
+        b=DUvbbr4dOX8hvUsYK1SHen+s4A+Nz/7g0DfkiVMqvtupoP7ZS0irZ+OXqzk1zzM9l
+         luIxpbdtM7ssy6jQ6vRK24sm32DaeMG3acXBpcwmubazApf9FlthrbC0pZD8xsX9+5
+         dvKoim2wz0cI1U7sjDw5hkmNJqYIjauem+eE/gIs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         linux-pci@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 20/49] ACPI/PCI: PM: Add missing wakeup.flags.valid checks
-Date:   Sat,  8 Jun 2019 07:42:01 -0400
-Message-Id: <20190608114232.8731-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 33/70] ACPI/PCI: PM: Add missing wakeup.flags.valid checks
+Date:   Sat,  8 Jun 2019 07:39:12 -0400
+Message-Id: <20190608113950.8033-33-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190608114232.8731-1-sashal@kernel.org>
-References: <20190608114232.8731-1-sashal@kernel.org>
+In-Reply-To: <20190608113950.8033-1-sashal@kernel.org>
+References: <20190608113950.8033-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -83,10 +83,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index a7c2673ffd36..1806260938e8 100644
+index 824ae985ad93..ccb59768b1f3 100644
 --- a/drivers/acpi/device_pm.c
 +++ b/drivers/acpi/device_pm.c
-@@ -948,8 +948,8 @@ static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
+@@ -949,8 +949,8 @@ static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
  	u32 sys_target = acpi_target_system_state();
  	int ret, state;
  
@@ -98,10 +98,10 @@ index a7c2673ffd36..1806260938e8 100644
  
  	if (sys_target == ACPI_STATE_S0)
 diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index f8436d1c4d45..f7218c1673ce 100644
+index e1949f7efd9c..bf32fde328c2 100644
 --- a/drivers/pci/pci-acpi.c
 +++ b/drivers/pci/pci-acpi.c
-@@ -625,7 +625,8 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
+@@ -666,7 +666,8 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
  	if (!adev || !acpi_device_power_manageable(adev))
  		return false;
  
