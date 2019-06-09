@@ -1,116 +1,107 @@
-Return-Path: <SRS0=YOk6=UH=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=gAp1=UI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC07C28CC5
-	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:53:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B5E0C28EBD
+	for <linux-acpi@archiver.kernel.org>; Sun,  9 Jun 2019 11:17:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 58AFA21537
-	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jun 2019 11:53:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1559994820;
-	bh=noleOwUoIG5PHZLpaj98UPxKciN2J1xZrQuRDb+DVgU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=PMLrjfDriYozxctMq4VuOf9g+Dh01YUfDa9Osvk+c0YMePFIapFBoTnXXGm0NgnAu
-	 XzO8wu9DHaeKbxBwxPmaGjxKwez6/dhSIEQUAIjHPL0turqGaE+iKP9ycKtBiY2gU6
-	 8X3fkKXaBFgwlVEl7xup/m6IZIiS/UgBNZ3H1s5M=
+	by mail.kernel.org (Postfix) with ESMTP id 4E64A2067C
+	for <linux-acpi@archiver.kernel.org>; Sun,  9 Jun 2019 11:17:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727827AbfFHLko (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 8 Jun 2019 07:40:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57984 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727810AbfFHLkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 8 Jun 2019 07:40:43 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1E486214AF;
-        Sat,  8 Jun 2019 11:40:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1559994042;
-        bh=noleOwUoIG5PHZLpaj98UPxKciN2J1xZrQuRDb+DVgU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DUvbbr4dOX8hvUsYK1SHen+s4A+Nz/7g0DfkiVMqvtupoP7ZS0irZ+OXqzk1zzM9l
-         luIxpbdtM7ssy6jQ6vRK24sm32DaeMG3acXBpcwmubazApf9FlthrbC0pZD8xsX9+5
-         dvKoim2wz0cI1U7sjDw5hkmNJqYIjauem+eE/gIs=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.1 33/70] ACPI/PCI: PM: Add missing wakeup.flags.valid checks
-Date:   Sat,  8 Jun 2019 07:39:12 -0400
-Message-Id: <20190608113950.8033-33-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190608113950.8033-1-sashal@kernel.org>
-References: <20190608113950.8033-1-sashal@kernel.org>
+        id S1728080AbfFILRg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 9 Jun 2019 07:17:36 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54759 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728029AbfFILRg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jun 2019 07:17:36 -0400
+Received: by atrey.karlin.mff.cuni.cz (Postfix, from userid 512)
+        id 02DC18022D; Sun,  9 Jun 2019 13:17:22 +0200 (CEST)
+Date:   Sun, 9 Jun 2019 13:17:32 +0200
+From:   Pavel Machek <pavel@ucw.cz>
+To:     kernel list <linux-kernel@vger.kernel.org>,
+        linux-acpi@vger.kernel.org, rui.zhang@intel.com, rjw@rjwysocki.net,
+        viresh.kumar@linaro.org, linux-pm@vger.kernel.org,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com,
+        x86@kernel.org
+Subject: 5.2-rc2: low framerate in flightgear, cpu not running at full speed,
+ thermal related?
+Message-ID: <20190609111732.GA2885@amd>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="WIyZ46R2i8wDzkSu"
+Content-Disposition: inline
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-[ Upstream commit 9a51c6b1f9e0239a9435db036b212498a2a3b75c ]
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Both acpi_pci_need_resume() and acpi_dev_needs_resume() check if the
-current ACPI wakeup configuration of the device matches what is
-expected as far as system wakeup from sleep states is concerned, as
-reflected by the device_may_wakeup() return value for the device.
+Hi!
 
-However, they only should do that if wakeup.flags.valid is set for
-the device's ACPI companion, because otherwise the wakeup.prepare_count
-value for it is meaningless.
+When I start flightgear, I get framerates around 20 fps and cpu at
+3GHz:
 
-Add the missing wakeup.flags.valid checks to these functions.
+pavel@duo:~/bt$ cat /proc/cpuinfo  | grep MHz
+cpu MHz		    : 3027.471
+cpu MHz		      : 2981.863
+cpu MHz		      	: 2958.352
+cpu MHz			  : 2864.001
+pavel@duo:~/bt$
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/device_pm.c | 4 ++--
- drivers/pci/pci-acpi.c   | 3 ++-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+(Ok, fgfs is really only running at single core, so why do both cores
+run at 3GHz?)
 
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index 824ae985ad93..ccb59768b1f3 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -949,8 +949,8 @@ static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
- 	u32 sys_target = acpi_target_system_state();
- 	int ret, state;
- 
--	if (!pm_runtime_suspended(dev) || !adev ||
--	    device_may_wakeup(dev) != !!adev->wakeup.prepare_count)
-+	if (!pm_runtime_suspended(dev) || !adev || (adev->wakeup.flags.valid &&
-+	    device_may_wakeup(dev) != !!adev->wakeup.prepare_count))
- 		return true;
- 
- 	if (sys_target == ACPI_STATE_S0)
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index e1949f7efd9c..bf32fde328c2 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -666,7 +666,8 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
- 	if (!adev || !acpi_device_power_manageable(adev))
- 		return false;
- 
--	if (device_may_wakeup(&dev->dev) != !!adev->wakeup.prepare_count)
-+	if (adev->wakeup.flags.valid &&
-+	    device_may_wakeup(&dev->dev) != !!adev->wakeup.prepare_count)
- 		return true;
- 
- 	if (acpi_target_system_state() == ACPI_STATE_S0)
--- 
-2.20.1
+But temperatures get quite high:
 
+pavel@duo:~/bt$ sensors
+thinkpad-isa-0000
+Adapter: ISA adapter
+fan1:        4485 RPM
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Package id 0:  +98.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
+Core 0:        +98.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
+Core 1:        +91.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
+
+And soon cpu goes to 1.5GHz range, with framerates going down to
+12fps. That's a bit low.
+
+Room temperature is 26Celsius.
+
+The CPU is Intel(R) Core(TM) i5-2520M CPU @ 2.50GHz . I guess it means
+it should be able to sustain both cores running at 2.5GHz?
+
+Any ideas? Were there any recent changes in that area?
+
+Best regards,
+							Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--WIyZ46R2i8wDzkSu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlz86swACgkQMOfwapXb+vKdPQCeMqRBO1sszkxVYmrFdpM8K221
+6ZoAn01zFFX0NuUnU3CTg0vhnDleQPmb
+=QyRT
+-----END PGP SIGNATURE-----
+
+--WIyZ46R2i8wDzkSu--
