@@ -2,121 +2,82 @@ Return-Path: <SRS0=q3ul=UM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE9EEC31E49
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 17:08:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE03FC46477
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 17:10:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C15A2205ED
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 17:08:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 969AF205ED
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 17:10:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729593AbfFMRIs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 13 Jun 2019 13:08:48 -0400
-Received: from foss.arm.com ([217.140.110.172]:47692 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729910AbfFMRIi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 13 Jun 2019 13:08:38 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E6C06367;
-        Thu, 13 Jun 2019 10:08:37 -0700 (PDT)
-Received: from e107155-lin (e107155-lin.cambridge.arm.com [10.1.196.42])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 07C4A3F694;
-        Thu, 13 Jun 2019 10:08:36 -0700 (PDT)
-Date:   Thu, 13 Jun 2019 18:08:31 +0100
-From:   Sudeep Holla <sudeep.holla@arm.com>
-To:     Udit Kumar <udit.kumar@nxp.com>
-Cc:     "Schmauss, Erik" <erik.schmauss@intel.com>,
+        id S2393548AbfFMRKl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 13 Jun 2019 13:10:41 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:45376 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729332AbfFLWix (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jun 2019 18:38:53 -0400
+Received: from 79.184.253.190.ipv4.supernova.orange.pl (79.184.253.190) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.267)
+ id 74cce591a9c77b62; Thu, 13 Jun 2019 00:38:51 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Len Brown <lenb@kernel.org>, Lukas Wunner <lukas@wunner.de>,
+        Keith Busch <keith.busch@intel.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Alexandru Gagniuc <mr.nuke.me@gmail.com>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [EXT] Re: Help on named object in kernel
-Message-ID: <20190613170831.GA27717@e107155-lin>
-References: <VI1PR04MB4640134AAE394D8063D9F04991EC0@VI1PR04MB4640.eurprd04.prod.outlook.com>
- <CF6A88132359CE47947DB4C6E1709ED53C5E95B1@ORSMSX122.amr.corp.intel.com>
- <20190612170059.GA30299@e107155-lin>
- <VI1PR04MB4640A3A1E8B369240C3FC72091EF0@VI1PR04MB4640.eurprd04.prod.outlook.com>
+        Linux PCI <linux-pci@vger.kernel.org>
+Subject: Re: [PATCH 3/3] PCI / ACPI: Handle sibling devices sharing power resources
+Date:   Thu, 13 Jun 2019 00:38:50 +0200
+Message-ID: <26924432.Xal58bVLXT@kreacher>
+In-Reply-To: <20190606143606.GN2781@lahna.fi.intel.com>
+References: <20190605145820.37169-1-mika.westerberg@linux.intel.com> <CAJZ5v0gwqMd0W43KQoU80=fdYooLkgPg1n0cbbAWjPqrOepYsg@mail.gmail.com> <20190606143606.GN2781@lahna.fi.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <VI1PR04MB4640A3A1E8B369240C3FC72091EF0@VI1PR04MB4640.eurprd04.prod.outlook.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jun 13, 2019 at 01:20:32AM +0000, Udit Kumar wrote:
->
->
-> > -----Original Message-----
-> > From: linux-acpi-owner@vger.kernel.org <linux-acpi-owner@vger.kernel.org>
-> > On Behalf Of Sudeep Holla
-> > Sent: Wednesday, June 12, 2019 10:31 PM
-> > To: Schmauss, Erik <erik.schmauss@intel.com>
-> > Cc: Udit Kumar <udit.kumar@nxp.com>; ACPI Devel Maling List <linux-
-> > acpi@vger.kernel.org>; lenb@kernel.org; Sudeep Holla
-> > <sudeep.holla@arm.com>; Rafael J. Wysocki <rafael@kernel.org>
-> > Subject: [EXT] Re: Help on named object in kernel
-> >
-> > Caution: EXT Email
-> >
-> > On Wed, Jun 12, 2019 at 04:37:09PM +0000, Schmauss, Erik wrote:
+On Thursday, June 6, 2019 4:36:06 PM CEST Mika Westerberg wrote:
+> On Thu, Jun 06, 2019 at 04:27:21PM +0200, Rafael J. Wysocki wrote:
+> > On Thu, Jun 6, 2019 at 4:17 PM Mika Westerberg
+> > <mika.westerberg@linux.intel.com> wrote:
 > > >
+> > > On Thu, Jun 06, 2019 at 04:08:11PM +0200, Rafael J. Wysocki wrote:
+> > > > That isn't necessary IMO as long as the device are not accessed.  If
+> > > > the kernel thinks that a given device is in D3cold and doesn't access
+> > > > it, then it really doesn't matter too much what state the device is in
+> > > > physically.  On the first access the device should be reinitialized
+> > > > anyway.
 > > >
-> > > > -----Original Message-----
-> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > > owner@vger.kernel.org] On Behalf Of Udit Kumar
-> > > > Sent: Wednesday, June 12, 2019 4:48 AM
-> > > > To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-> > > > Cc: lenb@kernel.org; Rafael J. Wysocki <rafael@kernel.org>
-> > > > Subject: Help on named object in kernel
-> > > >
-> > > > Dear ACPI experts,
-> > > > I need your help on defining named objected in ACPI under _CRS.
-> > > > In my firmware, I have defined two addresses for my device using
-> > > > Memory32Fixed and QwordMemory under _CRS.
-> > > > These  two addresses are 32-bit and 64-bit long respectively.
-> > > > For Memory32Fixed, I gave DescriptorName name as REG0 and for
-> > > > QwordMemory I gave DescriptorName as SATA.
-> > >
-> > > Could you give us the ASL for the code snippet that you're talking about?
-> > >
-> >
-> > IIUC, something like below(a very rough example based on the description
-> > above):
-> >
-> >     Name (_CRS, ResourceTemplate (){
-> >       QwordMemory (
-> >         ResourceConsumer, PosDecode, MinFixed, MaxFixed, NonCacheable,
-> >         ReadWrite, 0x0, 0x700100520, 0x700100523, 0x0, 4, , , "SATA",)
-> >       Memory32Fixed(ReadWrite, 0x3200000, 0x10000, "REG0")
-> >     }
-> >
-> > Basically 2 or more entries of Memory/Address Space Resource Descriptor
-> > which can be identified in OSPM by DescriptorName. IOW if a device has
-> > 2 sets of registers/memory/address space associated with it, instead of relying
-> > on the order of declaration, identify them by the descriptor name provided in
-> > ASL namespace.
->
-> Thanks Sudeep,
-> Shouldn't acpi frame work encapsulate descriptor name  while adding resource.
-> So that driver can rely on platform_get_resource_byname .
-> In such way, same driver could be used with device tree and acpi based systems.
->
-> I am not sure, if acpi_evaluate_xx sort of api would work for
-> descriptor-name , even if this does it will be limited to acpi only.
->
+> > > But if the device is configured to wake. For example when it detects a
+> > > hotplug that state is gone when it goes to D0unitialized.
+> > 
+> > For this we'll need a pm_runtime_resume() of the dependent device on
+> > the resource going "on".
+> > 
+> > That means we need a list of devices to resume when the resource goes
+> > "on" after being taken "off".
+> 
+> OK, thanks.
 
-IIUC acpi_resource_source should have all the information, just not
-used for this purpose yet. I do see some uses of string_ptr in that
-elsewhere. I haven't tried it, but looking at the code I think the
-support is there already.
+Basically, at the pci_acpi_setup() time dev and adev need to be passed to a function that
+will add dev as a "dependent device" for each of the power resources in the adev's D0
+list.
 
-But the question is who/where will the list of names for such resource
-is listed for a given HID/CID/... ?
---
-Regards,
-Sudeep
+Next whenever a power resource with a list of "dependent devices" goes _ON successfully,
+pm_request_resume() needs to be called for each device in that list.
+
+Finally, at the pci_acpi_cleanup() time, dev needs to be removed from the lists of
+"dependent devices" for all power resources in its ACPI companion's D0 list.
+
+At least that's how I see that.
+
+
+
