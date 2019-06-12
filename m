@@ -2,126 +2,104 @@ Return-Path: <SRS0=Un1Q=UL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B33BCC31E46
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 Jun 2019 08:01:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75581C31E46
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 Jun 2019 08:36:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98A8720684
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 Jun 2019 08:01:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5220F20874
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 Jun 2019 08:36:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726887AbfFLIBY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 Jun 2019 04:01:24 -0400
-Received: from mga09.intel.com ([134.134.136.24]:29902 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726554AbfFLIBY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Jun 2019 04:01:24 -0400
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Jun 2019 01:01:22 -0700
-X-ExtLoop1: 1
-Received: from kuha.fi.intel.com ([10.237.72.189])
-  by fmsmga001.fm.intel.com with SMTP; 12 Jun 2019 01:01:19 -0700
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Wed, 12 Jun 2019 11:01:18 +0300
-Date:   Wed, 12 Jun 2019 11:01:18 +0300
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        "Enrico Weigelt, metux IT consult" <lkml@metux.net>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>
-Subject: Re: How to inject fwnode/oftree/acpi data by platform driver ?
-Message-ID: <20190612080118.GA18301@kuha.fi.intel.com>
-References: <c15a9872-4ad4-1b7e-e34f-14549b5b55eb@metux.net>
- <CAHp75Vc_FnSaqq_Xu_Y3uXBYY=HbGsthVOAqyt4c-dH7sRGVVw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHp75Vc_FnSaqq_Xu_Y3uXBYY=HbGsthVOAqyt4c-dH7sRGVVw@mail.gmail.com>
-User-Agent: Mutt/1.11.4 (2019-03-13)
+        id S1727241AbfFLIgk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 Jun 2019 04:36:40 -0400
+Received: from mail.steuer-voss.de ([85.183.69.95]:43430 "EHLO
+        mail.steuer-voss.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725962AbfFLIgk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jun 2019 04:36:40 -0400
+Received: from pc-niv.weinmann.com (localhost [127.0.0.1])
+        by mail.steuer-voss.de (Postfix) with ESMTP id 80C9B4D05C;
+        Wed, 12 Jun 2019 10:36:37 +0200 (CEST)
+From:   Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Schmauss <erik.schmauss@intel.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
+        Thierry Reding <thierry.reding@gmail.com>
+Cc:     Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>,
+        linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-leds@vger.kernel.org, linux-pwm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, nv@vosn.de
+Subject: [PATCH v2 1/3] ACPI: Resolve objects on host-directed table loads
+Date:   Wed, 12 Jun 2019 10:36:06 +0200
+Message-Id: <e2a4ddfd93a904b50b7ccc074e00e14dc4661963.1560327219.git.nikolaus.voss@loewensteinmedical.de>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <cover.1560327219.git.nikolaus.voss@loewensteinmedical.de>
+References: <cover.1560327219.git.nikolaus.voss@loewensteinmedical.de>
+In-Reply-To: <cover.1560327219.git.nikolaus.voss@loewensteinmedical.de>
+References: <cover.1560327219.git.nikolaus.voss@loewensteinmedical.de>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+If an ACPI SSDT overlay is loaded after built-in tables
+have been loaded e.g. via configfs or efivar_ssdt_load()
+it is necessary to rewalk the namespace to resolve
+references. Without this, relative and absolute paths
+like ^PCI0.SBUS or \_SB.PCI0.SBUS are not resolved
+correctly.
 
-On Tue, Jun 11, 2019 at 09:44:23PM +0300, Andy Shevchenko wrote:
-> +Cc: Heikki.
-> Heikki, can you help here with swnodes?
-> 
-> On Sat, Jun 1, 2019 at 5:17 PM Enrico Weigelt, metux IT consult
-> <lkml@metux.net> wrote:
-> >
-> > Hi folks,
-> >
-> >
-> > I'm looking for a way to inject fwnode data from a platform driver,
-> > in order to initialize generic drivers w/ board specific configuration.
-> > The idea is getting rid of passing driver specific pdata structs
-> > (which, IIRC, seem to be deprecated).
-> >
-> > An example usecase is the APUv2/3 board, which have things like gpios
-> > wired to buttons and LEDs. The board can only be detected via DMI
-> > string, no way to probe the platform devices - have to be initialized
-> > explicitly (that's how I'm already doing it now).
-> >
-> > The nicest way, IMHO, would be if I could just write some piece of DTS
-> > and some fancy magic all the rest under the hood. Such thing doesn't
-> > seem to exist yet. Does it make sense to implement that ? How could
-> > we do it ?
-> >
-> > Which other options do we have ?
-> >
-> > Or should we just leave everything as it is and stick w/ pdata structs ?
+Make configfs load use the same method as efivar_ssdt_load().
 
-The software nodes (drivers/base/swnode.c) were designed to supply
-fwnodes that describe devices in the same way DT does. The goal I had
-with the software nodes was exaclty to get rid of pdata, so they do
-sound like the thing you are looking for. If you check Rafael's latest
-linux-next branch [1], drivers/platform/x86/intel_cht_int33fe.c can be
-used as an example how to use the software nodes.
+Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+---
+ drivers/acpi/acpi_configfs.c   |  6 +-----
+ drivers/acpi/acpica/tbxfload.c | 11 +++++++++++
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
-I think it's time to add documentation for the software nodes to the
-kernel, but I'll list here the features the software nodes have:
-
-- The software nodes are created independently from device entries.
-- Software nodes support hierarchy. Every software node has a pointer
-  to a parent software node.
-- Software nodes can have device properties.
-- Software nodes can have reference pointers to other software nodes
-  (outside of the hierarchy).
-
-Creating the software nodes from static description (struct
-software_node - available from Linux kernel v5.3 onwards) is
-straightforward. Once you have them, when you create your device
-entries (struct device), you can associate a software node with a
-device just like like any other fwnode:
-
-        device_initialize(&my_dev);
-        my_dev.parent = parent;
-        my_dev.fwnode = software_node_fwnode(&my_node);
-        ...
-        device_add(&my_device);
-
-After that, you can access all the information the software nodes
-supply to the device by using fwnode_* APIs from your driver, just
-like with ACPI or DT. Basically the entire fwnode_* API is now
-supported with softwarw nodes, except the device graph (fwnode_graph*)
-API.
-
-One final note. The hardware description must always primarily come
-from the system firmware. You only use software nodes if it's too
-late to influence what goes to the ACPI tables, or if using DTS is not
-an option.
-
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/log/?h=linux-next
-
-thanks,
-
+diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
+index f92033661239..663f0d88f912 100644
+--- a/drivers/acpi/acpi_configfs.c
++++ b/drivers/acpi/acpi_configfs.c
+@@ -56,11 +56,7 @@ static ssize_t acpi_table_aml_write(struct config_item *cfg,
+ 	if (!table->header)
+ 		return -ENOMEM;
+ 
+-	ACPI_INFO(("Host-directed Dynamic ACPI Table Load:"));
+-	ret = acpi_tb_install_and_load_table(
+-			ACPI_PTR_TO_PHYSADDR(table->header),
+-			ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL, FALSE,
+-			&table->index);
++	ret = acpi_load_table(table->header);
+ 	if (ret) {
+ 		kfree(table->header);
+ 		table->header = NULL;
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 4f30f06a6f78..ef8f8a9f3c9c 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -297,6 +297,17 @@ acpi_status acpi_load_table(struct acpi_table_header *table)
+ 	status = acpi_tb_install_and_load_table(ACPI_PTR_TO_PHYSADDR(table),
+ 						ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL,
+ 						FALSE, &table_index);
++
++	if (ACPI_SUCCESS(status)) {
++		/* Complete the initialization/resolution of package objects */
++
++		status = acpi_ns_walk_namespace(ACPI_TYPE_PACKAGE,
++						ACPI_ROOT_OBJECT,
++						ACPI_UINT32_MAX, 0,
++						acpi_ns_init_one_package,
++						NULL, NULL, NULL);
++	}
++
+ 	return_ACPI_STATUS(status);
+ }
+ 
 -- 
-heikki
+2.17.1
+
