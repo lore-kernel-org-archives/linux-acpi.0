@@ -2,154 +2,129 @@ Return-Path: <SRS0=q3ul=UM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3976BC31E45
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 16:56:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1486C31E4A
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 17:00:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1186820665
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 16:56:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=nxp.com header.i=@nxp.com header.b="Nb2178Yi"
+	by mail.kernel.org (Postfix) with ESMTP id 82EE32080A
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jun 2019 17:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730382AbfFMQ4p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 13 Jun 2019 12:56:45 -0400
-Received: from mail-eopbgr40043.outbound.protection.outlook.com ([40.107.4.43]:12426
-        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729958AbfFMBUg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Jun 2019 21:20:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XIMwPuMxjvdFYKCltTRO+0OJQY+jcG6AbvthDqfSWcE=;
- b=Nb2178YicKIY70yqwKhSNxrKPTPYDMFUbXsvKRsVoyQw7QbwP6wMjpxtfDdq+a4RGp6FKxvkesFqoQFadXFo9vaj1G//3wpwy/Non+QP4Zcr/CxuDWjiwDvjC+5J3FMl904BFKT9m+oR3er2HLIlBmKEeuEt1VNtSRlZeX+IIeM=
-Received: from VI1PR04MB4640.eurprd04.prod.outlook.com (20.177.56.27) by
- VI1PR04MB5550.eurprd04.prod.outlook.com (20.178.122.220) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1965.15; Thu, 13 Jun 2019 01:20:32 +0000
-Received: from VI1PR04MB4640.eurprd04.prod.outlook.com
- ([fe80::9dfe:752d:9e88:fe86]) by VI1PR04MB4640.eurprd04.prod.outlook.com
- ([fe80::9dfe:752d:9e88:fe86%7]) with mapi id 15.20.1987.010; Thu, 13 Jun 2019
- 01:20:32 +0000
-From:   Udit Kumar <udit.kumar@nxp.com>
-To:     Sudeep Holla <sudeep.holla@arm.com>,
-        "Schmauss, Erik" <erik.schmauss@intel.com>
-CC:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: RE: [EXT] Re: Help on named object in kernel
-Thread-Topic: [EXT] Re: Help on named object in kernel
-Thread-Index: AdUhB80T6nszZCo6R5C7RlLTfZjWmQANR+SwAADe74AAEVBe0A==
-Date:   Thu, 13 Jun 2019 01:20:32 +0000
-Message-ID: <VI1PR04MB4640A3A1E8B369240C3FC72091EF0@VI1PR04MB4640.eurprd04.prod.outlook.com>
-References: <VI1PR04MB4640134AAE394D8063D9F04991EC0@VI1PR04MB4640.eurprd04.prod.outlook.com>
- <CF6A88132359CE47947DB4C6E1709ED53C5E95B1@ORSMSX122.amr.corp.intel.com>
- <20190612170059.GA30299@e107155-lin>
-In-Reply-To: <20190612170059.GA30299@e107155-lin>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=udit.kumar@nxp.com; 
-x-originating-ip: [106.215.111.109]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 464aa7a1-89b9-4936-81e3-08d6ef9d5483
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:VI1PR04MB5550;
-x-ms-traffictypediagnostic: VI1PR04MB5550:
-x-microsoft-antispam-prvs: <VI1PR04MB55504377AD4240B3FE0B718691EF0@VI1PR04MB5550.eurprd04.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8273;
-x-forefront-prvs: 0067A8BA2A
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(376002)(136003)(346002)(39860400002)(396003)(366004)(189003)(199004)(13464003)(66476007)(66556008)(6116002)(229853002)(68736007)(76116006)(6246003)(3846002)(99286004)(64756008)(86362001)(66946007)(9686003)(14454004)(53936002)(478600001)(5660300002)(446003)(476003)(6436002)(11346002)(2906002)(44832011)(73956011)(66446008)(486006)(8936002)(14444005)(110136005)(76176011)(305945005)(316002)(78486014)(55016002)(102836004)(4326008)(25786009)(7696005)(26005)(74316002)(6506007)(71190400001)(53546011)(256004)(8676002)(71200400001)(54906003)(81156014)(186003)(66066001)(7736002)(52536014)(81166006)(33656002);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR04MB5550;H:VI1PR04MB4640.eurprd04.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: nxp.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: I4wX8gj6778hqtfbb/m7/Ow3F+/t8QVjnw0qCB3MP4TANpJRFfOd5HRScA37I5SQGVQA3odzDl15yiRxKli1JV+Cbpzy6WhC9z6SQGOYJR3LI2ctiznWtnC+rhgZM/2IBSfTcC2Q3sCxGh0qHWJVfLQuRldQ2kcoNSbWU4TIZ4sbHk/Bek/MbiLKU/NqCbcJJO5JslFkx+cap2QlwLyAOF5lXdsufhbdWsgXl93padcjpFH/7DwTs7nsekOeCc9FBqnselHI+Y8kxA83FGuFIrDXtuPZjQC/r0A5SkSQuYS/AScDYsSxyHBPwASQoJnF7J1M8q73OoqvXXSgL6OkugCZqwPm69Ilj6Niy8V0L4BFZzl3KNWAJrD0TJojPu5GgXkycVeIqrvVXGonFOb+fZqvVLGdDoPFxZ8UHlXyMDU=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S2393021AbfFMQ74 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 13 Jun 2019 12:59:56 -0400
+Received: from mga14.intel.com ([192.55.52.115]:1397 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729799AbfFMQ74 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 13 Jun 2019 12:59:56 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Jun 2019 09:59:54 -0700
+X-ExtLoop1: 1
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga003.jf.intel.com with ESMTP; 13 Jun 2019 09:59:52 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id EE1EB141; Thu, 13 Jun 2019 19:59:51 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        linux-kernel@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-acpi@vger.kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2, resend] device property: Add helpers to count items in an array
+Date:   Thu, 13 Jun 2019 19:59:51 +0300
+Message-Id: <20190613165951.64148-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-X-OriginatorOrg: nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 464aa7a1-89b9-4936-81e3-08d6ef9d5483
-X-MS-Exchange-CrossTenant-originalarrivaltime: 13 Jun 2019 01:20:32.4693
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: udit.kumar@nxp.com
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR04MB5550
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+The usual pattern to allocate the necessary space for an array of properties is
+to count them first by calling:
 
+  count = device_property_read_uXX_array(dev, propname, NULL, 0);
+  if (count < 0)
+	return count;
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org <linux-acpi-owner@vger.kernel.org>
-> On Behalf Of Sudeep Holla
-> Sent: Wednesday, June 12, 2019 10:31 PM
-> To: Schmauss, Erik <erik.schmauss@intel.com>
-> Cc: Udit Kumar <udit.kumar@nxp.com>; ACPI Devel Maling List <linux-
-> acpi@vger.kernel.org>; lenb@kernel.org; Sudeep Holla
-> <sudeep.holla@arm.com>; Rafael J. Wysocki <rafael@kernel.org>
-> Subject: [EXT] Re: Help on named object in kernel
->=20
-> Caution: EXT Email
->=20
-> On Wed, Jun 12, 2019 at 04:37:09PM +0000, Schmauss, Erik wrote:
-> >
-> >
-> > > -----Original Message-----
-> > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > owner@vger.kernel.org] On Behalf Of Udit Kumar
-> > > Sent: Wednesday, June 12, 2019 4:48 AM
-> > > To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-> > > Cc: lenb@kernel.org; Rafael J. Wysocki <rafael@kernel.org>
-> > > Subject: Help on named object in kernel
-> > >
-> > > Dear ACPI experts,
-> > > I need your help on defining named objected in ACPI under _CRS.
-> > > In my firmware, I have defined two addresses for my device using
-> > > Memory32Fixed and QwordMemory under _CRS.
-> > > These  two addresses are 32-bit and 64-bit long respectively.
-> > > For Memory32Fixed, I gave DescriptorName name as REG0 and for
-> > > QwordMemory I gave DescriptorName as SATA.
-> >
-> > Could you give us the ASL for the code snippet that you're talking abou=
-t?
-> >
->=20
-> IIUC, something like below(a very rough example based on the description
-> above):
->=20
->     Name (_CRS, ResourceTemplate (){
->       QwordMemory (
->         ResourceConsumer, PosDecode, MinFixed, MaxFixed, NonCacheable,
->         ReadWrite, 0x0, 0x700100520, 0x700100523, 0x0, 4, , , "SATA",)
->       Memory32Fixed(ReadWrite, 0x3200000, 0x10000, "REG0")
->     }
->=20
-> Basically 2 or more entries of Memory/Address Space Resource Descriptor
-> which can be identified in OSPM by DescriptorName. IOW if a device has
-> 2 sets of registers/memory/address space associated with it, instead of r=
-elying
-> on the order of declaration, identify them by the descriptor name provide=
-d in
-> ASL namespace.
+Introduce helpers device_property_count_uXX() to count items by supplying hard
+coded last two parameters to device_property_readXX_array().
 
-Thanks Sudeep,=20
-Shouldn't acpi frame work encapsulate descriptor name  while adding resourc=
-e.
-So that driver can rely on platform_get_resource_byname .=20
-In such way, same driver could be used with device tree and acpi based syst=
-ems.=20
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ include/linux/property.h | 44 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-I am not sure, if acpi_evaluate_xx sort of api would work for descriptor-na=
-me , even if this does it will be limited to acpi only.
-=20
-> --
-> Regards,
-> Sudeep
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 088d4db7e949..dbacf17fff2e 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -148,6 +148,26 @@ static inline int device_property_read_u64(struct device *dev,
+ 	return device_property_read_u64_array(dev, propname, val, 1);
+ }
+ 
++static inline int device_property_count_u8(struct device *dev, const char *propname)
++{
++	return device_property_read_u8_array(dev, propname, NULL, 0);
++}
++
++static inline int device_property_count_u16(struct device *dev, const char *propname)
++{
++	return device_property_read_u16_array(dev, propname, NULL, 0);
++}
++
++static inline int device_property_count_u32(struct device *dev, const char *propname)
++{
++	return device_property_read_u32_array(dev, propname, NULL, 0);
++}
++
++static inline int device_property_count_u64(struct device *dev, const char *propname)
++{
++	return device_property_read_u64_array(dev, propname, NULL, 0);
++}
++
+ static inline bool fwnode_property_read_bool(const struct fwnode_handle *fwnode,
+ 					     const char *propname)
+ {
+@@ -178,6 +198,30 @@ static inline int fwnode_property_read_u64(const struct fwnode_handle *fwnode,
+ 	return fwnode_property_read_u64_array(fwnode, propname, val, 1);
+ }
+ 
++static inline int fwnode_property_count_u8(const struct fwnode_handle *fwnode,
++					   const char *propname)
++{
++	return fwnode_property_read_u8_array(fwnode, propname, NULL, 0);
++}
++
++static inline int fwnode_property_count_u16(const struct fwnode_handle *fwnode,
++					    const char *propname)
++{
++	return fwnode_property_read_u16_array(fwnode, propname, NULL, 0);
++}
++
++static inline int fwnode_property_count_u32(const struct fwnode_handle *fwnode,
++					    const char *propname)
++{
++	return fwnode_property_read_u32_array(fwnode, propname, NULL, 0);
++}
++
++static inline int fwnode_property_count_u64(const struct fwnode_handle *fwnode,
++					    const char *propname)
++{
++	return fwnode_property_read_u64_array(fwnode, propname, NULL, 0);
++}
++
+ /**
+  * struct property_entry - "Built-in" device property representation.
+  * @name: Name of the property.
+-- 
+2.20.1
+
