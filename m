@@ -2,106 +2,105 @@ Return-Path: <SRS0=o6KY=UN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DBBDC31E4B
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 10:01:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E7AC31E4B
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 10:01:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0DDF721773
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 10:01:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D90512177E
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 10:01:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727162AbfFNKBu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Jun 2019 06:01:50 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:35308 "EHLO mx1.redhat.com"
+        id S1727289AbfFNKB5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Jun 2019 06:01:57 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:59120 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726905AbfFNKBu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jun 2019 06:01:50 -0400
+        id S1727447AbfFNKBy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Jun 2019 06:01:54 -0400
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 264D581F07;
-        Fri, 14 Jun 2019 10:01:50 +0000 (UTC)
+        by mx1.redhat.com (Postfix) with ESMTPS id 7B670308FBB4;
+        Fri, 14 Jun 2019 10:01:33 +0000 (UTC)
 Received: from t460s.redhat.com (ovpn-116-252.ams2.redhat.com [10.36.116.252])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 05D8D5DD7A;
-        Fri, 14 Jun 2019 10:01:47 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 22F6D5D9C3;
+        Fri, 14 Jun 2019 10:01:14 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Dan Williams <dan.j.williams@intel.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
         linux-mm@kvack.org, David Hildenbrand <david@redhat.com>,
+        Andrew Banman <andrew.banman@hpe.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Arun KS <arunks@codeaurora.org>, Baoquan He <bhe@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        Juergen Gross <jgross@suse.com>,
         Keith Busch <keith.busch@intel.com>,
-        Oscar Salvador <osalvador@suse.de>
-Subject: [PATCH v1 3/6] mm: Make register_mem_sect_under_node() static
-Date:   Fri, 14 Jun 2019 12:01:11 +0200
-Message-Id: <20190614100114.311-4-david@redhat.com>
-In-Reply-To: <20190614100114.311-1-david@redhat.com>
-References: <20190614100114.311-1-david@redhat.com>
+        Len Brown <lenb@kernel.org>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michael Neuling <mikey@neuling.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Rapoport <rppt@linux.vnet.ibm.com>,
+        "mike.travis@hpe.com" <mike.travis@hpe.com>,
+        Oscar Salvador <osalvador@suse.com>,
+        Oscar Salvador <osalvador@suse.de>,
+        Paul Mackerras <paulus@samba.org>,
+        Pavel Tatashin <pasha.tatashin@oracle.com>,
+        Pavel Tatashin <pasha.tatashin@soleen.com>,
+        Pavel Tatashin <pavel.tatashin@microsoft.com>,
+        Qian Cai <cai@lca.pw>, "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Rashmica Gupta <rashmica.g@gmail.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Wei Yang <richard.weiyang@gmail.com>
+Subject: [PATCH v1 0/6] mm: Further memory block device cleanups
+Date:   Fri, 14 Jun 2019 12:01:08 +0200
+Message-Id: <20190614100114.311-1-david@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.25]); Fri, 14 Jun 2019 10:01:50 +0000 (UTC)
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.43]); Fri, 14 Jun 2019 10:01:54 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-It is only used internally.
+Some further cleanups around memory block devices. Especially, clean up
+and simplify walk_memory_range(). Including some other minor cleanups.
 
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- drivers/base/node.c  | 3 ++-
- include/linux/node.h | 7 -------
- 2 files changed, 2 insertions(+), 8 deletions(-)
+Based on: linux-next
 
-diff --git a/drivers/base/node.c b/drivers/base/node.c
-index 9be88fd05147..e6364e3e3e31 100644
---- a/drivers/base/node.c
-+++ b/drivers/base/node.c
-@@ -752,7 +752,8 @@ static int __ref get_nid_for_pfn(unsigned long pfn)
- }
- 
- /* register memory section under specified node if it spans that node */
--int register_mem_sect_under_node(struct memory_block *mem_blk, void *arg)
-+static int register_mem_sect_under_node(struct memory_block *mem_blk,
-+					 void *arg)
- {
- 	int ret, nid = *(int *)arg;
- 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
-diff --git a/include/linux/node.h b/include/linux/node.h
-index 548c226966a2..4866f32a02d8 100644
---- a/include/linux/node.h
-+++ b/include/linux/node.h
-@@ -137,8 +137,6 @@ static inline int register_one_node(int nid)
- extern void unregister_one_node(int nid);
- extern int register_cpu_under_node(unsigned int cpu, unsigned int nid);
- extern int unregister_cpu_under_node(unsigned int cpu, unsigned int nid);
--extern int register_mem_sect_under_node(struct memory_block *mem_blk,
--						void *arg);
- extern void unregister_memory_block_under_nodes(struct memory_block *mem_blk);
- 
- extern int register_memory_node_under_compute_node(unsigned int mem_nid,
-@@ -170,11 +168,6 @@ static inline int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
- {
- 	return 0;
- }
--static inline int register_mem_sect_under_node(struct memory_block *mem_blk,
--							void *arg)
--{
--	return 0;
--}
- static inline void unregister_memory_block_under_nodes(struct memory_block *mem_blk)
- {
- }
+Minor conflict with Dan's subsection hot-add series.
+Compiled + tested on x86 with DIMMs under QEMU.
+
+David Hildenbrand (6):
+  mm: Section numbers use the type "unsigned long"
+  drivers/base/memory: Use "unsigned long" for block ids
+  mm: Make register_mem_sect_under_node() static
+  mm/memory_hotplug: Rename walk_memory_range() and pass start+size
+    instead of pfns
+  mm/memory_hotplug: Move and simplify walk_memory_blocks()
+  drivers/base/memory.c: Get rid of find_memory_block_hinted()
+
+ arch/powerpc/platforms/powernv/memtrace.c | 22 +++---
+ drivers/acpi/acpi_memhotplug.c            | 19 ++----
+ drivers/base/memory.c                     | 81 +++++++++++++++++------
+ drivers/base/node.c                       |  8 ++-
+ include/linux/memory.h                    |  5 +-
+ include/linux/memory_hotplug.h            |  2 -
+ include/linux/mmzone.h                    |  4 +-
+ include/linux/node.h                      |  7 --
+ mm/memory_hotplug.c                       | 57 +---------------
+ mm/sparse.c                               | 12 ++--
+ 10 files changed, 92 insertions(+), 125 deletions(-)
+
 -- 
 2.21.0
 
