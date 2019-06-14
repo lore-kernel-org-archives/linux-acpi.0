@@ -2,117 +2,98 @@ Return-Path: <SRS0=o6KY=UN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3947BC31E4B
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 15:35:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3767FC31E4E
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 17:54:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A9532173C
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 15:35:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13EFC21848
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Jun 2019 17:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726193AbfFNPfk convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Jun 2019 11:35:40 -0400
-Received: from mga01.intel.com ([192.55.52.88]:34880 "EHLO mga01.intel.com"
+        id S1727179AbfFNRys (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Jun 2019 13:54:48 -0400
+Received: from foss.arm.com ([217.140.110.172]:39262 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725780AbfFNPfj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jun 2019 11:35:39 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Jun 2019 08:35:38 -0700
-X-ExtLoop1: 1
-Received: from orsmsx109.amr.corp.intel.com ([10.22.240.7])
-  by fmsmga004.fm.intel.com with ESMTP; 14 Jun 2019 08:35:38 -0700
-Received: from orsmsx116.amr.corp.intel.com (10.22.240.14) by
- ORSMSX109.amr.corp.intel.com (10.22.240.7) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Fri, 14 Jun 2019 08:35:38 -0700
-Received: from orsmsx110.amr.corp.intel.com ([169.254.10.60]) by
- ORSMSX116.amr.corp.intel.com ([169.254.7.166]) with mapi id 14.03.0415.000;
- Fri, 14 Jun 2019 08:35:37 -0700
-From:   "Moore, Robert" <robert.moore@intel.com>
-To:     Nikolaus Voss <nv@vosn.de>, "Rafael J. Wysocki" <rafael@kernel.org>
-CC:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        "Schmauss, Erik" <erik.schmauss@intel.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        "ACPI Devel Maling List" <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-        Linux PWM List <linux-pwm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH v2 1/3] ACPI: Resolve objects on host-directed table
- loads
-Thread-Topic: [PATCH v2 1/3] ACPI: Resolve objects on host-directed table
- loads
-Thread-Index: AQHVIPn/qqDB5Bv4z0aSsleXlAnDw6abVhaAgAADpwD///G0sA==
-Date:   Fri, 14 Jun 2019 15:35:36 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B95EFB26@ORSMSX110.amr.corp.intel.com>
-References: <cover.1560327219.git.nikolaus.voss@loewensteinmedical.de>
- <e2a4ddfd93a904b50b7ccc074e00e14dc4661963.1560327219.git.nikolaus.voss@loewensteinmedical.de>
- <CAJZ5v0jqxWs=PPik-TCDqQiyxCSyRP7HTue1WsdWP9e-nik2eA@mail.gmail.com>
- <alpine.DEB.2.20.1906141114490.6579@fox.voss.local>
-In-Reply-To: <alpine.DEB.2.20.1906141114490.6579@fox.voss.local>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiMjNjOGUyNzEtODllMy00MDgxLWE0MmYtZTE5ZDRlOTBjZDFmIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoieHMzbXMwTW5xdTg0dUJueHJ5aWNNR0dQTDNaSWk1T0FNYlRldUk0TW0wMUlzWnp6cFwvN0dqNlAraXlyaTVweG0ifQ==
-x-ctpclassification: CTP_NT
-dlp-product: dlpe-windows
-dlp-version: 11.2.0.6
-dlp-reaction: no-action
-x-originating-ip: [10.22.254.138]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        id S1727204AbfFNRyr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Jun 2019 13:54:47 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1A41D3EF;
+        Fri, 14 Jun 2019 10:54:47 -0700 (PDT)
+Received: from en101.cambridge.arm.com (en101.cambridge.arm.com [10.1.196.93])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 327DB3F718;
+        Fri, 14 Jun 2019 10:54:46 -0700 (PDT)
+From:   Suzuki K Poulose <suzuki.poulose@arm.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     gregkh@linuxfoundation.org, rafael@kernel.org,
+        suzuki.poulose@arm.com, Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH v2 03/28] acpi: utils: Cleanup acpi_dev_match_cb
+Date:   Fri, 14 Jun 2019 18:53:58 +0100
+Message-Id: <1560534863-15115-4-git-send-email-suzuki.poulose@arm.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1560534863-15115-1-git-send-email-suzuki.poulose@arm.com>
+References: <1560534863-15115-1-git-send-email-suzuki.poulose@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+The prototype of bus_find_device() will be unified with that of
+class_find_device() subsequently, but for this purpose the callback
+functions passed to it need to take (const void *) as the second
+argument.  Consequently, they cannot modify the memory pointed to by
+that argument which currently is not the case for acpi_dev_match_cb().
+However, acpi_dev_match_cb() really need not modify the "match" object
+passed to it, because acpi_dev_get_first_match_dev() which uses it via
+bus_find_device() can easily convert the result of bus_find_device()
+into the pointer to return.
 
+For this reason, update acpi_dev_match_cb() to avoid the redundant
+memory updates.
 
------Original Message-----
-From: Nikolaus Voss [mailto:nv@vosn.de] 
-Sent: Friday, June 14, 2019 2:26 AM
-To: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>; Moore, Robert <robert.moore@intel.com>; Schmauss, Erik <erik.schmauss@intel.com>; Jacek Anaszewski <jacek.anaszewski@gmail.com>; Pavel Machek <pavel@ucw.cz>; Dan Murphy <dmurphy@ti.com>; Thierry Reding <thierry.reding@gmail.com>; ACPI Devel Maling List <linux-acpi@vger.kernel.org>; open list:ACPI COMPONENT ARCHITECTURE (ACPICA) <devel@acpica.org>; linux-leds@vger.kernel.org; Linux PWM List <linux-pwm@vger.kernel.org>; Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 1/3] ACPI: Resolve objects on host-directed table loads
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+---
+ drivers/acpi/utils.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-Hi Rafael,
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 7def63a..1391b63 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -725,8 +725,6 @@ bool acpi_dev_found(const char *hid)
+ EXPORT_SYMBOL(acpi_dev_found);
+ 
+ struct acpi_dev_match_info {
+-	const char *dev_name;
+-	struct acpi_device *adev;
+ 	struct acpi_device_id hid[2];
+ 	const char *uid;
+ 	s64 hrv;
+@@ -746,9 +744,6 @@ static int acpi_dev_match_cb(struct device *dev, void *data)
+ 	    strcmp(adev->pnp.unique_id, match->uid)))
+ 		return 0;
+ 
+-	match->dev_name = acpi_dev_name(adev);
+-	match->adev = adev;
+-
+ 	if (match->hrv == -1)
+ 		return 1;
+ 
+@@ -818,7 +813,7 @@ acpi_dev_get_first_match_dev(const char *hid, const char *uid, s64 hrv)
+ 	match.hrv = hrv;
+ 
+ 	dev = bus_find_device(&acpi_bus_type, NULL, &match, acpi_dev_match_cb);
+-	return dev ? match.adev : NULL;
++	return dev ? to_acpi_device(dev) : NULL;
+ }
+ EXPORT_SYMBOL(acpi_dev_get_first_match_dev);
+ 
+-- 
+2.7.4
 
-On Fri, 14 Jun 2019, Rafael J. Wysocki wrote:
-> On Wed, Jun 12, 2019 at 10:36 AM Nikolaus Voss 
-> <nikolaus.voss@loewensteinmedical.de> wrote:
->>
->> If an ACPI SSDT overlay is loaded after built-in tables have been 
->> loaded e.g. via configfs or efivar_ssdt_load() it is necessary to 
->> rewalk the namespace to resolve references. Without this, relative 
->> and absolute paths like ^PCI0.SBUS or \_SB.PCI0.SBUS are not resolved 
->> correctly.
->>
->> Make configfs load use the same method as efivar_ssdt_load().
->>
->> Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
->
-> This is fine by me, so
->
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Or if you want me to take this patch (without the other two in the 
-> series), please let me know.
-
-thanks. I think it would be the best if you take up this patch as it is an independent topic. In retrospect it wasn't a good idea to put it into this series.
-
-Kind regards,
-Niko
-
-I would have to ask, why is additional code needed for package initialization/resolution? It already happens elsewhere in acpica.
-Bob
-
-[...]
