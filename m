@@ -2,201 +2,71 @@ Return-Path: <SRS0=w4hD=UO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32627C31E47
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFCFC31E47
+	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:23:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0B45C21848
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:07:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=c-s.fr header.i=@c-s.fr header.b="CFZCdvS6"
+	by mail.kernel.org (Postfix) with ESMTP id 0D956206B7
+	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725927AbfFOIHE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 15 Jun 2019 04:07:04 -0400
-Received: from pegase1.c-s.fr ([93.17.236.30]:7969 "EHLO pegase1.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725825AbfFOIHD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 15 Jun 2019 04:07:03 -0400
-Received: from localhost (mailhub1-int [192.168.12.234])
-        by localhost (Postfix) with ESMTP id 45QqnX6hxKz9v0F9;
-        Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
-Authentication-Results: localhost; dkim=pass
-        reason="1024-bit key; insecure key"
-        header.d=c-s.fr header.i=@c-s.fr header.b=CFZCdvS6; dkim-adsp=pass;
-        dkim-atps=neutral
-X-Virus-Scanned: Debian amavisd-new at c-s.fr
-Received: from pegase1.c-s.fr ([192.168.12.234])
-        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
-        with ESMTP id hc2rOByaNF3V; Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase1.c-s.fr (Postfix) with ESMTP id 45QqnX5Gqkz9v0F8;
-        Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=c-s.fr; s=mail;
-        t=1560586016; bh=1p6s1wDC21lFcLrW9LHAqnn+cIQAnQKI/I9iSnqTFsU=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=CFZCdvS6Gn44Gms6CdPAgtpa9H53SYlJJFfS68xOIrkZxayPk64IgDJI88xDV354W
-         YUTg0/LxuR+UPAdtUprz+7sTpVdF78EI+TcFZzuJjZLj1OU2Oi01DPmjcAOipLL3Gq
-         9wjMJkVHKam+/9rCfdG+6q/sqIpKw2+fLOUwJHCI=
-Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id BA5A58B7B3;
-        Sat, 15 Jun 2019 10:06:57 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id FwFmC_wRUTFQ; Sat, 15 Jun 2019 10:06:57 +0200 (CEST)
-Received: from PO15451 (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 96D348B77A;
-        Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
-Subject: Re: [PATCH v1 1/6] mm: Section numbers use the type "unsigned long"
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        David Hildenbrand <david@redhat.com>
-Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
-        Michal Hocko <mhocko@suse.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Baoquan He <bhe@redhat.com>, linux-mm@kvack.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        id S1725943AbfFOIXp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 15 Jun 2019 04:23:45 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:18621 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725927AbfFOIXp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 15 Jun 2019 04:23:45 -0400
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id D11044BB0A4B7A6B23F0;
+        Sat, 15 Jun 2019 16:23:39 +0800 (CST)
+Received: from linux-ibm.site (10.175.102.37) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.439.0; Sat, 15 Jun 2019 16:23:33 +0800
+From:   Hanjun Guo <guohanjun@huawei.com>
+To:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-acpi@vger.kernel.org>
+CC:     Catalin Marinas <catalin.marinas@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-kernel@vger.kernel.org, Wei Yang <richard.weiyang@gmail.com>,
-        linux-acpi@vger.kernel.org,
-        Mike Rapoport <rppt@linux.vnet.ibm.com>,
-        Arun KS <arunks@codeaurora.org>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Pavel Tatashin <pasha.tatashin@oracle.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        linuxppc-dev@lists.ozlabs.org, Vlastimil Babka <vbabka@suse.cz>,
-        Oscar Salvador <osalvador@suse.de>
-References: <20190614100114.311-1-david@redhat.com>
- <20190614100114.311-2-david@redhat.com>
- <20190614120036.00ae392e3f210e7bc9ec6960@linux-foundation.org>
-From:   Christophe Leroy <christophe.leroy@c-s.fr>
-Message-ID: <701e8feb-cbf8-04c1-758c-046da9394ac1@c-s.fr>
-Date:   Sat, 15 Jun 2019 10:06:54 +0200
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Will Deacon <will@kernel.org>
+Subject: [PATCH] MAINTAINERS: Update my email address
+Date:   Sat, 15 Jun 2019 16:21:12 +0800
+Message-ID: <1560586872-40099-1-git-send-email-guohanjun@huawei.com>
+X-Mailer: git-send-email 1.7.12.4
 MIME-Version: 1.0
-In-Reply-To: <20190614120036.00ae392e3f210e7bc9ec6960@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.175.102.37]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+The @linaro.org address is not working and bonucing, so update the
+references.
 
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Le 14/06/2019 à 21:00, Andrew Morton a écrit :
-> On Fri, 14 Jun 2019 12:01:09 +0200 David Hildenbrand <david@redhat.com> wrote:
-> 
->> We are using a mixture of "int" and "unsigned long". Let's make this
->> consistent by using "unsigned long" everywhere. We'll do the same with
->> memory block ids next.
->>
->> ...
->>
->> -	int i, ret, section_count = 0;
->> +	unsigned long i;
->>
->> ...
->>
->> -	unsigned int i;
->> +	unsigned long i;
-> 
-> Maybe I did too much fortran back in the day, but I think the
-> expectation is that a variable called "i" has type "int".
-> 
-> This?
-> 
-> 
-> 
-> s/unsigned long i/unsigned long section_nr/
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 57f496c..2fed10f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -364,7 +364,7 @@ F:	drivers/acpi/fan.c
+ 
+ ACPI FOR ARM64 (ACPI/arm64)
+ M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+-M:	Hanjun Guo <hanjun.guo@linaro.org>
++M:	Hanjun Guo <guohanjun@huawei.com>
+ M:	Sudeep Holla <sudeep.holla@arm.com>
+ L:	linux-acpi@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-- 
+1.7.12.4
 
- From my point of view you degrade readability by doing that.
-
-section_nr_to_pfn(mem->start_section_nr + section_nr);
-
-Three times the word 'section_nr' in one line, is that worth it ? Gives 
-me headache.
-
-Codying style says the following, which makes full sense in my opinion:
-
-LOCAL variable names should be short, and to the point.  If you have
-some random integer loop counter, it should probably be called ``i``.
-Calling it ``loop_counter`` is non-productive, if there is no chance of it
-being mis-understood.
-
-What about just naming it 'nr' if we want to use something else than 'i' ?
-
-Christophe
-
-
-> 
-> --- a/drivers/base/memory.c~mm-section-numbers-use-the-type-unsigned-long-fix
-> +++ a/drivers/base/memory.c
-> @@ -131,17 +131,17 @@ static ssize_t phys_index_show(struct de
->   static ssize_t removable_show(struct device *dev, struct device_attribute *attr,
->   			      char *buf)
->   {
-> -	unsigned long i, pfn;
-> +	unsigned long section_nr, pfn;
->   	int ret = 1;
->   	struct memory_block *mem = to_memory_block(dev);
->   
->   	if (mem->state != MEM_ONLINE)
->   		goto out;
->   
-> -	for (i = 0; i < sections_per_block; i++) {
-> -		if (!present_section_nr(mem->start_section_nr + i))
-> +	for (section_nr = 0; section_nr < sections_per_block; section_nr++) {
-> +		if (!present_section_nr(mem->start_section_nr + section_nr))
->   			continue;
-> -		pfn = section_nr_to_pfn(mem->start_section_nr + i);
-> +		pfn = section_nr_to_pfn(mem->start_section_nr + section_nr);
->   		ret &= is_mem_section_removable(pfn, PAGES_PER_SECTION);
->   	}
->   
-> @@ -695,12 +695,12 @@ static int add_memory_block(unsigned lon
->   {
->   	int ret, section_count = 0;
->   	struct memory_block *mem;
-> -	unsigned long i;
-> +	unsigned long section_nr;
->   
-> -	for (i = base_section_nr;
-> -	     i < base_section_nr + sections_per_block;
-> -	     i++)
-> -		if (present_section_nr(i))
-> +	for (section_nr = base_section_nr;
-> +	     section_nr < base_section_nr + sections_per_block;
-> +	     section_nr++)
-> +		if (present_section_nr(section_nr))
->   			section_count++;
->   
->   	if (section_count == 0)
-> @@ -823,7 +823,7 @@ static const struct attribute_group *mem
->    */
->   int __init memory_dev_init(void)
->   {
-> -	unsigned long i;
-> +	unsigned long section_nr;
->   	int ret;
->   	int err;
->   	unsigned long block_sz;
-> @@ -840,9 +840,9 @@ int __init memory_dev_init(void)
->   	 * during boot and have been initialized
->   	 */
->   	mutex_lock(&mem_sysfs_mutex);
-> -	for (i = 0; i <= __highest_present_section_nr;
-> -		i += sections_per_block) {
-> -		err = add_memory_block(i);
-> +	for (section_nr = 0; section_nr <= __highest_present_section_nr;
-> +		section_nr += sections_per_block) {
-> +		err = add_memory_block(section_nr);
->   		if (!ret)
->   			ret = err;
->   	}
-> _
-> 
