@@ -2,125 +2,201 @@ Return-Path: <SRS0=w4hD=UO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41904C31E44
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 01:11:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32627C31E47
+	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:07:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 24A2421841
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 01:11:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B45C21848
+	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:07:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=c-s.fr header.i=@c-s.fr header.b="CFZCdvS6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726289AbfFOBLA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Jun 2019 21:11:00 -0400
-Received: from foss.arm.com ([217.140.110.172]:45078 "EHLO foss.arm.com"
+        id S1725927AbfFOIHE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 15 Jun 2019 04:07:04 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:7969 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725809AbfFOBK7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jun 2019 21:10:59 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EC658344;
-        Fri, 14 Jun 2019 18:10:58 -0700 (PDT)
-Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.30.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id DAC753F718;
-        Fri, 14 Jun 2019 18:10:58 -0700 (PDT)
-From:   Jeremy Linton <jeremy.linton@arm.com>
-To:     linux-arm-kernel@lists.infradead.org
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net,
-        lenb@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
-        sudeep.holla@arm.com, Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 1/4] ACPI/PPTT: Modify node flag detection to find last IDENTICAL
-Date:   Fri, 14 Jun 2019 20:09:07 -0500
-Message-Id: <20190615010910.33921-2-jeremy.linton@arm.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190615010910.33921-1-jeremy.linton@arm.com>
-References: <20190615010910.33921-1-jeremy.linton@arm.com>
+        id S1725825AbfFOIHD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 15 Jun 2019 04:07:03 -0400
+Received: from localhost (mailhub1-int [192.168.12.234])
+        by localhost (Postfix) with ESMTP id 45QqnX6hxKz9v0F9;
+        Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
+Authentication-Results: localhost; dkim=pass
+        reason="1024-bit key; insecure key"
+        header.d=c-s.fr header.i=@c-s.fr header.b=CFZCdvS6; dkim-adsp=pass;
+        dkim-atps=neutral
+X-Virus-Scanned: Debian amavisd-new at c-s.fr
+Received: from pegase1.c-s.fr ([192.168.12.234])
+        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
+        with ESMTP id hc2rOByaNF3V; Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase1.c-s.fr (Postfix) with ESMTP id 45QqnX5Gqkz9v0F8;
+        Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=c-s.fr; s=mail;
+        t=1560586016; bh=1p6s1wDC21lFcLrW9LHAqnn+cIQAnQKI/I9iSnqTFsU=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=CFZCdvS6Gn44Gms6CdPAgtpa9H53SYlJJFfS68xOIrkZxayPk64IgDJI88xDV354W
+         YUTg0/LxuR+UPAdtUprz+7sTpVdF78EI+TcFZzuJjZLj1OU2Oi01DPmjcAOipLL3Gq
+         9wjMJkVHKam+/9rCfdG+6q/sqIpKw2+fLOUwJHCI=
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id BA5A58B7B3;
+        Sat, 15 Jun 2019 10:06:57 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id FwFmC_wRUTFQ; Sat, 15 Jun 2019 10:06:57 +0200 (CEST)
+Received: from PO15451 (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 96D348B77A;
+        Sat, 15 Jun 2019 10:06:56 +0200 (CEST)
+Subject: Re: [PATCH v1 1/6] mm: Section numbers use the type "unsigned long"
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        David Hildenbrand <david@redhat.com>
+Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
+        Michal Hocko <mhocko@suse.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Baoquan He <bhe@redhat.com>, linux-mm@kvack.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-kernel@vger.kernel.org, Wei Yang <richard.weiyang@gmail.com>,
+        linux-acpi@vger.kernel.org,
+        Mike Rapoport <rppt@linux.vnet.ibm.com>,
+        Arun KS <arunks@codeaurora.org>,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        Pavel Tatashin <pasha.tatashin@oracle.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        linuxppc-dev@lists.ozlabs.org, Vlastimil Babka <vbabka@suse.cz>,
+        Oscar Salvador <osalvador@suse.de>
+References: <20190614100114.311-1-david@redhat.com>
+ <20190614100114.311-2-david@redhat.com>
+ <20190614120036.00ae392e3f210e7bc9ec6960@linux-foundation.org>
+From:   Christophe Leroy <christophe.leroy@c-s.fr>
+Message-ID: <701e8feb-cbf8-04c1-758c-046da9394ac1@c-s.fr>
+Date:   Sat, 15 Jun 2019 10:06:54 +0200
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
+In-Reply-To: <20190614120036.00ae392e3f210e7bc9ec6960@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The ACPI specification implies that the IDENTICAL flag should be
-set on all non leaf nodes where the children are identical.
-This means that we need to be searching for the last node with
-the identical flag set rather than the first one.
 
-Since this flag is also dependent on the table revision, we
-need to add a bit of extra code to verify the table revision,
-and the next node's state in the traversal. Since we want to
-avoid function pointers here, lets just special case
-the IDENTICAL flag.
 
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- drivers/acpi/pptt.c | 35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+Le 14/06/2019 à 21:00, Andrew Morton a écrit :
+> On Fri, 14 Jun 2019 12:01:09 +0200 David Hildenbrand <david@redhat.com> wrote:
+> 
+>> We are using a mixture of "int" and "unsigned long". Let's make this
+>> consistent by using "unsigned long" everywhere. We'll do the same with
+>> memory block ids next.
+>>
+>> ...
+>>
+>> -	int i, ret, section_count = 0;
+>> +	unsigned long i;
+>>
+>> ...
+>>
+>> -	unsigned int i;
+>> +	unsigned long i;
+> 
+> Maybe I did too much fortran back in the day, but I think the
+> expectation is that a variable called "i" has type "int".
+> 
+> This?
+> 
+> 
+> 
+> s/unsigned long i/unsigned long section_nr/
 
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index b72e6afaa8fb..05344413f199 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -432,17 +432,40 @@ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
- 	}
- }
- 
-+static bool flag_identical(struct acpi_table_header *table_hdr,
-+			   struct acpi_pptt_processor *cpu)
-+{
-+	struct acpi_pptt_processor *next;
-+
-+	/* heterogeneous machines must use PPTT revision > 1 */
-+	if (table_hdr->revision < 2)
-+		return false;
-+
-+	/* Locate the last node in the tree with IDENTICAL set */
-+	if (cpu->flags & ACPI_PPTT_ACPI_IDENTICAL) {
-+		next = fetch_pptt_node(table_hdr, cpu->parent);
-+		if (!(next && next->flags & ACPI_PPTT_ACPI_IDENTICAL))
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- /* Passing level values greater than this will result in search termination */
- #define PPTT_ABORT_PACKAGE 0xFF
- 
--static struct acpi_pptt_processor *acpi_find_processor_package_id(struct acpi_table_header *table_hdr,
--								  struct acpi_pptt_processor *cpu,
--								  int level, int flag)
-+static struct acpi_pptt_processor *acpi_find_processor_tag(struct acpi_table_header *table_hdr,
-+							   struct acpi_pptt_processor *cpu,
-+							   int level, int flag)
- {
- 	struct acpi_pptt_processor *prev_node;
- 
- 	while (cpu && level) {
--		if (cpu->flags & flag)
-+		/* special case the identical flag to find last identical */
-+		if (flag == ACPI_PPTT_ACPI_IDENTICAL) {
-+			if (flag_identical(table_hdr, cpu))
-+				break;
-+		} else if (cpu->flags & flag)
- 			break;
- 		pr_debug("level %d\n", level);
- 		prev_node = fetch_pptt_node(table_hdr, cpu->parent);
-@@ -480,8 +503,8 @@ static int topology_get_acpi_cpu_tag(struct acpi_table_header *table,
- 
- 	cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
- 	if (cpu_node) {
--		cpu_node = acpi_find_processor_package_id(table, cpu_node,
--							  level, flag);
-+		cpu_node = acpi_find_processor_tag(table, cpu_node,
-+						   level, flag);
- 		/*
- 		 * As per specification if the processor structure represents
- 		 * an actual processor, then ACPI processor ID must be valid.
--- 
-2.21.0
+ From my point of view you degrade readability by doing that.
 
+section_nr_to_pfn(mem->start_section_nr + section_nr);
+
+Three times the word 'section_nr' in one line, is that worth it ? Gives 
+me headache.
+
+Codying style says the following, which makes full sense in my opinion:
+
+LOCAL variable names should be short, and to the point.  If you have
+some random integer loop counter, it should probably be called ``i``.
+Calling it ``loop_counter`` is non-productive, if there is no chance of it
+being mis-understood.
+
+What about just naming it 'nr' if we want to use something else than 'i' ?
+
+Christophe
+
+
+> 
+> --- a/drivers/base/memory.c~mm-section-numbers-use-the-type-unsigned-long-fix
+> +++ a/drivers/base/memory.c
+> @@ -131,17 +131,17 @@ static ssize_t phys_index_show(struct de
+>   static ssize_t removable_show(struct device *dev, struct device_attribute *attr,
+>   			      char *buf)
+>   {
+> -	unsigned long i, pfn;
+> +	unsigned long section_nr, pfn;
+>   	int ret = 1;
+>   	struct memory_block *mem = to_memory_block(dev);
+>   
+>   	if (mem->state != MEM_ONLINE)
+>   		goto out;
+>   
+> -	for (i = 0; i < sections_per_block; i++) {
+> -		if (!present_section_nr(mem->start_section_nr + i))
+> +	for (section_nr = 0; section_nr < sections_per_block; section_nr++) {
+> +		if (!present_section_nr(mem->start_section_nr + section_nr))
+>   			continue;
+> -		pfn = section_nr_to_pfn(mem->start_section_nr + i);
+> +		pfn = section_nr_to_pfn(mem->start_section_nr + section_nr);
+>   		ret &= is_mem_section_removable(pfn, PAGES_PER_SECTION);
+>   	}
+>   
+> @@ -695,12 +695,12 @@ static int add_memory_block(unsigned lon
+>   {
+>   	int ret, section_count = 0;
+>   	struct memory_block *mem;
+> -	unsigned long i;
+> +	unsigned long section_nr;
+>   
+> -	for (i = base_section_nr;
+> -	     i < base_section_nr + sections_per_block;
+> -	     i++)
+> -		if (present_section_nr(i))
+> +	for (section_nr = base_section_nr;
+> +	     section_nr < base_section_nr + sections_per_block;
+> +	     section_nr++)
+> +		if (present_section_nr(section_nr))
+>   			section_count++;
+>   
+>   	if (section_count == 0)
+> @@ -823,7 +823,7 @@ static const struct attribute_group *mem
+>    */
+>   int __init memory_dev_init(void)
+>   {
+> -	unsigned long i;
+> +	unsigned long section_nr;
+>   	int ret;
+>   	int err;
+>   	unsigned long block_sz;
+> @@ -840,9 +840,9 @@ int __init memory_dev_init(void)
+>   	 * during boot and have been initialized
+>   	 */
+>   	mutex_lock(&mem_sysfs_mutex);
+> -	for (i = 0; i <= __highest_present_section_nr;
+> -		i += sections_per_block) {
+> -		err = add_memory_block(i);
+> +	for (section_nr = 0; section_nr <= __highest_present_section_nr;
+> +		section_nr += sections_per_block) {
+> +		err = add_memory_block(section_nr);
+>   		if (!ret)
+>   			ret = err;
+>   	}
+> _
+> 
