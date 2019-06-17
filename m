@@ -2,89 +2,113 @@ Return-Path: <SRS0=fYCx=UQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A68C31E58
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 11:04:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 810ACC31E57
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 11:11:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E18152147A
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 11:04:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 560FD2084D
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 11:11:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1560769913;
+	bh=WaZqbQGrHTKnsRmiWOIQb5iTmKeex2rG/VlqlK+tSU4=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=opzeYmBRRY8SlZnsZR1bIwFlqpmjJCnUOV81gz87hl19o9rWqFebrSLWtoy2zo3hf
+	 Ct4DBjDU4fWLPnwbs2dH1b9VU+/SwiHejGSUtpJcsMqvHO/l8J8KMi2LfUghLN3Trn
+	 F93l41g9ejG6gXNLcEeQrgFErOQQlC7o87X7NjGE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728035AbfFQLEm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 Jun 2019 07:04:42 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:18587 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726164AbfFQLEl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Jun 2019 07:04:41 -0400
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 8A9A6B995AE611DD51A8;
-        Mon, 17 Jun 2019 19:04:39 +0800 (CST)
-Received: from linux-ibm.site (10.175.102.37) by
- DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 17 Jun 2019 19:04:28 +0800
-From:   Hanjun Guo <guohanjun@huawei.com>
-To:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>
-CC:     Catalin Marinas <catalin.marinas@arm.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
+        id S1726957AbfFQLLx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Jun 2019 07:11:53 -0400
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:39449 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726622AbfFQLLw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jun 2019 07:11:52 -0400
+Received: by mail-ot1-f67.google.com with SMTP id r21so5952392otq.6
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Jun 2019 04:11:52 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=q2SYsxnd78Hvl13uSih8O+0r8/7xSAtk+oSusdBmKzw=;
+        b=XcFAvMy4p0UNBsUYhD3zy9k2j4KosOvgqtMA6WalIdHP2khuqKaVG/LnlJsk7VQsyd
+         0tqp1kCXsGGqnm56XxeChCLKQM2UhbTMz2qJrxZSZJYxz1saT6H88KRmwmB7zTtCElka
+         lshfYc8iva+4W0DOrmWXdH86DO212o5/3T0vWYI97UXOtn4kbZuNcQirAGEXRYkm5HX9
+         6dumXLE0lDnoen1yowCXdVNP93e4ZewPEe8/P5IJHwJUZBcMm/3o61OstjXb1D85eVAb
+         HzLOFcc+lBgb/m17t3u1cCeSM16QJGDku0W1n2AzHrIyWusDt448LOVBzk8bgk03J+XK
+         6I/A==
+X-Gm-Message-State: APjAAAXpaAMjJ+UNlYb5dSLpXCRFG2CpR9nGap8dF2VullGOG59uiBE7
+        t6FX2X32jwgqe9JkST3mRGpN3W7y39WZP+Vwe1M=
+X-Google-Smtp-Source: APXvYqxRnT1t79Bb9zvbYiWaR4EzAZj5+gI46fqqmMZC1qNnvAQIKISUOi7dVSxIDN2UVaSz5xQBKmCyBotsMBYBlCk=
+X-Received: by 2002:a05:6830:8a:: with SMTP id a10mr2033216oto.167.1560769911981;
+ Mon, 17 Jun 2019 04:11:51 -0700 (PDT)
+MIME-Version: 1.0
+References: <1560769335-62944-1-git-send-email-guohanjun@huawei.com>
+In-Reply-To: <1560769335-62944-1-git-send-email-guohanjun@huawei.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 17 Jun 2019 13:11:40 +0200
+Message-ID: <CAJZ5v0jyi-ZkcDU=+GJm5LxMGX36ce=a_j169A_7Ph2AG8_C+w@mail.gmail.com>
+Subject: Re: [PATCH v2] MAINTAINERS: Update my email address
+To:     Hanjun Guo <guohanjun@huawei.com>
+Cc:     Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        "Marc Zyngier" <marc.zyngier@arm.com>,
+        Marc Zyngier <marc.zyngier@arm.com>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Sudeep Holla <sudeep.holla@arm.com>,
         Will Deacon <will@kernel.org>
-Subject: [PATCH v2] MAINTAINERS: Update my email address
-Date:   Mon, 17 Jun 2019 19:02:15 +0800
-Message-ID: <1560769335-62944-1-git-send-email-guohanjun@huawei.com>
-X-Mailer: git-send-email 1.7.12.4
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.102.37]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The @linaro.org address is not working and bonucing, so update the
-references.
+On Mon, Jun 17, 2019 at 1:04 PM Hanjun Guo <guohanjun@huawei.com> wrote:
+>
+> The @linaro.org address is not working and bonucing, so update the
+> references.
+>
+> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 
-Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
----
+How do you want this to go it, via ARM or ACPI?
 
-v2: update the .mailmap to redirect the older email address which               
-    is suggested by Marc.
-
- .mailmap    | 1 +
- MAINTAINERS | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/.mailmap b/.mailmap
-index 07a777f..fd9b497 100644
---- a/.mailmap
-+++ b/.mailmap
-@@ -81,6 +81,7 @@ Greg Kroah-Hartman <greg@echidna.(none)>
- Greg Kroah-Hartman <gregkh@suse.de>
- Greg Kroah-Hartman <greg@kroah.com>
- Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
-+Hanjun Guo <guohanjun@huawei.com> <hanjun.guo@linaro.org>
- Henk Vergonet <Henk.Vergonet@gmail.com>
- Henrik Kretzschmar <henne@nachtwindheim.de>
- Henrik Rydberg <rydberg@bitmath.org>
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 57f496c..2fed10f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -364,7 +364,7 @@ F:	drivers/acpi/fan.c
- 
- ACPI FOR ARM64 (ACPI/arm64)
- M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
--M:	Hanjun Guo <hanjun.guo@linaro.org>
-+M:	Hanjun Guo <guohanjun@huawei.com>
- M:	Sudeep Holla <sudeep.holla@arm.com>
- L:	linux-acpi@vger.kernel.org
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--- 
-1.7.12.4
-
+> ---
+>
+> v2: update the .mailmap to redirect the older email address which
+>     is suggested by Marc.
+>
+>  .mailmap    | 1 +
+>  MAINTAINERS | 2 +-
+>  2 files changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/.mailmap b/.mailmap
+> index 07a777f..fd9b497 100644
+> --- a/.mailmap
+> +++ b/.mailmap
+> @@ -81,6 +81,7 @@ Greg Kroah-Hartman <greg@echidna.(none)>
+>  Greg Kroah-Hartman <gregkh@suse.de>
+>  Greg Kroah-Hartman <greg@kroah.com>
+>  Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
+> +Hanjun Guo <guohanjun@huawei.com> <hanjun.guo@linaro.org>
+>  Henk Vergonet <Henk.Vergonet@gmail.com>
+>  Henrik Kretzschmar <henne@nachtwindheim.de>
+>  Henrik Rydberg <rydberg@bitmath.org>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 57f496c..2fed10f 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -364,7 +364,7 @@ F:  drivers/acpi/fan.c
+>
+>  ACPI FOR ARM64 (ACPI/arm64)
+>  M:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> -M:     Hanjun Guo <hanjun.guo@linaro.org>
+> +M:     Hanjun Guo <guohanjun@huawei.com>
+>  M:     Sudeep Holla <sudeep.holla@arm.com>
+>  L:     linux-acpi@vger.kernel.org
+>  L:     linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+> --
+> 1.7.12.4
+>
