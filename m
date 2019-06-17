@@ -2,113 +2,86 @@ Return-Path: <SRS0=fYCx=UQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 516D7C31E54
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 06:24:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD4D9C31E44
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 07:56:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 34128218CA
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 06:24:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B25AB21E6B
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 07:56:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725778AbfFQGYY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 Jun 2019 02:24:24 -0400
-Received: from mail.steuer-voss.de ([85.183.69.95]:36734 "EHLO
-        mail.steuer-voss.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725372AbfFQGYX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jun 2019 02:24:23 -0400
-X-Virus-Scanned: Debian amavisd-new at mail.steuer-voss.de
-Received: by mail.steuer-voss.de (Postfix, from userid 1000)
-        id 824734CD6C; Mon, 17 Jun 2019 08:24:18 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by mail.steuer-voss.de (Postfix) with ESMTP id 7E5FC4CD50;
-        Mon, 17 Jun 2019 08:24:18 +0200 (CEST)
-Date:   Mon, 17 Jun 2019 08:24:18 +0200 (CEST)
-From:   Nikolaus Voss <nv@vosn.de>
-X-X-Sender: nv@fox.voss.local
-To:     "Moore, Robert" <robert.moore@intel.com>
-cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        "Schmauss, Erik" <erik.schmauss@intel.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-        Linux PWM List <linux-pwm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        nikolaus.voss@loewensteinmedical.de
-Subject: RE: [PATCH v2 1/3] ACPI: Resolve objects on host-directed table
- loads
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E3B95EFB26@ORSMSX110.amr.corp.intel.com>
-Message-ID: <alpine.DEB.2.20.1906170746150.12344@fox.voss.local>
-References: <cover.1560327219.git.nikolaus.voss@loewensteinmedical.de> <e2a4ddfd93a904b50b7ccc074e00e14dc4661963.1560327219.git.nikolaus.voss@loewensteinmedical.de> <CAJZ5v0jqxWs=PPik-TCDqQiyxCSyRP7HTue1WsdWP9e-nik2eA@mail.gmail.com>
- <alpine.DEB.2.20.1906141114490.6579@fox.voss.local> <94F2FBAB4432B54E8AACC7DFDE6C92E3B95EFB26@ORSMSX110.amr.corp.intel.com>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+        id S1725862AbfFQH47 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Jun 2019 03:56:59 -0400
+Received: from foss.arm.com ([217.140.110.172]:40316 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725837AbfFQH47 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Jun 2019 03:56:59 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 972CF28;
+        Mon, 17 Jun 2019 00:56:58 -0700 (PDT)
+Received: from big-swifty.misterjones.org (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6561C3F246;
+        Mon, 17 Jun 2019 00:56:56 -0700 (PDT)
+Date:   Mon, 17 Jun 2019 08:56:37 +0100
+Message-ID: <86k1dkpruy.wl-marc.zyngier@arm.com>
+From:   Marc Zyngier <marc.zyngier@arm.com>
+To:     Hanjun Guo <guohanjun@huawei.com>
+Cc:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-acpi@vger.kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Will Deacon <will@kernel.org>
+Subject: Re: [PATCH] MAINTAINERS: Update my email address
+In-Reply-To: <1560586872-40099-1-git-send-email-guohanjun@huawei.com>
+References: <1560586872-40099-1-git-send-email-guohanjun@huawei.com>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL/10.8 EasyPG/1.0.0 Emacs/26
+ (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+Organization: ARM Ltd
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Bob,
+Hi Hanjun,
 
-On Fri, 14 Jun 2019, Moore, Robert wrote:
->
->
-> -----Original Message-----
-> From: Nikolaus Voss [mailto:nv@vosn.de]
-> Sent: Friday, June 14, 2019 2:26 AM
-> To: Rafael J. Wysocki <rafael@kernel.org>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>; Moore, Robert <robert.moore@intel.com>; Schmauss, Erik <erik.schmauss@intel.com>; Jacek Anaszewski <jacek.anaszewski@gmail.com>; Pavel Machek <pavel@ucw.cz>; Dan Murphy <dmurphy@ti.com>; Thierry Reding <thierry.reding@gmail.com>; ACPI Devel Maling List <linux-acpi@vger.kernel.org>; open list:ACPI COMPONENT ARCHITECTURE (ACPICA) <devel@acpica.org>; linux-leds@vger.kernel.org; Linux PWM List <linux-pwm@vger.kernel.org>; Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-> Subject: Re: [PATCH v2 1/3] ACPI: Resolve objects on host-directed table loads
->
-> Hi Rafael,
->
-> On Fri, 14 Jun 2019, Rafael J. Wysocki wrote:
->> On Wed, Jun 12, 2019 at 10:36 AM Nikolaus Voss
->> <nikolaus.voss@loewensteinmedical.de> wrote:
->>>
->>> If an ACPI SSDT overlay is loaded after built-in tables have been
->>> loaded e.g. via configfs or efivar_ssdt_load() it is necessary to
->>> rewalk the namespace to resolve references. Without this, relative
->>> and absolute paths like ^PCI0.SBUS or \_SB.PCI0.SBUS are not resolved
->>> correctly.
->>>
->>> Make configfs load use the same method as efivar_ssdt_load().
->>>
->>> Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
->>
->> This is fine by me, so
->>
->> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Or if you want me to take this patch (without the other two in the
->> series), please let me know.
->
-> thanks. I think it would be the best if you take up this patch as it is 
-> an independent topic. In retrospect it wasn't a good idea to put it into 
-> this series.
->
-> Kind regards,
-> Niko
->
-> I would have to ask, why is additional code needed for package 
-> initialization/resolution? It already happens elsewhere in acpica. Bob
+On Sat, 15 Jun 2019 09:21:12 +0100,
+Hanjun Guo <guohanjun@huawei.com> wrote:
+> 
+> The @linaro.org address is not working and bonucing, so update the
+> references.
+> 
+> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+> ---
+>  MAINTAINERS | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 57f496c..2fed10f 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -364,7 +364,7 @@ F:	drivers/acpi/fan.c
+>  
+>  ACPI FOR ARM64 (ACPI/arm64)
+>  M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> -M:	Hanjun Guo <hanjun.guo@linaro.org>
+> +M:	Hanjun Guo <guohanjun@huawei.com>
+>  M:	Sudeep Holla <sudeep.holla@arm.com>
+>  L:	linux-acpi@vger.kernel.org
+>  L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
 
-for built-in tables loaded via acpi_ex_load_table_op() everything is fine, 
-because after acpi_tb_load_table() acpi_ns_walk_namespace() is called to 
-resolve references.
+You may also want to consider adding an entry into .mailmap, so that
+scripts get the right address.
 
-My fix only affects tables loaded dynamically via either 
-acpi_configfs driver (for debugging purposes) or efivar_ssdt_load() (to 
-specify a table on the kernel's command line). They use acpi_load_table() 
-to load the table from a caller-owned buffer. To resolve the references, 
-it is again necessary to rewalk the namespace, which was simply missing in 
-acpi_load_table().
+Thanks,
 
-Niko
+	M.
+
+-- 
+Jazz is not dead, it just smells funny.
