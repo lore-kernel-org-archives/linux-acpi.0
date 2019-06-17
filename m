@@ -1,72 +1,91 @@
-Return-Path: <SRS0=w4hD=UO=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=fYCx=UQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFCFC31E47
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:23:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79D1CC31E50
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 01:28:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D956206B7
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Jun 2019 08:23:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C0492089E
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jun 2019 01:28:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725943AbfFOIXp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 15 Jun 2019 04:23:45 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:18621 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725927AbfFOIXp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 15 Jun 2019 04:23:45 -0400
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id D11044BB0A4B7A6B23F0;
-        Sat, 15 Jun 2019 16:23:39 +0800 (CST)
-Received: from linux-ibm.site (10.175.102.37) by
- DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
- 14.3.439.0; Sat, 15 Jun 2019 16:23:33 +0800
-From:   Hanjun Guo <guohanjun@huawei.com>
-To:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>
-CC:     Catalin Marinas <catalin.marinas@arm.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Will Deacon <will@kernel.org>
-Subject: [PATCH] MAINTAINERS: Update my email address
-Date:   Sat, 15 Jun 2019 16:21:12 +0800
-Message-ID: <1560586872-40099-1-git-send-email-guohanjun@huawei.com>
-X-Mailer: git-send-email 1.7.12.4
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.102.37]
-X-CFilter-Loop: Reflected
+        id S1727481AbfFQB2A (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 16 Jun 2019 21:28:00 -0400
+Received: from out30-57.freemail.mail.aliyun.com ([115.124.30.57]:36375 "EHLO
+        out30-57.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727382AbfFQB2A (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 16 Jun 2019 21:28:00 -0400
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=zhangliguang@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0TUNARfg_1560734870;
+Received: from localhost(mailfrom:zhangliguang@linux.alibaba.com fp:SMTPD_---0TUNARfg_1560734870)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Mon, 17 Jun 2019 09:27:57 +0800
+From:   luanshi <zhangliguang@linux.alibaba.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Cc:     linux-acpi@vger.kernel.org, James Morse <james.morse@arm.com>,
+        Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>
+Subject: [PATCH v2] ACPI / APEI: release resources if gen_pool_add fails
+Date:   Mon, 17 Jun 2019 09:27:50 +0800
+Message-Id: <1560734870-27742-1-git-send-email-zhangliguang@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The @linaro.org address is not working and bonucing, so update the
-references.
+To avoid memory leaks, destroy ghes_estatus_pool and release memory
+allocated via vmalloc() on errors in ghes_estatus_pool_init().
 
-Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+Signed-off-by: Liguang Zhang <zhangliguang@linux.alibaba.com>
+Reviewed-by: James Morse <james.morse@arm.com>
+Tested-by: James Morse <james.morse@arm.com>
 ---
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/apei/ghes.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 57f496c..2fed10f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -364,7 +364,7 @@ F:	drivers/acpi/fan.c
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 993940d..4e5de30 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -153,6 +153,7 @@ static void ghes_unmap(void __iomem *vaddr, enum fixed_addresses fixmap_idx)
+ int ghes_estatus_pool_init(int num_ghes)
+ {
+ 	unsigned long addr, len;
++	int rc = 0;
  
- ACPI FOR ARM64 (ACPI/arm64)
- M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
--M:	Hanjun Guo <hanjun.guo@linaro.org>
-+M:	Hanjun Guo <guohanjun@huawei.com>
- M:	Sudeep Holla <sudeep.holla@arm.com>
- L:	linux-acpi@vger.kernel.org
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ 	ghes_estatus_pool = gen_pool_create(GHES_ESTATUS_POOL_MIN_ALLOC_ORDER, -1);
+ 	if (!ghes_estatus_pool)
+@@ -163,8 +164,10 @@ int ghes_estatus_pool_init(int num_ghes)
+ 
+ 	ghes_estatus_pool_size_request = PAGE_ALIGN(len);
+ 	addr = (unsigned long)vmalloc(PAGE_ALIGN(len));
+-	if (!addr)
++	if (!addr) {
++		gen_pool_destroy(ghes_estatus_pool);
+ 		return -ENOMEM;
++	}
+ 
+ 	/*
+ 	 * New allocation must be visible in all pgd before it can be found by
+@@ -172,7 +175,12 @@ int ghes_estatus_pool_init(int num_ghes)
+ 	 */
+ 	vmalloc_sync_all();
+ 
+-	return gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
++	rc = gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
++	if (rc) {
++		gen_pool_destroy(ghes_estatus_pool);
++		vfree((void *)addr);
++	}
++	return rc;
+ }
+ 
+ static int map_gen_v2(struct ghes *ghes)
 -- 
-1.7.12.4
+1.8.3.1
 
