@@ -2,81 +2,102 @@ Return-Path: <SRS0=6I2K=UR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE7BDC31E51
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jun 2019 08:38:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F986C31E51
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jun 2019 08:41:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BF5E9206B7
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jun 2019 08:38:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79698213F2
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jun 2019 08:41:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1560847263;
+	bh=10IeNowX3RW92UWladQLU7AhfNf5XVgPFvZ0Azmp+VA=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=qlYGuQYJutue/4CwAkp60Adoc9CHozcsDUTvMl5VFjFUYN0f/6QK5EdXYxNFIQinm
+	 wLpjBN2RK3kl0828OnbQA5NYdzmVayy2ZS1NKzhAifvM2nGp+6qITCHPwTUiMhgkSK
+	 /L5Nddcjo2Qkyr7259phoKr1k6AahEQPbu3Ta1R8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729043AbfFRIii (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 18 Jun 2019 04:38:38 -0400
-Received: from foss.arm.com ([217.140.110.172]:57178 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728818AbfFRIii (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 18 Jun 2019 04:38:38 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 79F1F28;
-        Tue, 18 Jun 2019 01:38:37 -0700 (PDT)
-Received: from [10.1.196.93] (en101.cambridge.arm.com [10.1.196.93])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 8F9CE3F246;
-        Tue, 18 Jun 2019 01:38:36 -0700 (PDT)
-Subject: Re: [PATCH v2 09/28] drivers: Add generic match helper by
- ACPI_COMPANION device
-To:     rafael@kernel.org
-Cc:     linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
-        lenb@kernel.org, linux-acpi@vger.kernel.org,
-        linux-spi@vger.kernel.org, broonie@kernel.org
+        id S1729140AbfFRIk7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 18 Jun 2019 04:40:59 -0400
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:42884 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725913AbfFRIk7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2019 04:40:59 -0400
+Received: by mail-ot1-f67.google.com with SMTP id l15so3559143otn.9;
+        Tue, 18 Jun 2019 01:40:58 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=10IeNowX3RW92UWladQLU7AhfNf5XVgPFvZ0Azmp+VA=;
+        b=spmP1yx4Enan68cGYYcYM+py9PB+2pagjyUFfQ55L+jWv09pG8lxpQIoRECfVnJloo
+         m4SytzTVh70lGwfIhCbQ8Bjhpf9Pyk0NpY5HGb+2ghECa0SZuxRiwz2fGuqfWwh2f7cJ
+         OSTSN19kqfzN4xUfF3u4S0RAj7NUtAHWqKHRAM3QgRlR3mgsEpDIDU+mf7K0TLYBMdnd
+         JM7JGkFQv3iRXxep6myG706XNg95z6OQ9+XT/5ABnPsOOgBJrmwMo1k8EfETNCM33ZP4
+         OzcrovLx1z3dNyNbXmvnAL5ZX8RwuUWQjyDlC5cZ59jv9A/+rocSvbiCNehf+oP8RqdO
+         rN5Q==
+X-Gm-Message-State: APjAAAWHbvUFrZCarvvVJnUOlbF7w1TDNKW2KKTUCBykd0ysTMF/BKRg
+        jRwPeVWFrgcMsK1nZkG9DrAnSM/i2oOGsAew3NI=
+X-Google-Smtp-Source: APXvYqzBVXcfP7421rR8eXKYNY60z485ksnyrEI6OHcVnL1LP/bfIxHUVleiZmesIilT4xH9Q19toeV6i3LPcS7zT9U=
+X-Received: by 2002:a9d:6a4b:: with SMTP id h11mr2146423otn.266.1560847258138;
+ Tue, 18 Jun 2019 01:40:58 -0700 (PDT)
+MIME-Version: 1.0
 References: <1560534863-15115-1-git-send-email-suzuki.poulose@arm.com>
  <1560534863-15115-10-git-send-email-suzuki.poulose@arm.com>
- <CAJZ5v0gi2vpr5y3USnPnPBHjPA1YAwfqjsJppfLgBP5CcycGog@mail.gmail.com>
-From:   Suzuki K Poulose <suzuki.poulose@arm.com>
-Message-ID: <85f942fc-52fd-c4ed-29b3-f28c55a6a7bb@arm.com>
-Date:   Tue, 18 Jun 2019 09:38:35 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
-MIME-Version: 1.0
-In-Reply-To: <CAJZ5v0gi2vpr5y3USnPnPBHjPA1YAwfqjsJppfLgBP5CcycGog@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+ <CAJZ5v0gi2vpr5y3USnPnPBHjPA1YAwfqjsJppfLgBP5CcycGog@mail.gmail.com> <85f942fc-52fd-c4ed-29b3-f28c55a6a7bb@arm.com>
+In-Reply-To: <85f942fc-52fd-c4ed-29b3-f28c55a6a7bb@arm.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 18 Jun 2019 10:40:47 +0200
+Message-ID: <CAJZ5v0io59U1yy4RnX0fSXFyQ-PSHb1wXjLp7XLi8SzO3hSdVA@mail.gmail.com>
+Subject: Re: [PATCH v2 09/28] drivers: Add generic match helper by
+ ACPI_COMPANION device
+To:     Suzuki K Poulose <suzuki.poulose@arm.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-spi <linux-spi@vger.kernel.org>,
+        Mark Brown <broonie@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Tue, Jun 18, 2019 at 10:38 AM Suzuki K Poulose
+<suzuki.poulose@arm.com> wrote:
+>
+> Hi Rafael,
+>
+> On 17/06/2019 23:07, Rafael J. Wysocki wrote:
+> > On Fri, Jun 14, 2019 at 7:55 PM Suzuki K Poulose <suzuki.poulose@arm.com> wrote:
+> >>
+> >> Add a generic helper to match a device by the ACPI_COMPANION device.
+> >> This will be later used for providing wrappers for
+> >> (bus/class/driver)_find_device().
+> >>
+> >> Cc: Len Brown <lenb@kernel.org>
+> >> Cc: linux-acpi@vger.kernel.org
+> >> Cc: linux-spi@vger.kernel.org
+> >> Cc: Mark Brown <broonie@kernel.org>
+> >> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> >> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> >> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+> >
+> > Please fold this change into the patch adding users of device_match_acpi_dev().
+>
+> There are variants of this by class/bus/driver and all of them are introduced
+> as separate patches with the respective users. If we do for this, we have to
+> do the same for other matches as well.
+>
+> i.e, [ device_match_by_attr + class_find_device_by_attr & users +
+> driver_find_device_by_attr & users + bus_find_device_by_attr & users ]
+>
+> And that becomes a large chunk, which could make the review painful.
+>
+> If you would still like that approach, I could do that in the next revision.
 
-On 17/06/2019 23:07, Rafael J. Wysocki wrote:
-> On Fri, Jun 14, 2019 at 7:55 PM Suzuki K Poulose <suzuki.poulose@arm.com> wrote:
->>
->> Add a generic helper to match a device by the ACPI_COMPANION device.
->> This will be later used for providing wrappers for
->> (bus/class/driver)_find_device().
->>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
->> Cc: linux-spi@vger.kernel.org
->> Cc: Mark Brown <broonie@kernel.org>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
->> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
-> 
-> Please fold this change into the patch adding users of device_match_acpi_dev().
-
-There are variants of this by class/bus/driver and all of them are introduced
-as separate patches with the respective users. If we do for this, we have to
-do the same for other matches as well.
-
-i.e, [ device_match_by_attr + class_find_device_by_attr & users + 
-driver_find_device_by_attr & users + bus_find_device_by_attr & users ]
-
-And that becomes a large chunk, which could make the review painful.
-
-If you would still like that approach, I could do that in the next revision.
-
-Cheers
-Suzuki
+Yes, please.
