@@ -2,34 +2,37 @@ Return-Path: <SRS0=dCne=US=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3B82C31E5E
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jun 2019 14:18:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72A0CC31E49
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jun 2019 14:43:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7921021783
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jun 2019 14:18:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BAE9214AF
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jun 2019 14:43:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726332AbfFSOSE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 19 Jun 2019 10:18:04 -0400
-Received: from mga04.intel.com ([192.55.52.120]:7997 "EHLO mga04.intel.com"
+        id S1726251AbfFSOnA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 19 Jun 2019 10:43:00 -0400
+Received: from mga02.intel.com ([134.134.136.20]:42142 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725893AbfFSOSD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Jun 2019 10:18:03 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
+        id S1726009AbfFSOnA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Jun 2019 10:43:00 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Jun 2019 07:18:03 -0700
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Jun 2019 07:43:00 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.63,392,1557212400"; 
-   d="scan'208";a="186471096"
-Received: from mylly.fi.intel.com (HELO [10.237.72.61]) ([10.237.72.61])
-  by fmsmga002.fm.intel.com with ESMTP; 19 Jun 2019 07:18:00 -0700
-Subject: Re: [PATCH] spi/acpi: fix incorrect ACPI parent check
-To:     Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+   d="scan'208";a="181649285"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
+  by fmsmga001.fm.intel.com with SMTP; 19 Jun 2019 07:42:56 -0700
+Received: by lahna (sSMTP sendmail emulation); Wed, 19 Jun 2019 17:42:55 +0300
+Date:   Wed, 19 Jun 2019 17:42:55 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc:     Ard Biesheuvel <ard.biesheuvel@linaro.org>,
         linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>,
         kbuild test robot <lkp@intel.com>,
         Dan Carpenter <dan.carpenter@oracle.com>,
@@ -38,42 +41,47 @@ Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH] spi/acpi: fix incorrect ACPI parent check
+Message-ID: <20190619144255.GG2640@lahna.fi.intel.com>
 References: <20190619095254.19559-1-ard.biesheuvel@linaro.org>
  <20190619101604.GR2640@lahna.fi.intel.com>
  <54ede1d8-0e6b-e7d9-5e61-a7d057abbd2b@linux.intel.com>
  <CAKv+Gu_Bw3aV-pUVYf8T1hLfL35X7ozEPtqL9oLcDvwcQ4qMiw@mail.gmail.com>
  <c96afe71-c7bd-d30f-ef37-0c6eeb726f67@linux.intel.com>
  <CAKv+Gu9fafXNrAYAgUuqMPVjZm2bWJmzg_aPz9WD1skemQme8A@mail.gmail.com>
-From:   Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Message-ID: <08e498d6-1ff8-771f-7d4f-6ea5f705d386@linux.intel.com>
-Date:   Wed, 19 Jun 2019 17:17:59 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.1
+ <08e498d6-1ff8-771f-7d4f-6ea5f705d386@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKv+Gu9fafXNrAYAgUuqMPVjZm2bWJmzg_aPz9WD1skemQme8A@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <08e498d6-1ff8-771f-7d4f-6ea5f705d386@linux.intel.com>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi
-
-On 6/19/19 4:58 PM, Ard Biesheuvel wrote:
-> So can you explain how exactly the I2C GPIO expander is failing? I
-> struggle to understand how the SPI slave probing could be related to
-> that.
+On Wed, Jun 19, 2019 at 05:17:59PM +0300, Jarkko Nikula wrote:
+> Hi
 > 
-They don't show up in /sys/kernel/debug/gpio, are not present in 
-/sys/bus/i2c/devices/ but SPI core instead tries add them with a bogus 
-Chip Select number:
+> On 6/19/19 4:58 PM, Ard Biesheuvel wrote:
+> > So can you explain how exactly the I2C GPIO expander is failing? I
+> > struggle to understand how the SPI slave probing could be related to
+> > that.
+> > 
+> They don't show up in /sys/kernel/debug/gpio, are not present in
+> /sys/bus/i2c/devices/ but SPI core instead tries add them with a bogus Chip
+> Select number:
+> 
+> [    5.727699][    T1] pxa2xx-spi pxa2xx-spi.5: cs56 >= max 4
+> [    5.733545][    T1] spi_master spi5: failed to add SPI device INT3491:00
+> from ACPI
 
-[    5.727699][    T1] pxa2xx-spi pxa2xx-spi.5: cs56 >= max 4
-[    5.733545][    T1] spi_master spi5: failed to add SPI device 
-INT3491:00 from ACPI
+Just a guess but looking at the 4c3c59544f33 acpi_register_spi_device()
+does not seem to zero fill the whole struct acpi_spi_lookup structure so
+when it is supposed to bail out when SPI slave was not found:
 
--- 
-Jarkko
+	if (!lookup.max_speed_hz)
+ 		return AE_OK
 
+it instead continues to register SPI slave because lookup.max_speed_hz
+may contain whatever garbage there is in the stack at that address.
