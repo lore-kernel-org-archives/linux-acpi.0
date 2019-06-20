@@ -2,136 +2,135 @@ Return-Path: <SRS0=TUQs=UT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC2DCC48BE3
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:25:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4BA5C43613
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B20A3206BF
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:25:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB9F320665
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726155AbfFTSZn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jun 2019 14:25:43 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:57219 "EHLO mx1.redhat.com"
+        id S1726092AbfFTScN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jun 2019 14:32:13 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:45415 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726887AbfFTSZm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jun 2019 14:25:42 -0400
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        id S1727037AbfFTScL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jun 2019 14:32:11 -0400
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 5632DC058CA8;
-        Thu, 20 Jun 2019 18:25:37 +0000 (UTC)
-Received: from [10.36.116.71] (ovpn-116-71.ams2.redhat.com [10.36.116.71])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D711B5D9C6;
-        Thu, 20 Jun 2019 18:25:26 +0000 (UTC)
-Subject: Re: [PATCH v2 6/6] drivers/base/memory.c: Get rid of
- find_memory_block_hinted()
+        by mx1.redhat.com (Postfix) with ESMTPS id 936EA7F769;
+        Thu, 20 Jun 2019 18:32:11 +0000 (UTC)
+Received: from t460s.redhat.com (ovpn-116-71.ams2.redhat.com [10.36.116.71])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 8358519C77;
+        Thu, 20 Jun 2019 18:32:04 +0000 (UTC)
+From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Dan Williams <dan.j.williams@intel.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
-        linux-mm@kvack.org,
+        linux-mm@kvack.org, David Hildenbrand <david@redhat.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Pavel Tatashin <pasha.tatashin@soleen.com>,
-        "mike.travis@hpe.com" <mike.travis@hpe.com>
-References: <20190620103520.23481-1-david@redhat.com>
- <20190620103520.23481-7-david@redhat.com>
-From:   David Hildenbrand <david@redhat.com>
-Openpgp: preference=signencrypt
-Autocrypt: addr=david@redhat.com; prefer-encrypt=mutual; keydata=
- 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
- SE+xAvmumFBY
-Organization: Red Hat GmbH
-Message-ID: <084161c8-713f-cf19-8bdc-b896e73f8d84@redhat.com>
-Date:   Thu, 20 Jun 2019 20:25:26 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [PATCH v3 2/6] drivers/base/memory: Use "unsigned long" for block ids
+Date:   Thu, 20 Jun 2019 20:31:35 +0200
+Message-Id: <20190620183139.4352-3-david@redhat.com>
+In-Reply-To: <20190620183139.4352-1-david@redhat.com>
+References: <20190620183139.4352-1-david@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20190620103520.23481-7-david@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.32]); Thu, 20 Jun 2019 18:25:41 +0000 (UTC)
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.27]); Thu, 20 Jun 2019 18:32:11 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 20.06.19 12:35, David Hildenbrand wrote:
-> No longer needed, let's remove it. Also, drop the "hint" parameter
-> completely from "find_memory_block_by_id", as nobody needs it anymore.
-> 
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-> Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-> Cc: "mike.travis@hpe.com" <mike.travis@hpe.com>
-> Signed-off-by: David Hildenbrand <david@redhat.com>
-> ---
->  drivers/base/memory.c  | 32 ++++++++++----------------------
->  include/linux/memory.h |  2 --
->  2 files changed, 10 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-> index 0204384b4d1d..fefb64d3588e 100644
-> --- a/drivers/base/memory.c
-> +++ b/drivers/base/memory.c
-> @@ -592,26 +592,12 @@ int __weak arch_get_memory_phys_device(unsigned long start_pfn)
->   * A reference for the returned object is held and the reference for the
->   * hinted object is released.
->   */
+Block ids are just shifted section numbers, so let's also use
+"unsigned long" for them, too.
 
-I'll fixup this comment as well (yes, I desperately need vacation :) )
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+---
+ drivers/base/memory.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 5947b5a5686d..c54e80fd25a8 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -34,12 +34,12 @@ static DEFINE_MUTEX(mem_sysfs_mutex);
+ 
+ static int sections_per_block;
+ 
+-static inline int base_memory_block_id(unsigned long section_nr)
++static inline unsigned long base_memory_block_id(unsigned long section_nr)
+ {
+ 	return section_nr / sections_per_block;
+ }
+ 
+-static inline int pfn_to_block_id(unsigned long pfn)
++static inline unsigned long pfn_to_block_id(unsigned long pfn)
+ {
+ 	return base_memory_block_id(pfn_to_section_nr(pfn));
+ }
+@@ -587,7 +587,7 @@ int __weak arch_get_memory_phys_device(unsigned long start_pfn)
+  * A reference for the returned object is held and the reference for the
+  * hinted object is released.
+  */
+-static struct memory_block *find_memory_block_by_id(int block_id,
++static struct memory_block *find_memory_block_by_id(unsigned long block_id,
+ 						    struct memory_block *hint)
+ {
+ 	struct device *hintdev = hint ? &hint->dev : NULL;
+@@ -604,7 +604,7 @@ static struct memory_block *find_memory_block_by_id(int block_id,
+ struct memory_block *find_memory_block_hinted(struct mem_section *section,
+ 					      struct memory_block *hint)
+ {
+-	int block_id = base_memory_block_id(__section_nr(section));
++	unsigned long block_id = base_memory_block_id(__section_nr(section));
+ 
+ 	return find_memory_block_by_id(block_id, hint);
+ }
+@@ -663,8 +663,8 @@ int register_memory(struct memory_block *memory)
+ 	return ret;
+ }
+ 
+-static int init_memory_block(struct memory_block **memory, int block_id,
+-			     unsigned long state)
++static int init_memory_block(struct memory_block **memory,
++			     unsigned long block_id, unsigned long state)
+ {
+ 	struct memory_block *mem;
+ 	unsigned long start_pfn;
+@@ -729,8 +729,8 @@ static void unregister_memory(struct memory_block *memory)
+  */
+ int create_memory_block_devices(unsigned long start, unsigned long size)
+ {
+-	const int start_block_id = pfn_to_block_id(PFN_DOWN(start));
+-	int end_block_id = pfn_to_block_id(PFN_DOWN(start + size));
++	const unsigned long start_block_id = pfn_to_block_id(PFN_DOWN(start));
++	unsigned long end_block_id = pfn_to_block_id(PFN_DOWN(start + size));
+ 	struct memory_block *mem;
+ 	unsigned long block_id;
+ 	int ret = 0;
+@@ -766,10 +766,10 @@ int create_memory_block_devices(unsigned long start, unsigned long size)
+  */
+ void remove_memory_block_devices(unsigned long start, unsigned long size)
+ {
+-	const int start_block_id = pfn_to_block_id(PFN_DOWN(start));
+-	const int end_block_id = pfn_to_block_id(PFN_DOWN(start + size));
++	const unsigned long start_block_id = pfn_to_block_id(PFN_DOWN(start));
++	const unsigned long end_block_id = pfn_to_block_id(PFN_DOWN(start + size));
+ 	struct memory_block *mem;
+-	int block_id;
++	unsigned long block_id;
+ 
+ 	if (WARN_ON_ONCE(!IS_ALIGNED(start, memory_block_size_bytes()) ||
+ 			 !IS_ALIGNED(size, memory_block_size_bytes())))
 -- 
+2.21.0
 
-Thanks,
-
-David / dhildenb
