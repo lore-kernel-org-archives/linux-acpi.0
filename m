@@ -2,36 +2,36 @@ Return-Path: <SRS0=TUQs=UT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A3BCC43613
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 14:52:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB74DC43613
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 14:54:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3FC9420673
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 14:52:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A42552084E
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 14:54:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726758AbfFTOw0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jun 2019 10:52:26 -0400
-Received: from mga02.intel.com ([134.134.136.20]:38054 "EHLO mga02.intel.com"
+        id S1726876AbfFTOyh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jun 2019 10:54:37 -0400
+Received: from mga07.intel.com ([134.134.136.100]:32281 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726582AbfFTOw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jun 2019 10:52:26 -0400
+        id S1726686AbfFTOyh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jun 2019 10:54:37 -0400
 X-Amp-Result: UNKNOWN
 X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Jun 2019 07:52:26 -0700
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Jun 2019 07:54:36 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.63,397,1557212400"; 
-   d="scan'208";a="243650599"
+   d="scan'208";a="183091685"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.145])
-  by orsmga001.jf.intel.com with ESMTP; 20 Jun 2019 07:52:23 -0700
+  by fmsmga004.fm.intel.com with ESMTP; 20 Jun 2019 07:54:33 -0700
 Received: from andy by smile with local (Exim 4.92)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1hdyQH-0001LG-V7; Thu, 20 Jun 2019 17:52:21 +0300
-Date:   Thu, 20 Jun 2019 17:52:21 +0300
+        id 1hdySO-0001MZ-M0; Thu, 20 Jun 2019 17:54:32 +0300
+Date:   Thu, 20 Jun 2019 17:54:32 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Charles Keepax <ckeepax@opensource.cirrus.com>
 Cc:     wsa@the-dreams.de, mika.westerberg@linux.intel.com,
@@ -39,14 +39,14 @@ Cc:     wsa@the-dreams.de, mika.westerberg@linux.intel.com,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         benjamin.tissoires@redhat.com, jbroadus@gmail.com,
         patches@opensource.cirrus.com
-Subject: Re: [PATCH v5 2/7] i2c: acpi: Use available IRQ helper functions
-Message-ID: <20190620145221.GC9224@smile.fi.intel.com>
+Subject: Re: [PATCH v5 3/7] i2c: acpi: Factor out getting the IRQ from ACPI
+Message-ID: <20190620145432.GD9224@smile.fi.intel.com>
 References: <20190620133420.4632-1-ckeepax@opensource.cirrus.com>
- <20190620133420.4632-3-ckeepax@opensource.cirrus.com>
+ <20190620133420.4632-4-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190620133420.4632-3-ckeepax@opensource.cirrus.com>
+In-Reply-To: <20190620133420.4632-4-ckeepax@opensource.cirrus.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
@@ -54,47 +54,37 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jun 20, 2019 at 02:34:15PM +0100, Charles Keepax wrote:
-> Use the available IRQ helper functions, most of the functions have
-> additional helpful side affects like configuring the trigger type of the
-> IRQ.
-> 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+On Thu, Jun 20, 2019 at 02:34:16PM +0100, Charles Keepax wrote:
+> In preparation for future refactoring factor out the fetch of the IRQ
+> into its own helper function.
 
-Some last minute observations / questions.
-
-> +	struct resource r;
+> +static int i2c_acpi_get_irq(struct acpi_device *adev)
+> +{
+> +	struct list_head resource_list;
+> +	int irq = -ENOENT;
+> +	int ret;
 > +
-> +	if (*irq <= 0 && acpi_dev_resource_interrupt(ares, 0, &r))
-> +		*irq = i2c_dev_irq_from_resources(&r, 1);
+> +	INIT_LIST_HEAD(&resource_list);
 > +
-> +	return 1; /* No need to add resource to the list */
-
-If we don't add it to the list, do we still need to manage the empty
-resource_list below?
-
->  	/* Then fill IRQ number if any */
->  	INIT_LIST_HEAD(&resource_list);
-> -	ret = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
 > +	ret = acpi_dev_get_resources(adev, &resource_list,
 > +				     i2c_acpi_add_resource, &irq);
->  	if (ret < 0)
->  		return -EINVAL;
->  
-> -	resource_list_for_each_entry(entry, &resource_list) {
-> -		if (resource_type(entry->res) == IORESOURCE_IRQ) {
-> -			info->irq = entry->res->start;
-> -			break;
-> -		}
-> -	}
+> +	if (ret < 0)
 
-> +	if (irq > 0)
-> +		info->irq = irq;
+> +		return -EINVAL;
 
-Hmm... can't we just assign it directly inside the _add_resource() call back as
-original code did?
+Can't we return ret value?
+
+> +
+> +	acpi_dev_free_resource_list(&resource_list);
+> +
+> +	return irq;
+> +}
+
+> +	ret = i2c_acpi_get_irq(adev);
+> +	if (ret > 0)
+> +		info->irq = ret;
+
+And on error we do not bail out. This changes the behaviour.
 
 -- 
 With Best Regards,
