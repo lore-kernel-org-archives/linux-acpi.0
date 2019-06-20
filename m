@@ -6,26 +6,26 @@ X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BEC4C43613
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCA8C48BE1
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57B1820665
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 071F020675
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727116AbfFTSc1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jun 2019 14:32:27 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:35594 "EHLO mx1.redhat.com"
+        id S1727217AbfFTScO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jun 2019 14:32:14 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:50602 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726887AbfFTSc0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jun 2019 14:32:26 -0400
+        id S1726977AbfFTScO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jun 2019 14:32:14 -0400
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id A07DD3092667;
-        Thu, 20 Jun 2019 18:32:25 +0000 (UTC)
+        by mx1.redhat.com (Postfix) with ESMTPS id 1785475726;
+        Thu, 20 Jun 2019 18:32:14 +0000 (UTC)
 Received: from t460s.redhat.com (ovpn-116-71.ams2.redhat.com [10.36.116.71])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 3FEDF19C4F;
-        Thu, 20 Jun 2019 18:32:21 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E49CA19C5B;
+        Thu, 20 Jun 2019 18:32:11 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Dan Williams <dan.j.williams@intel.com>,
@@ -34,203 +34,74 @@ Cc:     Dan Williams <dan.j.williams@intel.com>,
         linux-mm@kvack.org, David Hildenbrand <david@redhat.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Pavel Tatashin <pasha.tatashin@soleen.com>,
-        Andrew Banman <andrew.banman@hpe.com>,
-        "mike.travis@hpe.com" <mike.travis@hpe.com>,
-        Oscar Salvador <osalvador@suse.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Wei Yang <richard.weiyang@gmail.com>,
-        Arun KS <arunks@codeaurora.org>, Qian Cai <cai@lca.pw>
-Subject: [PATCH v3 5/6] mm/memory_hotplug: Move and simplify walk_memory_blocks()
-Date:   Thu, 20 Jun 2019 20:31:38 +0200
-Message-Id: <20190620183139.4352-6-david@redhat.com>
+        Keith Busch <keith.busch@intel.com>,
+        Oscar Salvador <osalvador@suse.de>
+Subject: [PATCH v3 3/6] mm: Make register_mem_sect_under_node() static
+Date:   Thu, 20 Jun 2019 20:31:36 +0200
+Message-Id: <20190620183139.4352-4-david@redhat.com>
 In-Reply-To: <20190620183139.4352-1-david@redhat.com>
 References: <20190620183139.4352-1-david@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.43]); Thu, 20 Jun 2019 18:32:26 +0000 (UTC)
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.25]); Thu, 20 Jun 2019 18:32:14 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Let's move walk_memory_blocks() to the place where memory block logic
-resides and simplify it. While at it, add a type for the callback function.
+It is only used internally.
 
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Andrew Banman <andrew.banman@hpe.com>
-Cc: "mike.travis@hpe.com" <mike.travis@hpe.com>
-Cc: Oscar Salvador <osalvador@suse.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Arun KS <arunks@codeaurora.org>
-Cc: Qian Cai <cai@lca.pw>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/base/memory.c          | 42 ++++++++++++++++++++++++++
- include/linux/memory.h         |  3 ++
- include/linux/memory_hotplug.h |  2 --
- mm/memory_hotplug.c            | 55 ----------------------------------
- 4 files changed, 45 insertions(+), 57 deletions(-)
+ drivers/base/node.c  | 3 ++-
+ include/linux/node.h | 7 -------
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index c54e80fd25a8..0204384b4d1d 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -44,6 +44,11 @@ static inline unsigned long pfn_to_block_id(unsigned long pfn)
- 	return base_memory_block_id(pfn_to_section_nr(pfn));
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index 9be88fd05147..e6364e3e3e31 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -752,7 +752,8 @@ static int __ref get_nid_for_pfn(unsigned long pfn)
  }
  
-+static inline unsigned long phys_to_block_id(unsigned long phys)
-+{
-+	return pfn_to_block_id(PFN_DOWN(phys));
-+}
-+
- static int memory_subsys_online(struct device *dev);
- static int memory_subsys_offline(struct device *dev);
- 
-@@ -851,3 +856,40 @@ int __init memory_dev_init(void)
- 		printk(KERN_ERR "%s() failed: %d\n", __func__, ret);
- 	return ret;
- }
-+
-+/**
-+ * walk_memory_blocks - walk through all present memory blocks overlapped
-+ *			by the range [start, start + size)
-+ *
-+ * @start: start address of the memory range
-+ * @size: size of the memory range
-+ * @arg: argument passed to func
-+ * @func: callback for each memory section walked
-+ *
-+ * This function walks through all present memory blocks overlapped by the
-+ * range [start, start + size), calling func on each memory block.
-+ *
-+ * In case func() returns an error, walking is aborted and the error is
-+ * returned.
-+ */
-+int walk_memory_blocks(unsigned long start, unsigned long size,
-+		       void *arg, walk_memory_blocks_func_t func)
-+{
-+	const unsigned long start_block_id = phys_to_block_id(start);
-+	const unsigned long end_block_id = phys_to_block_id(start + size - 1);
-+	struct memory_block *mem;
-+	unsigned long block_id;
-+	int ret = 0;
-+
-+	for (block_id = start_block_id; block_id <= end_block_id; block_id++) {
-+		mem = find_memory_block_by_id(block_id, NULL);
-+		if (!mem)
-+			continue;
-+
-+		ret = func(mem, arg);
-+		put_device(&mem->dev);
-+		if (ret)
-+			break;
-+	}
-+	return ret;
-+}
-diff --git a/include/linux/memory.h b/include/linux/memory.h
-index f26a5417ec5d..b3b388775a30 100644
---- a/include/linux/memory.h
-+++ b/include/linux/memory.h
-@@ -119,6 +119,9 @@ extern int memory_isolate_notify(unsigned long val, void *v);
- extern struct memory_block *find_memory_block_hinted(struct mem_section *,
- 							struct memory_block *);
- extern struct memory_block *find_memory_block(struct mem_section *);
-+typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
-+extern int walk_memory_blocks(unsigned long start, unsigned long size,
-+			      void *arg, walk_memory_blocks_func_t func);
- #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
- 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index d9fffc34949f..475aff8efbf8 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -340,8 +340,6 @@ static inline void __remove_memory(int nid, u64 start, u64 size) {}
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- extern void __ref free_area_init_core_hotplug(int nid);
--extern int walk_memory_blocks(unsigned long start, unsigned long size,
--		void *arg, int (*func)(struct memory_block *, void *));
- extern int __add_memory(int nid, u64 start, u64 size);
- extern int add_memory(int nid, u64 start, u64 size);
- extern int add_memory_resource(int nid, struct resource *resource);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 122a7d31efdd..fc558e9ff939 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1661,62 +1661,7 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ /* register memory section under specified node if it spans that node */
+-int register_mem_sect_under_node(struct memory_block *mem_blk, void *arg)
++static int register_mem_sect_under_node(struct memory_block *mem_blk,
++					 void *arg)
  {
- 	return __offline_pages(start_pfn, start_pfn + nr_pages);
- }
--#endif /* CONFIG_MEMORY_HOTREMOVE */
+ 	int ret, nid = *(int *)arg;
+ 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
+diff --git a/include/linux/node.h b/include/linux/node.h
+index 548c226966a2..4866f32a02d8 100644
+--- a/include/linux/node.h
++++ b/include/linux/node.h
+@@ -137,8 +137,6 @@ static inline int register_one_node(int nid)
+ extern void unregister_one_node(int nid);
+ extern int register_cpu_under_node(unsigned int cpu, unsigned int nid);
+ extern int unregister_cpu_under_node(unsigned int cpu, unsigned int nid);
+-extern int register_mem_sect_under_node(struct memory_block *mem_blk,
+-						void *arg);
+ extern void unregister_memory_block_under_nodes(struct memory_block *mem_blk);
  
--/**
-- * walk_memory_blocks - walk through all present memory blocks overlapped
-- *			by the range [start, start + size)
-- *
-- * @start: start address of the memory range
-- * @size: size of the memory range
-- * @arg: argument passed to func
-- * @func: callback for each memory block walked
-- *
-- * This function walks through all present memory blocks overlapped by the
-- * range [start, start + size), calling func on each memory block.
-- *
-- * Returns the return value of func.
-- */
--int walk_memory_blocks(unsigned long start, unsigned long size,
--		void *arg, int (*func)(struct memory_block *, void *))
+ extern int register_memory_node_under_compute_node(unsigned int mem_nid,
+@@ -170,11 +168,6 @@ static inline int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
+ {
+ 	return 0;
+ }
+-static inline int register_mem_sect_under_node(struct memory_block *mem_blk,
+-							void *arg)
 -{
--	const unsigned long start_pfn = PFN_DOWN(start);
--	const unsigned long end_pfn = PFN_UP(start + size - 1);
--	struct memory_block *mem = NULL;
--	struct mem_section *section;
--	unsigned long pfn, section_nr;
--	int ret;
--
--	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
--		section_nr = pfn_to_section_nr(pfn);
--		if (!present_section_nr(section_nr))
--			continue;
--
--		section = __nr_to_section(section_nr);
--		/* same memblock? */
--		if (mem)
--			if ((section_nr >= mem->start_section_nr) &&
--			    (section_nr <= mem->end_section_nr))
--				continue;
--
--		mem = find_memory_block_hinted(section, mem);
--		if (!mem)
--			continue;
--
--		ret = func(mem, arg);
--		if (ret) {
--			kobject_put(&mem->dev.kobj);
--			return ret;
--		}
--	}
--
--	if (mem)
--		kobject_put(&mem->dev.kobj);
--
 -	return 0;
 -}
--
--#ifdef CONFIG_MEMORY_HOTREMOVE
- static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
+ static inline void unregister_memory_block_under_nodes(struct memory_block *mem_blk)
  {
- 	int ret = !is_memblock_offlined(mem);
+ }
 -- 
 2.21.0
 
