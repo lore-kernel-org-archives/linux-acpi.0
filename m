@@ -2,135 +2,161 @@ Return-Path: <SRS0=TUQs=UT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25AD2C43613
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 13:35:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9B60C43613
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 13:37:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2E5D214AF
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 13:35:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b="UZ5tHp6n"
+	by mail.kernel.org (Postfix) with ESMTP id 95BA6206E0
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 13:37:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726562AbfFTNfp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jun 2019 09:35:45 -0400
-Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:53670 "EHLO
-        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726492AbfFTNfo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jun 2019 09:35:44 -0400
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x5KDYFFv022016;
-        Thu, 20 Jun 2019 08:34:21 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-type; s=PODMain02222019;
- bh=ImClaZoQgkbKlWnfxIwNwB5Kngl/8JM/wQS0/6LfNxw=;
- b=UZ5tHp6n+eNSCQvqF+H2mQ3gwmo378RpH5sWHxSM9FI7ZW4qAFsRNPovhmkjqfIM1say
- z46o7pv34kwW5WTk417UpSpMn5oaJO2BcoudvmE2V7ZH76g0FNHYp+7l1jrNggUfF668
- mr4aoIgYDzq/v/i36MpukzUAA3nHvx0hM39MBDsZmPiPWoqDZqxrT0Z0guF3taq45BSl
- Egiq49jZKyZ3pizTKBsadsBwkC3z2PQNWdjTH8dIXqvsQfuNElzUD0t3L2lKfhFG1OFX
- CQw8B0dlXzd7PVxvBdDEWqeHvVYUrGxKVOw7JkadtNEQl/VOC7glLl8mKmqVUIuCKi5k GQ== 
-Authentication-Results: ppops.net;
-        spf=none smtp.mailfrom=ckeepax@opensource.cirrus.com
-Received: from mail1.cirrus.com (mail1.cirrus.com [141.131.3.20])
-        by mx0a-001ae601.pphosted.com with ESMTP id 2t780gjqhu-1;
-        Thu, 20 Jun 2019 08:34:21 -0500
-Received: from EDIEX02.ad.cirrus.com (unknown [198.61.84.81])
-        by mail1.cirrus.com (Postfix) with ESMTP id 35975611C8C8;
-        Thu, 20 Jun 2019 08:34:21 -0500 (CDT)
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1591.10; Thu, 20 Jun
- 2019 14:34:20 +0100
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server id 15.1.1591.10 via Frontend
- Transport; Thu, 20 Jun 2019 14:34:20 +0100
-Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 8C7B52DB;
-        Thu, 20 Jun 2019 14:34:20 +0100 (BST)
-From:   Charles Keepax <ckeepax@opensource.cirrus.com>
-To:     <wsa@the-dreams.de>, <mika.westerberg@linux.intel.com>
-CC:     <jarkko.nikula@linux.intel.com>,
-        <andriy.shevchenko@linux.intel.com>, <linux-i2c@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <benjamin.tissoires@redhat.com>, <jbroadus@gmail.com>,
-        <patches@opensource.cirrus.com>
-Subject: [PATCH v5 5/7] i2c: core: Move ACPI IRQ handling to probe time
-Date:   Thu, 20 Jun 2019 14:34:18 +0100
-Message-ID: <20190620133420.4632-6-ckeepax@opensource.cirrus.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190620133420.4632-1-ckeepax@opensource.cirrus.com>
-References: <20190620133420.4632-1-ckeepax@opensource.cirrus.com>
+        id S1726562AbfFTNhQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jun 2019 09:37:16 -0400
+Received: from mga03.intel.com ([134.134.136.65]:63087 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726391AbfFTNhQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jun 2019 09:37:16 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Jun 2019 06:37:15 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.63,397,1557212400"; 
+   d="scan'208";a="181857959"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
+  by fmsmga001.fm.intel.com with SMTP; 20 Jun 2019 06:37:11 -0700
+Received: by lahna (sSMTP sendmail emulation); Thu, 20 Jun 2019 16:37:10 +0300
+Date:   Thu, 20 Jun 2019 16:37:10 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Lukas Wunner <lukas@wunner.de>,
+        Keith Busch <keith.busch@intel.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Alexandru Gagniuc <mr.nuke.me@gmail.com>,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] PCI / ACPI: Use cached ACPI device state to get
+ PCI device power state
+Message-ID: <20190620133710.GB2640@lahna.fi.intel.com>
+References: <20190618161858.77834-1-mika.westerberg@linux.intel.com>
+ <20190618161858.77834-2-mika.westerberg@linux.intel.com>
+ <20190619212801.GC143205@google.com>
+ <20190620082730.GM2640@lahna.fi.intel.com>
+ <20190620131649.GG143205@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
- definitions=main-1906200102
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190620131649.GG143205@google.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Bring the ACPI path in sync with the device tree path and handle all the
-IRQ fetching at probe time. This leaves the only IRQ handling at device
-registration time being that which is passed directly through the board
-info as either a resource or an actual IRQ number.
+On Thu, Jun 20, 2019 at 08:16:49AM -0500, Bjorn Helgaas wrote:
+> On Thu, Jun 20, 2019 at 11:27:30AM +0300, Mika Westerberg wrote:
+> > On Wed, Jun 19, 2019 at 04:28:01PM -0500, Bjorn Helgaas wrote:
+> > > On Tue, Jun 18, 2019 at 07:18:56PM +0300, Mika Westerberg wrote:
+> > > > Intel Ice Lake has an integrated Thunderbolt controller which
+> > > > means that the PCIe topology is extended directly from the two
+> > > > root ports (RP0 and RP1).
+> > > 
+> > > A PCIe topology is always extended directly from root ports,
+> > > regardless of whether a Thunderbolt controller is integrated, so I
+> > > guess I'm missing the point you're making.  It doesn't sound like
+> > > this is anything specific to Thunderbolt?
+> >
+> > The point I'm trying to make here is to explain why this is problem
+> > now and not with the previous discrete controllers. With the
+> > previous there was only a single ACPI power resource for the root
+> > port and the Thunderbolt host router was connected to that root
+> > port. PCIe hierarchy was extended through downstream ports (not root
+> > ports) of that controller (which includes PCIe switch).
+> 
+> Sounds like you're using "PCIe topology extension" to mean
+> specifically something below a Thunderbolt controller, excluding a
+> subtree below a root port.  I don't think the PCI core is aware of
+> that distinction.
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
----
+Right it is not.
 
-Changes since v4:
- - Pass acpi_device to i2c_acpi_get_irq
- - Pass the client acpi_device rather than the adaptor, I think (maybe
-   hope is more accurate) this should fix the issue seen by Benjamin.
+> > Now the thing is part of the SoC so power management is different
+> > and causes problems in Linux.
+> 
+> The SoC is a physical packaging issue that really doesn't enter into
+> the specs directly.  I'm trying to get at the logical topology
+> questions in terms of the PCIe and ACPI specs.
+> 
+> I assume we could dream up a non-Thunderbolt topology that would show
+> the same problem?
 
-Thanks,
-Charles
+Yes.
 
- drivers/i2c/i2c-core-acpi.c | 5 -----
- drivers/i2c/i2c-core-base.c | 5 ++++-
- 2 files changed, 4 insertions(+), 6 deletions(-)
+> > > > Power management is handled by ACPI power resources that are
+> > > > shared between the root ports, Thunderbolt controller (NHI) and xHCI
+> > > > controller.
+> > > > 
+> > > > The topology with the power resources (marked with []) looks like:
+> > > > 
+> > > >   Host bridge
+> > > >     |
+> > > >     +- RP0 ---\
+> > > >     +- RP1 ---|--+--> [TBT]
+> > > >     +- NHI --/   |
+> > > >     |            |
+> > > >     |            v
+> > > >     +- xHCI --> [D3C]
+> > > > 
+> > > > Here TBT and D3C are the shared ACPI power resources. ACPI
+> > > > _PR3() method returns either TBT or D3C or both.
+> 
+> I'm not very familiar with _PR3.  I guess this is under an ACPI object
+> representing a PCI device, e.g., \_SB.PCI0.RP0._PR3?
 
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 0ddfcca6091e1..f752879772f64 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -205,11 +205,6 @@ static int i2c_acpi_get_info(struct acpi_device *adev,
- 	if (adapter_handle)
- 		*adapter_handle = lookup.adapter_handle;
- 
--	/* Then fill IRQ number if any */
--	ret = i2c_acpi_get_irq(adev);
--	if (ret > 0)
--		info->irq = ret;
--
- 	acpi_set_modalias(adev, dev_name(&adev->dev), info->type,
- 			  sizeof(info->type));
- 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 8a303246d534b..060d1a3a7ea4c 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -327,7 +327,10 @@ static int i2c_device_probe(struct device *dev)
- 			if (irq == -EINVAL || irq == -ENODATA)
- 				irq = of_irq_get(dev->of_node, 0);
- 		} else if (ACPI_COMPANION(dev)) {
--			irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), 0);
-+			irq = i2c_acpi_get_irq(ACPI_COMPANION(dev));
-+
-+			if (irq == -ENOENT)
-+				irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), 0);
- 		}
- 		if (irq == -EPROBE_DEFER)
- 			return irq;
--- 
-2.11.0
+Correct.
 
+> > > > Say we runtime suspend first the root ports RP0 and RP1, then
+> > > > NHI. Now since the TBT power resource is still on when the root
+> > > > ports are runtime suspended their dev->current_state is set to
+> > > > D3hot. When NHI is runtime suspended TBT is finally turned off
+> > > > but state of the root ports remain to be D3hot.
+> 
+> So in this example we might have:
+> 
+>   _SB.PCI0.RP0._PR3: TBT
+>   _SB.PCI0.RP1._PR3: TBT
+>   _SB.PCI0.NHI._PR3: TBT
+
+and also D3C.
+
+> And when Linux figures out that everything depending on TBT is in
+> D3hot, it evaluates TBT._OFF, which puts them all in D3cold?  And part
+> of the problem is that they're now in D3cold (where config access
+> doesn't work) but Linux still thinks they're in D3hot (where config
+> access would work)?
+
+Exactly.
+
+> I feel like I'm missing something because I don't know how D3C is
+> involved, since you didn't mention suspending xHCI.
+
+That's another power resource so we will also have D3C turned off when
+xHCI gets suspended but I did not want to complicate things too much in
+the changelog.
+
+> And I can't mentally match up the patch with the D3hot/D3cold state
+> change (if indeed that's the problem).  If we were updating the path
+> that evaluates _OFF so it changed the power state of all dependent
+> devices, *that* would make a lot of sense to me because it sounds like
+> that's where the physical change happens that makes things out of
+> sync.
+
+I did that in the first version [1] but Rafael pointed out that it is
+racy one way or another [2].
+
+[1] https://www.spinics.net/lists/linux-pci/msg83583.html
+[2] https://www.spinics.net/lists/linux-pci/msg83600.html
