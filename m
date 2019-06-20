@@ -2,88 +2,116 @@ Return-Path: <SRS0=TUQs=UT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC76C43613
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 12:21:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC783C43613
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 12:25:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F3BFD2080C
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 12:21:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADD6C206E0
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 12:25:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="CoPiD8NX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726874AbfFTMVI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jun 2019 08:21:08 -0400
-Received: from mga05.intel.com ([192.55.52.43]:37409 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726551AbfFTMVI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jun 2019 08:21:08 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Jun 2019 05:21:07 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.63,396,1557212400"; 
-   d="scan'208";a="165303530"
-Received: from mylly.fi.intel.com (HELO [10.237.72.61]) ([10.237.72.61])
-  by orsmga006.jf.intel.com with ESMTP; 20 Jun 2019 05:21:03 -0700
-Subject: Re: [PATCH] spi/acpi: fix incorrect ACPI parent check
-To:     Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>,
-        kbuild test robot <lkp@intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Masahisa Kojima <masahisa.kojima@linaro.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Lukas Wunner <lukas@wunner.de>
-References: <20190619095254.19559-1-ard.biesheuvel@linaro.org>
- <20190619101604.GR2640@lahna.fi.intel.com>
- <54ede1d8-0e6b-e7d9-5e61-a7d057abbd2b@linux.intel.com>
- <CAKv+Gu_Bw3aV-pUVYf8T1hLfL35X7ozEPtqL9oLcDvwcQ4qMiw@mail.gmail.com>
- <c96afe71-c7bd-d30f-ef37-0c6eeb726f67@linux.intel.com>
- <CAKv+Gu9fafXNrAYAgUuqMPVjZm2bWJmzg_aPz9WD1skemQme8A@mail.gmail.com>
- <08e498d6-1ff8-771f-7d4f-6ea5f705d386@linux.intel.com>
- <20190619144255.GG2640@lahna.fi.intel.com>
- <CAKv+Gu82UcBcj_cjfEDpEyQyGzPvtGnVJN22hCroHKyudhk=8w@mail.gmail.com>
-From:   Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Message-ID: <efe4ab27-61eb-af89-f023-c0208253fc69@linux.intel.com>
-Date:   Thu, 20 Jun 2019 15:21:02 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.1
+        id S1726592AbfFTMZ4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jun 2019 08:25:56 -0400
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:37475 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726492AbfFTMZ4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jun 2019 08:25:56 -0400
+Received: by mail-wm1-f67.google.com with SMTP id f17so2970698wme.2
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Jun 2019 05:25:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=nGbwT1fOo/WcjbkFQ3vvfod2lQownHb8jwDrl6e2Yzk=;
+        b=CoPiD8NXuY79eSws3YaYvFv5PqRMRItqh+Yea5nAQAhZwlCElCUngtM6Yt5DY0rkf1
+         oYiIsFQ5dFh1bKoP9oWtH3jQeEq9nzihwUW7FxVj9/D84o1ZYLTEeNk44akVaNP4ZPof
+         XIdOkl+JLPTNaMVtUCV+PYg0sDn8YE2Ok4ag/ZI4UVLZ4+IFcc1FbH+2BZP147R9UUqB
+         36p40GNpJbb0T9UOPjamUUuvHoCeM0jsuwUz2C7Rh4/P2GzyvUD+Yt+3QG9Nm5Tx7vqx
+         T4YWi58KKkGszAsVYNp8XLrfW/9JUVLK+gHQnf8UB32GOJqblFrDZXuu2uN6p6xwY6GY
+         SEqg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=nGbwT1fOo/WcjbkFQ3vvfod2lQownHb8jwDrl6e2Yzk=;
+        b=irDk5bUCB3ueXZIFZmXi/8oGuiMlXx226X1Y6DHI1uA/sksZrYjWBB/CY+491t/wm4
+         TQvoxa/HmAokUBzSxH93Wi+5CpV+SEG1lqfakAgcwJ2AikYjDGSy3VFcvyNtm41wGeE9
+         +2utbm44eGcS9zQjEXNwwG1vHPvuz4JnBA2SWrCG4MY0Qfr07W7RiVEPW0h1QUoHhXxU
+         we5wU9I42Ae5K1thlal2VFqMnHOeg/ZZJfb+Bx2SmefNBBYUeqnJ/iKY9VqHHXIK0N5t
+         IopBrQJ6J2C5EgnPDlGJp33pHeiaI0T9vLR6ZxHNuwF+lhNqcLA1tEge9q8O7OVruCVp
+         15eA==
+X-Gm-Message-State: APjAAAXdTtloqsJMLKYPly6jiv/kixKjTNCZ9bJOsoAnwRvKbK5wR1cP
+        32VtkKWfxMWd/f7LFUZiVSkN4A==
+X-Google-Smtp-Source: APXvYqz6jnLBVywer3zqPeTDaiXVrGtBx8wKm76F0MgDMf6oUh3M5VIM8YxAxe12Bk0fOIKqMpgUlA==
+X-Received: by 2002:a1c:a842:: with SMTP id r63mr2705755wme.117.1561033553765;
+        Thu, 20 Jun 2019 05:25:53 -0700 (PDT)
+Received: from dell ([2.27.35.243])
+        by smtp.gmail.com with ESMTPSA id p26sm21241456wrp.58.2019.06.20.05.25.52
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 20 Jun 2019 05:25:53 -0700 (PDT)
+Date:   Thu, 20 Jun 2019 13:25:51 +0100
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc:     Sudeep Holla <sudeep.holla@arm.com>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        catalin.marinas@arm.com, will.deacon@arm.com,
+        leif.lindholm@linaro.org
+Subject: Re: [RFC PATCH] acpi/arm64: ignore 5.1 FADTs that are reported as 5.0
+Message-ID: <20190620122551.GC4699@dell>
+References: <20190619121831.7614-1-ard.biesheuvel@linaro.org>
+ <20190619122434.GA25656@e107155-lin>
+ <20190620075732.GB4699@dell>
+ <20190620094937.GB20872@e121166-lin.cambridge.arm.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKv+Gu82UcBcj_cjfEDpEyQyGzPvtGnVJN22hCroHKyudhk=8w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190620094937.GB20872@e121166-lin.cambridge.arm.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 6/20/19 1:33 PM, Ard Biesheuvel wrote:
-> Jarkko, does this help?
-> 
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index 50d230b33c42..d072efdd65ba 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -1914,6 +1914,7 @@ static acpi_status
-> acpi_register_spi_device(struct spi_controller *ctlr,
->                  return AE_OK;
-> 
->          lookup.ctlr             = ctlr;
-> +       lookup.max_speed_hz     = 0;
->          lookup.mode             = 0;
->          lookup.bits_per_word    = 0;
->          lookup.irq              = -1;
-> 
-Yes it does.
+On Thu, 20 Jun 2019, Lorenzo Pieralisi wrote:
 
-I guess you have some cleanups or changes on top of your b5e3cf410b48 
-("spi/acpi: fix incorrect ACPI parent check") since for me change go 
-around lines @@ -1981,6 +1981,7 @@ ?
+> On Thu, Jun 20, 2019 at 08:57:32AM +0100, Lee Jones wrote:
+> > On Wed, 19 Jun 2019, Sudeep Holla wrote:
+> > 
+> > > On Wed, Jun 19, 2019 at 02:18:31PM +0200, Ard Biesheuvel wrote:
+> > > > Some Qualcomm Snapdragon based laptops built to run Microsoft Windows
+> > > > are clearly ACPI 5.1 based, given that that is the first ACPI revision
+> > > > that supports ARM, and introduced the FADT 'arm_boot_flags' field,
+> > > > which has a non-zero field on those systems.
+> > > > 
+> > > > So in these cases, infer from the ARM boot flags that the FADT must be
+> > > > 5.1 or later, and treat it as 5.1.
+> > > > 
+> > > 
+> > > Makes sense and looks simple to me.
+> > > 
+> > > Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+> > 
+> > Could we pleeeeease have this in for v5.3?
+> > 
+> > We have available, consumer-level platforms that rely on this change.
+> 
+> But we do not have the kernel infrastructure to support them so
+> I am fine with it but urgency is questionable as far as I am
+> concerned.
+
+Yes we do.  At least, we will in v5.3.
 
 -- 
-Jarkko
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
