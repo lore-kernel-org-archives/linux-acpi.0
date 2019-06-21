@@ -1,234 +1,120 @@
-Return-Path: <SRS0=TUQs=UT=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=CxHa=UU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE3FC48BE3
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A228C43613
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 01:20:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D510206BF
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jun 2019 18:32:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC7972084A
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 01:20:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="TcZabgis"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726147AbfFTScH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jun 2019 14:32:07 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:53006 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726092AbfFTScG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jun 2019 14:32:06 -0400
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 37276C18B2EB;
-        Thu, 20 Jun 2019 18:32:04 +0000 (UTC)
-Received: from t460s.redhat.com (ovpn-116-71.ams2.redhat.com [10.36.116.71])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 4FA1619C5B;
-        Thu, 20 Jun 2019 18:31:58 +0000 (UTC)
-From:   David Hildenbrand <david@redhat.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Dan Williams <dan.j.williams@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
-        linux-mm@kvack.org, David Hildenbrand <david@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Michal Hocko <mhocko@suse.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Wei Yang <richard.weiyang@gmail.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Arun KS <arunks@codeaurora.org>,
-        Pavel Tatashin <pasha.tatashin@oracle.com>,
-        Oscar Salvador <osalvador@suse.de>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Mike Rapoport <rppt@linux.vnet.ibm.com>,
-        Baoquan He <bhe@redhat.com>
-Subject: [PATCH v3 1/6] mm: Section numbers use the type "unsigned long"
-Date:   Thu, 20 Jun 2019 20:31:34 +0200
-Message-Id: <20190620183139.4352-2-david@redhat.com>
-In-Reply-To: <20190620183139.4352-1-david@redhat.com>
-References: <20190620183139.4352-1-david@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.31]); Thu, 20 Jun 2019 18:32:06 +0000 (UTC)
+        id S1726728AbfFUBUe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jun 2019 21:20:34 -0400
+Received: from mail-pf1-f202.google.com ([209.85.210.202]:55540 "EHLO
+        mail-pf1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726716AbfFUBUb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jun 2019 21:20:31 -0400
+Received: by mail-pf1-f202.google.com with SMTP id i26so3223566pfo.22
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Jun 2019 18:20:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=MFrhOOVeW4IxvuHo8Dzy6dq7eeQGF3tpEcYBlR0WBso=;
+        b=TcZabgisBkyxXJLrHlJokm7pF3TBlp704rcyxWqQr7UBjl5F7Ssjc96k7OlHa57HX4
+         3xR1+ubHcpOaZiH1aTCE78J/YCxbY6z4BwqD44zr9aEv32L/y7usgub1W7sKV2xDI3ui
+         tF6cAzVnYWH7eBYL/UDuUTdSJHS9OCxCP6uQ+DH/jPiEGGXMqGomAGLzMHwBmJGKO/Xi
+         AZybp8B/Ge2tdSkOVjvjBa4Zoteog0hysbk6bv3DsMj+DyQe2nRuLsoe34IQ3l3jBxvY
+         vTJuWKTdI92NMOeDD33HDAxRxSAyxBwigO9hlP8a6pjmvcu3N8UTxybhZunMy4TXM8Pb
+         mrFQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=MFrhOOVeW4IxvuHo8Dzy6dq7eeQGF3tpEcYBlR0WBso=;
+        b=XkQERv03OXyRI9ZndJg9XNYYB04qvFvNbI+nEBF/baaxAmrmceD93zZbWjBxb6PtdI
+         6+ifZGZWjSV5mCAQCM1wc0qxS8TafzQONcECNn4WFHp0FZ6jCCjIpsNA7wVgFhr6zL7X
+         eGRWrd+bJy4cX5EPviz61cC90A7P8XARBGw0tgY5l6q9ORbkspg5N6XNmuqZ7UmFFhg5
+         wglGJ12vKwCoxa2se7GrkQY7WDe7M8v/D13vY5pExvEM2aRT3VOnR5UjhYSdmbtVrW3r
+         ty4xa4iDWKNhRFeMs6QlXNgz0Wbm6n5TyHvZcsPyCf1I04xqyKtUITAzNbP6+VGqq8L8
+         GChw==
+X-Gm-Message-State: APjAAAXAORrFJbpvpVNCSh4O6TOBHPEi+OlTCvrWZSVYB8VPoik+38aW
+        cTCMQCkW8f8bg6Ps8HbtYBkd5PqiXQ1eLUeXy/oJwg==
+X-Google-Smtp-Source: APXvYqxHE/gBOkhAiSbfrmS0K/Wbmqx3GctJ6ZvOlTkR58pahzRkAQYiz5QtoA6YyUzTLy4ssZQCfYbpp0KUfKwAi76AKQ==
+X-Received: by 2002:a65:448b:: with SMTP id l11mr15174758pgq.74.1561080030187;
+ Thu, 20 Jun 2019 18:20:30 -0700 (PDT)
+Date:   Thu, 20 Jun 2019 18:19:28 -0700
+In-Reply-To: <20190621011941.186255-1-matthewgarrett@google.com>
+Message-Id: <20190621011941.186255-18-matthewgarrett@google.com>
+Mime-Version: 1.0
+References: <20190621011941.186255-1-matthewgarrett@google.com>
+X-Mailer: git-send-email 2.22.0.410.gd8fdbe21b5-goog
+Subject: [PATCH V33 17/30] acpi: Disable ACPI table override if the kernel is
+ locked down
+From:   Matthew Garrett <matthewgarrett@google.com>
+To:     jmorris@namei.org
+Cc:     linux-security@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-api@vger.kernel.org, Linn Crosetto <linn@hpe.com>,
+        David Howells <dhowells@redhat.com>,
+        Matthew Garrett <mjg59@google.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-We are using a mixture of "int" and "unsigned long". Let's make this
-consistent by using "unsigned long" everywhere. We'll do the same with
-memory block ids next.
+From: Linn Crosetto <linn@hpe.com>
 
-While at it, turn the "unsigned long i" in removable_show() into an
-int - sections_per_block is an int.
+From the kernel documentation (initrd_table_override.txt):
 
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Arun KS <arunks@codeaurora.org>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Baoquan He <bhe@redhat.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
+  If the ACPI_INITRD_TABLE_OVERRIDE compile option is true, it is possible
+  to override nearly any ACPI table provided by the BIOS with an
+  instrumented, modified one.
+
+When lockdown is enabled, the kernel should disallow any unauthenticated
+changes to kernel space.  ACPI tables contain code invoked by the kernel,
+so do not allow ACPI tables to be overridden if the kernel is locked down.
+
+Signed-off-by: Linn Crosetto <linn@hpe.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Matthew Garrett <mjg59@google.com>
+cc: linux-acpi@vger.kernel.org
 ---
- drivers/base/memory.c  | 27 +++++++++++++--------------
- include/linux/mmzone.h |  4 ++--
- mm/sparse.c            | 12 ++++++------
- 3 files changed, 21 insertions(+), 22 deletions(-)
+ drivers/acpi/tables.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 826dd76f662e..5947b5a5686d 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -34,7 +34,7 @@ static DEFINE_MUTEX(mem_sysfs_mutex);
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 8fccbe49612a..f8e7d70f07ee 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -34,6 +34,7 @@
+ #include <linux/memblock.h>
+ #include <linux/earlycpio.h>
+ #include <linux/initrd.h>
++#include <linux/security.h>
+ #include "internal.h"
  
- static int sections_per_block;
+ #ifdef CONFIG_ACPI_CUSTOM_DSDT
+@@ -539,6 +540,11 @@ void __init acpi_table_upgrade(void)
+ 	if (table_nr == 0)
+ 		return;
  
--static inline int base_memory_block_id(int section_nr)
-+static inline int base_memory_block_id(unsigned long section_nr)
- {
- 	return section_nr / sections_per_block;
- }
-@@ -131,9 +131,9 @@ static ssize_t phys_index_show(struct device *dev,
- static ssize_t removable_show(struct device *dev, struct device_attribute *attr,
- 			      char *buf)
- {
--	unsigned long i, pfn;
--	int ret = 1;
- 	struct memory_block *mem = to_memory_block(dev);
-+	unsigned long pfn;
-+	int ret = 1, i;
- 
- 	if (mem->state != MEM_ONLINE)
- 		goto out;
-@@ -691,15 +691,15 @@ static int init_memory_block(struct memory_block **memory, int block_id,
- 	return ret;
- }
- 
--static int add_memory_block(int base_section_nr)
-+static int add_memory_block(unsigned long base_section_nr)
- {
-+	int ret, section_count = 0;
- 	struct memory_block *mem;
--	int i, ret, section_count = 0;
-+	unsigned long nr;
- 
--	for (i = base_section_nr;
--	     i < base_section_nr + sections_per_block;
--	     i++)
--		if (present_section_nr(i))
-+	for (nr = base_section_nr; nr < base_section_nr + sections_per_block;
-+	     nr++)
-+		if (present_section_nr(nr))
- 			section_count++;
- 
- 	if (section_count == 0)
-@@ -822,10 +822,9 @@ static const struct attribute_group *memory_root_attr_groups[] = {
-  */
- int __init memory_dev_init(void)
- {
--	unsigned int i;
- 	int ret;
- 	int err;
--	unsigned long block_sz;
-+	unsigned long block_sz, nr;
- 
- 	ret = subsys_system_register(&memory_subsys, memory_root_attr_groups);
- 	if (ret)
-@@ -839,9 +838,9 @@ int __init memory_dev_init(void)
- 	 * during boot and have been initialized
- 	 */
- 	mutex_lock(&mem_sysfs_mutex);
--	for (i = 0; i <= __highest_present_section_nr;
--		i += sections_per_block) {
--		err = add_memory_block(i);
-+	for (nr = 0; nr <= __highest_present_section_nr;
-+	     nr += sections_per_block) {
-+		err = add_memory_block(nr);
- 		if (!ret)
- 			ret = err;
- 	}
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 427b79c39b3c..83b6aae16f13 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1220,7 +1220,7 @@ static inline struct mem_section *__nr_to_section(unsigned long nr)
- 		return NULL;
- 	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
- }
--extern int __section_nr(struct mem_section* ms);
-+extern unsigned long __section_nr(struct mem_section *ms);
- extern unsigned long usemap_size(void);
- 
- /*
-@@ -1292,7 +1292,7 @@ static inline struct mem_section *__pfn_to_section(unsigned long pfn)
- 	return __nr_to_section(pfn_to_section_nr(pfn));
- }
- 
--extern int __highest_present_section_nr;
-+extern unsigned long __highest_present_section_nr;
- 
- #ifndef CONFIG_HAVE_ARCH_PFN_VALID
- static inline int pfn_valid(unsigned long pfn)
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 1552c855d62a..e8c57e039be8 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -102,7 +102,7 @@ static inline int sparse_index_init(unsigned long section_nr, int nid)
- #endif
- 
- #ifdef CONFIG_SPARSEMEM_EXTREME
--int __section_nr(struct mem_section* ms)
-+unsigned long __section_nr(struct mem_section *ms)
- {
- 	unsigned long root_nr;
- 	struct mem_section *root = NULL;
-@@ -121,9 +121,9 @@ int __section_nr(struct mem_section* ms)
- 	return (root_nr * SECTIONS_PER_ROOT) + (ms - root);
- }
- #else
--int __section_nr(struct mem_section* ms)
-+unsigned long __section_nr(struct mem_section *ms)
- {
--	return (int)(ms - mem_section[0]);
-+	return (unsigned long)(ms - mem_section[0]);
- }
- #endif
- 
-@@ -178,10 +178,10 @@ void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
-  * Keeping track of this gives us an easy way to break out of
-  * those loops early.
-  */
--int __highest_present_section_nr;
-+unsigned long __highest_present_section_nr;
- static void section_mark_present(struct mem_section *ms)
- {
--	int section_nr = __section_nr(ms);
-+	unsigned long section_nr = __section_nr(ms);
- 
- 	if (section_nr > __highest_present_section_nr)
- 		__highest_present_section_nr = section_nr;
-@@ -189,7 +189,7 @@ static void section_mark_present(struct mem_section *ms)
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
- }
- 
--static inline int next_present_section_nr(int section_nr)
-+static inline unsigned long next_present_section_nr(unsigned long section_nr)
- {
- 	do {
- 		section_nr++;
++	if (security_is_locked_down(LOCKDOWN_ACPI_TABLES)) {
++		pr_notice("kernel is locked down, ignoring table override\n");
++		return;
++	}
++
+ 	acpi_tables_addr =
+ 		memblock_find_in_range(0, ACPI_TABLE_UPGRADE_MAX_PHYS,
+ 				       all_tables_size, PAGE_SIZE);
 -- 
-2.21.0
+2.22.0.410.gd8fdbe21b5-goog
 
