@@ -2,219 +2,126 @@ Return-Path: <SRS0=CxHa=UU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3BAEC48BE3
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 07:16:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F120CC43613
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 10:08:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BD3D6206E0
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 07:16:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7B6B21530
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 10:08:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="jbf4KPE1"
+	dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b="USRpQ+Ow"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726218AbfFUHQJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Jun 2019 03:16:09 -0400
-Received: from mail-eopbgr1320098.outbound.protection.outlook.com ([40.107.132.98]:36144
-        "EHLO APC01-PU1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726008AbfFUHQJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jun 2019 03:16:09 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=AeUcAgMbO8ZAt6d0/qGVwLqdRAfRu0hYjAtKKDzdhMsiSCROaIh1A36Qo18AxAWF6dDhnGLL/Xy3/r3ClAadDqkxlN3YZYqj3kTZ2Od5a0ugCHrVbJqIC1c3nzrW8KHSxrVRT3Ko5nSdZNguEBqMk383/dJBFW6AqGVE7eNaKSk+kUeRbkmDYyI3EbnYJj4XsMu2ojLoWGy5QqvNsBOXP1TqrOa1fYP49kkIQxpiF+42xaDfODy7XZ5Gccm+VC11mUyr24wtwYordHqTg5Gz+5qQfvxhm/k1DqS9Kex97c3erhGhcWO3IOzLzz6tUdTNrsdGqDvbysd1YXFlJKU3vQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Unt8Dg+vuqUA9gSK4AUZJpp2XO8rshPozLolP4/3+z0=;
- b=GVQzhLujA7vt0WSaWi+I+vzZID/BPNWeYTu65CAtnMCQo5wpdUcLERKdaHDzjUW8J+2lMFk1cQPu+MDQG1v4/Al3RlNE2h6WNUaviz3hLFjXTrunA99I5aoabndpAE8avIB5fBWkt+YklL5v8jwLB97vadJVrVLO13t6v/x34tA4cSAATxeSh5r3CWOPC2v0UyPD7upmDtkIXWtXd/1K94rWpIkOeLP9PmZXolbeCqpmfd1Sb3mhhOXnfpSDaeKE09tSsB2i4qjforu8vZtIcefkr5IJo9xpRK4PeNtfUZ0SO/8k26g8nVrhZvV5FYb+qinolwNnISHV1cpUmD6CPQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1;spf=pass
- smtp.mailfrom=microsoft.com;dmarc=pass action=none
- header.from=microsoft.com;dkim=pass header.d=microsoft.com;arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Unt8Dg+vuqUA9gSK4AUZJpp2XO8rshPozLolP4/3+z0=;
- b=jbf4KPE1fgpaglj0kdiuPGL380BUxf6p87mlaYdCWtcBcwppU2OKPhdk/IadBlVKkTiY4sVlwm4PytPI8zXPrTD/O68oLnMYXkqbQGKhpkxMKe6LMSfZZIHk4rd1Z3LhEZR6/bg1Szu+qUZPslOtWuJAiiUmz47NrtT3lyd33Xk=
-Received: from PU1P153MB0169.APCP153.PROD.OUTLOOK.COM (10.170.189.13) by
- PU1P153MB0107.APCP153.PROD.OUTLOOK.COM (10.170.188.12) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2032.6; Fri, 21 Jun 2019 07:15:49 +0000
-Received: from PU1P153MB0169.APCP153.PROD.OUTLOOK.COM
- ([fe80::19b8:f479:a623:509b]) by PU1P153MB0169.APCP153.PROD.OUTLOOK.COM
- ([fe80::19b8:f479:a623:509b%5]) with mapi id 15.20.2032.008; Fri, 21 Jun 2019
- 07:15:49 +0000
-From:   Dexuan Cui <decui@microsoft.com>
-To:     Pavel Machek <pavel@ucw.cz>
-CC:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "robert.moore@intel.com" <robert.moore@intel.com>,
-        "erik.schmauss@intel.com" <erik.schmauss@intel.com>,
-        Russell King <rmk+kernel@arm.linux.org.uk>,
-        Russ Dill <Russ.Dill@ti.com>,
-        Sebastian Capella <sebastian.capella@linaro.org>,
-        Michael Kelley <mikelley@microsoft.com>,
-        "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        KY Srinivasan <kys@microsoft.com>,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Sasha Levin <Alexander.Levin@microsoft.com>,
-        "olaf@aepfle.de" <olaf@aepfle.de>,
-        "apw@canonical.com" <apw@canonical.com>,
-        "jasowang@redhat.com" <jasowang@redhat.com>,
-        vkuznets <vkuznets@redhat.com>,
-        "marcelo.cerri@canonical.com" <marcelo.cerri@canonical.com>
-Subject: RE: [PATCH] ACPI: PM: Export the function
- acpi_sleep_state_supported()
-Thread-Topic: [PATCH] ACPI: PM: Export the function
- acpi_sleep_state_supported()
-Thread-Index: AQHVIt2lUviLbUjfZEmzRslUu7e03qabnRQggAAYmbCABFQwAIAALIpAgAQ7H4CAAOhCUA==
-Date:   Fri, 21 Jun 2019 07:15:48 +0000
-Message-ID: <PU1P153MB016948F8B81454D4A5C13136BFE70@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-References: <1560536224-35338-1-git-send-email-decui@microsoft.com>
- <BL0PR2101MB134895BADA1D8E0FA631D532D7EE0@BL0PR2101MB1348.namprd21.prod.outlook.com>
- <PU1P153MB01699020B5BC4287C58F5335BFEE0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <20190617161454.GB27113@e121166-lin.cambridge.arm.com>
- <PU1P153MB016902786ABA34BD01430F83BFE50@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <20190620113057.GA16460@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <20190620113057.GA16460@atrey.karlin.mff.cuni.cz>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-msip_labels: MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=True;
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Owner=decui@microsoft.com;
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2019-06-21T07:15:45.2170027Z;
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=General;
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Application=Microsoft Azure
- Information Protection;
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=522de71d-c779-4f12-ba15-bdb3bccf93af;
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Extended_MSFT_Method=Automatic
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=decui@microsoft.com; 
-x-originating-ip: [2601:600:a280:1760:f58c:4b5a:d34b:1e33]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 2606ef1f-5fae-4a86-946c-08d6f61849aa
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:PU1P153MB0107;
-x-ms-traffictypediagnostic: PU1P153MB0107:
-x-ld-processed: 72f988bf-86f1-41af-91ab-2d7cd011db47,ExtAddr
-x-microsoft-antispam-prvs: <PU1P153MB0107009764D9C54BB0CF136FBFE70@PU1P153MB0107.APCP153.PROD.OUTLOOK.COM>
-x-ms-oob-tlc-oobclassifiers: OLM:10000;
-x-forefront-prvs: 0075CB064E
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(376002)(346002)(136003)(366004)(39860400002)(396003)(189003)(199004)(66446008)(66556008)(66476007)(68736007)(446003)(476003)(11346002)(14454004)(86362001)(76116006)(46003)(486006)(66946007)(73956011)(6116002)(64756008)(52536014)(186003)(71190400001)(71200400001)(7416002)(5660300002)(6916009)(54906003)(53936002)(6246003)(102836004)(478600001)(229853002)(76176011)(4326008)(9686003)(74316002)(305945005)(6506007)(22452003)(7696005)(7736002)(316002)(10290500003)(6436002)(8936002)(256004)(14444005)(2906002)(8990500004)(55016002)(10090500001)(8676002)(81156014)(81166006)(25786009)(33656002)(99286004);DIR:OUT;SFP:1102;SCL:1;SRVR:PU1P153MB0107;H:PU1P153MB0169.APCP153.PROD.OUTLOOK.COM;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: microsoft.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: vBW/aPIAUhkLbSWTri2EJbv3qw3iYDZH0MPmuCD6tPt8bh7jgnOA+jat2Y5pzdC0rnYILUgNKGV8iv2EvYTxDQe8RjSCuX/KExQYrRkRa/CiUB+4UPCkkHYf+y3E2wQKJRzYbupf5Wqn0Vyf+Z4IraUF9Xzz+SOWOFIGjtCGHpQz3llmredR21hBbAzc+8TBl/9+t0t0EKhnf3RFC/LaRkgh2T4J89UxzzbIHvcRNJaQGj04KaSMX34UU9N67OVGkEQ43lyp15COrgyYV6mafOOziX9P2sr+NSchGBmGJpazVbt28Cet5F/A/+PoGzVBRFuDHLO55mCjW/ZaAtgKZID//YHMpGbyfoTsxTSHVO1TVQMG5oCSmut/+Ccru2/hjTlbesyyg6rTNNY2pktAKdKpg6ALi3HLMvrJhco/hAw=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S1726289AbfFUKIh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 21 Jun 2019 06:08:37 -0400
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:51158 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726218AbfFUKIh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Jun 2019 06:08:37 -0400
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x5LA3vgs008660;
+        Fri, 21 Jun 2019 05:08:19 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-type; s=PODMain02222019;
+ bh=8Wq63RwT0blreLIdF8TfbK/0UxW1qpD8JdYoP8le1Ts=;
+ b=USRpQ+OwEAwgqy+/6zPcMRT98741GCovng+bp/JuqNdH6ZDkeAW/HxKwWGCeMspWsp5Z
+ WDUTGVYsDd2Yyll5vpB+YSPr4dFDxNUbrebgG+/Zqw5agl6w3LB+ieGtQwE4vTYz4thb
+ vWOi7pU/V3PUmc3rLLO3n31UcIIf3Ge9dL7PhyAuk/yjYQX0TPAmYgT9P0uM6dH5xhnm
+ VBloodQxh7OIhZnZG4JAvufV5j0OGFfkOjx7EsfcEd0WjR5YmOj6Ar01zGQ8cVq4Jm9+
+ Jv5VDbx7bC5+M2gm6dY7zR5dyPcO5m7XxAe0OIhc49zduIxOS/wtzm/KhyBRjEVzcqEW JQ== 
+Authentication-Results: ppops.net;
+        spf=none smtp.mailfrom=ckeepax@opensource.cirrus.com
+Received: from mail2.cirrus.com (mail2.cirrus.com [141.131.128.20])
+        by mx0a-001ae601.pphosted.com with ESMTP id 2t780gm6v6-1;
+        Fri, 21 Jun 2019 05:08:18 -0500
+Received: from EDIEX02.ad.cirrus.com (unknown [198.61.84.81])
+        by mail2.cirrus.com (Postfix) with ESMTP id C3B5D605A6A0;
+        Fri, 21 Jun 2019 05:08:15 -0500 (CDT)
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1591.10; Fri, 21 Jun
+ 2019 11:08:15 +0100
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.1591.10 via Frontend
+ Transport; Fri, 21 Jun 2019 11:08:15 +0100
+Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 257F72A1;
+        Fri, 21 Jun 2019 11:08:15 +0100 (BST)
+From:   Charles Keepax <ckeepax@opensource.cirrus.com>
+To:     <wsa@the-dreams.de>, <mika.westerberg@linux.intel.com>
+CC:     <jarkko.nikula@linux.intel.com>,
+        <andriy.shevchenko@linux.intel.com>, <linux-i2c@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <benjamin.tissoires@redhat.com>, <jbroadus@gmail.com>,
+        <patches@opensource.cirrus.com>
+Subject: [PATCH v6 1/7] i2c: core: Allow whole core to use i2c_dev_irq_from_resources
+Date:   Fri, 21 Jun 2019 11:08:09 +0100
+Message-ID: <20190621100815.12417-2-ckeepax@opensource.cirrus.com>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190621100815.12417-1-ckeepax@opensource.cirrus.com>
+References: <20190621100815.12417-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
-X-OriginatorOrg: microsoft.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2606ef1f-5fae-4a86-946c-08d6f61849aa
-X-MS-Exchange-CrossTenant-originalarrivaltime: 21 Jun 2019 07:15:48.8921
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: decui@microsoft.com
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PU1P153MB0107
+Content-Type: text/plain
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=669 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
+ definitions=main-1906210085
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-> From: linux-hyperv-owner@vger.kernel.org
-> > ...
-> > When a Linux guest runs on Hyper-V (x86_32, x86_64, or ARM64) , we have=
- a
-> > front-end balloon driver in the guest, which balloons up/down and
-> > hot adds/removes the guest's memory when the host requests that. The
-> > problem
-> > is: the back-end driver on the host can not really save and restore the=
- states
-> > related to the front-end balloon driver on guest hibernation, so we mad=
-e the
-> > decision that balloon up/down and hot-add/remove are not supported when
-> > we enable hibernation for a guest; BTW, we still want to load the front=
--end
-> > driver in the guest, because the driver has a functionality of reportin=
-g the
-> > guest's memory pressure to the host, which we think is useful.
-> >
-> > On x86_32 and x86_64, we enable hibernation for a guest by enabling
-> > the virtual ACPI S4 state for the guest; on ARM64, so far we don't have=
- the
-> > host side changes required to support guest hibernation, so the details=
- are
-> > still unclear.
-> >
-> > After I discussed with Michael Kelley, it looks we don't really need to
-> > export drivers/acpi/sleep.c: acpi_sleep_state_supported(), but I think =
-we do
-> > need to make it non-static.
-> >
-> > Now I propose the below changes. I plan to submit a patch first for the
-> > changes made to drivers/acpi/sleep.c and include/acpi/acpi_bus.h in a f=
-ew
-> > days, if there is no objection.
-> >
-> > Please let me know how you think of this. Thanks!
->=20
-> No.
->=20
-> Hibernation should be always supported, no matter what firmware. If it
-> can powerdown, it can hibernate.
->=20
-> That is for x86-32/64, too.
-> 						Pavel
+Remove the static from i2c_dev_irq_from _resources so that other parts
+of the core code can use this helper function.
 
-Hi Pavel,
-Yes, I totally agree hibernation should be always supported, as long as the
-system can power down. This is also true for Linux guest running on
-Hyper-V, when the pava-virtualized drivers are not loaded in the guest
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+---
 
-However, unluckily the situation is a little different when the pava-virtua=
-lized
-drivers are loaded in the guest:
-
-1) Old Hyper-V hosts are unable to support guest hibernation and these host=
-s
-don't support the virtual ACPI S4 state.
-
-2) The recent Hyper-V host is able to support guest hibernation, but when
-guest hibernation is used, the guest needs to disable some features in the
-guest balloon driver, as I explained in the previous mail; on the other han=
-d,
-we also want to keep the ability to enable the features, so the Hyper-V guy=
-s=20
-decided to use the absence of the virtual ACPI S4 state to signify the abil=
-ity
-of enabling the features, and there is a host command tool which can
-enable or disable the virtual ACPI S4 state for a guest.
-
-In summary:
-1) On old Hyper-V hosts or a recent host, the virtual ACPI S4 state is
-unsupported or disabled, respectively, and we don't allow Linux guest
-hibernation so we can use the full features of the guest balloon driver.
-
-2) On a recent host, after we use the host command tool to enable the
-virtual ACPI S4 state, we allow Linux guest hibernation and we only use a
-subset of the full features of the guest balloon driver.=20
-
-This is why I need to know if the virtual ACPI S4 state is supported-and-en=
-abled.
-
-Exporting acpi_sleep_state_supported() may be overkill, and now making it
-non-static seems the only way to help me out. IMO the function is unlikely
-to change in the future, and it should be stable enough to become non-stati=
-c.
-
-Looking forward to your insights!
+No changes since v5.
 
 Thanks,
--- Dexuan
+Charles
+
+ drivers/i2c/i2c-core-base.c | 4 ++--
+ drivers/i2c/i2c-core.h      | 2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index 2569e97f9bf35..8a303246d534b 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -679,8 +679,8 @@ static void i2c_dev_set_name(struct i2c_adapter *adap,
+ 		     i2c_encode_flags_to_addr(client));
+ }
+ 
+-static int i2c_dev_irq_from_resources(const struct resource *resources,
+-				      unsigned int num_resources)
++int i2c_dev_irq_from_resources(const struct resource *resources,
++			       unsigned int num_resources)
+ {
+ 	struct irq_data *irqd;
+ 	int i;
+diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
+index 851c11b4c0f3a..2a3b28bf826b1 100644
+--- a/drivers/i2c/i2c-core.h
++++ b/drivers/i2c/i2c-core.h
+@@ -19,6 +19,8 @@ extern struct list_head	__i2c_board_list;
+ extern int		__i2c_first_dynamic_bus_num;
+ 
+ int i2c_check_7bit_addr_validity_strict(unsigned short addr);
++int i2c_dev_irq_from_resources(const struct resource *resources,
++			       unsigned int num_resources);
+ 
+ /*
+  * We only allow atomic transfers for very late communication, e.g. to send
+-- 
+2.11.0
+
