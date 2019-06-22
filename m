@@ -1,151 +1,113 @@
-Return-Path: <SRS0=CxHa=UU=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=gGf2=UV=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
+	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7565C43613
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 23:42:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A07AFC43613
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Jun 2019 00:04:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D6C02089E
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jun 2019 23:42:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1561160569;
-	bh=9jNNQ6ZuBBOjZIW3HIow9t4gY+OUpSdjtQl5zrDEMdQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=qNC0aWmAAJmUztrLIk3m7XaET2m4M54hq6iTeo2tl4sEnEMnLKRQMuRpLOyoF5Sjj
-	 eownFLV7+VGXtCb+GyIm33XFevqo1Npk0oTbNNI3AsXOfbYfwUP9GC3b2+T1kgL16+
-	 eiLEd2+ybFaKbPeKtCkOhhZkd5qmNdojEm7J3DGA=
+	by mail.kernel.org (Postfix) with ESMTP id 725F220881
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Jun 2019 00:04:42 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="QRjJLKdN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726052AbfFUXmt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Jun 2019 19:42:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48462 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726045AbfFUXms (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jun 2019 19:42:48 -0400
-Received: from akpm3.svl.corp.google.com (unknown [104.133.8.65])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CC20B2084E;
-        Fri, 21 Jun 2019 23:42:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1561160568;
-        bh=9jNNQ6ZuBBOjZIW3HIow9t4gY+OUpSdjtQl5zrDEMdQ=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=RDDEklul7g0TwzW9+rYABCiLxD3N9O7GjpeOksdPT5+/ufp4LUGpriR31HgIwLS4N
-         su+rzFDliqa/VpGbuq7WC+iq0nUGUObMkXCICTQFtPxehIJZ4EugjMAlfNTPpNEqd2
-         UO3XDcH6k2EANV4YmvD/OKPZrb5GXc3G08Mo32mA=
-Date:   Fri, 21 Jun 2019 16:42:46 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Qian Cai <cai@lca.pw>, linux-kernel@vger.kernel.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org,
-        linux-mm@kvack.org, Andrew Banman <andrew.banman@hpe.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Arun KS <arunks@codeaurora.org>, Baoquan He <bhe@redhat.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Juergen Gross <jgross@suse.com>,
-        Keith Busch <keith.busch@intel.com>,
-        Len Brown <lenb@kernel.org>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Michael Neuling <mikey@neuling.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Rapoport <rppt@linux.vnet.ibm.com>,
-        "mike.travis@hpe.com" <mike.travis@hpe.com>,
-        Oscar Salvador <osalvador@suse.com>,
-        Oscar Salvador <osalvador@suse.de>,
-        Paul Mackerras <paulus@samba.org>,
-        Pavel Tatashin <pasha.tatashin@oracle.com>,
-        Pavel Tatashin <pasha.tatashin@soleen.com>,
-        Pavel Tatashin <pavel.tatashin@microsoft.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Rashmica Gupta <rashmica.g@gmail.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Wei Yang <richard.weiyang@gmail.com>
-Subject: Re: [PATCH v3 0/6] mm: Further memory block device cleanups
-Message-Id: <20190621164246.9a2354a571da41950bb74562@linux-foundation.org>
-In-Reply-To: <1c2edc22-afd7-2211-c4c7-40e54e5007e8@redhat.com>
-References: <20190620183139.4352-1-david@redhat.com>
-        <1561130120.5154.47.camel@lca.pw>
-        <1c2edc22-afd7-2211-c4c7-40e54e5007e8@redhat.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+        id S1726689AbfFVAEl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 21 Jun 2019 20:04:41 -0400
+Received: from mail-qk1-f202.google.com ([209.85.222.202]:51262 "EHLO
+        mail-qk1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726809AbfFVAEl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jun 2019 20:04:41 -0400
+Received: by mail-qk1-f202.google.com with SMTP id s25so9333540qkj.18
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Jun 2019 17:04:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=kMkOq/TdZP2DxC+0jYMlNvaXt/K0jRyWoQ2RXLMuYi0=;
+        b=QRjJLKdNtZo8CP4nTH7hluG2qV1AXyHaeNhLgJ9dx1fDUKb4PKvKgsxZC9qD/JpyOc
+         nDlpqLlNjPK2Fr6/XPB9DFGktNMicEjN1U3rsUDXfXc0qt6uDJ4LiVqBRuB0IEYVTdqC
+         g9pw8gFOb/hrRGu3KsVlrmVHnvI6Fg2+fFpvLxGvsYk9kHFo5degfWEqDha7Y8eH/AMU
+         owop8HB8frx+BdG4M4kFYi15V93p/L6y8OBHHLti5WrGcp5xyaJuzKxcJQQIy7uVl5RI
+         bM63+qZ8cl4gZwKMeJroO8r+Eqm/Y9IaQqorCVln/XP6Sft3X+wUDeJFpOaUTuF1wRyz
+         uPNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=kMkOq/TdZP2DxC+0jYMlNvaXt/K0jRyWoQ2RXLMuYi0=;
+        b=QXdHgCWF8Np57JjgoWNsE8EDH72Tm7A7SBKDjXJA0ZRQuBh/4SlmU40WHQkoi9Plfn
+         Hl4NYWoUd2tB9mkcHWblF68uAK23bBCznT+eo8yghj26jst5PWTpTsyA7oHgohCzDHlM
+         Oa5yLByFYN6gMDWvCp+Vqa1pkW7FgR6WBHLW++2QFbxDTw+fMLyuV70vJafR7H515ZA/
+         9XX0utDidw6bL/fa7P5d5WuObmFdXdjhGtexZNsA+Syqjuc4NhGapfE9erVIDHGGycOl
+         E1/ni97PFu7+xVRc/l7ts+/nGL9niUFT8MDH41RpM19wjccsjL/5Spj03go9fdB+Eli5
+         pccw==
+X-Gm-Message-State: APjAAAX1yNEbWlFrtA5xA0el6MO/gy7/O0l27Y2IEKFNapq4lRDFKN80
+        zUyjElp5AMOK0jjQpKavF1WYCSDRs9Pg+d14EnI9xg==
+X-Google-Smtp-Source: APXvYqyfTelCSA7v0vPY8aBBSkh56jUJFjBxZnlm2jUkbBn4LGuF/pZ/ysDWTqqbVvj8Ybj3gU9B9i2a5Gg4/j2L/hPeGw==
+X-Received: by 2002:a37:a9c9:: with SMTP id s192mr111878928qke.335.1561161880192;
+ Fri, 21 Jun 2019 17:04:40 -0700 (PDT)
+Date:   Fri, 21 Jun 2019 17:03:44 -0700
+In-Reply-To: <20190622000358.19895-1-matthewgarrett@google.com>
+Message-Id: <20190622000358.19895-16-matthewgarrett@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <20190622000358.19895-1-matthewgarrett@google.com>
+X-Mailer: git-send-email 2.22.0.410.gd8fdbe21b5-goog
+Subject: [PATCH V34 15/29] acpi: Ignore acpi_rsdp kernel param when the kernel
+ has been locked down
+From:   Matthew Garrett <matthewgarrett@google.com>
+To:     jmorris@namei.org
+Cc:     linux-security-module@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+        Josh Boyer <jwboyer@redhat.com>,
+        David Howells <dhowells@redhat.com>,
+        Matthew Garrett <mjg59@google.com>,
+        Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 21 Jun 2019 20:24:59 +0200 David Hildenbrand <david@redhat.com> wrote:
+From: Josh Boyer <jwboyer@redhat.com>
 
-> @Qian Cai, unfortunately I can't reproduce.
-> 
-> If you get the chance, it would be great if you could retry with
-> 
-> diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-> index 972c5336bebf..742f99ddd148 100644
-> --- a/drivers/base/memory.c
-> +++ b/drivers/base/memory.c
-> @@ -868,6 +868,9 @@ int walk_memory_blocks(unsigned long start, unsigned
-> long size,
->         unsigned long block_id;
->         int ret = 0;
-> 
-> +       if (!size)
-> +               return;
-> +
->         for (block_id = start_block_id; block_id <= end_block_id;
-> block_id++) {
->                 mem = find_memory_block_by_id(block_id);
->                 if (!mem)
-> 
-> 
-> 
-> If both, start and size are 0, we would get a veeeery long loop. This
-> would mean that we have an online node that does not span any pages at
-> all (pgdat->node_start_pfn = 0, start_pfn + pgdat->node_spanned_pages = 0).
+This option allows userspace to pass the RSDP address to the kernel, which
+makes it possible for a user to modify the workings of hardware .  Reject
+the option when the kernel is locked down.
 
-I think I'll make that a `return 0' and I won't drop patches 4-6 for
-now, as we appear to have this fixed.
-
-
-
-From: David Hildenbrand <david@redhat.com>
-Subject: drivers-base-memoryc-get-rid-of-find_memory_block_hinted-v3-fix
-
-handle zero-length walks
-
-Link: http://lkml.kernel.org/r/1c2edc22-afd7-2211-c4c7-40e54e5007e8@redhat.com
-Reported-by: Qian Cai <cai@lca.pw>
-Tested-by: Qian Cai <cai@lca.pw>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Matthew Garrett <mjg59@google.com>
+cc: Dave Young <dyoung@redhat.com>
+cc: linux-acpi@vger.kernel.org
 ---
+ drivers/acpi/osl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- drivers/base/memory.c |    3 +++
- 1 file changed, 3 insertions(+)
-
---- a/drivers/base/memory.c~drivers-base-memoryc-get-rid-of-find_memory_block_hinted-v3-fix
-+++ a/drivers/base/memory.c
-@@ -866,6 +866,9 @@ int walk_memory_blocks(unsigned long sta
- 	unsigned long block_id;
- 	int ret = 0;
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f29e427d0d1d..60cda8a0f36b 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -40,6 +40,7 @@
+ #include <linux/list.h>
+ #include <linux/jiffies.h>
+ #include <linux/semaphore.h>
++#include <linux/security.h>
  
-+	if (!size)
-+		return 0;
-+
- 	for (block_id = start_block_id; block_id <= end_block_id; block_id++) {
- 		mem = find_memory_block_by_id(block_id);
- 		if (!mem)
-
+ #include <asm/io.h>
+ #include <linux/uaccess.h>
+@@ -194,7 +195,7 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 	acpi_physical_address pa;
+ 
+ #ifdef CONFIG_KEXEC
+-	if (acpi_rsdp)
++	if (acpi_rsdp && !security_locked_down(LOCKDOWN_ACPI_TABLES))
+ 		return acpi_rsdp;
+ #endif
+ 	pa = acpi_arch_get_root_pointer();
+-- 
+2.22.0.410.gd8fdbe21b5-goog
 
