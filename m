@@ -2,143 +2,179 @@ Return-Path: <SRS0=rzVR=UY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3929EC48BD4
-	for <linux-acpi@archiver.kernel.org>; Tue, 25 Jun 2019 11:50:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 832AFC48BD4
+	for <linux-acpi@archiver.kernel.org>; Tue, 25 Jun 2019 12:06:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 07404213F2
-	for <linux-acpi@archiver.kernel.org>; Tue, 25 Jun 2019 11:50:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 620B5214DA
+	for <linux-acpi@archiver.kernel.org>; Tue, 25 Jun 2019 12:06:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731292AbfFYLuS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 25 Jun 2019 07:50:18 -0400
-Received: from mga18.intel.com ([134.134.136.126]:5186 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726931AbfFYLuS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Jun 2019 07:50:18 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Jun 2019 04:50:17 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.63,415,1557212400"; 
-   d="scan'208";a="182871497"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
-  by fmsmga001.fm.intel.com with SMTP; 25 Jun 2019 04:50:12 -0700
-Received: by lahna (sSMTP sendmail emulation); Tue, 25 Jun 2019 14:50:11 +0300
-Date:   Tue, 25 Jun 2019 14:50:11 +0300
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     Charles Keepax <ckeepax@opensource.cirrus.com>
-Cc:     wsa@the-dreams.de, jarkko.nikula@linux.intel.com,
-        andriy.shevchenko@linux.intel.com, linux-i2c@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        benjamin.tissoires@redhat.com, jbroadus@gmail.com,
-        patches@opensource.cirrus.com
-Subject: Re: [PATCH v6 4/7] i2c: core: Make i2c_acpi_get_irq available to the
- rest of the I2C core
-Message-ID: <20190625115011.GE2640@lahna.fi.intel.com>
-References: <20190621100815.12417-1-ckeepax@opensource.cirrus.com>
- <20190621100815.12417-5-ckeepax@opensource.cirrus.com>
+        id S1728142AbfFYMGf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 25 Jun 2019 08:06:35 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:50952 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726551AbfFYMGe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jun 2019 08:06:34 -0400
+Received: from 79.184.254.216.ipv4.supernova.orange.pl (79.184.254.216) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.267)
+ id 83cfdbf0013218ff; Tue, 25 Jun 2019 14:06:32 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Bjorn Helgaas <helgaas@kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 2/2] ACPI: PM: Allow transitions to D0 to occur in special cases
+Date:   Tue, 25 Jun 2019 14:06:13 +0200
+Message-ID: <2807567.5m5tnf7bLv@kreacher>
+In-Reply-To: <10419005.Mb09WM6RCc@kreacher>
+References: <10419005.Mb09WM6RCc@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190621100815.12417-5-ckeepax@opensource.cirrus.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.11.4 (2019-03-13)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jun 21, 2019 at 11:08:12AM +0100, Charles Keepax wrote:
-> In preparation for more refactoring make i2c_acpi_get_irq available
-> outside i2c-core-acpi.c.
-> 
-> Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
-> ---
-> 
-> Changes since v5:
->  - Pass a struct device rather than acpi_device to i2c_acpi_get_irq,
->    note this is more awkward than I would have liked as I am very
->    unconvinced that adev->dev can actually be passed to
->    ACPI_COMPANION. If anyone can answer that for sure that would be
->    very helpful.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I don't think you can do that.
+If a device with ACPI PM is left in D0 during a system-wide
+transition to the S3 (suspend-to-RAM) or S4 (hibernation) sleep
+state, the actual state of the device need not be D0 during resume
+from it, although its power.state value will still reflect D0 (that
+is, the power state from before the system-wide transition).
 
-I probably missed some previous discussion but what's wrong passing
-struct i2c_client instead and use ACPI_COMPANION() for that?
+In that case, the acpi_device_set_power() call made to ensure that
+the power state of the device will be D0 going forward has no effect,
+because the new state (D0) is equal to the one reflected by the
+device's power.state value.  That does not affect power resources,
+which are taken care of by acpi_resume_power_resources() called from
+acpi_pm_finish() during resume from system-wide sleep states, but it
+still may be necessary to invoke _PS0 for the device on top of that
+in order to finalize its transition to D0.
 
-> 
-> Thanks,
-> Charles
-> 
->  drivers/i2c/i2c-core-acpi.c | 13 +++++++++++--
->  drivers/i2c/i2c-core.h      |  7 +++++++
->  2 files changed, 18 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> index c91492eaacd93..37bf80b35365f 100644
-> --- a/drivers/i2c/i2c-core-acpi.c
-> +++ b/drivers/i2c/i2c-core-acpi.c
-> @@ -145,8 +145,17 @@ static int i2c_acpi_add_resource(struct acpi_resource *ares, void *data)
->  	return 1;
->  }
->  
-> -static int i2c_acpi_get_irq(struct acpi_device *adev)
-> +/**
-> + * i2c_acpi_get_irq - get device IRQ number from ACPI
-> + * @client: Pointer to the I2C client device
+For this reason, modify acpi_device_set_power() to allow transitions
+to D0 to occur even if D0 is the current power state of the device
+according to its power.state value.
 
-I think this should be @dev now.
+That will not affect power resources, which are assumed to be in
+the right configuration already (as reflected by the current values
+of their reference counters), but it may cause _PS0 to be evaluated
+for the device.  However, evaluating _PS0 for a device already in D0
+may lead to confusion in general, so invoke _PSC (if present) to
+check the device's current power state upfront and only evaluate
+_PS0 for it if _PSC has returned a power state different from D0.
+[If _PSC is not present or the evaluation of it fails, the power
+state of the device is assumed to be D0 at this point.]
 
-> + *
-> + * Find the IRQ number used by a specific client device.
-> + *
-> + * Return: The IRQ number or an error code.
-> + */
-> +int i2c_acpi_get_irq(struct device *dev)
->  {
-> +	struct acpi_device *adev = container_of(dev, struct acpi_device, dev);
->  	struct list_head resource_list;
->  	int irq = -ENOENT;
->  	int ret;
-> @@ -199,7 +208,7 @@ static int i2c_acpi_get_info(struct acpi_device *adev,
->  		*adapter_handle = lookup.adapter_handle;
->  
->  	/* Then fill IRQ number if any */
-> -	info->irq = i2c_acpi_get_irq(adev);
-> +	info->irq = i2c_acpi_get_irq(&adev->dev);
->  	if (info->irq < 0)
->  		return info->irq;
->  
-> diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-> index 2a3b28bf826b1..1735ac17a957a 100644
-> --- a/drivers/i2c/i2c-core.h
-> +++ b/drivers/i2c/i2c-core.h
-> @@ -63,6 +63,8 @@ const struct acpi_device_id *
->  i2c_acpi_match_device(const struct acpi_device_id *matches,
->  		      struct i2c_client *client);
->  void i2c_acpi_register_devices(struct i2c_adapter *adap);
-> +
-> +int i2c_acpi_get_irq(struct device *dev);
->  #else /* CONFIG_ACPI */
->  static inline void i2c_acpi_register_devices(struct i2c_adapter *adap) { }
->  static inline const struct acpi_device_id *
-> @@ -71,6 +73,11 @@ i2c_acpi_match_device(const struct acpi_device_id *matches,
->  {
->  	return NULL;
->  }
-> +
-> +static inline int i2c_acpi_get_irq(struct device *dev)
-> +{
-> +	return 0;
-> +}
->  #endif /* CONFIG_ACPI */
->  extern struct notifier_block i2c_acpi_notifier;
->  
-> -- 
-> 2.11.0
+Fixes: 20dacb71ad28 (ACPI / PM: Rework device power management to follow ACPI 6)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   53 +++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 45 insertions(+), 8 deletions(-)
+
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -45,6 +45,19 @@ const char *acpi_power_state_string(int
+ 	}
+ }
+ 
++static int acpi_dev_pm_explicit_get(struct acpi_device *device, int *state)
++{
++	unsigned long long psc;
++	acpi_status status;
++
++	status = acpi_evaluate_integer(device->handle, "_PSC", NULL, &psc);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	*state = psc;
++	return 0;
++}
++
+ /**
+  * acpi_device_get_power - Get power state of an ACPI device.
+  * @device: Device to get the power state of.
+@@ -57,6 +70,7 @@ const char *acpi_power_state_string(int
+ int acpi_device_get_power(struct acpi_device *device, int *state)
+ {
+ 	int result = ACPI_STATE_UNKNOWN;
++	int error;
+ 
+ 	if (!device || !state)
+ 		return -EINVAL;
+@@ -73,18 +87,16 @@ int acpi_device_get_power(struct acpi_de
+ 	 * if available.
+ 	 */
+ 	if (device->power.flags.power_resources) {
+-		int error = acpi_power_get_inferred_state(device, &result);
++		error = acpi_power_get_inferred_state(device, &result);
+ 		if (error)
+ 			return error;
+ 	}
+ 	if (device->power.flags.explicit_get) {
+-		acpi_handle handle = device->handle;
+-		unsigned long long psc;
+-		acpi_status status;
++		int psc;
+ 
+-		status = acpi_evaluate_integer(handle, "_PSC", NULL, &psc);
+-		if (ACPI_FAILURE(status))
+-			return -ENODEV;
++		error = acpi_dev_pm_explicit_get(device, &psc);
++		if (error)
++			return error;
+ 
+ 		/*
+ 		 * The power resources settings may indicate a power state
+@@ -152,7 +164,8 @@ int acpi_device_set_power(struct acpi_de
+ 
+ 	/* Make sure this is a valid target state */
+ 
+-	if (state == device->power.state) {
++	/* There is a special case for D0 addressed below. */
++	if (state > ACPI_STATE_D0 && state == device->power.state) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already in %s\n",
+ 				  device->pnp.bus_id,
+ 				  acpi_power_state_string(state)));
+@@ -214,6 +227,30 @@ int acpi_device_set_power(struct acpi_de
+ 			if (result)
+ 				goto end;
+ 		}
++
++		if (device->power.state == ACPI_STATE_D0) {
++			int psc;
++
++			/* Nothing to do here if _PSC is not present. */
++			if (!device->power.flags.explicit_get)
++				return 0;
++
++			/*
++			 * The power state of the device was set to D0 last
++			 * time, but that might have happened before a
++			 * system-wide transition involving the platform
++			 * firmware, so it may be necessary to evaluate _PS0
++			 * for the device here.  However, use extra care here
++			 * and evaluate _PSC to check the device's current power
++			 * state, and only invoke _PS0 if the evaluation of _PSC
++			 * is successful and it returns a power state different
++			 * from D0.
++			 */
++			result = acpi_dev_pm_explicit_get(device, &psc);
++			if (result || psc == ACPI_STATE_D0)
++				return 0;
++		}
++
+ 		result = acpi_dev_pm_explicit_set(device, ACPI_STATE_D0);
+ 	}
+ 
+
+
+
