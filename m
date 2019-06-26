@@ -2,38 +2,42 @@ Return-Path: <SRS0=35X8=UZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BBB8C48BD3
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE2EC48BD9
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E1233216FD
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 910D420665
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726239AbfFZVhb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 26 Jun 2019 17:37:31 -0400
-Received: from foss.arm.com ([217.140.110.172]:41418 "EHLO foss.arm.com"
+        id S1726476AbfFZVhh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 26 Jun 2019 17:37:37 -0400
+Received: from foss.arm.com ([217.140.110.172]:41466 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726223AbfFZVhb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jun 2019 17:37:31 -0400
+        id S1726223AbfFZVhf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Jun 2019 17:37:35 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4F6E12B;
-        Wed, 26 Jun 2019 14:37:30 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5E853142F;
+        Wed, 26 Jun 2019 14:37:35 -0700 (PDT)
 Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.30.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 33EF13F246;
-        Wed, 26 Jun 2019 14:37:30 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 563073F246;
+        Wed, 26 Jun 2019 14:37:35 -0700 (PDT)
 From:   Jeremy Linton <jeremy.linton@arm.com>
 To:     linux-arm-kernel@lists.infradead.org
 Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net,
         lenb@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
-        sudeep.holla@arm.com, Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v5 0/4] arm64: SPE ACPI enablement
-Date:   Wed, 26 Jun 2019 16:37:14 -0500
-Message-Id: <20190626213718.39423-1-jeremy.linton@arm.com>
+        sudeep.holla@arm.com, Jeremy Linton <jeremy.linton@arm.com>,
+        Hanjun Gou <gouhanjun@huawei.com>
+Subject: [PATCH v5 4/4] perf: arm_spe: Enable ACPI/Platform automatic module loading
+Date:   Wed, 26 Jun 2019 16:37:18 -0500
+Message-Id: <20190626213718.39423-5-jeremy.linton@arm.com>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190626213718.39423-1-jeremy.linton@arm.com>
+References: <20190626213718.39423-1-jeremy.linton@arm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -41,66 +45,58 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This patch series enables the Arm Statistical Profiling
-Extension (SPE) on ACPI platforms.
+Lets add the MODULE_TABLE and platform id_table entries so that
+the SPE driver can attach to the ACPI platform device created by
+the core pmu code.
 
-This is possible because ACPI 6.3 uses a previously
-reserved field in the MADT to store the SPE interrupt
-number, similarly to how the normal PMU is described.
-If a consistent valid interrupt exists across all the
-cores in the system, a platform device is registered.
-That then triggers the SPE module, which runs as normal.
+Tested-by: Hanjun Gou <gouhanjun@huawei.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ drivers/perf/arm_spe_pmu.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-We also add the ability to parse the PPTT for IDENTICAL
-cores. We then use this to sanity check the single SPE
-device we create. This creates a bit of a problem with
-respect to the specification though. The specification
-says that its legal for multiple tree's to exist in the
-PPTT. We handle this fine, but what happens in the
-case of multiple tree's is that the lack of a common
-node with IDENTICAL set forces us to assume that there
-are multiple non-IDENTICAL cores in the machine.
-
-v4->v5: Remove error returns from arm_spe_acpi_register_device()
-	Add some review/test tags
-
-v3->v4: Rebase to 5.2.
-	Minor formatting, patch rearrangement.
-	Add missing `inline` in static header definition.
-	Drop ARM_SPE_ACPI and just use ARM_SPE_PMU.
-
-v2->v3: Previously a function pointer was being used
-	  to handle the more complex node checking
-	  required by the IDENTICAL flag. This version
-	  simply checks for the IDENTICAL flag and calls
-	  flag_identical() to preform the revision
-	  and next node checks. (I think after reading
-	  Raphael's comments for the Nth time, this is
-	  actually what he was suggesting, which I
-	  initially miss interpreted).
-	Modify subject of first patch so that its clear
-	  a that its a capitalization change rather,
-	  than a logical C 'case' change.
-
-v1->v2: Wrap the code which creates the SPE device in
-	    a new CONFIG_ARM_SPE_ACPI ifdef.
-	Move arm,spe-v1 device name into common header file
-	Some comment/case sensitivity/function name changes.
-
-Jeremy Linton (4):
-  ACPI/PPTT: Modify node flag detection to find last IDENTICAL
-  ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
-  arm_pmu: acpi: spe: Add initial MADT/SPE probing
-  perf: arm_spe: Enable ACPI/Platform automatic module loading
-
- arch/arm64/include/asm/acpi.h |  3 ++
- drivers/acpi/pptt.c           | 61 ++++++++++++++++++++++++++---
- drivers/perf/arm_pmu_acpi.c   | 72 +++++++++++++++++++++++++++++++++++
- drivers/perf/arm_spe_pmu.c    | 12 +++++-
- include/linux/acpi.h          |  5 +++
- include/linux/perf/arm_pmu.h  |  2 +
- 6 files changed, 147 insertions(+), 8 deletions(-)
-
+diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
+index 49b490925255..4e4984a55cd1 100644
+--- a/drivers/perf/arm_spe_pmu.c
++++ b/drivers/perf/arm_spe_pmu.c
+@@ -27,6 +27,7 @@
+ #include <linux/of_address.h>
+ #include <linux/of_device.h>
+ #include <linux/perf_event.h>
++#include <linux/perf/arm_pmu.h>
+ #include <linux/platform_device.h>
+ #include <linux/printk.h>
+ #include <linux/slab.h>
+@@ -1157,7 +1158,13 @@ static const struct of_device_id arm_spe_pmu_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, arm_spe_pmu_of_match);
+ 
+-static int arm_spe_pmu_device_dt_probe(struct platform_device *pdev)
++static const struct platform_device_id arm_spe_match[] = {
++	{ ARMV8_SPE_PDEV_NAME, 0},
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, arm_spe_match);
++
++static int arm_spe_pmu_device_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+ 	struct arm_spe_pmu *spe_pmu;
+@@ -1217,11 +1224,12 @@ static int arm_spe_pmu_device_remove(struct platform_device *pdev)
+ }
+ 
+ static struct platform_driver arm_spe_pmu_driver = {
++	.id_table = arm_spe_match,
+ 	.driver	= {
+ 		.name		= DRVNAME,
+ 		.of_match_table	= of_match_ptr(arm_spe_pmu_of_match),
+ 	},
+-	.probe	= arm_spe_pmu_device_dt_probe,
++	.probe	= arm_spe_pmu_device_probe,
+ 	.remove	= arm_spe_pmu_device_remove,
+ };
+ 
 -- 
 2.21.0
 
