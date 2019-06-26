@@ -7,24 +7,24 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13BD8C48BD3
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FEE1C48BD3
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E0DFF20665
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C33220665
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726464AbfFZVhf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 26 Jun 2019 17:37:35 -0400
-Received: from foss.arm.com ([217.140.110.172]:41452 "EHLO foss.arm.com"
+        id S1726431AbfFZVhe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 26 Jun 2019 17:37:34 -0400
+Received: from foss.arm.com ([217.140.110.172]:41430 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726437AbfFZVhf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jun 2019 17:37:35 -0400
+        id S1726223AbfFZVhd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Jun 2019 17:37:33 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AAE4A139F;
-        Wed, 26 Jun 2019 14:37:34 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 37E27D6E;
+        Wed, 26 Jun 2019 14:37:33 -0700 (PDT)
 Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.30.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id A1F4F3F246;
-        Wed, 26 Jun 2019 14:37:34 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 2587D3F246;
+        Wed, 26 Jun 2019 14:37:33 -0700 (PDT)
 From:   Jeremy Linton <jeremy.linton@arm.com>
 To:     linux-arm-kernel@lists.infradead.org
 Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -32,9 +32,9 @@ Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         lenb@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
         sudeep.holla@arm.com, Jeremy Linton <jeremy.linton@arm.com>,
         Hanjun Gou <gouhanjun@huawei.com>
-Subject: [PATCH v5 3/4] arm_pmu: acpi: spe: Add initial MADT/SPE probing
-Date:   Wed, 26 Jun 2019 16:37:17 -0500
-Message-Id: <20190626213718.39423-4-jeremy.linton@arm.com>
+Subject: [PATCH v5 1/4] ACPI/PPTT: Modify node flag detection to find last IDENTICAL
+Date:   Wed, 26 Jun 2019 16:37:15 -0500
+Message-Id: <20190626213718.39423-2-jeremy.linton@arm.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190626213718.39423-1-jeremy.linton@arm.com>
 References: <20190626213718.39423-1-jeremy.linton@arm.com>
@@ -45,138 +45,84 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI 6.3 adds additional fields to the MADT GICC
-structure to describe SPE PPI's. We pick these out
-of the cached reference to the madt_gicc structure
-similarly to the core PMU code. We then create a platform
-device referring to the IRQ and let the user/module loader
-decide whether to load the SPE driver.
+The ACPI specification implies that the IDENTICAL flag should be
+set on all non leaf nodes where the children are identical.
+This means that we need to be searching for the last node with
+the identical flag set rather than the first one.
+
+Since this flag is also dependent on the table revision, we
+need to add a bit of extra code to verify the table revision,
+and the next node's state in the traversal. Since we want to
+avoid function pointers here, lets just special case
+the IDENTICAL flag.
 
 Tested-by: Hanjun Gou <gouhanjun@huawei.com>
 Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm64/include/asm/acpi.h |  3 ++
- drivers/perf/arm_pmu_acpi.c   | 72 +++++++++++++++++++++++++++++++++++
- include/linux/perf/arm_pmu.h  |  2 +
- 3 files changed, 77 insertions(+)
+ drivers/acpi/pptt.c | 35 +++++++++++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index ada0bc480a1b..b263e239cb59 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -38,6 +38,9 @@
- 	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
- 	(unsigned long)(entry) + (entry)->header.length > (end))
- 
-+#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
-+	spe_interrupt) + sizeof(u16))
-+
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
- pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-index d2c2978409d2..acce8781c456 100644
---- a/drivers/perf/arm_pmu_acpi.c
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -71,6 +71,76 @@ static void arm_pmu_acpi_unregister_irq(int cpu)
- 	acpi_unregister_gsi(gsi);
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index b72e6afaa8fb..05344413f199 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -432,17 +432,40 @@ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
+ 	}
  }
  
-+#if IS_ENABLED(CONFIG_ARM_SPE_PMU)
-+static struct resource spe_resources[] = {
-+	{
-+		/* irq */
-+		.flags          = IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device spe_dev = {
-+	.name = ARMV8_SPE_PDEV_NAME,
-+	.id = -1,
-+	.resource = spe_resources,
-+	.num_resources = ARRAY_SIZE(spe_resources)
-+};
-+
-+/*
-+ * For lack of a better place, hook the normal PMU MADT walk
-+ * and create a SPE device if we detect a recent MADT with
-+ * a homogeneous PPI mapping.
-+ */
-+static void arm_spe_acpi_register_device(void)
++static bool flag_identical(struct acpi_table_header *table_hdr,
++			   struct acpi_pptt_processor *cpu)
 +{
-+	int cpu, hetid, irq, ret;
-+	bool first = true;
-+	u16 gsi = 0;
++	struct acpi_pptt_processor *next;
 +
-+	/*
-+	 * Sanity check all the GICC tables for the same interrupt number.
-+	 * For now, we only support homogeneous ACPI/SPE machines.
-+	 */
-+	for_each_possible_cpu(cpu) {
-+		struct acpi_madt_generic_interrupt *gicc;
++	/* heterogeneous machines must use PPTT revision > 1 */
++	if (table_hdr->revision < 2)
++		return false;
 +
-+		gicc = acpi_cpu_get_madt_gicc(cpu);
-+		if (gicc->header.length < ACPI_MADT_GICC_SPE)
-+			return;
-+
-+		if (first) {
-+			gsi = gicc->spe_interrupt;
-+			if (!gsi)
-+				return;
-+			hetid = find_acpi_cpu_topology_hetero_id(cpu);
-+			first = false;
-+		} else if ((gsi != gicc->spe_interrupt) ||
-+			   (hetid != find_acpi_cpu_topology_hetero_id(cpu))) {
-+			pr_warn("ACPI: SPE must be homogeneous\n");
-+			return;
-+		}
++	/* Locate the last node in the tree with IDENTICAL set */
++	if (cpu->flags & ACPI_PPTT_ACPI_IDENTICAL) {
++		next = fetch_pptt_node(table_hdr, cpu->parent);
++		if (!(next && next->flags & ACPI_PPTT_ACPI_IDENTICAL))
++			return true;
 +	}
 +
-+	irq = acpi_register_gsi(NULL, gsi, ACPI_LEVEL_SENSITIVE,
-+				ACPI_ACTIVE_HIGH);
-+	if (irq < 0) {
-+		pr_warn("ACPI: SPE Unable to register interrupt: %d\n", gsi);
-+		return;
-+	}
-+
-+	spe_resources[0].start = irq;
-+	ret = platform_device_register(&spe_dev);
-+	if (ret < 0) {
-+		pr_warn("ACPI: SPE: Unable to register device\n");
-+		acpi_unregister_gsi(gsi);
-+	}
++	return false;
 +}
-+#else
-+static inline void arm_spe_acpi_register_device(void)
-+{
-+}
-+#endif /* CONFIG_ARM_SPE_PMU */
 +
- static int arm_pmu_acpi_parse_irqs(void)
+ /* Passing level values greater than this will result in search termination */
+ #define PPTT_ABORT_PACKAGE 0xFF
+ 
+-static struct acpi_pptt_processor *acpi_find_processor_package_id(struct acpi_table_header *table_hdr,
+-								  struct acpi_pptt_processor *cpu,
+-								  int level, int flag)
++static struct acpi_pptt_processor *acpi_find_processor_tag(struct acpi_table_header *table_hdr,
++							   struct acpi_pptt_processor *cpu,
++							   int level, int flag)
  {
- 	int irq, cpu, irq_cpu, err;
-@@ -276,6 +346,8 @@ static int arm_pmu_acpi_init(void)
- 	if (acpi_disabled)
- 		return 0;
+ 	struct acpi_pptt_processor *prev_node;
  
-+	arm_spe_acpi_register_device();
-+
- 	ret = arm_pmu_acpi_parse_irqs();
- 	if (ret)
- 		return ret;
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index a9b0ee408fbd..71f525a35ac2 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -171,4 +171,6 @@ void armpmu_free_irq(int irq, int cpu);
+ 	while (cpu && level) {
+-		if (cpu->flags & flag)
++		/* special case the identical flag to find last identical */
++		if (flag == ACPI_PPTT_ACPI_IDENTICAL) {
++			if (flag_identical(table_hdr, cpu))
++				break;
++		} else if (cpu->flags & flag)
+ 			break;
+ 		pr_debug("level %d\n", level);
+ 		prev_node = fetch_pptt_node(table_hdr, cpu->parent);
+@@ -480,8 +503,8 @@ static int topology_get_acpi_cpu_tag(struct acpi_table_header *table,
  
- #endif /* CONFIG_ARM_PMU */
- 
-+#define ARMV8_SPE_PDEV_NAME "arm,spe-v1"
-+
- #endif /* __ARM_PMU_H__ */
+ 	cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
+ 	if (cpu_node) {
+-		cpu_node = acpi_find_processor_package_id(table, cpu_node,
+-							  level, flag);
++		cpu_node = acpi_find_processor_tag(table, cpu_node,
++						   level, flag);
+ 		/*
+ 		 * As per specification if the processor structure represents
+ 		 * an actual processor, then ACPI processor ID must be valid.
 -- 
 2.21.0
 
