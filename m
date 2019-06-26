@@ -4,175 +4,175 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90117C48BD3
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 15:04:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E9EC48BD3
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 15:36:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6306A20645
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 15:04:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A3CA21783
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 15:36:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b="WodT56ap"
+	dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b="XdWeeh8/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728191AbfFZPEI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 26 Jun 2019 11:04:08 -0400
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:23322 "EHLO
+        id S1727147AbfFZPgW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 26 Jun 2019 11:36:22 -0400
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:61576 "EHLO
         mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727276AbfFZPEI (ORCPT
+        by vger.kernel.org with ESMTP id S1727146AbfFZPgW (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jun 2019 11:04:08 -0400
+        Wed, 26 Jun 2019 11:36:22 -0400
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x5QExNcw031827;
-        Wed, 26 Jun 2019 10:03:03 -0500
+        by mx0b-001ae601.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x5QFXYle022897;
+        Wed, 26 Jun 2019 10:36:13 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-type; s=PODMain02222019;
- bh=qPFqDluDlcdY0PkMZcprwB4uDxhmRQzgaElbW6ZfINE=;
- b=WodT56ap4pjz+0miFT8Cmg2+gWPj35f+M9iQXFvB4vet88EALcIEdh9aM0qb+Pfx96FZ
- uYhrksJI6GJVVqOvJZ7RXh9kWFcNcqP9pX0cAIksk7Da9zH0+fY2rnxp8FrqQYamYNCK
- yhRYH/p7Z5bdtjRZ8vkCOY2YzOB5KPonRZ6ZAmPfSB8GvlPyNQw4ItHUayNMbY39v2M/
- fHtwq8Uupcz6D66e7XsNAEwzFM0S9FC8ywI3sK9+AZApQBYQW8tEy4tLoXGpu1RkMslO
- 7g3peutuubk8jNAsXMkX0gZFrZcc0NHxTcPvU5E5UIIDfZAP8s7m+PFypiP0VyQldEjy iw== 
+ bh=AV/T2mCUaARe6CJNXa05QO9AoXOQYuMlU5+Mm4v9h3w=;
+ b=XdWeeh8/g7cPQCN9AaHL6MEFcrJWxb2XFE8ed2AmWDVpcwSTd038KUHfAbYtBKH2Luwd
+ FybTGQHiFQMcD/3Dx31Z7l0u8rq9QSRYTLxgaxTG1qpteafkaX1pRnDUtmGJxxtX1Pmj
+ f6kC9ZifX+v1pcvmDxvseaKLnO/Pw4C9RsyELM1r9tHWWGtinl7HS7yvLGT8cyyltGOM
+ 8YaTq95cb7u6gC61LYO+bYL1Xsq8v18UXkWGPX9LqrnpvKyZ0+yb9YxlDPCWsFpulcr/
+ rCQxjc8jXo4BwyWU0WEt3tIWhE5Op4surSd6h4Yu9aWdIfYGMAUezzh87Cl1mdwizV/5 Ng== 
 Authentication-Results: ppops.net;
         spf=none smtp.mailfrom=ckeepax@opensource.cirrus.com
-Received: from mail1.cirrus.com (mail1.cirrus.com [141.131.3.20])
-        by mx0b-001ae601.pphosted.com with ESMTP id 2tc7gt8b79-1;
-        Wed, 26 Jun 2019 10:03:03 -0500
-Received: from EDIEX01.ad.cirrus.com (unknown [198.61.84.80])
-        by mail1.cirrus.com (Postfix) with ESMTP id 4DE2E611C8BC;
-        Wed, 26 Jun 2019 10:03:03 -0500 (CDT)
+Received: from mail4.cirrus.com ([87.246.98.35])
+        by mx0b-001ae601.pphosted.com with ESMTP id 2tc7gt8cvx-1;
+        Wed, 26 Jun 2019 10:36:12 -0500
+Received: from EDIEX01.ad.cirrus.com (ediex01.ad.cirrus.com [198.61.84.80])
+        by mail4.cirrus.com (Postfix) with ESMTP id 410D6611C8B1;
+        Wed, 26 Jun 2019 10:36:14 -0500 (CDT)
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1591.10; Wed, 26 Jun
- 2019 16:03:02 +0100
+ 2019 16:36:11 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.1591.10 via Frontend
- Transport; Wed, 26 Jun 2019 16:03:02 +0100
+ Transport; Wed, 26 Jun 2019 16:36:11 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 46F192DB;
-        Wed, 26 Jun 2019 16:03:02 +0100 (BST)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id DF64F2DA;
+        Wed, 26 Jun 2019 16:36:11 +0100 (BST)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
-To:     <wsa@the-dreams.de>, <mika.westerberg@linux.intel.com>
-CC:     <jarkko.nikula@linux.intel.com>,
-        <andriy.shevchenko@linux.intel.com>, <linux-i2c@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <benjamin.tissoires@redhat.com>, <jbroadus@gmail.com>,
-        <patches@opensource.cirrus.com>
-Subject: [PATCH v7 4/6] i2c: core: Move ACPI IRQ handling to probe time
-Date:   Wed, 26 Jun 2019 16:03:00 +0100
-Message-ID: <20190626150302.22703-5-ckeepax@opensource.cirrus.com>
+To:     <broonie@kernel.org>
+CC:     <gregkh@linuxfoundation.org>, <rafael@kernel.org>,
+        <linux-acpi@vger.kernel.org>, <lgirdwood@gmail.com>,
+        <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>
+Subject: [PATCH 2/2] ASoC: madera: Read device tree configuration
+Date:   Wed, 26 Jun 2019 16:36:11 +0100
+Message-ID: <20190626153611.10170-2-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190626150302.22703-1-ckeepax@opensource.cirrus.com>
-References: <20190626150302.22703-1-ckeepax@opensource.cirrus.com>
+In-Reply-To: <20190626153611.10170-1-ckeepax@opensource.cirrus.com>
+References: <20190626153611.10170-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=947 adultscore=0
+ suspectscore=3 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
- definitions=main-1906260177
+ definitions=main-1906260182
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Bring the ACPI path in sync with the device tree path and handle all the
-IRQ fetching at probe time. This leaves the only IRQ handling at device
-registration time being that which is passed directly through the board
-info as either a resource or an actual IRQ number.
+Read the configuration of the Madera sound driver from device tree using
+the new device tree helper function.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
 
-Changes since v6:
- - Squashed back in "Make i2c_acpi_get_irq available to the rest of the I2C core"
- - Switched back to using the i2c_client device for the API
+Note this patch depends on patches that are currently going through Mark's
+tree so probably best if this one also goes through there.
 
 Thanks,
 Charles
 
- drivers/i2c/i2c-core-acpi.c | 16 ++++++++++------
- drivers/i2c/i2c-core-base.c |  5 ++++-
- drivers/i2c/i2c-core.h      |  7 +++++++
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ sound/soc/codecs/madera.c | 65 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index c91492eaacd93..e7559b3853062 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -145,8 +145,17 @@ static int i2c_acpi_add_resource(struct acpi_resource *ares, void *data)
- 	return 1;
+diff --git a/sound/soc/codecs/madera.c b/sound/soc/codecs/madera.c
+index 1b1be19a2f991..8fe16e4e19c7b 100644
+--- a/sound/soc/codecs/madera.c
++++ b/sound/soc/codecs/madera.c
+@@ -300,6 +300,68 @@ int madera_free_overheat(struct madera_priv *priv)
  }
+ EXPORT_SYMBOL_GPL(madera_free_overheat);
  
--static int i2c_acpi_get_irq(struct acpi_device *adev)
-+/**
-+ * i2c_acpi_get_irq - get device IRQ number from ACPI
-+ * @client: Pointer to the I2C client device
-+ *
-+ * Find the IRQ number used by a specific client device.
-+ *
-+ * Return: The IRQ number or an error code.
-+ */
-+int i2c_acpi_get_irq(struct i2c_client *client)
- {
-+	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
- 	struct list_head resource_list;
- 	int irq = -ENOENT;
- 	int ret;
-@@ -198,11 +207,6 @@ static int i2c_acpi_get_info(struct acpi_device *adev,
- 	if (adapter_handle)
- 		*adapter_handle = lookup.adapter_handle;
- 
--	/* Then fill IRQ number if any */
--	info->irq = i2c_acpi_get_irq(adev);
--	if (info->irq < 0)
--		return info->irq;
--
- 	acpi_set_modalias(adev, dev_name(&adev->dev), info->type,
- 			  sizeof(info->type));
- 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 8a303246d534b..c848b325969e9 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -327,7 +327,10 @@ static int i2c_device_probe(struct device *dev)
- 			if (irq == -EINVAL || irq == -ENODATA)
- 				irq = of_irq_get(dev->of_node, 0);
- 		} else if (ACPI_COMPANION(dev)) {
--			irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), 0);
-+			irq = i2c_acpi_get_irq(client);
-+
-+			if (irq == -ENOENT)
-+				irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), 0);
- 		}
- 		if (irq == -EPROBE_DEFER)
- 			return irq;
-diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-index 2a3b28bf826b1..517d98be68d25 100644
---- a/drivers/i2c/i2c-core.h
-+++ b/drivers/i2c/i2c-core.h
-@@ -63,6 +63,8 @@ const struct acpi_device_id *
- i2c_acpi_match_device(const struct acpi_device_id *matches,
- 		      struct i2c_client *client);
- void i2c_acpi_register_devices(struct i2c_adapter *adap);
-+
-+int i2c_acpi_get_irq(struct i2c_client *client);
- #else /* CONFIG_ACPI */
- static inline void i2c_acpi_register_devices(struct i2c_adapter *adap) { }
- static inline const struct acpi_device_id *
-@@ -71,6 +73,11 @@ i2c_acpi_match_device(const struct acpi_device_id *matches,
- {
- 	return NULL;
- }
-+
-+static inline int i2c_acpi_get_irq(struct i2c_client *client)
++static void madera_prop_get_inmode(struct madera_priv *priv)
 +{
-+	return 0;
++	struct madera *madera = priv->madera;
++	struct madera_codec_pdata *pdata = &madera->pdata.codec;
++	u32 tmp[MADERA_MAX_INPUT * MADERA_MAX_MUXED_CHANNELS];
++	int n, i, in_idx, ch_idx;
++
++	BUILD_BUG_ON(ARRAY_SIZE(pdata->inmode) != MADERA_MAX_INPUT);
++	BUILD_BUG_ON(ARRAY_SIZE(pdata->inmode[0]) != MADERA_MAX_MUXED_CHANNELS);
++
++	n = device_property_read_u32_2darray(madera->dev, "cirrus,inmode",
++					     tmp, ARRAY_SIZE(tmp),
++					     MADERA_MAX_MUXED_CHANNELS);
++	if (n < 0)
++		return;
++
++	in_idx = 0;
++	ch_idx = 0;
++	for (i = 0; i < n; ++i) {
++		pdata->inmode[in_idx][ch_idx] = tmp[i];
++
++		if (++ch_idx == MADERA_MAX_MUXED_CHANNELS) {
++			ch_idx = 0;
++			++in_idx;
++		}
++	}
 +}
- #endif /* CONFIG_ACPI */
- extern struct notifier_block i2c_acpi_notifier;
++
++static void madera_prop_get_pdata(struct madera_priv *priv)
++{
++	struct madera *madera = priv->madera;
++	struct madera_codec_pdata *pdata = &madera->pdata.codec;
++	u32 out_mono[ARRAY_SIZE(pdata->out_mono)];
++	int i, n;
++
++	madera_prop_get_inmode(priv);
++
++	n = device_property_read_u32_2darray(madera->dev, "cirrus,out-mono",
++					     out_mono, ARRAY_SIZE(out_mono), 1);
++	if (n > 0)
++		for (i = 0; i < n; ++i)
++			pdata->out_mono[i] = !!out_mono[i];
++
++	device_property_read_u32_2darray(madera->dev,
++					 "cirrus,max-channels-clocked",
++					 pdata->max_channels_clocked,
++					 ARRAY_SIZE(pdata->max_channels_clocked),
++					 1);
++
++	device_property_read_u32_2darray(madera->dev, "cirrus,pdm-fmt",
++					 pdata->pdm_fmt,
++					 ARRAY_SIZE(pdata->pdm_fmt), 1);
++
++	device_property_read_u32_2darray(madera->dev, "cirrus,pdm-mute",
++					 pdata->pdm_mute,
++					 ARRAY_SIZE(pdata->pdm_mute), 1);
++
++	device_property_read_u32_2darray(madera->dev, "cirrus,dmic-ref",
++					 pdata->dmic_ref,
++					 ARRAY_SIZE(pdata->dmic_ref), 1);
++}
++
+ int madera_core_init(struct madera_priv *priv)
+ {
+ 	int i;
+@@ -308,6 +370,9 @@ int madera_core_init(struct madera_priv *priv)
+ 	BUILD_BUG_ON(!madera_mixer_texts[MADERA_NUM_MIXER_INPUTS - 1]);
+ 	BUILD_BUG_ON(!madera_mixer_values[MADERA_NUM_MIXER_INPUTS - 1]);
  
++	if (!dev_get_platdata(priv->madera->dev))
++		madera_prop_get_pdata(priv);
++
+ 	mutex_init(&priv->rate_lock);
+ 
+ 	for (i = 0; i < MADERA_MAX_HP_OUTPUT; i++)
 -- 
 2.11.0
 
