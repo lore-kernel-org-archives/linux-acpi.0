@@ -1,122 +1,79 @@
-Return-Path: <SRS0=35X8=UZ=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=VAw6=U2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE305C48BD6
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D69DC48BD6
+	for <linux-acpi@archiver.kernel.org>; Thu, 27 Jun 2019 00:15:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9CC5216FD
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 Jun 2019 21:37:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 022A2216E3
+	for <linux-acpi@archiver.kernel.org>; Thu, 27 Jun 2019 00:15:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1561594535;
+	bh=MJ2KaTKdJNeLe5zaJz4d4Ny22PpPk93/u2IsVDP5gTg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=Rx0X9WP7tG8jNGiP9DJ98sjBnn9ZZy5qtlqCRtS3lsIyn0VyeLk5/PzjHGuR/INtT
+	 VN4+xT0+0CdiNKurENoqeBXiXQSguGSyTXJ9HdSYpqrrJPS7Op03GgAm+SVdDXEtSc
+	 K5uxAmYZbgjRW/RtHdUpgz1eEpLmPyfspdU6Acn8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726223AbfFZVhq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 26 Jun 2019 17:37:46 -0400
-Received: from foss.arm.com ([217.140.110.172]:41442 "EHLO foss.arm.com"
+        id S1726668AbfF0APe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 26 Jun 2019 20:15:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726429AbfFZVhe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jun 2019 17:37:34 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0FB1011D4;
-        Wed, 26 Jun 2019 14:37:34 -0700 (PDT)
-Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.30.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id F26903F246;
-        Wed, 26 Jun 2019 14:37:33 -0700 (PDT)
-From:   Jeremy Linton <jeremy.linton@arm.com>
-To:     linux-arm-kernel@lists.infradead.org
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net,
-        lenb@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com,
-        sudeep.holla@arm.com, Jeremy Linton <jeremy.linton@arm.com>,
-        Hanjun Gou <gouhanjun@huawei.com>
-Subject: [PATCH v5 2/4] ACPI/PPTT: Add function to return ACPI 6.3 Identical tokens
-Date:   Wed, 26 Jun 2019 16:37:16 -0500
-Message-Id: <20190626213718.39423-3-jeremy.linton@arm.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190626213718.39423-1-jeremy.linton@arm.com>
-References: <20190626213718.39423-1-jeremy.linton@arm.com>
+        id S1726521AbfF0APe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Jun 2019 20:15:34 -0400
+Received: from localhost (unknown [116.247.127.123])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 140D8216C8;
+        Thu, 27 Jun 2019 00:15:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1561594533;
+        bh=MJ2KaTKdJNeLe5zaJz4d4Ny22PpPk93/u2IsVDP5gTg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=w1UNaNgdiGcLVSa46TY2rC43A/omDRFx/nI+uYIIUguEafGhYmsxnoYlOhWYmzNTw
+         8QjTpP9GEDj0wrsc3RVvl9OutcwldNGi7gSIUqt0ESbxEucM6L1uwSlX+E6kWt6jiw
+         BMjDWG3Z04aCiGPD2o7K/9adsHthTjAwyDYtXzE8=
+Date:   Thu, 27 Jun 2019 08:15:30 +0800
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Charles Keepax <ckeepax@opensource.cirrus.com>
+Cc:     broonie@kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org,
+        lgirdwood@gmail.com, alsa-devel@alsa-project.org,
+        patches@opensource.cirrus.com
+Subject: Re: [PATCH 1/2] device property: Add new array helper
+Message-ID: <20190627001530.GG527@kroah.com>
+References: <20190626153611.10170-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190626153611.10170-1-ckeepax@opensource.cirrus.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI 6.3 adds a flag to indicate that child nodes are all
-identical cores. This is useful to authoritatively determine
-if a set of (possibly offline) cores are identical or not.
+On Wed, Jun 26, 2019 at 04:36:10PM +0100, Charles Keepax wrote:
+> It is fairly common to want to read an integer array property
+> that is composed of an unknown number of fixed size integer
+> groups. For example, say each group consists of three values
+> which correspond to the settings for one input on the device
+> and the driver supports several chips with different numbers
+> of inputs.
+> 
+> Add a new helper function to provide this functionality, it
+> differs for the existing helpers in that it allows reading a
+> smaller number of values than the full array size and checks
+> that the number of values read is a multiple of the group size.
+> 
+> Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+> ---
+>  drivers/base/property.c  | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/property.h |  2 ++
+>  2 files changed, 50 insertions(+)
 
-Since the flag doesn't give us a unique id we can generate
-one and use it to create bitmaps of sibling nodes, or simply
-in a loop to determine if a subset of cores are identical.
-
-Tested-by: Hanjun Gou <gouhanjun@huawei.com>
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- drivers/acpi/pptt.c  | 26 ++++++++++++++++++++++++++
- include/linux/acpi.h |  5 +++++
- 2 files changed, 31 insertions(+)
-
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index 05344413f199..1e7ac0bd0d3a 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -683,3 +683,29 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
- 	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
- 					  ACPI_PPTT_PHYSICAL_PACKAGE);
- }
-+
-+/**
-+ * find_acpi_cpu_topology_hetero_id() - Get a core architecture tag
-+ * @cpu: Kernel logical CPU number
-+ *
-+ * Determine a unique heterogeneous tag for the given CPU. CPUs with the same
-+ * implementation should have matching tags.
-+ *
-+ * The returned tag can be used to group peers with identical implementation.
-+ *
-+ * The search terminates when a level is found with the identical implementation
-+ * flag set or we reach a root node.
-+ *
-+ * Due to limitations in the PPTT data structure, there may be rare situations
-+ * where two cores in a heterogeneous machine may be identical, but won't have
-+ * the same tag.
-+ *
-+ * Return: -ENOENT if the PPTT doesn't exist, or the CPU cannot be found.
-+ * Otherwise returns a value which represents a group of identical cores
-+ * similar to this CPU.
-+ */
-+int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
-+{
-+	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
-+					  ACPI_PPTT_ACPI_IDENTICAL);
-+}
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d315d86844e4..5bcd23e5ccd6 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1303,6 +1303,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
- #ifdef CONFIG_ACPI_PPTT
- int find_acpi_cpu_topology(unsigned int cpu, int level);
- int find_acpi_cpu_topology_package(unsigned int cpu);
-+int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
- int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
- #else
- static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
-@@ -1313,6 +1314,10 @@ static inline int find_acpi_cpu_topology_package(unsigned int cpu)
- {
- 	return -EINVAL;
- }
-+static inline int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
-+{
-+	return -EINVAL;
-+}
- static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
- {
- 	return -EINVAL;
--- 
-2.21.0
-
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
