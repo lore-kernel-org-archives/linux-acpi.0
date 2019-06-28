@@ -2,170 +2,102 @@ Return-Path: <SRS0=a/E0=U3=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEE0AC4321A
-	for <linux-acpi@archiver.kernel.org>; Fri, 28 Jun 2019 15:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B82EC4321A
+	for <linux-acpi@archiver.kernel.org>; Fri, 28 Jun 2019 16:28:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A203A208E3
-	for <linux-acpi@archiver.kernel.org>; Fri, 28 Jun 2019 15:21:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 417D32083B
+	for <linux-acpi@archiver.kernel.org>; Fri, 28 Jun 2019 16:28:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1561739303;
+	bh=TcL5v0xG5Jb0mx0VAKMmOPuAUCUcWRxaz1LhuAtO9P8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=Z+e+gNF3/IitDIPR2C+cFacTj7xHTyyBJY4+08EnAeWsabZuzwl5AMBiw4DIVsEld
+	 H9pEljEDEuCgwgqOSrampI1lE9g7bhp37CYi5MLRpLsH7vCeq704KafaksXcHkmYlD
+	 5v30XZ/uvMir34oLbMwvlVH9QqyQGzsC+AQ7X/t4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726781AbfF1PVv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 28 Jun 2019 11:21:51 -0400
-Received: from foss.arm.com ([217.140.110.172]:49976 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726770AbfF1PVv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 28 Jun 2019 11:21:51 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2C99C28;
-        Fri, 28 Jun 2019 08:21:50 -0700 (PDT)
-Received: from [192.168.122.164] (u201426.austin.arm.com [10.118.28.57])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 11A1B3F706;
-        Fri, 28 Jun 2019 08:21:50 -0700 (PDT)
-Subject: Re: [PATCH v2 1/2] ACPI/PPTT: Add support for ACPI 6.3 thread flag
-To:     John Garry <john.garry@huawei.com>,
-        Valentin Schneider <valentin.schneider@arm.com>,
-        linux-arm-kernel@lists.infradead.org
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net,
-        sudeep.holla@arm.com, lenb@kernel.org
-References: <20190614223158.49575-1-jeremy.linton@arm.com>
- <20190614223158.49575-2-jeremy.linton@arm.com>
- <667f95c0-5aa9-f460-a49a-e6dfefc027d8@arm.com>
- <2d1b547f-f9ee-391c-c4f3-0232a08a86bc@arm.com>
- <718438d0-8648-897a-83e8-801146a0af86@arm.com>
- <f6f7f9bb-547d-3fd3-f3f8-1d55181f63d7@huawei.com>
- <11fb712f-b3c2-5491-89ee-ea7efb18ddd8@arm.com>
- <63f6c6a8-9d79-ae75-3c15-96bded9b14e4@huawei.com>
-From:   Jeremy Linton <jeremy.linton@arm.com>
-Message-ID: <b7877a38-6c30-af7d-f627-1618684afb55@arm.com>
-Date:   Fri, 28 Jun 2019 10:21:49 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        id S1726832AbfF1Q2W (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 28 Jun 2019 12:28:22 -0400
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:51132 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726772AbfF1Q2W (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jun 2019 12:28:22 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=sirena.org.uk; s=20170815-heliosphere; h=In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=m//Qtq9gFmgDDqUd5HowLAI6QPmKrAl77Pvv4hXKito=; b=dGiOgcrflH/7ZIczaUI3BQ8Dx
+        Cda8tGAwAfQY+pc84UQXVHXj/ctb9eNinseqZZM9hXmF9PfSw1i3tY1pjSwbXhDc7LfyAivnic9sB
+        08PtAWVoPGwVmSWTYqSdM0Y09ohQ5gVwKYxN2d6UWHcV2SUNtnve2UyMpVKjRqV3ZqpTA=;
+Received: from cpc102320-sgyl38-2-0-cust46.18-2.cable.virginm.net ([82.37.168.47] helo=finisterre.sirena.org.uk)
+        by heliosphere.sirena.org.uk with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <broonie@sirena.org.uk>)
+        id 1hgtjO-00075I-PU; Fri, 28 Jun 2019 16:28:10 +0000
+Received: by finisterre.sirena.org.uk (Postfix, from userid 1000)
+        id 8503544004C; Fri, 28 Jun 2019 15:30:37 +0100 (BST)
+Date:   Fri, 28 Jun 2019 15:30:37 +0100
+From:   Mark Brown <broonie@kernel.org>
+To:     Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+Cc:     Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Andreas Dannenberg <dannenberg@ti.com>,
+        "Andrew F. Davis" <afd@ti.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, nv@vosn.de
+Subject: Re: [PATCH] sound/soc/codecs/tas5720.c: add ACPI support
+Message-ID: <20190628143037.GH5379@sirena.org.uk>
+References: <20190628123416.16298-1-nikolaus.voss@loewensteinmedical.de>
 MIME-Version: 1.0
-In-Reply-To: <63f6c6a8-9d79-ae75-3c15-96bded9b14e4@huawei.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="TBNym+cBXeFsS4Vs"
+Content-Disposition: inline
+In-Reply-To: <20190628123416.16298-1-nikolaus.voss@loewensteinmedical.de>
+X-Cookie: You need not be present to win.
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
 
-On 6/19/19 4:15 AM, John Garry wrote:
-> On 18/06/2019 22:28, Jeremy Linton wrote:
->> Hi,
->>
->> On 6/18/19 12:23 PM, John Garry wrote:
->>> On 18/06/2019 15:40, Valentin Schneider wrote:
->>>> On 18/06/2019 15:21, Jeremy Linton wrote:
->>>> [...]
->>>>>>> + * Return: -ENOENT if the PPTT doesn't exist, the CPU cannot be
->>>>>>> found or
->>>>>>> + *       the table revision isn't new enough.
->>>>>>> + * Otherwise returns flag value
->>>>>>> + */
->>>>>>
->>>>>> Nit: strictly speaking we're not returning the flag value but its 
->>>>>> mask
->>>>>> applied to the flags field. I don't think anyone will care about
->>>>>> getting
->>>>>> the actual flag value, but it should be made obvious in the doc:
->>>>>
->>>>> Or I clarify the code to actually do what the comments says. Maybe
->>>>> that is what John G was also pointing out too?
->>>>>
->>>
->>> No, I was just saying that the kernel topology can be broken without
->>> this series.
->>>
->>>>
->>>> Mmm I didn't find any reply from John regarding this in v1, but I
->>>> wouldn't
->>>> mind either way, as long as the doc & code are aligned.
->>>>
->>>
->>> BTW, to me, function acpi_pptt_cpu_is_thread() seems to try to do too
->>> much, i.e. check if the PPTT is new enough to support the thread flag
->>> and also check if it is set for a specific cpu. I'd consider separate
->>> functions here.
->>
-> 
-> Hi,
-> 
->> ? Your suggesting replacing the
->>
-> 
-> I am not saying definitely that this should be changed, it's just that 
-> acpi_pptt_cpu_is_thread() returning false, true, or "no entry" is not a 
-> typical API format.
-> 
-> How about acpi_pptt_support_thread_info(cpu) and 
-> acpi_pptt_cpu_is_threaded(cpu), both returning false/true only?
+--TBNym+cBXeFsS4Vs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I'm not sure we want to be exporting what is effectively a version check 
-into the rest of the code. Plus, AFAIK it doesn't really simplify 
-anything except the case of ACPI machines with revision 1 PPTTs, because 
-those would only be doing a single check and assuming the state of the 
-MT bit. That MT check is suspect anyway, although AFAIK it gets the 
-right answer on all machines that predate ACPI 6.3..
+On Fri, Jun 28, 2019 at 02:34:16PM +0200, Nikolaus Voss wrote:
+> Add support for ACPI enumeration for tas5720 and tas5722.
+> Use device_match API to unify access to driver data for DT and ACPI.
+> Aggregate variant stuff into its own struct and directly reference
+> it in variant data for i2c/of/acpi_device_id.
 
+Please use subject lines matching the style for the subsystem.  This
+makes it easier for people to identify relevant patches.
 
-> 
-> None of this is ideal.
-> 
-> BTW, Have you audited which arm64 systems have MT bit set legitimately?
+There's a huge amount of refactoring in here as well as the enumeration
+changes, please split this up into a patch series as covered in
+submitting-patches.rst for review.
 
-Not formally, given I don't have access to everything available.
+--TBNym+cBXeFsS4Vs
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> 
->>
->> if (table->revision >= rev)
-> 
-> I know that checking the table revision is not on the fast path, but it 
-> seems unnecessarily inefficient to always read it this way, I mean 
-> calling acpi_table_get().
-> 
-> Can you have a static value for the table revision? Or is this just how 
-> other table info is accessed in ACPI code?
+-----BEGIN PGP SIGNATURE-----
 
-Yes caching the revision internally would save a get/put per core, for 
-older machines. I don't think its a big deal in normal operation but its 
-a couple extra lines so...
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAl0WJIwACgkQJNaLcl1U
+h9Bvewf+JKdAlitakvrWEvLfVQ1ffjq8q2owD1IJsFcSFOLRl7mlZG1Hoq03PBBZ
+lpYSKn/+9tbAlpNf6WYSCaNX9zvzGX0CJoHuOkVEap6zPFkWlYTqg8AlqEuFhM3c
+di65cqFmifwWxkbRgHnl05I9cJXwCnm49Jkdd3dyNMpBhVtCVVk6W8NRt87/ODpR
+b1iYRsLgSODnRju4Bs7H9NRmUhcNm8u0UFuV/WYfJLQB26Gsw9OrzBtvrjOssLOj
+94HOzJlteXbHSpHKfL4SUliE7E3f+eRMjqTkxyswoJOUuwx/z9aKVlkDk2MiltRG
+Uj9hG/2v/ooD/eenWJWkK082wI0FYg==
+=LAqe
+-----END PGP SIGNATURE-----
 
-I will post it with an internally cached saved_pptt_rev. That will save 
-CPU count get/puts in the case where the revision isn't new enough.
-
-
-> 
->>     cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
->>
->> check with
->>
->> if (revision_check(table, rev))
->>     cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
->>
->>
->> and a function like
->>
->> static int revision_check(acpixxxx *table, int rev)
->> {
->>     return (table->revision >= rev);
->> }
->>
->> Although, frankly if one were to do this, it should probably be a macro
->> with the table type, and used in the dozen or so other places I found
->> doing similar checks (spcr, iort, etc).
->>
->> Or something else?
->>
->>
->>
->>
-> 
-> thanks,
-> John
+--TBNym+cBXeFsS4Vs--
