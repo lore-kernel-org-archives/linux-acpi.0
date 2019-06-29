@@ -2,78 +2,125 @@ Return-Path: <SRS0=3VhL=U4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 567B4C4321A
-	for <linux-acpi@archiver.kernel.org>; Sat, 29 Jun 2019 02:08:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F251C4321A
+	for <linux-acpi@archiver.kernel.org>; Sat, 29 Jun 2019 02:44:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B888208E3
-	for <linux-acpi@archiver.kernel.org>; Sat, 29 Jun 2019 02:08:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D850E2133F
+	for <linux-acpi@archiver.kernel.org>; Sat, 29 Jun 2019 02:44:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726723AbfF2CIn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 28 Jun 2019 22:08:43 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8236 "EHLO huawei.com"
+        id S1726772AbfF2Cox (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 28 Jun 2019 22:44:53 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8241 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726682AbfF2CIn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 28 Jun 2019 22:08:43 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 03EA9AD12CCE9E729E1A;
-        Sat, 29 Jun 2019 10:08:40 +0800 (CST)
-Received: from [127.0.0.1] (10.184.52.56) by DGGEMS410-HUB.china.huawei.com
- (10.3.19.210) with Microsoft SMTP Server id 14.3.439.0; Sat, 29 Jun 2019
- 10:08:34 +0800
-Subject: Re: [PATCH RFC 0/3] Support CPU hotplug for ARM64
+        id S1726708AbfF2Cox (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 28 Jun 2019 22:44:53 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 24138748E1AEC8CEF4C4;
+        Sat, 29 Jun 2019 10:44:51 +0800 (CST)
+Received: from linux-ibm.site (10.175.102.37) by
+ DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
+ 14.3.439.0; Sat, 29 Jun 2019 10:44:43 +0800
+From:   Xiongfeng Wang <wangxiongfeng2@huawei.com>
 To:     <rjw@rjwysocki.net>, <catalin.marinas@arm.com>,
         <james.morse@arm.com>
 CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>, <guohanjun@huawei.com>,
         <xiexiuqi@huawei.com>, <huawei.libin@huawei.com>,
-        <john.garry@huawei.com>, <jonathan.cameron@huawei.com>
-References: <1561720392-45907-1-git-send-email-wangxiongfeng2@huawei.com>
-From:   Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Message-ID: <74bda3c2-e706-aa3b-441a-fb85e2a5c778@huawei.com>
-Date:   Sat, 29 Jun 2019 10:07:10 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101
- Thunderbird/52.6.0
+        <john.garry@huawei.com>, <jonathan.cameron@huawei.com>,
+        <wangxiongfeng2@huawei.com>
+Subject: [RFC PATCH v2 3/3] arm64: Add CPU hotplug support
+Date:   Sat, 29 Jun 2019 10:42:35 +0800
+Message-ID: <1561776155-38975-4-git-send-email-wangxiongfeng2@huawei.com>
+X-Mailer: git-send-email 1.7.12.4
+In-Reply-To: <1561776155-38975-1-git-send-email-wangxiongfeng2@huawei.com>
+References: <1561776155-38975-1-git-send-email-wangxiongfeng2@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <1561720392-45907-1-git-send-email-wangxiongfeng2@huawei.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.52.56]
+Content-Type: text/plain
+X-Originating-IP: [10.175.102.37]
 X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Sorry, the third patch can't be applied to the lastest kernel. I will send another
-version and attach the method to test this patchset.
+To support CPU hotplug, we need to implement 'acpi_(un)map_cpu()' and
+'arch_(un)register_cpu()' for ARM64. These functions are called in
+'acpi_processor_hotadd_init()/acpi_processor_remove()' when the CPU is hot
+added into or hot removed from the system.
 
-On 2019/6/28 19:13, Xiongfeng Wang wrote:
-> This patchset mark all the GICC node in MADT as possible CPUs even though it
-> is disabled. But only those enabled GICC node are marked as present CPUs.
-> So that kernel will initialize some CPU related data structure in advance before
-> the CPU is actually hot added into the system. This patchset also implement 
-> 'acpi_(un)map_cpu()' and 'arch_(un)register_cpu()' for ARM64. These functions are
-> needed to enable CPU hotplug.
-> 
-> To support CPU hotplug, we need to add all the possible GICC node in MADT
-> including those CPUs that are not present but may be hot added later. Those
-> CPUs are marked as disabled in GICC nodes.
-> 
-> Xiongfeng Wang (3):
->   ACPI / scan: evaluate _STA for processors declared via ASL Device
->     statement
->   arm64: mark all the GICC nodes in MADT as possible cpu
->   arm64: Add CPU hotplug support
-> 
->  arch/arm64/kernel/acpi.c  | 22 ++++++++++++++++++++++
->  arch/arm64/kernel/setup.c | 19 ++++++++++++++++++-
->  arch/arm64/kernel/smp.c   | 11 +++++------
->  drivers/acpi/scan.c       | 12 ++++++++++++
->  4 files changed, 57 insertions(+), 7 deletions(-)
-> 
+Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+---
+ arch/arm64/kernel/acpi.c  | 22 ++++++++++++++++++++++
+ arch/arm64/kernel/setup.c | 17 +++++++++++++++++
+ 2 files changed, 39 insertions(+)
+
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 2804330..57835fa 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -25,6 +25,7 @@
+ #include <linux/serial_core.h>
+ 
+ #include <acpi/ghes.h>
++#include <acpi/processor.h>
+ #include <asm/cputype.h>
+ #include <asm/cpu_ops.h>
+ #include <asm/daifflags.h>
+@@ -284,3 +285,24 @@ int apei_claim_sea(struct pt_regs *regs)
+ 
+ 	return err;
+ }
++
++int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
++		 int *pcpu)
++{
++	int cpu;
++
++	cpu = acpi_map_cpuid(physid, acpi_id);
++	*pcpu = cpu;
++	set_cpu_present(cpu, true);
++
++	return 0;
++}
++EXPORT_SYMBOL(acpi_map_cpu);
++
++int acpi_unmap_cpu(int cpu)
++{
++	set_cpu_present(cpu, false);
++
++	return 0;
++}
++EXPORT_SYMBOL(acpi_unmap_cpu);
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 7f4d12a..f2a881e 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -398,3 +398,20 @@ static int __init register_kernel_offset_dumper(void)
+ 	return 0;
+ }
+ __initcall(register_kernel_offset_dumper);
++
++int arch_register_cpu(int num)
++{
++	struct cpu *cpu = &per_cpu(cpu_data.cpu, num);
++
++	cpu->hotpluggable = 1;
++	return register_cpu(cpu, num);
++}
++EXPORT_SYMBOL(arch_register_cpu);
++
++void arch_unregister_cpu(int num)
++{
++	struct cpu *cpu = &per_cpu(cpu_data.cpu, num);
++
++	unregister_cpu(cpu);
++}
++EXPORT_SYMBOL(arch_unregister_cpu);
+-- 
+1.7.12.4
 
