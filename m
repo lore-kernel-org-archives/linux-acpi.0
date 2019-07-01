@@ -2,129 +2,104 @@ Return-Path: <SRS0=/JtU=U6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E1ACC06511
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 Jul 2019 10:58:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA65FC0650E
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 Jul 2019 11:30:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3909E213F2
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 Jul 2019 10:58:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A82662089C
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 Jul 2019 11:30:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728099AbfGAK6W (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 1 Jul 2019 06:58:22 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:55366 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727662AbfGAK6W (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2019 06:58:22 -0400
-Received: from 79.184.254.216.ipv4.supernova.orange.pl (79.184.254.216) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.267)
- id a425eeee5911cf67; Mon, 1 Jul 2019 12:58:19 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux PM <linux-pm@vger.kernel.org>
+        id S1727349AbfGALa3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 1 Jul 2019 07:30:29 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:41509 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727344AbfGALa3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2019 07:30:29 -0400
+Received: by mail-ed1-f68.google.com with SMTP id p15so22913196eds.8
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jul 2019 04:30:28 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=4FZVerzE1oFDIf/AEgJefyhsJDoB9qh6VUR1z8DL6tw=;
+        b=IoUra+qdwFYikYfqTSKvz9DBxl5gFJ1ZdH7NHYEPrh/TJ32CchPRmlGKyroBrD6EQL
+         dGw0xxkr5xWZg8DclGbgibgQ6wv/CethtqwoM2mamMtNtNWsy+ZkFQDNd941IMpOVzg7
+         Hf58pw15EIIpRC5ndnkF25B3n4L1F5ue4y0b2yq3bzzC6FgxqwUHj97Y0jmFEd7zrvUo
+         6swZiGMxFAh31LhSxhTJ7wIJ1ZoL3dRdfLvaONJbwxihho1exfNRQ2nGqf4cbjCM+/sn
+         yZf+YX2zjoQ8h7hvps6KQVSQ5Fw/qIQ3kewExFB7XG95WVpVffn0r9UDbCFEuQ/ty8my
+         FtTw==
+X-Gm-Message-State: APjAAAXcDDPOcapj1eGmVw+iyfhIoqENgt241F89s03NdstoFwFY/e1y
+        N2FR9qQ5zZkAlwsnceUjgQANJw==
+X-Google-Smtp-Source: APXvYqz/0QfqYPFurt8vHq2JQ9efiubTG15CmggEQS1oSAuTuLo82LfJbwtMPGobRwI6nNQaLSJ6rw==
+X-Received: by 2002:a50:e718:: with SMTP id a24mr28061508edn.91.1561980627445;
+        Mon, 01 Jul 2019 04:30:27 -0700 (PDT)
+Received: from shalem.localdomain (84-106-84-65.cable.dynamic.v4.ziggo.nl. [84.106.84.65])
+        by smtp.gmail.com with ESMTPSA id v32sm3589172edm.92.2019.07.01.04.30.26
+        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
+        Mon, 01 Jul 2019 04:30:26 -0700 (PDT)
+Subject: Re: [PATCH v2 0/5] PM: PCI/ACPI: Hibernation handling fixes
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux PM <linux-pm@vger.kernel.org>
 Cc:     Linux PCI <linux-pci@vger.kernel.org>,
         Linux ACPI <linux-acpi@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>,
         Bjorn Helgaas <helgaas@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Hans De Goede <hdegoede@redhat.com>,
         "Robert R. Howell" <RHowell@uwyo.edu>
-Subject: [PATCH v2 1/5] PM: ACPI/PCI: Resume all devices during hibernation
-Date:   Mon, 01 Jul 2019 12:44:25 +0200
-Message-ID: <6191578.xJk2HsE5MX@kreacher>
-In-Reply-To: <4976412.ihyb9sT5jY@kreacher>
 References: <4976412.ihyb9sT5jY@kreacher>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <fc53d965-c5b6-45b9-8e0d-1de2fbed09a8@redhat.com>
+Date:   Mon, 1 Jul 2019 13:30:25 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <4976412.ihyb9sT5jY@kreacher>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Rafael,
 
-Both the PCI bus type and the ACPI PM domain avoid resuming
-runtime-suspended devices with DPM_FLAG_SMART_SUSPEND set during
-hibernation (before creating the snapshot image of system memory),
-but that turns out to be a mistake.  It leads to functional issues
-and adds complexity that's hard to justify.
+On 01-07-19 12:42, Rafael J. Wysocki wrote:
+> Hi All,
+> 
+> This series of patches addresses a few issues related to the handling of
+> hibernation in the PCI bus type and the ACPI PM domain and ACPI LPSS driver.
+> 
+> The v2 addresses Hans' concerns regarding the LPSS changes.
+> 
+> First of all, all of the runtime-suspended PCI devices and devices in the ACPI PM and LPSS
+> PM domains will be resumed during hibernation (first patch).  This appears to be the
+> only way to avoid weird corner cases and the benefit from avoiding to resume those
+> devices during hibernation is questionable.
+> 
+> That change allows the the hibernation callbacks in all of the involved subsystems to be
+> simplified (patches 2 and 3).
+> 
+> Moreover, reusing bus-level suspend callbacks for the "poweroff" transition during
+> hibernation (which is the case for the ACPI PM domain and LPSS) is incorrect, so patch 4
+> fixes that.
+> 
+> Finally, there are some leftover items in linux/acpi.h that can be dropped (patch 5).
 
-For this reason, resume all runtime-suspended PCI devices and all
-devices in the ACPI PM domains before creating a snapshot image of
-system memory during hibernation.
+Thank you for the new version, the entire series looks good to me now:
 
-Fixes: 05087360fd7a (ACPI / PM: Take SMART_SUSPEND driver flag into account)
-Fixes: c4b65157aeef (PCI / PM: Take SMART_SUSPEND driver flag into account)
-Link: https://lore.kernel.org/linux-acpi/917d4399-2e22-67b1-9d54-808561f9083f@uwyo.edu/T/#maf065fe6e4974f2a9d79f332ab99dfaba635f64c
-Reported-by: Robert R. Howell <RHowell@uwyo.edu>
-Tested-by: Robert R. Howell <RHowell@uwyo.edu>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 
--> v2: No changes.
+Regards,
 
----
- drivers/acpi/device_pm.c |   13 +++++++------
- drivers/pci/pci-driver.c |   16 ++++++++--------
- 2 files changed, 15 insertions(+), 14 deletions(-)
+Hans
 
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -1155,13 +1155,14 @@ EXPORT_SYMBOL_GPL(acpi_subsys_resume_ear
- int acpi_subsys_freeze(struct device *dev)
- {
- 	/*
--	 * This used to be done in acpi_subsys_prepare() for all devices and
--	 * some drivers may depend on it, so do it here.  Ideally, however,
--	 * runtime-suspended devices should not be touched during freeze/thaw
--	 * transitions.
-+	 * Resume all runtime-suspended devices before creating a snapshot
-+	 * image of system memory, because the restore kernel generally cannot
-+	 * be expected to always handle them consistently and they need to be
-+	 * put into the runtime-active metastate during system resume anyway,
-+	 * so it is better to ensure that the state saved in the image will be
-+	 * alwyas consistent with that.
- 	 */
--	if (!dev_pm_test_driver_flags(dev, DPM_FLAG_SMART_SUSPEND))
--		pm_runtime_resume(dev);
-+	pm_runtime_resume(dev);
- 
- 	return pm_generic_freeze(dev);
- }
-Index: linux-pm/drivers/pci/pci-driver.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-driver.c
-+++ linux-pm/drivers/pci/pci-driver.c
-@@ -1012,15 +1012,15 @@ static int pci_pm_freeze(struct device *
- 	}
- 
- 	/*
--	 * This used to be done in pci_pm_prepare() for all devices and some
--	 * drivers may depend on it, so do it here.  Ideally, runtime-suspended
--	 * devices should not be touched during freeze/thaw transitions,
--	 * however.
-+	 * Resume all runtime-suspended devices before creating a snapshot
-+	 * image of system memory, because the restore kernel generally cannot
-+	 * be expected to always handle them consistently and they need to be
-+	 * put into the runtime-active metastate during system resume anyway,
-+	 * so it is better to ensure that the state saved in the image will be
-+	 * alwyas consistent with that.
- 	 */
--	if (!dev_pm_smart_suspend_and_suspended(dev)) {
--		pm_runtime_resume(dev);
--		pci_dev->state_saved = false;
--	}
-+	pm_runtime_resume(dev);
-+	pci_dev->state_saved = false;
- 
- 	if (pm->freeze) {
- 		int error;
+p.s.
 
-
-
-
+FWIW I agree that the calling of the suspend_late method of the i2c-designware driver
+at suspend_noirq time is ugly, thank you for adding the comment documenting this.
