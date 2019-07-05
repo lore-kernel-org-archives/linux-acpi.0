@@ -2,130 +2,97 @@ Return-Path: <SRS0=6zTf=VC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 194E1C4649B
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:59:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1050BC4649B
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 10:12:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EDBF2218A3
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:59:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC72C2089C
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 10:12:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728412AbfGEJ6F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Jul 2019 05:58:05 -0400
-Received: from mga18.intel.com ([134.134.136.126]:42367 "EHLO mga18.intel.com"
+        id S1728414AbfGEKML (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Jul 2019 06:12:11 -0400
+Received: from foss.arm.com ([217.140.110.172]:35052 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728167AbfGEJ6F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Jul 2019 05:58:05 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Jul 2019 02:58:04 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.63,454,1557212400"; 
-   d="scan'208";a="166448204"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 05 Jul 2019 02:58:01 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id D7768361; Fri,  5 Jul 2019 12:58:00 +0300 (EEST)
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Andreas Noever <andreas.noever@gmail.com>,
-        Michael Jamet <michael.jamet@intel.com>,
-        Yehezkel Bernat <YehezkelShB@gmail.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Lukas Wunner <lukas@wunner.de>,
-        Mario.Limonciello@dell.com,
-        Anthony Wong <anthony.wong@canonical.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH 2/8] thunderbolt: Move NVM upgrade support flag to struct icm
-Date:   Fri,  5 Jul 2019 12:57:54 +0300
-Message-Id: <20190705095800.43534-3-mika.westerberg@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
-References: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
+        id S1726005AbfGEKML (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 5 Jul 2019 06:12:11 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9EC872B;
+        Fri,  5 Jul 2019 03:12:10 -0700 (PDT)
+Received: from [10.1.196.105] (eglon.cambridge.arm.com [10.1.196.105])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 779B73F703;
+        Fri,  5 Jul 2019 03:12:08 -0700 (PDT)
+Subject: Re: [RFC PATCH v2 0/3] Support CPU hotplug for ARM64
+To:     Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Cc:     rjw@rjwysocki.net, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        guohanjun@huawei.com, xiexiuqi@huawei.com, huawei.libin@huawei.com,
+        john.garry@huawei.com, jonathan.cameron@huawei.com,
+        kvmarm@lists.cs.columbia.edu
+References: <1561776155-38975-1-git-send-email-wangxiongfeng2@huawei.com>
+From:   James Morse <james.morse@arm.com>
+Message-ID: <82879258-46a7-a6e9-ee54-fc3692c1cdc3@arm.com>
+Date:   Fri, 5 Jul 2019 11:12:07 +0100
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1561776155-38975-1-git-send-email-wangxiongfeng2@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is depends on the controller and on the platform/CPU we are
-running. Move it to struct icm so we can set it per controller.
+Hi guys,
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/thunderbolt/icm.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+(CC: +kvmarm list)
 
-diff --git a/drivers/thunderbolt/icm.c b/drivers/thunderbolt/icm.c
-index fbdcef56a676..2a56d9478b34 100644
---- a/drivers/thunderbolt/icm.c
-+++ b/drivers/thunderbolt/icm.c
-@@ -55,6 +55,7 @@
-  * @safe_mode: ICM is in safe mode
-  * @max_boot_acl: Maximum number of preboot ACL entries (%0 if not supported)
-  * @rpm: Does the controller support runtime PM (RTD3)
-+ * @can_upgrade_nvm: Can the NVM firmware be upgrade on this controller
-  * @is_supported: Checks if we can support ICM on this controller
-  * @cio_reset: Trigger CIO reset
-  * @get_mode: Read and return the ICM firmware mode (optional)
-@@ -74,6 +75,7 @@ struct icm {
- 	int vnd_cap;
- 	bool safe_mode;
- 	bool rpm;
-+	bool can_upgrade_nvm;
- 	bool (*is_supported)(struct tb *tb);
- 	int (*cio_reset)(struct tb *tb);
- 	int (*get_mode)(struct tb *tb);
-@@ -1913,12 +1915,7 @@ static int icm_start(struct tb *tb)
- 	if (IS_ERR(tb->root_switch))
- 		return PTR_ERR(tb->root_switch);
- 
--	/*
--	 * NVM upgrade has not been tested on Apple systems and they
--	 * don't provide images publicly either. To be on the safe side
--	 * prevent root switch NVM upgrade on Macs for now.
--	 */
--	tb->root_switch->no_nvm_upgrade = x86_apple_machine;
-+	tb->root_switch->no_nvm_upgrade = !icm->can_upgrade_nvm;
- 	tb->root_switch->rpm = icm->rpm;
- 
- 	ret = tb_switch_add(tb->root_switch);
-@@ -2021,6 +2018,7 @@ struct tb *icm_probe(struct tb_nhi *nhi)
- 	switch (nhi->pdev->device) {
- 	case PCI_DEVICE_ID_INTEL_FALCON_RIDGE_2C_NHI:
- 	case PCI_DEVICE_ID_INTEL_FALCON_RIDGE_4C_NHI:
-+		icm->can_upgrade_nvm = true;
- 		icm->is_supported = icm_fr_is_supported;
- 		icm->get_route = icm_fr_get_route;
- 		icm->save_devices = icm_fr_save_devices;
-@@ -2038,6 +2036,13 @@ struct tb *icm_probe(struct tb_nhi *nhi)
- 	case PCI_DEVICE_ID_INTEL_ALPINE_RIDGE_C_4C_NHI:
- 	case PCI_DEVICE_ID_INTEL_ALPINE_RIDGE_C_2C_NHI:
- 		icm->max_boot_acl = ICM_AR_PREBOOT_ACL_ENTRIES;
-+		/*
-+		 * NVM upgrade has not been tested on Apple systems and
-+		 * they don't provide images publicly either. To be on
-+		 * the safe side prevent root switch NVM upgrade on Macs
-+		 * for now.
-+		 */
-+		icm->can_upgrade_nvm = !x86_apple_machine;
- 		icm->is_supported = icm_ar_is_supported;
- 		icm->cio_reset = icm_ar_cio_reset;
- 		icm->get_mode = icm_ar_get_mode;
-@@ -2054,6 +2059,7 @@ struct tb *icm_probe(struct tb_nhi *nhi)
- 	case PCI_DEVICE_ID_INTEL_TITAN_RIDGE_2C_NHI:
- 	case PCI_DEVICE_ID_INTEL_TITAN_RIDGE_4C_NHI:
- 		icm->max_boot_acl = ICM_AR_PREBOOT_ACL_ENTRIES;
-+		icm->can_upgrade_nvm = true;
- 		icm->is_supported = icm_ar_is_supported;
- 		icm->cio_reset = icm_tr_cio_reset;
- 		icm->get_mode = icm_ar_get_mode;
--- 
-2.20.1
+On 29/06/2019 03:42, Xiongfeng Wang wrote:
+> This patchset mark all the GICC node in MADT as possible CPUs even though it
+> is disabled. But only those enabled GICC node are marked as present CPUs.
+> So that kernel will initialize some CPU related data structure in advance before
+> the CPU is actually hot added into the system. This patchset also implement 
+> 'acpi_(un)map_cpu()' and 'arch_(un)register_cpu()' for ARM64. These functions are
+> needed to enable CPU hotplug.
+> 
+> To support CPU hotplug, we need to add all the possible GICC node in MADT
+> including those CPUs that are not present but may be hot added later. Those
+> CPUs are marked as disabled in GICC nodes.
 
+... what do you need this for?
+
+(The term cpu-hotplug in the arm world almost never means hot-adding a new package/die to
+the platform, we usually mean taking CPUs online/offline for power management. e.g.
+cpuhp_offline_cpu_device())
+
+It looks like you're adding support for hot-adding a new package/die to the platform ...
+but only for virtualisation.
+
+I don't see why this is needed for virtualisation. The in-kernel irqchip needs to know
+these vcpu exist before you can enter the guest for the first time. You can't create them
+late. At best you're saving the host scheduling a vcpu that is offline. Is this really a
+problem?
+
+If we moved PSCI support to user-space, you could avoid creating host vcpu threads until
+the guest brings the vcpu online, which would solve that problem, and save the host
+resources for the thread too. (and its acpi/dt agnostic)
+
+I don't see the difference here between booting the guest with 'maxcpus=1', and bringing
+the vcpu online later. The only real difference seems to be moving the can-be-online
+policy into the hypervisor/VMM...
+
+
+I think physical package/die hotadd is a much bigger, uglier problem than doing the same
+under virtualisation. Its best to do this on real hardware first so we don't miss
+something. (cpu-topology, numa, memory, errata, timers?)
+I'm worried that doing virtualisation first means the firmware-requirements for physical
+hotadd stuff is "whatever Qemu does".
+
+
+Thanks,
+
+James
