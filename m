@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96189C4649B
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F005DC4649C
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6BD7D218C3
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2EB5218A3
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728456AbfGEJ6I (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Jul 2019 05:58:08 -0400
-Received: from mga07.intel.com ([134.134.136.100]:55406 "EHLO mga07.intel.com"
+        id S1728534AbfGEJ6p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Jul 2019 05:58:45 -0400
+Received: from mga18.intel.com ([134.134.136.126]:42367 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728402AbfGEJ6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1728446AbfGEJ6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 5 Jul 2019 05:58:08 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Jul 2019 02:58:07 -0700
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Jul 2019 02:58:07 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.63,454,1557212400"; 
-   d="scan'208";a="185144841"
+   d="scan'208";a="166448218"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 05 Jul 2019 02:58:04 -0700
+  by fmsmga007.fm.intel.com with ESMTP; 05 Jul 2019 02:58:04 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 34385715; Fri,  5 Jul 2019 12:58:01 +0300 (EEST)
+        id 0AD0E445; Fri,  5 Jul 2019 12:58:01 +0300 (EEST)
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andreas Noever <andreas.noever@gmail.com>,
@@ -41,9 +41,9 @@ Cc:     Andreas Noever <andreas.noever@gmail.com>,
         Anthony Wong <anthony.wong@canonical.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 8/8] ACPI / property: Add two new Thunderbolt property GUIDs to the list
-Date:   Fri,  5 Jul 2019 12:58:00 +0300
-Message-Id: <20190705095800.43534-9-mika.westerberg@linux.intel.com>
+Subject: [PATCH 5/8] thunderbolt: Hide switch attributes that are not set
+Date:   Fri,  5 Jul 2019 12:57:57 +0300
+Message-Id: <20190705095800.43534-6-mika.westerberg@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
 References: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
@@ -54,32 +54,42 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Ice Lake Thunderbolt controller includes two new device property
-compatible properties that we need to be able to extract in the driver
-so add them to the growing array of GUIDs.
+Thunderbolt host routers may not always contain DROM that includes
+device identification information. This is mostly needed for Ice Lake
+systems but some Falcon Ridge controllers on PCs also do not have DROM.
+
+In that case hide the identification attributes.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/property.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/thunderbolt/switch.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index da3ced297f19..07cbacbab861 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -39,6 +39,12 @@ static const guid_t prp_guids[] = {
- 	/* External facing port GUID: efcc06cc-73ac-4bc3-bff0-76143807c389 */
- 	GUID_INIT(0xefcc06cc, 0x73ac, 0x4bc3,
- 		  0xbf, 0xf0, 0x76, 0x14, 0x38, 0x07, 0xc3, 0x89),
-+	/* TBT GUID for IMR_VALID: c44d002f-69f9-4e7d-a904-a7baabdf43f7 */
-+	GUID_INIT(0xc44d002f, 0x69f9, 0x4e7d,
-+		  0xa9, 0x04, 0xa7, 0xba, 0xab, 0xdf, 0x43, 0xf7),
-+	/* TBT GUID for WAKE_SUPPORTED: 6c501103-c189-4296-ba72-9bf5a26ebe5d */
-+	GUID_INIT(0x6c501103, 0xc189, 0x4296,
-+		  0xba, 0x72, 0x9b, 0xf5, 0xa2, 0x6e, 0xbe, 0x5d),
- };
+diff --git a/drivers/thunderbolt/switch.c b/drivers/thunderbolt/switch.c
+index eac62ff1b85c..e84067084dcd 100644
+--- a/drivers/thunderbolt/switch.c
++++ b/drivers/thunderbolt/switch.c
+@@ -1337,7 +1337,19 @@ static umode_t switch_attr_is_visible(struct kobject *kobj,
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+ 	struct tb_switch *sw = tb_to_switch(dev);
  
- /* ACPI _DSD data subnodes GUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
+-	if (attr == &dev_attr_key.attr) {
++	if (attr == &dev_attr_device.attr) {
++		if (!sw->device)
++			return 0;
++	} else if (attr == &dev_attr_device_name.attr) {
++		if (!sw->device_name)
++			return 0;
++	} else if (attr == &dev_attr_vendor.attr)  {
++		if (!sw->vendor)
++			return 0;
++	} else if (attr == &dev_attr_vendor_name.attr)  {
++		if (!sw->vendor_name)
++			return 0;
++	} else if (attr == &dev_attr_key.attr) {
+ 		if (tb_route(sw) &&
+ 		    sw->tb->security_level == TB_SECURITY_SECURE &&
+ 		    sw->security_level == TB_SECURITY_SECURE)
 -- 
 2.20.1
 
