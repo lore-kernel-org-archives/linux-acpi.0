@@ -2,34 +2,33 @@ Return-Path: <SRS0=6zTf=VC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F005DC4649C
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF8A2C4649B
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D2EB5218A3
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3D20218A3
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728534AbfGEJ6p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1728317AbfGEJ6p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 5 Jul 2019 05:58:45 -0400
-Received: from mga18.intel.com ([134.134.136.126]:42367 "EHLO mga18.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:16861 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728446AbfGEJ6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Jul 2019 05:58:08 -0400
+        id S1728431AbfGEJ6H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 5 Jul 2019 05:58:07 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Jul 2019 02:58:07 -0700
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Jul 2019 02:58:06 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.63,454,1557212400"; 
-   d="scan'208";a="166448218"
+   d="scan'208";a="316054682"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 05 Jul 2019 02:58:04 -0700
+  by orsmga004.jf.intel.com with ESMTP; 05 Jul 2019 02:58:01 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 0AD0E445; Fri,  5 Jul 2019 12:58:01 +0300 (EEST)
+        id BE499254; Fri,  5 Jul 2019 12:58:00 +0300 (EEST)
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andreas Noever <andreas.noever@gmail.com>,
@@ -41,12 +40,10 @@ Cc:     Andreas Noever <andreas.noever@gmail.com>,
         Anthony Wong <anthony.wong@canonical.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 5/8] thunderbolt: Hide switch attributes that are not set
-Date:   Fri,  5 Jul 2019 12:57:57 +0300
-Message-Id: <20190705095800.43534-6-mika.westerberg@linux.intel.com>
+Subject: [PATCH 0/8] thunderbolt: Intel Ice Lake support
+Date:   Fri,  5 Jul 2019 12:57:52 +0300
+Message-Id: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
-References: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -54,42 +51,43 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Thunderbolt host routers may not always contain DROM that includes
-device identification information. This is mostly needed for Ice Lake
-systems but some Falcon Ridge controllers on PCs also do not have DROM.
+Hi all,
 
-In that case hide the identification attributes.
+With the exception of the first patch which is fix, this series enables
+Thunderbolt on Intel Ice Lake. Biggest difference from the previous
+controllers is that the Thunderbolt controller is now integrated as part of
+the SoC. The firmware messages pretty much follow Titan Ridge but there are
+some differences as well (such as the new RTD3 veto notification). Also Ice
+Lake does not implement security levels so DMA protection is handled by IOMMU.
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/thunderbolt/switch.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+This is v5.4 material but I'm sending it out now because I will be on
+vacation next 4 weeks mostly without internet access. When I get back I'll
+gather all the comments and update the series accordingly.
 
-diff --git a/drivers/thunderbolt/switch.c b/drivers/thunderbolt/switch.c
-index eac62ff1b85c..e84067084dcd 100644
---- a/drivers/thunderbolt/switch.c
-+++ b/drivers/thunderbolt/switch.c
-@@ -1337,7 +1337,19 @@ static umode_t switch_attr_is_visible(struct kobject *kobj,
- 	struct device *dev = container_of(kobj, struct device, kobj);
- 	struct tb_switch *sw = tb_to_switch(dev);
- 
--	if (attr == &dev_attr_key.attr) {
-+	if (attr == &dev_attr_device.attr) {
-+		if (!sw->device)
-+			return 0;
-+	} else if (attr == &dev_attr_device_name.attr) {
-+		if (!sw->device_name)
-+			return 0;
-+	} else if (attr == &dev_attr_vendor.attr)  {
-+		if (!sw->vendor)
-+			return 0;
-+	} else if (attr == &dev_attr_vendor_name.attr)  {
-+		if (!sw->vendor_name)
-+			return 0;
-+	} else if (attr == &dev_attr_key.attr) {
- 		if (tb_route(sw) &&
- 		    sw->tb->security_level == TB_SECURITY_SECURE &&
- 		    sw->security_level == TB_SECURITY_SECURE)
+Thanks!
+
+Mika Westerberg (8):
+  thunderbolt: Correct path indices for PCIe tunnel
+  thunderbolt: Move NVM upgrade support flag to struct icm
+  thunderbolt: Use 32-bit writes when writing ring producer/consumer
+  thunderbolt: Do not fail adding switch if some port is not implemented
+  thunderbolt: Hide switch attributes that are not set
+  thunderbolt: Expose active parts of NVM even if upgrade is not supported
+  thunderbolt: Add support for Intel Ice Lake
+  ACPI / property: Add two new Thunderbolt property GUIDs to the list
+
+ drivers/acpi/property.c        |   6 +
+ drivers/thunderbolt/ctl.c      |  23 ++-
+ drivers/thunderbolt/icm.c      | 169 +++++++++++++++++--
+ drivers/thunderbolt/nhi.c      | 300 ++++++++++++++++++++++++++++++++-
+ drivers/thunderbolt/nhi.h      |   2 +
+ drivers/thunderbolt/nhi_regs.h |  25 +++
+ drivers/thunderbolt/switch.c   |  52 ++++--
+ drivers/thunderbolt/tb_msgs.h  |  16 +-
+ drivers/thunderbolt/tunnel.c   |   4 +-
+ include/linux/thunderbolt.h    |   2 +
+ 10 files changed, 553 insertions(+), 46 deletions(-)
+
 -- 
 2.20.1
 
