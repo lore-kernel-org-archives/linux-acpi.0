@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16D15C46499
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 622CDC4649B
 	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E9B17218C3
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A3702147A
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Jul 2019 09:58:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728385AbfGEJ6F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1728415AbfGEJ6F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 5 Jul 2019 05:58:05 -0400
-Received: from mga06.intel.com ([134.134.136.31]:42516 "EHLO mga06.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:55406 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728401AbfGEJ6F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1728402AbfGEJ6F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 5 Jul 2019 05:58:05 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Jul 2019 02:58:03 -0700
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Jul 2019 02:58:04 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.63,454,1557212400"; 
-   d="scan'208";a="169637165"
+   d="scan'208";a="164830667"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga006.jf.intel.com with ESMTP; 05 Jul 2019 02:58:01 -0700
+  by fmsmga008.fm.intel.com with ESMTP; 05 Jul 2019 02:58:01 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id E780A370; Fri,  5 Jul 2019 12:58:00 +0300 (EEST)
+        id CAF9681; Fri,  5 Jul 2019 12:58:00 +0300 (EEST)
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andreas Noever <andreas.noever@gmail.com>,
@@ -41,9 +41,9 @@ Cc:     Andreas Noever <andreas.noever@gmail.com>,
         Anthony Wong <anthony.wong@canonical.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 3/8] thunderbolt: Use 32-bit writes when writing ring producer/consumer
-Date:   Fri,  5 Jul 2019 12:57:55 +0300
-Message-Id: <20190705095800.43534-4-mika.westerberg@linux.intel.com>
+Subject: [PATCH 1/8] thunderbolt: Correct path indices for PCIe tunnel
+Date:   Fri,  5 Jul 2019 12:57:53 +0300
+Message-Id: <20190705095800.43534-2-mika.westerberg@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
 References: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
@@ -54,68 +54,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The register access should be using 32-bit reads/writes according to the
-datasheet. With the previous generation hardware 16-bit writes have been
-working but starting with ICL this is not the case anymore so fix
-producer/consumer register update to use correct width register address.
+PCIe tunnel path indices got mixed up when we added support for tunnels
+between switches that are not adjacent. This did not affect the
+functionality as it is just an index but fix it now nevertheless to make
+the code easier to understand.
 
+Reported-by: Rajmohan Mani <rajmohan.mani@intel.com>
+Fixes: 8c7acaaf020f ("thunderbolt: Extend tunnel creation to more than 2 adjacent switches")
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/thunderbolt/nhi.c | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ drivers/thunderbolt/tunnel.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/thunderbolt/nhi.c b/drivers/thunderbolt/nhi.c
-index 27fbe62c7ddd..09242653da67 100644
---- a/drivers/thunderbolt/nhi.c
-+++ b/drivers/thunderbolt/nhi.c
-@@ -143,9 +143,24 @@ static void __iomem *ring_options_base(struct tb_ring *ring)
- 	return io;
- }
- 
--static void ring_iowrite16desc(struct tb_ring *ring, u32 value, u32 offset)
-+static void ring_iowrite_prod(struct tb_ring *ring, u16 prod)
- {
--	iowrite16(value, ring_desc_base(ring) + offset);
-+	u32 val;
-+
-+	val = ioread32(ring_desc_base(ring) + 8);
-+	val &= 0x0000ffff;
-+	val |= prod << 16;
-+	iowrite32(val, ring_desc_base(ring) + 8);
-+}
-+
-+static void ring_iowrite_cons(struct tb_ring *ring, u16 cons)
-+{
-+	u32 val;
-+
-+	val = ioread32(ring_desc_base(ring) + 8);
-+	val &= 0xffff0000;
-+	val |= cons;
-+	iowrite32(val, ring_desc_base(ring) + 8);
- }
- 
- static void ring_iowrite32desc(struct tb_ring *ring, u32 value, u32 offset)
-@@ -197,7 +212,10 @@ static void ring_write_descriptors(struct tb_ring *ring)
- 			descriptor->sof = frame->sof;
- 		}
- 		ring->head = (ring->head + 1) % ring->size;
--		ring_iowrite16desc(ring, ring->head, ring->is_tx ? 10 : 8);
-+		if (ring->is_tx)
-+			ring_iowrite_prod(ring, ring->head);
-+		else
-+			ring_iowrite_cons(ring, ring->head);
+diff --git a/drivers/thunderbolt/tunnel.c b/drivers/thunderbolt/tunnel.c
+index 31d0234837e4..5a99234826e7 100644
+--- a/drivers/thunderbolt/tunnel.c
++++ b/drivers/thunderbolt/tunnel.c
+@@ -211,7 +211,7 @@ struct tb_tunnel *tb_tunnel_alloc_pci(struct tb *tb, struct tb_port *up,
+ 		return NULL;
  	}
+ 	tb_pci_init_path(path);
+-	tunnel->paths[TB_PCI_PATH_UP] = path;
++	tunnel->paths[TB_PCI_PATH_DOWN] = path;
+ 
+ 	path = tb_path_alloc(tb, up, TB_PCI_HOPID, down, TB_PCI_HOPID, 0,
+ 			     "PCIe Up");
+@@ -220,7 +220,7 @@ struct tb_tunnel *tb_tunnel_alloc_pci(struct tb *tb, struct tb_port *up,
+ 		return NULL;
+ 	}
+ 	tb_pci_init_path(path);
+-	tunnel->paths[TB_PCI_PATH_DOWN] = path;
++	tunnel->paths[TB_PCI_PATH_UP] = path;
+ 
+ 	return tunnel;
  }
- 
-@@ -662,7 +680,7 @@ void tb_ring_stop(struct tb_ring *ring)
- 
- 	ring_iowrite32options(ring, 0, 0);
- 	ring_iowrite64desc(ring, 0, 0);
--	ring_iowrite16desc(ring, 0, ring->is_tx ? 10 : 8);
-+	ring_iowrite32desc(ring, 0, 8);
- 	ring_iowrite32desc(ring, 0, 12);
- 	ring->head = 0;
- 	ring->tail = 0;
 -- 
 2.20.1
 
