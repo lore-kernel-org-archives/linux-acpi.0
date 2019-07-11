@@ -2,54 +2,55 @@ Return-Path: <SRS0=sSHh=VI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 037F6C742A1
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Jul 2019 23:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED62DC742A9
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Jul 2019 23:44:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C281E208E4
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Jul 2019 23:44:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C29702177B
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Jul 2019 23:44:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=joelfernandes.org header.i=@joelfernandes.org header.b="CNNjweAs"
+	dkim=pass (1024-bit key) header.d=joelfernandes.org header.i=@joelfernandes.org header.b="POP2I6vc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729261AbfGKXoQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Jul 2019 19:44:16 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:45651 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729141AbfGKXoQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jul 2019 19:44:16 -0400
-Received: by mail-pg1-f194.google.com with SMTP id o13so3646841pgp.12
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Jul 2019 16:44:15 -0700 (PDT)
+        id S1730461AbfGKXoX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Jul 2019 19:44:23 -0400
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:36037 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730459AbfGKXoX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jul 2019 19:44:23 -0400
+Received: by mail-pf1-f195.google.com with SMTP id r7so3468052pfl.3
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Jul 2019 16:44:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=joelfernandes.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=tghsUW8vZE4uu9yXB3UzdXY9yotoHS+3md0iqX4wNrc=;
-        b=CNNjweAsrPvkDGMoc+Bl+izOV7h5rnwQiW5+Qq/Rcn6ALDGWghfqH0nMSbAeMYrkM3
-         /J4tlfNNWxLzUUkUKEp92qZboOdyapuZ2tNTxJAxNF/w1Fu6FzqjLGB2pNaL8BS+RrH5
-         Dd+Ya7ZpvGKyq0zNFBJG83LhPAEugUpO1kKJ8=
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=/GuW47+ITVwlHRyFWoit77iH8wSxBVV56wbG/AJ8g+A=;
+        b=POP2I6vcsX7mrpLNszrDZ3jHjn5JeGjYvt0TIBarOc+TTSSHTMCxN8ZJl3umrbGe13
+         LL/K6XJbcw8liWBMr5VJm7tJsyYXkpeSHOo93Z5cFDVSa8Vym2EQZ+vSjFXjz8J4Wkoy
+         ABgjJP8Cfel0JsMbqaLz7L8BjEej7RSdpehss=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=tghsUW8vZE4uu9yXB3UzdXY9yotoHS+3md0iqX4wNrc=;
-        b=ijee43o1Yp3Mr2fRkeQuix23TvgcNNyrJmT6s9L8Vk7GIhB0CWYpj8U4Tv5tCHTxFc
-         CtoxSAdyVP++bxgBw73u1RwVI772Mg0ot1VvlXjzByt9f81F4p2ltd+w31NaBz89k4X9
-         txw/QXFYx2YFbPH+n2792wuzTOo8iaqpggi2rcHSFfiH/I7n6TkuEm6n6VPbqWIOr2vz
-         Do9A15HO27Z40drTrVERD4DbfNPArbs/6weliopEmEtvdrOKpYHDedB9VaDDCU7DM8sl
-         tX5PCXuZpULR5iRqVpniZFsPbiPWMwp58Squi8pA0tpCKiy/td5/IEFT7OK+fyX7R1oI
-         TX4A==
-X-Gm-Message-State: APjAAAXo4L31EckncBZJiKz1Ih02rVU1mWAFpAU+VzdNnxdWEKcrUPXL
-        6KRdCO87I3daLxiFA+fTol4=
-X-Google-Smtp-Source: APXvYqyOaV5WjXgkTT8tKpfQzhT/+VO/P+nGJFfag5j+wibGuibka3Txc0o6Ppycfqb6JVTltTTnQQ==
-X-Received: by 2002:a63:89c7:: with SMTP id v190mr6903311pgd.299.1562888654760;
-        Thu, 11 Jul 2019 16:44:14 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=/GuW47+ITVwlHRyFWoit77iH8wSxBVV56wbG/AJ8g+A=;
+        b=D2UnV1fbVFRkuhv3YthzWWiOaE/ELDurJwViLwIIFsp8cKe0g3SbjUap1slPpDjsgG
+         fZSo9nADAjlsbjZpBQh/KzlkryksDOVjoHja24H8ea4LV58AnKKq0sSt7rjKRo8oWbe9
+         MNCP3b5dmimZlfA2e1q/W0MLgjYgOjyBXPWt5CkYMhwhBplJH9B8zmdCZGFDPvMCLUti
+         lV4jxbfIq3vtTHmENdgob3j43H10s4W4D6YQW3YwU2v2QqrPjMCE17sPLNZpokjpsEYf
+         Yb+bx1DSyTUZe8mhTrf3fwdiyklzlm6mRN73qIrblvWT+4e7H6ADItcEcBpws1bScHgM
+         M10g==
+X-Gm-Message-State: APjAAAV5lJ/O+nI3pv/nTnghp+9DdA2OLSv6ITCeypeP6Cs6NfBoc7gJ
+        3Rn7Djiq52R42JbUotSSQnw=
+X-Google-Smtp-Source: APXvYqwL3radJMAbdECmS/G+TOrWXAIf4q3T6x0oa7czoYNYGbVr9jTCwdHXMM+5nal4G43CSaqnjQ==
+X-Received: by 2002:a63:3f48:: with SMTP id m69mr7029829pga.17.1562888662320;
+        Thu, 11 Jul 2019 16:44:22 -0700 (PDT)
 Received: from joelaf.cam.corp.google.com ([2620:15c:6:12:9c46:e0da:efbf:69cc])
-        by smtp.gmail.com with ESMTPSA id t10sm6163450pjr.13.2019.07.11.16.44.11
+        by smtp.gmail.com with ESMTPSA id t10sm6163450pjr.13.2019.07.11.16.44.18
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Thu, 11 Jul 2019 16:44:13 -0700 (PDT)
+        Thu, 11 Jul 2019 16:44:21 -0700 (PDT)
 From:   "Joel Fernandes (Google)" <joel@joelfernandes.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     "Joel Fernandes (Google)" <joel@joelfernandes.org>,
@@ -75,10 +76,12 @@ Cc:     "Joel Fernandes (Google)" <joel@joelfernandes.org>,
         Tejun Heo <tj@kernel.org>,
         Thomas Gleixner <tglx@linutronix.de>, will@kernel.org,
         x86@kernel.org (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
-Subject: [PATCH v1 0/6] Harden list_for_each_entry_rcu() and family
-Date:   Thu, 11 Jul 2019 19:43:55 -0400
-Message-Id: <20190711234401.220336-1-joel@joelfernandes.org>
+Subject: [PATCH v1 2/6] ipv4: add lockdep condition to fix for_each_entry
+Date:   Thu, 11 Jul 2019 19:43:57 -0400
+Message-Id: <20190711234401.220336-3-joel@joelfernandes.org>
 X-Mailer: git-send-email 2.22.0.410.gd8fdbe21b5-goog
+In-Reply-To: <20190711234401.220336-1-joel@joelfernandes.org>
+References: <20190711234401.220336-1-joel@joelfernandes.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -86,81 +89,25 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-This series aims to provide lockdep checking to RCU list macros.
+Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
+---
+ net/ipv4/fib_frontend.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-RCU has a number of primitives for "consumption" of an RCU protected pointer.
-Most of the time, these consumers make sure that such accesses are under a RCU
-reader-section (such as rcu_dereference{,sched,bh} or under a lock, such as
-with rcu_dereference_protected()).
-
-However, there are other ways to consume RCU pointers, such as by
-list_for_each_entry_rcu or hlist_for_each_enry_rcu. Unlike the rcu_dereference
-family, these consumers do no lockdep checking at all. And with the growing
-number of RCU list uses (1000+), it is possible for bugs to creep in and go
-unnoticed which lockdep checks can catch.
-
-Since RCU consolidation efforts last year, the different traditional RCU
-flavors (preempt, bh, sched) are all consolidated. In other words, any of these
-flavors can cause a reader section to occur and all of them must cease before
-the reader section is considered to be unlocked. Thanks to this, we can
-generically check if we are in an RCU reader. This is what patch 1 does. Note
-that the list_for_each_entry_rcu and family are different from the
-rcu_dereference family in that, there is no _bh or _sched version of this
-macro. They are used under many different RCU reader flavors, and also SRCU.
-Patch 1 adds a new internal function rcu_read_lock_any_held() which checks
-if any reader section is active at all, when these macros are called. If no
-reader section exists, then the optional fourth argument to
-list_for_each_entry_rcu() can be a lockdep expression which is evaluated
-(similar to how rcu_dereference_check() works). If no lockdep expression is
-passed, and we are not in a reader, then a splat occurs. Just take off the
-lockdep expression after applying the patches, by using the following diff and
-see what happens:
-
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -55,7 +55,7 @@ static void list_add_sorted(struct pci_mmcfg_region *new)
-        struct pci_mmcfg_region *cfg;
-
-        /* keep list sorted by segment and starting bus number */
--       list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list, pci_mmcfg_lock_held()) {
-+       list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list) {
-
-
-The optional argument trick to list_for_each_entry_rcu() can also be used in
-the future to possibly remove rcu_dereference_{,bh,sched}_protected() API and
-we can pass an optional lockdep expression to rcu_dereference() itself. Thus
-eliminating 3 more RCU APIs.
-
-Note that some list macro wrappers already do their own lockdep checking in the
-caller side. These can be eliminated in favor of the built-in lockdep checking
-in the list macro that this series adds. For example, workqueue code has a
-assert_rcu_or_wq_mutex() function which is called in for_each_wq().  This
-series replaces that in favor of the built-in check.
-
-Also in the future, we can extend these checks to list_entry_rcu() and other
-list macros as well, if needed.
-
-Joel Fernandes (Google) (6):
-rcu: Add support for consolidated-RCU reader checking
-ipv4: add lockdep condition to fix for_each_entry
-driver/core: Convert to use built-in RCU list checking
-workqueue: Convert for_each_wq to use built-in list check
-x86/pci: Pass lockdep condition to pcm_mmcfg_list iterator
-acpi: Use built-in RCU list checking for acpi_ioremaps list
-
-arch/x86/pci/mmconfig-shared.c |  5 +++--
-drivers/acpi/osl.c             |  6 ++++--
-drivers/base/base.h            |  1 +
-drivers/base/core.c            | 10 ++++++++++
-drivers/base/power/runtime.c   | 15 ++++++++++-----
-include/linux/rculist.h        | 29 ++++++++++++++++++++++++-----
-include/linux/rcupdate.h       |  7 +++++++
-kernel/rcu/Kconfig.debug       | 11 +++++++++++
-kernel/rcu/update.c            | 26 ++++++++++++++++++++++++++
-kernel/workqueue.c             |  5 ++---
-net/ipv4/fib_frontend.c        |  3 ++-
-11 files changed, 100 insertions(+), 18 deletions(-)
-
---
+diff --git a/net/ipv4/fib_frontend.c b/net/ipv4/fib_frontend.c
+index b298255f6fdb..ef7c9f8e8682 100644
+--- a/net/ipv4/fib_frontend.c
++++ b/net/ipv4/fib_frontend.c
+@@ -127,7 +127,8 @@ struct fib_table *fib_get_table(struct net *net, u32 id)
+ 	h = id & (FIB_TABLE_HASHSZ - 1);
+ 
+ 	head = &net->ipv4.fib_table_hash[h];
+-	hlist_for_each_entry_rcu(tb, head, tb_hlist) {
++	hlist_for_each_entry_rcu(tb, head, tb_hlist,
++				 lockdep_rtnl_is_held()) {
+ 		if (tb->tb_id == id)
+ 			return tb;
+ 	}
+-- 
 2.22.0.410.gd8fdbe21b5-goog
 
