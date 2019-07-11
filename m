@@ -1,279 +1,244 @@
-Return-Path: <SRS0=UpWU=VH=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=sSHh=VI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53A21C74A3D
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Jul 2019 18:37:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68918C74A42
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Jul 2019 04:14:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2326E20844
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Jul 2019 18:37:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F160206B8
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Jul 2019 04:14:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amdcloud.onmicrosoft.com header.i=@amdcloud.onmicrosoft.com header.b="cla/rQ8C"
+	dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b="iNlhZhw6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728202AbfGJShV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Jul 2019 14:37:21 -0400
-Received: from mail-eopbgr710073.outbound.protection.outlook.com ([40.107.71.73]:28282
-        "EHLO NAM05-BY2-obe.outbound.protection.outlook.com"
+        id S1726290AbfGKEOw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Jul 2019 00:14:52 -0400
+Received: from mail-eopbgr800123.outbound.protection.outlook.com ([40.107.80.123]:49024
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728166AbfGJShT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Jul 2019 14:37:19 -0400
+        id S1725963AbfGKEOw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 Jul 2019 00:14:52 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=amdcloud.onmicrosoft.com; s=selector1-amdcloud-onmicrosoft-com;
+ d=os.amperecomputing.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=4gyOZG+r1U2rG6K5YYAVtq1E2dodsASbALyGvprSxuQ=;
- b=cla/rQ8CxEL8ms3GGEiiRgp5wNSTUaozuGWaA1NKvbPY/YDLNE02UGPZ8wGsYAWSiWNzEdCPPwLegrfLZeIfXkG4c7ad2bqyLih0AD6ZCW302gEivD9qy2dY4cFurhp64aR0ReD9p3Sm8gP3GPZVU1DUi/o2VSiuC54XLWeKWrs=
-Received: from SN6PR12MB2736.namprd12.prod.outlook.com (52.135.107.27) by
- SN6PR12MB2621.namprd12.prod.outlook.com (52.135.103.10) with Microsoft SMTP
+ bh=IA3sKgbQ+k41jBzSGwUGMMBaITX7KG1WOE4CXiFL330=;
+ b=iNlhZhw6eoxgnvOyOW+qE/K29FEwP/u3iAdqifASyjp8GSw1+jx9eqA8Wvld/d5VKg7SX/xGNdwnPA+rdc63KKYl0LkrQg6m8+rpkRRIPChIZ8PIYJ/92T+9wOEvgoi3A6X3wIkGcRxNJ/dc9eOwxd0XFZB18ZTU9AqMLVOEXHw=
+Received: from BYAPR01MB3975.prod.exchangelabs.com (52.135.201.14) by
+ BYAPR01MB4055.prod.exchangelabs.com (52.135.236.224) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2052.18; Wed, 10 Jul 2019 18:37:16 +0000
-Received: from SN6PR12MB2736.namprd12.prod.outlook.com
- ([fe80::a475:e612:8e1e:ed28]) by SN6PR12MB2736.namprd12.prod.outlook.com
- ([fe80::a475:e612:8e1e:ed28%3]) with mapi id 15.20.2052.020; Wed, 10 Jul 2019
- 18:37:16 +0000
-From:   "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>
-To:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ 15.20.2052.19; Thu, 11 Jul 2019 04:14:45 +0000
+Received: from BYAPR01MB3975.prod.exchangelabs.com
+ ([fe80::a81b:f1e7:a31f:d464]) by BYAPR01MB3975.prod.exchangelabs.com
+ ([fe80::a81b:f1e7:a31f:d464%6]) with mapi id 15.20.2052.020; Thu, 11 Jul 2019
+ 04:14:45 +0000
+From:   Tyler Baicar OS <baicar@os.amperecomputing.com>
+To:     James Morse <james.morse@arm.com>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>
+CC:     "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
+        "catalin.marinas@arm.com" <catalin.marinas@arm.com>,
+        "sudeep.holla@arm.com" <sudeep.holla@arm.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>
-CC:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Schmauss <erik.schmauss@intel.com>,
-        "Ghannam, Yazen" <Yazen.Ghannam@amd.com>,
-        "Ghannam, Yazen" <Yazen.Ghannam@amd.com>,
-        "Natarajan, Janakarajan" <Janakarajan.Natarajan@amd.com>
-Subject: [PATCHv3 3/6] acpi/cppc: Rework cppc_set_perf() to use cppc_regs
- index
-Thread-Topic: [PATCHv3 3/6] acpi/cppc: Rework cppc_set_perf() to use cppc_regs
- index
-Thread-Index: AQHVN05+ZGHRO/MraUWKit0+yoLPzQ==
-Date:   Wed, 10 Jul 2019 18:37:14 +0000
-Message-ID: <9bc091f450bea98454685e6118a37d0b32b7db96.1562781484.git.Janakarajan.Natarajan@amd.com>
-References: <cover.1562781484.git.Janakarajan.Natarajan@amd.com>
-In-Reply-To: <cover.1562781484.git.Janakarajan.Natarajan@amd.com>
+        "Matteo.Carlini@arm.com" <Matteo.Carlini@arm.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "tony.luck@intel.com" <tony.luck@intel.com>,
+        "bp@alien8.de" <bp@alien8.de>,
+        "guohanjun@huawei.com" <guohanjun@huawei.com>,
+        "Andrew.Murray@arm.com" <Andrew.Murray@arm.com>,
+        Open Source Submission <patches@amperecomputing.com>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "will@kernel.org" <will@kernel.org>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+Subject: Re: [PATCH RFC 2/4] arm64: mm: Add RAS extension system register
+ check to SEA handling
+Thread-Topic: [PATCH RFC 2/4] arm64: mm: Add RAS extension system register
+ check to SEA handling
+Thread-Index: AQHVMPZvV84yhcAYOk+DNBn1Cdw2C6bAhfiAgAKLP66AAcNd4A==
+Date:   Thu, 11 Jul 2019 04:14:45 +0000
+Message-ID: <BYAPR01MB3975FB635454503D3BFBBD53E3F30@BYAPR01MB3975.prod.exchangelabs.com>
+References: <1562086280-5351-1-git-send-email-baicar@os.amperecomputing.com>
+ <1562086280-5351-3-git-send-email-baicar@os.amperecomputing.com>,
+ <df262b97-eda2-0556-d6ef-532a0d697131@arm.com>,<BYAPR01MB39754DFAF8130743448FDEC6E3F00@BYAPR01MB3975.prod.exchangelabs.com>
+In-Reply-To: <BYAPR01MB39754DFAF8130743448FDEC6E3F00@BYAPR01MB3975.prod.exchangelabs.com>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
-x-clientproxiedby: SN4PR0201CA0064.namprd02.prod.outlook.com
- (2603:10b6:803:20::26) To SN6PR12MB2736.namprd12.prod.outlook.com
- (2603:10b6:805:77::27)
 authentication-results: spf=none (sender IP is )
- smtp.mailfrom=Janakarajan.Natarajan@amd.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-mailer: git-send-email 2.17.1
-x-originating-ip: [165.204.78.2]
+ smtp.mailfrom=baicar@os.amperecomputing.com; 
+x-originating-ip: [174.109.142.144]
 x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 567b6f4d-c86d-4e51-aa56-08d70565a100
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:SN6PR12MB2621;
-x-ms-traffictypediagnostic: SN6PR12MB2621:
-x-microsoft-antispam-prvs: <SN6PR12MB262162C315957AEE62B11E8EE7F00@SN6PR12MB2621.namprd12.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8273;
-x-forefront-prvs: 0094E3478A
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(396003)(39860400002)(366004)(376002)(136003)(199004)(189003)(50226002)(4326008)(81156014)(81166006)(71200400001)(14454004)(71190400001)(476003)(11346002)(446003)(68736007)(2616005)(6116002)(3846002)(486006)(256004)(305945005)(7736002)(478600001)(14444005)(25786009)(5660300002)(36756003)(2906002)(76176011)(53936002)(66476007)(66556008)(64756008)(66066001)(66446008)(6512007)(2501003)(8936002)(118296001)(6436002)(6486002)(8676002)(66946007)(316002)(52116002)(102836004)(2201001)(6506007)(99286004)(26005)(386003)(86362001)(110136005)(54906003)(186003);DIR:OUT;SFP:1101;SCL:1;SRVR:SN6PR12MB2621;H:SN6PR12MB2736.namprd12.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: amd.com does not designate
- permitted sender hosts)
+x-ms-office365-filtering-correlation-id: 26b1db25-433e-4007-7f84-08d705b64e9a
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(2017052603328)(7193020);SRVR:BYAPR01MB4055;
+x-ms-traffictypediagnostic: BYAPR01MB4055:
+x-ms-exchange-purlcount: 1
+x-microsoft-antispam-prvs: <BYAPR01MB4055A29CA9895A7CE785F1B4E3F30@BYAPR01MB4055.prod.exchangelabs.com>
+x-ms-oob-tlc-oobclassifiers: OLM:2887;
+x-forefront-prvs: 0095BCF226
+x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(4636009)(366004)(136003)(39840400004)(396003)(376002)(346002)(189003)(199004)(966005)(76176011)(3846002)(478600001)(71190400001)(71200400001)(66446008)(76116006)(186003)(64756008)(66476007)(66556008)(66946007)(8936002)(99286004)(91956017)(14454004)(68736007)(6506007)(53546011)(14444005)(26005)(66066001)(86362001)(102836004)(25786009)(7696005)(6116002)(4326008)(256004)(55016002)(486006)(7736002)(7416002)(52536014)(229853002)(5660300002)(476003)(6436002)(446003)(2501003)(54906003)(110136005)(11346002)(316002)(2906002)(81166006)(81156014)(8676002)(305945005)(74316002)(6246003)(9686003)(6306002)(53936002)(33656002);DIR:OUT;SFP:1102;SCL:1;SRVR:BYAPR01MB4055;H:BYAPR01MB3975.prod.exchangelabs.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:0;
+received-spf: None (protection.outlook.com: os.amperecomputing.com does not
+ designate permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: vfxzYu+k6u5t8q5E8xnFOoFbhQpwHoFvWKPeEN/xUuW/2NwFaR6SQxWgYmrkxNHJ3165vq6aSK/tcHwFNEaMIqAaWKkXvqto7oaMMqLx4nKVVHmPnfkqoSluM88OXBKmLsXKICHkwz8vKgnkVxiCaf2JEYZZ1H5BD8Oj0GVvro5yu2/x07vj2hxBt3Qyh+iZQXlZVUwXL6WngrIRVivIhHmwRuQ+ZWf/g92QGVqLxRz+rDKgQ9fg+KztIensggFV6JIX6v1IIXJmhoX6r/JrA0qbq57UK4O6Zr0n7Ng99U84f+3g5CTyELuicerKrEYPam5stmRRXOhKdIYyi74qCaQ3Q49KIp4wj8e4hpBjKDLFs8JFcK2jAsU2yfNEBochiH0l/KrSWUBsE1KBVWikLi82txsuPX/7mKh3otIYp0c=
+x-microsoft-antispam-message-info: KL+oScjiwncfzVQjXVLRwBmFA8lKFJN7qbVGMlqt9K4QQuxb/n/yk9G4c5QWHTkDybDyofbBi7lEZyBcB7yG4J9V3Zl0dz7iKamvW7W51V/ITvu6as6A9q3KRJS/awKJ+Bf5xt/4Zhmi90sobkrFWy0sKipydAaZ6twD9ZtdyM58G89tM8MEl0icH2xSa+h6nyY9VVMnCG8INIbd+J1vT+WtaRknlCGPUIFQC3ChEXpTq8yawy0dw4fS2MXOSOqEiACluoUAL8k/Fx4ClD0c/LLmiENDhKXDF2VNIpIdVhJbdmHDE6HtRgC7FmzsQZFdo2d3lbFDl6ekjXA2kFur5kaL299ZLk6aOlepBDDL5JG7rEkprKCz93o+xsqXiGJ0SzMxqFWx3QAsCaeCIhMI+6dopov0wUm3ki/H2jmmczw=
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 567b6f4d-c86d-4e51-aa56-08d70565a100
-X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Jul 2019 18:37:15.0034
+X-OriginatorOrg: os.amperecomputing.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 26b1db25-433e-4007-7f84-08d705b64e9a
+X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Jul 2019 04:14:45.5520
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: jnataraj@amd.com
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR12MB2621
+X-MS-Exchange-CrossTenant-userprincipalname: Baicar@os.amperecomputing.com
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR01MB4055
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Yazen Ghannam <Yazen.Ghannam@amd.com>
+Hi James, Mark,
 
-The cppc_set_perf() currently only works for DESIRED_PERF. To make it
-generic, pass in the index of the register being accessed.
+On Tue, Jul 9, 2019 at 8:52 PM Tyler Baicar OS <baicar@os.amperecomputing.c=
+om> wrote:
+> On Mon, Jul 8, 2019 at 10:10 AM James Morse <james.morse@arm.com> wrote:
+> > On 02/07/2019 17:51, Tyler Baicar OS wrote:
+> > > @@ -632,6 +633,8 @@ static int do_sea(unsigned long addr, unsigned in=
+t esr, struct pt_regs *regs)
+> > >
+> > >       inf =3D esr_to_fault_info(esr);
+> > >
+> > > +     arch_arm_ras_report_error();
+> > > +
+> > >       /*
+> > >        * Return value ignored as we rely on signal merging.
+> > >        * Future patches will make this more robust.
+> > >
+> >
+> > If we interrupted a preemptible context, do_sea() is preemptible too...=
+ This means we
+> > can't know if we're still running on the same CPU as the one that took =
+the external-abort.
+> > (until this series, it hasn't mattered).
+> >
+> > Fixing this means cramming something into entry.S's el1_da, as this may=
+ unmask interrupts
+> > before calling do_mem_abort(). But its going to be ugly because some of=
+ do_mem_abort()s
+> > ESR values need to be preemptible because they sleep, e.g. page-faults =
+calling
+> > handle_mm_fault().
+> > For do_sea(), do_exit() will 'fix' the preempt count if we kill the thr=
+ead, but if we
+> > don't, it still needs to be balanced. Doing all this in assembly is goi=
+ng to be unreadable!
+> >
+> > Mark Rutland has a series to move the entry assembly into C [0]. Based =
+on that that it
+> > should be possible for the new el1_abort() to spot a Synchronous-Extern=
+al-Abort ESR, and
+> > wrap the do_mem_abort() with preempt enable/disable, before inheriting =
+the flags. (which
+> > for synchronous exceptions, I think we should always do)
+> >
+> > [0] https://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git/log/=
+?h=3Darm64/entry-deasm
+>
+> Hey James,
+>
+> Good catch! I didn't think the synchronous route was preemptible.
+>
+> I wasn't seeing this issue when testing this on emulation, but I was able=
+ to
+> test and prove the issue on a Neoverse N1 SDP:
+>
+> root@genericarmv8:~# echo 0x100000000 > /proc/cached_read
+> [   42.985622] Reading from address 0x100000000
+> [   42.989893] WARNING: CPU: 0 PID: 2812 at /home/tyler/neoverse/arm-refe=
+rence-
+> platforms/linux/arch/arm64/kernel/cpufeature.c:1940 this_cpu_has_cap+0x68=
+/0x78
+> [..]
+> [   43.119083] Call trace:
+> [   43.121515]  this_cpu_has_cap+0x68/0x78
+> [   43.125338]  do_sea+0x34/0x70
+> [   43.128292]  do_mem_abort+0x3c/0x98
+> [   43.131765]  el1_da+0x20/0x94
+> [   43.134722]  cached_read+0x30/0x68
+> [   43.138112]  simple_attr_write+0xbc/0x128
+> [   43.142109]  proc_reg_write+0x60/0xa8
+> [   43.145757]  __vfs_write+0x18/0x40
+> [   43.149145]  vfs_write+0xa4/0x1b8
+> [   43.152445]  ksys_write+0x64/0xe0
+> [   43.155746]  __arm64_sys_write+0x14/0x20
+> [   43.159654]  el0_svc_common.constprop.0+0xa8/0x100
+> [   43.164430]  el0_svc_handler+0x28/0x78
+> [   43.168165]  el0_svc+0x8/0xc
+> [   43.171031] ---[ end trace 2c27619659261a1d ]---
+> [   43.175647] Internal error: synchronous external abort: 96000410 [#1]
+> PREEMPT SMP
+> [..]
+>
+> That warning is because it's preemptible:
+>
+> if (!WARN_ON(preemptible()) && n < ARM64_NCAPS) {
+>
+> I'll pull Mark's series in and add the preempt enable/disable around the =
+call
+> to do_mem_abort() in el1_abort() and test that out!
 
-Also, rename cppc_set_perf() to cppc_set_reg(). This is in preparation
-for it to be used for more than just the DESIRED_PERF register.
+I was able to pull in the series mentioned [0] and add a patch to wrap
+do_mem_abort with preempt disable/enable and the warning has gone away.
 
-Signed-off-by: Yazen Ghannam <Yazen.Ghannam@amd.com>
-[ carved out into a patch, cleaned up, productized ]
-Signed-off-by: Janakarajan Natarajan <Janakarajan.Natarajan@amd.com>
----
- drivers/acpi/cppc_acpi.c       | 36 ++++++++++++++++++++++------------
- drivers/cpufreq/cppc_cpufreq.c |  6 +++---
- include/acpi/cppc_acpi.h       |  2 +-
- 3 files changed, 28 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 53a9dc9960b6..c13dacea4a8b 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -56,7 +56,7 @@ struct cppc_pcc_data {
- 	/*
- 	 * Lock to provide controlled access to the PCC channel.
- 	 *
--	 * For performance critical usecases(currently cppc_set_perf)
-+	 * For performance-critical usecases(currently cppc_set_reg)
- 	 *	We need to take read_lock and check if channel belongs to OSPM
- 	 * before reading or writing to PCC subspace
- 	 *	We need to take write_lock before transferring the channel
-@@ -1341,26 +1341,38 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf=
-_fb_ctrs *perf_fb_ctrs)
- EXPORT_SYMBOL_GPL(cppc_get_perf_ctrs);
-=20
- /**
-- * cppc_set_perf - Set a CPU's performance controls.
-- * @cpu: CPU for which to set performance controls.
-+ * cppc_set_reg - Set the CPUs control register.
-+ * @cpu: CPU for which to set the register.
-  * @perf_ctrls: ptr to cppc_perf_ctrls. See cppc_acpi.h
-+ * @reg_idx: Index of the register being accessed
-  *
-  * Return: 0 for success, -ERRNO otherwise.
-  */
--int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
-+int cppc_set_reg(int cpu, struct cppc_perf_ctrls *perf_ctrls,
-+		 enum cppc_regs reg_idx)
- {
- 	struct cpc_desc *cpc_desc =3D per_cpu(cpc_desc_ptr, cpu);
--	struct cpc_register_resource *desired_reg;
- 	int pcc_ss_id =3D per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cppc_pcc_data *pcc_ss_data =3D NULL;
-+	struct cpc_register_resource *reg;
- 	int ret =3D 0;
-+	u32 value;
-=20
- 	if (!cpc_desc) {
- 		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
- 		return -ENODEV;
- 	}
-=20
--	desired_reg =3D &cpc_desc->cpc_regs[DESIRED_PERF];
-+	switch (reg_idx) {
-+	case DESIRED_PERF:
-+		value =3D perf_ctrls->desired_perf;
+diff --git a/arch/arm64/kernel/entry-common.c b/arch/arm64/kernel/entry-com=
+mon.c
+index 43aa78331e72..26cdf7db511a 100644
+--- a/arch/arm64/kernel/entry-common.c
++++ b/arch/arm64/kernel/entry-common.c
+@@ -118,7 +118,25 @@ static void el1_abort(struct pt_regs *regs, unsigned l=
+ong esr)
+ 	unsigned long far =3D read_sysreg(far_el1);
+ 	local_daif_inherit(regs);
+ 	far =3D untagged_addr(far);
+-	do_mem_abort(far, esr, regs);
++
++	switch (esr & ESR_ELx_FSC) {
++	case ESR_ELx_FSC_EXTABT:	// Synchronous External Abort
++	case 0x14:			// SEA level 0 translation table walk
++	case 0x15:			// SEA level 1 translation table walk
++	case 0x16:			// SEA level 2 translation table walk
++	case 0x17:			// SEA level 3 translation table walk
++	case 0x18:			// Synchronous ECC error
++	case 0x1c:			// SECC level 0 translation table walk
++	case 0x1d:			// SECC level 1 translation table walk
++	case 0x1e:			// SECC level 2 translation table walk
++	case 0x1f:			// SECC level 3 translation table walk
++		preempt_disable();
++		do_mem_abort(far, esr, regs);
++		preempt_enable();
 +		break;
 +	default:
-+		pr_debug("CPC register index #%d not writeable\n", reg_idx);
-+		return -EINVAL;
-+	}
-+
-+	reg =3D &cpc_desc->cpc_regs[reg_idx];
-=20
- 	/*
- 	 * This is Phase-I where we want to write to CPC registers
-@@ -1369,7 +1381,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *pe=
-rf_ctrls)
- 	 * Since read_lock can be acquired by multiple CPUs simultaneously we
- 	 * achieve that goal here
- 	 */
--	if (CPC_IN_PCC(desired_reg)) {
-+	if (CPC_IN_PCC(reg)) {
- 		if (pcc_ss_id < 0) {
- 			pr_debug("Invalid pcc_ss_id\n");
- 			return -ENODEV;
-@@ -1396,14 +1408,14 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *=
-perf_ctrls)
- 	 * Skip writing MIN/MAX until Linux knows how to come up with
- 	 * useful values.
- 	 */
--	cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
-+	cpc_write(cpu, reg, value);
-=20
--	if (CPC_IN_PCC(desired_reg))
-+	if (CPC_IN_PCC(reg))
- 		up_read(&pcc_ss_data->pcc_lock);	/* END Phase-I */
- 	/*
- 	 * This is Phase-II where we transfer the ownership of PCC to Platform
- 	 *
--	 * Short Summary: Basically if we think of a group of cppc_set_perf
-+	 * Short Summary: Basically if we think of a group of cppc_set_reg
- 	 * requests that happened in short overlapping interval. The last CPU to
- 	 * come out of Phase-I will enter Phase-II and ring the doorbell.
- 	 *
-@@ -1446,7 +1458,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *pe=
-rf_ctrls)
- 	 * case during a CMD_READ and if there are pending writes it delivers
- 	 * the write command before servicing the read command
- 	 */
--	if (CPC_IN_PCC(desired_reg)) {
-+	if (CPC_IN_PCC(reg)) {
- 		if (down_write_trylock(&pcc_ss_data->pcc_lock)) {/* BEGIN Phase-II */
- 			/* Update only if there are pending write commands */
- 			if (pcc_ss_data->pending_pcc_write_cmd)
-@@ -1462,7 +1474,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *pe=
-rf_ctrls)
- 	}
- 	return ret;
++		do_mem_abort(far, esr, regs);
++	};
  }
--EXPORT_SYMBOL_GPL(cppc_set_perf);
-+EXPORT_SYMBOL_GPL(cppc_set_reg);
 =20
- /**
-  * cppc_get_transition_latency - returns frequency transition latency in n=
-s
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.=
-c
-index 8d8da763adc5..81e9dff03c92 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -207,7 +207,7 @@ static int cppc_cpufreq_set_target(struct cpufreq_polic=
-y *policy,
- 	freqs.new =3D target_freq;
-=20
- 	cpufreq_freq_transition_begin(policy, &freqs);
--	ret =3D cppc_set_perf(cpu->cpu, &cpu->perf_ctrls);
-+	ret =3D cppc_set_reg(cpu->cpu, &cpu->perf_ctrls, DESIRED_PERF);
- 	cpufreq_freq_transition_end(policy, &freqs, ret !=3D 0);
-=20
- 	if (ret)
-@@ -231,7 +231,7 @@ static void cppc_cpufreq_stop_cpu(struct cpufreq_policy=
- *policy)
-=20
- 	cpu->perf_ctrls.desired_perf =3D cpu->perf_caps.lowest_perf;
-=20
--	ret =3D cppc_set_perf(cpu_num, &cpu->perf_ctrls);
-+	ret =3D cppc_set_reg(cpu_num, &cpu->perf_ctrls, DESIRED_PERF);
- 	if (ret)
- 		pr_debug("Err setting perf value:%d on CPU:%d. ret:%d\n",
- 				cpu->perf_caps.lowest_perf, cpu_num, ret);
-@@ -344,7 +344,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy =
-*policy)
- 					cpu->perf_caps.highest_perf);
- 	cpu->perf_ctrls.desired_perf =3D cpu->perf_caps.highest_perf;
-=20
--	ret =3D cppc_set_perf(cpu_num, &cpu->perf_ctrls);
-+	ret =3D cppc_set_reg(cpu_num, &cpu->perf_ctrls, DESIRED_PERF);
- 	if (ret)
- 		pr_debug("Err setting perf value:%d on CPU:%d. ret:%d\n",
- 				cpu->perf_caps.highest_perf, cpu_num, ret);
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index a6a9373ab863..f229e903525d 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -135,7 +135,7 @@ struct cppc_cpudata {
-=20
- extern int cppc_get_desired_perf(int cpunum, u64 *desired_perf);
- extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_c=
-trs);
--extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
-+extern int cppc_set_reg(int cpu, struct cppc_perf_ctrls *perf_ctrls, enum =
-cppc_regs reg_idx);
- extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
- extern int acpi_get_psd_map(struct cppc_cpudata **);
- extern unsigned int cppc_get_transition_latency(int cpu);
+ /* Stack or PC alignment exception handling */
 --=20
-2.17.1
 
+
+Is that what you had in mind James?
+
+Has this series [0] been accepted and is just waiting to be pulled now?
+Do you want me to add tested-by?
+
+Thanks,
+Tyler
+
+[0] https://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git/log/?h=
+=3Darm64/entry-deasm=
