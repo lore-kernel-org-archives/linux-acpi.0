@@ -2,140 +2,139 @@ Return-Path: <SRS0=nA1S=VM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
-	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED14AC76191
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Jul 2019 20:02:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9050C76196
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Jul 2019 20:02:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BEEFC20659
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Jul 2019 20:02:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Zfkc7JwT"
+	by mail.kernel.org (Postfix) with ESMTP id 935FE20665
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Jul 2019 20:02:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1563220965;
+	bh=YctKhCkISL0QPipV+bux3pgwhg/+Wfr5uFkoRtTAvW4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=z/wK4EQrQjx/DSuAHy3ZOKrRVjzIiQ7CHhBIn40AAW4Sz6vVfuEyu4flWrlbzMNR5
+	 zVIE3X7DlaypckZLpyT5H+FHdpG7YvilIqHZKQjzrXvnys5qzvnCuXyhe7CFp7vOOf
+	 kmQFAKz/tCR2/TlleyblhGumDVyYFRmCzvXAXe/I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732453AbfGOUAc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 Jul 2019 16:00:32 -0400
-Received: from mail-yw1-f73.google.com ([209.85.161.73]:49246 "EHLO
-        mail-yw1-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732442AbfGOUAb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jul 2019 16:00:31 -0400
-Received: by mail-yw1-f73.google.com with SMTP id b195so14338544ywa.16
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Jul 2019 13:00:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
-         :cc;
-        bh=ZEWny5IFVoAY7+7cwG/iN1wA0h299zlUxTBItvDj0ts=;
-        b=Zfkc7JwT5DU9z/o6qruZxUvtSG5dHseEY5MyWv9EfNowXWpECqNH74HmrCMpY6Lsun
-         3lxELHqfkmTXqStjmCVEcrC3IDwxUkHckii/7WySAhjlykpTyjBF/liwYjw9UnL/kVae
-         6ClWIRuDpOr2LvVMtLUJHKoWljg+4Ia5S3WKrOGk7PtbLhtvrFnyIgSOjTwxG00RrlCb
-         3oWH8ea4VF9Ft1q0IQz4DKN+4VMPrFH5nCiC93O9QyydA33KSjv/A+IzI++Hmng0T7tw
-         9HMZSl3RRI4QVLFy5s5SjteInYvM820efwrlprc802kSCOH8bjGGcPa4+zTPM19yVLAS
-         8Lwg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=ZEWny5IFVoAY7+7cwG/iN1wA0h299zlUxTBItvDj0ts=;
-        b=THIhpOhpjh3m/5J8gVNEtTkOhHbSk9QDdhKfAVQeJi0f9Eaii29A/yLxJpI896khwK
-         anuNNJKOCiIfYL6qgcLgkRU93v6+H3zIoBBX2jUVUSdrkF9Od5HoreIYg6dKzaa9Piwi
-         5tijU/v3eGaYOgUCjtvr11isDj/6LyUAb8MM+u9CqhlUXH4DZRoNkIXbu+AfpHkC+Zyy
-         uYf79ZE7hjqpxQXdsGmEq4lumRWU19mkAHl1cWweP0rrl2j43hSERLAA47832fte2i73
-         Vf8g4Y73pjB4l3/018RToiHizc25DXDStotyoc+9ETQZba/MIi6AmNhHuZTAfJQ0j6kq
-         ZnOw==
-X-Gm-Message-State: APjAAAW/BCSoF32FNnwd5qfWLpvwdNKm8UDrhsW8PgfKZ+8brVyhVKf3
-        sPHc3rS33lwC+K6KfsfuKZnuMLbzyZHvVttqSK5JXg==
-X-Google-Smtp-Source: APXvYqyzP/ucQqITruoZ0U+xlf6n9TF8TcpzkJcXEBuAaYKylOcVnzZ/5O1mjzra9mVwgBw/6PyLE7/KRPqtyFMjsNtNrA==
-X-Received: by 2002:a81:1d05:: with SMTP id d5mr15971402ywd.299.1563220830741;
- Mon, 15 Jul 2019 13:00:30 -0700 (PDT)
-Date:   Mon, 15 Jul 2019 12:59:31 -0700
-In-Reply-To: <20190715195946.223443-1-matthewgarrett@google.com>
-Message-Id: <20190715195946.223443-15-matthewgarrett@google.com>
-Mime-Version: 1.0
-References: <20190715195946.223443-1-matthewgarrett@google.com>
-X-Mailer: git-send-email 2.22.0.510.g264f2c817a-goog
-Subject: [PATCH V35 14/29] ACPI: Limit access to custom_method when the kernel
- is locked down
-From:   Matthew Garrett <matthewgarrett@google.com>
-To:     jmorris@namei.org
-Cc:     linux-security-module@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
-        Matthew Garrett <mjg59@srcf.ucam.org>,
-        Matthew Garrett <mjg59@google.com>,
-        David Howells <dhowells@redhat.com>,
-        Kees Cook <keescook@chromium.org>, linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        id S1732579AbfGOUCo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 15 Jul 2019 16:02:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58282 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731540AbfGOUCh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 Jul 2019 16:02:37 -0400
+Received: from localhost (unknown [69.71.4.100])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5A8A620659;
+        Mon, 15 Jul 2019 20:02:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1563220956;
+        bh=YctKhCkISL0QPipV+bux3pgwhg/+Wfr5uFkoRtTAvW4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Zpmgc+90naNM5ZNKifvDCcoZ3spBOmMeL6aUQCdQN6DChBG1dtV+fiAmUZdgdt7Nv
+         WepQllK+1iqQA9GayKjQYU7a8D6suBSxT0G6Ps5JjrhQxY6MeINoIye7/tO5Ql8yWg
+         wSYw4E9KxCddQ4CbrfQgZiLypFMsonffeLgLmMiw=
+Date:   Mon, 15 Jul 2019 15:02:35 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     "Joel Fernandes (Google)" <joel@joelfernandes.org>
+Cc:     linux-kernel@vger.kernel.org,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Borislav Petkov <bp@alien8.de>, c0d1n61at3@gmail.com,
+        "David S. Miller" <davem@davemloft.net>, edumazet@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Josh Triplett <josh@joshtriplett.org>, keescook@chromium.org,
+        kernel-hardening@lists.openwall.com, kernel-team@android.com,
+        Lai Jiangshan <jiangshanlai@gmail.com>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-pm@vger.kernel.org,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        neilb@suse.com, netdev@vger.kernel.org,
+        Oleg Nesterov <oleg@redhat.com>,
+        "Paul E. McKenney" <paulmck@linux.ibm.com>,
+        Pavel Machek <pavel@ucw.cz>, peterz@infradead.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Rasmus Villemoes <rasmus.villemoes@prevas.dk>,
+        rcu@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>,
+        Tejun Heo <tj@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>, will@kernel.org,
+        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>
+Subject: Re: [PATCH 7/9] x86/pci: Pass lockdep condition to pcm_mmcfg_list
+ iterator (v1)
+Message-ID: <20190715200235.GG46935@google.com>
+References: <20190715143705.117908-1-joel@joelfernandes.org>
+ <20190715143705.117908-8-joel@joelfernandes.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190715143705.117908-8-joel@joelfernandes.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+On Mon, Jul 15, 2019 at 10:37:03AM -0400, Joel Fernandes (Google) wrote:
+> The pcm_mmcfg_list is traversed with list_for_each_entry_rcu without a
+> reader-lock held, because the pci_mmcfg_lock is already held. Make this
+> known to the list macro so that it fixes new lockdep warnings that
+> trigger due to lockdep checks added to list_for_each_entry_rcu().
+> 
+> Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
 
-custom_method effectively allows arbitrary access to system memory, making
-it possible for an attacker to circumvent restrictions on module loading.
-Disable it if the kernel is locked down.
+Ingo takes care of most patches to this file, but FWIW,
 
-Signed-off-by: Matthew Garrett <mjg59@google.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/custom_method.c | 6 ++++++
- include/linux/security.h     | 1 +
- security/lockdown/lockdown.c | 1 +
- 3 files changed, 8 insertions(+)
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
-index b2ef4c2ec955..7031307becd7 100644
---- a/drivers/acpi/custom_method.c
-+++ b/drivers/acpi/custom_method.c
-@@ -9,6 +9,7 @@
- #include <linux/uaccess.h>
- #include <linux/debugfs.h>
- #include <linux/acpi.h>
-+#include <linux/security.h>
- 
- #include "internal.h"
- 
-@@ -29,6 +30,11 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
- 
- 	struct acpi_table_header table;
- 	acpi_status status;
-+	int ret;
-+
-+	ret = security_locked_down(LOCKDOWN_ACPI_TABLES);
-+	if (ret)
-+		return ret;
- 
- 	if (!(*ppos)) {
- 		/* parse the table header to get the table length */
-diff --git a/include/linux/security.h b/include/linux/security.h
-index 155ff026eca4..1c32522b3c5a 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -110,6 +110,7 @@ enum lockdown_reason {
- 	LOCKDOWN_PCI_ACCESS,
- 	LOCKDOWN_IOPORT,
- 	LOCKDOWN_MSR,
-+	LOCKDOWN_ACPI_TABLES,
- 	LOCKDOWN_INTEGRITY_MAX,
- 	LOCKDOWN_CONFIDENTIALITY_MAX,
- };
-diff --git a/security/lockdown/lockdown.c b/security/lockdown/lockdown.c
-index d99c0bee739d..67dbc5c70ea0 100644
---- a/security/lockdown/lockdown.c
-+++ b/security/lockdown/lockdown.c
-@@ -25,6 +25,7 @@ static char *lockdown_reasons[LOCKDOWN_CONFIDENTIALITY_MAX+1] = {
- 	[LOCKDOWN_PCI_ACCESS] = "direct PCI access",
- 	[LOCKDOWN_IOPORT] = "raw io port access",
- 	[LOCKDOWN_MSR] = "raw MSR access",
-+	[LOCKDOWN_ACPI_TABLES] = "modified ACPI tables",
- 	[LOCKDOWN_INTEGRITY_MAX] = "integrity",
- 	[LOCKDOWN_CONFIDENTIALITY_MAX] = "confidentiality",
- };
--- 
-2.22.0.510.g264f2c817a-goog
+I would personally prefer if you capitalized the subject to match the
+"x86/PCI:" convention that's used fairly consistently in
+arch/x86/pci/.
 
+Also, I didn't apply this to be sure, but it looks like this might
+make a line or two wider than 80 columns, which I would rewrap if I
+were applying this.
+
+> ---
+>  arch/x86/pci/mmconfig-shared.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+> index 7389db538c30..6fa42e9c4e6f 100644
+> --- a/arch/x86/pci/mmconfig-shared.c
+> +++ b/arch/x86/pci/mmconfig-shared.c
+> @@ -29,6 +29,7 @@
+>  static bool pci_mmcfg_running_state;
+>  static bool pci_mmcfg_arch_init_failed;
+>  static DEFINE_MUTEX(pci_mmcfg_lock);
+> +#define pci_mmcfg_lock_held() lock_is_held(&(pci_mmcfg_lock).dep_map)
+>  
+>  LIST_HEAD(pci_mmcfg_list);
+>  
+> @@ -54,7 +55,7 @@ static void list_add_sorted(struct pci_mmcfg_region *new)
+>  	struct pci_mmcfg_region *cfg;
+>  
+>  	/* keep list sorted by segment and starting bus number */
+> -	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list) {
+> +	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list, pci_mmcfg_lock_held()) {
+>  		if (cfg->segment > new->segment ||
+>  		    (cfg->segment == new->segment &&
+>  		     cfg->start_bus >= new->start_bus)) {
+> @@ -118,7 +119,7 @@ struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus)
+>  {
+>  	struct pci_mmcfg_region *cfg;
+>  
+> -	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list)
+> +	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list, pci_mmcfg_lock_held())
+>  		if (cfg->segment == segment &&
+>  		    cfg->start_bus <= bus && bus <= cfg->end_bus)
+>  			return cfg;
+> -- 
+> 2.22.0.510.g264f2c817a-goog
+> 
