@@ -2,55 +2,61 @@ Return-Path: <SRS0=oT6V=VN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42D97C76192
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 10:06:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6E0BC76188
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 10:14:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D1E92173E
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 10:06:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563271585;
-	bh=SKSKLDsZNWfrDqHnwOUMB50WqSsunNsqcQ+sfiyuXlw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=CpJv84o2sGalpjKSr+w29a2q0MOPSnM5EEs9LzLVg9pbMCH0SoLtTKpNr2HHL2Nvu
-	 1UTKSIBY+1GNPaz/UlYG4iUuX5MJ/RCggjNkfQKsRPy4Uqq42zGzFad7Ly/zLmAOgb
-	 h+4TJoF2TsJzmiWY7dhD1z70xY8tBK0b90LVdpUo=
+	by mail.kernel.org (Postfix) with ESMTP id 8F4D0206C2
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 10:14:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="KAtOigf2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732782AbfGPKGV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Jul 2019 06:06:21 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:46597 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728090AbfGPKGU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2019 06:06:20 -0400
-Received: by mail-oi1-f196.google.com with SMTP id 65so15080731oid.13;
-        Tue, 16 Jul 2019 03:06:20 -0700 (PDT)
+        id S1732811AbfGPKOT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Jul 2019 06:14:19 -0400
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:45594 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728329AbfGPKOT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2019 06:14:19 -0400
+Received: by mail-pf1-f193.google.com with SMTP id r1so8866987pfq.12
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Jul 2019 03:14:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=tmWzuRj9Y8Rn/r16lIRyg5jwtGJ9nynfw0uohRu6k2o=;
+        b=KAtOigf2Oc9xYw3+dOxD9HqWXPLvbyeFTY1yERB+lcTUiKxn0onhKAn2eSSU2evMlN
+         DV/XVJTUAM2BITFnkKRi6xErSZxL3AAhkWKFiuzIHWL4/J2i7Nh1jey+y3wQ/TYWuF3c
+         a+Eo2P1WXSxGFIfJYyvmhhbFEexNIUH1jCbpjXVqUvler8kfIxS2uFrBoDgmsyMMMTik
+         rvcdKRYaz24FEbxamPrZHZWVWb76QRqv9Z+FTSi6uVo5dEYFer2trAUwlcsVqiJHrdZS
+         hD0SM75lfUioSSdZ+vSrLrjq1YeShNB4AfsrJAcT8PjYY38sTfsBKUobjvkFsI4XYiN4
+         DD4A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=SKSKLDsZNWfrDqHnwOUMB50WqSsunNsqcQ+sfiyuXlw=;
-        b=LUQz9z9NzUKwz3VZG8WkSVYX5bP8/PJ5nc6S7ITKpSFD7TLJqaRt4L9ZpExnFGmheG
-         onOmU+vc4/x85JYoHNUHIFTiHATnjUENWu8AxRqbOdCg8c6iv5eHhJ2vnzlkEt4O0TQ5
-         zPmxO7DwYktMZPNQoUzDFf3s8B+IKrjrgwTCfqW/j5azw4orRtNr5xHFexoXF+DZ23xi
-         mhx79UUxv5bRo4dSOn2FMc0K3A7JoJqwq+5/bq5EY/FVl8tjH4FAmynG9rC34Yqk9oXj
-         MG+OUniVFc7k6kMnQ2kJ8wtzYGegKMHC+Eg7hYAKhmVNN4AyOveGYWyLl4np4654BBKO
-         iIZA==
-X-Gm-Message-State: APjAAAV6P6w5dRn664PINiularmyow8blJWkM0IVEr+G1fL/ty4E4TTn
-        GyblPqRgWgM5wDmD2ydzqi0p0NsA0kxJsXIAjpI=
-X-Google-Smtp-Source: APXvYqz+9SLeYZezhd1CiiqSz9N5lOWLlOsr+u93YAb04Q18lnnuxQ5teq8PO6tM0DnrmvA9w9XvcWX+j6bgyJjGrm4=
-X-Received: by 2002:aca:edc8:: with SMTP id l191mr15705198oih.103.1563271579314;
- Tue, 16 Jul 2019 03:06:19 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1563269894.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1563269894.git.viresh.kumar@linaro.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 16 Jul 2019 12:06:08 +0200
-Message-ID: <CAJZ5v0iqYHNt6NQy3Fi1B=XtjNOm2x0mX3+7eWBREgFZRpUS+w@mail.gmail.com>
-Subject: Re: [PATCH 00/10] cpufreq: Migrate users of policy notifiers to QoS requests
-To:     Viresh Kumar <viresh.kumar@linaro.org>
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=tmWzuRj9Y8Rn/r16lIRyg5jwtGJ9nynfw0uohRu6k2o=;
+        b=o9dWUjgy+3PQ+sDNq67HHOj/0DFHt+Z5rR0q8aVl4F4pqsvXgiXkeT42yMrXfS9+zs
+         AJIp+wi7goMrRY70x+n6yTcxct0zwjx5lMiJd0zANdQ9wZ1l8PRjzqhqqF8amQUn48QZ
+         vNBAFQdBRjXvRLpH16jscaWCk916We3TPxSoSJFNba9hXnwyiB8hBwMX9/daIdCcCFGr
+         fESdrpiIzVE9VHFpnNrdPt99Cg6ct91aXFy1dXJMUQQdO8MCk7Hn7P7wxRJmd60FLGV0
+         RbjmQYh6P7Z9vFnJwMtl0OupJDgtPQvHa6WnwwjsK20ol2zwg1J8g+WVw1T04foyUr3W
+         zteg==
+X-Gm-Message-State: APjAAAVhNzP2+4cbMB5GjLZ2GP2iOB9+wp9fpMBb+RMc6zpKT3QyRDi6
+        D1Kkb9v0G6OeoORvSuKyNUM3wQ==
+X-Google-Smtp-Source: APXvYqzBphLPq84GuNMQq2Ypj7vpkoiFF0ipulNv01B65gbXobE3Luly7Rk6v8kET2o+vxGtcp0/UQ==
+X-Received: by 2002:a63:e1e:: with SMTP id d30mr32421799pgl.100.1563272058631;
+        Tue, 16 Jul 2019 03:14:18 -0700 (PDT)
+Received: from localhost ([122.172.28.117])
+        by smtp.gmail.com with ESMTPSA id f12sm17112423pgq.52.2019.07.16.03.14.17
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 16 Jul 2019 03:14:18 -0700 (PDT)
+Date:   Tue, 16 Jul 2019 15:44:16 +0530
+From:   Viresh Kumar <viresh.kumar@linaro.org>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
 Cc:     Rafael Wysocki <rjw@rjwysocki.net>,
         Amit Daniel Kachhap <amit.kachhap@gmail.com>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
@@ -60,7 +66,6 @@ Cc:     Rafael Wysocki <rjw@rjwysocki.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Javi Merino <javi.merino@kernel.org>,
         Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
         Robert Moore <robert.moore@intel.com>,
         Zhang Rui <rui.zhang@intel.com>,
         Linux PM <linux-pm@vger.kernel.org>,
@@ -72,34 +77,61 @@ Cc:     Rafael Wysocki <rjw@rjwysocki.net>,
         "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 00/10] cpufreq: Migrate users of policy notifiers to QoS
+ requests
+Message-ID: <20190716101416.ntk353cfnrcykoek@vireshk-i7>
+References: <cover.1563269894.git.viresh.kumar@linaro.org>
+ <CAJZ5v0iqYHNt6NQy3Fi1B=XtjNOm2x0mX3+7eWBREgFZRpUS+w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0iqYHNt6NQy3Fi1B=XtjNOm2x0mX3+7eWBREgFZRpUS+w@mail.gmail.com>
+User-Agent: NeoMutt/20180716-391-311a52
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jul 16, 2019 at 11:49 AM Viresh Kumar <viresh.kumar@linaro.org> wrote:
->
-> Hello,
->
-> Now that cpufreq core supports taking QoS requests for min/max cpu
-> frequencies, lets migrate rest of the users to using them instead of the
-> policy notifiers.
+On 16-07-19, 12:06, Rafael J. Wysocki wrote:
+> On Tue, Jul 16, 2019 at 11:49 AM Viresh Kumar <viresh.kumar@linaro.org> wrote:
+> >
+> > Hello,
+> >
+> > Now that cpufreq core supports taking QoS requests for min/max cpu
+> > frequencies, lets migrate rest of the users to using them instead of the
+> > policy notifiers.
+> 
+> Technically, this still is linux-next only. :-)
 
-Technically, this still is linux-next only. :-)
+True :)
 
-> The CPUFREQ_NOTIFY and CPUFREQ_ADJUST events of the policy notifiers are
-> removed as a result, but we have to add CPUFREQ_CREATE_POLICY and
-> CPUFREQ_REMOVE_POLICY events to it for the acpi stuff specifically. So
-> the policy notifiers aren't completely removed.
+> > The CPUFREQ_NOTIFY and CPUFREQ_ADJUST events of the policy notifiers are
+> > removed as a result, but we have to add CPUFREQ_CREATE_POLICY and
+> > CPUFREQ_REMOVE_POLICY events to it for the acpi stuff specifically. So
+> > the policy notifiers aren't completely removed.
+> 
+> That's not entirely accurate, because arch_topology is going to use
+> CPUFREQ_CREATE_POLICY now too.
 
-That's not entirely accurate, because arch_topology is going to use
-CPUFREQ_CREATE_POLICY now too.
+Yeah, I thought about that while writing this patchset and
+coverletter. But had it not been required for ACPI, I would have done
+it differently for the arch-topology code. Maybe direct calling of
+arch-topology routine from cpufreq core. I wanted to get rid of the
+policy notifiers completely but I couldn't find a better way of doing
+it for ACPI stuff.
 
-> Boot tested on my x86 PC and ARM hikey board. Nothing looked broken :)
->
-> This has already gone through build bot for a few days now.
+> > Boot tested on my x86 PC and ARM hikey board. Nothing looked broken :)
+> >
+> > This has already gone through build bot for a few days now.
+> 
+> So I'd prefer patches [5-8] to go right after the first one and then
+> do the cleanups on top of that, as somebody may want to backport the
+> essential changes without the cleanups.
 
-So I'd prefer patches [5-8] to go right after the first one and then
-do the cleanups on top of that, as somebody may want to backport the
-essential changes without the cleanups.
+In the exceptional case where nobody finds anything wrong with the
+patches (highly unlikely), do you want me to resend with reordering or
+you can reorder them while applying? There are no dependencies between
+those patches anyway.
+
+--
+viresh
