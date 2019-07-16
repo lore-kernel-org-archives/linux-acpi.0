@@ -2,93 +2,116 @@ Return-Path: <SRS0=oT6V=VN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A62AC76188
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 11:16:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5EAFC7618F
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 16:27:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 665F12173C
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 11:16:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563275791;
-	bh=cN2YWLRC4s7HqVcjkwb1qbS93xC53QlrYyzApl46WQY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=0TR2iFta2GwpnT/vxBRJCOcnUrqN6TH9beIa2OmqzACcHezs38OuNRoXxYydS2msn
-	 DMjY8CA3dz7VBWL6p00AKN6bocN15pB3LF3I5j5H2fVq8UTki36XxcS4JnnNIFWEHE
-	 fSWhSegRFGXKRrnnPDwt3Jszeawa/0Q6BQ21IQuY=
+	by mail.kernel.org (Postfix) with ESMTP id AA392206C2
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 16:27:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387553AbfGPLQb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Jul 2019 07:16:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47542 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733200AbfGPLQa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Jul 2019 07:16:30 -0400
-Received: from localhost (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 914DA2173B;
-        Tue, 16 Jul 2019 11:16:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563275789;
-        bh=cN2YWLRC4s7HqVcjkwb1qbS93xC53QlrYyzApl46WQY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=fN2ZJSMKqcmdmKc0QGJ3lMxe98jrFW3RcAvT1o8V3Zx6VySokBYxZyqlAJHyVHMTr
-         P4h8cQBkE2b7uR2KHP5b/MA7uto9Mm/CRyNivfEx+3f6kMERI8JSzOkGe3oU/SC7pE
-         6CA3s19YptajttSQaXKI1OvrCZj7xRo6mrsVrKTM=
-Date:   Tue, 16 Jul 2019 07:16:28 -0400
-From:   Sasha Levin <sashal@kernel.org>
-To:     Sinan Kaya <Okaya@kernel.org>
-Cc:     marc.zyngier@arm.com, will.deacon@arm.com, julien.thierry@arm.com,
-        catalin.marinas@arm.com, linux-kernel@vger.kernel.org,
-        linux-kernel@microsoft.com, linux-acpi@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, stable@kernel.org
-Subject: Re: [PATCH] ARM64/irqchip: Make ACPI_IORT depend on PCI again
-Message-ID: <20190716111628.GB1943@sasha-vm>
-References: <20190716040441.12101-1-sashal@kernel.org>
- <a688793b-f7e8-18a4-3eb2-877f1522d8f3@kernel.org>
+        id S2388002AbfGPQ1Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Jul 2019 12:27:16 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:44817 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387958AbfGPQ1Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2019 12:27:16 -0400
+Received: from 79.184.255.39.ipv4.supernova.orange.pl (79.184.255.39) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.267)
+ id 492423adba02cbe0; Tue, 16 Jul 2019 18:27:13 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Len Brown <len.brown@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>,
+        "David E. Box" <david.e.box@linux.intel.com>
+Subject: [PATCH 7/8] PM: sleep: Integrate suspend-to-idle with generig suspend flow
+Date:   Tue, 16 Jul 2019 18:20:44 +0200
+Message-ID: <4251553.8YHTM1NVoD@kreacher>
+In-Reply-To: <71085220.z6FKkvYQPX@kreacher>
+References: <71085220.z6FKkvYQPX@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <a688793b-f7e8-18a4-3eb2-877f1522d8f3@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jul 16, 2019 at 12:13:23AM -0400, Sinan Kaya wrote:
->On 7/16/2019 12:04 AM, Sasha Levin wrote:
->> ACPI_IORT lost it's explicit dependency on PCI in c6bb8f89fa6df
->> ("ARM64/irqchip: Update ACPI_IORT symbol selection logic") where the
->> author has relied on the general dependency of ACPI on PCI.
->>
->> However, that dependency was finally removed in 5d32a66541c4 ("PCI/ACPI:
->> Allow ACPI to be built without CONFIG_PCI set") and now ACPI_IORT breaks
->> when we try and build it without PCI support.
->>
->> This patch brings back the explicit dependency of ACPI_IORT on PCI.
->>
->> Fixes: 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
->> Cc: stable@kernel.org
->> Signed-off-by: Sasha Levin <sashal@kernel.org>
->
->Do you have more detail on what really is broken without this patch?
->
->It should be possible to build IORT table without PCI.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-For the record, the errors look like this:
+After previous changes the suspend-to-idle code flow can be
+integrated more tightly with the generic system suspend code flow
+by making suspend_enter() call s2idle_loop() later and removing
+the direct invocations of dpm_noirq_begin(),
+dpm_noirq_suspend_devices(), dpm_noirq_end(), and
+dpm_noirq_resume_devices() from the latter, so do that.
 
-	drivers/acpi/arm64/iort.o: In function `acpi_iort_init':
-	iort.c:(.init.text+0x47c): undefined reference to `pci_request_acs'
+This change is not expected to alter functionality.
 
-Sinan pointed me to an earlier patch he wrote that would fix it
-(https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/drivers/acpi/arm64/iort.c?id=43554cebba50e709b9207c55ceca6bc281748586).
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ kernel/power/suspend.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-Please disregard this patch.
+Index: linux-pm/kernel/power/suspend.c
+===================================================================
+--- linux-pm.orig/kernel/power/suspend.c
++++ linux-pm/kernel/power/suspend.c
+@@ -119,13 +119,6 @@ static void s2idle_enter(void)
+ 
+ static void s2idle_loop(void)
+ {
+-	int error;
+-
+-	dpm_noirq_begin();
+-	error = dpm_noirq_suspend_devices(PMSG_SUSPEND);
+-	if (error)
+-		goto resume;
+-
+ 	pm_pr_dbg("suspend-to-idle\n");
+ 
+ 	/*
+@@ -150,10 +143,6 @@ static void s2idle_loop(void)
+ 	}
+ 
+ 	pm_pr_dbg("resume from suspend-to-idle\n");
+-
+-resume:
+-	dpm_noirq_resume_devices(PMSG_RESUME);
+-	dpm_noirq_end();
+ }
+ 
+ void s2idle_wake(void)
+@@ -408,11 +397,6 @@ static int suspend_enter(suspend_state_t
+ 	if (error)
+ 		goto Devices_early_resume;
+ 
+-	if (state == PM_SUSPEND_TO_IDLE && pm_test_level != TEST_PLATFORM) {
+-		s2idle_loop();
+-		goto Platform_early_resume;
+-	}
+-
+ 	error = dpm_suspend_noirq(PMSG_SUSPEND);
+ 	if (error) {
+ 		pr_err("noirq suspend of devices failed\n");
+@@ -425,6 +409,11 @@ static int suspend_enter(suspend_state_t
+ 	if (suspend_test(TEST_PLATFORM))
+ 		goto Platform_wake;
+ 
++	if (state == PM_SUSPEND_TO_IDLE) {
++		s2idle_loop();
++		goto Platform_wake;
++	}
++
+ 	error = suspend_disable_secondary_cpus();
+ 	if (error || suspend_test(TEST_CPUS))
+ 		goto Enable_cpus;
 
---
-Thanks,
-Sasha
+
+
