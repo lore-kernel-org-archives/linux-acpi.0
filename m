@@ -2,124 +2,93 @@ Return-Path: <SRS0=oT6V=VN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDFC0C76188
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 10:27:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A62AC76188
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 11:16:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B1DB620880
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 10:27:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 665F12173C
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jul 2019 11:16:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563272879;
-	bh=InV49k/g4n8kkX89qOOPmJMNqj/Q2fuW/aBD6hhUrXA=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=EzEnqm3bPzLbDfd1gueOAVyiUCkMdvHbdHBABQaHG2/kZgQ8GP9KZeVALHZ+P7EjB
-	 9Gj97CWcy4uy1sm73q1xafM5wYJHwhxanO9gfMH4LQNunKn+vemq0UbqHhOhbMxV72
-	 WNIansHE4+gE5AWRxfQSRC17OIz1ODSBtCJVY6z4=
+	s=default; t=1563275791;
+	bh=cN2YWLRC4s7HqVcjkwb1qbS93xC53QlrYyzApl46WQY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=0TR2iFta2GwpnT/vxBRJCOcnUrqN6TH9beIa2OmqzACcHezs38OuNRoXxYydS2msn
+	 DMjY8CA3dz7VBWL6p00AKN6bocN15pB3LF3I5j5H2fVq8UTki36XxcS4JnnNIFWEHE
+	 fSWhSegRFGXKRrnnPDwt3Jszeawa/0Q6BQ21IQuY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732752AbfGPK17 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Jul 2019 06:27:59 -0400
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:33134 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732319AbfGPK17 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2019 06:27:59 -0400
-Received: by mail-ot1-f68.google.com with SMTP id q20so20470120otl.0;
-        Tue, 16 Jul 2019 03:27:58 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=InV49k/g4n8kkX89qOOPmJMNqj/Q2fuW/aBD6hhUrXA=;
-        b=LP9UCFk/txz+8PX9fFtv/tFMlGmWO8p/SA855m/EOd/YAEFUGuqISAykuCTSFZjPWr
-         eyb4/WBRLWZytdBG90l4K5smP29fTIINGjnQCE8qD9v8khA6CuYYnHyA8lYpRMwjYZOi
-         L+lJzASL07W2Ko9IolEPteOZqGDXKrVhyBHxViB1aKO+lvViVtXKUEdsf313850UosI3
-         FvWzz79zOo06xaLvaUwqQ4t4HU9d2alXcgK11I/eWak+k/qWRLCwfwCUX+AI2XJVDpZ8
-         QQaLzvh7DPqpkJKskGCC2UbPYLxDsNSDckCmd5yWo58q7MK5TgXumw74lcSqmyNnH0wL
-         7Apg==
-X-Gm-Message-State: APjAAAVOs1jCA+1qM2yVYeNozrlAU4wThENjruPto7PDM9QAnPCuX3t7
-        An4o2h11KWH5DMji4D6pk9XQMf/V3L/yaXef1NY=
-X-Google-Smtp-Source: APXvYqwNxa4ESy69KwPnztnMj6Vvcz27ajFqshxcVQs8WVfJTe1ykblJ31kt949Zta05jFdEjaTLyPSqql/gvXR4C4Y=
-X-Received: by 2002:a05:6830:8a:: with SMTP id a10mr18446800oto.167.1563272877613;
- Tue, 16 Jul 2019 03:27:57 -0700 (PDT)
+        id S2387553AbfGPLQb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Jul 2019 07:16:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47542 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1733200AbfGPLQa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Jul 2019 07:16:30 -0400
+Received: from localhost (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 914DA2173B;
+        Tue, 16 Jul 2019 11:16:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1563275789;
+        bh=cN2YWLRC4s7HqVcjkwb1qbS93xC53QlrYyzApl46WQY=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=fN2ZJSMKqcmdmKc0QGJ3lMxe98jrFW3RcAvT1o8V3Zx6VySokBYxZyqlAJHyVHMTr
+         P4h8cQBkE2b7uR2KHP5b/MA7uto9Mm/CRyNivfEx+3f6kMERI8JSzOkGe3oU/SC7pE
+         6CA3s19YptajttSQaXKI1OvrCZj7xRo6mrsVrKTM=
+Date:   Tue, 16 Jul 2019 07:16:28 -0400
+From:   Sasha Levin <sashal@kernel.org>
+To:     Sinan Kaya <Okaya@kernel.org>
+Cc:     marc.zyngier@arm.com, will.deacon@arm.com, julien.thierry@arm.com,
+        catalin.marinas@arm.com, linux-kernel@vger.kernel.org,
+        linux-kernel@microsoft.com, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, stable@kernel.org
+Subject: Re: [PATCH] ARM64/irqchip: Make ACPI_IORT depend on PCI again
+Message-ID: <20190716111628.GB1943@sasha-vm>
+References: <20190716040441.12101-1-sashal@kernel.org>
+ <a688793b-f7e8-18a4-3eb2-877f1522d8f3@kernel.org>
 MIME-Version: 1.0
-References: <cover.1563269894.git.viresh.kumar@linaro.org> <CAJZ5v0iqYHNt6NQy3Fi1B=XtjNOm2x0mX3+7eWBREgFZRpUS+w@mail.gmail.com>
- <20190716101416.ntk353cfnrcykoek@vireshk-i7>
-In-Reply-To: <20190716101416.ntk353cfnrcykoek@vireshk-i7>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 16 Jul 2019 12:27:46 +0200
-Message-ID: <CAJZ5v0jZfmXN=juHX11vmSFj=vxS2Mu_b-OZprB9S+3LJjDb+g@mail.gmail.com>
-Subject: Re: [PATCH 00/10] cpufreq: Migrate users of policy notifiers to QoS requests
-To:     Viresh Kumar <viresh.kumar@linaro.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rafael Wysocki <rjw@rjwysocki.net>,
-        Amit Daniel Kachhap <amit.kachhap@gmail.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Erik Schmauss <erik.schmauss@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Javi Merino <javi.merino@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <a688793b-f7e8-18a4-3eb2-877f1522d8f3@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jul 16, 2019 at 12:14 PM Viresh Kumar <viresh.kumar@linaro.org> wrote:
+On Tue, Jul 16, 2019 at 12:13:23AM -0400, Sinan Kaya wrote:
+>On 7/16/2019 12:04 AM, Sasha Levin wrote:
+>> ACPI_IORT lost it's explicit dependency on PCI in c6bb8f89fa6df
+>> ("ARM64/irqchip: Update ACPI_IORT symbol selection logic") where the
+>> author has relied on the general dependency of ACPI on PCI.
+>>
+>> However, that dependency was finally removed in 5d32a66541c4 ("PCI/ACPI:
+>> Allow ACPI to be built without CONFIG_PCI set") and now ACPI_IORT breaks
+>> when we try and build it without PCI support.
+>>
+>> This patch brings back the explicit dependency of ACPI_IORT on PCI.
+>>
+>> Fixes: 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+>> Cc: stable@kernel.org
+>> Signed-off-by: Sasha Levin <sashal@kernel.org>
 >
-> On 16-07-19, 12:06, Rafael J. Wysocki wrote:
-> > On Tue, Jul 16, 2019 at 11:49 AM Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> > >
-> > > Hello,
-> > >
-> > > Now that cpufreq core supports taking QoS requests for min/max cpu
-> > > frequencies, lets migrate rest of the users to using them instead of the
-> > > policy notifiers.
-> >
-> > Technically, this still is linux-next only. :-)
+>Do you have more detail on what really is broken without this patch?
 >
-> True :)
->
-> > > The CPUFREQ_NOTIFY and CPUFREQ_ADJUST events of the policy notifiers are
-> > > removed as a result, but we have to add CPUFREQ_CREATE_POLICY and
-> > > CPUFREQ_REMOVE_POLICY events to it for the acpi stuff specifically. So
-> > > the policy notifiers aren't completely removed.
-> >
-> > That's not entirely accurate, because arch_topology is going to use
-> > CPUFREQ_CREATE_POLICY now too.
->
-> Yeah, I thought about that while writing this patchset and
-> coverletter. But had it not been required for ACPI, I would have done
-> it differently for the arch-topology code. Maybe direct calling of
-> arch-topology routine from cpufreq core. I wanted to get rid of the
-> policy notifiers completely but I couldn't find a better way of doing
-> it for ACPI stuff.
->
-> > > Boot tested on my x86 PC and ARM hikey board. Nothing looked broken :)
-> > >
-> > > This has already gone through build bot for a few days now.
-> >
-> > So I'd prefer patches [5-8] to go right after the first one and then
-> > do the cleanups on top of that, as somebody may want to backport the
-> > essential changes without the cleanups.
->
-> In the exceptional case where nobody finds anything wrong with the
-> patches (highly unlikely), do you want me to resend with reordering or
-> you can reorder them while applying? There are no dependencies between
-> those patches anyway.
+>It should be possible to build IORT table without PCI.
 
-Please resend the reordered set when the merge window closes.
+For the record, the errors look like this:
+
+	drivers/acpi/arm64/iort.o: In function `acpi_iort_init':
+	iort.c:(.init.text+0x47c): undefined reference to `pci_request_acs'
+
+Sinan pointed me to an earlier patch he wrote that would fix it
+(https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/drivers/acpi/arm64/iort.c?id=43554cebba50e709b9207c55ceca6bc281748586).
+
+Please disregard this patch.
+
+--
+Thanks,
+Sasha
