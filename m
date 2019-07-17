@@ -2,75 +2,96 @@ Return-Path: <SRS0=OBGz=VO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD7EC76186
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Jul 2019 10:55:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 064DCC7618F
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Jul 2019 16:13:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 435BC21743
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Jul 2019 10:55:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D687B21848
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Jul 2019 16:13:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725936AbfGQKzr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Jul 2019 06:55:47 -0400
-Received: from mga07.intel.com ([134.134.136.100]:12864 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725932AbfGQKzr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 Jul 2019 06:55:47 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 17 Jul 2019 03:55:47 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,274,1559545200"; 
-   d="scan'208";a="167930871"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP; 17 Jul 2019 03:55:44 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id D7E2E16A; Wed, 17 Jul 2019 13:55:43 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        James Morse <james.morse@arm.com>,
-        Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Borislav Petkov <bp@suse.de>, Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v1] ACPI / APEI: Get rid of NULL_UUID_LE constant
-Date:   Wed, 17 Jul 2019 13:55:43 +0300
-Message-Id: <20190717105543.76244-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
+        id S1727209AbfGQQNw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Jul 2019 12:13:52 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:47694 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726620AbfGQQNu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 Jul 2019 12:13:50 -0400
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id BBF80605C121F65CC65C;
+        Thu, 18 Jul 2019 00:13:46 +0800 (CST)
+Received: from localhost (10.202.226.61) by DGGEMS414-HUB.china.huawei.com
+ (10.3.19.214) with Microsoft SMTP Server id 14.3.439.0; Thu, 18 Jul 2019
+ 00:13:42 +0800
+Date:   Wed, 17 Jul 2019 17:13:20 +0100
+From:   Jonathan Cameron <jonathan.cameron@huawei.com>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+CC:     <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        "Len Brown" <lenb@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+        "Hartmut Knaack" <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        "Peter Meerwald-Stadler" <pmeerw@pmeerw.net>,
+        Peter Rosin <peda@axentia.se>,
+        Benson Leung <bleung@chromium.org>,
+        Enric Balletbo i Serra <enric.balletbo@collabora.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Fabrice Gasnier <fabrice.gasnier@st.com>,
+        "Frederic Barrat" <fbarrat@linux.ibm.com>,
+        Andrew Donnellan <ajd@linux.ibm.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        "Stefano Stabellini" <sstabellini@kernel.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>, <linux-acpi@vger.kernel.org>,
+        <linux-iio@vger.kernel.org>,
+        <linux-stm32@st-md-mailman.stormreply.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linuxppc-dev@lists.ozlabs.org>, <linux-pm@vger.kernel.org>,
+        <linux-usb@vger.kernel.org>, <xen-devel@lists.xenproject.org>,
+        <linux-mm@kvack.org>, <netdev@vger.kernel.org>,
+        <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v4 13/15] docs: ABI: testing: make the files compatible
+ with ReST output
+Message-ID: <20190717171320.000035c2@huawei.com>
+In-Reply-To: <88d15fa38167e3f2e73e65e1c1a1f39bca0267b4.1563365880.git.mchehab+samsung@kernel.org>
+References: <cover.1563365880.git.mchehab+samsung@kernel.org>
+        <88d15fa38167e3f2e73e65e1c1a1f39bca0267b4.1563365880.git.mchehab+samsung@kernel.org>
+Organization: Huawei
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; i686-w64-mingw32)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.226.61]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is a missed part of the commit 5b53696a30d5
-("ACPI / APEI: Switch to use new generic UUID API"), i.e.
-replacing old definition with a global constant variable.
+On Wed, 17 Jul 2019 09:28:17 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
 
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/apei/ghes.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Some files over there won't parse well by Sphinx.
+> 
+> Fix them.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Hi Mauro,
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index a66e00fe31fe..451269a2f47c 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -483,7 +483,7 @@ static void ghes_do_proc(struct ghes *ghes,
- 	int sev, sec_sev;
- 	struct acpi_hest_generic_data *gdata;
- 	guid_t *sec_type;
--	guid_t *fru_id = &NULL_UUID_LE;
-+	const guid_t *fru_id = &guid_null;
- 	char *fru_text = "";
- 
- 	sev = ghes_severity(estatus->error_severity);
--- 
-2.20.1
+Does feel like this one should perhaps have been broken up a touch!
+
+For the IIO ones I've eyeballed it rather than testing the results
+
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
 
