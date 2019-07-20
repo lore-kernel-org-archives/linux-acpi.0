@@ -1,127 +1,101 @@
-Return-Path: <SRS0=Jzgg=VQ=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=Q0qF=VR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7892EC7618F
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 Jul 2019 15:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDDF7C76186
+	for <linux-acpi@archiver.kernel.org>; Sat, 20 Jul 2019 20:45:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 56B462184E
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 Jul 2019 15:29:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89DF82083B
+	for <linux-acpi@archiver.kernel.org>; Sat, 20 Jul 2019 20:45:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O5qcZFEG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728372AbfGSP3k (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 19 Jul 2019 11:29:40 -0400
-Received: from foss.arm.com ([217.140.110.172]:44496 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726711AbfGSP3k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 Jul 2019 11:29:40 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2F840344;
-        Fri, 19 Jul 2019 08:29:39 -0700 (PDT)
-Received: from [10.1.196.105] (eglon.cambridge.arm.com [10.1.196.105])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 718AD3F59C;
-        Fri, 19 Jul 2019 08:29:37 -0700 (PDT)
-Subject: Re: MPAM branch verification (was RE: [RFC PATCH 2/2] ACPI / PPTT:
- cacheinfo: Label caches based on fw_token)
-To:     Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Cc:     Vijaya Kumar K <vkilari@codeaurora.org>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Tomasz Nowicki <Tomasz.Nowicki@cavium.com>,
-        Jeffrey Hugo <jhugo@codeaurora.org>,
-        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
-        Linuxarm <linuxarm@huawei.com>,
-        Jeremy Linton <jeremy.linton@arm.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>,
-        Richard Ruigrok <rruigrok@qti.qualcomm.com>
-References: <5FC3163CFD30C246ABAA99954A238FA83F2B38FD@lhreml524-mbs.china.huawei.com>
- <d3341796-d7ce-8b1b-3575-333eda7e6d07@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA83F2DBB39@lhreml524-mbs.china.huawei.com>
-From:   James Morse <james.morse@arm.com>
-Message-ID: <6b863739-fc6d-424c-6b70-21e2e3775b78@arm.com>
-Date:   Fri, 19 Jul 2019 16:29:35 +0100
-User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        id S1725801AbfGTUpL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 20 Jul 2019 16:45:11 -0400
+Received: from mail-wm1-f46.google.com ([209.85.128.46]:55259 "EHLO
+        mail-wm1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725789AbfGTUpL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jul 2019 16:45:11 -0400
+Received: by mail-wm1-f46.google.com with SMTP id p74so31639598wme.4
+        for <linux-acpi@vger.kernel.org>; Sat, 20 Jul 2019 13:45:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=sn31xa1Rk0JJs6T66RPNXZxvBRj8Q+uES2N2f4iqY88=;
+        b=O5qcZFEGhBZZE/9M2NwPcAo+J2lCc+EGDacEKd/nFCfGYRFooKe5Yh7m35zmniAN/0
+         nOelkINJEQbH5i+G6zRStLLFC47IDFAp5GkayF5bmqBgCw/K8Rwg/ZGTsPQP2zMV1R1g
+         Wo8HWW90gnCADlBTSMoI4ONjLV1obC1ARpEwniGT1jkrpRlHFV3Q8N/TMQyofWrRAkNj
+         a10I9VdRx+am3tTe7iWrPwEuGQ82c49tcJnobNo38noWeEVEUuueyNPbjwRqlUuJ0mHC
+         piapLoU73OKmzWMJPFropcnp8SxSsXNj17D/q4HoibhRSwMZ3znS5mPlATZNv6/tF3yS
+         0lpQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=sn31xa1Rk0JJs6T66RPNXZxvBRj8Q+uES2N2f4iqY88=;
+        b=KO8jTORlIaHNvJROI46HixwWhSKoa6fVKi5hkEt6ZnYiTilxihfTB3LKgluutM5m7T
+         tEl8ARrYcsiQfoPxJmpU8R/YvE7qC9wwf8dlqoCKrL8YZqj9OD+x7scS8hkAzArmCFzy
+         ZiPuYYZIrzw/UIqWi5rTGxuOIZh27ygUFXFCxJ6GYRdhCnqVI6eNZpP82rUj6qloWZNq
+         JTkvBK3dfAxmBX0Qvzb7IC2gnhWJL1NjRec5pDApb1mK+GdpZjMX7L82+xEGNyKnajht
+         jpNTJkbshps8xOxEL1kannz+F1tGEgMMtSeWpne0v00aIa5FL4rXYxay02sasxLWSvHC
+         5s0A==
+X-Gm-Message-State: APjAAAVlPG0oYUI5Kp2AHfgVjy74/Ae1KUYZUR0yHPfsC+ahZWFWWtUc
+        HjPKckvNnXNFhCXw8+/ySTg=
+X-Google-Smtp-Source: APXvYqyK5Uc0PW3qtUG3gXQqIgH1OllkXyOUEF4+jDiBgVXLhl0WP5Y2zhCpCUReCC/kYJEC5qrfEQ==
+X-Received: by 2002:a1c:dc07:: with SMTP id t7mr56765953wmg.164.1563655509236;
+        Sat, 20 Jul 2019 13:45:09 -0700 (PDT)
+Received: from [192.168.2.202] (pD9EA3BA8.dip0.t-ipconnect.de. [217.234.59.168])
+        by smtp.gmail.com with ESMTPSA id a81sm33058542wmh.3.2019.07.20.13.45.07
+        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
+        Sat, 20 Jul 2019 13:45:08 -0700 (PDT)
+Subject: Re: PROBLEM: Calling ObjectType on buffer field reports type integer
+To:     "Schmauss, Erik" <erik.schmauss@intel.com>,
+        "Moore, Robert" <robert.moore@intel.com>,
+        "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "devel@acpica.org" <devel@acpica.org>
+References: <3ef42aa1-196d-f3db-0e5d-2fd84c198242@gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED53C592D47@ORSMSX122.amr.corp.intel.com>
+ <CF6A88132359CE47947DB4C6E1709ED53C59405C@ORSMSX122.amr.corp.intel.com>
+ <fe4bcc1c-5c15-caa6-ce01-a5df962ff008@gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED53C5942CA@ORSMSX122.amr.corp.intel.com>
+ <51e156ec-c2ed-84be-13c0-99a213e1d4b7@gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED53C595C50@ORSMSX122.amr.corp.intel.com>
+From:   Maximilian Luz <luzmaximilian@gmail.com>
+Message-ID: <88077d9c-b2b7-5fc6-37e9-fa12d6aebe73@gmail.com>
+Date:   Sat, 20 Jul 2019 22:45:06 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA83F2DBB39@lhreml524-mbs.china.huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53C595C50@ORSMSX122.amr.corp.intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Shameer,
-
-On 03/07/2019 13:27, Shameerali Kolothum Thodi wrote:
->> -----Original Message-----
->> On 21/06/2019 16:57, Shameerali Kolothum Thodi wrote:
->>>> -----Original Message-----
->>>> From: James Morse [mailto:james.morse@arm.com]
-
->> The domid bitfield not being big enough for the width of the cacheinfo id field
->> looks like
->> a bug in the existing resctrl code. Could you spin that as a patch against
->> mainline?
+On 3/22/19 10:28 PM, Schmauss, Erik wrote:
+> I've been discussing this with Bob. I've decided to file a bug against Microsoft
+> internally. I would like to wait and see what they say... I've never done such
+> things so I don't know how long the process takes to get a response form them.
 > 
-> Yes it could be a bug. But I am not sure about the assumption on x86 platforms with
-> respect to cache id width. Also any need to consider 32 bit systems at all or not.
-> 
->> It won't affect any x86 system, but I don't want to 'fix' anything as part of the
->> mpam
->> support.
-> 
-> Does that mean the cache id width on x86 will never be >14 bits?
+> I'll post updates when I get them but feel free to ping us again in a few
+> weeks if you don't hear back. We're still investigating their operation region
+> behavior as well...
+> 	
+> Erik
 
-I have no idea. Today they're 0,1,2, so its unlikely?, but Documentation/x86/resctrl.rst's
-"Cache IDs" section says "it isn't guaranteed to be a contiguous sequence", so maybe?
+Hi,
 
-The problem is 'struct cacheinfo's id field is an int, its exposed via sysfs as an int,
-but resctrl packs it into a smaller size. That's going to bite one day, it would be good
-to fix it now we know its a problem.
+I assume there hasn't been any response from Microsoft?
 
-
->> We almost certainly need to compress the cache-id numbers down to {0,1,2} if
->> only so we
->> haven't filled all the exposed bits on day-1. (so it might not matter for arm64
->> either...)
-> 
-> That will be nice if we can compress it like that> I think we can leave the fix for now
-> and come up with a solution when things gets really going.
-> 
-> Mean time I am trying to probe memory controller as well on our system and it looks
-> like there are still issues.
-
-Typo in the MBA picking code? Should be:
-| if (!mpam_has_feature(mpam_feat_mbw_part, class->features) &&
-|     !mpam_has_feature(mpam_feat_mbw_max, class->features)) {
-
-It can do something useful with either of those features, but the (!part || !max)
-previously forced it to have both.
-
-(This still doesn't work on the model as its describing a 0-bit bitmap MBW_PART)
-
-
-> I will debug and update if it really is a problem. Please
-> let me know if you have any plans to update the branch so that I can try the latest.
-
-I hope to push a new version by the end of June. (whoosh! There goes June).
-http://www.linux-arm.org/git?p=linux-jm.git;a=shortlog;h=refs/heads/mpam/snapshot/jun
-
-The changes in there are to avoid the known-issues when the same 'thing' is picked as both
-L3 resource and the MBA resource.
-
-I think the risk of sleeping-while-atomic if not all mpam:devices are accessible from all
-CPUs in the resctrl:domain is my next highest priority issue...
-
-
-Thanks,
-
-James
+Maximilian
