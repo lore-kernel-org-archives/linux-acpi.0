@@ -2,103 +2,99 @@ Return-Path: <SRS0=pvGz=VT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81975C76195
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 02:36:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BB55C76188
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 08:30:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5CAAA21953
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 02:36:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MUC3JA5X"
+	by mail.kernel.org (Postfix) with ESMTP id 12ADB2199C
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 08:30:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1563784210;
+	bh=jFyD1bLi5IbBr2NaSYByE/QZUvoo+ll41vptjR/XU44=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=uJgx45YH7exyK05grOPEd7J3B6ri11gS6giJKQdRKmQcXTHs6+UzsGg603rfYT7bH
+	 WLmJ3RZJfsM1xHNXf+rGiJU2kNeso5D5aeSSSF80BAskG3oft2ezdQCVLOu0hfSylQ
+	 HtfWC8bVJHEVeoSaq/UzHPOnhaGlNHrjIQyDB8/E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728661AbfGVCgE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 21 Jul 2019 22:36:04 -0400
-Received: from mail-io1-f66.google.com ([209.85.166.66]:34466 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726233AbfGVCgD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jul 2019 22:36:03 -0400
-Received: by mail-io1-f66.google.com with SMTP id k8so70679985iot.1;
-        Sun, 21 Jul 2019 19:36:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=AmpW1NFzohqIzwtUAGpOMfm6T7OXwekwb4pFafqF9Dc=;
-        b=MUC3JA5Xn+yntubO6se2+79QvncgFSj+T2OJH9lublNhM2xcqH47/HgWNnK0hU8KVO
-         cfdilWLHQa1IjPcodBoN4GNSo2oAuAgAsjrMN1G7E8sCKA1OnvKJAh0Ha78i0Xeq1bS6
-         AWzNXmimdYJMjuPWb7TaxkOnIDJmSEoZ36LZFjyVPkBFWUsKShRBxmg03d1pl/k4Cgmu
-         bc5hs6YjiXFbVLThIIrMas5ItGr+qjhO1Z2NycCJmV2+vhNLHbSlzubD9/nrI4pgE8GC
-         /tEBFH2Wu0W2F/vgsBkdqN0crqKbWkxTwwxeo73SZAkG0a9LbJaNPMjNtXd9ca58djqL
-         c2Tw==
+        id S1727581AbfGVIaJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 22 Jul 2019 04:30:09 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:45652 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727304AbfGVIaJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jul 2019 04:30:09 -0400
+Received: by mail-oi1-f196.google.com with SMTP id m206so28966986oib.12;
+        Mon, 22 Jul 2019 01:30:08 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=AmpW1NFzohqIzwtUAGpOMfm6T7OXwekwb4pFafqF9Dc=;
-        b=TqGgssxnh4H+u4H24YRtTX3qVxIM9GbXOfIc+DJ1u1yzAbULTQ6hpvwshPQ2bgxZFw
-         1LBIWdxJTzaMTUcRHDAvKDE4YIQQQhjbjZBUkeS6ibO3fYHSueVmBjWkIN6TcqIOHofB
-         NqVxYr9TghGFBH9lubnOuyT4TY0PgI5nHgMQaz4Xys3M16Rn23B/Z0tfXq7Fg10mDmYL
-         l7UkJ3cloAvrIIgEzaiPB0WWmzEIRsIXm41THxR9FLmTkhny2bp55cGwDxL+s72c7NU+
-         JqiCC9fM8zKd0zRCI11yTd9F7yP6pCx+p6Bh6eL/h2o6pDN2E9ydg4b6S9jJrvSSv9lW
-         /xog==
-X-Gm-Message-State: APjAAAWJHPh6u23BxIuZ3Ti8nfh3Hv1vqOurEGt1E13tsnzGqXpQKgpm
-        1DDru95mtjFgeimIjjyfLWI=
-X-Google-Smtp-Source: APXvYqwnw3FMQ08BVeB4mj8eeIiN/GmPetIS9K9cN7C9AvU/2eCuzbTYxkCEvWxQEkZRROch/r3Wcw==
-X-Received: by 2002:a6b:f906:: with SMTP id j6mr62115959iog.26.1563762962179;
-        Sun, 21 Jul 2019 19:36:02 -0700 (PDT)
-Received: from localhost.localdomain (c-73-243-191-173.hsd1.co.comcast.net. [73.243.191.173])
-        by smtp.gmail.com with ESMTPSA id e188sm32816577ioa.3.2019.07.21.19.36.00
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Sun, 21 Jul 2019 19:36:01 -0700 (PDT)
-From:   Kelsey Skunberg <skunberg.kelsey@gmail.com>
-To:     rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc:     skhan@linuxfoundation.org,
-        linux-kernel-mentees@lists.linuxfoundation.org, bjorn@helgaas.com,
-        skunberg.kelsey@gmail.com
-Subject: [PATCH 1/3] ACPI: Remove acpi_has_method() call from acpi_adxl.c
-Date:   Sun, 21 Jul 2019 20:35:28 -0600
-Message-Id: <20190722023530.67676-2-skunberg.kelsey@gmail.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190722023530.67676-1-skunberg.kelsey@gmail.com>
-References: <20190722023530.67676-1-skunberg.kelsey@gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=T4N0HhwGuXC3mqxfYtAKATut5jBkdVM9gFj5yRqL8TI=;
+        b=PpOKQKjnDe7l8YzAv73SytoJ1KOpZRtzA5V7Hzu62N6+vzIzyo6aryjpPHgG+sna4v
+         5fleGwCHkFHogZkF/FbD6qrBUqxJnWq/Zhs+Psso3Lmqct0jOPmaix7BEzENlHH57Fn5
+         Sic1dyiuKI3zJR3DBJmvbaYoBSpgvWQJfR+THZ1abPGX70NPMKzjzSVmeNa0/tReZohW
+         fsGP2lAg+tq/1Jnhoy+X+1+J5XoANDshFcW6WOu0/jG0bjA2lTnvX8kcBTu4/DxO8yju
+         a6QoxqzccdhOoIds6I2ApTKnKS8DIUo4KnQwAGfQudLz/z+mZeH3HNYEpOmv7/DV+W8G
+         ErmQ==
+X-Gm-Message-State: APjAAAUrhBc+AfwDtHcekcH/z/bzrmCR+2KLW7Ojl2fNbvoMVDn4hUXh
+        +yGSSuESe/q+aOOSmf9x65XIUPnNOx/NMD02wfM=
+X-Google-Smtp-Source: APXvYqxI9yDO+N+DKAFeTYr3C1w2EDGzRVGNRik+xIOJXy8EkGVsjOe5Z6VKJyzTaTYdLzTJN3gfk8jLWQ47Wt64oQk=
+X-Received: by 2002:aca:cdd3:: with SMTP id d202mr30210012oig.115.1563784207998;
+ Mon, 22 Jul 2019 01:30:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20190722023530.67676-1-skunberg.kelsey@gmail.com> <20190722023530.67676-3-skunberg.kelsey@gmail.com>
+In-Reply-To: <20190722023530.67676-3-skunberg.kelsey@gmail.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 22 Jul 2019 10:29:55 +0200
+Message-ID: <CAJZ5v0ix6fe2fj9_mbO5ZdQzkThe8PnkRbJWAuQHjB58x66ixg@mail.gmail.com>
+Subject: Re: [PATCH 2/3] ACPI: Remove acpi_has_method() call from scan.c
+To:     Kelsey Skunberg <skunberg.kelsey@gmail.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        skhan@linuxfoundation.org,
+        linux-kernel-mentees@lists.linuxfoundation.org, bjorn@helgaas.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_check_dsm() will already return an error if the DSM method does not
-exist. Checking if the DSM method exists before the acpi_check_dsm() call
-is not needed. Remove acpi_has_method() call to avoid additional work.
+On Mon, Jul 22, 2019 at 4:36 AM Kelsey Skunberg
+<skunberg.kelsey@gmail.com> wrote:
+>
+> acpi_evaluate_reference() will return an error if the DEP method
+> does not exist. Checking if the DEP method exists before the
+> acpi_evaluate_reference() call is not needed. Remove acpi_has_method()
+> call to avoid additional work.
+>
+> Signed-off-by: Kelsey Skunberg <skunberg.kelsey@gmail.com>
+> ---
+>  drivers/acpi/scan.c | 3 ---
+>  1 file changed, 3 deletions(-)
+>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 0e28270b0fd8..4f2b0b481cee 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1803,9 +1803,6 @@ static void acpi_device_dep_initialize(struct acpi_device *adev)
+>
+>         adev->dep_unmet = 0;
+>
+> -       if (!acpi_has_method(adev->handle, "_DEP"))
+> -               return;
+> -
 
-Signed-off-by: Kelsey Skunberg <skunberg.kelsey@gmail.com>
----
- drivers/acpi/acpi_adxl.c | 5 -----
- 1 file changed, 5 deletions(-)
+As you can see, this just returns.
 
-diff --git a/drivers/acpi/acpi_adxl.c b/drivers/acpi/acpi_adxl.c
-index 13c8f7b50c46..89aac15663fd 100644
---- a/drivers/acpi/acpi_adxl.c
-+++ b/drivers/acpi/acpi_adxl.c
-@@ -148,11 +148,6 @@ static int __init adxl_init(void)
- 		return -ENODEV;
- 	}
- 
--	if (!acpi_has_method(handle, "_DSM")) {
--		pr_info("No DSM method\n");
--		return -ENODEV;
--	}
--
- 	if (!acpi_check_dsm(handle, &adxl_guid, ADXL_REVISION,
- 			    ADXL_IDX_GET_ADDR_PARAMS |
- 			    ADXL_IDX_FORWARD_TRANSLATE)) {
--- 
-2.20.1
+>         status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
+>                                         &dep_devices);
+>         if (ACPI_FAILURE(status)) {
 
+Where this does something more on fallure.
+
+Therefore the code after the change is not equivalent to the code
+before it, so the changes is questionable.
