@@ -2,78 +2,92 @@ Return-Path: <SRS0=pvGz=VT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5BCBC76188
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 10:23:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BAB7C7618F
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 16:14:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 856F12147A
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 10:23:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7613221955
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Jul 2019 16:14:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728756AbfGVKXB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 22 Jul 2019 06:23:01 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:46678 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728569AbfGVKXA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jul 2019 06:23:00 -0400
-Received: from 79.184.253.188.ipv4.supernova.orange.pl (79.184.253.188) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.267)
- id 3cd7878186d92ba4; Mon, 22 Jul 2019 12:22:57 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux PM <linux-pm@vger.kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>
-Cc:     Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH] int340X/processor_thermal_device: Fix proc_thermal_rapl_remove()
-Date:   Mon, 22 Jul 2019 12:22:57 +0200
-Message-ID: <3270289.QqOHTbhTGK@kreacher>
+        id S1728972AbfGVQOk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 22 Jul 2019 12:14:40 -0400
+Received: from foss.arm.com ([217.140.110.172]:41430 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728762AbfGVQOk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Jul 2019 12:14:40 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CA2E028;
+        Mon, 22 Jul 2019 09:14:39 -0700 (PDT)
+Received: from e121166-lin.cambridge.arm.com (unknown [10.1.196.255])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 746C83F694;
+        Mon, 22 Jul 2019 09:14:38 -0700 (PDT)
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        LAKML <linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH] ACPI/IORT: Rename arm_smmu_v3_set_proximity() 'node' local variable
+Date:   Mon, 22 Jul 2019 17:14:33 +0100
+Message-Id: <20190722161433.23027-1-lorenzo.pieralisi@arm.com>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Commit 36a2ba07757d ("ACPI/IORT: Reject platform device creation on NUMA
+node mapping failure") introduced a local variable 'node' in
+arm_smmu_v3_set_proximity() that shadows the struct acpi_iort_node
+pointer function parameter.
 
-Passing 0 to cpuhp_remove_state() triggers the BUG_ON() in
-__cpuhp_remove_state_cpuslocked() and the argument passed to
-powercap_unregister_control_type() is expected to be a valid
-pointer, so avoid calling these functions with incorrect
-arguments from proc_thermal_rapl_remove().
+Execution was unaffected but it is prone to errors and can lead
+to subtle bugs.
 
-Fixes: 555c45fe0d04 ("int340X/processor_thermal_device: add support for MMIO RAPL")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Rename the local variable to prevent any issue.
+
+Reported-by: Will Deacon <will@kernel.org>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 ---
- drivers/thermal/intel/int340x_thermal/processor_thermal_device.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/arm64/iort.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Index: linux-pm/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
-===================================================================
---- linux-pm.orig/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
-+++ linux-pm/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
-@@ -487,6 +487,7 @@ static int proc_thermal_rapl_add(struct
- 				rapl_mmio_cpu_online, rapl_mmio_cpu_down_prep);
- 	if (ret < 0) {
- 		powercap_unregister_control_type(rapl_mmio_priv.control_type);
-+		rapl_mmio_priv.control_type = NULL;
- 		return ret;
- 	}
- 	rapl_mmio_priv.pcap_rapl_online = ret;
-@@ -496,6 +497,9 @@ static int proc_thermal_rapl_add(struct
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index d4551e33fa71..15dbfd657d82 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1256,12 +1256,12 @@ static int  __init arm_smmu_v3_set_proximity(struct device *dev,
  
- static void proc_thermal_rapl_remove(void)
- {
-+	if (IS_ERR_OR_NULL(rapl_mmio_priv.control_type))
-+		return;
-+
- 	cpuhp_remove_state(rapl_mmio_priv.pcap_rapl_online);
- 	powercap_unregister_control_type(rapl_mmio_priv.control_type);
- }
-
-
+ 	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+ 	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+-		int node = acpi_map_pxm_to_node(smmu->pxm);
++		int dev_node = acpi_map_pxm_to_node(smmu->pxm);
+ 
+-		if (node != NUMA_NO_NODE && !node_online(node))
++		if (dev_node != NUMA_NO_NODE && !node_online(dev_node))
+ 			return -EINVAL;
+ 
+-		set_dev_node(dev, node);
++		set_dev_node(dev, dev_node);
+ 		pr_info("SMMU-v3[%llx] Mapped to Proximity domain %d\n",
+ 			smmu->base_address,
+ 			smmu->pxm);
+-- 
+2.21.0
 
