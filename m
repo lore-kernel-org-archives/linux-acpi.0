@@ -2,146 +2,109 @@ Return-Path: <SRS0=hJWw=VU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EADEC76188
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 06:15:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF0FC76188
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 07:30:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06D532239E
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 06:15:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="GLW0xIF/"
+	by mail.kernel.org (Postfix) with ESMTP id E125C21911
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 07:30:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1563867038;
+	bh=dDxnAyKoG5kkCCP55p6kdo2U+zKiHDwVTQxE1b43L+A=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=f8lkwmmFMJYVHrzFlSuZgwmpRz6nhrDRfmLaHgx21INUghKdHj+odF2IJrcfVybH2
+	 6kCD0IKqpzsiO9EKXZZczyGYjRrbQ3nWGUZy/v0tNeBlrQ3V7Mt2vyvkpkuqPJZBuR
+	 +hreRbUJabxIatDZo2L3cxaSA7z6SZw+otOEpAig=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388065AbfGWGOW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Jul 2019 02:14:22 -0400
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:33203 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388026AbfGWGOW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jul 2019 02:14:22 -0400
-Received: by mail-pf1-f194.google.com with SMTP id g2so18584101pfq.0
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jul 2019 23:14:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=vuhDAdrwQAvGhhF1l4sTnH2/cYgn8v3uFIkNwLOWcSI=;
-        b=GLW0xIF/ikmhDxxaWkwedXQ3YAtiEnzbtfMJ9HikV4tL95rqEh2fkcB6NkefS0TByU
-         +QQ1hhPN/eokT2aVxg0eTyR+90qMUvCEVt61eF45mxKmxYTxyaL9RYps9BAZTMO/3cDb
-         9C4NZ3uhWr2iKuhcCIrARd0ii+fMDfM0DIeWksAUC6ORyiERFbDn1C2vq8S/hkwYbIHB
-         g/xyhH2PR0cFm9DdI53v5Y67tYeflXFdxVK6L0Q8ZnqYVmdDUpOGII7k1z1MNqs5JNRA
-         OPWC2yrAd7K4gFy5nbRUzC6OGpMxbNPocvSPv+RbcxEN1BWEsoCoEgPiI4t0kVS5DIyX
-         10dw==
+        id S1732658AbfGWHah (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Jul 2019 03:30:37 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:37968 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732657AbfGWHah (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jul 2019 03:30:37 -0400
+Received: by mail-ot1-f65.google.com with SMTP id d17so43094616oth.5;
+        Tue, 23 Jul 2019 00:30:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=vuhDAdrwQAvGhhF1l4sTnH2/cYgn8v3uFIkNwLOWcSI=;
-        b=Nvsnx1e/gm6EP2gMflQn2Ujj/wW4+okrhBwH/hV0Uyq1q8hQ2QY2a7g7gUYbMowcQK
-         IZfLxtZ2NIsm+6Cmoe+r98xrlbIpKeeG/k+Pb30hx1viblPeRf4MRMvoqGWyTdkaYd75
-         xGqu5zhRn2lGNNPYzckADI9dGtzi/4yVqmkwmEd2O/j5H/R8ejSksx5VRssZuZ221DeZ
-         bGqQztZ5BYwZzLKLWdEo2209Q75ovMPvQ61ESNqRn436HjDlKNJ1VL70P3y70hXLw0U+
-         RCKWHICUfjOsq4ScB6O9N+eB8afOyXVfwCFwfohPbrSsrLNPEG6RyLKhMj8T8lfqWxSb
-         tfug==
-X-Gm-Message-State: APjAAAW8vF+HhSuTgZrKxvKx+WwMqhlto3C7DcjLNdzWc9+g1/3Rfkxk
-        l3c/dZwdDKDb6HiT1DFa2AHlrw==
-X-Google-Smtp-Source: APXvYqxP6bnPVRQ1MCBwzGR7VTcX3M/ry8bfvkqazsDReUg7h0RInIBa5NIHj45OVf4NXWgl6klj/w==
-X-Received: by 2002:a63:c106:: with SMTP id w6mr75584400pgf.422.1563862461180;
-        Mon, 22 Jul 2019 23:14:21 -0700 (PDT)
-Received: from localhost ([122.172.28.117])
-        by smtp.gmail.com with ESMTPSA id o95sm36186558pjb.4.2019.07.22.23.14.19
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 22 Jul 2019 23:14:19 -0700 (PDT)
-From:   Viresh Kumar <viresh.kumar@linaro.org>
-To:     Rafael Wysocki <rjw@rjwysocki.net>,
-        Amit Daniel Kachhap <amit.kachhap@gmail.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Erik Schmauss <erik.schmauss@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Javi Merino <javi.merino@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Zhang Rui <rui.zhang@intel.com>
-Cc:     linux-pm@vger.kernel.org,
-        Vincent Guittot <vincent.guittot@linaro.org>, devel@acpica.org,
-        dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
-Subject: [PATCH V2 00/10] cpufreq: Migrate users of policy notifiers to QoS requests
-Date:   Tue, 23 Jul 2019 11:44:00 +0530
-Message-Id: <cover.1563862014.git.viresh.kumar@linaro.org>
-X-Mailer: git-send-email 2.21.0.rc0.269.g1a574e7a288b
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FpJgzT+7tUT7ple40No6kP66YV3ZkuZw7itpAewQ1tQ=;
+        b=cY2FHoxLf3UFfl30MdO2WT7feOR5BXJL3ZKXU4c2Y7aIm4e+T7E3A4YNy0tsRoi6a4
+         AA4MZM5/iWL1bb+wUhPEUOXbdfTi6cXgks86yryURiI2/oW60JMJwx4qDG7+BBDpdmaj
+         Pa//eU9C8beaizKujSwSuOxBAY0uhLVvVxrWIF7IYiKmc7+1Gv7EHvh/ng4DFs9JD74x
+         ++OJ4vJhM/O5vI8Vc/WiyP7G/yOAIjrIy6dGX2A2OUH4WsRzMGoLa9xcckgUunD4rF7e
+         YFq35IqE6Be/XJ2xwCeqRYP2oi0jXBVqh9T8QOYyv9jq+fjh3gJ6IkvNLCPXsCS28GqL
+         SXjg==
+X-Gm-Message-State: APjAAAV4Jo+Nvg2E6Nxm+BfRfKYbxVVdjCelOtBOY91rcL9Lm5KNaS+P
+        J05KKS1mUecRu5WxPuuy/9hoTAmlLe7KeWsgsTcxLc37
+X-Google-Smtp-Source: APXvYqxcNJEOwGJB5fN/m/YmcCoj2DjhHm7l4wYdY7E78+ZG6LP01279MnFvvYZKIn3S3COvsmviOod7hgVpgxr6ZFA=
+X-Received: by 2002:a05:6830:8a:: with SMTP id a10mr26026736oto.167.1563867036041;
+ Tue, 23 Jul 2019 00:30:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <3270289.QqOHTbhTGK@kreacher>
+In-Reply-To: <3270289.QqOHTbhTGK@kreacher>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 23 Jul 2019 09:30:22 +0200
+Message-ID: <CAJZ5v0ik4b0LZ_WwscvZ_WibaN89DWCy-J1KZCJCCkh5TiGXAg@mail.gmail.com>
+Subject: Re: [PATCH] int340X/processor_thermal_device: Fix proc_thermal_rapl_remove()
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     Zhang Rui <rui.zhang@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hello,
+On Mon, Jul 22, 2019 at 12:23 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Passing 0 to cpuhp_remove_state() triggers the BUG_ON() in
+> __cpuhp_remove_state_cpuslocked() and the argument passed to
+> powercap_unregister_control_type() is expected to be a valid
+> pointer, so avoid calling these functions with incorrect
+> arguments from proc_thermal_rapl_remove().
+>
+> Fixes: 555c45fe0d04 ("int340X/processor_thermal_device: add support for MMIO RAPL")
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Now that cpufreq core supports taking QoS requests for min/max cpu
-frequencies, lets migrate rest of the users to using them instead of the
-policy notifiers.
+Any comments?
 
-The CPUFREQ_NOTIFY and CPUFREQ_ADJUST events of the policy notifiers are
-removed as a result, but we have to add CPUFREQ_CREATE_POLICY and
-CPUFREQ_REMOVE_POLICY events to it for the acpi stuff specifically,
-though they are also used by arch_topology stuff now. So the policy
-notifiers aren't completely removed.
+If not, I'll queue this up along with the other RAPL-related fix
+(https://patchwork.kernel.org/patch/11050999/).
 
-Boot tested on my x86 PC and ARM hikey board.
-
-This has already gone through build bot for a few days now.
-
-V1->V2:
-- Added Acked-by tags
-- Reordered to keep cleanups at the bottom
-- Rebased over 5.3-rc1
-
---
-viresh
-
-Viresh Kumar (10):
-  cpufreq: Add policy create/remove notifiers
-  thermal: cpu_cooling: Switch to QoS requests instead of cpufreq
-    notifier
-  powerpc: macintosh: Switch to QoS requests instead of cpufreq notifier
-  cpufreq: powerpc_cbe: Switch to QoS requests instead of cpufreq
-    notifier
-  ACPI: cpufreq: Switch to QoS requests instead of cpufreq notifier
-  arch_topology: Use CPUFREQ_CREATE_POLICY instead of CPUFREQ_NOTIFY
-  video: sa1100fb: Remove cpufreq policy notifier
-  video: pxafb: Remove cpufreq policy notifier
-  cpufreq: Remove CPUFREQ_ADJUST and CPUFREQ_NOTIFY policy notifier
-    events
-  Documentation: cpufreq: Update policy notifier documentation
-
- Documentation/cpu-freq/core.txt            |  16 +--
- drivers/acpi/processor_driver.c            |  44 ++++++++-
- drivers/acpi/processor_perflib.c           | 106 +++++++++-----------
- drivers/acpi/processor_thermal.c           |  81 ++++++++-------
- drivers/base/arch_topology.c               |   2 +-
- drivers/cpufreq/cpufreq.c                  |  51 ++++------
- drivers/cpufreq/ppc_cbe_cpufreq.c          |  19 +++-
- drivers/cpufreq/ppc_cbe_cpufreq.h          |   8 ++
- drivers/cpufreq/ppc_cbe_cpufreq_pmi.c      |  96 +++++++++++-------
- drivers/macintosh/windfarm_cpufreq_clamp.c |  77 ++++++++++-----
- drivers/thermal/cpu_cooling.c              | 110 +++++----------------
- drivers/video/fbdev/pxafb.c                |  21 ----
- drivers/video/fbdev/pxafb.h                |   1 -
- drivers/video/fbdev/sa1100fb.c             |  27 -----
- drivers/video/fbdev/sa1100fb.h             |   1 -
- include/acpi/processor.h                   |  22 +++--
- include/linux/cpufreq.h                    |   4 +-
- 17 files changed, 327 insertions(+), 359 deletions(-)
-
--- 
-2.21.0.rc0.269.g1a574e7a288b
-
+> ---
+>  drivers/thermal/intel/int340x_thermal/processor_thermal_device.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> Index: linux-pm/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
+> ===================================================================
+> --- linux-pm.orig/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
+> +++ linux-pm/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
+> @@ -487,6 +487,7 @@ static int proc_thermal_rapl_add(struct
+>                                 rapl_mmio_cpu_online, rapl_mmio_cpu_down_prep);
+>         if (ret < 0) {
+>                 powercap_unregister_control_type(rapl_mmio_priv.control_type);
+> +               rapl_mmio_priv.control_type = NULL;
+>                 return ret;
+>         }
+>         rapl_mmio_priv.pcap_rapl_online = ret;
+> @@ -496,6 +497,9 @@ static int proc_thermal_rapl_add(struct
+>
+>  static void proc_thermal_rapl_remove(void)
+>  {
+> +       if (IS_ERR_OR_NULL(rapl_mmio_priv.control_type))
+> +               return;
+> +
+>         cpuhp_remove_state(rapl_mmio_priv.pcap_rapl_online);
+>         powercap_unregister_control_type(rapl_mmio_priv.control_type);
+>  }
+>
+>
+>
