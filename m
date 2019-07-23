@@ -2,68 +2,109 @@ Return-Path: <SRS0=hJWw=VU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7303BC7618B
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 14:03:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB6BC76186
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 16:27:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5056521738
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 14:03:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8BE920838
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jul 2019 16:27:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=android.com header.i=@android.com header.b="NpoaCCr8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729547AbfGWODz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Jul 2019 10:03:55 -0400
-Received: from mga12.intel.com ([192.55.52.136]:4893 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727349AbfGWODy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jul 2019 10:03:54 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 23 Jul 2019 07:03:48 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,299,1559545200"; 
-   d="scan'208";a="344749449"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga005.jf.intel.com with ESMTP; 23 Jul 2019 07:03:46 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1hpvOM-0005dZ-C1; Tue, 23 Jul 2019 22:03:46 +0800
-Date:   Tue, 23 Jul 2019 22:03:37 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Tri Vo <trong@android.com>
-Cc:     kbuild-all@01.org, linux-acpi@vger.kernel.org, devel@acpica.org,
-        linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [pm:bleeding-edge 21/23] drivers/base/power/wakeup_stats.c:143:1-3:
- WARNING: PTR_ERR_OR_ZERO can be used
-Message-ID: <201907232235.iRDGgF0x%lkp@intel.com>
+        id S2388119AbfGWQ1Z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Jul 2019 12:27:25 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:41796 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732643AbfGWQ1Z (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jul 2019 12:27:25 -0400
+Received: by mail-ot1-f68.google.com with SMTP id o101so44642986ota.8
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Jul 2019 09:27:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=android.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=BWnTq6sVUPE744CYWkesDiko8LlbFzFljIJsRGuRDoY=;
+        b=NpoaCCr8INRs+7BK5AitJJ0kbuQvoQh3fz1aGPtnvdfsxKObDYYwEkx3kVZw1Spuh0
+         JZgZqqjS/vX2IhIy7B8u6HJWlB/DsuIx7JIJiWbfaTmB4Qkbej6ikXZLm1VckJyrLrX8
+         2qmOZGuT6zBIk9jhPniMCpQp5A+Q+B91o+GLTvbrcw9aHsW01HbX5JyLeq2ZU4F0WwWc
+         kScBVrA58334W7JEw7SgN1q2vT5XEEEYKOBYqNaCB38qaJXmwqV1eBKZISclvi1AVL+C
+         rUwB9qvVOxDSc7SjcxWHoEl2VQ7DqHbFXrdgs/gCO1SMPqZ04GrywW5z/ODSD3SrMNPN
+         QKXw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=BWnTq6sVUPE744CYWkesDiko8LlbFzFljIJsRGuRDoY=;
+        b=EdisqWeGHOVA+V/zcYzjhkwz27RNYHjvmf+R5eFZ90bPREuG46/dPUOYFWE6myG8ND
+         ioumCkfZLh0wV8NSVVR0/MKkSlpA0nHkQIS9LqL7ibdTPND9QxAIxEUt6/JReZ7hwIdk
+         Vgv77TGk30+oHl473U/TJeH7SfTqccV5ZqUdNxCA41OZLXDg82o0lY5bqLGqaGdfxqUL
+         iznxw31d86agijTXO1hWJWDM44lYvMIDq0pknYU3iuOFreeqBD060f12EOyr0FbKu9qT
+         AoR0Bc6+9vHQ+nLPQ+1D0yTvx238NxtTybg/Or4b97Ph3VfGQxhlTvgAFf0nXBWwweBQ
+         g70A==
+X-Gm-Message-State: APjAAAV1LJncDn7W6uZ8zGp9cRQ4etB6KFE4EI7idfzSSWv1hlI9eUHq
+        x792pdD6nxLCS6r92eqUBsKKOrhzSdw3KBtaSV0=
+X-Google-Smtp-Source: APXvYqwfTZRwYWVOLPJZSn89VK1eY1HD9mYuFULKWYonSgGD6kKY/GHz/3FXb745PFr5VcvAaYpVGJpSRCkhIf3PGQw=
+X-Received: by 2002:a9d:5f02:: with SMTP id f2mr57099525oti.148.1563899244290;
+ Tue, 23 Jul 2019 09:27:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Patchwork-Hint: ignore
-User-Agent: Mutt/1.5.23 (2014-03-12)
+References: <201907232235.iRDGgF0x%lkp@intel.com> <20190723140337.GA54192@lkp-kbuild04>
+In-Reply-To: <20190723140337.GA54192@lkp-kbuild04>
+From:   Tri Vo <trong@android.com>
+Date:   Tue, 23 Jul 2019 09:27:13 -0700
+Message-ID: <CANA+-vCDTSvfeD8upBfpUP5aSpM7cUqT8xB0URRwkhZ1Gqr+qQ@mail.gmail.com>
+Subject: Re: [PATCH] PM / wakeup: fix ptr_ret.cocci warnings
+To:     kbuild test robot <lkp@intel.com>
+Cc:     kbuild-all@01.org, linux-acpi@vger.kernel.org, devel@acpica.org,
+        Linux PM <linux-pm@vger.kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree:   https://kernel.googlesource.com/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-head:   14b99dcec44e7bca9f01e042002f57e9f0dda133
-commit: 0b050f7fb8a1e45c72ca945bac2821a59d4a0101 [21/23] PM / wakeup: show wakeup sources stats in sysfs
+On Tue, Jul 23, 2019 at 7:03 AM kbuild test robot <lkp@intel.com> wrote:
+>
+> From: kbuild test robot <lkp@intel.com>
+>
+> drivers/base/power/wakeup_stats.c:143:1-3: WARNING: PTR_ERR_OR_ZERO can be used
+>
+>
+>  Use PTR_ERR_OR_ZERO rather than if(IS_ERR(...)) + PTR_ERR
+>
+> Generated by: scripts/coccinelle/api/ptr_ret.cocci
+>
+> Fixes: 0b050f7fb8a1 ("PM / wakeup: show wakeup sources stats in sysfs")
+> CC: Tri Vo <trong@android.com>
+> Signed-off-by: kbuild test robot <lkp@intel.com>
 
-If you fix the issue, kindly add following tag
-Reported-by: kbuild test robot <lkp@intel.com>
+Reviewed-by: Tri Vo <trong@android.com>
 
-
-coccinelle warnings: (new ones prefixed by >>)
-
->> drivers/base/power/wakeup_stats.c:143:1-3: WARNING: PTR_ERR_OR_ZERO can be used
-
-Please review and possibly fold the followup patch.
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> ---
+>
+> tree:   https://kernel.googlesource.com/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+> head:   14b99dcec44e7bca9f01e042002f57e9f0dda133
+> commit: 0b050f7fb8a1e45c72ca945bac2821a59d4a0101 [21/23] PM / wakeup: show wakeup sources stats in sysfs
+>
+>  wakeup_stats.c |    5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+>
+> --- a/drivers/base/power/wakeup_stats.c
+> +++ b/drivers/base/power/wakeup_stats.c
+> @@ -140,10 +140,7 @@ EXPORT_SYMBOL_GPL(wakeup_source_sysfs_re
+>  static int __init wakeup_sources_sysfs_init(void)
+>  {
+>         wakeup_class = class_create(THIS_MODULE, "wakeup");
+> -       if (IS_ERR(wakeup_class))
+> -               return PTR_ERR(wakeup_class);
+> -
+> -       return 0;
+> +       return PTR_ERR_OR_ZERO(wakeup_class);
+>  }
+>
+>  postcore_initcall(wakeup_sources_sysfs_init);
