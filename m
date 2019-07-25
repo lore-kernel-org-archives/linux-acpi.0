@@ -2,166 +2,106 @@ Return-Path: <SRS0=qznh=VW=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72E4DC76190
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 21:23:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8726FC76190
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 22:56:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 46B74218F0
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 21:23:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564089830;
-	bh=JYTK4cSg+nAThy171dGjWsj4cVJclrRgvFc0gU0l4oo=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=blJffPdb18aeX+GMJOHbFqXriJ9nPDzNPm5u4AMaDec4iKIDW2AiLN1TICpLrlvuc
-	 5I3jFFc0WGTNMR9qoIMNC77VaJQ7LGB2luqq1Vqrz6bnFJBAO3jbRDRAs7vuZmBn9r
-	 u2oaJRZ/U7Axab3lEotbBvW+txwnzWjqrpMymqgc=
+	by mail.kernel.org (Postfix) with ESMTP id 55C142086D
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 22:56:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726604AbfGYVXt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Jul 2019 17:23:49 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:43053 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726585AbfGYVXt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2019 17:23:49 -0400
-Received: by mail-oi1-f194.google.com with SMTP id w79so38766382oif.10;
-        Thu, 25 Jul 2019 14:23:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ymU59qUw9f+YTxwPbG7+MzBEYroVA+eRo9XyYVrY9Y0=;
-        b=jx2CrTTtBfcYutOC3ytJVzumXkRkXZIJsczv0xclVXJBGFqNHF66eL75m9GXvuZq6+
-         X1X6ORUfprAwKhe5Fh870lp0MVchdoeQbFN0X37XP6f+Le01XbfI8IOK+ckqYnkZfRGF
-         RRHyYJSz0lM5ETHhtFHKjixs4Riy9hlcyQD892fkSYWzL1GsT4/4Arvqdyj+qo+M+HhP
-         9OjixcdrEByXvqU8YzGtFFP+FhAj1t3AAUfqZsylZa6fq1UqtYHZVwR8BbYd/zT5R6qA
-         PPcUXzL6s1ok7N6jgcXV8xW4qpHYIj/hrdYQLcKdHHHkBRrV/1BZkKismw73f44MHeTf
-         /E5Q==
-X-Gm-Message-State: APjAAAXr3q9SVNvyx8LvqPHSHulrgAKYCKA6NXRLFeyrnPIYmLjB2Jp2
-        iAHQpIeWmJdhsZt+HKf2TprZ+uF+hBQ7TjrnWEg=
-X-Google-Smtp-Source: APXvYqyvlhdC/BZI1W/nxzJZ72rWrJHG8Ltb0e8ZMHIC8wvEkvppGARCCAW+v73DBm/IDsBdOykCZuSDfEu2WefnQ+k=
-X-Received: by 2002:aca:d907:: with SMTP id q7mr43310361oig.68.1564089828123;
- Thu, 25 Jul 2019 14:23:48 -0700 (PDT)
+        id S1726947AbfGYW4Y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Jul 2019 18:56:24 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:48788 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726941AbfGYW4X (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2019 18:56:23 -0400
+Received: from 79.184.253.188.ipv4.supernova.orange.pl (79.184.253.188) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.267)
+ id 2d85bf4e2888bf9b; Fri, 26 Jul 2019 00:56:21 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
+Subject: [PATCH 3/4] ACPI: PM: s2idle: Rearrange lps0_device_attach()
+Date:   Fri, 26 Jul 2019 00:55:11 +0200
+Message-ID: <4485073.xHi3FTShEL@kreacher>
+In-Reply-To: <3471485.I2vrcDHEeC@kreacher>
+References: <3471485.I2vrcDHEeC@kreacher>
 MIME-Version: 1.0
-References: <20190724143017.12841-1-david@redhat.com> <20190725125636.GA3582@dhcp22.suse.cz>
- <6dc566c2-faf6-565d-4ef1-2ac3a366bc76@redhat.com> <20190725135747.GB3582@dhcp22.suse.cz>
- <447b74ca-f7c7-0835-fd50-a9f7191fe47c@redhat.com> <20190725191943.GA6142@dhcp22.suse.cz>
- <e31882cf-3290-ea36-77d6-637eaf66fe77@redhat.com>
-In-Reply-To: <e31882cf-3290-ea36-77d6-637eaf66fe77@redhat.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 25 Jul 2019 23:23:37 +0200
-Message-ID: <CAJZ5v0h+MjC3gFm1Kf3eBg2Rs12368j6S_i5_Gc24yWx+Z3xBA@mail.gmail.com>
-Subject: Re: [PATCH v1] ACPI / scan: Acquire device_hotplug_lock in acpi_scan_init()
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Michal Hocko <mhocko@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Oscar Salvador <osalvador@suse.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jul 25, 2019 at 10:49 PM David Hildenbrand <david@redhat.com> wrote:
->
-> On 25.07.19 21:19, Michal Hocko wrote:
-> > On Thu 25-07-19 16:35:07, David Hildenbrand wrote:
-> >> On 25.07.19 15:57, Michal Hocko wrote:
-> >>> On Thu 25-07-19 15:05:02, David Hildenbrand wrote:
-> >>>> On 25.07.19 14:56, Michal Hocko wrote:
-> >>>>> On Wed 24-07-19 16:30:17, David Hildenbrand wrote:
-> >>>>>> We end up calling __add_memory() without the device hotplug lock held.
-> >>>>>> (I used a local patch to assert in __add_memory() that the
-> >>>>>>  device_hotplug_lock is held - I might upstream that as well soon)
-> >>>>>>
-> >>>>>> [   26.771684]        create_memory_block_devices+0xa4/0x140
-> >>>>>> [   26.772952]        add_memory_resource+0xde/0x200
-> >>>>>> [   26.773987]        __add_memory+0x6e/0xa0
-> >>>>>> [   26.775161]        acpi_memory_device_add+0x149/0x2b0
-> >>>>>> [   26.776263]        acpi_bus_attach+0xf1/0x1f0
-> >>>>>> [   26.777247]        acpi_bus_attach+0x66/0x1f0
-> >>>>>> [   26.778268]        acpi_bus_attach+0x66/0x1f0
-> >>>>>> [   26.779073]        acpi_bus_attach+0x66/0x1f0
-> >>>>>> [   26.780143]        acpi_bus_scan+0x3e/0x90
-> >>>>>> [   26.780844]        acpi_scan_init+0x109/0x257
-> >>>>>> [   26.781638]        acpi_init+0x2ab/0x30d
-> >>>>>> [   26.782248]        do_one_initcall+0x58/0x2cf
-> >>>>>> [   26.783181]        kernel_init_freeable+0x1bd/0x247
-> >>>>>> [   26.784345]        kernel_init+0x5/0xf1
-> >>>>>> [   26.785314]        ret_from_fork+0x3a/0x50
-> >>>>>>
-> >>>>>> So perform the locking just like in acpi_device_hotplug().
-> >>>>>
-> >>>>> While playing with the device_hotplug_lock, can we actually document
-> >>>>> what it is protecting please? I have a bad feeling that we are adding
-> >>>>> this lock just because some other code path does rather than with a good
-> >>>>> idea why it is needed. This patch just confirms that. What exactly does
-> >>>>> the lock protect from here in an early boot stage.
-> >>>>
-> >>>> We have plenty of documentation already
-> >>>>
-> >>>> mm/memory_hotplug.c
-> >>>>
-> >>>> git grep -C5 device_hotplug mm/memory_hotplug.c
-> >>>>
-> >>>> Also see
-> >>>>
-> >>>> Documentation/core-api/memory-hotplug.rst
-> >>>
-> >>> OK, fair enough. I was more pointing to a documentation right there
-> >>> where the lock is declared because that is the place where people
-> >>> usually check for documentation. The core-api documentation looks quite
-> >>> nice. And based on that doc it seems that this patch is actually not
-> >>> needed because neither the online/offline or cpu hotplug should be
-> >>> possible that early unless I am missing something.
-> >>
-> >> I really prefer to stick to locking rules as outlined on the
-> >> interfaces if it doesn't hurt. Why it is not needed is not clear.
-> >>
-> >>>
-> >>>> Regarding the early stage: primarily lockdep as I mentioned.
-> >>>
-> >>> Could you add a lockdep splat that would be fixed by this patch to the
-> >>> changelog for reference?
-> >>>
-> >>
-> >> I have one where I enforce what's documented (but that's of course not
-> >> upstream and therefore not "real" yet)
-> >
-> > Then I suppose to not add locking for something that is not a problem.
-> > Really, think about it. People will look at this code and follow the
-> > lead without really knowing why the locking is needed.
-> > device_hotplug_lock has its purpose and if the code in question doesn't
-> > need synchronization for the documented scenarios then the locking
-> > simply shouldn't be there. Adding the lock just because of a
-> > non-existing, and IMHO dubious, lockdep splats is just wrong.
-> >
-> > We need to rationalize the locking here, not to add more hacks.
->
-> No, sorry. The real hack is calling a function that is *documented* to
-> be called under lock without it. That is an optimization for a special
-> case. That is the black magic in the code.
->
-> The only alternative I see to this patch is adding a comment like
->
-> /*
->  * We end up calling __add_memory() without the device_hotplug_lock
->  * held. This is fine as we cannot race with other hotplug activities
->  * and userspace trying to online memory blocks.
->  */
->
-> Personally, I don't think that's any better than just grabbing the lock
-> as we are told to. (honestly, I don't see how optimizing away the lock
-> here is of *any* help to optimize our overall memory hotplug locking)
->
-> @Rafael, what's your take? lock or comment?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Well, I have ACKed your patch already. :-)
+To allow a subsequent change to be simpler, rearrange the code in
+lps0_device_attach() to reduce the indentation level and (while
+at it) make it avoid calling lpi_device_get_constraints() when
+lps0_device_handle is not going to be set.
 
-That said, adding a comment stating that the lock is acquired mostly
-for consistency wouldn't hurt.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/sleep.c |   32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
+
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -916,28 +916,30 @@ static int lps0_device_attach(struct acp
+ 	guid_parse(ACPI_LPS0_DSM_UUID, &lps0_dsm_guid);
+ 	/* Check if the _DSM is present and as expected. */
+ 	out_obj = acpi_evaluate_dsm(adev->handle, &lps0_dsm_guid, 1, 0, NULL);
+-	if (out_obj && out_obj->type == ACPI_TYPE_BUFFER) {
+-		char bitmask = *(char *)out_obj->buffer.pointer;
+-
+-		lps0_dsm_func_mask = bitmask;
+-		lps0_device_handle = adev->handle;
+-		/*
+-		 * Use suspend-to-idle by default if the default
+-		 * suspend mode was not set from the command line.
+-		 */
+-		if (mem_sleep_default > PM_SUSPEND_MEM)
+-			mem_sleep_current = PM_SUSPEND_TO_IDLE;
+-
+-		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
+-				  bitmask);
+-	} else {
++	if (!out_obj || out_obj->type != ACPI_TYPE_BUFFER) {
+ 		acpi_handle_debug(adev->handle,
+ 				  "_DSM function 0 evaluation failed\n");
++		return 0;
+ 	}
++
++	lps0_dsm_func_mask = *(char *)out_obj->buffer.pointer;
++
+ 	ACPI_FREE(out_obj);
+ 
++	acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
++			  lps0_dsm_func_mask);
++
++	lps0_device_handle = adev->handle;
++
+ 	lpi_device_get_constraints();
+ 
++	/*
++	 * Use suspend-to-idle by default if the default suspend mode was not
++	 * set from the command line.
++	 */
++	if (mem_sleep_default > PM_SUSPEND_MEM)
++		mem_sleep_current = PM_SUSPEND_TO_IDLE;
++
+ 	return 0;
+ }
+ 
+
+
+
