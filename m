@@ -2,36 +2,34 @@ Return-Path: <SRS0=qznh=VW=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8726FC76190
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 22:56:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76EADC76190
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 22:56:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55C142086D
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 22:56:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58D612086D
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jul 2019 22:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726947AbfGYW4Y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Jul 2019 18:56:24 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:48788 "EHLO
+        id S1727032AbfGYW40 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Jul 2019 18:56:26 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:59328 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726941AbfGYW4X (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2019 18:56:23 -0400
+        with ESMTP id S1726999AbfGYW40 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2019 18:56:26 -0400
 Received: from 79.184.253.188.ipv4.supernova.orange.pl (79.184.253.188) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.267)
- id 2d85bf4e2888bf9b; Fri, 26 Jul 2019 00:56:21 +0200
+ id dce5c082049a12d6; Fri, 26 Jul 2019 00:56:23 +0200
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     Linux PM <linux-pm@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>,
         Zhang Rui <rui.zhang@intel.com>,
         Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
-Subject: [PATCH 3/4] ACPI: PM: s2idle: Rearrange lps0_device_attach()
-Date:   Fri, 26 Jul 2019 00:55:11 +0200
-Message-ID: <4485073.xHi3FTShEL@kreacher>
-In-Reply-To: <3471485.I2vrcDHEeC@kreacher>
-References: <3471485.I2vrcDHEeC@kreacher>
+Subject: [PATCH 0/4] PM / ACPI: sleep: Additional changes related to suspend-to-idle
+Date:   Fri, 26 Jul 2019 00:51:09 +0200
+Message-ID: <3471485.I2vrcDHEeC@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -40,68 +38,27 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi All,
 
-To allow a subsequent change to be simpler, rearrange the code in
-lps0_device_attach() to reduce the indentation level and (while
-at it) make it avoid calling lpi_device_get_constraints() when
-lps0_device_handle is not going to be set.
+On top of the "Simplify the suspend-to-idle control flow" patch series posted previously:
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/sleep.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+https://lore.kernel.org/lkml/71085220.z6FKkvYQPX@kreacher/
 
-Index: linux-pm/drivers/acpi/sleep.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sleep.c
-+++ linux-pm/drivers/acpi/sleep.c
-@@ -916,28 +916,30 @@ static int lps0_device_attach(struct acp
- 	guid_parse(ACPI_LPS0_DSM_UUID, &lps0_dsm_guid);
- 	/* Check if the _DSM is present and as expected. */
- 	out_obj = acpi_evaluate_dsm(adev->handle, &lps0_dsm_guid, 1, 0, NULL);
--	if (out_obj && out_obj->type == ACPI_TYPE_BUFFER) {
--		char bitmask = *(char *)out_obj->buffer.pointer;
--
--		lps0_dsm_func_mask = bitmask;
--		lps0_device_handle = adev->handle;
--		/*
--		 * Use suspend-to-idle by default if the default
--		 * suspend mode was not set from the command line.
--		 */
--		if (mem_sleep_default > PM_SUSPEND_MEM)
--			mem_sleep_current = PM_SUSPEND_TO_IDLE;
--
--		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
--				  bitmask);
--	} else {
-+	if (!out_obj || out_obj->type != ACPI_TYPE_BUFFER) {
- 		acpi_handle_debug(adev->handle,
- 				  "_DSM function 0 evaluation failed\n");
-+		return 0;
- 	}
-+
-+	lps0_dsm_func_mask = *(char *)out_obj->buffer.pointer;
-+
- 	ACPI_FREE(out_obj);
- 
-+	acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
-+			  lps0_dsm_func_mask);
-+
-+	lps0_device_handle = adev->handle;
-+
- 	lpi_device_get_constraints();
- 
-+	/*
-+	 * Use suspend-to-idle by default if the default suspend mode was not
-+	 * set from the command line.
-+	 */
-+	if (mem_sleep_default > PM_SUSPEND_MEM)
-+		mem_sleep_current = PM_SUSPEND_TO_IDLE;
-+
- 	return 0;
- }
- 
+sanitize the suspend-to-idle flow even further.
+
+First off, decouple EC wakeup from the LPS0 _DSM processing (patch 1).
+
+Next, reorder the code to invoke LPS0 _DSM Functions 5 and 6 in the
+specification-compliant order with respect to suspending and resuming
+devices (patch 2).
+
+Finally, rearrange lps0_device_attach() (patch 3) and add a command line switch
+to prevent the LPS0 _DSM from being used.
+
+Please refer to the changelogs for details.
+
+Thanks,
+Rafael
 
 
 
