@@ -2,109 +2,80 @@ Return-Path: <SRS0=QTvO=VX=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57547C41517
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 13:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E97CC76190
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 14:10:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 25DFD22CEB
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 13:58:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564149534;
-	bh=fMIlE96iPeuJpA5NvQKZPass3MD+QVHBbBgG4YrBypA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=SpAuwco4lkgBwD/FeREMB9wwHQYZZn15aeUzW4NOsac07OUTU2b0xgNP9a1QATOlr
-	 7Gh4GxHy/uMD74xp+NS8VS4ttjjfHjz7Nw4VmpFH45OvqF4N8Jvl6ZhwS+0kWxckPC
-	 /WEjjOBEYreqSFRDCrHZUMRopFakO1IjYjpgr/t0=
+	by mail.kernel.org (Postfix) with ESMTP id 623BA218D3
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 14:10:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387516AbfGZNkh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Jul 2019 09:40:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46722 "EHLO mail.kernel.org"
+        id S1727532AbfGZOKC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Jul 2019 10:10:02 -0400
+Received: from foss.arm.com ([217.140.110.172]:45350 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387507AbfGZNkg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 26 Jul 2019 09:40:36 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 90E2C22BF5;
-        Fri, 26 Jul 2019 13:40:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564148435;
-        bh=fMIlE96iPeuJpA5NvQKZPass3MD+QVHBbBgG4YrBypA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uUH8bzv1cXOQ/Nf9kr1FxlpkZChwmhJYclCAVPT+KRQOB2azvZ5sgH9suRfnqa7Rz
-         Js9xgHjT76gkrlWFtY3eWy+KlJgzofDTjn8yPhu7hSdwl0EDjLJRvyjWw3Zc8ZeXhc
-         c0n+YN3M0pH/an4nS1fCgalOQMa+WS5L0RWLa3mM=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Arnd Bergmann <arnd@arndb.de>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        clang-built-linux@googlegroups.com
-Subject: [PATCH AUTOSEL 5.2 37/85] ACPI: blacklist: fix clang warning for unused DMI table
-Date:   Fri, 26 Jul 2019 09:38:47 -0400
-Message-Id: <20190726133936.11177-37-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190726133936.11177-1-sashal@kernel.org>
-References: <20190726133936.11177-1-sashal@kernel.org>
+        id S1726902AbfGZOKB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Jul 2019 10:10:01 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0628B337;
+        Fri, 26 Jul 2019 07:10:01 -0700 (PDT)
+Received: from [10.1.196.105] (eglon.cambridge.arm.com [10.1.196.105])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 22AFF3F71F;
+        Fri, 26 Jul 2019 07:10:00 -0700 (PDT)
+Subject: Re: [PATCH v4] ACPI / APEI: release resources if gen_pool_add fails
+To:     =?UTF-8?B?5Lmx55+z?= <zhangliguang@linux.alibaba.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
+        Borislav Petkov <bp@alien8.de>, linux-acpi@vger.kernel.org
+References: <1563173924-47479-1-git-send-email-zhangliguang@linux.alibaba.com>
+ <3c4ce1be-f873-8acd-0e9b-061f1c079717@arm.com>
+ <794d2bd0-af4f-8935-296f-b4cedd542800@linux.alibaba.com>
+From:   James Morse <james.morse@arm.com>
+Message-ID: <4d523cd0-cb09-3706-b417-bc118e821908@arm.com>
+Date:   Fri, 26 Jul 2019 15:09:59 +0100
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
+In-Reply-To: <794d2bd0-af4f-8935-296f-b4cedd542800@linux.alibaba.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+Hi Liguang,
 
-[ Upstream commit b80d6a42bdc97bdb6139107d6034222e9843c6e2 ]
+On 26/07/2019 10:29, 乱石 wrote:
+> 在 2019/7/25 20:46, James Morse 写道:
+>> On 15/07/2019 07:58, luanshi wrote:
+>>> To avoid memory leaks, destroy ghes_estatus_pool and release memory
+>>> allocated via vmalloc() on errors in ghes_estatus_pool_init().
+>>>
+>>> Signed-off-by: Liguang Zhang <zhangliguang@linux.alibaba.com>
+>>> ---
+>> Playing spot-the-difference with [v3], you've moved an empty line.
+>>
+>> Please include a change log in this space below the '---' tearoff. This helps reviewers
+>> know what you changed between versions, and git knows not to add stuff in here to the log.
+>>
+>> This is still:
+>> Reviewed-by: James Morse <james.morse@arm.com>
+> 
+> Thanks for your review. Because your reviewed-by was given ealier, and the code is
+> reconstructed,
+> 
+> so I remove the reviewed-by. I will send v5 by your suggestions.
 
-When CONFIG_DMI is disabled, we only have a tentative declaration,
-which causes a warning from clang:
+There is no need to post a new version just to pick up the tags.
 
-drivers/acpi/blacklist.c:20:35: error: tentative array definition assumed to have one element [-Werror]
-static const struct dmi_system_id acpi_rev_dmi_table[] __initconst;
+Having a versioned changelog on your future work makes it easier for reviewers to know
+what changed between versions.
 
-As the variable is not actually used here, hide it entirely
-in an #ifdef to shut up the warning.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/blacklist.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Thanks,
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index ad2c565f5cbe..a86a770c9b79 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -17,7 +17,9 @@
- 
- #include "internal.h"
- 
-+#ifdef CONFIG_DMI
- static const struct dmi_system_id acpi_rev_dmi_table[] __initconst;
-+#endif
- 
- /*
-  * POLICY: If *anything* doesn't work, put it on the blacklist.
-@@ -61,7 +63,9 @@ int __init acpi_blacklisted(void)
- 	}
- 
- 	(void)early_acpi_osi_init();
-+#ifdef CONFIG_DMI
- 	dmi_check_system(acpi_rev_dmi_table);
-+#endif
- 
- 	return blacklisted;
- }
--- 
-2.20.1
-
+James
