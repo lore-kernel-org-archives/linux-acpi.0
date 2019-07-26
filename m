@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96BEAC7618B
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 13:49:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBCDDC7618B
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 13:51:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6C8FF22CD8
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 13:49:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A69C922CD8
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jul 2019 13:51:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564148950;
-	bh=1FOnbSF7WqPxZqQHFLMLT7wGOvQBsSTOeGGZhcbQPnk=;
+	s=default; t=1564149076;
+	bh=1AVau6OS7KbbPQQyhbzslb1LdomSaJEX2zijuFlllXg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=af5jSKexeXsH8dCpnDd1AEO0IXPOhoB0U9bfs5d4310JFOUYu88szylxb7pEH7rcG
-	 z2HBGzoSX0ILg7Fuqsrq+oCLSKE3cmWXzvAS8PYAXrSptjhGLHww7lVLYODPj9sZDH
-	 K8vGtnKpQwdUpWZqSZulQZqecxs6jvo51wvz91Sw=
+	b=du2zG560KWnNaOs4XSkMXZZOikVusQdjRwQelA0fV6UgIJLDmb8viDC6CdJnfn6OB
+	 rWM6V7i6sbyUEY3cld8o1SCv77mJhjh8afahkaxwjTZhh10F5g1E0yWJMo1EFZssjI
+	 XWo8Rb/rI6s0CN9G4hdJHhX6Yjwtn1RUfWDDMcY4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388445AbfGZNow (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Jul 2019 09:44:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53272 "EHLO mail.kernel.org"
+        id S1727899AbfGZNn5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Jul 2019 09:43:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388439AbfGZNow (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 26 Jul 2019 09:44:52 -0400
+        id S1727843AbfGZNn5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Jul 2019 09:43:57 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 55C2122CD7;
-        Fri, 26 Jul 2019 13:44:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6863E22CD0;
+        Fri, 26 Jul 2019 13:43:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564148691;
-        bh=1FOnbSF7WqPxZqQHFLMLT7wGOvQBsSTOeGGZhcbQPnk=;
+        s=default; t=1564148636;
+        bh=1AVau6OS7KbbPQQyhbzslb1LdomSaJEX2zijuFlllXg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=b/1gT6wSgapNyF6JThloKi2bQ2TbSD9Tuh3kosZ9Z85tBjP3NDZBirrrPdF/8jF7M
-         rwBMYZbC3nRzWGOBbgi1+0/wSvVNQU2S13r4OSAHAmQiaicswH2dW9U6S4eT0SB4YU
-         SucxtzGnV+hF1KqoHJFZTBnUFA+q9GpxnGxRPC4w=
+        b=aEiCCJAK2K8VYFGFrHMK9iQoCZlG+7vwm3aRuCJh8gPrtua4+PZy7js8hDdw5Ndih
+         kmvfzwXlOM8xajmbzDtcX901Tzc7JOMHA8ig9Avhn2v1NQ3HUkK17g1YjN+gBN6ye5
+         T4Sl9JOkbNzhQ+hyc0gtnGwpXx1D5SUO/mA4Zc7U=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Arnd Bergmann <arnd@arndb.de>,
@@ -46,12 +46,12 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         clang-built-linux@googlegroups.com
-Subject: [PATCH AUTOSEL 4.9 14/30] ACPI: fix false-positive -Wuninitialized warning
-Date:   Fri, 26 Jul 2019 09:44:16 -0400
-Message-Id: <20190726134432.12993-14-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 18/37] ACPI: fix false-positive -Wuninitialized warning
+Date:   Fri, 26 Jul 2019 09:43:13 -0400
+Message-Id: <20190726134332.12626-18-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190726134432.12993-1-sashal@kernel.org>
-References: <20190726134432.12993-1-sashal@kernel.org>
+In-Reply-To: <20190726134332.12626-1-sashal@kernel.org>
+References: <20190726134332.12626-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -98,10 +98,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ca2b4c4aec42..719eb97217a3 100644
+index 13c105121a18..d7a9700b9333 100644
 --- a/include/linux/acpi.h
 +++ b/include/linux/acpi.h
-@@ -309,7 +309,10 @@ void acpi_set_irq_model(enum acpi_irq_model_id model,
+@@ -324,7 +324,10 @@ void acpi_set_irq_model(enum acpi_irq_model_id model,
  #ifdef CONFIG_X86_IO_APIC
  extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
  #else
