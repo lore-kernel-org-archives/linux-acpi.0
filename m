@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44EACC433FF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B194FC0650F
 	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jul 2019 10:05:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 227A82089E
+	by mail.kernel.org (Postfix) with ESMTP id 858582089E
 	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jul 2019 10:05:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732249AbfG3KFQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1732244AbfG3KFQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Tue, 30 Jul 2019 06:05:16 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:54294 "EHLO
+Received: from cloudserver094114.home.pl ([79.96.170.134]:64768 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732238AbfG3KFP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2019 06:05:15 -0400
+        with ESMTP id S1732239AbfG3KFQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2019 06:05:16 -0400
 Received: from 79.184.255.110.ipv4.supernova.orange.pl (79.184.255.110) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.275)
- id 6af1cced8e17fbd2; Tue, 30 Jul 2019 12:05:12 +0200
+ id cef21d955188d92f; Tue, 30 Jul 2019 12:05:13 +0200
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     Linux PM <linux-pm@vger.kernel.org>,
@@ -28,9 +28,9 @@ Cc:     Linux PM <linux-pm@vger.kernel.org>,
         Zhang Rui <rui.zhang@intel.com>,
         Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 4/8] ACPI: PM: s2idle: Add acpi.sleep_no_lps0 module parameter
-Date:   Tue, 30 Jul 2019 11:59:17 +0200
-Message-ID: <2063170.Mj4IZd0x4s@kreacher>
+Subject: [PATCH v2 3/8] PM: s2idle: Rearrange lps0_device_attach()
+Date:   Tue, 30 Jul 2019 11:57:37 +0200
+Message-ID: <1832879.s96VGDVqo9@kreacher>
 In-Reply-To: <7528887.mqcfy9PZua@kreacher>
 References: <7528887.mqcfy9PZua@kreacher>
 MIME-Version: 1.0
@@ -43,120 +43,70 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Add a module parameter to prevent the ACPI LPS0 _DSM functions
-from being invoked (if need be) and rework the suspend-to-idle
-blacklist entries in acpisleep_dmi_table[] to make them simply
-prevent suspend-to-idle from being used by default on the systems
-in question (which really is the original purpose of those entries).
+To allow a subsequent change to be simpler, rearrange the code in
+lps0_device_attach() to reduce the indentation level and (while
+at it) make it avoid calling lpi_device_get_constraints() when
+lps0_device_handle is not going to be set.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
 
--> v2: Patch reworked, new subject.
+No changes in v2.
 
 ---
- drivers/acpi/sleep.c |   29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ drivers/acpi/sleep.c |   32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
 Index: linux-pm/drivers/acpi/sleep.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/sleep.c
 +++ linux-pm/drivers/acpi/sleep.c
-@@ -89,6 +89,10 @@ bool acpi_sleep_state_supported(u8 sleep
- }
- 
- #ifdef CONFIG_ACPI_SLEEP
-+static bool sleep_no_lps0 __read_mostly;
-+module_param(sleep_no_lps0, bool, 0644);
-+MODULE_PARM_DESC(sleep_no_lps0, "Do not use the special LPS0 device interface");
-+
- static u32 acpi_target_sleep_state = ACPI_STATE_S0;
- 
- u32 acpi_target_system_state(void)
-@@ -158,11 +162,11 @@ static int __init init_nvs_nosave(const
- 	return 0;
- }
- 
--static bool acpi_sleep_no_lps0;
-+static bool acpi_sleep_default_s3;
- 
--static int __init init_no_lps0(const struct dmi_system_id *d)
-+static int __init init_default_s3(const struct dmi_system_id *d)
- {
--	acpi_sleep_no_lps0 = true;
-+	acpi_sleep_default_s3 = true;
- 	return 0;
- }
- 
-@@ -363,7 +367,7 @@ static const struct dmi_system_id acpisl
- 	 * S0 Idle firmware interface.
- 	 */
- 	{
--	.callback = init_no_lps0,
-+	.callback = init_default_s3,
- 	.ident = "Dell XPS13 9360",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-@@ -376,7 +380,7 @@ static const struct dmi_system_id acpisl
- 	 * https://bugzilla.kernel.org/show_bug.cgi?id=199057).
- 	 */
- 	{
--	.callback = init_no_lps0,
-+	.callback = init_default_s3,
- 	.ident = "ThinkPad X1 Tablet(2016)",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-@@ -524,8 +528,9 @@ static void acpi_pm_end(void)
- 	acpi_sleep_tts_switch(acpi_target_sleep_state);
- }
- #else /* !CONFIG_ACPI_SLEEP */
-+#define sleep_no_lps0	(1)
- #define acpi_target_sleep_state	ACPI_STATE_S0
--#define acpi_sleep_no_lps0	(false)
-+#define acpi_sleep_default_s3	(1)
- static inline void acpi_sleep_dmi_check(void) {}
- #endif /* CONFIG_ACPI_SLEEP */
- 
-@@ -904,12 +909,6 @@ static int lps0_device_attach(struct acp
- 	if (lps0_device_handle)
- 		return 0;
- 
--	if (acpi_sleep_no_lps0) {
--		acpi_handle_info(adev->handle,
--				 "Low Power S0 Idle interface disabled\n");
--		return 0;
--	}
+@@ -916,28 +916,30 @@ static int lps0_device_attach(struct acp
+ 	guid_parse(ACPI_LPS0_DSM_UUID, &lps0_dsm_guid);
+ 	/* Check if the _DSM is present and as expected. */
+ 	out_obj = acpi_evaluate_dsm(adev->handle, &lps0_dsm_guid, 1, 0, NULL);
+-	if (out_obj && out_obj->type == ACPI_TYPE_BUFFER) {
+-		char bitmask = *(char *)out_obj->buffer.pointer;
 -
- 	if (!(acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0))
- 		return 0;
+-		lps0_dsm_func_mask = bitmask;
+-		lps0_device_handle = adev->handle;
+-		/*
+-		 * Use suspend-to-idle by default if the default
+-		 * suspend mode was not set from the command line.
+-		 */
+-		if (mem_sleep_default > PM_SUSPEND_MEM)
+-			mem_sleep_current = PM_SUSPEND_TO_IDLE;
+-
+-		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
+-				  bitmask);
+-	} else {
++	if (!out_obj || out_obj->type != ACPI_TYPE_BUFFER) {
+ 		acpi_handle_debug(adev->handle,
+ 				  "_DSM function 0 evaluation failed\n");
++		return 0;
+ 	}
++
++	lps0_dsm_func_mask = *(char *)out_obj->buffer.pointer;
++
+ 	ACPI_FREE(out_obj);
  
-@@ -937,7 +936,7 @@ static int lps0_device_attach(struct acp
- 	 * Use suspend-to-idle by default if the default suspend mode was not
- 	 * set from the command line.
- 	 */
--	if (mem_sleep_default > PM_SUSPEND_MEM)
-+	if (mem_sleep_default > PM_SUSPEND_MEM && !acpi_sleep_default_s3)
- 		mem_sleep_current = PM_SUSPEND_TO_IDLE;
++	acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
++			  lps0_dsm_func_mask);
++
++	lps0_device_handle = adev->handle;
++
+ 	lpi_device_get_constraints();
  
++	/*
++	 * Use suspend-to-idle by default if the default suspend mode was not
++	 * set from the command line.
++	 */
++	if (mem_sleep_default > PM_SUSPEND_MEM)
++		mem_sleep_current = PM_SUSPEND_TO_IDLE;
++
  	return 0;
-@@ -972,7 +971,7 @@ static int acpi_s2idle_prepare(void)
+ }
  
- static int acpi_s2idle_prepare_late(void)
- {
--	if (!lps0_device_handle)
-+	if (!lps0_device_handle || sleep_no_lps0)
- 		return 0;
- 
- 	if (pm_debug_messages_on)
-@@ -1022,7 +1021,7 @@ static void acpi_s2idle_wake(void)
- 
- static void acpi_s2idle_restore_early(void)
- {
--	if (!lps0_device_handle)
-+	if (!lps0_device_handle || sleep_no_lps0)
- 		return;
- 
- 	acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
 
 
 
