@@ -1,108 +1,78 @@
-Return-Path: <SRS0=vb1f=V2=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=B26z=V3=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B542AC76186
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jul 2019 21:09:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC365C0650F
+	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jul 2019 10:05:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8962920693
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jul 2019 21:09:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="glWb7RlN"
+	by mail.kernel.org (Postfix) with ESMTP id 9AAF1206A2
+	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jul 2019 10:05:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730059AbfG2VJx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Jul 2019 17:09:53 -0400
-Received: from mail-io1-f67.google.com ([209.85.166.67]:47080 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729085AbfG2VJw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jul 2019 17:09:52 -0400
-Received: by mail-io1-f67.google.com with SMTP id i10so9900873iol.13
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Jul 2019 14:09:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9YrqMlHNqZAaGdeVX5EfmeYkFQLdlx9m477jCrUkqDI=;
-        b=glWb7RlNO8QHe3Kd15SImmSGdttxS5VwsK9LBdSYpUeFXTdnyopO9CQKUwsIvsFW8b
-         jjY2cj9+GtlbZ0QIybP3UYT5qzWKUxwoeBtypQM9bMFhc/+y5BsL8Mp6zmFZmzlchcl9
-         dl8Nr090TKl3xad3/4IdW+2o3TeGVpjzW4bken0Wm3ETbmAkXlYRX82n2x6w7PdrG+Ln
-         wQNsesgvR5iPZsd0b9NGn0y2vX7ToqjAALSnmk7M3+GF3pQb/KlPgviAfm9eGux49OrT
-         3KfSK3GSzd30IbwYMfqNOoNOcYUn5/zR5ok4bqmGozTAAmoJfiXDoi+EfLsrKjXEoQYS
-         VrdA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9YrqMlHNqZAaGdeVX5EfmeYkFQLdlx9m477jCrUkqDI=;
-        b=aDxHl0SLCmAVK1rBQ2CxRcv2WfvwJTG6dkJ9yHnD4Dwizdmmzpi4Pd+Fi4NQuVnR8b
-         9hNnoNNN6PCeAd+UY5JIKDSps035fjH66viihXEGYePd0S4Ka8hucSlZK0+hUpGbrwOi
-         gG6jVqxIcxyVta7rS0nn9kY7+wNgxxfIHPlpvl6mXCh60MKeSjuOblg6XghicHbpC+3b
-         9iwIYqsfNa0vr6FQfyLE2U2/DpogK/OmXj9lLRCjtQSnAvKGsjcZQBaTWkw4OabskCNC
-         C4glUq7/AKhf0KlROqdDTSUl64YWqYqjnBe3s2UvmTtuUcu/6SbuoHwaRJilm+fI3dmS
-         vsaA==
-X-Gm-Message-State: APjAAAV0+lV1AgyG1fqQfa0xZtgKoOdNA5f7YcHDd9OlTPPP0CfiVn/5
-        9p0GreWkw7GLCzdF8+7YKtvVucG6VQKNovTwYuEhLg==
-X-Google-Smtp-Source: APXvYqxhlUj+a11+YzuMwWDnq9y2Do3Qn7frG9IgBVh7BEzf0sUkKNrCTQmU131fes0GT8rMVdTm+jm9ljeWEL5ZQro=
-X-Received: by 2002:a6b:6b14:: with SMTP id g20mr73770321ioc.28.1564434591860;
- Mon, 29 Jul 2019 14:09:51 -0700 (PDT)
+        id S1732224AbfG3KFN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 30 Jul 2019 06:05:13 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:57843 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725947AbfG3KFM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2019 06:05:12 -0400
+Received: from 79.184.255.110.ipv4.supernova.orange.pl (79.184.255.110) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.275)
+ id 29803c6a92586caf; Tue, 30 Jul 2019 12:05:10 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 8/8] ACPI: EC: PM: Make acpi_ec_dispatch_gpe() print debug message
+Date:   Tue, 30 Jul 2019 12:04:58 +0200
+Message-ID: <5021710.3QdRCBUraa@kreacher>
+In-Reply-To: <7528887.mqcfy9PZua@kreacher>
+References: <7528887.mqcfy9PZua@kreacher>
 MIME-Version: 1.0
-References: <20190729204954.25510-1-briannorris@chromium.org>
- <20190729205452.GA22785@archlinux-threadripper> <CA+ASDXOOqOAWg9LnSPUs9d9Ai8G_4xkdUGC+CCduQQLBzC4kQA@mail.gmail.com>
-In-Reply-To: <CA+ASDXOOqOAWg9LnSPUs9d9Ai8G_4xkdUGC+CCduQQLBzC4kQA@mail.gmail.com>
-From:   Enrico Granata <egranata@google.com>
-Date:   Mon, 29 Jul 2019 14:09:41 -0700
-Message-ID: <CAPR809vmOBeJPArfjM=Fh_Kiqsew-shfF9ZpOtRJ-sU7QgUneQ@mail.gmail.com>
-Subject: Re: [PATCH] driver core: platform: return -ENXIO for missing GpioInt
-To:     Brian Norris <briannorris@chromium.org>
-Cc:     Nathan Chancellor <natechancellor@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Salvatore Bellizzi <salvatore.bellizzi@linux.seppia.net>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Enrico Granata <egranata@chromium.org>,
-        Enric Balletbo i Serra <enric.balletbo@collabora.com>,
-        Gwendal Grignou <gwendal@chromium.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Benson Leung <bleung@chromium.org>,
-        stable <stable@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jul 29, 2019 at 2:03 PM Brian Norris <briannorris@chromium.org> wrote:
->
-> On Mon, Jul 29, 2019 at 1:54 PM Nathan Chancellor
-> <natechancellor@gmail.com> wrote:
-> > On Mon, Jul 29, 2019 at 01:49:54PM -0700, Brian Norris wrote:
-> > > Side note: it might have helped alleviate some of this pain if there
-> > > were email notifications to the mailing list when a patch gets applied.
-> > > I didn't realize (and I'm not sure if Enrico did) that v2 was already
-> > > merged by the time I noted its mistakes. If I had known, I would have
-> > > suggested a follow-up patch, not a v3.
-> >
-> > I've found this to be fairly reliable for getting notified when
-> > something gets applied if it is a tree that shows up in -next.
-> >
-> > https://www.kernel.org/get-notifications-for-your-patches.html
->
-> I didn't send the original patch. I was only debugging/reviewing
-> someone else's patch, and jumped in after its authorship (as it hit
-> issues in our own CI system). So it was more of a "drive-by" scenario,
-> and it doesn't sound like that page addresses this situation.
->
-> Brian
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Your assessment sounds about right - I suspect the tl;dr is that *I*
-(the original patch author) should have subscribed to that bot, so I
-could figure out that v2 had already merged, and done the right thing
-sending out a follow-up CL once you brought the issue to my attention.
+Add a pm_pr_dbg() debug statement to acpi_ec_dispatch_gpe() to print
+a message when the EC GPE has been dispatched (because its status
+was set).
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+New in v2.
+
+---
+ drivers/acpi/ec.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/ec.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/ec.c
++++ linux-pm/drivers/acpi/ec.c
+@@ -1980,7 +1980,11 @@ bool acpi_ec_dispatch_gpe(void)
+ 		return false;
+ 
+ 	ret = acpi_dispatch_gpe(NULL, first_ec->gpe);
+-	return ret == ACPI_INTERRUPT_HANDLED;
++	if (ret == ACPI_INTERRUPT_HANDLED) {
++		pm_pr_dbg("EC GPE dispatched\n");
++		return true;
++	}
++	return false;
+ }
+ #endif /* CONFIG_PM_SLEEP */
+ 
+
+
+
