@@ -2,76 +2,84 @@ Return-Path: <SRS0=EhvU=V4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0496AC433FF
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 13:44:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D94F9C433FF
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 13:53:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C7C5C206A2
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 13:44:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564580664;
-	bh=iFySZK9nAc8gKANTqHzWXIeOjVqsTDqT69nmU5gh3Cg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=kXFT9mf5+wVgQ81W2JeMVczLgSSJZA8nlgZqjaKV1KYOcUCzLxQi5gE48B3LTqR/b
-	 LiJf2oMW5YS+THcYd7Pa0t/wXYN64KS6EB3CjyJctLAE151+1HGaxo62LjdLJaX6Br
-	 Sm7WTwjXYo0akriiIoLoHiml/aq0fNotrYhHQtUQ=
+	by mail.kernel.org (Postfix) with ESMTP id B415920693
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 13:53:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728211AbfGaNoY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 31 Jul 2019 09:44:24 -0400
-Received: from mx2.suse.de ([195.135.220.15]:40070 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726907AbfGaNoY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 Jul 2019 09:44:24 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id B8AA4ABD0;
-        Wed, 31 Jul 2019 13:44:22 +0000 (UTC)
-Date:   Wed, 31 Jul 2019 15:44:22 +0200
-From:   Michal Hocko <mhocko@kernel.org>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-acpi@vger.kernel.org,
+        id S1727512AbfGaNxJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 31 Jul 2019 09:53:09 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:20003 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726592AbfGaNxI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 Jul 2019 09:53:08 -0400
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id CCEAB3079B62;
+        Wed, 31 Jul 2019 13:53:08 +0000 (UTC)
+Received: from t460s.redhat.com (ovpn-117-240.ams2.redhat.com [10.36.117.240])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2C5081001959;
+        Wed, 31 Jul 2019 13:53:07 +0000 (UTC)
+From:   David Hildenbrand <david@redhat.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     linux-mm@kvack.org, linux-acpi@vger.kernel.org,
+        David Hildenbrand <david@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Michal Hocko <mhocko@suse.com>,
         Oscar Salvador <osalvador@suse.de>,
         Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v1] drivers/acpi/scan.c: Fixup "acquire
- device_hotplug_lock in acpi_scan_init()"
-Message-ID: <20190731134422.GS9330@dhcp22.suse.cz>
-References: <20190731123201.13893-1-david@redhat.com>
- <20190731125334.GM9330@dhcp22.suse.cz>
- <d3cc595d-7e6f-ef6f-044c-b20bd1de3fb0@redhat.com>
- <20190731131408.GP9330@dhcp22.suse.cz>
- <23f28590-7765-bcd9-15f2-94e985b64218@redhat.com>
- <20190731133344.GR9330@dhcp22.suse.cz>
- <b135e167-a0e1-0772-559b-6375ea40c9c4@redhat.com>
+Subject: [PATCH v1] drivers/acpi/scan.c: Document why we don't need the device_hotplug_lock
+Date:   Wed, 31 Jul 2019 15:53:06 +0200
+Message-Id: <20190731135306.31524-1-david@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b135e167-a0e1-0772-559b-6375ea40c9c4@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.41]); Wed, 31 Jul 2019 13:53:08 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed 31-07-19 15:37:56, David Hildenbrand wrote:
-[...]
-> The other extreme I saw: People dropping locks because they think they
-> can be smart but end up making developers debug crashes for months (I am
-> not lying).
+Let's document why the lock is not needed in acpi_scan_init(), right now
+this is not really obvious.
 
-Any lock removal should be accompanied with an explanation that is to be
-a subject of the review. Sure people can make mistakes but there is no
-way to around it I can see.
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+---
+
+@Andrew, can you drop "drivers/acpi/scan.c: acquire device_hotplug_lock in
+acpi_scan_init()" and add this patch instead? Thanks
+
+---
+ drivers/acpi/scan.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 0e28270b0fd8..8444af6cd514 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2204,6 +2204,12 @@ int __init acpi_scan_init(void)
+ 	acpi_gpe_apply_masked_gpes();
+ 	acpi_update_all_gpes();
  
-> As I want to move on with this patch and have other stuff to work on, I
-> will adjust the comment you gave and add that instead of the lock.
-
-Thanks!
-
++	/*
++	 * Although we call__add_memory() that is documented to require the
++	 * device_hotplug_lock, it is not necessary here because this is an
++	 * early code when userspace or any other code path cannot trigger
++	 * hotplug/hotunplug operations.
++	 */
+ 	mutex_lock(&acpi_scan_lock);
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
 -- 
-Michal Hocko
-SUSE Labs
+2.21.0
+
