@@ -2,131 +2,285 @@ Return-Path: <SRS0=EhvU=V4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7300C433FF
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 21:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D957C433FF
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 22:17:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B9CE8216C8
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 21:30:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564608610;
-	bh=oGnVpX4dVrD+Qozo8zDA1ZPwnhAHqFMVwK0fzQ1mFIQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=HJprvEASpa1kYiiSgxyxzRSaE0PYw5xiit61NPR1KoaVMtwqnTZVHbqVbmDnAZLwg
-	 obGLioVRvS/l+OakabWVJsj3TMM3/Kt1D27TS6sfn/MJvUK00QIHyMMEhRifXZlDRi
-	 TQUeHvHnxjjw9dy3dEOJRhMBtNBWcxcRxucCI6mc=
+	by mail.kernel.org (Postfix) with ESMTP id 48191206B8
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 Jul 2019 22:17:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="g+gTa4Lq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729188AbfGaVaK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 31 Jul 2019 17:30:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39904 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726096AbfGaVaJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 Jul 2019 17:30:09 -0400
-Received: from localhost (unknown [69.71.4.100])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1EF1E20679;
-        Wed, 31 Jul 2019 21:30:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564608608;
-        bh=oGnVpX4dVrD+Qozo8zDA1ZPwnhAHqFMVwK0fzQ1mFIQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=GsHIIfWm8iROi366bFleIDVx8TuDAQ/JvQk8TqpznFLhj3NbKvFq927w/uQR2pA3g
-         sANKPraFKMDiKLp4beYs+dKfgz8KDH+fTcPkhcND/J2vzdUQvyjMX5aDm7P7yyi6M5
-         RwsVnvuqMelMzMi9+Y4CwkZO5lIAcdnIF+lCJBfY=
-Date:   Wed, 31 Jul 2019 16:30:01 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Kai-Heng Feng <kai.heng.feng@canonical.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Mario Limonciello <mario.limonciello@dell.com>,
-        Anthony Wong <anthony.wong@canonical.com>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Andreas Noever <andreas.noever@gmail.com>,
-        Michael Jamet <michael.jamet@intel.com>,
-        Yehezkel Bernat <YehezkelShB@gmail.com>
-Subject: Re: [Regression] Commit "ACPI: PM: Allow transitions to D0 to occur
- in special cases"
-Message-ID: <20190731213001.GC151852@google.com>
-References: <578BD3F1-B185-471B-A3EB-FF71BA34B822@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <578BD3F1-B185-471B-A3EB-FF71BA34B822@canonical.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S1731308AbfGaWRI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 31 Jul 2019 18:17:08 -0400
+Received: from mail-pg1-f202.google.com ([209.85.215.202]:51468 "EHLO
+        mail-pg1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731296AbfGaWRF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2019 18:17:05 -0400
+Received: by mail-pg1-f202.google.com with SMTP id p15so133644pgl.18
+        for <linux-acpi@vger.kernel.org>; Wed, 31 Jul 2019 15:17:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=klghF8F9jCh3lGq1PlqD6+/L30+aHC8n0RDXrpkxL3I=;
+        b=g+gTa4LqQH20zCJciwnO6YvWGBXEyfQjUBh3mqCVmw1D2WwnyD7eDIi1PTLDUahdRS
+         Sx7iq/LZKSbS9dJ5AGYtxi6didXdD1VqvqzMT01foMBaxKkBcqQ6+jzwprZzErkXWRS1
+         3msMg+zlu8cnKO2j0mCX1FzYi5O/lBlFW9/ld0+ZAzJ7Kb/rthD++w2R8wuy5/PKcmOi
+         kT45zAK03gPDl4Ir2fxNNFowqMkKPf9F3nWOgVmXS12tNwHpicptJZTdZI+4Ol7OJVbB
+         Btmm2ih+cO2vy83JVfQqPrpzBKTCis6Bw0V+esANuhr9WaB2xzyxGau6Ug+osZLKHSUx
+         3/1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=klghF8F9jCh3lGq1PlqD6+/L30+aHC8n0RDXrpkxL3I=;
+        b=SjLonJ3tD2zL/qFEG8z4SOYe5OpHeESjVONkYZ9k+ZWPlZ+rNoeiZJAN5IzSahojXo
+         ZTjI8a2DhI0LPh+25Abv+8gXMRdNZxixRiCFq0ukplDQedxNpB3JiISkpiVTcM8ECv0F
+         fSqea7hpdDx2vaQy9WiS6pcpTTCi0Do4QdlxASLVVed+oxghEfOU+r17viXt7Uq9Unem
+         UDWnoc+pMXsTs6RGo7ZfYRkhqEpmkjsDBzq+AjvafSc94dxYIM/OLp6cJNBodezKXVx7
+         9dCQ+WC7y+ilILelpaczE/sEEYsaOdezsi65vLNU2OIdK3QBxAXCN0fGD1g45KymXMVT
+         9rGA==
+X-Gm-Message-State: APjAAAXFL7OR1cJ6RpM4//Y/M0gUfgJmZQEZ49xveWpYaHWAieJgjQ7I
+        9/lLg/7CIDzsIb4EFoRlAFITl+EOBQpSgaO9HGcDIg==
+X-Google-Smtp-Source: APXvYqwzPMtpkPbGUc3NZc/t84m5E7WL6Vl9kAHyPM7B+anR7yHljemMiz+5eHdeRSf8CpDeFvAuKhmN+Lgp6mUjCukA+w==
+X-Received: by 2002:a63:1e05:: with SMTP id e5mr259333pge.153.1564611424198;
+ Wed, 31 Jul 2019 15:17:04 -0700 (PDT)
+Date:   Wed, 31 Jul 2019 15:16:03 -0700
+In-Reply-To: <20190731221617.234725-1-matthewgarrett@google.com>
+Message-Id: <20190731221617.234725-16-matthewgarrett@google.com>
+Mime-Version: 1.0
+References: <20190731221617.234725-1-matthewgarrett@google.com>
+X-Mailer: git-send-email 2.22.0.770.g0f2c4a37fd-goog
+Subject: [PATCH V37 15/29] acpi: Ignore acpi_rsdp kernel param when the kernel
+ has been locked down
+From:   Matthew Garrett <matthewgarrett@google.com>
+To:     jmorris@namei.org
+Cc:     linux-security-module@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+        Josh Boyer <jwboyer@redhat.com>,
+        David Howells <dhowells@redhat.com>,
+        Matthew Garrett <mjg59@google.com>,
+        Kees Cook <keescook@chromium.org>,
+        Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-[+cc Thunderbolt folks, see
-https://lore.kernel.org/r/578BD3F1-B185-471B-A3EB-FF71BA34B822@canonical.com
-for beginning of thread]
+From: Josh Boyer <jwboyer@redhat.com>
 
-On Thu, Aug 01, 2019 at 12:04:29AM +0800, Kai-Heng Feng wrote:
-> Hi,
-> 
-> After commit "ACPI: PM: Allow transitions to D0 to occur in special cases”,
+This option allows userspace to pass the RSDP address to the kernel, which
+makes it possible for a user to modify the workings of hardware. Reject
+the option when the kernel is locked down. This requires some reworking
+of the existing RSDP command line logic, since the early boot code also
+makes use of a command-line passed RSDP when locating the SRAT table
+before the lockdown code has been initialised. This is achieved by
+separating the command line RSDP path in the early boot code from the
+generic RSDP path, and then copying the command line RSDP into boot
+params in the kernel proper if lockdown is not enabled. If lockdown is
+enabled and an RSDP is provided on the command line, this will only be
+used when parsing SRAT (which shouldn't permit kernel code execution)
+and will be ignored in the rest of the kernel.
 
-This is f850a48a0799 ("ACPI: PM: Allow transitions to D0 to occur in
-special cases").
+(Modified by Matthew Garrett in order to handle the early boot RSDP
+environment)
 
-> Thunderbolt on XPS 9380 spews the following when it runtime resumes:
-> [   36.136554] pci_raw_set_power_state: 25 callbacks suppressed
-> [   36.136558] pcieport 0000:03:00.0: Refused to change power state,
-> currently in D3
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Matthew Garrett <mjg59@google.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+cc: Dave Young <dyoung@redhat.com>
+cc: linux-acpi@vger.kernel.org
+---
+ arch/x86/boot/compressed/acpi.c | 19 +++++++++++++------
+ arch/x86/include/asm/acpi.h     |  9 +++++++++
+ arch/x86/include/asm/x86_init.h |  2 ++
+ arch/x86/kernel/acpi/boot.c     |  5 +++++
+ arch/x86/kernel/x86_init.c      |  1 +
+ drivers/acpi/osl.c              | 14 +++++++++++++-
+ include/linux/acpi.h            |  6 ++++++
+ 7 files changed, 49 insertions(+), 7 deletions(-)
 
-We really should be smarter about what we print here, maybe something
-like the patch below?
-
-pci_raw_set_power_state() prints "Refused to change power state" if
-(in this case) the value of (PCI_PM_CTRL & PCI_PM_CTRL_STATE_MASK) is
-0x3.  Most likely we got 0xffff from PCI_PM_CTRL because the device is
-in D3cold.  If the device is in D3cold, pci_raw_set_power_state() has
-no hope of doing anything because it only uses PCI PM config
-registers, and they're inaccessible in D3cold.
-
-Presumably there's some platform PM method that is supposed to take
-the device out of D3cold, and maybe we're missing that somehow?
-
-Based on an lspci I found at [1], I suspect 03:00.0 is a Thunderbolt
-switch leading to [bus 04-6d].  From your log, it looks like these
-devices don't work:
-
-  03:00.0 Thunderbolt Upstream Port
-  04:00.0 Thunderbolt Downstream Port
-  04:01.0 Thunderbolt Downstream Port (Slot 1)
-  04:02.0 Thunderbolt Downstream Port
-  04:04.0 Thunderbolt Downstream Port (Slot 4)
-  05:00.0 Thunderbolt NHI
-  39:00.0 XHCI USB
-
-If 03:00.0 is stuck in D3cold, that would explain why none of these
-things work.
-
-[1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1826125
-
-
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 29ed5ec1ac27..63ca963ebff9 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -851,6 +852,11 @@ static int pci_raw_set_power_state(struct pci_dev *dev, pci_power_t state)
- 		return -EIO;
+diff --git a/arch/x86/boot/compressed/acpi.c b/arch/x86/boot/compressed/acpi.c
+index 15255f388a85..149795c369f2 100644
+--- a/arch/x86/boot/compressed/acpi.c
++++ b/arch/x86/boot/compressed/acpi.c
+@@ -26,7 +26,7 @@ struct mem_vector immovable_mem[MAX_NUMNODES*2];
+  */
+ #define MAX_ADDR_LEN 19
  
- 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
-+	if (pmcsr == (u16) ~0) {
-+		pci_err(dev, "device not responding; can't change to power state D%d\n",
-+			state);
-+		return -EIO;
-+	}
+-static acpi_physical_address get_acpi_rsdp(void)
++static acpi_physical_address get_cmdline_acpi_rsdp(void)
+ {
+ 	acpi_physical_address addr = 0;
+ 
+@@ -278,10 +278,7 @@ acpi_physical_address get_rsdp_addr(void)
+ {
+ 	acpi_physical_address pa;
+ 
+-	pa = get_acpi_rsdp();
+-
+-	if (!pa)
+-		pa = boot_params->acpi_rsdp_addr;
++	pa = boot_params->acpi_rsdp_addr;
  
  	/*
- 	 * If we're (effectively) in D3, force entire word to 0.
+ 	 * Try to get EFI data from setup_data. This can happen when we're a
+@@ -311,7 +308,17 @@ static unsigned long get_acpi_srat_table(void)
+ 	char arg[10];
+ 	u8 *entry;
+ 
+-	rsdp = (struct acpi_table_rsdp *)(long)boot_params->acpi_rsdp_addr;
++	/*
++	 * Check whether we were given an RSDP on the command line. We don't
++	 * stash this in boot params because the kernel itself may have
++	 * different ideas about whether to trust a command-line parameter.
++	 */
++	rsdp = (struct acpi_table_rsdp *)get_cmdline_acpi_rsdp();
++
++	if (!rsdp)
++		rsdp = (struct acpi_table_rsdp *)(long)
++			boot_params->acpi_rsdp_addr;
++
+ 	if (!rsdp)
+ 		return 0;
+ 
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index aac686e1e005..bc9693c9107e 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -117,6 +117,12 @@ static inline bool acpi_has_cpu_in_madt(void)
+ 	return !!acpi_lapic;
+ }
+ 
++#define ACPI_HAVE_ARCH_SET_ROOT_POINTER
++static inline void acpi_arch_set_root_pointer(u64 addr)
++{
++	x86_init.acpi.set_root_pointer(addr);
++}
++
+ #define ACPI_HAVE_ARCH_GET_ROOT_POINTER
+ static inline u64 acpi_arch_get_root_pointer(void)
+ {
+@@ -125,6 +131,7 @@ static inline u64 acpi_arch_get_root_pointer(void)
+ 
+ void acpi_generic_reduced_hw_init(void);
+ 
++void x86_default_set_root_pointer(u64 addr);
+ u64 x86_default_get_root_pointer(void);
+ 
+ #else /* !CONFIG_ACPI */
+@@ -138,6 +145,8 @@ static inline void disable_acpi(void) { }
+ 
+ static inline void acpi_generic_reduced_hw_init(void) { }
+ 
++static inline void x86_default_set_root_pointer(u64 addr) { }
++
+ static inline u64 x86_default_get_root_pointer(void)
+ {
+ 	return 0;
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index ac0934189017..19435858df5f 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -134,10 +134,12 @@ struct x86_hyper_init {
+ 
+ /**
+  * struct x86_init_acpi - x86 ACPI init functions
++ * @set_root_poitner:		set RSDP address
+  * @get_root_pointer:		get RSDP address
+  * @reduced_hw_early_init:	hardware reduced platform early init
+  */
+ struct x86_init_acpi {
++	void (*set_root_pointer)(u64 addr);
+ 	u64 (*get_root_pointer)(void);
+ 	void (*reduced_hw_early_init)(void);
+ };
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 17b33ef604f3..04205ce127a1 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1760,6 +1760,11 @@ void __init arch_reserve_mem_area(acpi_physical_address addr, size_t size)
+ 	e820__update_table_print();
+ }
+ 
++void x86_default_set_root_pointer(u64 addr)
++{
++	boot_params.acpi_rsdp_addr = addr;
++}
++
+ u64 x86_default_get_root_pointer(void)
+ {
+ 	return boot_params.acpi_rsdp_addr;
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index 1bef687faf22..18a799c8fa28 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -95,6 +95,7 @@ struct x86_init_ops x86_init __initdata = {
+ 	},
+ 
+ 	.acpi = {
++		.set_root_pointer	= x86_default_set_root_pointer,
+ 		.get_root_pointer	= x86_default_get_root_pointer,
+ 		.reduced_hw_early_init	= acpi_generic_reduced_hw_init,
+ 	},
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 9c0edf2fc0dd..d43df3a3fa8d 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -26,6 +26,7 @@
+ #include <linux/list.h>
+ #include <linux/jiffies.h>
+ #include <linux/semaphore.h>
++#include <linux/security.h>
+ 
+ #include <asm/io.h>
+ #include <linux/uaccess.h>
+@@ -180,8 +181,19 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 	acpi_physical_address pa;
+ 
+ #ifdef CONFIG_KEXEC
+-	if (acpi_rsdp)
++	/*
++	 * We may have been provided with an RSDP on the command line,
++	 * but if a malicious user has done so they may be pointing us
++	 * at modified ACPI tables that could alter kernel behaviour -
++	 * so, we check the lockdown status before making use of
++	 * it. If we trust it then also stash it in an architecture
++	 * specific location (if appropriate) so it can be carried
++	 * over further kexec()s.
++	 */
++	if (acpi_rsdp && !security_locked_down(LOCKDOWN_ACPI_TABLES)) {
++		acpi_arch_set_root_pointer(acpi_rsdp);
+ 		return acpi_rsdp;
++	}
+ #endif
+ 	pa = acpi_arch_get_root_pointer();
+ 	if (pa)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e40e1e27ed8e..6b35f2f4cab3 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -643,6 +643,12 @@ bool acpi_gtdt_c3stop(int type);
+ int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
+ #endif
+ 
++#ifndef ACPI_HAVE_ARCH_SET_ROOT_POINTER
++static inline void acpi_arch_set_root_pointer(u64 addr)
++{
++}
++#endif
++
+ #ifndef ACPI_HAVE_ARCH_GET_ROOT_POINTER
+ static inline u64 acpi_arch_get_root_pointer(void)
+ {
+-- 
+2.22.0.770.g0f2c4a37fd-goog
+
