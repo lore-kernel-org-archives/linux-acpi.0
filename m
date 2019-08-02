@@ -2,111 +2,95 @@ Return-Path: <SRS0=mb4t=V6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B983C32750
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 13:44:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77BA6C433FF
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 15:36:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 30D4F20679
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 13:44:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564753473;
-	bh=vxMah659zPfQDF37vIziO20ICcLdOfWPe1yQas4Crg4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=xCM0d9FmkdHt540osE+zoI4I29vGIG1271P84DVoxrEmO7IZGfgM+w4Os0vawpR7k
-	 6EGAne3BPBWZepTTH1zLTZpBMsSwZKKBWPbd3X9Dkwy0zCdUPsp/uLrjf/C501OWoX
-	 sbq0H14aAqo/ER3MGq8sVIkZ3Un+I3Y64MY0bZJY=
+	by mail.kernel.org (Postfix) with ESMTP id 584282087C
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 15:36:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729806AbfHBNoc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:44:32 -0400
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:37930 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726340AbfHBNoc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2019 09:44:32 -0400
-Received: by mail-wr1-f65.google.com with SMTP id g17so77238857wrr.5
-        for <linux-acpi@vger.kernel.org>; Fri, 02 Aug 2019 06:44:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=PNAMiOH+KosAOfYs6ZQtMwro3Z+vEfTrrxaffk0uncw=;
-        b=NxwSMQH0vURU2W7+Q0c9vrt0Vwrgyu94uuj3bwLxRVMOwmF4uqRIsMaAwkj8hTLEw8
-         F1owxyRhpAQgSTovu/e2I52MO0Lolj2UMZgkg4JcrL+hRFdAcKRup/OvDhVaw70ZQq+V
-         uvvKNDR+Zb5oEGRPzvhI8ih8UF3S+73PGW6eEUsbVjiCwgXHvw6DNRw+aCeSMRfJTbc/
-         Zv0NbVhFgaJBPIctMWHtB1DCNZF8m2HZ8kKkoUGbtw3giIBybfz1dL1m33ixcvo8XwhC
-         49Vev+h9RdY7NHBCJpy2RRnrcKCF4RI0N6QcyA75OUDODMM5Q8sFHIyeOO2WY43RnnWz
-         JQEg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :references:mime-version:content-disposition:in-reply-to:user-agent;
-        bh=PNAMiOH+KosAOfYs6ZQtMwro3Z+vEfTrrxaffk0uncw=;
-        b=CotxPB7jK75L8vw3gb4pzbtScr3/Yqeo3s78iHXwSsAb4Xa1n35wlSAUZy8lE+4WVh
-         IZWRF7+17Ykdm9KsiRLm+W/+COxIPpWyqZmQaS5k9DWn1EqzPfRHm6ZlTJMam5pDzFqu
-         /OiKm1FXMuXA7NmHpfCvrgVY736qvFhRDPjRJeU491BfNOr5wldBJP9BoeSADvNROWnF
-         PT8S6hfCgWLoK6tKzh6DCAPgE3nrqHqE31/Helg6FQwkXOiLUhM771sMHB3SQQxiGR70
-         T4VxKm7ofDDvapeYb5BgwAdvm60uG+tMOJffvnkAwNqbjxIUIRjXZVeg8wtkaED3gxh6
-         zojg==
-X-Gm-Message-State: APjAAAU8gASIq4ykIL58JN1ZXsxkD38sREi0NWwYRUjJ96x7aUR8aiez
-        wHpHbln0CgB682Axpx601jw=
-X-Google-Smtp-Source: APXvYqxZf4Umt0uqJeK5AzqQ3YwB8DEWEFy4owFZTJg4xeIJXE8GO65jbt3iPMWS9EZ8KzsKnTHfxQ==
-X-Received: by 2002:a05:6000:187:: with SMTP id p7mr22834655wrx.189.1564753471024;
-        Fri, 02 Aug 2019 06:44:31 -0700 (PDT)
-Received: from rric.localdomain (x4e375ad3.dyn.telefonica.de. [78.55.90.211])
-        by smtp.gmail.com with ESMTPSA id i18sm99708446wrp.91.2019.08.02.06.44.29
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 02 Aug 2019 06:44:30 -0700 (PDT)
-Date:   Fri, 2 Aug 2019 15:44:27 +0200
-From:   Robert Richter <rric@kernel.org>
-To:     Jeremy Linton <jeremy.linton@arm.com>
+        id S2388182AbfHBPgs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Aug 2019 11:36:48 -0400
+Received: from foss.arm.com ([217.140.110.172]:54120 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732454AbfHBPgr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Aug 2019 11:36:47 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E8FEB1596;
+        Fri,  2 Aug 2019 08:36:46 -0700 (PDT)
+Received: from [192.168.122.164] (U201426.austin.arm.com [10.118.28.59])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A27293F575;
+        Fri,  2 Aug 2019 08:36:46 -0700 (PDT)
+Subject: Re: [PATCH v4 1/2] ACPI/PPTT: Add support for ACPI 6.3 thread flag
+To:     Robert Richter <rric@kernel.org>
 Cc:     linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com,
         catalin.marinas@arm.com, rjw@rjwysocki.net,
         linux-acpi@vger.kernel.org, sudeep.holla@arm.com, will@kernel.org,
         lenb@kernel.org
-Subject: Re: [PATCH v4 2/2] arm64: topology: Use PPTT to determine if PE is a
- thread
-Message-ID: <20190802134427.dmclik66zcgxapy3@rric.localdomain>
 References: <20190801034634.26913-1-jeremy.linton@arm.com>
- <20190801034634.26913-3-jeremy.linton@arm.com>
+ <20190801034634.26913-2-jeremy.linton@arm.com>
+ <20190802130510.rd4uyndtqlcfdhtm@rric.localdomain>
+From:   Jeremy Linton <jeremy.linton@arm.com>
+Message-ID: <488e9444-d01e-6bf4-770c-34091a8a8244@arm.com>
+Date:   Fri, 2 Aug 2019 10:36:45 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190801034634.26913-3-jeremy.linton@arm.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190802130510.rd4uyndtqlcfdhtm@rric.localdomain>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 31.07.19 22:46:34, Jeremy Linton wrote:
+Hi,
 
-> @@ -358,6 +356,10 @@ static int __init parse_acpi_topology(void)
->  		if (topology_id < 0)
->  			return topology_id;
->  
-> +		is_threaded = acpi_pptt_cpu_is_thread(cpu);
-> +		if (is_threaded < 0)
-> +			is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
-> +
+Thanks for taking a look at this.
 
-I think the return code handling is error-prone, as in the kernel such
-functions are typically used like:
+On 8/2/19 8:05 AM, Robert Richter wrote:
+> On 31.07.19 22:46:33, Jeremy Linton wrote:
+> 
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index 9426b9aaed86..9d0e20a2ac83 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -1302,11 +1302,16 @@ static inline int lpit_read_residency_count_address(u64 *address)
+>>   #endif
+>>   
+>>   #ifdef CONFIG_ACPI_PPTT
+>> +int acpi_pptt_cpu_is_thread(unsigned int cpu);
+>>   int find_acpi_cpu_topology(unsigned int cpu, int level);
+>>   int find_acpi_cpu_topology_package(unsigned int cpu);
+>>   int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
+>>   int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+> 
+> All those functions (exept hetero_id) are used only in
+> parse_acpi_topology(). So how about creating a struct with thread_id,
+> core_id, and cache_id (and hetero_id (?)) and have a single pptt table
+> parsing function that fills in all of this into that struct? This
+> simplifies the api and also the code.
+> 
+> This also shows that hetid (see arm_pmu_acpi.c) better should be
+> stored in cpu_topology[] too and thus being parsed with the other
+> parameters as well and made accessible from there by a helper.
 
-	if (something_is_thread) { ... }
 
-I see this is due to acpi and arch code separation so we cannot simply
-move the fallback to pptt code.
+I think the idea here was to avoid an additional set of intermediate 
+data structures between the PPTT table/structure and the final arch 
+specific data structures (which themselves are used to feed other 
+things, like the scheduler, note the llc parsing). Rather the attempt is 
+to provide a set of tools to retrieve information and let the policy for 
+how that information is used be dictated by the consumer.
 
-So maybe we have a static function cpu_is_thread() in this file that
-handles all the logic and directly use check_acpi_cpu_flag() from
-there. However, code may change here in case of a rework as I
-suggested in patch #1. In both cases the acpi api is more straight
-then.
+In the future, if we can further unify the arch specific cpu_topology 
+structures it would make sense to parse directly into them, but until 
+that happens I don't think we should try. The existing code does parse 
+directly into the cache structures, but the cpu topology is subtly arm64 
+at the moment. If another arch decided to use this, i'm not sure they 
+would want or need it parsed in exactly the same way.
 
--Robert
-
->  		if (is_threaded) {
->  			cpu_topology[cpu].thread_id = topology_id;
->  			topology_id = find_acpi_cpu_topology(cpu, 1);
