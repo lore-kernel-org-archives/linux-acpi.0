@@ -2,90 +2,75 @@ Return-Path: <SRS0=mb4t=V6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 094BEC433FF
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 10:46:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14832C32750
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 12:51:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D94F62087E
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 10:46:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEDCC20644
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 12:51:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730856AbfHBKqX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Aug 2019 06:46:23 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:59740 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730841AbfHBKpv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2019 06:45:51 -0400
-Received: from 79.184.255.110.ipv4.supernova.orange.pl (79.184.255.110) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.275)
- id 08687bff39390d68; Fri, 2 Aug 2019 12:45:49 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     Linux PM <linux-pm@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mario Limonciello <mario.limonciello@dell.com>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH v3 4/8] ACPI: PM: s2idle: Switch EC over to polling during "noirq" suspend
-Date:   Fri, 02 Aug 2019 12:40:43 +0200
-Message-ID: <2250753.m3tS5N7MJZ@kreacher>
-In-Reply-To: <5997740.FPbUVk04hV@kreacher>
-References: <5997740.FPbUVk04hV@kreacher>
+        id S1728404AbfHBMvN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Aug 2019 08:51:13 -0400
+Received: from mx2.suse.de ([195.135.220.15]:38596 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726422AbfHBMvN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Aug 2019 08:51:13 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id 94B71AFF6;
+        Fri,  2 Aug 2019 12:51:11 +0000 (UTC)
+Date:   Fri, 2 Aug 2019 14:51:09 +0200
+From:   Jean Delvare <jdelvare@suse.de>
+To:     Linux I2C <linux-i2c@vger.kernel.org>
+Cc:     Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org,
+        Andrew Cooks <acooks@rationali.st>, linux-acpi@vger.kernel.org,
+        platypus-sw@opengear.com, "Tobin C . Harding" <me@tobin.cc>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Will Wagner <willw@carallon.com>
+Subject: [PATCH v5 0/3] Enable ACPI-defined peripherals on i2c-piix4 SMBus
+Message-ID: <20190802145109.38dd4045@endymion>
+Organization: SUSE Linux
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-suse-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+These patches fix a couple of issues with the i2c-piix4 driver on
+AMD Family 16h Model 30h SoCs and add ACPI-based enumeration to the
+i2c-piix4 driver.
 
-Since the ACPI SCI is set up for system wakeup before the "noirq"
-suspend of devices, it is better to make suspend-to-idle follow
-suspend-to-RAM (S3) and switch over the EC to polling during "noirq"
-suspend (and back to interrupt-based flow during "noirq" resume).
+Some I2C peripherals, eg. PCA953x IO expander, are not discovered by the
+probe or detect mechanisms when attached to an SMBus controller that uses
+the i2c-piix4 SMBus driver.
 
-The frequency of spurious wakeup interrupts from the EC may be
-reduced this way.
+ACPI provides a mechanism to define these peripherals and the controller
+port that they're attached to.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Based on earlier work by Andrew Cooks.
 
-In v2 this was patch 5.
+Changes:
+v5:
+  take over from Andrew Cooks who apparently moved to other projects
+  fix style issues reported by Tobin C. Harding
+  fix potential array overrun
+  make sure all registered adapters get unregistered
+  keep ports 3 and 4 on early Hudson2
+  assume AMD SMBus numbering for ACPI devices
+v4:
+  remove unnecessary SB800_MAIN_PORTS constant
+  reduce piix4_remove change
+v3:
+  take chip revision into account when determining port selection register
+v2:
+  count the adapters, instead of misusing port numbers
 
----
- drivers/acpi/ec.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-Index: linux-pm/drivers/acpi/ec.c
-===================================================================
---- linux-pm.orig/drivers/acpi/ec.c
-+++ linux-pm/drivers/acpi/ec.c
-@@ -1958,8 +1958,7 @@ static int acpi_ec_suspend_noirq(struct
- 	    ec->reference_count >= 1)
- 		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
- 
--	if (acpi_sleep_no_ec_events())
--		acpi_ec_enter_noirq(ec);
-+	acpi_ec_enter_noirq(ec);
- 
- 	return 0;
- }
-@@ -1968,8 +1967,7 @@ static int acpi_ec_resume_noirq(struct d
- {
- 	struct acpi_ec *ec = acpi_driver_data(to_acpi_device(dev));
- 
--	if (acpi_sleep_no_ec_events())
--		acpi_ec_leave_noirq(ec);
-+	acpi_ec_leave_noirq(ec);
- 
- 	if (ec_no_wakeup && test_bit(EC_FLAGS_STARTED, &ec->flags) &&
- 	    ec->reference_count >= 1)
-
-
-
+-- 
+Jean Delvare
+SUSE L3 Support
