@@ -3,32 +3,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA7DEC433FF
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 10:26:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2781C433FF
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 10:45:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B932E20665
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 10:26:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF90F2087C
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 10:45:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390580AbfHBK0F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Aug 2019 06:26:05 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:58698 "EHLO
+        id S1730682AbfHBKpt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Aug 2019 06:45:49 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:62497 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730941AbfHBK0F (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2019 06:26:05 -0400
+        with ESMTP id S1730424AbfHBKpt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2019 06:45:49 -0400
 Received: from 79.184.255.110.ipv4.supernova.orange.pl (79.184.255.110) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.275)
- id 3a1a69f64fe583af; Fri, 2 Aug 2019 12:26:02 +0200
+ id 6d0e2bb3b2824af2; Fri, 2 Aug 2019 12:45:47 +0200
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     Linux PM <linux-pm@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI: PM: Print debug messages on device power state changes
-Date:   Fri, 02 Aug 2019 12:26:02 +0200
-Message-ID: <1796988.2NO0ufELdA@kreacher>
+        Zhang Rui <rui.zhang@intel.com>,
+        Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mario Limonciello <mario.limonciello@dell.com>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>
+Subject: [PATCH v3 7/8] ACPI: EC: PM: Make acpi_ec_dispatch_gpe() print debug message
+Date:   Fri, 02 Aug 2019 12:44:17 +0200
+Message-ID: <1822028.vPQc0PzIAM@kreacher>
+In-Reply-To: <5997740.FPbUVk04hV@kreacher>
+References: <5997740.FPbUVk04hV@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -39,29 +45,36 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Add an acpi_handle_debug() statement to acpi_device_set_power() to
-allow ACPI device power state changes to be tracked.
+Add a pm_pr_dbg() debug statement to acpi_ec_dispatch_gpe() to print
+a message when the EC GPE has been dispatched (because its status
+was set).
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/device_pm.c |    4 ++++
- 1 file changed, 4 insertions(+)
 
-Index: linux-pm/drivers/acpi/device_pm.c
+In v2 this was patch 8.
+
+---
+ drivers/acpi/ec.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/ec.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -166,6 +166,10 @@ int acpi_device_set_power(struct acpi_de
- 	    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
- 		return -EINVAL;
+--- linux-pm.orig/drivers/acpi/ec.c
++++ linux-pm/drivers/acpi/ec.c
+@@ -1980,7 +1980,11 @@ bool acpi_ec_dispatch_gpe(void)
+ 		return false;
  
-+	acpi_handle_debug(device->handle, "Power state change: %s -> %s\n",
-+			  acpi_power_state_string(device->power.state),
-+			  acpi_power_state_string(state));
-+
- 	/* Make sure this is a valid target state */
+ 	ret = acpi_dispatch_gpe(NULL, first_ec->gpe);
+-	return ret == ACPI_INTERRUPT_HANDLED;
++	if (ret == ACPI_INTERRUPT_HANDLED) {
++		pm_pr_dbg("EC GPE dispatched\n");
++		return true;
++	}
++	return false;
+ }
+ #endif /* CONFIG_PM_SLEEP */
  
- 	/* There is a special case for D0 addressed below. */
 
 
 
