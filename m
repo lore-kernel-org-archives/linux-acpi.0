@@ -2,107 +2,109 @@ Return-Path: <SRS0=mb4t=V6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60A13C433FF
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 13:05:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 793E0C433FF
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 13:28:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 37EBC20679
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 13:05:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 392FD217D4
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Aug 2019 13:28:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564751117;
-	bh=T+nnyB4Pyn36iwGwTRVDQmxQf3DDc1hS8GGkhhVGpA8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=WP9vk12hcD8ZriD//9vkDe4UPSsSRQsiPnMvv9qI4VMf4fYbXBdyUY9DiMCyfySN+
-	 yvad4uloEA0xGM8eKp7nwmv0g8kxrfz6kC2imcCVKVcR5qD6Ax9c1+uHw9xY0UaFv4
-	 buT6qjz5GPMEvmblmdCOjNC85nRNgZC1y/kXiSsA=
+	s=default; t=1564752499;
+	bh=lbCdSVHFT3quE/mQUpsrEYPOjNgjtr0f4jee3R1I3Gw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=xlozSILf4QiN2BBdcy9kFOZQN4b73+KvdiBSSwod1RSMsGzufS4MZSRXhVb313x0Q
+	 bjr7XqOEnWxEw39VlwO/an5+v+bectCmjIuKigQ/7/hVUx/9PYBa9zPdu17gaqBJAF
+	 gitOze1u3OwEn4mTtFu0EPMlJTn3hmbh9tgU9OyM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392917AbfHBNFQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:05:16 -0400
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:43393 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388458AbfHBNFQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2019 09:05:16 -0400
-Received: by mail-wr1-f65.google.com with SMTP id p13so2553773wru.10
-        for <linux-acpi@vger.kernel.org>; Fri, 02 Aug 2019 06:05:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=il2Ej3vHRliPEn6sqXO6sZuqcYtp78kT2DJDKX0yHiY=;
-        b=D3PJqvXkehUgJ7EFnE1gNmRspFqaGcYW4guK1N6q7nRPkAxFFE7rj2vbbVHaVAKqmi
-         q05/TUKmrPFhyIt4LsJBS/nnfDAqxrBtE59osyWVEdvYNYZcIlDRin0/OXKTldzAftr5
-         lLhE7vi2uhlWxG6ccEomevf4GHgds/jY7sID9dZZR4Tus2brra7qTlTK6LnGbb+0HfEo
-         gMWAmrlWbD+ArRDbEj8aPFHlEDIB7OtBghqX+qm9JCERxyvezWAOto7rmpQtGKiwbus8
-         T/GtpbYupujhuzSxXGHAwafwUEUMxz2xeWmhTeurmadWEihvTOkzUoZWKUmWfgxI9ZXY
-         ilYA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :references:mime-version:content-disposition:in-reply-to:user-agent;
-        bh=il2Ej3vHRliPEn6sqXO6sZuqcYtp78kT2DJDKX0yHiY=;
-        b=I/iOIixrxF2BsD64AQXTpAfxDgAkFZdTv41VWNYaxbIvtWfQ/7P2YpOXmcOpdcHF5h
-         p1Uy1BJmaFVnkwVLgTrNnsYZQcGNWcnHBH1vHm3ahdZru7+QON1FmM5nk0GY5xS0KWON
-         tGFnVVtTnXddyn0a9e2vv8iOoGb+cTxhz0P7FawX32yqusCdwrGcYSrCW4ZxHPP3Fn84
-         lTP+Cr9BCgKt1Avfyb2jiVJ9drXFfifhxwV74qre0IEbw2wCEZZkzCiDzfHNpLBM5YJw
-         FOe1xE1cY4cS5tfhvwQLN5xacqvO/GzeUg84x3kEit+nPcYoCXdz04v4hN5bgPOmtGgU
-         cy1A==
-X-Gm-Message-State: APjAAAXoz22nkx6XEA4GfjmX0mBfMHlDThZZ8UyEtQmTOBQn82fl7Y1I
-        rz8FU6WbWotDbOKSkbD6sh0=
-X-Google-Smtp-Source: APXvYqy6Xh0VOvj4zV+m+M+mewFsvTNPkf1aVgulz9pxWbDZ7xtEsGCJplXZliZM/ojiTUAxS83E3w==
-X-Received: by 2002:adf:eb0f:: with SMTP id s15mr70067056wrn.324.1564751114494;
-        Fri, 02 Aug 2019 06:05:14 -0700 (PDT)
-Received: from rric.localdomain (x4e375ad3.dyn.telefonica.de. [78.55.90.211])
-        by smtp.gmail.com with ESMTPSA id y7sm55067297wmm.19.2019.08.02.06.05.12
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 02 Aug 2019 06:05:13 -0700 (PDT)
-Date:   Fri, 2 Aug 2019 15:05:11 +0200
-From:   Robert Richter <rric@kernel.org>
-To:     Jeremy Linton <jeremy.linton@arm.com>
-Cc:     linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com,
-        catalin.marinas@arm.com, rjw@rjwysocki.net,
-        linux-acpi@vger.kernel.org, sudeep.holla@arm.com, will@kernel.org,
-        lenb@kernel.org
-Subject: Re: [PATCH v4 1/2] ACPI/PPTT: Add support for ACPI 6.3 thread flag
-Message-ID: <20190802130510.rd4uyndtqlcfdhtm@rric.localdomain>
-References: <20190801034634.26913-1-jeremy.linton@arm.com>
- <20190801034634.26913-2-jeremy.linton@arm.com>
+        id S2394545AbfHBN0S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Aug 2019 09:26:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37068 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2391501AbfHBN0R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Aug 2019 09:26:17 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id BB6F82182B;
+        Fri,  2 Aug 2019 13:26:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1564752376;
+        bh=lbCdSVHFT3quE/mQUpsrEYPOjNgjtr0f4jee3R1I3Gw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=GP3LBZjohQ2kbup5Srn0eiixpOH/hIcc+FCCNUaKez7ESnviw90nZFQBDtfyKYbxu
+         b1TDSFsxhOsiQjtKxUFJ2cMM1RK/tPIkhCUJdbmLQv1AV1nX6nUwqTC1vu7asJIlnD
+         3qR6bGruYprzu5Nkj0hOvU/5nkloSms72Q7zz9d4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Will Deacon <will@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.9 16/22] ACPI/IORT: Fix off-by-one check in iort_dev_find_its_id()
+Date:   Fri,  2 Aug 2019 09:25:40 -0400
+Message-Id: <20190802132547.14517-16-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190802132547.14517-1-sashal@kernel.org>
+References: <20190802132547.14517-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190801034634.26913-2-jeremy.linton@arm.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 31.07.19 22:46:33, Jeremy Linton wrote:
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 9426b9aaed86..9d0e20a2ac83 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1302,11 +1302,16 @@ static inline int lpit_read_residency_count_address(u64 *address)
->  #endif
->  
->  #ifdef CONFIG_ACPI_PPTT
-> +int acpi_pptt_cpu_is_thread(unsigned int cpu);
->  int find_acpi_cpu_topology(unsigned int cpu, int level);
->  int find_acpi_cpu_topology_package(unsigned int cpu);
->  int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
->  int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+[ Upstream commit 5a46d3f71d5e5a9f82eabc682f996f1281705ac7 ]
 
-All those functions (exept hetero_id) are used only in
-parse_acpi_topology(). So how about creating a struct with thread_id,
-core_id, and cache_id (and hetero_id (?)) and have a single pptt table
-parsing function that fills in all of this into that struct? This
-simplifies the api and also the code.
+Static analysis identified that index comparison against ITS entries in
+iort_dev_find_its_id() is off by one.
 
-This also shows that hetid (see arm_pmu_acpi.c) better should be
-stored in cpu_topology[] too and thus being parsed with the other
-parameters as well and made accessible from there by a helper.
+Update the comparison condition and clarify the resulting error
+message.
 
--Robert
+Fixes: 4bf2efd26d76 ("ACPI: Add new IORT functions to support MSI domain handling")
+Link: https://lore.kernel.org/linux-arm-kernel/20190613065410.GB16334@mwanda/
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Will Deacon <will@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/arm64/iort.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 6b81746cd13c8..e5b1b3f1c2319 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -324,8 +324,8 @@ static int iort_dev_find_its_id(struct device *dev, u32 req_id,
+ 
+ 	/* Move to ITS specific data */
+ 	its = (struct acpi_iort_its_group *)node->node_data;
+-	if (idx > its->its_count) {
+-		dev_err(dev, "requested ITS ID index [%d] is greater than available [%d]\n",
++	if (idx >= its->its_count) {
++		dev_err(dev, "requested ITS ID index [%d] overruns ITS entries [%d]\n",
+ 			idx, its->its_count);
+ 		return -ENXIO;
+ 	}
+-- 
+2.20.1
+
