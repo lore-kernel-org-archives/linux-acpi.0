@@ -2,154 +2,98 @@ Return-Path: <SRS0=DsGL=WE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB5E2C0650F
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 910DFC433FF
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Aug 2019 09:18:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB12D217F4
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67852217F4
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Aug 2019 09:18:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731651AbfHHIok (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 8 Aug 2019 04:44:40 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:49275 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731048AbfHHIof (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2019 04:44:35 -0400
-Received: from 79.184.254.29.ipv4.supernova.orange.pl (79.184.254.29) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.275)
- id 975af00a9d8c7bd9; Thu, 8 Aug 2019 10:44:33 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     platform-driver-x86@vger.kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>
-Subject: [PATCH 1/2] intel-hid: intel-vbtn: Avoid leaking wakeup_mode set
-Date:   Thu, 08 Aug 2019 10:42:42 +0200
-Message-ID: <7715913.DUxqI9eLD1@kreacher>
-In-Reply-To: <1717835.1Yz4jNODO2@kreacher>
-References: <1717835.1Yz4jNODO2@kreacher>
+        id S1732011AbfHHJSa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 8 Aug 2019 05:18:30 -0400
+Received: from mout.kundenserver.de ([217.72.192.74]:47895 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731038AbfHHJSa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2019 05:18:30 -0400
+Received: from [192.168.1.110] ([77.4.95.67]) by mrelayeu.kundenserver.de
+ (mreue107 [212.227.15.183]) with ESMTPSA (Nemesis) id
+ 1MNtny-1hgC4p2pVQ-00ODOZ; Thu, 08 Aug 2019 11:17:55 +0200
+From:   "Enrico Weigelt, metux IT consult" <lkml@metux.net>
+Subject: Re: [PATCH v5 0/3] Enable ACPI-defined peripherals on i2c-piix4 SMBus
+To:     Jean Delvare <jdelvare@suse.de>,
+        Linux I2C <linux-i2c@vger.kernel.org>
+Cc:     Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org,
+        Andrew Cooks <acooks@rationali.st>, linux-acpi@vger.kernel.org,
+        platypus-sw@opengear.com, "Tobin C . Harding" <me@tobin.cc>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Will Wagner <willw@carallon.com>
+References: <20190802145109.38dd4045@endymion>
+Organization: metux IT consult
+Message-ID: <b013c33b-da11-ce5e-08d4-0b24a8575109@metux.net>
+Date:   Thu, 8 Aug 2019 11:17:53 +0200
+User-Agent: Mozilla/5.0 (X11; Linux i686 on x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20190802145109.38dd4045@endymion>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Provags-ID: V03:K1:fDJyaJZtVxYv99ekvBH+6b0TBe7TOwbHfnLSolHa2Jg3X6OYlah
+ Us+9njVqv4Npt6CbAvSUMzJKv6321IqRYHUJ0p6VKGQ7omN23XDrkZF9fIv2VQE1Fr4qVcb
+ Hcl2XMTfAdOD8VjItWugPh3tMpNy14L1M3AjJCFHmJU0GEMAtjpoM0XZ5idlNtiYhnbLYKD
+ IvBjYYirMJ6V3ABaSkipw==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:rzdJUnUhmGE=:dR0Vz8X/m0DWewyWZSxygA
+ +oDC7DzsJ2NdrDS+ChQ8U5ZZFiVbCVaHqe7aWYqqG8rZr/0tUgbv/QwBQXxvjHzjqW8g5bvdQ
+ +N/7phO9Yus8GCdN+5pNPU0IhNyew2uqR2LkKG1Tuby6n/2Ixj6j4kVkjWsw8ecy1aCcAc5/S
+ eSqD9TyLcUk4M+GLnVfJxNBvhX/gLIUu4lRICqgDA1bXxs+IQzl97LUwJKhs3r0vqhoOPNEtl
+ sD4zQnxjw5kQRtd32ivoS7A0OdpWzw85Cv8n3ipV/3OIYiJVz/PoTmDFDEzcEMHbOereHbm46
+ LnUfYMAYAl+Ahi5q76r2kuy+67goi0kncXnOlrxIgkjwaGMbdISx/5lZbb7fM7UKFMWBmsPmO
+ g3DYc7Etev5D4Ix+HE/gI69ZqWXMObqYrS6zCEbgVEIZScUAJsfOnEolX2F+JyB9CcF1o4hbN
+ HdRY6sPJyrbz2FHUiPs9ohArmEkW+g1TW5qCx7TowTuwQQsGo0eUEWyYEzYjs5/QqDVDQcv2r
+ bPtZDHHJI0NAzzlNVTOmLlulZdFZnrF1pu7OT6vhYMOoddUc6Hdfxob59Lraoa4Jo9glmqPxT
+ qXl65kwtlR0gI8E6F3cSWVnoU1QSUVpPhW/sJIvK0d51EFlw/v5bMzDCkSKV5ys5mHyFrzAoY
+ h4o967Ty/ipFP/MM6Hwy49J41CFqJAyOWy3Op5VZQmnEwFQZAgJmtEz8SRxgmDmFpoNoDS4Qp
+ LuvL03KLpDOA5u/zl+F1wUud9vj9WLGGeqxlU1q9ft4CRkGnF1Fw2zK69uM=
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 02.08.19 14:51, Jean Delvare wrote:
 
-Both intel-hid and intel-vbtn set a wakeup_mode flag causing them
-to behave in a special way during system suspend and while suspended
-in their "prepare" PM callbacks and clear it in their "resume" PM
-callbacks.  That may cause the wakeup_mode flag to remain set after
-a system suspend failure (if some other driver's "suspend" callback
-returns an error before the "suspend" callback of either intel-hid
-or intel-vbtn is invoked).
+Hi,
 
-After commit 10a08fd65ec1 ("ACPI: PM: Set up EC GPE for system wakeup
-from drivers that need it") that also affects the "wakeup mask" bit
-of the EC GPE, which may not be cleared after a failing system
-suspend.
+> These patches fix a couple of issues with the i2c-piix4 driver on
+> AMD Family 16h Model 30h SoCs and add ACPI-based enumeration to the
+> i2c-piix4 driver.
 
-Fix this issue by adding "complete" PM callbacks to intel-hid and
-intel-vbtn to clear the wakeup_mode flag and the "wakeup mask" bit
-of the EC GPE if they have not been cleared earlier.
+Can you tell a little bit more about what devices are behind the smbus ?
+I recall the G-412 SoCs (such as on apu2+ boards) have an Hudson inside
+and fall into this category. (I'll have to check when back in office),
+so (as the apu2 platform driver maintainer) I'm very interested in this.
 
-Fixes: 10a08fd65ec1 ("ACPI: PM: Set up EC GPE for system wakeup from drivers that need it")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Does the probing need some special BIOS support (or do the necessary
+table entries already come from aegesa) ?
 
-The commit pointed to by the Fixes: tag above is in linux-next only ATM.
+I have to admit, I'm still confused by the AMD documentation - haven't
+found a clear documentation on what peripherals exactly are in the
+G-412 SoC, just puzzled together that the FCH seems to be an Hudson,
+probably v2. There also seems to be some relation between smbus and
+gpio, but the gpio's are directly memory-mapped - no idea whether they
+just share the same base address register or the gpios are really behind
+smbus and some hw logic directy maps them into mmio space ...
+Do you happen to have some more information on that ?
 
-The problem had been there before that commit, but it wasn't fixed by it and
-the fix depends on that commit.
+By the way: I'm considering collecting some hw documentation in the
+kernel tree (maybe Documentation/hardware/...) - do you folks think
+that's a good idea ?
 
+--mtx
 
----
- drivers/platform/x86/intel-hid.c  |   17 ++++++++++++-----
- drivers/platform/x86/intel-vbtn.c |   12 +++++++++---
- 2 files changed, 21 insertions(+), 8 deletions(-)
-
-Index: linux-pm/drivers/platform/x86/intel-hid.c
-===================================================================
---- linux-pm.orig/drivers/platform/x86/intel-hid.c
-+++ linux-pm/drivers/platform/x86/intel-hid.c
-@@ -262,6 +262,16 @@ static int intel_hid_pm_prepare(struct d
- 	return 0;
- }
- 
-+static void intel_hid_pm_complete(struct device *device)
-+{
-+	struct intel_hid_priv *priv = dev_get_drvdata(device);
-+
-+	if (priv->wakeup_mode) {
-+		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
-+		priv->wakeup_mode = false;
-+	}
-+}
-+
- static int intel_hid_pl_suspend_handler(struct device *device)
- {
- 	if (pm_suspend_via_firmware()) {
-@@ -273,12 +283,8 @@ static int intel_hid_pl_suspend_handler(
- 
- static int intel_hid_pl_resume_handler(struct device *device)
- {
--	if (device_may_wakeup(device)) {
--		struct intel_hid_priv *priv = dev_get_drvdata(device);
-+	intel_hid_pm_complete(device);
- 
--		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
--		priv->wakeup_mode = false;
--	}
- 	if (pm_resume_via_firmware()) {
- 		intel_hid_set_enable(device, true);
- 		intel_button_array_enable(device, true);
-@@ -288,6 +294,7 @@ static int intel_hid_pl_resume_handler(s
- 
- static const struct dev_pm_ops intel_hid_pl_pm_ops = {
- 	.prepare = intel_hid_pm_prepare,
-+	.complete = intel_hid_pm_complete,
- 	.freeze  = intel_hid_pl_suspend_handler,
- 	.thaw  = intel_hid_pl_resume_handler,
- 	.restore  = intel_hid_pl_resume_handler,
-Index: linux-pm/drivers/platform/x86/intel-vbtn.c
-===================================================================
---- linux-pm.orig/drivers/platform/x86/intel-vbtn.c
-+++ linux-pm/drivers/platform/x86/intel-vbtn.c
-@@ -210,19 +210,25 @@ static int intel_vbtn_pm_prepare(struct
- 	return 0;
- }
- 
--static int intel_vbtn_pm_resume(struct device *dev)
-+static void intel_vbtn_pm_complete(struct device *dev)
- {
--	if (device_may_wakeup(dev)) {
--		struct intel_vbtn_priv *priv = dev_get_drvdata(dev);
-+	struct intel_vbtn_priv *priv = dev_get_drvdata(dev);
- 
-+	if (priv->wakeup_mode) {
- 		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
- 		priv->wakeup_mode = false;
- 	}
-+}
-+
-+static int intel_vbtn_pm_resume(struct device *dev)
-+{
-+	intel_vbtn_pm_complete(dev);
- 	return 0;
- }
- 
- static const struct dev_pm_ops intel_vbtn_pm_ops = {
- 	.prepare = intel_vbtn_pm_prepare,
-+	.complete = intel_vbtn_pm_complete,
- 	.resume = intel_vbtn_pm_resume,
- 	.restore = intel_vbtn_pm_resume,
- 	.thaw = intel_vbtn_pm_resume,
-
-
-
+-- 
+Enrico Weigelt, metux IT consult
+Free software and Linux embedded engineering
+info@metux.net -- +49-151-27565287
