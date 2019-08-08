@@ -1,114 +1,286 @@
-Return-Path: <SRS0=5gGC=WD=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=DsGL=WE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DB64C32751
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Aug 2019 16:45:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 935ADC32751
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Aug 2019 00:08:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 25AAB2229C
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Aug 2019 16:45:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BA6C21873
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Aug 2019 00:08:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jOI6Zft9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730045AbfHGQp1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Aug 2019 12:45:27 -0400
-Received: from mga03.intel.com ([134.134.136.65]:6866 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730036AbfHGQp1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Aug 2019 12:45:27 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Aug 2019 09:36:33 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,357,1559545200"; 
-   d="scan'208";a="192946806"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
-  by fmsmga001.fm.intel.com with SMTP; 07 Aug 2019 09:36:29 -0700
-Received: by lahna (sSMTP sendmail emulation); Wed, 07 Aug 2019 19:36:29 +0300
-Date:   Wed, 7 Aug 2019 19:36:29 +0300
-From:   'Mika Westerberg' <mika.westerberg@linux.intel.com>
-To:     David Laight <David.Laight@aculab.com>
-Cc:     'Yehezkel Bernat' <yehezkelshb@gmail.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Andreas Noever <andreas.noever@gmail.com>,
-        Michael Jamet <michael.jamet@intel.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Lukas Wunner <lukas@wunner.de>,
-        Mario Limonciello <Mario.Limonciello@dell.com>,
-        Anthony Wong <anthony.wong@canonical.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH 3/8] thunderbolt: Use 32-bit writes when writing ring
- producer/consumer
-Message-ID: <20190807163629.GV2716@lahna.fi.intel.com>
-References: <20190705095800.43534-1-mika.westerberg@linux.intel.com>
- <20190705095800.43534-4-mika.westerberg@linux.intel.com>
- <CA+CmpXtMBEtyh77fcrhX2BU8esiit56CWfZmey6LYEHZVUxf8A@mail.gmail.com>
- <0f3a47d8133945b181d623ea6e0d53f2@AcuMS.aculab.com>
- <20190807161359.GT2716@lahna.fi.intel.com>
- <79616dd147864771b0b74901e77f2607@AcuMS.aculab.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <79616dd147864771b0b74901e77f2607@AcuMS.aculab.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.12.1 (2019-06-15)
+        id S2389653AbfHHAIE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Aug 2019 20:08:04 -0400
+Received: from mail-vk1-f202.google.com ([209.85.221.202]:49863 "EHLO
+        mail-vk1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389644AbfHHAIE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Aug 2019 20:08:04 -0400
+Received: by mail-vk1-f202.google.com with SMTP id o202so39773276vko.16
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Aug 2019 17:08:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=klghF8F9jCh3lGq1PlqD6+/L30+aHC8n0RDXrpkxL3I=;
+        b=jOI6Zft91LaH5ULesiPku30JlGdDlh+e5fomVjEHP/R0JIaoCfDWnf8UtmRe25nGmp
+         YThfS4C+mvfHhvlMJRTnaXzB5tTeg8/gkjENTfsrEUxPw7NhKyyD5cal4DxEIffiRAf0
+         BMKXHkBc5DU0Rgd5I35l4RRuq0yFOAoUAs/YjQT790Nyk19vRjoqspdFeoh6PrzLv9EE
+         QWumUB/MT2t/cFS4hMeCCpBSWbk+COecWJcLm8yDgryR3pQk/ccrcY8A30l4C0Rxl8mD
+         3+CqTnfF8zaCxc7rHon+Piq1quuCtKLejUlIcNdqg1wu/Fv+Jpb1SY6r2WRO5RU461M5
+         paUg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=klghF8F9jCh3lGq1PlqD6+/L30+aHC8n0RDXrpkxL3I=;
+        b=J08y2S62ZigeXgcNagoCo7YRHzZKr8eTmJ1BRCqLBndMI9Tf3IQBjHeSQmKf+cZR01
+         YJRcX/rQBMsrqAe4+LxbsPT6ES9q22EsrxtM1GUT8D4/O2Eov0m8v7IiJ1nOGxma87dX
+         jaUrHL+g4DyRR84cL4co7iOtgdFaX3uytdV6JWwSbxUsdDAE4EaX/abfK6PhYYil6DCk
+         GzGfYyUCzOtQoiVgVAsq+A6erg7rVmCqFPfAMKIxzJGofy5v1rNqZn26v82SJ1oLqI/A
+         Oy5R7ty5k/j5TmZms42zOLVrgMoa9XnZi0qcWMD/7PqOa7FCWcnFGxzOJ/AEgNr24c7X
+         ijEg==
+X-Gm-Message-State: APjAAAVgRBeGT/jSYWBEdkpNawVA9omfXXS7kxE4qmV2PlAtiIfLPusz
+        qAesg47fMh/2Q5Vx3YirkeebZW7p7qPUp58R1Wxo2w==
+X-Google-Smtp-Source: APXvYqwJ1xB6kyTlnDHEY9WHkD3oS9dka9DS878naB5tdKQGwGJlDQpJe6WKtto+jaOR9A6fHDuM8bkQRGmNHFlNgxFl3Q==
+X-Received: by 2002:a1f:180a:: with SMTP id 10mr4635961vky.45.1565222882784;
+ Wed, 07 Aug 2019 17:08:02 -0700 (PDT)
+Date:   Wed,  7 Aug 2019 17:07:07 -0700
+In-Reply-To: <20190808000721.124691-1-matthewgarrett@google.com>
+Message-Id: <20190808000721.124691-16-matthewgarrett@google.com>
+Mime-Version: 1.0
+References: <20190808000721.124691-1-matthewgarrett@google.com>
+X-Mailer: git-send-email 2.22.0.770.g0f2c4a37fd-goog
+Subject: [PATCH V38 15/29] acpi: Ignore acpi_rsdp kernel param when the kernel
+ has been locked down
+From:   Matthew Garrett <matthewgarrett@google.com>
+To:     jmorris@namei.org
+Cc:     linux-security-module@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+        Josh Boyer <jwboyer@redhat.com>,
+        David Howells <dhowells@redhat.com>,
+        Matthew Garrett <mjg59@google.com>,
+        Kees Cook <keescook@chromium.org>,
+        Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Aug 07, 2019 at 04:22:26PM +0000, David Laight wrote:
-> From: Mika Westerberg
-> > Sent: 07 August 2019 17:14
-> > To: David Laight
-> > 
-> > On Fri, Jul 05, 2019 at 04:04:19PM +0000, David Laight wrote:
-> > > > Really a matter of taste, but maybe you want to consider having a single
-> > > > function, with a 3rd parameter, bool is_tx.
-> > > > The calls here will be unified to:
-> > > >         ring_iowrite(ring, ring->head, ring->is_tx);
-> > > > (No condition is needed here).
-> > > >
-> > > > The implementation uses the new parameter to decide which part of the register
-> > > > to mask, reducing the code duplication (in my eyes):
-> > > >
-> > > >         val = ioread32(ring_desc_base(ring) + 8);
-> > > >         if (is_tx) {
-> > > >                 val &= 0x0000ffff;
-> > > >                 val |= value << 16;
-> > > >         } else {
-> > > >                 val &= 0xffff0000;
-> > > >                 val |= value;
-> > > >         }
-> > > >         iowrite32(val, ring_desc_base(ring) + 8);
-> > > >
-> > > > I'm not sure if it improves the readability or makes it worse. Your call.
-> > >
-> > > Gah, that is all horrid beyond belief.
-> > > If a 32bit write is valid then the hardware must not be updating
-> > > the other 16 bits.
-> > > In which case the driver knows what they should be.
-> > > So it can do a single 32bit write of the required value.
-> > 
-> > I'm not entirely sure I understand what you say above. Can you shed some
-> > light on this by a concrete example how it should look like? :-)
-> 
-> The driver must know both the tx and rx ring values, so:
-> 	iowrite32(tx_val << 16 | rx_val, ring_desc_base(ring) + 8);
->
+From: Josh Boyer <jwboyer@redhat.com>
 
-I see. However, prod or cons side gets updated by the hardware as it
-processes buffers and other side is only updated by the driver. I'm not
-sure the above works here.
+This option allows userspace to pass the RSDP address to the kernel, which
+makes it possible for a user to modify the workings of hardware. Reject
+the option when the kernel is locked down. This requires some reworking
+of the existing RSDP command line logic, since the early boot code also
+makes use of a command-line passed RSDP when locating the SRAT table
+before the lockdown code has been initialised. This is achieved by
+separating the command line RSDP path in the early boot code from the
+generic RSDP path, and then copying the command line RSDP into boot
+params in the kernel proper if lockdown is not enabled. If lockdown is
+enabled and an RSDP is provided on the command line, this will only be
+used when parsing SRAT (which shouldn't permit kernel code execution)
+and will be ignored in the rest of the kernel.
 
-> The ioread32() is likely to be very slow - you only want to do them
-> if absolutely necessary.
-> The speed of the iowrite32() doesn't matter (much) since it is almost
-> certainly 'posted' and execution continues while the bus cycle is
-> in progress.
+(Modified by Matthew Garrett in order to handle the early boot RSDP
+environment)
 
-OK thanks for the explanation.
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Matthew Garrett <mjg59@google.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+cc: Dave Young <dyoung@redhat.com>
+cc: linux-acpi@vger.kernel.org
+---
+ arch/x86/boot/compressed/acpi.c | 19 +++++++++++++------
+ arch/x86/include/asm/acpi.h     |  9 +++++++++
+ arch/x86/include/asm/x86_init.h |  2 ++
+ arch/x86/kernel/acpi/boot.c     |  5 +++++
+ arch/x86/kernel/x86_init.c      |  1 +
+ drivers/acpi/osl.c              | 14 +++++++++++++-
+ include/linux/acpi.h            |  6 ++++++
+ 7 files changed, 49 insertions(+), 7 deletions(-)
+
+diff --git a/arch/x86/boot/compressed/acpi.c b/arch/x86/boot/compressed/acpi.c
+index 15255f388a85..149795c369f2 100644
+--- a/arch/x86/boot/compressed/acpi.c
++++ b/arch/x86/boot/compressed/acpi.c
+@@ -26,7 +26,7 @@ struct mem_vector immovable_mem[MAX_NUMNODES*2];
+  */
+ #define MAX_ADDR_LEN 19
+ 
+-static acpi_physical_address get_acpi_rsdp(void)
++static acpi_physical_address get_cmdline_acpi_rsdp(void)
+ {
+ 	acpi_physical_address addr = 0;
+ 
+@@ -278,10 +278,7 @@ acpi_physical_address get_rsdp_addr(void)
+ {
+ 	acpi_physical_address pa;
+ 
+-	pa = get_acpi_rsdp();
+-
+-	if (!pa)
+-		pa = boot_params->acpi_rsdp_addr;
++	pa = boot_params->acpi_rsdp_addr;
+ 
+ 	/*
+ 	 * Try to get EFI data from setup_data. This can happen when we're a
+@@ -311,7 +308,17 @@ static unsigned long get_acpi_srat_table(void)
+ 	char arg[10];
+ 	u8 *entry;
+ 
+-	rsdp = (struct acpi_table_rsdp *)(long)boot_params->acpi_rsdp_addr;
++	/*
++	 * Check whether we were given an RSDP on the command line. We don't
++	 * stash this in boot params because the kernel itself may have
++	 * different ideas about whether to trust a command-line parameter.
++	 */
++	rsdp = (struct acpi_table_rsdp *)get_cmdline_acpi_rsdp();
++
++	if (!rsdp)
++		rsdp = (struct acpi_table_rsdp *)(long)
++			boot_params->acpi_rsdp_addr;
++
+ 	if (!rsdp)
+ 		return 0;
+ 
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index aac686e1e005..bc9693c9107e 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -117,6 +117,12 @@ static inline bool acpi_has_cpu_in_madt(void)
+ 	return !!acpi_lapic;
+ }
+ 
++#define ACPI_HAVE_ARCH_SET_ROOT_POINTER
++static inline void acpi_arch_set_root_pointer(u64 addr)
++{
++	x86_init.acpi.set_root_pointer(addr);
++}
++
+ #define ACPI_HAVE_ARCH_GET_ROOT_POINTER
+ static inline u64 acpi_arch_get_root_pointer(void)
+ {
+@@ -125,6 +131,7 @@ static inline u64 acpi_arch_get_root_pointer(void)
+ 
+ void acpi_generic_reduced_hw_init(void);
+ 
++void x86_default_set_root_pointer(u64 addr);
+ u64 x86_default_get_root_pointer(void);
+ 
+ #else /* !CONFIG_ACPI */
+@@ -138,6 +145,8 @@ static inline void disable_acpi(void) { }
+ 
+ static inline void acpi_generic_reduced_hw_init(void) { }
+ 
++static inline void x86_default_set_root_pointer(u64 addr) { }
++
+ static inline u64 x86_default_get_root_pointer(void)
+ {
+ 	return 0;
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index ac0934189017..19435858df5f 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -134,10 +134,12 @@ struct x86_hyper_init {
+ 
+ /**
+  * struct x86_init_acpi - x86 ACPI init functions
++ * @set_root_poitner:		set RSDP address
+  * @get_root_pointer:		get RSDP address
+  * @reduced_hw_early_init:	hardware reduced platform early init
+  */
+ struct x86_init_acpi {
++	void (*set_root_pointer)(u64 addr);
+ 	u64 (*get_root_pointer)(void);
+ 	void (*reduced_hw_early_init)(void);
+ };
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 17b33ef604f3..04205ce127a1 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1760,6 +1760,11 @@ void __init arch_reserve_mem_area(acpi_physical_address addr, size_t size)
+ 	e820__update_table_print();
+ }
+ 
++void x86_default_set_root_pointer(u64 addr)
++{
++	boot_params.acpi_rsdp_addr = addr;
++}
++
+ u64 x86_default_get_root_pointer(void)
+ {
+ 	return boot_params.acpi_rsdp_addr;
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index 1bef687faf22..18a799c8fa28 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -95,6 +95,7 @@ struct x86_init_ops x86_init __initdata = {
+ 	},
+ 
+ 	.acpi = {
++		.set_root_pointer	= x86_default_set_root_pointer,
+ 		.get_root_pointer	= x86_default_get_root_pointer,
+ 		.reduced_hw_early_init	= acpi_generic_reduced_hw_init,
+ 	},
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 9c0edf2fc0dd..d43df3a3fa8d 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -26,6 +26,7 @@
+ #include <linux/list.h>
+ #include <linux/jiffies.h>
+ #include <linux/semaphore.h>
++#include <linux/security.h>
+ 
+ #include <asm/io.h>
+ #include <linux/uaccess.h>
+@@ -180,8 +181,19 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 	acpi_physical_address pa;
+ 
+ #ifdef CONFIG_KEXEC
+-	if (acpi_rsdp)
++	/*
++	 * We may have been provided with an RSDP on the command line,
++	 * but if a malicious user has done so they may be pointing us
++	 * at modified ACPI tables that could alter kernel behaviour -
++	 * so, we check the lockdown status before making use of
++	 * it. If we trust it then also stash it in an architecture
++	 * specific location (if appropriate) so it can be carried
++	 * over further kexec()s.
++	 */
++	if (acpi_rsdp && !security_locked_down(LOCKDOWN_ACPI_TABLES)) {
++		acpi_arch_set_root_pointer(acpi_rsdp);
+ 		return acpi_rsdp;
++	}
+ #endif
+ 	pa = acpi_arch_get_root_pointer();
+ 	if (pa)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e40e1e27ed8e..6b35f2f4cab3 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -643,6 +643,12 @@ bool acpi_gtdt_c3stop(int type);
+ int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
+ #endif
+ 
++#ifndef ACPI_HAVE_ARCH_SET_ROOT_POINTER
++static inline void acpi_arch_set_root_pointer(u64 addr)
++{
++}
++#endif
++
+ #ifndef ACPI_HAVE_ARCH_GET_ROOT_POINTER
+ static inline u64 acpi_arch_get_root_pointer(void)
+ {
+-- 
+2.22.0.770.g0f2c4a37fd-goog
+
