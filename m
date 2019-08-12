@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B5D6C31E40
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 12:39:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 736C8C433FF
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 12:39:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 387EB20663
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 12:39:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 510F820663
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 12:39:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726674AbfHLMiz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 12 Aug 2019 08:38:55 -0400
-Received: from mga14.intel.com ([192.55.52.115]:31861 "EHLO mga14.intel.com"
+        id S1726609AbfHLMjQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 12 Aug 2019 08:39:16 -0400
+Received: from mga14.intel.com ([192.55.52.115]:31865 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726557AbfHLMiy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1726638AbfHLMiy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 12 Aug 2019 08:38:54 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
   by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Aug 2019 05:38:52 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,377,1559545200"; 
-   d="scan'208";a="200110901"
+   d="scan'208";a="175871416"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga004.fm.intel.com with ESMTP; 12 Aug 2019 05:38:48 -0700
+  by fmsmga008.fm.intel.com with ESMTP; 12 Aug 2019 05:38:49 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 255052DD; Mon, 12 Aug 2019 15:38:48 +0300 (EEST)
+        id 3D4AF38C; Mon, 12 Aug 2019 15:38:48 +0300 (EEST)
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andreas Noever <andreas.noever@gmail.com>,
@@ -44,9 +44,9 @@ Cc:     Andreas Noever <andreas.noever@gmail.com>,
         David Laight <David.Laight@ACULAB.COM>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v2 2/8] thunderbolt: Move NVM upgrade support flag to struct icm
-Date:   Mon, 12 Aug 2019 15:38:41 +0300
-Message-Id: <20190812123847.50802-3-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 4/8] thunderbolt: Do not fail adding switch if some port is not implemented
+Date:   Mon, 12 Aug 2019 15:38:43 +0300
+Message-Id: <20190812123847.50802-5-mika.westerberg@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190812123847.50802-1-mika.westerberg@linux.intel.com>
 References: <20190812123847.50802-1-mika.westerberg@linux.intel.com>
@@ -57,79 +57,111 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is depends on the controller and on the platform/CPU we are
-running. Move it to struct icm so we can set it per controller.
+There are two ways to mark a port as unimplemented. Typical way is to
+return port type as TB_TYPE_INACTIVE when its config space is read.
+Alternatively if the port is not physically present (such as ports 10
+and 11 in ICL) reading from port config space returns
+TB_CFG_ERROR_INVALID_CONFIG_SPACE instead. Currently the driver bails
+out from adding the switch if it receives any error during port
+inititialization which is wrong.
+
+Handle this properly and just leave the port as TB_TYPE_INACTIVE before
+continuing to the next port.
+
+This also allows us to get rid of special casing for Light Ridge port 5
+in eeprom.c.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Reviewed-by: Yehezkel Bernat <YehezkelShB@gmail.com>
 ---
- drivers/thunderbolt/icm.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/thunderbolt/ctl.c    | 23 +++++++++++++++++++----
+ drivers/thunderbolt/eeprom.c |  4 ----
+ drivers/thunderbolt/switch.c |  8 +++++++-
+ 3 files changed, 26 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/thunderbolt/icm.c b/drivers/thunderbolt/icm.c
-index fbdcef56a676..e9835ab35465 100644
---- a/drivers/thunderbolt/icm.c
-+++ b/drivers/thunderbolt/icm.c
-@@ -55,6 +55,7 @@
-  * @safe_mode: ICM is in safe mode
-  * @max_boot_acl: Maximum number of preboot ACL entries (%0 if not supported)
-  * @rpm: Does the controller support runtime PM (RTD3)
-+ * @can_upgrade_nvm: Can the NVM firmware be upgrade on this controller
-  * @is_supported: Checks if we can support ICM on this controller
-  * @cio_reset: Trigger CIO reset
-  * @get_mode: Read and return the ICM firmware mode (optional)
-@@ -74,6 +75,7 @@ struct icm {
- 	int vnd_cap;
- 	bool safe_mode;
- 	bool rpm;
-+	bool can_upgrade_nvm;
- 	bool (*is_supported)(struct tb *tb);
- 	int (*cio_reset)(struct tb *tb);
- 	int (*get_mode)(struct tb *tb);
-@@ -1913,12 +1915,7 @@ static int icm_start(struct tb *tb)
- 	if (IS_ERR(tb->root_switch))
- 		return PTR_ERR(tb->root_switch);
+diff --git a/drivers/thunderbolt/ctl.c b/drivers/thunderbolt/ctl.c
+index 2427d73be731..2ec1af8f7968 100644
+--- a/drivers/thunderbolt/ctl.c
++++ b/drivers/thunderbolt/ctl.c
+@@ -930,6 +930,23 @@ struct tb_cfg_result tb_cfg_write_raw(struct tb_ctl *ctl, const void *buffer,
+ 	return res;
+ }
  
--	/*
--	 * NVM upgrade has not been tested on Apple systems and they
--	 * don't provide images publicly either. To be on the safe side
--	 * prevent root switch NVM upgrade on Macs for now.
--	 */
--	tb->root_switch->no_nvm_upgrade = x86_apple_machine;
-+	tb->root_switch->no_nvm_upgrade = !icm->can_upgrade_nvm;
- 	tb->root_switch->rpm = icm->rpm;
++static int tb_cfg_get_error(struct tb_ctl *ctl, enum tb_cfg_space space,
++			    const struct tb_cfg_result *res)
++{
++	/*
++	 * For unimplemented ports access to port config space may return
++	 * TB_CFG_ERROR_INVALID_CONFIG_SPACE (alternatively their type is
++	 * set to TB_TYPE_INACTIVE). In the former case return -ENODEV so
++	 * that the caller can mark the port as disabled.
++	 */
++	if (space == TB_CFG_PORT &&
++	    res->tb_error == TB_CFG_ERROR_INVALID_CONFIG_SPACE)
++		return -ENODEV;
++
++	tb_cfg_print_error(ctl, res);
++	return -EIO;
++}
++
+ int tb_cfg_read(struct tb_ctl *ctl, void *buffer, u64 route, u32 port,
+ 		enum tb_cfg_space space, u32 offset, u32 length)
+ {
+@@ -942,8 +959,7 @@ int tb_cfg_read(struct tb_ctl *ctl, void *buffer, u64 route, u32 port,
  
- 	ret = tb_switch_add(tb->root_switch);
-@@ -2021,6 +2018,7 @@ struct tb *icm_probe(struct tb_nhi *nhi)
- 	switch (nhi->pdev->device) {
- 	case PCI_DEVICE_ID_INTEL_FALCON_RIDGE_2C_NHI:
- 	case PCI_DEVICE_ID_INTEL_FALCON_RIDGE_4C_NHI:
-+		icm->can_upgrade_nvm = true;
- 		icm->is_supported = icm_fr_is_supported;
- 		icm->get_route = icm_fr_get_route;
- 		icm->save_devices = icm_fr_save_devices;
-@@ -2038,6 +2036,13 @@ struct tb *icm_probe(struct tb_nhi *nhi)
- 	case PCI_DEVICE_ID_INTEL_ALPINE_RIDGE_C_4C_NHI:
- 	case PCI_DEVICE_ID_INTEL_ALPINE_RIDGE_C_2C_NHI:
- 		icm->max_boot_acl = ICM_AR_PREBOOT_ACL_ENTRIES;
-+		/*
-+		 * NVM upgrade has not been tested on Apple systems and
-+		 * they don't provide images publicly either. To be on
-+		 * the safe side prevent root switch NVM upgrade on Macs
-+		 * for now.
-+		 */
-+		icm->can_upgrade_nvm = !x86_apple_machine;
- 		icm->is_supported = icm_ar_is_supported;
- 		icm->cio_reset = icm_ar_cio_reset;
- 		icm->get_mode = icm_ar_get_mode;
-@@ -2054,6 +2059,7 @@ struct tb *icm_probe(struct tb_nhi *nhi)
- 	case PCI_DEVICE_ID_INTEL_TITAN_RIDGE_2C_NHI:
- 	case PCI_DEVICE_ID_INTEL_TITAN_RIDGE_4C_NHI:
- 		icm->max_boot_acl = ICM_AR_PREBOOT_ACL_ENTRIES;
-+		icm->can_upgrade_nvm = !x86_apple_machine;
- 		icm->is_supported = icm_ar_is_supported;
- 		icm->cio_reset = icm_tr_cio_reset;
- 		icm->get_mode = icm_ar_get_mode;
+ 	case 1:
+ 		/* Thunderbolt error, tb_error holds the actual number */
+-		tb_cfg_print_error(ctl, &res);
+-		return -EIO;
++		return tb_cfg_get_error(ctl, space, &res);
+ 
+ 	case -ETIMEDOUT:
+ 		tb_ctl_warn(ctl, "timeout reading config space %u from %#x\n",
+@@ -969,8 +985,7 @@ int tb_cfg_write(struct tb_ctl *ctl, const void *buffer, u64 route, u32 port,
+ 
+ 	case 1:
+ 		/* Thunderbolt error, tb_error holds the actual number */
+-		tb_cfg_print_error(ctl, &res);
+-		return -EIO;
++		return tb_cfg_get_error(ctl, space, &res);
+ 
+ 	case -ETIMEDOUT:
+ 		tb_ctl_warn(ctl, "timeout writing config space %u to %#x\n",
+diff --git a/drivers/thunderbolt/eeprom.c b/drivers/thunderbolt/eeprom.c
+index 81e8ac4c5805..3b2fb4aafd92 100644
+--- a/drivers/thunderbolt/eeprom.c
++++ b/drivers/thunderbolt/eeprom.c
+@@ -525,10 +525,6 @@ int tb_drom_read(struct tb_switch *sw)
+ 		sw->ports[3].dual_link_port = &sw->ports[4];
+ 		sw->ports[4].dual_link_port = &sw->ports[3];
+ 
+-		/* Port 5 is inaccessible on this gen 1 controller */
+-		if (sw->config.device_id == PCI_DEVICE_ID_INTEL_LIGHT_RIDGE)
+-			sw->ports[5].disabled = true;
+-
+ 		return 0;
+ 	}
+ 
+diff --git a/drivers/thunderbolt/switch.c b/drivers/thunderbolt/switch.c
+index 5668a44e0653..64f845fe4690 100644
+--- a/drivers/thunderbolt/switch.c
++++ b/drivers/thunderbolt/switch.c
+@@ -611,8 +611,14 @@ static int tb_init_port(struct tb_port *port)
+ 	int cap;
+ 
+ 	res = tb_port_read(port, &port->config, TB_CFG_PORT, 0, 8);
+-	if (res)
++	if (res) {
++		if (res == -ENODEV) {
++			tb_dbg(port->sw->tb, " Port %d: not implemented\n",
++			       port->port);
++			return 0;
++		}
+ 		return res;
++	}
+ 
+ 	/* Port 0 is the switch itself and has no PHY. */
+ 	if (port->config.type == TB_TYPE_PORT && port->port != 0) {
 -- 
 2.20.1
 
