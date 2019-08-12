@@ -2,127 +2,113 @@ Return-Path: <SRS0=atkf=WI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AD21C31E40
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 12:39:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59ED1C433FF
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 13:55:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3650620663
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 12:39:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35C7420684
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 13:55:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726492AbfHLMjV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 12 Aug 2019 08:39:21 -0400
-Received: from mga14.intel.com ([192.55.52.115]:31861 "EHLO mga14.intel.com"
+        id S1727243AbfHLNzV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 12 Aug 2019 09:55:21 -0400
+Received: from mga18.intel.com ([134.134.136.126]:45219 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726502AbfHLMiw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Aug 2019 08:38:52 -0400
+        id S1727103AbfHLNzV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Aug 2019 09:55:21 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Aug 2019 05:38:51 -0700
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Aug 2019 06:55:20 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,377,1559545200"; 
-   d="scan'208";a="175871409"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP; 12 Aug 2019 05:38:48 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 046FAF9; Mon, 12 Aug 2019 15:38:47 +0300 (EEST)
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Andreas Noever <andreas.noever@gmail.com>,
-        Michael Jamet <michael.jamet@intel.com>,
-        Yehezkel Bernat <YehezkelShB@gmail.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Lukas Wunner <lukas@wunner.de>,
-        Mario.Limonciello@dell.com,
-        Anthony Wong <anthony.wong@canonical.com>,
-        Rajmohan Mani <rajmohan.mani@intel.com>,
-        Raanan Avargil <raanan.avargil@intel.com>,
-        David Laight <David.Laight@ACULAB.COM>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH v2 0/8] thunderbolt: Intel Ice Lake support
-Date:   Mon, 12 Aug 2019 15:38:39 +0300
-Message-Id: <20190812123847.50802-1-mika.westerberg@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
+   d="scan'208";a="187434113"
+Received: from rbhardw1-mobl.gar.corp.intel.com (HELO [10.252.80.195]) ([10.252.80.195])
+  by orsmga002.jf.intel.com with ESMTP; 12 Aug 2019 06:55:17 -0700
+Subject: Re: [PATCH v3 0/8] PM / ACPI: sleep: Additional changes related to
+ suspend-to-idle
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mario Limonciello <mario.limonciello@dell.com>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>
+References: <5997740.FPbUVk04hV@kreacher>
+From:   "Bhardwaj, Rajneesh" <rajneesh.bhardwaj@linux.intel.com>
+Message-ID: <a5548466-2e8e-84d0-357d-e2ca0c72097c@linux.intel.com>
+Date:   Mon, 12 Aug 2019 19:25:16 +0530
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
+In-Reply-To: <5997740.FPbUVk04hV@kreacher>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi all,
+Hi Rafael
 
-This is second version of the patch series adding support for the Intel Ice
-Lake integrated Thunderbolt controller. The biggest difference from the
-previous discrete controllers is that the Ice Lake Thunderbolt controller
-is now integrated as part of the SoC. The firmware messages pretty much
-follow Titan Ridge but there are some differences as well (such as the new
-RTD3 veto notification). Also Ice Lake does not implement security levels
-so DMA protection is handled by IOMMU.
+On 02-Aug-19 4:03 PM, Rafael J. Wysocki wrote:
+> Hi All,
+>
+>>> On top of the "Simplify the suspend-to-idle control flow" patch series
+>>> posted previously:
+>>>
+>>> https://lore.kernel.org/lkml/71085220.z6FKkvYQPX@kreacher/
+>>>
+>>> sanitize the suspend-to-idle flow even further.
+>>>
+>>> First off, decouple EC wakeup from the LPS0 _DSM processing (patch 1).
+>>>
+>>> Next, reorder the code to invoke LPS0 _DSM Functions 5 and 6 in the
+>>> specification-compliant order with respect to suspending and resuming
+>>> devices (patch 2).
+>>>
+>>> Finally, rearrange lps0_device_attach() (patch 3) and add a command line
+>>> switch to prevent the LPS0 _DSM from being used.
+>> The v2 is because I found a (minor) bug in patch 1, decided to use a module
+>> parameter instead of a kernel command line option in patch 4.  Also, there
+>> are 4 new patches:
+>>
+>> Patch 5: Switch the EC over to polling during "noirq" suspend and back
+>> during "noirq" resume.
+>>
+>> Patch 6: Eliminate acpi_sleep_no_ec_events().
+>>
+>> Patch 7: Consolidate some EC code depending on PM_SLEEP.
+>>
+>> Patch 8: Add EC GPE dispatching debug message.
+> The v3 is just a rearranged v2 so as to move the post sensitive patch (previous patch 2)
+> to the end of the series.   [After applying the full series the code is the same as before.]
+>
+> For easier testing, the series (along with some previous patches depended on by it)
+> is available in the pm-s2idle-testing branch of the linux-pm.git tree at kernel.org:
+>
+> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/log/?h=pm-s2idle-testing
+>
+> Please refer to the changelogs for details.
 
-The previous version of the series can be found here:
 
-  https://lwn.net/Articles/793066/
+I have tested both pm-s2idle-testing and pm-s2idle-rework branches 
+including recently introduced commit "PM: suspend: Fix 
+platform_suspend_prepare_noirq()".
 
-Changes from the previous version:
+Works fine for me on Ice Lake platform.
 
-  * Check !x86_apple_machine for Titan Ridge also.
+  Acked-by: Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
 
-  * Drop ioread32() when updating prod/cons because hardware ignores writes
-    to the read-only parts of the register this allows us to save one read.
+Tested-by: Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
 
-  * Remove Light Ridge specific handling in eeprom.c as it is not necessary
-    after patch 4/8.
 
-  * Moved RTD3 veto handling into separate functions to avoid code
-    duplication.
-
-  * Reworked struct nhi_ops so that it provides hooks such as
-    runtime_suspend and so on. The NHI implementation then can use those
-    hooks to implement whatever additional logic is needed. This should
-    allow us to move those bits into a separate files in future if needed.
-
-    I also looked whether we could replace
-    quirk_apple_poweroff_thunderbolt() using struct nhi_ops as well but it
-    turns out to be unsuitable. The reason is that the ACPI magic sequence
-    needs to be done after PCI core has moved the device into D3. The NHI
-    driver does not have easy means to do so.
-
-  * Clarified comment in icl_nhi_suspend()
-
-  * Added clarification comment to icl_nhi_force_power()
-
-  * Use "Thunderbolt" instead of "TBT" in new GUID entries
-
-  * Added reviewed tag from Yehezkel
-
-Mika Westerberg (8):
-  thunderbolt: Correct path indices for PCIe tunnel
-  thunderbolt: Move NVM upgrade support flag to struct icm
-  thunderbolt: Use 32-bit writes when writing ring producer/consumer
-  thunderbolt: Do not fail adding switch if some port is not implemented
-  thunderbolt: Hide switch attributes that are not set
-  thunderbolt: Expose active parts of NVM even if upgrade is not supported
-  thunderbolt: Add support for Intel Ice Lake
-  ACPI / property: Add two new Thunderbolt property GUIDs to the list
-
- drivers/acpi/property.c        |   6 +
- drivers/thunderbolt/ctl.c      |  23 ++-
- drivers/thunderbolt/eeprom.c   |   4 -
- drivers/thunderbolt/icm.c      | 176 ++++++++++++++++--
- drivers/thunderbolt/nhi.c      | 326 +++++++++++++++++++++++++++++++--
- drivers/thunderbolt/nhi.h      |   2 +
- drivers/thunderbolt/nhi_regs.h |  25 +++
- drivers/thunderbolt/switch.c   |  52 ++++--
- drivers/thunderbolt/tb_msgs.h  |  16 +-
- drivers/thunderbolt/tunnel.c   |   4 +-
- include/linux/thunderbolt.h    |   2 +
- 11 files changed, 584 insertions(+), 52 deletions(-)
-
--- 
-2.20.1
-
+> Thanks,
+> Rafael
+>
+>
+>
