@@ -2,154 +2,93 @@ Return-Path: <SRS0=atkf=WI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8879FC31E40
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 10:12:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF813C31E40
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 11:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6630D216F4
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 10:12:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0408208C2
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Aug 2019 11:59:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1565611154;
+	bh=vBt+QSKBMMCiqKR4EJbOKmSTXRlZV73GsGzL2FwUFJ0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=m4T59WEZ4R8QG/Ftyq/QR/05HODclPH22ZSWqkVqgjpazesASoLXvbA64+84MQ/Qz
+	 2YsUvbDfzNFQsIZ6fRzTIyEd+hnoU/RDzagOHKaR0hJGiddxaCKyf25jkYdD5xlj9k
+	 3f7rcMXHpOa9wHWbNiYsd0Ct5umTI2RxO2+wtrSY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727900AbfHLKMe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 12 Aug 2019 06:12:34 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4659 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727703AbfHLKMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Aug 2019 06:12:34 -0400
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 528D31947E2185D4EE0C;
-        Mon, 12 Aug 2019 18:12:30 +0800 (CST)
-Received: from DESKTOP-6T4S3DQ.china.huawei.com (10.202.226.45) by
- DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 12 Aug 2019 18:12:19 +0800
-From:   Shiju Jose <shiju.jose@huawei.com>
-To:     <linux-acpi@vger.kernel.org>, <linux-edac@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <rjw@rjwysocki.net>,
-        <lenb@kernel.org>, <james.morse@arm.com>, <tony.luck@intel.com>,
-        <bp@alien8.de>, <baicar@os.amperecomputing.com>
-CC:     <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-        <tanxiaofei@huawei.com>, Shiju Jose <shiju.jose@huawei.com>
-Subject: [PATCH RFC 2/4] ACPI: APEI: Add ghes_handle_memory_failure to the new notification method
-Date:   Mon, 12 Aug 2019 11:11:47 +0100
-Message-ID: <20190812101149.26036-3-shiju.jose@huawei.com>
-X-Mailer: git-send-email 2.19.2.windows.1
-In-Reply-To: <20190812101149.26036-1-shiju.jose@huawei.com>
-References: <Shiju Jose>
- <20190812101149.26036-1-shiju.jose@huawei.com>
+        id S1728224AbfHLL7O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 12 Aug 2019 07:59:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39118 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728179AbfHLL7O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Aug 2019 07:59:14 -0400
+Received: from willie-the-truck (236.31.169.217.in-addr.arpa [217.169.31.236])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 119E3206DF;
+        Mon, 12 Aug 2019 11:59:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1565611152;
+        bh=vBt+QSKBMMCiqKR4EJbOKmSTXRlZV73GsGzL2FwUFJ0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=fNg4o/1DEJKQAm6uBrNHwHIN+mT16FEFUIdmxoWSh26piY5b/OFu3/R6KVvSGZyVE
+         LBmqq11G1+mi2FqfDTde3aOME9v4BE4eoQl+JtsT9nCU4AnoXyK+r1BLkCwUIX3zq/
+         nIZfbgFk7V6RTyvRIDL0O3KVu3itpDSJYE/adOOA=
+Date:   Mon, 12 Aug 2019 12:59:07 +0100
+From:   Will Deacon <will@kernel.org>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Robert Richter <rrichter@marvell.com>,
+        Jeremy Linton <jeremy.linton@arm.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "catalin.marinas@arm.com" <catalin.marinas@arm.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
+        "sudeep.holla@arm.com" <sudeep.holla@arm.com>,
+        "rric@kernel.org" <rric@kernel.org>
+Subject: Re: [PATCH v4 1/2] ACPI/PPTT: Add support for ACPI 6.3 thread flag
+Message-ID: <20190812115907.kugk57jvv3g2r66a@willie-the-truck>
+References: <20190808204007.30110-1-jeremy.linton@arm.com>
+ <20190808204007.30110-2-jeremy.linton@arm.com>
+ <20190808222518.5q4fhd2tvs4lb6aw@rric.localdomain>
+ <CAJZ5v0imn0X=M38LJcwe76gfLafWGU+MgyGd=NuKAeDtNZ+1DQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.202.226.45]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0imn0X=M38LJcwe76gfLafWGU+MgyGd=NuKAeDtNZ+1DQ@mail.gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This patch adds ghes_handle_memory_failure to the new error
-notification method.
+On Mon, Aug 12, 2019 at 11:06:07AM +0200, Rafael J. Wysocki wrote:
+> On Fri, Aug 9, 2019 at 12:25 AM Robert Richter <rrichter@marvell.com> wrote:
+> >
+> > On 08.08.19 15:40:06, Jeremy Linton wrote:
+> > > ACPI 6.3 adds a flag to the CPU node to indicate whether
+> > > the given PE is a thread. Add a function to return that
+> > > information for a given linux logical CPU.
+> > >
+> > > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> > > Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+> > > ---
+> > >  drivers/acpi/pptt.c  | 53 +++++++++++++++++++++++++++++++++++++++++++-
+> > >  include/linux/acpi.h |  5 +++++
+> > >  2 files changed, 57 insertions(+), 1 deletion(-)
+> >
+> > Reviewed-by: Robert Richter <rrichter@marvell.com>
+> 
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> and please push it through ARM64 along with the second patch.
 
-Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
----
- drivers/acpi/apei/ghes.c | 51 ++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 36 insertions(+), 15 deletions(-)
+Thanks. I'll push these into -next shortly.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 374d197..4400d56 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -401,14 +401,18 @@ static void ghes_clear_estatus(struct ghes *ghes,
- 		ghes_ack_error(ghes->generic_v2);
- }
- 
--static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int sev)
-+static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
-+				       int sev, void *data)
- {
--#ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
-+	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
-+	int sec_sev = ghes_severity(gdata->error_severity);
- 	unsigned long pfn;
- 	int flags = -1;
--	int sec_sev = ghes_severity(gdata->error_severity);
--	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
- 
-+	ghes_edac_report_mem_error(sev, mem_err);
-+	arch_apei_report_mem_error(sev, mem_err);
-+
-+#ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
- 	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
- 		return;
- 
-@@ -569,15 +573,7 @@ static void ghes_do_proc(struct ghes *ghes,
- 		if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
- 			fru_text = gdata->fru_text;
- 
--		if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
--			struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
--
--			ghes_edac_report_mem_error(sev, mem_err);
--
--			arch_apei_report_mem_error(sev, mem_err);
--			ghes_handle_memory_failure(gdata, sev);
--		}
--		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
-+		if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			ghes_handle_aer(gdata);
- 		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
-@@ -1190,11 +1186,25 @@ static int apei_sdei_unregister_ghes(struct ghes *ghes)
- 	return sdei_unregister_ghes(ghes);
- }
- 
-+struct ghes_err_handler_tab {
-+	guid_t sec_type;
-+	error_handle handle;
-+};
-+
-+static struct ghes_err_handler_tab handler_tab[] = {
-+	{
-+		.sec_type = CPER_SEC_PLATFORM_MEM,
-+		.handle = ghes_handle_memory_failure,
-+	},
-+	{ /* sentinel */ }
-+};
-+
- static int ghes_probe(struct platform_device *ghes_dev)
- {
- 	struct acpi_hest_generic *generic;
- 	struct ghes *ghes = NULL;
- 	unsigned long flags;
-+	int i;
- 
- 	int rc = -EINVAL;
- 
-@@ -1308,9 +1318,20 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 
- 	ghes_edac_register(ghes, &ghes_dev->dev);
- 
--	if (!refcount_read(&ghes_ref_count))
-+	if (!refcount_read(&ghes_ref_count)) {
- 		refcount_set(&ghes_ref_count, 1);
--	else
-+		/* register handler functions for the standard errors.
-+		 * This may be done from the corresponding drivers.
-+		 */
-+		for (i = 0; handler_tab[i].handle; i++) {
-+			if (ghes_error_notify_register(handler_tab[i].sec_type,
-+						handler_tab[i].handle, NULL)) {
-+				ghes_edac_unregister(ghes);
-+				platform_set_drvdata(ghes_dev, NULL);
-+				goto err;
-+			}
-+		}
-+	} else
- 		refcount_inc(&ghes_ref_count);
- 
- 	/* Handle any pending errors right away */
--- 
-1.9.1
-
-
+Will
