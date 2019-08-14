@@ -4,53 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16769C32753
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF1F0C32753
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8A4B2083B
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8B7D21744
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730016AbfHNVbm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1730076AbfHNVbm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 14 Aug 2019 17:31:42 -0400
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:34514 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729982AbfHNVbl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Aug 2019 17:31:41 -0400
-Received: by mail-wm1-f67.google.com with SMTP id e8so4173751wme.1
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Aug 2019 14:31:40 -0700 (PDT)
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:46103 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730016AbfHNVbj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Aug 2019 17:31:39 -0400
+Received: by mail-wr1-f68.google.com with SMTP id z1so414850wru.13
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Aug 2019 14:31:38 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=JS9FDqsk2E6RQCD4HkMjbuys2g4pNRCG7WFODU185bI=;
-        b=WP7qTGhc5r5DTZn4z5uIV/vYPFO5L67bxY3M2zZ3jFENipGJh1FZENkRWpg5xhNBgx
-         irRPbcwcgu6Syn0Vu1nEPdq5rHRnzcrMOwrKXaqUXOvCfylgvCwECkEy0NWnRECyYkq3
-         nCGR+Qb2D2xqeb5sHtISAObCIn7BuBunVqTEj2G2/IWsJMA4NPQtEwgT3TmBbUemwvV4
-         XO62F54u48i74TmSScJg5KlbZ86qy/rCSwe2bFn0omqHDDQLTilyZ0Pz6ZsAo+JsDy8g
-         UBXaqvsMPefpIftL9fL+X9PbBVPR7c8ApKcIdZwtpvTzV5uKSrsth2PPrrg1tOmaT6eh
-         64Ww==
-X-Gm-Message-State: APjAAAWfNURpoPI1k1CIIwqIfXo8NH50qsIq5oY2C4a2dNreItEoq/te
-        VSdyzcfcsGx2fXKSJz1rL2wn2Q==
-X-Google-Smtp-Source: APXvYqzHDWQhfPJ6We27I1c01VEHmcH6AedqLJLeDfuYhTAnIpxtfMqyBLvyHd9LxsMu3eLuFy5VVA==
-X-Received: by 2002:a7b:cf21:: with SMTP id m1mr949715wmg.150.1565818300170;
-        Wed, 14 Aug 2019 14:31:40 -0700 (PDT)
+        bh=+R7LV1MxNrT9xguc00MGuS05JmkrEhR9rX0ez6LOs84=;
+        b=s+Q1aHTGyVoXpo2BUkU1XhTeCnQsEnQ29TCGsfgWRHJ28L22zxYhXu4g5EzirUZvp3
+         6a8ZFw07Eo6zP4wYjMK1e0T3SpiUFekFfRilPbMPYS3FzKgDESPJOCMrn/IJ4+GHkg5B
+         N90za4tpfDetL4krqA2kHr98O7LCVtFrKW3pWx3sVfYfYb87qn2xxUkr0g2eF+KR5P5V
+         pAc19dBG7x5NH5VGPqR4vkV6RczPDWsz5EG2z0777J+lepx7bKBkqMUMYEByB8dsBnc+
+         CNy9Dco1wYpATKLnkU3KAevGjnTBlKcipy4pZ7Bws+Ls57AnitfEqrDj8FjIRTAdjZuR
+         NoQA==
+X-Gm-Message-State: APjAAAVNwBW9062qhD3Ud+qZvgeNdSSOcAhX1MyPHf/SBmPrYthtZgXm
+        Me7lZ3dIXIbOR4VTIWbojyTPtQ==
+X-Google-Smtp-Source: APXvYqy6Bct927d1tcxDlG3Bau1plPbpmZhGaupy99LmABC4eq6mo/7HS+c9vx5OHhIXxUPcYDgtMQ==
+X-Received: by 2002:adf:ed85:: with SMTP id c5mr1624418wro.268.1565818297742;
+        Wed, 14 Aug 2019 14:31:37 -0700 (PDT)
 Received: from kherbst.pingu.com ([2a02:8108:453f:d1a0:28d1:9d88:57f6:f95b])
-        by smtp.gmail.com with ESMTPSA id r17sm2095134wrg.93.2019.08.14.14.31.39
+        by smtp.gmail.com with ESMTPSA id r17sm2095134wrg.93.2019.08.14.14.31.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Aug 2019 14:31:39 -0700 (PDT)
+        Wed, 14 Aug 2019 14:31:37 -0700 (PDT)
 From:   Karol Herbst <kherbst@redhat.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org
-Cc:     Karol Herbst <kherbst@redhat.com>,
+Cc:     Karol Herbst <kherbst@redhat.com>, Lyude Paul <lyude@redhat.com>,
         Alex Hung <alex.hung@canonical.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Dave Airlie <airlied@redhat.com>,
-        Lyude Paul <lyude@redhat.com>, Ben Skeggs <bskeggs@redhat.com>
-Subject: [PATCH 7/7] drm/nouveau: abort runtime suspend if we hit an error
-Date:   Wed, 14 Aug 2019 23:31:18 +0200
-Message-Id: <20190814213118.28473-8-kherbst@redhat.com>
+        Ben Skeggs <bskeggs@redhat.com>
+Subject: [PATCH 5/7] drm/nouveau/pci: add nvkm_pcie_get_speed
+Date:   Wed, 14 Aug 2019 23:31:16 +0200
+Message-Id: <20190814213118.28473-6-kherbst@redhat.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190814213118.28473-1-kherbst@redhat.com>
 References: <20190814213118.28473-1-kherbst@redhat.com>
@@ -61,39 +62,46 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+v2: fixed compilation error
+
 Signed-off-by: Karol Herbst <kherbst@redhat.com>
+Reviewed-by: Lyude Paul <lyude@redhat.com>
 CC: Alex Hung <alex.hung@canonical.com>
 CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 CC: Dave Airlie <airlied@redhat.com>
 CC: Lyude Paul <lyude@redhat.com>
 CC: Ben Skeggs <bskeggs@redhat.com>
 ---
- drivers/gpu/drm/nouveau/nouveau_drm.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/gpu/drm/nouveau/include/nvkm/subdev/pci.h | 1 +
+ drivers/gpu/drm/nouveau/nvkm/subdev/pci/pcie.c    | 8 ++++++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_drm.c b/drivers/gpu/drm/nouveau/nouveau_drm.c
-index 16441c5bf29c..b16157a9c736 100644
---- a/drivers/gpu/drm/nouveau/nouveau_drm.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_drm.c
-@@ -910,6 +910,7 @@ nouveau_pmops_runtime_suspend(struct device *dev)
- {
- 	struct pci_dev *pdev = to_pci_dev(dev);
- 	struct drm_device *drm_dev = pci_get_drvdata(pdev);
-+	struct nouveau_drm *drm = nouveau_drm(drm_dev);
- 	int ret;
+diff --git a/drivers/gpu/drm/nouveau/include/nvkm/subdev/pci.h b/drivers/gpu/drm/nouveau/include/nvkm/subdev/pci.h
+index 4803a4fad4a2..b29101e485f9 100644
+--- a/drivers/gpu/drm/nouveau/include/nvkm/subdev/pci.h
++++ b/drivers/gpu/drm/nouveau/include/nvkm/subdev/pci.h
+@@ -53,4 +53,5 @@ int gp100_pci_new(struct nvkm_device *, int, struct nvkm_pci **);
  
- 	if (!nouveau_pmops_runtime()) {
-@@ -919,6 +920,10 @@ nouveau_pmops_runtime_suspend(struct device *dev)
+ /* pcie functions */
+ int nvkm_pcie_set_link(struct nvkm_pci *, enum nvkm_pcie_speed, u8 width);
++enum nvkm_pcie_speed nvkm_pcie_get_speed(struct nvkm_pci *);
+ #endif
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/pci/pcie.c b/drivers/gpu/drm/nouveau/nvkm/subdev/pci/pcie.c
+index d71e5db5028a..03be24930c0e 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/pci/pcie.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/pci/pcie.c
+@@ -163,3 +163,11 @@ nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
  
- 	nouveau_switcheroo_optimus_dsm();
- 	ret = nouveau_do_suspend(drm_dev, true);
-+	if (ret) {
-+		NV_ERROR(drm, "suspend failed with: %d\n", ret);
-+		return ret;
-+	}
- 	pci_save_state(pdev);
- 	pci_disable_device(pdev);
- 	pci_ignore_hotplug(pdev);
+ 	return ret;
+ }
++
++enum nvkm_pcie_speed
++nvkm_pcie_get_speed(struct nvkm_pci *pci)
++{
++	if (!pci || !pci_is_pcie(pci->pdev) || !pci->func->pcie.cur_speed)
++		return -ENODEV;
++	return pci->func->pcie.cur_speed(pci);
++}
 -- 
 2.21.0
 
