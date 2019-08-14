@@ -6,40 +6,40 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29FA1C433FF
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16769C32753
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05C9E205F4
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8A4B2083B
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:31:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729051AbfHNVbb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 14 Aug 2019 17:31:31 -0400
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:34493 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728777AbfHNVb0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Aug 2019 17:31:26 -0400
-Received: by mail-wm1-f66.google.com with SMTP id e8so4172976wme.1
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Aug 2019 14:31:25 -0700 (PDT)
+        id S1730016AbfHNVbm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 14 Aug 2019 17:31:42 -0400
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:34514 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729982AbfHNVbl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Aug 2019 17:31:41 -0400
+Received: by mail-wm1-f67.google.com with SMTP id e8so4173751wme.1
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Aug 2019 14:31:40 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=XYZjU1RTDpOkzFDReluCSDSSmZ91Zx0fRKtSGoSAbAQ=;
-        b=cbQ6g/9ZLwrDNZsGWKvfNerYet7jr4NK078CmCj5ueKY0CHnEecKBJDiD1uedIbfRW
-         j3eiLN7CZfXm0ikoD+laGx9j8urls1zbzqs0ojCW7FJxtyI0yhULzrHdqSAag83rJDPV
-         /sm/WUlb/vpqPaIyj23A+lO/UlX+AGpE71ndy8c6I65A8UdiuN3yyPh+ATkoVaCji//u
-         XzTi0X5XYsjCVNFw7h8qzbKsOKoOxb9VDyOfcWmFbzMiAZETSaMKuBCneTZvLsX7NLc/
-         T2hDEoIOs9+zEvWZu3XNEY+OUvs9bjEsc6pEKvxM/exXFCmc6PeXLDqhRdKrc4qYPDGL
-         B3OA==
-X-Gm-Message-State: APjAAAWzzVx10TMUP+yzMWmKvXorwEDp6I3VVL8+hSog0lNo8LU3qRXV
-        WmLzGrzgv0V3gFOV/uP+ohwihQ==
-X-Google-Smtp-Source: APXvYqzNvd+OhowbMV5UPI7p1DFhfCV5EFIScUQVzbZ3KQZm996fQEnm0XDNrUvLBitBCCdEL8ugqA==
-X-Received: by 2002:a7b:c954:: with SMTP id i20mr884035wml.169.1565818284752;
-        Wed, 14 Aug 2019 14:31:24 -0700 (PDT)
+        bh=JS9FDqsk2E6RQCD4HkMjbuys2g4pNRCG7WFODU185bI=;
+        b=WP7qTGhc5r5DTZn4z5uIV/vYPFO5L67bxY3M2zZ3jFENipGJh1FZENkRWpg5xhNBgx
+         irRPbcwcgu6Syn0Vu1nEPdq5rHRnzcrMOwrKXaqUXOvCfylgvCwECkEy0NWnRECyYkq3
+         nCGR+Qb2D2xqeb5sHtISAObCIn7BuBunVqTEj2G2/IWsJMA4NPQtEwgT3TmBbUemwvV4
+         XO62F54u48i74TmSScJg5KlbZ86qy/rCSwe2bFn0omqHDDQLTilyZ0Pz6ZsAo+JsDy8g
+         UBXaqvsMPefpIftL9fL+X9PbBVPR7c8ApKcIdZwtpvTzV5uKSrsth2PPrrg1tOmaT6eh
+         64Ww==
+X-Gm-Message-State: APjAAAWfNURpoPI1k1CIIwqIfXo8NH50qsIq5oY2C4a2dNreItEoq/te
+        VSdyzcfcsGx2fXKSJz1rL2wn2Q==
+X-Google-Smtp-Source: APXvYqzHDWQhfPJ6We27I1c01VEHmcH6AedqLJLeDfuYhTAnIpxtfMqyBLvyHd9LxsMu3eLuFy5VVA==
+X-Received: by 2002:a7b:cf21:: with SMTP id m1mr949715wmg.150.1565818300170;
+        Wed, 14 Aug 2019 14:31:40 -0700 (PDT)
 Received: from kherbst.pingu.com ([2a02:8108:453f:d1a0:28d1:9d88:57f6:f95b])
-        by smtp.gmail.com with ESMTPSA id r17sm2095134wrg.93.2019.08.14.14.31.23
+        by smtp.gmail.com with ESMTPSA id r17sm2095134wrg.93.2019.08.14.14.31.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Aug 2019 14:31:24 -0700 (PDT)
+        Wed, 14 Aug 2019 14:31:39 -0700 (PDT)
 From:   Karol Herbst <kherbst@redhat.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org
@@ -48,9 +48,9 @@ Cc:     Karol Herbst <kherbst@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Dave Airlie <airlied@redhat.com>,
         Lyude Paul <lyude@redhat.com>, Ben Skeggs <bskeggs@redhat.com>
-Subject: [PATCH 2/7] Revert "ACPI / OSI: Add OEM _OSI string to enable NVidia HDMI audio"
-Date:   Wed, 14 Aug 2019 23:31:13 +0200
-Message-Id: <20190814213118.28473-3-kherbst@redhat.com>
+Subject: [PATCH 7/7] drm/nouveau: abort runtime suspend if we hit an error
+Date:   Wed, 14 Aug 2019 23:31:18 +0200
+Message-Id: <20190814213118.28473-8-kherbst@redhat.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190814213118.28473-1-kherbst@redhat.com>
 References: <20190814213118.28473-1-kherbst@redhat.com>
@@ -61,14 +61,6 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This reverts commit 887532ca7ca59fcf0547a79211756791128030a3.
-
-We have a better solution for this: b516ea586d717
-
-And same as with the last commit: "NVidia Linux driver" that's Nouveau, any
-out of tree driver does _not_ matter. And with Nouveau all of this works even
-though it required a proper fix first, but we have that now.
-
 Signed-off-by: Karol Herbst <kherbst@redhat.com>
 CC: Alex Hung <alex.hung@canonical.com>
 CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
@@ -76,28 +68,32 @@ CC: Dave Airlie <airlied@redhat.com>
 CC: Lyude Paul <lyude@redhat.com>
 CC: Ben Skeggs <bskeggs@redhat.com>
 ---
- drivers/acpi/osi.c | 8 --------
- 1 file changed, 8 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_drm.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
-index 9b20ac4d79a0..56cc95b6b724 100644
---- a/drivers/acpi/osi.c
-+++ b/drivers/acpi/osi.c
-@@ -53,14 +53,6 @@ osi_setup_entries[OSI_STRING_ENTRIES_MAX] __initdata = {
- 	 * be removed if both new and old graphics cards are supported.
- 	 */
- 	{"Linux-Dell-Video", true},
--	/*
--	 * Linux-Lenovo-NV-HDMI-Audio is used by BIOS to power on NVidia's HDMI
--	 * audio device which is turned off for power-saving in Windows OS.
--	 * This power management feature observed on some Lenovo Thinkpad
--	 * systems which will not be able to output audio via HDMI without
--	 * a BIOS workaround.
--	 */
--	{"Linux-Lenovo-NV-HDMI-Audio", true},
- };
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drm.c b/drivers/gpu/drm/nouveau/nouveau_drm.c
+index 16441c5bf29c..b16157a9c736 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_drm.c
+@@ -910,6 +910,7 @@ nouveau_pmops_runtime_suspend(struct device *dev)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(dev);
+ 	struct drm_device *drm_dev = pci_get_drvdata(pdev);
++	struct nouveau_drm *drm = nouveau_drm(drm_dev);
+ 	int ret;
  
- static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ 	if (!nouveau_pmops_runtime()) {
+@@ -919,6 +920,10 @@ nouveau_pmops_runtime_suspend(struct device *dev)
+ 
+ 	nouveau_switcheroo_optimus_dsm();
+ 	ret = nouveau_do_suspend(drm_dev, true);
++	if (ret) {
++		NV_ERROR(drm, "suspend failed with: %d\n", ret);
++		return ret;
++	}
+ 	pci_save_state(pdev);
+ 	pci_disable_device(pdev);
+ 	pci_ignore_hotplug(pdev);
 -- 
 2.21.0
 
