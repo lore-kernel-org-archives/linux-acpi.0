@@ -2,165 +2,131 @@ Return-Path: <SRS0=oQYu=WK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16F35C433FF
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 20:27:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95D03C32753
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:30:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E30972133F
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 20:27:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AAD42083B
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Aug 2019 21:30:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amdcloud.onmicrosoft.com header.i=@amdcloud.onmicrosoft.com header.b="FXfhGWPV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729625AbfHNU1h convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 14 Aug 2019 16:27:37 -0400
-Received: from mga09.intel.com ([134.134.136.24]:10731 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729596AbfHNU1h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Aug 2019 16:27:37 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Aug 2019 13:27:36 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,386,1559545200"; 
-   d="scan'208";a="352025015"
-Received: from orsmsx106.amr.corp.intel.com ([10.22.225.133])
-  by orsmga005.jf.intel.com with ESMTP; 14 Aug 2019 13:27:35 -0700
-Received: from orsmsx122.amr.corp.intel.com ([169.254.11.68]) by
- ORSMSX106.amr.corp.intel.com ([169.254.1.52]) with mapi id 14.03.0439.000;
- Wed, 14 Aug 2019 13:27:35 -0700
-From:   "Schmauss, Erik" <erik.schmauss@intel.com>
-To:     "Shevchenko, Andriy" <andriy.shevchenko@intel.com>,
-        Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC:     Len Brown <lenb@kernel.org>,
-        "Moore, Robert" <robert.moore@intel.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>,
-        "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-        "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>
-Subject: RE: [PATCH 1/3] ACPI: Resolve objects on host-directed table loads
-Thread-Topic: [PATCH 1/3] ACPI: Resolve objects on host-directed table loads
-Thread-Index: AQHVUtE53Fq1kC1ZJkuyhDPpGVYpeqb7Fn5Q
-Date:   Wed, 14 Aug 2019 20:27:35 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED53C61A211@ORSMSX122.amr.corp.intel.com>
-References: <cover.1559127603.git.nikolaus.voss@loewensteinmedical.de>
- <8704391ae3004a6b4dd17975dbcc9e88bd28cf4b.1559127603.git.nikolaus.voss@loewensteinmedical.de>
- <20190814185055.GZ30120@smile.fi.intel.com>
-In-Reply-To: <20190814185055.GZ30120@smile.fi.intel.com>
+        id S1726166AbfHNVac (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 14 Aug 2019 17:30:32 -0400
+Received: from mail-eopbgr820070.outbound.protection.outlook.com ([40.107.82.70]:53168
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726585AbfHNVab (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Aug 2019 17:30:31 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=iNSfa/KyNffg0PM0oiRDQEIJkuUuneHCO+wl5y2t2WuFS5fDOHDwVbO5+OTjXdrHuji7mjjyzqRZA6SkCEQ2gllwE3G6QaCYLHD6sJ+ZHY9sFrH/72RBU6zBGaKAOIqIbVKV9oHgLoMxY3PAYRCITjH1mIMVZeyENm3csX2I/kfJF70hDbQAgY1/NrlqW9x6e51FIWiInsZ7GH0xTcjDQUYRDYfP1P5dw+FSbdYRISLEa/aqcUX8qgMFCPmSX8TUAhz3RMb/YPY3ucK3y62TaQTkdkKejd36MeeA/Z+7m04Y+183QpnWasOKFfeAzYrN1t2qYVO68BolzkZ0+Baaxg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=KlIYGOloPVWyUKw7Wtom+JcvbAkMnWNMsOEnnW7bcqE=;
+ b=lhbjiQAEq1iYxkdj/ZxMPmJIukVchYXBTeXCqtTNP5X3MtHhz1rqs5LTKtyEoaA1Hr3tKXSuElBwJU/tR25bwq2jKqJfkUFyQBg42tNw4wwGn+DDv+ji5trXmLcAwa4NOiUvbWaAlIBVxBT9LNznmpExU9hT1sHNstn2LeymO4x5CaN25WTIgheyHKPix7RBPCvtRB0If2V3tYEYSLz7bXrJdqbmV1bNRZgn5eiwnSf20/16B3baMWF3wtongyf2bH/dJ3efOu2LiOfo9q/v6ZtYje5L0SYD+2yIAvz2+rntoPZkwL3fvyHgS0p2c+w7CTw1nn9ebkvJkWIZqTLUNg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=amdcloud.onmicrosoft.com; s=selector2-amdcloud-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=KlIYGOloPVWyUKw7Wtom+JcvbAkMnWNMsOEnnW7bcqE=;
+ b=FXfhGWPVQi96J3bL+2HHDYqtHli4p8SG4hwzn0QGVeiJbtdNBcmMZqWdtloJilisMRuEmvPFX1QqqHheKZh/qzeReUZ7+zQ428BiAmmaFmpto0X0qrazFtqdRx3of1q5clX1VqFyomCeEcoJKBH7NRZM3+92a4FedkaBaVXTFes=
+Received: from CY4PR12MB1815.namprd12.prod.outlook.com (10.175.63.21) by
+ CY4PR12MB1333.namprd12.prod.outlook.com (10.168.169.15) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2157.18; Wed, 14 Aug 2019 21:29:49 +0000
+Received: from CY4PR12MB1815.namprd12.prod.outlook.com
+ ([fe80::2124:68e0:3c8c:a6ec]) by CY4PR12MB1815.namprd12.prod.outlook.com
+ ([fe80::2124:68e0:3c8c:a6ec%11]) with mapi id 15.20.2157.022; Wed, 14 Aug
+ 2019 21:29:49 +0000
+From:   "Duran, Leo" <leo.duran@amd.com>
+To:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+CC:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Subject: Parsing PXM from ACPI (DSDT)
+Thread-Topic: Parsing PXM from ACPI (DSDT)
+Thread-Index: AdVSCEGThmsUNGQZSm2XEI5B9E2GMQA3cq8AAAA9gMAAAAlkEA==
+Date:   Wed, 14 Aug 2019 21:29:49 +0000
+Message-ID: <CY4PR12MB1815251BBCB062AAA8EEB39CF9AD0@CY4PR12MB1815.namprd12.prod.outlook.com>
+References: <CY4PR12MB1815927E36A8A9A0E5B18734F9D20@CY4PR12MB1815.namprd12.prod.outlook.com>
+ <CY4PR12MB18156AA493BA8F3C28F0377FF9AD0@CY4PR12MB1815.namprd12.prod.outlook.com>
+ <CY4PR12MB1815E6208E334CE4EA8F2670F9AD0@CY4PR12MB1815.namprd12.prod.outlook.com>
+In-Reply-To: <CY4PR12MB1815E6208E334CE4EA8F2670F9AD0@CY4PR12MB1815.namprd12.prod.outlook.com>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiZTFjMDk5MDQtNzdmYi00MGQ4LThhMDktZDgyODNhZDI1NGFiIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiSXNhQUZDbkhUWEhMYktrRkw3SzlDbldiNGRzUDRoQ3BER3c2OTBpSTBEcWY5SFwvVnVENlhqWm9ZZmtnTzdMQ24ifQ==
-x-ctpclassification: CTP_NT
-dlp-product: dlpe-windows
-dlp-version: 11.2.0.6
-dlp-reaction: no-action
-x-originating-ip: [10.22.254.140]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=leo.duran@amd.com; 
+x-originating-ip: [165.204.77.11]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 8efd5b99-e136-4659-8f87-08d720fe894c
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:CY4PR12MB1333;
+x-ms-traffictypediagnostic: CY4PR12MB1333:
+x-microsoft-antispam-prvs: <CY4PR12MB1333EBCB4891F4F34BE57D51F9AD0@CY4PR12MB1333.namprd12.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8882;
+x-forefront-prvs: 01294F875B
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(366004)(136003)(39860400002)(346002)(376002)(189003)(199004)(76116006)(186003)(256004)(66556008)(11346002)(66946007)(26005)(6116002)(66446008)(64756008)(486006)(52536014)(5660300002)(476003)(9686003)(446003)(7696005)(71190400001)(6506007)(71200400001)(3846002)(76176011)(2906002)(8936002)(102836004)(14454004)(86362001)(2940100002)(66476007)(81156014)(81166006)(33656002)(4326008)(8676002)(478600001)(6436002)(110136005)(74316002)(2501003)(305945005)(99286004)(7736002)(53936002)(25786009)(54906003)(66066001)(55016002)(316002);DIR:OUT;SFP:1101;SCL:1;SRVR:CY4PR12MB1333;H:CY4PR12MB1815.namprd12.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: amd.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: ix34BLrzBgL6c4rE7DjsWPqQZNV4zKNqVsROK1RXiBDtjbzmRrKWfTTFLsCF2L8iSGYIU3W1EAt8IOBQerD7o6yv4WPloJ0JQR9j+jLSQUs8/rLIxpZ4kLoQlKrW4fFwlcCKEnuVe3EAZn0HMr9pOdXgmYLxXHd8pKvGxMzHJfWVdFQ+ZQxw/PCPhhhN9EfV62fcEtQl1vCtQnpGQK1ErG39LOufaZkpjH4vbLVH8iOn9tlYlTs1HFXWzCuhEFZInL86uwf1VuaQWPr6g4j+jLnJHRZgBw0BeKVAH3OX4Qx0dLW0Td2voOYK9qYkMfwUSNZXcNrSrolRTRsZ/Vfm1QMeZfiSzA/GKU1f2647+6YK8nt6Unkn/JZ/AdOsClAecPz8OLxCqmSRAZyna1eUtWbL2laC62YzSb7nSU5ZWRY=
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8efd5b99-e136-4659-8f87-08d720fe894c
+X-MS-Exchange-CrossTenant-originalarrivaltime: 14 Aug 2019 21:29:49.2393
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: vwomju+mjsyfacgupsKBUgZufHxsZ/K3l724d7qY9ohAGIPXlfDrqb1gHUz0ExRt
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR12MB1333
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Shevchenko, Andriy
-> Sent: Wednesday, August 14, 2019 11:51 AM
-> To: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>;
-> Moore, Robert <robert.moore@intel.com>; Schmauss, Erik
-> <erik.schmauss@intel.com>; Jacek Anaszewski <jacek.anaszewski@gmail.com>;
-> Pavel Machek <pavel@ucw.cz>; Dan Murphy <dmurphy@ti.com>; Thierry
-> Reding <thierry.reding@gmail.com>; linux-acpi@vger.kernel.org;
-> devel@acpica.org; linux-leds@vger.kernel.org; linux-pwm@vger.kernel.org
-> Subject: Re: [PATCH 1/3] ACPI: Resolve objects on host-directed table loads
-> 
-> On Wed, May 29, 2019 at 02:18:20PM +0200, Nikolaus Voss wrote:
-> > If an ACPI SSDT overlay is loaded after built-in tables have been
-> > loaded e.g. via configfs or efivar_ssdt_load() it is necessary to
-> > rewalk the namespace to resolve references. Without this, relative and
-> > absolute paths like ^PCI0.SBUS or \_SB.PCI0.SBUS are not resolved
-> > correctly.
-> >
-> > Make configfs load use the same method as efivar_ssdt_load().
-> 
-> This patch brought a regression (bisect log below).
-> Now I'm unable to unload the table which was working before.
-> 
-> Reverting (manual, due to ACPICA changes) helps.
-> 
-> Please, consider to revert for this cycle, or fix. I will be glad to test any
-> proposed fix.
-
-We submitted a patch (d1fb5b2f623b1af5a0d2a83d205df1b61f430dc6)
-in response to this suggestion and I was not aware that this had been applied.
-
-Rafael, please revert at least the ACPICA portion of this patch.
-
-Thanks,
-Erik
-> 
-> 
-> git bisect start
-> # good: [0ecfebd2b52404ae0c54a878c872bb93363ada36] Linux 5.2 git bisect
-> good 0ecfebd2b52404ae0c54a878c872bb93363ada36
-> # bad: [5f9e832c137075045d15cd6899ab0505cfb2ca4b] Linus 5.3-rc1 git
-> bisect bad 5f9e832c137075045d15cd6899ab0505cfb2ca4b
-> # bad: [e786741ff1b52769b044b7f4407f39cd13ee5d2d] Merge tag 'staging-
-> 5.3-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging
-> git bisect bad e786741ff1b52769b044b7f4407f39cd13ee5d2d
-> # bad: [8f6ccf6159aed1f04c6d179f61f6fb2691261e84] Merge tag 'clone3-v5.3'
-> of git://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux
-> git bisect bad 8f6ccf6159aed1f04c6d179f61f6fb2691261e84
-> # good: [ed63b9c873601ca113da5c7b1745e3946493e9f3] Merge tag
-> 'media/v5.3-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-
-> media
-> git bisect good ed63b9c873601ca113da5c7b1745e3946493e9f3
-> # bad: [4b4704520d97b74e045154fc3b844b73ae4e7ebd] Merge tag 'acpi-5.3-
-> rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-> git bisect bad 4b4704520d97b74e045154fc3b844b73ae4e7ebd
-> # good: [e3303268f9cfa4eb7c2217df471417d4327109fd] ASoC: soc-core: don't
-> use soc_find_component() at snd_soc_find_dai() git bisect good
-> e3303268f9cfa4eb7c2217df471417d4327109fd
-> # good: [3c53c6255d598db7084c5c3d7553d7200e857818] Merge tag 'asoc-
-> v5.3' of https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound into for-
-> linus git bisect good 3c53c6255d598db7084c5c3d7553d7200e857818
-> # good: [4cdd5f9186bbe80306e76f11da7ecb0b9720433c] Merge tag 'sound-
-> 5.3-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound
-> git bisect good 4cdd5f9186bbe80306e76f11da7ecb0b9720433c
-> # good: [13b06b78c772d64e2207e4a5a5329856fe2bf241] Merge branches
-> 'pm-opp', 'pm-misc', 'pm-avs' and 'pm-tools'
-> git bisect good 13b06b78c772d64e2207e4a5a5329856fe2bf241
-> # good: [cf2d213e49fdf47e4c10dc629a3659e0026a54b8] Merge tag 'pm-5.3-
-> rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-> git bisect good cf2d213e49fdf47e4c10dc629a3659e0026a54b8
-> # bad: [02a93f35f57fe5d4d1bac0ac8496884235e2fd2e] ACPICA: Update
-> version to 20190703 git bisect bad
-> 02a93f35f57fe5d4d1bac0ac8496884235e2fd2e
-> # bad: [d4ca763eed3bcc227f220beb11ff4eb2fa548755] Merge ACPI tables
-> handling changes for v5.3.
-> git bisect bad d4ca763eed3bcc227f220beb11ff4eb2fa548755
-> # bad: [d06c47e3dd07fdf3f07e8fc45f2ce655e9b295c5] ACPI: configfs: Resolve
-> objects on host-directed table loads git bisect bad
-> d06c47e3dd07fdf3f07e8fc45f2ce655e9b295c5
-> # good: [c78fea61f0c1f8568fbbb36ac3d1e1c85a903ae4] ACPI: tables: Allow
-> BGRT to be overridden git bisect good
-> c78fea61f0c1f8568fbbb36ac3d1e1c85a903ae4
-> # first bad commit: [d06c47e3dd07fdf3f07e8fc45f2ce655e9b295c5] ACPI:
-> configfs: Resolve objects on host-directed table loads
-> 
-> --
-> With Best Regards,
-> Andy Shevchenko
-> 
-
+SGVsbG8sDQpJcyBub3QgY2xlYXIgb3IgZXZpZGVudCB0byBtZSBpZiB0aGUga2VybmVsIHBhcnNl
+cyBfUFhNIHZhbHVlcyBiZWxvdyAob3IgdW5kZXIpIHRoZSByb290LWNvbXBsZXguDQoNCkZvciBl
+eGFtcGxlLCBpbiBteSBleHBlcmllbmNlOg0KVGhpcyBBU0wgc2FtcGxlIGZvciBQWE0gYXQgdGhl
+IHJvb3QtY29tcGxleCBsZXZlbCBwcm9kdWNlcyB0aGUgZXhwZWN0ZWQgTlVNQSBhc3NpZ25tZW50
+IGZyb20g4oCcbHN0b3Bv4oCdOg0KU2NvcGUgKFxfU0IpIHsNCiAgLy8gLi4uDQogIERldmljZSAo
+UENJMCkgeyAvLyBSb290IFBDSSBCdXMgKEhvc3QtQnJpZGdlKQ0KICAgIE5hbWUgKF9ISUQsIEVJ
+U0FJRCgiUE5QMEEwOCIpKQ0KICAgIE5hbWUgKF9DSUQsIEVJU0FJRCgiUE5QMEEwMyIpKQ0KICAg
+IE5hbWUgKF9CQk4sIDApDQogICAgTWV0aG9kIChfQ1JTLDApIHsNCiAgICAgIC8vIFJldHVybiBj
+dXJyZW50IHJlc291cmNlcyBmb3IgaG9zdCBicmlkZ2UgMA0KICAgIH0NCiAgICBOYW1lIChfUFJU
+LCBQYWNrYWdlKCkgew0KICAgICAvLyBQYWNrYWdlIHdpdGggUENJIElSUSByb3V0aW5nIHRhYmxl
+IGluZm9ybWF0aW9uDQogICAgfSkNCiAgICBNZXRob2QgKF9QWE0sIDAsIE5vdFNlcmlhbGl6ZWQp
+IHsNCiAgICAgIFJldHVybiAoMCkNCiAgICB9DQogIH0NCiAgLy8gLi4uDQp9DQoNCkhvd2V2ZXIs
+DQpUaGlzIEFTTCBzYW1wbGUgZm9yIFBYTSBhdCB0aGUgUDJQIHJvb3QtYnJpZGdlIGxldmVsIGRv
+ZXMgbm90IHByb2R1Y2UgdGhlIGV4cGVjdGVkIE5VTUEgYXNzaWdubWVudCBmcm9tIOKAnGxzdG9w
+b+KAnToNCiAoT2YgY291cnNlLCB0aGUgYXNzdW1wdGlvbiBpcyB0aGF0IG11bHRpcGxlIE5VTUEg
+bm9kZXMgYWN0dWFsbHkgZXhpc3Qgb24gdGhlIHN5c3RlbSkNCg0KIFNjb3BlIChcX1NCKSB7DQog
+IC8vIC4uLg0KICBEZXZpY2UgKFBDSTApIHsgLy8gUm9vdCBQQ0kgQnVzIChIb3N0LUJyaWRnZSkN
+CiAgICBOYW1lIChfSElELCBFSVNBSUQgKCJQTlAwQTA4IikpDQogICAgTmFtZSAoX0NJRCwgRUlT
+QUlEICgiUE5QMEEwMyIpKQ0KICAgIE5hbWUgKF9CQk4sIDApDQogICAgTWV0aG9kIChfQ1JTLDAp
+IHsNCiAgICAgIC8vIFJldHVybiBjdXJyZW50IHJlc291cmNlcyBmb3IgaG9zdCBicmlkZ2UgMA0K
+ICAgIH0NCiAgICBOYW1lIChfUFJULCBQYWNrYWdlKCkgew0KICAgICAgLy8gUGFja2FnZSB3aXRo
+IFBDSSBJUlEgcm91dGluZyB0YWJsZSBpbmZvcm1hdGlvbg0KICAgIH0pDQoNCsKgwqDCoCBEZXZp
+Y2UgKFAyUDApIHsgLy8gRmlyc3QgUENJLXRvLVBDSSBicmlkZ2UgKFBvcnQwKQ0KwqDCoMKgwqDC
+oCBOYW1lIChfQURSLCAweDAwMDcwMDAxKSAvLyBEZXZpY2UjN2gsIEZ1bmMjMSBvbiBidXMgUENJ
+MA0KwqDCoMKgwqDCoCBOYW1lIChfUFJULCBQYWNrYWdlKCkgew0KwqDCoMKgwqDCoCAgIC8vIFBh
+Y2thZ2Ugd2l0aCBQQ0kgSVJRIHJvdXRpbmcgdGFibGUgaW5mb3JtYXRpb24NCsKgwqDCoMKgwqAg
+fSkNCiAgICAgIE1ldGhvZCAoX1BYTSwgMCwgTm90U2VyaWFsaXplZCkgew0KICAgICAgICBSZXR1
+cm4gKDApDQogICAgICB9DQrCoMKgwqAgfQ0KDQrCoMKgwqAgRGV2aWNlIChQMlAxKSB7IC8vIFNl
+Y29uZCBQQ0ktdG8tUENJIGJyaWRnZSAoUG9ydDEpDQrCoMKgwqDCoMKgIE5hbWUgKF9BRFIgLDB4
+MDAwODAwMDEpIC8vIERldmljZSM4aCwgRnVuYyMxIG9uIGJ1cyBQQ0kwDQrCoMKgwqDCoMKgIE5h
+bWUgKF9QUlQsIFBhY2thZ2UoKSB7DQrCoMKgwqDCoMKgICAgLy8gUGFja2FnZSB3aXRoIFBDSSBJ
+UlEgcm91dGluZyB0YWJsZSBpbmZvcm1hdGlvbg0KwqAgICDCoCB9KSANCiAgICAgIE1ldGhvZCAo
+X1BYTSwgMCwgTm90U2VyaWFsaXplZCkgew0KICAgICAgICAgUmV0dXJuICgxKQ0KICAgICAgfQ0K
+wqDCoMKgIH0NCiAgfQ0KICAvLyAuLi4NCn0NCg0KVGhhbmtzLA0KTGVvLg0KDQo=
