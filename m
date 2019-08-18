@@ -1,344 +1,138 @@
-Return-Path: <SRS0=xQYu=WM=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=6YRM=WO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.7 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF6B1C3A59F
-	for <linux-acpi@archiver.kernel.org>; Fri, 16 Aug 2019 21:58:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB1A7C3A59F
+	for <linux-acpi@archiver.kernel.org>; Sun, 18 Aug 2019 18:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD4CB2171F
-	for <linux-acpi@archiver.kernel.org>; Fri, 16 Aug 2019 21:58:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BECA2184E
+	for <linux-acpi@archiver.kernel.org>; Sun, 18 Aug 2019 18:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727682AbfHPV6h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 16 Aug 2019 17:58:37 -0400
-Received: from mga11.intel.com ([192.55.52.93]:56326 "EHLO mga11.intel.com"
+        id S1726907AbfHRS7N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 18 Aug 2019 14:59:13 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:46804 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727732AbfHPV6f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 16 Aug 2019 17:58:35 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Aug 2019 14:58:33 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,394,1559545200"; 
-   d="scan'208";a="206381391"
-Received: from bartok.jf.intel.com ([10.54.75.137])
-  by fmsmga002.fm.intel.com with ESMTP; 16 Aug 2019 14:58:33 -0700
-From:   Erik Schmauss <erik.schmauss@intel.com>
-To:     rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 6/9] ACPICA: Fully deploy ACPI_PRINTF_LIKE macro Macro was not being used across all "printf-like" functions. Also, cleanup all calls to such functions now that they are analyzed by the compiler (gcc). Both in 32-bit mode and 64-bit mode.
-Date:   Fri, 16 Aug 2019 14:43:25 -0700
-Message-Id: <20190816214328.3900-7-erik.schmauss@intel.com>
-X-Mailer: git-send-email 2.17.2
-In-Reply-To: <20190816214328.3900-1-erik.schmauss@intel.com>
-References: <20190816214328.3900-1-erik.schmauss@intel.com>
+        id S1726247AbfHRS7N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 18 Aug 2019 14:59:13 -0400
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com [209.85.221.72])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 3797A2A09C4
+        for <linux-acpi@vger.kernel.org>; Sun, 18 Aug 2019 18:59:13 +0000 (UTC)
+Received: by mail-wr1-f72.google.com with SMTP id w11so4042628wru.17
+        for <linux-acpi@vger.kernel.org>; Sun, 18 Aug 2019 11:59:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=rLnw+O344r+V6G+bSidLmsGPxTIhpm+W7MqHjsCtkcU=;
+        b=AG0CGXujUsFksTey8vSd29dScgvzMgtcy1H1vC39frN8ve5kjwpyCWxiA+lo5gvbAR
+         vSSnJOKkEmNfXonpPYM9r3htuWjHsAhsimSPp8ssWLtujCyCGYJZJnHHcbebJkm3/akV
+         Amrgmh9tC8W+Ctj/6fF3yNYC4rKngi62IEt95GSmkKveomIOzBOKKkZaXQaS2NYlUaNu
+         kOQNkfYSxzrAhgvLVk0GLbtJDOf2bYdRBIlSmw4hsR3Am0PCd6FKtdUq3GdPvYAtODqE
+         +dbcEfXCl93T67auTOr8k0M5Lc01/f2h+Ak3dLV3uXnzDjoDkOmKmxTf2e1Buggv2p1A
+         2+Ew==
+X-Gm-Message-State: APjAAAW6k9SpRvo+X1HDvBOlK4CfPAXRo92KmhwGJxpTtn93wIbwg+Id
+        gxjaQEg/EeeSTO2UcUiRX+KDmKS/FKI0FR83kXce/cZx5mPmGKV348M+xEuyxUc3GUX5PBg/SWw
+        FkSTI3DsKeFrTM5jbGOWH7g==
+X-Received: by 2002:adf:9d8b:: with SMTP id p11mr21383316wre.226.1566154752037;
+        Sun, 18 Aug 2019 11:59:12 -0700 (PDT)
+X-Google-Smtp-Source: APXvYqwCda0oiQniE8VTTJFhm/VcFLZnJgyLuV1Uw2JLit2LXkvDt7KgGz4+bry6gm1vc/dhnCQ+Hw==
+X-Received: by 2002:adf:9d8b:: with SMTP id p11mr21383299wre.226.1566154751896;
+        Sun, 18 Aug 2019 11:59:11 -0700 (PDT)
+Received: from shalem.localdomain (84-106-84-65.cable.dynamic.v4.ziggo.nl. [84.106.84.65])
+        by smtp.gmail.com with ESMTPSA id s2sm10777294wrp.32.2019.08.18.11.59.10
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 18 Aug 2019 11:59:10 -0700 (PDT)
+Subject: Re: [PATCH] Skip deferred request irqs for devices known to fail
+To:     Ian W MORRISON <ianwmorrison@gmail.com>
+Cc:     benjamin.tissoires@redhat.com, mika.westerberg@linux.intel.com,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linus.walleij@linaro.org, bgolaszewski@baylibre.com,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org
+References: <20190322110515.21499-1-ianwmorrison@gmail.com>
+ <b5a7b895-e08d-f432-8606-4d8c776d4a8a@redhat.com>
+ <CAFXWsS9UYYz0HaYPgLAUZ0OaUE9gb25bT0+PSuexY9Nn05rY8Q@mail.gmail.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <c144cbd0-1773-14cd-62c9-6f41eab5894a@redhat.com>
+Date:   Sun, 18 Aug 2019 20:59:09 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
+MIME-Version: 1.0
+In-Reply-To: <CAFXWsS9UYYz0HaYPgLAUZ0OaUE9gb25bT0+PSuexY9Nn05rY8Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+Hi Ian, et. al.,
 
-ACPICA commit d06def132a8852d02c9c7fee60f17b2011066e8e
+On 23-03-19 04:39, Ian W MORRISON wrote:
+> Hi Hans,
+> 
+>> IMHO we need to root-cause this problem a bit more before applying this
+>> kludge.
+>>
+>> Can you provide an ACPI dump of one of the affected machines ?
+>>
+> 
+> Attached is an ACPI dump.
 
-Link: https://github.com/acpica/acpica/commit/d06def13
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
----
- drivers/acpi/acpica/acutils.h  |  3 ++
- drivers/acpi/acpica/dbinput.c  |  8 +--
- drivers/acpi/acpica/dbstats.c  | 94 +++++++++++++++++-----------------
- drivers/acpi/acpica/nsaccess.c |  2 +-
- drivers/acpi/acpica/utdebug.c  |  4 +-
- include/acpi/acpiosxf.h        |  1 +
- 6 files changed, 58 insertions(+), 54 deletions(-)
+First of all sorry for taking way too long to get back to you on this.
 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index bcbc51a92dde..601808be86d1 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -686,18 +686,21 @@ void acpi_ut_delete_address_lists(void);
- /*
-  * utxferror - various error/warning output functions
+So I've taken a look at all the _AEI code in the DSDT, a whole bunch of
+it seems copy and pasted from various tablets, but nothing really
+stands out as being a likely cause of this.
+
+As such I guess we may need to go with the blacklist patch you suggested
+which sucks, but having these devices not boot sucks even harder.
+
+I guess this problem did not magically fix it self in the mean time
+(with newer kernels) ?
+
+Can you resubmit your patch with Andy's review remarks addressed?
+
+In case you've lost Andy's reply I will reproduce the review remarks
+below.
+
+Regards,
+
+Hans
+
+p.s.
+
+Andy's review remarks as promised:
+
+ >  #include <linux/interrupt.h>
+ >  #include <linux/mutex.h>
+ >  #include <linux/pinctrl/pinctrl.h>
+ > +#include <linux/dmi.h>
+
+This should be in order.
+
+ >  /* Run deferred acpi_gpiochip_request_irqs() */
+ > +/* but exclude devices known to fail */
+
+/*
+  * This should be done in the similar style
+  * as for multi-line comments. Like this one.
   */
-+ACPI_PRINTF_LIKE(5)
- void ACPI_INTERNAL_VAR_XFACE
- acpi_ut_predefined_warning(const char *module_name,
- 			   u32 line_number,
- 			   char *pathname,
- 			   u16 node_flags, const char *format, ...);
- 
-+ACPI_PRINTF_LIKE(5)
- void ACPI_INTERNAL_VAR_XFACE
- acpi_ut_predefined_info(const char *module_name,
- 			u32 line_number,
- 			char *pathname,
- 			u16 node_flags, const char *format, ...);
- 
-+ACPI_PRINTF_LIKE(5)
- void ACPI_INTERNAL_VAR_XFACE
- acpi_ut_predefined_bios_error(const char *module_name,
- 			      u32 line_number,
-diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
-index 32e4f0c6b5df..55a7e10998d8 100644
---- a/drivers/acpi/acpica/dbinput.c
-+++ b/drivers/acpi/acpica/dbinput.c
-@@ -853,24 +853,24 @@ acpi_db_command_dispatch(char *input_buffer,
- 
- 		if (param_count == 0) {
- 			acpi_os_printf
--			    ("Current debug level for file output is:    %8.8lX\n",
-+			    ("Current debug level for file output is:    %8.8X\n",
- 			     acpi_gbl_db_debug_level);
- 			acpi_os_printf
--			    ("Current debug level for console output is: %8.8lX\n",
-+			    ("Current debug level for console output is: %8.8X\n",
- 			     acpi_gbl_db_console_debug_level);
- 		} else if (param_count == 2) {
- 			temp = acpi_gbl_db_console_debug_level;
- 			acpi_gbl_db_console_debug_level =
- 			    strtoul(acpi_gbl_db_args[1], NULL, 16);
- 			acpi_os_printf
--			    ("Debug Level for console output was %8.8lX, now %8.8lX\n",
-+			    ("Debug Level for console output was %8.8X, now %8.8X\n",
- 			     temp, acpi_gbl_db_console_debug_level);
- 		} else {
- 			temp = acpi_gbl_db_debug_level;
- 			acpi_gbl_db_debug_level =
- 			    strtoul(acpi_gbl_db_args[1], NULL, 16);
- 			acpi_os_printf
--			    ("Debug Level for file output was %8.8lX, now %8.8lX\n",
-+			    ("Debug Level for file output was %8.8X, now %8.8X\n",
- 			     temp, acpi_gbl_db_debug_level);
- 		}
- 		break;
-diff --git a/drivers/acpi/acpica/dbstats.c b/drivers/acpi/acpica/dbstats.c
-index 4f00351dcbb1..3af88e70238c 100644
---- a/drivers/acpi/acpica/dbstats.c
-+++ b/drivers/acpi/acpica/dbstats.c
-@@ -341,17 +341,17 @@ acpi_status acpi_db_display_statistics(char *type_arg)
- 			       "ACPI_TYPE", "NODES", "OBJECTS");
- 
- 		for (i = 0; i < ACPI_TYPE_NS_NODE_MAX; i++) {
--			acpi_os_printf("%16.16s % 10u% 10u\n",
-+			acpi_os_printf("%16.16s %10u %10u\n",
- 				       acpi_ut_get_type_name(i),
- 				       acpi_gbl_node_type_count[i],
- 				       acpi_gbl_obj_type_count[i]);
- 		}
- 
--		acpi_os_printf("%16.16s % 10u% 10u\n", "Misc/Unknown",
-+		acpi_os_printf("%16.16s %10u %10u\n", "Misc/Unknown",
- 			       acpi_gbl_node_type_count_misc,
- 			       acpi_gbl_obj_type_count_misc);
- 
--		acpi_os_printf("%16.16s % 10u% 10u\n", "TOTALS:",
-+		acpi_os_printf("%16.16s %10u %10u\n", "TOTALS:",
- 			       acpi_gbl_num_nodes, acpi_gbl_num_objects);
- 		break;
- 
-@@ -379,16 +379,16 @@ acpi_status acpi_db_display_statistics(char *type_arg)
- 	case CMD_STAT_MISC:
- 
- 		acpi_os_printf("\nMiscellaneous Statistics:\n\n");
--		acpi_os_printf("%-28s:     %7lu\n", "Calls to AcpiPsFind",
--			       (u64)acpi_gbl_ps_find_count);
--		acpi_os_printf("%-28s:     %7lu\n", "Calls to AcpiNsLookup",
--			       (u64)acpi_gbl_ns_lookup_count);
-+		acpi_os_printf("%-28s:     %7u\n", "Calls to AcpiPsFind",
-+			       acpi_gbl_ps_find_count);
-+		acpi_os_printf("%-28s:     %7u\n", "Calls to AcpiNsLookup",
-+			       acpi_gbl_ns_lookup_count);
- 
- 		acpi_os_printf("\nMutex usage:\n\n");
- 		for (i = 0; i < ACPI_NUM_MUTEX; i++) {
--			acpi_os_printf("%-28s:     %7lu\n",
-+			acpi_os_printf("%-28s:     %7u\n",
- 				       acpi_ut_get_mutex_name(i),
--				       (u64)acpi_gbl_mutex_info[i].use_count);
-+				       acpi_gbl_mutex_info[i].use_count);
- 		}
- 		break;
- 
-@@ -397,87 +397,87 @@ acpi_status acpi_db_display_statistics(char *type_arg)
- 		acpi_os_printf("\nInternal object sizes:\n\n");
- 
- 		acpi_os_printf("Common         %3d\n",
--			       sizeof(struct acpi_object_common));
-+			       (u32)sizeof(struct acpi_object_common));
- 		acpi_os_printf("Number         %3d\n",
--			       sizeof(struct acpi_object_integer));
-+			       (u32)sizeof(struct acpi_object_integer));
- 		acpi_os_printf("String         %3d\n",
--			       sizeof(struct acpi_object_string));
-+			       (u32)sizeof(struct acpi_object_string));
- 		acpi_os_printf("Buffer         %3d\n",
--			       sizeof(struct acpi_object_buffer));
-+			       (u32)sizeof(struct acpi_object_buffer));
- 		acpi_os_printf("Package        %3d\n",
--			       sizeof(struct acpi_object_package));
-+			       (u32)sizeof(struct acpi_object_package));
- 		acpi_os_printf("BufferField    %3d\n",
--			       sizeof(struct acpi_object_buffer_field));
-+			       (u32)sizeof(struct acpi_object_buffer_field));
- 		acpi_os_printf("Device         %3d\n",
--			       sizeof(struct acpi_object_device));
-+			       (u32)sizeof(struct acpi_object_device));
- 		acpi_os_printf("Event          %3d\n",
--			       sizeof(struct acpi_object_event));
-+			       (u32)sizeof(struct acpi_object_event));
- 		acpi_os_printf("Method         %3d\n",
--			       sizeof(struct acpi_object_method));
-+			       (u32)sizeof(struct acpi_object_method));
- 		acpi_os_printf("Mutex          %3d\n",
--			       sizeof(struct acpi_object_mutex));
-+			       (u32)sizeof(struct acpi_object_mutex));
- 		acpi_os_printf("Region         %3d\n",
--			       sizeof(struct acpi_object_region));
-+			       (u32)sizeof(struct acpi_object_region));
- 		acpi_os_printf("PowerResource  %3d\n",
--			       sizeof(struct acpi_object_power_resource));
-+			       (u32)sizeof(struct acpi_object_power_resource));
- 		acpi_os_printf("Processor      %3d\n",
--			       sizeof(struct acpi_object_processor));
-+			       (u32)sizeof(struct acpi_object_processor));
- 		acpi_os_printf("ThermalZone    %3d\n",
--			       sizeof(struct acpi_object_thermal_zone));
-+			       (u32)sizeof(struct acpi_object_thermal_zone));
- 		acpi_os_printf("RegionField    %3d\n",
--			       sizeof(struct acpi_object_region_field));
-+			       (u32)sizeof(struct acpi_object_region_field));
- 		acpi_os_printf("BankField      %3d\n",
--			       sizeof(struct acpi_object_bank_field));
-+			       (u32)sizeof(struct acpi_object_bank_field));
- 		acpi_os_printf("IndexField     %3d\n",
--			       sizeof(struct acpi_object_index_field));
-+			       (u32)sizeof(struct acpi_object_index_field));
- 		acpi_os_printf("Reference      %3d\n",
--			       sizeof(struct acpi_object_reference));
-+			       (u32)sizeof(struct acpi_object_reference));
- 		acpi_os_printf("Notify         %3d\n",
--			       sizeof(struct acpi_object_notify_handler));
-+			       (u32)sizeof(struct acpi_object_notify_handler));
- 		acpi_os_printf("AddressSpace   %3d\n",
--			       sizeof(struct acpi_object_addr_handler));
-+			       (u32)sizeof(struct acpi_object_addr_handler));
- 		acpi_os_printf("Extra          %3d\n",
--			       sizeof(struct acpi_object_extra));
-+			       (u32)sizeof(struct acpi_object_extra));
- 		acpi_os_printf("Data           %3d\n",
--			       sizeof(struct acpi_object_data));
-+			       (u32)sizeof(struct acpi_object_data));
- 
- 		acpi_os_printf("\n");
- 
- 		acpi_os_printf("ParseObject    %3d\n",
--			       sizeof(struct acpi_parse_obj_common));
-+			       (u32)sizeof(struct acpi_parse_obj_common));
- 		acpi_os_printf("ParseObjectNamed %3d\n",
--			       sizeof(struct acpi_parse_obj_named));
-+			       (u32)sizeof(struct acpi_parse_obj_named));
- 		acpi_os_printf("ParseObjectAsl %3d\n",
--			       sizeof(struct acpi_parse_obj_asl));
-+			       (u32)sizeof(struct acpi_parse_obj_asl));
- 		acpi_os_printf("OperandObject  %3d\n",
--			       sizeof(union acpi_operand_object));
-+			       (u32)sizeof(union acpi_operand_object));
- 		acpi_os_printf("NamespaceNode  %3d\n",
--			       sizeof(struct acpi_namespace_node));
-+			       (u32)sizeof(struct acpi_namespace_node));
- 		acpi_os_printf("AcpiObject     %3d\n",
--			       sizeof(union acpi_object));
-+			       (u32)sizeof(union acpi_object));
- 
- 		acpi_os_printf("\n");
- 
- 		acpi_os_printf("Generic State  %3d\n",
--			       sizeof(union acpi_generic_state));
-+			       (u32)sizeof(union acpi_generic_state));
- 		acpi_os_printf("Common State   %3d\n",
--			       sizeof(struct acpi_common_state));
-+			       (u32)sizeof(struct acpi_common_state));
- 		acpi_os_printf("Control State  %3d\n",
--			       sizeof(struct acpi_control_state));
-+			       (u32)sizeof(struct acpi_control_state));
- 		acpi_os_printf("Update State   %3d\n",
--			       sizeof(struct acpi_update_state));
-+			       (u32)sizeof(struct acpi_update_state));
- 		acpi_os_printf("Scope State    %3d\n",
--			       sizeof(struct acpi_scope_state));
-+			       (u32)sizeof(struct acpi_scope_state));
- 		acpi_os_printf("Parse Scope    %3d\n",
--			       sizeof(struct acpi_pscope_state));
-+			       (u32)sizeof(struct acpi_pscope_state));
- 		acpi_os_printf("Package State  %3d\n",
--			       sizeof(struct acpi_pkg_state));
-+			       (u32)sizeof(struct acpi_pkg_state));
- 		acpi_os_printf("Thread State   %3d\n",
--			       sizeof(struct acpi_thread_state));
-+			       (u32)sizeof(struct acpi_thread_state));
- 		acpi_os_printf("Result Values  %3d\n",
--			       sizeof(struct acpi_result_values));
-+			       (u32)sizeof(struct acpi_result_values));
- 		acpi_os_printf("Notify Info    %3d\n",
--			       sizeof(struct acpi_notify_info));
-+			       (u32)sizeof(struct acpi_notify_info));
- 		break;
- 
- 	case CMD_STAT_STACK:
-diff --git a/drivers/acpi/acpica/nsaccess.c b/drivers/acpi/acpica/nsaccess.c
-index 2566e2d4c780..3f045b5953b2 100644
---- a/drivers/acpi/acpica/nsaccess.c
-+++ b/drivers/acpi/acpica/nsaccess.c
-@@ -598,7 +598,7 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
- 				if (flags & ACPI_NS_PREFIX_MUST_EXIST) {
- 					acpi_os_printf(ACPI_MSG_BIOS_ERROR
- 						       "Object does not exist: %4.4s\n",
--						       &simple_name);
-+						       (char *)&simple_name);
- 				}
- #endif
- 				/* Name not found in ACPI namespace */
-diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
-index 01b1b36c8a8e..5b169b5f0f1a 100644
---- a/drivers/acpi/acpica/utdebug.c
-+++ b/drivers/acpi/acpica/utdebug.c
-@@ -158,7 +158,7 @@ acpi_debug_print(u32 requested_debug_level,
- 	 * Display the module name, current line number, thread ID (if requested),
- 	 * current procedure nesting level, and the current procedure name
- 	 */
--	acpi_os_printf("%9s-%04ld ", module_name, line_number);
-+	acpi_os_printf("%9s-%04d ", module_name, line_number);
- 
- #ifdef ACPI_APPLICATION
- 	/*
-@@ -177,7 +177,7 @@ acpi_debug_print(u32 requested_debug_level,
- 		fill_count = 0;
- 	}
- 
--	acpi_os_printf("[%02ld] %*s",
-+	acpi_os_printf("[%02d] %*s",
- 		       acpi_gbl_nesting_level, acpi_gbl_nesting_level + 1, " ");
- 	acpi_os_printf("%s%*s: ",
- 		       acpi_ut_trim_function_name(function_name), fill_count,
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 1b59fb61f67d..2e63b7b390f5 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -330,6 +330,7 @@ acpi_status acpi_os_enter_sleep(u8 sleep_state, u32 rega_value, u32 regb_value);
-  * Debug print routines
-  */
- #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_printf
-+ACPI_PRINTF_LIKE(1)
- void ACPI_INTERNAL_VAR_XFACE acpi_os_printf(const char *format, ...);
- #endif
- 
--- 
-2.17.2
+
+ > +	dmi_id = dmi_first_match(skip_deferred_request_irqs_table);
+ > +
+
+Redundant blank line.
+
+ > +	if (! dmi_id) {
+
+No space here, however, better to write positive conditional.
 
