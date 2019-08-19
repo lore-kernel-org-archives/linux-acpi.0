@@ -2,145 +2,153 @@ Return-Path: <SRS0=hFP2=WP=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19324C3A5A0
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Aug 2019 11:23:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3A1EC3A5A1
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Aug 2019 11:27:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA6992086C
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Aug 2019 11:23:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79DA92173C
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Aug 2019 11:27:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eoOeXs46"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727600AbfHSLXF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Aug 2019 07:23:05 -0400
-Received: from mga18.intel.com ([134.134.136.126]:16980 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727458AbfHSLW2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Aug 2019 07:22:28 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Aug 2019 04:22:27 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,403,1559545200"; 
-   d="scan'208";a="179395013"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 19 Aug 2019 04:22:24 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 90405FC; Mon, 19 Aug 2019 14:22:23 +0300 (EEST)
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Andreas Noever <andreas.noever@gmail.com>,
-        Michael Jamet <michael.jamet@intel.com>,
-        Yehezkel Bernat <YehezkelShB@gmail.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Lukas Wunner <lukas@wunner.de>,
-        Mario.Limonciello@dell.com,
-        Anthony Wong <anthony.wong@canonical.com>,
-        Rajmohan Mani <rajmohan.mani@intel.com>,
-        Raanan Avargil <raanan.avargil@intel.com>,
-        David Laight <David.Laight@ACULAB.COM>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH v3 0/8] thunderbolt: Intel Ice Lake support
-Date:   Mon, 19 Aug 2019 14:22:15 +0300
-Message-Id: <20190819112223.15359-1-mika.westerberg@linux.intel.com>
-X-Mailer: git-send-email 2.23.0.rc1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1727410AbfHSL07 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Aug 2019 07:26:59 -0400
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:39659 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727308AbfHSL07 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Aug 2019 07:26:59 -0400
+Received: by mail-pg1-f193.google.com with SMTP id u17so1053607pgi.6;
+        Mon, 19 Aug 2019 04:26:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=vRVye6B8XFgwGVUEF0GcA194DZPYgp0SHGUoR6zegFI=;
+        b=eoOeXs46jigQlSjUrPijc/oAUBkYCMh5h7wy7K5rCwFMCI6NX5c67Ftrq7DQTgNEYA
+         rhi6pWmJ5wOab8uC9xZ60knm73pwug1ubUJMCgbe7BdN4k1fXliPgHEnzR4mUFSkWLJD
+         NOmdvihYR1oLgfDoHKMYrzC3xG6cacVYOabtrv8imr9G2I0nK57rf0i3nh2WEr2/wTOn
+         sF5SSNdCz1QC0wihKUP46q7IailDx74HUxS6VDxAJp9SmWLSChgz73DEkX153UQyAeIa
+         fwRkZwhx/JOA4l0QMpZ4n7p018JBE6g9pJmPelQXbDKwAD/2U0eObhWrL7T1LNy9k1Vh
+         Mb4g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=vRVye6B8XFgwGVUEF0GcA194DZPYgp0SHGUoR6zegFI=;
+        b=PHhZKsenuZ8VDfaRm4iwVLt+8Qn5qJF8ULrcYeSczlstt0ChQ+eQRh7nezoNZG1abm
+         Ty+8WaiUWmWkwWzCkHNe9QKlaaeka68N0Q+JVKBKfpuw88+1z3EvsZ8n3LM8gm7gYU1f
+         6nyuZv8CDwC4j8I3ASjvhMs3Q91KlQiIMFLSJCbI04pISYL6BkTEAQKZ6drGGetN9OE3
+         iqlUKeQjP/NL+WNZmjBlgcG7gxtQt+fsEaQucMZFz+nX/J03vrToXLHxaktF5TAd7i3s
+         JiJPm8+Tj2OkrgDIPKTs+a2p4/wgGVQnl1bleHCy9HVo01iX8znW5H0rFiZC7dF7wXif
+         9IoQ==
+X-Gm-Message-State: APjAAAV/noRaT2NJnyl9cfnPhJSqa7OtZQ59831L910ommbrKK6naZOm
+        yDPEll/sk1aXhOFJKap82cI=
+X-Google-Smtp-Source: APXvYqx0jyZSkUJc+ccc4cDOsChOkIyUbxMIWJOpwE3D6Rdphhg/hGR2Jsau1+7LWRECYdHdPsbsbA==
+X-Received: by 2002:a63:194f:: with SMTP id 15mr19939402pgz.382.1566214018788;
+        Mon, 19 Aug 2019 04:26:58 -0700 (PDT)
+Received: from localhost.localdomain ([58.173.144.54])
+        by smtp.googlemail.com with ESMTPSA id br18sm13826091pjb.20.2019.08.19.04.26.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Aug 2019 04:26:58 -0700 (PDT)
+From:   Ian W MORRISON <ianwmorrison@gmail.com>
+To:     benjamin.tissoires@redhat.com, hdegoede@redhat.com,
+        mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com,
+        linus.walleij@linaro.org, bgolaszewski@baylibre.com
+Cc:     linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        Ian W MORRISON <ianwmorrison@gmail.com>
+Subject: [PATCH v2] Skip deferred request irqs for devices known to fail
+Date:   Mon, 19 Aug 2019 21:26:37 +1000
+Message-Id: <20190819112637.29943-1-ianwmorrison@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi all,
+Patch ca876c7483b6 "gpiolib-acpi: make sure we trigger edge events at
+least once on boot" causes the MINIX family of mini PCs to fail to boot
+resulting in a "black screen". 
 
-This is third iteration of the patch series adding support for the Intel
-Ice Lake integrated Thunderbolt controller. The biggest difference from the
-previous discrete controllers is that the Ice Lake Thunderbolt controller
-is now integrated as part of the SoC. The firmware messages pretty much
-follow Titan Ridge but there are some differences as well (such as the new
-RTD3 veto notification). Also Ice Lake does not implement security levels
-so DMA protection is handled by IOMMU.
+This patch excludes MINIX devices from executing this trigger in order
+to successfully boot.
 
-The previous versions of the series can be found here:
+Cc: stable@vger.kernel.org
+Signed-off-by: Ian W MORRISON <ianwmorrison@gmail.com>
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 33 +++++++++++++++++++++++++++------
+ 1 file changed, 27 insertions(+), 6 deletions(-)
 
-  v2: https://lwn.net/Articles/795979/
-  v1: https://lwn.net/Articles/793066/
-
-Changes from v2:
-
-  * Moved ICL specific NHI ops into a separate file (nhi_ops.c)
-
-  * Postpone rescan thread during resume when if get device connected
-    notification from the firmware. This fixes an issue that happened
-    occasionally when resuming with full chain of devices. The driver
-    started to remove last devices in the chain even if they are still
-    connected.
-
-  * Move call to nhi->ops->init() before CM specific probe happens.
-  
-  * Added ack from Rafael
-
-Changes from v1:
-
-  * Check !x86_apple_machine for Titan Ridge also.
-
-  * Drop ioread32() when updating prod/cons because hardware ignores writes
-    to the read-only parts of the register this allows us to save one read.
-
-  * Remove Light Ridge specific handling in eeprom.c as it is not necessary
-    after patch 4/8.
-
-  * Moved RTD3 veto handling into separate functions to avoid code
-    duplication.
-
-  * Reworked struct nhi_ops so that it provides hooks such as
-    runtime_suspend and so on. The NHI implementation then can use those
-    hooks to implement whatever additional logic is needed. This should
-    allow us to move those bits into a separate files in future if needed.
-
-    I also looked whether we could replace
-    quirk_apple_poweroff_thunderbolt() using struct nhi_ops as well but it
-    turns out to be unsuitable. The reason is that the ACPI magic sequence
-    needs to be done after PCI core has moved the device into D3. The NHI
-    driver does not have easy means to do so.
-
-  * Clarified comment in icl_nhi_suspend()
-
-  * Added clarification comment to icl_nhi_force_power()
-
-  * Use "Thunderbolt" instead of "TBT" in new GUID entries
-
-  * Added reviewed tag from Yehezkel
-
-Mika Westerberg (8):
-  thunderbolt: Correct path indices for PCIe tunnel
-  thunderbolt: Move NVM upgrade support flag to struct icm
-  thunderbolt: Use 32-bit writes when writing ring producer/consumer
-  thunderbolt: Do not fail adding switch if some port is not implemented
-  thunderbolt: Hide switch attributes that are not set
-  thunderbolt: Expose active parts of NVM even if upgrade is not supported
-  thunderbolt: Add support for Intel Ice Lake
-  ACPI / property: Add two new Thunderbolt property GUIDs to the list
-
- drivers/acpi/property.c        |   6 +
- drivers/thunderbolt/Makefile   |   2 +-
- drivers/thunderbolt/ctl.c      |  23 +++-
- drivers/thunderbolt/eeprom.c   |   4 -
- drivers/thunderbolt/icm.c      | 194 ++++++++++++++++++++++++++++++---
- drivers/thunderbolt/nhi.c      | 134 +++++++++++++++++++++--
- drivers/thunderbolt/nhi.h      |  22 ++++
- drivers/thunderbolt/nhi_ops.c  | 179 ++++++++++++++++++++++++++++++
- drivers/thunderbolt/nhi_regs.h |  37 +++++++
- drivers/thunderbolt/switch.c   |  52 +++++++--
- drivers/thunderbolt/tb_msgs.h  |  16 ++-
- drivers/thunderbolt/tunnel.c   |   4 +-
- include/linux/thunderbolt.h    |   2 +
- 13 files changed, 622 insertions(+), 53 deletions(-)
- create mode 100644 drivers/thunderbolt/nhi_ops.c
-
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index fdee8afa5339..f6c3dcdc91c9 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -13,6 +13,7 @@
+ #include <linux/gpio/machine.h>
+ #include <linux/export.h>
+ #include <linux/acpi.h>
++#include <linux/dmi.h>
+ #include <linux/interrupt.h>
+ #include <linux/mutex.h>
+ #include <linux/pinctrl/pinctrl.h>
+@@ -20,6 +21,17 @@
+ #include "gpiolib.h"
+ #include "gpiolib-acpi.h"
+ 
++static const struct dmi_system_id skip_deferred_request_irqs_table[] = {
++	{
++		.ident = "MINIX Z83-4",
++		.matches = {
++			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "MINIX"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Z83-4"),
++		},
++	},
++	{}
++};
++
+ /**
+  * struct acpi_gpio_event - ACPI GPIO event handler data
+  *
+@@ -1273,19 +1285,28 @@ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
+ 	return con_id == NULL;
+ }
+ 
+-/* Run deferred acpi_gpiochip_request_irqs() */
++/*
++ * Run deferred acpi_gpiochip_request_irqs()
++ * but exclude devices known to fail
++*/
+ static int acpi_gpio_handle_deferred_request_irqs(void)
+ {
+ 	struct acpi_gpio_chip *acpi_gpio, *tmp;
++	const struct dmi_system_id *dmi_id;
+ 
+-	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
+-	list_for_each_entry_safe(acpi_gpio, tmp,
++	dmi_id = dmi_first_match(skip_deferred_request_irqs_table);
++	if (dmi_id)
++		return 0;
++	else {
++		mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
++		list_for_each_entry_safe(acpi_gpio, tmp,
+ 				 &acpi_gpio_deferred_req_irqs_list,
+ 				 deferred_req_irqs_list_entry)
+-		acpi_gpiochip_request_irqs(acpi_gpio);
++			acpi_gpiochip_request_irqs(acpi_gpio);
+ 
+-	acpi_gpio_deferred_req_irqs_done = true;
+-	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
++		acpi_gpio_deferred_req_irqs_done = true;
++		mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
++	}
+ 
+ 	return 0;
+ }
 -- 
-2.23.0.rc1
+2.17.1
 
