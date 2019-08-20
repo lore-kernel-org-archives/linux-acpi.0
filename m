@@ -2,171 +2,152 @@ Return-Path: <SRS0=rJye=WQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81F8CC3A59E
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Aug 2019 14:49:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2136DC3A589
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Aug 2019 17:00:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6136C22DD6
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Aug 2019 14:49:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4C32214DA
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Aug 2019 17:00:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="qsimQHs5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728248AbfHTOtC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 20 Aug 2019 10:49:02 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:43998 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729260AbfHTOtB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Aug 2019 10:49:01 -0400
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 6926CECB419C95654477;
-        Tue, 20 Aug 2019 22:47:58 +0800 (CST)
-Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
- DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 20 Aug 2019 22:47:49 +0800
-From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linux-efi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>, <james.morse@arm.com>
-CC:     <rjw@rjwysocki.net>, <tony.luck@intel.com>, <linuxarm@huawei.com>,
-        <ard.biesheuvel@linaro.org>, <nariman.poushin@linaro.org>,
-        <jcm@redhat.com>, <linux-kernel@vger.kernel.org>,
-        <peter.maydell@linaro.org>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH 0/6 V2] CCIX Protocol error reporting.
-Date:   Tue, 20 Aug 2019 22:47:26 +0800
-Message-ID: <20190820144732.2370-1-Jonathan.Cameron@huawei.com>
-X-Mailer: git-send-email 2.20.1
+        id S1727077AbfHTRAQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 20 Aug 2019 13:00:16 -0400
+Received: from mx0a-00154904.pphosted.com ([148.163.133.20]:65312 "EHLO
+        mx0a-00154904.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726981AbfHTRAQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Aug 2019 13:00:16 -0400
+Received: from pps.filterd (m0170393.ppops.net [127.0.0.1])
+        by mx0a-00154904.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7KGxXkL009269;
+        Tue, 20 Aug 2019 13:00:15 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=from : to : cc :
+ subject : date : message-id : references : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=smtpout1;
+ bh=FpNfivoxXKcKCPMOtO7Ai5kR4gztS/4X4jJx0GcEPHw=;
+ b=qsimQHs5yq3QlW4popc6Y1JW4rLQxtf7VobGSN/X1tPD221Tv85wRh2lfQz/+adijBic
+ OnxamrfrpzaQ45irbj0LFRO6tc22TgoBZ5eUVOjI+qxKy+E+8Do3U8ECna5YuFkowB9o
+ cXnQMuaPML6oaivj3OGbcsV2sd8w+wc/OHHWCZksltzyXNIIkohqrIOP9NcGDsIBynKR
+ xGfqjQ3dnH9VpnI9aCAMseuZ/FCx3RTpOpo5ns7SxjZH5NApbuHXaHf4fEvNQUOON9/J
+ ujxhtA1dpJesLpkoj4opI2Xh2YyD1AMmwvEua/ep56Y+Gry7D1eV61KJM81E50SxZM/G MA== 
+Received: from mx0a-00154901.pphosted.com (mx0a-00154901.pphosted.com [67.231.149.39])
+        by mx0a-00154904.pphosted.com with ESMTP id 2uggbwhh2y-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 20 Aug 2019 13:00:15 -0400
+Received: from pps.filterd (m0134746.ppops.net [127.0.0.1])
+        by mx0a-00154901.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7KGw6Hx011367;
+        Tue, 20 Aug 2019 13:00:14 -0400
+Received: from ausc60ps301.us.dell.com (ausc60ps301.us.dell.com [143.166.148.206])
+        by mx0a-00154901.pphosted.com with ESMTP id 2ugjqbjes1-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 20 Aug 2019 13:00:14 -0400
+X-LoopCount0: from 10.166.132.133
+X-PREM-Routing: D-Outbound
+X-IronPort-AV: E=Sophos;i="5.60,349,1549951200"; 
+   d="scan'208";a="1346898468"
+From:   <Mario.Limonciello@dell.com>
+To:     <lukas@wunner.de>
+CC:     <mika.westerberg@linux.intel.com>, <linux-kernel@vger.kernel.org>,
+        <andreas.noever@gmail.com>, <michael.jamet@intel.com>,
+        <YehezkelShB@gmail.com>, <rjw@rjwysocki.net>, <lenb@kernel.org>,
+        <anthony.wong@canonical.com>, <rajmohan.mani@intel.com>,
+        <raanan.avargil@intel.com>, <David.Laight@ACULAB.COM>,
+        <linux-acpi@vger.kernel.org>
+Subject: RE: [PATCH v3 0/8] thunderbolt: Intel Ice Lake support
+Thread-Topic: [PATCH v3 0/8] thunderbolt: Intel Ice Lake support
+Thread-Index: AQHVVoBozBrF8LXinkuY9L30yxdXE6cCqCcggAGVAACAAAaZYA==
+Date:   Tue, 20 Aug 2019 17:00:11 +0000
+Message-ID: <b5db55608d944b95a58cdfc7ccb60b69@AUSX13MPC101.AMER.DELL.COM>
+References: <20190819112223.15359-1-mika.westerberg@linux.intel.com>
+ <5486107424db48f2a06ed4c8a81f75b0@AUSX13MPC101.AMER.DELL.COM>
+ <20190820113404.pm6qvqakdkcwdpat@wunner.de>
+In-Reply-To: <20190820113404.pm6qvqakdkcwdpat@wunner.de>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+msip_labels: MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Enabled=True;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_SiteId=945c199a-83a2-4e80-9f8c-5a91be5752dd;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Owner=Mario_Limonciello@Dell.com;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_SetDate=2019-08-20T17:00:10.4140031Z;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Name=External Public;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Application=Microsoft Azure
+ Information Protection;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Extended_MSFT_Method=Manual;
+ aiplabel=External Public
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.143.18.86]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.41.22]
-X-CFilter-Loop: Reflected
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-20_07:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1906280000 definitions=main-1908200155
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
+ definitions=main-1908200155
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Note this will clash with:
-[PATCH RFC 0/4] ACPI: APEI: Add support to notify the vendor specific HW errors
-so a rebase will be needed.
+> -----Original Message-----
+> From: Lukas Wunner <lukas@wunner.de>
+> Sent: Tuesday, August 20, 2019 6:34 AM
+> To: Limonciello, Mario
+> Cc: mika.westerberg@linux.intel.com; linux-kernel@vger.kernel.org;
+> andreas.noever@gmail.com; michael.jamet@intel.com;
+> YehezkelShB@gmail.com; rjw@rjwysocki.net; lenb@kernel.org;
+> anthony.wong@canonical.com; rajmohan.mani@intel.com;
+> raanan.avargil@intel.com; David.Laight@ACULAB.COM; linux-
+> acpi@vger.kernel.org
+> Subject: Re: [PATCH v3 0/8] thunderbolt: Intel Ice Lake support
+>=20
+>=20
+> [EXTERNAL EMAIL]
+>=20
+> On Mon, Aug 19, 2019 at 04:29:35PM +0000, Mario.Limonciello@dell.com wrot=
+e:
+> > I've run into a problem when using
+> > a WD19TB that after unplugging it will cause the following to spew in d=
+mesg:
+> >
+> > [ 2198.017003] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+> > [ 2198.017005] WARNING: possible recursive locking detected
+> > [ 2198.017008] 5.3.0-rc5+ #75 Not tainted
+> > [ 2198.017009] --------------------------------------------
+> > [ 2198.017012] irq/122-pciehp/121 is trying to acquire lock:
+> > [ 2198.017015] 00000000801d4de8 (&ctrl->reset_lock){.+.+}, at:
+> pciehp_check_presence+0x1b/0x80
+> > [ 2198.017026]
+> >                but task is already holding lock:
+> > [ 2198.017028] 000000000899e2eb (&ctrl->reset_lock){.+.+}, at:
+> pciehp_ist+0xaf/0x1c0
+>=20
+> This was first reported by Theodore in April and appears to be a
+> false positive:
+>=20
+> https://lore.kernel.org/linux-
+> pci/20190402083257.kyqmirq4ovzscxsv@wunner.de/
+>=20
+> Thanks,
+>=20
+> Lukas
 
-Changes since V1:
+Indeed it does actually seem harmless and only comes up once.
 
-Addressed comments from James Morse
-- Dropped kernel logging of vendor data. We just push it to the tracepoints.
-- Tidied up this cover letter and added information to address questions
-  raised. Includes removing questions where James and I agreed ;)
-
-Note, this initial series attempts no 'handling' of errors.
-That will follow later.
-
-EFI 2.8 defines a new CPER record Appendix N for CCIX Protocol Error Records
-(PER). www.uefi.org
-
-These include Protocol Error Record logs which are defined in the
-CCIX 1.0 Base Specification www.ccixconsortium.com.  A public evaluation
-version is now available.
-
-Handling of coherency protocol errors is complex and how Linux does this
-will take some time to evolve.  For now, fatal errors are handled via the
-usual means and everything else is reported.
-
-There are 6 types of error defined, covering:
-* Memory errors
-* Cache errors
-* Address translation unit errors
-* CCIX port errors
-* CCIX link errors
-* Agent internal errors.
-
-These errors are concerned (mostly) wth things happening in the CCIX
-protocol layer.  They are parallel to AER errors which should be only
-concerned with the PCIe layer (which is underneath CCIX).
-The ATS errors break this rule slightly. You may get an error
-occurring that results in problems at both layers of the protocol
-stack and hence have to handle AER and PER errors simultaneously.
-
-Some of these errors can 'almost' be mapped onto standard existing error
-types but only at the loss of information specific to CCIX such as
-where in the topology they occurred.
-
-The set includes tracepoints to report the errors to RAS Daemon and a patch
-set for RAS Daemon will follow shortly.
-
-Several design decisions that people may disagree with.
-1. Reporting of vendor data.  We have little choice but to do this via a
-   dynamic array as these blocks can take arbitrary size. I had hoped
-   no one would actually use these given the odd mismatch between a
-   standard error structure and non standard element, but there are
-   already designs out there that do use it. James suggested that
-   it made sense to put these in the tracepoints, but we shouldn't spam
-   the kernel log with them (done in V2).
-2. The trade off between explicit tracepoint fields, on which we might
-   want to filter in kernel, and the simplicity of a blob.
-   I have gone for having the whole of the block specific to the PER
-   error type in an opaque blob.
-   The key elements that may be filtered on are the physical address
-   and the source and component fields which allow you to identify
-   faulty devices. Note that you have to know how the devices were
-   enumerated to be able to do so.
-3. Defined 6 new tracepoints rather than cramming everything into one.
-   * They are all defined by the CCIX specification as independent error
-     classes.
-   * Many of them can only be generated by particular types of agent.
-   * The handling required will vary widely depending on types.
-     In the kernel some map cleanly onto existing handling. Keeping the
-     whole flow separate will aide this. They vary by a similar amount
-     in scope to the RAS errors found on an existing system which have
-     independent tracepoints.
-   * Separating them out allows for filtering on the tracepoints by
-     elements that are not shared between them.
-   * Muxing the lot into one record type can lead to ugly code both in
-     kernel and in userspace.
-
-Rasdaemon patches posted.
-https://www.spinics.net/lists/linux-edac/msg10616.html
-
-The following boilerplate is granting rights to the kernel.
-Note that I haven't applied the CCIX copyright notice anywhere in this
-series because we aren't quoting from the specification.  That is
-much more likely to happen in documentation patches than in code.
-
-Like anything else in this series it is open to comment.
-
-This patch is being distributed by the CCIX Consortium, Inc. (CCIX) to
-you and other parties that are participating (the "participants") in the
-Linux kernel with the understanding that the participants will use CCIX's
-name and trademark only when this patch is used in association with the
-Linux kernel and associated user space.
-
-CCIX is also distributing this patch to these participants with the
-understanding that if any portion of the CCIX specification will be
-used or referenced in the Linux kernel, the participants will not modify
-the cited portion of the CCIX specification and will give CCIX proper
-copyright attribution by including the following copyright notice with
-the cited part of the CCIX specification:
-"© 2019 CCIX CONSORTIUM, INC. ALL RIGHTS RESERVED."
-
-Jonathan Cameron (6):
-  efi / ras: CCIX Memory error reporting
-  efi / ras: CCIX Cache error reporting
-  efi / ras: CCIX Address Translation Cache error reporting
-  efi / ras: CCIX Port error reporting
-  efi / ras: CCIX Link error reporting
-  efi / ras: CCIX Agent internal error reporting
-
- drivers/acpi/apei/Kconfig        |   8 +
- drivers/acpi/apei/ghes.c         |  59 +++
- drivers/firmware/efi/Kconfig     |   5 +
- drivers/firmware/efi/Makefile    |   1 +
- drivers/firmware/efi/cper-ccix.c | 817 +++++++++++++++++++++++++++++++
- drivers/firmware/efi/cper.c      |   6 +
- include/linux/cper.h             | 333 +++++++++++++
- include/ras/ras_event.h          | 405 +++++++++++++++
- 8 files changed, 1634 insertions(+)
- create mode 100644 drivers/firmware/efi/cper-ccix.c
-
--- 
-2.20.1
-
+I've filed https://bugzilla.kernel.org/show_bug.cgi?id=3D204639 to track do=
+wn further
+what's going on.
