@@ -2,127 +2,84 @@ Return-Path: <SRS0=DdF7=WR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49263C3A59E
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Aug 2019 14:53:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 607B0C3A59E
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Aug 2019 17:22:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F9A32339F
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Aug 2019 14:53:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CDC22332A
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Aug 2019 17:22:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727178AbfHUOxb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Aug 2019 10:53:31 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:5182 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727864AbfHUOxb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Aug 2019 10:53:31 -0400
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id B35C041EFBB7AE0B4B9E;
-        Wed, 21 Aug 2019 22:53:16 +0800 (CST)
-Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
- DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 21 Aug 2019 22:53:08 +0800
-From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-CC:     Keith Busch <keith.busch@intel.com>, <jglisse@redhat.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>, <linuxarm@huawei.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH 3/4] x86: Support Generic Initiator only proximity domains
-Date:   Wed, 21 Aug 2019 22:52:41 +0800
-Message-ID: <20190821145242.2330-4-Jonathan.Cameron@huawei.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190821145242.2330-1-Jonathan.Cameron@huawei.com>
-References: <20190821145242.2330-1-Jonathan.Cameron@huawei.com>
+        id S1728007AbfHURWj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Aug 2019 13:22:39 -0400
+Received: from foss.arm.com ([217.140.110.172]:33860 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727037AbfHURWj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Aug 2019 13:22:39 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B898C344;
+        Wed, 21 Aug 2019 10:22:38 -0700 (PDT)
+Received: from [10.1.196.105] (eglon.cambridge.arm.com [10.1.196.105])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 436583F718;
+        Wed, 21 Aug 2019 10:22:37 -0700 (PDT)
+Subject: Re: [PATCH RFC 0/4] ACPI: APEI: Add support to notify the vendor
+ specific HW errors
+To:     Shiju Jose <shiju.jose@huawei.com>
+Cc:     linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org,
+        tony.luck@intel.com, bp@alien8.de, baicar@os.amperecomputing.com,
+        linuxarm@huawei.com, jonathan.cameron@huawei.com,
+        tanxiaofei@huawei.com
+References: <Shiju Jose> <20190812101149.26036-1-shiju.jose@huawei.com>
+From:   James Morse <james.morse@arm.com>
+Message-ID: <72f44e4d-a20b-df1c-ddfe-55219e0ed429@arm.com>
+Date:   Wed, 21 Aug 2019 18:22:34 +0100
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.41.22]
-X-CFilter-Loop: Reflected
+In-Reply-To: <20190812101149.26036-1-shiju.jose@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Done in a somewhat different fashion to arm64.
-Here the infrastructure for memoryless domains was already
-in place.  That infrastruture applies just as well to
-domains that also don't have a CPU, hence it works for
-Generic Initiator Domains.
+Hi,
 
-In common with memoryless domains we only register GI domains
-if the proximity node is not online. If a domain is already
-a memory containing domain, or a memoryless domain there is
-nothing to do just because it also contains a Generic Initiator.
+On 12/08/2019 11:11, Shiju Jose wrote:
+> Presently kernel does not support reporting the vendor specific HW errors,
+> in the non-standard format, to the vendor drivers for the recovery.
 
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
----
- arch/x86/include/asm/numa.h |  2 ++
- arch/x86/kernel/setup.c     |  1 +
- arch/x86/mm/numa.c          | 14 ++++++++++++++
- 3 files changed, 17 insertions(+)
+'non standard' here is probably a little jarring to the casual reader. You're referring to
+the UEFI spec's "N.2.3 Non-standard Section Body", which refers to any section type
+published somewhere other than the UEFI spec.
 
-diff --git a/arch/x86/include/asm/numa.h b/arch/x86/include/asm/numa.h
-index bbfde3d2662f..f631467272a3 100644
---- a/arch/x86/include/asm/numa.h
-+++ b/arch/x86/include/asm/numa.h
-@@ -62,12 +62,14 @@ extern void numa_clear_node(int cpu);
- extern void __init init_cpu_to_node(void);
- extern void numa_add_cpu(int cpu);
- extern void numa_remove_cpu(int cpu);
-+extern void init_gi_nodes(void);
- #else	/* CONFIG_NUMA */
- static inline void numa_set_node(int cpu, int node)	{ }
- static inline void numa_clear_node(int cpu)		{ }
- static inline void init_cpu_to_node(void)		{ }
- static inline void numa_add_cpu(int cpu)		{ }
- static inline void numa_remove_cpu(int cpu)		{ }
-+static inline void init_gi_nodes(void)			{ }
- #endif	/* CONFIG_NUMA */
- 
- #ifdef CONFIG_DEBUG_PER_CPU_MAPS
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index bbe35bf879f5..8c368279624d 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -1265,6 +1265,7 @@ void __init setup_arch(char **cmdline_p)
- 	prefill_possible_map();
- 
- 	init_cpu_to_node();
-+	init_gi_nodes();
- 
- 	io_apic_init_mappings();
- 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index e6dad600614c..2f561344d590 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -733,6 +733,20 @@ static void __init init_memory_less_node(int nid)
- 	 */
- }
- 
-+/*
-+ * Generic Initiator Nodes may have neither CPU nor Memory.
-+ * At this stage if either of the others were present we would
-+ * already be online.
-+ */
-+void __init init_gi_nodes(void)
-+{
-+	int nid;
-+
-+	for_each_node_state(nid, N_GENERIC_INITIATOR)
-+		if (!node_online(nid))
-+			init_memory_less_node(nid);
-+}
-+
- /*
-  * Setup early cpu_to_node.
-  *
--- 
-2.20.1
+These still have to have a GUID to identify them, so they still have the same section
+header format.
 
+
+> This patch set add this support and also move the existing handler
+> functions for the standard errors to the new callback method.
+
+Could you give an example of where this would be useful? You're adding an API with no
+caller to justify its existence.
+
+
+GUIDs should only belong to one driver.
+
+I don't think we should call drivers for something described as a fatal error. (which is
+the case with what you have here)
+
+
+> Also the CCIX RAS patches could be move to the proposed callback method.
+
+Presumably for any vendor-specific stuff?
+
+
+Thanks,
+
+James
