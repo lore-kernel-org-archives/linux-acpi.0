@@ -2,121 +2,73 @@ Return-Path: <SRS0=U5Fn=WS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE47CC3A59D
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 09:05:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF926C3A5A1
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 14:44:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA6A421655
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 09:05:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA288233FD
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 14:44:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732914AbfHVJFO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 22 Aug 2019 05:05:14 -0400
-Received: from mga05.intel.com ([192.55.52.43]:6194 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732115AbfHVJFO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Aug 2019 05:05:14 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Aug 2019 02:05:13 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,416,1559545200"; 
-   d="scan'208";a="190504668"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.145])
-  by orsmga002.jf.intel.com with ESMTP; 22 Aug 2019 02:05:11 -0700
-Received: from andy by smile with local (Exim 4.92.1)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1i0j1p-0006Vi-8G; Thu, 22 Aug 2019 12:05:09 +0300
-Date:   Thu, 22 Aug 2019 12:05:09 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Curtis Malainey <cujomalainey@chromium.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        stable@vger.kernel.org
-Subject: Re: [PATCH] ACPI / LPSS: Save/restore LPSS private registers also on
- Lynxpoint
-Message-ID: <20190822090509.GK30120@smile.fi.intel.com>
-References: <20190822083200.18150-1-jarkko.nikula@linux.intel.com>
+        id S1732129AbfHVOoW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 22 Aug 2019 10:44:22 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4768 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1730203AbfHVOoW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Aug 2019 10:44:22 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 14C18F8D37B23162DF40;
+        Thu, 22 Aug 2019 22:44:17 +0800 (CST)
+Received: from localhost (10.133.213.239) by DGGEMS403-HUB.china.huawei.com
+ (10.3.19.203) with Microsoft SMTP Server id 14.3.439.0; Thu, 22 Aug 2019
+ 22:44:08 +0800
+From:   YueHaibing <yuehaibing@huawei.com>
+To:     <rjw@rjwysocki.net>, <lenb@kernel.org>
+CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] ACPI: SBS: remove unused variable 'SMBUS_PEC'
+Date:   Thu, 22 Aug 2019 22:43:46 +0800
+Message-ID: <20190822144346.12028-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190822083200.18150-1-jarkko.nikula@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain
+X-Originating-IP: [10.133.213.239]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Aug 22, 2019 at 11:32:00AM +0300, Jarkko Nikula wrote:
-> My assumption in the commit b53548f9d9e4 ("spi: pxa2xx: Remove LPSS private
-> register restoring during resume") that Intel Lynxpoint and compatible
-> based chipsets may not need LPSS private registers saving and restoring
-> over suspend/resume cycle turned out to be false on Intel Broadwell.
-> 
-> Curtis Malainey sent a patch bringing above change back and reported the
-> LPSS SPI Chip Select control was lost over suspend/resume cycle on
-> Broadwell machine.
-> 
-> Instead of reverting above commit lets add LPSS private register
-> saving/restoring also for all LPSS SPI, I2C and UART controllers on
-> Lynxpoint and compatible chipset to make sure context is not lost in
-> case nothing else preserves it like firmware or if LPSS is always on.
-> 
+drivers/acpi/sbshc.h:18:17: warning:
+ SMBUS_PEC defined but not used [-Wunused-const-variable=]
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+SMBUS_PEC is never used since introduction in
+commit 91087dfa51a2 ("ACPI: SBS: Split host
+controller (ACPI0001) from SBS driver (ACPI0002)"),
+so just remove it.
 
-> Fixes: b53548f9d9e4 ("spi: pxa2xx: Remove LPSS private register restoring during resume")
-> Reported-by: Curtis Malainey <cujomalainey@chromium.org>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> ---
->  drivers/acpi/acpi_lpss.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index d696f165a50e..60bbc5090abe 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -219,12 +219,13 @@ static void bsw_pwm_setup(struct lpss_private_data *pdata)
->  }
->  
->  static const struct lpss_device_desc lpt_dev_desc = {
-> -	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
-> +	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR
-> +			| LPSS_SAVE_CTX,
->  	.prv_offset = 0x800,
->  };
->  
->  static const struct lpss_device_desc lpt_i2c_dev_desc = {
-> -	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_LTR,
-> +	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_LTR | LPSS_SAVE_CTX,
->  	.prv_offset = 0x800,
->  };
->  
-> @@ -236,7 +237,8 @@ static struct property_entry uart_properties[] = {
->  };
->  
->  static const struct lpss_device_desc lpt_uart_dev_desc = {
-> -	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
-> +	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR
-> +			| LPSS_SAVE_CTX,
->  	.clk_con_id = "baudclk",
->  	.prv_offset = 0x800,
->  	.setup = lpss_uart_setup,
-> -- 
-> 2.23.0.rc1
-> 
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ drivers/acpi/sbshc.h | 2 --
+ 1 file changed, 2 deletions(-)
 
+diff --git a/drivers/acpi/sbshc.h b/drivers/acpi/sbshc.h
+index 06372a3..c3522bb 100644
+--- a/drivers/acpi/sbshc.h
++++ b/drivers/acpi/sbshc.h
+@@ -15,8 +15,6 @@ enum acpi_smb_protocol {
+ 	SMBUS_BLOCK_PROCESS_CALL = 0xd,
+ };
+ 
+-static const u8 SMBUS_PEC = 0x80;
+-
+ enum acpi_sbs_device_addr {
+ 	ACPI_SBS_CHARGER = 0x9,
+ 	ACPI_SBS_MANAGER = 0xa,
 -- 
-With Best Regards,
-Andy Shevchenko
+2.7.4
 
 
