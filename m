@@ -2,142 +2,98 @@ Return-Path: <SRS0=U5Fn=WS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9EA9C41514
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 16:51:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 088A0C3A5A3
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 16:57:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AFF7223407
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 16:51:41 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="C49Z6dJF"
+	by mail.kernel.org (Postfix) with ESMTP id D4DF823402
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Aug 2019 16:57:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730214AbfHVQvl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 22 Aug 2019 12:51:41 -0400
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:41400 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730719AbfHVQvl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Aug 2019 12:51:41 -0400
-Received: by mail-qk1-f194.google.com with SMTP id g17so5727958qkk.8
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Aug 2019 09:51:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=fALdrDCxue4VKel6Wk07qgTKZ9dDtwP3hCE5W1IdFsg=;
-        b=C49Z6dJFN0R8PAVFHI7oqRyQg5udCqiz3D/djcSs+gdtPJ3Pn7HQHO00BgVkvslTp1
-         LgLRqC9Zco1QWsWYswuXu8FxSGce6EufjUOjLZ5ML2qHGXe4sv3LZyz+lNDGNt7OaXIa
-         HP6lXtkphSfqQwFDq9gZRmuLOs6aJtcbPLhnStqbmpOAglBw+Y5M4PnhStc6dDpzcxws
-         ZFCV4VXG2a0RRxrkz4g9y8sk+1GTA18jjA16YZCjXRmFC/EWv0HcN1OAtDzsUi48o2Q9
-         ovU3KI85eXSfc3gW65A9BAehuohN33pUWnUx+6oJB2hhff/G64W0n48ecmvzY4Mx/wdb
-         SUng==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=fALdrDCxue4VKel6Wk07qgTKZ9dDtwP3hCE5W1IdFsg=;
-        b=IXau2d/KPNw6lkfA+820APhffOckW/WhsMSFlZd5bixund3jBUx7HqJEfPkvnHpF8R
-         MbOGeKGOHEqgoT5gkvRmA58vsD7sQvMoKIrJa1sVjGZjcFE7jRgCZs+05mJf0B1N4QTc
-         Xx9MA6gZh58ia0UYZ4PBpfxHQPX/yemitVH501Elpq4dZz0Fs1JeyXtw0Rujax5+2k6x
-         GQ3+dqi2loKRIjGtRSjbdoTXt1qfNrEq/JmeQ14mE5orsx+Ymn0u7LVNVzXM3nU8GJ1N
-         0IjSHGfXvBMB0Daa+dKhVvoiqqoABgRnUoTz/NKGdNz0bn4n+V43k4MqMIE6AmjWfimY
-         jfbw==
-X-Gm-Message-State: APjAAAUGtAEMv4+9psKFiLJga3f6mLYdXoQFEhKb8+z93bYI5E/uHzGZ
-        G7GH0yNY/+bbYSCPHc2ohWJTa0tfn64tWcGSYY4sPw==
-X-Google-Smtp-Source: APXvYqyHYjVx+HhQg98QbicZBACG7KcfROV52TqIe0LwFeF6zATk7mMEAgANqijZONvYECutsPIVUOc2WMk+Y0CH6Yg=
-X-Received: by 2002:a37:6007:: with SMTP id u7mr21915968qkb.92.1566492699745;
- Thu, 22 Aug 2019 09:51:39 -0700 (PDT)
+        id S1732024AbfHVQ5O convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 22 Aug 2019 12:57:14 -0400
+Received: from lhrrgout.huawei.com ([185.176.76.210]:33180 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727807AbfHVQ5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Aug 2019 12:57:14 -0400
+Received: from LHREML713-CAH.china.huawei.com (unknown [172.18.7.106])
+        by Forcepoint Email with ESMTP id BCD5FCFD583CE7066BF8;
+        Thu, 22 Aug 2019 17:57:11 +0100 (IST)
+Received: from LHREML523-MBX.china.huawei.com ([169.254.7.10]) by
+ LHREML713-CAH.china.huawei.com ([10.201.108.36]) with mapi id 14.03.0415.000;
+ Thu, 22 Aug 2019 17:57:05 +0100
+From:   Shiju Jose <shiju.jose@huawei.com>
+To:     James Morse <james.morse@arm.com>
+CC:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "tony.luck@intel.com" <tony.luck@intel.com>,
+        "bp@alien8.de" <bp@alien8.de>,
+        "baicar@os.amperecomputing.com" <baicar@os.amperecomputing.com>,
+        Linuxarm <linuxarm@huawei.com>,
+        Jonathan Cameron <jonathan.cameron@huawei.com>,
+        tanxiaofei <tanxiaofei@huawei.com>
+Subject: RE: [PATCH RFC 2/4] ACPI: APEI: Add ghes_handle_memory_failure to
+ the new notification method
+Thread-Topic: [PATCH RFC 2/4] ACPI: APEI: Add ghes_handle_memory_failure to
+ the new notification method
+Thread-Index: AQHVUPaFGfpBQkFdekWj0CRbk5VWqqcF13eAgAE2pSA=
+Date:   Thu, 22 Aug 2019 16:57:04 +0000
+Message-ID: <86258A5CC0A3704780874CF6004BA8A6584C7BAF@lhreml523-mbx.china.huawei.com>
+References: <Shiju Jose> <20190812101149.26036-1-shiju.jose@huawei.com>
+ <20190812101149.26036-3-shiju.jose@huawei.com>
+ <12b3ccff-0cda-0467-a9ba-0682be6f333e@arm.com>
+In-Reply-To: <12b3ccff-0cda-0467-a9ba-0682be6f333e@arm.com>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.47.93.28]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-References: <20190822083200.18150-1-jarkko.nikula@linux.intel.com> <20190822090509.GK30120@smile.fi.intel.com>
-In-Reply-To: <20190822090509.GK30120@smile.fi.intel.com>
-From:   Curtis Malainey <cujomalainey@google.com>
-Date:   Thu, 22 Aug 2019 09:51:28 -0700
-Message-ID: <CAOReqxjVcOdeT+ii7+ZT4Csi+-1fwO__cOBpAaozs9eRjXRzLQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI / LPSS: Save/restore LPSS private registers also on Lynxpoint
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Jarkko Nikula <jarkko.nikula@linux.intel.com>,
-        linux-acpi@vger.kernel.org,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Curtis Malainey <cujomalainey@chromium.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Aug 22, 2019 at 2:05 AM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Thu, Aug 22, 2019 at 11:32:00AM +0300, Jarkko Nikula wrote:
-> > My assumption in the commit b53548f9d9e4 ("spi: pxa2xx: Remove LPSS private
-> > register restoring during resume") that Intel Lynxpoint and compatible
-> > based chipsets may not need LPSS private registers saving and restoring
-> > over suspend/resume cycle turned out to be false on Intel Broadwell.
-> >
-> > Curtis Malainey sent a patch bringing above change back and reported the
-> > LPSS SPI Chip Select control was lost over suspend/resume cycle on
-> > Broadwell machine.
-> >
-> > Instead of reverting above commit lets add LPSS private register
-> > saving/restoring also for all LPSS SPI, I2C and UART controllers on
-> > Lynxpoint and compatible chipset to make sure context is not lost in
-> > case nothing else preserves it like firmware or if LPSS is always on.
-> >
->
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->
-Tested-by: Curtis Malainey <cujomalainey@chromium.org>
+Hi James,
 
-> > Fixes: b53548f9d9e4 ("spi: pxa2xx: Remove LPSS private register restoring during resume")
-> > Reported-by: Curtis Malainey <cujomalainey@chromium.org>
-> > Cc: <stable@vger.kernel.org>
-> > Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> > ---
-> >  drivers/acpi/acpi_lpss.c | 8 +++++---
-> >  1 file changed, 5 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> > index d696f165a50e..60bbc5090abe 100644
-> > --- a/drivers/acpi/acpi_lpss.c
-> > +++ b/drivers/acpi/acpi_lpss.c
-> > @@ -219,12 +219,13 @@ static void bsw_pwm_setup(struct lpss_private_data *pdata)
-> >  }
-> >
-> >  static const struct lpss_device_desc lpt_dev_desc = {
-> > -     .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
-> > +     .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR
-> > +                     | LPSS_SAVE_CTX,
-> >       .prv_offset = 0x800,
-> >  };
-> >
-> >  static const struct lpss_device_desc lpt_i2c_dev_desc = {
-> > -     .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_LTR,
-> > +     .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_LTR | LPSS_SAVE_CTX,
-> >       .prv_offset = 0x800,
-> >  };
-> >
-> > @@ -236,7 +237,8 @@ static struct property_entry uart_properties[] = {
-> >  };
-> >
-> >  static const struct lpss_device_desc lpt_uart_dev_desc = {
-> > -     .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
-> > +     .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR
-> > +                     | LPSS_SAVE_CTX,
-> >       .clk_con_id = "baudclk",
-> >       .prv_offset = 0x800,
-> >       .setup = lpss_uart_setup,
-> > --
-> > 2.23.0.rc1
-> >
+>-----Original Message-----
+>From: James Morse [mailto:james.morse@arm.com]
+>Sent: 21 August 2019 18:23
+>To: Shiju Jose <shiju.jose@huawei.com>
+>Cc: linux-acpi@vger.kernel.org; linux-edac@vger.kernel.org; linux-
+>kernel@vger.kernel.org; rjw@rjwysocki.net; lenb@kernel.org;
+>tony.luck@intel.com; bp@alien8.de; baicar@os.amperecomputing.com;
+>Linuxarm <linuxarm@huawei.com>; Jonathan Cameron
+><jonathan.cameron@huawei.com>; tanxiaofei <tanxiaofei@huawei.com>
+>Subject: Re: [PATCH RFC 2/4] ACPI: APEI: Add ghes_handle_memory_failure to
+>the new notification method
 >
-> --
-> With Best Regards,
-> Andy Shevchenko
+>Hi,
+>
+>On 12/08/2019 11:11, Shiju Jose wrote:
+>> This patch adds ghes_handle_memory_failure to the new error
+>> notification method.
+>
+>The commit message doesn't answer the question: why?
+>
+>The existing code works. This just looks like additional churn.
+>Given a user, I think the vendor specific example is useful. I don't think making
+>this thing more pluggable is a good idea.
+This was intended to replace the  number of if(guid_equal(...)) else if(guid_equal(...)) checks in the ghes_do_proc() , which would grow when new UEFI defined error sections would be added in the future.
 >
 >
+>Thanks,
+>
+>James
+
+Thanks,
+Shiju
