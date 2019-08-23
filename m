@@ -2,126 +2,187 @@ Return-Path: <SRS0=DcGa=WU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60268C3A59E
-	for <linux-acpi@archiver.kernel.org>; Sat, 24 Aug 2019 13:26:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ECBBC3A59E
+	for <linux-acpi@archiver.kernel.org>; Sat, 24 Aug 2019 21:15:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2187E21670
-	for <linux-acpi@archiver.kernel.org>; Sat, 24 Aug 2019 13:26:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D7AB2173E
+	for <linux-acpi@archiver.kernel.org>; Sat, 24 Aug 2019 21:15:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="J/iMqm/N"
+	dkim=pass (2048-bit key) header.d=dellteam.com header.i=@dellteam.com header.b="UvpNifvC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727671AbfHXN0c (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 24 Aug 2019 09:26:32 -0400
-Received: from mx0a-00154904.pphosted.com ([148.163.133.20]:12738 "EHLO
+        id S1727497AbfHXVPd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 24 Aug 2019 17:15:33 -0400
+Received: from mx0a-00154904.pphosted.com ([148.163.133.20]:10790 "EHLO
         mx0a-00154904.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727590AbfHXN0c (ORCPT
+        by vger.kernel.org with ESMTP id S1726842AbfHXVPd (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 24 Aug 2019 09:26:32 -0400
-Received: from pps.filterd (m0170389.ppops.net [127.0.0.1])
-        by mx0a-00154904.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x7O9I1UG024304;
-        Sat, 24 Aug 2019 09:26:30 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=from : to : cc :
- subject : date : message-id : references : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=smtpout1;
- bh=vyenab3a8UQH7rT3KMO+iOomzSuZqcYP73PMmCmSPIE=;
- b=J/iMqm/N0WJdTi5TgBlmGq6ZdfHFNbHYMHYcJd72g8PoQYJgU3HOUlPxe3A8v5snxtSt
- 96trZn40na8DwsT2aP4Fm7yoGBPf+JfUEO8WnqpJezV5Jw5BsNdM5vN8rgHSMMVetO+j
- g15uj9G5oH6X5T786heYcDaywpVaKPikI7+qYqD/5O+/u3BYMa8YBPKQgBXHxWzSBVZt
- aXpehYtfcEgJxqYXTqON2eijl/FTQW7RkRLYjC390BdJXo4Bvr79TJJKmJf6TkbQOw4C
- ZGKVMUZ7dHiuVA3jIzBuYWJlU6Pr9IvIX1effbkoyoaNr3a1ddQ1W/vgdtFagTBuFJRT WA== 
+        Sat, 24 Aug 2019 17:15:33 -0400
+Received: from pps.filterd (m0170392.ppops.net [127.0.0.1])
+        by mx0a-00154904.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7NMJetA024336;
+        Fri, 23 Aug 2019 18:29:32 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dellteam.com; h=from : to : cc :
+ subject : date : message-id : content-type : content-transfer-encoding :
+ mime-version; s=smtpout1; bh=S530TSXB1b7in2tC1rIW4402DQ6CfD8IkeFwgVFdqZk=;
+ b=UvpNifvCbX2Bju6HpNDB1xICv/Od6hQq6nypmvXMzdwgzgrvTxhUY0gHsftLy3N1CKEi
+ jFNw7cNGpBJbLlqupYWv1An+YExMhkIS/5uwOn1mZsPujIgrRJCizybgs2u1Shn8ZtC4
+ yYZTcYtLjS4Rpy4UfLRzkoFDP7P6q0Ywbht39yk59zYRa5HagmWeNbPjaZmr2wYUY79a
+ chhpO6/JIvH1+d+4cMzs54QUHl1GBPLxurLhK7WLvx5dBlI3NzGR0WAU+z18xqiIJ9JG
+ 7btuuMtG6x16WMcuGQjoDkQQqu/TX/BE6rMp4wOH2iB66ptIVw7DuXqtGkk9T73ZrLqf OQ== 
 Received: from mx0a-00154901.pphosted.com (mx0a-00154901.pphosted.com [67.231.149.39])
-        by mx0a-00154904.pphosted.com with ESMTP id 2uk2fx8e5r-1
+        by mx0a-00154904.pphosted.com with ESMTP id 2ujkjdh827-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Sat, 24 Aug 2019 09:26:30 -0400
-Received: from pps.filterd (m0133268.ppops.net [127.0.0.1])
-        by mx0a-00154901.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x7ODQR8a093409;
-        Sat, 24 Aug 2019 09:26:30 -0400
+        Fri, 23 Aug 2019 18:29:32 -0400
+Received: from pps.filterd (m0090351.ppops.net [127.0.0.1])
+        by mx0b-00154901.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7NMMlOO141297;
+        Fri, 23 Aug 2019 18:29:31 -0400
 Received: from ausxippc106.us.dell.com (AUSXIPPC106.us.dell.com [143.166.85.156])
-        by mx0a-00154901.pphosted.com with ESMTP id 2uk2d0j2jp-1
+        by mx0b-00154901.pphosted.com with ESMTP id 2ujpcgj48e-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 24 Aug 2019 09:26:29 -0400
-X-LoopCount0: from 10.166.135.96
+        Fri, 23 Aug 2019 18:29:31 -0400
+X-LoopCount0: from 10.166.132.134
 X-PREM-Routing: D-Outbound
 X-IronPort-AV: E=Sophos;i="5.60,349,1549951200"; 
-   d="scan'208";a="451775981"
-From:   <Mario.Limonciello@dell.com>
-To:     <bjorn@mork.no>, <Charles.Hyde@dellteam.com>
-CC:     <linux-usb@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <gregkh@linuxfoundation.org>, <oliver@neukum.org>,
-        <netdev@vger.kernel.org>, <nic_swsd@realtek.com>
-Subject: RE: [RFC 4/4] net: cdc_ncm: Add ACPI MAC address pass through
+   d="scan'208";a="451621596"
+From:   <Charles.Hyde@dellteam.com>
+To:     <linux-usb@vger.kernel.org>
+CC:     <Mario.Limonciello@dell.com>, <oliver@neukum.org>,
+        <nic_swsd@realtek.com>, <linux-acpi@vger.kernel.org>
+Subject: [RFC 3/3] net: cdc_ncm: Add ACPI MAC address pass through
  functionality
-Thread-Topic: [RFC 4/4] net: cdc_ncm: Add ACPI MAC address pass through
+Thread-Topic: [RFC 3/3] net: cdc_ncm: Add ACPI MAC address pass through
  functionality
-Thread-Index: AQHVV6XcyyL7dINtZEiggXCPIGXHZ6cKIlGegAAtFPA=
-Date:   Sat, 24 Aug 2019 13:26:27 +0000
-Message-ID: <76ae76bf1fd44fb3bd42eb43907e3ce8@AUSX13MPC101.AMER.DELL.COM>
-References: <ec7435e0529243a99f6949ee9efbede5@AUSX13MPS303.AMER.DELL.COM>
- <877e722691.fsf@miraculix.mork.no>
-In-Reply-To: <877e722691.fsf@miraculix.mork.no>
+Thread-Index: AQHVWgI6a2vXAMyG+kOESam1zqb5Vg==
+Date:   Fri, 23 Aug 2019 22:29:29 +0000
+Message-ID: <6db7de30d5584018adf169638e956626@AUSX13MPS303.AMER.DELL.COM>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
 x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [143.166.24.60]
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+x-originating-ip: [10.177.49.166]
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:5.22.84,1.0.8
- definitions=2019-08-24_08:2019-08-23,2019-08-24 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 bulkscore=0
- mlxlogscore=660 suspectscore=0 impostorscore=0 clxscore=1011 spamscore=0
- priorityscore=1501 phishscore=0 lowpriorityscore=0 mlxscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-1906280000 definitions=main-1908240149
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0 malwarescore=0
- impostorscore=0 clxscore=1011 phishscore=0 lowpriorityscore=0
- suspectscore=0 bulkscore=0 priorityscore=1501 mlxlogscore=755 mlxscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-1906280000
- definitions=main-1908240102
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-23_10:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=987 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1906280000 definitions=main-1908230211
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
+ definitions=main-1908230211
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBCasO4cm4gTW9yayA8Ympvcm5A
-bW9yay5ubz4NCj4gU2VudDogU2F0dXJkYXksIEF1Z3VzdCAyNCwgMjAxOSA1OjQ0IEFNDQo+IFRv
-OiBIeWRlLCBDaGFybGVzIC0gRGVsbCBUZWFtDQo+IENjOiBsaW51eC11c2JAdmdlci5rZXJuZWwu
-b3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gZ3JlZ2toQGxpbnV4Zm91bmRhdGlv
-bi5vcmc7IExpbW9uY2llbGxvLCBNYXJpbzsgb2xpdmVyQG5ldWt1bS5vcmc7DQo+IG5ldGRldkB2
-Z2VyLmtlcm5lbC5vcmc7IG5pY19zd3NkQHJlYWx0ZWsuY29tDQo+IFN1YmplY3Q6IFJlOiBbUkZD
-IDQvNF0gbmV0OiBjZGNfbmNtOiBBZGQgQUNQSSBNQUMgYWRkcmVzcyBwYXNzIHRocm91Z2gNCj4g
-ZnVuY3Rpb25hbGl0eQ0KPiANCj4gDQo+IFtFWFRFUk5BTCBFTUFJTF0NCj4gDQo+IDxDaGFybGVz
-Lkh5ZGVAZGVsbHRlYW0uY29tPiB3cml0ZXM6DQo+IA0KPiA+IEBAIC05MzAsMTEgKzkzMSwxOCBA
-QCBpbnQgY2RjX25jbV9iaW5kX2NvbW1vbihzdHJ1Y3QgdXNibmV0ICpkZXYsDQo+IHN0cnVjdCB1
-c2JfaW50ZXJmYWNlICppbnRmLCB1OCBkYXRhXw0KPiA+ICAJdXNiX3NldF9pbnRmZGF0YShjdHgt
-PmNvbnRyb2wsIGRldik7DQo+ID4NCj4gPiAgCWlmIChjdHgtPmV0aGVyX2Rlc2MpIHsNCj4gPiAr
-CQlzdHJ1Y3Qgc29ja2FkZHIgc2E7DQo+ID4gKw0KPiA+ICAJCXRlbXAgPSB1c2JuZXRfZ2V0X2V0
-aGVybmV0X2FkZHIoZGV2LCBjdHgtPmV0aGVyX2Rlc2MtDQo+ID5pTUFDQWRkcmVzcyk7DQo+ID4g
-IAkJaWYgKHRlbXApIHsNCj4gPiAgCQkJZGV2X2RiZygmaW50Zi0+ZGV2LCAiZmFpbGVkIHRvIGdl
-dCBtYWMgYWRkcmVzc1xuIik7DQo+ID4gIAkJCWdvdG8gZXJyb3IyOw0KPiA+ICAJCX0NCj4gPiAr
-CQlpZiAoZ2V0X2FjcGlfbWFjX3Bhc3N0aHJ1KCZpbnRmLT5kZXYsICZzYSkgPT0gMCkgew0KPiA+
-ICsJCQltZW1jcHkoZGV2LT5uZXQtPmRldl9hZGRyLCBzYS5zYV9kYXRhLCBFVEhfQUxFTik7DQo+
-ID4gKwkJCWlmICh1c2JuZXRfc2V0X2V0aGVybmV0X2FkZHIoZGV2KSA8IDApDQo+ID4gKwkJCQl1
-c2JuZXRfZ2V0X2V0aGVybmV0X2FkZHIoZGV2LCBjdHgtDQo+ID5ldGhlcl9kZXNjLT5pTUFDQWRk
-cmVzcyk7DQo+ID4gKwkJfQ0KPiA+ICAJCWRldl9pbmZvKCZpbnRmLT5kZXYsICJNQUMtQWRkcmVz
-czogJXBNXG4iLCBkZXYtPm5ldC0NCj4gPmRldl9hZGRyKTsNCj4gPiAgCX0NCj4gDQo+IFNvIHlv
-dSB3YW50IHRvIHJ1biBhIERlbGwgc3BlY2lmaWMgQUNQSSBtZXRob2QgZXZlcnkgdGltZSBhbnlv
-bmUgcGx1Z3Mgc29tZQ0KPiBOQ00gY2xhc3MgZGV2aWNlIGludG8gYSBob3N0IHN1cHBvcmluZyBB
-Q1BJPyAgVGhhdCdzIGdvaW5nIHRvIGFubm95IHRoZSBoZWxsIG91dA0KPiBvZiA5OS45OTk3JSBv
-ZiB0aGUgeDg2LCBpYTY0IGFuZCBhcm02NCB1c2VycyBvZiB0aGlzIGRyaXZlci4NCj4gDQo+IENh
-bGwgQUNQSSBvbmNlIHdoZW4gdGhlIGRyaXZlciBsb2FkcywgYW5kIG9ubHkgaWYgcnVubmluZyBv
-biBhbiBhY3R1YWwgRGVsbA0KPiBzeXN0ZW0gd2hlcmUgdGhpcyBtZXRob2QgaXMgc3VwcG9ydGVk
-LiAgVGhlcmUgbXVzdCBiZSBzb21lIEFDUEkgZGV2aWNlIElEIHlvdQ0KPiBjYW4gbWF0Y2ggb24g
-dG8ga25vdyBpZiB0aGlzIG1ldGhvZCBpcyBzdXBwb3J0ZWQgb3Igbm90Pw0KPiANCj4gDQo+IEJq
-w7hybg0KDQpJIGhhdmUgdG8gYWdyZWUgLSB0aGlzIGlzIG1pc3NpbmcgYW4gaWRlbnRpZnlpbmcg
-ZmFjdG9yIG9mIHRoZSBENjAwMC4gIEl0IHNob3VsZG4ndCBiZQ0KcnVubmluZyBvbiAianVzdCBh
-bnkiIGNkY19uY20gZGV2aWNlLg0KDQpUaGUgY29kZSB0aGF0IGlzIGluIGdldF9hY3BpX21hY19w
-YXNzdGhyb3VnaCBjaGVja3MgZm9yIGEgcHJvcGVybHkgYnVpbHQgQUNQSSBtZXRob2QNCnRob3Vn
-aC4NCg==
+This change adds support to cdc_ncm for ACPI MAC address pass through=0A=
+functionality that also exists in the Realtek r8152 driver.  This is in=0A=
+support of Dell's Universal Dock D6000, to give it the same feature=0A=
+capability as is currently available in Windows and advertized on Dell's=0A=
+product web site.=0A=
+=0A=
+Signed-off-by: Charles Hyde <charles.hyde@dellteam.com>=0A=
+Cc: Mario Limonciello <mario.limonciello@dell.com>=0A=
+Cc: Oliver Neukum <oliver@neukum.org>=0A=
+Cc: linux-usb@vger.kernel.org=0A=
+---=0A=
+ drivers/net/usb/cdc_ncm.c | 47 ++++++++++++++++++++++++++++++++++++---=0A=
+ 1 file changed, 44 insertions(+), 3 deletions(-)=0A=
+=0A=
+diff --git a/drivers/net/usb/cdc_ncm.c b/drivers/net/usb/cdc_ncm.c=0A=
+index 6fbe88fd7896..6f138ec3f362 100644=0A=
+--- a/drivers/net/usb/cdc_ncm.c=0A=
++++ b/drivers/net/usb/cdc_ncm.c=0A=
+@@ -52,6 +52,7 @@=0A=
+ #include <linux/usb/usbnet.h>=0A=
+ #include <linux/usb/cdc.h>=0A=
+ #include <linux/usb/cdc_ncm.h>=0A=
++#include <acpi/acpi_mac_passthru.h>=0A=
+ =0A=
+ #if IS_ENABLED(CONFIG_USB_NET_CDC_MBIM)=0A=
+ static bool prefer_mbim =3D true;=0A=
+@@ -984,11 +985,20 @@ int cdc_ncm_bind_common(struct usbnet *dev, struct us=
+b_interface *intf, u8 data_=0A=
+ 	usb_set_intfdata(ctx->control, dev);=0A=
+ =0A=
+ 	if (ctx->ether_desc) {=0A=
+-		temp =3D usbnet_get_ethernet_addr(dev, ctx->ether_desc->iMACAddress);=0A=
++		struct sockaddr sa;=0A=
++=0A=
++		temp =3D cdc_ncm_get_ethernet_address(dev, ctx);=0A=
+ 		if (temp) {=0A=
+ 			dev_dbg(&intf->dev, "failed to get mac address\n");=0A=
+ 			goto error2;=0A=
+ 		}=0A=
++		if (get_acpi_mac_passthru(&intf->dev, &sa) =3D=3D 0) {=0A=
++			if (memcmp(dev->net->dev_addr, sa.sa_data, ETH_ALEN) !=3D 0) {=0A=
++				if (cdc_ncm_set_ethernet_address(dev, &sa) =3D=3D 0) {=0A=
++					memcpy(dev->net->dev_addr, sa.sa_data, ETH_ALEN);=0A=
++				}=0A=
++			}=0A=
++		}=0A=
+ 		dev_info(&intf->dev, "MAC-Address: %pM\n", dev->net->dev_addr);=0A=
+ 	}=0A=
+ =0A=
+@@ -1716,6 +1726,37 @@ static void cdc_ncm_status(struct usbnet *dev, struc=
+t urb *urb)=0A=
+ 	}=0A=
+ }=0A=
+ =0A=
++static int cdc_ncm_resume (struct usb_interface *intf)=0A=
++{=0A=
++	struct usbnet *dev =3D usb_get_intfdata(intf);=0A=
++	struct cdc_ncm_ctx *ctx =3D (struct cdc_ncm_ctx *)dev->data[0];=0A=
++	int ret;=0A=
++=0A=
++	ret =3D usbnet_resume(intf);=0A=
++	if (ret !=3D 0)=0A=
++		goto error2;=0A=
++=0A=
++	if (ctx->ether_desc) {=0A=
++		struct sockaddr sa;=0A=
++=0A=
++		if (cdc_ncm_get_ethernet_address(dev, ctx)) {=0A=
++			dev_dbg(&intf->dev, "failed to get mac address\n");=0A=
++			goto error2;=0A=
++		}=0A=
++		if (get_acpi_mac_passthru(&intf->dev, &sa) =3D=3D 0) {=0A=
++			if (memcmp(dev->net->dev_addr, sa.sa_data, ETH_ALEN) !=3D 0) {=0A=
++				if (cdc_ncm_set_ethernet_address(dev, &sa) =3D=3D 0) {=0A=
++					memcpy(dev->net->dev_addr, sa.sa_data, ETH_ALEN);=0A=
++				}=0A=
++			}=0A=
++		}=0A=
++		dev_info(&intf->dev, "MAC-Address: %pM\n", dev->net->dev_addr);=0A=
++	}=0A=
++=0A=
++error2:=0A=
++	return ret;=0A=
++}=0A=
++=0A=
+ static const struct driver_info cdc_ncm_info =3D {=0A=
+ 	.description =3D "CDC NCM",=0A=
+ 	.flags =3D FLAG_POINTTOPOINT | FLAG_NO_SETINT | FLAG_MULTI_PACKET=0A=
+@@ -1848,8 +1889,8 @@ static struct usb_driver cdc_ncm_driver =3D {=0A=
+ 	.probe =3D usbnet_probe,=0A=
+ 	.disconnect =3D usbnet_disconnect,=0A=
+ 	.suspend =3D usbnet_suspend,=0A=
+-	.resume =3D usbnet_resume,=0A=
+-	.reset_resume =3D	usbnet_resume,=0A=
++	.resume =3D cdc_ncm_resume,=0A=
++	.reset_resume =3D	cdc_ncm_resume,=0A=
+ 	.supports_autosuspend =3D 1,=0A=
+ 	.disable_hub_initiated_lpm =3D 1,=0A=
+ };=0A=
+-- =0A=
+2.20.1=0A=
