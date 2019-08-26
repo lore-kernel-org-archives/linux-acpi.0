@@ -2,98 +2,124 @@ Return-Path: <SRS0=iII5=WW=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DF0EC3A59F
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 22:30:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEFE4C3A59F
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 23:02:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3813E2184D
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 22:30:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C187C206BA
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 23:02:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1566860559;
+	bh=Kcj2u/inTrMinq2o69+tauribZFMww61pR/PjOLwADg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=bvRRiEhBkzgJbLRrClpn1+wj6MMGiZ6UwGbYlYVg25i//PL0Xg0SMu1Nt21VQkluO
+	 cBJf13FuVwOW4TRs9j5UcqGht5uLZnpBmgyFcaeBgK6GJZpqtMXDCh5aOxPelUHwFO
+	 EFWLHUUHOrDVQQLb1MlXdu9LkKi8Wq3tdnFZvhBQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726441AbfHZWaz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Aug 2019 18:30:55 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:39374 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726281AbfHZWaz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 26 Aug 2019 18:30:55 -0400
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 33325300C22F;
-        Mon, 26 Aug 2019 22:30:55 +0000 (UTC)
-Received: from masetto.com (ovpn-116-56.phx2.redhat.com [10.3.116.56])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 3A9655C1B2;
-        Mon, 26 Aug 2019 22:30:52 +0000 (UTC)
-From:   Al Stone <ahs3@redhat.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     Al Stone <ahs3@redhat.com>, linux-kernel@vger.kernel.org,
+        id S1727109AbfHZXCj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Aug 2019 19:02:39 -0400
+Received: from mail-oi1-f193.google.com ([209.85.167.193]:36368 "EHLO
+        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726020AbfHZXCj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Aug 2019 19:02:39 -0400
+Received: by mail-oi1-f193.google.com with SMTP id n1so13475515oic.3;
+        Mon, 26 Aug 2019 16:02:38 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=bM3r1pTqEi+HxfYIg7pyghSTfjbPEtK6ZwhKa2foIGo=;
+        b=kC3UC7M+9P+1dooFAh5AJKnb++IdshXs9nlQCkpNzp/4Ic074hfXCNnQk+apCtoKpC
+         3m8AdfCgvfjxW6x+/R58nDO2SdtV4mneBuGD9KY60izX9/2dxGbKTzK+4te1QxIUng+X
+         lDQFBXUECb4kPFA3LcwQHjiiCttFvX6M6TxwbyHEDzGkg7fsP6UHzgCJMw9pxbmgUaWd
+         wYLsenZWjvNhRoaEecRtnYLqjgwfFSbM/MuqsE0AOP+Jrts+louC2lblW3svVMktcEB9
+         AOgjaiu78PxfHDly7nfzCK4O45MdqoGsOE0xqPZXotHUJUU0L2LjZUmEjvUGuaYO3dFQ
+         azOg==
+X-Gm-Message-State: APjAAAXySUOHzZie1Z4xtyQpD6PTdDVVY+Oxjab215oAZcFzEGrZSstQ
+        xHSoBV2X+2KTIDnMzcpEBfck0a5WOHjkn+MHzX4=
+X-Google-Smtp-Source: APXvYqyEE9Bphe+b0EtIWWcArlEfiuq0bTlSoTYTdzCplUwF1R1TVDG3F4jaGUatIjl6BzqllJ8xB+wssKi1HFAQ1ik=
+X-Received: by 2002:aca:4dd8:: with SMTP id a207mr13516360oib.115.1566860557966;
+ Mon, 26 Aug 2019 16:02:37 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190826223047.13146-1-ahs3@redhat.com>
+In-Reply-To: <20190826223047.13146-1-ahs3@redhat.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 27 Aug 2019 01:02:26 +0200
+Message-ID: <CAJZ5v0hXJNa3Z14MQgvNcVF8YxH+M46mMyC5U6vZqrpBZUjOgw@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI / CPPC: do not require the _PSD method when using CPPC
+To:     Al Stone <ahs3@redhat.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v2] ACPI / CPPC: do not require the _PSD method when using CPPC
-Date:   Mon, 26 Aug 2019 16:30:47 -0600
-Message-Id: <20190826223047.13146-1-ahs3@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.46]); Mon, 26 Aug 2019 22:30:55 +0000 (UTC)
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-According to the ACPI 6.3 specification, the _PSD method is optional
-when using CPPC.  The underlying assumption is that each CPU can change
-frequency independently from all other CPUs; _PSD is provided to tell
-the OS that some processors can NOT do that.
+On Tue, Aug 27, 2019 at 12:30 AM Al Stone <ahs3@redhat.com> wrote:
+>
+> According to the ACPI 6.3 specification, the _PSD method is optional
+> when using CPPC.  The underlying assumption is that each CPU can change
+> frequency independently from all other CPUs; _PSD is provided to tell
+> the OS that some processors can NOT do that.
+>
+> However, the acpi_get_psd() function returns ENODEV if there is no _PSD
+> method present, or an ACPI error status if an error occurs when evaluating
+> _PSD, if present.  This makes _PSD mandatory when using CPPC, in violation
+> of the specification, and only on Linux.
+>
+> This has forced some firmware writers to provide a dummy _PSD, even though
+> it is irrelevant, but only because Linux requires it; other OSPMs follow
+> the spec.  We really do not want to have OS specific ACPI tables, though.
+>
+> So, correct acpi_get_psd() so that it does not return an error if there
+> is no _PSD method present, but does return a failure when the method can
+> not be executed properly.  This allows _PSD to be optional as it should
+> be.
+>
+> v2:
+>    -- verified simple check for AE_NOT_FOUND was sufficient
+>    -- simplified return status check per Rafael's suggestion
+>
+> Signed-off-by: Al Stone <ahs3@redhat.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> ---
+>  drivers/acpi/cppc_acpi.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 15f103d7532b..7a946f1944ab 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -365,10 +365,12 @@ static int acpi_get_psd(struct cpc_desc *cpc_ptr, acpi_handle handle)
+>         union acpi_object  *psd = NULL;
+>         struct acpi_psd_package *pdomain;
+>
+> -       status = acpi_evaluate_object_typed(handle, "_PSD", NULL, &buffer,
+> -                       ACPI_TYPE_PACKAGE);
+> -       if (ACPI_FAILURE(status))
+> -               return -ENODEV;
+> +       if (acpi_has_method(handle, "_PSD")) {
 
-However, the acpi_get_psd() function returns ENODEV if there is no _PSD
-method present, or an ACPI error status if an error occurs when evaluating
-_PSD, if present.  This makes _PSD mandatory when using CPPC, in violation
-of the specification, and only on Linux.
+This doesn't look necessary any more.
 
-This has forced some firmware writers to provide a dummy _PSD, even though
-it is irrelevant, but only because Linux requires it; other OSPMs follow
-the spec.  We really do not want to have OS specific ACPI tables, though.
+> +               status = acpi_evaluate_object_typed(handle, "_PSD", NULL,
+> +                                                   &buffer, ACPI_TYPE_PACKAGE);
+> +               if (status == AE_NOT_FOUND)     /* _PSD is optional */
+> +                       return 0;
 
-So, correct acpi_get_psd() so that it does not return an error if there
-is no _PSD method present, but does return a failure when the method can
-not be executed properly.  This allows _PSD to be optional as it should
-be.
+And what about the other possible errors?
 
-v2:
-   -- verified simple check for AE_NOT_FOUND was sufficient
-   -- simplified return status check per Rafael's suggestion
-
-Signed-off-by: Al Stone <ahs3@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
----
- drivers/acpi/cppc_acpi.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 15f103d7532b..7a946f1944ab 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -365,10 +365,12 @@ static int acpi_get_psd(struct cpc_desc *cpc_ptr, acpi_handle handle)
- 	union acpi_object  *psd = NULL;
- 	struct acpi_psd_package *pdomain;
- 
--	status = acpi_evaluate_object_typed(handle, "_PSD", NULL, &buffer,
--			ACPI_TYPE_PACKAGE);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
-+	if (acpi_has_method(handle, "_PSD")) {
-+		status = acpi_evaluate_object_typed(handle, "_PSD", NULL,
-+						    &buffer, ACPI_TYPE_PACKAGE);
-+		if (status == AE_NOT_FOUND)	/* _PSD is optional */
-+			return 0;
-+	}
- 
- 	psd = buffer.pointer;
- 	if (!psd || psd->package.count != 1) {
--- 
-2.21.0
-
+> +       }
+>
+>         psd = buffer.pointer;
+>         if (!psd || psd->package.count != 1) {
+> --
+> 2.21.0
+>
