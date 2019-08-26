@@ -2,44 +2,46 @@ Return-Path: <SRS0=iII5=WW=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A395C3A59E
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 08:32:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E91CDC3A59E
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 08:32:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 50696217F4
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 08:32:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C30742080C
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 08:32:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730587AbfHZIc1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Aug 2019 04:32:27 -0400
-Received: from mga09.intel.com ([134.134.136.24]:62823 "EHLO mga09.intel.com"
+        id S1730614AbfHZIco (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Aug 2019 04:32:44 -0400
+Received: from mga06.intel.com ([134.134.136.31]:55345 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729824AbfHZIc1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1726401AbfHZIc1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 26 Aug 2019 04:32:27 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Aug 2019 01:32:27 -0700
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Aug 2019 01:32:26 -0700
 X-IronPort-AV: E=Sophos;i="5.64,431,1559545200"; 
-   d="scan'208";a="174137832"
+   d="scan'208";a="204502153"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Aug 2019 01:32:25 -0700
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Aug 2019 01:32:25 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 8C60E203BC;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 9F1F820B48;
         Mon, 26 Aug 2019 11:32:23 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1i2APB-0002K9-2c; Mon, 26 Aug 2019 11:31:13 +0300
+        id 1i2APB-0002KE-5R; Mon, 26 Aug 2019 11:31:13 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     linux-kernel@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH v2 0/5] Support running driver's probe for a device powered off
-Date:   Mon, 26 Aug 2019 11:31:07 +0300
-Message-Id: <20190826083112.8888-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 2/5] ACPI: Add a convenience function to tell a device is suspended in probe
+Date:   Mon, 26 Aug 2019 11:31:09 +0300
+Message-Id: <20190826083112.8888-3-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190826083112.8888-1-sakari.ailus@linux.intel.com>
+References: <20190826083112.8888-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -48,67 +50,86 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi all,
+Add a convenience function to tell whether a device is suspended for probe
+or remove, for busses where the custom is that drivers don't need to
+resume devices in probe, or suspend them in their remove handlers.
 
-These patches enable calling (and finishing) a driver's probe function
-without powering on the respective device on busses where the practice is
-to power on the device for probe. While it generally is a driver's job to
-check the that the device is there, there are cases where it might be
-undesirable. (In this case it stems from a combination of hardware design
-and user expectations; see below.) The downside with this change is that
-if there is something wrong with the device, it will only be found at the
-time the device is used. In this case (the camera sensors + EEPROM in a
-sensor) I don't see any tangible harm from that though.
+Returns false on non-ACPI systems.
 
-An indication both from the driver and the firmware is required to allow
-the device's power state to remain off during probe (see the first patch).
+Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/acpi/device_pm.c | 35 +++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h     |  5 +++++
+ 2 files changed, 40 insertions(+)
 
-
-The use case is such that there is a privacy LED next to an integrated
-user-facing laptop camera, and this LED is there to signal the user that
-the camera is recording a video or capturing images. That LED also happens
-to be wired to one of the power supplies of the camera, so whenever you
-power on the camera, the LED will be lit, whether images are captured from
-the camera --- or not. There's no way to implement this differently
-without additional software control (allowing of which is itself a
-hardware design decision) on most CSI-2-connected camera sensors as they
-simply have no pin to signal the camera streaming state.
-
-This is also what happens during driver probe: the camera will be powered
-on by the I²C subsystem calling dev_pm_domain_attach() and the device is
-already powered on when the driver's own probe function is called. To the
-user this visible during the boot process as a blink of the privacy LED,
-suggesting that the camera is recording without the user having used an
-application to do that. From the end user's point of view the behaviour is
-not expected and for someone unfamiliar with internal workings of a
-computer surely seems quite suspicious --- even if images are not being
-actually captured.
-
-since v1:
-
-- Rename probe_powered_off struct device field as probe_low_power and
-  reflect the similar naming to the patches overall.
-
-- Work with CONFIG_PM disabled, too.
-
-Rajmohan Mani (1):
-  media: i2c: imx319: Support probe while the device is off
-
-Sakari Ailus (4):
-  ACPI: Enable driver and firmware hints to control power at probe time
-  ACPI: Add a convenience function to tell a device is suspended in
-    probe
-  ov5670: Support probe whilst the device is in a low power state
-  at24: Support probing while off
-
- drivers/acpi/device_pm.c   | 50 ++++++++++++++++++++++++++++++++++++--
- drivers/media/i2c/imx319.c | 23 +++++++++++-------
- drivers/media/i2c/ov5670.c | 23 +++++++++++-------
- drivers/misc/eeprom/at24.c | 31 +++++++++++++++--------
- include/linux/acpi.h       |  5 ++++
- include/linux/device.h     |  7 ++++++
- 6 files changed, 109 insertions(+), 30 deletions(-)
-
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index adcdf78ce4de8..7d6b40396ea71 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -1344,4 +1344,39 @@ int acpi_dev_pm_attach(struct device *dev, bool power_on)
+ 	return 1;
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
++
++/**
++ * acpi_dev_low_power_state_probe - Tell if a device is in a low power state
++ *				    during probe
++ * @dev: The device
++ *
++ * Tell whether a given device is in a low power state during the driver's probe
++ * or remove operation.
++ *
++ * Drivers of devices on certain busses such as I²C can generally assume (on
++ * ACPI based systems) that the devices they control are powered on without
++ * driver having to do anything about it. Using struct
++ * device_driver.probe_low_power and "probe-low-power" property, this can be
++ * negated and the driver has full control of the device power management.
++ * Always returns false on non-ACPI based systems. True is returned on ACPI
++ * based systems iff the device is in a low power state during probe or remove.
++ */
++bool acpi_dev_low_power_state_probe(struct device *dev)
++{
++	int power_state;
++	int ret;
++
++	if (!is_acpi_device_node(dev_fwnode(dev)))
++		return false;
++
++	ret = acpi_device_get_power(ACPI_COMPANION(dev), &power_state);
++	if (ret) {
++		dev_warn(dev, "Cannot obtain power state (%d)\n", ret);
++		return false;
++	}
++
++	return power_state != ACPI_STATE_D0;
++}
++EXPORT_SYMBOL_GPL(acpi_dev_low_power_state_probe);
++
+ #endif /* CONFIG_PM */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 9426b9aaed86f..a20b4246107ac 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -912,6 +912,7 @@ int acpi_dev_resume(struct device *dev);
+ int acpi_subsys_runtime_suspend(struct device *dev);
+ int acpi_subsys_runtime_resume(struct device *dev);
+ int acpi_dev_pm_attach(struct device *dev, bool power_on);
++bool acpi_dev_low_power_state_probe(struct device *dev);
+ #else
+ static inline int acpi_dev_runtime_suspend(struct device *dev) { return 0; }
+ static inline int acpi_dev_runtime_resume(struct device *dev) { return 0; }
+@@ -921,6 +922,10 @@ static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
+ {
+ 	return 0;
+ }
++static inline bool acpi_dev_low_power_state_probe(struct device *dev)
++{
++	return false;
++}
+ #endif
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_PM_SLEEP)
 -- 
 2.20.1
 
