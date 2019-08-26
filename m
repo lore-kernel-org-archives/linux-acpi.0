@@ -3,56 +3,69 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=no
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CFA4C3A59E
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 09:14:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBEB9C3A59E
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 09:20:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55CCF22CF8
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 09:14:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B8A422DA9
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Aug 2019 09:20:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730556AbfHZJOe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Aug 2019 05:14:34 -0400
-Received: from mx2.suse.de ([195.135.220.15]:60016 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726354AbfHZJOe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 26 Aug 2019 05:14:34 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 4718CAC7F;
-        Mon, 26 Aug 2019 09:14:33 +0000 (UTC)
-Message-ID: <1566809983.2612.2.camel@suse.com>
-Subject: Re: [RFC 1/3] net: cdc_ncm: add get/set ethernet address functions
-From:   Oliver Neukum <oneukum@suse.com>
-To:     Charles.Hyde@dellteam.com, linux-usb@vger.kernel.org
-Cc:     Mario.Limonciello@dell.com, nic_swsd@realtek.com,
+        id S1730701AbfHZJU7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Aug 2019 05:20:59 -0400
+Received: from mga12.intel.com ([192.55.52.136]:55011 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730679AbfHZJU6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Aug 2019 05:20:58 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Aug 2019 02:20:58 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.64,431,1559545200"; 
+   d="scan'208";a="197013981"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
+  by fmsmga001.fm.intel.com with SMTP; 26 Aug 2019 02:20:54 -0700
+Received: by lahna (sSMTP sendmail emulation); Mon, 26 Aug 2019 12:20:53 +0300
+Date:   Mon, 26 Aug 2019 12:20:53 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Andreas Noever <andreas.noever@gmail.com>,
+        Michael Jamet <michael.jamet@intel.com>,
+        Yehezkel Bernat <YehezkelShB@gmail.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Lukas Wunner <lukas@wunner.de>,
+        Mario.Limonciello@dell.com,
+        Anthony Wong <anthony.wong@canonical.com>,
+        Rajmohan Mani <rajmohan.mani@intel.com>,
+        Raanan Avargil <raanan.avargil@intel.com>,
+        David Laight <David.Laight@aculab.com>,
         linux-acpi@vger.kernel.org
-Date:   Mon, 26 Aug 2019 10:59:43 +0200
-In-Reply-To: <d3971424f9ee4b689b762721f671746a@AUSX13MPS303.AMER.DELL.COM>
-References: <d3971424f9ee4b689b762721f671746a@AUSX13MPS303.AMER.DELL.COM>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v3 0/8] thunderbolt: Intel Ice Lake support
+Message-ID: <20190826092053.GC19908@lahna.fi.intel.com>
+References: <20190819112223.15359-1-mika.westerberg@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190819112223.15359-1-mika.westerberg@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Am Freitag, den 23.08.2019, 22:26 +0000 schrieb
-Charles.Hyde@dellteam.com:
-> This patch adds support for pushing a MAC address out to USB based
-> ethernet controllers driven by cdc_ncm.  With this change, ifconfig can
-> now set the device's MAC address.  For example, the Dell Universal Dock
-> D6000 is driven by cdc_ncm.  The D6000 can now have its MAC address set
-> by ifconfig, as it can be done in Windows.  This was tested with a D6000
-> using ifconfig on an x86 based chromebook, where iproute2 is not
-> available.
+On Mon, Aug 19, 2019 at 02:22:15PM +0300, Mika Westerberg wrote:
+> Hi all,
+> 
+> This is third iteration of the patch series adding support for the Intel
+> Ice Lake integrated Thunderbolt controller. The biggest difference from the
+> previous discrete controllers is that the Ice Lake Thunderbolt controller
+> is now integrated as part of the SoC. The firmware messages pretty much
+> follow Titan Ridge but there are some differences as well (such as the new
+> RTD3 veto notification). Also Ice Lake does not implement security levels
+> so DMA protection is handled by IOMMU.
 
-The code is good. But placing it into cdc_ncm means that cdc_ether
-or other drivers cannot use it.
-
-	Regards
-		Oliver
-
+Series applied to thunderbolt.git/next.
