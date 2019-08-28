@@ -2,94 +2,104 @@ Return-Path: <SRS0=r2aX=WY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2B74C3A5A1
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Aug 2019 20:34:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4488C3A5A1
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Aug 2019 22:49:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF1A022CF8
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Aug 2019 20:34:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567024488;
-	bh=m18++XIKgvB3hDNAlvvRjgCQvsCS7XqYby0VuKAWQjU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=vwbCv7q1AS43Io6RcahwYze6/F0F0WLkx9ORWyN5C6prOyDVUhMPQcCl2R9bHFUhF
-	 LzHcwG5N8d/rvv5nmtivSaweAQTrxU/FLmEY8hpOUZi4oTfSaUOJQHjfzhiZOBM44z
-	 rcRONrL7YptRsKN918fwN3cLSHAb4lCOXM6ETKxo=
+	by mail.kernel.org (Postfix) with ESMTP id 90353233FF
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Aug 2019 22:49:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726764AbfH1Ues (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Aug 2019 16:34:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51428 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726400AbfH1Ues (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Aug 2019 16:34:48 -0400
-Received: from localhost (unknown [69.71.4.100])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D18B422CED;
-        Wed, 28 Aug 2019 20:34:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567024486;
-        bh=m18++XIKgvB3hDNAlvvRjgCQvsCS7XqYby0VuKAWQjU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Pfm3sQn8ORceEyEu8TAVaP0r9CNKytr+G0mcwxv3y+B9ZeliVX+IsGHPIzf/Gbe6r
-         sRZ4qd3S05wMwDrpGs5zATXUCFOCM259yBHSro6qXy6RWH5IBdjhMMQu7I9gHKa3Kv
-         rb6x2IHfybj/Gz5fwE8c30gBdpYr8IPTCgWEHolE=
-Date:   Wed, 28 Aug 2019 15:33:52 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Krzysztof Wilczynski <kw@linux.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/3] PCI/ACPI: Rename _HPP to _HPX and move of
- ACPI-specific code from probe.c
-Message-ID: <20190828203352.GC7013@google.com>
-References: <20190827094951.10613-1-kw@linux.com>
+        id S1726925AbfH1Wt2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Aug 2019 18:49:28 -0400
+Received: from mail.rationali.st ([13.54.121.199]:51354 "EHLO
+        mail.rationali.st" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726844AbfH1Wt1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Aug 2019 18:49:27 -0400
+Received: from ppp167-208-210.static.internode.on.net ([59.167.208.210] helo=t460s.rationali.st)
+        by mail.rationali.st with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
+        (Exim 4.92)
+        (envelope-from <acooks@rationali.st>)
+        id 1i36kG-0001AW-Qp; Wed, 28 Aug 2019 22:49:08 +0000
+Reply-To: acooks@rationali.st
+Subject: Re: [PATCH v5 0/3] Enable ACPI-defined peripherals on i2c-piix4 SMBus
+To:     "Enrico Weigelt, metux IT consult" <lkml@metux.net>,
+        Jean Delvare <jdelvare@suse.de>,
+        Linux I2C <linux-i2c@vger.kernel.org>
+Cc:     Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, platypus-sw@opengear.com,
+        "Tobin C . Harding" <me@tobin.cc>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Will Wagner <willw@carallon.com>
+References: <20190802145109.38dd4045@endymion>
+ <b013c33b-da11-ce5e-08d4-0b24a8575109@metux.net>
+ <db725a3b-7b6e-ac79-ef1c-e601ff45c0f2@rationali.st>
+ <9019cce9-837f-97fc-0f3b-7503b8fc3717@metux.net>
+From:   Andrew Cooks <acooks@rationali.st>
+Message-ID: <086642c8-547c-ca95-3475-3ef05c77ada6@rationali.st>
+Date:   Thu, 29 Aug 2019 08:48:51 +1000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190827094951.10613-1-kw@linux.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <9019cce9-837f-97fc-0f3b-7503b8fc3717@metux.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Aug 27, 2019 at 11:49:48AM +0200, Krzysztof Wilczynski wrote:
-> This series of patches moves the ACPI-specific code currently included
-> as part of the drivers/pci/probe.c. First, the ACPI Hot Plug structs
-> for Type 0, 1 and 2, and any relevant variable names, structs, function
-> names, etc., will have their names changed to reflect that these are
-> related to _HPX rather than _HPP.  Second, all of the ACPI-specific
-> code will be moved to drivers/pci/pci-acpi.c for better organisation
-> and to keep ACPI-related code base together.  Third, remove the
-> now obsolete struct hotplug_program_ops from drivers/pci/pci-acpi.c.
-> 
-> Patches should be preferably merged in order as they build upon
-> one-another.
 
-This is always the case; it's one of the main reasons for grouping
-patches into a series.
+On 8/20/19 4:30 AM, Enrico Weigelt, metux IT consult wrote:
+> On 11.08.19 04:52, Andrew Cooks wrote:
+>
+> Hi,
+>
+>> My initial work is based on a board that is similar to the APU2, but has additional peripherals connected to the smbus, including a NCT7491 thermal monitor/fan controller and PCA6524 GPIO controller. These are simply peripherals on a board variant, not 'platform' devices, so I didn't want to follow the platform driver approach that the APU2 GPIO driver uses.
+> Why are they not platform devices ?
+>
+> IMHO, a platform device is something not on a bus that can do the
+> probing/enumeration (like eg. pci or usb does).
+>
+> Can these devices be probed directly by the bus they're connected to,
+> or do you have a different definition of the term "platform device" ?
 
-> Related:
->   https://lore.kernel.org/lkml/20190419220220.GI173520@google.com
->   https://lore.kernel.org/lkml/20190307213834.5914-3-mr.nuke.me@gmail.com
->   https://lore.kernel.org/lkml/20190307213834.5914-2-mr.nuke.me@gmail.com
-> 
-> Krzysztof Wilczynski (3):
->   PCI/ACPI: Rename ACPI Hot Plug structs for Type 0, 1 and 2 from _HPP
->     to _HPX
->   PCI/ACPI: Move ACPI-specific Hot Plug programming functions to
->     pci-acpi.c
->   PCI/ACPI: Remove unnecessary struct hotplug_program_ops from
->     pci-acpi.c
-> 
->  drivers/pci/pci-acpi.c      | 410 +++++++++++++++++++++++++++++++++---
->  drivers/pci/pci.h           |   9 +
->  drivers/pci/probe.c         | 278 +-----------------------
->  include/linux/pci_hotplug.h | 100 ---------
->  4 files changed, 389 insertions(+), 408 deletions(-)
+ACPI was created to provide the PNP mechanism for buses that do not support enumeration, like SMBus. SMBus is similar to I2C, and can be routed to expansion cards, like Ethernet NICs. A system with expansion card Foo is not a different platform from a system with expansion card Bar, and you wouldn't necessarily want to support both Foo and Bar in the same platform driver.
 
-I applied these to pci/enumeration for v5.4, thanks!
+>
+> :O
+>
+>> SMBus (and I2C) peripherals can generally not be enumerated without some firmware support. It is possible to probe for specific devices on the bus (eg sensors-detect) but in general it is not feasible to let every supported device driver probe the bus for its device. ACPI and Devicetree provides the kernel with metadata for the device: type, address, calibrated set points for temperature, etc.
+> Yes, I know. My question was whether these particular devices - if
+> they're in the SoC itself - do need some extra support in BIOS
+> (acpi entries, etc), that's not already in aegesa. Or in other words:
+> do I need to patch my BIOS ?
+>
+> I was assuming these devices are in the SoC itself - correct me if
+> I'm wrong.
+
+This patch is about adding a mechanism to describe peripherals that are not in the SoC, but attached to the SMBus. I also provided examples of the kinds of devices that need this support (eg. NCT7491).
+
+>
+>> Since the peripherals are not standard platform devices, they are not described by the ACPI tables provided by Coreboot or AMD, but it's not too difficult to create supplementary device description tables (ACPI) for non-standard devices. These can be added to coreboot, supplied to qemu as additional firmware files (see -acpitable arg), or built into the kernel (see https://www.kernel.org/doc/Documentation/acpi/ssdt-overlays.txt)
+> Oh, I didn't know about SSDT overlays yet. That's interesting.
+>
+> Is it also possible to describe things like leds-gpio or gpio-keyboard ?
+> Could be a nice idea to trim down my apu2 driver to not much more than
+> a piece of configuration (just like we'd do on a DT-based system)
+Yes and maybe. The extra ACPI layer is inconvenient and more complex than a platform driver, as should be evident from the patch history and this discussion.
+>
+>> ACPI may be an ugly abomination, but it's what we're stuck with on x86 and it can only improve when more people get their hands on it.
+> hmm, I'm planning to introduce DT to x86 (also patch up apu'2 coreboot
+> do deliver a DT to the kernel) ... but just lacking time to get my hands
+> dirty on this topic.
+>
+>> You might find it helpful to look at the coreboot source for the APU2 (src/mainboard/pcengines/apu2/gpio_ftns.h)
+> In which version ?
+>
+>
+> --mtx
+>
