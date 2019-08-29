@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
 	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38413C3A59F
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 07:46:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93256C3A59F
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 07:46:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0B682233A1
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 07:46:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6ADC52341B
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 07:46:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="G+4eBBbE"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="LBG2uKzU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728046AbfH2Hqg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 29 Aug 2019 03:46:36 -0400
-Received: from mail-pl1-f201.google.com ([209.85.214.201]:49315 "EHLO
+        id S1727956AbfH2HqX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 29 Aug 2019 03:46:23 -0400
+Received: from mail-pl1-f201.google.com ([209.85.214.201]:40399 "EHLO
         mail-pl1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728051AbfH2Hqc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2019 03:46:32 -0400
-Received: by mail-pl1-f201.google.com with SMTP id b30so1527049pla.16
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Aug 2019 00:46:31 -0700 (PDT)
+        with ESMTP id S1727939AbfH2HqW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2019 03:46:22 -0400
+Received: by mail-pl1-f201.google.com with SMTP id k7so1540786plt.7
+        for <linux-acpi@vger.kernel.org>; Thu, 29 Aug 2019 00:46:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=nhjHwCHt3mcz+mHDiVxN7s8L1KuUZ7MDwDAfLe16I50=;
-        b=G+4eBBbE8eR+JweFO/MTbU/JiiK//ZmQj8k/LyrXbCGTThb38w/Z2lUm+J9+GnNM0R
-         ILZAbYqpRKL7TOIZvfQiUJ2cF39/iD9rfGRzN/JPmUP0imOiTAzvaNMocnkNuQkRpez1
-         TeFD7m5SShMLKZ99sCn6+3Jk0GWByzZ/IZjTTkJhmHdk/U8KSb8jext129vtnUphdVPK
-         3Og8DoR1JhhS8QHP8PSei9z2OIoEIJgw7WByG4I5s8EIdtWDrfnC1s2xxQI7P6I0R2oo
-         vZCWREqieybOCkNKb7WgvgWuO6NUQORyGlcpSxF+myfSq3RilEg/tbt3CAbeESXosLmc
-         vLfQ==
+        bh=BNYZzlx9aTQ+LCgQZ8IG6mRelU0sVitbFkM6D5hbnnk=;
+        b=LBG2uKzUyf+lgCiiz1TCYPvqtTg8O75lmZkz3K9OnVAOegYlB2t8YC0L5P2YU6zU5j
+         hMLIBnxwaAnmCIb3RjfHdxwX7hzF4AwQL0ymNEJ9RIhELNDRGn3q76ImBKR/jtT7JmW4
+         G9BDxC3L/EXqCFj/8/eY75Qu3105luXea9dY4/owBiGMk9pp5/WKeuwdONwXpWGBHqTK
+         Np6bsfEOV0Foi+N5sRYmp0kxzgoRgRlGXKpiZDsH9DCcL97pi0t1okzaQsuNnHPjgobv
+         SemQ2cAXS+wRtE4/D4FAZMMtN5x1ekLi9jOXnbZRtdybxOFMNEFGLiaqcuWZJPzHYFna
+         1zVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=nhjHwCHt3mcz+mHDiVxN7s8L1KuUZ7MDwDAfLe16I50=;
-        b=rHl59/Yd+1jHGzt1W4kJ8NhYpeeBDtSRsN88DgUdFBghjJ2HU3/aoFa0eFLOtWHjXR
-         rPV4gnBajjzFj59PIDpJT5TUCoWTQ1RtmML9FRu0Vlk5hyMluc9QgvsC95mSbJiqaSgk
-         MBcpXvFEznKeYKEjz2+wv10PCqeHsDgR9zEhiDax1HeovozR+u9QCsjD0FSpHvlWgLEZ
-         IMR/lfbo0WMpB98pK8M0w8h8k1AoLKaAbRHbGibprUAXHw3HL25TzO1unrKtTdc5NdBz
-         L9tUkSWsYtrODYrk4bAUs5G6YjYtvlG9eo7pbs+uqKwkoURAmuwcUFThRyPq5CV5vsNa
-         Iupg==
-X-Gm-Message-State: APjAAAW7DpPNBnh/uEEjf+TuPczH+9IYMi69canqrUBbpdAVpsX+m5tT
-        ruWgUxazVTq/kOVvpvqZOQ30hnlHNQIZYR8=
-X-Google-Smtp-Source: APXvYqxjRrI7v0tAcH4lDhIBqUhl0wBMcJY40NePOKQ5MWBcbB/tbpokA1E16lgkYG8HCTLquA1Ns3qi+HNbWZE=
-X-Received: by 2002:a65:690f:: with SMTP id s15mr6855732pgq.432.1567064791199;
- Thu, 29 Aug 2019 00:46:31 -0700 (PDT)
-Date:   Thu, 29 Aug 2019 00:46:03 -0700
+        bh=BNYZzlx9aTQ+LCgQZ8IG6mRelU0sVitbFkM6D5hbnnk=;
+        b=XIJZxOuOv0s9YhOsTY5TRFKpwowr2d0NsPsUufsdTXxavmirE7EoHIkQthqJfgSihF
+         VoGRQWDc57ck3Tj+ZIz2VeOS7xcrlqInDeLwvKaYhtWJZR152ZmyIGXiBNKe4z/fSDZi
+         Jtk5bmX7SU9i/U5mFJU4N5IiPW6YSFbP7c5IyZ9NR1l69Nxw+t3Mroo+RCqPkeg72K4O
+         qM41n2HWKvlmhF/xUmDd5ukX9K3A4Zb2JM/DRbfoqJAvOve7O/9SLOeEx+wQgWnlAsr/
+         ksjdvapHl2VLlKqNTcrUBEpPDGCvte9uTD4h7+LdzcZpHoMBHqElR1eJMUCLBoZesDmt
+         aCZw==
+X-Gm-Message-State: APjAAAUr9VKbs8UmNGwOQwgdk1csLRshd/hK8uygOQ8Vk6+lJEP/r/bW
+        Go2PVvazrwKjkiUXC6DmVO0zHv4dbKUTHIQ=
+X-Google-Smtp-Source: APXvYqx+RvJoMMYz7ltcPQy/uFdoUYJU6ahjc36Dl7f/s2wwI7J6sQL8aP+UHuzb8PASIQh6oHx8vPGvic4jh1k=
+X-Received: by 2002:a65:4243:: with SMTP id d3mr7249704pgq.119.1567064781369;
+ Thu, 29 Aug 2019 00:46:21 -0700 (PDT)
+Date:   Thu, 29 Aug 2019 00:46:00 -0700
 In-Reply-To: <20190829074603.70424-1-saravanak@google.com>
-Message-Id: <20190829074603.70424-8-saravanak@google.com>
+Message-Id: <20190829074603.70424-5-saravanak@google.com>
 Mime-Version: 1.0
 References: <20190829074603.70424-1-saravanak@google.com>
 X-Mailer: git-send-email 2.23.0.187.g17f5b7556c-goog
-Subject: [PATCH v10 7/7] of: property: Add "depends-on" parsing support to of_fwnode_add_links()
+Subject: [PATCH v10 4/7] of/platform: Pause/resume sync state during init and of_platform_populate()
 From:   Saravana Kannan <saravanak@google.com>
 To:     Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
@@ -75,58 +75,68 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-If dependencies inferred by of_fwnode_add_links() result in a cycle, it
-can prevent the probing of all the devices in the cycle. The depends-on
-property has been added to explicitly override inferred dependencies
-when they create a cycle.
+When all the top level devices are populated from DT during kernel
+init, the supplier devices could be added and probed before the
+consumer devices are added and linked to the suppliers. To avoid the
+sync_state() callback from being called prematurely, pause the
+sync_state() callbacks before populating the devices and resume them
+at late_initcall_sync().
 
-Add depends-on parsing support to of_fwnode_add_links() so that
-platforms with cyclic dependencies can use "depends-on" to break the
-cycle and continue successfully probing devices.
+Similarly, when children devices are populated from a module using
+of_platform_populate(), there could be supplier-consumer dependencies
+between the children devices that are populated. To avoid the same
+problem with sync_state() being called prematurely, pause and resume
+sync_state() callbacks across of_platform_populate().
 
 Signed-off-by: Saravana Kannan <saravanak@google.com>
 ---
- drivers/of/property.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/of/platform.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index 420c2d428184..78a262e24686 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -1106,6 +1106,12 @@ static struct device_node *parse_interconnects(struct device_node *np,
- 				"#interconnect-cells");
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index b47a2292fe8e..d93891a05f60 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -480,6 +480,7 @@ int of_platform_populate(struct device_node *root,
+ 	pr_debug("%s()\n", __func__);
+ 	pr_debug(" starting at: %pOF\n", root);
+ 
++	device_links_supplier_sync_state_pause();
+ 	for_each_child_of_node(root, child) {
+ 		rc = of_platform_bus_create(child, matches, lookup, parent, true);
+ 		if (rc) {
+@@ -487,6 +488,8 @@ int of_platform_populate(struct device_node *root,
+ 			break;
+ 		}
+ 	}
++	device_links_supplier_sync_state_resume();
++
+ 	of_node_set_flag(root, OF_POPULATED_BUS);
+ 
+ 	of_node_put(root);
+@@ -518,6 +521,7 @@ static int __init of_platform_default_populate_init(void)
+ 	if (!of_have_populated_dt())
+ 		return -ENODEV;
+ 
++	device_links_supplier_sync_state_pause();
+ 	/*
+ 	 * Handle certain compatibles explicitly, since we don't want to create
+ 	 * platform_devices for every node in /reserved-memory with a
+@@ -538,6 +542,14 @@ static int __init of_platform_default_populate_init(void)
+ 	return 0;
  }
- 
-+static struct device_node *parse_depends_on(struct device_node *np,
-+					    const char *prop_name, int index)
+ arch_initcall_sync(of_platform_default_populate_init);
++
++static int __init of_platform_sync_state_init(void)
 +{
-+	return parse_prop_cells(np, prop_name, index, "depends-on", NULL);
++	if (of_have_populated_dt())
++		device_links_supplier_sync_state_resume();
++	return 0;
 +}
-+
- static int strcmp_suffix(const char *str, const char *suffix)
- {
- 	unsigned int len, suffix_len;
-@@ -1151,6 +1157,7 @@ static const struct supplier_bindings bindings[] = {
- 	{ .parse_prop = parse_clocks, },
- 	{ .parse_prop = parse_interconnects, },
- 	{ .parse_prop = parse_regulators, },
-+	{ .parse_prop = parse_depends_on, },
- 	{},
- };
++late_initcall_sync(of_platform_sync_state_init);
+ #endif
  
-@@ -1203,6 +1210,12 @@ static int __of_link_to_suppliers(struct device *dev,
- 	struct property *p;
- 	int ret = 0;
- 
-+	if (of_find_property(con_np, "depends-on", NULL)) {
-+		if (of_link_property(dev, con_np, "depends-on"))
-+			ret = -EAGAIN;
-+		return ret;
-+	}
-+
- 	for_each_property_of_node(con_np, p)
- 		if (of_link_property(dev, con_np, p->name))
- 			ret = -EAGAIN;
+ int of_platform_device_destroy(struct device *dev, void *data)
 -- 
 2.23.0.187.g17f5b7556c-goog
 
