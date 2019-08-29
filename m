@@ -2,145 +2,82 @@ Return-Path: <SRS0=igf9=WZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F8EFC3A59F
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 10:01:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A1B8C3A59F
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 10:10:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C9992339E
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 10:01:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="c2bCkBgy"
+	by mail.kernel.org (Postfix) with ESMTP id 1489F23405
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Aug 2019 10:10:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726214AbfH2KBp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 29 Aug 2019 06:01:45 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:57458 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725990AbfH2KBo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2019 06:01:44 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7T9xONa068680;
-        Thu, 29 Aug 2019 10:01:25 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2019-08-05;
- bh=zkvRpa/K3WJumV596fyuMKitaSxsrbHTsqVmSpQPotM=;
- b=c2bCkBgyoOtkVK/xIGPXM8PHo5Oh6WAT+PNms/EV79b0VHRR+5vf4AndEcKgHBc5MB2o
- OdF2EGM31n4yBFMosUp8VbPoEVNII1FPTcufiy8V+vQFacdC60X3siO1vxsxXrNtAgpC
- RJQdVdfGFhDSMSQAgIQ7ABcP3xRpX0n1I0PJ2rxWfzUAO+Lbgc4envxmnUN4nRqXsOa5
- I6KCeOMAdC2cvfkbRfprCXyTN4KLzgmvjlYgscK1Zpsfufvmh1GIkYt2MmAN8oRy0wXj
- VMur2KlvnD/G/Q2qsZkFQaGtfkHpWFP47hQz9dfk7aBLQbh2JHNDpqbADBtO3eTgADYq 1A== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2120.oracle.com with ESMTP id 2upcfwg27h-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 29 Aug 2019 10:01:25 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7T9rZ08022150;
-        Thu, 29 Aug 2019 09:56:25 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by userp3020.oracle.com with ESMTP id 2unteurs3p-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 29 Aug 2019 09:56:24 +0000
-Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x7T9uMwa022689;
-        Thu, 29 Aug 2019 09:56:23 GMT
-Received: from kadam (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 29 Aug 2019 02:56:22 -0700
-Date:   Thu, 29 Aug 2019 12:56:14 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     kbuild@01.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     kbuild-all@01.org, linux-acpi@vger.kernel.org, devel@acpica.org,
-        linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [pm:devprop 1/4] drivers/base/swnode.c:656
- software_node_find_by_name() error: uninitialized symbol 'swnode'.
-Message-ID: <20190829095613.GD8372@kadam>
+        id S1726985AbfH2KKo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 29 Aug 2019 06:10:44 -0400
+Received: from mga05.intel.com ([192.55.52.43]:54092 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726283AbfH2KKo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Aug 2019 06:10:44 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Aug 2019 03:10:43 -0700
+X-IronPort-AV: E=Sophos;i="5.64,442,1559545200"; 
+   d="scan'208";a="205669894"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Aug 2019 03:10:42 -0700
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 4697520554;
+        Thu, 29 Aug 2019 13:10:40 +0300 (EEST)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1i3HO7-0006VY-9O; Thu, 29 Aug 2019 13:10:43 +0300
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
+        rafael@kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        Rob Herring <robh@kernel.org>
+Subject: [PATCH v3 01/10] software node: Get reference to parent swnode in get_parent op
+Date:   Thu, 29 Aug 2019 13:10:34 +0300
+Message-Id: <20190829101043.24963-2-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190829101043.24963-1-sakari.ailus@linux.intel.com>
+References: <20190829101043.24963-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9363 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1906280000 definitions=main-1908290108
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9363 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
- definitions=main-1908290110
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree:   https://kernel.googlesource.com/pub/scm/linux/kernel/git/rafael/linux-pm.git devprop
-head:   149f3b87840e7d292ad059f5fc23f1fa2fc98b9e
-commit: 1666faedb567d03cde1d656ae24c6cc253e67373 [1/4] software node: Add software_node_find_by_name()
+The software_node_get_parent() returned a pointer to the parent swnode,
+but did not take a reference to it, leading the caller to put a reference
+that was not taken. Take that reference now.
 
-If you fix the issue, kindly add following tag
-Reported-by: kbuild test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-New smatch warnings:
-drivers/base/swnode.c:656 software_node_find_by_name() error: uninitialized symbol 'swnode'.
-
-Old smatch warnings:
-drivers/base/swnode.c:71 software_node_to_swnode() error: uninitialized symbol 'swnode'.
-
-git remote add pm https://kernel.googlesource.com/pub/scm/linux/kernel/git/rafael/linux-pm.git
-git remote update pm
-git checkout 1666faedb567d03cde1d656ae24c6cc253e67373
-vim +/swnode +656 drivers/base/swnode.c
-
-59abd83672f70c Heikki Krogerus 2018-11-09  622  
-1666faedb567d0 Heikki Krogerus 2019-08-19  623  /**
-1666faedb567d0 Heikki Krogerus 2019-08-19  624   * software_node_find_by_name - Find software node by name
-1666faedb567d0 Heikki Krogerus 2019-08-19  625   * @parent: Parent of the software node
-1666faedb567d0 Heikki Krogerus 2019-08-19  626   * @name: Name of the software node
-1666faedb567d0 Heikki Krogerus 2019-08-19  627   *
-1666faedb567d0 Heikki Krogerus 2019-08-19  628   * The function will find a node that is child of @parent and that is named
-1666faedb567d0 Heikki Krogerus 2019-08-19  629   * @name. If no node is found, the function returns NULL.
-1666faedb567d0 Heikki Krogerus 2019-08-19  630   *
-1666faedb567d0 Heikki Krogerus 2019-08-19  631   * NOTE: you will need to drop the reference with fwnode_handle_put() after use.
-1666faedb567d0 Heikki Krogerus 2019-08-19  632   */
-1666faedb567d0 Heikki Krogerus 2019-08-19  633  const struct software_node *
-1666faedb567d0 Heikki Krogerus 2019-08-19  634  software_node_find_by_name(const struct software_node *parent, const char *name)
-1666faedb567d0 Heikki Krogerus 2019-08-19  635  {
-1666faedb567d0 Heikki Krogerus 2019-08-19  636  	struct swnode *swnode;
-1666faedb567d0 Heikki Krogerus 2019-08-19  637  	struct kobject *k;
-1666faedb567d0 Heikki Krogerus 2019-08-19  638  
-1666faedb567d0 Heikki Krogerus 2019-08-19  639  	if (!name)
-1666faedb567d0 Heikki Krogerus 2019-08-19  640  		return NULL;
-1666faedb567d0 Heikki Krogerus 2019-08-19  641  
-1666faedb567d0 Heikki Krogerus 2019-08-19  642  	spin_lock(&swnode_kset->list_lock);
-1666faedb567d0 Heikki Krogerus 2019-08-19  643  
-1666faedb567d0 Heikki Krogerus 2019-08-19  644  	list_for_each_entry(k, &swnode_kset->list, entry) {
-
-Can this list be empty?  Probably not, but if so then "swnode" could
-be uninitialized.
-
-1666faedb567d0 Heikki Krogerus 2019-08-19  645  		swnode = kobj_to_swnode(k);
-1666faedb567d0 Heikki Krogerus 2019-08-19  646  		if (parent == swnode->node->parent && swnode->node->name &&
-1666faedb567d0 Heikki Krogerus 2019-08-19  647  		    !strcmp(name, swnode->node->name)) {
-1666faedb567d0 Heikki Krogerus 2019-08-19  648  			kobject_get(&swnode->kobj);
-1666faedb567d0 Heikki Krogerus 2019-08-19  649  			break;
-1666faedb567d0 Heikki Krogerus 2019-08-19  650  		}
-1666faedb567d0 Heikki Krogerus 2019-08-19  651  		swnode = NULL;
-1666faedb567d0 Heikki Krogerus 2019-08-19  652  	}
-1666faedb567d0 Heikki Krogerus 2019-08-19  653  
-1666faedb567d0 Heikki Krogerus 2019-08-19  654  	spin_unlock(&swnode_kset->list_lock);
-1666faedb567d0 Heikki Krogerus 2019-08-19  655  
-1666faedb567d0 Heikki Krogerus 2019-08-19 @656  	return swnode ? swnode->node : NULL;
-1666faedb567d0 Heikki Krogerus 2019-08-19  657  }
-1666faedb567d0 Heikki Krogerus 2019-08-19  658  EXPORT_SYMBOL_GPL(software_node_find_by_name);
-1666faedb567d0 Heikki Krogerus 2019-08-19  659  
-
+Fixes: 59abd83672f7 ("drivers: base: Introducing software nodes to the
+		      firmware node framework")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/base/swnode.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index e7b3aa3bd55ad..a7cb41812cfda 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -520,7 +520,10 @@ software_node_get_parent(const struct fwnode_handle *fwnode)
+ {
+ 	struct swnode *swnode = to_swnode(fwnode);
+ 
+-	return swnode ? (swnode->parent ? &swnode->parent->fwnode : NULL) : NULL;
++	if (!swnode || !swnode->parent)
++		return NULL;
++
++	return fwnode_handle_get(&swnode->parent->fwnode);
+ }
+ 
+ static struct fwnode_handle *
+-- 
+2.20.1
+
