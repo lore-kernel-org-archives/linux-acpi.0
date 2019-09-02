@@ -2,36 +2,37 @@ Return-Path: <SRS0=wIyh=W5=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4955CC3A59B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0C5DC3A5A8
 	for <linux-acpi@archiver.kernel.org>; Mon,  2 Sep 2019 08:33:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 26B4321874
+	by mail.kernel.org (Postfix) with ESMTP id 9B9BC21874
 	for <linux-acpi@archiver.kernel.org>; Mon,  2 Sep 2019 08:33:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730341AbfIBIcl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 2 Sep 2019 04:32:41 -0400
-Received: from mga03.intel.com ([134.134.136.65]:14620 "EHLO mga03.intel.com"
+        id S1730330AbfIBIck (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 2 Sep 2019 04:32:40 -0400
+Received: from mga01.intel.com ([192.55.52.88]:25919 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730223AbfIBIcj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1730266AbfIBIcj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 2 Sep 2019 04:32:39 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Sep 2019 01:32:38 -0700
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Sep 2019 01:32:39 -0700
 X-IronPort-AV: E=Sophos;i="5.64,457,1559545200"; 
-   d="scan'208";a="183255380"
+   d="scan'208";a="172875090"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Sep 2019 01:32:35 -0700
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Sep 2019 01:32:36 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id BB43E20B04;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id D24C220B48;
         Mon,  2 Sep 2019 11:32:33 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1i4hlQ-0005JP-4K; Mon, 02 Sep 2019 11:32:40 +0300
+        id 1i4hlQ-0005Jb-96; Mon, 02 Sep 2019 11:32:40 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
         rafael@kernel.org
@@ -39,10 +40,12 @@ Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
         Rob Herring <robh@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v4 00/11] Device property improvements, add %pfw format specifier
-Date:   Mon,  2 Sep 2019 11:32:29 +0300
-Message-Id: <20190902083240.20367-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 04/11] device property: Add functions for accessing node's parents
+Date:   Mon,  2 Sep 2019 11:32:33 +0300
+Message-Id: <20190902083240.20367-5-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190902083240.20367-1-sakari.ailus@linux.intel.com>
+References: <20190902083240.20367-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -50,96 +53,89 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi all,
+Add two convenience functions for accessing node's parents:
 
-This set adds functionality into the device property API (counting a
-node's parents as well as obtaining its name) in order to support printing
-fwnode names using a new conversion specifier "%pfw". The names that are
-produced are equivalent to its OF counterpart "%pOF" on OF systems for the
-two supported modifiers ("f" and "P").
+fwnode_count_parents() returns the number of parent nodes a given node
+has. fwnode_get_nth_parent() returns node's parent at a given distance
+from the node itself.
 
-Printing a node's name is something that's been available on OF for a long
-time and if something is converted to device property API (such as the
-V4L2 fwnode framework) it always got removed of a nice feature that was
-sometimes essential in debugging. With this set, that no longer is the
-case.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/base/property.c  | 46 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/property.h |  3 +++
+ 2 files changed, 49 insertions(+)
 
-since v3:
-
-- Remove underscores in argument name of fwnode_count_parents().
-
-- Re-introduce "%pO?" error string.
-
-- Unwrap a call to string() in fwnode_string().
-
-- Removed a useless Depends-on: on a patch that was merged long ago.
-
-- Unwrap a Fixes: line.
-
-- Added a patch to move fwnode_get_parent() up to make the review of the
-  following patch easier.
-
-since v2:
-
-- Better comments in acpi_fwnode_get_name_prefix().
-
-- Added swnode implementation.
-
-- Fixed swnode refcounting in get_parent() ("swnode: Get reference to
-  parent swnode in get_parent op")
-
-- Make argument to to_software_node() const (a new patch)
-
-- Factored out confusingly named kobject_string() that had a single
-  caller.
-
-- Cleaner fwnode_count_parents() implementation (as discussed in review).
-
-- Made fwnode_count_parents() argument const.
-
-- Added tests (last patch in the set).
-
-since v1:
-
-- Add patch to remove support for %pf and %pF (depends on another patch
-  removing all use of %pf and %pF) (now 4th patch)
-
-- Fix kerneldoc argument documentation for fwnode_get_name (2nd patch)
-
-- Align kerneldoc style with the rest of drivers/base/property.c (no extra
-  newline after function name)
-
-- Make checkpatch.pl complain about "%pf" not followed by "w" (6th patch)
-
-- WARN_ONCE() on use of invalid conversion specifiers ("%pf" not followed
-  by "w")
-
-Sakari Ailus (11):
-  software node: Get reference to parent swnode in get_parent op
-  software node: Make argument to to_software_node const
-  device property: Move fwnode_get_parent() up
-  device property: Add functions for accessing node's parents
-  device property: Add fwnode_get_name for returning the name of a node
-  device property: Add a function to obtain a node's prefix
-  lib/vsprintf: Remove support for %pF and %pf in favour of %pS and %ps
-  lib/vsprintf: Make use of fwnode API to obtain node names and
-    separators
-  lib/vsprintf: OF nodes are first and foremost, struct device_nodes
-  lib/vsprintf: Add %pfw conversion specifier for printing fwnode names
-  lib/test_printf: Add tests for %pfw printk modifier
-
- Documentation/core-api/printk-formats.rst | 34 ++++++---
- drivers/acpi/property.c                   | 48 +++++++++++++
- drivers/base/property.c                   | 83 +++++++++++++++++++--
- drivers/base/swnode.c                     | 55 +++++++++++++-
- drivers/of/property.c                     | 16 +++++
- include/linux/fwnode.h                    |  4 ++
- include/linux/property.h                  |  8 ++-
- lib/test_printf.c                         | 37 ++++++++++
- lib/vsprintf.c                            | 88 ++++++++++++++---------
- scripts/checkpatch.pl                     |  4 +-
- 10 files changed, 319 insertions(+), 58 deletions(-)
-
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 3d9dffbe96378..d2461d79139f3 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -590,6 +590,52 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+ }
+ EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+ 
++/**
++ * fwnode_count_parents - Return the number of parents a node has
++ * @fwnode: The node the parents of which are to be counted
++ *
++ * Returns the number of parents a node has.
++ */
++unsigned int fwnode_count_parents(const struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *__fwnode;
++	unsigned int count;
++
++	__fwnode = fwnode_get_parent(fwnode);
++
++	for (count = 0; __fwnode; count++)
++		__fwnode = fwnode_get_next_parent(__fwnode);
++
++	return count;
++}
++EXPORT_SYMBOL_GPL(fwnode_count_parents);
++
++/**
++ * fwnode_get_nth_parent - Return an nth parent of a node
++ * @fwnode: The node the parent of which is requested
++ * @depth: Distance of the parent from the node
++ *
++ * Returns the nth parent of a node. If @depth is 0, the functionality is
++ * equivalent to fwnode_handle_get(). For @depth == 1, it is fwnode_get_parent()
++ * and so on.
++ *
++ * The caller is responsible for calling fwnode_handle_put() for the returned
++ * node.
++ */
++struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
++					    unsigned int depth)
++{
++	unsigned int i;
++
++	fwnode_handle_get(fwnode);
++
++	for (i = 0; i < depth && fwnode; i++)
++		fwnode = fwnode_get_next_parent(fwnode);
++
++	return fwnode;
++}
++EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
++
+ /**
+  * fwnode_get_next_child_node - Return the next child node handle for a node
+  * @fwnode: Firmware node to find the next child node for.
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 421c76e53708d..5450e7ec219ac 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -83,6 +83,9 @@ struct fwnode_handle *fwnode_find_reference(const struct fwnode_handle *fwnode,
+ struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_get_next_parent(
+ 	struct fwnode_handle *fwnode);
++unsigned int fwnode_count_parents(const struct fwnode_handle *fwn);
++struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
++					    unsigned int depth);
+ struct fwnode_handle *fwnode_get_next_child_node(
+ 	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
+ struct fwnode_handle *fwnode_get_next_available_child_node(
 -- 
 2.20.1
 
