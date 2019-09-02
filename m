@@ -2,110 +2,160 @@ Return-Path: <SRS0=wIyh=W5=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C05F4C3A59E
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Sep 2019 13:58:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4ED3C3A59E
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Sep 2019 14:39:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2AEC21882
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Sep 2019 13:58:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B880421883
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Sep 2019 14:39:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731072AbfIBN6N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 2 Sep 2019 09:58:13 -0400
-Received: from mga02.intel.com ([134.134.136.20]:40636 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730136AbfIBN5c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 2 Sep 2019 09:57:32 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Sep 2019 06:57:29 -0700
-X-IronPort-AV: E=Sophos;i="5.64,459,1559545200"; 
-   d="scan'208";a="266027119"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Sep 2019 06:57:27 -0700
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id A829020D4C;
-        Mon,  2 Sep 2019 16:57:25 +0300 (EEST)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1i4mpo-00067L-K1; Mon, 02 Sep 2019 16:57:32 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
-        rafael@kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        id S1730930AbfIBOji (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 2 Sep 2019 10:39:38 -0400
+Received: from mx2.suse.de ([195.135.220.15]:39580 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727393AbfIBOji (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 2 Sep 2019 10:39:38 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id ED046B65E;
+        Mon,  2 Sep 2019 14:39:35 +0000 (UTC)
+Date:   Mon, 2 Sep 2019 16:39:35 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     rafael@kernel.org, linux-kernel@vger.kernel.org,
         Rob Herring <robh@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v5 03/11] device property: Move fwnode_get_parent() up
-Date:   Mon,  2 Sep 2019 16:57:24 +0300
-Message-Id: <20190902135732.23455-4-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190902135732.23455-1-sakari.ailus@linux.intel.com>
-References: <20190902135732.23455-1-sakari.ailus@linux.intel.com>
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Arnaldo Carvalho de Melo <acme@redhat.com>,
+        Tzvetomir Stoyanov <tstoyanov@vmware.com>,
+        linux-trace-devel@vger.kernel.org, Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>
+Subject: Re: [PATCH v4 07/11] lib/vsprintf: Remove support for %pF and %pf in
+ favour of %pS and %ps
+Message-ID: <20190902143935.xtd44jdvhjuc2wxe@pathway.suse.cz>
+References: <20190902083240.20367-1-sakari.ailus@linux.intel.com>
+ <20190902083240.20367-8-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190902083240.20367-8-sakari.ailus@linux.intel.com>
+User-Agent: NeoMutt/20170912 (1.9.0)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Move fwnode_get_parent() above fwnode_get_next_parent(), making the order
-the same as in the header file.
+On Mon 2019-09-02 11:32:36, Sakari Ailus wrote:
+> %pS and %ps are now the preferred conversion specifiers to print function
+> names. The functionality is equivalent; remove the old, deprecated %pF
+> and %pf support.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/base/property.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+Hmm, I see the following in master:
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 81bd01ed40427..3d9dffbe96378 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -556,6 +556,19 @@ int device_add_properties(struct device *dev,
- }
- EXPORT_SYMBOL_GPL(device_add_properties);
- 
-+/**
-+ * fwnode_get_parent - Return parent firwmare node
-+ * @fwnode: Firmware whose parent is retrieved
-+ *
-+ * Return parent firmware node of the given node if possible or %NULL if no
-+ * parent was available.
-+ */
-+struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
-+{
-+	return fwnode_call_ptr_op(fwnode, get_parent);
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_parent);
-+
- /**
-  * fwnode_get_next_parent - Iterate to the node's parent
-  * @fwnode: Firmware whose parent is retrieved
-@@ -577,19 +590,6 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
- }
- EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
- 
--/**
-- * fwnode_get_parent - Return parent firwmare node
-- * @fwnode: Firmware whose parent is retrieved
-- *
-- * Return parent firmware node of the given node if possible or %NULL if no
-- * parent was available.
-- */
--struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode)
--{
--	return fwnode_call_ptr_op(fwnode, get_parent);
--}
--EXPORT_SYMBOL_GPL(fwnode_get_parent);
--
- /**
-  * fwnode_get_next_child_node - Return the next child node handle for a node
-  * @fwnode: Firmware node to find the next child node for.
--- 
-2.20.1
+$> git grep %pF
+tools/lib/traceevent/Documentation/libtraceevent-func_apis.txt:or events have "%pF" or "%pS" parameter in its format string. It is common to
 
+$> git grep %pf
+tools/lib/traceevent/event-parse.c:             if (asprintf(&format, "%%pf: (NO FORMAT FOUND at %llx)\n", addr) < 0)
+tools/lib/traceevent/event-parse.c:     if (asprintf(&format, "%s: %s", "%pf", printk->printk) < 0)
+
+I wonder how this is related to printk(). In each case, it seems
+that libtraceevent somehow implements the non-standard kernel
+%p mofifiers. It looks error-prone to keep another %pf user
+with the old semantic around.
+
+I am adding some tracing people into CC.
+
+Best Regards,
+Petr
+
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  Documentation/core-api/printk-formats.rst | 10 ----------
+>  lib/vsprintf.c                            |  8 ++------
+>  scripts/checkpatch.pl                     |  1 -
+>  3 files changed, 2 insertions(+), 17 deletions(-)
+> 
+> diff --git a/Documentation/core-api/printk-formats.rst b/Documentation/core-api/printk-formats.rst
+> index c6224d039bcbe..922a29eb70e6c 100644
+> --- a/Documentation/core-api/printk-formats.rst
+> +++ b/Documentation/core-api/printk-formats.rst
+> @@ -86,8 +86,6 @@ Symbols/Function Pointers
+>  
+>  	%pS	versatile_init+0x0/0x110
+>  	%ps	versatile_init
+> -	%pF	versatile_init+0x0/0x110
+> -	%pf	versatile_init
+>  	%pSR	versatile_init+0x9/0x110
+>  		(with __builtin_extract_return_addr() translation)
+>  	%pB	prev_fn_of_versatile_init+0x88/0x88
+> @@ -97,14 +95,6 @@ The ``S`` and ``s`` specifiers are used for printing a pointer in symbolic
+>  format. They result in the symbol name with (S) or without (s)
+>  offsets. If KALLSYMS are disabled then the symbol address is printed instead.
+>  
+> -Note, that the ``F`` and ``f`` specifiers are identical to ``S`` (``s``)
+> -and thus deprecated. We have ``F`` and ``f`` because on ia64, ppc64 and
+> -parisc64 function pointers are indirect and, in fact, are function
+> -descriptors, which require additional dereferencing before we can lookup
+> -the symbol. As of now, ``S`` and ``s`` perform dereferencing on those
+> -platforms (when needed), so ``F`` and ``f`` exist for compatibility
+> -reasons only.
+> -
+>  The ``B`` specifier results in the symbol name with offsets and should be
+>  used when printing stack backtraces. The specifier takes into
+>  consideration the effect of compiler optimisations which may occur
+> diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+> index b0967cf17137d..b00b57f9f911f 100644
+> --- a/lib/vsprintf.c
+> +++ b/lib/vsprintf.c
+> @@ -909,7 +909,7 @@ char *symbol_string(char *buf, char *end, void *ptr,
+>  #ifdef CONFIG_KALLSYMS
+>  	if (*fmt == 'B')
+>  		sprint_backtrace(sym, value);
+> -	else if (*fmt != 'f' && *fmt != 's')
+> +	else if (*fmt != 's')
+>  		sprint_symbol(sym, value);
+>  	else
+>  		sprint_symbol_no_offset(sym, value);
+> @@ -2007,9 +2007,7 @@ static char *kobject_string(char *buf, char *end, void *ptr,
+>   *
+>   * - 'S' For symbolic direct pointers (or function descriptors) with offset
+>   * - 's' For symbolic direct pointers (or function descriptors) without offset
+> - * - 'F' Same as 'S'
+> - * - 'f' Same as 's'
+> - * - '[FfSs]R' as above with __builtin_extract_return_addr() translation
+> + * - '[Ss]R' as above with __builtin_extract_return_addr() translation
+>   * - 'B' For backtraced symbolic direct pointers with offset
+>   * - 'R' For decoded struct resource, e.g., [mem 0x0-0x1f 64bit pref]
+>   * - 'r' For raw struct resource, e.g., [mem 0x0-0x1f flags 0x201]
+> @@ -2112,8 +2110,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
+>  	      struct printf_spec spec)
+>  {
+>  	switch (*fmt) {
+> -	case 'F':
+> -	case 'f':
+>  	case 'S':
+>  	case 's':
+>  		ptr = dereference_symbol_descriptor(ptr);
+> diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+> index 93a7edfe0f059..a60c241112cd4 100755
+> --- a/scripts/checkpatch.pl
+> +++ b/scripts/checkpatch.pl
+> @@ -6012,7 +6012,6 @@ sub process {
+>  					my $ext_type = "Invalid";
+>  					my $use = "";
+>  					if ($bad_specifier =~ /p[Ff]/) {
+> -						$ext_type = "Deprecated";
+>  						$use = " - use %pS instead";
+>  						$use =~ s/pS/ps/ if ($bad_specifier =~ /pf/);
+>  					}
+> -- 
+> 2.20.1
+> 
