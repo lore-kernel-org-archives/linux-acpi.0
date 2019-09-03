@@ -2,109 +2,87 @@ Return-Path: <SRS0=La0L=W6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF8A8C3A5A2
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Sep 2019 09:28:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B266FC3A5A2
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Sep 2019 09:46:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8D8EE22DBF
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Sep 2019 09:28:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9557122DCC
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Sep 2019 09:46:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728129AbfICJ2S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 3 Sep 2019 05:28:18 -0400
-Received: from mx2.suse.de ([195.135.220.15]:59110 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728128AbfICJ2S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Sep 2019 05:28:18 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id AA200AEAE;
-        Tue,  3 Sep 2019 09:28:16 +0000 (UTC)
-Date:   Tue, 3 Sep 2019 11:28:16 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     rafael@kernel.org, linux-kernel@vger.kernel.org,
+        id S1728509AbfICJqH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 3 Sep 2019 05:46:07 -0400
+Received: from smtprelay0050.hostedemail.com ([216.40.44.50]:51740 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727077AbfICJqG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Sep 2019 05:46:06 -0400
+X-Greylist: delayed 433 seconds by postgrey-1.27 at vger.kernel.org; Tue, 03 Sep 2019 05:46:06 EDT
+Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
+        by smtpgrave04.hostedemail.com (Postfix) with ESMTP id 9110D1807BE78;
+        Tue,  3 Sep 2019 09:38:53 +0000 (UTC)
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay02.hostedemail.com (Postfix) with ESMTP id AEB3E2B347;
+        Tue,  3 Sep 2019 09:38:51 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: geese64_4d259d89bf017
+X-Filterd-Recvd-Size: 2574
+Received: from XPS-9350.home (unknown [47.151.137.30])
+        (Authenticated sender: joe@perches.com)
+        by omf11.hostedemail.com (Postfix) with ESMTPA;
+        Tue,  3 Sep 2019 09:38:50 +0000 (UTC)
+Message-ID: <be9cd5d933486de9cf88a1550c2020c56348670d.camel@perches.com>
+Subject: Re: [PATCH v5 00/11] Device property improvements, add %pfw format
+ specifier
+From:   Joe Perches <joe@perches.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
+        rafael@kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
         Rob Herring <robh@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v5 09/11] lib/vsprintf: OF nodes are first and foremost,
- struct device_nodes
-Message-ID: <20190903092816.qutqnjba7okcauim@pathway.suse.cz>
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Date:   Tue, 03 Sep 2019 02:38:48 -0700
+In-Reply-To: <20190902135732.23455-1-sakari.ailus@linux.intel.com>
 References: <20190902135732.23455-1-sakari.ailus@linux.intel.com>
- <20190902135732.23455-10-sakari.ailus@linux.intel.com>
- <20190903085233.oksjcwqwdxb53eig@pathway.suse.cz>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.32.1-2 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190903085233.oksjcwqwdxb53eig@pathway.suse.cz>
-User-Agent: NeoMutt/20170912 (1.9.0)
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue 2019-09-03 10:52:33, Petr Mladek wrote:
-> On Mon 2019-09-02 16:57:30, Sakari Ailus wrote:
-> > Factor out static kobject_string() function that simply calls
-> > device_node_string(), and thus remove references to kobjects (as these are
-> > struct device_node).
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> >  lib/vsprintf.c | 16 ++++------------
-> >  1 file changed, 4 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-> > index a04a2167101ef..4ad9332d54ba6 100644
-> > --- a/lib/vsprintf.c
-> > +++ b/lib/vsprintf.c
-> > @@ -1905,6 +1905,9 @@ char *device_node_string(char *buf, char *end, struct device_node *dn,
-> >  	struct printf_spec str_spec = spec;
-> >  	str_spec.field_width = -1;
-> >  
-> > +	if (fmt[0] != 'F')
-> > +		return error_string(buf, end, "(%pO?)", spec);
-> > +
-> >  	if (!IS_ENABLED(CONFIG_OF))
-> >  		return error_string(buf, end, "(%pOF?)", spec);
-> >  
-> > @@ -1978,17 +1981,6 @@ char *device_node_string(char *buf, char *end, struct device_node *dn,
-> >  	return widen_string(buf, buf - buf_start, end, spec);
-> >  }
-> >  
-> > -static char *kobject_string(char *buf, char *end, void *ptr,
-> > -			    struct printf_spec spec, const char *fmt)
-> > -{
-> > -	switch (fmt[1]) {
-> > -	case 'F':
-> > -		return device_node_string(buf, end, ptr, spec, fmt + 1);
-> > -	}
-> > -
-> > -	return error_string(buf, end, "(%pO?)", spec);
-> > -}
-> > -
-> >  /*
-> >   * Show a '%p' thing.  A kernel extension is that the '%p' is followed
-> >   * by an extra set of alphanumeric characters that are extended format
-> > @@ -2167,7 +2159,7 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
-> >  	case 'G':
-> >  		return flags_string(buf, end, ptr, spec, fmt);
-> >  	case 'O':
-> > -		return kobject_string(buf, end, ptr, spec, fmt);
-> > +		return device_node_string(buf, end, ptr, spec, fmt + 1);
+On Mon, 2019-09-02 at 16:57 +0300, Sakari Ailus wrote:
+> Hi all,
 > 
-> I know that this come from from kobject_string(). But please, modify
-> it to follow the style used by other %p modifiers. I mean to pass
-> "fmt" as is and then use:
+> This set adds functionality into the device property API (counting a
+> node's parents as well as obtaining its name) in order to support printing
+> fwnode names using a new conversion specifier "%pfw". The names that are
+> produced are equivalent to its OF counterpart "%pOF" on OF systems for the
+> two supported modifiers ("f" and "P").
 > 
-> 	if (fmt[1] != 'F')
+> Printing a node's name is something that's been available on OF for a long
+> time and if something is converted to device property API (such as the
+> V4L2 fwnode framework) it always got removed of a nice feature that was
+> sometimes essential in debugging. With this set, that no longer is the
+> case.
 
-Ah, I see that it would need more changes in device_node_string().
-OK, let's leave the patch as is. I am sorry for the noise.
+Doesn't this still have dependencies on removing all
+existing %p[fF] uses?
 
-Best Regards,
-Petr
+In Linus' tree:
+
+tools/lib/traceevent/Documentation/libtraceevent-func_apis.txt:or events have "%pF" or "%pS" parameter in its format string. It is common to
+tools/lib/traceevent/event-parse.c:             if (asprintf(&format, "%%pf: (NO FORMAT FOUND at %llx)\n", addr) < 0)
+tools/lib/traceevent/event-parse.c:     if (asprintf(&format, "%s: %s", "%pf", printk->printk) < 0)
+
+And these in -next:
+
+drivers/scsi/lpfc/lpfc_hbadisc.c:                                        "3185 FIND node filter %pf DID "
+drivers/scsi/lpfc/lpfc_hbadisc.c:                        "3186 FIND node filter %pf NOT FOUND.\n", filter);
+drivers/scsi/lpfc/lpfc_sli.c:                           "(%d):0307 Mailbox cmd x%x (x%x/x%x) Cmpl %pf "
+
+
