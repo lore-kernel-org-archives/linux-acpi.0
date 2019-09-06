@@ -2,167 +2,160 @@ Return-Path: <SRS0=I7UC=XB=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3C81C43331
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Sep 2019 08:04:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D71EC43331
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Sep 2019 09:03:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABB8F2082C
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Sep 2019 08:04:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2749A214E0
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Sep 2019 09:03:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=mork.no header.i=@mork.no header.b="giIJe10i"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728020AbfIFIEC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Sep 2019 04:04:02 -0400
-Received: from inva021.nxp.com ([92.121.34.21]:55324 "EHLO inva021.nxp.com"
+        id S2389743AbfIFJDV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 Sep 2019 05:03:21 -0400
+Received: from canardo.mork.no ([148.122.252.1]:46045 "EHLO canardo.mork.no"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728742AbfIFIEC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 6 Sep 2019 04:04:02 -0400
-Received: from inva021.nxp.com (localhost [127.0.0.1])
-        by inva021.eu-rdc02.nxp.com (Postfix) with ESMTP id 042B8200589;
-        Fri,  6 Sep 2019 10:03:59 +0200 (CEST)
-Received: from invc005.ap-rdc01.nxp.com (invc005.ap-rdc01.nxp.com [165.114.16.14])
-        by inva021.eu-rdc02.nxp.com (Postfix) with ESMTP id 321242000EC;
-        Fri,  6 Sep 2019 10:03:52 +0200 (CEST)
-Received: from titan.ap.freescale.net (TITAN.ap.freescale.net [10.192.208.233])
-        by invc005.ap-rdc01.nxp.com (Postfix) with ESMTP id E4747402A5;
-        Fri,  6 Sep 2019 16:03:43 +0800 (SGT)
-From:   Biwen Li <biwen.li@nxp.com>
-To:     andy.shevchenko@gmail.com, rafael@kernel.org, leoyang.li@nxp.com,
-        meenakshi.aggarwal@nxp.com, udit.kumar@nxp.com, wsa@the-dreams.de,
-        rjw@rjwysocki.net
-Cc:     chuanhua.han@nxp.com, shawnguo@kernel.org, s.hauer@pengutronix.de,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Biwen Li <biwen.li@nxp.com>
-Subject: [v2] ACPI: support for NXP i2c controller
-Date:   Fri,  6 Sep 2019 15:53:19 +0800
-Message-Id: <20190906075319.21244-1-biwen.li@nxp.com>
-X-Mailer: git-send-email 2.9.5
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1732629AbfIFJDV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Sep 2019 05:03:21 -0400
+Received: from miraculix.mork.no ([IPv6:2a02:2121:2c6:ea50:dc9c:cbff:fe10:7b5a])
+        (authenticated bits=0)
+        by canardo.mork.no (8.15.2/8.15.2) with ESMTPSA id x8692whS016408
+        (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
+        Fri, 6 Sep 2019 11:02:59 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mork.no; s=b;
+        t=1567760580; bh=xZBEn2ft+wibAoI3k1K3RXJpJ2auCi0atCSt766wtBk=;
+        h=From:To:Cc:Subject:References:Date:Message-ID:From;
+        b=giIJe10iL+vlFe2vuBviurpKrXK/OMKbzM30mWx2duCTEhp5TDfM5iuNjrSH9hZz2
+         oanQGGMtoDFE3NDEUWhgl9j1GMR+xGo6/RWwqSqiPm/8671k+/LYggR4lqRJEd/JCU
+         JO8CTdr9MGryO08SjCdFQ4/d9Iomr5YvtxQ1x0ZI=
+Received: from bjorn by miraculix.mork.no with local (Exim 4.92)
+        (envelope-from <bjorn@mork.no>)
+        id 1i6A8q-00038G-UR; Fri, 06 Sep 2019 11:02:52 +0200
+From:   =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To:     <Charles.Hyde@dellteam.com>
+Cc:     <oliver@neukum.org>, <rjw@rjwysocki.net>, <lenb@kernel.org>,
+        <Mario.Limonciello@dell.com>, <chip.programmer@gmail.com>,
+        <nic_swsd@realtek.com>, <linux-usb@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH 1/3] net: cdc_ncm: add get/set ethernet address functions
+Organization: m
+References: <1567717318990.49322@Dellteam.com>
+Date:   Fri, 06 Sep 2019 11:02:52 +0200
+In-Reply-To: <1567717318990.49322@Dellteam.com> (Charles Hyde's message of
+        "Thu, 5 Sep 2019 21:01:59 +0000")
+Message-ID: <87zhjhssoz.fsf@miraculix.mork.no>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-Virus-Scanned: clamav-milter 0.101.2 at canardo
+X-Virus-Status: Clean
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Chuanhua Han <chuanhua.han@nxp.com>
+<Charles.Hyde@dellteam.com> writes:
 
-Enable NXP i2c controller to boot with ACPI
+> +static int cdc_ncm_get_ethernet_address(struct usbnet *dev,
+> +					struct cdc_ncm_ctx *ctx)
 
-Signed-off-by: Meenakshi Aggarwal <meenakshi.aggarwal@nxp.com>
-Signed-off-by: Udit Kumar <udit.kumar@nxp.com>
-Signed-off-by: Chuanhua Han <chuanhua.han@nxp.com>
-Signed-off-by: Biwen Li <biwen.li@nxp.com>
----
-Change in v2:
-	- Simplify code
-	- Adjust header file order
-	- Not use ACPI_PTR()
 
- drivers/acpi/acpi_apd.c      |  7 +++++++
- drivers/i2c/busses/i2c-imx.c | 17 +++++++++++++----
- 2 files changed, 20 insertions(+), 4 deletions(-)
+Is this function called anywhere?  Shouldn't it replace the
+usbnet_get_ethernet_addr() call in cdc_ncm_bind_common()?
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 7cd0c9ac71ea..71511ae2dfcd 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -160,11 +160,17 @@ static const struct apd_device_desc hip08_i2c_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 250000000,
- };
-+
- static const struct apd_device_desc thunderx2_i2c_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 125000000,
- };
- 
-+static const struct apd_device_desc nxp_i2c_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 350000000,
-+};
-+
- static const struct apd_device_desc hip08_spi_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 250000000,
-@@ -238,6 +244,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- 	{ "HISI02A1", APD_ADDR(hip07_i2c_desc) },
- 	{ "HISI02A2", APD_ADDR(hip08_i2c_desc) },
- 	{ "HISI0173", APD_ADDR(hip08_spi_desc) },
-+	{ "NXP0001", APD_ADDR(nxp_i2c_desc) },
- #endif
- 	{ }
- };
-diff --git a/drivers/i2c/busses/i2c-imx.c b/drivers/i2c/busses/i2c-imx.c
-index 15f6cde6452f..a3b61336fe55 100644
---- a/drivers/i2c/busses/i2c-imx.c
-+++ b/drivers/i2c/busses/i2c-imx.c
-@@ -20,6 +20,7 @@
-  *
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/clk.h>
- #include <linux/completion.h>
- #include <linux/delay.h>
-@@ -255,6 +256,12 @@ static const struct of_device_id i2c_imx_dt_ids[] = {
- };
- MODULE_DEVICE_TABLE(of, i2c_imx_dt_ids);
- 
-+static const struct acpi_device_id i2c_imx_acpi_ids[] = {
-+	{"NXP0001", .driver_data = (kernel_ulong_t)&vf610_i2c_hwdata},
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, i2c_imx_acpi_ids);
-+
- static inline int is_imx1_i2c(struct imx_i2c_struct *i2c_imx)
- {
- 	return i2c_imx->hwdata->devtype == IMX1_I2C;
-@@ -1048,14 +1055,13 @@ static const struct i2c_algorithm i2c_imx_algo = {
- 
- static int i2c_imx_probe(struct platform_device *pdev)
- {
--	const struct of_device_id *of_id = of_match_device(i2c_imx_dt_ids,
--							   &pdev->dev);
- 	struct imx_i2c_struct *i2c_imx;
- 	struct resource *res;
- 	struct imxi2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
- 	void __iomem *base;
- 	int irq, ret;
- 	dma_addr_t phy_addr;
-+	const struct imx_i2c_hwdata *match;
- 
- 	dev_dbg(&pdev->dev, "<%s>\n", __func__);
- 
-@@ -1075,8 +1081,9 @@ static int i2c_imx_probe(struct platform_device *pdev)
- 	if (!i2c_imx)
- 		return -ENOMEM;
- 
--	if (of_id)
--		i2c_imx->hwdata = of_id->data;
-+	match = device_get_match_data(&pdev->dev);
-+	if (match)
-+		i2c_imx->hwdata = match;
- 	else
- 		i2c_imx->hwdata = (struct imx_i2c_hwdata *)
- 				platform_get_device_id(pdev)->driver_data;
-@@ -1089,6 +1096,7 @@ static int i2c_imx_probe(struct platform_device *pdev)
- 	i2c_imx->adapter.nr		= pdev->id;
- 	i2c_imx->adapter.dev.of_node	= pdev->dev.of_node;
- 	i2c_imx->base			= base;
-+	ACPI_COMPANION_SET(&i2c_imx->adapter.dev, ACPI_COMPANION(&pdev->dev));
- 
- 	/* Get I2C clock */
- 	i2c_imx->clk = devm_clk_get(&pdev->dev, NULL);
-@@ -1247,6 +1255,7 @@ static struct platform_driver i2c_imx_driver = {
- 		.name = DRIVER_NAME,
- 		.pm = &i2c_imx_pm_ops,
- 		.of_match_table = i2c_imx_dt_ids,
-+		.acpi_match_table = i2c_imx_acpi_ids,
- 	},
- 	.id_table = imx_i2c_devtype,
- };
--- 
-2.17.1
+But do note that cdc_ncm_bind_common() is shared with cdc_mbim and
+huawei_cdc_ncm, and that NCM specific code therefore must be
+conditional.
 
+That's why the usbnet_get_ethernet_addr() call is currently wrapped in
+'if (ctx->ether_desc) {}'.  You should definitely not try to do
+USB_CDC_GET_NET_ADDRESS or USB_CDC_SET_NET_ADDRESS on MBIM.  I don't
+know about the Huawei firmwares.  But I believe it's best to be careful
+and avoid these requests there too. Unless you have a number of
+different Huawei devices with assorted firmware revisions for testing.
+CDC NCM compliance is obviously not a requirement for their vendor
+specific dialect.
+
+> +{
+> +	int ret;
+> +	char *buf;
+> +
+> +	buf =3D kmalloc(ETH_ALEN, GFP_KERNEL);
+> +	if (!buf)
+> +		return -ENOMEM;
+
+usbnet_read_cmd() will kmalloc() yet another buffer, so this is
+completely pointless.  Just use the stack for the 6 byte buffer.
+
+Or let it write directly to dev->net->dev_addr, since you will fall back
+to usbnet_get_ethernet_addr() anyway if the request fails.
+
+> +	ret =3D usbnet_read_cmd(dev, USB_CDC_GET_NET_ADDRESS,
+> +			      USB_DIR_IN | USB_TYPE_CLASS
+> +			      | USB_RECIP_INTERFACE, 0,
+> +			      USB_REQ_SET_ADDRESS, buf, ETH_ALEN);
+
+Where did that USB_REQ_SET_ADDRESS come from? Did you just look up an
+arbutrary macro that happened to match your device config?  How do you
+expect this to work with a generic NCM device?  Or even your own device,
+when the next firmware revision moves the function to a different
+interface?
+
+It's nice to have USB_CDC_GET_NET_ADDRESS and USB_CDC_GET_NET_ADDRESS
+implemented, but there are a large number of NCM devices.  You should
+probably test the code with one or two other than your own.
+
+Note that few, if any, NCM devices are spec compliant.  You should
+expect at least one of them to do something really stupid when the see
+this optional and unexpected request.  I think it would be wise to avoid
+sending unsupported requests more than once to a device.
+
+> +	if (ret =3D=3D ETH_ALEN) {
+> +		memcpy(dev->net->dev_addr, buf, ETH_ALEN);
+> +		ret =3D 0;	/* success */
+> +	} else {
+> +		ret =3D usbnet_get_ethernet_addr(dev,
+> +					       ctx->ether_desc->iMACAddress);
+> +	}
+> +	kfree(buf);
+> +	return ret;
+
+If you passed dev->net->dev_addr above, then this could be simplified to
+
+        if (ret =3D=3D ETH_ALEN)
+            return 0;
+        return usbnet_get_ethernet_addr(dev,..);
+
+> +
+> +/* Provide method to push MAC address to the USB device's ethernet contr=
+oller.
+> + * If the device does not support CDC_SET_ADDRESS, there is no harm and =
+we
+> + * proceed as before.
+> + */
+> +static int cdc_ncm_set_ethernet_address(struct usbnet *dev,
+> +					struct sockaddr *addr)
+> +{
+> +	int ret;
+> +	char *buf;
+> +
+> +	buf =3D kmalloc(ETH_ALEN, GFP_KERNEL);
+> +	if (!buf)
+> +		return -ENOMEM;
+> +
+> +	memcpy(buf, addr->sa_data, ETH_ALEN);
+> +	ret =3D usbnet_write_cmd(dev, USB_CDC_SET_NET_ADDRESS,
+> +			       USB_DIR_OUT | USB_TYPE_CLASS
+> +			       | USB_RECIP_INTERFACE, 0,
+> +			       USB_REQ_SET_ADDRESS, buf, ETH_ALEN);
+
+
+Same comments as above.
+
+
+
+Bj=C3=B8rn
