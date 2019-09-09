@@ -1,103 +1,149 @@
-Return-Path: <SRS0=wbZl=XC=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=D5vW=XE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05EBEC43331
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Sep 2019 21:07:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AC6EC433EF
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Sep 2019 07:39:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C638320863
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Sep 2019 21:07:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567890475;
-	bh=Istj1tBW+BTPYRjMal+nbVyVKnEU2xUIoDTNCo73eN8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=W4esGYtq17BOhWpbB6rZIvs4wRg9ysJLG7ncRIpNnmAmAsKOByL1GXR7lffhZEuy+
-	 Dt6CsZuCU2gm6nXPqIdbt7G3aHk+dPvLnBlVqujDqizJ80+cpdxN3ISH2Yb74IY+Nr
-	 VP9/teXhiEftfWSIUtZMr8aC2u3LjIs3VMCNe4xU=
+	by mail.kernel.org (Postfix) with ESMTP id 6030F21D6C
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Sep 2019 07:39:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406211AbfIGVHz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 7 Sep 2019 17:07:55 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:39597 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727467AbfIGVHz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Sep 2019 17:07:55 -0400
-Received: by mail-oi1-f194.google.com with SMTP id w144so7789101oia.6;
-        Sat, 07 Sep 2019 14:07:54 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=lxihL36gTuIiKNJx4Op/WHeQVZ11JcB3rmyLaJHmdCo=;
-        b=sf/6BHf5PSn//m9LZMozqeRG/rdCZ6T1PataFU6dEOJA5v4ZEJgwAnr7CNxM8JMawg
-         oQcLaMhOzWwt91dw8IZhbWbnrE2kPx6ikqUv/6BaKRNAkT1o/UJe1czqBGMf7A4hwjIR
-         Uz4Ptl+nFKElMznt1AXspTcuFaKQPABPKEoGOSiDU+m26AvcWSD19BZYpmejF1oaIE7A
-         SFygmwRHDJg/185nmXJfvrx+dbRHlUcejElRECrmhCc0kaPU8FJwCkSmM5DUOloo10EE
-         QAc1oLyFwGa1biEcC8G7MBrFf6OqsodGN4poZL3Gjx14p+K/gLt+mEI0xMkgHnzaEdHM
-         usGg==
-X-Gm-Message-State: APjAAAXuOTlKpU5nq9PW/cwOfsViCPtWRpMfDCLfbp+2SBn6oNipr/gF
-        sjJ6vOlRvhMWMLJpA6TcnsQ+eouZoSMnjk/eYsc=
-X-Google-Smtp-Source: APXvYqxw6Q7ZI39fbj1Yg06z2Zfw+1ml3g9QHcrVcWjLu638sWzxbHZQyQ71pyD0sHmJVs/hoPWxndejKSyVjZ8RsHk=
-X-Received: by 2002:aca:da86:: with SMTP id r128mr12570871oig.103.1567890473848;
- Sat, 07 Sep 2019 14:07:53 -0700 (PDT)
-MIME-Version: 1.0
-References: <201909070020.yR8k4sTf%lkp@intel.com> <847405da-8a45-653b-d544-25b58ea48db1@oracle.com>
-In-Reply-To: <847405da-8a45-653b-d544-25b58ea48db1@oracle.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Sat, 7 Sep 2019 23:07:39 +0200
-Message-ID: <CAJZ5v0i7Y6DSuYzh0H4n+S8Pd2YAqVZTM+0VCamzW9CBcqFs0g@mail.gmail.com>
-Subject: Re: [pm:bleeding-edge 175/181] drivers/cpuidle/driver.c:270:4: error:
- 'cpuidle_prev_governor' undeclared; did you mean 'cpuidle_find_governor'?
-To:     Joao Martins <joao.m.martins@oracle.com>
+        id S1732794AbfIIHjk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Sep 2019 03:39:40 -0400
+Received: from mga17.intel.com ([192.55.52.151]:2203 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726026AbfIIHjk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Sep 2019 03:39:40 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Sep 2019 00:39:40 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.64,484,1559545200"; 
+   d="scan'208";a="196113218"
+Received: from fyin-dev.sh.intel.com ([10.239.143.122])
+  by orsmga002.jf.intel.com with ESMTP; 09 Sep 2019 00:39:38 -0700
+From:   Yin Fengwei <fengwei.yin@intel.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux PM <linux-pm@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org (open list:ACPI),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [RESEND] ACPI / processor_idle: use dead loop instead of io port access for wait
+Date:   Mon,  9 Sep 2019 15:39:37 +0800
+Message-Id: <20190909073937.31554-1-fengwei.yin@intel.com>
+X-Mailer: git-send-email 2.19.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 6, 2019 at 7:39 PM Joao Martins <joao.m.martins@oracle.com> wrote:
->
-> On 9/6/19 5:44 PM, kbuild test robot wrote:
-> > tree:   https://kernel.googlesource.com/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-> > head:   79f0d67a241f0583b994c73437caa54a4e942737
-> > commit: 73d2bcced00671c2b724a31c3a4b3401c3e278d0 [175/181] cpuidle: allow governor switch on cpuidle_register_driver()
-> > config: arm-defconfig (attached as .config)
-> > compiler: arm-linux-gnueabi-gcc (GCC) 7.4.0
-> > reproduce:
-> >         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-> >         chmod +x ~/bin/make.cross
-> >         git checkout 73d2bcced00671c2b724a31c3a4b3401c3e278d0
-> >         # save the attached .config to linux build tree
-> >         GCC_VERSION=7.4.0 make.cross ARCH=arm
-> >
-> > If you fix the issue, kindly add following tag
-> > Reported-by: kbuild test robot <lkp@intel.com>
-> >
-> > All errors (new ones prefixed by >>):
-> >
-> >    drivers/cpuidle/driver.c: In function 'cpuidle_register_driver':
-> >>> drivers/cpuidle/driver.c:270:4: error: 'cpuidle_prev_governor' undeclared (first use in this function); did you mean 'cpuidle_find_governor'?
-> >        cpuidle_prev_governor = cpuidle_curr_governor;
-> >        ^~~~~~~~~~~~~~~~~~~~~
-> >        cpuidle_find_governor
-> >    drivers/cpuidle/driver.c:270:4: note: each undeclared identifier is reported only once for each function it appears in
-> >    drivers/cpuidle/driver.c: In function 'cpuidle_unregister_driver':
-> >    drivers/cpuidle/driver.c:301:6: error: 'cpuidle_prev_governor' undeclared (first use in this function); did you mean 'cpuidle_find_governor'?
-> >      if (cpuidle_prev_governor) {
-> >          ^~~~~~~~~~~~~~~~~~~~~
-> >          cpuidle_find_governor
-> >
-> Sorry, didn't build-test with CONFIG_CPU_IDLE_MULTIPLE_DRIVERS=y
->
-> Rafael, should I take this message that you queued the series (and thus I submit
-> a follow up fixing this), or I can just submit a v3 of this particular series?
+In function acpi_idle_do_entry(), we do an io port access to guarantee
+hardware behavior. But it could trigger unnecessary vmexit for
+virtualization environemnt.
 
-Please submit a v3.  Thanks!
+From the comments of this part of code, we could use busy wait instead
+of io port access to guarantee hardware behavior and avoid unnecessary
+vmexit.
+
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+---
+ drivers/acpi/processor_idle.c | 33 ++++++++++++++++++++++++++++++---
+ 1 file changed, 30 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index ed56c6d20b08..676553228e8f 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -55,6 +55,8 @@ struct cpuidle_driver acpi_idle_driver = {
+ };
+ 
+ #ifdef CONFIG_ACPI_PROCESSOR_CSTATE
++static struct timespec64 dummy_delta = {0L, 0L};
++
+ static
+ DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+ 
+@@ -64,6 +66,18 @@ static int disabled_by_idle_boot_param(void)
+ 		boot_option_idle_override == IDLE_HALT;
+ }
+ 
++static void dummy_wait(void)
++{
++	struct timespec64 now, target;
++
++	ktime_get_real_ts64(&now);
++	target = timespec64_add(now, dummy_delta);
++
++	do {
++		ktime_get_real_ts64(&now);
++	} while (timespec64_compare(&now, &target) < 0);
++}
++
+ /*
+  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
+  * For now disable this. Probably a bug somewhere else.
+@@ -660,8 +674,12 @@ static void __cpuidle acpi_idle_do_entry(struct acpi_processor_cx *cx)
+ 		inb(cx->address);
+ 		/* Dummy wait op - must do something useless after P_LVL2 read
+ 		   because chipsets cannot guarantee that STPCLK# signal
+-		   gets asserted in time to freeze execution properly. */
+-		inl(acpi_gbl_FADT.xpm_timer_block.address);
++		   gets asserted in time to freeze execution properly.
++
++		   Previously, we do io port access here which could trigger
++		   unnecessary trap to HV for virtualization env. We use dead
++		   loop here to avoid the impact to virtualization env. */
++		dummy_wait();
+ 	}
+ }
+ 
+@@ -683,7 +701,7 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
+ 		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
+ 			inb(cx->address);
+ 			/* See comment in acpi_idle_do_entry() */
+-			inl(acpi_gbl_FADT.xpm_timer_block.address);
++			dummy_wait();
+ 		} else
+ 			return -ENODEV;
+ 	}
+@@ -902,6 +920,7 @@ static inline void acpi_processor_cstate_first_run_checks(void)
+ {
+ 	acpi_status status;
+ 	static int first_run;
++	struct timespec64 ts0, ts1;
+ 
+ 	if (first_run)
+ 		return;
+@@ -912,6 +931,13 @@ static inline void acpi_processor_cstate_first_run_checks(void)
+ 			  max_cstate);
+ 	first_run++;
+ 
++	/* profiling the time used for dummy wait op */
++	ktime_get_real_ts64(&ts0);
++	inl(acpi_gbl_FADT.xpm_timer_block.address);
++	ktime_get_real_ts64(&ts1);
++
++	dummy_delta = timespec64_sub(ts1, ts0);
++
+ 	if (acpi_gbl_FADT.cst_control && !nocst) {
+ 		status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
+ 					    acpi_gbl_FADT.cst_control, 8);
+@@ -920,6 +946,7 @@ static inline void acpi_processor_cstate_first_run_checks(void)
+ 					"Notifying BIOS of _CST ability failed"));
+ 	}
+ }
++
+ #else
+ 
+ static inline int disabled_by_idle_boot_param(void) { return 0; }
+-- 
+2.19.1
+
