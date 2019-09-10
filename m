@@ -2,88 +2,142 @@ Return-Path: <SRS0=i7Jt=XF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D73EC3A5A2
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 09:22:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CB42C3A5A2
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 10:21:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F85E2168B
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 09:22:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A0142081B
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 10:21:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727070AbfIJJWj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Sep 2019 05:22:39 -0400
-Received: from mga09.intel.com ([134.134.136.24]:33526 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726674AbfIJJWj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Sep 2019 05:22:39 -0400
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Sep 2019 02:22:38 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,489,1559545200"; 
-   d="scan'208";a="178620145"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 10 Sep 2019 02:22:34 -0700
-Received: from andy by smile with local (Exim 4.92.1)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1i7cM5-0004w5-9k; Tue, 10 Sep 2019 12:22:33 +0300
-Date:   Tue, 10 Sep 2019 12:22:33 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
-        rafael@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Joe Perches <joe@perches.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Arnaldo Carvalho de Melo <acme@redhat.com>,
-        Tzvetomir Stoyanov <tstoyanov@vmware.com>,
-        linux-trace-devel@vger.kernel.org, Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>
-Subject: Re: [PATCH v6 01/12] tools lib traceevent: Convert remaining %p[fF]
- users to %p[sS]
-Message-ID: <20190910092233.GY2680@smile.fi.intel.com>
+        id S1726142AbfIJKVb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Sep 2019 06:21:31 -0400
+Received: from smtprelay0089.hostedemail.com ([216.40.44.89]:57175 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726231AbfIJKVb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Sep 2019 06:21:31 -0400
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay04.hostedemail.com (Postfix) with ESMTP id 735C1180A8123;
+        Tue, 10 Sep 2019 10:21:29 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: quilt67_8134ff3330428
+X-Filterd-Recvd-Size: 3861
+Received: from XPS-9350.home (unknown [47.151.152.152])
+        (Authenticated sender: joe@perches.com)
+        by omf08.hostedemail.com (Postfix) with ESMTPA;
+        Tue, 10 Sep 2019 10:21:27 +0000 (UTC)
+Message-ID: <ef57a3fc72b548b7daf9257aacc596d57004199d.camel@perches.com>
+Subject: Re: [PATCH v6 11/12] lib/vsprintf: Add %pfw conversion specifier
+ for printing fwnode names
+From:   Joe Perches <joe@perches.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
+        rafael@kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        Rob Herring <robh@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Date:   Tue, 10 Sep 2019 03:21:26 -0700
+In-Reply-To: <20190910084707.18380-12-sakari.ailus@linux.intel.com>
 References: <20190910084707.18380-1-sakari.ailus@linux.intel.com>
- <20190910084707.18380-2-sakari.ailus@linux.intel.com>
+         <20190910084707.18380-12-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.32.1-2 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190910084707.18380-2-sakari.ailus@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 10, 2019 at 11:46:56AM +0300, Sakari Ailus wrote:
-> There are no in-kernel %p[fF] users left. Convert the traceevent tool,
-> too, to align with the kernel.
+On Tue, 2019-09-10 at 11:47 +0300, Sakari Ailus wrote:
+> Add support for %pfw conversion specifier (with "f" and "P" modifiers) to
+> support printing full path of the node, including its name ("f") and only
+> the node's name ("P") in the printk family of functions. The two flags
+> have equivalent functionality to existing %pOF with the same two modifiers
+> ("f" and "P") on OF based systems. The ability to do the same on ACPI
+> based systems is added by this patch.
 
->  function. The _tep_ argument is the trace event parser context. The _name_ is
-> -the name of the function, the string is copied internally. The _addr_ is
-> -the start address of the function. The _mod_ is the kernel module
-> -the function may be in (NULL for none).
-> +the name of the function, the string is copied internally. The _addr_ is the
-> +start address of the function. The _mod_ is the kernel module the function may
-> +be in (NULL for none).
+checkpatch comment below:
+   A. 
+> diff --git a/Documentation/core-api/printk-formats.rst b/Documentation/core-api/printk-formats.rst
+[]
+> @@ -418,6 +418,30 @@ Examples::
+>  
+>  Passed by reference.
+>  
+> +Fwnode handles
+> +--------------
+> +
+> +::
+> +
+> +	%pfw[fP]
+> +
+> +For printing information on fwnode handles. The default is to print the full
+> +node name, including the path. The modifiers are functionally equivalent to
+> +%pOF above.
+> +
+> +	- f - full name of the node, including the path
+> +	- P - the name of the node including an address (if there is one)
+> +
+> +Examples (ACPI)::
+> +
+> +	%pfwf	\_SB.PCI0.CIO2.port@1.endpoint@0	- Full node name
+> +	%pfwP	endpoint@0				- Node name
+> +
+> +Examples (OF)::
+> +
+> +	%pfwf	/ocp@68000000/i2c@48072000/camera@10/port/endpoint - Full name
+> +	%pfwP	endpoint				- Node name
+[]
+> diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+[]
+> @@ -5988,14 +5988,17 @@ sub process {
+>  		        for (my $count = $linenr; $count <= $lc; $count++) {
+>  				my $specifier;
+>  				my $extension;
+> +				my $qualifier;
+>  				my $bad_specifier = "";
+>  				my $fmt = get_quoted_string($lines[$count - 1], raw_line($count, 0));
+>  				$fmt =~ s/%%//g;
+>  
+> -				while ($fmt =~ /(\%[\*\d\.]*p(\w))/g) {
+> +				while ($fmt =~ /(\%[\*\d\.]*p(\w)(\w?))/g) {
 
-This seems a churn of reformatting.
+This is not generic enough to allow all possible qualifiers
+to be captured.
 
-> -		if (asprintf(&format, "%%pf: (NO FORMAT FOUND at %llx)\n", addr) < 0)
-> +		if (asprintf(&format, "%%ps: (NO FORMAT FOUND at %llx)\n",
-> +			     addr) < 0)
+This should be something like:
 
-Splitting line also seems a churn to me. But this one is up to maintainers.
+			while ($fmt =~ /(\%[\*\d\.]*p(\w)(\w*))/g) {
+	
+>  					$specifier = $1;
+>  					$extension = $2;
+> -					if ($extension !~ /[SsBKRraEhMmIiUDdgVCbGNOxt]/) {
+> +					$qualifier = $3;
+> +					if ($extension !~ /[SsBKRraEhMmIiUDdgVCbGNOxtf]/ ||
+> +					    ($extension eq "f" && $qualifier ne "w")) {
 
 
-Other than above, looks good to me, thanks!
+And this should likely test
+					    (defined $qualifier &&
+					     $extension eq 'f' && $qualifier =~ /^w/))
 
--- 
-With Best Regards,
-Andy Shevchenko
+>  						$bad_specifier = $specifier;
+>  						last;
+>  					}
+
+And here the 'f' isn't really a bad $specifier,
+it does not have the correct 'w' $extension.
+
+The valid extensions may change in the future and
+this code isn't particularly manageable, so I
+think the $specifier/$extension pair should likely
+have some additional testing after validating
+the $specifier.
+
 
 
