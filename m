@@ -2,179 +2,88 @@ Return-Path: <SRS0=i7Jt=XF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCC1FC4740A
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 08:48:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D73EC3A5A2
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 09:22:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 949A920863
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 08:48:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F85E2168B
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Sep 2019 09:22:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729418AbfIJIsB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Sep 2019 04:48:01 -0400
-Received: from mga14.intel.com ([192.55.52.115]:8059 "EHLO mga14.intel.com"
+        id S1727070AbfIJJWj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Sep 2019 05:22:39 -0400
+Received: from mga09.intel.com ([134.134.136.24]:33526 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726819AbfIJIrK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Sep 2019 04:47:10 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
+        id S1726674AbfIJJWj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Sep 2019 05:22:39 -0400
+X-Amp-Result: UNSCANNABLE
 X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Sep 2019 01:47:09 -0700
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Sep 2019 02:22:38 -0700
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,489,1559545200"; 
-   d="scan'208";a="185446491"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Sep 2019 01:47:07 -0700
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 8A5F820365;
-        Tue, 10 Sep 2019 11:47:05 +0300 (EEST)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1i7bnn-0004nL-5B; Tue, 10 Sep 2019 11:47:07 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
-        rafael@kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        Rob Herring <robh@kernel.org>,
+   d="scan'208";a="178620145"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 10 Sep 2019 02:22:34 -0700
+Received: from andy by smile with local (Exim 4.92.1)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1i7cM5-0004w5-9k; Tue, 10 Sep 2019 12:22:33 +0300
+Date:   Tue, 10 Sep 2019 12:22:33 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
+        rafael@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Joe Perches <joe@perches.com>
-Subject: [PATCH v6 00/12] Device property improvements, add %pfw format specifier
-Date:   Tue, 10 Sep 2019 11:46:55 +0300
-Message-Id: <20190910084707.18380-1-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
+        Joe Perches <joe@perches.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Arnaldo Carvalho de Melo <acme@redhat.com>,
+        Tzvetomir Stoyanov <tstoyanov@vmware.com>,
+        linux-trace-devel@vger.kernel.org, Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>
+Subject: Re: [PATCH v6 01/12] tools lib traceevent: Convert remaining %p[fF]
+ users to %p[sS]
+Message-ID: <20190910092233.GY2680@smile.fi.intel.com>
+References: <20190910084707.18380-1-sakari.ailus@linux.intel.com>
+ <20190910084707.18380-2-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190910084707.18380-2-sakari.ailus@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi all,
+On Tue, Sep 10, 2019 at 11:46:56AM +0300, Sakari Ailus wrote:
+> There are no in-kernel %p[fF] users left. Convert the traceevent tool,
+> too, to align with the kernel.
 
-This set adds functionality into the device property API (counting a
-node's parents as well as obtaining its name) in order to support printing
-fwnode names using a new conversion specifier "%pfw". The names that are
-produced are equivalent to its OF counterpart "%pOF" on OF systems for the
-two supported modifiers ("f" and "P").
+>  function. The _tep_ argument is the trace event parser context. The _name_ is
+> -the name of the function, the string is copied internally. The _addr_ is
+> -the start address of the function. The _mod_ is the kernel module
+> -the function may be in (NULL for none).
+> +the name of the function, the string is copied internally. The _addr_ is the
+> +start address of the function. The _mod_ is the kernel module the function may
+> +be in (NULL for none).
 
-Printing a node's name is something that's been available on OF for a long
-time and if something is converted to device property API (such as the
-V4L2 fwnode framework) it always got removed of a nice feature that was
-sometimes essential in debugging. With this set, that no longer is the
-case.
+This seems a churn of reformatting.
 
-Note: the set now depends on 2d44d165e939 ("scsi: lpfc: Convert existing
-%pf users to %ps") that is expected from the linux-scsi tree.
+> -		if (asprintf(&format, "%%pf: (NO FORMAT FOUND at %llx)\n", addr) < 0)
+> +		if (asprintf(&format, "%%ps: (NO FORMAT FOUND at %llx)\n",
+> +			     addr) < 0)
 
-since v5:
+Splitting line also seems a churn to me. But this one is up to maintainers.
 
-- Added a patch to convert %pf to %ps in tools/lib/traceevent.c (first in
-  the set).
 
-- Fix ReST syntax in Documentation/core-api/printk-formats.rst.
-
-- Fix returning root swnode name in patch "device property: Add
-  fwnode_get_name for returning the name of a node". Use to_swnode()
-  directly as well in the same patch.
-
-- Tests: take root node name into account, use direct indices and remove
-  the comma from the guardian entry.
-
-- Add a comment on how fwnode_full_name_string() enumerates the nodes.
-
-- Fix error string in fwnode_string().
-
-- Move 'f' + default case as last in the switch in fwnode_string().
-
-- Fix %pfw validation in checkpatch.pl.
-
-since v4:
-
-- Improved documentation for fwnode_get_nth_parent().
-
-- Removed comma from the guardian entry in fwnode_pointer() testcase.
-
-since v3:
-
-- Remove underscores in argument name of fwnode_count_parents().
-
-- Re-introduce "%pO?" error string.
-
-- Unwrap a call to string() in fwnode_string().
-
-- Removed a useless Depends-on: on a patch that was merged long ago.
-
-- Unwrap a Fixes: line.
-
-- Added a patch to move fwnode_get_parent() up to make the review of the
-  following patch easier.
-
-since v2:
-
-- Better comments in acpi_fwnode_get_name_prefix().
-
-- Added swnode implementation.
-
-- Fixed swnode refcounting in get_parent() ("swnode: Get reference to
-  parent swnode in get_parent op")
-
-- Make argument to to_software_node() const (a new patch)
-
-- Factored out confusingly named kobject_string() that had a single
-  caller.
-
-- Cleaner fwnode_count_parents() implementation (as discussed in review).
-
-- Made fwnode_count_parents() argument const.
-
-- Added tests (last patch in the set).
-
-since v1:
-
-- Add patch to remove support for %pf and %pF (depends on another patch
-  removing all use of %pf and %pF) (now 4th patch)
-
-- Fix kerneldoc argument documentation for fwnode_get_name (2nd patch)
-
-- Align kerneldoc style with the rest of drivers/base/property.c (no extra
-  newline after function name)
-
-- Make checkpatch.pl complain about "%pf" not followed by "w" (6th patch)
-
-- WARN_ONCE() on use of invalid conversion specifiers ("%pf" not followed
-  by "w")
-
-Sakari Ailus (12):
-  tools lib traceevent: Convert remaining %p[fF] users to %p[sS]
-  software node: Get reference to parent swnode in get_parent op
-  software node: Make argument to to_software_node const
-  device property: Move fwnode_get_parent() up
-  device property: Add functions for accessing node's parents
-  device property: Add fwnode_get_name for returning the name of a node
-  device property: Add a function to obtain a node's prefix
-  lib/vsprintf: Remove support for %pF and %pf in favour of %pS and %ps
-  lib/vsprintf: Make use of fwnode API to obtain node names and
-    separators
-  lib/vsprintf: OF nodes are first and foremost, struct device_nodes
-  lib/vsprintf: Add %pfw conversion specifier for printing fwnode names
-  lib/test_printf: Add tests for %pfw printk modifier
-
- Documentation/core-api/printk-formats.rst     | 34 ++++---
- drivers/acpi/property.c                       | 48 ++++++++++
- drivers/base/property.c                       | 83 +++++++++++++++--
- drivers/base/swnode.c                         | 43 ++++++++-
- drivers/of/property.c                         | 16 ++++
- include/linux/fwnode.h                        |  4 +
- include/linux/property.h                      |  8 +-
- lib/test_printf.c                             | 32 +++++++
- lib/vsprintf.c                                | 89 +++++++++++--------
- scripts/checkpatch.pl                         |  8 +-
- .../Documentation/libtraceevent-func_apis.txt | 10 +--
- tools/lib/traceevent/event-parse.c            |  7 +-
- 12 files changed, 314 insertions(+), 68 deletions(-)
+Other than above, looks good to me, thanks!
 
 -- 
-2.20.1
+With Best Regards,
+Andy Shevchenko
+
 
