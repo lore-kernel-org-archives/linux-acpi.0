@@ -1,4 +1,4 @@
-Return-Path: <SRS0=OiBM=XM=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=4ItI=XN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -6,151 +6,66 @@ X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C69C4CEC9
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Sep 2019 10:27:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAD67C4CECD
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 02:55:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 174D821881
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Sep 2019 10:27:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A05CB218AE
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 02:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1568716049;
-	bh=u4JMlOxIbjk3b6DQhgtiS+FX716yAxOjAS+DjQAI4fM=;
-	h=From:Date:Subject:To:Cc:List-ID:From;
-	b=kYuwjbVST6XoHUplJSknerqza+XTyF5U9C2YywQQyKnwSO+DJo7g800LuMN8F9h+P
-	 VsGOWxVY+HTWi3oTjN5OxQwVbJv7+sZcbhzmgVH9FiA440zFb7fG95kQ/3cGsjIy4k
-	 MfVgf8UbuwpG37uiYeel4JHAuySrZLzp2FOhmjsk=
+	s=default; t=1568775323;
+	bh=lxbgVaOJpewzTG2sPzGQSo2Vm/Mu739o3WiRamk2OYQ=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=LzJk4NGrvZhnNUK3JvHmTW1araDNSHtTtw7EiRYXtyRBnRDTJIEA7xG5MRdV1RzEU
+	 /VpT+wd7Q2Qt/OF7FRxqcBr9uA89CJbNE4xJjZ/KOWgn7LEtocCzdVB90RMoolgTFz
+	 /wnwk+8KYA8T0xx5yi1gCzcvXG0rP/BUvouKZFU0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726830AbfIQK12 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Sep 2019 06:27:28 -0400
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:44314 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726244AbfIQK12 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Sep 2019 06:27:28 -0400
-Received: by mail-oi1-f195.google.com with SMTP id w6so2335168oie.11;
-        Tue, 17 Sep 2019 03:27:27 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=Jw020uvO5W1dQB83HITZVbJ4+r2ZGjWj7Xyy0Bpkz/A=;
-        b=pWZdQumj+lQlUIBL5TQRsUiyyQpOByhRs4rxcfAijA18wPGiXvWDe2JKAg1FRpRWs3
-         JNM13bGpRc/PVk5SvU1/p2C8rm9OMSeOMOxh474S//52FfFB0Qa5vzKj6RguCqSWipFm
-         /2WX6ghVOkZVwzZ23Knm8pIi+81NpYpjDwciV4MB0ZyxZ902ZOQhlaHSG1F6OmehmR4y
-         c57cJxI4TdjcHoiNuUbD+/NcvMyobe+/nNBiM+aOdl/2fBMmTVYYHhUkXVgjK4Ul8Bbr
-         zTSCrA31ZaH36dvN9rK3ospDwZzSfGxTZWoycIHO6USwP5zoHweKpPNAqAI5soV3ki8J
-         e10A==
-X-Gm-Message-State: APjAAAVeYt6q/Ae3Tt1r4KhwEkkbqwT1CHTD51snsiIKLOo8+pmdjW62
-        ty0E/WQTGB90gMQujMI6ag+wUq5TtKavmPzEwoX9ZEtx
-X-Google-Smtp-Source: APXvYqwazB3v6V1RsjC4YgX0kgioA/H9C3tRozSeoJq3Agt6TGjJtqCyKk1J+MAOyvJmC4bNzH/00mI+LIRfkSZw7Nw=
-X-Received: by 2002:aca:ab84:: with SMTP id u126mr2824699oie.115.1568716047201;
- Tue, 17 Sep 2019 03:27:27 -0700 (PDT)
-MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 17 Sep 2019 12:27:16 +0200
-Message-ID: <CAJZ5v0iJupxXBYRDeV4_V14je-uZYRf7d_CZ7WRUw7++n_575Q@mail.gmail.com>
-Subject: [GIT PULL] Device properties framework updates for v5.4-rc1
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        id S1726857AbfIRCzW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Sep 2019 22:55:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48560 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726853AbfIRCzW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 17 Sep 2019 22:55:22 -0400
+Subject: Re: [GIT PULL] Device properties framework updates for v5.4-rc1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1568775322;
+        bh=lxbgVaOJpewzTG2sPzGQSo2Vm/Mu739o3WiRamk2OYQ=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=LIaLn/a7DaKS76wGZj9fUDUaifrUQoRCq9fpmukA8NQVMgp9DWb1GLPA3XNtCWkkP
+         x2gnsCEhYRL/bx+jr1218dT9s7SsLrRwJ40J2oV+UMYg+3gCkmQ0vhMMOocfbUrnbc
+         kuNKRrN8Z/IzRvFxIuHukUDLuWoRKA8kmvCvU2Qk=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0iJupxXBYRDeV4_V14je-uZYRf7d_CZ7WRUw7++n_575Q@mail.gmail.com>
+References: <CAJZ5v0iJupxXBYRDeV4_V14je-uZYRf7d_CZ7WRUw7++n_575Q@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0iJupxXBYRDeV4_V14je-uZYRf7d_CZ7WRUw7++n_575Q@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+ devprop-5.4-rc1
+X-PR-Tracked-Commit-Id: 016049a816774edc9c3cd81afa7724d7ab001585
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 35f7a95266153b1cf0caca3aa9661cb721864527
+Message-Id: <156877532218.3897.1303101166211641144.pr-tracker-bot@kernel.org>
+Date:   Wed, 18 Sep 2019 02:55:22 +0000
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Linux USB <linux-usb@vger.kernel.org>,
         Stephen Rothwell <sfr@canb.auug.org.au>
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Tue, 17 Sep 2019 12:27:16 +0200:
 
-Please pull from the tag
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git devprop-5.4-rc1
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-5.4-rc1
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/35f7a95266153b1cf0caca3aa9661cb721864527
 
-with top-most commit 016049a816774edc9c3cd81afa7724d7ab001585
+Thank you!
 
- software node: Initialize the return value in software_node_find_by_name()
-
-on top of commit a55aa89aab90fae7c815b0551b07be37db359d76
-
- Linux 5.3-rc6
-
-to receive device properties framework updates for 5.4-rc1.
-
-These include software node support improvements (Heikki Krogerus)
-and two assorted cleanups (Andy Shevchenko, Geert Uytterhoeven).
-
-There was a conflict between this and the USB tree in linux-next
-which was resolved by Stephen by applying the appended diff.
-
-Thanks!
-
-
----------------
-
-Andy Shevchenko (1):
-      device property: Remove duplicate test for NULL
-
-Geert Uytterhoeven (1):
-      ACPI / property: Fix acpi_graph_get_remote_endpoint() name in kerneldoc
-
-Heikki Krogerus (5):
-      software node: Add software_node_find_by_name()
-      usb: roles: intel_xhci: Supplying software node for the role mux
-      platform/x86: intel_cht_int33fe: Use new API to gain access to
-the role switch
-      software node: Initialize the return value in software_node_to_swnode()
-      software node: Initialize the return value in software_node_find_by_name()
-
----------------
-
- drivers/acpi/property.c                        |  2 +-
- drivers/base/swnode.c                          | 39 +++++++++++++++++-
- drivers/platform/x86/intel_cht_int33fe.c       | 57 +++++---------------------
- drivers/usb/roles/intel-xhci-usb-role-switch.c | 27 ++++++++----
- include/linux/fwnode.h                         |  9 ++--
- include/linux/property.h                       |  4 ++
- 6 files changed, 78 insertions(+), 60 deletions(-)
-
----------------
-
-diff --cc drivers/usb/roles/intel-xhci-usb-role-switch.c
-index 7325a84dd1c8,88d041601c51..000000000000
---- a/drivers/usb/roles/intel-xhci-usb-role-switch.c
-+++ b/drivers/usb/roles/intel-xhci-usb-role-switch.c
-@@@ -37,12 -44,9 +44,13 @@@
-  struct intel_xhci_usb_data {
-      struct usb_role_switch *role_sw;
-      void __iomem *base;
-+     bool enable_sw_switch;
-  };
-
- +static const struct software_node intel_xhci_usb_node = {
- +    "intel-xhci-usb-sw",
- +};
- +
-  static int intel_xhci_usb_set_role(struct device *dev, enum usb_role role)
-  {
-      struct intel_xhci_usb_data *data = dev_get_drvdata(dev);
-@@@ -147,20 -167,12 +167,22 @@@ static int intel_xhci_usb_probe(struct
-
-      platform_set_drvdata(pdev, data);
-
-+     data->enable_sw_switch = !device_property_read_bool(dev,
-+                         "sw_switch_disable");
- +    ret = software_node_register(&intel_xhci_usb_node);
- +    if (ret)
- +        return ret;
- +
- +    sw_desc.set = intel_xhci_usb_set_role,
- +    sw_desc.get = intel_xhci_usb_get_role,
- +    sw_desc.allow_userspace_control = true,
- +    sw_desc.fwnode = software_node_fwnode(&intel_xhci_usb_node);
-
-      data->role_sw = usb_role_switch_register(dev, &sw_desc);
- -    if (IS_ERR(data->role_sw))
- +    if (IS_ERR(data->role_sw)) {
- +        fwnode_handle_put(sw_desc.fwnode);
-          return PTR_ERR(data->role_sw);
- +    }
-
-      pm_runtime_set_active(dev);
-      pm_runtime_enable(dev);
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
