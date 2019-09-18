@@ -2,113 +2,123 @@ Return-Path: <SRS0=4ItI=XN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 042F4C4CEC9
-	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 13:11:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE128C4CEC9
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 13:34:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CAB4F20644
-	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 13:11:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98EA020856
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 13:34:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727905AbfIRNLN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 18 Sep 2019 09:11:13 -0400
-Received: from mga14.intel.com ([192.55.52.115]:19830 "EHLO mga14.intel.com"
+        id S1730854AbfIRNeO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 18 Sep 2019 09:34:14 -0400
+Received: from mga12.intel.com ([192.55.52.136]:61804 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727001AbfIRNLN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 18 Sep 2019 09:11:13 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
+        id S1730752AbfIRNeN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 18 Sep 2019 09:34:13 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:11:12 -0700
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:34:12 -0700
 X-IronPort-AV: E=Sophos;i="5.64,520,1559545200"; 
-   d="scan'208";a="181117768"
+   d="scan'208";a="199046230"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:11:09 -0700
-Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id A55462075A; Wed, 18 Sep 2019 16:11:07 +0300 (EEST)
-Date:   Wed, 18 Sep 2019 16:11:07 +0300
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:34:10 -0700
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id A2302212B4;
+        Wed, 18 Sep 2019 16:34:00 +0300 (EEST)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1iAa69-000265-6P; Wed, 18 Sep 2019 16:34:21 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Joe Perches <joe@perches.com>
-Cc:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
-        rafael@kernel.org,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
+        rafael@kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
         Rob Herring <robh@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v6 11/12] lib/vsprintf: Add %pfw conversion specifier for
- printing fwnode names
-Message-ID: <20190918131107.GR5781@paasikivi.fi.intel.com>
-References: <20190910084707.18380-1-sakari.ailus@linux.intel.com>
- <20190910084707.18380-12-sakari.ailus@linux.intel.com>
- <ef57a3fc72b548b7daf9257aacc596d57004199d.camel@perches.com>
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Joe Perches <joe@perches.com>
+Subject: [PATCH v7 13/13] lib/test_printf: Add tests for %pfw printk modifier
+Date:   Wed, 18 Sep 2019 16:34:19 +0300
+Message-Id: <20190918133419.7969-14-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190918133419.7969-1-sakari.ailus@linux.intel.com>
+References: <20190918133419.7969-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ef57a3fc72b548b7daf9257aacc596d57004199d.camel@perches.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Joe,
+Add a test for the %pfw printk modifier using software nodes.
 
-On Tue, Sep 10, 2019 at 03:21:26AM -0700, Joe Perches wrote:
-> > @@ -5988,14 +5988,17 @@ sub process {
-> >  		        for (my $count = $linenr; $count <= $lc; $count++) {
-> >  				my $specifier;
-> >  				my $extension;
-> > +				my $qualifier;
-> >  				my $bad_specifier = "";
-> >  				my $fmt = get_quoted_string($lines[$count - 1], raw_line($count, 0));
-> >  				$fmt =~ s/%%//g;
-> >  
-> > -				while ($fmt =~ /(\%[\*\d\.]*p(\w))/g) {
-> > +				while ($fmt =~ /(\%[\*\d\.]*p(\w)(\w?))/g) {
-> 
-> This is not generic enough to allow all possible qualifiers
-> to be captured.
-> 
-> This should be something like:
-> 
-> 			while ($fmt =~ /(\%[\*\d\.]*p(\w)(\w*))/g) {
-> 	
-> >  					$specifier = $1;
-> >  					$extension = $2;
-> > -					if ($extension !~ /[SsBKRraEhMmIiUDdgVCbGNOxt]/) {
-> > +					$qualifier = $3;
-> > +					if ($extension !~ /[SsBKRraEhMmIiUDdgVCbGNOxtf]/ ||
-> > +					    ($extension eq "f" && $qualifier ne "w")) {
-> 
-> 
-> And this should likely test
-> 					    (defined $qualifier &&
-> 					     $extension eq 'f' && $qualifier =~ /^w/))
-> 
-> >  						$bad_specifier = $specifier;
-> >  						last;
-> >  					}
-> 
-> And here the 'f' isn't really a bad $specifier,
-> it does not have the correct 'w' $extension.
-> 
-> The valid extensions may change in the future and
-> this code isn't particularly manageable, so I
-> think the $specifier/$extension pair should likely
-> have some additional testing after validating
-> the $specifier.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ lib/test_printf.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-There are certainly possibilities of having qualifiers that aren't
-supported but extensions are also allowed to be followed by any other
-characters, so this is a bit grey area.
-
-I'll make the qualifier one or more letters for v7 as you suggested.
-
+diff --git a/lib/test_printf.c b/lib/test_printf.c
+index 944eb50f38625..bb6a7d334084b 100644
+--- a/lib/test_printf.c
++++ b/lib/test_printf.c
+@@ -22,6 +22,8 @@
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ 
++#include <linux/property.h>
++
+ #include "../tools/testing/selftests/kselftest_module.h"
+ 
+ #define BUF_SIZE 256
+@@ -588,6 +590,35 @@ flags(void)
+ 	kfree(cmp_buffer);
+ }
+ 
++static void __init fwnode_pointer(void)
++{
++	const struct software_node softnodes[] = {
++		{ .name = "first", },
++		{ .name = "second", .parent = &softnodes[0], },
++		{ .name = "third", .parent = &softnodes[1], },
++		{ NULL /* Guardian */ }
++	};
++	const char * const full_name = "first/second/third";
++	const char * const full_name_second = "first/second";
++	const char * const second_name = "second";
++	const char * const third_name = "third";
++	int rval;
++
++	rval = software_node_register_nodes(softnodes);
++	if (rval) {
++		pr_warn("cannot register softnodes; rval %d\n", rval);
++		return;
++	}
++
++	test(full_name_second, "%pfw", software_node_fwnode(&softnodes[1]));
++	test(full_name, "%pfw", software_node_fwnode(&softnodes[2]));
++	test(full_name, "%pfwf", software_node_fwnode(&softnodes[2]));
++	test(second_name, "%pfwP", software_node_fwnode(&softnodes[1]));
++	test(third_name, "%pfwP", software_node_fwnode(&softnodes[2]));
++
++	software_node_unregister_nodes(softnodes);
++}
++
+ static void __init
+ test_pointer(void)
+ {
+@@ -610,6 +641,7 @@ test_pointer(void)
+ 	bitmap();
+ 	netdev_features();
+ 	flags();
++	fwnode_pointer();
+ }
+ 
+ static void __init selftest(void)
 -- 
-Regards,
+2.20.1
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
