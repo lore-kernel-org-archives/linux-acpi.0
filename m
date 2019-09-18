@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24958C4CEC4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA7E2C4CEC9
 	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 13:34:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EE66B20856
-	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 13:34:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0A2220856
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Sep 2019 13:34:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730789AbfIRNeL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1730771AbfIRNeL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 18 Sep 2019 09:34:11 -0400
-Received: from mga17.intel.com ([192.55.52.151]:63140 "EHLO mga17.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:19399 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730747AbfIRNeK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1730585AbfIRNeK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 18 Sep 2019 09:34:10 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:34:09 -0700
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:34:09 -0700
 X-IronPort-AV: E=Sophos;i="5.64,520,1559545200"; 
-   d="scan'208";a="194063181"
+   d="scan'208";a="189265029"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:34:06 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Sep 2019 06:34:06 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 2AE062122C;
-        Wed, 18 Sep 2019 16:34:00 +0300 (EEST)
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id E19F0210C3;
+        Wed, 18 Sep 2019 16:33:59 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1iAa68-00025t-N6; Wed, 18 Sep 2019 16:34:20 +0300
+        id 1iAa68-00025k-Bx; Wed, 18 Sep 2019 16:34:20 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
         rafael@kernel.org
@@ -40,11 +40,10 @@ Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
         Rob Herring <robh@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Joe Perches <joe@perches.com>,
-        Steven Rostedt <rostedt@goodmis.org>
-Subject: [PATCH v7 09/13] lib/vsprintf: Add a note on re-using %pf or %pF
-Date:   Wed, 18 Sep 2019 16:34:15 +0300
-Message-Id: <20190918133419.7969-10-sakari.ailus@linux.intel.com>
+        Joe Perches <joe@perches.com>
+Subject: [PATCH v7 06/13] device property: Add fwnode_get_name for returning the name of a node
+Date:   Wed, 18 Sep 2019 16:34:12 +0300
+Message-Id: <20190918133419.7969-7-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190918133419.7969-1-sakari.ailus@linux.intel.com>
 References: <20190918133419.7969-1-sakari.ailus@linux.intel.com>
@@ -55,27 +54,174 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a note warning of re-use of obsolete %pf or %pF extensions.
+The fwnode framework did not have means to obtain the name of a node. Add
+that now, in form of the fwnode_get_name() function and a corresponding
+get_name fwnode op. OF and ACPI support is included.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Rob Herring <robh@kernel.org> (for OF)
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- lib/vsprintf.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/property.c  | 26 ++++++++++++++++++++++++++
+ drivers/base/property.c  | 11 +++++++++++
+ drivers/base/swnode.c    | 12 ++++++++++++
+ drivers/of/property.c    |  6 ++++++
+ include/linux/fwnode.h   |  2 ++
+ include/linux/property.h |  1 +
+ 6 files changed, 58 insertions(+)
 
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index b00b57f9f911f..df59818537b52 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -2008,6 +2008,8 @@ static char *kobject_string(char *buf, char *end, void *ptr,
-  * - 'S' For symbolic direct pointers (or function descriptors) with offset
-  * - 's' For symbolic direct pointers (or function descriptors) without offset
-  * - '[Ss]R' as above with __builtin_extract_return_addr() translation
-+ * - '[Ff]' Obsolete an now unsupported extension for printing direct pointers
-+ *	    or function descriptors. Be careful when re-using %pf or %pF!
-  * - 'B' For backtraced symbolic direct pointers with offset
-  * - 'R' For decoded struct resource, e.g., [mem 0x0-0x1f 64bit pref]
-  * - 'r' For raw struct resource, e.g., [mem 0x0-0x1f flags 0x201]
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index ea3d700da3ca6..5a9397a390f41 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1311,6 +1311,31 @@ acpi_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
+ 						  args_count, args);
+ }
+ 
++static const char *acpi_fwnode_get_name(const struct fwnode_handle *fwnode)
++{
++	const struct acpi_device *adev;
++	struct fwnode_handle *parent;
++
++	/* Is this the root node? */
++	parent = fwnode_get_parent(fwnode);
++	if (!parent)
++		return "\\";
++
++	fwnode_handle_put(parent);
++
++	if (is_acpi_data_node(fwnode)) {
++		const struct acpi_data_node *dn = to_acpi_data_node(fwnode);
++
++		return dn->name;
++	}
++
++	adev = to_acpi_device_node(fwnode);
++	if (WARN_ON(!adev))
++		return NULL;
++
++	return acpi_device_bid(adev);
++}
++
+ static struct fwnode_handle *
+ acpi_fwnode_get_parent(struct fwnode_handle *fwnode)
+ {
+@@ -1351,6 +1376,7 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ 		.get_parent = acpi_node_get_parent,			\
+ 		.get_next_child_node = acpi_get_next_subnode,		\
+ 		.get_named_child_node = acpi_fwnode_get_named_child_node, \
++		.get_name = acpi_fwnode_get_name,			\
+ 		.get_reference_args = acpi_fwnode_get_reference_args,	\
+ 		.graph_get_next_endpoint =				\
+ 			acpi_graph_get_next_endpoint,			\
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index f2e555e68b56a..9b5ec88e72d8b 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -556,6 +556,17 @@ int device_add_properties(struct device *dev,
+ }
+ EXPORT_SYMBOL_GPL(device_add_properties);
+ 
++/**
++ * fwnode_get_name - Return the name of a node
++ * @fwnode: The firmware node
++ *
++ * Returns a pointer to the node name.
++ */
++const char *fwnode_get_name(const struct fwnode_handle *fwnode)
++{
++	return fwnode_call_ptr_op(fwnode, get_name);
++}
++
+ /**
+  * fwnode_get_parent - Return parent firwmare node
+  * @fwnode: Firmware whose parent is retrieved
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 951e7efd47c23..ccbc3d9d6c5f5 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -515,6 +515,17 @@ static int software_node_read_string_array(const struct fwnode_handle *fwnode,
+ 						propname, val, nval);
+ }
+ 
++static const char *
++software_node_get_name(const struct fwnode_handle *fwnode)
++{
++	const struct swnode *swnode = to_swnode(fwnode);
++
++	if (!swnode)
++		return "(null)";
++
++	return kobject_name(&swnode->kobj);
++}
++
+ static struct fwnode_handle *
+ software_node_get_parent(const struct fwnode_handle *fwnode)
+ {
+@@ -615,6 +626,7 @@ static const struct fwnode_operations software_node_ops = {
+ 	.property_present = software_node_property_present,
+ 	.property_read_int_array = software_node_read_int_array,
+ 	.property_read_string_array = software_node_read_string_array,
++	.get_name = software_node_get_name,
+ 	.get_parent = software_node_get_parent,
+ 	.get_next_child_node = software_node_get_next_child,
+ 	.get_named_child_node = software_node_get_named_child_node,
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index d7fa75e31f224..5bed634551ea6 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -872,6 +872,11 @@ of_fwnode_property_read_string_array(const struct fwnode_handle *fwnode,
+ 		of_property_count_strings(node, propname);
+ }
+ 
++static const char *of_fwnode_get_name(const struct fwnode_handle *fwnode)
++{
++	return kbasename(to_of_node(fwnode)->full_name);
++}
++
+ static struct fwnode_handle *
+ of_fwnode_get_parent(const struct fwnode_handle *fwnode)
+ {
+@@ -993,6 +998,7 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.property_present = of_fwnode_property_present,
+ 	.property_read_int_array = of_fwnode_property_read_int_array,
+ 	.property_read_string_array = of_fwnode_property_read_string_array,
++	.get_name = of_fwnode_get_name,
+ 	.get_parent = of_fwnode_get_parent,
+ 	.get_next_child_node = of_fwnode_get_next_child_node,
+ 	.get_named_child_node = of_fwnode_get_named_child_node,
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index a11c8c56c78b4..c331e0ef31e80 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -56,6 +56,7 @@ struct fwnode_reference_args {
+  *				 otherwise.
+  * @property_read_string_array: Read an array of string properties. Return zero
+  *				on success, a negative error code otherwise.
++ * @get_name: Return the name of an fwnode.
+  * @get_parent: Return the parent of an fwnode.
+  * @get_next_child_node: Return the next child node in an iteration.
+  * @get_named_child_node: Return a child node with a given name.
+@@ -82,6 +83,7 @@ struct fwnode_operations {
+ 	(*property_read_string_array)(const struct fwnode_handle *fwnode_handle,
+ 				      const char *propname, const char **val,
+ 				      size_t nval);
++	const char *(*get_name)(const struct fwnode_handle *fwnode);
+ 	struct fwnode_handle *(*get_parent)(const struct fwnode_handle *fwnode);
+ 	struct fwnode_handle *
+ 	(*get_next_child_node)(const struct fwnode_handle *fwnode,
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 5450e7ec219ac..ebc5e2016bb66 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -80,6 +80,7 @@ struct fwnode_handle *fwnode_find_reference(const struct fwnode_handle *fwnode,
+ 					    const char *name,
+ 					    unsigned int index);
+ 
++const char *fwnode_get_name(const struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_get_next_parent(
+ 	struct fwnode_handle *fwnode);
 -- 
 2.20.1
 
