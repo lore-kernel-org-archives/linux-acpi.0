@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2843C3A5A2
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE02C3A5A2
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:06:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 900C42186A
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:01:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D9A62070C
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:06:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569178917;
+	s=default; t=1569179183;
 	bh=pR+ClgwAa37N/fDxFJEZeh8L9HIoIcDQe8dndEsAvIE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=jwxJq9/CGB0CLUwtAL6C35sWYfj0VaF0Xym1M7aOpr/cJ2US0WLDJUOpNROjdSOJV
-	 2iTWceSR8dkQ1McAmTpm23thdWX4ARx33+aBdvFm/jff8CiGObctoiDiaV8yurVMsb
-	 FPkpU99b6Aw1vBW3eHwDG7TsHpk87+Klv/ndyR+o=
+	b=LkDvXXUMzi5xYqHbEiwq8euTz6eu7CyKBLIMJxJDdywNWejfXDeGjb+Ih/jeuw8ge
+	 IDtXSQ8cQrYWexi0dei90BmK3gaRDefPc/udL9k5/5R9eR4AAzJDsapv5qI5pRTh9T
+	 28BRPRiNV92nMOtEOTP4aHTuVgmUADHZhX/NCNRI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2395339AbfIVTB4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 22 Sep 2019 15:01:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38262 "EHLO mail.kernel.org"
+        id S2405683AbfIVTAf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 22 Sep 2019 15:00:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36352 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390064AbfIVTBz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 22 Sep 2019 15:01:55 -0400
+        id S2395218AbfIVTAe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 22 Sep 2019 15:00:34 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8D4392070C;
-        Sun, 22 Sep 2019 19:01:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7C78321BE5;
+        Sun, 22 Sep 2019 19:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569178914;
+        s=default; t=1569178834;
         bh=pR+ClgwAa37N/fDxFJEZeh8L9HIoIcDQe8dndEsAvIE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=i0x3P+4ofvVzLY8MHErJrPhmpoofzMqOM+Cav2RtrQt9EWn63zEruXvcYAIhc2iHM
-         nNsQVAHVqjUvSQdookWZJSmkNJsEyY8ozlVHAPSc3kDwzf6FjmzTepo6AgcQINng1m
-         IUG5Y4QHQcfYG9cjhxL/YG517YVOKCyRH2tU3668=
+        b=zEY7TnjvBH8MlSvgkqCTfLMsTwSxDVQ3q2LPsSNdE5jRzr3hCDu+F8YpTeJHO+zLB
+         k4F09j4vMhOChfMuDKwcI5vsk1Ki/SFLloJWgVUxYyhx3G3mygMWT/FSOF+dYP1YNW
+         EDfqo1el3/H4zGHNeIhZfe9h+VrMJZrbxEWZBNW4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Wenwen Wang <wenwen@cs.uga.edu>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 32/44] ACPI: custom_method: fix memory leaks
-Date:   Sun, 22 Sep 2019 15:00:50 -0400
-Message-Id: <20190922190103.4906-32-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 43/60] ACPI: custom_method: fix memory leaks
+Date:   Sun, 22 Sep 2019 14:59:16 -0400
+Message-Id: <20190922185934.4305-43-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190922190103.4906-1-sashal@kernel.org>
-References: <20190922190103.4906-1-sashal@kernel.org>
+In-Reply-To: <20190922185934.4305-1-sashal@kernel.org>
+References: <20190922185934.4305-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
