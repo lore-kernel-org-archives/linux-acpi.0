@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE7A1C3A5A6
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:35:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64479C3A5A6
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:37:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C6FCA20640
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:35:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BBD421BE5
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:37:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569180905;
-	bh=/1Doc4+p/q9z3gLW6wxPhUbWI8u6hlwl8Sqo2S/AsAA=;
+	s=default; t=1569181039;
+	bh=1yjOP+y2VDBuHbUnkJ0x7XMZLigsvLv6f6vVBFKWGfQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=M5n3DT1E30AA69gDuwUSf5W92m1RsR4BCzYIFuCe2/0Oj8rVDgUlVDElSN8gddJwl
-	 DNN31BhPLunqvqCFuxl+unh4GzWn5usnulBBH95DWUNTF0TG4xZdPEgdcJZ14qW7Cb
-	 rzGkSYCbcxCpCGv3LkGdVanYm/D10VKNoAWvDj6Y=
+	b=JeODQ8Ny829dBGl5P98ZXPaUJMirpfaOnmgD/1NlnVhF0P0RKfQuNRRTua6vnHs46
+	 iHOpW/1F4DiHCzOY9uz+ROsntCanAmNH5psrN7lpg6H3C5iasGtyT52rSw65kZZFaX
+	 DfCts5pFdkTlr3Idz2NKCQZt+3hCbGjaLEbRm4yg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390451AbfIVSq7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 22 Sep 2019 14:46:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43306 "EHLO mail.kernel.org"
+        id S2392623AbfIVThR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 22 Sep 2019 15:37:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390447AbfIVSq7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 22 Sep 2019 14:46:59 -0400
+        id S2389626AbfIVSpx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 22 Sep 2019 14:45:53 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8C474206C2;
-        Sun, 22 Sep 2019 18:46:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C551D2190F;
+        Sun, 22 Sep 2019 18:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569178018;
-        bh=/1Doc4+p/q9z3gLW6wxPhUbWI8u6hlwl8Sqo2S/AsAA=;
+        s=default; t=1569177952;
+        bh=1yjOP+y2VDBuHbUnkJ0x7XMZLigsvLv6f6vVBFKWGfQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kvq2TLNnwkj4Fu27nigvSEuBnsYImFMRq7/AFkHlvpAdkiS1JyffbzDW60x1Doh21
-         HsRBl6wh/I+KfgjkaoXmtRLm5F4oxPWEoG13GGw4IJOpPAe8w432snnVxBEqH4d5I3
-         nWuaPUm/CxbvbuIQqcgCN+OmAWIDTByQuZdLoNjI=
+        b=TtqxvQc9sxRRBPz3pnjo4Vd0BDen60NM8RBQ4a54nI3VRVrRjMsWhtLwFMTOeQ5ov
+         rINHeIKiFpf+7XBryS8RxAdN8APoQ506BeD0E+IYE2Hcg2uzjc/GOqffkGB5+OW9d0
+         rh1iu+6znZs/d0ijYKfr0xheUkAuc6KDVuJkC2Ao=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Liguang Zhang <zhangliguang@linux.alibaba.com>,
-        Borislav Petkov <bp@suse.de>,
+Cc:     Jiri Slaby <jslaby@suse.cz>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 104/203] ACPI / APEI: Release resources if gen_pool_add() fails
-Date:   Sun, 22 Sep 2019 14:42:10 -0400
-Message-Id: <20190922184350.30563-104-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 058/203] ACPI / processor: don't print errors for processorIDs == 0xff
+Date:   Sun, 22 Sep 2019 14:41:24 -0400
+Message-Id: <20190922184350.30563-58-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190922184350.30563-1-sashal@kernel.org>
 References: <20190922184350.30563-1-sashal@kernel.org>
@@ -59,66 +58,66 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Liguang Zhang <zhangliguang@linux.alibaba.com>
+From: Jiri Slaby <jslaby@suse.cz>
 
-[ Upstream commit 6abc7622271dc520f241462e2474c71723638851 ]
+[ Upstream commit 2c2b005f549544c13ef4cfb0e4842949066889bc ]
 
-Destroy ghes_estatus_pool and release memory allocated via vmalloc() on
-errors in ghes_estatus_pool_init() in order to avoid memory leaks.
+Some platforms define their processors in this manner:
+    Device (SCK0)
+    {
+	Name (_HID, "ACPI0004" /* Module Device */)  // _HID: Hardware ID
+	Name (_UID, "CPUSCK0")  // _UID: Unique ID
+	Processor (CP00, 0x00, 0x00000410, 0x06){}
+	Processor (CP01, 0x02, 0x00000410, 0x06){}
+	Processor (CP02, 0x04, 0x00000410, 0x06){}
+	Processor (CP03, 0x06, 0x00000410, 0x06){}
+	Processor (CP04, 0x01, 0x00000410, 0x06){}
+	Processor (CP05, 0x03, 0x00000410, 0x06){}
+	Processor (CP06, 0x05, 0x00000410, 0x06){}
+	Processor (CP07, 0x07, 0x00000410, 0x06){}
+	Processor (CP08, 0xFF, 0x00000410, 0x06){}
+	Processor (CP09, 0xFF, 0x00000410, 0x06){}
+	Processor (CP0A, 0xFF, 0x00000410, 0x06){}
+	Processor (CP0B, 0xFF, 0x00000410, 0x06){}
+...
 
- [ bp: do the labels properly and with descriptive names and massage. ]
+The processors marked as 0xff are invalid, there are only 8 of them in
+this case.
 
-Signed-off-by: Liguang Zhang <zhangliguang@linux.alibaba.com>
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Link: https://lkml.kernel.org/r/1563173924-47479-1-git-send-email-zhangliguang@linux.alibaba.com
+So do not print an error on ids == 0xff, just print an info message.
+Actually, we could return ENODEV even on the first CPU with ID 0xff, but
+ACPI spec does not forbid the 0xff value to be a processor ID. Given
+0xff could be a correct one, we would break working systems if we
+returned ENODEV.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/apei/ghes.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_processor.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index a66e00fe31fec..66205ec545553 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -153,6 +153,7 @@ static void ghes_unmap(void __iomem *vaddr, enum fixed_addresses fixmap_idx)
- int ghes_estatus_pool_init(int num_ghes)
- {
- 	unsigned long addr, len;
-+	int rc;
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 24f065114d424..2c4dda0787e84 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -279,9 +279,13 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	}
  
- 	ghes_estatus_pool = gen_pool_create(GHES_ESTATUS_POOL_MIN_ALLOC_ORDER, -1);
- 	if (!ghes_estatus_pool)
-@@ -164,7 +165,7 @@ int ghes_estatus_pool_init(int num_ghes)
- 	ghes_estatus_pool_size_request = PAGE_ALIGN(len);
- 	addr = (unsigned long)vmalloc(PAGE_ALIGN(len));
- 	if (!addr)
--		return -ENOMEM;
-+		goto err_pool_alloc;
+ 	if (acpi_duplicate_processor_id(pr->acpi_id)) {
+-		dev_err(&device->dev,
+-			"Failed to get unique processor _UID (0x%x)\n",
+-			pr->acpi_id);
++		if (pr->acpi_id == 0xff)
++			dev_info_once(&device->dev,
++				"Entry not well-defined, consider updating BIOS\n");
++		else
++			dev_err(&device->dev,
++				"Failed to get unique processor _UID (0x%x)\n",
++				pr->acpi_id);
+ 		return -ENODEV;
+ 	}
  
- 	/*
- 	 * New allocation must be visible in all pgd before it can be found by
-@@ -172,7 +173,19 @@ int ghes_estatus_pool_init(int num_ghes)
- 	 */
- 	vmalloc_sync_all();
- 
--	return gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
-+	rc = gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
-+	if (rc)
-+		goto err_pool_add;
-+
-+	return 0;
-+
-+err_pool_add:
-+	vfree((void *)addr);
-+
-+err_pool_alloc:
-+	gen_pool_destroy(ghes_estatus_pool);
-+
-+	return -ENOMEM;
- }
- 
- static int map_gen_v2(struct ghes *ghes)
 -- 
 2.20.1
 
