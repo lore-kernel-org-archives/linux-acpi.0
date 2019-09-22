@@ -2,122 +2,141 @@ Return-Path: <SRS0=pU6J=XR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64479C3A5A6
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:37:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7741C3A5A6
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 22:29:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3BBD421BE5
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:37:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569181039;
-	bh=1yjOP+y2VDBuHbUnkJ0x7XMZLigsvLv6f6vVBFKWGfQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=JeODQ8Ny829dBGl5P98ZXPaUJMirpfaOnmgD/1NlnVhF0P0RKfQuNRRTua6vnHs46
-	 iHOpW/1F4DiHCzOY9uz+ROsntCanAmNH5psrN7lpg6H3C5iasGtyT52rSw65kZZFaX
-	 DfCts5pFdkTlr3Idz2NKCQZt+3hCbGjaLEbRm4yg=
+	by mail.kernel.org (Postfix) with ESMTP id A9C9920882
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 22:29:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CzA6rUVQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392623AbfIVThR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 22 Sep 2019 15:37:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41670 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389626AbfIVSpx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 22 Sep 2019 14:45:53 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C551D2190F;
-        Sun, 22 Sep 2019 18:45:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569177952;
-        bh=1yjOP+y2VDBuHbUnkJ0x7XMZLigsvLv6f6vVBFKWGfQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TtqxvQc9sxRRBPz3pnjo4Vd0BDen60NM8RBQ4a54nI3VRVrRjMsWhtLwFMTOeQ5ov
-         rINHeIKiFpf+7XBryS8RxAdN8APoQ506BeD0E+IYE2Hcg2uzjc/GOqffkGB5+OW9d0
-         rh1iu+6znZs/d0ijYKfr0xheUkAuc6KDVuJkC2Ao=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jiri Slaby <jslaby@suse.cz>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 058/203] ACPI / processor: don't print errors for processorIDs == 0xff
-Date:   Sun, 22 Sep 2019 14:41:24 -0400
-Message-Id: <20190922184350.30563-58-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190922184350.30563-1-sashal@kernel.org>
-References: <20190922184350.30563-1-sashal@kernel.org>
+        id S1729895AbfIVW3V (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 22 Sep 2019 18:29:21 -0400
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:41240 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729883AbfIVW3U (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Sep 2019 18:29:20 -0400
+Received: by mail-wr1-f65.google.com with SMTP id h7so11838011wrw.8;
+        Sun, 22 Sep 2019 15:29:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=9F/+/m59W3Dcig0n0hbTlhgv2402meDrVVrsrjXeJKw=;
+        b=CzA6rUVQzQuRmiGW/YjIwozCjvGCOHLdNL5i5iEYLdhUc7lGGrFaSeJIXSBerLbFdM
+         9iAaZr0TCMQCQ8nuUzho7il+2IhMIMJrS4D4oZzNGUjBgPx7U1D2Ds4ELZ9rhoL2f35W
+         DnCkQ6TUDXbNP1vJIrMOeEYnr1mPsRTCcxmHmZXztOSEmi0Hf1fLT0XtKXrXblnXaXND
+         h4UEKs1UeRL0eamP9ftN8JkT6+lJDy6hDXe9o7RY3AspaX09fH8RnOSaSbuSjItaaWeF
+         /Cin3FasCqlFphbmO7kj4gZ6bbde+r2oE73bPXG5CBIDUvR0+Mj1VwcUE9y0ikcqfWdX
+         7weQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=9F/+/m59W3Dcig0n0hbTlhgv2402meDrVVrsrjXeJKw=;
+        b=GoU0j6P2afCTCEh5xXXrpA5ogtxjHRNk/Smi2Z6lPaOWw3BN0MI87J8JHNt5HICyJb
+         slSGLKJdo6PatJONaSQ1iIb6AOL1ab5dHn1m7LNMRtaS5Z/pCZSib7S2Gc3y1YK2YtXn
+         jENQtUYDffnKfGnEChEkScSGZQBDiIVWtwnvztsiOcJayo1h6ooshKnLw1/AomOadZTh
+         N7ukG5jEoaYeFFun5iaPGrNnZ4Duj0XJa0qqkhZ1zPtrOxBALqSH2zKENORWclgCP8A7
+         lrXYsAUJBkDRqF2ZVbk/qLP82ydv7uJSsXUL4G0tB/TUhxQAVxpy6VECuA1mOzLfEDK9
+         uvkQ==
+X-Gm-Message-State: APjAAAXBK2YHhUyoR6bix4mRnsQw4iEGtDKZM8cm8kzfedXmPq7MM35m
+        2ONBSq8S2x2cF1Xo1Nru29IErXH+
+X-Google-Smtp-Source: APXvYqz803890ifCAZk3zmRNKNz51yt4V6yZulA5FDFsi8VDPkNULWIzAdGIBSzq2/cUEe4aYmufiw==
+X-Received: by 2002:a5d:6a09:: with SMTP id m9mr7608305wru.12.1569191357572;
+        Sun, 22 Sep 2019 15:29:17 -0700 (PDT)
+Received: from [192.168.2.202] (pD9EA35A6.dip0.t-ipconnect.de. [217.234.53.166])
+        by smtp.gmail.com with ESMTPSA id c10sm15870791wrf.58.2019.09.22.15.29.15
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 22 Sep 2019 15:29:16 -0700 (PDT)
+Subject: Re: [PATCH] serdev: Add ACPI devices by ResourceSource field
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Rob Herring <robh@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>, Johan Hovold <johan@kernel.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-serial@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20190919195624.1140941-1-luzmaximilian@gmail.com>
+ <50b016a1-ed4a-b848-4658-a05731727d7e@redhat.com>
+From:   Maximilian Luz <luzmaximilian@gmail.com>
+Message-ID: <4c2cc8b7-8541-0912-3162-399777dc8dd2@gmail.com>
+Date:   Mon, 23 Sep 2019 00:29:15 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.1.0
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <50b016a1-ed4a-b848-4658-a05731727d7e@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jiri Slaby <jslaby@suse.cz>
+Hi all,
 
-[ Upstream commit 2c2b005f549544c13ef4cfb0e4842949066889bc ]
+On 9/20/19 5:00 PM, Hans de Goede wrote:
+> So as promised I've given this patch a try, unfortunately it breaks
+> existing users of ACPI serdev device instantation.
+> 
+> After adding this patch "ls /sys/bus/serial/devices" is empty,
+> where as before it gives:
+> 
+> [root@dhcp-45-50 ~]# ls -l /sys/bus/serial/devices/
+> total 0
+> lrwxrwxrwx. 1 root root 0 Sep 20 16:43 serial0 -> ../../../devices/pci0000:00/8086228A:00/serial0
+> lrwxrwxrwx. 1 root root 0 Sep 20 16:43 serial0-0 -> ../../../devices/pci0000:00/8086228A:00/serial0/serial0-0
+> 
+> And since the serdev is missing bluetooth does not work.
 
-Some platforms define their processors in this manner:
-    Device (SCK0)
-    {
-	Name (_HID, "ACPI0004" /* Module Device */)  // _HID: Hardware ID
-	Name (_UID, "CPUSCK0")  // _UID: Unique ID
-	Processor (CP00, 0x00, 0x00000410, 0x06){}
-	Processor (CP01, 0x02, 0x00000410, 0x06){}
-	Processor (CP02, 0x04, 0x00000410, 0x06){}
-	Processor (CP03, 0x06, 0x00000410, 0x06){}
-	Processor (CP04, 0x01, 0x00000410, 0x06){}
-	Processor (CP05, 0x03, 0x00000410, 0x06){}
-	Processor (CP06, 0x05, 0x00000410, 0x06){}
-	Processor (CP07, 0x07, 0x00000410, 0x06){}
-	Processor (CP08, 0xFF, 0x00000410, 0x06){}
-	Processor (CP09, 0xFF, 0x00000410, 0x06){}
-	Processor (CP0A, 0xFF, 0x00000410, 0x06){}
-	Processor (CP0B, 0xFF, 0x00000410, 0x06){}
-...
+Thanks to some testing by Hans, it turns out that the reason for this is
+that acpi_walk_resources fails with AE_AML_INVALID_RESOURCE_TYPE for a
+specific device. If anyone is interested, the _CRS of the device in
+question is
 
-The processors marked as 0xff are invalid, there are only 8 of them in
-this case.
+     Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+     {
+         Name (NAM, Buffer (0x14)
+         {
+             "\\_SB.PCI0.SDHB.BRC1"
+         })
+         Name (SPB, Buffer (0x0C)
+         {
+             /* 0000 */  0x8E, 0x1D, 0x00, 0x01, 0x00, 0xC0, 0x02, 0x00,
+             /* 0008 */  0x00, 0x01, 0x00, 0x00
+         })
+         Name (END, ResourceTemplate ()
+         {
+         })
+         Concatenate (SPB, NAM, Local0)
+         Concatenate (Local0, END, Local1)
+         Return (Local1)
+     }
 
-So do not print an error on ids == 0xff, just print an info message.
-Actually, we could return ENODEV even on the first CPU with ID 0xff, but
-ACPI spec does not forbid the 0xff value to be a processor ID. Given
-0xff could be a correct one, we would break working systems if we
-returned ENODEV.
+To solve this, I propose ignoring errors that occur when evaluating the
+_CRS method. Note that with the previously discussed change for v2,
+where we will only look at the first device in _CRS, we should be able
+to handle errors from the actual serdev device allocation separately
+(and only ignore AML evaluation errors).
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/acpi_processor.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+Further, I think it might also make sense to move the status and
+already-enumerated checks out of acpi_serdev_register_device to before
+looking at _CRS. On one hand, this might save us from unnecessarily
+checking the _CRS on devices that are not present, but on the other
+hand, moving the status check may cause more AML code execution, as we'd
+be checking the status of every device, even if it doesn't have a _CRS.
+Maybe a better solution would be something like: Check if device has
+already been enumerated, then check for _CRS presence, then for
+status/device-presence, and finally look at _CRS contents and
+potentially allocate serdev client?
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 24f065114d424..2c4dda0787e84 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -279,9 +279,13 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	}
- 
- 	if (acpi_duplicate_processor_id(pr->acpi_id)) {
--		dev_err(&device->dev,
--			"Failed to get unique processor _UID (0x%x)\n",
--			pr->acpi_id);
-+		if (pr->acpi_id == 0xff)
-+			dev_info_once(&device->dev,
-+				"Entry not well-defined, consider updating BIOS\n");
-+		else
-+			dev_err(&device->dev,
-+				"Failed to get unique processor _UID (0x%x)\n",
-+				pr->acpi_id);
- 		return -ENODEV;
- 	}
- 
--- 
-2.20.1
+Regards,
 
+Maximilian
