@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C87E5C49ED7
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:32:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41685C4CEC4
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:32:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9773B21971
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:32:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F73920640
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:32:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569180752;
-	bh=1qcIqWVNgDnORZDuw7aMihN8tv/7ZLu/i1Km/FS0zBg=;
+	s=default; t=1569180753;
+	bh=almqlEgrShZjlwAf+YmnkiSQmi+dQpvSMs4EOo+e5No=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=L22BidBCHYrJpGdcGnUQxeFvisiuVExJ5hDdhiz1OtfUnJOduBpSNinct+vy1siUe
-	 kqUrvMO6Sqrr8LwgGxZ24GQmWoBHYtHTjpoTa4MSNouwN0ZavGVyoi6ZfS6j9uv0dw
-	 VGly+YQk8HZ9Ja5Q/XgSvCWM/f6dUUUrZVO2AYvs=
+	b=SEY0L8mvvgsTvke/3Umi8MHdvUXlG9UDkjMwooRmYV0PO+dMh3pDLZ4aJQDM0/uLf
+	 U2WUis3gP0fGMYXz9C4cvfc610V+4YHvy36TD8QaAdJtrqbuYhyJg2hZNNsTieFqxR
+	 HexTEwpPCZajvoSYOFVvUj4EywiCXsY3yYWFtWG8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437959AbfIVTc1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 22 Sep 2019 15:32:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44946 "EHLO mail.kernel.org"
+        id S2391466AbfIVSsN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 22 Sep 2019 14:48:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391472AbfIVSsO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 22 Sep 2019 14:48:14 -0400
+        id S2391457AbfIVSsM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 22 Sep 2019 14:48:12 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 90192208C2;
-        Sun, 22 Sep 2019 18:48:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 62CED214D9;
+        Sun, 22 Sep 2019 18:48:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569178093;
-        bh=1qcIqWVNgDnORZDuw7aMihN8tv/7ZLu/i1Km/FS0zBg=;
+        s=default; t=1569178092;
+        bh=almqlEgrShZjlwAf+YmnkiSQmi+dQpvSMs4EOo+e5No=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GLMEcEArlArvMj/Ewd4bWjQF17a1ML2h7l2sM+I4LbEH8KUSwWAkf7Nf9puq+vY4m
-         WbBXYHvHWGEkYgtlqQ+pTp60FBhbhsShMThwxlA6R0AhBNTRx4Oi9DGTaTEDPrvr/h
-         PGMhQLOhDFf84Y0AFmnpj4ZFGc9Q6pZJokaHa3dg=
+        b=QkRy1uRaR94eQnmAMR5IVLLqDYmcInUxGH0x03M2YeYtQm9PGEVuAaNIyweFtfVi0
+         ajGvoFtdhS2hHNcH82MoFx3JB1WBhjIFo16pCNwLfeP63QMZEHq9EuVCJ2foTqIYNP
+         vfnWor40iwiM/k7E1QWKr2Ug5eKyUAVNSOeVb4xk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Wenwen Wang <wenwen@cs.uga.edu>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 158/203] ACPI / PCI: fix acpi_pci_irq_enable() memory leak
-Date:   Sun, 22 Sep 2019 14:43:04 -0400
-Message-Id: <20190922184350.30563-158-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.3 157/203] ACPI: custom_method: fix memory leaks
+Date:   Sun, 22 Sep 2019 14:43:03 -0400
+Message-Id: <20190922184350.30563-157-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190922184350.30563-1-sashal@kernel.org>
 References: <20190922184350.30563-1-sashal@kernel.org>
@@ -61,37 +60,44 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Wenwen Wang <wenwen@cs.uga.edu>
 
-[ Upstream commit 29b49958cf73b439b17fa29e9a25210809a6c01c ]
+[ Upstream commit 03d1571d9513369c17e6848476763ebbd10ec2cb ]
 
-In acpi_pci_irq_enable(), 'entry' is allocated by kzalloc() in
-acpi_pci_irq_check_entry() (invoked from acpi_pci_irq_lookup()). However,
-it is not deallocated if acpi_pci_irq_valid() returns false, leading to a
-memory leak. To fix this issue, free 'entry' before returning 0.
+In cm_write(), 'buf' is allocated through kzalloc(). In the following
+execution, if an error occurs, 'buf' is not deallocated, leading to memory
+leaks. To fix this issue, free 'buf' before returning the error.
 
-Fixes: e237a5518425 ("x86/ACPI/PCI: Recognize that Interrupt Line 255 means "not connected"")
+Fixes: 526b4af47f44 ("ACPI: Split out custom_method functionality into an own driver")
 Signed-off-by: Wenwen Wang <wenwen@cs.uga.edu>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/pci_irq.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/custom_method.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index d2549ae65e1b6..dea8a60e18a4c 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -449,8 +449,10 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 		 * No IRQ known to the ACPI subsystem - maybe the BIOS /
- 		 * driver reported one, then use it. Exit in any case.
- 		 */
--		if (!acpi_pci_irq_valid(dev, pin))
-+		if (!acpi_pci_irq_valid(dev, pin)) {
-+			kfree(entry);
- 			return 0;
-+		}
+diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
+index b2ef4c2ec955d..fd66a736621cf 100644
+--- a/drivers/acpi/custom_method.c
++++ b/drivers/acpi/custom_method.c
+@@ -49,8 +49,10 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+ 	if ((*ppos > max_size) ||
+ 	    (*ppos + count > max_size) ||
+ 	    (*ppos + count < count) ||
+-	    (count > uncopied_bytes))
++	    (count > uncopied_bytes)) {
++		kfree(buf);
+ 		return -EINVAL;
++	}
  
- 		if (acpi_isa_register_gsi(dev))
- 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+ 	if (copy_from_user(buf + (*ppos), user_buf, count)) {
+ 		kfree(buf);
+@@ -70,6 +72,7 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+ 		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE, LOCKDEP_NOW_UNRELIABLE);
+ 	}
+ 
++	kfree(buf);
+ 	return count;
+ }
+ 
 -- 
 2.20.1
 
