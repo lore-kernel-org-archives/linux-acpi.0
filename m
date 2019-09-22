@@ -4,48 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A4E1C4740C
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:16:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2FFBC3A5A2
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:18:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E7DD420869
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:16:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACA5A206C2
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Sep 2019 19:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569179771;
-	bh=K0AEGtS3ru3m5o3GBWv+/gtrDrzTVL4cNuryvWAlht0=;
+	s=default; t=1569179929;
+	bh=2ZDyCA/W82QMIcVj4QKv0dW3+M4TLs0nbEMoSYY3yjc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=eieBtGlBsmyDQEYHDFNVXHW70bDQeCWHpfnU6Ye6P14VKHbiohzo3BAerbKk/1CC1
-	 H4LBoW7S/gXLlL/aNtZNfBBVjQqbeLXpKtsyroALbsb0VLTSuly29cwJ/ZAQSqYFO2
-	 XupoXHP78+5an2ZavBvqyo6hQHIDnfwnsHqSZnzM=
+	b=B8BP2mwhCsSHe8RXK7iFN8qkiZHYiohYxfrvUtWry6ZVOABLDbAkoCm6/yuQpMlN3
+	 Xf6PtK26yWcyv7xNpyc2SP2i54vLaFdRUaRaJ9GJATHPVieNNPont207tsZoOVYR2S
+	 nHdgCsz0eytC7kAcMx3RI+x+ZJ+P6RfanV/QYPME=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438543AbfIVS4Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 22 Sep 2019 14:56:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58142 "EHLO mail.kernel.org"
+        id S2437175AbfIVTSp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 22 Sep 2019 15:18:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2438524AbfIVS4N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 22 Sep 2019 14:56:13 -0400
+        id S2405645AbfIVSzF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 22 Sep 2019 14:55:05 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0D5962186A;
-        Sun, 22 Sep 2019 18:56:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DD69B21479;
+        Sun, 22 Sep 2019 18:55:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569178572;
-        bh=K0AEGtS3ru3m5o3GBWv+/gtrDrzTVL4cNuryvWAlht0=;
+        s=default; t=1569178504;
+        bh=2ZDyCA/W82QMIcVj4QKv0dW3+M4TLs0nbEMoSYY3yjc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AmwN/FvrzgPHBqOlpcdsld10hKwS7yU5dZ2+Th+HModSqeuYRD0ofCe93R4/wtR2O
-         H/UWYHtAioZl9JuHX2J+fF9HCNWn2wAbpB163k80z0acNSR7Zsh66qc+qSHMYch+1+
-         11WaFqjIjNVmRk2NC7dOrazBp7LNOybLJ945PBzc=
+        b=kdyzX8gYyZAg6DdE0zIRNsPeJ9niog/fSUlmtf8OaW2kochFEAMddhbdLI2LBVR/b
+         1n6t/Cddt3nk0z1KyFnKBXCm5oW1EOr6y0IRfcpacD8IR4uuWMkoXCRMXAy/uMqrDS
+         cVvVnleoRGQphDBFohVrL46I49lS0PsoM0gsz0eg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Al Stone <ahs3@redhat.com>,
+Cc:     Jiri Slaby <jslaby@suse.cz>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 084/128] ACPI / CPPC: do not require the _PSD method
-Date:   Sun, 22 Sep 2019 14:53:34 -0400
-Message-Id: <20190922185418.2158-84-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 036/128] ACPI / processor: don't print errors for processorIDs == 0xff
+Date:   Sun, 22 Sep 2019 14:52:46 -0400
+Message-Id: <20190922185418.2158-36-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190922185418.2158-1-sashal@kernel.org>
 References: <20190922185418.2158-1-sashal@kernel.org>
@@ -58,52 +58,65 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Al Stone <ahs3@redhat.com>
+From: Jiri Slaby <jslaby@suse.cz>
 
-[ Upstream commit 4c4cdc4c63853fee48c02e25c8605fb65a6c9924 ]
+[ Upstream commit 2c2b005f549544c13ef4cfb0e4842949066889bc ]
 
-According to the ACPI 6.3 specification, the _PSD method is optional
-when using CPPC.  The underlying assumption is that each CPU can change
-frequency independently from all other CPUs; _PSD is provided to tell
-the OS that some processors can NOT do that.
+Some platforms define their processors in this manner:
+    Device (SCK0)
+    {
+	Name (_HID, "ACPI0004" /* Module Device */)  // _HID: Hardware ID
+	Name (_UID, "CPUSCK0")  // _UID: Unique ID
+	Processor (CP00, 0x00, 0x00000410, 0x06){}
+	Processor (CP01, 0x02, 0x00000410, 0x06){}
+	Processor (CP02, 0x04, 0x00000410, 0x06){}
+	Processor (CP03, 0x06, 0x00000410, 0x06){}
+	Processor (CP04, 0x01, 0x00000410, 0x06){}
+	Processor (CP05, 0x03, 0x00000410, 0x06){}
+	Processor (CP06, 0x05, 0x00000410, 0x06){}
+	Processor (CP07, 0x07, 0x00000410, 0x06){}
+	Processor (CP08, 0xFF, 0x00000410, 0x06){}
+	Processor (CP09, 0xFF, 0x00000410, 0x06){}
+	Processor (CP0A, 0xFF, 0x00000410, 0x06){}
+	Processor (CP0B, 0xFF, 0x00000410, 0x06){}
+...
 
-However, the acpi_get_psd() function returns ENODEV if there is no _PSD
-method present, or an ACPI error status if an error occurs when evaluating
-_PSD, if present.  This makes _PSD mandatory when using CPPC, in violation
-of the specification, and only on Linux.
+The processors marked as 0xff are invalid, there are only 8 of them in
+this case.
 
-This has forced some firmware writers to provide a dummy _PSD, even though
-it is irrelevant, but only because Linux requires it; other OSPMs follow
-the spec.  We really do not want to have OS specific ACPI tables, though.
+So do not print an error on ids == 0xff, just print an info message.
+Actually, we could return ENODEV even on the first CPU with ID 0xff, but
+ACPI spec does not forbid the 0xff value to be a processor ID. Given
+0xff could be a correct one, we would break working systems if we
+returned ENODEV.
 
-So, correct acpi_get_psd() so that it does not return an error if there
-is no _PSD method present, but does return a failure when the method can
-not be executed properly.  This allows _PSD to be optional as it should
-be.
-
-Signed-off-by: Al Stone <ahs3@redhat.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/cppc_acpi.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_processor.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index d9ce4b162e2ce..a1aa59849b964 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -369,8 +369,10 @@ static int acpi_get_psd(struct cpc_desc *cpc_ptr, acpi_handle handle)
- 	union acpi_object  *psd = NULL;
- 	struct acpi_psd_package *pdomain;
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index fc447410ae4d1..a448cdf567188 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -282,9 +282,13 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	}
  
--	status = acpi_evaluate_object_typed(handle, "_PSD", NULL, &buffer,
--			ACPI_TYPE_PACKAGE);
-+	status = acpi_evaluate_object_typed(handle, "_PSD", NULL,
-+					    &buffer, ACPI_TYPE_PACKAGE);
-+	if (status == AE_NOT_FOUND)	/* _PSD is optional */
-+		return 0;
- 	if (ACPI_FAILURE(status))
+ 	if (acpi_duplicate_processor_id(pr->acpi_id)) {
+-		dev_err(&device->dev,
+-			"Failed to get unique processor _UID (0x%x)\n",
+-			pr->acpi_id);
++		if (pr->acpi_id == 0xff)
++			dev_info_once(&device->dev,
++				"Entry not well-defined, consider updating BIOS\n");
++		else
++			dev_err(&device->dev,
++				"Failed to get unique processor _UID (0x%x)\n",
++				pr->acpi_id);
  		return -ENODEV;
+ 	}
  
 -- 
 2.20.1
