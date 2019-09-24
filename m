@@ -2,78 +2,132 @@ Return-Path: <SRS0=pQwn=XT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3538C432C1
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 10:45:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A79BCC432C1
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 12:01:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A490B214AF
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 10:45:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8552021841
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 12:01:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409527AbfIXKpw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 24 Sep 2019 06:45:52 -0400
-Received: from mx2.suse.de ([195.135.220.15]:57638 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2409506AbfIXKpw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 24 Sep 2019 06:45:52 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 52C51AF26;
-        Tue, 24 Sep 2019 10:45:50 +0000 (UTC)
-Date:   Tue, 24 Sep 2019 12:45:49 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     rafael@kernel.org, linux-kernel@vger.kernel.org,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Rob Herring <robh@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Joe Perches <joe@perches.com>, devicetree@vger.kernel.org,
+        id S2504817AbfIXMB6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 24 Sep 2019 08:01:58 -0400
+Received: from mga05.intel.com ([192.55.52.43]:60527 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2504802AbfIXMB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 24 Sep 2019 08:01:58 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Sep 2019 05:01:58 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.64,544,1559545200"; 
+   d="scan'208";a="182892414"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga008.jf.intel.com with ESMTP; 24 Sep 2019 05:01:55 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 4CE9596; Tue, 24 Sep 2019 15:01:54 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        linux-mmc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v7 09/13] lib/vsprintf: Add a note on re-using %pf or %pF
-Message-ID: <20190924104549.qiayzhr7zikja7sp@pathway.suse.cz>
-References: <20190918133419.7969-1-sakari.ailus@linux.intel.com>
- <20190918133419.7969-10-sakari.ailus@linux.intel.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 2/5] ACPI / utils: Introduce acpi_dev_hid_uid_match() helper
+Date:   Tue, 24 Sep 2019 15:01:50 +0300
+Message-Id: <20190924120153.8382-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20190924120153.8382-1-andriy.shevchenko@linux.intel.com>
+References: <20190924120153.8382-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190918133419.7969-10-sakari.ailus@linux.intel.com>
-User-Agent: NeoMutt/20170912 (1.9.0)
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed 2019-09-18 16:34:15, Sakari Ailus wrote:
-> Add a note warning of re-use of obsolete %pf or %pF extensions.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> ---
->  lib/vsprintf.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-> index b00b57f9f911f..df59818537b52 100644
-> --- a/lib/vsprintf.c
-> +++ b/lib/vsprintf.c
-> @@ -2008,6 +2008,8 @@ static char *kobject_string(char *buf, char *end, void *ptr,
->   * - 'S' For symbolic direct pointers (or function descriptors) with offset
->   * - 's' For symbolic direct pointers (or function descriptors) without offset
->   * - '[Ss]R' as above with __builtin_extract_return_addr() translation
-> + * - '[Ff]' Obsolete an now unsupported extension for printing direct pointers
-> + *	    or function descriptors. Be careful when re-using %pf or %pF!
+There are users outside of ACPI realm which reimplementing the comparator
+function to check if the given device matches to given HID and UID.
 
-I am not a native speaker but the sentence is hard to parse to me.
-Also I miss the word 'symbolic'. IMHO, it described that the output
-was a symbol name.
+For better utilization, introduce a helper for everyone to use.
 
-What about something like?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/utils.c    | 25 +++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |  3 +++
+ include/linux/acpi.h    |  6 ++++++
+ 3 files changed, 34 insertions(+)
 
-  * - '[Ff]' %pf and %pF were obsoleted and later removed in favor of
-  *	    %ps and %pS. Be careful when re-using these specifiers.
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index dbd1c4cfd7d1..804ac0df58ec 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -701,6 +701,31 @@ bool acpi_check_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 funcs)
+ }
+ EXPORT_SYMBOL(acpi_check_dsm);
+ 
++/**
++ * acpi_dev_hid_uid_match - Match device by supplied HID and UID
++ * @adev: ACPI device to match.
++ * @hid2: Hardware ID of the device.
++ * @uid2: Unique ID of the device, pass NULL to not check _UID.
++ *
++ * Matches HID and UID in @adev with given @hid2 and @uid2.
++ * Returns true if matches.
++ */
++bool acpi_dev_hid_uid_match(struct acpi_device *adev,
++			    const char *hid2, const char *uid2)
++{
++	const char *hid1 = acpi_device_hid(adev);
++	const char *uid1 = acpi_device_uid(adev);
++
++	if (strcmp(hid1, hid2))
++		return false;
++
++	if (!uid2)
++		return true;
++
++	return uid1 && !strcmp(uid1, uid2);
++}
++EXPORT_SYMBOL(acpi_dev_hid_uid_match);
++
+ /**
+  * acpi_dev_found - Detect presence of a given ACPI device in the namespace.
+  * @hid: Hardware ID of the device.
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 175f7b40c585..d3cc8a786065 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -75,6 +75,9 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const guid_t *guid, u64 rev,
+ 	  .package.elements = (eles)			\
+ 	}
+ 
++bool acpi_dev_hid_uid_match(struct acpi_device *adev,
++			    const char *hid2, const char *uid2);
++
+ bool acpi_dev_found(const char *hid);
+ bool acpi_dev_present(const char *hid, const char *uid, s64 hrv);
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 9426b9aaed86..272b51a4f385 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -662,6 +662,12 @@ static inline u64 acpi_arch_get_root_pointer(void)
+ 
+ struct fwnode_handle;
+ 
++static inline bool acpi_dev_hid_uid_match(struct acpi_device *adev,
++					  const char *hid2, const char *uid2)
++{
++	return false;
++}
++
+ static inline bool acpi_dev_found(const char *hid)
+ {
+ 	return false;
+-- 
+2.23.0
 
-Best Regards,
-Petr
