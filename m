@@ -2,33 +2,33 @@ Return-Path: <SRS0=pQwn=XT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A51EBC432C2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C603C432C1
 	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 19:37:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7D17521783
+	by mail.kernel.org (Postfix) with ESMTP id 3DF08214AF
 	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 19:37:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437528AbfIXThr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 24 Sep 2019 15:37:47 -0400
-Received: from mga09.intel.com ([134.134.136.24]:56938 "EHLO mga09.intel.com"
+        id S2437413AbfIXThq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 24 Sep 2019 15:37:46 -0400
+Received: from mga07.intel.com ([134.134.136.100]:23259 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2437158AbfIXThq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S2437322AbfIXThq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 24 Sep 2019 15:37:46 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Sep 2019 12:37:45 -0700
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Sep 2019 12:37:45 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,545,1559545200"; 
-   d="scan'208";a="193540242"
+   d="scan'208";a="272735864"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga006.jf.intel.com with ESMTP; 24 Sep 2019 12:37:43 -0700
+  by orsmga001.jf.intel.com with ESMTP; 24 Sep 2019 12:37:43 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id A5CF2F1; Tue, 24 Sep 2019 22:37:42 +0300 (EEST)
+        id D8A5F1C5; Tue, 24 Sep 2019 22:37:42 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
         Adrian Hunter <adrian.hunter@intel.com>,
@@ -36,10 +36,12 @@ To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
         linux-mmc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         linux-acpi@vger.kernel.org
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 0/6] ACPI / utils: add new helper for HID/UID match
-Date:   Tue, 24 Sep 2019 22:37:33 +0300
-Message-Id: <20190924193739.86133-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 4/6] ACPI / LPSS: Switch to use acpi_dev_hid_uid_match()
+Date:   Tue, 24 Sep 2019 22:37:37 +0300
+Message-Id: <20190924193739.86133-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20190924193739.86133-1-andriy.shevchenko@linux.intel.com>
+References: <20190924193739.86133-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -47,32 +49,60 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There are few users outside of ACPI realm that re-introduce a custom
-solution to match ACPI device against HID/UID. Add a generic helper for
-them.
+Since we have a generic helper, drop custom implementation in the driver.
 
-The series is supposed to go via linux-pm tree.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c | 21 +++------------------
+ 1 file changed, 3 insertions(+), 18 deletions(-)
 
-In v2:
-- add patch 2 due to latent issue in the header (lkp)
-- get rid of match_hid_uid() completely in patch 6
-
-Andy Shevchenko (6):
-  ACPI / utils: Describe function parameters in kernel-doc
-  ACPI / utils: Move acpi_dev_get_first_match_dev() under CONFIG_ACPI
-  ACPI / utils: Introduce acpi_dev_hid_uid_match() helper
-  ACPI / LPSS: Switch to use acpi_dev_hid_uid_match()
-  mmc: sdhci-acpi: Switch to use acpi_dev_hid_uid_match()
-  iommu/amd: Switch to use acpi_dev_hid_uid_match()
-
- drivers/acpi/acpi_lpss.c      | 21 +++------------
- drivers/acpi/utils.c          | 32 +++++++++++++++++++++++
- drivers/iommu/amd_iommu.c     | 30 ++++-----------------
- drivers/mmc/host/sdhci-acpi.c | 49 ++++++++++++-----------------------
- include/acpi/acpi_bus.h       |  8 +++---
- include/linux/acpi.h          |  6 +++++
- 6 files changed, 67 insertions(+), 79 deletions(-)
-
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index d696f165a50e..1e6d959bd968 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -476,31 +476,16 @@ static const struct lpss_device_links lpss_device_links[] = {
+ 	{"80860F41", "5", "LNXVIDEO", NULL, DL_FLAG_PM_RUNTIME},
+ };
+ 
+-static bool hid_uid_match(struct acpi_device *adev,
+-			  const char *hid2, const char *uid2)
+-{
+-	const char *hid1 = acpi_device_hid(adev);
+-	const char *uid1 = acpi_device_uid(adev);
+-
+-	if (strcmp(hid1, hid2))
+-		return false;
+-
+-	if (!uid2)
+-		return true;
+-
+-	return uid1 && !strcmp(uid1, uid2);
+-}
+-
+ static bool acpi_lpss_is_supplier(struct acpi_device *adev,
+ 				  const struct lpss_device_links *link)
+ {
+-	return hid_uid_match(adev, link->supplier_hid, link->supplier_uid);
++	return acpi_dev_hid_uid_match(adev, link->supplier_hid, link->supplier_uid);
+ }
+ 
+ static bool acpi_lpss_is_consumer(struct acpi_device *adev,
+ 				  const struct lpss_device_links *link)
+ {
+-	return hid_uid_match(adev, link->consumer_hid, link->consumer_uid);
++	return acpi_dev_hid_uid_match(adev, link->consumer_hid, link->consumer_uid);
+ }
+ 
+ struct hid_uid {
+@@ -516,7 +501,7 @@ static int match_hid_uid(struct device *dev, const void *data)
+ 	if (!adev)
+ 		return 0;
+ 
+-	return hid_uid_match(adev, id->hid, id->uid);
++	return acpi_dev_hid_uid_match(adev, id->hid, id->uid);
+ }
+ 
+ static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
 -- 
 2.23.0
 
