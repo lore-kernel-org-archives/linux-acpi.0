@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D889C432C2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7995CC4360C
 	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 12:02:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D5AF221783
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 12:01:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A81B217D7
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Sep 2019 12:02:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2504820AbfIXMB7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2504823AbfIXMB7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Tue, 24 Sep 2019 08:01:59 -0400
 Received: from mga02.intel.com ([134.134.136.20]:50789 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2504802AbfIXMB7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S2504819AbfIXMB7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 24 Sep 2019 08:01:59 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Sep 2019 05:01:58 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,544,1559545200"; 
-   d="scan'208";a="189345627"
+   d="scan'208";a="179460795"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 24 Sep 2019 05:01:55 -0700
+  by orsmga007.jf.intel.com with ESMTP; 24 Sep 2019 05:01:55 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 56FE731F; Tue, 24 Sep 2019 15:01:54 +0300 (EEST)
+        id 3CD28228; Tue, 24 Sep 2019 15:01:54 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
         Adrian Hunter <adrian.hunter@intel.com>,
@@ -36,12 +36,10 @@ To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
         linux-mmc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         linux-acpi@vger.kernel.org
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 3/5] ACPI / LPSS: Switch to use acpi_dev_hid_uid_match()
-Date:   Tue, 24 Sep 2019 15:01:51 +0300
-Message-Id: <20190924120153.8382-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/5] ACPI / utils: Describe function parameters in kernel-doc
+Date:   Tue, 24 Sep 2019 15:01:49 +0300
+Message-Id: <20190924120153.8382-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20190924120153.8382-1-andriy.shevchenko@linux.intel.com>
-References: <20190924120153.8382-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -49,60 +47,56 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Since we have a generic helper, drop custom implementation in the driver.
+Kernel documentation script complains that some of the function parameters
+are not described:
+
+drivers/acpi/utils.c:462: warning: Function parameter or member 'handle' not described in 'acpi_handle_path'
+drivers/acpi/utils.c:484: warning: Function parameter or member 'level' not described in 'acpi_handle_printk'
+drivers/acpi/utils.c:484: warning: Function parameter or member 'handle' not described in 'acpi_handle_printk'
+drivers/acpi/utils.c:484: warning: Function parameter or member 'fmt' not described in 'acpi_handle_printk'
+drivers/acpi/utils.c:513: warning: Function parameter or member 'descriptor' not described in '__acpi_handle_debug'
+drivers/acpi/utils.c:513: warning: Function parameter or member 'handle' not described in '__acpi_handle_debug'
+drivers/acpi/utils.c:513: warning: Function parameter or member 'fmt' not described in '__acpi_handle_debug'
+
+Describe function parameters where it's appropriate.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/acpi_lpss.c | 21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ drivers/acpi/utils.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index d696f165a50e..1e6d959bd968 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -476,31 +476,16 @@ static const struct lpss_device_links lpss_device_links[] = {
- 	{"80860F41", "5", "LNXVIDEO", NULL, DL_FLAG_PM_RUNTIME},
- };
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index e3974a8f8fd4..dbd1c4cfd7d1 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -455,6 +455,7 @@ EXPORT_SYMBOL(acpi_evaluate_ost);
  
--static bool hid_uid_match(struct acpi_device *adev,
--			  const char *hid2, const char *uid2)
--{
--	const char *hid1 = acpi_device_hid(adev);
--	const char *uid1 = acpi_device_uid(adev);
--
--	if (strcmp(hid1, hid2))
--		return false;
--
--	if (!uid2)
--		return true;
--
--	return uid1 && !strcmp(uid1, uid2);
--}
--
- static bool acpi_lpss_is_supplier(struct acpi_device *adev,
- 				  const struct lpss_device_links *link)
- {
--	return hid_uid_match(adev, link->supplier_hid, link->supplier_uid);
-+	return acpi_dev_hid_uid_match(adev, link->supplier_hid, link->supplier_uid);
- }
+ /**
+  * acpi_handle_path: Return the object path of handle
++ * @handle: ACPI device handle
+  *
+  * Caller must free the returned buffer
+  */
+@@ -473,6 +474,9 @@ static char *acpi_handle_path(acpi_handle handle)
  
- static bool acpi_lpss_is_consumer(struct acpi_device *adev,
- 				  const struct lpss_device_links *link)
- {
--	return hid_uid_match(adev, link->consumer_hid, link->consumer_uid);
-+	return acpi_dev_hid_uid_match(adev, link->consumer_hid, link->consumer_uid);
- }
- 
- struct hid_uid {
-@@ -516,7 +501,7 @@ static int match_hid_uid(struct device *dev, const void *data)
- 	if (!adev)
- 		return 0;
- 
--	return hid_uid_match(adev, id->hid, id->uid);
-+	return acpi_dev_hid_uid_match(adev, id->hid, id->uid);
- }
- 
- static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
+ /**
+  * acpi_handle_printk: Print message with ACPI prefix and object path
++ * @level: log level
++ * @handle: ACPI device handle
++ * @fmt: format string
+  *
+  * This function is called through acpi_handle_<level> macros and prints
+  * a message with ACPI prefix and object path.  This function acquires
+@@ -501,6 +505,9 @@ EXPORT_SYMBOL(acpi_handle_printk);
+ #if defined(CONFIG_DYNAMIC_DEBUG)
+ /**
+  * __acpi_handle_debug: pr_debug with ACPI prefix and object path
++ * @descriptor: Dynamic Debug descriptor
++ * @handle: ACPI device handle
++ * @fmt: format string
+  *
+  * This function is called through acpi_handle_debug macro and debug
+  * prints a message with ACPI prefix and object path. This function
 -- 
 2.23.0
 
