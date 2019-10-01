@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50336ECE58B
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Oct 2019 14:27:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69728C352AA
+	for <linux-acpi@archiver.kernel.org>; Tue,  1 Oct 2019 14:27:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16FFD21924
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Oct 2019 14:27:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A0F92086A
+	for <linux-acpi@archiver.kernel.org>; Tue,  1 Oct 2019 14:27:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388689AbfJAO1b (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 1 Oct 2019 10:27:31 -0400
-Received: from mga04.intel.com ([192.55.52.120]:61215 "EHLO mga04.intel.com"
+        id S2388640AbfJAO1d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 1 Oct 2019 10:27:33 -0400
+Received: from mga07.intel.com ([134.134.136.100]:64907 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727149AbfJAO1a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Oct 2019 10:27:30 -0400
+        id S2388915AbfJAO1d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 1 Oct 2019 10:27:33 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 01 Oct 2019 07:27:30 -0700
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 01 Oct 2019 07:27:32 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,571,1559545200"; 
-   d="scan'208";a="181706098"
+   d="scan'208";a="392458208"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga007.jf.intel.com with ESMTP; 01 Oct 2019 07:27:27 -0700
+  by fmsmga006.fm.intel.com with ESMTP; 01 Oct 2019 07:27:30 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 84204234; Tue,  1 Oct 2019 17:27:26 +0300 (EEST)
+        id 93DAC300; Tue,  1 Oct 2019 17:27:26 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
         Adrian Hunter <adrian.hunter@intel.com>,
@@ -37,9 +37,9 @@ To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
         linux-acpi@vger.kernel.org,
         Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 4/6] ACPI / LPSS: Switch to use acpi_dev_hid_uid_match()
-Date:   Tue,  1 Oct 2019 17:27:23 +0300
-Message-Id: <20191001142725.30857-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 6/6] iommu/amd: Switch to use acpi_dev_hid_uid_match()
+Date:   Tue,  1 Oct 2019 17:27:25 +0300
+Message-Id: <20191001142725.30857-7-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191001142725.30857-1-andriy.shevchenko@linux.intel.com>
 References: <20191001142725.30857-1-andriy.shevchenko@linux.intel.com>
@@ -55,56 +55,60 @@ Since we have a generic helper, drop custom implementation in the driver.
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/acpi_lpss.c | 21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ drivers/iommu/amd_iommu.c | 30 +++++-------------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 60bbc5090abe..1e520ea16042 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -478,31 +478,16 @@ static const struct lpss_device_links lpss_device_links[] = {
- 	{"80860F41", "5", "LNXVIDEO", NULL, DL_FLAG_PM_RUNTIME},
- };
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index 2369b8af81f3..40f3cf44aa98 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -124,30 +124,6 @@ static struct lock_class_key reserved_rbtree_key;
+  *
+  ****************************************************************************/
  
--static bool hid_uid_match(struct acpi_device *adev,
--			  const char *hid2, const char *uid2)
+-static inline int match_hid_uid(struct device *dev,
+-				struct acpihid_map_entry *entry)
 -{
--	const char *hid1 = acpi_device_hid(adev);
--	const char *uid1 = acpi_device_uid(adev);
+-	struct acpi_device *adev = ACPI_COMPANION(dev);
+-	const char *hid, *uid;
 -
--	if (strcmp(hid1, hid2))
--		return false;
+-	if (!adev)
+-		return -ENODEV;
 -
--	if (!uid2)
--		return true;
+-	hid = acpi_device_hid(adev);
+-	uid = acpi_device_uid(adev);
 -
--	return uid1 && !strcmp(uid1, uid2);
+-	if (!hid || !(*hid))
+-		return -ENODEV;
+-
+-	if (!uid || !(*uid))
+-		return strcmp(hid, entry->hid);
+-
+-	if (!(*entry->uid))
+-		return strcmp(hid, entry->hid);
+-
+-	return (strcmp(hid, entry->hid) || strcmp(uid, entry->uid));
 -}
 -
- static bool acpi_lpss_is_supplier(struct acpi_device *adev,
- 				  const struct lpss_device_links *link)
+ static inline u16 get_pci_device_id(struct device *dev)
  {
--	return hid_uid_match(adev, link->supplier_hid, link->supplier_uid);
-+	return acpi_dev_hid_uid_match(adev, link->supplier_hid, link->supplier_uid);
- }
- 
- static bool acpi_lpss_is_consumer(struct acpi_device *adev,
- 				  const struct lpss_device_links *link)
+ 	struct pci_dev *pdev = to_pci_dev(dev);
+@@ -158,10 +134,14 @@ static inline u16 get_pci_device_id(struct device *dev)
+ static inline int get_acpihid_device_id(struct device *dev,
+ 					struct acpihid_map_entry **entry)
  {
--	return hid_uid_match(adev, link->consumer_hid, link->consumer_uid);
-+	return acpi_dev_hid_uid_match(adev, link->consumer_hid, link->consumer_uid);
- }
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	struct acpihid_map_entry *p;
  
- struct hid_uid {
-@@ -518,7 +503,7 @@ static int match_hid_uid(struct device *dev, const void *data)
- 	if (!adev)
- 		return 0;
- 
--	return hid_uid_match(adev, id->hid, id->uid);
-+	return acpi_dev_hid_uid_match(adev, id->hid, id->uid);
- }
- 
- static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
++	if (!adev)
++		return -ENODEV;
++
+ 	list_for_each_entry(p, &acpihid_map, list) {
+-		if (!match_hid_uid(dev, p)) {
++		if (acpi_dev_hid_uid_match(adev, p->hid, p->uid)) {
+ 			if (entry)
+ 				*entry = p;
+ 			return p->devid;
 -- 
 2.23.0
 
