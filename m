@@ -1,86 +1,155 @@
 Return-Path: <SRS0=dkqV=X4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Level: *
+X-Spam-Status: No, score=1.7 required=3.0 tests=DATE_IN_FUTURE_12_24,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B889C32792
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 12:33:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCA89C10F14
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 15:48:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F16820842
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 12:33:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B2CE620700
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 15:48:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728583AbfJCMcW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Oct 2019 08:32:22 -0400
-Received: from mga09.intel.com ([134.134.136.24]:50422 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725827AbfJCMcV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Oct 2019 08:32:21 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Oct 2019 05:32:21 -0700
-X-IronPort-AV: E=Sophos;i="5.67,252,1566889200"; 
-   d="scan'208";a="191255734"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Oct 2019 05:32:18 -0700
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id EF31F20F75;
-        Thu,  3 Oct 2019 15:32:16 +0300 (EEST)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1iG0HL-0002wB-Kn; Thu, 03 Oct 2019 15:32:19 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
-        rafael@kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        Rob Herring <robh@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Joe Perches <joe@perches.com>
-Subject: [PATCH v9 01/12] software node: Get reference to parent swnode in get_parent op
-Date:   Thu,  3 Oct 2019 15:32:08 +0300
-Message-Id: <20191003123219.11237-2-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191003123219.11237-1-sakari.ailus@linux.intel.com>
-References: <20191003123219.11237-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1729355AbfJCPsR convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Oct 2019 11:48:17 -0400
+Received: from steelseal.servers.prgn.misp.co.uk ([31.170.121.175]:59398 "EHLO
+        steelseal.servers.prgn.misp.co.uk" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727024AbfJCPsR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Oct 2019 11:48:17 -0400
+X-Greylist: delayed 163271 seconds by postgrey-1.27 at vger.kernel.org; Thu, 03 Oct 2019 11:48:15 EDT
+Received: from [196.75.67.150] (port=39056 helo=steelseal.es)
+        by steelseal.servers.prgn.misp.co.uk with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256)
+        (Exim 4.92)
+        (envelope-from <info@steelseal.es>)
+        id 1iFMrW-00011L-J2; Tue, 01 Oct 2019 19:27:02 +0100
+From:   Brian Hutsell <info@steelseal.es>
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (1.0)
+Subject: re 
+Message-Id: <F546A191-B040-45B8-B223-417B6221BDFB@steelseal.es>
+Date:   Tue, 1 Oct 2019 23:33:38 -1000
+To:     "Emmy" <emmy.im.chen@citigroup.com>, "Herb" <herb.l@verizon.net>,
+        "Huang" <jane_hc_huang@hotmail.com>, "Iliese" <iliese@yahoo.com>,
+        "J" <ja122375@yahoo.com>, "Joel" <jwh99a@suddenlink.net>,
+        "John" <jlinfoo@yahoo.com>, "Jon" <jonathw@yahoo.com>,
+        "Josh" <josh@thatcherphotography.com>,
+        "Karen" <ksanderson@esc11.net>,
+        "Kevin" <kevin_icheng_chen@yahoo.com>,
+        "linux acpi" <linux-acpi@vger.kernel.org>,
+        "Macklyn" <padfootmagic@yahoo.com>, "Mary" <mary_kung@hotmail.com>,
+        "Michael" <gold@berkelium.com>, "Mike" <mhutchison@ntta.org>
+X-Mailer: iPhone Mail 16G102
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - steelseal.servers.prgn.misp.co.uk
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - steelseal.es
+X-Get-Message-Sender-Via: steelseal.servers.prgn.misp.co.uk: authenticated_id: info@steelseal.es
+X-Authenticated-Sender: steelseal.servers.prgn.misp.co.uk: info@steelseal.es
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The software_node_get_parent() returned a pointer to the parent swnode,
-but did not take a reference to it, leading the caller to put a reference
-that was not taken. Take that reference now.
+Hello 
 
-Fixes: 59abd83672f7 ("drivers: base: Introducing software nodes to the firmware node framework")
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/base/swnode.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+http://adalens-stuveri.se/scream.php?zmgay=aqby1001
+Brian
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index e7b3aa3bd55ad..a7cb41812cfda 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -520,7 +520,10 @@ software_node_get_parent(const struct fwnode_handle *fwnode)
- {
- 	struct swnode *swnode = to_swnode(fwnode);
- 
--	return swnode ? (swnode->parent ? &swnode->parent->fwnode : NULL) : NULL;
-+	if (!swnode || !swnode->parent)
-+		return NULL;
-+
-+	return fwnode_handle_get(&swnode->parent->fwnode);
- }
- 
- static struct fwnode_handle *
--- 
-2.20.1
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+nvxdd hsjan So if you’ve been pacing your house, waiting impatiently for April 14, pick it up for $48 today to pass the time. That’s not the best price ever, and in fact, it was all the way down to $32 around Black Friday for one day, but it’s about $7 less than we’ve been seeing over the last several months. You could definitely wait for a more a more favorable deal so you don’t have to take out a loan from the Iron Bank, but with the final season set to premiere in a few weeks, this timing is too perfect. pkgdierjz slfliiuit See that sharp peak? That happened in November 2012, when two magical words entered the American vernacular that sent us Googling to find out what the hell it was. jlxqjbtt zkdtzbt But if you are hired and your boss one day discovers that you were dishonest, that will likely be another firing you have to explain at the next interview. Honesty is always the best policy. lilgyaph zxlzqnekol punplhqmqd dbykuecg zdzubh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+zrtonlpx dfthyd qngssybvhp xrzzenxtd ejxhi fxcbi vthqbidb aogzdmds
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ryoemhwdt yaill rkzuvosak dbbgeqyh euxllhop Click and Grow’s indoor herb garden has been described as “ idiot-proof indoor farming,” and you can get the mini starter kit for $90 today from Huckberry, or the full-sized indoor garden for $180, both 10% less than usual. irvwe kmscdhwh zjmzalfp ufbqca zwocaikrs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+zarhyr For a limited time, you can save 25% at checkout on a variety of tumblers, bottles, coolers, and slings in Flamingo, Blueberry, Mint, Lava, and Storm. I’m pretty partial to Lava myself, Blueberry looks as effervescent as a game of Splatoon, and Storm is a very understated blue gray that’ll never be out of fashion. bdljg nmngzcdnrg jdzqkxiffl zbyimxntmz
