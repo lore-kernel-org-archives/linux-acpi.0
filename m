@@ -1,222 +1,127 @@
-Return-Path: <SRS0=hrbu=X2=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=9UjT=X3=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C82E2ECE587
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Oct 2019 14:27:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28F0CECE587
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Oct 2019 00:25:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A673A21855
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Oct 2019 14:27:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EDB2020815
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Oct 2019 00:25:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388917AbfJAO1d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 1 Oct 2019 10:27:33 -0400
-Received: from mga05.intel.com ([192.55.52.43]:29363 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727111AbfJAO1d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Oct 2019 10:27:33 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 01 Oct 2019 07:27:32 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.64,571,1559545200"; 
-   d="scan'208";a="216084449"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga004.fm.intel.com with ESMTP; 01 Oct 2019 07:27:30 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 8C3C924C; Tue,  1 Oct 2019 17:27:26 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        linux-mmc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        linux-acpi@vger.kernel.org,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 5/6] mmc: sdhci-acpi: Switch to use acpi_dev_hid_uid_match()
-Date:   Tue,  1 Oct 2019 17:27:24 +0300
-Message-Id: <20191001142725.30857-6-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20191001142725.30857-1-andriy.shevchenko@linux.intel.com>
-References: <20191001142725.30857-1-andriy.shevchenko@linux.intel.com>
+        id S1726653AbfJBAZw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 1 Oct 2019 20:25:52 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:42824 "EHLO
+        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725765AbfJBAZw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Oct 2019 20:25:52 -0400
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x920MK03066917
+        for <linux-acpi@vger.kernel.org>; Tue, 1 Oct 2019 20:25:50 -0400
+Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2vc71qtb2g-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Oct 2019 20:25:50 -0400
+Received: from localhost
+        by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-acpi@vger.kernel.org> from <daniel@linux.ibm.com>;
+        Wed, 2 Oct 2019 01:25:48 +0100
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (9.149.109.195)
+        by e06smtp01.uk.ibm.com (192.168.101.131) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+        Wed, 2 Oct 2019 01:25:45 +0100
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+        by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x920Pi3659375742
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 2 Oct 2019 00:25:45 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B3DFDAE053;
+        Wed,  2 Oct 2019 00:25:44 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 61872AE056;
+        Wed,  2 Oct 2019 00:25:44 +0000 (GMT)
+Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
+        by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Wed,  2 Oct 2019 00:25:44 +0000 (GMT)
+Received: from volution.ozlabs.ibm.com (haven.au.ibm.com [9.192.254.114])
+        (using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ozlabs.au.ibm.com (Postfix) with ESMTPSA id D5C51A00F3;
+        Wed,  2 Oct 2019 10:25:42 +1000 (AEST)
+Date:   Wed, 2 Oct 2019 10:25:40 +1000
+From:   Daniel Black <daniel@linux.ibm.com>
+To:     Keith Busch <keith.busch@intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        "open list:ACPI" <linux-acpi@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        Tao Xu <tao3.xu@intel.com>
+Subject: Re: [PATCH] acpi/hmat: ACPI_HMAT_MEMORY_PD_VALID is deprecated in
+ ACPI-6.3
+In-Reply-To: <20190903110345.4ee753c3@volution.ozlabs.ibm.com>
+References: <20190806042440.16445-1-daniel@linux.ibm.com>
+        <CAJZ5v0jXiuA3HGPCY3vbH8_53WP-6G=bVJ8SPprCDDg9MoyAsQ@mail.gmail.com>
+        <20190903110345.4ee753c3@volution.ozlabs.ibm.com>
+Organization: IBM
+X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+x-cbid: 19100200-4275-0000-0000-0000036D258A
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 19100200-4276-0000-0000-000038802679
+Message-Id: <20191002102540.40492b0c@volution.ozlabs.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-10-01_10:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1011 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=793 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1908290000 definitions=main-1910020000
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Since we have a generic helper, drop custom implementation in the driver.
+On Tue, 3 Sep 2019 11:03:45 +1000
+Daniel Black <daniel@linux.ibm.com> wrote:
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/mmc/host/sdhci-acpi.c | 49 ++++++++++++-----------------------
- 1 file changed, 16 insertions(+), 33 deletions(-)
+> On Mon, 2 Sep 2019 23:28:50 +0200
+> "Rafael J. Wysocki" <rafael@kernel.org> wrote:
+> 
+> > On Tue, Aug 6, 2019 at 6:24 AM Daniel Black <daniel@linux.ibm.com> wrote:  
+> > >
+> > > ACPI-6.3 corresponds to when hmat revision was bumped from
+> > > 1 to 2. In this version ACPI_HMAT_MEMORY_PD_VALID was
+> > > deprecated and made reserved.
+> > >
+> > > As such in revision 2+ we shouldn't be testing this flag.
+> > >
+> > > This is as per ACPI-6.3, 5.2.27.3, Table 5-145
+> > > "Memory Proximity Domain Attributes Structure"
+> > > for Flags.
+> > >
+> > > Signed-off-by: Daniel Black <daniel@linux.ibm.com>    
+> > 
+> > Keith, any comments?  
+> 
+> FYI this was found when I was testing Tao Xu's qemu implementation of HMAT ACPI-6.3 which has no implementation of  ACPI_HMAT_MEMORY_PD_VALID.
+> 
+> Current patch implementing Memory Proximity Domain Attributes Structure:
+> https://patchwork.kernel.org/patch/11125301/
 
-diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
-index 1604f512c7bd..105e73d4a3b9 100644
---- a/drivers/mmc/host/sdhci-acpi.c
-+++ b/drivers/mmc/host/sdhci-acpi.c
-@@ -61,7 +61,7 @@ struct sdhci_acpi_slot {
- 	mmc_pm_flag_t	pm_caps;
- 	unsigned int	flags;
- 	size_t		priv_size;
--	int (*probe_slot)(struct platform_device *, const char *, const char *);
-+	int (*probe_slot)(struct platform_device *, struct acpi_device *);
- 	int (*remove_slot)(struct platform_device *);
- 	int (*free_slot)(struct platform_device *pdev);
- 	int (*setup_host)(struct platform_device *pdev);
-@@ -325,12 +325,10 @@ static bool sdhci_acpi_cht_pci_wifi(unsigned int vendor, unsigned int device,
-  * wifi card in the expected slot with an ACPI companion node, is used to
-  * indicate that acpi_device_fix_up_power() should be avoided.
-  */
--static inline bool sdhci_acpi_no_fixup_child_power(const char *hid,
--						   const char *uid)
-+static inline bool sdhci_acpi_no_fixup_child_power(struct acpi_device *adev)
- {
- 	return sdhci_acpi_cht() &&
--	       !strcmp(hid, "80860F14") &&
--	       !strcmp(uid, "2") &&
-+	       acpi_dev_hid_uid_match(adev, "80860F14", "2") &&
- 	       sdhci_acpi_cht_pci_wifi(0x14e4, 0x43ec, 0, 28);
- }
- 
-@@ -345,8 +343,7 @@ static inline bool sdhci_acpi_byt_defer(struct device *dev)
- 	return false;
- }
- 
--static inline bool sdhci_acpi_no_fixup_child_power(const char *hid,
--						   const char *uid)
-+static inline bool sdhci_acpi_no_fixup_child_power(struct acpi_device *adev)
- {
- 	return false;
- }
-@@ -375,19 +372,18 @@ static int bxt_get_cd(struct mmc_host *mmc)
- 	return ret;
- }
- 
--static int intel_probe_slot(struct platform_device *pdev, const char *hid,
--			    const char *uid)
-+static int intel_probe_slot(struct platform_device *pdev, struct acpi_device *adev)
- {
- 	struct sdhci_acpi_host *c = platform_get_drvdata(pdev);
- 	struct intel_host *intel_host = sdhci_acpi_priv(c);
- 	struct sdhci_host *host = c->host;
- 
--	if (hid && uid && !strcmp(hid, "80860F14") && !strcmp(uid, "1") &&
-+	if (acpi_dev_hid_uid_match(adev, "80860F14", "1") &&
- 	    sdhci_readl(host, SDHCI_CAPABILITIES) == 0x446cc8b2 &&
- 	    sdhci_readl(host, SDHCI_CAPABILITIES_1) == 0x00000807)
- 		host->timeout_clk = 1000; /* 1000 kHz i.e. 1 MHz */
- 
--	if (hid && !strcmp(hid, "80865ACA"))
-+	if (acpi_dev_hid_uid_match(adev, "80865ACA", NULL))
- 		host->mmc_host_ops.get_cd = bxt_get_cd;
- 
- 	intel_dsm_init(intel_host, &pdev->dev, host->mmc);
-@@ -473,8 +469,7 @@ static irqreturn_t sdhci_acpi_qcom_handler(int irq, void *ptr)
- 	return IRQ_HANDLED;
- }
- 
--static int qcom_probe_slot(struct platform_device *pdev, const char *hid,
--			   const char *uid)
-+static int qcom_probe_slot(struct platform_device *pdev, struct acpi_device *adev)
- {
- 	struct sdhci_acpi_host *c = platform_get_drvdata(pdev);
- 	struct sdhci_host *host = c->host;
-@@ -482,7 +477,7 @@ static int qcom_probe_slot(struct platform_device *pdev, const char *hid,
- 
- 	*irq = -EINVAL;
- 
--	if (strcmp(hid, "QCOM8051"))
-+	if (!acpi_dev_hid_uid_match(adev, "QCOM8051", NULL))
- 		return 0;
- 
- 	*irq = platform_get_irq(pdev, 1);
-@@ -501,14 +496,12 @@ static int qcom_free_slot(struct platform_device *pdev)
- 	struct sdhci_host *host = c->host;
- 	struct acpi_device *adev;
- 	int *irq = sdhci_acpi_priv(c);
--	const char *hid;
- 
- 	adev = ACPI_COMPANION(dev);
- 	if (!adev)
- 		return -ENODEV;
- 
--	hid = acpi_device_hid(adev);
--	if (strcmp(hid, "QCOM8051"))
-+	if (!acpi_dev_hid_uid_match(adev, "QCOM8051", NULL))
- 		return 0;
- 
- 	if (*irq < 0)
-@@ -583,7 +576,7 @@ static const struct sdhci_acpi_chip sdhci_acpi_chip_amd = {
- };
- 
- static int sdhci_acpi_emmc_amd_probe_slot(struct platform_device *pdev,
--					  const char *hid, const char *uid)
-+					  struct acpi_device *adev)
- {
- 	struct sdhci_acpi_host *c = platform_get_drvdata(pdev);
- 	struct sdhci_host *host   = c->host;
-@@ -654,17 +647,12 @@ static const struct acpi_device_id sdhci_acpi_ids[] = {
- };
- MODULE_DEVICE_TABLE(acpi, sdhci_acpi_ids);
- 
--static const struct sdhci_acpi_slot *sdhci_acpi_get_slot(const char *hid,
--							 const char *uid)
-+static const struct sdhci_acpi_slot *sdhci_acpi_get_slot(struct acpi_device *adev)
- {
- 	const struct sdhci_acpi_uid_slot *u;
- 
- 	for (u = sdhci_acpi_uids; u->hid; u++) {
--		if (strcmp(u->hid, hid))
--			continue;
--		if (!u->uid)
--			return u->slot;
--		if (uid && !strcmp(u->uid, uid))
-+		if (acpi_dev_hid_uid_match(adev, u->hid, u->uid))
- 			return u->slot;
- 	}
- 	return NULL;
-@@ -680,22 +668,17 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
- 	struct resource *iomem;
- 	resource_size_t len;
- 	size_t priv_size;
--	const char *hid;
--	const char *uid;
- 	int err;
- 
- 	device = ACPI_COMPANION(dev);
- 	if (!device)
- 		return -ENODEV;
- 
--	hid = acpi_device_hid(device);
--	uid = acpi_device_uid(device);
--
--	slot = sdhci_acpi_get_slot(hid, uid);
-+	slot = sdhci_acpi_get_slot(device);
- 
- 	/* Power on the SDHCI controller and its children */
- 	acpi_device_fix_up_power(device);
--	if (!sdhci_acpi_no_fixup_child_power(hid, uid)) {
-+	if (!sdhci_acpi_no_fixup_child_power(device)) {
- 		list_for_each_entry(child, &device->children, node)
- 			if (child->status.present && child->status.enabled)
- 				acpi_device_fix_up_power(child);
-@@ -745,7 +728,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
- 
- 	if (c->slot) {
- 		if (c->slot->probe_slot) {
--			err = c->slot->probe_slot(pdev, hid, uid);
-+			err = c->slot->probe_slot(pdev, device);
- 			if (err)
- 				goto err_free;
- 		}
--- 
-2.23.0
+
+On Mon, 12 Aug 2019 16:03:15 +0800
+Tao Xu <tao3.xu@intel.com> wrote:
+> 
+> Looks good to me.
+> 
+> Reviewed-by: Tao Xu <tao3.xu@intel.com>
+
+Ping. Any comments?
 
