@@ -2,83 +2,79 @@ Return-Path: <SRS0=dkqV=X4=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E154FC10F14
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 10:17:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46269C10F14
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 12:32:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B6D31218DE
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 10:17:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23D7620862
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Oct 2019 12:32:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727705AbfJCKRz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Oct 2019 06:17:55 -0400
-Received: from mga12.intel.com ([192.55.52.136]:39423 "EHLO mga12.intel.com"
+        id S1729741AbfJCMc1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Oct 2019 08:32:27 -0400
+Received: from mga09.intel.com ([134.134.136.24]:50422 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726039AbfJCKRz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Oct 2019 06:17:55 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
+        id S1729398AbfJCMc1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Oct 2019 08:32:27 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Oct 2019 03:17:54 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.67,251,1566889200"; 
-   d="scan'208";a="343624430"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga004.jf.intel.com with ESMTP; 03 Oct 2019 03:17:52 -0700
-Received: from andy by smile with local (Exim 4.92.2)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1iFyBD-0007PH-2I; Thu, 03 Oct 2019 13:17:51 +0300
-Date:   Thu, 3 Oct 2019 13:17:51 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Ulf Hansson <ulf.hansson@linaro.org>
-Cc:     Joerg Roedel <joro@8bytes.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <iommu@lists.linux-foundation.org>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 0/6] ACPI / utils: add new helper for HID/UID match
-Message-ID: <20191003101751.GE32742@smile.fi.intel.com>
-References: <20191001142725.30857-1-andriy.shevchenko@linux.intel.com>
- <CAPDyKFq_HPDW5i5ND_df4GJsnaOowHWbFTkgCCOP6w9ar2uo6w@mail.gmail.com>
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Oct 2019 05:32:26 -0700
+X-IronPort-AV: E=Sophos;i="5.67,252,1566889200"; 
+   d="scan'208";a="343651726"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Oct 2019 05:32:23 -0700
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 2D29C20FFB;
+        Thu,  3 Oct 2019 15:32:17 +0300 (EEST)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1iG0HL-0002wW-ST; Thu, 03 Oct 2019 15:32:19 +0300
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org,
+        rafael@kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        Rob Herring <robh@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Joe Perches <joe@perches.com>
+Subject: [PATCH v9 08/12] lib/vsprintf: Add a note on re-using %pf or %pF
+Date:   Thu,  3 Oct 2019 15:32:15 +0300
+Message-Id: <20191003123219.11237-9-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191003123219.11237-1-sakari.ailus@linux.intel.com>
+References: <20191003123219.11237-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPDyKFq_HPDW5i5ND_df4GJsnaOowHWbFTkgCCOP6w9ar2uo6w@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Oct 03, 2019 at 12:00:29PM +0200, Ulf Hansson wrote:
-> On Tue, 1 Oct 2019 at 16:27, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > There are few users outside of ACPI realm that re-introduce a custom
-> > solution to match ACPI device against HID/UID. Add a generic helper for
-> > them.
-> >
-> > The series is supposed to go via linux-pm tree.
+Add a note warning of re-use of obsolete %pf or %pF extensions.
 
-> I guess Rafael intend to pick this up for v5.5?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Suggested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+---
+ lib/vsprintf.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Yes, linux-pm tree is maintained by Rafael.
-
-> In any case, for the mmc patch, feel free to add:
-> 
-> Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
-
-Thanks!
-
+diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+index a58329c8fa750..cf48769fe330c 100644
+--- a/lib/vsprintf.c
++++ b/lib/vsprintf.c
+@@ -2008,6 +2008,8 @@ static char *kobject_string(char *buf, char *end, void *ptr,
+  * - 'S' For symbolic direct pointers (or function descriptors) with offset
+  * - 's' For symbolic direct pointers (or function descriptors) without offset
+  * - '[Ss]R' as above with __builtin_extract_return_addr() translation
++ * - '[Ff]' %pf and %pF were obsoleted and later removed in favor of
++ *	    %ps and %pS. Be careful when re-using these specifiers.
+  * - 'B' For backtraced symbolic direct pointers with offset
+  * - 'R' For decoded struct resource, e.g., [mem 0x0-0x1f 64bit pref]
+  * - 'r' For raw struct resource, e.g., [mem 0x0-0x1f flags 0x201]
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.20.1
 
