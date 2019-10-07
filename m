@@ -2,95 +2,85 @@ Return-Path: <SRS0=Uq2U=YA=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84A32ECE58C
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Oct 2019 18:24:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B59AAC47404
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Oct 2019 22:44:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E0AF206BB
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Oct 2019 18:24:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="as1shgEV"
+	by mail.kernel.org (Postfix) with ESMTP id 80EBD206C0
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Oct 2019 22:44:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728459AbfJGSYW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Oct 2019 14:24:22 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:27698 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728079AbfJGSYV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Oct 2019 14:24:21 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1570472660;
-        h=from:from:reply-to:reply-to:subject:subject:date:date:
-         message-id:message-id:to:to:cc:cc:mime-version:mime-version:
-         content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=eCQBbH69Pg1ZkWDiANjXEs7D77CgeYE54SQ2IQO4wnE=;
-        b=as1shgEVyfW80E+FyuBBhml/4IPmzY6C1o7qN1rq0In3bsYU25sO1Liv3HUEeSN8opYVI6
-        3xuxGUGqo9raOeWICrhvgwMbOV6VYsxZ/NBg5NEyjDw8CbiXp8kHY4mnYEsr4KjdVxp3bc
-        EI9XkLsHSaKtxv3JK+Z1NLULpw3mjNQ=
-Received: from mail-io1-f71.google.com (mail-io1-f71.google.com
- [209.85.166.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-128-mMkw9j3_MMe2-3gTTqxIdw-1; Mon, 07 Oct 2019 14:24:19 -0400
-Received: by mail-io1-f71.google.com with SMTP id u18so28186180ioc.4
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Oct 2019 11:24:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:reply-to
-         :references:mime-version:content-disposition:in-reply-to:user-agent;
-        bh=eCQBbH69Pg1ZkWDiANjXEs7D77CgeYE54SQ2IQO4wnE=;
-        b=D28hgKtVEN5SfTIzaBPtfL9gNYTA5L/VvcCZTemOwCjhGNS1nRYlPmq08YCRvCr1VR
-         QSoERHnTscb3MhhQ4dPIlu4Qn9tAZ0/5GEUfVu+B3bA4FRfgVCERrQs8DvLP4fiOJgLt
-         Iv27GHAfj4My8Fn7DYBVUosE2NHlkE6n9/cK5faRY3VbOXBEtUzdTBwR0hwJbPoWN1nl
-         syjQTg20IwAlyAC544aFyfvSn3pzcbh26cNLKLVtbhgGOL/Rn0UyyJV/BmI6ZfXE4DdK
-         145ueeAAFBibE1vXujEa1lgrNj2BDMyJQzQewKYpTrFLVbJGF7d/cjkPXiFr+73a9+hu
-         hGeA==
-X-Gm-Message-State: APjAAAUkfwqXXbKTuhXNTh3hnw28fTem6KnzxOSsHBQlKSW81OHqnRtN
-        FMityJyB0Zw3whF6NzLH/FHtoxsLekcb5wdqqy7mClZi4jvhJRlLLcf2BwSN5iVvr1qVbbYUDZ7
-        cWJZGj4/bESIiwPHzeYxE7Q==
-X-Received: by 2002:a92:9cca:: with SMTP id x71mr15879282ill.245.1570472658214;
-        Mon, 07 Oct 2019 11:24:18 -0700 (PDT)
-X-Google-Smtp-Source: APXvYqyRjcepKCt0gHU4J1fh/VS38XxOBSx6x1eDJ//ttvcWAF97bQNybglqC62SyFGnxx6CS0fwfw==
-X-Received: by 2002:a92:9cca:: with SMTP id x71mr15879262ill.245.1570472657939;
-        Mon, 07 Oct 2019 11:24:17 -0700 (PDT)
-Received: from localhost (ip70-163-223-149.ph.ph.cox.net. [70.163.223.149])
-        by smtp.gmail.com with ESMTPSA id l13sm7026832ilq.56.2019.10.07.11.24.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Oct 2019 11:24:16 -0700 (PDT)
-Date:   Mon, 7 Oct 2019 11:24:15 -0700
-From:   Jerry Snitselaar <jsnitsel@redhat.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        linux-mmc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 6/6] iommu/amd: Switch to use acpi_dev_hid_uid_match()
-Message-ID: <20191007182415.ftpojfdluoun34xm@cantor>
-Reply-To: Jerry Snitselaar <jsnitsel@redhat.com>
-References: <20190924193739.86133-1-andriy.shevchenko@linux.intel.com>
- <20190924193739.86133-7-andriy.shevchenko@linux.intel.com>
+        id S1729279AbfJGWor (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Oct 2019 18:44:47 -0400
+Received: from mx3.molgen.mpg.de ([141.14.17.11]:35145 "EHLO mx1.molgen.mpg.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729051AbfJGWor (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Oct 2019 18:44:47 -0400
+Received: from [192.168.0.5] (ip5f5bf2e6.dynamic.kabel-deutschland.de [95.91.242.230])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pmenzel)
+        by mx.molgen.mpg.de (Postfix) with ESMTPSA id 55C5120225688;
+        Tue,  8 Oct 2019 00:44:44 +0200 (CEST)
+Subject: Re: [PATCH] ACPI: PM: Revert "ACPI / PM: Blacklist Low Power S0 Idle
+ _DSM for Dell XPS13 9360"
+To:     Mario Limonciello <mario.limonciello@dell.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+References: <1569514137-2307-1-git-send-email-mario.limonciello@dell.com>
+From:   Paul Menzel <pmenzel@molgen.mpg.de>
+Message-ID: <97e66464-8407-fd58-21a6-aeb7736dec7b@molgen.mpg.de>
+Date:   Tue, 8 Oct 2019 00:44:44 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-In-Reply-To: <20190924193739.86133-7-andriy.shevchenko@linux.intel.com>
-User-Agent: NeoMutt/20180716
-X-MC-Unique: mMkw9j3_MMe2-3gTTqxIdw-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+In-Reply-To: <1569514137-2307-1-git-send-email-mario.limonciello@dell.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue Sep 24 19, Andy Shevchenko wrote:
->Since we have a generic helper, drop custom implementation in the driver.
->
->Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->---
+Dear Mario,
 
-Reviewed-by: Jerry Snitselaar <jsnitsel@redhat.com>
 
+On 26.09.19 18:08, Mario Limonciello wrote:
+> This reverts part of
+> commit 71630b7a832f ("ACPI / PM: Blacklist Low Power S0 Idle _DSM for Dell XPS13 9360")
+> to remove the S0ix blacklist for the XPS 9360.
+> 
+> The problems with this system occurred in one possible NVME SSD when
+> putting system into s0ix.  As the NVME sleep behavior has been adjusted
+> in d916b1be this is expected to be now resolved.
+
+1.  Please add, that it was the Hynix(?) SSD.
+2.  Please add the commit message summary of d916b1be.
+
+     nvme-pci: use host managed power state for suspend
+
+> Cc: 'Paul Menzel <pmenzel@molgen.mpg.de>'
+> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=196907
+> Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
+
+Tag it for the stable series? d916b1be (first tag v5.3-rc1) is not 
+tagged for stable.
+
+> ---
+> The particular failing configuration was reported by only ever failed for Paul Menzel, so hopefully
+> he can test on his failing system.
+
+I successfully tested Linux 5.4-rc1+ with this commit last Friday on the 
+Dell XPS 13 9360.
+
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+
+[…]
+
+
+Kind regards,
+
+Paul
