@@ -1,208 +1,167 @@
-Return-Path: <SRS0=QEvj=X5=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=Uq2U=YA=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FSL_HELO_FAKE,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D18F1C4360C
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Oct 2019 23:47:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9980FECE58D
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Oct 2019 14:55:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9714C215EA
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Oct 2019 23:47:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="sByyKd4d"
+	by mail.kernel.org (Postfix) with ESMTP id 702F5206C2
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Oct 2019 14:55:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1570460112;
+	bh=036/FgVYQ0erbfkCckT7nupbJ4Qeu0pYge0nGVPHmC0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=nnw6mPQNTOMkrq6DkccM3/kCkHk5VI1Glo81ErYIILfVUjMeNmxUkyJOvvM17b1gU
+	 ruEeuXeGgig9LmgYQN3jjGXnNSqrSopEN8c70H3Ar1Fc3QVnQd/46x4OMr9plJU+G/
+	 eY1eaDHnHVYF94CJW+5WRljV+cA56LGpd2qPX5tM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731618AbfJDXrZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Oct 2019 19:47:25 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:36627 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731234AbfJDXrY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Oct 2019 19:47:24 -0400
-Received: by mail-oi1-f194.google.com with SMTP id k20so7231088oih.3
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Oct 2019 16:47:24 -0700 (PDT)
+        id S1727711AbfJGOzM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Oct 2019 10:55:12 -0400
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:44735 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727490AbfJGOzL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Oct 2019 10:55:11 -0400
+Received: by mail-wr1-f67.google.com with SMTP id z9so15652577wrl.11;
+        Mon, 07 Oct 2019 07:55:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=3hvzIJAwdUIDj60PRswdy4jtQ7pq65dmvuMEDrZAxmY=;
-        b=sByyKd4dF7wI4oDmjRslrGtLmmRydXZiFQq1Jujk/HqPa81MECMvjff4PRTpIrLM1T
-         FtLi6/h2ZbRbvBRXdT6WETrB/ZO8N5CI4HzDQn5YxSPO8hu0y1aCRWAmC7qi8Qm8rLvn
-         iQS80cCwjcGnf1mF69Ga/IeY8Ca+re5cJH+xiP5vf//YhD1uxWudUffkfsP2NWIKRS1T
-         k9IBszQIRfGPzU18tOeIXFNyApc6D4VwLg0pKtZdq2KYHIrG66Re9wIqbWrEjoNOrCX2
-         fJ8CXcYv+khgS7KxwG1LhMPBM7UFAJA83B+9mP+9I+lTIWgRrGjRG/Kbbpv0P/QT72fT
-         eNlw==
+        d=gmail.com; s=20161025;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=zyoLjL42jHZiwxAXIV2/XDf7QRXhcD/Qv0lwPPBYTCw=;
+        b=B3otWI4U0GSNrjqwP6usJ0QsQXw4reQk8JjX63gKbNmDqAXYg4VYGfTbWUjktkuzGX
+         +xaCfb5w2mNmI+cZOUkZOU2oHYUZaeDacr7lOFz0b6bpbtHDBxwDlGimM2pweeUoUckb
+         v71aW6da+G0WmrKWP7WjLNZbCZDKxBxv68vuIk2coAyjeKrN0uLlkMoQjeEjUizhgWhB
+         81cL91Uw1tAqjPAg4Q1xObpfA9FCGncyUd+XXhjU/zpBiTAHru93glYwQ6hFXRh0jU+c
+         o0lQx8rf0p+RmPNf5M6kyseZ00wCTEeZa7k7f3nPTm7LwKAffx8C99poDTbS0a5pit/4
+         HeBw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=3hvzIJAwdUIDj60PRswdy4jtQ7pq65dmvuMEDrZAxmY=;
-        b=EA5oI9lxSKxj4DMCfFZcedZGOjLpd1U37zC/p9fkKLYPy0g7DwJgf/dgCo1S57AGg3
-         t4O99c50+bwoTNLVYygQomDoeGNz1+DVJgrrifHeWdzAaDDRT1hAqGJ1wSabph791huc
-         a+OWsZBoCNiCkg8NatFVuxJp2z/s5bzVmJyxwX+DD5+ms773cV8NHEdJPRL2BnD1sXOm
-         ZdchXZET08eG4piwscxyaFAxyxi9n4ww5PGNrQT9Hhtxq6L2CvvdzypFC879+CYJI+OE
-         MpwCmudz2q8sT3bE+yuOhQsUUHWso4VBhtkaPKA/t/c8lQtcyuPjqN73Px5nd2CamYC5
-         eveg==
-X-Gm-Message-State: APjAAAU+VBCz1k3d1CbVznf/kspDLEbOIL2SUbvrgtudB7W53MOFB+F5
-        fusRMzH9KK78gyX5H1fPIK46Cf7yO2CFE4Le9RbRmQ==
-X-Google-Smtp-Source: APXvYqyQuIwtgG5lkzf5p8L7oWSkX7l/6aAhPD0T8bNKplxUKfl+D7zNAdO+WZSNpxhAwm2aZQ2M3v/hP61zb0kEqCg=
-X-Received: by 2002:aca:a88e:: with SMTP id r136mr9366466oie.30.1570232843672;
- Fri, 04 Oct 2019 16:47:23 -0700 (PDT)
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to:user-agent;
+        bh=zyoLjL42jHZiwxAXIV2/XDf7QRXhcD/Qv0lwPPBYTCw=;
+        b=MlW0ojwhToYlPfCDYVsgL6bxsaI8PSKD9se19pgLFkzBC1di8Ame4yu0n9sLxvTZ7N
+         LPNA36+M3umUPsZ7V2k7g3Twuq8cZjm4608xYvuW/lcmVDq92A2P7IVJxn6PNQWuMH2h
+         oladtQ9b0xd2HvtC+BMR7OZlxEMDEDJ4Xd1TCHVmqHfW4rWnlz2iQuknzjliGqlkiMUb
+         2A2r3/6j7B2GLSc33m4MYmWMaywqU86jYXpnEg9o/hbmhHrIJO5Xt5SADzGSB64euEQe
+         aXky1pvmOyBdrV+zCPu8KqY2xaaUIaKp1oTfVoINAVUgRe7rqhLR9tc5CZcLLteyAGpa
+         wu2A==
+X-Gm-Message-State: APjAAAU0Xt0ESDp0yqiD8NSZa11U4LHGDxea7S9ezVYEbJZ6UOOySJYK
+        51paO4IydqjJnfi69XJRqZeB28+x
+X-Google-Smtp-Source: APXvYqwE7b8tg9jRbFJHNexgtg4+8TZ17/nub3x5etgIlxbBApsOnGRJD+30XW12FT483Q+wyoX9kg==
+X-Received: by 2002:a5d:4689:: with SMTP id u9mr22942357wrq.78.1570460108023;
+        Mon, 07 Oct 2019 07:55:08 -0700 (PDT)
+Received: from gmail.com (2E8B0CD5.catv.pool.telekom.hu. [46.139.12.213])
+        by smtp.gmail.com with ESMTPSA id s1sm26307592wrg.80.2019.10.07.07.55.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Oct 2019 07:55:07 -0700 (PDT)
+Date:   Mon, 7 Oct 2019 16:55:05 +0200
+From:   Ingo Molnar <mingo@kernel.org>
+To:     Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc:     linux-mm@kvack.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        x86@kernel.org, Keith Busch <keith.busch@intel.com>,
+        jglisse@redhat.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        linuxarm@huawei.com, Andrew Morton <akpm@linux-foundation.org>,
+        Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH V5 3/4] x86: Support Generic Initiator only proximity
+ domains
+Message-ID: <20191007145505.GB88143@gmail.com>
+References: <20191004114330.104746-1-Jonathan.Cameron@huawei.com>
+ <20191004114330.104746-4-Jonathan.Cameron@huawei.com>
 MIME-Version: 1.0
-References: <20190904211126.47518-1-saravanak@google.com> <20190904211126.47518-4-saravanak@google.com>
- <20190911102926.A9F8D2082C@mail.kernel.org> <20191004153750.GB823823@kroah.com>
-In-Reply-To: <20191004153750.GB823823@kroah.com>
-From:   Saravana Kannan <saravanak@google.com>
-Date:   Fri, 4 Oct 2019 16:46:47 -0700
-Message-ID: <CAGETcx-TFL3OAtPvU9_Sjovz4zk+YU+S7yAC7T0Vo7aRuQdWAA@mail.gmail.com>
-Subject: Re: [PATCH v11 3/6] of: property: Add functional dependency link from
- DT bindings
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Stephen Boyd <sboyd@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-acpi@vger.kernel.org,
-        clang-built-linux <clang-built-linux@googlegroups.com>,
-        David Collins <collinsd@codeaurora.org>,
-        Android Kernel Team <kernel-team@android.com>,
-        kbuild test robot <lkp@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191004114330.104746-4-Jonathan.Cameron@huawei.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Oct 4, 2019 at 8:37 AM Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
->
-> On Wed, Sep 11, 2019 at 03:29:25AM -0700, Stephen Boyd wrote:
-> > Quoting Saravana Kannan (2019-09-04 14:11:22)
-> > > Add device links after the devices are created (but before they are
-> > > probed) by looking at common DT bindings like clocks and
-> > > interconnects.
-> > >
-> > > Automatically adding device links for functional dependencies at the
-> > > framework level provides the following benefits:
-> > >
-> > > - Optimizes device probe order and avoids the useless work of
-> > >   attempting probes of devices that will not probe successfully
-> > >   (because their suppliers aren't present or haven't probed yet).
-> > >
-> > >   For example, in a commonly available mobile SoC, registering just
-> > >   one consumer device's driver at an initcall level earlier than the
-> > >   supplier device's driver causes 11 failed probe attempts before the
-> > >   consumer device probes successfully. This was with a kernel with all
-> > >   the drivers statically compiled in. This problem gets a lot worse if
-> > >   all the drivers are loaded as modules without direct symbol
-> > >   dependencies.
-> > >
-> > > - Supplier devices like clock providers, interconnect providers, etc
-> > >   need to keep the resources they provide active and at a particular
-> > >   state(s) during boot up even if their current set of consumers don't
-> > >   request the resource to be active. This is because the rest of the
-> > >   consumers might not have probed yet and turning off the resource
-> > >   before all the consumers have probed could lead to a hang or
-> > >   undesired user experience.
-> > >
-> > >   Some frameworks (Eg: regulator) handle this today by turning off
-> > >   "unused" resources at late_initcall_sync and hoping all the devices
-> > >   have probed by then. This is not a valid assumption for systems with
-> > >   loadable modules. Other frameworks (Eg: clock) just don't handle
-> > >   this due to the lack of a clear signal for when they can turn off
-> > >   resources.
-> >
-> > The clk framework disables unused clks at late_initcall_sync. What do
-> > you mean clk framework doesn't turn them off because of a clear signal?
->
-> There's a number of minor things you pointed out in this review.
->
-> Saravana, can you send a follow-on patch for the minor code cleanups
-> like formatting and the like that was found here?
 
-Will do next week.
+* Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
+
+> Done in a somewhat different fashion to arm64.
+> Here the infrastructure for memoryless domains was already
+> in place.  That infrastruture applies just as well to
+> domains that also don't have a CPU, hence it works for
+> Generic Initiator Domains.
+> 
+> In common with memoryless domains we only register GI domains
+> if the proximity node is not online. If a domain is already
+> a memory containing domain, or a memoryless domain there is
+> nothing to do just because it also contains a Generic Initiator.
+> 
+> Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> ---
+>  arch/x86/include/asm/numa.h |  2 ++
+>  arch/x86/kernel/setup.c     |  1 +
+>  arch/x86/mm/numa.c          | 14 ++++++++++++++
+>  3 files changed, 17 insertions(+)
+> 
+> diff --git a/arch/x86/include/asm/numa.h b/arch/x86/include/asm/numa.h
+> index bbfde3d2662f..f631467272a3 100644
+> --- a/arch/x86/include/asm/numa.h
+> +++ b/arch/x86/include/asm/numa.h
+> @@ -62,12 +62,14 @@ extern void numa_clear_node(int cpu);
+>  extern void __init init_cpu_to_node(void);
+>  extern void numa_add_cpu(int cpu);
+>  extern void numa_remove_cpu(int cpu);
+> +extern void init_gi_nodes(void);
+>  #else	/* CONFIG_NUMA */
+>  static inline void numa_set_node(int cpu, int node)	{ }
+>  static inline void numa_clear_node(int cpu)		{ }
+>  static inline void init_cpu_to_node(void)		{ }
+>  static inline void numa_add_cpu(int cpu)		{ }
+>  static inline void numa_remove_cpu(int cpu)		{ }
+> +static inline void init_gi_nodes(void)			{ }
+>  #endif	/* CONFIG_NUMA */
+>  
+>  #ifdef CONFIG_DEBUG_PER_CPU_MAPS
+> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+> index cfb533d42371..b6c977907ea5 100644
+> --- a/arch/x86/kernel/setup.c
+> +++ b/arch/x86/kernel/setup.c
+> @@ -1264,6 +1264,7 @@ void __init setup_arch(char **cmdline_p)
+>  	prefill_possible_map();
+>  
+>  	init_cpu_to_node();
+> +	init_gi_nodes();
+>  
+>  	io_apic_init_mappings();
+>  
+> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+> index 4123100e0eaf..50bf724a425e 100644
+> --- a/arch/x86/mm/numa.c
+> +++ b/arch/x86/mm/numa.c
+> @@ -733,6 +733,20 @@ static void __init init_memory_less_node(int nid)
+>  	 */
+>  }
+>  
+> +/*
+> + * Generic Initiator Nodes may have neither CPU nor Memory.
+> + * At this stage if either of the others were present we would
+> + * already be online.
+> + */
+> +void __init init_gi_nodes(void)
+> +{
+> +	int nid;
+> +
+> +	for_each_node_state(nid, N_GENERIC_INITIATOR)
+> +		if (!node_online(nid))
+> +			init_memory_less_node(nid);
+> +}
+
+Nit: missing curly braces.
+
+How do these work in practice, will a system that only had nodes 0-1 
+today grow a third node '2' that won't have any CPUs on memory on them?
 
 Thanks,
-Saravana
 
->
-> > > +static int of_link_to_phandle(struct device *dev, struct device_node *sup_np)
-> > > +{
-> > > +       struct device *sup_dev;
-> > > +       u32 dl_flags = DL_FLAG_AUTOPROBE_CONSUMER;
-> >
-> > Is it really a u32 instead of an unsigned int or unsigned long?
-> >
-> > > +       int ret = 0;
-> > > +       struct device_node *tmp_np = sup_np;
-> > > +
-> > > +       of_node_get(sup_np);
-> > > +       /*
-> > > +        * Find the device node that contains the supplier phandle.  It may be
-> > > +        * @sup_np or it may be an ancestor of @sup_np.
-> > > +        */
-> > > +       while (sup_np && !of_find_property(sup_np, "compatible", NULL))
-> > > +               sup_np = of_get_next_parent(sup_np);
-> >
-> > I don't get this. This is assuming that drivers are only probed for
-> > device nodes that have a compatible string? What about drivers that make
-> > sub-devices for clk support that have drivers in drivers/clk/ that then
-> > attach at runtime later? This happens sometimes for MFDs that want to
-> > split the functionality across the driver tree to the respective
-> > subsystems.
->
-> For that, the link would not be there, correct?
->
-> > > +static int of_link_property(struct device *dev, struct device_node *con_np,
-> > > +                            const char *prop_name)
-> > > +{
-> > > +       struct device_node *phandle;
-> > > +       const struct supplier_bindings *s = bindings;
-> > > +       unsigned int i = 0;
-> > > +       bool matched = false;
-> > > +       int ret = 0;
-> > > +
-> > > +       /* Do not stop at first failed link, link all available suppliers. */
-> > > +       while (!matched && s->parse_prop) {
-> > > +               while ((phandle = s->parse_prop(con_np, prop_name, i))) {
-> > > +                       matched = true;
-> > > +                       i++;
-> > > +                       if (of_link_to_phandle(dev, phandle) == -EAGAIN)
-> > > +                               ret = -EAGAIN;
-> >
-> > And don't break?
->
-> There was comments before about how this is not needed.  Frank asked
-> that the comment be removed.  And now you point it out again :)
->
-> Look at the comment a few lines up, we have to go through all of the
-> suppliers.
->
-> > > +static int __of_link_to_suppliers(struct device *dev,
-> >
-> > Why the double underscore?
-> >
-> > > +                                 struct device_node *con_np)
-> > > +{
-> > > +       struct device_node *child;
-> > > +       struct property *p;
-> > > +       int ret = 0;
-> > > +
-> > > +       for_each_property_of_node(con_np, p)
-> > > +               if (of_link_property(dev, con_np, p->name))
-> > > +                       ret = -EAGAIN;
-> >
-> > Same comment.
->
-> Same response as above :)
->
-> thanks,
->
-> greg k-h
+	Ingo
