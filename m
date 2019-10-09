@@ -3,42 +3,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FFCBECE58D
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Oct 2019 23:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04CCDECE58D
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Oct 2019 23:19:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 684C8218DE
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Oct 2019 23:19:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB9CD21920
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Oct 2019 23:19:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732334AbfJIXS7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 9 Oct 2019 19:18:59 -0400
-Received: from mga07.intel.com ([134.134.136.100]:59968 "EHLO mga07.intel.com"
+        id S1732019AbfJIXTM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 9 Oct 2019 19:19:12 -0400
+Received: from mga06.intel.com ([134.134.136.31]:41230 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731145AbfJIXS7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 9 Oct 2019 19:18:59 -0400
+        id S1731072AbfJIXTL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Oct 2019 19:19:11 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Oct 2019 16:18:58 -0700
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Oct 2019 16:19:10 -0700
 X-IronPort-AV: E=Sophos;i="5.67,277,1566889200"; 
-   d="scan'208";a="393845622"
+   d="scan'208";a="200287059"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Oct 2019 16:18:57 -0700
-Subject: [PATCH v6 01/12] acpi/numa: Establish a new drivers/acpi/numa/
- directory
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Oct 2019 16:19:09 -0700
+Subject: [PATCH v6 03/12] x86/efi: Push EFI_MEMMAP check into leaf routines
 From:   Dan Williams <dan.j.williams@intel.com>
 To:     mingo@redhat.com
-Cc:     Len Brown <lenb@kernel.org>, Keith Busch <kbusch@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+Cc:     x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Zijlstra <peterz@infradead.org>,
         Dave Hansen <dave.hansen@linux.intel.com>,
-        peterz@infradead.org, vishal.l.verma@intel.com,
-        ard.biesheuvel@linaro.org, x86@kernel.org,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        vishal.l.verma@intel.com, x86@kernel.org,
         linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Date:   Wed, 09 Oct 2019 16:04:40 -0700
-Message-ID: <157066228021.1059972.697896634266979217.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date:   Wed, 09 Oct 2019 16:04:51 -0700
+Message-ID: <157066229157.1059972.2996514209279324013.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <157066227329.1059972.5659620631541203458.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <157066227329.1059972.5659620631541203458.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-2-gc94f
@@ -50,128 +51,159 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Currently hmat.c lives under an "hmat" directory which does not enhance
-the description of the file. The initial motivation for giving hmat.c
-its own directory was to delineate it as mm functionality in contrast to
-ACPI device driver functionality.
+In preparation for adding another EFI_MEMMAP dependent call that needs
+to occur before e820__memblock_setup() fixup the existing efi calls to
+check for EFI_MEMMAP internally. This ends up being cleaner than the
+alternative of checking EFI_MEMMAP multiple times in setup_arch().
 
-As ACPI continues to play an increasing role in conveying
-memory location and performance topology information to the OS take the
-opportunity to co-locate these NUMA relevant tables in a combined
-directory.
-
-numa.c is renamed to srat.c and moved to drivers/acpi/numa/ along with
-hmat.c.
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Keith Busch <kbusch@kernel.org>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/Kconfig       |    9 +--------
- drivers/acpi/Makefile      |    3 +--
- drivers/acpi/hmat/Makefile |    2 --
- drivers/acpi/numa/Kconfig  |    6 ++++++
- drivers/acpi/numa/Makefile |    3 +++
- drivers/acpi/numa/hmat.c   |    0 
- drivers/acpi/numa/srat.c   |    0 
- 7 files changed, 11 insertions(+), 12 deletions(-)
- delete mode 100644 drivers/acpi/hmat/Makefile
- rename drivers/acpi/{hmat/Kconfig => numa/Kconfig} (77%)
- create mode 100644 drivers/acpi/numa/Makefile
- rename drivers/acpi/{hmat/hmat.c => numa/hmat.c} (100%)
- rename drivers/acpi/{numa.c => numa/srat.c} (100%)
+ arch/x86/include/asm/efi.h      |    9 ++++++++-
+ arch/x86/kernel/setup.c         |   18 ++++++++----------
+ arch/x86/platform/efi/efi.c     |    3 +++
+ arch/x86/platform/efi/quirks.c  |    3 +++
+ drivers/firmware/efi/esrt.c     |    3 +++
+ drivers/firmware/efi/fake_mem.c |    2 +-
+ include/linux/efi.h             |    1 -
+ 7 files changed, 26 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index ebe1e9e5fd81..8c7c46065e9d 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -319,12 +319,6 @@ config ACPI_THERMAL
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called thermal.
+diff --git a/arch/x86/include/asm/efi.h b/arch/x86/include/asm/efi.h
+index 43a82e59c59d..45f853bce869 100644
+--- a/arch/x86/include/asm/efi.h
++++ b/arch/x86/include/asm/efi.h
+@@ -140,7 +140,6 @@ extern void efi_delete_dummy_variable(void);
+ extern void efi_switch_mm(struct mm_struct *mm);
+ extern void efi_recover_from_page_fault(unsigned long phys_addr);
+ extern void efi_free_boot_services(void);
+-extern void efi_reserve_boot_services(void);
  
--config ACPI_NUMA
--	bool "NUMA support"
--	depends on NUMA
--	depends on (X86 || IA64 || ARM64)
--	default y if IA64 || ARM64
--
- config ACPI_CUSTOM_DSDT_FILE
- 	string "Custom DSDT Table file to include"
- 	default ""
-@@ -473,8 +467,7 @@ config ACPI_REDUCED_HARDWARE_ONLY
- 	  If you are unsure what to do, do not enable this option.
+ struct efi_setup_data {
+ 	u64 fw_vendor;
+@@ -244,6 +243,8 @@ static inline bool efi_is_64bit(void)
+ extern bool efi_reboot_required(void);
+ extern bool efi_is_table_address(unsigned long phys_addr);
  
- source "drivers/acpi/nfit/Kconfig"
--source "drivers/acpi/hmat/Kconfig"
--
-+source "drivers/acpi/numa/Kconfig"
- source "drivers/acpi/apei/Kconfig"
- source "drivers/acpi/dptf/Kconfig"
++extern void efi_find_mirror(void);
++extern void efi_reserve_boot_services(void);
+ #else
+ static inline void parse_efi_setup(u64 phys_addr, u32 data_len) {}
+ static inline bool efi_reboot_required(void)
+@@ -254,6 +255,12 @@ static inline  bool efi_is_table_address(unsigned long phys_addr)
+ {
+ 	return false;
+ }
++static inline void efi_find_mirror(void)
++{
++}
++static inline void efi_reserve_boot_services(void)
++{
++}
+ #endif /* CONFIG_EFI */
  
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 5d361e4e3405..f08a661274e8 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -55,7 +55,6 @@ acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
- acpi-$(CONFIG_X86)		+= x86/apple.o
- acpi-$(CONFIG_X86)		+= x86/utils.o
- acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
--acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
- acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
- acpi-y				+= acpi_lpat.o
- acpi-$(CONFIG_ACPI_LPIT)	+= acpi_lpit.o
-@@ -80,7 +79,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI)		+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_NFIT)		+= nfit/
--obj-$(CONFIG_ACPI_HMAT)		+= hmat/
-+obj-$(CONFIG_ACPI_NUMA)		+= numa/
- obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
-diff --git a/drivers/acpi/hmat/Makefile b/drivers/acpi/hmat/Makefile
-deleted file mode 100644
-index 1c20ef36a385..000000000000
---- a/drivers/acpi/hmat/Makefile
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--obj-$(CONFIG_ACPI_HMAT) := hmat.o
-diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/numa/Kconfig
-similarity index 77%
-rename from drivers/acpi/hmat/Kconfig
-rename to drivers/acpi/numa/Kconfig
-index 95a29964dbea..acbd5aa76e40 100644
---- a/drivers/acpi/hmat/Kconfig
-+++ b/drivers/acpi/numa/Kconfig
-@@ -1,4 +1,10 @@
- # SPDX-License-Identifier: GPL-2.0
-+config ACPI_NUMA
-+	bool "NUMA support"
-+	depends on NUMA
-+	depends on (X86 || IA64 || ARM64)
-+	default y if IA64 || ARM64
+ #endif /* _ASM_X86_EFI_H */
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 77ea96b794bd..1c4b866bc184 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -1122,17 +1122,15 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	reserve_bios_regions();
+ 
+-	if (efi_enabled(EFI_MEMMAP)) {
+-		efi_fake_memmap();
+-		efi_find_mirror();
+-		efi_esrt_init();
++	efi_fake_memmap();
++	efi_find_mirror();
++	efi_esrt_init();
+ 
+-		/*
+-		 * The EFI specification says that boot service code won't be
+-		 * called after ExitBootServices(). This is, in fact, a lie.
+-		 */
+-		efi_reserve_boot_services();
+-	}
++	/*
++	 * The EFI specification says that boot service code won't be
++	 * called after ExitBootServices(). This is, in fact, a lie.
++	 */
++	efi_reserve_boot_services();
+ 
+ 	/* preallocate 4k for mptable mpc */
+ 	e820__memblock_alloc_reserved_mpc_new();
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index c202e1b07e29..0bb58eb33ca0 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -128,6 +128,9 @@ void __init efi_find_mirror(void)
+ 	efi_memory_desc_t *md;
+ 	u64 mirror_size = 0, total_size = 0;
+ 
++	if (!efi_enabled(EFI_MEMMAP))
++		return;
 +
- config ACPI_HMAT
- 	bool "ACPI Heterogeneous Memory Attribute Table Support"
- 	depends on ACPI_NUMA
-diff --git a/drivers/acpi/numa/Makefile b/drivers/acpi/numa/Makefile
-new file mode 100644
-index 000000000000..517a6c689a94
---- /dev/null
-+++ b/drivers/acpi/numa/Makefile
-@@ -0,0 +1,3 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+obj-$(CONFIG_ACPI_NUMA) += srat.o
-+obj-$(CONFIG_ACPI_HMAT) += hmat.o
-diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/numa/hmat.c
-similarity index 100%
-rename from drivers/acpi/hmat/hmat.c
-rename to drivers/acpi/numa/hmat.c
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa/srat.c
-similarity index 100%
-rename from drivers/acpi/numa.c
-rename to drivers/acpi/numa/srat.c
+ 	for_each_efi_memory_desc(md) {
+ 		unsigned long long start = md->phys_addr;
+ 		unsigned long long size = md->num_pages << EFI_PAGE_SHIFT;
+diff --git a/arch/x86/platform/efi/quirks.c b/arch/x86/platform/efi/quirks.c
+index 3b9fd679cea9..7675cf754d90 100644
+--- a/arch/x86/platform/efi/quirks.c
++++ b/arch/x86/platform/efi/quirks.c
+@@ -320,6 +320,9 @@ void __init efi_reserve_boot_services(void)
+ {
+ 	efi_memory_desc_t *md;
+ 
++	if (!efi_enabled(EFI_MEMMAP))
++		return;
++
+ 	for_each_efi_memory_desc(md) {
+ 		u64 start = md->phys_addr;
+ 		u64 size = md->num_pages << EFI_PAGE_SHIFT;
+diff --git a/drivers/firmware/efi/esrt.c b/drivers/firmware/efi/esrt.c
+index d6dd5f503fa2..2762e0662bf4 100644
+--- a/drivers/firmware/efi/esrt.c
++++ b/drivers/firmware/efi/esrt.c
+@@ -246,6 +246,9 @@ void __init efi_esrt_init(void)
+ 	int rc;
+ 	phys_addr_t end;
+ 
++	if (!efi_enabled(EFI_MEMMAP))
++		return;
++
+ 	pr_debug("esrt-init: loading.\n");
+ 	if (!esrt_table_exists())
+ 		return;
+diff --git a/drivers/firmware/efi/fake_mem.c b/drivers/firmware/efi/fake_mem.c
+index 9501edc0fcfb..526b45331d96 100644
+--- a/drivers/firmware/efi/fake_mem.c
++++ b/drivers/firmware/efi/fake_mem.c
+@@ -44,7 +44,7 @@ void __init efi_fake_memmap(void)
+ 	void *new_memmap;
+ 	int i;
+ 
+-	if (!nr_fake_mem)
++	if (!efi_enabled(EFI_MEMMAP) || !nr_fake_mem)
+ 		return;
+ 
+ 	/* count up the number of EFI memory descriptor */
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index 5c1dd0221384..baa275c56401 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -1045,7 +1045,6 @@ extern void efi_enter_virtual_mode (void);	/* switch EFI to virtual mode, if pos
+ extern efi_status_t efi_query_variable_store(u32 attributes,
+ 					     unsigned long size,
+ 					     bool nonblocking);
+-extern void efi_find_mirror(void);
+ #else
+ 
+ static inline efi_status_t efi_query_variable_store(u32 attributes,
 
