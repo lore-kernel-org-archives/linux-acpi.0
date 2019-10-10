@@ -2,99 +2,163 @@ Return-Path: <SRS0=fN1s=YD=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7466C4360C
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Oct 2019 13:19:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BCAC4360C
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Oct 2019 13:33:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AFBF221D7D
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Oct 2019 13:19:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vPGKjlfQ"
+	by mail.kernel.org (Postfix) with ESMTP id 684A22067B
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Oct 2019 13:33:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388238AbfJJNTF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Oct 2019 09:19:05 -0400
-Received: from mail-wr1-f51.google.com ([209.85.221.51]:40589 "EHLO
-        mail-wr1-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388329AbfJJNTC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Oct 2019 09:19:02 -0400
-Received: by mail-wr1-f51.google.com with SMTP id h4so7880217wrv.7;
-        Thu, 10 Oct 2019 06:19:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=cU2Z1he193fGQfwYVGWXirAJ34kU3C29gXJ8rRkJamw=;
-        b=vPGKjlfQDkdDEt4C1sBLoyEU4P8EUM8qOBnrSZsBimJeNmaKLK/JhWxhEWBJujWcBk
-         TIoicQuLtu0gL3aHzwrxyTGZrteoEn8ke3zp/bC2itrXLmOk3/ct7dPmd/X8QQqabT1u
-         6upmvGlnnYWezEJZeFz9dFBleVuhZZseRoLlN5njRp5vLP30W8yur6mm8i2T79zyyD1J
-         5+4/CtDyrK0eOI5L+sEp6Gm75DOHhN0Z3c9O9P1cNJl9UaTz2sJV/wTEIQWTzvhD7fPz
-         UZd1h1oporKC8j+1LcFkhkORaf06CCY3JDP/deap43PBVdW5wiCghbMfg3qcfiPVDxwm
-         YOaA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=cU2Z1he193fGQfwYVGWXirAJ34kU3C29gXJ8rRkJamw=;
-        b=rEGlQJgrq2LmpANuG9fOhrvRSdPL9PKlVNSqvoe3RvXCdjB2hyI4kKI8Uu1+lfM8Mz
-         m3RgT4Z04G6IE9YMvrIiLcDYugf/JkQC3cUZSLTQeOCpDSwq5ggrtDUitSVe1Ib+j0Fg
-         HchJ3+44+Ew0qtzgJaX4Tu7wz17FmjwJCTDUowJvmxwW7UuGdk+DKbamE4NPfsH6y+qf
-         aSrLljbEgKqNlx4gifkur4q0UjUZv/mfVKXElWOq475hhXM8XW8IpMI+N1jFt56ewXU+
-         01/crhZUllP/WzBSU/UqQdSOTDVZDTiL4yascHcAPOGDYdHmFfGLDGsKptYdc0DuIi1o
-         oIgA==
-X-Gm-Message-State: APjAAAWBojZL/c9kNc8zmzdq8yE+YBIbembMjzZRssdtRHTv19RVdYkM
-        0ECVdghcyuEWyyLYjJqi5HWF1sFr
-X-Google-Smtp-Source: APXvYqyY34PXFOxPL+JOw98k0b9U39Y6bs5YHdz8yme77Kl47Ru/r1ga+iLNYRV2qXw3PlaP7QHB9Q==
-X-Received: by 2002:adf:9cca:: with SMTP id h10mr8249674wre.339.1570713540365;
-        Thu, 10 Oct 2019 06:19:00 -0700 (PDT)
-Received: from [192.168.2.202] (pD9EA3280.dip0.t-ipconnect.de. [217.234.50.128])
-        by smtp.gmail.com with ESMTPSA id r65sm7208546wmr.9.2019.10.10.06.18.58
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 10 Oct 2019 06:18:59 -0700 (PDT)
-Subject: Re: [PATCH v2] serdev: Add ACPI devices by ResourceSource field
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Rob Herring <robh@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jslaby@suse.com>, Johan Hovold <johan@kernel.org>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-serial@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20190924162226.1493407-1-luzmaximilian@gmail.com>
- <03d11e04-aaad-4851-c7d6-feaf62793670@redhat.com>
-From:   Maximilian Luz <luzmaximilian@gmail.com>
-Message-ID: <84883ba0-ec01-9114-5c4a-e468cf85dfec@gmail.com>
-Date:   Thu, 10 Oct 2019 15:18:58 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.1.1
+        id S2388020AbfJJNdc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Oct 2019 09:33:32 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:3688 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2387897AbfJJNdb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 10 Oct 2019 09:33:31 -0400
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 3C8C49C029AD8555264E;
+        Thu, 10 Oct 2019 21:33:26 +0800 (CST)
+Received: from localhost.localdomain (10.67.212.75) by
+ DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
+ 14.3.439.0; Thu, 10 Oct 2019 21:33:19 +0800
+From:   John Garry <john.garry@huawei.com>
+To:     <catalin.marinas@arm.com>, <will@kernel.org>, <rjw@rjwysocki.net>,
+        <lenb@kernel.org>, <robert.moore@intel.com>,
+        <erik.schmauss@intel.com>, <sudeep.holla@arm.com>,
+        <rrichter@marvell.com>, <jeremy.linton@arm.com>
+CC:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linuxarm@huawei.com>, <gregkh@linuxfoundation.org>,
+        <guohanjun@huawei.com>, <wanghuiqiang@huawei.com>,
+        John Garry <john.garry@huawei.com>
+Subject: [RFC PATCH 2/3] ACPI/PPTT: Add support for ACPI 6.3 thread flag
+Date:   Thu, 10 Oct 2019 21:29:51 +0800
+Message-ID: <1570714192-236724-3-git-send-email-john.garry@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1570714192-236724-1-git-send-email-john.garry@huawei.com>
+References: <1570714192-236724-1-git-send-email-john.garry@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <03d11e04-aaad-4851-c7d6-feaf62793670@redhat.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.212.75]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+From: Jeremy Linton <jeremy.linton@arm.com>
 
-On 10/10/19 12:22 PM, Hans de Goede wrote:
-> This patch looks good to me and it works on my test hw with serial
-> attached BT HCI:
-> 
-> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-> Tested-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Regards,
-> 
-> Hans
+Commit bbd1b70639f785a970d998f35155c713f975e3ac upstream.
 
-Awesome, thank you!
+ACPI 6.3 adds a flag to the CPU node to indicate whether
+the given PE is a thread. Add a function to return that
+information for a given linux logical CPU.
 
-Regards,
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+Reviewed-by: Robert Richter <rrichter@marvell.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Will Deacon <will@kernel.org>
+[jpg: backport for 4.19, replace acpi_pptt_warn_missing()]
+Signed-off-by: John Garry <john.garry@huawei.com>
+---
+ drivers/acpi/pptt.c  | 52 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h |  5 +++++
+ 2 files changed, 57 insertions(+)
 
-Maximilian
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index da031b1df6f5..9dbf86a0c827 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -509,6 +509,44 @@ static int find_acpi_cpu_topology_tag(unsigned int cpu, int level, int flag)
+ 	return retval;
+ }
+ 
++/**
++ * check_acpi_cpu_flag() - Determine if CPU node has a flag set
++ * @cpu: Kernel logical CPU number
++ * @rev: The minimum PPTT revision defining the flag
++ * @flag: The flag itself
++ *
++ * Check the node representing a CPU for a given flag.
++ *
++ * Return: -ENOENT if the PPTT doesn't exist, the CPU cannot be found or
++ *	   the table revision isn't new enough.
++ *	   1, any passed flag set
++ *	   0, flag unset
++ */
++static int check_acpi_cpu_flag(unsigned int cpu, int rev, u32 flag)
++{
++	struct acpi_table_header *table;
++	acpi_status status;
++	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
++	struct acpi_pptt_processor *cpu_node = NULL;
++	int ret = -ENOENT;
++
++	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
++	if (ACPI_FAILURE(status)) {
++		pr_warn_once("No PPTT table found, cpu topology may be inaccurate\n");
++		return ret;
++	}
++
++	if (table->revision >= rev)
++		cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
++
++	if (cpu_node)
++		ret = (cpu_node->flags & flag) != 0;
++
++	acpi_put_table(table);
++
++	return ret;
++}
++
+ /**
+  * acpi_find_last_cache_level() - Determines the number of cache levels for a PE
+  * @cpu: Kernel logical cpu number
+@@ -573,6 +611,20 @@ int cache_setup_acpi(unsigned int cpu)
+ 	return status;
+ }
+ 
++/**
++ * acpi_pptt_cpu_is_thread() - Determine if CPU is a thread
++ * @cpu: Kernel logical CPU number
++ *
++ * Return: 1, a thread
++ *         0, not a thread
++ *         -ENOENT ,if the PPTT doesn't exist, the CPU cannot be found or
++ *         the table revision isn't new enough.
++ */
++int acpi_pptt_cpu_is_thread(unsigned int cpu)
++{
++	return check_acpi_cpu_flag(cpu, 2, ACPI_PPTT_ACPI_PROCESSOR_IS_THREAD);
++}
++
+ /**
+  * find_acpi_cpu_topology() - Determine a unique topology value for a given cpu
+  * @cpu: Kernel logical cpu number
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b4d23b3a2ef2..59a416dfcaaa 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1291,10 +1291,15 @@ static inline int lpit_read_residency_count_address(u64 *address)
+ #endif
+ 
+ #ifdef CONFIG_ACPI_PPTT
++int acpi_pptt_cpu_is_thread(unsigned int cpu);
+ int find_acpi_cpu_topology(unsigned int cpu, int level);
+ int find_acpi_cpu_topology_package(unsigned int cpu);
+ int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+ #else
++static inline int acpi_pptt_cpu_is_thread(unsigned int cpu)
++{
++	return -EINVAL;
++}
+ static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
+ {
+ 	return -EINVAL;
+-- 
+2.17.1
+
