@@ -8,53 +8,53 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81916ECE599
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 23:07:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C23A2C47404
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 23:07:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57780214E0
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 23:07:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 998B4214E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 23:07:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mK1PFvgx"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VrZ9QQbX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728112AbfJKXHk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Oct 2019 19:07:40 -0400
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:36814 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728071AbfJKXHi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Oct 2019 19:07:38 -0400
-Received: by mail-pf1-f194.google.com with SMTP id y22so6929604pfr.3;
-        Fri, 11 Oct 2019 16:07:37 -0700 (PDT)
+        id S1728140AbfJKXHl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Oct 2019 19:07:41 -0400
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:43363 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728114AbfJKXHk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Oct 2019 19:07:40 -0400
+Received: by mail-pl1-f193.google.com with SMTP id f21so5109900plj.10;
+        Fri, 11 Oct 2019 16:07:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=DkKt0dZ5kBaLP0Kzj2iDpOxmN4C6Vh8shX9VPkLgJ6k=;
-        b=mK1PFvgx/69qpMXtnnM4f9aVXF4Y6Fvq9yOz+bFJFqyFCmU42kW3j/sHXrr3PnTTzM
-         ATohWl0jQa76jlU0Q1pMEV7OjiUI8Qy1oWfghnF/nhJcAML7l+YqVt5wLkXhhmjRwdIP
-         Iz+c9BjmJDpg8pKVXJKkioaIxaQMGirG7OP6xQ47HuLLMocew9T5mSa9xvDJj9Vt4zir
-         CCnjLAhv2Vua2mFcYcwYi8vlkCbM87X0sYoTkUR6i0Msaai4xchoutGQMI7jki38Gv33
-         JmVtWMX1AksF98RcJZvXsae/A2Pt7QL8zpH+fEmLjL2sGrgIMVl5Zrxa+z2peLkZ/I0X
-         +KnA==
+        bh=ny/ZNnxtQMyA+tF6f8WXbljYGPtP5sRnGWPW09z1Kxk=;
+        b=VrZ9QQbXijQ3IOaDhrMxVR+ny2PMH4U0Aj8j9LitPUDlhC7BK0A9izSrCZnhiywLXk
+         cJQvUhCuV5/m9VRelwK5FL8rjHH35ITpynZ2wMyK3les3DNOHyZdBEMduOw3hPN5wQgv
+         VBrwzw3Od1P0pkkd6syrnS+PL2m1nFHD3Ez+scUhU2YNFgihJ/XmZDMJjzVssDobPgKr
+         BGkaNCu/HowSlY0gGuNTVDPe1b/MdvoRqeY1JphQCiFWZVDevi4B3k54Lin2hxrD+lao
+         FTxue0ePTPpH1mBlXtgCYtZBZiAw9kEl1rcMTbBLyePQqrWUBu2hht8mCK3InIQTPcA1
+         buBQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=DkKt0dZ5kBaLP0Kzj2iDpOxmN4C6Vh8shX9VPkLgJ6k=;
-        b=KzXFR/gZEfjXQZqDQTy6lAeLLff9MgqfE6UGDoQSA0n+CuqQXaxwbjHOXV4CRUcEDU
-         CahKo90bzoTGWzWdg/aSOo/ZX4sKeqgbZ0k2WGRXd/V1bXKeblCA0M8nK+s75BVpmYLJ
-         yz4eLRGszv2EsVBXJiu8ECjLA9kyL9G7g/QpwP0Ooy4OIwaDVm95cINDB10vylhLNAjS
-         PuMiDFYtTHS89/NPevwxC8vS8UYS9R2bv8NeA62QHDsDB0aOg/uDSZcnhYuKLcW1gMWx
-         +05TdCAzfatOQ/p8W9op8tMH5BYM91Lx1sqFOzUXm3h0bbP0gANWwW9fHKkjQnor/R4Z
-         8yIg==
-X-Gm-Message-State: APjAAAUiVKXTSgPBNRpwtNMiw3oD/A1PqbJVruCf/AZ0Gucn55mCWJ64
-        rOm28SROLbhadPlxztcYMJo=
-X-Google-Smtp-Source: APXvYqymiqKMWp7iQNxQk+RDLhJlTpoi3VXlJITJ2GbhXG3GcU7UQAEzpFfMGBMxEm6yOOayi4uXKw==
-X-Received: by 2002:aa7:956a:: with SMTP id x10mr19140391pfq.114.1570835257317;
-        Fri, 11 Oct 2019 16:07:37 -0700 (PDT)
+        bh=ny/ZNnxtQMyA+tF6f8WXbljYGPtP5sRnGWPW09z1Kxk=;
+        b=kDskm6y1ooMBBVBnGXIXXLMmOsuiolVc1BUvAFeszZl4iCoXvLpDbUTwILoAYIBRdD
+         OM+Vf7ACj3x3jwsfiSbQXN1BqURLaPPYXjzrJ1QbSZmKd3SHFKD79K4rhNhOhd1l+mQI
+         IbHcb+wXobXKlP/NO5eJH0olVIgDzi/NnYN0I+wOQyJA/U5exg53IY560kAHdW/R8CRO
+         qkF2sN4oRPDEr5OfNpVA3XSiKz/NoLiHWbCauqWabnhVysNS+V3QJP8STS3zTG37vKOL
+         fD0CxNA+VYyDPlaBNJHxqtpWI3Chg1NqhNEWSL8GTWD3EW8LMuCrcKVvc3Why3lrwN9L
+         OvEQ==
+X-Gm-Message-State: APjAAAWSCToipr7mzU2J/Xbgk6voKK5hEMVwxhsoQZoYkJEuzA6vRH0a
+        I+Q4OCi5IULXGfiIpdCg+Mc=
+X-Google-Smtp-Source: APXvYqzqtNRx6MTlbCZQQrmM3yLChsapiejXSFjXZOQGqYztMT476aNy6Q8zjCNHBA3i/Z2puYW+CQ==
+X-Received: by 2002:a17:902:9a06:: with SMTP id v6mr17417331plp.221.1570835259476;
+        Fri, 11 Oct 2019 16:07:39 -0700 (PDT)
 Received: from dtor-ws.mtv.corp.google.com ([2620:15c:202:201:3adc:b08c:7acc:b325])
-        by smtp.gmail.com with ESMTPSA id w2sm11529251pfn.57.2019.10.11.16.07.36
+        by smtp.gmail.com with ESMTPSA id w2sm11529251pfn.57.2019.10.11.16.07.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Oct 2019 16:07:36 -0700 (PDT)
+        Fri, 11 Oct 2019 16:07:38 -0700 (PDT)
 From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
 To:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>
@@ -64,9 +64,9 @@ Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Ard Biesheuvel <ard.biesheuvel@linaro.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
-Subject: [PATCH v5 09/14] software node: simplify property_entry_read_string_array()
-Date:   Fri, 11 Oct 2019 16:07:16 -0700
-Message-Id: <20191011230721.206646-10-dmitry.torokhov@gmail.com>
+Subject: [PATCH v5 11/14] software node: move small properties inline when copying
+Date:   Fri, 11 Oct 2019 16:07:18 -0700
+Message-Id: <20191011230721.206646-12-dmitry.torokhov@gmail.com>
 X-Mailer: git-send-email 2.23.0.700.g56cf767bdb-goog
 In-Reply-To: <20191011230721.206646-1-dmitry.torokhov@gmail.com>
 References: <20191011230721.206646-1-dmitry.torokhov@gmail.com>
@@ -77,54 +77,42 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There is no need to treat string arrays and single strings separately, we can go
-exclusively by the element length in relation to data type size.
+When copying/duplicating set of properties, move smaller properties that
+were stored separately directly inside property entry structures. We can
+move:
+
+- up to 8 bytes from U8 arrays
+- up to 4 words
+- up to 2 double words
+- one U64 value
+- one or 2 strings.
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/base/swnode.c | 21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ drivers/base/swnode.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index b11cc4dbff08..8826c9040c80 100644
+index ae4b24ee2a54..546fc1b20095 100644
 --- a/drivers/base/swnode.c
 +++ b/drivers/base/swnode.c
-@@ -173,28 +173,21 @@ static int property_entry_read_string_array(const struct property_entry *props,
- 					    const char *propname,
- 					    const char **strings, size_t nval)
- {
--	const struct property_entry *prop;
- 	const void *pointer;
--	size_t array_len, length;
-+	size_t length;
-+	int array_len;
+@@ -277,6 +277,16 @@ static int property_entry_copy_data(struct property_entry *dst,
+ 		dst->value = src->value;
+ 	}
  
- 	/* Find out the array length. */
--	prop = property_entry_get(props, propname);
--	if (!prop)
--		return -EINVAL;
--
--	if (prop->is_array)
--		/* Find the length of an array. */
--		array_len = property_entry_count_elems_of_size(props, propname,
--							  sizeof(const char *));
--	else
--		/* The array length for a non-array string property is 1. */
--		array_len = 1;
-+	array_len = property_entry_count_elems_of_size(props, propname,
-+						       sizeof(const char *));
-+	if (array_len < 0)
-+		return array_len;
- 
- 	/* Return how many there are if strings is NULL. */
- 	if (!strings)
- 		return array_len;
- 
--	array_len = min(nval, array_len);
-+	array_len = min_t(size_t, nval, array_len);
- 	length = array_len * sizeof(*strings);
- 
- 	pointer = property_entry_find(props, propname, length);
++	if (!dst->is_inline && dst->length <= sizeof(dst->value)) {
++		/* We have an opportunity to move the data inline */
++		const void *tmp = dst->pointer;
++
++		memcpy(&dst->value, tmp, dst->length);
++		dst->is_inline = true;
++
++		kfree(tmp);
++	}
++
+ 	dst->length = src->length;
+ 	dst->type = src->type;
+ 	dst->name = kstrdup(src->name, GFP_KERNEL);
 -- 
 2.23.0.700.g56cf767bdb-goog
 
