@@ -1,76 +1,91 @@
-Return-Path: <SRS0=fN1s=YD=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=e/yL=YE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4745C10F14
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Oct 2019 22:20:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7A85ECE58D
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 00:54:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AEAC1206B6
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Oct 2019 22:20:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D2942053B
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 00:54:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726065AbfJJWUe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Oct 2019 18:20:34 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:65011 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725959AbfJJWUe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Oct 2019 18:20:34 -0400
-Received: from 79.184.255.36.ipv4.supernova.orange.pl (79.184.255.36) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.292)
- id 86c559199dc39aa4; Fri, 11 Oct 2019 00:20:31 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Daniel Black <daniel@linux.ibm.com>
-Cc:     Len Brown <lenb@kernel.org>,
-        "open list:ACPI" <linux-acpi@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] acpi/hmat: ACPI_HMAT_MEMORY_PD_VALID is deprecated in ACPI-6.3
-Date:   Fri, 11 Oct 2019 00:20:31 +0200
-Message-ID: <5172949.9bKdBNxvUS@kreacher>
-In-Reply-To: <20190806042440.16445-1-daniel@linux.ibm.com>
-References: <20190806042440.16445-1-daniel@linux.ibm.com>
+        id S1727523AbfJKAyA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Oct 2019 20:54:00 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:3728 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727518AbfJKAx7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 10 Oct 2019 20:53:59 -0400
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id DAD81C24DE4D932AB452;
+        Fri, 11 Oct 2019 08:53:57 +0800 (CST)
+Received: from [127.0.0.1] (10.177.223.23) by DGGEMS405-HUB.china.huawei.com
+ (10.3.19.205) with Microsoft SMTP Server id 14.3.439.0; Fri, 11 Oct 2019
+ 08:53:50 +0800
+Subject: Re: [RFC PATCH 0/3] ACPI, arm64: Backport for ACPI PPTT 6.3 thread
+ flag for stable 4.19.x
+To:     John Garry <john.garry@huawei.com>, <catalin.marinas@arm.com>,
+        <will@kernel.org>, <rjw@rjwysocki.net>, <lenb@kernel.org>,
+        <robert.moore@intel.com>, <erik.schmauss@intel.com>,
+        <sudeep.holla@arm.com>, <rrichter@marvell.com>,
+        <jeremy.linton@arm.com>
+CC:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linuxarm@huawei.com>, <gregkh@linuxfoundation.org>,
+        <wanghuiqiang@huawei.com>
+References: <1570714192-236724-1-git-send-email-john.garry@huawei.com>
+From:   Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <ed2ce119-dd68-131c-72e9-e95fc8fc6465@huawei.com>
+Date:   Fri, 11 Oct 2019 08:53:32 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.5.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1570714192-236724-1-git-send-email-john.garry@huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.177.223.23]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tuesday, August 6, 2019 6:24:39 AM CEST Daniel Black wrote:
-> ACPI-6.3 corresponds to when hmat revision was bumped from
-> 1 to 2. In this version ACPI_HMAT_MEMORY_PD_VALID was
-> deprecated and made reserved.
-> 
-> As such in revision 2+ we shouldn't be testing this flag.
-> 
-> This is as per ACPI-6.3, 5.2.27.3, Table 5-145
-> "Memory Proximity Domain Attributes Structure"
-> for Flags.
-> 
-> Signed-off-by: Daniel Black <daniel@linux.ibm.com>
-> ---
->  drivers/acpi/hmat/hmat.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-> index 96b7d39a97c6..e938e34673d9 100644
-> --- a/drivers/acpi/hmat/hmat.c
-> +++ b/drivers/acpi/hmat/hmat.c
-> @@ -382,7 +382,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
->  		pr_info("HMAT: Memory Flags:%04x Processor Domain:%d Memory Domain:%d\n",
->  			p->flags, p->processor_PD, p->memory_PD);
->  
-> -	if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
-> +	if (p->flags & ACPI_HMAT_MEMORY_PD_VALID && hmat_revision == 1) {
->  		target = find_mem_target(p->memory_PD);
->  		if (!target) {
->  			pr_debug("HMAT: Memory Domain missing from SRAT\n");
-> 
+Hi John,
 
-Applied as a fix for 5.4, thanks!
+On 2019/10/10 21:29, John Garry wrote:
+> This series is a backport of the ACPI PPTT 6.3 thread flag feature for
+> supporting arm64 systems.
+> 
+> The background is that some arm64 implementations are broken, in that they
+> incorrectly advertise that a CPU is mutli-threaded, when it is not - the
+> HiSilicon Taishanv110 rev 2, aka tsv110, being an example.
+> 
+> This leads to the system topology being incorrect. The reason being that
+> arm64 topology code uses a combination of ACPI PPTT (Processor Properties
+> Topology Table) and the system MPIDR (Multiprocessor Affinity Register) MT
+> bit to determine the topology.
+> 
+> Until ACPI 6.3, the PPTT did not have any method to determine whether
+> a CPU was multi-threaded, so only the MT bit is used - hence the
+> broken topology for some systems.
+> 
+> In ACPI 6.3, a PPTT thread flag was introduced, which - when supported -
+> would be used by the kernel to determine really if a CPU is multi-threaded
+> or not, so that we don't get incorrect topology.
 
+Thanks for doing this, and this patch set fix my CPU topology issue
+in 4.19 kernel with updated firmware.
 
+> 
+> Note: I'm sending this as an RFC before sending to stable proper. I also
+> have a 5.2 and 5.3 backport which are almost the same, and only
+> significant change being that the ACPICA patch is not required.
+
+5.2 stable was end of life, so only 4.19 and 5.3 are needed I think.
+
+Thanks
+Hanjun
 
