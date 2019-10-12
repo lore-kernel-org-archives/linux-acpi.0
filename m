@@ -1,103 +1,117 @@
-Return-Path: <SRS0=e/yL=YE=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=xFrN=YF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41212ECE58D
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 23:08:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66389ECE58E
+	for <linux-acpi@archiver.kernel.org>; Sat, 12 Oct 2019 06:18:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1693D21D56
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Oct 2019 23:08:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kHiz8ZzA"
+	by mail.kernel.org (Postfix) with ESMTP id 461CE222D2
+	for <linux-acpi@archiver.kernel.org>; Sat, 12 Oct 2019 06:18:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727115AbfJKXH1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Oct 2019 19:07:27 -0400
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:34351 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726781AbfJKXH1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Oct 2019 19:07:27 -0400
-Received: by mail-pl1-f195.google.com with SMTP id k7so5132192pll.1;
-        Fri, 11 Oct 2019 16:07:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=/kC26ffR+trBknrfzrjK9Qw6ONsmCGAuEKQl7xYThEA=;
-        b=kHiz8ZzAOitA6k2P2pLSfizpmXcvpgQR36t1m18tG+e4PWi1yiaolf1pUIuVjAUpTN
-         aeFoP7zdeKOVs8btF7tYPoG3mrvsEWnzQA6gefaJznd5pn4IFkQT8di2dQrZzfeAAf9f
-         hYLaSI3WhqiMeisVhNPtJqZSRgdDhXDsE49qqii2GHwHz+2fYzV1pPiqGgg+gNQpd3AM
-         wdD1dejcilNH5FRK7VSuU6TTDM6pmdtO9THkMEYYrHgU4AcbeHdRL3uSu9UTIhM3UGzh
-         Er4mQTIv0sFfqrKkTyl3KOeJB8rf4DBxK52FY5WFWeEdGVmPbODbtu8nU+M/WpJTbyrm
-         N0Jg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=/kC26ffR+trBknrfzrjK9Qw6ONsmCGAuEKQl7xYThEA=;
-        b=hhmd3WeWaG+r0cydxJP+ALSQ8bGWUjClgi/SnbrFQBr4RXiGtyxnff11yMc2allwqQ
-         kQjtLkzvqMrqbKwoKaiPxbvK2O1dLxBan+zPgTkrwCPUf+ORh5sOYqWwauaqs3sgGyBb
-         2Fa5eCLqw/CoUJMBj4sQCLyfp/+1lj/t4DyXGpg/YSpRRPbQWpq+WycwYfZlkjHt0eDB
-         MbCwFD4gmJxKHCNYzrtuvGgW1WOxcap9BK70bQB+VijJe0Ey8SoJfODLDUCSvm1+xxQ7
-         MI+3qWLg+CF5hkSpqwZiJm0sdpUnjhqwmUmeg6YLWUR0npSotmZLGfpBmyb47QCK+HsC
-         yhOA==
-X-Gm-Message-State: APjAAAWARrhyb3Y3agZHZGLY0R84711rFg0iHKsYMvouU9hpP0GUKM7c
-        gNYd5qFgYNkYkgtreMbfhNw=
-X-Google-Smtp-Source: APXvYqwJyc3CfgPlSum7I4t2L2RB4PO1jhsjwNn7JanaFSEtmoK7glcsV8KGSwXixMezhYZCh0qdVg==
-X-Received: by 2002:a17:902:a610:: with SMTP id u16mr17682886plq.200.1570835246462;
-        Fri, 11 Oct 2019 16:07:26 -0700 (PDT)
-Received: from dtor-ws.mtv.corp.google.com ([2620:15c:202:201:3adc:b08c:7acc:b325])
-        by smtp.gmail.com with ESMTPSA id w2sm11529251pfn.57.2019.10.11.16.07.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Oct 2019 16:07:25 -0700 (PDT)
-From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH v5 01/14] software node: remove DEV_PROP_MAX
-Date:   Fri, 11 Oct 2019 16:07:08 -0700
-Message-Id: <20191011230721.206646-2-dmitry.torokhov@gmail.com>
-X-Mailer: git-send-email 2.23.0.700.g56cf767bdb-goog
-In-Reply-To: <20191011230721.206646-1-dmitry.torokhov@gmail.com>
-References: <20191011230721.206646-1-dmitry.torokhov@gmail.com>
+        id S1728259AbfJLGR6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 12 Oct 2019 02:17:58 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:50222 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726947AbfJLGR5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 12 Oct 2019 02:17:57 -0400
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 3323C80206F36887AE0D;
+        Sat, 12 Oct 2019 14:17:54 +0800 (CST)
+Received: from [127.0.0.1] (10.74.191.121) by DGGEMS409-HUB.china.huawei.com
+ (10.3.19.209) with Microsoft SMTP Server id 14.3.439.0; Sat, 12 Oct 2019
+ 14:17:52 +0800
+Subject: Re: [PATCH v6] numa: make node_to_cpumask_map() NUMA_NO_NODE aware
+To:     Peter Zijlstra <peterz@infradead.org>
+CC:     Michal Hocko <mhocko@kernel.org>,
+        Robin Murphy <robin.murphy@arm.com>, <catalin.marinas@arm.com>,
+        <will@kernel.org>, <mingo@redhat.com>, <bp@alien8.de>,
+        <rth@twiddle.net>, <ink@jurassic.park.msu.ru>,
+        <mattst88@gmail.com>, <benh@kernel.crashing.org>,
+        <paulus@samba.org>, <mpe@ellerman.id.au>,
+        <heiko.carstens@de.ibm.com>, <gor@linux.ibm.com>,
+        <borntraeger@de.ibm.com>, <ysato@users.sourceforge.jp>,
+        <dalias@libc.org>, <davem@davemloft.net>, <ralf@linux-mips.org>,
+        <paul.burton@mips.com>, <jhogan@kernel.org>,
+        <jiaxun.yang@flygoat.com>, <chenhc@lemote.com>,
+        <akpm@linux-foundation.org>, <rppt@linux.ibm.com>,
+        <anshuman.khandual@arm.com>, <tglx@linutronix.de>, <cai@lca.pw>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <hpa@zytor.com>, <x86@kernel.org>,
+        <dave.hansen@linux.intel.com>, <luto@kernel.org>,
+        <len.brown@intel.com>, <axboe@kernel.dk>, <dledford@redhat.com>,
+        <jeffrey.t.kirsher@intel.com>, <linux-alpha@vger.kernel.org>,
+        <naveen.n.rao@linux.vnet.ibm.com>, <mwb@linux.vnet.ibm.com>,
+        <linuxppc-dev@lists.ozlabs.org>, <linux-s390@vger.kernel.org>,
+        <linux-sh@vger.kernel.org>, <sparclinux@vger.kernel.org>,
+        <tbogendoerfer@suse.de>, <linux-mips@vger.kernel.org>,
+        <rafael@kernel.org>, <gregkh@linuxfoundation.org>,
+        <bhelgaas@google.com>, <linux-pci@vger.kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>, <lenb@kernel.org>,
+        <linux-acpi@vger.kernel.org>
+References: <20190924124325.GQ2349@hirez.programming.kicks-ass.net>
+ <20190924125936.GR2349@hirez.programming.kicks-ass.net>
+ <20190924131939.GS23050@dhcp22.suse.cz>
+ <1adcbe68-6753-3497-48a0-cc84ac503372@huawei.com>
+ <20190925104108.GE4553@hirez.programming.kicks-ass.net>
+ <47fa4cee-8528-7c23-c7de-7be1b65aa2ae@huawei.com>
+ <bec80499-86d9-bf1f-df23-9044a8099992@arm.com>
+ <a5f0fc80-8e88-b781-77ce-1213e5d62125@huawei.com>
+ <20191010073212.GB18412@dhcp22.suse.cz>
+ <6cc94f9b-0d79-93a8-5ec2-4f6c21639268@huawei.com>
+ <20191011111539.GX2311@hirez.programming.kicks-ass.net>
+From:   Yunsheng Lin <linyunsheng@huawei.com>
+Message-ID: <7fad58d6-5126-e8b8-a7d8-a91814da53ba@huawei.com>
+Date:   Sat, 12 Oct 2019 14:17:26 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20191011111539.GX2311@hirez.programming.kicks-ass.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.74.191.121]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This definition is not used anywhere, let's remove it.
+add pci and acpi maintainer
+cc linux-pci@vger.kernel.org and linux-acpi@vger.kernel.org
 
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- include/linux/property.h | 1 -
- 1 file changed, 1 deletion(-)
+On 2019/10/11 19:15, Peter Zijlstra wrote:
+> On Fri, Oct 11, 2019 at 11:27:54AM +0800, Yunsheng Lin wrote:
+>> But I failed to see why the above is related to making node_to_cpumask_map()
+>> NUMA_NO_NODE aware?
+> 
+> Your initial bug is for hns3, which is a PCI device, which really _MUST_
+> have a node assigned.
+> 
+> It not having one, is a straight up bug. We must not silently accept
+> NO_NODE there, ever.
+> 
 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 9b3d4ca3a73a..44c1704f7163 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -22,7 +22,6 @@ enum dev_prop_type {
- 	DEV_PROP_U32,
- 	DEV_PROP_U64,
- 	DEV_PROP_STRING,
--	DEV_PROP_MAX,
- };
- 
- enum dev_dma_attr {
--- 
-2.23.0.700.g56cf767bdb-goog
+I suppose you mean reporting a lack of affinity when the node of a pcie
+device is not set by "not silently accept NO_NODE".
+
+As Greg has asked about in [1]:
+what is a user to do when the user sees the kernel reporting that?
+
+We may tell user to contact their vendor for info or updates about
+that when they do not know about their system well enough, but their
+vendor may get away with this by quoting ACPI spec as the spec
+considering this optional. Should the user believe this is indeed a
+fw bug or a misreport from the kernel?
+
+If this kind of reporting is common pratice and will not cause any
+misunderstanding, then maybe we can report that.
+
+[1] https://lore.kernel.org/lkml/20190905055727.GB23826@kroah.com/
+
+> .
+> 
 
