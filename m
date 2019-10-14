@@ -2,90 +2,164 @@ Return-Path: <SRS0=yGTZ=YH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E1DC4CECE
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 09:54:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17820ECE587
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 09:59:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8125207FF
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 09:54:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9A88217D9
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 09:59:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730740AbfJNJyu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Oct 2019 05:54:50 -0400
-Received: from mga11.intel.com ([192.55.52.93]:5360 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731057AbfJNJyu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 14 Oct 2019 05:54:50 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Oct 2019 02:54:49 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.67,295,1566889200"; 
-   d="scan'208";a="188981570"
-Received: from fyin-mobl.ccr.corp.intel.com (HELO [10.239.205.86]) ([10.239.205.86])
-  by orsmga008.jf.intel.com with ESMTP; 14 Oct 2019 02:54:48 -0700
-Subject: Re: [RESEND] ACPI / processor_idle: use dead loop instead of io port
- access for wait
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Len Brown <lenb@kernel.org>,
-        "open list:ACPI" <linux-acpi@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-References: <20190909073937.31554-1-fengwei.yin@intel.com>
- <12278756.3dKznOqol2@kreacher>
- <8a65bf97-c066-8e5e-ba82-75e2a6fd5b45@intel.com>
- <3727681.FYoUZqeJdN@kreacher>
-From:   "Yin, Fengwei" <fengwei.yin@intel.com>
-Message-ID: <6b8a0f55-67f7-98b1-c252-301628f9d5e2@intel.com>
-Date:   Mon, 14 Oct 2019 17:54:47 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        id S1731180AbfJNJ7x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Oct 2019 05:59:53 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:3745 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731172AbfJNJ7x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 14 Oct 2019 05:59:53 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id E3A768A9AA0A377671D7;
+        Mon, 14 Oct 2019 17:59:50 +0800 (CST)
+Received: from localhost.localdomain (10.67.212.75) by
+ DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
+ 14.3.439.0; Mon, 14 Oct 2019 17:59:43 +0800
+From:   John Garry <john.garry@huawei.com>
+To:     <stable@vger.kernel.org>
+CC:     <catalin.marinas@arm.com>, <will@kernel.org>, <rjw@rjwysocki.net>,
+        <lenb@kernel.org>, <robert.moore@intel.com>,
+        <erik.schmauss@intel.com>, <sudeep.holla@arm.com>,
+        <rrichter@marvell.com>, <jeremy.linton@arm.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linuxarm@huawei.com>, <gregkh@linuxfoundation.org>,
+        <guohanjun@huawei.com>, <wanghuiqiang@huawei.com>,
+        John Garry <john.garry@huawei.com>
+Subject: [PATCH for-stable-4.19 2/3] ACPI/PPTT: Add support for ACPI 6.3 thread flag
+Date:   Mon, 14 Oct 2019 17:56:25 +0800
+Message-ID: <1571046986-231263-3-git-send-email-john.garry@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1571046986-231263-1-git-send-email-john.garry@huawei.com>
+References: <1571046986-231263-1-git-send-email-john.garry@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <3727681.FYoUZqeJdN@kreacher>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.212.75]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 10/14/2019 5:38 PM, Rafael J. Wysocki wrote:
-> On Friday, October 11, 2019 3:30:41 PM CEST Yin, Fengwei wrote:
->>
->> On 10/11/2019 5:05 PM, Rafael J. Wysocki wrote:
->>> Sorry for the delay.
->> No problem.
->>
->>>
->>> On Monday, September 9, 2019 9:39:37 AM CEST Yin Fengwei wrote:
->>>> In function acpi_idle_do_entry(), we do an io port access to guarantee
->>>> hardware behavior. But it could trigger unnecessary vmexit for
->>>> virtualization environemnt.
->>>
->>> Is this a theoretical problem, or do you actually see it?
->>>
->>> If you see it, I'd like to have a pointer to a bug report regarding it
->>> or similar.
->> We did see this issue when we run linux as guest with ACRN hypervisor
->> instead of kvm or xen. In our case, we export all native C states to
->> guest and let guest choose which C state it will enter.
->>
->> And we observed many pm timer port access when guest tried to enter
->> deeper C state (Yes, we emulate pm timer so pm timer access will trigger
->> vmexit).
-> 
-> Can you please put this information into the changelog of your patch?
-Sure. Just want to double confirm into changelog or commit message?
+From: Jeremy Linton <jeremy.linton@arm.com>
 
-Regards
-Yin, Fengwei
+Commit bbd1b70639f785a970d998f35155c713f975e3ac upstream.
 
-> 
-> It works very well as a rationale for me. :-)
-> 
-> 
-> 
+ACPI 6.3 adds a flag to the CPU node to indicate whether
+the given PE is a thread. Add a function to return that
+information for a given linux logical CPU.
+
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+Reviewed-by: Robert Richter <rrichter@marvell.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Will Deacon <will@kernel.org>
+[jpg: backport for 4.19, replace acpi_pptt_warn_missing()]
+Signed-off-by: John Garry <john.garry@huawei.com>
+---
+ drivers/acpi/pptt.c  | 52 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h |  5 +++++
+ 2 files changed, 57 insertions(+)
+
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index da031b1df6f5..9dbf86a0c827 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -509,6 +509,44 @@ static int find_acpi_cpu_topology_tag(unsigned int cpu, int level, int flag)
+ 	return retval;
+ }
+ 
++/**
++ * check_acpi_cpu_flag() - Determine if CPU node has a flag set
++ * @cpu: Kernel logical CPU number
++ * @rev: The minimum PPTT revision defining the flag
++ * @flag: The flag itself
++ *
++ * Check the node representing a CPU for a given flag.
++ *
++ * Return: -ENOENT if the PPTT doesn't exist, the CPU cannot be found or
++ *	   the table revision isn't new enough.
++ *	   1, any passed flag set
++ *	   0, flag unset
++ */
++static int check_acpi_cpu_flag(unsigned int cpu, int rev, u32 flag)
++{
++	struct acpi_table_header *table;
++	acpi_status status;
++	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
++	struct acpi_pptt_processor *cpu_node = NULL;
++	int ret = -ENOENT;
++
++	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
++	if (ACPI_FAILURE(status)) {
++		pr_warn_once("No PPTT table found, cpu topology may be inaccurate\n");
++		return ret;
++	}
++
++	if (table->revision >= rev)
++		cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
++
++	if (cpu_node)
++		ret = (cpu_node->flags & flag) != 0;
++
++	acpi_put_table(table);
++
++	return ret;
++}
++
+ /**
+  * acpi_find_last_cache_level() - Determines the number of cache levels for a PE
+  * @cpu: Kernel logical cpu number
+@@ -573,6 +611,20 @@ int cache_setup_acpi(unsigned int cpu)
+ 	return status;
+ }
+ 
++/**
++ * acpi_pptt_cpu_is_thread() - Determine if CPU is a thread
++ * @cpu: Kernel logical CPU number
++ *
++ * Return: 1, a thread
++ *         0, not a thread
++ *         -ENOENT ,if the PPTT doesn't exist, the CPU cannot be found or
++ *         the table revision isn't new enough.
++ */
++int acpi_pptt_cpu_is_thread(unsigned int cpu)
++{
++	return check_acpi_cpu_flag(cpu, 2, ACPI_PPTT_ACPI_PROCESSOR_IS_THREAD);
++}
++
+ /**
+  * find_acpi_cpu_topology() - Determine a unique topology value for a given cpu
+  * @cpu: Kernel logical cpu number
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b4d23b3a2ef2..59a416dfcaaa 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1291,10 +1291,15 @@ static inline int lpit_read_residency_count_address(u64 *address)
+ #endif
+ 
+ #ifdef CONFIG_ACPI_PPTT
++int acpi_pptt_cpu_is_thread(unsigned int cpu);
+ int find_acpi_cpu_topology(unsigned int cpu, int level);
+ int find_acpi_cpu_topology_package(unsigned int cpu);
+ int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+ #else
++static inline int acpi_pptt_cpu_is_thread(unsigned int cpu)
++{
++	return -EINVAL;
++}
+ static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
+ {
+ 	return -EINVAL;
+-- 
+2.17.1
 
