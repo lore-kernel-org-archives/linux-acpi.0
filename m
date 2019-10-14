@@ -2,89 +2,121 @@ Return-Path: <SRS0=yGTZ=YH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61ADEECE595
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 10:00:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B9CDECE587
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 10:04:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 388AA217D9
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 10:00:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F05192089C
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 10:04:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1571047473;
+	bh=1L6BHHyZGzdbxZWv4acGRnc0Va1vbCVjc4KDhtWjTqM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=eqDuvoc1H8h3TMHTqI9Ututi/rtpasKHzP+aDbEejoOZUgiw3S0AkUtse58tBVse3
+	 3KCLyEPN/tkUBU8WWtFcvZAim2ddPDG/epoTzk9XwhhCi2ke4JXWm5xgpYhcQUjp3r
+	 zn1q693iE0KjoJx3F4yWdx599rMrroQbm6YbGn9E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731172AbfJNJ7y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Oct 2019 05:59:54 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3747 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1731175AbfJNJ7y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 14 Oct 2019 05:59:54 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 0192D268441561013F85;
-        Mon, 14 Oct 2019 17:59:51 +0800 (CST)
-Received: from localhost.localdomain (10.67.212.75) by
- DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 14 Oct 2019 17:59:42 +0800
-From:   John Garry <john.garry@huawei.com>
-To:     <stable@vger.kernel.org>
-CC:     <catalin.marinas@arm.com>, <will@kernel.org>, <rjw@rjwysocki.net>,
-        <lenb@kernel.org>, <robert.moore@intel.com>,
-        <erik.schmauss@intel.com>, <sudeep.holla@arm.com>,
-        <rrichter@marvell.com>, <jeremy.linton@arm.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linuxarm@huawei.com>, <gregkh@linuxfoundation.org>,
-        <guohanjun@huawei.com>, <wanghuiqiang@huawei.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        John Garry <john.garry@huawei.com>
-Subject: [PATCH for-stable-4.19 1/3] ACPICA: ACPI 6.3: PPTT add additional fields in Processor Structure Flags
-Date:   Mon, 14 Oct 2019 17:56:24 +0800
-Message-ID: <1571046986-231263-2-git-send-email-john.garry@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1571046986-231263-1-git-send-email-john.garry@huawei.com>
-References: <1571046986-231263-1-git-send-email-john.garry@huawei.com>
+        id S1730941AbfJNKEc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Oct 2019 06:04:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49088 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730880AbfJNKEc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 14 Oct 2019 06:04:32 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 93474207FF;
+        Mon, 14 Oct 2019 10:04:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1571047470;
+        bh=1L6BHHyZGzdbxZWv4acGRnc0Va1vbCVjc4KDhtWjTqM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=TWTxU8aaHNdrVeedNaAfxRnATKwQqldi45eCabLzrJUjucHv6x6k8odH8CVoEQbPR
+         w4oWGHOb3hLuaMuJ2jSTXq/ppPzZIjrhbS4OaxKJeinja9bxujNH+7bHo+Z4BvD0Vx
+         z3dLPHIeCCsbnOLqYk6lsozxHfWvVXR06RTUURHI=
+Date:   Mon, 14 Oct 2019 12:04:27 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     Yunsheng Lin <linyunsheng@huawei.com>,
+        Michal Hocko <mhocko@kernel.org>,
+        Robin Murphy <robin.murphy@arm.com>, catalin.marinas@arm.com,
+        will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net,
+        ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au,
+        heiko.carstens@de.ibm.com, gor@linux.ibm.com,
+        borntraeger@de.ibm.com, ysato@users.sourceforge.jp,
+        dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org,
+        paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com,
+        chenhc@lemote.com, akpm@linux-foundation.org, rppt@linux.ibm.com,
+        anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com,
+        luto@kernel.org, len.brown@intel.com, axboe@kernel.dk,
+        dledford@redhat.com, jeffrey.t.kirsher@intel.com,
+        linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com,
+        mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, tbogendoerfer@suse.de,
+        linux-mips@vger.kernel.org, rafael@kernel.org, bhelgaas@google.com,
+        linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        lenb@kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v6] numa: make node_to_cpumask_map() NUMA_NO_NODE aware
+Message-ID: <20191014100427.GA6307@kroah.com>
+References: <6cc94f9b-0d79-93a8-5ec2-4f6c21639268@huawei.com>
+ <20191011111539.GX2311@hirez.programming.kicks-ass.net>
+ <7fad58d6-5126-e8b8-a7d8-a91814da53ba@huawei.com>
+ <20191012074014.GA2037204@kroah.com>
+ <1e1ec851-b5e7-8f35-a627-4c12ca9c2d3c@huawei.com>
+ <20191012104001.GA2052933@kroah.com>
+ <20191012104742.GA2053473@kroah.com>
+ <82000bc8-6912-205b-0251-25b9cc430973@huawei.com>
+ <20191014092509.GA3050088@kroah.com>
+ <20191014094912.GY2311@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.212.75]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191014094912.GY2311@hirez.programming.kicks-ass.net>
+User-Agent: Mutt/1.12.2 (2019-09-21)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Erik Schmauss <erik.schmauss@intel.com>
+On Mon, Oct 14, 2019 at 11:49:12AM +0200, Peter Zijlstra wrote:
+> On Mon, Oct 14, 2019 at 11:25:09AM +0200, Greg KH wrote:
+> > Good luck, I don't really think that most, if any, of this is needed,
+> > but hey, it's nice to clean it up where it can be :)
+> 
+> Some of the virtual devices we have (that use devm) really ought to set
+> the node too, like drivers/base/cpu.c and driver/base/node.c and
+> arguably the cooling devices too (they create a device per cpu).
+> 
+> The patch I had here:
+> 
+>   https://lkml.kernel.org/r/20190925214526.GA4643@worktop.programming.kicks-ass.net
+> 
+> takes the more radical approach of requiring a node, except when
+> explicitly marked not (the fake devices that don't use devm for
+> example).
 
-Commit b5eab512e7cffb2bb37c4b342b5594e9e75fd486 upstream.
+I like that patch :)
 
-ACPICA commit c736ea34add19a3a07e0e398711847cd6b95affd
+> But yes, PCI and other physical busses really should be having a node
+> set, no excuses.
 
-Link: https://github.com/acpica/acpica/commit/c736ea34
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: John Garry <john.garry@huawei.com>
----
- include/acpi/actbl2.h | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Agreed, at least just warning on the bus creation will make it a bit
+less "noisy", in contrast to your patch.  But the messages in your patch
+show people just how broken their bioses really are.  Which is always
+fun...
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index c50ef7e6b942..1d4ef0621174 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -1472,8 +1472,11 @@ struct acpi_pptt_processor {
- 
- /* Flags */
- 
--#define ACPI_PPTT_PHYSICAL_PACKAGE          (1)	/* Physical package */
--#define ACPI_PPTT_ACPI_PROCESSOR_ID_VALID   (2)	/* ACPI Processor ID valid */
-+#define ACPI_PPTT_PHYSICAL_PACKAGE          (1)
-+#define ACPI_PPTT_ACPI_PROCESSOR_ID_VALID   (1<<1)
-+#define ACPI_PPTT_ACPI_PROCESSOR_IS_THREAD  (1<<2)	/* ACPI 6.3 */
-+#define ACPI_PPTT_ACPI_LEAF_NODE            (1<<3)	/* ACPI 6.3 */
-+#define ACPI_PPTT_ACPI_IDENTICAL            (1<<4)	/* ACPI 6.3 */
- 
- /* 1: Cache Type Structure */
- 
--- 
-2.17.1
+> Anyway, I don't think non-physical devices actually use
+> cpumask_of_node() much, a quick grep didn't show any.
 
+That's good.
+
+thanks,
+
+greg k-h
