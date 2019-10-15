@@ -1,188 +1,93 @@
-Return-Path: <SRS0=yGTZ=YH=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=RXan=YI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3628C4CECE
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 23:57:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44C30C10F14
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Oct 2019 08:03:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8BC302133F
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Oct 2019 23:57:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IxuAc88Q"
+	by mail.kernel.org (Postfix) with ESMTP id 16AF1217F9
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Oct 2019 08:03:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726814AbfJNX5x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Oct 2019 19:57:53 -0400
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:44226 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726812AbfJNX5w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Oct 2019 19:57:52 -0400
-Received: by mail-pl1-f196.google.com with SMTP id q15so8668585pll.11;
-        Mon, 14 Oct 2019 16:57:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=PvXicvKODDLIBrrmqaNFFvvMmJzFOFLga8h9y3ZgZGc=;
-        b=IxuAc88QtjB+R1hTHXCTLux1d9f6r1BsDQ5Cbfit9zZ5g5PKFdHOoc1N7Hoghz+zvB
-         hrbzn9MYAxffJvXXRzkiFE0en0cir+eBsQ82qbaX12xegOYP5kdFENTxBR1TmxTPloru
-         /fwWhtQr52rqIefsqSYphEyLClfmYN3IgCtbOdYMOx2hzJHah3NUAlztMfaltRVihCRK
-         Q2y7UyiSI+2Wo3TUu1upsqn0emTa5udSO906FvxYFwqlSvIldo/nL+H0BECy/ghcyQos
-         /XfPZMF0gb4LYMYrcY2ijnXJ1lbWxxUlFO0Adm9jNZsMiK/F6rZy4kF0df6UMKPqst77
-         qFSw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=PvXicvKODDLIBrrmqaNFFvvMmJzFOFLga8h9y3ZgZGc=;
-        b=j47E/XtL7IlPMi4xilOe9odDXR5Tg16c8ZTLVlElz6uIheKmmMJivuVbaXl0erj7dZ
-         UFoo9fCrqd/XKagg4IOUsstJq2VflQbKMIbWDz62QIHd6fms5Me1valN2c4rUr38UdTj
-         EL7lWoz2Wq5HfHteHQ7LNGPs9hjYPBpJtXW644nwnF5b3dsyCtJIg/O5H6rVhwWIvpdX
-         SUdAhs02RWM82qGVtJoPmqEbeiGB9G2p5sKFfslpJTGovwIVNegUL7fnh3GtN4Qc+7WR
-         KkevG6cRYxNjpwFoMOJgvApfkHxt7/MuEXHZ/UjpuSeNfcEUZElu8x0yz/xDvwClsOwP
-         Ec3A==
-X-Gm-Message-State: APjAAAVG4PkR7MiO5wQUVHZ1LWw+o7HOHxmdNw744BI5FzFvGCdbGyzQ
-        dXiXX+3Pi/AQF0gWpuKQt6k=
-X-Google-Smtp-Source: APXvYqwMpDhZmsbOwgQ61I4KBxC7rbT1HjnTGoHHSJFP+sCgNEt7Uw3duYXbb1+UcEXxmo1MbaF/HQ==
-X-Received: by 2002:a17:902:9008:: with SMTP id a8mr33076756plp.218.1571097471651;
-        Mon, 14 Oct 2019 16:57:51 -0700 (PDT)
-Received: from dtor-ws ([2620:15c:202:201:3adc:b08c:7acc:b325])
-        by smtp.gmail.com with ESMTPSA id h6sm24862693pfg.123.2019.10.14.16.57.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 14 Oct 2019 16:57:50 -0700 (PDT)
-Date:   Mon, 14 Oct 2019 16:57:47 -0700
-From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v5 00/14] software node: add support for reference
- properties
-Message-ID: <20191014235747.GA105649@dtor-ws>
-References: <20191011230721.206646-1-dmitry.torokhov@gmail.com>
- <20191014073837.GI32742@smile.fi.intel.com>
+        id S1728232AbfJOIDP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Oct 2019 04:03:15 -0400
+Received: from mga04.intel.com ([192.55.52.120]:45311 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727295AbfJOIDP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Oct 2019 04:03:15 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 15 Oct 2019 01:03:14 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.67,298,1566889200"; 
+   d="scan'208";a="395453395"
+Received: from fyin-mobl.ccr.corp.intel.com (HELO [10.239.205.86]) ([10.239.205.86])
+  by fmsmga005.fm.intel.com with ESMTP; 15 Oct 2019 01:03:13 -0700
+Subject: Re: [RESEND] ACPI / processor_idle: use dead loop instead of io port
+ access for wait
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Len Brown <lenb@kernel.org>,
+        "open list:ACPI" <linux-acpi@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <20190909073937.31554-1-fengwei.yin@intel.com>
+ <12278756.3dKznOqol2@kreacher>
+ <8a65bf97-c066-8e5e-ba82-75e2a6fd5b45@intel.com>
+ <3727681.FYoUZqeJdN@kreacher>
+From:   "Yin, Fengwei" <fengwei.yin@intel.com>
+Message-ID: <187d70f6-3c41-a42f-26f1-9f3317ccb7da@intel.com>
+Date:   Tue, 15 Oct 2019 16:03:13 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191014073837.GI32742@smile.fi.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <3727681.FYoUZqeJdN@kreacher>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Oct 14, 2019 at 10:38:37AM +0300, Andy Shevchenko wrote:
-> On Fri, Oct 11, 2019 at 04:07:07PM -0700, Dmitry Torokhov wrote:
-> > These series implement "references" properties for software nodes as true
-> > properties, instead of managing them completely separately.
-> > 
-> > The first 10 patches are generic cleanups and consolidation and
-> > unification of the existing code; patch #11 implements moving of small
-> > properties inline when copying property entries; patch #12 implements
-> > PROPERTY_ENTRY_REF() and friends; patch #13 converts the user of
-> > references to the property syntax, and patch #14 removes the remains of
-> > references as entities that are managed separately.
+On 10/14/2019 5:38 PM, Rafael J. Wysocki wrote:
+> On Friday, October 11, 2019 3:30:41 PM CEST Yin, Fengwei wrote:
+>>
+>> On 10/11/2019 5:05 PM, Rafael J. Wysocki wrote:
+>>> Sorry for the delay.
+>> No problem.
+>>
+>>>
+>>> On Monday, September 9, 2019 9:39:37 AM CEST Yin Fengwei wrote:
+>>>> In function acpi_idle_do_entry(), we do an io port access to guarantee
+>>>> hardware behavior. But it could trigger unnecessary vmexit for
+>>>> virtualization environemnt.
+>>>
+>>> Is this a theoretical problem, or do you actually see it?
+>>>
+>>> If you see it, I'd like to have a pointer to a bug report regarding it
+>>> or similar.
+>> We did see this issue when we run linux as guest with ACRN hypervisor
+>> instead of kvm or xen. In our case, we export all native C states to
+>> guest and let guest choose which C state it will enter.
+>>
+>> And we observed many pm timer port access when guest tried to enter
+>> deeper C state (Yes, we emulate pm timer so pm timer access will trigger
+>> vmexit).
 > 
-> Can we get some test cases?
+> Can you please put this information into the changelog of your patch?
+I added this information to the patch commit message and sent out v2.
+Thanks a lot for reviewing and comments.
 
-Something like this? (I'll beef it up if we decide KUnit is OK for
-this).
+Regards
+Yin, Fengwei
 
-From 0b8256ceed44760e63becb5b9636099d9fc17a4c Mon Sep 17 00:00:00 2001
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Mon, 14 Oct 2019 16:55:12 -0700
-Subject: [PATCH] software node: add basic init tests
-
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- drivers/base/test/Makefile              |  2 +
- drivers/base/test/property-entry-test.c | 56 +++++++++++++++++++++++++
- 2 files changed, 58 insertions(+)
- create mode 100644 drivers/base/test/property-entry-test.c
-
-diff --git a/drivers/base/test/Makefile b/drivers/base/test/Makefile
-index 0f1f7277a013..22143102e5d2 100644
---- a/drivers/base/test/Makefile
-+++ b/drivers/base/test/Makefile
-@@ -1,2 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_TEST_ASYNC_DRIVER_PROBE)	+= test_async_driver_probe.o
-+
-+obj-$(CONFIG_KUNIT) += property-entry-test.o
-diff --git a/drivers/base/test/property-entry-test.c b/drivers/base/test/property-entry-test.c
-new file mode 100644
-index 000000000000..cd6a405734a0
---- /dev/null
-+++ b/drivers/base/test/property-entry-test.c
-@@ -0,0 +1,56 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Unit tests for property entries API
-+//
-+// Copyright 2019 Google LLC.
-+
-+#include <kunit/test.h>
-+#include <linux/property.h>
-+#include <linux/types.h>
-+
-+static void pe_test_move_inline_u8(struct kunit *test)
-+{
-+	u8 u8_array_small[8] = { 0 };
-+	u8 u8_array_big[128] = { 0 };
-+	struct property_entry entries[] = {
-+		PROPERTY_ENTRY_U8_ARRAY("small", u8_array_small),
-+		PROPERTY_ENTRY_U8_ARRAY("big", u8_array_big),
-+		{ }
-+	};
-+	struct property_entry *copy;
-+
-+	copy = property_entries_dup(entries);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, copy);
-+	KUNIT_EXPECT_TRUE(test, copy[0].is_inline);
-+	KUNIT_EXPECT_FALSE(test, copy[1].is_inline);
-+}
-+
-+static void pe_test_move_inline_str(struct kunit *test)
-+{
-+	char *str_array_small[] = { "a" };
-+	char *str_array_big[] = { "a", "b", "c", "d" };
-+	struct property_entry entries[] = {
-+		PROPERTY_ENTRY_STRING_ARRAY("small", str_array_small),
-+		PROPERTY_ENTRY_STRING_ARRAY("big", str_array_big),
-+		{ }
-+	};
-+	struct property_entry *copy;
-+
-+	copy = property_entries_dup(entries);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, copy);
-+	KUNIT_EXPECT_TRUE(test, copy[0].is_inline);
-+	KUNIT_EXPECT_FALSE(test, copy[1].is_inline);
-+}
-+
-+
-+static struct kunit_case property_entry_test_cases[] = {
-+	KUNIT_CASE(pe_test_move_inline_u8),
-+	KUNIT_CASE(pe_test_move_inline_str),
-+	{ }
-+};
-+
-+static struct kunit_suite property_entry_test_suite = {
-+	.name = "property-entry",
-+	.test_cases = property_entry_test_cases,
-+};
-+
-+kunit_test_suite(property_entry_test_suite);
--- 
-2.23.0.700.g56cf767bdb-goog
+> 
+> It works very well as a rationale for me. :-)
+> 
+> 
+> 
 
 
--- 
-Dmitry
