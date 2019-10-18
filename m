@@ -2,69 +2,84 @@ Return-Path: <SRS0=O2C7=YL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C74ACA9EA9
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 15:50:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD13CA9EAB
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 16:16:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D62C22064B
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 15:50:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571413819;
-	bh=2a/Xg4OpHPTqx8cCt3EyKzP3kIwmvW4xg9TiZyeYqoY=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=Ev6DWgtTniPC5Nid2WasVrFdIV869BFEI2D6qJpfQ4AYpN1iZmUe8ZxkJy8pxdRRF
-	 rQ9e3Bv/qoljgDizrpoXdshjouRhuvRBU4lq8BTRrKP4/rYH4g66xhrsm7JkVMNw50
-	 9Chwkfi3abOeOoLzmi1uLCBlLzbQOWoauWUtjEAo=
+	by mail.kernel.org (Postfix) with ESMTP id 146CB222BD
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 16:16:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="pgtBz1yN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409217AbfJRPuL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 18 Oct 2019 11:50:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42212 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391515AbfJRPuG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 18 Oct 2019 11:50:06 -0400
-Subject: Re: [GIT PULL] ACPI fixes for v5.4-rc4
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571413805;
-        bh=2a/Xg4OpHPTqx8cCt3EyKzP3kIwmvW4xg9TiZyeYqoY=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=SGUzLSHhn0zKImi2WN7oXgV7RSUW8/VyzzwqgOWnXcpNojsxGJAWKFcQSbHmlFEEA
-         tpOQMFb04nwchkQGxUJQxppIUQo3grYZhiC6tr3J6mVtBrZSgoWR5XFr3CdgxWDYwI
-         bGHCpkn41M9bcWHFgFStLqoZDVnNfYDMyMCmTQmU=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0gG82GLvm45hvwuZGVVhD4cSLpOREaK6Y-QwYs-ymstqA@mail.gmail.com>
-References: <CAJZ5v0gG82GLvm45hvwuZGVVhD4cSLpOREaK6Y-QwYs-ymstqA@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0gG82GLvm45hvwuZGVVhD4cSLpOREaK6Y-QwYs-ymstqA@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
- acpi-5.4-rc4
-X-PR-Tracked-Commit-Id: ffba17bb335d6598de613791f8997a5774455068
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: adca4ce32f4aebe65d817901cf27ede58fa2d143
-Message-Id: <157141380578.28894.12338281025124214125.pr-tracker-bot@kernel.org>
-Date:   Fri, 18 Oct 2019 15:50:05 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S2394510AbfJRQQp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 18 Oct 2019 12:16:45 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:43070 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726520AbfJRQQp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Oct 2019 12:16:45 -0400
+Received: by mail-ot1-f65.google.com with SMTP id o44so5421869ota.10
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Oct 2019 09:16:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=5yvne9gR5NX8diVvQ4owtsBgM2mX2Xb63EAQlH8HuKk=;
+        b=pgtBz1yNdYHNJjI2qaamNbVambOK9yJQgeULnvuFlYsPJ9Rjw1N2d9H+8UMr9eWj3b
+         9liGZz4th/SqPt1msrv5ZhJ9X9azJiH5HNasIcgScD598JWlRWnzuFGS5AXysqgA6HLk
+         gwKe5zRem+TLue5OOjkQh/IQhuxj1AIg1HfVEcb//hOpoKtgw5H/2dP9kiqZLYOx1QBF
+         SrL6WQzrY22NyTxaL8lcVppjuosDDGcqNgrGBBEmn5Oh8WYlAZ4hC7itFji5GF+ZbDMS
+         QAID4k1OHaUbZNUNfqTZiKItV2l49Gld9cwb/kfcjD69FsTkXtRptAEHg/UKD/mgPmFj
+         rfLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5yvne9gR5NX8diVvQ4owtsBgM2mX2Xb63EAQlH8HuKk=;
+        b=NT3cW4UFbCxfz74GZ4LRqQQQjVlcaHiSloLUpw4Yf/D/we/bNRNbCXLWZHKctp1KEx
+         b0WU4JUpGf5F2XLtGTl7z4zSw04zWZKbN+PGXCRPFEOV6BAJknIPd7ZLvUkbs05MBoeu
+         IieG3ZovgsItvoWgq1ODqVdkQ1Kxhd6VTY/ZKnpEuabIeN8A+GpSHdIklasqHnRMzn0e
+         ek1RXZBoJNhM4gUFRWE2pc1V+x43KzcRD1ptdTZ3yMW71qwzri5aSUrwGcof6gABR2oi
+         qU7b+0csUBb9wKDid9l4auuq3c5CiQJ4wkbu8zwaQ/Rcb/r3wvk1sq8fOC7bktMVIIkK
+         E5Dg==
+X-Gm-Message-State: APjAAAVqEk1P+Ndhc6hBJDfi/Q7ZgrepuSLbP2BUGqLTzCy5ScRudG7p
+        n2Yi+ql96/bGYOYhJ0FVovojjobr/HS7bWtX7qZOPg==
+X-Google-Smtp-Source: APXvYqyblv3J/xJHeQdDv4C30Sjo0Fd3shSE2mry0JpF/Y+67xf+0kg0irQ3y+5bIupfWe2BJ5cEte7rGplRl+cUL8w=
+X-Received: by 2002:a9d:7c92:: with SMTP id q18mr8454155otn.363.1571415404227;
+ Fri, 18 Oct 2019 09:16:44 -0700 (PDT)
+MIME-Version: 1.0
+References: <20191018123534.GA6549@mwanda>
+In-Reply-To: <20191018123534.GA6549@mwanda>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Fri, 18 Oct 2019 09:16:33 -0700
+Message-ID: <CAPcyv4jm7kiayfHnBcm7mNW2NeJ81LeUVphMYG0Tq50is-tQ0A@mail.gmail.com>
+Subject: Re: [PATCH] acpi/nfit: unlock on error in scrub_show()
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Keith Busch <keith.busch@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 18 Oct 2019 11:18:44 +0200:
+On Fri, Oct 18, 2019 at 5:37 AM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> We change the locking in this function and forgot to update this error
+> path so we are accidentally still holding the "dev->lockdep_mutex".
+>
+> Fixes: 87a30e1f05d7 ("driver-core, libnvdimm: Let device subsystems add local lockdep coverage")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.4-rc4
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/adca4ce32f4aebe65d817901cf27ede58fa2d143
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+Looks good to me, thanks Dan.
