@@ -2,95 +2,111 @@ Return-Path: <SRS0=O2C7=YL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C51ECA9EA1
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 09:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16331CA9EA0
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 09:23:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 09EC921897
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 09:19:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571390340;
-	bh=DWCcvdsDv/+GGKwVkbz1d6AT/SkV8KqJOYRe9QyV0fE=;
-	h=From:Date:Subject:To:Cc:List-ID:From;
-	b=pIBDjuFYJHwyo57vVFOxRi06ALPhUj0Nwudbqiqoi29KI/GJRR4M6bTMYi5zmLg30
-	 eXhq6F6YYT0cYhsG94smOcFlBB85r0JVDhRvXTwCZhrUmKOgjaF2SrIb9ZDLvVnxRu
-	 EUp4MTQ8T+ls8UBBXHt+lyt/ieP3isN7oKbLgYFU=
+	by mail.kernel.org (Postfix) with ESMTP id ED366222C3
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 09:23:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406645AbfJRJS4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 18 Oct 2019 05:18:56 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:45355 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390499AbfJRJSz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Oct 2019 05:18:55 -0400
-Received: by mail-oi1-f194.google.com with SMTP id o205so4605329oib.12;
-        Fri, 18 Oct 2019 02:18:55 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=yTS+cmXgJUMIzlgHO4090rAX20R9LMZN47qkA+zl3mQ=;
-        b=qLfffHjEEO54LWsMuqsUOFoUb/j9gabQdM+xDtPpLMRMhUqEvOL+pqEcCUSzIXbDp/
-         iexOIZv0NjVJqK4K473eMHeSTUCbLpU9bZd1lrsGySEsKT6ThEuwVjEBBcIOp12agfLD
-         jvZrHd/fbbooXek+Ym3f+fOIy2BYM20T4RfVeWNI2RGc+nScqfsWSURzr+neptOX4ud3
-         911dg2U8O9fdDKo2wqgkmyMeyPjjiAYk/WCdyK8bX6dr2JBYz5NSPbAfpJ+DjCYV+b/z
-         VGBbkG8MGC0HR7mIRcgtCcq9J92FUbVrfpxwzmt1InyOJ3X+9/At3S4SrXnwdToMrOCR
-         DlVw==
-X-Gm-Message-State: APjAAAUNopiFJhYj0QrcmgH4fqWYnRJWPpeR+mi3h3uFNQjca9lx+Xqt
-        1uIzENBRjogzY1MBfMS+LTRyUoKrqbw2sDOlis0=
-X-Google-Smtp-Source: APXvYqwB+NtokmhbLo9+mcq8n2p32alBAWd/fffeN1NJeNpDxjiPZ4q0ZHxNUQG4vVrDocgNw5CJTRby4bfxkFDew2w=
-X-Received: by 2002:a05:6808:917:: with SMTP id w23mr6816796oih.68.1571390335017;
- Fri, 18 Oct 2019 02:18:55 -0700 (PDT)
+        id S2393347AbfJRJXE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 18 Oct 2019 05:23:04 -0400
+Received: from mga03.intel.com ([134.134.136.65]:45040 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725818AbfJRJXD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 18 Oct 2019 05:23:03 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Oct 2019 02:23:02 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.67,311,1566889200"; 
+   d="scan'208";a="190312549"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 18 Oct 2019 02:23:00 -0700
+Received: from andy by smile with local (Exim 4.92.2)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1iLOTM-0000TP-45; Fri, 18 Oct 2019 12:23:00 +0300
+Date:   Fri, 18 Oct 2019 12:23:00 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        stable@vger.kernel.org
+Subject: Re: [PATCH] pinctrl: cherryview: Fix irq_valid_mask calculation
+Message-ID: <20191018092300.GV32742@smile.fi.intel.com>
+References: <20191018090842.11189-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 18 Oct 2019 11:18:44 +0200
-Message-ID: <CAJZ5v0gG82GLvm45hvwuZGVVhD4cSLpOREaK6Y-QwYs-ymstqA@mail.gmail.com>
-Subject: [GIT PULL] ACPI fixes for v5.4-rc4
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191018090842.11189-1-hdegoede@redhat.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.4-rc4
-
-with top-most commit ffba17bb335d6598de613791f8997a5774455068
-
- Merge branch 'acpi-tables'
-
-on top of commit 4f5cafb5cb8471e54afdc9054d973535614f7675
-
- Linux 5.4-rc3
-
-to receive ACPI fixes for 5.4-rc4.
-
-These fix possible use-after-free in the ACPI CPPC support code (John
-Garry) and prevent the ACPI HMAT parsing code from using possibly
-incorrect data coming from the platform firmware (Daniel Black).
+On Fri, Oct 18, 2019 at 11:08:42AM +0200, Hans de Goede wrote:
+> Commit 03c4749dd6c7 ("gpio / ACPI: Drop unnecessary ACPI GPIO to Linux
+> GPIO translation") has made the cherryview gpio numbers sparse, to get
+> a 1:1 mapping between ACPI pin numbers and gpio numbers in Linux.
+> 
+> This has greatly simplified things, but the code setting the
+> irq_valid_mask was not updated for this, so the valid mask is still in
+> the old "compressed" numbering with the gaps in the pin numbers skipped,
+> which is wrong as irq_valid_mask needs to be expressed in gpio numbers.
+> 
+> This results in the following error on devices using pin 24 (0x0018) on
+> the north GPIO controller as an ACPI event source:
+> 
+> [    0.422452] cherryview-pinctrl INT33FF:01: Failed to translate GPIO to IRQ
+> 
+> This has been reported (by email) to be happening on a Caterpillar CAT T20
+> tablet and I've reproduced this myself on a Medion Akoya e2215t 2-in-1.
+> 
+> This commit uses the pin number instead of the compressed index into
+> community->pins to clear the correct bits in irq_valid_mask for GPIOs
+> using GPEs for interrupts, fixing these errors and in case of the
+> Medion Akoya e2215t also fixing the LID switch not working.
 
 Thanks!
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+> 
+> Cc: stable@vger.kernel.org
+> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Fixes: 03c4749dd6c7 ("gpio / ACPI: Drop unnecessary ACPI GPIO to Linux GPIO translation")
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/pinctrl/intel/pinctrl-cherryview.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/pinctrl/intel/pinctrl-cherryview.c b/drivers/pinctrl/intel/pinctrl-cherryview.c
+> index aae51c507f59..02ff5e8b0510 100644
+> --- a/drivers/pinctrl/intel/pinctrl-cherryview.c
+> +++ b/drivers/pinctrl/intel/pinctrl-cherryview.c
+> @@ -1563,7 +1563,7 @@ static void chv_init_irq_valid_mask(struct gpio_chip *chip,
+>  		intsel >>= CHV_PADCTRL0_INTSEL_SHIFT;
+>  
+>  		if (intsel >= community->nirqs)
+> -			clear_bit(i, valid_mask);
+> +			clear_bit(desc->number, valid_mask);
+>  	}
+>  }
+>  
+> -- 
+> 2.23.0
+> 
+
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
----------------
-
-Daniel Black (1):
-      ACPI: HMAT: ACPI_HMAT_MEMORY_PD_VALID is deprecated since ACPI-6.3
-
-John Garry (1):
-      ACPI: CPPC: Set pcc_data[pcc_ss_id] to NULL in acpi_cppc_processor_exit()
-
----------------
-
- drivers/acpi/cppc_acpi.c | 2 +-
- drivers/acpi/hmat/hmat.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
