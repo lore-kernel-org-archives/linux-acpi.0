@@ -2,96 +2,69 @@ Return-Path: <SRS0=O2C7=YL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C87E8CA9EAB
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 15:32:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 534DDCA9EA9
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 15:50:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E8E2222C6
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 15:32:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GiAD4YwW"
+	by mail.kernel.org (Postfix) with ESMTP id 2C01E222CD
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Oct 2019 15:50:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1571413811;
+	bh=pbmgVM5FBJRtDKo2MHb0gJ8MdlAWiu/R5y4aNSZOQow=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=2ClBL07T7pg5eqPmQWX8XLB5Fdxctk1UoMzGVJXB54nHHDd6E6m8jyMVAv6gj6fjj
+	 iIAP2fhyArO/GpfceYDs4rkWGghlNGvrMdwaALvX7AH6xOBtV3KKBnyQh20V/K3GHj
+	 c41VkSFd8MDEaCVzdcXIelHBbjDCXzFEH6Z1/F84=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2410567AbfJRPcC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 18 Oct 2019 11:32:02 -0400
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:40279 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2410487AbfJRPcB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Oct 2019 11:32:01 -0400
-Received: by mail-lj1-f194.google.com with SMTP id 7so6658470ljw.7;
-        Fri, 18 Oct 2019 08:32:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=ei51YZAvEhA4r5N+YGs4qYhuh8+slSCkMfLH0jqZnD8=;
-        b=GiAD4YwWVjSWvaK8Av5lcBHH0qomSRpUNph7poGrauD6glP+bDoN6fcrk3m03qOOai
-         BpEJN6xOeocNXiR+hA8o3lvvVplAu+l/cN05qIFs38/3DttNJn7v/2iCRbvOmYZeJD4Y
-         //Wwnbd99k1MgCsN6sMjwDh4XdsoGgQSHDYzT9dIgGRW0Kndhyhgm7PgRgGZOgL8aBDw
-         SJrj2LewHiHI/23l1XERDDAQhm5Pipp8KaFxovjtCqxKxRPRmTAUDM49qyTeUadt0rrd
-         ydeaXk+nlcwUchVz4XV40YcgIMkVgyHx2Ub3gu710baDSvs03w9D9cS1qD8B/HNFyfyE
-         RYqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=ei51YZAvEhA4r5N+YGs4qYhuh8+slSCkMfLH0jqZnD8=;
-        b=G7bUb/P2ATuBUGy8nyEaLugzKSN+zYnKQWi9oupRpEnkwzhI30aYYxd/SNHHv6wRPM
-         QzOE6MK/FJ2zOZLxxZRnb/qT2umWfgbVxBdsTJBbiTmmav3uugBS2ULmWzfYpi5ZRvee
-         4JwpBzoRvT/vJ8Mlec70YWBCxhB0qcYMY+h1eeFbL3FHHUN3xMH7o8jw/7k/01U76G0m
-         zK06JWKY/qG2cuV9TunQZaROZp4vfEuOmhZpQwOYBaUPl1VOW++ci/E76DWDcjYLGzpi
-         zlSLG0XTjcdgkH6YPHmQ1GHq6uTP+fiGOes65MPzug2FL7e5JlrSL7YzMe7CHO0C6ztD
-         aqpg==
-X-Gm-Message-State: APjAAAVRiwfTMncMGrP3oo2ES/6safKZJtNLL4ySCa3xuTrsLVreFeAM
-        yqQXc+mmmyZ5iOrMSTNwnMNBPfqg
-X-Google-Smtp-Source: APXvYqygSb9yccN0GFabj4MMsATDGDUIKCShWULu3efw0Wwdj02JGA47qkbMQUKzv7Put1QCPNQTBg==
-X-Received: by 2002:a2e:9205:: with SMTP id k5mr6297192ljg.246.1571412719588;
-        Fri, 18 Oct 2019 08:31:59 -0700 (PDT)
-Received: from [192.168.2.145] ([94.29.10.250])
-        by smtp.googlemail.com with ESMTPSA id s1sm2274235lfd.14.2019.10.18.08.31.58
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 18 Oct 2019 08:31:58 -0700 (PDT)
-Subject: Re: [RFT][PATCH 2/3] cpufreq: Use per-policy frequency QoS
-To:     Viresh Kumar <viresh.kumar@linaro.org>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        id S2409114AbfJRPuG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 18 Oct 2019 11:50:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42190 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2394076AbfJRPuG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 18 Oct 2019 11:50:06 -0400
+Subject: Re: [GIT PULL] Power management fixes for v5.4-rc4
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1571413805;
+        bh=pbmgVM5FBJRtDKo2MHb0gJ8MdlAWiu/R5y4aNSZOQow=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=m0KLCB4QcXtUHDW/Y64t1MG4q9toc9vbemYzeuWibLfnktF4g1X9XVxORC6TWtp9u
+         oiletYwW+azX1WQ6BUC4hdTmSxqmgTqo+FGKsh1d5XdcIuMxV5LxicDdWRg7PCgwG5
+         u+qeek1RDbYsPxWcT0lwe7Pvz78JUVhJqo5l4TJc=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0iMdUWVv8G1D075eSEBOMoqUfoWC_ik6qy5CxNapUo1xg@mail.gmail.com>
+References: <CAJZ5v0iMdUWVv8G1D075eSEBOMoqUfoWC_ik6qy5CxNapUo1xg@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0iMdUWVv8G1D075eSEBOMoqUfoWC_ik6qy5CxNapUo1xg@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.4-rc4
+X-PR-Tracked-Commit-Id: b23eb5c74e6eb6a0b3fb9cf3eb64481a17ce1cd1
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: e59b76ff67e527e58914409f13a9cffa1cbf42e7
+Message-Id: <157141380553.28894.10224105996340827276.pr-tracker-bot@kernel.org>
+Date:   Fri, 18 Oct 2019 15:50:05 +0000
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Linux PM <linux-pm@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>
-References: <2811202.iOFZ6YHztY@kreacher> <20154332.AJkCBzCetj@kreacher>
- <1707f018-fc6b-0122-17e0-635340daa4ef@gmail.com>
- <d88fc9b4-24af-6081-96e4-5a0b93c59d43@gmail.com>
- <20191018092933.2i7dpr35wkxemgby@vireshk-i7>
-From:   Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <a4337199-5a69-1604-836b-f69436865b11@gmail.com>
-Date:   Fri, 18 Oct 2019 18:31:57 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.1.1
-MIME-Version: 1.0
-In-Reply-To: <20191018092933.2i7dpr35wkxemgby@vireshk-i7>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-18.10.2019 12:29, Viresh Kumar пишет:
-> On 18-10-19, 00:29, Dmitry Osipenko wrote:
->> Viresh, the warning is actually triggered by this line:
->>
->> https://elixir.bootlin.com/linux/v5.4-rc2/source/drivers/opp/of.c#L664
->>
->> So it looks like the cpufreq-dt driver removal drops
->> opp_table->list_kref more times than it should be. I may try to take a
->> closer look at it later on, please let me know if you have any suggestions.
-> 
-> I was able to reproduce it and have sent a fix and cc'd you on it.
-> Please give it a try.
+The pull request you sent on Fri, 18 Oct 2019 11:17:32 +0200:
 
-Thanks!
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.4-rc4
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/e59b76ff67e527e58914409f13a9cffa1cbf42e7
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
