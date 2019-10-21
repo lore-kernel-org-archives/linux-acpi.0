@@ -2,36 +2,36 @@ Return-Path: <SRS0=PMQP=YO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEAEFCA9EAF
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Oct 2019 13:23:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7B43C47E49
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Oct 2019 13:26:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A8C2A214AE
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Oct 2019 13:23:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C841320873
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Oct 2019 13:26:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728826AbfJUNXs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Oct 2019 09:23:48 -0400
-Received: from mga12.intel.com ([192.55.52.136]:24504 "EHLO mga12.intel.com"
+        id S1727962AbfJUN0j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Oct 2019 09:26:39 -0400
+Received: from mga03.intel.com ([134.134.136.65]:33925 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727256AbfJUNXr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 21 Oct 2019 09:23:47 -0400
+        id S1727322AbfJUN0j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Oct 2019 09:26:39 -0400
 X-Amp-Result: UNKNOWN
 X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 21 Oct 2019 06:23:47 -0700
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 21 Oct 2019 06:26:38 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.67,323,1566889200"; 
-   d="scan'208";a="196106820"
+   d="scan'208";a="372174851"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga008.fm.intel.com with ESMTP; 21 Oct 2019 06:23:45 -0700
+  by orsmga005.jf.intel.com with ESMTP; 21 Oct 2019 06:26:36 -0700
 Received: from andy by smile with local (Exim 4.92.2)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1iMXez-00052V-6L; Mon, 21 Oct 2019 16:23:45 +0300
-Date:   Mon, 21 Oct 2019 16:23:45 +0300
+        id 1iMXhj-00053z-Eb; Mon, 21 Oct 2019 16:26:35 +0300
+Date:   Mon, 21 Oct 2019 16:26:35 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Hans de Goede <hdegoede@redhat.com>
 Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
@@ -40,14 +40,13 @@ Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 Subject: Re: [PATCH] gpiolib: acpi: Print pin number on
  acpi_gpiochip_alloc_event errors
-Message-ID: <20191021132345.GT32742@smile.fi.intel.com>
+Message-ID: <20191021132635.GU32742@smile.fi.intel.com>
 References: <20191018195208.94405-1-hdegoede@redhat.com>
  <20191021091124.GK32742@smile.fi.intel.com>
- <f3294033-8105-8c26-a8e2-3ced55276fdb@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <f3294033-8105-8c26-a8e2-3ced55276fdb@redhat.com>
+In-Reply-To: <20191021091124.GK32742@smile.fi.intel.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
@@ -55,19 +54,15 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Oct 21, 2019 at 02:52:13PM +0200, Hans de Goede wrote:
-> On 21-10-2019 11:11, Andy Shevchenko wrote:
-> > On Fri, Oct 18, 2019 at 09:52:08PM +0200, Hans de Goede wrote:
-> > > Print pin number on acpi_gpiochip_alloc_event errors, to help debugging
-> > > these.
-> > 
-> > I'm not sure which one is better decimal or hex, perhaps Mika can help me, in any case
+On Mon, Oct 21, 2019 at 12:11:24PM +0300, Andy Shevchenko wrote:
+> On Fri, Oct 18, 2019 at 09:52:08PM +0200, Hans de Goede wrote:
+> > Print pin number on acpi_gpiochip_alloc_event errors, to help debugging
+> > these.
 > 
-> They are listed as hex in the dis-assembled DSTD.
+> I'm not sure which one is better decimal or hex, perhaps Mika can help me, in any case
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Oh, now I noticed the potential issue. The pin can be 16-bit, you pring here
-only for the case when we have evname. Maybe do something similar in these
-messages? Print event name for pin inside byte range and value otherwise?
+I have to withdraw this due to potential issue found.
 
 -- 
 With Best Regards,
