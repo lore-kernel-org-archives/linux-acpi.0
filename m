@@ -2,109 +2,101 @@ Return-Path: <SRS0=YMIz=YP=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CEF1CA9EA0
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 10:01:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FE8DCA9EA0
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 12:44:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6EE6C2064B
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 10:01:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571738514;
-	bh=zU77JOPItwE0kfL2VdVJZpqjmZAJj7PLPPh8VoTKlPI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=gwoWiHTa9RdrtCQz5jUV2vE9OTgU1wdRvDDHXTakLUS580UMjDBmkB5zov1QwDjL1
-	 rJ+f0udrDC1A6XNeX4Zx1Q/idTAUDAzU/0N0XnGWzDoB71c9WgNA0UWw5vBYVW7b+0
-	 KE16TEpgFyMx3U4djqcLDvZc8oLTyPA6Sg7fbovw=
+	by mail.kernel.org (Postfix) with ESMTP id 36FE321906
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 12:44:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729994AbfJVKBy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 22 Oct 2019 06:01:54 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:39759 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727101AbfJVKBx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Oct 2019 06:01:53 -0400
-Received: by mail-oi1-f196.google.com with SMTP id w144so13656852oia.6;
-        Tue, 22 Oct 2019 03:01:53 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=QymUh+Fku1vQVHvu/DETUtAo+Qu6b8CnaBuQss7KKWQ=;
-        b=h2iFRY8kvTIp3uSv1xdak5KNpDhBffU8tz5cQttN6wCNauPnlPr4C5ZPCzDK5CEjVa
-         Jxoa41P5dwq9bKhkzqx0Lhpe3IpS9iFh9cyJ3exTdWgUzJ6R+9ID9etOk3itNUlrar2D
-         XYT0qtXndeRj9xZtnfwNHPtyn0MofhuSzR1VX+og2nVBKLSnEFyMwBpZeIHjZ8WPEg5K
-         TRHJZ9fOqANYXYSxnM2D98uyiYJbtjOwM5X9RI90k+PrtRht3xEJJhiPmQx7AT9si9UM
-         hA1O2FwqFUJUiCozB/kw6xe9MWnkXAuC990fm+qCTFujfjkbLRyGorM16gj6rzx+yPZA
-         07tw==
-X-Gm-Message-State: APjAAAWTo+kUSUZW11FBs6JEIIRg89XQoX2SG8iweGe3VcITONwczN4m
-        pCbAufSGXt3fuEq6mWhOJ1bXI0QjGhu5O60Zt6M=
-X-Google-Smtp-Source: APXvYqwN0bxJxdIvFNnaNORZKQBNabY4ldLgTUIlNjE1Z7rAnNoVLH34CBEzb2jBIdbGQUA6pt46njyJIVaN1WsCNSA=
-X-Received: by 2002:aca:d405:: with SMTP id l5mr2047939oig.115.1571738512905;
- Tue, 22 Oct 2019 03:01:52 -0700 (PDT)
+        id S2387491AbfJVMo6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 22 Oct 2019 08:44:58 -0400
+Received: from mga14.intel.com ([192.55.52.115]:45612 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387479AbfJVMo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 22 Oct 2019 08:44:58 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Oct 2019 05:44:57 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.67,327,1566889200"; 
+   d="scan'208";a="209665685"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.157])
+  by fmsmga001.fm.intel.com with SMTP; 22 Oct 2019 05:44:54 -0700
+Received: by lahna (sSMTP sendmail emulation); Tue, 22 Oct 2019 15:44:54 +0300
+Date:   Tue, 22 Oct 2019 15:44:53 +0300
+From:   Mika Westerberg <mika.westerberg@intel.com>
+To:     Karol Herbst <kherbst@redhat.com>
+Cc:     Bjorn Helgaas <helgaas@kernel.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Lyude Paul <lyude@redhat.com>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        nouveau <nouveau@lists.freedesktop.org>,
+        Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH v3] pci: prevent putting nvidia GPUs into lower device
+ states on certain intel bridges
+Message-ID: <20191022124453.GK2819@lahna.fi.intel.com>
+References: <CACO55ttOJaXKWmKQQbMAQRJHLXF-VtNn58n4BZhFKYmAdfiJjA@mail.gmail.com>
+ <20191016213722.GA72810@google.com>
+ <CACO55tuXck7vqGVLmMBGFg6A2pr3h8koRuvvWHLNDH8XvBVxew@mail.gmail.com>
+ <20191021133328.GI2819@lahna.fi.intel.com>
+ <CACO55tujUZr+rKkyrkfN+wkNOJWdNEVhVc-eZ3RCXJD+G1z=7A@mail.gmail.com>
+ <20191021140852.GM2819@lahna.fi.intel.com>
+ <CACO55tvp6n2ahizwhc70xRJ1uTohs2ep962vwtHGQK-MkcLmsw@mail.gmail.com>
+ <20191021154606.GT2819@lahna.fi.intel.com>
+ <CACO55tsGhvG1qapRkdu_j7R534cFa5o=Gv2s4VZDrWUrxjBFwA@mail.gmail.com>
+ <CACO55ts7hivYgN7=3bcAjWx2h8FfbR5UiKiOOExYY9m-TGRNfw@mail.gmail.com>
 MIME-Version: 1.0
-References: <157118756627.2063440.9878062995925617180.stgit@dwillia2-desk3.amr.corp.intel.com>
- <157118757175.2063440.9248947575330904096.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAJZ5v0i-hhasNCD6Ur8VLfrkc+4GOeNXXX_ZNFZjcY6F51ciSQ@mail.gmail.com>
-In-Reply-To: <CAJZ5v0i-hhasNCD6Ur8VLfrkc+4GOeNXXX_ZNFZjcY6F51ciSQ@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 22 Oct 2019 12:01:42 +0200
-Message-ID: <CAJZ5v0j_-iSqiysZiW=J8Y5FCAjnPC7ZvevrLsYhngWr6mT6GQ@mail.gmail.com>
-Subject: Re: [PATCH v7 01/12] acpi/numa: Establish a new drivers/acpi/numa/ directory
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>,
-        Keith Busch <kbusch@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        linux-efi <linux-efi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACO55ts7hivYgN7=3bcAjWx2h8FfbR5UiKiOOExYY9m-TGRNfw@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Oct 18, 2019 at 11:25 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
->  On Wed, Oct 16, 2019 at 3:13 AM Dan Williams <dan.j.williams@intel.com> wrote:
-> >
-> > Currently hmat.c lives under an "hmat" directory which does not enhance
-> > the description of the file. The initial motivation for giving hmat.c
-> > its own directory was to delineate it as mm functionality in contrast to
-> > ACPI device driver functionality.
-> >
-> > As ACPI continues to play an increasing role in conveying
-> > memory location and performance topology information to the OS take the
-> > opportunity to co-locate these NUMA relevant tables in a combined
-> > directory.
-> >
-> > numa.c is renamed to srat.c and moved to drivers/acpi/numa/ along with
-> > hmat.c.
-> >
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Keith Busch <kbusch@kernel.org>
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
-> Please note that https://patchwork.kernel.org/patch/11078171/ is being
-> pushed to Linus (it is overdue anyway), so if it is pulled, there will
-> be a merge conflict with this patch.
->
-> Respin maybe?
+On Tue, Oct 22, 2019 at 11:16:14AM +0200, Karol Herbst wrote:
+> I think there is something I totally forgot about:
+> 
+> When there was never a driver bound to the GPU, and if runtime power
+> management gets enabled on that device, runtime suspend/resume works
+> as expected (I am not 100% sure on if that always works, but I will
+> recheck that).
 
-Actually, would you mind it if I took this one into the ACPI tree right away?
+AFAIK, if there is no driver bound to the PCI device it is left to D0
+regardless of the runtime PM state which could explain why it works in
+that case (it is never put into D3hot).
 
-There's https://patchwork.kernel.org/patch/11198373/ queued up that,
-again, will clash with it.
+I looked at the acpidump you sent and there is one thing that may
+explain the differences between Windows and Linux. Not sure if you were
+aware of this already, though. The power resource PGOF() method has
+this:
 
-Also, there is the generic Initiator proximity domains series from
-Jonathan depending on it and I would like to move forward with that
-one if there are no objections.
+   If (((OSYS <= 0x07D9) || ((OSYS == 0x07DF) && (_REV == 0x05)))) {
+      ...
+   }  
+
+If I read it right, the later condition tries to detect Linux which
+fails nowadays but if you have acpi_rev_override in the command line (or
+the machine is listed in acpi_rev_dmi_table) this check passes and does
+some magic which is not clear to me. There is similar in PGON() side
+which is used to turn the device back on.
+
+You can check what actually happens when _ON()/_OFF() is called by
+passing something like below to the kernel command line:
+
+  acpi.trace_debug_layer=0x80 acpi.trace_debug_level=0x10 acpi.trace_method_name=\_SB.PCI0.PEG0.PG00._ON acpi.trace_state=method
+
+(See also Documentation/firmware-guide/acpi/method-tracing.rst).
+
+Trace goes to system dmesg.
