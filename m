@@ -2,152 +2,138 @@ Return-Path: <SRS0=YMIz=YP=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DATE_IN_FUTURE_06_12,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B6D5CA9EA0
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 06:29:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE43CA9EA0
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 09:16:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 721602184C
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 06:29:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 156F52064B
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Oct 2019 09:16:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729133AbfJVG3B (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 22 Oct 2019 02:29:01 -0400
-Received: from mga04.intel.com ([192.55.52.120]:31908 "EHLO mga04.intel.com"
+        id S2388084AbfJVJQ1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 22 Oct 2019 05:16:27 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:46088 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725788AbfJVG3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Oct 2019 02:29:00 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 21 Oct 2019 23:29:00 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.67,326,1566889200"; 
-   d="scan'208";a="397572098"
-Received: from fyin-dev.sh.intel.com (HELO [10.239.143.122]) ([10.239.143.122])
-  by fmsmga005.fm.intel.com with ESMTP; 21 Oct 2019 23:28:59 -0700
-Subject: Re: [PATCH v2] ACPI / processor_idle: use ndelay instead of io port
- access for wait
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     David Laight <David.Laight@aculab.com>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <20191015080404.6013-1-fengwei.yin@intel.com>
- <c9f3f4f93bb946f790fce4709253b359@AcuMS.aculab.com>
- <2b3ce9e9-e805-1b8d-86c3-c8f498a4d3dd@intel.com>
- <2566427.rT6C98KLSe@kreacher>
-From:   Yin Fengwei <fengwei.yin@intel.com>
-Message-ID: <b2e0315e-a500-28cf-367e-599a36a975db@intel.com>
-Date:   Tue, 22 Oct 2019 22:25:25 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        id S2388390AbfJVJQ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 22 Oct 2019 05:16:27 -0400
+Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com [209.85.160.198])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 7827085363
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Oct 2019 09:16:26 +0000 (UTC)
+Received: by mail-qt1-f198.google.com with SMTP id t16so641789qtp.11
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Oct 2019 02:16:26 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=1NaftjpZ7q0/7FUFVe9FC7tfQH1ZMRLJsGxSpJEAYR0=;
+        b=Yg+vvKj5mnpLdFvYLwkSGsKMOTLIcufIXumD7PjM7Zp1eSYt3PfHcCUp81fhw3N7PK
+         tXfjhBun01nf0RFZUH9YD7kKnlYYUbjgw841QhdpuMt+D+0f7+ri3DT6izE423l9AV17
+         C0QtzTTqn1U5b9CT93CKyVLkXUPySI9401tX7TGwvb3NGvzQhJCF0zgT0CQFBR8e3Pp0
+         NwaNi7kF9s8TM25/mEZg92L5a4bIKVokHRV7uIffkYhUyM6PBbatxlx4VeLEH7+l49i5
+         unGfbCdHkA1B9v/idlyXYujSjdIIX6kBeSzBMQ//wvr8MjdJV0IJD0krUYqk845M8y7Q
+         B0YQ==
+X-Gm-Message-State: APjAAAWfVKfL4JNTP3sUJR7v4/cjNHyhe0pZD9JWV7zww7ySXBbBcA2P
+        u5BInXdZhKrPKJknRb27ZBT6q/7ujsFgirTYyanEK7w0Ou5Guoe+y05+nLsNAyUK/vOF4CP24N3
+        p+eyuBRPkkyEHXePI3SPVVAr1f1PofGvEeRXfAQ==
+X-Received: by 2002:ac8:664b:: with SMTP id j11mr2246840qtp.137.1571735785693;
+        Tue, 22 Oct 2019 02:16:25 -0700 (PDT)
+X-Google-Smtp-Source: APXvYqxh+htVaSt1EHk6f2pMjctNRL+6dMevykS1gSHbmTJ7kc2awbIl5sahcS8cpGCaPnstRND7kRjzMbWgqOesrio=
+X-Received: by 2002:ac8:664b:: with SMTP id j11mr2246814qtp.137.1571735785316;
+ Tue, 22 Oct 2019 02:16:25 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <2566427.rT6C98KLSe@kreacher>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+References: <CACO55ttOJaXKWmKQQbMAQRJHLXF-VtNn58n4BZhFKYmAdfiJjA@mail.gmail.com>
+ <20191016213722.GA72810@google.com> <CACO55tuXck7vqGVLmMBGFg6A2pr3h8koRuvvWHLNDH8XvBVxew@mail.gmail.com>
+ <20191021133328.GI2819@lahna.fi.intel.com> <CACO55tujUZr+rKkyrkfN+wkNOJWdNEVhVc-eZ3RCXJD+G1z=7A@mail.gmail.com>
+ <20191021140852.GM2819@lahna.fi.intel.com> <CACO55tvp6n2ahizwhc70xRJ1uTohs2ep962vwtHGQK-MkcLmsw@mail.gmail.com>
+ <20191021154606.GT2819@lahna.fi.intel.com> <CACO55tsGhvG1qapRkdu_j7R534cFa5o=Gv2s4VZDrWUrxjBFwA@mail.gmail.com>
+In-Reply-To: <CACO55tsGhvG1qapRkdu_j7R534cFa5o=Gv2s4VZDrWUrxjBFwA@mail.gmail.com>
+From:   Karol Herbst <kherbst@redhat.com>
+Date:   Tue, 22 Oct 2019 11:16:14 +0200
+Message-ID: <CACO55ts7hivYgN7=3bcAjWx2h8FfbR5UiKiOOExYY9m-TGRNfw@mail.gmail.com>
+Subject: Re: [PATCH v3] pci: prevent putting nvidia GPUs into lower device
+ states on certain intel bridges
+To:     Mika Westerberg <mika.westerberg@intel.com>
+Cc:     Bjorn Helgaas <helgaas@kernel.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Lyude Paul <lyude@redhat.com>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        nouveau <nouveau@lists.freedesktop.org>,
+        Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+I think there is something I totally forgot about:
 
-On 2019/10/18 下午6:12, Rafael J. Wysocki wrote:
-> On Wednesday, October 16, 2019 7:56:17 AM CEST Yin, Fengwei wrote:
->> Hi David,
->>
->> On 10/15/2019 7:48 PM, David Laight wrote:
->>> From: Yin Fengwei
->>>> Sent: 15 October 2019 09:04
->>>> In function acpi_idle_do_entry(), an ioport access is used for dummy
->>>> wait to guarantee hardware behavior. But it could trigger unnecessary
->>>> vmexit in virtualization environment.
->>>>
->>>> If we run linux as guest and export all available native C state to
->>>> guest, we did see many PM timer access triggered VMexit when guest
->>>> enter deeper C state in our environment (We used ACRN hypervisor
->>>> instead of kvm or xen which has PM timer emulated and exports all
->>>> native C state to guest).
->>>>
->>>> According to the original comments of this part of code, io port
->>>> access is only for dummy wait. We could use busy wait instead of io
->>>> port access to guarantee hardware behavior and avoid unnecessary
->>>> VMexit.
->>>
->>> You need some hard synchronisation instruction(s) after the inb()
->>> and before any kind of delay to ensure your delay code is executed
->>> after the inb() completes.
->>>
->>> I'm pretty sure that inb() is only synchronised with memory reads.
->> Thanks a lot for the comments.
->>
->> I didn't find the common serializing instructions API in kernel (only
->> memory  barrier which is used to make sure of memory access). For Intel
->> x86, cpuid could be used as serializing instruction. But it's not
->> suitable for common code here. Do you have any suggestion?
-> 
-> In the virt guest case you don't need to worry at all AFAICS, because the inb()
-> itself will trap to the HV.
-> 
->>>
->>> ...
->>>> +	/* profiling the time used for dummy wait op */
->>>> +	ktime_get_real_ts64(&ts0);
->>>> +	inl(acpi_gbl_FADT.xpm_timer_block.address);
->>>> +	ktime_get_real_ts64(&ts1);
-> 
-> You may as well use ktime_get() for this, as it's almost the same code as
-> ktime_get_real_ts64() AFAICS, only simpler.
-> 
-> Plus, static vars need not be initialized to 0.
-> 
->>>
->>> That could be dominated by the cost of ktime_get_real_ts64().
->>> It also need synchronising instructions.
->> I did some testing. ktime_get_real_ts64() takes much less time than io
->> port access.
->>
->> The test code is like:
->> 1.
->> 	local_irq_save(flag);
->> 	ktime_get_real_ts64(&ts0);
->> 	inl(acpi_gbl_FADT.xpm_timer_block.address);
->> 	ktime_get_real_ts64(&ts1);
->> 	local_irq_restore(flag);
->>
->> 2.
->> 	local_irq_save(flag);
->> 	ktime_get_real_ts64(&ts0);
->> 	ktime_get_real_ts64(&ts1);
->> 	local_irq_restore(flag);
->>
->> The delta in 1 is about 500000ns. And delta in 2 is about
->> 2000ns. The date is gotten on Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz.
->> So I suppose the impact of ktime_get_real_ts64 is small.
-> 
-> You may not be hitting the worst case for ktime_get_real_ts64(), though.
-> 
-> I wonder if special casing the virt guest would be a better approach.
-> 
-> Then, you could leave the code as is for non-virt and I'm not sure if the
-> delay is needed in the virt guest case at all.
-> 
-> So maybe do something like "if not in a virt guest, do the dummy inl()"
-> and that would be it?
-After re-think the scenario again, I'd like to change the patch to
-something like following as Rafael suggested:
+When there was never a driver bound to the GPU, and if runtime power
+management gets enabled on that device, runtime suspend/resume works
+as expected (I am not 100% sure on if that always works, but I will
+recheck that).
+In the past I know that at some point I "bisected" the nouveau driver
+to figure out what actually breaks it and found out that some script
+executed with the help of an on-chip engine (signed script, signed
+firmware, both vbios provided) makes it break. Debugging the script
+lead me to the PCIe link speed changes done inside the script breaking
+it.
 
-If it's not in virt guest, we still use inl for dummy wait.
-If it's in virt guest, we could assume inb will be trapped to HV and
-remove the dummy wait.
+But as "reverting" the speed change didn't make it work reliably
+again, I think I need to get back on that and check if it's something
+else. I will try to convert the script into C or python code to make
+it more accessible to debug and hopefully I'll find something I
+overlooked the last time.
 
-I will generate v3 soon.
-
-Regards
-Yin, Fengwei
-
-> 
-> 
-> 
+On Mon, Oct 21, 2019 at 6:40 PM Karol Herbst <kherbst@redhat.com> wrote:
+>
+> On Mon, Oct 21, 2019 at 5:46 PM Mika Westerberg
+> <mika.westerberg@intel.com> wrote:
+> >
+> > On Mon, Oct 21, 2019 at 04:49:09PM +0200, Karol Herbst wrote:
+> > > On Mon, Oct 21, 2019 at 4:09 PM Mika Westerberg
+> > > <mika.westerberg@intel.com> wrote:
+> > > >
+> > > > On Mon, Oct 21, 2019 at 03:54:09PM +0200, Karol Herbst wrote:
+> > > > > > I really would like to provide you more information about such
+> > > > > > workaround but I'm not aware of any ;-) I have not seen any issues like
+> > > > > > this when D3cold is properly implemented in the platform.  That's why
+> > > > > > I'm bit skeptical that this has anything to do with specific Intel PCIe
+> > > > > > ports. More likely it is some power sequence in the _ON/_OFF() methods
+> > > > > > that is run differently on Windows.
+> > > > >
+> > > > > yeah.. maybe. I really don't know what's the actual root cause. I just
+> > > > > know that with this workaround it works perfectly fine on my and some
+> > > > > other systems it was tested on. Do you know who would be best to
+> > > > > approach to get proper documentation about those methods and what are
+> > > > > the actual prerequisites of those methods?
+> > > >
+> > > > Those should be documented in the ACPI spec. Chapter 7 should explain
+> > > > power resources and the device power methods in detail.
+> > >
+> > > either I looked up the wrong spec or the documentation isn't really
+> > > saying much there.
+> >
+> > Well it explains those methods, _PSx, _PRx and _ON()/_OFF(). In case of
+> > PCIe device you also want to check PCIe spec. PCIe 5.0 section 5.8 "PCI
+> > Function Power State Transitions" has a picture about the supported
+> > power state transitions and there we can find that function must be in
+> > D3hot before it can be transitioned into D3cold so if the _OFF() for
+> > example blindly assumes that the device is in D0 when it is called, it
+> > is a bug in the BIOS.
+> >
+> > BTW, where can I find acpidump of such system?
+>
+> I am sure it's uploaded somewhere already. But it's not an issue of
+> just one system. It's essentially hitting every single laptop with a
+> skylake or kaby lake CPU + Nvidia GPU. I didn't see any system where
+> it's actually working right now (and we are pestering nvidia about
+> this issue for over a year already with no solution)
+>
+> I've attached an acpidump from my system.
