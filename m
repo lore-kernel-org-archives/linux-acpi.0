@@ -5,56 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A91CACA9EBB
-	for <linux-acpi@archiver.kernel.org>; Wed, 23 Oct 2019 20:03:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11685CA9EBD
+	for <linux-acpi@archiver.kernel.org>; Wed, 23 Oct 2019 20:03:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7ECDD21D7B
+	by mail.kernel.org (Postfix) with ESMTP id D14BA20663
 	for <linux-acpi@archiver.kernel.org>; Wed, 23 Oct 2019 20:03:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VDyBfirf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mGb6hwQn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406288AbfJWUDC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 23 Oct 2019 16:03:02 -0400
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:38579 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2405905AbfJWUC6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Oct 2019 16:02:58 -0400
-Received: by mail-pg1-f195.google.com with SMTP id w3so12760182pgt.5;
-        Wed, 23 Oct 2019 13:02:57 -0700 (PDT)
+        id S2406390AbfJWUDD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 23 Oct 2019 16:03:03 -0400
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:38353 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2405850AbfJWUDB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Oct 2019 16:03:01 -0400
+Received: by mail-pf1-f194.google.com with SMTP id c13so2386689pfp.5;
+        Wed, 23 Oct 2019 13:03:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=qkhxgO5jibnlb7gKc/t5p3Tr0Xmy8V6wC17jmmeP1b0=;
-        b=VDyBfirf7hTX/0XDXtmE+/2SNFRPPiCNMhvOaqZ9MgSmlbI5q39XmbT1oHQZTdd2cT
-         7KigdNosMVhwjJ3M4bVKZboxHtEU/wOY8VYGZoO6xNkT94Yj6kn/4VqGqNQKEjFlX+bt
-         xI5aPv2t/p0wFu0hEd01w95myRHzbReYji3iknCj8WkJKJ1EX46fQXUtlFveQULjZWFt
-         7636pZlfaU1sImvN7KkfBdoCHoO5NTra/NeQmeVLtET9DwwaE01MYA4ALGRXsGS0o+Qj
-         haVu96qCtMuPo9+rQoOzgfPkZVxC0bAEU1fD+FURS47wb56DQYZRPgdBzRXHpjL6lrIK
-         PAJA==
+        bh=gjhlsJTrk3yjtwZmFFBfgAs8UQj1cjuqwXRfQNRo2BE=;
+        b=mGb6hwQnmVdqLFpdOJb+liR0HOp76Ldq61WezKPGPzkkGONOEiKeAZFrjCkBhsUA06
+         i8XbBcOlj7cV7bUfFOI8RVmWf3DtVTQn26UoV0xsAT9MSzhVOfQPO/IoU168CBxTi8Ac
+         RWwq53ed5b7aHhUkhvkW9E7tHsUtZ+5zxuUYICCZ7WKj/dRTBioFHYpUT7dbA+vpfsRg
+         2ElzZzaSSbbqP3x1hpvBEAhiVBE4fiMcLsXYyq8aDkiSnvcvk9LcH4XW9FBv8oy64ew0
+         hc7h1CA7PgvmbX+Xd/RcwVxW9E0KchN1DeypGu98K9UivHgwSXdcFoOv0YE3XBUhoIro
+         eNfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=qkhxgO5jibnlb7gKc/t5p3Tr0Xmy8V6wC17jmmeP1b0=;
-        b=K+97ebz08kbPyJXA5fFHvdkmu8EXpcwtxMs2dqEgOLlOYJ+mlJqWA5LxWt8OH+w4hR
-         pAikzrcCUOoMAnjY8ot+lAX+Xr5KJw4Hye2RNBYpNfq8vNnk8DAwvMPygTwjGokLKZMe
-         J/hsgsJfCZCQPkT4X5r3G8KVj7UsQ1H8vSc5zjYPNQt10keUcejNBJJpu5HGgFvcBFAQ
-         +Irn2WHwRK3CqwJQh6Zq5cz/3k0kHnCF9MhxmG29usHrwLhZcpl3W+IKjOh/JHnFFB4G
-         E2I41y1QKXCs56zYDbemEK6bCFK5wA6dvf52FZx68vMkDGaUFKe7qOp0Pq+zo2mE9QbW
-         VGXQ==
-X-Gm-Message-State: APjAAAXtFnE0cKYma6rgs4AdWO4WCzgjxLc1/VHzeZnIsKTqhv9mrnnz
-        XIVf4r/heoyy4N5u+XbWiEc=
-X-Google-Smtp-Source: APXvYqxHlIN2pAAFMCYe9L8Yy42MavOeVtrhlKodtX0YyZgHgWr5v5zWh+4rJ2KwNRnpKQYn540vhQ==
-X-Received: by 2002:a62:61c4:: with SMTP id v187mr12953291pfb.23.1571860976940;
-        Wed, 23 Oct 2019 13:02:56 -0700 (PDT)
+        bh=gjhlsJTrk3yjtwZmFFBfgAs8UQj1cjuqwXRfQNRo2BE=;
+        b=Yte50kS9jsn7bI5PmQT7/3kw8FkJqEHROYGJuF1pw7A+UIXWo9l+7CwmYLpRh+NL3P
+         6hegNpnMYX6CaoE0Y9aQB8h045VjTRc2AcgpdGJdCflRU0He3yFpuNs7kis5l474qTuH
+         Ica8zm9ytefUsPiTkdobuOENrLV0MLOx65BSwMdttuLKRTXN7Me1iQhIs+OFvolIJ7wd
+         Fhxzs5AVmYccwf8cSmtoK4Lg6aShW/cLeYnffERpXZRRgssb1GJge2kbtbay07L+wyQR
+         /IjVQY7ipOcezJLXnsz2VZsX5U19HA36VIyIa078bXoFWZyrf/2o8EtrwL2Toi8rMlnt
+         f3Kg==
+X-Gm-Message-State: APjAAAVFZz3lBtTbQUPya8DekUvSf1zMfstcWGYlxUO/su0hIOh6Qfj+
+        cRJ2Vug13ikO5aGp0a9KqHU=
+X-Google-Smtp-Source: APXvYqwaT21cftXYR9e3yrmeP1PwYV5Rc7rWr4/uprEQk5XpxejD3abKJzzXeZDfYRbJvp2OJT7UQw==
+X-Received: by 2002:aa7:98c9:: with SMTP id e9mr13229228pfm.142.1571860980239;
+        Wed, 23 Oct 2019 13:03:00 -0700 (PDT)
 Received: from dtor-ws.mtv.corp.google.com ([2620:15c:202:201:3adc:b08c:7acc:b325])
-        by smtp.gmail.com with ESMTPSA id 6sm10593598pfy.43.2019.10.23.13.02.55
+        by smtp.gmail.com with ESMTPSA id 6sm10593598pfy.43.2019.10.23.13.02.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Oct 2019 13:02:56 -0700 (PDT)
+        Wed, 23 Oct 2019 13:02:59 -0700 (PDT)
 From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
 To:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>
@@ -64,9 +64,9 @@ Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Ard Biesheuvel <ard.biesheuvel@linaro.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
-Subject: [PATCH v6 11/15] software node: move small properties inline when copying
-Date:   Wed, 23 Oct 2019 13:02:29 -0700
-Message-Id: <20191023200233.86616-12-dmitry.torokhov@gmail.com>
+Subject: [PATCH v6 13/15] platform/x86: intel_cht_int33fe: use inline reference properties
+Date:   Wed, 23 Oct 2019 13:02:31 -0700
+Message-Id: <20191023200233.86616-14-dmitry.torokhov@gmail.com>
 X-Mailer: git-send-email 2.23.0.866.gb869b98d4c-goog
 In-Reply-To: <20191023200233.86616-1-dmitry.torokhov@gmail.com>
 References: <20191023200233.86616-1-dmitry.torokhov@gmail.com>
@@ -77,42 +77,160 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When copying/duplicating set of properties, move smaller properties that
-were stored separately directly inside property entry structures. We can
-move:
+Now that static device properties allow defining reference properties
+together with all other types of properties, instead of managing them
+separately, let's adjust the driver.
 
-- up to 8 bytes from U8 arrays
-- up to 4 words
-- up to 2 double words
-- one U64 value
-- one or 2 strings.
-
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/base/swnode.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ .../platform/x86/intel_cht_int33fe_typec.c    | 81 ++++++++++---------
+ 1 file changed, 41 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 18a30fb3cc58..49e1108aa4b7 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -280,6 +280,16 @@ static int property_entry_copy_data(struct property_entry *dst,
- 	if (!dst->name)
- 		goto out_free_data;
+diff --git a/drivers/platform/x86/intel_cht_int33fe_typec.c b/drivers/platform/x86/intel_cht_int33fe_typec.c
+index 2d097fc2dd46..04138215956b 100644
+--- a/drivers/platform/x86/intel_cht_int33fe_typec.c
++++ b/drivers/platform/x86/intel_cht_int33fe_typec.c
+@@ -36,30 +36,6 @@ enum {
+ 	INT33FE_NODE_MAX,
+ };
  
-+	if (!dst->is_inline && dst->length <= sizeof(dst->value)) {
-+		/* We have an opportunity to move the data inline */
-+		const void *tmp = dst->pointer;
-+
-+		memcpy(&dst->value, tmp, dst->length);
-+		dst->is_inline = true;
-+
-+		kfree(tmp);
-+	}
-+
- 	return 0;
+-static const struct software_node nodes[];
+-
+-static const struct software_node_ref_args pi3usb30532_ref = {
+-	&nodes[INT33FE_NODE_PI3USB30532]
+-};
+-
+-static const struct software_node_ref_args dp_ref = {
+-	&nodes[INT33FE_NODE_DISPLAYPORT]
+-};
+-
+-static struct software_node_ref_args mux_ref;
+-
+-static const struct software_node_reference usb_connector_refs[] = {
+-	{ "orientation-switch", 1, &pi3usb30532_ref},
+-	{ "mode-switch", 1, &pi3usb30532_ref},
+-	{ "displayport", 1, &dp_ref},
+-	{ }
+-};
+-
+-static const struct software_node_reference fusb302_refs[] = {
+-	{ "usb-role-switch", 1, &mux_ref},
+-	{ }
+-};
+-
+ /*
+  * Grrr I severly dislike buggy BIOS-es. At least one BIOS enumerates
+  * the max17047 both through the INT33FE ACPI device (it is right there
+@@ -95,8 +71,18 @@ static const struct property_entry max17047_props[] = {
+ 	{ }
+ };
  
- out_free_data:
++/*
++ * We are not using inline property here because those are constant,
++ * and we need to adjust this one at runtime to point to real
++ * software node.
++ */
++static struct software_node_ref_args fusb302_mux_refs[] = {
++	{ .node = NULL },
++};
++
+ static const struct property_entry fusb302_props[] = {
+ 	PROPERTY_ENTRY_STRING("linux,extcon-name", "cht_wcove_pwrsrc"),
++	PROPERTY_ENTRY_REF_ARRAY("usb-role-switch", fusb302_mux_refs),
+ 	{ }
+ };
+ 
+@@ -112,6 +98,8 @@ static const u32 snk_pdo[] = {
+ 	PDO_VAR(5000, 12000, 3000),
+ };
+ 
++static const struct software_node nodes[];
++
+ static const struct property_entry usb_connector_props[] = {
+ 	PROPERTY_ENTRY_STRING("data-role", "dual"),
+ 	PROPERTY_ENTRY_STRING("power-role", "dual"),
+@@ -119,15 +107,21 @@ static const struct property_entry usb_connector_props[] = {
+ 	PROPERTY_ENTRY_U32_ARRAY("source-pdos", src_pdo),
+ 	PROPERTY_ENTRY_U32_ARRAY("sink-pdos", snk_pdo),
+ 	PROPERTY_ENTRY_U32("op-sink-microwatt", 2500000),
++	PROPERTY_ENTRY_REF("orientation-switch",
++			   &nodes[INT33FE_NODE_PI3USB30532]),
++	PROPERTY_ENTRY_REF("mode-switch",
++			   &nodes[INT33FE_NODE_PI3USB30532]),
++	PROPERTY_ENTRY_REF("displayport",
++			   &nodes[INT33FE_NODE_DISPLAYPORT]),
+ 	{ }
+ };
+ 
+ static const struct software_node nodes[] = {
+-	{ "fusb302", NULL, fusb302_props, fusb302_refs },
++	{ "fusb302", NULL, fusb302_props },
+ 	{ "max17047", NULL, max17047_props },
+ 	{ "pi3usb30532" },
+ 	{ "displayport" },
+-	{ "connector", &nodes[0], usb_connector_props, usb_connector_refs },
++	{ "connector", &nodes[0], usb_connector_props },
+ 	{ }
+ };
+ 
+@@ -163,9 +157,10 @@ static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
+ {
+ 	software_node_unregister_nodes(nodes);
+ 
+-	if (mux_ref.node) {
+-		fwnode_handle_put(software_node_fwnode(mux_ref.node));
+-		mux_ref.node = NULL;
++	if (fusb302_mux_refs[0].node) {
++		fwnode_handle_put(
++			software_node_fwnode(fusb302_mux_refs[0].node));
++		fusb302_mux_refs[0].node = NULL;
+ 	}
+ 
+ 	if (data->dp) {
+@@ -177,25 +172,31 @@ static void cht_int33fe_remove_nodes(struct cht_int33fe_data *data)
+ 
+ static int cht_int33fe_add_nodes(struct cht_int33fe_data *data)
+ {
++	const struct software_node *mux_ref_node;
+ 	int ret;
+ 
+-	ret = software_node_register_nodes(nodes);
+-	if (ret)
+-		return ret;
+-
+-	/* The devices that are not created in this driver need extra steps. */
+-
+ 	/*
+ 	 * There is no ACPI device node for the USB role mux, so we need to wait
+ 	 * until the mux driver has created software node for the mux device.
+ 	 * It means we depend on the mux driver. This function will return
+ 	 * -EPROBE_DEFER until the mux device is registered.
+ 	 */
+-	mux_ref.node = software_node_find_by_name(NULL, "intel-xhci-usb-sw");
+-	if (!mux_ref.node) {
+-		ret = -EPROBE_DEFER;
+-		goto err_remove_nodes;
+-	}
++	mux_ref_node = software_node_find_by_name(NULL, "intel-xhci-usb-sw");
++	if (!mux_ref_node)
++		return -EPROBE_DEFER;
++
++	/*
++	 * Update node used in "usb-role-switch" property. Note that we
++	 * rely on software_node_register_nodes() to use the original
++	 * instance of properties instead of copying them.
++	 */
++	fusb302_mux_refs[0].node = mux_ref_node;
++
++	ret = software_node_register_nodes(nodes);
++	if (ret)
++		return ret;
++
++	/* The devices that are not created in this driver need extra steps. */
+ 
+ 	/*
+ 	 * The DP connector does have ACPI device node. In this case we can just
 -- 
 2.23.0.866.gb869b98d4c-goog
 
