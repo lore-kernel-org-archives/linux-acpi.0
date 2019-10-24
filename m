@@ -1,130 +1,149 @@
-Return-Path: <SRS0=PM86=YQ=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=VdvG=YR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 643A7CA9EB9
-	for <linux-acpi@archiver.kernel.org>; Wed, 23 Oct 2019 20:03:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AA5ECA9EB9
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Oct 2019 01:22:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 391F021A4A
-	for <linux-acpi@archiver.kernel.org>; Wed, 23 Oct 2019 20:03:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bl1g34Mk"
+	by mail.kernel.org (Postfix) with ESMTP id D38A32086D
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Oct 2019 01:22:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405195AbfJWUCp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 23 Oct 2019 16:02:45 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:40666 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2405185AbfJWUCp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Oct 2019 16:02:45 -0400
-Received: by mail-pg1-f194.google.com with SMTP id 15so7411414pgt.7;
-        Wed, 23 Oct 2019 13:02:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=qtC7CH3uCwc1qnA7SQUM9vPjiJGHmllhEByKdOb4NKs=;
-        b=Bl1g34Mkp5wfx+KC9+klwhpKZk1kBhcM5NRp3FEFF07RQNZcVc4o24x1U11z10h6M6
-         LCIeI2Dy1qVdyeYk7Ldx8r3o/qs/FDyIX3QfJUJZyD6lq6pPMhvkUrpaqPFqgaYiyrc3
-         6AIibK6lfZYm/yIMhlv+VDOye62lgOM16ixQJY6NjpXW1cRbUnAW2sfmJmSkBRg0iuQU
-         3TSJB9Avz/zvs2sutC7DOVkbaoMD3gD+J/KdR/CbqCL7putsPB1Epk4uelX31SWDQwYo
-         5ackelqsjcnw8GQO5oqsP47ZlhuqjTzYI4ozItX8zAvf0I5EN94RSc+j0ee8WUme0gEd
-         1FoQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=qtC7CH3uCwc1qnA7SQUM9vPjiJGHmllhEByKdOb4NKs=;
-        b=F4DSrxN/ZVYhh0GomiSfJkljFcfjhyAd2MJ4VjdSz5wFsO+EPZk0MVLQoLGpz47yZu
-         r716THGct8pGd2bG0O8jfxMENyOWArPyhyOSWNy8IcgvTs4hA3mCRkEhy5/88srm/70A
-         YL53po063wjZKE2+y/MHH9OwrP3M2sh5YxkYAHTS+YFVbGdtsu49PR4edo6FjA9Fy8OB
-         vBbCFUrfSNTK5i/vM/5d7WD4iS+23Vbuayy4CakiWxL51mBIUbdIzOtyP8X3tGN307q5
-         aGxGFm9ZM9Un/y36WRTjORHbL+0tkMaNHpm9zLCa8BKfywdvmmGkQnu9CNd+cF8csQpL
-         zwNw==
-X-Gm-Message-State: APjAAAUaFh0LFXzXCGx7wMLD890FbHTYbJ45BLFRKJ5PCcAgK0LxbGQT
-        BuiULh16sqMIwbHlK+t8lic=
-X-Google-Smtp-Source: APXvYqxrtG+HMKhqIm6N7hCHG05q+xOQ8FHVy0CHWWfKPchAcaWeOKq4CAT1YBwjvkyfK5HeusGoGw==
-X-Received: by 2002:a63:6949:: with SMTP id e70mr11937570pgc.226.1571860963943;
-        Wed, 23 Oct 2019 13:02:43 -0700 (PDT)
-Received: from dtor-ws.mtv.corp.google.com ([2620:15c:202:201:3adc:b08c:7acc:b325])
-        by smtp.gmail.com with ESMTPSA id 6sm10593598pfy.43.2019.10.23.13.02.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Oct 2019 13:02:42 -0700 (PDT)
-From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH v6 03/15] efi/apple-properties: use PROPERTY_ENTRY_U8_ARRAY_LEN
-Date:   Wed, 23 Oct 2019 13:02:21 -0700
-Message-Id: <20191023200233.86616-4-dmitry.torokhov@gmail.com>
-X-Mailer: git-send-email 2.23.0.866.gb869b98d4c-goog
-In-Reply-To: <20191023200233.86616-1-dmitry.torokhov@gmail.com>
-References: <20191023200233.86616-1-dmitry.torokhov@gmail.com>
+        id S2389913AbfJXBWW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 23 Oct 2019 21:22:22 -0400
+Received: from mga03.intel.com ([134.134.136.65]:42223 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726925AbfJXBWV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 23 Oct 2019 21:22:21 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 23 Oct 2019 18:22:21 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.68,222,1569308400"; 
+   d="scan'208";a="228325727"
+Received: from fyin-dev.sh.intel.com (HELO [10.239.143.122]) ([10.239.143.122])
+  by fmsmga002.fm.intel.com with ESMTP; 23 Oct 2019 18:22:19 -0700
+Subject: Re: [PATCH v3] ACPI/processor_idle: Remove dummy wait if kernel is in
+ guest mode
+To:     David Laight <David.Laight@ACULAB.COM>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>
+References: <20191023074945.17016-1-fengwei.yin@intel.com>
+ <30ee0a348f624698801691f65eeecd87@AcuMS.aculab.com>
+From:   Yin Fengwei <fengwei.yin@intel.com>
+Message-ID: <9bb3baef-b23e-a383-d50f-f795033c0c02@intel.com>
+Date:   Thu, 24 Oct 2019 09:22:18 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
+In-Reply-To: <30ee0a348f624698801691f65eeecd87@AcuMS.aculab.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Let's switch to using PROPERTY_ENTRY_U8_ARRAY_LEN() to initialize
-property entries. Also, when dumping data, rely on local variables
-instead of poking into the property entry structure directly.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- drivers/firmware/efi/apple-properties.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/firmware/efi/apple-properties.c b/drivers/firmware/efi/apple-properties.c
-index 0e206c9e0d7a..5ccf39986a14 100644
---- a/drivers/firmware/efi/apple-properties.c
-+++ b/drivers/firmware/efi/apple-properties.c
-@@ -53,7 +53,8 @@ static void __init unmarshal_key_value_pairs(struct dev_header *dev_header,
- 
- 	for (i = 0; i < dev_header->prop_count; i++) {
- 		int remaining = dev_header->len - (ptr - (void *)dev_header);
--		u32 key_len, val_len;
-+		u32 key_len, val_len, entry_len;
-+		const u8 *entry_data;
- 		char *key;
- 
- 		if (sizeof(key_len) > remaining)
-@@ -85,17 +86,14 @@ static void __init unmarshal_key_value_pairs(struct dev_header *dev_header,
- 		ucs2_as_utf8(key, ptr + sizeof(key_len),
- 			     key_len - sizeof(key_len));
- 
--		entry[i].name = key;
--		entry[i].length = val_len - sizeof(val_len);
--		entry[i].is_array = !!entry[i].length;
--		entry[i].type = DEV_PROP_U8;
--		entry[i].pointer.u8_data = ptr + key_len + sizeof(val_len);
--
-+		entry_data = ptr + key_len + sizeof(val_len);
-+		entry_len = val_len - sizeof(val_len);
-+		entry[i] = PROPERTY_ENTRY_U8_ARRAY_LEN(key, entry_data,
-+						       entry_len);
- 		if (dump_properties) {
--			dev_info(dev, "property: %s\n", entry[i].name);
-+			dev_info(dev, "property: %s\n", key);
- 			print_hex_dump(KERN_INFO, pr_fmt(), DUMP_PREFIX_OFFSET,
--				16, 1, entry[i].pointer.u8_data,
--				entry[i].length, true);
-+				16, 1, entry_data, entry_len, true);
- 		}
- 
- 		ptr += key_len + val_len;
--- 
-2.23.0.866.gb869b98d4c-goog
+On 2019/10/23 下午4:45, David Laight wrote:
+> From: Yin Fengwei
+>> Sent: 23 October 2019 08:50
+> 
+> 
+>> In function acpi_idle_do_entry(), an ioport access is used for dummy
+>> wait to guarantee hardware behavior. But it could trigger unnecessary
+>> vmexit if kernel is running as guest in virtualization environtment.
+>>
+>> If it's in virtualization environment, the deeper C state enter
+>> operation (inb()) will trap to hyervisor. It's not needed to do
+>> dummy wait after the inb() call. So we remove the dummy io port
+>> access to avoid unnecessary VMexit.
+>>
+>> We keep dummy io port access to maintain timing for native environment.
+>>
+>> Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+>> ---
+>> ChangeLog:
+>> v2 -> v3:
+>>   - Remove dummy io port access totally for virtualization env.
+>>
+>> v1 -> v2:
+>>   - Use ndelay instead of dead loop for dummy delay.
+>>
+>>   drivers/acpi/processor_idle.c | 36 ++++++++++++++++++++++++++++++++---
+>>   1 file changed, 33 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+>> index ed56c6d20b08..0c4a97dd6917 100644
+>> --- a/drivers/acpi/processor_idle.c
+>> +++ b/drivers/acpi/processor_idle.c
+>> @@ -58,6 +58,17 @@ struct cpuidle_driver acpi_idle_driver = {
+>>   static
+>>   DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+>>
+>> +static void (*dummy_wait)(u64 address);
+>> +
+>> +static void default_dummy_wait(u64 address)
+>> +{
+>> +	inl(address);
+>> +}
+>> +
+>> +static void default_noop_wait(u64 address)
+>> +{
+>> +}
+>> +
+> 
+> Overengineered...
+> Just add:
+> 
+> static void wait_for_freeze(void)
+> {
+> #ifdef	CONFIG_X86
+> 	/* No delay is needed if we are a guest */
+> 	if (boot_cpu_has(X86_FEATURE_HYPERVISOR))
+> 		return;
+> #endif
+> 	/* Dummy wait op - must do something useless after P_LVL2 read
+> 	   because chipsets cannot guarantee that STPCLK# signal
+> 	   gets asserted in time to freeze execution properly. */
+> 	inl(acpi_gbl_FADT.xpm_timer_block.address);
+> }
+> 
+> and use it to replace the inl().
+OK. I was trying to avoid any impact to native case.
 
+> 
+> ...
+>> +#ifdef	CONFIG_X86
+>> +	/* For x86, if we are running in guest, we don't need extra
+>> +	 * access ioport as dummy wait.
+>> +	 */
+>> +	if (boot_cpu_has(X86_FEATURE_HYPERVISOR)) {
+>> +		pr_err("We are in virtual env");
+>> +		dummy_wait = default_noop_wait;
+>> +	} else {
+>> +		pr_err("We are not in virtual env");
+>> +	}
+>> +#endif
+> 
+> WTF are the pr_err() for???
+Sorry. Didn't remove my debug code...
+
+Regards
+Yin, Fengwei
+
+> 
+> 	David
+> 
+> -
+> Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
+> Registration No: 1397386 (Wales)
+> 
