@@ -2,75 +2,62 @@ Return-Path: <SRS0=VdvG=YR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2F20CA9EBC
-	for <linux-acpi@archiver.kernel.org>; Thu, 24 Oct 2019 17:47:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43ABFCA9EAF
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Oct 2019 19:01:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6FFEF21872
-	for <linux-acpi@archiver.kernel.org>; Thu, 24 Oct 2019 17:47:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07E7421BE5
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Oct 2019 19:01:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=nxp.com header.i=@nxp.com header.b="Cv5iXDHH"
+	dkim=pass (1024-bit key) header.d=nxp.com header.i=@nxp.com header.b="bIdD/WgH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392851AbfJXRrU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 24 Oct 2019 13:47:20 -0400
-Received: from mail-eopbgr30053.outbound.protection.outlook.com ([40.107.3.53]:49943
-        "EHLO EUR03-AM5-obe.outbound.protection.outlook.com"
+        id S2504207AbfJXTBN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 24 Oct 2019 15:01:13 -0400
+Received: from mail-eopbgr50046.outbound.protection.outlook.com ([40.107.5.46]:37602
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2391933AbfJXRrT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 24 Oct 2019 13:47:19 -0400
+        id S2390493AbfJXTBN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 24 Oct 2019 15:01:13 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Dc2EMqVC23FBfv5pwihevy654CsQ6illwtz64SqTAsE2/07PZ1To2D+0ciM1QosAiJWizAgq2ABQLvdVMThp4Cg87odkOq+esUMk68ORN3mYkpDZcp+xCeuZhDEgePz7KoO8EtAb7TEEUWGzMUqW/0dULJmejEnB1LxKG8Ca1x3xqnbRAFpZaoXtK0J/8s6GH2N9A7u5yjXwYnEb3mY5tBNcQDshY+AAcWdkyD6wUunVWosynZQTxEaBgsxTFBDKIPK+Wh9PdG/D5W6sFn31vojkLf1n9znZZX/BLTq4L+ipjAqxggnqPRcDHeTr5VtRA+MReHVJkIFFH5d3R8L8tQ==
+ b=VaLtFPqzdBsGS1JDWvH4l0EYMtL36HWnBv3E0j3KuZMJ6Y1vElj8prQVXD77x7G65cC57iOiGCzxMGcWyQ/N0NBzWPHfubj+inEzLLijoCthpmpyhcvUsESlCfiu/Zc590mmXXM8no+Joud0av8FJPSJwvkujvZ8yqXZVAtRprrspfsmxIWkxeQmWK9C2OvYvDlhHn97Hoo5L4ACI937jsRjUz8TdW3qCZoLTB/pUBOQTJnyxRR9NSEkN3tJ/Ag5sq6BUIf2f7iWykaWGUWZw3xFZNS2sxb0oMfDUgvoaTwIvxZNw5rwDlrVm9qATaK4MDPufr52KqMAEJmrIR2gZA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vMhFnLvbHo7Y7UUhYOu5P3EqTr76XuBuDtbezEuSuWk=;
- b=Wxsvpec2OQMlzyH437B44qSQlMWuv8SF+kKCy8alc05gLq3MUAwqMqvhzkhRar62ZH8ulBYJeC826bGTDbOSG47e44l4yJsT2rPyecYetLmg8WNrSN8P+c36VTzT9CYUpaBEbtMvwL/CrWJEWWgkHYM9RYFyl68BluGJh40I5y7QBSfmmERlsiy/Fa/0cIlfKnp1u1yKO9ZIf7g1FKEVfZrVkND5M1/9NY6wIRpQXr5YWSX54uzdv75UywiH1BWZ+F7TOZu6hhsOdmd3RLcfXQiRyIThM+YBBimhIgLEmGJWSMTH2NDdFCDBz3SJARFFWzXhKeTrjJNQib88og5+RQ==
+ bh=Zv83pBhhvhC/AE3+V0PGUH8Tbea2jtn3KS1w9lHeYj4=;
+ b=K+yQkb7GNFpZLUDCCEEZkrU4RtIz4PZfywuoU7A3aO0psR7Jx0ij90ChsonHTUMWW6wkhpiJ2pABkz39UlC/beXwNprPqwnCSI6NY/75KMOHcvvIzapjOyMXJbup+Gv4FGFv/vgcTTmJeQwwRhs0ijt3twgbwXWd86FnIiZNDmUobny09o13fnYM2XpmuA2pVKeZVSl9V2/aqSMZHe8cgeN6tFj+I3NySnSp1JQ+/HTtKl6lqtYt6qv53Hse/Hzdwclai/AAjvBcl1BlIKZKjz29HUmq+nqJo0fQZq4P0rwkgAT139mNCm9eH14wp8KQCIWcq+VpMDjVX0GxJHaDRA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nxp.com; dmarc=pass action=none header.from=nxp.com; dkim=pass
  header.d=nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vMhFnLvbHo7Y7UUhYOu5P3EqTr76XuBuDtbezEuSuWk=;
- b=Cv5iXDHHvTnhTu82smAu4NBqtig+MpNWVtP6JhhmTwIXfBzszknjhf6cqiGimc6r+Eez3Xf79rGmb5Nz7YuVJnX7Z/IQ2Nzhfiwwj0xm/27Tfn0hARS1GYc96+ypX63VfM3wWFCHoRTS1ifXJWR4fPhzMPdrTMXndcGFXB6KUw8=
+ bh=Zv83pBhhvhC/AE3+V0PGUH8Tbea2jtn3KS1w9lHeYj4=;
+ b=bIdD/WgHKI/U5KPeZVM/ThWlvw3+frIwO0vOkLDEZXssk1xjzIr2qyUtwPLmX4i/kDV5KPjV5yR2hnNxuUa29tniRXLRQr1f+z+XaFSBT+G5ctU+kBolv1x1DZodBiY0etSkaLRGOowitD3aTiOLWn87aKpfb1XgCcStsqk30Lc=
 Received: from VI1PR04MB7023.eurprd04.prod.outlook.com (10.186.159.144) by
- VI1PR04MB4638.eurprd04.prod.outlook.com (20.177.56.77) with Microsoft SMTP
+ VI1PR04MB3966.eurprd04.prod.outlook.com (10.171.183.24) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2387.22; Thu, 24 Oct 2019 17:47:14 +0000
+ 15.20.2387.20; Thu, 24 Oct 2019 19:01:07 +0000
 Received: from VI1PR04MB7023.eurprd04.prod.outlook.com
  ([fe80::24fb:fb99:b1c6:ba1f]) by VI1PR04MB7023.eurprd04.prod.outlook.com
  ([fe80::24fb:fb99:b1c6:ba1f%4]) with mapi id 15.20.2387.021; Thu, 24 Oct 2019
- 17:47:14 +0000
+ 19:01:07 +0000
 From:   Leonard Crestez <leonard.crestez@nxp.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-CC:     Viresh Kumar <viresh.kumar@linaro.org>,
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Viresh Kumar <viresh.kumar@linaro.org>
+CC:     Linux PM <linux-pm@vger.kernel.org>,
         Linux ACPI <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
         Sudeep Holla <sudeep.holla@arm.com>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        =?iso-8859-2?Q?Artur_=A6wigo=F1?= <a.swigon@samsung.com>,
-        Georgi Djakov <georgi.djakov@linaro.org>,
-        dl-linux-imx <linux-imx@nxp.com>,
-        Saravana Kannan <saravanak@google.com>,
-        MyungJoo Ham <myungjoo.ham@samsung.com>
-Subject: Re: [RFT][PATCH 0/3] cpufreq / PM: QoS: Introduce frequency QoS and
- use it in cpufreq
-Thread-Topic: [RFT][PATCH 0/3] cpufreq / PM: QoS: Introduce frequency QoS and
- use it in cpufreq
-Thread-Index: AQHViSTjqsMfVqNAR0a2lS+zHVHmpw==
-Date:   Thu, 24 Oct 2019 17:47:14 +0000
-Message-ID: <VI1PR04MB7023C43A2E9B60A26B6DD0CCEE6A0@VI1PR04MB7023.eurprd04.prod.outlook.com>
-References: <VI1PR04MB7023DF47D046AEADB4E051EBEE680@VI1PR04MB7023.eurprd04.prod.outlook.com>
- <CAJZ5v0g-hTOhVJOz28CGmpcxUiiTrYyV=ARwNCN9w4doeRcCRw@mail.gmail.com>
- <VI1PR04MB7023808153A1FD2740FACF01EE6B0@VI1PR04MB7023.eurprd04.prod.outlook.com>
- <CAJZ5v0gWdFVbvPobLic7F+bRrz-QUoV3GPhpawdFT0MVjAhuOQ@mail.gmail.com>
- <AM7PR04MB7015D5B0C6952BF6B04C140CEE6B0@AM7PR04MB7015.eurprd04.prod.outlook.com>
- <CAJZ5v0iY4QScdQJW4xzJEMcfxkB2QDjBkR2oo3zBRL7x70PmnQ@mail.gmail.com>
+        Dmitry Osipenko <digetx@gmail.com>
+Subject: Re: [RFT][PATCH 1/3] PM: QoS: Introduce frequency QoS
+Thread-Topic: [RFT][PATCH 1/3] PM: QoS: Introduce frequency QoS
+Thread-Index: AQHVhA83pBLldkQGO0OkZWmZhR1Vyw==
+Date:   Thu, 24 Oct 2019 19:01:06 +0000
+Message-ID: <VI1PR04MB7023ECFFD42193CF864524ACEE6A0@VI1PR04MB7023.eurprd04.prod.outlook.com>
+References: <2811202.iOFZ6YHztY@kreacher> <4551555.oysnf1Sd0E@kreacher>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
@@ -80,200 +67,161 @@ authentication-results: spf=none (sender IP is )
 x-originating-ip: [89.37.124.34]
 x-ms-publictraffictype: Email
 x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: 6d166a81-43ed-423c-6d31-08d758aa34a2
-x-ms-traffictypediagnostic: VI1PR04MB4638:|VI1PR04MB4638:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <VI1PR04MB4638B225A27727B5B92591DBEE6A0@VI1PR04MB4638.eurprd04.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:10000;
+x-ms-office365-filtering-correlation-id: b3682192-cbc4-41a9-4740-08d758b48681
+x-ms-traffictypediagnostic: VI1PR04MB3966:
+x-microsoft-antispam-prvs: <VI1PR04MB3966E9EA5AD955B0E2FF16A4EE6A0@VI1PR04MB3966.eurprd04.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8273;
 x-forefront-prvs: 0200DDA8BE
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(366004)(39860400002)(136003)(346002)(396003)(376002)(189003)(199004)(55016002)(9686003)(14454004)(6436002)(4326008)(6246003)(76176011)(54906003)(81156014)(8676002)(99286004)(7696005)(7736002)(74316002)(316002)(305945005)(478600001)(33656002)(66066001)(81166006)(8936002)(6916009)(4001150100001)(25786009)(476003)(76116006)(86362001)(66946007)(229853002)(91956017)(66446008)(64756008)(14444005)(256004)(486006)(52536014)(44832011)(3846002)(6116002)(66556008)(446003)(5660300002)(66476007)(71200400001)(71190400001)(6506007)(7416002)(186003)(26005)(53546011)(102836004)(2906002);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR04MB4638;H:VI1PR04MB7023.eurprd04.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(366004)(199004)(189003)(76176011)(52536014)(5660300002)(186003)(102836004)(86362001)(99286004)(6246003)(26005)(7696005)(71200400001)(71190400001)(53546011)(6506007)(14444005)(256004)(66066001)(6436002)(14454004)(6116002)(3846002)(74316002)(446003)(76116006)(476003)(55016002)(66946007)(66556008)(66476007)(64756008)(66446008)(2906002)(91956017)(7736002)(54906003)(110136005)(305945005)(8936002)(8676002)(81156014)(4326008)(81166006)(498600001)(33656002)(9686003)(229853002)(25786009)(44832011)(486006);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR04MB3966;H:VI1PR04MB7023.eurprd04.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
 received-spf: None (protection.outlook.com: nxp.com does not designate
  permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 4E2HSO2OOHRqonBZLcNw0EdIPHcQG9TigwGjnEsJR9CgEgLbBL9ql3ETY7S8/52WD26lGNI+6+QTlT1OcNmA1zwezgpN7bjFnHJMkifOHagGyXuIHPZr6sfSUdO5TmGa6XNYqNbiJPdrurs37zqD7w3Eq4KcCIaJTGe8/jvbYrdH+3CUNZ91iVIl0fhcUc95STUFRHSyiSm885y4zqznEZyj1nZigoaRB7NgsQfdqBtBqASAPfg15HAOVu9aVVAw6sonHPvfMHmTMKTpef2HFSRXjGik8PPOw4cTA85VPmJwuA3hcRoIl0pnMv4zGPC++dpDtptcMEDMJr9OaJzva8xL5GYBykmP0fmB0n4vwCvp8++YYyVWbj5m7DtNrSa3UYv+k8Whfc4ycxgaIPt8r2FAdJGIfg6x5alJ4MmSvDRhtO2XeFtzldR/bZ45PemD
-Content-Type: text/plain; charset="iso-8859-2"
+x-microsoft-antispam-message-info: pZCKViUryeBYAKXKBT+EbpqqXeTfGzDWkheqoWBSs28r9RbB7dPuFtE44SYY5ms9gxHIuy33JJxRy8YwgQrBU0ek1qLCN2U1WWIxeHLBb/Uqu2IXm1FvbyY24gQpJfQkI1Q0d9G9vPURA69DXkyJAgIReCcYGacX6PXrQBQo944UjIeK7GWlyJOEv8FnpM+xnXNRdKxBBJifa5GKwjVngphulVss5AJE7KqfGgB6scLoyOW65FZ+ZPDDmZcs+HX1exjoNT2MjnWAfA2N+VvCLe8pruog4xk1ELgF0dnTIqsQrSZpjCupqpxN+qn7NI7pCDFJLctUvRMThX1LsfPFpFiqltAITBC+EQThyqpy2iG2/OO8d4OdyOCJ2r9oC0+MxB2H22Rn2narzAON8AI8UbOFGvvb4Q4dtgH9egaoawWEMELNCrz4SbIBhU2f+8Vr
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-OriginatorOrg: nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6d166a81-43ed-423c-6d31-08d758aa34a2
-X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Oct 2019 17:47:14.5226
+X-MS-Exchange-CrossTenant-Network-Message-Id: b3682192-cbc4-41a9-4740-08d758b48681
+X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Oct 2019 19:01:06.9255
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: A9UC6RHnRMEceOZFZ7QW4LAFKVnwWmOw23Dtxt1rDExZlCOm9ACJKxa+Pf+lJ2eOyFvm1akQbC3sOQQLUbJujA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR04MB4638
+X-MS-Exchange-CrossTenant-userprincipalname: gNB78dI+iCl2XNUK1nBxYnc3Djf5OrZRfUkyXwOYyWrWfPA8/5P6TQ5J73KfvCrofCbNrk1CHKG98kMrNTj6zw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR04MB3966
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 24.10.2019 16:42, Rafael J. Wysocki wrote:=0A=
-> On Wed, Oct 23, 2019 at 3:33 PM Leonard Crestez <leonard.crestez@nxp.com>=
- wrote:=0A=
->>=0A=
->> On 2019-10-23 11:54 AM, Rafael J. Wysocki wrote:=0A=
->>> On Wed, Oct 23, 2019 at 4:20 AM Leonard Crestez <leonard.crestez@nxp.co=
-m> wrote:=0A=
->>>> On 2019-10-23 1:48 AM, Rafael J. Wysocki wrote:=0A=
+On 16.10.2019 13:48, Rafael J. Wysocki wrote:=0A=
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>=0A=
 > =0A=
-> [cut]=0A=
+> Introduce frequency QoS, based on the "raw" low-level PM QoS, to=0A=
+> represent min and max frequency requests and aggregate constraints.=0A=
 > =0A=
->>>>> But combining the lists of requests for all the CPUs in a policy=0A=
->>>>> defeats the idea of automatic aggregation of requests which really is=
-=0A=
->>>>> what PM QoS is about.=0A=
->>>>=0A=
->>>> My primary interest is the "dev" part of dev_pm_qos: making pm_qos=0A=
->>>> requests tied to a specific device.=0A=
->>>=0A=
->>> The list of requests needs to be associated with the user of the=0A=
->>> effective constraint.  If that is the device, it is all good.=0A=
->>=0A=
->> The phrase "user of the effective constraint" is somewhat unclear.=0A=
+> The min and max frequency requests are to be represented by=0A=
+> struct freq_qos_request objects and the aggregate constraints are to=0A=
+> be represented by struct freq_constraints objects.  The latter are=0A=
+> expected to be initialized with the help of freq_constraints_init().=0A=
 > =0A=
-> Fair enough, so let me elaborate.=0A=
+> The freq_qos_read_value() helper is defined to retrieve the aggregate=0A=
+> constraints values from a given struct freq_constraints object and=0A=
+> there are the freq_qos_add_request(), freq_qos_update_request() and=0A=
+> freq_qos_remove_request() helpers to manipulate the min and max=0A=
+> frequency requests.  It is assumed that the the helpers will not=0A=
+> run concurrently with each other for the same struct freq_qos_request=0A=
+> object, so if that may be the case, their uses must ensure proper=0A=
+> synchronization between them (e.g. through locking).=0A=
 > =0A=
-> The effective constraint (ie. the one resulting from taking all of the=0A=
-> requests in the relevant QoS list into account) affects the selection=0A=
-> of an OPP, so it is natural to associate the QoS list producing it=0A=
-> with a list of OPPs to select.  In the cpufreq case, the policy holds=0A=
-> the list of OPPs and so it also should hold the corresponding QoS=0A=
-> lists (for the min and max frequency limits).  It "uses" the effective=0A=
-> constraints produced by those QoS lists by preventing the OPPs out of=0A=
-> the between the min and max values  from being selected.=0A=
+> In addition, freq_qos_add_notifier() and freq_qos_remove_notifier()=0A=
+> are provided to add and remove notifiers that will trigger on aggregate=
+=0A=
+> constraint changes to and from a given struct freq_constraints object,=0A=
+> respectively.=0A=
 > =0A=
-> Essentially, the policy represents a power (clock/voltage) domain with=0A=
-> multiple components (it doesn't matter what they are at this level of=0A=
-> abstraction). While there can be multiple sources of QoS requests=0A=
-> associated with each component, all of these requests ultimately need=0A=
-> to be passed to the domain for aggregation, because that's where the=0A=
-> frequency selection decisions are made and so that's where the=0A=
-> effective constraint value needs to be known. Now, the natural way to=0A=
-> allow requests from multiple sources to be passed for aggregation is=0A=
-> to provide a QoS list that they can be added to. That really is what=0A=
-> PM QoS is for.=0A=
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>=0A=
+> ---=0A=
+>   include/linux/pm_qos.h |   44 ++++++++=0A=
+>   kernel/power/qos.c     |  240 +++++++++++++++++++++++++++++++++++++++++=
+++++++++=0A=
+>   2 files changed, 284 insertions(+)=0A=
 > =0A=
->> I'm using the target device as dev for dev_pm_qos, not the requestor.=0A=
->> This is consistent with how it was used for cpufreq: thermal called a=0A=
->> dev_pm_qos_add_request on with dev =3D cpu_dev not a thermal sensor or=
+> Index: linux-pm/include/linux/pm_qos.h=0A=
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
+> --- linux-pm.orig/include/linux/pm_qos.h=0A=
+> +++ linux-pm/include/linux/pm_qos.h=0A=
+> @@ -267,4 +267,48 @@ static inline s32 dev_pm_qos_raw_resume_=0A=
+>   }=0A=
+>   #endif=0A=
+>   =0A=
+> +#define FREQ_QOS_MIN_DEFAULT_VALUE	0=0A=
+> +#define FREQ_QOS_MAX_DEFAULT_VALUE	(-1)=0A=
+> +=0A=
+> +enum freq_qos_req_type {=0A=
+> +	FREQ_QOS_MIN =3D 1,=0A=
+> +	FREQ_QOS_MAX,=0A=
+> +};=0A=
+> +=0A=
+> +struct freq_constraints {=0A=
+> +	struct pm_qos_constraints min_freq;=0A=
+> +	struct blocking_notifier_head min_freq_notifiers;=0A=
+> +	struct pm_qos_constraints max_freq;=0A=
+> +	struct blocking_notifier_head max_freq_notifiers;=0A=
 =0A=
->> anything else.=0A=
-> =0A=
-> Not really, but close. :-)=0A=
-> =0A=
-> Without my series (that is 5.4-rc4, say), the cpu_cooling driver adds=0A=
-> its constraint to the device PM QoS of cpufreq_cdev which is a special=0A=
-> device created by that driver.  That would be fine, except that the=0A=
-> cpufreq core doesn't use that QoS.  It uses the device PM QoS of the=0A=
-> policy->cpu device instead.  That is, that's where it adds its=0A=
-> notifiers (see cpufreq_policy_alloc()), that's where user space=0A=
-> requests are added (see cpufreq_online()), and (most important) that's=0A=
-> where the effective constraint value is read from (see=0A=
-> cpufreq_set_policy()).  That turns out to be problematic (in addition=0A=
-> to the cpu_cooling driver's QoS requests going nowhere), because=0A=
-> confusion ensues if the current policy->cpu goes away.=0A=
+These min/max_freq_notifiers fields seem unused? They're initialized but =
 =0A=
-That behavior in cpu_cooling seems like a bug.=0A=
+the freq_qos_add/remove_notifier calls use min/max_freq.notifiers directly.=
 =0A=
->> However looking at other dev_pm_qos users there are instances of a=0A=
->> driver calling dev_pm_qos_add_request on it's own device but this is not=
 =0A=
->> a strict requirement, correct?=0A=
-> =0A=
-> No, it isn't.=0A=
-> =0A=
->>>>> There have to be two lists of requests per policy, one for the max an=
-d=0A=
->>>>> one for the min frequency >=0A=
->>>>>> If cpufreq needs a group of CPUs to run at the same frequency then i=
-t=0A=
->>>>>> should deal with this by doing dev_pm_qos_read_frequency on each CPU=
+Should probably just be dropped.=0A=
 =0A=
->>>>>> device and picking a frequency that attempts to satisfy all constrai=
-nts.=0A=
->>>>>=0A=
->>>>> No, that would be combining the requests by hand.=0A=
->>>>=0A=
->>>> It's just a loop though.=0A=
->>>=0A=
->>> Yes, it is, and needs to be run on every change of an effective=0A=
->>> constraint for any CPU even if the total effective constraint doesn't=
-=0A=
->>> change.  And, of course, the per-policy user space limits would need=0A=
->>> to be combined with that by hand.=0A=
->>>=0A=
->>> Not particularly straightforward if you asked me.=0A=
->>=0A=
->> Well, this cpu-to-policy aggregation could also use a pm_qos_constraint=
-=0A=
->> object instead of looping.=0A=
-> =0A=
-> Yes, it could, but then somebody would need to add those=0A=
-> "intermediate" requests to a proper policy-level QoS and it would need=0A=
-> an extra notifier invocation to update each of them on a "component"=0A=
-> QoS change.=0A=
-> =0A=
-> This is an interesting idea in case we ever need to improve the=0A=
-> scalability of the QoS lists, but I'd rather use the simpler approach=0A=
-> for now.=0A=
-=0A=
-The advantage I see is reducing the exposure of cpufreq internals=0A=
-=0A=
->>>>> Well, the cpufreq sysfs is per-policy and not per-CPU and we really=
-=0A=
->>>>> need a per-policy min and max frequency in cpufreq, for governors etc=
-.=0A=
->>>>=0A=
->>>> Aggregation could be performed at two levels:=0A=
->>>>=0A=
->>>> 1) Per cpu device (by dev_pm_qos)=0A=
->>>> 2) Per policy (inside cpufreq)=0A=
->>>>=0A=
->>>> The per-cpu dev_pm_qos notifier would just update a per-policy=0A=
->>>> pm_qos_constraints object. The second step could even be done strictly=
-=0A=
->>>> inside the cpufreq core using existing pm_qos, no need to invent new=
-=0A=
->>>> frameworks.=0A=
->>>>=0A=
->>>> Maybe dev_pm_qos is not a very good fit for cpufreq because of these=
-=0A=
->>>> "cpu device versus cpufreq_policy" issues but it makes a ton of sense=
-=0A=
->>>> for devfreq. Can you maybe hold PATCH 3 from this series pending furth=
-er=0A=
->>>> discussion?=0A=
->>>=0A=
->>> It can be reverted at any time if need be and in 5.4 that would be dead=
- code.=0A=
->>=0A=
->> I guess I can post v10 of my "devfreq pm qos" which starts by reverting=
-=0A=
->> "PATCH 3" of this series?=0A=
-> =0A=
-> You may do that, but I would consider adding a struct freq_constraints=0A=
-> pointer directly to struct dev_pm_info and using the new frequency QoS=0A=
-> helpers to manage it.=0A=
-> =0A=
-> Arguably, there is no need to bundle that with the rest of device PM=0A=
-> QoS and doing the above would help to avoid some code duplication too.=0A=
-=0A=
-Adding to struct dev_pm_info would increase sizeof(struct device) while =0A=
-dev_pm_qos only allocates memory when constraints are added. My =0A=
-expectation is that very few devices would even have min_freq and =0A=
-max_freq constraints.=0A=
-=0A=
-Maybe struct dev_pm_qos could host a "struct freq_constraints freq" =0A=
-instead of two separate "struct pm_qos_constraints min/max_frequency"? =0A=
-This way there would be two users of freq_constraints: cpufreq_policy =0A=
-(which is not a device) and dev_pm_qos.=0A=
-=0A=
-In the future freq_constraints might be extended to implement some logic =
-=0A=
-for conflicts between min_freq and max_freq requests.=0A=
-=0A=
---=0A=
-Regards,=0A=
-Leonard=0A=
+> +/**=0A=
+> + * freq_qos_add_notifier - Add frequency QoS change notifier.=0A=
+> + * @qos: List of requests to add the notifier to.=0A=
+> + * @type: Request type.=0A=
+> + * @notifier: Notifier block to add.=0A=
+> + */=0A=
+> +int freq_qos_add_notifier(struct freq_constraints *qos,=0A=
+> +			  enum freq_qos_req_type type,=0A=
+> +			  struct notifier_block *notifier)=0A=
+> +{=0A=
+> +	int ret;=0A=
+> +=0A=
+> +	if (IS_ERR_OR_NULL(qos) || !notifier)=0A=
+> +		return -EINVAL;=0A=
+> +=0A=
+> +	switch (type) {=0A=
+> +	case FREQ_QOS_MIN:=0A=
+> +		ret =3D blocking_notifier_chain_register(qos->min_freq.notifiers,=0A=
+> +						       notifier);=0A=
+> +		break;=0A=
+> +	case FREQ_QOS_MAX:=0A=
+> +		ret =3D blocking_notifier_chain_register(qos->max_freq.notifiers,=0A=
+> +						       notifier);=0A=
+> +		break;=0A=
+> +	default:=0A=
+> +		WARN_ON(1);=0A=
+> +		ret =3D -EINVAL;=0A=
+> +	}=0A=
+> +=0A=
+> +	return ret;=0A=
+> +}=0A=
+> +EXPORT_SYMBOL_GPL(freq_qos_add_notifier);=0A=
+> +=0A=
+> +/**=0A=
+> + * freq_qos_remove_notifier - Remove frequency QoS change notifier.=0A=
+> + * @qos: List of requests to remove the notifier from.=0A=
+> + * @type: Request type.=0A=
+> + * @notifier: Notifier block to remove.=0A=
+> + */=0A=
+> +int freq_qos_remove_notifier(struct freq_constraints *qos,=0A=
+> +			     enum freq_qos_req_type type,=0A=
+> +			     struct notifier_block *notifier)=0A=
+> +{=0A=
+> +	int ret;=0A=
+> +=0A=
+> +	if (IS_ERR_OR_NULL(qos) || !notifier)=0A=
+> +		return -EINVAL;=0A=
+> +=0A=
+> +	switch (type) {=0A=
+> +	case FREQ_QOS_MIN:=0A=
+> +		ret =3D blocking_notifier_chain_unregister(qos->min_freq.notifiers,=0A=
+> +							 notifier);=0A=
+> +		break;=0A=
+> +	case FREQ_QOS_MAX:=0A=
+> +		ret =3D blocking_notifier_chain_unregister(qos->max_freq.notifiers,=0A=
+> +							 notifier);=0A=
+> +		break;=0A=
+> +	default:=0A=
+> +		WARN_ON(1);=0A=
+> +		ret =3D -EINVAL;=0A=
+> +	}=0A=
+> +=0A=
+> +	return ret;=0A=
+> +}=0A=
+> +EXPORT_SYMBOL_GPL(freq_qos_remove_notifier);=0A=
