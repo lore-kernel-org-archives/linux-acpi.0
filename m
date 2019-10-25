@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DA12CA9EA0
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 14:01:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3B34CA9EA0
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 14:03:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5440521D7B
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 14:01:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72B9721D7B
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 14:03:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572012101;
-	bh=56jLaJVyE7J6WQTZ+h1JWCw4Ord1UhA/TJ58CERVaLg=;
+	s=default; t=1572012188;
+	bh=pMRvbdDCb4dImnhTz2eaL8s9Wnfeqq0pbrx6tQqzFUM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=wvMfBaYr57AvMs5bJh0iF+gtCTkHkHKnTGMFpqp8LE0z25J2bwVhE5b6mwjBuGs2H
-	 6GzRliEOuPYuFe3RVcIBrfzjdkVcjvCtSG30umbRc/EK7Bi0EgAb75K1CDXiIkSd50
-	 DPwKxpSEHuC68mq8JRXVujwIfRfqn5yTSFR1uWAY=
+	b=o170Foqyc9ItTSRQSlzYqx0Oa8SHKEWCEQK99XkqcSfeElaLUFo7mjBLssT/oI1ZO
+	 JHuvPuo5W0f35Am5rkeaajse5AWkujQLfLrDtLaPtXKFqcTseh23Ce5ieCmXrURbQ5
+	 Q7g8OTaIMOHuLkrYe3xro3dm1zlSoz5GMOPpLQOA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391069AbfJYOBg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Oct 2019 10:01:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53344 "EHLO mail.kernel.org"
+        id S2395090AbfJYODH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 25 Oct 2019 10:03:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2505479AbfJYN6H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 25 Oct 2019 09:58:07 -0400
+        id S2505299AbfJYN5V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 25 Oct 2019 09:57:21 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BDC6F222C2;
-        Fri, 25 Oct 2019 13:58:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D683B222C2;
+        Fri, 25 Oct 2019 13:57:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572011887;
-        bh=56jLaJVyE7J6WQTZ+h1JWCw4Ord1UhA/TJ58CERVaLg=;
+        s=default; t=1572011840;
+        bh=pMRvbdDCb4dImnhTz2eaL8s9Wnfeqq0pbrx6tQqzFUM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lCECg/QqOn0qpCNHMJ2kJQ/ojVr16MWV5s6WeWmLOozBN/Dsq/6JxF64F0xtmmmGn
-         ZIXC3/ok1NW3QLQimCO4+WZI3qmcQ72R9gv9r8bZbbV1+aUyBQOH7VkVENE9Lr/gAn
-         //vbrPV1DWzcz1HG7/2O5nzlHcv24C/3WQarnDfk=
+        b=KYxq7FbYJzgNwykN05TYZbuR6U6qLWn4FWGYyJuSWxzeHgzeNgXY7mxGKN4zsltTf
+         lIFZbpFJu1k7w4za9P7TETw7QwT+v8VeeyHsxVxYFcpOMRdC26w9rKTQD0/S19asp/
+         vcS1luzUlbWZuASp06+alZ6xGPmWvZbO2J0NrLxE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Zhang Rui <rui.zhang@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 03/20] ACPI: video: Use vendor backlight on Sony VPCEH3U1E
-Date:   Fri, 25 Oct 2019 09:57:43 -0400
-Message-Id: <20191025135801.25739-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 03/25] ACPI: video: Use vendor backlight on Sony VPCEH3U1E
+Date:   Fri, 25 Oct 2019 09:56:51 -0400
+Message-Id: <20191025135715.25468-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191025135801.25739-1-sashal@kernel.org>
-References: <20191025135801.25739-1-sashal@kernel.org>
+In-Reply-To: <20191025135715.25468-1-sashal@kernel.org>
+References: <20191025135715.25468-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -74,10 +74,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index cdc47375178e7..555f568dbf3e4 100644
+index 43587ac680e47..0e0a3929e34e2 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -135,6 +135,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+@@ -141,6 +141,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
  		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
  		},
  	},
