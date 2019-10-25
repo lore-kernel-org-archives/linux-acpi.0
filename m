@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-14.7 required=3.0
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED4E1CA9EBF
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 21:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E80BCA9EC1
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 21:54:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BF9E5222BE
+	by mail.kernel.org (Postfix) with ESMTP id EEC1A222BE
 	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 21:54:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726375AbfJYVyx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1726283AbfJYVyx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 25 Oct 2019 17:54:53 -0400
-Received: from mga01.intel.com ([192.55.52.88]:59705 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:27339 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726283AbfJYVyx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1726363AbfJYVyx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 25 Oct 2019 17:54:53 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 14:54:52 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 14:54:52 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.68,230,1569308400"; 
-   d="scan'208";a="201936057"
+   d="scan'208";a="201936045"
 Received: from sibelius.jf.intel.com ([10.54.75.23])
   by orsmga003.jf.intel.com with ESMTP; 25 Oct 2019 14:54:51 -0700
 From:   Erik Schmauss <erik.schmauss@intel.com>
@@ -34,9 +34,9 @@ To:     "Rafael J . Wysocki" <rafael@kernel.org>,
 Cc:     andriy.shevchenko@linux.intel.com,
         Erik Schmauss <erik.schmauss@intel.com>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH v2 10/12] ACPICA: acpiexec: initialize all simple types and field units from user input
-Date:   Fri, 25 Oct 2019 14:36:58 -0700
-Message-Id: <20191025213700.14685-11-erik.schmauss@intel.com>
+Subject: [PATCH v2 06/12] ACPICA: utilities: add flag to only display data when dumping buffers
+Date:   Fri, 25 Oct 2019 14:36:54 -0700
+Message-Id: <20191025213700.14685-7-erik.schmauss@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20191025213700.14685-1-erik.schmauss@intel.com>
 References: <20191025213700.14685-1-erik.schmauss@intel.com>
@@ -47,59 +47,118 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPICA commit 367b363edc5fa1f93bbc14e4a1e05f34fef765a2
+ACPICA commit fb18935fcf940c5854a055975c6b9ee31f0e1a5a
 
-acpiexec allows a user to provide a file that indicates values to
-initialize named objects during table load with the -fi option. This
-can provide more accurate simulation by setting named objects to
-values found during OS runtime.
-
-Previously, this option only supported integer objects. This change
-adds user initialization support for field units, strings, buffers,
-and packages.
-
-Link: https://github.com/acpica/acpica/commit/367b363e
+Link: https://github.com/acpica/acpica/commit/fb18935f
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/dsfield.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/acutils.h  |  9 +++---
+ drivers/acpi/acpica/utbuffer.c | 52 +++++++++++++++++++---------------
+ 2 files changed, 34 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dsfield.c b/drivers/acpi/acpica/dsfield.c
-index 9151f00dfbdc..faa38a22263a 100644
---- a/drivers/acpi/acpica/dsfield.c
-+++ b/drivers/acpi/acpica/dsfield.c
-@@ -263,7 +263,6 @@ acpi_ds_get_field_names(struct acpi_create_field_info *info,
- 	union acpi_parse_object *child;
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 601808be86d1..5fb50634e08e 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -142,10 +142,11 @@ struct acpi_pkg_info {
  
- #ifdef ACPI_EXEC_APP
--	u64 value = 0;
- 	union acpi_operand_object *result_desc;
- 	union acpi_operand_object *obj_desc;
- 	char *name_path;
-@@ -405,19 +404,17 @@ acpi_ds_get_field_names(struct acpi_create_field_info *info,
- 					name_path =
- 					    acpi_ns_get_external_pathname(info->
- 									  field_node);
--					obj_desc =
--					    acpi_ut_create_integer_object
--					    (value);
- 					if (ACPI_SUCCESS
- 					    (ae_lookup_init_file_entry
--					     (name_path, &value))) {
-+					     (name_path, &obj_desc))) {
- 						acpi_ex_write_data_to_field
- 						    (obj_desc,
- 						     acpi_ns_get_attached_object
- 						     (info->field_node),
- 						     &result_desc);
-+						acpi_ut_remove_reference
-+						    (obj_desc);
- 					}
--					acpi_ut_remove_reference(obj_desc);
- 					ACPI_FREE(name_path);
- #endif
- 				}
+ /* acpi_ut_dump_buffer */
+ 
+-#define DB_BYTE_DISPLAY     1
+-#define DB_WORD_DISPLAY     2
+-#define DB_DWORD_DISPLAY    4
+-#define DB_QWORD_DISPLAY    8
++#define DB_BYTE_DISPLAY      0x01
++#define DB_WORD_DISPLAY      0x02
++#define DB_DWORD_DISPLAY     0x04
++#define DB_QWORD_DISPLAY     0x08
++#define DB_DISPLAY_DATA_ONLY 0x10
+ 
+ /*
+  * utascii - ASCII utilities
+diff --git a/drivers/acpi/acpica/utbuffer.c b/drivers/acpi/acpica/utbuffer.c
+index 61db9967ebe4..db897af1de05 100644
+--- a/drivers/acpi/acpica/utbuffer.c
++++ b/drivers/acpi/acpica/utbuffer.c
+@@ -37,7 +37,9 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
+ 	u32 j;
+ 	u32 temp32;
+ 	u8 buf_char;
++	u32 display_data_only = display & DB_DISPLAY_DATA_ONLY;
+ 
++	display &= ~DB_DISPLAY_DATA_ONLY;
+ 	if (!buffer) {
+ 		acpi_os_printf("Null Buffer Pointer in DumpBuffer!\n");
+ 		return;
+@@ -53,7 +55,9 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
+ 
+ 		/* Print current offset */
+ 
+-		acpi_os_printf("%8.4X: ", (base_offset + i));
++		if (!display_data_only) {
++			acpi_os_printf("%8.4X: ", (base_offset + i));
++		}
+ 
+ 		/* Print 16 hex chars */
+ 
+@@ -109,32 +113,34 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
+ 		 * Print the ASCII equivalent characters but watch out for the bad
+ 		 * unprintable ones (printable chars are 0x20 through 0x7E)
+ 		 */
+-		acpi_os_printf(" ");
+-		for (j = 0; j < 16; j++) {
+-			if (i + j >= count) {
+-				acpi_os_printf("\n");
+-				return;
++		if (!display_data_only) {
++			acpi_os_printf(" ");
++			for (j = 0; j < 16; j++) {
++				if (i + j >= count) {
++					acpi_os_printf("\n");
++					return;
++				}
++
++				/*
++				 * Add comment characters so rest of line is ignored when
++				 * compiled
++				 */
++				if (j == 0) {
++					acpi_os_printf("// ");
++				}
++
++				buf_char = buffer[(acpi_size)i + j];
++				if (isprint(buf_char)) {
++					acpi_os_printf("%c", buf_char);
++				} else {
++					acpi_os_printf(".");
++				}
+ 			}
+ 
+-			/*
+-			 * Add comment characters so rest of line is ignored when
+-			 * compiled
+-			 */
+-			if (j == 0) {
+-				acpi_os_printf("// ");
+-			}
++			/* Done with that line. */
+ 
+-			buf_char = buffer[(acpi_size)i + j];
+-			if (isprint(buf_char)) {
+-				acpi_os_printf("%c", buf_char);
+-			} else {
+-				acpi_os_printf(".");
+-			}
++			acpi_os_printf("\n");
+ 		}
+-
+-		/* Done with that line. */
+-
+-		acpi_os_printf("\n");
+ 		i += 16;
+ 	}
+ 
 -- 
 2.21.0
 
