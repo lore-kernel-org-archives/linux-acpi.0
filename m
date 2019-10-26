@@ -1,91 +1,98 @@
-Return-Path: <SRS0=XdkV=YS=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=JdXM=YT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.7 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B711CA9EBC
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 21:54:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A14D2CA9EB9
+	for <linux-acpi@archiver.kernel.org>; Sat, 26 Oct 2019 13:37:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2778721D7F
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Oct 2019 21:54:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F0FD20867
+	for <linux-acpi@archiver.kernel.org>; Sat, 26 Oct 2019 13:37:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1572097059;
+	bh=zsCfej5/3HVGt1LmhAowMZJP339FutiqxSS2vEQtYgc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=wMtPmrj3aOKp3etyaCHpmDVq6gYWFLYYvtw0YpeYmBs2CZokUkYrS4w94o4iIz5um
+	 wKqFDcSTLOPcHMQrZuEfdU+OGl+z8Z8RzHF1DNFqBzq1f8i2djZ7YYI0hHVfRb9yEx
+	 LrfMJMe2XxISb79MU1lSzM+JYRjuX2wBmwZthof4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726063AbfJYVy4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Oct 2019 17:54:56 -0400
-Received: from mga11.intel.com ([192.55.52.93]:27336 "EHLO mga11.intel.com"
+        id S1726564AbfJZNQQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 26 Oct 2019 09:16:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbfJYVyx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 25 Oct 2019 17:54:53 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 14:54:52 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.68,230,1569308400"; 
-   d="scan'208";a="201936053"
-Received: from sibelius.jf.intel.com ([10.54.75.23])
-  by orsmga003.jf.intel.com with ESMTP; 25 Oct 2019 14:54:51 -0700
-From:   Erik Schmauss <erik.schmauss@intel.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org
-Cc:     andriy.shevchenko@linux.intel.com,
-        Erik Schmauss <erik.schmauss@intel.com>,
-        Bob Moore <robert.moore@intel.com>
-Subject: [PATCH v2 09/12] ACPICA: debugger: add field unit support for acpi_db_get_next_token
-Date:   Fri, 25 Oct 2019 14:36:57 -0700
-Message-Id: <20191025213700.14685-10-erik.schmauss@intel.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20191025213700.14685-1-erik.schmauss@intel.com>
-References: <20191025213700.14685-1-erik.schmauss@intel.com>
+        id S1726189AbfJZNQP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 26 Oct 2019 09:16:15 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2B6FF2070B;
+        Sat, 26 Oct 2019 13:16:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1572095775;
+        bh=zsCfej5/3HVGt1LmhAowMZJP339FutiqxSS2vEQtYgc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=V8fTheVabvwYpwr8jzwaKIJkJTTg0ZyHDfUKlRTf3kMV0G4uV5m9aH1sQnKkza768
+         iSS8Tmq3ZIBs6aTjLvASzCziRaeLgEwDO33cnDdZ9Eg9wAJ3TNhaivMN/kMCFw7eJR
+         ZEQG6ebBSMVkR8rOIBz5pcy27no2lCF8WZa3cpN4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Daniel Black <daniel@linux.ibm.com>, Tao Xu <tao3.xu@intel.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.3 06/99] ACPI: HMAT: ACPI_HMAT_MEMORY_PD_VALID is deprecated since ACPI-6.3
+Date:   Sat, 26 Oct 2019 09:14:27 -0400
+Message-Id: <20191026131600.2507-6-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191026131600.2507-1-sashal@kernel.org>
+References: <20191026131600.2507-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPICA commit d509afa88e9415f13a3283c38ce9ee034634ae24
+From: Daniel Black <daniel@linux.ibm.com>
 
-Since field unit data output from the debugger are now surrounded by
-braces '{', support has been added to acpi_db_get_next_token to recognize
-strings beginning with this character as a ACPI_TYPE_FIELD_UNIT.
+[ Upstream commit 35b9ad840892d979dbeffe702dae95a3cbefa07b ]
 
-Link: https://github.com/acpica/acpica/commit/d509afa8
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+ACPI-6.3 corresponds to when HMAT revision was bumped
+from 1 to 2. In this version ACPI_HMAT_MEMORY_PD_VALID
+was deprecated and made reserved.
+
+As such in revision 2+ we shouldn't be testing this flag.
+
+This is as per ACPI-6.3, 5.2.27.3, Table 5-145
+"Memory Proximity Domain Attributes Structure"
+for Flags.
+
+Signed-off-by: Daniel Black <daniel@linux.ibm.com>
+Reviewed-by: Tao Xu <tao3.xu@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpica/dbinput.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/acpi/hmat/hmat.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
-index 44d6d7246e6e..e1632b340182 100644
---- a/drivers/acpi/acpica/dbinput.c
-+++ b/drivers/acpi/acpica/dbinput.c
-@@ -511,6 +511,21 @@ char *acpi_db_get_next_token(char *string,
- 		}
- 		break;
+diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
+index 96b7d39a97c65..e938e34673d98 100644
+--- a/drivers/acpi/hmat/hmat.c
++++ b/drivers/acpi/hmat/hmat.c
+@@ -382,7 +382,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+ 		pr_info("HMAT: Memory Flags:%04x Processor Domain:%d Memory Domain:%d\n",
+ 			p->flags, p->processor_PD, p->memory_PD);
  
-+	case '{':
-+
-+		/* This is the start of a field unit, scan until closing brace */
-+
-+		string++;
-+		start = string;
-+		type = ACPI_TYPE_FIELD_UNIT;
-+
-+		/* Find end of buffer */
-+
-+		while (*string && (*string != '}')) {
-+			string++;
-+		}
-+		break;
-+
- 	case '[':
- 
- 		/* This is the start of a package, scan until closing bracket */
+-	if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
++	if (p->flags & ACPI_HMAT_MEMORY_PD_VALID && hmat_revision == 1) {
+ 		target = find_mem_target(p->memory_PD);
+ 		if (!target) {
+ 			pr_debug("HMAT: Memory Domain missing from SRAT\n");
 -- 
-2.21.0
+2.20.1
 
