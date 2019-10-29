@@ -1,143 +1,135 @@
-Return-Path: <SRS0=U5mT=YV=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=YAsu=YW=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDCBECA9EC3
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Oct 2019 22:00:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E93BCA9EC3
+	for <linux-acpi@archiver.kernel.org>; Tue, 29 Oct 2019 03:07:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8DF09218AC
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Oct 2019 22:00:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3154D218BA
+	for <linux-acpi@archiver.kernel.org>; Tue, 29 Oct 2019 03:07:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Yk6qAWI2"
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="jyz7BkXW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728096AbfJ1WAy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Oct 2019 18:00:54 -0400
-Received: from mail-pg1-f201.google.com ([209.85.215.201]:44796 "EHLO
-        mail-pg1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390630AbfJ1WAl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Oct 2019 18:00:41 -0400
-Received: by mail-pg1-f201.google.com with SMTP id k23so9395762pgl.11
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Oct 2019 15:00:41 -0700 (PDT)
+        id S1730417AbfJ2DHN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Oct 2019 23:07:13 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:36570 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729145AbfJ2DHL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Oct 2019 23:07:11 -0400
+Received: by mail-ot1-f65.google.com with SMTP id c7so8552886otm.3
+        for <linux-acpi@vger.kernel.org>; Mon, 28 Oct 2019 20:07:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=1WpJs4rqFlazEgG1ALqWM9ztjxvHbXQZYC6yFmWs2yk=;
-        b=Yk6qAWI2BvbfBU05Wsff0PGaMNDhMIm5Rg86/K6xfu7Ma5L7ToyW6RNRjxoM4Zg0TZ
-         G7EswA38UEa/5hWjOs9Rj9+aAM2uTwa/DxQemqAUpjIyuZ01xRkLERXg1ZB4q4hp2Bmb
-         /lK0wtpMAUCxYWy4n40EF5mTihZrzbqmuJuNUzYwBkHijNaSOWbWatRM5osGKG8e5G40
-         g7xTXzNsFUFuPKgTLNK+cAxfUNPX66DJKbpl6ZuVMygFxzMPMNLx2pczWyj4jM7jF8oQ
-         atYJOzCIhoGGv1hCrpbhZGpW+SA9MrnblLyteW4ZN5WRcvlKTrZXt4paFNSBfkYgtf8S
-         RdHw==
+        bh=0qnT1ZP3CJMcSq6L0LWTa2iyPLJWEkUMtmJ85EPCi4g=;
+        b=jyz7BkXWDwIX8GIPgfsfU1Pk6DOEgI+jy3ge8ri0/tATonbTF5qMMpBr8OzN84eXdp
+         PPt89jzMeUxP8VByrdcY6vy+QfDNxLaz5t3bfOpjE3qK/z0Y6sVf/67nxVjzgDMT6LwA
+         CoHFbgv1Yxc/p9ZwMpRlaW4qe3M/lf+xa+L1uePYN9n4O6BRpFkzmZ0Y6YA7+lcE00C9
+         BA5GAq+HwCw+Luc/VgNTBdTfTjFIZ0ciIfSzHseq3VqwQyL/ch+xTZG9+AotHo9RWzRO
+         14xtUdOKCD/RezUjBH09AEwDzLaEs0vk4d1wEu36ShlQheSwdhpQNHw2QyktRxd5VdNH
+         boZQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=1WpJs4rqFlazEgG1ALqWM9ztjxvHbXQZYC6yFmWs2yk=;
-        b=XddsfzHM7oQJvzN5efQ6PgTVfmT/yfzixHEPpe2Oj9VzNTOv+z/Tk22DGV6H4q1sSM
-         IQzIZPbNJ00c+yfqHDCJbjHTR5sRjpomQhzKaLc6hetyvWZVjsX8KpX1ejIwybF2ClMI
-         d6ysTVMfXghvVT71jFrnQ6gr4giSuaKIza8KuKE+a3odK1h3ObUMrDJlTX0uRq0Qj4Nz
-         cjG8t70Jrfdtw6LJ3bfPGKXijsI1/c3qqP9LxnwpKkfV4h14/RMdYpQUjQwPSqGEbq0x
-         DrstSzx03c8IqAT4OP08nQajhSXEaTwBb4RG3FRtGP/QeQ963uLaYrp5ZMTzhdB5aiCB
-         3Bpg==
-X-Gm-Message-State: APjAAAVgQz6/xKTGUboROF0jwt/4j4I4LCO2ZjZNx5gq/NYO0VtIGW6J
-        5VAoveK38oaE0dfLriEguFUXusvyRjw9gu4=
-X-Google-Smtp-Source: APXvYqy9nquaj1y+oeAHBa2FvIbJ3pRLRVkY7Q7QAx/FpyzTrOehqtDTnU4RgtT4SEkxlu/hY0FIOMFzyx2ixSk=
-X-Received: by 2002:a65:554e:: with SMTP id t14mr21065330pgr.370.1572300040549;
- Mon, 28 Oct 2019 15:00:40 -0700 (PDT)
-Date:   Mon, 28 Oct 2019 15:00:24 -0700
-In-Reply-To: <20191028220027.251605-1-saravanak@google.com>
-Message-Id: <20191028220027.251605-4-saravanak@google.com>
-Mime-Version: 1.0
-References: <20191028220027.251605-1-saravanak@google.com>
-X-Mailer: git-send-email 2.24.0.rc0.303.g954a862665-goog
-Subject: [PATCH v1 3/5] driver core: Allow fwnode_operations.add_links to
- differentiate errors
-From:   Saravana Kannan <saravanak@google.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Len Brown <lenb@kernel.org>
-Cc:     Saravana Kannan <saravanak@google.com>, kernel-team@android.com,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0qnT1ZP3CJMcSq6L0LWTa2iyPLJWEkUMtmJ85EPCi4g=;
+        b=X+HWF4TeGvWx62X+oVBq0P5HxqYSj8xAnxdUMomN5W+JTdLrE5+M1RzYaei0gN1Cau
+         viXxWnqYoqKiBGFRiNjKizSZ9ezahtXwAI4AqgWaLEIjcKKJqN+Pmkq6vEI5TfZ6eRtX
+         vHOwwKD5n/J5z3Lx8x2ErI0yOp+wi0ZTGXn0+qdHsIEn2xCU+WdZMM4wbBBgIkcko6DN
+         41hynrSb5MNfYytYgsulMpC5bClgafj7RRjWcILGthrtzufiKu9yuRUkdjeb03zOHv0d
+         mn6F6uUz64rPgD1Julk39fvGnexBm5MuE2KQN7C7asmJFggmQUcsMepmYw2Ubjy2QxxW
+         P13A==
+X-Gm-Message-State: APjAAAXJOYVzlIisFsVWSYO7EVIcc940f084AexHLu3uzlirLNLY9tnt
+        abnoMA3hdxlcPv1sKmyut4gLAxC6vk4iZg+14uWZ5w==
+X-Google-Smtp-Source: APXvYqy4FOA2jwEsa1Q9F6uRXTEMb/1i6qDZEx0Kz8n+9VLiVD9T6IqpNu6c/DSljpUoRARs+eP4jGbnneNiRziV86M=
+X-Received: by 2002:a05:6830:18d1:: with SMTP id v17mr2212366ote.71.1572318429791;
+ Mon, 28 Oct 2019 20:07:09 -0700 (PDT)
+MIME-Version: 1.0
+References: <157118756627.2063440.9878062995925617180.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAJZ5v0j_-iSqiysZiW=J8Y5FCAjnPC7ZvevrLsYhngWr6mT6GQ@mail.gmail.com>
+ <CAPcyv4js1XqSe1kNeWob=ftscYFKQF+04PrKj7XDiEWUWvnMvQ@mail.gmail.com> <1666116.19LcctqB44@kreacher>
+In-Reply-To: <1666116.19LcctqB44@kreacher>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Mon, 28 Oct 2019 20:06:58 -0700
+Message-ID: <CAPcyv4i2gxocbT9nB5k9+Qea5WftJLSoArXjymkwyZ=+8GBFcQ@mail.gmail.com>
+Subject: Re: [PATCH v7 01/12] acpi/numa: Establish a new drivers/acpi/numa/ directory
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>,
+        Keith Busch <kbusch@kernel.org>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        linux-efi <linux-efi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Thomas Gleixner <tglx@linutronix.de>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When add_links() still has suppliers that it needs to link to in the
-future, this patch allows it to differentiate between suppliers that are
-needed for probing vs suppliers that are needed for sync_state()
-correctness.
+On Mon, Oct 28, 2019 at 8:13 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> On Tuesday, October 22, 2019 6:48:12 PM CET Dan Williams wrote:
+> > On Tue, Oct 22, 2019 at 3:02 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > >
+> > > On Fri, Oct 18, 2019 at 11:25 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > > >
+> > > >  On Wed, Oct 16, 2019 at 3:13 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> > > > >
+> > > > > Currently hmat.c lives under an "hmat" directory which does not enhance
+> > > > > the description of the file. The initial motivation for giving hmat.c
+> > > > > its own directory was to delineate it as mm functionality in contrast to
+> > > > > ACPI device driver functionality.
+> > > > >
+> > > > > As ACPI continues to play an increasing role in conveying
+> > > > > memory location and performance topology information to the OS take the
+> > > > > opportunity to co-locate these NUMA relevant tables in a combined
+> > > > > directory.
+> > > > >
+> > > > > numa.c is renamed to srat.c and moved to drivers/acpi/numa/ along with
+> > > > > hmat.c.
+> > > > >
+> > > > > Cc: Len Brown <lenb@kernel.org>
+> > > > > Cc: Keith Busch <kbusch@kernel.org>
+> > > > > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
+> > > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > > >
+> > > > Please note that https://patchwork.kernel.org/patch/11078171/ is being
+> > > > pushed to Linus (it is overdue anyway), so if it is pulled, there will
+> > > > be a merge conflict with this patch.
+> > > >
+> > > > Respin maybe?
+> > >
+> > > Actually, would you mind it if I took this one into the ACPI tree right away?
+> > >
+> > > There's https://patchwork.kernel.org/patch/11198373/ queued up that,
+> > > again, will clash with it.
+> > >
+> > > Also, there is the generic Initiator proximity domains series from
+> > > Jonathan depending on it and I would like to move forward with that
+> > > one if there are no objections.
+> >
+> > Given Ard has acked all the EFI core and ARM changes can we proceed
+> > with merging the EFI Specific Purpose Memory series through Rafael's
+> > tree? It would need acks from x86 maintainers.
+>
+> In the face of the lack of responses here, I think I will apply this patch
+> alone and expose a stable branch containing it in case somebody else wants
+> to pull it in.
 
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- drivers/base/core.c    | 12 ++++++++----
- include/linux/fwnode.h | 13 +++++++++----
- 2 files changed, 17 insertions(+), 8 deletions(-)
+Ok.
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 48cd43a91ce6..e6d3e6d485da 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -2297,7 +2297,7 @@ int device_add(struct device *dev)
- 	struct device *parent;
- 	struct kobject *kobj;
- 	struct class_interface *class_intf;
--	int error = -EINVAL;
-+	int error = -EINVAL, fw_ret;
- 	struct kobject *glue_dir = NULL;
- 
- 	dev = get_device(dev);
-@@ -2413,9 +2413,13 @@ int device_add(struct device *dev)
- 	 */
- 	device_link_add_missing_supplier_links();
- 
--	if (fwnode_has_op(dev->fwnode, add_links)
--	    && fwnode_call_int_op(dev->fwnode, add_links, dev))
--		device_link_wait_for_mandatory_supplier(dev, true);
-+	if (fwnode_has_op(dev->fwnode, add_links)) {
-+		fw_ret = fwnode_call_int_op(dev->fwnode, add_links, dev);
-+		if (fw_ret == -ENODEV)
-+			device_link_wait_for_mandatory_supplier(dev);
-+		else if (fw_ret)
-+			device_link_wait_for_optional_supplier(dev);
-+	}
- 
- 	bus_probe_device(dev);
- 	if (parent)
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 25bb81f8ded8..a19134eae5a5 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -96,10 +96,15 @@ struct fwnode_reference_args {
-  *		available suppliers.
-  *
-  *		Return 0 if device links have been successfully created to all
-- *		the suppliers of this device or if the supplier information is
-- *		not known. Return an error if and only if the supplier
-- *		information is known but some of the suppliers are not yet
-- *		available to create device links to.
-+ *		the suppliers this device needs to create device links to or if
-+ *		the supplier information is not known.
-+ *
-+ *		Return -ENODEV if and only if the suppliers needed for probing
-+ *		the device are not yet available to create device links to.
-+ *
-+ *		Return -EAGAIN if there are suppliers that need to be linked to
-+ *		that are not yet available but none of those suppliers are
-+ *		necessary for probing this device.
-  */
- struct fwnode_operations {
- 	struct fwnode_handle *(*get)(struct fwnode_handle *fwnode);
--- 
-2.24.0.rc0.303.g954a862665-goog
-
+x86 folks, any concerns about Rafael taking the whole lot?
