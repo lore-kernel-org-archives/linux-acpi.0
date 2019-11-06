@@ -2,48 +2,49 @@ Return-Path: <SRS0=EwBS=Y6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56F73C5DF65
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Nov 2019 14:01:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 009D2C5DF64
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Nov 2019 14:05:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 25D5921929
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Nov 2019 14:01:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3AFC2178F
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Nov 2019 14:05:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731839AbfKFOBe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Nov 2019 09:01:34 -0500
-Received: from mga17.intel.com ([192.55.52.151]:46815 "EHLO mga17.intel.com"
+        id S1727895AbfKFOFD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Nov 2019 09:05:03 -0500
+Received: from mga04.intel.com ([192.55.52.120]:60226 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730456AbfKFOBe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 6 Nov 2019 09:01:34 -0500
+        id S1726926AbfKFOFD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 6 Nov 2019 09:05:03 -0500
 X-Amp-Result: UNKNOWN
 X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Nov 2019 06:01:33 -0800
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Nov 2019 06:05:02 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.68,275,1569308400"; 
-   d="scan'208";a="212778761"
+   d="scan'208";a="212779387"
 Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
-  by fmsmga001.fm.intel.com with SMTP; 06 Nov 2019 06:01:31 -0800
-Received: by lahna (sSMTP sendmail emulation); Wed, 06 Nov 2019 16:01:30 +0200
-Date:   Wed, 6 Nov 2019 16:01:30 +0200
+  by fmsmga001.fm.intel.com with SMTP; 06 Nov 2019 06:05:00 -0800
+Received: by lahna (sSMTP sendmail emulation); Wed, 06 Nov 2019 16:04:59 +0200
+Date:   Wed, 6 Nov 2019 16:04:59 +0200
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     Hans de Goede <hdegoede@redhat.com>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Linus Walleij <linus.walleij@linaro.org>,
         linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] gpiolib: acpi: Add Terra Pad 1061 to the
- run_edge_events_on_boot_blacklist
-Message-ID: <20191106140130.GV2552@lahna.fi.intel.com>
-References: <20191106115109.119346-1-hdegoede@redhat.com>
+Subject: Re: [PATCH 1/3] pinctrl: cherryview: Split out irq hw-init into a
+ separate helper function
+Message-ID: <20191106140459.GW2552@lahna.fi.intel.com>
+References: <20191106120956.119958-1-hdegoede@redhat.com>
+ <20191106120956.119958-2-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191106115109.119346-1-hdegoede@redhat.com>
+In-Reply-To: <20191106120956.119958-2-hdegoede@redhat.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-acpi-owner@vger.kernel.org
@@ -51,19 +52,26 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 06, 2019 at 12:51:09PM +0100, Hans de Goede wrote:
-> The Terra Pad 1061 has the usual micro-USB-B id-pin handler, but instead
-> of controlling the actual micro-USB-B it turns the 5V boost for the
-> tablet's USB-A connector and its keyboard-cover connector off.
+On Wed, Nov 06, 2019 at 01:09:54PM +0100, Hans de Goede wrote:
+> Split out irq hw-init into a separate chv_gpio_irq_init_hw() function.
+> This is a preparation patch for passing the irqchip when adding the
+> gpiochip.
 > 
-> The actual micro-USB-B connector on the tablet is wired for charging only,
-> and its id pin is *not* connected to the GPIO which is used for the
-> (broken) id-pin event handler in the DSDT.
-> 
-> While at it not only add a comment why the Terra Pad 1061 is on the
-> blacklist, but also fix the missing comment for the Minix Neo Z83-4 entry.
-> 
-> Fixes: 61f7f7c8f978 ("gpiolib: acpi: Add gpiolib_acpi_run_edge_events_on_boot option and blacklist")
 > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/pinctrl/intel/pinctrl-cherryview.c | 57 +++++++++++++---------
+>  1 file changed, 34 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/pinctrl/intel/pinctrl-cherryview.c b/drivers/pinctrl/intel/pinctrl-cherryview.c
+> index dff2a81250b6..c5a44be1e904 100644
+> --- a/drivers/pinctrl/intel/pinctrl-cherryview.c
+> +++ b/drivers/pinctrl/intel/pinctrl-cherryview.c
+> @@ -165,6 +165,7 @@ struct chv_pinctrl {
+>  	struct gpio_chip chip;
+>  	struct irq_chip irqchip;
+>  	void __iomem *regs;
+> +	bool need_valid_mask;
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Please add kernel-doc about this one.
+
+Otherwise looks good.
