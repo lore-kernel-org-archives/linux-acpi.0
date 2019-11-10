@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1816C17440
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 02:54:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51C8BC17443
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 03:03:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B63022794
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 02:54:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CB19215EA
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 03:03:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573354478;
-	bh=iuc+CW/MwNh7Z3Nj4jlGrhbfNy6HZQZso3XrQC80OqA=;
+	s=default; t=1573354997;
+	bh=nl6Vclgv9ewfJPYnz2RDeFn5PkpJj7SCpo04XJ7eSoY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=vEeLXbJxeqPksUfT9SQeqQh+/a1ijofPNYKpWJd7nr2yRr3ZW+CXEjpQ3BtRriWJQ
-	 ufWHrijupLYdl4PATFOHT5z3nyAMvU91nB8NhwdLt0WvIbcM65pq1DQf5jvddLup43
-	 afosvvHOZLnKj02FycbKg1S9ZZ3nvyU4PsyzuKr0=
+	b=DLaaDoPornJLKqVp6hLBsBKumHQzyFI6LrwqyRSommw2ndp0HXHOBG+ZbgLYLTE4E
+	 kquOhOacm1E317Z8JuW2+y5CW4ZbDkLiZyvMGK2BZAhQtR5+SpJftyuV3myO62cRo7
+	 wb6s7jXovdqR6tLYn36bmIPw7u8mDWe6RELYdDyc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729750AbfKJCug (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 9 Nov 2019 21:50:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34282 "EHLO mail.kernel.org"
+        id S1727347AbfKJDDL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 9 Nov 2019 22:03:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729746AbfKJCug (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 9 Nov 2019 21:50:36 -0500
+        id S1728087AbfKJCsu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 9 Nov 2019 21:48:50 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D9F4122790;
-        Sun, 10 Nov 2019 02:50:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3DD0D22582;
+        Sun, 10 Nov 2019 02:48:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573354235;
-        bh=iuc+CW/MwNh7Z3Nj4jlGrhbfNy6HZQZso3XrQC80OqA=;
+        s=default; t=1573354129;
+        bh=nl6Vclgv9ewfJPYnz2RDeFn5PkpJj7SCpo04XJ7eSoY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QdiMwsVZwVePbsIIxtX07h1/sFJa3PlQg1l0aPPZZs6Q0zjMK+/5L5YWXNxDA7Z8s
-         oidI/vC7Ie2cE3ZtIHEpD9Hema8iQpbTFbj5s2hWiVae7CEhvwHORMcPmhkKr30sL3
-         eyDG94AyWaup14X5O2VOVH5DlcgSYYC0gf7rsB7E=
+        b=K761KyJNAI9lCFJ/fswezAVsGirmGY4FzicV1TvT5FVr5YX8eCHybyPhPH0YqUL7Z
+         My8632wnL/bom3QwzuW0rPR8CyKHgLY/1cgIkZ2RVvXuuw82gH0P4oKLylto/iXusf
+         cMLTUaameD0GamS/wYX9JaQkPE2vRAgvTiQAOwmk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Sinan Kaya <okaya@kernel.org>,
@@ -45,12 +45,12 @@ Cc:     Sinan Kaya <okaya@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Sasha Levin <sashal@kernel.org>, linux-pci@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 02/40] PCI/ACPI: Correct error message for ASPM disabling
-Date:   Sat,  9 Nov 2019 21:49:54 -0500
-Message-Id: <20191110025032.827-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 02/66] PCI/ACPI: Correct error message for ASPM disabling
+Date:   Sat,  9 Nov 2019 21:47:41 -0500
+Message-Id: <20191110024846.32598-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191110025032.827-1-sashal@kernel.org>
-References: <20191110025032.827-1-sashal@kernel.org>
+In-Reply-To: <20191110024846.32598-1-sashal@kernel.org>
+References: <20191110024846.32598-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -80,7 +80,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 3b0b4bd67b71b..4031ec8024cee 100644
+index b66815f35be6b..317ecc2e5757b 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
 @@ -454,8 +454,9 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
