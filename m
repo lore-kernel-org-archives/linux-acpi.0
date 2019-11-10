@@ -1,145 +1,100 @@
-Return-Path: <SRS0=eb/u=ZA=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=kjfV=ZC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 929D3C5DF60
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Nov 2019 17:56:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51953C17443
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 02:40:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 64F7A206A3
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Nov 2019 17:56:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="tY/EFOi1"
+	by mail.kernel.org (Postfix) with ESMTP id 1EB56214E0
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 02:40:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1573353624;
+	bh=Qm0LlYR6QOexdgjcFK6pfnyQ30ddksaltJsl7gtvWFc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=zSmW+ToAoO+7Ol0WAqz4aYOPAQ0aCW0Y5lNguw8PTgLqdEvWCB6C6VMAHPQiMEGG4
+	 iJVrvcDdKuRSS1TXyZcineKWOtG1aO5FmbtotckQhGv+WRCzwJuVBTJFDx0lR7Njho
+	 kytqMiWzXBlUs6PMadLL2CJ/ywvMozpiqPt/aZpU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726121AbfKHR4i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Nov 2019 12:56:38 -0500
-Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:16623 "EHLO
-        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726049AbfKHR4i (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Nov 2019 12:56:38 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1573235798; x=1604771798;
-  h=date:from:to:subject:message-id:references:mime-version:
-   content-transfer-encoding:in-reply-to;
-  bh=36GNcpaVmpEl7Zhp6qJo1oa/lbOerM7FI0aDbeUR15E=;
-  b=tY/EFOi1erhb0atSSV0Kttb00ti14eJ3jQNYMKn19u5L2SsB4L0YrqWi
-   NZ0f7R3rbgdUwXmp+Xm3v1Kh19URnpElANqqwCT4oQu2Si/f9mUY5rweC
-   W6cjaGj8sxic4ZUw9nIEqp6oNR3RVIiV6dOkBiqdG52RcX0n8w7evpqKE
-   s=;
-IronPort-SDR: FT+JWvEkbjal9LJRHGxPqO7kowufkmmmPtG1NiKDbLQo+7iFdHreVaja1aMWmHpGO2tIetqoAk
- nbiIf0mNDXEg==
-X-IronPort-AV: E=Sophos;i="5.68,282,1569283200"; 
-   d="scan'208";a="5653874"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-1e-97fdccfd.us-east-1.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-33001.sea14.amazon.com with ESMTP; 08 Nov 2019 17:56:35 +0000
-Received: from EX13MTAUWA001.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan2.iad.amazon.com [10.40.159.162])
-        by email-inbound-relay-1e-97fdccfd.us-east-1.amazon.com (Postfix) with ESMTPS id BB709A29FE;
-        Fri,  8 Nov 2019 17:56:31 +0000 (UTC)
-Received: from EX13d09UWA002.ant.amazon.com (10.43.160.186) by
- EX13MTAUWA001.ant.amazon.com (10.43.160.58) with Microsoft SMTP Server (TLS)
- id 15.0.1367.3; Fri, 8 Nov 2019 17:56:31 +0000
-Received: from EX13MTAUWA001.ant.amazon.com (10.43.160.58) by
- EX13d09UWA002.ant.amazon.com (10.43.160.186) with Microsoft SMTP Server (TLS)
- id 15.0.1367.3; Fri, 8 Nov 2019 17:56:30 +0000
-Received: from dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com
- (172.22.96.68) by mail-relay.amazon.com (10.43.160.118) with Microsoft SMTP
- Server id 15.0.1367.3 via Frontend Transport; Fri, 8 Nov 2019 17:56:30 +0000
-Received: by dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com (Postfix, from userid 4335130)
-        id BB79840EDF; Fri,  8 Nov 2019 17:56:30 +0000 (UTC)
-Date:   Fri, 8 Nov 2019 17:56:30 +0000
-From:   Anchal Agarwal <anchalag@amazon.com>
-To:     "Schmauss, Erik" <erik.schmauss@intel.com>,
-        <robert.moore@intel.com>, <rafael.j.wysocki@intel.com>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <lenb@kernel.org>, <devel@acpica.org>
-Subject: Re: [PATCH] ACPICA: Enable sleep button on ACPI legacy wake
-Message-ID: <20191108175630.GA3970@dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com>
-References: <20191101212319.1FFC440EB1@dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com>
- <CF6A88132359CE47947DB4C6E1709ED53C66675F@ORSMSX122.amr.corp.intel.com>
- <E31BA312-7B9D-4AA9-8BD5-F60E28069979@amazon.com>
- <CEC4A132-0FBC-4DC0-8C8F-84608AD8A91A@amazon.com>
+        id S1726780AbfKJCkW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 9 Nov 2019 21:40:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33250 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726778AbfKJCkW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 9 Nov 2019 21:40:22 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id A25A821882;
+        Sun, 10 Nov 2019 02:40:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1573353621;
+        bh=Qm0LlYR6QOexdgjcFK6pfnyQ30ddksaltJsl7gtvWFc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=wOow2KplG4BUYD4wL6cpragRj5tipDaUWpGvAChwUmAtw7jRNS7jBBcoUYltCtp3w
+         sDF+X4Tp2vo1E+nkr4/h24qbA/y2PHpKgQ58OTr4UfmHmGZhgwy8tXt9/kbE6eEXe9
+         PtQIzUflT5GMOaeBGhjpe4zfTx+VFBYTxUer1lmc=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Sinan Kaya <okaya@kernel.org>,
+        Michael Kelley <mikelley@microsoft.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Sasha Levin <sashal@kernel.org>, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 006/191] PCI/ACPI: Correct error message for ASPM disabling
+Date:   Sat,  9 Nov 2019 21:37:08 -0500
+Message-Id: <20191110024013.29782-6-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191110024013.29782-1-sashal@kernel.org>
+References: <20191110024013.29782-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CEC4A132-0FBC-4DC0-8C8F-84608AD8A91A@amazon.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Gentle ping on this one.
+From: Sinan Kaya <okaya@kernel.org>
 
---
-Anchal
+[ Upstream commit 1ad61b612b95980a4d970c52022aa01dfc0f6068 ]
 
-On Mon, Nov 04, 2019 at 09:58:16AM -0800, Agarwal, Anchal wrote:
-> Apologies for resending it. Looks like it does not show in cc list it went to all mailing list however the thread do appear on lkml. 
-> Thanks,
-> Anchal
-> ﻿    
->         + Rafael, Bob
->         
->         Also, is there a reason why this wasn't CC-ed to linux-acpi mailing list? It would be good to get feedback from there too..
->     I think I did to all the email id's generated from get_maintainer.pl. Ccing again 
->     + linux-acpi
->     
->         Thanks,
->         Erik
->         
->         > -----Original Message-----
->         > From: Anchal Agarwal <anchalag@amazon.com>
->         > Sent: Monday, October 29, 2018 10:52 AM
->         > Subject: [PATCH] ACPICA: Enable sleep button on ACPI legacy wake
->         > 
->         > Currently we do not see sleep_enable bit set after guest resumes from
->         > hibernation. Hibernation is triggered in guest on receiving a sleep trigger
->         > from the hypervisor(S4 state). We see that power button is enabled on wake
->         > up from S4 state however sleep button isn't. This causes subsequent
->         > invocation of sleep state to fail in the guest. Any environment  going through
->         > acpi_hw_legacy_wake() won't have sleep button enabled.
->         > 
->         > Signed-off-by: Anchal Agarwal <anchalag@amazon.com>
->         > Reviewed-by: Balbir Singh <sblbir@amazon.com>
->         > Reviewed-by: Frank van der Linden <fllinden@amazon.com>
->         > ---
->         >  drivers/acpi/acpica/hwsleep.c | 11 +++++++++++
->         >  1 file changed, 11 insertions(+)
->         > 
->         > diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
->         > index b62db8ec446f..a176c7802760 100644
->         > --- a/drivers/acpi/acpica/hwsleep.c
->         > +++ b/drivers/acpi/acpica/hwsleep.c
->         > @@ -300,6 +300,17 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state)
->         >  				    [ACPI_EVENT_POWER_BUTTON].
->         >  				    status_register_id, ACPI_CLEAR_STATUS);
->         > 
->         > +	/* Enable sleep button */
->         > +	(void)
->         > +	      acpi_write_bit_register(acpi_gbl_fixed_event_info
->         > +				      [ACPI_EVENT_SLEEP_BUTTON].
->         > +				      enable_register_id,
->         > ACPI_ENABLE_EVENT);
->         > +
->         > +	(void)
->         > +	      acpi_write_bit_register(acpi_gbl_fixed_event_info
->         > +				      [ACPI_EVENT_SLEEP_BUTTON].
->         > +				      status_register_id, ACPI_CLEAR_STATUS);
->         > +
->         >  	acpi_hw_execute_sleep_method(METHOD_PATHNAME__SST,
->         > ACPI_SST_WORKING);
->         >  	return_ACPI_STATUS(status);
->         >  }
->         > --
->         > 2.15.3.AMZN
->         
->         
->     
->     
-> 
+If _OSC execution fails today for platforms without an _OSC entry, code is
+printing a misleading message saying disabling ASPM as follows:
+
+  acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+
+We need to ensure that platform supports ASPM to begin with.
+
+Reported-by: Michael Kelley <mikelley@microsoft.com>
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/pci_root.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 7433035ded955..e465e720eab20 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -455,8 +455,9 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+ 	decode_osc_support(root, "OS supports", support);
+ 	status = acpi_pci_osc_support(root, support);
+ 	if (ACPI_FAILURE(status)) {
+-		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
+-			 acpi_format_exception(status));
++		dev_info(&device->dev, "_OSC failed (%s)%s\n",
++			 acpi_format_exception(status),
++			 pcie_aspm_support_enabled() ? "; disabling ASPM" : "");
+ 		*no_aspm = 1;
+ 		return;
+ 	}
+-- 
+2.20.1
+
