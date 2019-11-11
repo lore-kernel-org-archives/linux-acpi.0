@@ -1,99 +1,148 @@
-Return-Path: <SRS0=kjfV=ZC=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=8pJG=ZD=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B25EC43331
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 21:29:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EAF6C43331
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Nov 2019 10:48:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E009B206DF
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Nov 2019 21:29:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4196420856
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Nov 2019 10:48:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KTHzmp32"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DuFmbBUe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726896AbfKJV3h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 10 Nov 2019 16:29:37 -0500
-Received: from mail-wm1-f45.google.com ([209.85.128.45]:38618 "EHLO
-        mail-wm1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726882AbfKJV3h (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Nov 2019 16:29:37 -0500
-Received: by mail-wm1-f45.google.com with SMTP id z19so11275777wmk.3
-        for <linux-acpi@vger.kernel.org>; Sun, 10 Nov 2019 13:29:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:subject:to:cc:references:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=nV4R2l6cwPUGHq6goraRBWuQwlY13oxSS8W/vCdyUik=;
-        b=KTHzmp32TuR8aam/YaVfGDTUuhVn0Xra8w64lvWEw7pm2kf5UE5n4vBPfV0MZ7ROPI
-         EeZ+XIu7k6qZPKw0Doyep8Ho9eBLocbKuQuVpZuaAURxyi3r1pvfak3Yc7paywhfbpZ3
-         ThQrNiD4iYvCVVJrxkdbFI3fg9F/EHoSs+9XEk1GVHj0PSyKyDDLEOD55LdfdU56FfPm
-         QW5R0fxXsHHrsgcPL9wQrcj1zYi7zf6HaWzedZNWm+nr4Soe+YCyK3AZXPgMpsykzevJ
-         nSFj1lTq+I1JaEx2gAwwiWaIGqRdL3voi0TSMCAxl8BSj+x4RlBF5ivZKLZ2NlT0TCLs
-         G86A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:subject:to:cc:references:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=nV4R2l6cwPUGHq6goraRBWuQwlY13oxSS8W/vCdyUik=;
-        b=JE8zxp3RrKZLdNv/M8cqA/GXHB8nNud73LX4AsdT85fQYpcV5LYevSNzzZXeu94GHD
-         Aa4KWKFeZZDn7cGfWhwCLNEfCRbYpaeoS3BB9KPHD9L3/UPmUwRAmPZxW0H6tUnr8xxo
-         qJZ612oSlxxGW5+bUCNPmHoyiMGCNB6fRJfIWP2AW/+o/yWG+2Dnm5PG0ods5f533XoB
-         5yZYJp6RmelZyn6t6UXeFY5flrVmdtQKJMzKuMCRgrx1gSxUe83A8gWDRwa1CkBpNfjM
-         rXG4J71UWBRnc0GCLssPUIpP4p9tQl42/xpZ92jm+6kU8hnjMwsDW0zPjL7YXZzcn9KV
-         9tqA==
-X-Gm-Message-State: APjAAAVAsZv+xADkcG7CgRu7n/59TmxF6iOTQwr67Z5LjYlklwxp+P6r
-        iYIUTbr7EoWfNJ1tlX0TZSo=
-X-Google-Smtp-Source: APXvYqxnYDzLXGxFskTlZ4a5FbYSbxLQFvbuPAsOp6lVryj8NQx5IZ90lPgEiQSwSoED74RV41y2fg==
-X-Received: by 2002:a1c:3b82:: with SMTP id i124mr15166035wma.122.1573421374893;
-        Sun, 10 Nov 2019 13:29:34 -0800 (PST)
-Received: from [192.168.2.202] (pD9E5A712.dip0.t-ipconnect.de. [217.229.167.18])
-        by smtp.gmail.com with ESMTPSA id v10sm26751301wmg.48.2019.11.10.13.29.33
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 10 Nov 2019 13:29:34 -0800 (PST)
-From:   Maximilian Luz <luzmaximilian@gmail.com>
-Subject: Re: PROBLEM: Calling ObjectType on buffer field reports type integer
-To:     "Schmauss, Erik" <erik.schmauss@intel.com>,
-        "Moore, Robert" <robert.moore@intel.com>,
-        "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>
-References: <3ef42aa1-196d-f3db-0e5d-2fd84c198242@gmail.com>
- <CF6A88132359CE47947DB4C6E1709ED53C592D47@ORSMSX122.amr.corp.intel.com>
- <CF6A88132359CE47947DB4C6E1709ED53C59405C@ORSMSX122.amr.corp.intel.com>
- <fe4bcc1c-5c15-caa6-ce01-a5df962ff008@gmail.com>
- <CF6A88132359CE47947DB4C6E1709ED53C5942CA@ORSMSX122.amr.corp.intel.com>
- <51e156ec-c2ed-84be-13c0-99a213e1d4b7@gmail.com>
- <CF6A88132359CE47947DB4C6E1709ED53C595C50@ORSMSX122.amr.corp.intel.com>
- <88077d9c-b2b7-5fc6-37e9-fa12d6aebe73@gmail.com>
- <CF6A88132359CE47947DB4C6E1709ED53C614AA8@ORSMSX122.amr.corp.intel.com>
-Message-ID: <c6511010-f160-a2ee-1b89-46df051a85e4@gmail.com>
-Date:   Sun, 10 Nov 2019 22:29:33 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+        id S1726832AbfKKKse (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Nov 2019 05:48:34 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:35603 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726823AbfKKKse (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Nov 2019 05:48:34 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1573469313;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=YdIT962GCAwcSC7fh9K24svsozd9yyf+AStxNGzz8/A=;
+        b=DuFmbBUergyFajpewz3/YN29/EALp+o+S7UI9hkpf9wF6f6aQfBeM+V+3EZFuNDyVSUeAU
+        iCSrGWFOodR6EW0e8Xi4ueB23ncYz1yTjtEGvNxhwp8a7p+lfspkzlA8YXt4VCBkHVLZ9S
+        4YYays3yZHsGQNACTM18mrzlhH7SV9g=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-269-sm4QEhkBPvyrxkE1fso8HA-1; Mon, 11 Nov 2019 05:48:32 -0500
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 1A30A8017E0;
+        Mon, 11 Nov 2019 10:48:31 +0000 (UTC)
+Received: from shalem.localdomain.com (ovpn-117-121.ams2.redhat.com [10.36.117.121])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D216A5DD73;
+        Mon, 11 Nov 2019 10:48:29 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     Wolfram Sang <wsa@the-dreams.de>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-i2c@vger.kernel.org,
+        linux-acpi@vger.kernel.org, youling 257 <youling257@gmail.com>
+Subject: [PATCH] i2c: acpi: Force bus speed to 400KHz if a Silead touchscreen is present
+Date:   Mon, 11 Nov 2019 11:48:27 +0100
+Message-Id: <20191111104827.3713-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53C614AA8@ORSMSX122.amr.corp.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+X-MC-Unique: sm4QEhkBPvyrxkE1fso8HA-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Many cheap devices use Silead touchscreen controllers. Testing has shown
+repeatedly that these touchscreen controllers work fine at 400KHz, but for
+unknown reasons do not work properly at 100KHz. This has been seen on
+both ARM and x86 devices using totally different i2c controllers.
 
-On 7/23/19 1:01 AM, Schmauss, Erik wrote:
-> Sorry about the late response. This slipped through the cracks.
-> I've sent them an email just now and I'll keep you informed
+On some devices the ACPI tables list another device at the same I2C-bus
+as only being capable of 100KHz, testing has shown that these other
+devices work fine at 400KHz (as can be expected of any recent I2C hw).
 
-Hi again,
+This commit makes i2c_acpi_find_bus_speed() always return 400KHz if a
+Silead touchscreen controller is present, fixing the touchscreen not
+working on devices which ACPI tables' wrongly list another device on the
+same bus as only being capable of 100KHz.
 
-is there any update on this?
+Specifically this fixes the touchscreen on the Jumper EZpad 6 m4 not
+working.
 
-Regards,
+Reported-and-tested-by: youling 257 <youling257@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/i2c/i2c-core-acpi.c | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-Maximilian
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 9cb2aa1e20ef..420c356eba06 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -39,6 +39,7 @@ struct i2c_acpi_lookup {
+ =09int index;
+ =09u32 speed;
+ =09u32 min_speed;
++=09u32 force_speed;
+ };
+=20
+ /**
+@@ -285,6 +286,19 @@ i2c_acpi_match_device(const struct acpi_device_id *mat=
+ches,
+ =09return acpi_match_device(matches, &client->dev);
+ }
+=20
++static const struct acpi_device_id i2c_acpi_force_400khz_device_ids[] =3D =
+{
++=09/*
++=09 * These Silead touchscreen controllers only work at 400KHz, for
++=09 * some reason they do not work at 100KHz. On some devices the ACPI
++=09 * tables list another device at their bus as only being capable
++=09 * of 100KHz, testing has shown that these other devices work fine
++=09 * at 400KHz (as can be expected of any recent i2c hw) so we force
++=09 * the speed of the bus to 400 KHz if a Silead device is present.
++=09 */
++=09{ "MSSL1680", 0 },
++=09{}
++};
++
+ static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
+ =09=09=09=09=09   void *data, void **return_value)
+ {
+@@ -303,6 +317,9 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle ha=
+ndle, u32 level,
+ =09if (lookup->speed <=3D lookup->min_speed)
+ =09=09lookup->min_speed =3D lookup->speed;
+=20
++=09if (acpi_match_device_ids(adev, i2c_acpi_force_400khz_device_ids) =3D=
+=3D 0)
++=09=09lookup->force_speed =3D 400000;
++
+ =09return AE_OK;
+ }
+=20
+@@ -340,7 +357,12 @@ u32 i2c_acpi_find_bus_speed(struct device *dev)
+ =09=09return 0;
+ =09}
+=20
+-=09return lookup.min_speed !=3D UINT_MAX ? lookup.min_speed : 0;
++=09if (lookup.force_speed)
++=09=09return lookup.force_speed;
++=09else if (lookup.min_speed !=3D UINT_MAX)
++=09=09return lookup.min_speed;
++=09else
++=09=09return 0;
+ }
+ EXPORT_SYMBOL_GPL(i2c_acpi_find_bus_speed);
+=20
+--=20
+2.23.0
+
