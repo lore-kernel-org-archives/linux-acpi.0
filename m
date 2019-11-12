@@ -2,154 +2,119 @@ Return-Path: <SRS0=GaU9=ZE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C562C43331
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 16:55:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E4DBC43331
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 17:07:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5DF80222BD
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 16:55:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 324B220679
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 17:07:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727257AbfKLQzh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Nov 2019 11:55:37 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6644 "EHLO huawei.com"
+        id S1726936AbfKLRHw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Nov 2019 12:07:52 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:6214 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727338AbfKLQxa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Nov 2019 11:53:30 -0500
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 5A0FB9FBD9FFCB61864F;
-        Wed, 13 Nov 2019 00:53:23 +0800 (CST)
-Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
- DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 13 Nov 2019 00:53:14 +0800
-From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linux-efi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>, <james.morse@arm.com>
-CC:     <rjw@rjwysocki.net>, <tony.luck@intel.com>, <linuxarm@huawei.com>,
-        <ard.biesheuvel@linaro.org>, <nariman.poushin@linaro.org>,
-        Thanu Rangarajan <Thanu.Rangarajan@arm.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v3 0/6]  CCIX Protocol error reporting.
-Date:   Wed, 13 Nov 2019 00:52:20 +0800
-Message-ID: <20191112165226.106107-1-Jonathan.Cameron@huawei.com>
-X-Mailer: git-send-email 2.20.1
+        id S1726896AbfKLRHw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Nov 2019 12:07:52 -0500
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 5A1FB471603A22B30AD3;
+        Wed, 13 Nov 2019 01:07:50 +0800 (CST)
+Received: from localhost (10.202.226.61) by DGGEMS402-HUB.china.huawei.com
+ (10.3.19.202) with Microsoft SMTP Server id 14.3.439.0; Wed, 13 Nov 2019
+ 01:07:43 +0800
+Date:   Tue, 12 Nov 2019 17:07:34 +0000
+From:   Jonathan Cameron <jonathan.cameron@huawei.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, <x86@kernel.org>,
+        Keith Busch <keith.busch@intel.com>, <jglisse@redhat.com>,
+        <linuxarm@huawei.com>, Andrew Morton <akpm@linux-foundation.org>,
+        "Dan Williams" <dan.j.williams@intel.com>, <will@kernel.org>,
+        <lorenzo.pieralisi@arm.com>, <guohanjun@huawei.com>,
+        Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH V5 1/4] ACPI: Support Generic Initiator only domains
+Message-ID: <20191112170734.0000621a@huawei.com>
+In-Reply-To: <1768519.laKBN70clK@kreacher>
+References: <20191004114330.104746-1-Jonathan.Cameron@huawei.com>
+        <1895971.7mY3IlW731@kreacher>
+        <20191018134656.00000f70@huawei.com>
+        <1768519.laKBN70clK@kreacher>
+Organization: Huawei
+X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.41.22]
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.226.61]
 X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Changes since V2:
+On Thu, 7 Nov 2019 15:54:28 +0100
+"Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
 
-Dropped the legal boiler plate from the cover letter. The CCIX consortium
-have agreed that a simple tradmark statement is sufficient which I have
-put in the cper-ccix.c file and here.
+> On Friday, October 18, 2019 2:46:56 PM CET Jonathan Cameron wrote:
+> > On Fri, 18 Oct 2019 12:18:33 +0200
+> > "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+> >   
+> > > On Friday, October 4, 2019 1:43:27 PM CEST Jonathan Cameron wrote:  
+> > > > Generic Initiators are a new ACPI concept that allows for the
+> > > > description of proximity domains that contain a device which
+> > > > performs memory access (such as a network card) but neither
+> > > > host CPU nor Memory.
+> > > > 
+> > > > This patch has the parsing code and provides the infrastructure
+> > > > for an architecture to associate these new domains with their
+> > > > nearest memory processing node.
+> > > > 
+> > > > Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>    
+> > > 
+> > > This depends on the series from Dan at:
+> > > 
+> > > https://lore.kernel.org/linux-acpi/CAPcyv4gBSX58CWH4HZ28w0_cZRzJrhgdEFHa2g8KDqyv8aFqZQ@mail.gmail.com/T/#m1acce3ae8f29f680c0d95fd1e840e703949fbc48
+> > >   
+> > Hi Rafael,
+> > 
+> > Yes. Cover letter mentions it was rebased on v4 of that series.
+> >   
+> > > AFAICS, so please respin when that one hits the Linus' tree.  
+> > 
+> > Sure, though that pushes it out another cycle and it's beginning to
+> > get a bit silly (just rebases since April).
+> > 
+> > I guess it can't be helped given the series hits several trees.  
+> 
+> I've just applied the Dan's series and I can take patch [1/4] from this one,
+> but for the [2-3/4] I'd like to get some ACKs from the arm64 and x86 people
+> respectively.
 
-The CCIX® trademark and CCIX trade name are owned solely by
-CCIX CONSORTIUM, INC. and all rights are reserved therein.
+Thanks Rafael!
 
-Changes since V1:
+Absolutely understood on the need for Acks.
 
-Addressed comments from James Morse
-- Dropped kernel logging of vendor data. We just push it to the tracepoints.
-- Tidied up this cover letter and added information to address questions
-  raised. Includes removing questions where James and I agreed ;)
+For ARM let us try a few more CCs
 
-Note, this initial series attempts no 'handling' of errors.
-That will follow later.
++CC Will, Lorenzo, Hanjun.
 
-EFI 2.8 defines a new CPER record Appendix N for CCIX Protocol Error Records
-(PER). www.uefi.org
+Also Ingo on basis of showing a passing interest in the x86 patch
+previously.  Otherwise I think we have the x86 people most like to
+comment already cc'd.
 
-These include Protocol Error Record logs which are defined in the
-CCIX 1.0 Base Specification www.ccixconsortium.com.  A public evaluation
-version is now available.
+https://patchwork.kernel.org/cover/11174247/ has the full series.
 
-Handling of coherency protocol errors is complex and how Linux does this
-will take some time to evolve.  For now, fatal errors are handled via the
-usual means and everything else is reported.
+I'd appreciate anyone who has time taking a look at these.  The
+actual actions in the architectures are very simple, but I may well
+be missing some subtlety.
 
-There are 6 types of error defined, covering:
-* Memory errors
-* Cache errors
-* Address translation unit errors
-* CCIX port errors
-* CCIX link errors
-* Agent internal errors.
+> 
+> Thanks!
+> 
+Thanks,
 
-These errors are concerned (mostly) wth things happening in the CCIX
-protocol layer.  They are parallel to AER errors which should be only
-concerned with the PCIe layer (which is underneath CCIX).
-The ATS errors break this rule slightly. You may get an error
-occurring that results in problems at both layers of the protocol
-stack and hence have to handle AER and PER errors simultaneously.
+Jonathan
 
-Some of these errors can 'almost' be mapped onto standard existing error
-types but only at the loss of information specific to CCIX such as
-where in the topology they occurred.
-
-The set includes tracepoints to report the errors to RAS Daemon and a patch
-set for RAS Daemon will follow shortly.
-
-Several design decisions that people may disagree with.
-1. Reporting of vendor data.  We have little choice but to do this via a
-   dynamic array as these blocks can take arbitrary size. I had hoped
-   no one would actually use these given the odd mismatch between a
-   standard error structure and non standard element, but there are
-   already designs out there that do use it. James suggested that
-   it made sense to put these in the tracepoints, but we shouldn't spam
-   the kernel log with them (done in V2).
-2. The trade off between explicit tracepoint fields, on which we might
-   want to filter in kernel, and the simplicity of a blob.
-   I have gone for having the whole of the block specific to the PER
-   error type in an opaque blob.
-   The key elements that may be filtered on are the physical address
-   and the source and component fields which allow you to identify
-   faulty devices. Note that you have to know how the devices were
-   enumerated to be able to do so.
-3. Defined 6 new tracepoints rather than cramming everything into one.
-   * They are all defined by the CCIX specification as independent error
-     classes.
-   * Many of them can only be generated by particular types of agent.
-   * The handling required will vary widely depending on types.
-     In the kernel some map cleanly onto existing handling. Keeping the
-     whole flow separate will aide this. They vary by a similar amount
-     in scope to the RAS errors found on an existing system which have
-     independent tracepoints.
-   * Separating them out allows for filtering on the tracepoints by
-     elements that are not shared between them.
-   * Muxing the lot into one record type can lead to ugly code both in
-     kernel and in userspace.
-
-Rasdaemon patches posted.
-https://patchwork.kernel.org/cover/11116735/
-
-Jonathan Cameron (6):
-  efi / ras: CCIX Memory error reporting
-  efi / ras: CCIX Cache error reporting
-  efi / ras: CCIX Address Translation Cache error reporting
-  efi / ras: CCIX Port error reporting
-  efi / ras: CCIX Link error reporting
-  efi / ras: CCIX Agent internal error reporting
-
- drivers/acpi/apei/Kconfig        |   8 +
- drivers/acpi/apei/ghes.c         |  59 ++
- drivers/firmware/efi/Kconfig     |   5 +
- drivers/firmware/efi/Makefile    |   1 +
- drivers/firmware/efi/cper-ccix.c | 919 +++++++++++++++++++++++++++++++
- drivers/firmware/efi/cper.c      |   6 +
- include/linux/cper.h             | 333 +++++++++++
- include/ras/ras_event.h          | 405 ++++++++++++++
- 8 files changed, 1736 insertions(+)
- create mode 100644 drivers/firmware/efi/cper-ccix.c
-
--- 
-2.20.1
 
