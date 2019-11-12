@@ -2,122 +2,266 @@ Return-Path: <SRS0=GaU9=ZE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C1AC17441
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 10:02:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C7ABC43331
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 16:53:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32E0B21925
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 10:02:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="oVIDt4Yt"
+	by mail.kernel.org (Postfix) with ESMTP id 56621222C6
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Nov 2019 16:53:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725865AbfKLKCd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Nov 2019 05:02:33 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:51763 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725899AbfKLKCd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Nov 2019 05:02:33 -0500
-Received: by mail-wm1-f65.google.com with SMTP id q70so2410884wme.1
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Nov 2019 02:02:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=ZV0/xI1cDNWDAAg48JcA6ok2jrNXH3VpcMDZqiMr7I0=;
-        b=oVIDt4YtXTKXNM9krSx7RMkK8r+fjJ35bJ8lpRBRuYXC410u/er0oxn8R73DvegE97
-         eSSvdbU5bMDRSD5zu58Reg5Iyi2uOh4GMZ/gzsx/atLCDjtSfi/4+xaaplQ4iX9h+Fzi
-         5sHfscuNeDiG+pZUgrx05j3rugfj23QMzhNgcwY+FjyxqoXzye3c9AAiUsZXxBFU3yXS
-         9YT57qpqCIcdrMNP1on1kK481clziXxRXujGjtt5YdJroPVhO+746HlezpHoatBeNFIQ
-         7LKqJ+bOxki1Ow8W5F+unwBVD9Wmi9Rh1g2sey4IWFR1W7LUlWof8eKD2YIjSGJShXlZ
-         WFpg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=ZV0/xI1cDNWDAAg48JcA6ok2jrNXH3VpcMDZqiMr7I0=;
-        b=nrfqQ/0MlDZp4rTll8Yb1OnHeAO6Ffm/BTuklGV8Qs3jS1MyRiPZe9SM/2Zr3B4atZ
-         1+pLZ6IrW7OUskqV/uj6YoVzNUWLUdhBC+4imsxQP6ZsnJqhUOQ9YutYYA0E4VKvIF7t
-         Jr0EhYhTym6SjSWdWI+3jVd0ehiNayN113qpXTN1IWzzUdb1HlpvdVzo3ot0sYG7RH7B
-         DcnuWntMlXc9MUzc9elpBAcv17j+lDTY+FFKwGTiRd7DKxZHeWQdiDD0c7RqN7aSh9ZN
-         GIftEbkLy4lK20EFrpio0QrgCACRZwsi5+cLvMBbO4t8rziBoRX00ofoy2KzvskL+tUp
-         TgAg==
-X-Gm-Message-State: APjAAAXTEJGOE6GHNxUDoeTpaNPApA6tml6e1CQndE+cXH0wUzscPZIO
-        B3veCAZBBrY67pX++UbrCQOm0w==
-X-Google-Smtp-Source: APXvYqzLCvkm7qvFyXa0u7U5lfFZDS5G4zvBKLQqPGTW83KJwLuQTVwDbiqILJp0uaQwb4ST+KcByA==
-X-Received: by 2002:a1c:4e1a:: with SMTP id g26mr3232608wmh.138.1573552951206;
-        Tue, 12 Nov 2019 02:02:31 -0800 (PST)
-Received: from [10.57.1.46] ([45.135.186.94])
-        by smtp.gmail.com with ESMTPSA id w81sm4138966wmg.5.2019.11.12.02.02.16
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 12 Nov 2019 02:02:30 -0800 (PST)
-Subject: Re: [PATCH v2 0/8] iommu: Add PASID support to Arm SMMUv3
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        iommu@lists.linux-foundation.org, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc:     joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
-        sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        will@kernel.org, robin.murphy@arm.com, zhangfei.gao@linaro.org,
-        eric.auger@redhat.com, jonathan.cameron@huawei.com
-References: <20191108152508.4039168-1-jean-philippe@linaro.org>
-From:   zhangfei <zhangfei.gao@linaro.org>
-Message-ID: <8a23f064-129a-02c3-4e14-63db45d7f851@linaro.org>
-Date:   Tue, 12 Nov 2019 18:02:08 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        id S1727629AbfKLQxr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Nov 2019 11:53:47 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:58248 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727607AbfKLQxr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Nov 2019 11:53:47 -0500
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 987EC7319E5F574EC2EB;
+        Wed, 13 Nov 2019 00:53:43 +0800 (CST)
+Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.439.0; Wed, 13 Nov 2019 00:53:34 +0800
+From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linux-efi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>, <james.morse@arm.com>
+CC:     <rjw@rjwysocki.net>, <tony.luck@intel.com>, <linuxarm@huawei.com>,
+        <ard.biesheuvel@linaro.org>, <nariman.poushin@linaro.org>,
+        Thanu Rangarajan <Thanu.Rangarajan@arm.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH v3 6/6] efi / ras: CCIX Agent internal error reporting
+Date:   Wed, 13 Nov 2019 00:52:26 +0800
+Message-ID: <20191112165226.106107-7-Jonathan.Cameron@huawei.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191112165226.106107-1-Jonathan.Cameron@huawei.com>
+References: <20191112165226.106107-1-Jonathan.Cameron@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20191108152508.4039168-1-jean-philippe@linaro.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.123.41.22]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+The CCIX 1.0 Base specification defines an internal agent error,
+for which the specific data present afte the header is vendor
+defined.
 
+Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/acpi/apei/ghes.c         |  4 ++
+ drivers/firmware/efi/cper-ccix.c | 43 +++++++++++++++++++++
+ include/linux/cper.h             | 29 +++++++++++++++
+ include/ras/ras_event.h          | 64 ++++++++++++++++++++++++++++++++
+ 4 files changed, 140 insertions(+)
 
-On 2019/11/8 下午11:25, Jean-Philippe Brucker wrote:
-> This is version 2 of the series I sent a while ago [1], adding PASID
-> support to the Arm SMMUv3 driver.
->
-> Changes since v1:
-> * Dropped the patch adding auxiliary domain support. It's an easy way to
->    test PASID, by populating PASID contexts using iommu_map/unmap(), but
->    I don't know if it will ever have real users.
->
->    Since v1 I changed my testing gear, and am using the zip accelerator
->    [2] instead of a software model. It only uses SVA and testing
->    auxiliary domains would require additional changes that would never go
->    upstream. SVA requires another 20 patches (including I/O page faults)
->    that I will send later, but at least I know that this will get used.
->
-> * ioasid patch has been carried by Jacob and should be merged for v5.5 [3]
->
-> * Split patch "Add support for Substream IDs" into patches 4 and 5.
->
-> * Added IORT support (patch 3) and addressed other comments.
->
-> [1] https://lore.kernel.org/linux-iommu/20190610184714.6786-1-jean-philippe.brucker@arm.com/
-> [2] https://lore.kernel.org/linux-iommu/1572331216-9503-1-git-send-email-zhangfei.gao@linaro.org/
-> [3] https://lore.kernel.org/linux-iommu/1570045363-24856-1-git-send-email-jacob.jun.pan@linux.intel.com/
->
-> Jean-Philippe Brucker (8):
->    dt-bindings: document PASID property for IOMMU masters
->    iommu/arm-smmu-v3: Support platform SSID
->    ACPI/IORT: Support PASID for platform devices
->    iommu/arm-smmu-v3: Prepare for SSID support
->    iommu/arm-smmu-v3: Add support for Substream IDs
->    iommu/arm-smmu-v3: Add second level of context descriptor table
->    iommu/arm-smmu-v3: Improve add_device() error handling
->    iommu/arm-smmu-v3: Add support for PCI PASID
-Thanks Jean for the patch
-The series tested well on Hisilicon platform KunPeng920
-Tested-by: Zhangfei Gao <zhangfei.gao@linaro.org>
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 22df8c14ec13..5a75fb0374dd 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -533,6 +533,10 @@ static void ghes_handle_ccix_per(struct acpi_hest_generic_data *gdata, int sev)
+ 		trace_ccix_link_error_event(payload, err_seq, sev,
+ 					    ccix_link_err_ven_len_get(payload));
+ 		break;
++	case CCIX_AGENT_INTERNAL_ERROR:
++		trace_ccix_agent_error_event(payload, err_seq, sev,
++					     ccix_agent_err_ven_len_get(payload));
++		break;
+ 	default:
+ 		/* Unknown error type */
+ 		pr_info("CCIX error of unknown or vendor defined type\n");
+diff --git a/drivers/firmware/efi/cper-ccix.c b/drivers/firmware/efi/cper-ccix.c
+index 03630f4abaab..250857146077 100644
+--- a/drivers/firmware/efi/cper-ccix.c
++++ b/drivers/firmware/efi/cper-ccix.c
+@@ -586,6 +586,38 @@ static int cper_ccix_link_err_details(const char *pfx,
+ 	return 0;
+ }
+ 
++static int cper_ccix_agent_err_details(const char *pfx,
++				       struct acpi_hest_generic_data *gdata)
++{
++	struct cper_ccix_agent_err *full_agent_err;
++	struct cper_sec_ccix_agent_err *agent_err;
++	u16 vendor_data_len;
++	int i;
++
++	if (gdata->error_data_length < sizeof(*full_agent_err))
++		return -ENOSPC;
++
++	full_agent_err = acpi_hest_get_payload(gdata);
++
++	agent_err = &full_agent_err->agent_record;
++
++	if (agent_err->validation_bits & CCIX_AGENT_INTERNAL_ERR_VENDOR_DATA_VALID) {
++		if (gdata->error_data_length < sizeof(*full_agent_err) + 4)
++			return -ENOSPC;
++
++		vendor_data_len = agent_err->vendor_data[0] & GENMASK(15, 0);
++		if (gdata->error_data_length <
++		    sizeof(*full_agent_err) + vendor_data_len)
++			return -ENOSPC;
++
++		for (i = 0; i < vendor_data_len/4 - 1; i++)
++			printk("%s""Vendor%d: 0x%08x\n", pfx, i,
++			       agent_err->vendor_data[i + 1]);
++	}
++
++	return 0;
++}
++
+ int cper_print_ccix_per(const char *pfx, struct acpi_hest_generic_data *gdata)
+ {
+ 	struct cper_sec_ccix_header *header = acpi_hest_get_payload(gdata);
+@@ -655,6 +687,8 @@ int cper_print_ccix_per(const char *pfx, struct acpi_hest_generic_data *gdata)
+ 		return cper_ccix_port_err_details(pfx, gdata);
+ 	case CCIX_LINK_ERROR:
+ 		return cper_ccix_link_err_details(pfx, gdata);
++	case CCIX_AGENT_INTERNAL_ERROR:
++		return cper_ccix_agent_err_details(pfx, gdata);
+ 	default:
+ 		/* Vendor defined so no formatting be done */
+ 		break;
+@@ -874,3 +908,12 @@ const char *cper_ccix_link_err_unpack(struct trace_seq *p,
+ 
+ 	return ret;
+ }
++
++void cper_ccix_agent_err_pack(const struct cper_sec_ccix_agent_err *agent_record,
++			      struct cper_ccix_agent_err_compact *cagent_err,
++			      const u16 vendor_data_len,
++			      u8 *vendor_data)
++{
++	cagent_err->validation_bits = agent_record->validation_bits;
++	memcpy(vendor_data, &agent_record->vendor_data[1], vendor_data_len);
++}
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index d35be55351e3..373c1d387a70 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -783,6 +783,30 @@ struct cper_ccix_link_err_compact {
+ 	__u8	credit_type;
+ };
+ 
++struct cper_sec_ccix_agent_err {
++	__u32	validation_bits;
++#define CCIX_AGENT_INTERNAL_ERR_VENDOR_DATA_VALID	BIT(0)
++	__u32	vendor_data[];
++};
++
++struct cper_ccix_agent_err {
++	struct cper_sec_ccix_header header;
++	__u32 ccix_header[CCIX_PER_LOG_HEADER_DWS];
++	struct cper_sec_ccix_agent_err agent_record;
++};
++
++static inline u16 ccix_agent_err_ven_len_get(struct cper_ccix_agent_err *agent_err)
++{
++	if (agent_err->agent_record.validation_bits & CCIX_AGENT_INTERNAL_ERR_VENDOR_DATA_VALID)
++		return agent_err->agent_record.vendor_data[0] & 0xFFFF;
++	else
++		return 0;
++}
++
++struct cper_ccix_agent_err_compact {
++	__u32	validation_bits;
++};
++
+ /* Reset to default packing */
+ #pragma pack()
+ 
+@@ -835,6 +859,11 @@ void cper_ccix_link_err_pack(const struct cper_sec_ccix_link_error *link_record,
+ const char *cper_ccix_link_err_unpack(struct trace_seq *p,
+ 				      struct cper_ccix_link_err_compact *clink_err);
+ 
++void cper_ccix_agent_err_pack(const struct cper_sec_ccix_agent_err *agent_record,
++			      struct cper_ccix_agent_err_compact *cagent_err,
++			      const u16 vendor_data_len,
++			      u8 *vendor_data);
++
+ struct acpi_hest_generic_data;
+ int cper_print_ccix_per(const char *pfx,
+ 			struct acpi_hest_generic_data *gdata);
+diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
+index bfe1c64b9db0..d09e5389a1e6 100644
+--- a/include/ras/ras_event.h
++++ b/include/ras/ras_event.h
+@@ -679,6 +679,70 @@ TRACE_EVENT(ccix_link_error_event,
+ 	)
+ );
+ 
++TRACE_EVENT(ccix_agent_error_event,
++	TP_PROTO(struct cper_ccix_agent_err *err,
++		 u32 err_seq,
++		 u8 sev, u16 ven_len),
++
++	TP_ARGS(err, err_seq, sev, ven_len),
++
++	TP_STRUCT__entry(
++		__field(u32, err_seq)
++		__field(u8, sev)
++		__field(u8, sevdetail)
++		__field(u8, source)
++		__field(u8, component)
++		__field(u64, pa)
++		__field(u8, pa_mask_lsb)
++		__field(u16, vendor_data_length)
++		__field_struct(struct cper_ccix_agent_err_compact, data)
++		__dynamic_array(u8, vendor_data, ven_len)
++	),
++
++	TP_fast_assign(
++		__entry->err_seq = err_seq;
++
++		__entry->sev = sev;
++		__entry->sevdetail = FIELD_GET(CCIX_PER_LOG_DW1_SEV_UE_M |
++			CCIX_PER_LOG_DW1_SEV_NO_COMM_M |
++			CCIX_PER_LOG_DW1_SEV_DEGRADED_M |
++			CCIX_PER_LOG_DW1_SEV_DEFFERABLE_M,
++			err->ccix_header[1]);
++		if (err->header.validation_bits & 0x1)
++			__entry->source = err->header.source_id;
++		else
++			__entry->source = ~0;
++		__entry->component = FIELD_GET(CCIX_PER_LOG_DW1_COMP_TYPE_M,
++						   err->ccix_header[1]);
++		if (err->ccix_header[1] & CCIX_PER_LOG_DW1_ADDR_VAL_M) {
++			__entry->pa = (u64)err->ccix_header[2] << 32 |
++				(err->ccix_header[3] & 0xfffffffc);
++			__entry->pa_mask_lsb = err->ccix_header[4] & 0xff;
++		} else {
++			__entry->pa = ~0ull;
++			__entry->pa_mask_lsb = ~0;
++		}
++		/* Do not store the vendor data header length */
++		__entry->vendor_data_length = ven_len ? ven_len - 4 : 0;
++		cper_ccix_agent_err_pack(&err->agent_record, &__entry->data,
++					__entry->vendor_data_length,
++					__get_dynamic_array(vendor_data));
++	),
++
++	TP_printk("{%d} %s CCIX PER Agent Internal Error in %s SevUE:%d SevNoComm:%d SevDegraded:%d SevDeferred:%d physical addr: %016llx (mask: %x) vendor:%s",
++		__entry->err_seq,
++		cper_severity_str(__entry->sev),
++		cper_ccix_comp_type_str(__entry->component),
++		__entry->sevdetail & BIT(0) ? 1 : 0,
++		__entry->sevdetail & BIT(1) ? 1 : 0,
++		__entry->sevdetail & BIT(2) ? 1 : 0,
++		__entry->sevdetail & BIT(3) ? 1 : 0,
++		__entry->pa,
++		__entry->pa_mask_lsb,
++		__print_hex(__get_dynamic_array(vendor_data), __entry->vendor_data_length)
++	)
++);
++
+ /*
+  * memory-failure recovery action result event
+  *
+-- 
+2.20.1
 
