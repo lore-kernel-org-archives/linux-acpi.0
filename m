@@ -2,116 +2,109 @@ Return-Path: <SRS0=VZ9G=ZF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
+	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C762C43331
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 02:28:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3CCFC17441
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 02:36:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16F392067B
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 02:28:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573612089;
-	bh=MbvfzHdLIyxp1OB5gLuB0mj1aev0t0AolzqUnsL+2KU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1cdPiT4+XxffAZHI1hP724RrXvtn0TlIOy3uEo2epXTozT3RpsBjvns7/tKwoXMBp
-	 4lJu1Z+2zmdRgdb+/ktfuKJcetzdp7lta+pIFgMJZfjG4IzmB+csxCW6q8QmUVhXNu
-	 uTYcRLZaIh0S+rcRDll+L02SGdLeM3oLxv/HRzGM=
+	by mail.kernel.org (Postfix) with ESMTP id 9B2EC2067B
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 02:36:15 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="XgT9OOUk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727466AbfKMBum (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Nov 2019 20:50:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37494 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727458AbfKMBul (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Nov 2019 20:50:41 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 69B5122459;
-        Wed, 13 Nov 2019 01:50:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573609841;
-        bh=MbvfzHdLIyxp1OB5gLuB0mj1aev0t0AolzqUnsL+2KU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Cl/jQo9/ViDXPVhIDJ3g6WQkUxeYY4Qu+JPI9vClFV+AMHBautMO2sFhw4WjZlneF
-         v+6jHKvH4hoNSMgxewwOQMxlpQrvrL8S2wL4LFdffE9hEDmdOPWroiVOhvBdi9reHM
-         gl6VImlM4ALdHGdstpEr4AFqCuWVBGp3DLmZ7fA4=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        Jarkko Nikula <jarkko.nikula@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 013/209] ACPI / LPSS: Make acpi_lpss_find_device() also find PCI devices
-Date:   Tue, 12 Nov 2019 20:47:09 -0500
-Message-Id: <20191113015025.9685-13-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191113015025.9685-1-sashal@kernel.org>
-References: <20191113015025.9685-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S1727435AbfKMCgL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Nov 2019 21:36:11 -0500
+Received: from mail-pf1-f201.google.com ([209.85.210.201]:34631 "EHLO
+        mail-pf1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727291AbfKMCgJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Nov 2019 21:36:09 -0500
+Received: by mail-pf1-f201.google.com with SMTP id a1so450586pfn.1
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Nov 2019 18:36:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=j/m5gKoO0jXE5BYiRELmqLQO+KOEzq6qVcGYQdzOaSA=;
+        b=XgT9OOUk3Yzbi5DcZ2hay2pQFUGc1C8JY/5SA0LlfseAK+RhPY+71H6xpSldWlhSUe
+         R9GgGqV4at+vdSBUE8daDaNeFdK+nLrVVaDX/LAkaLhuF3uf6imXA+7dLiENKvXLfaWp
+         iLdt55FdJCRJZ1R1A5pWhqZj+jjlwzp4usrjP2FUtoZyo114DxMiDZ5jfZHluHJgnbBA
+         8QRRFNIdOTHX9gS5bdLMBT6zr1BxIyqjIk4upS3q+n7pWPeFmF5OfwpZbWYU8drHzMhO
+         jjpTtkobVVPWzyCvqti8iv4ADbXMyvD0D0UsAez45khHi5TiY/0D42l5dprS4XOUaWpD
+         vb6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=j/m5gKoO0jXE5BYiRELmqLQO+KOEzq6qVcGYQdzOaSA=;
+        b=TRbOviM3B7xUykTCOY6c1c0hiEnQbY5q1FVi0TGcI1oTF2PgE3pLNJET42/JpMlXQP
+         Sm2yTnj6rvkMyflRWGee/Qsjq3+cOnon+aycluSai6Egd6dVqPLOKUMuC3wNQIxbEqzc
+         PUeMC4f6KKW4DEl7QBT8wmu/qqiW/FZa0fVsODLBInTiByUL6bEhghxg7uFRjAA80DXj
+         PNhFdmGyi4C6/oCR10G9BQi8Jx993g0lZhtM+1qhrCuf01TrD/Nzr5HQ+693NjdqROof
+         dd088Dab0RVufyU/1bWGll7dcGh4W5A7hDnPKhyoXKZDG3EZtYLiNsqUiZ3LMPpltI98
+         leMA==
+X-Gm-Message-State: APjAAAWgQLj/ayV0tMDh+z3zPDwECLtwRy/jo3UR8yQEuFnOGW3809Hd
+        DyY/sHOz4xu9not/XpKvRyyYJKRZzBsqvNU=
+X-Google-Smtp-Source: APXvYqy/iTcBCYhhvymxkn9JScQwGqIbVYAjgoqO+QvFZA1fjoiQ8ng2UZoFhvy3CTVKg4ofr5GXs6lQhmmutcw=
+X-Received: by 2002:a63:8f5e:: with SMTP id r30mr933408pgn.146.1573612568112;
+ Tue, 12 Nov 2019 18:36:08 -0800 (PST)
+Date:   Tue, 12 Nov 2019 18:35:59 -0800
+In-Reply-To: <20191113023559.62295-1-saravanak@google.com>
+Message-Id: <20191113023559.62295-2-saravanak@google.com>
+Mime-Version: 1.0
+References: <20191113023559.62295-1-saravanak@google.com>
+X-Mailer: git-send-email 2.24.0.rc1.363.gb1bccd3e3d-goog
+Subject: [PATCH v1] driver core: Clarify documentation for fwnode_operations.add_links()
+From:   Saravana Kannan <saravanak@google.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Cc:     Saravana Kannan <saravanak@google.com>, kernel-team@android.com,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+The wording was a bit ambiguous. So update it to make it clear.
 
-[ Upstream commit 1e30124ac60abc41d74793900f8b4034f29bcb3d ]
-
-On some Cherry Trail systems the GPU ACPI fwnode has power-resources which
-point to the PMIC, which is connected over one of the LPSS I2C controllers.
-
-To get the suspend/resume ordering correct for this we need to be able to
-add device-links between the GPU and the I2c controller. The GPU is a PCI
-device, so this requires acpi_lpss_find_device() to also work on PCI devs.
-
-Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Saravana Kannan <saravanak@google.com>
 ---
- drivers/acpi/acpi_lpss.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/fwnode.h | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index c651e206d7960..924b9f089e79f 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -16,6 +16,7 @@
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/mutex.h>
-+#include <linux/pci.h>
- #include <linux/platform_device.h>
- #include <linux/platform_data/clk-lpss.h>
- #include <linux/platform_data/x86/pmc_atom.h>
-@@ -494,12 +495,18 @@ static int match_hid_uid(struct device *dev, void *data)
- 
- static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
- {
-+	struct device *dev;
-+
- 	struct hid_uid data = {
- 		.hid = hid,
- 		.uid = uid,
- 	};
- 
--	return bus_find_device(&platform_bus_type, NULL, &data, match_hid_uid);
-+	dev = bus_find_device(&platform_bus_type, NULL, &data, match_hid_uid);
-+	if (dev)
-+		return dev;
-+
-+	return bus_find_device(&pci_bus_type, NULL, &data, match_hid_uid);
- }
- 
- static bool acpi_lpss_dep(struct acpi_device *adev, acpi_handle handle)
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 766ff9bb5876..23df37f85398 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -94,15 +94,16 @@ struct fwnode_reference_args {
+  *		available suppliers.
+  *
+  *		Return 0 if device links have been successfully created to all
+- *		the suppliers this device needs to create device links to or if
+- *		the supplier information is not known.
++ *		the known suppliers of this device or if the supplier
++ *		information is not known.
+  *
+- *		Return -ENODEV if and only if the suppliers needed for probing
+- *		the device are not yet available to create device links to.
++ *		Return -ENODEV if the suppliers needed for probing this device
++ *		have not been registered yet (because device links can only be
++ *		created to devices registered with the driver core).
+  *
+- *		Return -EAGAIN if there are suppliers that need to be linked to
+- *		that are not yet available but none of those suppliers are
+- *		necessary for probing this device.
++ *		Return -EAGAIN if some of the suppliers of this device have not
++ *		been registered yet, but none of those suppliers are necessary
++ *		for probing the device.
+  */
+ struct fwnode_operations {
+ 	struct fwnode_handle *(*get)(struct fwnode_handle *fwnode);
 -- 
-2.20.1
+2.24.0.rc1.363.gb1bccd3e3d-goog
 
