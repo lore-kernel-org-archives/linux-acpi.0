@@ -2,41 +2,63 @@ Return-Path: <SRS0=VZ9G=ZF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A32C43331
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 07:07:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CE31C43331
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 08:08:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E235D222D3
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 07:07:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6296214E0
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 08:08:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mork.no header.i=@mork.no header.b="EvgntLeY"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Kia/RTbd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725976AbfKMHHk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 13 Nov 2019 02:07:40 -0500
-Received: from canardo.mork.no ([148.122.252.1]:43411 "EHLO canardo.mork.no"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725858AbfKMHHk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 Nov 2019 02:07:40 -0500
-X-Greylist: delayed 873 seconds by postgrey-1.27 at vger.kernel.org; Wed, 13 Nov 2019 02:07:39 EST
-Received: from miraculix.mork.no (miraculix.mork.no [IPv6:2001:4641:0:2:7627:374e:db74:e353])
-        (authenticated bits=0)
-        by canardo.mork.no (8.15.2/8.15.2) with ESMTPSA id xAD6qhtS001240
-        (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
-        Wed, 13 Nov 2019 07:52:43 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mork.no; s=b;
-        t=1573627964; bh=vWlo2zKnqA7YLd4/HcizrxeoV7pJ6radYKv7BLbbwk4=;
-        h=From:To:Cc:Subject:References:Date:Message-ID:From;
-        b=EvgntLeY74hsU2DKC5EcE5tk35QqkYhtwSSk4xumvmjnij6QUCQ51q7hyNicT3+S8
-         Zs4znitKJ+3ySbb4jO+0hjM2N9Q5hAD+3jcgvx8Ip5qBmdqMpPngNbuVNz72UlBN7o
-         DZPHUw0dIO1Uv7N3+qskc1hzsUyOGbMnQUsK7t9U=
-Received: from bjorn by miraculix.mork.no with local (Exim 4.92)
-        (envelope-from <bjorn@mork.no>)
-        id 1iUmWB-0000N0-Me; Wed, 13 Nov 2019 07:52:43 +0100
-From:   =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
+        id S1725976AbfKMIIR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 13 Nov 2019 03:08:17 -0500
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:36806 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725966AbfKMIIR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Nov 2019 03:08:17 -0500
+Received: by mail-pl1-f194.google.com with SMTP id d7so744100pls.3;
+        Wed, 13 Nov 2019 00:08:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=r/fMeIkVi21iCxbzdp/QtDTjojD14k6gpd4DZsn8Mfc=;
+        b=Kia/RTbdDuikn8K2sIqQ13gm0tv6sDP07tY29CBKsGwKy97BoJsg7Fisv59LRmWi9S
+         yBfqQxyHlQVknQDMTzD6ZEhXqWzVJV5j7u0jrvYH41wTM10AvlxQc7iF479JoRpX9oy8
+         0GZmrsb1tFYDlx0adGQfM4UkXqjIwnim+zWbpcvmP/ZL0SGxHRY+B31QAemUXBOOwLdu
+         dJtKJzR0vxeZGDzirMjmYGj4KArYJnHurFwX4KCzTj9H1jJPVBTkcmGyQkiAfrFyfAk3
+         9d2nB/cSrsOjLt+32yllLHfrXLs9BaDHiJFMMxmhkxnJVPapOhq1OQh7xeh73a6GKdtS
+         cDtw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=r/fMeIkVi21iCxbzdp/QtDTjojD14k6gpd4DZsn8Mfc=;
+        b=lYWvIL2MP/2oaBHRnxsFUFDV6fu3JW0MaGgK2gCl7klZhVPQcYnqGtZqWJdthey5XH
+         FiNqb6IkdVHwjyeAll//+P0ZJYRW3Mp6dZCGnuJEBNrdh2BTKd/cYfpqgiARei7vcw3h
+         Vtio2+uaQk/5H6cLmpTKvXNgMIsoSdsjzviTtYfmkhDn3pRaJUDzELsBZPgT75yHYKoW
+         vDdRxtg/S4koeWqF6FgjeoMy3j5QkE/ozvAhMDGPQUnN6kDCqnr+CDoCejFu9LCtmqqf
+         FDRfT3kS45lJwzOcc6lk9MGW9RHZSIZVFgTbhpFmzbrevBUcZuOGbCwbR2APx/ZGDngU
+         sQDQ==
+X-Gm-Message-State: APjAAAVU9QBgIm4DlTM2KiAdU22ex71Q1WooDCTRZq1RlMVWvBZpDQrR
+        VzdUQkzEKod7UBU+dQzxGRo=
+X-Google-Smtp-Source: APXvYqzlqfNgUOQUFtgA1SgTzDdplApu1eiVfos7BMyyaBnYSfBaHTGR9AWA/+byAysIo48izLxjYA==
+X-Received: by 2002:a17:902:4c:: with SMTP id 70mr2315305pla.4.1573632496113;
+        Wed, 13 Nov 2019 00:08:16 -0800 (PST)
+Received: from dtor-ws ([2620:15c:202:201:3adc:b08c:7acc:b325])
+        by smtp.gmail.com with ESMTPSA id em16sm1417281pjb.21.2019.11.13.00.08.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 13 Nov 2019 00:08:15 -0800 (PST)
+Date:   Wed, 13 Nov 2019 00:08:13 -0800
+From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To:     =?iso-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -46,40 +68,44 @@ Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
 Subject: Re: [PATCH v8 1/6] software node: rename is_array to is_inline
-Organization: m
+Message-ID: <20191113080813.GO13374@dtor-ws>
 References: <20191108042225.45391-1-dmitry.torokhov@gmail.com>
-        <20191108042225.45391-2-dmitry.torokhov@gmail.com>
-Date:   Wed, 13 Nov 2019 07:52:43 +0100
-In-Reply-To: <20191108042225.45391-2-dmitry.torokhov@gmail.com> (Dmitry
-        Torokhov's message of "Thu, 7 Nov 2019 20:22:20 -0800")
-Message-ID: <87woc4s1xg.fsf@miraculix.mork.no>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+ <20191108042225.45391-2-dmitry.torokhov@gmail.com>
+ <87woc4s1xg.fsf@miraculix.mork.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Virus-Scanned: clamav-milter 0.101.4 at canardo
-X-Virus-Status: Clean
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <87woc4s1xg.fsf@miraculix.mork.no>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+On Wed, Nov 13, 2019 at 07:52:43AM +0100, Bjørn Mork wrote:
+> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+> 
+> > We do not need a special flag to know if we are dealing with an array,
+> > as we can get that data from ratio between element length and the data
+> > size, however we do need a flag to know whether the data is stored
+> > directly inside property_entry or separately.
+> 
+> Doesn't a non-null prop->pointer tell you this?
 
-> We do not need a special flag to know if we are dealing with an array,
-> as we can get that data from ratio between element length and the data
-> size, however we do need a flag to know whether the data is stored
-> directly inside property_entry or separately.
+No it does not because pointer is a part of a union.
 
-Doesn't a non-null prop->pointer tell you this?
+> 
+> And inverting the flag is unnecessarily risky IMHO. An all-zero prop
+> might now result in dereferencing a NULL prop->pointer instead of using
+> the empty prop->value.  Now I haven't looked at the code to see if this
+> is a real problem.  But I believe it's better not having to do that
+> anyway...
 
-And inverting the flag is unnecessarily risky IMHO. An all-zero prop
-might now result in dereferencing a NULL prop->pointer instead of using
-the empty prop->value.  Now I haven't looked at the code to see if this
-is a real problem.  But I believe it's better not having to do that
-anyway...
+All-zero property is a terminator and thus we will not dereference
+anything.
 
+Thanks.
 
-Bj=C3=B8rn
-
-
+-- 
+Dmitry
