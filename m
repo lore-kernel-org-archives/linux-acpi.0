@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A77C43331
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 01:54:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30F08C43331
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 02:03:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E6020222D4
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 01:54:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0700820674
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 02:03:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573610049;
-	bh=a09o/6erw4XFpEHbgbqRKQCSfOoCeDDbbaY/XHSBdzU=;
+	s=default; t=1573610639;
+	bh=oFxvNZ1hbHppCSTLDNl26gqmoZhX77aU+CZX6kpqLm4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ySIYskFd8SYdmYQye7IoONGJuEZ7CkepTa+9n2BQGhTN7egplsMxo+BJPtE0gHErM
-	 7jy6HvXIRw8zhWM1ejEKj8QM7l9UrxN8wnXn0EP5VLpnAJ6B3m5iLFQMN6J+RH/egC
-	 lW+Yq3rttmrHEi47u3ctJ2b3ueTMXf0qU4IoMmxA=
+	b=ugDBqp7w9BV4wQ2SjWzK5PVauCWssLpwI7TuZwnNIKLHJliZzho9QFuuDO9c3+/vH
+	 KuByIzFPPE61ngzIq70kk7mPiirj1rWytWqpnrLhosRD2NpzueLxpGN0otDnoYUMXX
+	 csSgZI1QRmHLwbtjh6rWtcgXiQ5CnnMQ4R4NuCRM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728757AbfKMByI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Nov 2019 20:54:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44372 "EHLO mail.kernel.org"
+        id S1731012AbfKMCCX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Nov 2019 21:02:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728744AbfKMByD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Nov 2019 20:54:03 -0500
+        id S1730991AbfKMCCX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Nov 2019 21:02:23 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8AFE72245A;
-        Wed, 13 Nov 2019 01:54:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 39D9422469;
+        Wed, 13 Nov 2019 02:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573610043;
-        bh=a09o/6erw4XFpEHbgbqRKQCSfOoCeDDbbaY/XHSBdzU=;
+        s=default; t=1573610542;
+        bh=oFxvNZ1hbHppCSTLDNl26gqmoZhX77aU+CZX6kpqLm4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NEukpEYzKunXJSDQbD0bOWoW+sn+/orSLcj0vwWaf0ovcpNbwYjMhz1yfFUNH7Vif
-         y3JrH5l00rBPKi4pOh/fnMlePp9n0P8kTXLOJYw1PfFgQ0Cnhdo8eyDdvgNdk4n7i+
-         ajJkGAbloMP629xih+mp6ORpgApIZnUJbCv26/Sw=
+        b=EM9aOGeJWgr38N2iofatDlgC/SbKbwd81eSSRBh1eGnYKbs3b569Q1FhvrQdh5aCO
+         UnMgbC/wmMc8DwMFdL/Ynirnbtj7OIqwYjpDicc7IKj7tFH4jHrici4xsMa5yKZFef
+         0aaTgRzVAaYTAa2+45TLdghsI3HjpH9iPwcyjyBc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     =?UTF-8?q?Ronald=20Tschal=C3=A4r?= <ronald@innovation.ch>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 133/209] ACPI / SBS: Fix rare oops when removing modules
-Date:   Tue, 12 Nov 2019 20:49:09 -0500
-Message-Id: <20191113015025.9685-133-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 31/48] ACPI / SBS: Fix rare oops when removing modules
+Date:   Tue, 12 Nov 2019 21:01:14 -0500
+Message-Id: <20191113020131.13356-31-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191113015025.9685-1-sashal@kernel.org>
-References: <20191113015025.9685-1-sashal@kernel.org>
+In-Reply-To: <20191113020131.13356-1-sashal@kernel.org>
+References: <20191113020131.13356-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 X-stable: review
@@ -83,10 +83,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index ed73f6fb0779b..b48874b8e1ea0 100644
+index a000ecb995e66..e59f50576f2ae 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -1132,6 +1132,7 @@ void acpi_os_wait_events_complete(void)
+@@ -1186,6 +1186,7 @@ void acpi_os_wait_events_complete(void)
  	flush_workqueue(kacpid_wq);
  	flush_workqueue(kacpi_notify_wq);
  }
