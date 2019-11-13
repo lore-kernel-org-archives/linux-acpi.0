@@ -2,389 +2,429 @@ Return-Path: <SRS0=VZ9G=ZF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A666C17447
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 15:17:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C1C0C432C3
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 16:14:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B7042245B
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 15:17:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D283238E5
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Nov 2019 16:14:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727954AbfKMPRX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 13 Nov 2019 10:17:23 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:42104 "EHLO huawei.com"
+        id S1727323AbfKMQOF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 13 Nov 2019 11:14:05 -0500
+Received: from mx2.suse.de ([195.135.220.15]:54996 "EHLO mx1.suse.de"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727754AbfKMPRX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 Nov 2019 10:17:23 -0500
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 5B0905872C78A1AA11B1;
-        Wed, 13 Nov 2019 23:17:08 +0800 (CST)
-Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
- DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 13 Nov 2019 23:17:01 +0800
-From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linux-efi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>, <james.morse@arm.com>
-CC:     <rjw@rjwysocki.net>, <tony.luck@intel.com>, <linuxarm@huawei.com>,
-        <ard.biesheuvel@linaro.org>, <nariman.poushin@linaro.org>,
-        Thanu Rangarajan <Thanu.Rangarajan@arm.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v4 5/6] efi / ras: CCIX Link error reporting
-Date:   Wed, 13 Nov 2019 23:16:26 +0800
-Message-ID: <20191113151627.7950-6-Jonathan.Cameron@huawei.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191113151627.7950-1-Jonathan.Cameron@huawei.com>
-References: <20191113151627.7950-1-Jonathan.Cameron@huawei.com>
+        id S1726564AbfKMQOF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 Nov 2019 11:14:05 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id BE773B373;
+        Wed, 13 Nov 2019 16:14:00 +0000 (UTC)
+From:   Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+To:     Dave Hansen <dave.hansen@linux.intel.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Jens Axboe <axboe@kernel.dk>, Joerg Roedel <joro@8bytes.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>
+Cc:     phil@raspberrypi.org,
+        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
+        Ralf Baechle <ralf@linux-mips.org>,
+        Paul Burton <paulburton@kernel.org>,
+        James Hogan <jhogan@kernel.org>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-mips@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org,
+        iommu@lists.linux-foundation.org, devicetree@vger.kernel.org
+Subject: [PATCH] dma-mapping: treat dev->bus_dma_mask as a DMA limit
+Date:   Wed, 13 Nov 2019 17:13:39 +0100
+Message-Id: <20191113161340.27228-1-nsaenzjulienne@suse.de>
+X-Mailer: git-send-email 2.24.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.41.22]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The CCIX 1.0 Base Specification defines a protocol layer
-CCIX link and related error reporting mechanism.
-The UEFI 2.8 specification includes a CCIX CPER record for
-firmware first handling to report these errors to the
-operating system.
+Using a mask to represent bus DMA constraints has a set of limitations.
+The biggest one being it can only hold a power of two (minus one). The
+DMA mapping code is already aware of this and treats dev->bus_dma_mask
+as a limit. This quirk is already used by some architectures although
+still rare.
 
-This patch is very similar to the support previously added
-for CCIX Memory Errors and provides both logging and RAS
-tracepoint for this error class.
+With the introduction of the Raspberry Pi 4 we've found a new contender
+for the use of bus DMA limits, as its PCIe bus can only address the
+lower 3GB of memory (of a total of 4GB). This is impossible to represent
+with a mask. To make things worse the device-tree code rounds non power
+of two bus DMA limits to the next power of two, which is unacceptable in
+this case.
 
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+In the light of this, rename dev->bus_dma_mask to dev->bus_dma_limit all
+over the tree and treat it as such. Note that dev->bus_dma_limit is
+meant to contain the higher accesible DMA address.
+
+Signed-off-by: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+
 ---
- drivers/acpi/apei/ghes.c         |   4 +
- drivers/firmware/efi/cper-ccix.c | 140 +++++++++++++++++++++++++++++++
- include/linux/cper.h             |  48 +++++++++++
- include/ras/ras_event.h          |  65 ++++++++++++++
- 4 files changed, 257 insertions(+)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 7455db97319c..22df8c14ec13 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -529,6 +529,10 @@ static void ghes_handle_ccix_per(struct acpi_hest_generic_data *gdata, int sev)
- 		trace_ccix_port_error_event(payload, err_seq, sev,
- 					    ccix_port_err_ven_len_get(payload));
- 		break;
-+	case CCIX_LINK_ERROR:
-+		trace_ccix_link_error_event(payload, err_seq, sev,
-+					    ccix_link_err_ven_len_get(payload));
-+		break;
- 	default:
- 		/* Unknown error type */
- 		pr_info("CCIX error of unknown or vendor defined type\n");
-diff --git a/drivers/firmware/efi/cper-ccix.c b/drivers/firmware/efi/cper-ccix.c
-index b936661b3db3..03630f4abaab 100644
---- a/drivers/firmware/efi/cper-ccix.c
-+++ b/drivers/firmware/efi/cper-ccix.c
-@@ -506,6 +506,86 @@ static int cper_ccix_port_err_details(const char *pfx,
+Note this is rebased on top of Christoph's latest DMA series:
+https://www.spinics.net/lists/arm-kernel/msg768600.html
+
+ arch/mips/pci/fixup-sb1250.c  | 16 ++++++++--------
+ arch/powerpc/sysdev/fsl_pci.c |  6 +++---
+ arch/x86/kernel/pci-dma.c     |  2 +-
+ arch/x86/mm/mem_encrypt.c     |  2 +-
+ arch/x86/pci/sta2x11-fixup.c  |  2 +-
+ drivers/acpi/arm64/iort.c     |  2 +-
+ drivers/ata/ahci.c            |  2 +-
+ drivers/iommu/dma-iommu.c     |  3 +--
+ drivers/of/device.c           |  9 +++++----
+ include/linux/device.h        |  6 +++---
+ include/linux/dma-direct.h    |  2 +-
+ include/linux/dma-mapping.h   |  2 +-
+ kernel/dma/direct.c           | 27 +++++++++++++--------------
+ 13 files changed, 40 insertions(+), 41 deletions(-)
+
+diff --git a/arch/mips/pci/fixup-sb1250.c b/arch/mips/pci/fixup-sb1250.c
+index 8a41b359cf90..40efc990cdce 100644
+--- a/arch/mips/pci/fixup-sb1250.c
++++ b/arch/mips/pci/fixup-sb1250.c
+@@ -21,22 +21,22 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SIBYTE, PCI_DEVICE_ID_BCM1250_PCI,
+ 
+ /*
+  * The BCM1250, etc. PCI host bridge does not support DAC on its 32-bit
+- * bus, so we set the bus's DMA mask accordingly.  However the HT link
++ * bus, so we set the bus's DMA limit accordingly.  However the HT link
+  * down the artificial PCI-HT bridge supports 40-bit addressing and the
+  * SP1011 HT-PCI bridge downstream supports both DAC and a 64-bit bus
+  * width, so we record the PCI-HT bridge's secondary and subordinate bus
+- * numbers and do not set the mask for devices present in the inclusive
++ * numbers and do not set the limit for devices present in the inclusive
+  * range of those.
+  */
+-struct sb1250_bus_dma_mask_exclude {
++struct sb1250_bus_dma_limit_exclude {
+ 	bool set;
+ 	unsigned char start;
+ 	unsigned char end;
+ };
+ 
+-static int sb1250_bus_dma_mask(struct pci_dev *dev, void *data)
++static int sb1250_bus_dma_limit(struct pci_dev *dev, void *data)
+ {
+-	struct sb1250_bus_dma_mask_exclude *exclude = data;
++	struct sb1250_bus_dma_limit_exclude *exclude = data;
+ 	bool exclude_this;
+ 	bool ht_bridge;
+ 
+@@ -55,7 +55,7 @@ static int sb1250_bus_dma_mask(struct pci_dev *dev, void *data)
+ 			exclude->start, exclude->end);
+ 	} else {
+ 		dev_dbg(&dev->dev, "disabling DAC for device");
+-		dev->dev.bus_dma_mask = DMA_BIT_MASK(32);
++		dev->dev.bus_dma_limit = DMA_BIT_MASK(32);
+ 	}
+ 
+ 	return 0;
+@@ -63,9 +63,9 @@ static int sb1250_bus_dma_mask(struct pci_dev *dev, void *data)
+ 
+ static void quirk_sb1250_pci_dac(struct pci_dev *dev)
+ {
+-	struct sb1250_bus_dma_mask_exclude exclude = { .set = false };
++	struct sb1250_bus_dma_limit_exclude exclude = { .set = false };
+ 
+-	pci_walk_bus(dev->bus, sb1250_bus_dma_mask, &exclude);
++	pci_walk_bus(dev->bus, sb1250_bus_dma_limit, &exclude);
+ }
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SIBYTE, PCI_DEVICE_ID_BCM1250_PCI,
+ 			quirk_sb1250_pci_dac);
+diff --git a/arch/powerpc/sysdev/fsl_pci.c b/arch/powerpc/sysdev/fsl_pci.c
+index ff0e2b156cb5..617a443d673d 100644
+--- a/arch/powerpc/sysdev/fsl_pci.c
++++ b/arch/powerpc/sysdev/fsl_pci.c
+@@ -115,8 +115,8 @@ static void pci_dma_dev_setup_swiotlb(struct pci_dev *pdev)
+ {
+ 	struct pci_controller *hose = pci_bus_to_host(pdev->bus);
+ 
+-	pdev->dev.bus_dma_mask =
+-		hose->dma_window_base_cur + hose->dma_window_size;
++	pdev->dev.bus_dma_limit =
++		hose->dma_window_base_cur + hose->dma_window_size - 1;
+ }
+ 
+ static void setup_swiotlb_ops(struct pci_controller *hose)
+@@ -135,7 +135,7 @@ static void fsl_pci_dma_set_mask(struct device *dev, u64 dma_mask)
+ 	 * mapping that allows addressing any RAM address from across PCI.
+ 	 */
+ 	if (dev_is_pci(dev) && dma_mask >= pci64_dma_offset * 2 - 1) {
+-		dev->bus_dma_mask = 0;
++		dev->bus_dma_limit = 0;
+ 		dev->archdata.dma_offset = pci64_dma_offset;
+ 	}
+ }
+diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
+index fa4352dce491..3a75d665d43c 100644
+--- a/arch/x86/kernel/pci-dma.c
++++ b/arch/x86/kernel/pci-dma.c
+@@ -146,7 +146,7 @@ rootfs_initcall(pci_iommu_init);
+ 
+ static int via_no_dac_cb(struct pci_dev *pdev, void *data)
+ {
+-	pdev->dev.bus_dma_mask = DMA_BIT_MASK(32);
++	pdev->dev.bus_dma_limit = DMA_BIT_MASK(32);
  	return 0;
  }
  
-+static const char * const ccix_link_err_type_strs[] = {
-+	"Generic Error",
-+	"Credit Underflow",
-+	"Credit Overflow",
-+	"Unusable Credit Received",
-+	"Link Credit Timeout",
-+};
-+
-+static const char *cper_ccix_link_err_type_str(__u8 op)
-+{
-+	return op < ARRAY_SIZE(ccix_link_err_type_strs) ?
-+		ccix_link_err_type_strs[op] : "Reserved";
-+}
-+
-+static const char * const ccix_link_credit_type_strs[] = {
-+	"Memory",
-+	"Snoop",
-+	"Data",
-+	"Misc",
-+};
-+
-+static const char *cper_ccix_link_credit_type_str(__u8 op)
-+{
-+	return op < ARRAY_SIZE(ccix_link_credit_type_strs) ?
-+		ccix_link_credit_type_strs[op] : "Reserved";
-+}
-+
-+static int cper_ccix_link_err_details(const char *pfx,
-+				     struct acpi_hest_generic_data *gdata)
-+{
-+	struct cper_ccix_link_error *full_link_err;
-+	struct cper_sec_ccix_link_error *link_err;
-+	u16 vendor_data_len;
-+	int i;
-+
-+	if (gdata->error_data_length < sizeof(*full_link_err))
-+		return -ENOSPC;
-+
-+	full_link_err = acpi_hest_get_payload(gdata);
-+
-+	link_err = &full_link_err->link_record;
-+
-+	if (link_err->validation_bits & CCIX_LINK_ERR_TYPE_VALID)
-+		printk("%s""Error Type: %s\n", pfx,
-+		       cper_ccix_link_err_type_str(link_err->err_type));
-+
-+	if (link_err->validation_bits & CCIX_LINK_ERR_OP_VALID)
-+		printk("%s""Operation: %s\n", pfx,
-+		       cper_ccix_port_err_op_str(link_err->op_type));
-+
-+	if (link_err->validation_bits & CCIX_LINK_ERR_LINK_ID_VALID)
-+		printk("%s""Link ID: %d\n", pfx, link_err->link_id);
-+
-+	if (link_err->validation_bits & CCIX_LINK_ERR_CREDIT_TYPE_VALID)
-+		printk("%s""Credit Type: %s\n", pfx,
-+		       cper_ccix_link_credit_type_str(link_err->credit_type));
-+
-+	/* CHECK THE AER EQUIVALENT */
-+	if (link_err->validation_bits & CCIX_LINK_ERR_MESSAGE_VALID) {
-+		for (i = 0; i < ARRAY_SIZE(link_err->message); i++)
-+			printk("%s""Message%d: 0x%08x\n", pfx, i, link_err->message[i]);
-+	}
-+
-+	if (link_err->validation_bits & CCIX_LINK_ERR_VENDOR_DATA_VALID) {
-+		if (gdata->error_data_length < sizeof(*full_link_err) + 4)
-+			return -ENOSPC;
-+
-+		vendor_data_len = link_err->vendor_data[0] & GENMASK(15, 0);
-+		if (gdata->error_data_length < sizeof(*full_link_err) + vendor_data_len)
-+			return -ENOSPC;
-+
-+		for (i = 0; i < vendor_data_len/4 - 1; i++)
-+			printk("%s""Vendor%d: 0x%08x\n", pfx, i,
-+			       link_err->vendor_data[i + 1]);
-+
-+	}
-+
-+	return 0;
-+}
-+
- int cper_print_ccix_per(const char *pfx, struct acpi_hest_generic_data *gdata)
- {
- 	struct cper_sec_ccix_header *header = acpi_hest_get_payload(gdata);
-@@ -573,6 +653,8 @@ int cper_print_ccix_per(const char *pfx, struct acpi_hest_generic_data *gdata)
- 		return cper_ccix_atc_err_details(pfx, gdata);
- 	case CCIX_PORT_ERROR:
- 		return cper_ccix_port_err_details(pfx, gdata);
-+	case CCIX_LINK_ERROR:
-+		return cper_ccix_link_err_details(pfx, gdata);
- 	default:
- 		/* Vendor defined so no formatting be done */
- 		break;
-@@ -734,3 +816,61 @@ const char *cper_ccix_port_err_unpack(struct trace_seq *p,
+diff --git a/arch/x86/mm/mem_encrypt.c b/arch/x86/mm/mem_encrypt.c
+index 9268c12458c8..a03614bd3e1a 100644
+--- a/arch/x86/mm/mem_encrypt.c
++++ b/arch/x86/mm/mem_encrypt.c
+@@ -367,7 +367,7 @@ bool force_dma_unencrypted(struct device *dev)
+ 	if (sme_active()) {
+ 		u64 dma_enc_mask = DMA_BIT_MASK(__ffs64(sme_me_mask));
+ 		u64 dma_dev_mask = min_not_zero(dev->coherent_dma_mask,
+-						dev->bus_dma_mask);
++						dev->bus_dma_limit);
  
- 	return ret;
+ 		if (dma_dev_mask <= dma_enc_mask)
+ 			return true;
+diff --git a/arch/x86/pci/sta2x11-fixup.c b/arch/x86/pci/sta2x11-fixup.c
+index 4a631264b809..c313d784efab 100644
+--- a/arch/x86/pci/sta2x11-fixup.c
++++ b/arch/x86/pci/sta2x11-fixup.c
+@@ -143,7 +143,7 @@ static void sta2x11_map_ep(struct pci_dev *pdev)
+ 
+ 	dev->dma_pfn_offset = PFN_DOWN(-amba_base);
+ 
+-	dev->bus_dma_mask = max_amba_addr;
++	dev->bus_dma_limit = max_amba_addr;
+ 	pci_set_consistent_dma_mask(pdev, max_amba_addr);
+ 	pci_set_dma_mask(pdev, max_amba_addr);
+ 
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 5a7551d060f2..f18827cf96df 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1097,7 +1097,7 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+ 		 * Limit coherent and dma mask based on size
+ 		 * retrieved from firmware.
+ 		 */
+-		dev->bus_dma_mask = mask;
++		dev->bus_dma_limit = mask;
+ 		dev->coherent_dma_mask = mask;
+ 		*dev->dma_mask = mask;
+ 	}
+diff --git a/drivers/ata/ahci.c b/drivers/ata/ahci.c
+index ec6c64fce74a..4bfd1b14b390 100644
+--- a/drivers/ata/ahci.c
++++ b/drivers/ata/ahci.c
+@@ -910,7 +910,7 @@ static int ahci_configure_dma_masks(struct pci_dev *pdev, int using_dac)
+ 	 * value, don't extend it here. This happens on STA2X11, for example.
+ 	 *
+ 	 * XXX: manipulating the DMA mask from platform code is completely
+-	 * bogus, platform code should use dev->bus_dma_mask instead..
++	 * bogus, platform code should use dev->bus_dma_limit instead..
+ 	 */
+ 	if (pdev->dma_mask && pdev->dma_mask < DMA_BIT_MASK(32))
+ 		return 0;
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index ecc08aef9b58..74b8b8f5be56 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -421,8 +421,7 @@ static dma_addr_t iommu_dma_alloc_iova(struct iommu_domain *domain,
+ 	if (iova_len < (1 << (IOVA_RANGE_CACHE_MAX_SIZE - 1)))
+ 		iova_len = roundup_pow_of_two(iova_len);
+ 
+-	if (dev->bus_dma_mask)
+-		dma_limit &= dev->bus_dma_mask;
++	dma_limit = min_not_zero(dma_limit, dev->bus_dma_limit);
+ 
+ 	if (domain->geometry.force_aperture)
+ 		dma_limit = min(dma_limit, domain->geometry.aperture_end);
+diff --git a/drivers/of/device.c b/drivers/of/device.c
+index da8158392010..e9127db7b067 100644
+--- a/drivers/of/device.c
++++ b/drivers/of/device.c
+@@ -93,7 +93,7 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
+ 	bool coherent;
+ 	unsigned long offset;
+ 	const struct iommu_ops *iommu;
+-	u64 mask;
++	u64 mask, end;
+ 
+ 	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
+ 	if (ret < 0) {
+@@ -148,12 +148,13 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
+ 	 * Limit coherent and dma mask based on size and default mask
+ 	 * set by the driver.
+ 	 */
+-	mask = DMA_BIT_MASK(ilog2(dma_addr + size - 1) + 1);
++	end = dma_addr + size - 1;
++	mask = DMA_BIT_MASK(ilog2(end) + 1);
+ 	dev->coherent_dma_mask &= mask;
+ 	*dev->dma_mask &= mask;
+-	/* ...but only set bus mask if we found valid dma-ranges earlier */
++	/* ...but only set bus limit if we found valid dma-ranges earlier */
+ 	if (!ret)
+-		dev->bus_dma_mask = mask;
++		dev->bus_dma_limit = end;
+ 
+ 	coherent = of_dma_is_coherent(np);
+ 	dev_dbg(dev, "device is%sdma coherent\n",
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 99af366db50d..dada6b4bd7e0 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -1214,8 +1214,8 @@ struct dev_links_info {
+  * @coherent_dma_mask: Like dma_mask, but for alloc_coherent mapping as not all
+  * 		hardware supports 64-bit addresses for consistent allocations
+  * 		such descriptors.
+- * @bus_dma_mask: Mask of an upstream bridge or bus which imposes a smaller DMA
+- *		limit than the device itself supports.
++ * @bus_dma_limit: Limit of an upstream bridge or bus which imposes a smaller
++ *		DMA limit than the device itself supports.
+  * @dma_pfn_offset: offset of DMA memory range relatively of RAM
+  * @dma_parms:	A low level driver may set these to teach IOMMU code about
+  * 		segment limitations.
+@@ -1301,7 +1301,7 @@ struct device {
+ 					     not all hardware supports
+ 					     64 bit addresses for consistent
+ 					     allocations such descriptors. */
+-	u64		bus_dma_mask;	/* upstream dma_mask constraint */
++	u64		bus_dma_limit;	/* upstream dma constraint */
+ 	unsigned long	dma_pfn_offset;
+ 
+ 	struct device_dma_parameters *dma_parms;
+diff --git a/include/linux/dma-direct.h b/include/linux/dma-direct.h
+index e88f17f08391..aef27b7aa43f 100644
+--- a/include/linux/dma-direct.h
++++ b/include/linux/dma-direct.h
+@@ -39,7 +39,7 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ 	    min(addr, end) < phys_to_dma(dev, PFN_PHYS(min_low_pfn)))
+ 		return false;
+ 
+-	return end <= min_not_zero(*dev->dma_mask, dev->bus_dma_mask);
++	return end <= min_not_zero(*dev->dma_mask, dev->bus_dma_limit);
  }
-+
-+void cper_ccix_link_err_pack(const struct cper_sec_ccix_link_error *link_record,
-+			     struct cper_ccix_link_err_compact *clink_err,
-+			     const u16 vendor_data_len,
-+			     u8 *vendor_data)
-+{
-+	clink_err->validation_bits = link_record->validation_bits;
-+	clink_err->err_type = link_record->err_type;
-+	clink_err->op_type = link_record->op_type;
-+	clink_err->link_id = link_record->link_id;
-+	clink_err->credit_type = link_record->credit_type;
-+	memcpy(clink_err->message, link_record->message,
-+	       sizeof(clink_err->message));
-+
-+	memcpy(vendor_data, &link_record->vendor_data[1], vendor_data_len);
-+}
-+
-+static int cper_ccix_err_link_location(struct cper_ccix_link_err_compact *clink_err,
-+				       char *msg)
-+{
-+	u32 len = CPER_REC_LEN - 1;
-+	u32 n = 0;
-+
-+	if (!msg)
-+		return 0;
-+
-+	if (clink_err->validation_bits & CCIX_LINK_ERR_TYPE_VALID)
-+		n += snprintf(msg + n, len, "Error Type: %s ",
-+			      cper_ccix_link_err_type_str(clink_err->err_type));
-+
-+
-+	if (clink_err->validation_bits & CCIX_LINK_ERR_OP_VALID)
-+		n += snprintf(msg + n, len, "Op: %s ",
-+			     cper_ccix_port_err_op_str(clink_err->op_type));
-+
-+	if (clink_err->validation_bits & CCIX_LINK_ERR_LINK_ID_VALID)
-+		n += snprintf(msg + n, len, "Link ID: %d ", clink_err->link_id);
-+
-+	if (clink_err->validation_bits & CCIX_LINK_ERR_CREDIT_TYPE_VALID)
-+		n += snprintf(msg + n, len, "Credit Type: %s ",
-+			      cper_ccix_link_credit_type_str(clink_err->credit_type));
-+
-+	/* MESSAGE TODO */
-+	return n;
-+}
-+
-+const char *cper_ccix_link_err_unpack(struct trace_seq *p,
-+				      struct cper_ccix_link_err_compact *clink_err)
-+{
-+	const char *ret = trace_seq_buffer_ptr(p);
-+
-+	if (cper_ccix_err_link_location(clink_err, rcd_decode_str))
-+		trace_seq_printf(p, "%s", rcd_decode_str);
-+
-+	trace_seq_putc(p, '\0');
-+
-+	return ret;
-+}
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 5e315afc210e..d35be55351e3 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -742,6 +742,47 @@ struct cper_ccix_port_err_compact {
- 	__u8	op_type;
- };
  
-+struct cper_sec_ccix_link_error {
-+	__u32	validation_bits;
-+#define CCIX_LINK_ERR_OP_VALID			BIT(0)
-+#define CCIX_LINK_ERR_TYPE_VALID		BIT(1)
-+#define CCIX_LINK_ERR_LINK_ID_VALID		BIT(2)
-+#define CCIX_LINK_ERR_CREDIT_TYPE_VALID		BIT(3)
-+#define CCIX_LINK_ERR_MESSAGE_VALID		BIT(4)
-+#define CCIX_LINK_ERR_VENDOR_DATA_VALID		BIT(5)
-+	__u16	length; /* Includes vendor specific log info */
-+	__u8	op_type;
-+	__u8	err_type;
-+	__u8	link_id;
-+	__u8	credit_type;
-+	__u16	reserved;
-+	__u32	message[8];
-+	__u32	vendor_data[];
-+};
-+
-+struct cper_ccix_link_error {
-+	struct cper_sec_ccix_header header;
-+	__u32 ccix_header[CCIX_PER_LOG_HEADER_DWS];
-+	struct cper_sec_ccix_link_error link_record;
-+};
-+
-+static inline u16 ccix_link_err_ven_len_get(struct cper_ccix_link_error *link_err)
-+{
-+	if (link_err->link_record.validation_bits & CCIX_LINK_ERR_VENDOR_DATA_VALID)
-+		return link_err->link_record.vendor_data[0] & 0xFFFF;
-+	else
-+		return 0;
-+}
-+
-+struct cper_ccix_link_err_compact {
-+	__u32	validation_bits;
-+	__u32	message[8];
-+	__u8	err_type;
-+	__u8	op_type;
-+	__u8	link_id;
-+	__u8	credit_type;
-+};
-+
- /* Reset to default packing */
- #pragma pack()
+ #ifdef CONFIG_ARCH_HAS_FORCE_DMA_UNENCRYPTED
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 4d450672b7d6..c4d8741264bd 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -697,7 +697,7 @@ static inline int dma_coerce_mask_and_coherent(struct device *dev, u64 mask)
+  */
+ static inline bool dma_addressing_limited(struct device *dev)
+ {
+-	return min_not_zero(dma_get_mask(dev), dev->bus_dma_mask) <
++	return min_not_zero(dma_get_mask(dev), dev->bus_dma_limit) <
+ 			    dma_get_required_mask(dev);
+ }
  
-@@ -787,6 +828,13 @@ void cper_ccix_port_err_pack(const struct cper_sec_ccix_port_error *port_record,
- const char *cper_ccix_port_err_unpack(struct trace_seq *p,
- 				      struct cper_ccix_port_err_compact *cport_err);
+diff --git a/kernel/dma/direct.c b/kernel/dma/direct.c
+index a419530abd3e..7abb30afb358 100644
+--- a/kernel/dma/direct.c
++++ b/kernel/dma/direct.c
+@@ -28,10 +28,10 @@ static void report_addr(struct device *dev, dma_addr_t dma_addr, size_t size)
+ {
+ 	if (!dev->dma_mask) {
+ 		dev_err_once(dev, "DMA map on device without dma_mask\n");
+-	} else if (*dev->dma_mask >= DMA_BIT_MASK(32) || dev->bus_dma_mask) {
++	} else if (*dev->dma_mask >= DMA_BIT_MASK(32) || dev->bus_dma_limit) {
+ 		dev_err_once(dev,
+-			"overflow %pad+%zu of DMA mask %llx bus mask %llx\n",
+-			&dma_addr, size, *dev->dma_mask, dev->bus_dma_mask);
++			"overflow %pad+%zu of DMA mask %llx bus limit %llx\n",
++			&dma_addr, size, *dev->dma_mask, dev->bus_dma_limit);
+ 	}
+ 	WARN_ON_ONCE(1);
+ }
+@@ -58,15 +58,14 @@ u64 dma_direct_get_required_mask(struct device *dev)
+ }
  
-+void cper_ccix_link_err_pack(const struct cper_sec_ccix_link_error *link_record,
-+			     struct cper_ccix_link_err_compact *clink_err,
-+			     const u16 vendor_data_len,
-+			     u8 *vendor_data);
-+const char *cper_ccix_link_err_unpack(struct trace_seq *p,
-+				      struct cper_ccix_link_err_compact *clink_err);
-+
- struct acpi_hest_generic_data;
- int cper_print_ccix_per(const char *pfx,
- 			struct acpi_hest_generic_data *gdata);
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index b0c416382786..7cecfadb0b15 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -614,6 +614,71 @@ TRACE_EVENT(ccix_port_error_event,
- 		__print_hex(__get_dynamic_array(vendor_data), __entry->vendor_data_length)
- 	)
- );
-+
-+TRACE_EVENT(ccix_link_error_event,
-+	TP_PROTO(struct cper_ccix_link_error *err,
-+		 u32 err_seq,
-+		 u8 sev, u16 ven_len),
-+
-+	TP_ARGS(err, err_seq, sev, ven_len),
-+
-+	TP_STRUCT__entry(
-+		__field(u32, err_seq)
-+		__field(u8, sev)
-+		__field(u8, sevdetail)
-+		__field(u8, source)
-+		__field(u8, component)
-+		__field(u64, pa)
-+		__field(u8, pa_mask_lsb)
-+		__field_struct(struct cper_ccix_link_err_compact, data)
-+		__field(u16, vendor_data_length)
-+		__dynamic_array(u8, vendor_data, ven_len)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->err_seq = err_seq;
-+
-+		__entry->sev = sev;
-+		__entry->sevdetail = FIELD_GET(CCIX_PER_LOG_DW1_SEV_UE_M |
-+			CCIX_PER_LOG_DW1_SEV_NO_COMM_M |
-+			CCIX_PER_LOG_DW1_SEV_DEGRADED_M |
-+			CCIX_PER_LOG_DW1_SEV_DEFFERABLE_M,
-+			err->ccix_header[1]);
-+		if (err->header.validation_bits & 0x1)
-+			__entry->source = err->header.source_id;
-+		else
-+			__entry->source = ~0;
-+		__entry->component = FIELD_GET(CCIX_PER_LOG_DW1_COMP_TYPE_M,
-+						   err->ccix_header[1]);
-+		if (err->ccix_header[1] & CCIX_PER_LOG_DW1_ADDR_VAL_M) {
-+			__entry->pa = (u64)err->ccix_header[2] << 32 |
-+				(err->ccix_header[3] & 0xfffffffc);
-+			__entry->pa_mask_lsb = err->ccix_header[4] & 0xff;
-+		} else {
-+			__entry->pa = ~0ull;
-+			__entry->pa_mask_lsb = ~0;
-+		}
-+		/* Do not store the vendor data header length */
-+		__entry->vendor_data_length = ven_len ? ven_len - 4 : 0;
-+		cper_ccix_link_err_pack(&err->link_record, &__entry->data,
-+					__entry->vendor_data_length,
-+					__get_dynamic_array(vendor_data));
-+	),
-+
-+	TP_printk("{%d} %s CCIX PER Link Error in %s SevUE:%d SevNoComm:%d SevDegraded:%d SevDeferred:%d physical addr: %016llx (mask: %x) %s vendor:%s",
-+		__entry->err_seq,
-+		cper_severity_str(__entry->sev),
-+		cper_ccix_comp_type_str(__entry->component),
-+		__entry->sevdetail & BIT(0) ? 1 : 0,
-+		__entry->sevdetail & BIT(1) ? 1 : 0,
-+		__entry->sevdetail & BIT(2) ? 1 : 0,
-+		__entry->sevdetail & BIT(3) ? 1 : 0,
-+		__entry->pa,
-+		__entry->pa_mask_lsb,
-+		cper_ccix_link_err_unpack(p, &__entry->data),
-+		__print_hex(__get_dynamic_array(vendor_data), __entry->vendor_data_length)
-+	)
-+);
- #endif
+ static gfp_t __dma_direct_optimal_gfp_mask(struct device *dev, u64 dma_mask,
+-		u64 *phys_mask)
++		u64 *phys_limit)
+ {
+-	if (dev->bus_dma_mask && dev->bus_dma_mask < dma_mask)
+-		dma_mask = dev->bus_dma_mask;
++	u64 dma_limit = min_not_zero(dma_mask, dev->bus_dma_limit);
  
- /*
+ 	if (force_dma_unencrypted(dev))
+-		*phys_mask = __dma_to_phys(dev, dma_mask);
++		*phys_limit = __dma_to_phys(dev, dma_limit);
+ 	else
+-		*phys_mask = dma_to_phys(dev, dma_mask);
++		*phys_limit = dma_to_phys(dev, dma_limit);
+ 
+ 	/*
+ 	 * Optimistically try the zone that the physical address mask falls
+@@ -76,9 +75,9 @@ static gfp_t __dma_direct_optimal_gfp_mask(struct device *dev, u64 dma_mask,
+ 	 * Note that GFP_DMA32 and GFP_DMA are no ops without the corresponding
+ 	 * zones.
+ 	 */
+-	if (*phys_mask <= DMA_BIT_MASK(zone_dma_bits))
++	if (*phys_limit <= DMA_BIT_MASK(zone_dma_bits))
+ 		return GFP_DMA;
+-	if (*phys_mask <= DMA_BIT_MASK(32))
++	if (*phys_limit <= DMA_BIT_MASK(32))
+ 		return GFP_DMA32;
+ 	return 0;
+ }
+@@ -86,7 +85,7 @@ static gfp_t __dma_direct_optimal_gfp_mask(struct device *dev, u64 dma_mask,
+ static bool dma_coherent_ok(struct device *dev, phys_addr_t phys, size_t size)
+ {
+ 	return phys_to_dma_direct(dev, phys) + size - 1 <=
+-			min_not_zero(dev->coherent_dma_mask, dev->bus_dma_mask);
++			min_not_zero(dev->coherent_dma_mask, dev->bus_dma_limit);
+ }
+ 
+ struct page *__dma_direct_alloc_pages(struct device *dev, size_t size,
+@@ -95,7 +94,7 @@ struct page *__dma_direct_alloc_pages(struct device *dev, size_t size,
+ 	size_t alloc_size = PAGE_ALIGN(size);
+ 	int node = dev_to_node(dev);
+ 	struct page *page = NULL;
+-	u64 phys_mask;
++	u64 phys_limit;
+ 
+ 	if (attrs & DMA_ATTR_NO_WARN)
+ 		gfp |= __GFP_NOWARN;
+@@ -103,7 +102,7 @@ struct page *__dma_direct_alloc_pages(struct device *dev, size_t size,
+ 	/* we always manually zero the memory once we are done: */
+ 	gfp &= ~__GFP_ZERO;
+ 	gfp |= __dma_direct_optimal_gfp_mask(dev, dev->coherent_dma_mask,
+-			&phys_mask);
++			&phys_limit);
+ 	page = dma_alloc_contiguous(dev, alloc_size, gfp);
+ 	if (page && !dma_coherent_ok(dev, page_to_phys(page), size)) {
+ 		dma_free_contiguous(dev, page, alloc_size);
+@@ -117,7 +116,7 @@ struct page *__dma_direct_alloc_pages(struct device *dev, size_t size,
+ 		page = NULL;
+ 
+ 		if (IS_ENABLED(CONFIG_ZONE_DMA32) &&
+-		    phys_mask < DMA_BIT_MASK(64) &&
++		    phys_limit < DMA_BIT_MASK(64) &&
+ 		    !(gfp & (GFP_DMA32 | GFP_DMA))) {
+ 			gfp |= GFP_DMA32;
+ 			goto again;
 -- 
-2.20.1
+2.24.0
 
