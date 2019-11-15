@@ -2,85 +2,82 @@ Return-Path: <SRS0=l9aF=ZH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9CABC43215
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Nov 2019 15:48:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF369C432C3
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Nov 2019 20:56:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98BB320740
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Nov 2019 15:48:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Pic7rPYc"
+	by mail.kernel.org (Postfix) with ESMTP id CDB3220723
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Nov 2019 20:56:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727577AbfKOPsL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Nov 2019 10:48:11 -0500
-Received: from mail-lf1-f67.google.com ([209.85.167.67]:39489 "EHLO
-        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727526AbfKOPsK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2019 10:48:10 -0500
-Received: by mail-lf1-f67.google.com with SMTP id j14so8369805lfk.6
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Nov 2019 07:48:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=tKS6rtCZj8IaErcUrjRP92Wgp74E5JlJ2MHPseDiEWo=;
-        b=Pic7rPYcvUsXNNtxBunu7WIK/Gtn4aqprOS1rk1gJIxywYezckGtII0nqrTVIGPXBu
-         7MsWQumzkSuy4YEAkpMGQAplLbZ60ovggZ1uzw1W5aSK5lHxgNC2Wgh4POqh0FUZjHyN
-         3tLPOHQNm0o9KZCS/W8rM7+FhMHSaLHt0pi2HExHuH450Gp4nOnsgb9ldXtZktmZXuHr
-         hXfZXQlO6pzFI32s5eowebPHMceoXvtHTNZ5+x6iFaDAL1kwPjpoiesNixWvmRnUnpyQ
-         06YbbNurlYG5puRjR/FlE7wEHtrep1feCMKcoSmeBgzheWPwwYyiZqcFqusneo1YmGJB
-         3RDg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=tKS6rtCZj8IaErcUrjRP92Wgp74E5JlJ2MHPseDiEWo=;
-        b=dPG8b5f/W3e6MEOfuu8GWrwVskCZoqsF0+py9BoPESHfgkRrQgx27uq25uQADg2mP3
-         ycmCCForW/AQ4ydDg3PbL2jy5tSvhnvz9IwNJaaJJhtpMB1zlaemsbXgjtVK6WzNzbcT
-         kLHu4wzWtkJ5iY2q4nGr8QYDG5gR7WIJq9zf4zxlABUgpnQn+WwSFLA/Rj3BRq5QcVrQ
-         gsVWVLz/NGhmAhwiN8C8hUVhfE3nPr1gPM9hZBjruKw7irIm21tA8J0iBkIA7mbhDpxF
-         TAFitTZoRzTrxae2BTs6CznJHyQG92QNQ1+pGUAB/fLFVo187FPl27x9yRcKnJAsyIWT
-         8OJA==
-X-Gm-Message-State: APjAAAXDNkPd20TVXYt/1EfKiFBSGxb3Q7tdlBs9fkQ/H/SF1Nf4cL4C
-        xcLrFPuGyVPza8cbvOAVgacQAnAczaP/J61wQeeK+w==
-X-Google-Smtp-Source: APXvYqyZoqBIeRRXE6Tp+xEkPnpvBKDFdlWGPub1qxgpSvfSx0sWfBaGbFbMN2YsYEXanF1TNEKAivdJG/k7sxcjKQk=
-X-Received: by 2002:a19:651b:: with SMTP id z27mr11532990lfb.117.1573832888693;
- Fri, 15 Nov 2019 07:48:08 -0800 (PST)
-MIME-Version: 1.0
-References: <20191114102600.34558-1-hdegoede@redhat.com>
-In-Reply-To: <20191114102600.34558-1-hdegoede@redhat.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Fri, 15 Nov 2019 16:47:57 +0100
-Message-ID: <CACRpkdZ6otZOsN++qTm1ZBPxSmd=T5NcyZKYfWDScuB1YrHiFA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] gpiolib: acpi: Print pin number on
- acpi_gpiochip_alloc_event errors
+        id S1726818AbfKOU4o (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Nov 2019 15:56:44 -0500
+Received: from sauhun.de ([88.99.104.3]:43698 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726550AbfKOU4o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Nov 2019 15:56:44 -0500
+Received: from localhost (p54B33606.dip0.t-ipconnect.de [84.179.54.6])
+        by pokefinder.org (Postfix) with ESMTPSA id 142F62C03E3;
+        Fri, 15 Nov 2019 21:56:42 +0100 (CET)
+Date:   Fri, 15 Nov 2019 21:56:41 +0100
+From:   Wolfram Sang <wsa@the-dreams.de>
 To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Jarkko Nikula <jarkko.nikula@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
+        youling 257 <youling257@gmail.com>
+Subject: Re: [PATCH v2] i2c: acpi: Force bus speed to 400KHz if a Silead
+ touchscreen is present
+Message-ID: <20191115205641.GA8973@kunai>
+References: <20191113182938.279299-1-hdegoede@redhat.com>
+ <20191114204815.GC7213@kunai>
+ <c67a085b-8013-ef03-b5b2-431ea64ca97a@redhat.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Content-Disposition: inline
+In-Reply-To: <c67a085b-8013-ef03-b5b2-431ea64ca97a@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Nov 14, 2019 at 11:26 AM Hans de Goede <hdegoede@redhat.com> wrote:
 
-> Print pin number and error-code on acpi_gpiochip_alloc_event errors,
-> to help debugging these.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v2:
-> -Take into account that pin-number may be 16 bits
-> -Also log the error-code
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Patch applied.
 
-Yours,
-Linus Walleij
+> Well it is configuring the bus at a speed where not all devices
+> can work, where as there is another speed where all devices do work.
+> With that said I'm open to a different wording for the warning. Feel
+> free to modify this before you add it to your tree.
+
+Changed the message to "DSDT uses known not-working I2C bus speed %d,
+forcing it to %d\n" and applied to for-current, thanks!
+
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAl3PEQUACgkQFA3kzBSg
+KbZWCA/9GV8vhIAUOBWcnEOCxRGff8hTsxHFRdQo7dydg4JOlGJqK1oXJHZFQXeB
+RbUhSl58gPallhC7RUUOXqMfyiZREDrVEbFvIm79Orveqlw1optRd1oocAy3tbif
+KyVMRuTZqFtgMhD8E+D5hfoBPTM6u2E9FbbvAE4g78Y1AsjrUDDUq/M2fmrXQAgB
+A+luBxBOiqQbBYWBPGNvtj6etTSwh4SGmiPxTDNh++CpzrQcAKU/it5p1SbRAwc+
+69pBwZDnmsnHRsYmvjhFdMQPAuKLyGLpae6m8v+xAOBC9JDpmRrLAN3P80W+HkXJ
+8BvrJjzdfNunlRvZQFuz3YiWD4XGJmyUhnl5sVvjfFAW1repTC+eG3LAPan9Ft4z
+yA4WP99tsSAJgRKBXcNXXpNJPjXCVE/FYGZwGagjA7SK1wT0hWx42N+Hezin++9a
+139ax28+BpDVEHqqchNIXMTwYdnGyFupzInTZUgMAn+iyrWLeXNcIw85wWIdjnhO
+yivC72pT20fqTnn7cG670kDUTux8iq59mUv37LNwUZ2ub2EgcNUnOqYOSRxkRakf
+ZA8OMZr+a8uphBS6aF0LzQMGA1Eus9QqX6XNPknyv3ebk8RZZgPlZGNJjd2fzOds
+UHUfRU9XalYm/ucIyNear+pz4nTwmrcYv1A7FqJFPll5nuef4AM=
+=FM4c
+-----END PGP SIGNATURE-----
+
+--mYCpIKhGyMATD0i+--
