@@ -2,104 +2,76 @@ Return-Path: <SRS0=Z0h1=ZK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B923BC432C0
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Nov 2019 09:46:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CB74C432C0
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Nov 2019 11:50:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98CA52075C
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Nov 2019 09:46:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66AED20748
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Nov 2019 11:50:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726833AbfKRJqw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Nov 2019 04:46:52 -0500
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:2044 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726464AbfKRJqw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Nov 2019 04:46:52 -0500
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xAI9gNoh018879;
-        Mon, 18 Nov 2019 04:45:40 -0500
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2wayaw6q8x-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 18 Nov 2019 04:45:40 -0500
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-        by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xAI9jGsP023882;
-        Mon, 18 Nov 2019 09:45:43 GMT
-Received: from b03cxnp08028.gho.boulder.ibm.com (b03cxnp08028.gho.boulder.ibm.com [9.17.130.20])
-        by ppma01wdc.us.ibm.com with ESMTP id 2wa8r5s6hf-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 18 Nov 2019 09:45:43 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-        by b03cxnp08028.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xAI9jcZ865864058
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 18 Nov 2019 09:45:38 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 7BE5E6A047;
-        Mon, 18 Nov 2019 09:45:38 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 205FF6A051;
-        Mon, 18 Nov 2019 09:45:35 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.199.34.246])
-        by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-        Mon, 18 Nov 2019 09:45:34 +0000 (GMT)
-X-Mailer: emacs 26.2 (via feedmail 11-beta-1 I)
-From:   "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To:     Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Cc:     peterz@infradead.org, vishal.l.verma@intel.com,
-        dave.hansen@linux.intel.com, hch@lst.de,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 15/18] mm/numa: Skip NUMA_NO_NODE and online nodes in numa_map_to_online_node()
-In-Reply-To: <157401275716.43284.13185549705765009174.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <157401267421.43284.2135775608523385279.stgit@dwillia2-desk3.amr.corp.intel.com> <157401275716.43284.13185549705765009174.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date:   Mon, 18 Nov 2019 15:15:33 +0530
-Message-ID: <87wobxh60y.fsf@linux.ibm.com>
+        id S1726646AbfKRLuX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Nov 2019 06:50:23 -0500
+Received: from mga18.intel.com ([134.134.136.126]:17761 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726506AbfKRLuX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Nov 2019 06:50:23 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Nov 2019 03:50:22 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.68,320,1569308400"; 
+   d="scan'208";a="204047463"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by fmsmga008.fm.intel.com with ESMTP; 18 Nov 2019 03:50:20 -0800
+Received: from andy by smile with local (Exim 4.93-RC1)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1iWfXv-00012e-PD; Mon, 18 Nov 2019 13:50:19 +0200
+Date:   Mon, 18 Nov 2019 13:50:19 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Jan Kiszka <jan.kiszka@siemens.com>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-gpio@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "Rafael J., Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH v2] gpio: sch: Add interrupt support
+Message-ID: <20191118115019.GW32742@smile.fi.intel.com>
+References: <046793ee-ba51-6a1b-1aa5-14560d849df7@siemens.com>
+ <20190429131900.GD9224@smile.fi.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,18.0.572
- definitions=2019-11-18_01:2019-11-15,2019-11-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- impostorscore=0 mlxlogscore=999 suspectscore=0 clxscore=1015 phishscore=0
- mlxscore=0 spamscore=0 adultscore=0 malwarescore=0 bulkscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-1910280000 definitions=main-1911180087
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190429131900.GD9224@smile.fi.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dan Williams <dan.j.williams@intel.com> writes:
+On Mon, Apr 29, 2019 at 04:19:00PM +0300, Andy Shevchenko wrote:
+> On Mon, Apr 29, 2019 at 07:55:52AM +0200, Jan Kiszka wrote:
+> > Validated on the Quark platform, this adds interrupt support on rising
+> > and/or falling edges.
+> 
+> Can we split it to two:
+> - Add IRQ support on edge
+> - Add ACPI handler (with explanation in the commit message why we do like this,
+>   based on the thread from v1)
+> 
+> ?
 
-> Update numa_map_to_online_node() to stop falling back to numa node 0
-> when the input is NUMA_NO_NODE. Also, skip the lookup if @node is
-> online. This makes the routine compatible with other arch node mapping
-> routines.
+Jan, anything you would like to do with this or is it abandoned?
 
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
->
-> Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  mm/mempolicy.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-> index e2d8dd21ce9d..d618121bcc17 100644
-> --- a/mm/mempolicy.c
-> +++ b/mm/mempolicy.c
-> @@ -137,8 +137,8 @@ int numa_map_to_online_node(int node)
->  {
->  	int min_node;
->  
-> -	if (node == NUMA_NO_NODE)
-> -		node = 0;
-> +	if (node == NUMA_NO_NODE || node_online(node))
-> +		return node;
->  
->  	min_node = node;
->  	if (!node_online(node)) {
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
