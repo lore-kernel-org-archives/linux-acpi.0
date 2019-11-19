@@ -2,80 +2,127 @@ Return-Path: <SRS0=hH4S=ZL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 367A8C432C3
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:26:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0BF4C43215
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:32:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 068DD223BD
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:26:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574180765;
-	bh=0yskXAoVCs+5y3JXPmhJ5NsUh3bKosYHN2Xyhk8ykoE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=gfu+zzTX5dLkrqNIQ/dVhraVoo71dtnezZNJAkOGonMd9VuzXIwENxGeD0dz8dOkd
-	 CvHd9rJ5BNMXMRCHmHOx3Oit8OjM3sRx68oh6Lqytu1/vrz5xzd1bUClcEGmaeQF/b
-	 ZNrey13uvkGAglnHzEGpy8WzTj3qJkJF44PUz4sA=
+	by mail.kernel.org (Postfix) with ESMTP id 902542231A
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:32:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727910AbfKSQ0E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Nov 2019 11:26:04 -0500
-Received: from mail-oi1-f173.google.com ([209.85.167.173]:38160 "EHLO
-        mail-oi1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727646AbfKSQ0E (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2019 11:26:04 -0500
-Received: by mail-oi1-f173.google.com with SMTP id a14so19479411oid.5;
-        Tue, 19 Nov 2019 08:26:03 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=LRJee7nxzo39BqBz0UJpElsLIF+EqnwQjeBJ00aJBAY=;
-        b=lbEH4fSd4hfsjt/33+Tj9T+D8DQGuIP/+dxaKkV+RJiI6bWxBsQhoKiDDQEQ0h8p/6
-         D4kFh4xJg4LKjozEq1+Q6887BrZl7lWQ/TOrXzRZ+7DjOtU2HRVSLmOLgB/NqgSctQPo
-         h/wsgBSx7fzrh9ROPf3CKMkOqi6T6rHvQOs+glPUeLwIrlmgPVQXwnjBSXJb4M+IVHJ4
-         7fd/xZMb9talsB0fvvIhapQ6ADOCdEkaOEaFqLjThuhYE3mRLnqvBqiQrRmEDgrrIiBR
-         W3ZNIjIazoZQ1Drnglyw3MyiORtED8LXy2wvo3GlsutA4sRL9jbjdz24JSkWeS+MS4U/
-         p4hQ==
-X-Gm-Message-State: APjAAAWT2GXzI45nLSjZvwQgyE3W8uCEoDTvaSqkqK9Wie+FROseuQsm
-        nrnOYNcgc/221xGgwzYzuz9U255nDg2MVfF3c50=
-X-Google-Smtp-Source: APXvYqwSIosCDYwJalY/pWzTCo9I/Qus4/YSATjCZtrPT+N9E3j6eE4yxz0TGLnPR7dkMNO13daALFyZPvhkgMSMiKk=
-X-Received: by 2002:a05:6808:901:: with SMTP id w1mr5002167oih.57.1574180763016;
- Tue, 19 Nov 2019 08:26:03 -0800 (PST)
+        id S1728128AbfKSQcW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Nov 2019 11:32:22 -0500
+Received: from mga12.intel.com ([192.55.52.136]:31364 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727299AbfKSQcW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 19 Nov 2019 11:32:22 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Nov 2019 08:32:20 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,218,1571727600"; 
+   d="scan'208";a="381065906"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga005.jf.intel.com with ESMTP; 19 Nov 2019 08:32:17 -0800
+Received: from andy by smile with local (Exim 4.93-RC1)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1iX6QK-0007p2-7T; Tue, 19 Nov 2019 18:32:16 +0200
+Date:   Tue, 19 Nov 2019 18:32:16 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Ville =?iso-8859-1?Q?Syrj=E4l=E4?= 
+        <ville.syrjala@linux.intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>,
+        linux-acpi@vger.kernel.org,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/3] drm/i915 / LPSS / mfd: Select correct PWM controller
+ to use based on VBT
+Message-ID: <20191119163216.GI32742@smile.fi.intel.com>
+References: <20191119151818.67531-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-References: <20191119145146.GA25855@paulmck-ThinkPad-P72>
-In-Reply-To: <20191119145146.GA25855@paulmck-ThinkPad-P72>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 19 Nov 2019 17:25:51 +0100
-Message-ID: <CAJZ5v0iL=O5tjAa796SqMH7HKSaTZOGJS3xEtY8dPqDX47001Q@mail.gmail.com>
-Subject: Re: next-20191118 rcutorture gets lots of "ACPI: Masking GPE 0x0"
-To:     paulmck@kernel.org
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191119151818.67531-1-hdegoede@redhat.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 19, 2019 at 3:51 PM Paul E. McKenney <paulmck@kernel.org> wrote:
->
-> Hello!
->
-> I had occasion to run rcutorture on next-20191118, and in a five-minute
-> run got 1,810,735 instances of "ACPI: Masking GPE 0x0" printed to the
-> console.  This run is under qemu on an ordinary x86 laptop.
->
-> Is this a known issue?
+On Tue, Nov 19, 2019 at 04:18:15PM +0100, Hans de Goede wrote:
+> Hi All,
+> 
+> This series needs to be merged through a single tree, to keep things
+> bisectable. I have even considered just squashing all 3 patches into 1,
+> but having separate commits seems better, but that does lead to an
+> intermediate state where the backlight sysfs interface will be broken
+> (and fixed 2 commits later). See below for some background info.
+> 
+> The changes to drivers/acpi/acpi_lpss.c and drivers/mfd/intel_soc_pmic_core.c
+> are quite small and should not lead to any conflicts, so I believe that
+> it would be best to merge this entire series through the drm-intel tree.
+> 
+> Lee, may I have your Acked-by for merging the mfd change through the
+> drm-intel tree?
+> 
+> Rafael, may I have your Acked-by for merging the acpi_lpss change through the
+> drm-intel tree?
+> 
 
-Yes, it is.
+Entire series (or a single patch) makes sense to me.
+Thanks for fixing this old hardware!
 
-The patch causing it has been dropped, another version of if (which
-should not cause the issue any more) is under testing.
+FWIW,
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Cheers,
-Rafael
+> Regards,
+> 
+> Hans
+> 
+> p.s.
+> 
+> The promised background info:
+> 
+> We have this long standing issue where instead of looking in the i915
+> VBT (Video BIOS Table) to see if we should use the PWM block of the SoC
+> or of the PMIC to control the backlight of a DSI panel, we rely on
+> drivers/acpi/acpi_lpss.c and/or drivers/mfd/intel_soc_pmic_core.c
+> registering a pwm with the generic name of "pwm_backlight" and then the
+> i915 panel code does a pwm_get(dev, "pwm_backlight").
+> 
+> We have some heuristics in drivers/acpi/acpi_lpss.c to not register the
+> lookup if a Crystal Cove PMIC is presend and the mfd/intel_soc_pmic_core.c
+> code simply assumes that since there is a PMIC the PMIC PWM block will
+> be used. Basically we are winging it.
+> 
+> Recently I've learned about 2 different BYT devices:
+> Point of View MOBII TAB-P800W
+> Acer Switch 10 SW5-012
+> 
+> Which use a Crystal Cove PMIC, yet the LCD is connected to the SoC/LPSS
+> PWM controller (and the VBT correctly indicates this), so here our old
+> heuristics fail.
+> 
+> This series renams the PWM lookups registered by the LPSS /
+> intel_soc_pmic_core.c code from "pwm_backlight" to "pwm_soc_backlight" resp.
+> "pwm_pmic_backlight" and in the LPSS case also dropping the heuristics when
+> to register the lookup. This combined with teaching the i915 panel to call
+> pwm_get for the right lookup-name depending on the VBT bits resolves this.
+> 
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
