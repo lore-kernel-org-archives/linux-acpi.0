@@ -2,98 +2,80 @@ Return-Path: <SRS0=hH4S=ZL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68C81C432C3
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:09:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 367A8C432C3
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:26:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4B1AD22365
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:09:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 068DD223BD
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 16:26:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1574180765;
+	bh=0yskXAoVCs+5y3JXPmhJ5NsUh3bKosYHN2Xyhk8ykoE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=gfu+zzTX5dLkrqNIQ/dVhraVoo71dtnezZNJAkOGonMd9VuzXIwENxGeD0dz8dOkd
+	 CvHd9rJ5BNMXMRCHmHOx3Oit8OjM3sRx68oh6Lqytu1/vrz5xzd1bUClcEGmaeQF/b
+	 ZNrey13uvkGAglnHzEGpy8WzTj3qJkJF44PUz4sA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728333AbfKSQJV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Nov 2019 11:09:21 -0500
-Received: from mga14.intel.com ([192.55.52.115]:8324 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727909AbfKSQJV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 19 Nov 2019 11:09:21 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Nov 2019 08:09:21 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.69,218,1571727600"; 
-   d="scan'208";a="215567282"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
-  by fmsmga001.fm.intel.com with SMTP; 19 Nov 2019 08:09:18 -0800
-Received: by lahna (sSMTP sendmail emulation); Tue, 19 Nov 2019 18:09:17 +0200
-Date:   Tue, 19 Nov 2019 18:09:17 +0200
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-        stable@vger.kernel.org
-Subject: Re: [PATCH v2] pinctrl: baytrail: Really serialize all register
- accesses
-Message-ID: <20191119160917.GM11621@lahna.fi.intel.com>
-References: <20191119154641.202139-1-hdegoede@redhat.com>
+        id S1727910AbfKSQ0E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Nov 2019 11:26:04 -0500
+Received: from mail-oi1-f173.google.com ([209.85.167.173]:38160 "EHLO
+        mail-oi1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727646AbfKSQ0E (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2019 11:26:04 -0500
+Received: by mail-oi1-f173.google.com with SMTP id a14so19479411oid.5;
+        Tue, 19 Nov 2019 08:26:03 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=LRJee7nxzo39BqBz0UJpElsLIF+EqnwQjeBJ00aJBAY=;
+        b=lbEH4fSd4hfsjt/33+Tj9T+D8DQGuIP/+dxaKkV+RJiI6bWxBsQhoKiDDQEQ0h8p/6
+         D4kFh4xJg4LKjozEq1+Q6887BrZl7lWQ/TOrXzRZ+7DjOtU2HRVSLmOLgB/NqgSctQPo
+         h/wsgBSx7fzrh9ROPf3CKMkOqi6T6rHvQOs+glPUeLwIrlmgPVQXwnjBSXJb4M+IVHJ4
+         7fd/xZMb9talsB0fvvIhapQ6ADOCdEkaOEaFqLjThuhYE3mRLnqvBqiQrRmEDgrrIiBR
+         W3ZNIjIazoZQ1Drnglyw3MyiORtED8LXy2wvo3GlsutA4sRL9jbjdz24JSkWeS+MS4U/
+         p4hQ==
+X-Gm-Message-State: APjAAAWT2GXzI45nLSjZvwQgyE3W8uCEoDTvaSqkqK9Wie+FROseuQsm
+        nrnOYNcgc/221xGgwzYzuz9U255nDg2MVfF3c50=
+X-Google-Smtp-Source: APXvYqwSIosCDYwJalY/pWzTCo9I/Qus4/YSATjCZtrPT+N9E3j6eE4yxz0TGLnPR7dkMNO13daALFyZPvhkgMSMiKk=
+X-Received: by 2002:a05:6808:901:: with SMTP id w1mr5002167oih.57.1574180763016;
+ Tue, 19 Nov 2019 08:26:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191119154641.202139-1-hdegoede@redhat.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.12.1 (2019-06-15)
+References: <20191119145146.GA25855@paulmck-ThinkPad-P72>
+In-Reply-To: <20191119145146.GA25855@paulmck-ThinkPad-P72>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 19 Nov 2019 17:25:51 +0100
+Message-ID: <CAJZ5v0iL=O5tjAa796SqMH7HKSaTZOGJS3xEtY8dPqDX47001Q@mail.gmail.com>
+Subject: Re: next-20191118 rcutorture gets lots of "ACPI: Masking GPE 0x0"
+To:     paulmck@kernel.org
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 19, 2019 at 04:46:41PM +0100, Hans de Goede wrote:
-> Commit 39ce8150a079 ("pinctrl: baytrail: Serialize all register access")
-> added a spinlock around all register accesses because:
-> 
-> "There is a hardware issue in Intel Baytrail where concurrent GPIO register
->  access might result reads of 0xffffffff and writes might get dropped
->  completely."
-> 
-> Testing has shown that this does not catch all cases, there are still
-> 2 problems remaining
-> 
-> 1) The original fix uses a spinlock per byt_gpio device / struct,
-> additional testing has shown that this is not sufficient concurent
-> accesses to 2 different GPIO banks also suffer from the same problem.
-> 
-> This commit fixes this by moving to a single global lock.
-> 
-> 2) The original fix did not add a lock around the register accesses in
-> the suspend/resume handling.
-> 
-> Since pinctrl-baytrail.c is using normal suspend/resume handlers,
-> interrupts are still enabled during suspend/resume handling. Nothing
-> should be using the GPIOs when they are being taken down, _but_ the
-> GPIOs themselves may still cause interrupts, which are likely to
-> use (read) the triggering GPIO. So we need to protect against
-> concurrent GPIO register accesses in the suspend/resume handlers too.
-> 
-> This commit fixes this by adding the missing spin_lock / unlock calls.
-> 
-> The 2 fixes together fix the Acer Switch 10 SW5-012 getting completely
-> confused after a suspend resume. The DSDT for this device has a bug
-> in its _LID method which reprograms the home and power button trigger-
-> flags requesting both high and low _level_ interrupts so the IRQs for
-> these 2 GPIOs continuously fire. This combined with the saving of
-> registers during suspend, triggers concurrent GPIO register accesses
-> resulting in saving 0xffffffff as pconf0 value during suspend and then
-> when restoring this on resume the pinmux settings get all messed up,
-> resulting in various I2C busses being stuck, the wifi no longer working
-> and often the tablet simply not coming out of suspend at all.
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: 39ce8150a079 ("pinctrl: baytrail: Serialize all register access")
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+On Tue, Nov 19, 2019 at 3:51 PM Paul E. McKenney <paulmck@kernel.org> wrote:
+>
+> Hello!
+>
+> I had occasion to run rcutorture on next-20191118, and in a five-minute
+> run got 1,810,735 instances of "ACPI: Masking GPE 0x0" printed to the
+> console.  This run is under qemu on an ordinary x86 laptop.
+>
+> Is this a known issue?
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Yes, it is.
+
+The patch causing it has been dropped, another version of if (which
+should not cause the issue any more) is under testing.
+
+Cheers,
+Rafael
