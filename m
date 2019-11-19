@@ -2,143 +2,160 @@ Return-Path: <SRS0=hH4S=ZL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 831A6C432C0
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 19:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38561C432C0
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 22:13:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5F95E22441
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 19:17:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574191042;
-	bh=csZmOLvxjI2+OJ2t0MngnlUbh5xOq4tBtMIZxavgdq0=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=07i9sASSFt4m7y9W2TDLLUsw7i9JGtgRISsJdnqte6IX4cnnMUOlOKwb/j9dnJUMS
-	 CGpnspzyi/0Mfgl2REp8+FwkoZIe9qeDWk08BdybY5IEleEkV6y7vClLJcIKcbv2c9
-	 8QPZb+kQHJJvVjZh2ohR7ltB0Py5ietrfW0+WEqY=
+	by mail.kernel.org (Postfix) with ESMTP id 1954E20708
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 22:13:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727218AbfKSTRS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Nov 2019 14:17:18 -0500
-Received: from mail-oi1-f193.google.com ([209.85.167.193]:38462 "EHLO
-        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727036AbfKSTRS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2019 14:17:18 -0500
-Received: by mail-oi1-f193.google.com with SMTP id a14so20050278oid.5;
-        Tue, 19 Nov 2019 11:17:17 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=wNhSIdXIAMhTZZlTq4fvLUCixY9Z52dvDBqLG8iKTeg=;
-        b=RwYmRCTgVEBKrMJlWvkpWxd/5naacajGqd7cDvNQfe10wT0oEdntJWDUuS7cNHwA5Y
-         Pc3sIynZs9P6WuCaA8VkzLAHA2sa1oNFvHf2M5M8D6iut9pi3R9NAI1LvL66zrlIO1qO
-         r+Y1CDonyZnv8kRpjDVwnZPSNnOuK6VTTqSsqR0x8mzjTFqN/cumHEzq7RzmDWKNGrwf
-         N4lh6JXh0fe8oAEZvyTWO/yFE7AJBkGE7eIrAOmFm0fskx5IVuwuRvyGvm3kow5wG0PN
-         u5N99lSFkWWN6wd9CDh+0STVDUYMwf5wB9il+TNbJmCXb9tz6jf5EvzRS7easWy8HQV/
-         iBKg==
-X-Gm-Message-State: APjAAAUf/z5oP2KnQc/BzZfo1tozVfdtdkwkr68hjlKZBS15ZLlP/Z4S
-        dFLN0Fz+ikGeTUG9oJzHqiEVqWz89/B0B6BAl7o=
-X-Google-Smtp-Source: APXvYqwLfxciI4GS3t+oWbXzFREIpD12GUXpB9UJ5E3BLWwvX0dd5QLcJSKaltQnW2ZhblzctccArehQ8GCNyphjH2U=
-X-Received: by 2002:aca:1101:: with SMTP id 1mr5643630oir.103.1574191036787;
- Tue, 19 Nov 2019 11:17:16 -0800 (PST)
-MIME-Version: 1.0
-References: <2811202.iOFZ6YHztY@kreacher> <4551555.oysnf1Sd0E@kreacher>
- <000001d59d61$eb4e6670$c1eb3350$@net> <000401d59ee6$959e3da0$c0dab8e0$@net>
-In-Reply-To: <000401d59ee6$959e3da0$c0dab8e0$@net>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 19 Nov 2019 20:17:05 +0100
-Message-ID: <CAJZ5v0i1iAjpWju6FiCjP3RvspKDRfSwz4=b_3qgGhhfz8sSrw@mail.gmail.com>
-Subject: Re: [RFT][PATCH 1/3] PM: QoS: Introduce frequency QoS
+        id S1727354AbfKSWN6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Nov 2019 17:13:58 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:60596 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725978AbfKSWN5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2019 17:13:57 -0500
+Received: from 79.184.253.244.ipv4.supernova.orange.pl (79.184.253.244) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.292)
+ id 1bb4ebfdd68c6764; Tue, 19 Nov 2019 23:13:54 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Doug Smythies <dsmythies@telus.net>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Linux PM <linux-pm@vger.kernel.org>,
         Linux ACPI <linux-acpi@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>,
         Viresh Kumar <viresh.kumar@linaro.org>,
         Sudeep Holla <sudeep.holla@arm.com>,
         Dmitry Osipenko <digetx@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [RFT][PATCH 1/3] PM: QoS: Introduce frequency QoS
+Date:   Tue, 19 Nov 2019 23:13:53 +0100
+Message-ID: <6710300.onecg0m5mP@kreacher>
+In-Reply-To: <CAJZ5v0i1iAjpWju6FiCjP3RvspKDRfSwz4=b_3qgGhhfz8sSrw@mail.gmail.com>
+References: <2811202.iOFZ6YHztY@kreacher> <000401d59ee6$959e3da0$c0dab8e0$@net> <CAJZ5v0i1iAjpWju6FiCjP3RvspKDRfSwz4=b_3qgGhhfz8sSrw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 19, 2019 at 3:35 PM Doug Smythies <dsmythies@telus.net> wrote:
->
-> On 2019.11.17 08:13 Doug Smythies wrote:
-> > On 2019.11.16 23:35 Doug Smythies wrote:
->
-> >> Hi Rafael,
-> >>
-> >> Not sure, but I think it is this one that
-> >> causes complaining when I try to set the
-> >> intel_pstate driver to passive mode.
-> >> I started from active mode, powersave governor,
-> >> no HWP.
-> >>
-> >> Kernel: 5.4-rc7
-> >>
-> >> I did not go back and try previous 5.4 RCs.
->
-> After looking at the git tags for this patch,
-> I tried kernel 5.4-rc2, which was the closest
-> Kernel I had to before the patch set was added.
-> It worked fine, as expected.
->
-> >> I did try kernel 5.3-rc8, because I already had
-> >> it installed, and it worked fine.
-> >>
-> >> I use a script (for years), run as sudo:
-> >>
-> >> doug@s15:~/temp$ cat set_cpu_passive
-> >> #! /bin/bash
-> >> cat /sys/devices/system/cpu/intel_pstate/status
-> >> echo passive > /sys/devices/system/cpu/intel_pstate/status
-> >> cat /sys/devices/system/cpu/intel_pstate/status
-> >>
-> >> And I get this (very small excerpt):
-> >>
-> >> freq_qos_add_request() called for active request
-> >> WARNING: CPU: 1 PID: 2758 at kernel/power/qos.c:763 freq_qos_add_request+0x4c/0xa0
-> >> CPU: 1 PID: 2758 Comm: set_cpu_passive Not tainted 5.4.0-rc7-stock #727
-> >> Failed to add freq constraint for CPU0 (-22)
-> >>
-> >> freq_qos_add_request() called for active request
-> >> WARNING: CPU: 1 PID: 2758 at kernel/power/qos.c:763 freq_qos_add_request+0x4c/0xa0
-> >> CPU: 1 PID: 2758 Comm: set_cpu_passive Tainted: G        W         5.4.0-rc7-stock #727
-> >> Failed to add freq constraint for CPU1 (-22)
->
-> Updated summary of previous emails:
-> This patch or patch set breaks the after boot
-> ability to change CPU frequency scaling drivers.
->
-> Using a workaround of booting with
-> "intel_pstate=passive" seems to prevent the errors.
->
-> Changing between the intel_pstate and intel_cpufreq drivers
-> (i.e. between active and passive modes)
-> after boot, either way, causes the errors. i.e.
->
-> Failed to add freq constraint for CPU7 (-22)
-> (2 per CPU per attempt)
+On Tuesday, November 19, 2019 8:17:05 PM CET Rafael J. Wysocki wrote:
+> On Tue, Nov 19, 2019 at 3:35 PM Doug Smythies <dsmythies@telus.net> wrote:
+> >
+> > On 2019.11.17 08:13 Doug Smythies wrote:
+> > > On 2019.11.16 23:35 Doug Smythies wrote:
+> >
+> > >> Hi Rafael,
+> > >>
+> > >> Not sure, but I think it is this one that
+> > >> causes complaining when I try to set the
+> > >> intel_pstate driver to passive mode.
+> > >> I started from active mode, powersave governor,
+> > >> no HWP.
+> > >>
+> > >> Kernel: 5.4-rc7
+> > >>
+> > >> I did not go back and try previous 5.4 RCs.
+> >
+> > After looking at the git tags for this patch,
+> > I tried kernel 5.4-rc2, which was the closest
+> > Kernel I had to before the patch set was added.
+> > It worked fine, as expected.
+> >
+> > >> I did try kernel 5.3-rc8, because I already had
+> > >> it installed, and it worked fine.
+> > >>
+> > >> I use a script (for years), run as sudo:
+> > >>
+> > >> doug@s15:~/temp$ cat set_cpu_passive
+> > >> #! /bin/bash
+> > >> cat /sys/devices/system/cpu/intel_pstate/status
+> > >> echo passive > /sys/devices/system/cpu/intel_pstate/status
+> > >> cat /sys/devices/system/cpu/intel_pstate/status
+> > >>
+> > >> And I get this (very small excerpt):
+> > >>
+> > >> freq_qos_add_request() called for active request
+> > >> WARNING: CPU: 1 PID: 2758 at kernel/power/qos.c:763 freq_qos_add_request+0x4c/0xa0
+> > >> CPU: 1 PID: 2758 Comm: set_cpu_passive Not tainted 5.4.0-rc7-stock #727
+> > >> Failed to add freq constraint for CPU0 (-22)
+> > >>
+> > >> freq_qos_add_request() called for active request
+> > >> WARNING: CPU: 1 PID: 2758 at kernel/power/qos.c:763 freq_qos_add_request+0x4c/0xa0
+> > >> CPU: 1 PID: 2758 Comm: set_cpu_passive Tainted: G        W         5.4.0-rc7-stock #727
+> > >> Failed to add freq constraint for CPU1 (-22)
+> >
+> > Updated summary of previous emails:
+> > This patch or patch set breaks the after boot
+> > ability to change CPU frequency scaling drivers.
+> >
+> > Using a workaround of booting with
+> > "intel_pstate=passive" seems to prevent the errors.
+> >
+> > Changing between the intel_pstate and intel_cpufreq drivers
+> > (i.e. between active and passive modes)
+> > after boot, either way, causes the errors. i.e.
+> >
+> > Failed to add freq constraint for CPU7 (-22)
+> > (2 per CPU per attempt)
+> 
+> These messages come from acpi_processor_ppc_init() and
+> acpi_thermal_cpufreq_init(), AFAICS, which are invoked by
+> acpi_processor_notifier() and that is invoked by the
+> blocking_notifier_call_chain() in cpufreq_online() which tirggers for
+> new policies after adding the max freq QoS request to
+> policy->constraints.
+> 
+> The requests added by them should be removed by
+> acpi_processor_ppc_exit() and acpi_thermal_cpufreq_exit(),
+> respectively, invoked by the blocking_notifier_call_chain() in
+> cpufreq_policy_free(), but it looks like that doesn't happen.
+> 
+> However, I now also see that freq_qos_remove_request() doesn't clear
+> the qos field in req which is should do, so freq_qos_add_request()
+> will complain and fail if the object pointed to by req is passed to it
+> again.
+> 
+> I'll send a patch to test for this later today.
+> 
 
-These messages come from acpi_processor_ppc_init() and
-acpi_thermal_cpufreq_init(), AFAICS, which are invoked by
-acpi_processor_notifier() and that is invoked by the
-blocking_notifier_call_chain() in cpufreq_online() which tirggers for
-new policies after adding the max freq QoS request to
-policy->constraints.
+The patch is appended.  Please test it (on top of 5.4-rc8) and report back.
 
-The requests added by them should be removed by
-acpi_processor_ppc_exit() and acpi_thermal_cpufreq_exit(),
-respectively, invoked by the blocking_notifier_call_chain() in
-cpufreq_policy_free(), but it looks like that doesn't happen.
 
-However, I now also see that freq_qos_remove_request() doesn't clear
-the qos field in req which is should do, so freq_qos_add_request()
-will complain and fail if the object pointed to by req is passed to it
-again.
+---
+ kernel/power/qos.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-I'll send a patch to test for this later today.
+Index: linux-pm/kernel/power/qos.c
+===================================================================
+--- linux-pm.orig/kernel/power/qos.c
++++ linux-pm/kernel/power/qos.c
+@@ -814,6 +814,8 @@ EXPORT_SYMBOL_GPL(freq_qos_update_reques
+  */
+ int freq_qos_remove_request(struct freq_qos_request *req)
+ {
++	int ret;
++
+ 	if (!req)
+ 		return -EINVAL;
+ 
+@@ -821,7 +823,11 @@ int freq_qos_remove_request(struct freq_
+ 		 "%s() called for unknown object\n", __func__))
+ 		return -EINVAL;
+ 
+-	return freq_qos_apply(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
++	ret = freq_qos_apply(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
++	req->qos = NULL;
++	req->type = 0;
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(freq_qos_remove_request);
+ 
+
+
+
