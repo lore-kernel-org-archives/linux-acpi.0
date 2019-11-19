@@ -1,142 +1,101 @@
-Return-Path: <SRS0=Z0h1=ZK=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=hH4S=ZL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41CF5C432C0
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Nov 2019 21:16:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 377B0C432C0
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 00:21:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E29B22310
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Nov 2019 21:16:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574111761;
-	bh=s25KAxwdlGHkLvcs+q9woL4CDBzZDN8ytVafop7QNuw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=kRRW9yRAyP1Ce9chQ7vARhcV7P5Qg9hkkRt+RUEa1dy86rRMh8EpWoOt7Qb8UKNJL
-	 tTidzFKB2WNXj0AQWexzWKDkVR6WerMPJARhWQfzq5lKDRJv7hQqL+Vj8ET9/c6C1k
-	 u2zm61GajrzNq0K5zX+SJcppPNBP6wycVy/+l2xs=
+	by mail.kernel.org (Postfix) with ESMTP id 1686C2230B
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 00:21:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726869AbfKRVQA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Nov 2019 16:16:00 -0500
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:42231 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726735AbfKRVQA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Nov 2019 16:16:00 -0500
-Received: by mail-oi1-f196.google.com with SMTP id o12so6612294oic.9;
-        Mon, 18 Nov 2019 13:15:59 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=EGmcPUR8/fSmoKZT8wNG542Hx4EddFL0Aj04F8QGfeY=;
-        b=ThXvTYCc91LVt5IxL/YqWcKw7vlFNAQzx/sSiAgA0RyYzwDMU0Vs1X2c5KhzkJoWOf
-         CxN6Ys5n9WaFf7SbhUYCupaiIyPQSZl5LXmyUz3Gua6NSOx+XsRrcvEbunGr6P56Xub5
-         WXQSvcc1koJoDCPlPUmrBEvtQghvPwACN+XUZK4ByzTPGZcMc2JH46gV97sh/qa4RhLh
-         8/V2aX2jQbeEl2VW36B9XbSGIqaDrjceEi6FsnucAaPCWXgaK14vU3FEUQnfFfH3dvYv
-         9XnYJZ2Mt0wy0L2hc1wbvbE21PGdwCUh4mM8tm5lp+8cKGiwo7Tjf6u7QxlfSHuvoMwr
-         9Vvw==
-X-Gm-Message-State: APjAAAVDNCtNQdk6qLsmGPcNWRljODVJw4VmPjkhlCn5LG3MLi8FDtKx
-        OBQLqyK/xz/57kY3KbmPkBcZ25WdkDfSbfTeW2c=
-X-Google-Smtp-Source: APXvYqxKvx5v2bCoNyNp2j7oV6Nv/3O62/Y0L4stjW1SPiCGZ4joqQakDM+BdHFoJFd/VP2iZTuRGld/2iYKJrPlnDw=
-X-Received: by 2002:aca:d4c6:: with SMTP id l189mr903647oig.68.1574111759293;
- Mon, 18 Nov 2019 13:15:59 -0800 (PST)
+        id S1727407AbfKSAVu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Nov 2019 19:21:50 -0500
+Received: from mga18.intel.com ([134.134.136.126]:64622 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727336AbfKSAVt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Nov 2019 19:21:49 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Nov 2019 16:21:49 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.68,321,1569308400"; 
+   d="scan'208";a="215412049"
+Received: from sjchrist-coffee.jf.intel.com ([10.54.74.41])
+  by fmsmga001.fm.intel.com with ESMTP; 18 Nov 2019 16:21:47 -0800
+From:   Sean Christopherson <sean.j.christopherson@intel.com>
+To:     Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>
+Cc:     Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Nadav Amit <namit@vmware.com>,
+        "VMware, Inc." <pv-drivers@vmware.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Cezary Rojewski <cezary.rojewski@intel.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        Liam Girdwood <liam.r.girdwood@linux.intel.com>,
+        Jie Yang <yang.jie@linux.intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-efi@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 09/12] ASoC: Intel: Skylake: Explicitly include linux/io.h for virt_to_phys()
+Date:   Mon, 18 Nov 2019 16:21:18 -0800
+Message-Id: <20191119002121.4107-10-sean.j.christopherson@intel.com>
+X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191119002121.4107-1-sean.j.christopherson@intel.com>
+References: <20191119002121.4107-1-sean.j.christopherson@intel.com>
 MIME-Version: 1.0
-References: <cc03ba18-4949-9244-639c-94f461f03361@huawei.com>
- <CAA9_cmc7BuWkBHadHRAxfch43KWovb6rSr2AR9y3bVue0M9EhQ@mail.gmail.com>
- <CAJZ5v0g35zvSB88d7qK8n1uRGCuO5VNK11jHVQRNKwyQW4vZSQ@mail.gmail.com> <CAA42JLYCod=mymBiDDXxQ1sts7e-Ot_q9SKdJxjSkcsZRVGDTQ@mail.gmail.com>
-In-Reply-To: <CAA42JLYCod=mymBiDDXxQ1sts7e-Ot_q9SKdJxjSkcsZRVGDTQ@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 18 Nov 2019 22:15:48 +0100
-Message-ID: <CAJZ5v0iAbf7qQeyeR6CVYTX8v=OpEcbFksTHgQ0LAZk-QKqHpQ@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: sysfs: Change ACPI_MASKABLE_GPE_MAX to 0x100
-To:     Dexuan-Linux Cui <dexuan.linux@gmail.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Yunfeng Ye <yeyunfeng@huawei.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        "hushiyuan@huawei.com" <hushiyuan@huawei.com>,
-        "linfeilong@huawei.com" <linfeilong@huawei.com>,
-        Dexuan Cui <decui@microsoft.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 18, 2019 at 8:44 PM Dexuan-Linux Cui <dexuan.linux@gmail.com> wrote:
->
-> On Mon, Nov 18, 2019 at 1:04 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > On Sat, Nov 16, 2019 at 9:06 PM Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > On Wed, Nov 13, 2019 at 11:17 PM Yunfeng Ye <yeyunfeng@huawei.com> wrote:
-> > > >
-> > > > The commit 0f27cff8597d ("ACPI: sysfs: Make ACPI GPE mask kernel
-> > > > parameter cover all GPEs") says:
-> > > >   "Use a bitmap of size 0xFF instead of a u64 for the GPE mask so 256
-> > > >    GPEs can be masked"
-> > > >
-> > > > But the masking of GPE 0xFF it not supported and the check condition
-> > > > "gpe > ACPI_MASKABLE_GPE_MAX" is not valid because the type of gpe is
-> > > > u8.
-> > > >
-> > > > So modify the macro ACPI_MASKABLE_GPE_MAX to 0x100, and drop the "gpe >
-> > > > ACPI_MASKABLE_GPE_MAX" check. In addition, update the docs "Format" for
-> > > > acpi_mask_gpe parameter.
-> > > >
-> > > > Fixes: 0f27cff8597d ("ACPI: sysfs: Make ACPI GPE mask kernel parameter cover all GPEs")
-> > > > Signed-off-by: Yunfeng Ye <yeyunfeng@huawei.com>
-> > > > ---
-> > > > v1 -> v2:
-> > > >  - drop the "gpe > ACPI_MASKABLE_GPE_MAX" check
-> > > >  - update the docs "Format" from <int> to <byte> for acpi_mask_gpe parameter
-> > > >  - update the commit comment
-> > > >
-> > > >  Documentation/admin-guide/kernel-parameters.txt | 2 +-
-> > > >  drivers/acpi/sysfs.c                            | 4 ++--
-> > > >  2 files changed, 3 insertions(+), 3 deletions(-)
-> > >
-> > > Bisect flags commit eb09878e1301 "ACPI: sysfs: Change
-> > > ACPI_MASKABLE_GPE_MAX to 0x100" in -next as the reason for a boot
-> > > regression in my qemu-kvm test environment. It spews:
-> > >
-> > > [    1.456728] ACPI: Masking GPE 0x0.
-> > > ...
-> > > [  161.721420] ACPI: Masking GPE 0x0.
-> > >
-> > > ...and then hangs.
-> > >
-> > > A straight revert gets the configuration back on its feet.
-> > >
-> > > qemu-system-x86_64 --version
-> > > QEMU emulator version 4.0.50 (v4.0.0-928-g49c6c6ac0cd8)
-> >
-> > OK, I'll drop it then, thanks!
->
-> We're seeing the same issue wtih 5.4.0-rc7-next-20191118 on a Linux VM
-> running on Hyper-V :
->
-> [    0.133029] ACPI: 1 ACPI AML tables successfully acquired and loaded
-> [    0.144023] ACPI: Interpreter enabled
-> [    0.145023] ACPI: (supports S0 S5)
-> [    0.146023] ACPI: Using IOAPIC for interrupt routing
-> [    0.147024] PCI: Using host bridge windows from ACPI; if necessary,
-> use "pci=nocrs" and report a bug
-> [    0.148031] ACPI: Masking GPE 0x0.
-> ...
-> [  774.839023] ACPI: Masking GPE 0x0.
-> [  774.840023] ACPI: Masking GPE 0x0.
->
-> I guess the patch is only tested on a physical machine and not on a VM...
+Through a labyrinthian sequence of includes, usage of virt_to_phys() is
+dependent on the include of asm/io.h in x86's asm/realmode.h, which is
+included in x86's asm/acpi.h and thus by linux/acpi.h.  Explicitly
+include linux/io.h to break the dependency on realmode.h so that a
+future patch can remove the realmode.h include from acpi.h without
+breaking the build.
 
-It looks like the patch hasn't been tested at all.
+Signed-off-by: Sean Christopherson <sean.j.christopherson@intel.com>
+---
+ sound/soc/intel/skylake/skl-sst-cldma.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Please try to change the data type of gpe in
-acpi_gpe_apply_masked_gpes() to u16 and see if that helps.
+diff --git a/sound/soc/intel/skylake/skl-sst-cldma.c b/sound/soc/intel/skylake/skl-sst-cldma.c
+index 5a2c35f58fda..36f697c61074 100644
+--- a/sound/soc/intel/skylake/skl-sst-cldma.c
++++ b/sound/soc/intel/skylake/skl-sst-cldma.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <linux/device.h>
++#include <linux/io.h>
+ #include <linux/mm.h>
+ #include <linux/delay.h>
+ #include "../common/sst-dsp.h"
+-- 
+2.24.0
+
