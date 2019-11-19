@@ -4,45 +4,45 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A98AC432C0
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 15:18:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E99C432C3
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 15:18:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D5532231C
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 15:18:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A81B2235E
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Nov 2019 15:18:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Hw355rYs"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PMKsychZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728128AbfKSPSb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Nov 2019 10:18:31 -0500
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:25165 "EHLO
+        id S1728217AbfKSPSg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Nov 2019 10:18:36 -0500
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:57160 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727509AbfKSPSa (ORCPT
+        by vger.kernel.org with ESMTP id S1728171AbfKSPSf (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 19 Nov 2019 10:18:30 -0500
+        Tue, 19 Nov 2019 10:18:35 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1574176709;
+        s=mimecast20190719; t=1574176715;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ypeIeOv6cE6tGzjRHIvuCn9lxejh6U9cIMlMauvaS+4=;
-        b=Hw355rYs/vJR9Kmq3I4esPXoaCj6ereO1Be8/FSe281A0ahIE1IwQcq8qnufjvv6oh5Ojo
-        PEMlkpkhZm2X0k8+LB9tzOyCNHexa83Er8oYQVMoZkDRtrIadfHeQAAONtkYpgolPrajYs
-        3AG0x4kkGY+6c7E22SpMEHb7x8AATrc=
+        bh=T1xgbYHwGV/X4qOujvrB+x8YaMZaSCqcczgDWtCSP8s=;
+        b=PMKsychZszZ405ZmwQTZmcxi/yhKG83GvCC3JGbP95uGd1M6+2LkZMdmbblpR0UVaZLIUz
+        lsqUmyVxp/SIpd1xvbNVmQhX39g/q9YUPUWjJ9yqyY7XL6qgGTGCnYPVSuAa9hgxx7Vavg
+        jQlFoM7slHAJjknrqxcH+DdAbqPj9HA=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-301-27YsXFnCPoCbOuIEVMyaJQ-1; Tue, 19 Nov 2019 10:18:28 -0500
+ us-mta-219-WfxXZp1-MWuD2QExxvJkuA-1; Tue, 19 Nov 2019 10:18:33 -0500
 Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3A893477;
-        Tue, 19 Nov 2019 15:18:25 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C03541804975;
+        Tue, 19 Nov 2019 15:18:30 +0000 (UTC)
 Received: from shalem.localdomain.com (ovpn-117-49.ams2.redhat.com [10.36.117.49])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A540D1001B35;
-        Tue, 19 Nov 2019 15:18:22 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 4B0A81001B35;
+        Tue, 19 Nov 2019 15:18:28 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
         Jani Nikula <jani.nikula@linux.intel.com>,
@@ -57,14 +57,14 @@ Cc:     Hans de Goede <hdegoede@redhat.com>,
         linux-acpi@vger.kernel.org,
         intel-gfx <intel-gfx@lists.freedesktop.org>,
         dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] ACPI / LPSS: Rename pwm_backlight pwm-lookup to pwm_soc_backlight
-Date:   Tue, 19 Nov 2019 16:18:16 +0100
-Message-Id: <20191119151818.67531-2-hdegoede@redhat.com>
+Subject: [PATCH 3/3] drm/i915: DSI: select correct PWM controller to use based on the VBT
+Date:   Tue, 19 Nov 2019 16:18:18 +0100
+Message-Id: <20191119151818.67531-4-hdegoede@redhat.com>
 In-Reply-To: <20191119151818.67531-1-hdegoede@redhat.com>
 References: <20191119151818.67531-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-X-MC-Unique: 27YsXFnCPoCbOuIEVMyaJQ-1
+X-MC-Unique: WfxXZp1-MWuD2QExxvJkuA-1
 X-Mimecast-Spam-Score: 0
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
@@ -95,63 +95,60 @@ Which use a Crystal Cove PMIC, yet the LCD is connected to the SoC/LPSS
 PWM controller (and the VBT correctly indicates this), so here our old
 heuristics fail.
 
-Since only the i915 driver has access to the VBT, this commit renames
-the "pwm_backlight" lookup entries for the 1st BYT/CHT LPSS PWM controller
-to "pwm_soc_backlight" so that the i915 driver can do a pwm_get() for
-the right controller depending on the VBT bit, instead of the i915 driver
-relying on a "pwm_backlight" lookup getting registered which magically
-points to the right controller.
+This commit fixes using the wrong PWM controller on these devices by
+calling pwm_get() for the right PWM controller based on the
+VBT dsi.config.pwm_blc bit.
+
+Note this is part of a series which contains 2 other patches which renames
+the PWM lookup for the 1st SoC/LPSS PWM from "pwm_backlight" to
+"pwm_pmic_backlight" and the PWM lookup for the Crystal Cove PMIC PWM
+from "pwm_backlight" to "pwm_pmic_backlight".
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/acpi_lpss.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/i915/display/intel_panel.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 751ed38f2a10..63e81d8e675b 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -69,10 +69,6 @@ ACPI_MODULE_NAME("acpi_lpss");
- #define LPSS_SAVE_CTX=09=09=09BIT(4)
- #define LPSS_NO_D3_DELAY=09=09BIT(5)
+diff --git a/drivers/gpu/drm/i915/display/intel_panel.c b/drivers/gpu/drm/i=
+915/display/intel_panel.c
+index bc14e9c0285a..ddcf311d1114 100644
+--- a/drivers/gpu/drm/i915/display/intel_panel.c
++++ b/drivers/gpu/drm/i915/display/intel_panel.c
+@@ -1840,13 +1840,22 @@ static int pwm_setup_backlight(struct intel_connect=
+or *connector,
+ =09=09=09       enum pipe pipe)
+ {
+ =09struct drm_device *dev =3D connector->base.dev;
++=09struct drm_i915_private *dev_priv =3D to_i915(dev);
+ =09struct intel_panel *panel =3D &connector->panel;
++=09const char *desc;
+ =09int retval;
 =20
--/* Crystal Cove PMIC shares same ACPI ID between different platforms */
--#define BYT_CRC_HRV=09=09=092
--#define CHT_CRC_HRV=09=09=093
--
- struct lpss_private_data;
+-=09/* Get the PWM chip for backlight control */
+-=09panel->backlight.pwm =3D pwm_get(dev->dev, "pwm_backlight");
++=09/* Get the right PWM chip for DSI backlight according to VBT */
++=09if (dev_priv->vbt.dsi.config->pwm_blc =3D=3D PPS_BLC_PMIC) {
++=09=09panel->backlight.pwm =3D pwm_get(dev->dev, "pwm_pmic_backlight");
++=09=09desc =3D "PMIC";
++=09} else {
++=09=09panel->backlight.pwm =3D pwm_get(dev->dev, "pwm_soc_backlight");
++=09=09desc =3D "SoC";
++=09}
++
+ =09if (IS_ERR(panel->backlight.pwm)) {
+-=09=09DRM_ERROR("Failed to own the pwm chip\n");
++=09=09DRM_ERROR("Failed to get the %s PWM chip\n", desc);
+ =09=09panel->backlight.pwm =3D NULL;
+ =09=09return -ENODEV;
+ =09}
+@@ -1873,6 +1882,7 @@ static int pwm_setup_backlight(struct intel_connector=
+ *connector,
+ =09=09=09=09 CRC_PMIC_PWM_PERIOD_NS);
+ =09panel->backlight.enabled =3D panel->backlight.level !=3D 0;
 =20
- struct lpss_device_desc {
-@@ -158,7 +154,7 @@ static void lpss_deassert_reset(struct lpss_private_dat=
-a *pdata)
-  */
- static struct pwm_lookup byt_pwm_lookup[] =3D {
- =09PWM_LOOKUP_WITH_MODULE("80860F09:00", 0, "0000:00:02.0",
--=09=09=09       "pwm_backlight", 0, PWM_POLARITY_NORMAL,
-+=09=09=09       "pwm_soc_backlight", 0, PWM_POLARITY_NORMAL,
- =09=09=09       "pwm-lpss-platform"),
- };
-=20
-@@ -170,8 +166,7 @@ static void byt_pwm_setup(struct lpss_private_data *pda=
-ta)
- =09if (!adev->pnp.unique_id || strcmp(adev->pnp.unique_id, "1"))
- =09=09return;
-=20
--=09if (!acpi_dev_present("INT33FD", NULL, BYT_CRC_HRV))
--=09=09pwm_add_table(byt_pwm_lookup, ARRAY_SIZE(byt_pwm_lookup));
-+=09pwm_add_table(byt_pwm_lookup, ARRAY_SIZE(byt_pwm_lookup));
++=09DRM_INFO("Using %s PWM for LCD backlight control\n", desc);
+ =09return 0;
  }
-=20
- #define LPSS_I2C_ENABLE=09=09=090x6c
-@@ -204,7 +199,7 @@ static void byt_i2c_setup(struct lpss_private_data *pda=
-ta)
- /* BSW PWM used for backlight control by the i915 driver */
- static struct pwm_lookup bsw_pwm_lookup[] =3D {
- =09PWM_LOOKUP_WITH_MODULE("80862288:00", 0, "0000:00:02.0",
--=09=09=09       "pwm_backlight", 0, PWM_POLARITY_NORMAL,
-+=09=09=09       "pwm_soc_backlight", 0, PWM_POLARITY_NORMAL,
- =09=09=09       "pwm-lpss-platform"),
- };
 =20
 --=20
 2.23.0
