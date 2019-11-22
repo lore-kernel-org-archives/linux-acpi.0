@@ -2,205 +2,133 @@ Return-Path: <SRS0=u8mE=ZO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06F92C432C0
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 10:51:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A88D1C432C0
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 11:12:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C973B20730
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 10:51:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="RzMiAchI"
+	by mail.kernel.org (Postfix) with ESMTP id 8C6392070E
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 11:12:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729242AbfKVKvN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Nov 2019 05:51:13 -0500
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:54671 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729768AbfKVKvJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2019 05:51:09 -0500
-Received: by mail-wm1-f66.google.com with SMTP id x26so6643686wmk.4
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Nov 2019 02:51:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=vx4Rp2JWxTpwjHbsPUwQOJio9qv2Si3UTdoXXTOJ6hw=;
-        b=RzMiAchIN0a1MA2agzsMmmUVN/NACrbKmeQxW9OYLy/xyPd/+bdzJ3ZJ1a0SCZIMfi
-         1opvf0yvvJPDEs69SqH0j0177JHM9wAcPvQa0Gx7Qfznl9EMxk1LCPjTfQ/rzrY99sa9
-         tj6hbbskL7HY5QzmcYnpJ7i7eRhpYkp7Wf4Uk4wk9S0J4GIQIVqnSyoESgxWxPktMOyg
-         tzoZBhV6FQMgH8nP/3g1GYHXT/3k1thAdNwX9RVy6NoGRBnSI0wWuQUkd+LZicHh7Mrp
-         w2x3EEBfT7ZqyQsIs5utEfoIRm2rYkYWXLhhZn6cJ8ThHpUuu7kXjmE83dXpl6mgyUgR
-         1HUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=vx4Rp2JWxTpwjHbsPUwQOJio9qv2Si3UTdoXXTOJ6hw=;
-        b=mYP+JHm6QWY6Hd0i5bRpKFcRgoP/ROjwOqH2UgoFXMXeXfh9ocM/HVkGRTG68iMuus
-         o3FurEiJWIdLoAhrvEv4+HQ8ET+JwbAhsu9gpcOS4ICdCfOVvsyc2Gbmsl+6EP0oEPNX
-         eKdK72zc2/akgYA5rV6GU0q2DC4E02QWuZbgyOB9b361oL7XB+zIizUSMbADOjqTHKkp
-         RtZogTbzd5Yposl9dbLIbGBcS3GOkzCVucg49ARE2iFSeCVf1K1zfkGoJ1JELlCw1A1b
-         k7Qu9VAwVRCHEG4OyyXlKs775yQtnvruj7TZEUB13N0edY1m+UCo+Q4B13gmRSsfLPan
-         nGLg==
-X-Gm-Message-State: APjAAAVDq/qrebKCiESHUmchV5HdI9LqECJ2B2pxr2tLz3Q7RXrSUvgT
-        eiJXIVgCE83wTyUMipRu06q8t4lD8yo=
-X-Google-Smtp-Source: APXvYqyZxbgndRY6b3Fh3ipFtYb3tNJ6jmpmtk3V3fd+ZYBSzCjLSNTlmzWGkB0HHefvBHwBmcEmHA==
-X-Received: by 2002:a1c:7c18:: with SMTP id x24mr16254886wmc.130.1574419867091;
-        Fri, 22 Nov 2019 02:51:07 -0800 (PST)
-Received: from localhost.localdomain (xdsl-188-155-204-106.adslplus.ch. [188.155.204.106])
-        by smtp.gmail.com with ESMTPSA id o133sm2088197wmb.4.2019.11.22.02.51.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 22 Nov 2019 02:51:06 -0800 (PST)
-From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
-To:     linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        iommu@lists.linux-foundation.org,
-        virtualization@lists.linux-foundation.org,
-        linux-pci@vger.kernel.org, virtio-dev@lists.oasis-open.org
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, lorenzo.pieralisi@arm.com,
-        guohanjun@huawei.com, sudeep.holla@arm.com,
-        gregkh@linuxfoundation.org, joro@8bytes.org, bhelgaas@google.com,
-        mst@redhat.com, jasowang@redhat.com, jacob.jun.pan@intel.com,
-        eric.auger@redhat.com, sebastien.boeuf@intel.com,
-        kevin.tian@intel.com
-Subject: [RFC virtio 12/13] virtio-iommu: Add built-in topology description
-Date:   Fri, 22 Nov 2019 11:49:59 +0100
-Message-Id: <20191122105000.800410-13-jean-philippe@linaro.org>
-X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191122105000.800410-1-jean-philippe@linaro.org>
-References: <20191122105000.800410-1-jean-philippe@linaro.org>
+        id S1730598AbfKVLM2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Nov 2019 06:12:28 -0500
+Received: from mga09.intel.com ([134.134.136.24]:24547 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728618AbfKVLMX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Nov 2019 06:12:23 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Nov 2019 03:12:22 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,229,1571727600"; 
+   d="scan'208";a="210220363"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga003.jf.intel.com with ESMTP; 22 Nov 2019 03:12:20 -0800
+Received: from andy by smile with local (Exim 4.93-RC1)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1iY6rL-0000bl-Jr; Fri, 22 Nov 2019 13:12:19 +0200
+Date:   Fri, 22 Nov 2019 13:12:19 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Jan Kiszka <jan.kiszka@siemens.com>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-gpio@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH v3 1/2] gpio: sch: Add edge event support
+Message-ID: <20191122111219.GW32742@smile.fi.intel.com>
+References: <cover.1574277614.git.jan.kiszka@siemens.com>
+ <42ae6149a14f81fd86c5acb5bd33e987123b6bed.1574277614.git.jan.kiszka@siemens.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <42ae6149a14f81fd86c5acb5bd33e987123b6bed.1574277614.git.jan.kiszka@siemens.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a lightweight method to describe the IOMMU topology in the config
-space, guarded by a new feature bit. A list of capabilities in the
-config space describes the devices managed by the IOMMU and their
-endpoint IDs.
+On Wed, Nov 20, 2019 at 08:20:13PM +0100, Jan Kiszka wrote:
+> From: Jan Kiszka <jan.kiszka@siemens.com>
+> 
+> Add the required infrastructure consisting of an irq_chip_generic with
+> its irq_chip_type callbacks to enable and report edge events of the pins
+> to the gpio core. The actual hook-up of the event interrupt will happen
+> separately.
 
-Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
----
- virtio-iommu.tex | 88 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 88 insertions(+)
+> +static int sch_irq_type(struct irq_data *d, unsigned int type)
+> +{
+> +	struct irq_chip_generic *gc = irq_data_get_irq_chip_data(d);
+> +	struct sch_gpio *sch = gc->private;
+> +	unsigned int gpio_num = d->irq - sch->irq_base;
+> +	unsigned long flags;
+> +	int rising = 0;
+> +	int falling = 0;
+> +
+> +	switch (type & IRQ_TYPE_SENSE_MASK) {
+> +	case IRQ_TYPE_EDGE_RISING:
+> +		rising = 1;
+> +		break;
+> +	case IRQ_TYPE_EDGE_FALLING:
+> +		falling = 1;
+> +		break;
+> +	case IRQ_TYPE_EDGE_BOTH:
+> +		rising = 1;
+> +		falling = 1;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	spin_lock_irqsave(&sch->lock, flags);
+> +	sch_gpio_reg_set(sch, gpio_num, GTPE, rising);
+> +	sch_gpio_reg_set(sch, gpio_num, GTNE, falling);
+> +	spin_unlock_irqrestore(&sch->lock, flags);
 
-diff --git a/virtio-iommu.tex b/virtio-iommu.tex
-index 28c562b..2b29873 100644
---- a/virtio-iommu.tex
-+++ b/virtio-iommu.tex
-@@ -67,6 +67,9 @@ \subsection{Feature bits}\label{sec:Device Types / IOMMU Device / Feature bits}
- 
- \item[VIRTIO_IOMMU_F_MMIO (5)]
-   The VIRTIO_IOMMU_MAP_F_MMIO flag is available.
-+
-+\item[VIRTIO_IOMMU_F_TOPOLOGY (6)]
-+  Topology description is available at \field{topo_offset}.
- \end{description}
- 
- \drivernormative{\subsubsection}{Feature bits}{Device Types / IOMMU Device / Feature bits}
-@@ -97,6 +100,7 @@ \subsection{Device configuration layout}\label{sec:Device Types / IOMMU Device /
-     le32 end;
-   } domain_range;
-   le32 probe_size;
-+  le16 topo_offset;
- };
- \end{lstlisting}
- 
-@@ -141,6 +145,90 @@ \subsection{Device initialization}\label{sec:Device Types / IOMMU Device / Devic
- If the driver does not accept the VIRTIO_IOMMU_F_BYPASS feature, the
- device SHOULD NOT let endpoints access the guest-physical address space.
- 
-+\subsubsection{Built-in topology description}\label{sec:Device Types / IOMMU Device / Device initialization / topology}
-+
-+The device manages memory accesses from endpoints, identified by endpoint
-+IDs. The driver can discover which endpoint ID corresponds to an endpoint
-+using several methods, depending on the platform. Platforms described
-+with device tree use the \texttt{iommus} and \texttt{iommu-map} properties
-+embedded into device nodes for this purpose. Platforms described with
-+ACPI use a table such as the Virtual I/O Table. Platforms that do not
-+support either device tree or ACPI may embed a minimalistic description
-+in the device configuration space.
-+
-+An important disadvantage of describing the topology from within the
-+device is the lack of initialization ordering information. Out-of-band
-+descriptions such as device tree and ACPI let the operating system know
-+about device dependencies so that it can initialize supplier devices
-+(IOMMUs) before their consumers (endpoints). Platforms using the
-+VIRTIO_IOMMU_F_TOPOLOGY feature have to communicate the device dependency
-+in another way.
-+
-+If the VIRTIO_IOMMU_F_TOPOLOGY feature is negotiated, \field{topo_offset}
-+is the offset between the beginning of the device-specific configuration
-+space (virtio_iommu_config) and the first topology structure header. A
-+topology structures defines the endpoint ID of one or more endpoints
-+managed by the virtio-iommu device.
-+
-+\begin{lstlisting}
-+struct virtio_iommu_topo_head {
-+  le16 type;
-+  le16 next;
-+};
-+\end{lstlisting}
-+
-+\field{next} is the offset between the beginning of the device-specific
-+configuration space and the next topology structure header. When
-+\field{next} is zero, this is the last structure.
-+
-+\field{type} describes the type of structure:
-+\begin{description}
-+  \item[VIRTIO_IOMMU_TOPO_PCI_RANGE (0)] struct virtio_iommu_topo_pci_range
-+  \item[VIRTIO_IOMMU_TOPO_ENDPOINT (1)] struct virtio_iommu_topo_endpoint
-+\end{description}
-+
-+\paragraph{PCI range}\label{sec:Device Types / IOMMU Device / Device initialization / topology / PCI range}
-+
-+\begin{lstlisting}
-+struct virtio_iommu_topo_pci_range {
-+  struct virtio_iommu_topo_head head;
-+  le32 endpoint_start;
-+  le16 hierarchy;
-+  le16 requester_start;
-+  le16 requester_end;
-+  le16 reserved;
-+};
-+\end{lstlisting}
-+
-+The PCI range structure describes the endpoint IDs of a series of PCI
-+devices.
-+
-+\begin{description}
-+  \item[\field{hierarchy}] Identifier of the PCI hierarchy. Sometimes
-+    called PCI segment or domain number.
-+  \item[\field{requester_start}] First requester ID in the range.
-+  \item[\field{requester_end}] Last requester ID in the range.
-+  \item[\field{endpoint_start}] First endpoint ID.
-+\end{description}
-+
-+The correspondence between a PCI requester ID in the range
-+[ requester_start; requester_end ] and its endpoint IDs is a linear
-+transformation: endpoint_id = requester_id - requester_start +
-+endpoint_start.
-+
-+\paragraph{Single endpoint}\label{sec:Device Types / IOMMU Device / Device initialization / topology / Single endpoint}
-+
-+\begin{lstlisting}
-+struct virtio_iommu_topo_endpoint {
-+  struct virtio_iommu_topo_head head;
-+  le32 endpoint;
-+  le64 address;
-+};
-+\end{lstlisting}
-+
-+\field{endpoint} is the ID of a single endpoint, identified by its first
-+MMIO address in the physical address space.
-+
- \subsection{Device operations}\label{sec:Device Types / IOMMU Device / Device operations}
- 
- Driver send requests on the request virtqueue, notifies the device and
+Won't we need to set up IRQ handler here and use handle_bad_irq() during
+initialization phase?
+
+> +
+> +	return 0;
+> +}
+
+> +	irq_base = devm_irq_alloc_descs(&pdev->dev, -1, 0, sch->chip.ngpio,
+> +					NUMA_NO_NODE);
+> +	if (irq_base < 0)
+> +		return irq_base;
+> +	sch->irq_base = irq_base;
+> +
+> +	gc = devm_irq_alloc_generic_chip(&pdev->dev, "sch_gpio", 1, irq_base,
+> +					 NULL, handle_simple_irq);
+> +	if (!gc)
+> +		return -ENOMEM;
+> +
+> +	gc->private = sch;
+> +	ct = gc->chip_types;
+> +
+> +	ct->chip.irq_mask = sch_irq_mask;
+> +	ct->chip.irq_unmask = sch_irq_unmask;
+> +	ct->chip.irq_set_type = sch_irq_type;
+> +
+> +	ret = devm_irq_setup_generic_chip(&pdev->dev, gc,
+> +					  IRQ_MSK(sch->chip.ngpio),
+> +					  0, IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+> +	if (ret)
+> +		return ret;
+
+Shan't we do this in the (similar) way how it's done in pinctrl-cherryview.c
+driver? (Keep in mind later patches which are going to be v5.5)
+
 -- 
-2.24.0
+With Best Regards,
+Andy Shevchenko
+
 
