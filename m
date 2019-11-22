@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D263CC432C0
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 19:49:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E40C8C43141
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 19:52:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A74CB20658
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 19:49:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B55912070E
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 19:52:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574452170;
-	bh=Ap9UGEDtCOa0CqpkdtyJj6I7eplB2kQVc4nQABh6S4s=;
+	s=default; t=1574452327;
+	bh=zvZPTTni/ycZBbfQvl6iJVAj8L2x55SrskgiKQVLozY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Nn89kd7x51HQpotnjVDEAXLvJ7B230AGPn//liELHpR/or/zXdd9Hx/EENogQ7Qt7
-	 UMl38DBOelq/54FliRLIgsGh7aAeF6R9qOkGul4XG0rJrfuTlAwOsdElmlQ0/TC8FM
-	 QQolMrpTvpTtfRPylxm2afPERFbehO3r8tVxGCfk=
+	b=GES9cXnCZJXN5rZzE+17xIRApbiIcTAacnAIpCopxDLYU8Xo9qpIZRZqPihY7nmrf
+	 Vupkr6Slgw1HxIWhbVo3H56O0XJtLWt4J86yYmilsLVEv7KoX2GR+RQiEXx2HHAIYS
+	 xxsMs6EApDuUXbY8av2sNq8bDXTTFRphZIA7MBPc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727420AbfKVTt3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Nov 2019 14:49:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49116 "EHLO mail.kernel.org"
+        id S1727667AbfKVTt4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Nov 2019 14:49:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50224 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727409AbfKVTt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 22 Nov 2019 14:49:28 -0500
+        id S1727655AbfKVTtz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Nov 2019 14:49:55 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8536E2072E;
-        Fri, 22 Nov 2019 19:49:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E88C02075E;
+        Fri, 22 Nov 2019 19:49:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574452166;
-        bh=Ap9UGEDtCOa0CqpkdtyJj6I7eplB2kQVc4nQABh6S4s=;
+        s=default; t=1574452195;
+        bh=zvZPTTni/ycZBbfQvl6iJVAj8L2x55SrskgiKQVLozY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HPyvn72WNqjC6CsHbpg8rjqJIduByU9pnTQsGeePrI91TwpW7OnUfyWHusutXmC3z
-         wBPzmDf8OPEwSS6mRZiQoVAGtakjJqvZLWtOxMEMXMd+mRricbTphDJZJsFM/EPDpV
-         YUsYHvHe3X3sm59EFm4IuguFwGyNO76gGGqPvTeE=
+        b=McXiv1nmAk2HDAvSGdzHuh87jp+8mE+naw7fbmP9D/u4hAn2Recw46TsN9cDB0c5U
+         9wxzC2Z1dM8kTA6+Yr2K3Wu4qVuhelFnQka+ckRKfHHKfB+ctGuZ0efqrm3iO3qOjh
+         ckw7Ph+GaMH4Pt9qbYFYl/UrcT+UWJwsXbkhorao=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
@@ -47,12 +47,12 @@ Cc:     Hans de Goede <hdegoede@redhat.com>,
         Wolfram Sang <wsa@the-dreams.de>, stable@kernel.org,
         Sasha Levin <sashal@kernel.org>, linux-i2c@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 22/25] i2c: acpi: Force bus speed to 400KHz if a Silead touchscreen is present
-Date:   Fri, 22 Nov 2019 14:48:55 -0500
-Message-Id: <20191122194859.24508-22-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 19/21] i2c: acpi: Force bus speed to 400KHz if a Silead touchscreen is present
+Date:   Fri, 22 Nov 2019 14:49:29 -0500
+Message-Id: <20191122194931.24732-19-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191122194859.24508-1-sashal@kernel.org>
-References: <20191122194859.24508-1-sashal@kernel.org>
+In-Reply-To: <20191122194931.24732-1-sashal@kernel.org>
+References: <20191122194931.24732-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -97,7 +97,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 32affd3fa8bd1..559c3b1284d73 100644
+index 847d9bf6744c2..df9800aaeac71 100644
 --- a/drivers/i2c/i2c-core-acpi.c
 +++ b/drivers/i2c/i2c-core-acpi.c
 @@ -43,6 +43,7 @@ struct i2c_acpi_lookup {
