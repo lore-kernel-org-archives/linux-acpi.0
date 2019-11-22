@@ -2,108 +2,81 @@ Return-Path: <SRS0=u8mE=ZO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F0F9C432C3
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 06:19:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F062C432C0
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 09:25:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F04B32068E
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 06:19:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574403553;
-	bh=e6wAYEyaRwAiQNgGCCFmkB1X/uUjDUITQKSnTdmdXRU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kzaKWPhnKRiWoh/Z22qqQtH101GkzLkDLgABU4BSjV20RQqN1MD3vHzDpMhu3zxnY
-	 VNJxQ7Lv1vONDzpoFIMJ0yig4jdZ47xG0iavHMkODq97E0Vo9VItFoNfI7LneK9BAB
-	 51L+DRQIXlrzMcnnB7Dbl5vBd7/aiZTpM/Nl/v3I=
+	by mail.kernel.org (Postfix) with ESMTP id 542DC2070E
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 09:25:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728980AbfKVF4B (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Nov 2019 00:56:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33712 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728979AbfKVF4A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 22 Nov 2019 00:56:00 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8977A20659;
-        Fri, 22 Nov 2019 05:55:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574402160;
-        bh=e6wAYEyaRwAiQNgGCCFmkB1X/uUjDUITQKSnTdmdXRU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KPKNEpq/x0k94UN+IVhMoMM20aPmOKH/QjFacAkbzjOhQpLO7ScYHWYYccJCBTQH2
-         on4nNbJc2sJyY97R/hHvSgSg9G/ufBy0x7UEedpGLrr1tluZyQeWYayqAAjFeOp7lQ
-         aCjl61ArR/PU+bp9wX3DnY3PMrmsdZpuMqGkuj44=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 014/127] ACPI / LPSS: Ignore acpi_device_fix_up_power() return value
-Date:   Fri, 22 Nov 2019 00:53:52 -0500
-Message-Id: <20191122055544.3299-13-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191122055544.3299-1-sashal@kernel.org>
-References: <20191122055544.3299-1-sashal@kernel.org>
+        id S1726698AbfKVJZv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Nov 2019 04:25:51 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:52064 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726568AbfKVJZu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Nov 2019 04:25:50 -0500
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id CB0036C79CB7C1BF1E23;
+        Fri, 22 Nov 2019 17:25:48 +0800 (CST)
+Received: from huawei.com (10.90.53.225) by DGGEMS402-HUB.china.huawei.com
+ (10.3.19.202) with Microsoft SMTP Server id 14.3.439.0; Fri, 22 Nov 2019
+ 17:25:41 +0800
+From:   zhengbin <zhengbin13@huawei.com>
+To:     <robert.moore@intel.com>, <erik.schmauss@intel.com>,
+        <rafael.j.wysocki@intel.com>, <lenb@kernel.org>,
+        <linux-acpi@vger.kernel.org>, <devel@acpica.org>
+CC:     <zhengbin13@huawei.com>
+Subject: [PATCH] ACPICA: Use ARRAY_SIZE for 'fadt_info_table','fadt_pm_info_table'
+Date:   Fri, 22 Nov 2019 17:33:03 +0800
+Message-ID: <1574415183-19322-1-git-send-email-zhengbin13@huawei.com>
+X-Mailer: git-send-email 2.7.4
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.90.53.225]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+Fixes coccicheck warning:
 
-[ Upstream commit 1a2fa02f7489dc4d746f2a15fb77b3ce1affade8 ]
+drivers/acpi/acpica/tbfadt.c:107:27-28: WARNING: Use ARRAY_SIZE
+drivers/acpi/acpica/tbfadt.c:137:30-31: WARNING: Use ARRAY_SIZE
 
-Ignore acpi_device_fix_up_power() return value. If we return an error
-we end up with acpi_default_enumeration() still creating a platform-
-device for the device and we end up with the device still being used
-but without the special LPSS related handling which is not useful.
-
-Specicifically ignoring the error fixes the touchscreen no longer
-working after a suspend/resume on a Prowise PT301 tablet.
-
-This tablet has a broken _PS0 method on the touchscreen's I2C controller,
-causing acpi_device_fix_up_power() to fail, causing fallback to standard
-platform-dev handling and specifically causing acpi_lpss_save/restore_ctx
-to not run.
-
-The I2C controllers _PS0 method does actually turn on the device, but then
-does some more nonsense which fails when run during early boot trying to
-use I2C opregion handling on another not-yet registered I2C controller.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: zhengbin <zhengbin13@huawei.com>
 ---
- drivers/acpi/acpi_lpss.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/acpi/acpica/tbfadt.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 51592dd45b066..84124b8a7778a 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -500,12 +500,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 	 * have _PS0 and _PS3 without _PSC (and no power resources), so
- 	 * acpi_bus_init_power() will assume that the BIOS has put them into D0.
- 	 */
--	ret = acpi_device_fix_up_power(adev);
--	if (ret) {
--		/* Skip the device, but continue the namespace scan. */
--		ret = 0;
--		goto err_out;
--	}
-+	acpi_device_fix_up_power(adev);
- 
- 	adev->driver_data = pdata;
- 	pdev = acpi_create_platform_device(adev, dev_desc->properties);
--- 
-2.20.1
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 0041bfb..324a804 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -103,8 +103,7 @@ static struct acpi_fadt_info fadt_info_table[] = {
+ 	 ACPI_FADT_SEPARATE_LENGTH | ACPI_FADT_GPE_REGISTER}
+ };
+
+-#define ACPI_FADT_INFO_ENTRIES \
+-			(sizeof (fadt_info_table) / sizeof (struct acpi_fadt_info))
++#define ACPI_FADT_INFO_ENTRIES (ARRAY_SIZE(fadt_info_table))
+
+ /* Table used to split Event Blocks into separate status/enable registers */
+
+@@ -133,8 +132,7 @@ static struct acpi_fadt_pm_info fadt_pm_info_table[] = {
+ 	 1}
+ };
+
+-#define ACPI_FADT_PM_INFO_ENTRIES \
+-			(sizeof (fadt_pm_info_table) / sizeof (struct acpi_fadt_pm_info))
++#define ACPI_FADT_PM_INFO_ENTRIES (ARRAY_SIZE(fadt_pm_info_table))
+
+ /*******************************************************************************
+  *
+--
+2.7.4
 
