@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45BA9C432C0
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 06:08:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64BD9C432C3
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 06:15:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 140472068E
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 06:08:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE3DA20708
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 06:15:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574402920;
-	bh=IPTb/noze68zxc4Ep0YinQYWP6168edJf7Te72FHfnk=;
+	s=default; t=1574403309;
+	bh=bLO5kjXYKBOrMGvHP7Y9sYNwk9JiETUMXaMn6OKCtsc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=M0wIJkX/72+GURJZMQBvHs9Djtk2x6squGoZFgvf+mOx2Ug66EQXWj3DGXlj4Hxib
-	 nnPXb80hREdb73At3IrV9M3e6/0aAlleOpRWiLIJm3/j2XkFsL5tXwI4JB65LO6P45
-	 uhLaS34KIHMPTRWnyufJoNRvAtsrtlg16MPyQlTc=
+	b=A6dKTOH5T/uw3J73kEWlOzEeRuLcnd5Q7RTGyzjEbTrzHqDbfYsNpjOIjLjO+HfY8
+	 jTCooUUNlhL1AWOcO/jIyb2az5ZO5AY40u0BxGw7WxvDd+OpnxSWKZ/preWwYRLPul
+	 pMuapp3rHFiQdUQ8CFblVLZ6SGzwqMRDp7/wDRn8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728981AbfKVGBk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Nov 2019 01:01:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39914 "EHLO mail.kernel.org"
+        id S1727194AbfKVGOz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Nov 2019 01:14:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729006AbfKVGBk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 22 Nov 2019 01:01:40 -0500
+        id S1729695AbfKVGOR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Nov 2019 01:14:17 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4001E2071B;
-        Fri, 22 Nov 2019 06:01:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9A6E72068E;
+        Fri, 22 Nov 2019 06:14:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574402499;
-        bh=IPTb/noze68zxc4Ep0YinQYWP6168edJf7Te72FHfnk=;
+        s=default; t=1574403256;
+        bh=bLO5kjXYKBOrMGvHP7Y9sYNwk9JiETUMXaMn6OKCtsc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SK9pg2XCO9+jmGGiCHckEx9QjCsMadglAByCrKJLN/QUSiCj6BCGQLuU4SY4xcQAy
-         cL6dqQvB4GqDCZ7PJBrXA5e2uo6e1u5WkflP0Bv33ClujjknLuiVCc63WDPszFPHVU
-         0cXwLH7uExfl1rnd8Wm1m92trkP5F/MCEwOUkNqg=
+        b=GoAWWUdBh2Fd6+iq89suNGDlnNNXF02pWgh5HFiTkseb79ZKZC7AS4BBUh9YF4UU7
+         KQspoQHVFYS8Kxxx/5VGQ2o0wGckzcset1Vz5vwQhMv1UIAhPakjZ/9qvX3G0jg5WI
+         VJT2JgNnnEwXEAVVSOuIh/Q2ULEEnZI1hRrXn07Y=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
+Cc:     James Morse <james.morse@arm.com>, Borislav Petkov <bp@suse.de>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 10/91] ACPI / LPSS: Ignore acpi_device_fix_up_power() return value
-Date:   Fri, 22 Nov 2019 01:00:08 -0500
-Message-Id: <20191122060129.4239-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 65/68] ACPI / APEI: Switch estatus pool to use vmalloc memory
+Date:   Fri, 22 Nov 2019 01:12:58 -0500
+Message-Id: <20191122061301.4947-64-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191122060129.4239-1-sashal@kernel.org>
-References: <20191122060129.4239-1-sashal@kernel.org>
+In-Reply-To: <20191122061301.4947-1-sashal@kernel.org>
+References: <20191122061301.4947-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -58,52 +58,91 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: James Morse <james.morse@arm.com>
 
-[ Upstream commit 1a2fa02f7489dc4d746f2a15fb77b3ce1affade8 ]
+[ Upstream commit 0ac234be1a9497498e57d958f4251f5257b116b4 ]
 
-Ignore acpi_device_fix_up_power() return value. If we return an error
-we end up with acpi_default_enumeration() still creating a platform-
-device for the device and we end up with the device still being used
-but without the special LPSS related handling which is not useful.
+The ghes code is careful to parse and round firmware's advertised
+memory requirements for CPER records, up to a maximum of 64K.
+However when ghes_estatus_pool_expand() does its work, it splits
+the requested size into PAGE_SIZE granules.
 
-Specicifically ignoring the error fixes the touchscreen no longer
-working after a suspend/resume on a Prowise PT301 tablet.
+This means if firmware generates 5K of CPER records, and correctly
+describes this in the table, __process_error() will silently fail as it
+is unable to allocate more than PAGE_SIZE.
 
-This tablet has a broken _PS0 method on the touchscreen's I2C controller,
-causing acpi_device_fix_up_power() to fail, causing fallback to standard
-platform-dev handling and specifically causing acpi_lpss_save/restore_ctx
-to not run.
+Switch the estatus pool to vmalloc() memory. On x86 vmalloc() memory
+may fault and be fixed up by vmalloc_fault(). To prevent this call
+vmalloc_sync_all() before an NMI handler could discover the memory.
 
-The I2C controllers _PS0 method does actually turn on the device, but then
-does some more nonsense which fails when run during early boot trying to
-use I2C opregion handling on another not-yet registered I2C controller.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: James Morse <james.morse@arm.com>
+Reviewed-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpi_lpss.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/acpi/apei/ghes.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 8e38249311bdf..a9158858f54cd 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -448,12 +448,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 	 * have _PS0 and _PS3 without _PSC (and no power resources), so
- 	 * acpi_bus_init_power() will assume that the BIOS has put them into D0.
- 	 */
--	ret = acpi_device_fix_up_power(adev);
--	if (ret) {
--		/* Skip the device, but continue the namespace scan. */
--		ret = 0;
--		goto err_out;
--	}
-+	acpi_device_fix_up_power(adev);
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index bb81cd05f0bc8..d532aa87eef10 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -198,40 +198,40 @@ static int ghes_estatus_pool_init(void)
+ 	return 0;
+ }
  
- 	adev->driver_data = pdata;
- 	pdev = acpi_create_platform_device(adev, dev_desc->properties);
+-static void ghes_estatus_pool_free_chunk_page(struct gen_pool *pool,
++static void ghes_estatus_pool_free_chunk(struct gen_pool *pool,
+ 					      struct gen_pool_chunk *chunk,
+ 					      void *data)
+ {
+-	free_page(chunk->start_addr);
++	vfree((void *)chunk->start_addr);
+ }
+ 
+ static void ghes_estatus_pool_exit(void)
+ {
+ 	gen_pool_for_each_chunk(ghes_estatus_pool,
+-				ghes_estatus_pool_free_chunk_page, NULL);
++				ghes_estatus_pool_free_chunk, NULL);
+ 	gen_pool_destroy(ghes_estatus_pool);
+ }
+ 
+ static int ghes_estatus_pool_expand(unsigned long len)
+ {
+-	unsigned long i, pages, size, addr;
+-	int ret;
++	unsigned long size, addr;
+ 
+ 	ghes_estatus_pool_size_request += PAGE_ALIGN(len);
+ 	size = gen_pool_size(ghes_estatus_pool);
+ 	if (size >= ghes_estatus_pool_size_request)
+ 		return 0;
+-	pages = (ghes_estatus_pool_size_request - size) / PAGE_SIZE;
+-	for (i = 0; i < pages; i++) {
+-		addr = __get_free_page(GFP_KERNEL);
+-		if (!addr)
+-			return -ENOMEM;
+-		ret = gen_pool_add(ghes_estatus_pool, addr, PAGE_SIZE, -1);
+-		if (ret)
+-			return ret;
+-	}
+ 
+-	return 0;
++	addr = (unsigned long)vmalloc(PAGE_ALIGN(len));
++	if (!addr)
++		return -ENOMEM;
++
++	/*
++	 * New allocation must be visible in all pgd before it can be found by
++	 * an NMI allocating from the pool.
++	 */
++	vmalloc_sync_all();
++
++	return gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
+ }
+ 
+ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
 -- 
 2.20.1
 
