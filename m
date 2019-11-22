@@ -5,55 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 197E7C43215
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 11:16:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62860C432C0
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 11:16:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E4BE620718
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 11:16:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34E0520718
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Nov 2019 11:16:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="YNEi/CQb"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="KvntgGm3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729175AbfKVLQO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Nov 2019 06:16:14 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:34753 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728445AbfKVKu7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2019 05:50:59 -0500
-Received: by mail-wr1-f68.google.com with SMTP id t2so8087772wrr.1
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Nov 2019 02:50:58 -0800 (PST)
+        id S1729312AbfKVLQQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Nov 2019 06:16:16 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:52505 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728031AbfKVKuz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2019 05:50:55 -0500
+Received: by mail-wm1-f67.google.com with SMTP id l1so6935569wme.2
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Nov 2019 02:50:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=qRDncnEv4s95CgSa1yvYrULV0iuYi2jZhVWKJTRAVu0=;
-        b=YNEi/CQbRXtkAwf0pPEyl5prqRn8u5HZ5xYtYrRJWWkt3EHX92cjZa+ZJIy6EgzQMY
-         JomcQEQZ9aHxpyPv5xUr8gzpIvqxnMSJDzlZzKuglBou7QBJ8izCjPyAp5gagAMgiSTy
-         8/Tp82wscT0Sev3YneHxCoFu66z2uQW1GImKYPrOPHwBJ+eCbINzD7/G0fD3TYBod7yi
-         cXSfkjUy19kRIUpzuBATTRkMQ1lFky+4zyrQkjA9B+Fb+7/32I9fa7POnzm7YS7U86Ce
-         NYiXSZoHwEnBnTVK2qCqhRV3tiLJKL/mgFahWAwg2v9n6ttfmUegZHJDqNkVa8wtqyzH
-         PvgQ==
+        bh=/inLver145cFol/5bUSjQQctnMruvUV98+tylzxeqnk=;
+        b=KvntgGm303h0Ssxf9aIFIK2XkoQiqLGKm8oBQdtFp8m6CkhuS563d23h38idVHFBTS
+         kkHWOjKBIeiLqtFnIN5JqRxHj/IPpP1+8FLf2khs7+nbgJ0OpH9sMYPdLblXJN/5mPtZ
+         Wb+8873vkfkzhOEno3SZc1Y9APZr1NOsSzkKP1ZCQ6Z0rpQLTlKOI9WgdHg2e1LDo7F0
+         tBgAB48y5L6SMpiI5ioJ2KIyTBgMturfH5KATIT+F+PcJxgVRRlhZPFK7De+LuxTeNtE
+         M4IA2puSbiUMBj2P+pdk0515MczvrK3k66Sn0WsjBltTEdPU0l74IdtDnv4aQdCAd0EZ
+         nmsQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=qRDncnEv4s95CgSa1yvYrULV0iuYi2jZhVWKJTRAVu0=;
-        b=XmVaJaw7ciX/BqxC82QxpkTL3/Tx4KTCfBHZ1te4gtAqiuT4Axic2UjvJXVdNZuaKx
-         cWoYfvx2AS7RylrYbUhT/3V+VZ78pRB6NATsLiQWOScNBuS8SGIMwRjzm2tVHno24ux7
-         HgdE7N9SWo0X+/4wzo0NzsApUfb+p2lp3gBDOwY0qkmSCD0WmZw0CB1yB6cJNlIP+q1t
-         Gbx88YhwwPwh/quxh3ZwkXC5fWakwKtY7R/cWbTT5Gm2vRRf4dlQLeSx1VMORTsoMj61
-         uxCBuu9iVUv64HtW0rvFTldrua0m9dWFI7tqLp+W60mrvIFLspUMmp+hu+zUBPLkDjBy
-         gP+w==
-X-Gm-Message-State: APjAAAXrkL+AWNVhxNRCXdYkLUvAWPaL/HY6K0FcuBI13KHAzMwoLed+
-        RCKVKaCs0MdPkqQGxQOyGAbUAOIpYyo=
-X-Google-Smtp-Source: APXvYqzXiSDh39VIufdE8cTUkRB2hfptRNr1/jdFpr07MvIngTSRR794NgxmfjDCLcPXZDKMLSVPnQ==
-X-Received: by 2002:a5d:49c4:: with SMTP id t4mr10152262wrs.226.1574419857729;
-        Fri, 22 Nov 2019 02:50:57 -0800 (PST)
+        bh=/inLver145cFol/5bUSjQQctnMruvUV98+tylzxeqnk=;
+        b=jzECSsfuiCRMNaUYjyRFC5OSMoPXHMry3dIknX1jsilo+0C5TWkEpWwcuM8F8+ywk7
+         7/OwarQDk3FE5maPGDWF8ZIZlO7manikjQlkaVVxp/yK0N0DfApt8WgoTtuqdne5kvVK
+         35nSNUM90NT0qhsG9Yqsz32nyZKgDJ0Dppn7XuVs8qY7+RQWfyRG4ntSGy1L45Qp2eXk
+         eAoat9Sp3eQDVjZA0BxCEdDzJtQ9oGulGkdArexA4wYxAalTYa2LwAvcoLNnHEx7e9TD
+         g4g90DOeM+vx3CKxbvE3wdvL0S+8hwEJ7PSJDzUe2Jralyz/YrO0EA9aPSeFIh2EJBjn
+         q4UA==
+X-Gm-Message-State: APjAAAWkpj+Ln2IdKIaQiwfLFfSUkS8ZgOtKM9aOWt8mQUUBkMX5UKFW
+        Z5QGeOmisSda1VmhM365RqBfb4ygRn8=
+X-Google-Smtp-Source: APXvYqybl+9ikgvCfSNL7CGfiLoR9Bk+QtDdRzYQU3EDUxB/3MAL7UXcY6vI8QXG4ikVn9LuAUlWLA==
+X-Received: by 2002:a05:600c:3cd:: with SMTP id z13mr15785876wmd.105.1574419853787;
+        Fri, 22 Nov 2019 02:50:53 -0800 (PST)
 Received: from localhost.localdomain (xdsl-188-155-204-106.adslplus.ch. [188.155.204.106])
-        by smtp.gmail.com with ESMTPSA id o133sm2088197wmb.4.2019.11.22.02.50.56
+        by smtp.gmail.com with ESMTPSA id o133sm2088197wmb.4.2019.11.22.02.50.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 22 Nov 2019 02:50:57 -0800 (PST)
+        Fri, 22 Nov 2019 02:50:53 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         iommu@lists.linux-foundation.org,
@@ -65,9 +65,9 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, lorenzo.pieralisi@arm.com,
         mst@redhat.com, jasowang@redhat.com, jacob.jun.pan@intel.com,
         eric.auger@redhat.com, sebastien.boeuf@intel.com,
         kevin.tian@intel.com
-Subject: [RFC 05/13] ACPI/IORT: Support VIOT virtio-mmio node
-Date:   Fri, 22 Nov 2019 11:49:52 +0100
-Message-Id: <20191122105000.800410-6-jean-philippe@linaro.org>
+Subject: [RFC 02/13] ACPI: Add VIOT definitions
+Date:   Fri, 22 Nov 2019 11:49:49 +0100
+Message-Id: <20191122105000.800410-3-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191122105000.800410-1-jean-philippe@linaro.org>
 References: <20191122105000.800410-1-jean-philippe@linaro.org>
@@ -78,122 +78,63 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a new type of node to the IORT driver, that describes a virtio-iommu
-device based on the virtio-mmio transport. The node is only available
-when the IORT is a sub-table of the VIOT.
+This is temporary, until the VIOT table is published and these
+definitions added to ACPICA.
 
-Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- drivers/acpi/iort.c | 66 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 62 insertions(+), 4 deletions(-)
+ include/acpi/actbl2.h | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
-index 1d43fbc0001f..adc5953fffa5 100644
---- a/drivers/acpi/iort.c
-+++ b/drivers/acpi/iort.c
-@@ -43,7 +43,8 @@ static bool iort_type_matches(u8 type, enum iort_node_category category)
- 	switch (category) {
- 	case IORT_IOMMU_TYPE:
- 		return type == ACPI_IORT_NODE_SMMU ||
--		       type == ACPI_IORT_NODE_SMMU_V3;
-+		       type == ACPI_IORT_NODE_SMMU_V3 ||
-+		       type == ACPI_VIOT_IORT_NODE_VIRTIO_MMIO_IOMMU;
- 	case IORT_MSI_TYPE:
- 		return type == ACPI_IORT_NODE_ITS_GROUP;
- 	default:
-@@ -868,8 +869,10 @@ static inline bool iort_iommu_driver_enabled(u8 type)
- 		return IS_BUILTIN(CONFIG_ARM_SMMU_V3);
- 	case ACPI_IORT_NODE_SMMU:
- 		return IS_BUILTIN(CONFIG_ARM_SMMU);
-+	case ACPI_VIOT_IORT_NODE_VIRTIO_MMIO_IOMMU:
-+		return IS_ENABLED(CONFIG_VIRTIO_IOMMU);
- 	default:
--		pr_warn("IORT node type %u does not describe an SMMU\n", type);
-+		pr_warn("IORT node type %u does not describe an IOMMU\n", type);
- 		return false;
- 	}
- }
-@@ -1408,6 +1411,46 @@ static int __init arm_smmu_v3_pmcg_add_platdata(struct platform_device *pdev)
- 	return platform_device_add_data(pdev, &model, sizeof(model));
- }
- 
-+static int __init viommu_mmio_count_resources(struct acpi_iort_node *node)
-+{
-+	/* Mem + IRQ */
-+	return 2;
-+}
-+
-+static void __init viommu_mmio_init_resources(struct resource *res,
-+					   struct acpi_iort_node *node)
-+{
-+	int hw_irq, trigger;
-+	struct acpi_viot_iort_virtio_mmio_iommu *viommu;
-+
-+	viommu = (struct acpi_viot_iort_virtio_mmio_iommu *)node->node_data;
-+
-+	res[0].start = viommu->base_address;
-+	res[0].end = viommu->base_address + viommu->span - 1;
-+	res[0].flags = IORESOURCE_MEM;
-+
-+	hw_irq = IORT_IRQ_MASK(viommu->interrupt);
-+	trigger = IORT_IRQ_TRIGGER_MASK(viommu->interrupt);
-+	acpi_iort_register_irq(hw_irq, "viommu", trigger, res + 1);
-+}
-+
-+static void __init viommu_mmio_dma_configure(struct device *dev,
-+					  struct acpi_iort_node *node)
-+{
-+	enum dev_dma_attr attr;
-+	struct acpi_viot_iort_virtio_mmio_iommu *viommu;
-+
-+	viommu = (struct acpi_viot_iort_virtio_mmio_iommu *)node->node_data;
-+
-+	attr = (viommu->flags & ACPI_VIOT_IORT_VIRTIO_MMIO_IOMMU_CACHE_COHERENT) ?
-+		DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
-+
-+	dev->dma_mask = &dev->coherent_dma_mask;
-+
-+	/* Configure DMA for the page table walker */
-+	acpi_dma_configure(dev, attr);
-+}
-+
- struct iort_dev_config {
- 	const char *name;
- 	int (*dev_init)(struct acpi_iort_node *node);
-@@ -1443,6 +1486,14 @@ static const struct iort_dev_config iort_arm_smmu_v3_pmcg_cfg __initconst = {
- 	.dev_add_platdata = arm_smmu_v3_pmcg_add_platdata,
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index e45ced27f4c3..99c1d747e9d8 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -25,6 +25,7 @@
+  * the wrong signature.
+  */
+ #define ACPI_SIG_IORT           "IORT"	/* IO Remapping Table */
++#define ACPI_SIG_VIOT           "VIOT"	/* Virtual I/O Table */
+ #define ACPI_SIG_IVRS           "IVRS"	/* I/O Virtualization Reporting Structure */
+ #define ACPI_SIG_LPIT           "LPIT"	/* Low Power Idle Table */
+ #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
+@@ -412,6 +413,36 @@ struct acpi_ivrs_memory {
+ 	u64 memory_length;
  };
  
-+static const struct iort_dev_config iort_viommu_mmio_cfg __initconst = {
-+	/* Probe with the generic virtio-mmio driver */
-+	.name = "virtio-mmio",
-+	.dev_dma_configure = viommu_mmio_dma_configure,
-+	.dev_count_resources = viommu_mmio_count_resources,
-+	.dev_init_resources = viommu_mmio_init_resources,
++/*******************************************************************************
++ *
++ * VIOT - Virtual I/O Table
++ *        Version 1
++ *
++ ******************************************************************************/
++
++struct acpi_table_viot {
++	struct acpi_table_header header;
++	u8 reserved[12];
++	struct acpi_table_header base_table;
 +};
 +
- static __init const struct iort_dev_config *iort_get_dev_cfg(
- 			struct acpi_iort_node *node)
- {
-@@ -1453,9 +1504,16 @@ static __init const struct iort_dev_config *iort_get_dev_cfg(
- 		return &iort_arm_smmu_cfg;
- 	case ACPI_IORT_NODE_PMCG:
- 		return &iort_arm_smmu_v3_pmcg_cfg;
--	default:
--		return NULL;
- 	}
++#define ACPI_VIOT_IORT_NODE_VIRTIO_PCI_IOMMU    0x80
++#define ACPI_VIOT_IORT_NODE_VIRTIO_MMIO_IOMMU   0x81
 +
-+	if (iort_table_source == IORT_SOURCE_VIOT) {
-+		switch (node->type) {
-+		case ACPI_VIOT_IORT_NODE_VIRTIO_MMIO_IOMMU:
-+			return &iort_viommu_mmio_cfg;
-+		}
-+	}
++struct acpi_viot_iort_virtio_pci_iommu {
++	u32 devid;
++};
 +
-+	return NULL;
- }
- 
- /**
++struct acpi_viot_iort_virtio_mmio_iommu {
++	u64 base_address;
++	u64 span;
++	u64 flags;
++	u64 interrupt;
++};
++
++/* FIXME: rename this monstrosity. */
++#define ACPI_VIOT_IORT_VIRTIO_MMIO_IOMMU_CACHE_COHERENT (1<<0)
++
+ /*******************************************************************************
+  *
+  * LPIT - Low Power Idle Table
 -- 
 2.24.0
 
