@@ -2,93 +2,115 @@ Return-Path: <SRS0=s/wH=ZU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B48C432C0
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Nov 2019 13:35:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A91D0C432C0
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Nov 2019 22:51:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 88C4D21741
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Nov 2019 13:35:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="rZpffZGh"
+	by mail.kernel.org (Postfix) with ESMTP id 7288020715
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Nov 2019 22:51:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726586AbfK1Nfm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 Nov 2019 08:35:42 -0500
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:45129 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726565AbfK1Nfl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Nov 2019 08:35:41 -0500
-Received: by mail-lf1-f68.google.com with SMTP id 203so20052435lfa.12
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Nov 2019 05:35:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=jvu9OZfemBYDKg0MnhgqQk6YdpE94ksYWMXeOTcKvqI=;
-        b=rZpffZGhAtCrVfEJ0STTAMBuizBQYAW52mwdkSePWuUDC6OQ0zz8Z9UVdUnR6H2hrY
-         K8Zvn9LxDwzAlWTeJB7Ldx3bCWiqA26Hw3n9v/gp2fQF0eKMGpFlNmWAhySJS3XNTdas
-         UUYv0H6vIgRTCERz1VJr2aOhsjB4FMCFbAux9lo6Cj8a+zIJaKjQ2RPLedJmZmMefZkO
-         2hd68TxsA4uugErhZ0gKWJvLLL3X1uaEi7ucIqoM58qk7UPERby7BEqxbpuqpWVJFpK0
-         FvtarJybUCicf7nDe5WUj+gFj10VYyPHsGggZmdyoMKuoCbUs3mvy/kEGkC9/BW9M5mK
-         RBqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jvu9OZfemBYDKg0MnhgqQk6YdpE94ksYWMXeOTcKvqI=;
-        b=IAuzZn5Lcbk8eoXGPVGlITDMr9gAUPXvyL58apalge44pJ5fQspV0UxwtlkBOV2mQA
-         fBwo2255upxbgZ8YNiT4CkW3+u/77o1XIgmiaCzOZgHWOEdfDXnX2GamciWqMKi43IYr
-         8ntXS6UNHKhX/Q4geZuoPRjQErCyyisXVBFn/aA0hviCCHKhHjRmIM+nrZYDE4r3nxDG
-         aXKw9sxDuIe+q6QlbSCRNtbKeEwld5OF6Z1Gr7RjCXv/2DARxekt150KrE/9SOT48i52
-         97IMjUt4XsuJp1SlKP89GrVCXIDPoOB7+x1iO9Td4aIZCH5ne5R3T8ZMBmiB+mYI/n8X
-         kJoQ==
-X-Gm-Message-State: APjAAAWLi2IrZ/BJyVG6MUYMPHv9SMi2KKLrmsV2cv7BWyCJasyUPWkq
-        Pzdv2oedHvggDOojc6csRvIaJMRswhcFCDHAb7xC7axkprA=
-X-Google-Smtp-Source: APXvYqzK0FbZzikTAfGQ/Uf5e40RCuK+895pCTYy155zY+oNBupV1A0B056rLvdFg3jVNLYSLcvbRBi8zlZyV8ONdPA=
-X-Received: by 2002:a19:645b:: with SMTP id b27mr22047811lfj.117.1574948139781;
- Thu, 28 Nov 2019 05:35:39 -0800 (PST)
+        id S1726622AbfK1WvB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 Nov 2019 17:51:01 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:42200 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726610AbfK1WvB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Nov 2019 17:51:01 -0500
+Received: from 79.184.255.242.ipv4.supernova.orange.pl (79.184.255.242) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.320)
+ id 361cf6a5a72f8264; Thu, 28 Nov 2019 23:50:59 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     "Kenneth R. Crudup" <kenny@panix.com>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 2/2] ACPI: PM: s2idle: Rework ACPI events synchronization
+Date:   Thu, 28 Nov 2019 23:50:40 +0100
+Message-ID: <6942598.FjHfHmHd9f@kreacher>
+In-Reply-To: <2787005.CsmIKtZlk9@kreacher>
+References: <2787005.CsmIKtZlk9@kreacher>
 MIME-Version: 1.0
-References: <20191127104509.10196-1-hdegoede@redhat.com>
-In-Reply-To: <20191127104509.10196-1-hdegoede@redhat.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 28 Nov 2019 14:35:28 +0100
-Message-ID: <CACRpkdZVPJyagQT4UwZDUHBvg0erFCwQumNKX9U3=AcHi=ZQGw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] gpiolib: acpi: Turn dmi_system_id table into a
- generic quirk table
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 27, 2019 at 11:45 AM Hans de Goede <hdegoede@redhat.com> wrote:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> Turn the existing run_edge_events_on_boot_blacklist dmi_system_id table
-> into a generic quirk table, storing the quirks in the driver_data ptr.
->
-> This is a preparation patch for adding other types of (DMI based) quirks.
->
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Note that the EC GPE processing need not be synchronized in
+acpi_s2idle_wake() after invoking acpi_ec_dispatch_gpe(), because
+that function checks the GPE status and dispatches its handler if
+need be and the SCI action handler is not going to run anyway at
+that point.
 
-This patch does not apply to my "devel" branch, which I am about
-to send to Torvalds, so it will very soon be the mainline.
+Moreover, it is better to drain all of the pending ACPI events
+before restoring the working-state configuration of GPEs in
+acpi_s2idle_restore(), because those events are likely to be related
+to system wakeup, in which case they will not be relevant going
+forward.
 
-Could you rebase it and I will queue it up for fixes.
+Rework the code to take these observations into account.
 
-Also: should these two be tagged for stable? (I.e. a non-v5.5
-problem.) I suppose that requires backporting for -stable
-though.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/sleep.c |   26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-Yours,
-Linus Walleij
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -977,6 +977,16 @@ static int acpi_s2idle_prepare_late(void
+ 	return 0;
+ }
+ 
++static void acpi_s2idle_sync(void)
++{
++	/*
++	 * The EC driver uses the system workqueue and an additional special
++	 * one, so those need to be flushed too.
++	 */
++	acpi_ec_flush_work();
++	acpi_os_wait_events_complete(); /* synchronize Notify handling */
++}
++
+ static void acpi_s2idle_wake(void)
+ {
+ 	/*
+@@ -1001,13 +1011,8 @@ static void acpi_s2idle_wake(void)
+ 		 * should be missed by canceling the wakeup here.
+ 		 */
+ 		pm_system_cancel_wakeup();
+-		/*
+-		 * The EC driver uses the system workqueue and an additional
+-		 * special one, so those need to be flushed too.
+-		 */
+-		acpi_os_wait_events_complete(); /* synchronize EC GPE processing */
+-		acpi_ec_flush_work();
+-		acpi_os_wait_events_complete(); /* synchronize Notify handling */
++
++		acpi_s2idle_sync();
+ 
+ 		rearm_wake_irq(acpi_sci_irq);
+ 	}
+@@ -1024,6 +1029,13 @@ static void acpi_s2idle_restore_early(vo
+ 
+ static void acpi_s2idle_restore(void)
+ {
++	/*
++	 * Drain pending events before restoring the working-state configuration
++	 * of GPEs.
++	 */
++	acpi_os_wait_events_complete(); /* synchronize GPE processing */
++	acpi_s2idle_sync();
++
+ 	s2idle_wakeup = false;
+ 
+ 	acpi_enable_all_runtime_gpes();
+
+
+
