@@ -2,125 +2,125 @@ Return-Path: <SRS0=RvK0=Z2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2459C43603
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Dec 2019 10:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBC58C43603
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Dec 2019 14:04:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A49082068E
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Dec 2019 10:37:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1575455826;
-	bh=nEdTtOUo24H09IeLNZxMcO1SUPfwSOjFQbWHqideWtM=;
-	h=From:Date:Subject:To:Cc:List-ID:From;
-	b=VllDROpPVuOiwIi+w8B+Wkbb3PnEpJLeNlZhcjhgidxV5P1za00lgBupnUEult/Sn
-	 hKW3CMpm3fkBeVaC8Xe14gAUVD0ipVyooC13A/Y5zTIoJqPB3FBqgrPTwZJmYgfErY
-	 MTkSvRgsMwNXA9U/HpG+VMszBPkcrarFw5Kd8SBw=
+	by mail.kernel.org (Postfix) with ESMTP id AA0B82077B
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Dec 2019 14:04:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727693AbfLDKhC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 4 Dec 2019 05:37:02 -0500
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:46949 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727268AbfLDKhC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2019 05:37:02 -0500
-Received: by mail-ot1-f65.google.com with SMTP id g18so5835094otj.13;
-        Wed, 04 Dec 2019 02:37:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=hrn+T0qXoBS7Oix705yZN70rK/KjrjidrzrYQzpvk60=;
-        b=uOiZ5L3ycsWP1ypJcqLcVydDA2vOHcjwdIV8iV64rGC/L/SR9xTQPpfSSuWjI5nYMc
-         bp0rGEC9XQRRrZVR+pO5MyLpDL8OT/mZnAXl9keQcmE2DKY/O/AqGeAi64yexfYxjTBI
-         uTeFv9b+90CiaQs0cqQayIkfiPSFPiDgI+kynDdGIPQ+Ipoi+KVW8ibhIkhc26v1W4Bl
-         d5jIEnAF5gF/TcSY0hYPv3YcDkgVivhJfxTuZzzBApNu9jxVFT2XbYzjSaNKf4BZliik
-         1e0cXwo+77w3W+0GuHp+vnn/FPYWHi+lAg7G75AR7pXCeXMaUcsxgjU6pfDiL8ZRVAV8
-         cYkA==
-X-Gm-Message-State: APjAAAXnXwcxDI0OxDkp1wvcZ+BHGOP8LuLRbkS0zTaqLJybyeX5sGze
-        K92wUody8GIM9WzSkUgPXzC/+4pdbmQI9+T+8eI=
-X-Google-Smtp-Source: APXvYqylkz9yP/hrkQViDPt291eUwfZVYWuWFjR8l2wU4NqXVMwO1iSg4PjIa/CfW4XWAaZk9Q06SEPG/3IkwwHc9L0=
-X-Received: by 2002:a9d:7483:: with SMTP id t3mr1952495otk.262.1575455821133;
- Wed, 04 Dec 2019 02:37:01 -0800 (PST)
-MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 4 Dec 2019 11:36:50 +0100
-Message-ID: <CAJZ5v0g4T6cCQr0BegWhY+KD0W2VJRqBTNoeu-bV8RYmPzTtRg@mail.gmail.com>
-Subject: [GIT PULL] More ACPI updates for v5.5-rc1
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S1727838AbfLDOEZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 4 Dec 2019 09:04:25 -0500
+Received: from mga05.intel.com ([192.55.52.43]:26902 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727828AbfLDOEZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 4 Dec 2019 09:04:25 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 04 Dec 2019 06:04:25 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,277,1571727600"; 
+   d="scan'208";a="218933982"
+Received: from yuanwan1-mobl.ccr.corp.intel.com ([10.249.174.225])
+  by fmsmga001.fm.intel.com with ESMTP; 04 Dec 2019 06:04:22 -0800
+Message-ID: <2991d01601fdbcf25d745a387eda74926f1192b2.camel@intel.com>
+Subject: Re: [PATCH] ACPI: PM: Avoid attaching ACPI PM domain to certain
+ devices
+From:   Zhang Rui <rui.zhang@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        "Brandt, Todd E" <todd.e.brandt@intel.com>
+Date:   Wed, 04 Dec 2019 22:04:23 +0800
+In-Reply-To: <1773028.iBGNyVBcMc@kreacher>
+References: <1773028.iBGNyVBcMc@kreacher>
 Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.28.5-0ubuntu0.18.04.1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Wed, 2019-12-04 at 02:54 +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Certain ACPI-enumerated devices represented as platform devices in
+> Linux, like fans, require special low-level power management handling
+> implemented by their drivers that is not in agreement with the ACPI
+> PM domain behavior.  That leads to problems with managing ACPI fans
+> during system-wide suspend and resume.
+> 
+> For this reason, make acpi_dev_pm_attach() skip the affected devices
+> by adding a list of device IDs to avoid to it and putting the IDs of
+> the affected devices into that list.
+> 
+> Fixes: e5cc8ef31267 (ACPI / PM: Provide ACPI PM callback routines for
+> subsystems)
+> Reported-by: Zhang Rui <rui.zhang@intel.com>
+> Cc: 3.10+ <stable@vger.kernel.org> # 3.10+
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> Rui,
+> 
+> Please test this on the machine(s) affected by the fan suspend/resume
+> issues.
 
-Please pull from the tag
+Sure, Todd and I will re-run stress test with this patch applied when
+5.5-rc1 released.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.5-rc1-2
+thanks,
+rui
 
-with top-most commit b65d56305c6f5c74b1b4fcaf55d48e949e49d67c
+> 
+> I don't really see any cleaner way to address this problem, because
+> the
+> ACPI PM domain should not be used with the devices in question even
+> if
+> the driver that binds to them is not loaded.
+> 
+> Cheers,
+> Rafael
+> 
+> ---
+>  drivers/acpi/device_pm.c |   12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -1314,9 +1314,19 @@ static void acpi_dev_pm_detach(struct de
+>   */
+>  int acpi_dev_pm_attach(struct device *dev, bool power_on)
+>  {
+> +	/*
+> +	 * Skip devices whose ACPI companions match the device IDs
+> below,
+> +	 * because they require special power management handling
+> incompatible
+> +	 * with the generic ACPI PM domain.
+> +	 */
+> +	static const struct acpi_device_id special_pm_ids[] = {
+> +		{"PNP0C0B", }, /* Generic ACPI fan */
+> +		{"INT3404", }, /* Fan */
+> +		{}
+> +	};
+>  	struct acpi_device *adev = ACPI_COMPANION(dev);
+>  
+> -	if (!adev)
+> +	if (!adev || !acpi_match_device_ids(adev, special_pm_ids))
+>  		return 0;
+>  
+>  	/*
+> 
+> 
+> 
 
- Merge branches 'acpi-bus', 'acpi-button', 'acpi-sysfs' and 'acpi-misc'
-
-on top of commit 6e9f879684b46331f51d0c76ebee981c788417db
-
- Merge tag 'acpi-5.5-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-
-to receive additional ACPI updates for 5.5-rc1.
-
-These close a nasty race condition in the ACPI memory mappings
-management code and an invalid parameter check in a library
-routing, allow GPE 0xFF to be masked via kernel command line,
-add a new lid switch blacklist entry and clean up Kconfig.
-
-Specifics:
-
- - Fix locking issue in acpi_os_map_cleanup() leading to a race
-   condition that can be harnessed for provoking a kernel panic
-   from user space (Francesco Ruggeri).
-
- - Fix parameter check in acpi_bus_get_private_data() (Vamshi K
-   Sthambamkadi).
-
- - Allow GPE 0xFF to be masked via kernel command line (Yunfeng Ye).
-
- - Add a new lid switch blacklist entry for Acer Switch 10 SW5-032
-   to the ACPI button driver (Hans de Goede).
-
- - Clean up Kconfig (Krzysztof Kozlowski).
-
-Thanks!
-
-
----------------
-
-Francesco Ruggeri (1):
-      ACPI: OSL: only free map once in osl.c
-
-Hans de Goede (1):
-      ACPI: button: Add DMI quirk for Acer Switch 10 SW5-032 lid-switch
-
-Krzysztof Kozlowski (1):
-      ACPI: Fix Kconfig indentation
-
-Vamshi K Sthambamkadi (1):
-      ACPI: bus: Fix NULL pointer check in acpi_bus_get_private_data()
-
-Yunfeng Ye (1):
-      ACPI: sysfs: Change ACPI_MASKABLE_GPE_MAX to 0x100
-
----------------
-
- Documentation/admin-guide/kernel-parameters.txt |  2 +-
- drivers/acpi/Kconfig                            |  8 +++----
- drivers/acpi/bus.c                              |  2 +-
- drivers/acpi/button.c                           | 13 ++++++++++++
- drivers/acpi/osl.c                              | 28 +++++++++++++++----------
- drivers/acpi/sysfs.c                            |  6 +++---
- 6 files changed, 39 insertions(+), 20 deletions(-)
