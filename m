@@ -1,111 +1,145 @@
-Return-Path: <SRS0=6hCO=Z4=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=KDP8=Z6=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18A33C43603
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Dec 2019 17:54:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81152C43603
+	for <linux-acpi@archiver.kernel.org>; Sun,  8 Dec 2019 14:05:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E492424670
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Dec 2019 17:54:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42487206E0
+	for <linux-acpi@archiver.kernel.org>; Sun,  8 Dec 2019 14:05:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=jlekstrand-net.20150623.gappssmtp.com header.i=@jlekstrand-net.20150623.gappssmtp.com header.b="mnEa9scs"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SkKosVp5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726321AbfLFRyW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Dec 2019 12:54:22 -0500
-Received: from mail-pl1-f193.google.com ([209.85.214.193]:43620 "EHLO
-        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726315AbfLFRyW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Dec 2019 12:54:22 -0500
-Received: by mail-pl1-f193.google.com with SMTP id q16so3011844plr.10
-        for <linux-acpi@vger.kernel.org>; Fri, 06 Dec 2019 09:54:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=jlekstrand-net.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=ImBNc4qgIrwMkM+rUGDaHKqVHr1dUMeLNQ6cHJK9ITc=;
-        b=mnEa9scsD0yZ9KuG2m25kWPF915gHBveN/LvobWfLRm43El/RdiqlPFFWVkqTWWAEU
-         lohSksI0zMUhkH6n/LgmLVP1/FwQBd0vKeVLxYWEmL5Wv1a6q8Fgp5SeeCD2NQFLr2Ge
-         Rm5rYnDj/YzWHgAVSnmVkddW4yQ1LsCABhkYFn5A69BDGqwrC4JoM3ehQov1bQqtxPG8
-         HYMGlI4LpXwS0FcQoyKBMTvwWRHtz5y4VuBtsyTMLPoymBU38grhJTgKkJJmg/GM4rBY
-         H3uc/FlnOLvMnR0y2wEYoYr/S8A+5pxk9G+XX5ass9MThFZHqgBI61raJKEk3Bvx0HG6
-         8Qww==
+        id S1726425AbfLHOFW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 8 Dec 2019 09:05:22 -0500
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:31604 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726406AbfLHOFW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Dec 2019 09:05:22 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1575813920;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=30ipBLDOpILVGltlX+yMvZubDIZXAvCZnhKBpoYTnd0=;
+        b=SkKosVp5YTE7Hi+oVvSCkJn+2c6pDWpLMZ8JKKGRa6FCydEcMO1GZ+j2iWajZOm/dz4vML
+        e0d2wF6PjmSKKP3juJ8JlvHVl9h3l+QOUmKiJirjh725ShF7xWDWFm0pRxeCVZMrW3rnKH
+        76F6xBL4tdnPr80KSJA40GtnqIlG3mU=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-353-BA45oVaSN82a4fwlim6N7A-1; Sun, 08 Dec 2019 09:05:19 -0500
+Received: by mail-wr1-f71.google.com with SMTP id c6so5969332wrm.18
+        for <linux-acpi@vger.kernel.org>; Sun, 08 Dec 2019 06:05:19 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=ImBNc4qgIrwMkM+rUGDaHKqVHr1dUMeLNQ6cHJK9ITc=;
-        b=K5te7reu56vtlvNQC+eG8rNkPyitwNlkkmU8JsCsJgNDlGMaHvY4673O3TG9oUADb0
-         HrVjkvSYENTgOIDvle+El/I1zY4eQy7Mp36RWLnx9t98tsa57pp9D9RhXbCtKbrdV4fi
-         GU9i532O4aiDnW722bAvRb4IV4N5XOePNyNodIvnq1Cwy8T2P9fwO+Pkh5jBghInomgN
-         THLBPLEdKs5t52KgugRzOikWBPL5S8fvCUSDyAv8eB4yMe+fSltZjbR8dZCAdfQBuDpf
-         5b9ncLFWMiorAyvEgGXv4G3XWvBeVP0PqQm+tWNM+3OEkMHGqy52NLiNoKLnJeJ1vS2Q
-         /MAw==
-X-Gm-Message-State: APjAAAXl8kM0D8I61budmRxy1Qac/Rzql4k3dgYk3+1Fq5W9QtK8tH64
-        eBU9l8k8uLxu8bwGd9cpcB6ASA==
-X-Google-Smtp-Source: APXvYqyPsz0unA2rwxCZ07LA/cUq/kYApAfKk+0M+ZkkMZbAYWyEOc6D3gfVKMiKnp8Zf0rJOh0IiQ==
-X-Received: by 2002:a17:902:aa46:: with SMTP id c6mr15231626plr.250.1575654861115;
-        Fri, 06 Dec 2019 09:54:21 -0800 (PST)
-Received: from omlet.com ([2605:6000:1026:c273::341])
-        by smtp.gmail.com with ESMTPSA id d22sm16597000pfn.164.2019.12.06.09.54.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Dec 2019 09:54:20 -0800 (PST)
-From:   Jason Ekstrand <jason@jlekstrand.net>
-Cc:     hdegoede@redhat.com, Jason Ekstrand <jason@jlekstrand.net>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        bh=30ipBLDOpILVGltlX+yMvZubDIZXAvCZnhKBpoYTnd0=;
+        b=d0keIVrxHTdHJgWACfy2IUmvWlFL4imvGvRJPACdmKgI+oGpu7uI0KUJcSPRmbsfYT
+         lorFr8aFOQEe4VEEHmyj+jhcpw9QFQBTKgeujiU9UHzMSTtbyqlZb7yd7ldVuY2UhNKb
+         Rox7VSvn8FoMha/+EyrtnvIJuubDXu3kMmnOA+FF4z9L1Jb/LBfIGiIjKp+zklZ3lnCq
+         gzzhlWIq7ydMXuKOoniBM3RTkYF+EKvwNyhRayfwLi9n8UtWXLHxasA3MlXY5dL1Dq7I
+         5kcOppM1Gei4c3Q+GW36n/+S74p+1Y9z32HqryI7z7SlAUC65GupLktx4ZuvOMGpoS+c
+         03VQ==
+X-Gm-Message-State: APjAAAVqkUru+z962Nv/vF8bD/uZPho2H7N/jj1A33N71PuOMnSHtGsJ
+        6lDCgzsdxFenq8yNvRD+xa+L0r2i3K4jXk5tIG6/BlF+/oOSRoE2mdVU9g+iDSAC5nDYrKvkio2
+        qQ9zyZyGT5uKQE8gw4FmXZA==
+X-Received: by 2002:adf:ebc3:: with SMTP id v3mr3828227wrn.280.1575813918075;
+        Sun, 08 Dec 2019 06:05:18 -0800 (PST)
+X-Google-Smtp-Source: APXvYqwClxrwfKXccjCy3DgP3KyYWvRyxieD/Vi/Ud1fqKAxEpVX6n6WXJ4jmC4eyZLJ/l742BKMfA==
+X-Received: by 2002:adf:ebc3:: with SMTP id v3mr3828207wrn.280.1575813917877;
+        Sun, 08 Dec 2019 06:05:17 -0800 (PST)
+Received: from shalem.localdomain (84-106-84-65.cable.dynamic.v4.ziggo.nl. [84.106.84.65])
+        by smtp.gmail.com with ESMTPSA id q6sm24703020wrx.72.2019.12.08.06.05.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 08 Dec 2019 06:05:17 -0800 (PST)
+Subject: Re: [PATCH] ACPI: button: Add a DMI quirk for Razer Blade Stealth 13
+ late 2019 lid-switch
+To:     Jason Ekstrand <jason@jlekstrand.net>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: button: Add a DMI quirk for Razer Blade Stealth 13 late 2019 lid-switch
-Date:   Fri,  6 Dec 2019 11:54:09 -0600
-Message-Id: <20191206175409.335568-1-jason@jlekstrand.net>
-X-Mailer: git-send-email 2.23.0
+References: <20191206175409.335568-1-jason@jlekstrand.net>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <3565c99f-3cc4-32cb-1cac-98c7b0392e5c@redhat.com>
+Date:   Sun, 8 Dec 2019 15:05:16 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+In-Reply-To: <20191206175409.335568-1-jason@jlekstrand.net>
+Content-Language: en-US
+X-MC-Unique: BA45oVaSN82a4fwlim6N7A-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Running evemu-record on the lid switch event shows that the lid reports
-the first close but then never reports an open.  This causes systemd to
-continuously re-suspend the laptop every 30s.  Resetting the _LID to
-open fixes the issue.
+Hi,
 
-Signed-off-by: Jason Ekstrand <jason@jlekstrand.net>
----
+On 06-12-2019 18:54, Jason Ekstrand wrote:
+> Running evemu-record on the lid switch event shows that the lid reports
+> the first close but then never reports an open.  This causes systemd to
+> continuously re-suspend the laptop every 30s.  Resetting the _LID to
+> open fixes the issue.
 
-Re-sending due to a typo in my own e-mail address. :(
+Sorry to be a bit nitpicky here, but the LID does work normally right,
+so it does signal an event when it gets closed a second time right?
 
- drivers/acpi/button.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Your current commit message and comment suggest closing the LID only
+works once. So perhaps something like this for the comment:
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 662e07afe9a1..f7ca94e41c48 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -122,6 +122,17 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
- 		},
- 		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
- 	},
-+	{
-+		/*
-+		 * Razer Blade Stealth 13 late 2019, _LID reports the first
-+		 * close but never resets to open.
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Razer Blade Stealth 13 Late 2019"),
-+		},
-+		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
-+	},
- 	{}
- };
- 
--- 
-2.23.0
+/*
+  * Razer Blade Stealth 13 late 2019, _LID always reports closed,
+  * even when opened.
+  */
+
+And adjust the comment accordingly.
+
+Regards,
+
+Hans
+
+
+
+> Signed-off-by: Jason Ekstrand <jason@jlekstrand.net>
+> ---
+> 
+> Re-sending due to a typo in my own e-mail address. :(
+> 
+>   drivers/acpi/button.c | 11 +++++++++++
+>   1 file changed, 11 insertions(+)
+> 
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 662e07afe9a1..f7ca94e41c48 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -122,6 +122,17 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+>   		},
+>   		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
+>   	},
+> +	{
+> +		/*
+> +		 * Razer Blade Stealth 13 late 2019, _LID reports the first
+> +		 * close but never resets to open.
+> +		 */
+> +		.matches = {
+> +			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "Razer Blade Stealth 13 Late 2019"),
+> +		},
+> +		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
+> +	},
+>   	{}
+>   };
+>   
+> 
 
