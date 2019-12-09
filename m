@@ -4,56 +4,56 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 294A6C2D0C8
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55EDAC2D0CE
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EB92F20836
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28ACB2465E
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="QWVvbh0J"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="jHfiTmHM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726847AbfLISMM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 9 Dec 2019 13:12:12 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:46492 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726826AbfLISMK (ORCPT
+        id S1726783AbfLISMN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Dec 2019 13:12:13 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:51260 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726822AbfLISMK (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2019 13:12:10 -0500
-Received: by mail-wr1-f68.google.com with SMTP id z7so17177897wrl.13
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2019 10:12:09 -0800 (PST)
+Received: by mail-wm1-f66.google.com with SMTP id g206so331590wme.1
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2019 10:12:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=+bUNvcbVur0Ef2VA51V4gsgr3fHJGR70sEezlRR2RXc=;
-        b=QWVvbh0Jpp5+Hw8827sqJaAjar+vbOSxAvAj30oTykn3fZunkMM+V0TpMe8znZSIwt
-         kVb7o3GmlRpgmGRwqFd9IL7O0Rr/xOSf3Ou712l2rKwvJ+ientMioZnVc1lDF91iu51I
-         UHJUu2zRarBoJs8L2yoNmEOFKcoFuBaNk3ypQxZ80un+15jE6DMxi+ZjCVVZZ43p9sG2
-         IBBhzFgwwrNysh5v+q2LdP7dwwQvTzT0h9awcGtfIkraKUYda6YASGA0COj5K+NLIQlU
-         vc+Klj7osrnuHxQ7nzumbvGR2a/QpWUNgVCUK01W87GXIit9vGNapGS5T4f3bqCJiksT
-         E9lw==
+        bh=dS9JHQoIet3pVv6eJb9kJhT5ftY7Ua+yYZWdXaG4gzo=;
+        b=jHfiTmHM4CgLf+XW4XJxxOpTyiR6rKXGw0zHau9qPm2vGLuTDtwrk1iEmqAtUcL0i1
+         GsCQCDgc6hgt4m1sndQFIWIIUKcYhL3IICK4Fqklm0GGYn+i8/U2GBdcVIS7kpyJntqK
+         FncR+fmMSAF2mS9jczjFGKFdm/z/keSkGM1LzIOx+yDEkmzwl+Dx3hiYEEq7n5Ta8Vlq
+         ruclXWt71bhEl2VL8xVlpMVPiSsHqe3n9I6P6HD+ta2oXHF1cST8lor+yZKxe9kLQzqp
+         //OPHKtrlucEqJ22vm3L1SlVRIUHcuhtXn61mRWuGRC0y+tJPOx0Fb2FHsmhDZ9xMc1r
+         golg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=+bUNvcbVur0Ef2VA51V4gsgr3fHJGR70sEezlRR2RXc=;
-        b=nJidNII0eDGIDHhLH5MHqaUgN1FOrQngIqDKwqiGXCvZCBdiSA0iWXUPRGghYGV55c
-         6SEJly4hZ/GX9TJaaSqk/rIqE3ISL2IHz6OjGgyqWYmhAlkTq6gAKHExCTtocZc3XaCG
-         rGv8/XsEVDN99c5Qx3PPcHIGLMiOxVUD8jR3YUv3xKMwMUdaMQrCqPyoA4LE7AgKcSfa
-         A/f6HvZLpvD+CThC9a3UwqLdgkp/NtpQtIHx3ead5+tLrl0A1Wh21ySswduMOd9M/AIk
-         3A+yOYfa8bCNj8hjhMmuGUW33d2K7dXdvu6xEeERhW3n6VglQxb8n3Pk83TXNj7jUGuS
-         fukA==
-X-Gm-Message-State: APjAAAVu/rSpVsjOITV75eOcbeVIQkJnJ/71nJAZpufVKGvRz6jsxllI
-        FSsyxB0oylI0oCd/X+4BsyK7iw==
-X-Google-Smtp-Source: APXvYqxZH+0s1tJzoncKkc0MLrscBtmGhCCKfuSL1rRjTgo9fxA1fKZvT0gterjHLEAe0aJZPngGUg==
-X-Received: by 2002:a5d:4602:: with SMTP id t2mr3528279wrq.37.1575915129138;
-        Mon, 09 Dec 2019 10:12:09 -0800 (PST)
+        bh=dS9JHQoIet3pVv6eJb9kJhT5ftY7Ua+yYZWdXaG4gzo=;
+        b=aWKuE+jfqnl3M1p4uh6jd0YFPT5UJE7W59QsTPJBG6cvc0//8OM49XvmYMZy0Wfphs
+         Y4iMRYcpIl19kU+BYkA7KU+1mqtS7m71FhYFWa/swSEGOXm+YKMsyQarlfaCrVkNu1jU
+         YG2X0anFS5jLIzadNdNKEBNNaDI+m8Ous7fqhMhzD9j8eoa01OLxIhQ7F+99h0Yb/nUw
+         4/KP+UQiU+IxV7w+J+T7pHssrgVsvFZOVfAKJnuSrlzUgFqgi3sWLGSR4pjMkr0LrElO
+         /HAThmOnBm1nHG5q0tX4kAcqdg9Df8ugpWVdEnmFGnmR7pVTJ+nefNX869thlmtvj7wy
+         LZQA==
+X-Gm-Message-State: APjAAAXjhxIpoMOfLFaxj2m6EntJoTXlqZRI94TMZvYqefURAz2VgbPN
+        JJ7cBQsVX1xLDJme5lMh4+eQeA==
+X-Google-Smtp-Source: APXvYqwLObPVApm61pTMGQoHPnKg/K//kDJoQJn+2j5gLjfljwmJA5TLzDgo+SfmbkrNRrb8uanIWA==
+X-Received: by 2002:a7b:cf12:: with SMTP id l18mr394499wmg.66.1575915127985;
+        Mon, 09 Dec 2019 10:12:07 -0800 (PST)
 Received: from localhost.localdomain (adsl-62-167-101-88.adslplus.ch. [62.167.101.88])
-        by smtp.gmail.com with ESMTPSA id h2sm309838wrv.66.2019.12.09.10.12.08
+        by smtp.gmail.com with ESMTPSA id h2sm309838wrv.66.2019.12.09.10.12.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Dec 2019 10:12:08 -0800 (PST)
+        Mon, 09 Dec 2019 10:12:07 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
@@ -64,9 +64,9 @@ Cc:     joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com,
         will@kernel.org, robin.murphy@arm.com, bhelgaas@google.com,
         eric.auger@redhat.com, jonathan.cameron@huawei.com,
         zhangfei.gao@linaro.org
-Subject: [PATCH v3 12/13] PCI/ATS: Add PASID stubs
-Date:   Mon,  9 Dec 2019 19:05:13 +0100
-Message-Id: <20191209180514.272727-13-jean-philippe@linaro.org>
+Subject: [PATCH v3 11/13] iommu/arm-smmu-v3: Improve add_device() error handling
+Date:   Mon,  9 Dec 2019 19:05:12 +0100
+Message-Id: <20191209180514.272727-12-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191209180514.272727-1-jean-philippe@linaro.org>
 References: <20191209180514.272727-1-jean-philippe@linaro.org>
@@ -77,30 +77,75 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The SMMUv3 driver, which may be built without CONFIG_PCI, will soon gain
-PASID support.  Partially revert commit c6e9aefbf9db ("PCI/ATS: Remove
-unused PRI and PASID stubs") to re-introduce the PASID stubs, and avoid
-adding more #ifdefs to the SMMU driver.
+Let add_device() clean up after itself. The iommu_bus_init() function
+does call remove_device() on error, but other sites (e.g. of_iommu) do
+not.
 
+Don't free level-2 stream tables because we'd have to track if we
+allocated each of them or if they are used by other endpoints. It's not
+worth the hassle since they are managed resources.
+
+Reviewed-by: Eric Auger <eric.auger@redhat.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- include/linux/pci-ats.h | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/iommu/arm-smmu-v3.c | 28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/pci-ats.h b/include/linux/pci-ats.h
-index 5d62e78946a3..d08f0869f121 100644
---- a/include/linux/pci-ats.h
-+++ b/include/linux/pci-ats.h
-@@ -33,6 +33,9 @@ void pci_disable_pasid(struct pci_dev *pdev);
- int pci_pasid_features(struct pci_dev *pdev);
- int pci_max_pasids(struct pci_dev *pdev);
- #else /* CONFIG_PCI_PASID */
-+static inline int pci_enable_pasid(struct pci_dev *pdev, int features)
-+{ return -EINVAL; }
-+static inline void pci_disable_pasid(struct pci_dev *pdev) { }
- static inline int pci_pasid_features(struct pci_dev *pdev)
- { return -EINVAL; }
- static inline int pci_max_pasids(struct pci_dev *pdev)
+diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+index 52adcdfda58b..d20a79108f8a 100644
+--- a/drivers/iommu/arm-smmu-v3.c
++++ b/drivers/iommu/arm-smmu-v3.c
+@@ -2836,14 +2836,16 @@ static int arm_smmu_add_device(struct device *dev)
+ 	for (i = 0; i < master->num_sids; i++) {
+ 		u32 sid = master->sids[i];
+ 
+-		if (!arm_smmu_sid_in_range(smmu, sid))
+-			return -ERANGE;
++		if (!arm_smmu_sid_in_range(smmu, sid)) {
++			ret = -ERANGE;
++			goto err_free_master;
++		}
+ 
+ 		/* Ensure l2 strtab is initialised */
+ 		if (smmu->features & ARM_SMMU_FEAT_2_LVL_STRTAB) {
+ 			ret = arm_smmu_init_l2_strtab(smmu, sid);
+ 			if (ret)
+-				return ret;
++				goto err_free_master;
+ 		}
+ 	}
+ 
+@@ -2853,13 +2855,25 @@ static int arm_smmu_add_device(struct device *dev)
+ 		master->ssid_bits = min_t(u8, master->ssid_bits,
+ 					  CTXDESC_LINEAR_CDMAX);
+ 
++	ret = iommu_device_link(&smmu->iommu, dev);
++	if (ret)
++		goto err_free_master;
++
+ 	group = iommu_group_get_for_dev(dev);
+-	if (!IS_ERR(group)) {
+-		iommu_group_put(group);
+-		iommu_device_link(&smmu->iommu, dev);
++	if (IS_ERR(group)) {
++		ret = PTR_ERR(group);
++		goto err_unlink;
+ 	}
+ 
+-	return PTR_ERR_OR_ZERO(group);
++	iommu_group_put(group);
++	return 0;
++
++err_unlink:
++	iommu_device_unlink(&smmu->iommu, dev);
++err_free_master:
++	kfree(master);
++	fwspec->iommu_priv = NULL;
++	return ret;
+ }
+ 
+ static void arm_smmu_remove_device(struct device *dev)
 -- 
 2.24.0
 
