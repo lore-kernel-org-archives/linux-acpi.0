@@ -7,53 +7,53 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAD0BC2D0C5
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB8F4C2D0C8
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBFAD24654
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B855F214D8
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Tts/uxwA"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="qz+VoZCi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726665AbfLISMB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 9 Dec 2019 13:12:01 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:35984 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726642AbfLISMA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2019 13:12:00 -0500
-Received: by mail-wr1-f65.google.com with SMTP id z3so17304796wru.3
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2019 10:11:58 -0800 (PST)
+        id S1726677AbfLISMC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Dec 2019 13:12:02 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:54401 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726683AbfLISMC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2019 13:12:02 -0500
+Received: by mail-wm1-f67.google.com with SMTP id b11so316184wmj.4
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2019 10:12:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=KOPwmsVGim8uksddBYEL5Xr/XEk+fQ6sygiouqBeFpU=;
-        b=Tts/uxwAulwDWx38JQ7vQN1vchjW9BMQPwqFcz5u8er0ybt0fOUvBHt+WEAB24gXyc
-         BlO6xJwA59upCQs0IseN693yMmNMgDbbFgWrWiT8ZWofkwrA7Seq9O/D4Gx//cyDdaGE
-         /guIbq5MoYH70/5n63vUCderClZlhJs3YBa2U9WpDRuoNG3S47hAE8+Ww4p9KU6i+ziJ
-         sceo5n1ghS7WbisS3mMyOWUi5Kf2+viwAkPdhnJOYSbUXUfLBHgRWi46jnVUHnae9E52
-         Wr8TWOQ6BMPwQ+bvP0D1ypo0U6Cun3Y1noijEKy7UPoDC+Idhr8iP2SN8THAoGBBnKww
-         bVHQ==
+        bh=4K50bdfBGo5wv/ohbkLG+3JipC6XSwfSyXBMUuskNmE=;
+        b=qz+VoZCi2ZkZPf4O3bdy8khdtdl8t/tUseUIY6WiqKbbJWekc5IUQKdpcypm5EMkel
+         xqPdHX3CeThQc2N0RtPMuUniauvWEWGq40GoYXI0yVd8LbEWNP96eaGnT4QP070SobzJ
+         zuv3qeO3/+eK+CLCq8+o3mKjEP3FAQTHumSHPD/d1MYdMravg1n14/mT+AUeE2Zn7uoy
+         qC+fiL+l2N8Gkov7H0UAFhurlkzwGLezZQOw5F/R/0Cq3xJiG1q/d/Hb+9envEQ/tXGJ
+         sCHDsfLiaL23XiTlMiAPMm2WhhcmLcB73I3Vk0eIJFuBaKHVAaglqEEM0v6qB0IqTR0A
+         HDtQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=KOPwmsVGim8uksddBYEL5Xr/XEk+fQ6sygiouqBeFpU=;
-        b=INx8aihpZviY914EnDf62PNXuJeu4n41JNvNDdzS3GRtdK+UL38Vn0gYL5NGYxSIUk
-         xX2F3jDii2UTeYGjXnjy2DUl1LkljtcEgA286MqlAgohIslxDQguOr7YcQ6Rn6aDwJmN
-         jnfXz3AcAd7aZbHCZHC+JQPunkPoJDajZ0IZgfCFclIgHuLF/dehosG6uCDagkdO+oUs
-         jH8EflqoxI2DT5V5eWcmvso0IitDwSYBSrwVCuephUt4X+PelZf2tbfD1Yx9olmGY8H5
-         lCHAP/9SB6pucqy06V5rVgBmn35GrrEPwL8HQYts33vURM8ZL4fxhW/B9DLQJt6+j417
-         ZI/w==
-X-Gm-Message-State: APjAAAVpK1AWkxqqiFXYfok45TdmUAGQzEEQdEVgmZzlqAUcJ0oi1fyy
-        onqKho+p1fbhI3XFmBzcY3b8hQ==
-X-Google-Smtp-Source: APXvYqwd75VErNxunler74D2aYIuUwxtIPPyshTDCbkZm56YpyIMcPHPAkjo50SdxP2In7GjOAaXhw==
-X-Received: by 2002:adf:f581:: with SMTP id f1mr3704624wro.264.1575915118236;
-        Mon, 09 Dec 2019 10:11:58 -0800 (PST)
+        bh=4K50bdfBGo5wv/ohbkLG+3JipC6XSwfSyXBMUuskNmE=;
+        b=eSjgENWAFccGGiAmI+F5Qd35PSON1t2g3Y1rArztA3H3tHgAFooyNCCmmmDJI7Ta5A
+         dt/yayygE/qMfb5L7BTr+kFQp6Qv6Qr9teyaMrXWRrhtGrr6HsbVyrJVhYj4Z3gjiMTk
+         G6eb5jelFhKJAibcM1M5JBTkjgYBcesUZXuOJZCgkjDhALCI8s4fxNicnsfhrbeXv2jZ
+         qra14rAYRf5OpY7JzMff6scxgTmJA0d7Sd+rUDmxK7XzfXopA2lLfQ4/ynWiYTRovgo2
+         6CkO24M8upqjhS4puqnD+Y0nZRYwhNya6U2y6q2Qyz2/DFhuWsRsvU67t/jEWDOJUjE8
+         Qwvg==
+X-Gm-Message-State: APjAAAXWk8/eacPDPKWY7uoZTG34MGgC3GXG5Q/DVcZAjMxmhihTQDIs
+        iatU2M7/lcv/byEdW8HBSbBvwg==
+X-Google-Smtp-Source: APXvYqymGhua6k1UiWoRVt/h0So4MtX0nqsi2/M4ba7JykDOOETk0lX7gu+MYa5fgf+Qs3/UisNgYA==
+X-Received: by 2002:a7b:c851:: with SMTP id c17mr337626wml.71.1575915120418;
+        Mon, 09 Dec 2019 10:12:00 -0800 (PST)
 Received: from localhost.localdomain (adsl-62-167-101-88.adslplus.ch. [62.167.101.88])
-        by smtp.gmail.com with ESMTPSA id h2sm309838wrv.66.2019.12.09.10.11.57
+        by smtp.gmail.com with ESMTPSA id h2sm309838wrv.66.2019.12.09.10.11.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Dec 2019 10:11:57 -0800 (PST)
+        Mon, 09 Dec 2019 10:11:59 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
@@ -64,9 +64,9 @@ Cc:     joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com,
         will@kernel.org, robin.murphy@arm.com, bhelgaas@google.com,
         eric.auger@redhat.com, jonathan.cameron@huawei.com,
         zhangfei.gao@linaro.org
-Subject: [PATCH v3 02/13] dt-bindings: document PASID property for IOMMU masters
-Date:   Mon,  9 Dec 2019 19:05:03 +0100
-Message-Id: <20191209180514.272727-3-jean-philippe@linaro.org>
+Subject: [PATCH v3 04/13] ACPI/IORT: Support PASID for platform devices
+Date:   Mon,  9 Dec 2019 19:05:05 +0100
+Message-Id: <20191209180514.272727-5-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191209180514.272727-1-jean-philippe@linaro.org>
 References: <20191209180514.272727-1-jean-philippe@linaro.org>
@@ -77,34 +77,60 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Arm systems, some platform devices behind an SMMU may support the PASID
-feature, which offers multiple address space. Let the firmware tell us
-when a device supports PASID.
+Named component nodes in the IORT tables describe the number of
+Substream ID bits (aka. PASID) supported by the device. Propagate this
+value to the fwspec structure in order to enable PASID for platform
+devices.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Eric Auger <eric.auger@redhat.com>
+Acked-by: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- Documentation/devicetree/bindings/iommu/iommu.txt | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/acpi/arm64/iort.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/iommu/iommu.txt b/Documentation/devicetree/bindings/iommu/iommu.txt
-index 5a8b4624defc..3c36334e4f94 100644
---- a/Documentation/devicetree/bindings/iommu/iommu.txt
-+++ b/Documentation/devicetree/bindings/iommu/iommu.txt
-@@ -86,6 +86,12 @@ have a means to turn off translation. But it is invalid in such cases to
- disable the IOMMU's device tree node in the first place because it would
- prevent any driver from properly setting up the translations.
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 33f71983e001..39f389214ecf 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -11,6 +11,7 @@
+ #define pr_fmt(fmt)	"ACPI: IORT: " fmt
  
-+Optional properties:
-+--------------------
-+- pasid-num-bits: Some masters support multiple address spaces for DMA, by
-+  tagging DMA transactions with an address space identifier. By default,
-+  this is 0, which means that the device only has one address space.
+ #include <linux/acpi_iort.h>
++#include <linux/bitfield.h>
+ #include <linux/iommu.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+@@ -924,6 +925,20 @@ static int iort_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
+ 	return iort_iommu_xlate(info->dev, parent, streamid);
+ }
+ 
++static void iort_named_component_init(struct device *dev,
++				      struct acpi_iort_node *node)
++{
++	struct acpi_iort_named_component *nc;
++	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
 +
++	if (!fwspec)
++		return;
++
++	nc = (struct acpi_iort_named_component *)node->node_data;
++	fwspec->num_pasid_bits = FIELD_GET(ACPI_IORT_NC_PASID_BITS,
++					   nc->node_flags);
++}
++
+ /**
+  * iort_iommu_configure - Set-up IOMMU configuration for a device.
+  *
+@@ -978,6 +993,9 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ 			if (parent)
+ 				err = iort_iommu_xlate(dev, parent, streamid);
+ 		} while (parent && !err);
++
++		if (!err)
++			iort_named_component_init(dev, node);
+ 	}
  
- Notes:
- ======
+ 	/*
 -- 
 2.24.0
 
