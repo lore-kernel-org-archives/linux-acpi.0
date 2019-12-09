@@ -2,324 +2,186 @@ Return-Path: <SRS0=1bs7=Z7=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E110C2D0DB
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6AAFC04E30
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 21:23:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F30BC214D8
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 18:12:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Vf0lYDvN"
+	by mail.kernel.org (Postfix) with ESMTP id A69822071E
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Dec 2019 21:23:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726860AbfLISMM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 9 Dec 2019 13:12:12 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:33162 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726783AbfLISMK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2019 13:12:10 -0500
-Received: by mail-wr1-f65.google.com with SMTP id b6so17304043wrq.0
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2019 10:12:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=uGyyVFFffB+nn3CMqPQEWA9TrF0HCq7Y+C6lEE2R5KI=;
-        b=Vf0lYDvNV9KMzOkHoN+NaFsfSZeaXs02L6HdvpcXM+0RGC6y//Ng8WXrrLppABKBcO
-         9qQKVPPvYxfd/MZHPmt6BuBK8cE9Sm8vXO6ofg88/fTHZyiOOzizQbut3S8p6FA1PLuJ
-         DU/W/0EdRQzbgK4yVOt08FFLMz2dLH9RsfDHu/X3iswziaEeyf6PsVOLvES2HJ0F2C+C
-         pA++MmhbJRfXHGVOLu5WWUNYXgfKdjwS6RKGMf01u5YKT5XhcAtSrlcK7elGYBWxHd+0
-         BaxW1SUehmNXbw/aM66cKm/YFHDYYDo0Bj8nxZaUhPJFqgFnQ3rDrboMqW31nZzClPqY
-         YAQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=uGyyVFFffB+nn3CMqPQEWA9TrF0HCq7Y+C6lEE2R5KI=;
-        b=onPyqW2HY5E6oAJlTW6/WgXhEv8uTJdF9b0OvwRGafiQJteQUBz8d9bSCJb7N8iEZg
-         7WxFk8Fsy7NfJ3A+iOf7CJzlDwUMcDBm3awOrbtN/EtMZnB7u+oebqaOPnLEoZpyxX4q
-         LUwqxSzV4HNC8DRWvetrijWC3SdXCsMaKy1bfXrB1vj6VwaWJOnvSus2n8jm+E7kWv7M
-         SS7UN1nKQVxGsHuSPl283rDHLPCKUmU/5pcGKf4BYKYZ4nt+Ac+JVO654sLEaKox5Qlu
-         jrE3H68NN6i0+YrZwT0uwu5xwAbUjRAiGYFAqlqjiWDfDLPn/pltvHf6tX6PH8oE7q3F
-         eRLg==
-X-Gm-Message-State: APjAAAWrAPQwGfTwdyjW2+FDUSq2/BSP77rF/YkbwnZf8xZXUw/0M+9y
-        64EcLtAaBQqwGLFIbfT3XaKqLA==
-X-Google-Smtp-Source: APXvYqyUVK2x04/8RV+0EjRc7yScE+2P9BnUt7GAN2lZ2bh0T3PIPDVhqSdSCNqbN20O+7BXogSrAQ==
-X-Received: by 2002:adf:fd87:: with SMTP id d7mr3653742wrr.226.1575915126873;
-        Mon, 09 Dec 2019 10:12:06 -0800 (PST)
-Received: from localhost.localdomain (adsl-62-167-101-88.adslplus.ch. [62.167.101.88])
-        by smtp.gmail.com with ESMTPSA id h2sm309838wrv.66.2019.12.09.10.12.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Dec 2019 10:12:06 -0800 (PST)
-From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
-To:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        iommu@lists.linux-foundation.org
-Cc:     joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
-        sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        will@kernel.org, robin.murphy@arm.com, bhelgaas@google.com,
-        eric.auger@redhat.com, jonathan.cameron@huawei.com,
-        zhangfei.gao@linaro.org
-Subject: [PATCH v3 10/13] iommu/arm-smmu-v3: Add second level of context descriptor table
-Date:   Mon,  9 Dec 2019 19:05:11 +0100
-Message-Id: <20191209180514.272727-11-jean-philippe@linaro.org>
-X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191209180514.272727-1-jean-philippe@linaro.org>
-References: <20191209180514.272727-1-jean-philippe@linaro.org>
+        id S1726826AbfLIVXB convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Dec 2019 16:23:01 -0500
+Received: from mail-oln040092253085.outbound.protection.outlook.com ([40.92.253.85]:43574
+        "EHLO APC01-SG2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726408AbfLIVXA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Dec 2019 16:23:00 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=WEnbBiTiEMadvYBeJ6rot8Lsj36BEk/vOmKPGpdy+xDXtguXMVEYYV09Hksmr2FClhE+DikjMCM/U8of/+i/wQ0sRjPt8nF3CA6eSQwmqfuff6iHo4LvB9vDglVhQpYdT3B2YW7ABb6TN00+3R6XFB9zXXMfQqyNa/SUhgG1WA/nqHSzDz22gWlCWi4IGMrKf2oqftOlyL4t9EFKUOGK6W0l1kxjyo3s1cZ4NLVxaVThECYY657bUmRL7q1bSoz+tbUmrdTrUoW3dxHGc2MULObs4aWjRPebyidwvukQqLZ4R0FoQtdDBQFH6VphJkmvp3pb9GyoWsNo2zyQFuY+Rg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=dKfmJgjNd3c0qpfZjlSGzYVXDk4rdYxze8Q/XYeGyII=;
+ b=CfJY1ODyyNnd0CvIjRIz8ZILQS5GIyh2rlPpWMr9f7mncEGXM+QcOI6F+YLsQ6weNNGBGiJMXEmOTCcBirM/UwY1hjzdlq4ZcI+nyLAZ6SoYa0YSskiWDFHVKdkwXEVueY5oRRxQigMqhDZHonu8ZG9Cb81dxeAmdrrzGMJvUR4otUSl2DZb7715IsgycnFFgLn6LqGK/AwUcb7M2oNEE0hKOOHymxbHHS4u4gBvPmQNWmw9V3ZuKVX1SQAMzZBniHcacGNN7jk8bK7QUIQinta+dewF5FxmjvmpduLjdzGCYRxgtKTEzAuG7FKC+P3Y9Qd+XHaqw5FcYfmPiz1JGw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+Received: from SG2APC01FT017.eop-APC01.prod.protection.outlook.com
+ (10.152.250.51) by SG2APC01HT213.eop-APC01.prod.protection.outlook.com
+ (10.152.250.252) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2495.25; Mon, 9 Dec
+ 2019 21:22:50 +0000
+Received: from PSXP216MB0438.KORP216.PROD.OUTLOOK.COM (10.152.250.59) by
+ SG2APC01FT017.mail.protection.outlook.com (10.152.250.203) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2495.25 via Frontend Transport; Mon, 9 Dec 2019 21:22:50 +0000
+Received: from PSXP216MB0438.KORP216.PROD.OUTLOOK.COM
+ ([fe80::20ad:6646:5bcd:63c9]) by PSXP216MB0438.KORP216.PROD.OUTLOOK.COM
+ ([fe80::20ad:6646:5bcd:63c9%11]) with mapi id 15.20.2516.018; Mon, 9 Dec 2019
+ 21:22:49 +0000
+From:   Nicholas Johnson <nicholas.johnson-opensource@outlook.com.au>
+To:     "bjorn@helgaas.com" <bjorn@helgaas.com>
+CC:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: Re: [[RFC PATCH v1] 0/1] Add pci=nobbn to ignore ACPI _BBN method to
+ override host bridge bus window
+Thread-Topic: [[RFC PATCH v1] 0/1] Add pci=nobbn to ignore ACPI _BBN method to
+ override host bridge bus window
+Thread-Index: AQHVoODiiG1xuuRCOEaC/dBx8A2UfKeyFLaAgABXGgA=
+Date:   Mon, 9 Dec 2019 21:22:49 +0000
+Message-ID: <PSXP216MB0438258FE3687E1B33D48A2B80580@PSXP216MB0438.KORP216.PROD.OUTLOOK.COM>
+References: <PSXP216MB043824762539AFC40143D75880490@PSXP216MB0438.KORP216.PROD.OUTLOOK.COM>
+ <CABhMZUXOQXruHnZARVqe8cdkuhGXenMZ__7GhaJtDDsdBrcoyQ@mail.gmail.com>
+In-Reply-To: <CABhMZUXOQXruHnZARVqe8cdkuhGXenMZ__7GhaJtDDsdBrcoyQ@mail.gmail.com>
+Accept-Language: en-AU, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: SYBPR01CA0169.ausprd01.prod.outlook.com
+ (2603:10c6:10:52::13) To PSXP216MB0438.KORP216.PROD.OUTLOOK.COM
+ (2603:1096:300:d::20)
+x-incomingtopheadermarker: OriginalChecksum:0A72FB5ED855A5F081936D7ED8A460C8E5455359F1669D4922A10EECE936EA99;UpperCasedChecksum:1098633862171E7DE5A51AB21848C0FCE8785A726B8E30CFEC9D8AD69BBE32DD;SizeAsReceived:7924;Count:49
+x-ms-exchange-messagesentrepresentingtype: 1
+x-tmn:  [RnCXcg+VXLEaVpgAgjZrd7tHNFxzWpov2kkGxRp6FTMFVWJOhaq8wcOHnYSRF/vDvs3u8i1o/Pw=]
+x-microsoft-original-message-id: <20191209212236.GA2204@nicholas-usb>
+x-ms-publictraffictype: Email
+x-incomingheadercount: 49
+x-eopattributedmessage: 0
+x-ms-office365-filtering-correlation-id: a4e718aa-a5a8-4f6e-69e7-08d77cedf0ff
+x-ms-traffictypediagnostic: SG2APC01HT213:
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: CQZhR0vwhG7gs+2AjRBeiG1FYgGkkUnjzeIJYf/l/wnmT7elf774aSELjnvwXxFCr2Emg+Fg0a3HAZWxHhReKBriI0Tz0BYzXFZuHCA4hdTJ/WRhhHSO3MBK2DP7lxfP51N9POYXlLIkBUXZ6XH6Rir2yGyuyquPiSSkT4hlSMvAlYJLmqdR+RHTPxgZAZL9
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <B9A2C53F9EAC35489EF137720E118E62@KORP216.PROD.OUTLOOK.COM>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: outlook.com
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-Network-Message-Id: a4e718aa-a5a8-4f6e-69e7-08d77cedf0ff
+X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-originalarrivaltime: 09 Dec 2019 21:22:49.6344
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Internet
+X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SG2APC01HT213
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The SMMU can support up to 20 bits of SSID. Add a second level of page
-tables to accommodate this. Devices that support more than 1024 SSIDs now
-have a table of 1024 L1 entries (8kB), pointing to tables of 1024 context
-descriptors (64kB), allocated on demand.
+On Mon, Dec 09, 2019 at 10:10:55AM -0600, Bjorn Helgaas wrote:
+> On Thu, Nov 21, 2019 at 9:02 PM Nicholas Johnson
+> <nicholas.johnson-opensource@outlook.com.au> wrote:
+> >
+> > Hi all,
+> >
+> > I want to be able to override the bus resource from ACPI, but nocrs does
+> > not do it. I am putting this out here to get a feel for the sentiment
+> > for doing something like this.
+> 
+> This should be cc'd to linus-pci and linux-acpi (added).  I only
+> noticed this message by accident.  And I don't see the patch at all.
+I thought I had you cc'd into this - you were in the get_maintainer.pl 
+output.
 
-Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
----
- drivers/iommu/arm-smmu-v3.c | 153 +++++++++++++++++++++++++++++++++---
- 1 file changed, 143 insertions(+), 10 deletions(-)
+Looks like I posted the cover letter twice instead of the patch. I will 
+re-post shortly.
 
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index fc5119f34187..52adcdfda58b 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -224,6 +224,7 @@
- 
- #define STRTAB_STE_0_S1FMT		GENMASK_ULL(5, 4)
- #define STRTAB_STE_0_S1FMT_LINEAR	0
-+#define STRTAB_STE_0_S1FMT_64K_L2	2
- #define STRTAB_STE_0_S1CTXPTR_MASK	GENMASK_ULL(51, 6)
- #define STRTAB_STE_0_S1CDMAX		GENMASK_ULL(63, 59)
- 
-@@ -263,7 +264,20 @@
- 
- #define STRTAB_STE_3_S2TTB_MASK		GENMASK_ULL(51, 4)
- 
--/* Context descriptor (stage-1 only) */
-+/*
-+ * Context descriptors.
-+ *
-+ * Linear: when less than 1024 SSIDs are supported
-+ * 2lvl: at most 1024 L1 entries,
-+ *       1024 lazy entries per table.
-+ */
-+#define CTXDESC_SPLIT			10
-+#define CTXDESC_L2_ENTRIES		(1 << CTXDESC_SPLIT)
-+
-+#define CTXDESC_L1_DESC_DWORDS		1
-+#define CTXDESC_L1_DESC_VALID		1
-+#define CTXDESC_L1_DESC_L2PTR_MASK	GENMASK_ULL(51, 12)
-+
- #define CTXDESC_CD_DWORDS		8
- #define CTXDESC_CD_0_TCR_T0SZ		GENMASK_ULL(5, 0)
- #define ARM64_TCR_T0SZ			GENMASK_ULL(5, 0)
-@@ -575,7 +589,10 @@ struct arm_smmu_cd_table {
- };
- 
- struct arm_smmu_s1_cfg {
--	struct arm_smmu_cd_table	table;
-+	struct arm_smmu_cd_table	*tables;
-+	size_t				num_tables;
-+	__le64				*l1ptr;
-+	dma_addr_t			l1ptr_dma;
- 	struct arm_smmu_ctx_desc	cd;
- 	u8				s1fmt;
- 	u8				s1cdmax;
-@@ -1521,9 +1538,53 @@ static void arm_smmu_free_cd_leaf_table(struct arm_smmu_device *smmu,
- {
- 	size_t size = num_entries * (CTXDESC_CD_DWORDS << 3);
- 
-+	if (!table->ptr)
-+		return;
- 	dmam_free_coherent(smmu->dev, size, table->ptr, table->ptr_dma);
- }
- 
-+static void arm_smmu_write_cd_l1_desc(__le64 *dst,
-+				      struct arm_smmu_cd_table *table)
-+{
-+	u64 val = (table->ptr_dma & CTXDESC_L1_DESC_L2PTR_MASK) |
-+		  CTXDESC_L1_DESC_VALID;
-+
-+	WRITE_ONCE(*dst, cpu_to_le64(val));
-+}
-+
-+static __le64 *arm_smmu_get_cd_ptr(struct arm_smmu_domain *smmu_domain,
-+				   u32 ssid)
-+{
-+	__le64 *l1ptr;
-+	unsigned int idx;
-+	struct arm_smmu_cd_table *table;
-+	struct arm_smmu_device *smmu = smmu_domain->smmu;
-+	struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
-+
-+	if (cfg->s1fmt == STRTAB_STE_0_S1FMT_LINEAR) {
-+		table = &cfg->tables[0];
-+		idx = ssid;
-+	} else {
-+		idx = ssid >> CTXDESC_SPLIT;
-+		if (idx >= cfg->num_tables)
-+			return NULL;
-+
-+		table = &cfg->tables[idx];
-+		if (!table->ptr) {
-+			if (arm_smmu_alloc_cd_leaf_table(smmu, table,
-+							 CTXDESC_L2_ENTRIES))
-+				return NULL;
-+
-+			l1ptr = cfg->l1ptr + idx * CTXDESC_L1_DESC_DWORDS;
-+			arm_smmu_write_cd_l1_desc(l1ptr, table);
-+			/* An invalid L1CD can be cached */
-+			arm_smmu_sync_cd(smmu_domain, ssid, false);
-+		}
-+		idx = ssid & (CTXDESC_L2_ENTRIES - 1);
-+	}
-+	return table->ptr + idx * CTXDESC_CD_DWORDS;
-+}
-+
- static u64 arm_smmu_cpu_tcr_to_cd(u64 tcr)
- {
- 	u64 val = 0;
-@@ -1556,8 +1617,10 @@ static int arm_smmu_write_ctx_desc(struct arm_smmu_domain *smmu_domain,
- 	u64 val;
- 	bool cd_live;
- 	struct arm_smmu_device *smmu = smmu_domain->smmu;
--	__le64 *cdptr = smmu_domain->s1_cfg.table.ptr + ssid *
--			CTXDESC_CD_DWORDS;
-+	__le64 *cdptr = arm_smmu_get_cd_ptr(smmu_domain, ssid);
-+
-+	if (!cdptr)
-+		return -ENOMEM;
- 
- 	val = le64_to_cpu(cdptr[0]);
- 	cd_live = !!(val & CTXDESC_CD_0_V);
-@@ -1604,20 +1667,87 @@ static int arm_smmu_write_ctx_desc(struct arm_smmu_domain *smmu_domain,
- 
- static int arm_smmu_alloc_cd_tables(struct arm_smmu_domain *smmu_domain)
- {
-+	int ret;
-+	size_t size = 0;
-+	size_t max_contexts;
- 	struct arm_smmu_device *smmu = smmu_domain->smmu;
- 	struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
- 
--	cfg->s1fmt = STRTAB_STE_0_S1FMT_LINEAR;
--	return arm_smmu_alloc_cd_leaf_table(smmu, &cfg->table,
--					    1 << cfg->s1cdmax);
-+	max_contexts = 1 << cfg->s1cdmax;
-+
-+	if (!(smmu->features & ARM_SMMU_FEAT_2_LVL_CDTAB) ||
-+	    max_contexts <= CTXDESC_L2_ENTRIES) {
-+		cfg->s1fmt = STRTAB_STE_0_S1FMT_LINEAR;
-+		cfg->num_tables = 1;
-+	} else {
-+		cfg->s1fmt = STRTAB_STE_0_S1FMT_64K_L2;
-+		cfg->num_tables = DIV_ROUND_UP(max_contexts,
-+					       CTXDESC_L2_ENTRIES);
-+
-+		size = cfg->num_tables * (CTXDESC_L1_DESC_DWORDS << 3);
-+		cfg->l1ptr = dmam_alloc_coherent(smmu->dev, size,
-+						 &cfg->l1ptr_dma,
-+						 GFP_KERNEL);
-+		if (!cfg->l1ptr) {
-+			dev_warn(smmu->dev,
-+				 "failed to allocate L1 context table\n");
-+			return -ENOMEM;
-+		}
-+	}
-+
-+	cfg->tables = devm_kzalloc(smmu->dev, sizeof(struct arm_smmu_cd_table) *
-+				   cfg->num_tables, GFP_KERNEL);
-+	if (!cfg->tables) {
-+		ret = -ENOMEM;
-+		goto err_free_l1;
-+	}
-+
-+	/*
-+	 * Only allocate a leaf table for linear case. With two levels, leaf
-+	 * tables are allocated lazily.
-+	 */
-+	if (!cfg->l1ptr) {
-+		ret = arm_smmu_alloc_cd_leaf_table(smmu, &cfg->tables[0],
-+						   max_contexts);
-+		if (ret)
-+			goto err_free_tables;
-+	}
-+
-+	return 0;
-+
-+err_free_tables:
-+	devm_kfree(smmu->dev, cfg->tables);
-+	cfg->tables = NULL;
-+err_free_l1:
-+	if (cfg->l1ptr) {
-+		dmam_free_coherent(smmu->dev, size, cfg->l1ptr, cfg->l1ptr_dma);
-+		cfg->l1ptr = NULL;
-+		cfg->l1ptr_dma = 0;
-+	}
-+	return ret;
- }
- 
- static void arm_smmu_free_cd_tables(struct arm_smmu_domain *smmu_domain)
- {
-+	int i;
- 	struct arm_smmu_device *smmu = smmu_domain->smmu;
- 	struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
-+	size_t num_leaf_entries = 1 << cfg->s1cdmax;
-+	struct arm_smmu_cd_table *table = cfg->tables;
-+
-+	if (cfg->l1ptr) {
-+		size_t size = cfg->num_tables * (CTXDESC_L1_DESC_DWORDS << 3);
- 
--	arm_smmu_free_cd_leaf_table(smmu, &cfg->table, 1 << cfg->s1cdmax);
-+		dmam_free_coherent(smmu->dev, size, cfg->l1ptr, cfg->l1ptr_dma);
-+		cfg->l1ptr = NULL;
-+		cfg->l1ptr_dma = 0;
-+		num_leaf_entries = CTXDESC_L2_ENTRIES;
-+	}
-+
-+	for (i = 0; i < cfg->num_tables; i++, table++)
-+		arm_smmu_free_cd_leaf_table(smmu, table, num_leaf_entries);
-+	devm_kfree(smmu->dev, cfg->tables);
-+	cfg->tables = NULL;
- }
- 
- /* Stream table manipulation functions */
-@@ -1737,6 +1867,9 @@ static void arm_smmu_write_strtab_ent(struct arm_smmu_master *master, u32 sid,
- 	}
- 
- 	if (s1_cfg) {
-+		dma_addr_t ptr_dma = s1_cfg->l1ptr ? s1_cfg->l1ptr_dma :
-+				     s1_cfg->tables[0].ptr_dma;
-+
- 		BUG_ON(ste_live);
- 		dst[1] = cpu_to_le64(
- 			 FIELD_PREP(STRTAB_STE_1_S1DSS, STRTAB_STE_1_S1DSS_SSID0) |
-@@ -1749,7 +1882,7 @@ static void arm_smmu_write_strtab_ent(struct arm_smmu_master *master, u32 sid,
- 		   !(smmu->features & ARM_SMMU_FEAT_STALL_FORCE))
- 			dst[1] |= cpu_to_le64(STRTAB_STE_1_S1STALLD);
- 
--		val |= (s1_cfg->table.ptr_dma & STRTAB_STE_0_S1CTXPTR_MASK) |
-+		val |= (ptr_dma & STRTAB_STE_0_S1CTXPTR_MASK) |
- 			FIELD_PREP(STRTAB_STE_0_CFG, STRTAB_STE_0_CFG_S1_TRANS) |
- 			FIELD_PREP(STRTAB_STE_0_S1CDMAX, s1_cfg->s1cdmax) |
- 			FIELD_PREP(STRTAB_STE_0_S1FMT, s1_cfg->s1fmt);
-@@ -2265,7 +2398,7 @@ static void arm_smmu_domain_free(struct iommu_domain *domain)
- 	if (smmu_domain->stage == ARM_SMMU_DOMAIN_S1) {
- 		struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
- 
--		if (cfg->table.ptr) {
-+		if (cfg->tables) {
- 			arm_smmu_free_cd_tables(smmu_domain);
- 			arm_smmu_bitmap_free(smmu->asid_map, cfg->cd.asid);
- 		}
--- 
-2.24.0
+> 
+> > What is my motivation for doing this?
+> >
+> > I have a Gigabyte Z170X Designare motherboard which only gives resource
+> > [bus 00-7e]. I want the full [bus 00-ff] because I am trying to add as
+> > many Thunderbolt 3 ports with add-in cards as possible. Thunderbolt
+> > consumes bus numbers quickly. An Intel Ice Lake implementation (ideal)
+> > consumes 42 busses per port, but prior solutions consume 50 busses per
+> > port and have additional busses required for the NHI and USB
+> > controllers, as well as the bridges from the root port.
+> >
+> > Why not change nocrs to do this? Why the new kernel parameter?
+> >
+> > I imagine that on systems with multiple PCI root complexes, things will
+> > get hairy if we do this, if they are not placed on separate segments /
+> > domains by the firmware. I do not own such a beast, but from what I
+> > understand, the firmware normally places them on the same segment /
+> > domain with non-overlapping bus numbers. But we may still want to use
+> > nocrs for other reasons. I need to use nocrs to allow Linux to allocate
+> > vast amounts of MMIO and MMIO_PREF under the Thunderbolt root ports
+> > without the BIOS support for Thunderbolt. Hence, they should be kept
+> > separate.
+> >
+> > Why do this in general?
+> >
+> > The bus resource is still a resource which is specified from ACPI, just
+> > like those overridden by nocrs. Even if we do not use pci=nocrs to
+> > override it, it should be possible to override it, just as it is
+> > possible to override _CRS.
+> 
+> pci=nocrs is for working around defects in firmware or Linux.  The
+> firmware knows more about the platform than Linux, and in general we
+> have to trust it.  We probably should taint the kernel when we use it.
+> 
+> Any parameter like this should work the same on all ACPI systems,
+> including ia64 and arm64, and should probably also taint the kernel.
+> 
+> I can't see the patch itself, but I'm a little confused because we
+> normally get the bus number range from _CRS in acpi_pci_root_add() and
+> your patch doesn't appear to touch that.
+Because pci=nocrs is x86-only, I was making pci=nobbn x86-only. Which 
+means I only touched the areas in arch/x86 where pci=nocrs is handled.
 
+If you want, I can change nocrs to work on any arch, although I will 
+need somebody who owns ACPI systems of different architectures to test.
+
+The only such system I know of (that is not server hardware) is the 
+Microsoft Surface Pro X, which is an ARM64 system with ACPI and at least 
+three PCIe root complexes on PCI domains/segments 0, 2, 3. Mainline 
+Linux does not run properly even on X86 Surface devices, so I imagine it 
+will be an absolute nightmare getting Linux to run on this. I also have 
+no intention of buying anything without Thunderbolt / USB4.
+
+Kind regards,
+Nicholas
+
+> 
+> > Nicholas Johnson (1):
+> >   PCI: Add pci=nobbn to ignore ACPI _BBN method to override host bridge
+> >     bus window
+> >
+> >  Documentation/admin-guide/kernel-parameters.txt |  2 ++
+> >  arch/x86/include/asm/pci_x86.h                  |  1 +
+> >  arch/x86/pci/acpi.c                             | 11 +++++++++++
+> >  arch/x86/pci/common.c                           |  3 +++
+> >  4 files changed, 17 insertions(+)
+> >
+> > --
+> > 2.24.0
+> >
