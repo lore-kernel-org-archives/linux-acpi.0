@@ -2,25 +2,25 @@ Return-Path: <SRS0=4gY8=2A=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82A35C43603
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 11:55:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62AC6C43603
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:13:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55FB820726
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 11:55:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F7B52073D
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:13:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727219AbfLJLzk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Dec 2019 06:55:40 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:58344 "EHLO
+        id S1727374AbfLJMNa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Dec 2019 07:13:30 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:58063 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726956AbfLJLzj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2019 06:55:39 -0500
+        with ESMTP id S1727224AbfLJMNa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2019 07:13:30 -0500
 Received: from 79.184.255.117.ipv4.supernova.orange.pl (79.184.255.117) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.320)
- id 9eb461fbea0d2796; Tue, 10 Dec 2019 12:55:37 +0100
+ id 5435d2d466e1b89a; Tue, 10 Dec 2019 13:13:28 +0100
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux PM <linux-pm@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
@@ -28,9 +28,11 @@ Cc:     LKML <linux-kernel@vger.kernel.org>,
         Len Brown <len.brown@intel.com>,
         Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
         Len Brown <lenb@kernel.org>
-Subject: [RFC v2][PATCH 0/9] cpuidle: intel_idle: Use ACPI _CTS to get idle states information
-Date:   Tue, 10 Dec 2019 12:54:55 +0100
-Message-ID: <35821518.IbFVMVmUy3@kreacher>
+Subject: [RFC v2][PATCH 9/9] intel_idle: Add module parameter to prevent ACPI _CST from being used
+Date:   Tue, 10 Dec 2019 13:13:14 +0100
+Message-ID: <2442105.UMyhRX9LH8@kreacher>
+In-Reply-To: <35821518.IbFVMVmUy3@kreacher>
+References: <35821518.IbFVMVmUy3@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -39,38 +41,44 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The purpose of this set of patches is to allow the intel_idle driver to use
-C-states information from ACPI _CST on systems where the processor is not
-recognized by it.
+Add a new module parameter called "no_acpi" to the intel_idle driver
+to allow the driver to be prevented from using ACPI _CST via kernel
+command line.
 
-The first five patches are preparatory (please look into the changelogs for
-details) and are not expected to make any functional difference.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/idle/intel_idle.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-The patch [6/9] adds ACPI _CST support to intel_idle so that _CST is used when
-the driver does not have a dedicated list of C-states for the given processor.
-
-Patch [7/9] is the same as https://patchwork.kernel.org/patch/11256815/.
-
-Patch [8/9] changes intel_idle to also use ACPI _CST if there is a tables
-of C-states for the given processor in the driver, in which case it will use
-the _CST information to decide which C-state to enable by default.
-
-The last patch adds a module parameter called "no_acpi" that can be used to
-prevent intel_idle from using ACPI _CST via the kernel command line.
-
-This has been lightly tested on a Dell XPS13 9360 (with an additional patch to
-drop the Kaby Lake entries from intel_idle_ids[] which normally would prevent
-intel_idle from registering itself as the cpuidle driver).  The difference
-between using the idle states list from _CST and the built-in one generally is
-that in the latter case the processor spends more time in package C-state when
-the system is idle.
-
-If there are any concerns about this series, please let me know.
-
-Thanks,
-Rafael
+Index: linux-pm/drivers/idle/intel_idle.c
+===================================================================
+--- linux-pm.orig/drivers/idle/intel_idle.c
++++ linux-pm/drivers/idle/intel_idle.c
+@@ -1138,6 +1138,10 @@ static bool intel_idle_max_cstate_reache
+ #ifdef CONFIG_ACPI_PROCESSOR_CSTATE
+ #include <acpi/processor.h>
+ 
++static bool no_acpi __read_mostly;
++module_param(no_acpi, bool, 0444);
++MODULE_PARM_DESC(no_acpi, "Do not use ACPI _CST for building the idle states list");
++
+ static struct acpi_processor_power acpi_state_table;
+ 
+ /**
+@@ -1167,6 +1171,11 @@ static bool intel_idle_acpi_cst_extract(
+ {
+ 	unsigned int cpu;
+ 
++	if (no_acpi) {
++		pr_debug("Not allowed to use ACPI _CST\n");
++		return false;
++	}
++
+ 	for_each_possible_cpu(cpu) {
+ 		struct acpi_processor *pr = per_cpu(processors, cpu);
+ 
 
 
 
