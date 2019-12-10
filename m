@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F0E4C2D0C4
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F375BC43603
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:42:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5AB3B206D5
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7E1B2073B
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:42:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576013332;
-	bh=+3+DcNCmeecA0awtD4KHhH6/OrTIbugSArTDpBZiXKc=;
+	s=default; t=1576014131;
+	bh=3890q/UFuIjArfkRPaMmNRfZ1FgV2b4RJ8Fxxgr9zS8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=O1BeIVY9x0BZq8rfNV10+vsejGFyglaDRV1P2zRQcBI1YvVd6VNsQr5RIq1wTLXJ1
-	 p46PXTA2nSRZ/70B1zbR+kmR7CsrCUr7VziKk++ViQgTBBqKStmDu1iOp0qFgji4x4
-	 jIZd9zmKb+gsDDCOjKvJGnviReZ131lHa8u+Q4D8=
+	b=XX3z6OHYyJ0zOUrlqXqcykoMyhFZgK994ghfQdxZ7pWKD6OTYmfq5cd95zIXJreKd
+	 zupy/SA5M5sAe+2tqpvB34XT65/EExjjlePMfpMZwdQ1NqtohGzsLmC8lWGkk0SCFN
+	 UPyGVDR1t1tuKLwFPdxjbmY6wqTcqrYhxk45VpKI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727313AbfLJV2h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Dec 2019 16:28:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60052 "EHLO mail.kernel.org"
+        id S1729927AbfLJVeF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Dec 2019 16:34:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38766 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728448AbfLJVKT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Dec 2019 16:10:19 -0500
+        id S1729908AbfLJVeC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Dec 2019 16:34:02 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4F738246A2;
-        Tue, 10 Dec 2019 21:10:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DFF59214AF;
+        Tue, 10 Dec 2019 21:34:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576012219;
-        bh=+3+DcNCmeecA0awtD4KHhH6/OrTIbugSArTDpBZiXKc=;
+        s=default; t=1576013641;
+        bh=3890q/UFuIjArfkRPaMmNRfZ1FgV2b4RJ8Fxxgr9zS8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=0hhgNchk2u08P/ah/8TYCbrgLg8uA9HPJ3/Blf2CmNjE6Ns+Smt8wRMYs+CiLADCW
-         NKb3yNt3y5ENXM9QDj12vlpAYk1eseO5BFvYH/GjO8o91k2t8gWGRZ5lZ95RJM/giK
-         Q3ebuyHvOnaN+RCg6viBCgpepvoPuOwSkmJ7ta0A=
+        b=ZJyFoc0H4CKMQV9YPpwDNcuBCzq1KwsKzx4ymGa+BKfnxdvh641VbC8X0wLGVi4j0
+         qXVSRJxYT8vT//wsNHE4LmQk1RWR6eNelAAl5brQa++TfA3P5EFwVIMl/WeEkEtRAt
+         dWdw+FEr7dTPhLRfxEbtbra+kbRYw9pgNWivIQUg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 169/350] ACPI: button: Add DMI quirk for Medion Akoya E2215T
-Date:   Tue, 10 Dec 2019 16:04:34 -0500
-Message-Id: <20191210210735.9077-130-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 081/177] ACPI: button: Add DMI quirk for Medion Akoya E2215T
+Date:   Tue, 10 Dec 2019 16:30:45 -0500
+Message-Id: <20191210213221.11921-81-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191210210735.9077-1-sashal@kernel.org>
-References: <20191210210735.9077-1-sashal@kernel.org>
+In-Reply-To: <20191210213221.11921-1-sashal@kernel.org>
+References: <20191210213221.11921-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -85,10 +85,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 11 insertions(+)
 
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 4a2cde2c536a2..ce93a355bd1c8 100644
+index a19ff3977ac4a..870eb5c7516a5 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -78,6 +78,17 @@ static const struct dmi_system_id lid_blacklst[] = {
+@@ -91,6 +91,17 @@ static const struct dmi_system_id lid_blacklst[] = {
  			DMI_MATCH(DMI_BIOS_VERSION, "BYT70A.YNCHENG.WIN.007"),
  		},
  	},
