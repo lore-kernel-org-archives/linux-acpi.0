@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5E8DC2D0BF
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:13:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB9DFC00454
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:13:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A605B2465B
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:13:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99C2420838
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:13:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727333AbfLJMNw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Dec 2019 07:13:52 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:49905 "EHLO
+        id S1727564AbfLJMNe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Dec 2019 07:13:34 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:57785 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727310AbfLJMNf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2019 07:13:35 -0500
+        with ESMTP id S1727506AbfLJMNd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2019 07:13:33 -0500
 Received: from 79.184.255.117.ipv4.supernova.orange.pl (79.184.255.117) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.320)
- id 38d412deb60865f7; Tue, 10 Dec 2019 13:13:33 +0100
+ id 13df9256bad9aa3c; Tue, 10 Dec 2019 13:13:30 +0100
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux PM <linux-pm@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
@@ -28,9 +28,9 @@ Cc:     LKML <linux-kernel@vger.kernel.org>,
         Len Brown <len.brown@intel.com>,
         Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
         Len Brown <lenb@kernel.org>
-Subject: [RFC v2][PATCH 1/9] ACPI: processor: Export function to claim _CST control
-Date:   Tue, 10 Dec 2019 13:01:53 +0100
-Message-ID: <2412445.rh3VWn84Qd@kreacher>
+Subject: [RFC v2][PATCH 5/9] intel_idle: Refactor intel_idle_cpuidle_driver_init()
+Date:   Tue, 10 Dec 2019 13:03:01 +0100
+Message-ID: <12822878.tX331RTXvW@kreacher>
 In-Reply-To: <35821518.IbFVMVmUy3@kreacher>
 References: <35821518.IbFVMVmUy3@kreacher>
 MIME-Version: 1.0
@@ -43,12 +43,13 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The intel_idle driver will be modified to use ACPI _CST subsequently
-and it will need to notify the platform firmware of that if
-acpi_gbl_FADT.cst_control is set, so add a routine for this purpose,
-acpi_processor_claim_cst_control(), to acpi_processor.c (so that it
-is always present which is required by intel_idle) and export it
-to allow the ACPI processor driver (which is modular) to call it.
+Move the C-state verification and checks from
+intel_idle_cpuidle_driver_init() to a separate function,
+intel_idle_verify_cstate(), and make the former call it after
+checking the CPUIDLE_FLAG_UNUSABLE state flag.
+
+Also combine the drv->states[] updates with the incrementation of
+drv->state_count.
 
 No intentional functional impact.
 
@@ -58,91 +59,91 @@ Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 No changes from the previous version.
 
 ---
- drivers/acpi/acpi_processor.c |   25 +++++++++++++++++++++++++
- drivers/acpi/processor_idle.c |   12 ++++--------
- include/linux/acpi.h          |    6 ++++++
- 3 files changed, 35 insertions(+), 8 deletions(-)
+ drivers/idle/intel_idle.c |   49 +++++++++++++++++++++++-----------------------
+ 1 file changed, 25 insertions(+), 24 deletions(-)
 
-Index: linux-pm/drivers/acpi/acpi_processor.c
+Index: linux-pm/drivers/idle/intel_idle.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/acpi_processor.c
-+++ linux-pm/drivers/acpi/acpi_processor.c
-@@ -705,3 +705,28 @@ void __init acpi_processor_init(void)
- 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
- 	acpi_scan_add_handler(&processor_container_handler);
+--- linux-pm.orig/drivers/idle/intel_idle.c
++++ linux-pm/drivers/idle/intel_idle.c
+@@ -944,6 +944,22 @@ static void intel_idle_s2idle(struct cpu
+ 	mwait_idle_with_hints(eax, ecx);
  }
-+
-+#ifdef CONFIG_ACPI_PROCESSOR_CSTATE
-+/**
-+ * acpi_processor_claim_cst_control - Request _CST control from the platform.
-+ */
-+bool acpi_processor_claim_cst_control(void)
+ 
++static bool intel_idle_verify_cstate(unsigned int mwait_hint)
 +{
-+	static bool cst_control_claimed;
-+	acpi_status status;
++	unsigned int mwait_cstate = MWAIT_HINT2CSTATE(mwait_hint) + 1;
++	unsigned int num_substates = (mwait_substates >> mwait_cstate * 4) &
++					MWAIT_SUBSTATE_MASK;
 +
-+	if (!acpi_gbl_FADT.cst_control || cst_control_claimed)
-+		return true;
-+
-+	status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
-+				    acpi_gbl_FADT.cst_control, 8);
-+	if (ACPI_FAILURE(status)) {
-+		pr_warn("ACPI: Failed to claim processor _CST control\n");
++	/* Ignore the C-state if there are NO sub-states in CPUID for it. */
++	if (num_substates == 0)
 +		return false;
-+	}
 +
-+	cst_control_claimed = true;
++	if (mwait_cstate > 2 && !boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
++		mark_tsc_unstable("TSC halts in idle states deeper than C2");
++
 +	return true;
 +}
-+EXPORT_SYMBOL_GPL(acpi_processor_claim_cst_control);
-+#endif /* CONFIG_ACPI_PROCESSOR_CSTATE */
-Index: linux-pm/drivers/acpi/processor_idle.c
-===================================================================
---- linux-pm.orig/drivers/acpi/processor_idle.c
-+++ linux-pm/drivers/acpi/processor_idle.c
-@@ -909,7 +909,6 @@ static int acpi_processor_setup_cstates(
- 
- static inline void acpi_processor_cstate_first_run_checks(void)
- {
--	acpi_status status;
- 	static int first_run;
- 
- 	if (first_run)
-@@ -921,13 +920,10 @@ static inline void acpi_processor_cstate
- 			  max_cstate);
- 	first_run++;
- 
--	if (acpi_gbl_FADT.cst_control && !nocst) {
--		status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
--					    acpi_gbl_FADT.cst_control, 8);
--		if (ACPI_FAILURE(status))
--			ACPI_EXCEPTION((AE_INFO, status,
--					"Notifying BIOS of _CST ability failed"));
--	}
-+	if (nocst)
-+		return;
 +
-+	acpi_processor_claim_cst_control();
- }
- #else
+ static void __setup_broadcast_timer(bool on)
+ {
+ 	if (on)
+@@ -1332,10 +1348,10 @@ static void __init intel_idle_cpuidle_dr
+ 	drv->state_count = 1;
  
-Index: linux-pm/include/linux/acpi.h
-===================================================================
---- linux-pm.orig/include/linux/acpi.h
-+++ linux-pm/include/linux/acpi.h
-@@ -279,6 +279,12 @@ static inline bool invalid_phys_cpuid(ph
+ 	for (cstate = 0; cstate < CPUIDLE_STATE_MAX; ++cstate) {
+-		int num_substates, mwait_hint, mwait_cstate;
++		unsigned int mwait_hint;
  
- /* Validate the processor object's proc_id */
- bool acpi_duplicate_processor_id(int proc_id);
-+/* Processor _CTS control */
-+#ifdef CONFIG_ACPI_PROCESSOR_CSTATE
-+bool acpi_processor_claim_cst_control(void);
-+#else
-+static inline bool acpi_processor_claim_cst_control(void) { return false; }
-+#endif
+-		if ((cpuidle_state_table[cstate].enter == NULL) &&
+-		    (cpuidle_state_table[cstate].enter_s2idle == NULL))
++		if (!cpuidle_state_table[cstate].enter &&
++		    !cpuidle_state_table[cstate].enter_s2idle)
+ 			break;
  
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
+ 		if (cstate + 1 > max_cstate) {
+@@ -1343,34 +1359,19 @@ static void __init intel_idle_cpuidle_dr
+ 			break;
+ 		}
+ 
+-		mwait_hint = flg2MWAIT(cpuidle_state_table[cstate].flags);
+-		mwait_cstate = MWAIT_HINT2CSTATE(mwait_hint);
+-
+-		/* number of sub-states for this state in CPUID.MWAIT */
+-		num_substates = (mwait_substates >> ((mwait_cstate + 1) * 4))
+-					& MWAIT_SUBSTATE_MASK;
+-
+-		/* if NO sub-states for this state in CPUID, skip it */
+-		if (num_substates == 0)
+-			continue;
+-
+-		/* if state marked as disabled, skip it */
++		/* If marked as unusable, skip this state. */
+ 		if (cpuidle_state_table[cstate].flags & CPUIDLE_FLAG_UNUSABLE) {
+ 			pr_debug("state %s is disabled\n",
+ 				 cpuidle_state_table[cstate].name);
+ 			continue;
+ 		}
+ 
++		mwait_hint = flg2MWAIT(cpuidle_state_table[cstate].flags);
++		if (!intel_idle_verify_cstate(mwait_hint))
++			continue;
+ 
+-		if (((mwait_cstate + 1) > 2) &&
+-			!boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
+-			mark_tsc_unstable("TSC halts in idle"
+-					" states deeper than C2");
+-
+-		drv->states[drv->state_count] =	/* structure copy */
+-			cpuidle_state_table[cstate];
+-
+-		drv->state_count += 1;
++		/* Structure copy. */
++		drv->states[drv->state_count++] = cpuidle_state_table[cstate];
+ 	}
+ 
+ 	if (icpu->byt_auto_demotion_disable_flag) {
 
 
 
