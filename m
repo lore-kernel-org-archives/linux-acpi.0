@@ -2,113 +2,110 @@ Return-Path: <SRS0=4gY8=2A=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FAKE_REPLY_C,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6E04C43603
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 14:41:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F0E4C2D0C4
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BEA5520637
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 14:41:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AB3B206D5
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1575988881;
-	bh=SltthD4NbtaeRWyxi1D4XcXo4egcyCVIbinwy09m8FU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
-	b=QL8NyEAMyEZ4NXUnvHNPm+MeIb3mXJe24q4PiVZj7jeKsOmIJKgoEw8MoqUXOMhls
-	 JXpA/17rXvVRcjOMaeZU76dz6taqqhN98bg7ovVK8atKLMzvfIVYR0rY4uXa32Qe2r
-	 WFs5yZZNzBFzxiFTY9xVVjWI49N/tZwC6s7Icd+M=
+	s=default; t=1576013332;
+	bh=+3+DcNCmeecA0awtD4KHhH6/OrTIbugSArTDpBZiXKc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=O1BeIVY9x0BZq8rfNV10+vsejGFyglaDRV1P2zRQcBI1YvVd6VNsQr5RIq1wTLXJ1
+	 p46PXTA2nSRZ/70B1zbR+kmR7CsrCUr7VziKk++ViQgTBBqKStmDu1iOp0qFgji4x4
+	 jIZd9zmKb+gsDDCOjKvJGnviReZ131lHa8u+Q4D8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727519AbfLJOlR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Dec 2019 09:41:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54510 "EHLO mail.kernel.org"
+        id S1727313AbfLJV2h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Dec 2019 16:28:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727345AbfLJOlR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Dec 2019 09:41:17 -0500
-Received: from localhost (173-25-83-245.client.mchsi.com [173.25.83.245])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1728448AbfLJVKT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Dec 2019 16:10:19 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 81A3920637;
-        Tue, 10 Dec 2019 14:41:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F738246A2;
+        Tue, 10 Dec 2019 21:10:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1575988876;
-        bh=SltthD4NbtaeRWyxi1D4XcXo4egcyCVIbinwy09m8FU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=KuNTqMFNMWoBMSOEUtzr0uQGn5HUyh+PTR+nBmoJYbnPeswReouo7wj+EBSeabn6B
-         z+b20KTF1Yt2p/87POEocxWE8VyW5eA3FIz/JPFwkLC9NUoFr5Zrnt/MjgBHlDBtNL
-         j7bCqkCIS4MnuaXxrPbcVI8dHwaOBJK6VvU0N6i0=
-Date:   Tue, 10 Dec 2019 08:41:15 -0600
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Andre Przywara <andre.przywara@arm.com>
-Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Andrew Murray <andrew.murray@arm.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Will Deacon <will@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] pcie: Add quirk for the Arm Neoverse N1SDP platform
-Message-ID: <20191210144115.GA94877@google.com>
+        s=default; t=1576012219;
+        bh=+3+DcNCmeecA0awtD4KHhH6/OrTIbugSArTDpBZiXKc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=0hhgNchk2u08P/ah/8TYCbrgLg8uA9HPJ3/Blf2CmNjE6Ns+Smt8wRMYs+CiLADCW
+         NKb3yNt3y5ENXM9QDj12vlpAYk1eseO5BFvYH/GjO8o91k2t8gWGRZ5lZ95RJM/giK
+         Q3ebuyHvOnaN+RCg6viBCgpepvoPuOwSkmJ7ta0A=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 169/350] ACPI: button: Add DMI quirk for Medion Akoya E2215T
+Date:   Tue, 10 Dec 2019 16:04:34 -0500
+Message-Id: <20191210210735.9077-130-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191210210735.9077-1-sashal@kernel.org>
+References: <20191210210735.9077-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191209160638.141431-1-andre.przywara@arm.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Dec 09, 2019 at 04:06:38PM +0000, Andre Przywara wrote:
-> From: Deepak Pandey <Deepak.Pandey@arm.com>
-> 
-> The Arm N1SDP SoC suffers from some PCIe integration issues, most
-> prominently config space accesses to not existing BDFs being answered
-> with a bus abort, resulting in an SError.
+From: Hans de Goede <hdegoede@redhat.com>
 
-Can we tease this apart a little more?  Linux doesn't program all the
-bits that control error signaling, so even on hardware that works
-perfectly, much of this behavior is determined by what firmware did.
-I wonder if Linux could be more careful about this.
+[ Upstream commit 932e1ba486117de2fcea3df27ad8218ad6c11470 ]
 
-"Bus abort" is not a term used in PCIe.  IIUC, a config read to a
-device that doesn't exist should terminate with an Unsupported Request
-completion, e.g., see the implementation note in PCIe r5.0 sec 2.3.1.
+The Medion Akoya E2215T's ACPI _LID implementation is quite broken:
 
-The UR should be an uncorrectable non-fatal error (Table 6-5), and
-Figures 6-2 and 6-3 show how it should be handled and when it should
-be signaled as a system error.  In case you don't have a copy of the
-spec, I extracted those two figures and put them at [1].
+ 1. For notifications it uses an ActiveLow Edge GpioInt, rather then
+    an ActiveBoth one, meaning that the device is only notified when the
+    lid is closed, not when it is opened.
 
-Can you collect "lspci -vvxxx" output to see if we can correlate it
-with those figures and the behavior you see?
+2. Matching with this its _LID method simply always returns 0 (closed)
 
-[1] https://drive.google.com/file/d/1ihhdQvr0a7ZEJG-3gPddw1Tq7cTFAsah/view?usp=sharing
+  In order for the Linux LID code to work properly with this implementation,
+  the lid_init_state selection needs to be set to ACPI_BUTTON_LID_INIT_OPEN.
 
-> To mitigate this, the firmware scans the bus before boot (catching the
-> SErrors) and creates a table with valid BDFs, which acts as a filter for
-> Linux' config space accesses.
-> 
-> Add code consulting the table as an ACPI PCIe quirk, also register the
-> corresponding device tree based description of the host controller.
-> Also fix the other two minor issues on the way, namely not being fully
-> ECAM compliant and config space accesses being restricted to 32-bit
-> accesses only.
+This commit adds a DMI quirk for this.
 
-As I'm sure you've noticed, controllers that support only 32-bit
-config writes are not spec compliant and devices may not work
-correctly.  The comment in pci_generic_config_write32() explains why.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/button.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-You may not trip over this problem frequently, but I wouldn't call it
-a "minor" issue because when you *do* trip over it, you have no
-indication that a register was corrupted.
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 4a2cde2c536a2..ce93a355bd1c8 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -78,6 +78,17 @@ static const struct dmi_system_id lid_blacklst[] = {
+ 			DMI_MATCH(DMI_BIOS_VERSION, "BYT70A.YNCHENG.WIN.007"),
+ 		},
+ 	},
++	{
++		/*
++		 * Medion Akoya E2215T, notification of the LID device only
++		 * happens on close, not on open and _LID always returns closed.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "E2215T MD60198"),
++		},
++		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++	},
+ 	{}
+ };
+ 
+-- 
+2.20.1
 
-Even ECAM compliance is not really minor -- if this controller were
-fully compliant with the spec, you would need ZERO Linux changes to
-support it.  Every quirk like this means additional maintenance
-burden, and it's not just a one-time thing.  It means old kernels that
-*should* "just work" on your system will not work unless somebody
-backports the quirk.
-
-> This allows the Arm Neoverse N1SDP board to boot Linux without crashing
-> and to access *any* devices (there are no platform devices except UART).
