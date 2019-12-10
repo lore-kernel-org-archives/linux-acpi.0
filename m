@@ -2,152 +2,146 @@ Return-Path: <SRS0=4gY8=2A=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89A26C00454
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:14:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5960AC43603
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 13:18:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6944920838
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 12:14:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C78C20838
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 13:18:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727524AbfLJMNc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Dec 2019 07:13:32 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:49526 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727306AbfLJMNb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2019 07:13:31 -0500
-Received: from 79.184.255.117.ipv4.supernova.orange.pl (79.184.255.117) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.320)
- id 0a5678278498855a; Tue, 10 Dec 2019 13:13:28 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux PM <linux-pm@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Len Brown <len.brown@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Len Brown <lenb@kernel.org>
-Subject: [RFC v2][PATCH 8/9] intel_idle: Use ACPI _CST for selected known processors
-Date:   Tue, 10 Dec 2019 13:13:04 +0100
-Message-ID: <2165961.YlpjWumQq8@kreacher>
-In-Reply-To: <35821518.IbFVMVmUy3@kreacher>
-References: <35821518.IbFVMVmUy3@kreacher>
+        id S1727211AbfLJNSu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Dec 2019 08:18:50 -0500
+Received: from mga01.intel.com ([192.55.52.88]:15353 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727272AbfLJNSu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Dec 2019 08:18:50 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Dec 2019 05:18:49 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,299,1571727600"; 
+   d="scan'208";a="203184967"
+Received: from txu2-mobl.ccr.corp.intel.com (HELO [10.249.173.162]) ([10.249.173.162])
+  by orsmga007.jf.intel.com with ESMTP; 10 Dec 2019 05:18:47 -0800
+Subject: Re: [PATCH] ACPI/HMAT: Fix the parsing of Cache Associativity and
+ Write Policy
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Rafael Wysocki <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <20191202070348.32148-1-tao3.xu@intel.com>
+ <CAJZ5v0hqjR5EdrxcdkLUpxseFiizqNjtA3nYdDtZiSt85JiywQ@mail.gmail.com>
+ <6dbcdaff-feae-68b9-006d-dd8aec032553@intel.com>
+ <CAJZ5v0jYb7XQC7u0rmxF-XVMAsEoOfmD11-FYDvMrZuOuzgyiA@mail.gmail.com>
+ <0e4219c3-943a-e416-e5eb-723bed8c9383@intel.com>
+ <CAJZ5v0h6_7AoYW5Syk=BUR656eW11A3GjA7uvmTA6ayByOaqBg@mail.gmail.com>
+From:   Tao Xu <tao3.xu@intel.com>
+Message-ID: <82e7361e-256e-002c-6b30-601cec1fad07@intel.com>
+Date:   Tue, 10 Dec 2019 21:18:47 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAJZ5v0h6_7AoYW5Syk=BUR656eW11A3GjA7uvmTA6ayByOaqBg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 12/10/2019 4:27 PM, Rafael J. Wysocki wrote:
+> On Tue, Dec 10, 2019 at 9:19 AM Tao Xu <tao3.xu@intel.com> wrote:
+>>
+>> On 12/10/2019 4:06 PM, Rafael J. Wysocki wrote:
+>>> On Tue, Dec 10, 2019 at 2:04 AM Tao Xu <tao3.xu@intel.com> wrote:
+>>>>
+>>>> On 12/9/2019 6:01 PM, Rafael J. Wysocki wrote:
+>>>>> On Mon, Dec 2, 2019 at 8:03 AM Tao Xu <tao3.xu@intel.com> wrote:
+>>>>>>
+>>>>>> In chapter 5.2.27.5, Table 5-147: Field "Cache Attributes" of
+>>>>>> ACPI 6.3 spec: 0 is "None", 1 is "Direct Mapped", 2 is "Complex Cache
+>>>>>> Indexing" for Cache Associativity; 0 is "None", 1 is "Write Back",
+>>>>>> 2 is "Write Through" for Write Policy.
+>>>>>
+>>>>> Well, I'm not sure what the connection between the above statement,
+>>>>> which is correct AFAICS, and the changes made by the patch is.
+>>>>>
+>>>>> Is that the *_OTHER symbol names are confusing or something deeper?
+>>>>>
+>>>>
+>>>> Because in include/acpi/actbl1.h:
+>>>>
+>>>> #define ACPI_HMAT_CA_NONE                     (0)
+>>>>
+>>>> ACPI_HMAT_CA_NONE is 0, but in include/linux/node.h:
+>>>>
+>>>>       enum cache_indexing {
+>>>>              NODE_CACHE_DIRECT_MAP,
+>>>>              NODE_CACHE_INDEXED,
+>>>>              NODE_CACHE_OTHER,
+>>>>       };
+>>>> NODE_CACHE_OTHER is 2, and for otner enum:
+>>>>
+>>>>             case ACPI_HMAT_CA_DIRECT_MAPPED:
+>>>>                     tcache->cache_attrs.indexing = NODE_CACHE_DIRECT_MAP;
+>>>>                     break;
+>>>>             case ACPI_HMAT_CA_COMPLEX_CACHE_INDEXING:
+>>>>                     tcache->cache_attrs.indexing = NODE_CACHE_INDEXED;
+>>>>                     break;
+>>>> in include/acpi/actbl1.h:
+>>>>
+>>>>     #define ACPI_HMAT_CA_DIRECT_MAPPED            (1)
+>>>>     #define ACPI_HMAT_CA_COMPLEX_CACHE_INDEXING   (2)
+>>>>
+>>>> but in include/linux/node.h:
+>>>>
+>>>> NODE_CACHE_DIRECT_MAP is 0, NODE_CACHE_INDEXED is 1. This is incorrect.
+>>>
+>>> Why is it incorrect?
+>>
+>> Sorry I paste the wrong pre-define.
+>>
+>> This is the incorrect line:
+>>
+>> case ACPI_HMAT_CA_DIRECT_MAPPED:
+>> tcache->cache_attrs.indexing = NODE_CACHE_DIRECT_MAP;
+>>
+>> ACPI_HMAT_CA_DIRECT_MAPPED is 1, NODE_CACHE_DIRECT_MAP is 0. That means
+>> if HMAT table input 1 for cache_attrs.indexing, kernel store 0 in
+>> cache_attrs.indexing. But in ACPI 6.3, 0 means "None". So for the whole
+>> switch codes:
+> 
+> This is a mapping between the ACPI-defined values and the generic ones
+> defined in the kernel.  There is not rule I know of by which they must
+> be the same numbers.  Or is there such a rule which I'm missing?
+> 
+> As long as cache_attrs.indexing is used consistently going forward,
+> the difference between the ACPI-defined numbers and its values
+> shouldn't matter, should it?
+> 
+Yes, it will not influence the ACPI HMAT tables. Only influence is the 
+sysfs, as in 
+https://www.kernel.org/doc/html/latest/admin-guide/mm/numaperf.html:
 
-Update the intel_idle driver to get the C-states information from ACPI
-_CST in some cases in which the processor is known to the driver, as long as
-that information is available and the new use_acpi flag is set in the
-profile of the processor in question.
+# tree sys/devices/system/node/node0/memory_side_cache/
+/sys/devices/system/node/node0/memory_side_cache/
+|-- index1
+|   |-- indexing
+|   |-- line_size
+|   |-- size
+|   `-- write_policy
 
-In the cases when there is a specific table of C-states for the given
-processor in the driver, that table is used as the primary source of
-information on the available C-states, but if ACPI _CST is present,
-the C-states that are not listed by it will not be enabled by default
-(they still can be enabled later by user space via sysfs, though).
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/idle/intel_idle.c |   45 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 42 insertions(+), 3 deletions(-)
-
-Index: linux-pm/drivers/idle/intel_idle.c
-===================================================================
---- linux-pm.orig/drivers/idle/intel_idle.c
-+++ linux-pm/drivers/idle/intel_idle.c
-@@ -80,6 +80,7 @@ struct idle_cpu {
- 	unsigned long auto_demotion_disable_flags;
- 	bool byt_auto_demotion_disable_flag;
- 	bool disable_promotion_to_c1e;
-+	bool use_acpi;
- };
- 
- static const struct idle_cpu *icpu;
-@@ -91,6 +92,11 @@ static void intel_idle_s2idle(struct cpu
- static struct cpuidle_state *cpuidle_state_table;
- 
- /*
-+ * Enable this state by default even if the ACPI _CST does not list it.
-+ */
-+#define CPUIDLE_FLAG_IGNORE_ACPI	BIT(15)
-+
-+/*
-  * Set this flag for states where the HW flushes the TLB for us
-  * and so we don't need cross-calls to keep it consistent.
-  * If this flag is set, SW flushes the TLB, so even if the
-@@ -1221,9 +1227,33 @@ static void intel_idle_init_cstates_acpi
- 		state->enter_s2idle = intel_idle_s2idle;
- 	}
- }
-+
-+static bool intel_idle_off_by_default(u32 mwait_hint)
-+{
-+	int cstate, limit;
-+
-+	/*
-+	 * If there are no _CST C-states, do not disable any C-states by
-+	 * default.
-+	 */
-+	if (!acpi_state_table.count)
-+		return false;
-+
-+	limit = min_t(int, CPUIDLE_STATE_MAX, acpi_state_table.count);
-+	/*
-+	 * If limit > 0, intel_idle_cst_usable() has returned 'true', so all of
-+	 * the interesting states are ACPI_CSTATE_FFH.
-+	 */
-+	for (cstate = 1; cstate < limit; cstate++) {
-+		if (acpi_state_table.states[cstate].address == mwait_hint)
-+			return false;
-+	}
-+	return true;
-+}
- #else /* !CONFIG_ACPI_PROCESSOR_CSTATE */
- static inline bool intel_idle_acpi_cst_extract(void) { return false; }
- static inline void intel_idle_init_cstates_acpi(struct cpuidle_driver *drv) { }
-+static inline bool intel_idle_off_by_default(u32 mwait_hint) { return false; }
- #endif /* !CONFIG_ACPI_PROCESSOR_CSTATE */
- 
- /*
-@@ -1264,10 +1294,13 @@ static int __init intel_idle_probe(void)
- 	pr_debug("MWAIT substates: 0x%x\n", mwait_substates);
- 
- 	icpu = (const struct idle_cpu *)id->driver_data;
--	if (icpu)
-+	if (icpu) {
- 		cpuidle_state_table = icpu->state_table;
--	else if (!intel_idle_acpi_cst_extract())
-+		if (icpu->use_acpi)
-+			intel_idle_acpi_cst_extract();
-+	} else if (!intel_idle_acpi_cst_extract()) {
- 		return -ENODEV;
-+	}
- 
- 	pr_debug("v" INTEL_IDLE_VERSION " model 0x%X\n",
- 		 boot_cpu_data.x86_model);
-@@ -1475,7 +1508,13 @@ static void intel_idle_init_cstates_icpu
- 			continue;
- 
- 		/* Structure copy. */
--		drv->states[drv->state_count++] = cpuidle_state_table[cstate];
-+		drv->states[drv->state_count] = cpuidle_state_table[cstate];
-+
-+		if (icpu->use_acpi && intel_idle_off_by_default(mwait_hint) &&
-+		    !(cpuidle_state_table[cstate].flags & CPUIDLE_FLAG_IGNORE_ACPI))
-+			drv->states[drv->state_count].flags |= CPUIDLE_FLAG_OFF;
-+
-+		drv->state_count++;
- 	}
- 
- 	if (icpu->byt_auto_demotion_disable_flag) {
-
-
-
+indexing is parsed in this file, so it can be read by user-space. 
+Although now there is no user-space tool use this information to do some 
+thing. But I am wondering if it is used in the future, someone use it to 
+show the memory side cache information to user or use it to do 
+performance turning.
