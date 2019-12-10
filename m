@@ -2,146 +2,113 @@ Return-Path: <SRS0=4gY8=2A=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FAKE_REPLY_C,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5960AC43603
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 13:18:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6E04C43603
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 14:41:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2C78C20838
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 13:18:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEA5520637
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 14:41:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1575988881;
+	bh=SltthD4NbtaeRWyxi1D4XcXo4egcyCVIbinwy09m8FU=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
+	b=QL8NyEAMyEZ4NXUnvHNPm+MeIb3mXJe24q4PiVZj7jeKsOmIJKgoEw8MoqUXOMhls
+	 JXpA/17rXvVRcjOMaeZU76dz6taqqhN98bg7ovVK8atKLMzvfIVYR0rY4uXa32Qe2r
+	 WFs5yZZNzBFzxiFTY9xVVjWI49N/tZwC6s7Icd+M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727211AbfLJNSu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Dec 2019 08:18:50 -0500
-Received: from mga01.intel.com ([192.55.52.88]:15353 "EHLO mga01.intel.com"
+        id S1727519AbfLJOlR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Dec 2019 09:41:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54510 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727272AbfLJNSu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Dec 2019 08:18:50 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Dec 2019 05:18:49 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.69,299,1571727600"; 
-   d="scan'208";a="203184967"
-Received: from txu2-mobl.ccr.corp.intel.com (HELO [10.249.173.162]) ([10.249.173.162])
-  by orsmga007.jf.intel.com with ESMTP; 10 Dec 2019 05:18:47 -0800
-Subject: Re: [PATCH] ACPI/HMAT: Fix the parsing of Cache Associativity and
- Write Policy
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <20191202070348.32148-1-tao3.xu@intel.com>
- <CAJZ5v0hqjR5EdrxcdkLUpxseFiizqNjtA3nYdDtZiSt85JiywQ@mail.gmail.com>
- <6dbcdaff-feae-68b9-006d-dd8aec032553@intel.com>
- <CAJZ5v0jYb7XQC7u0rmxF-XVMAsEoOfmD11-FYDvMrZuOuzgyiA@mail.gmail.com>
- <0e4219c3-943a-e416-e5eb-723bed8c9383@intel.com>
- <CAJZ5v0h6_7AoYW5Syk=BUR656eW11A3GjA7uvmTA6ayByOaqBg@mail.gmail.com>
-From:   Tao Xu <tao3.xu@intel.com>
-Message-ID: <82e7361e-256e-002c-6b30-601cec1fad07@intel.com>
-Date:   Tue, 10 Dec 2019 21:18:47 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.1
+        id S1727345AbfLJOlR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Dec 2019 09:41:17 -0500
+Received: from localhost (173-25-83-245.client.mchsi.com [173.25.83.245])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 81A3920637;
+        Tue, 10 Dec 2019 14:41:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1575988876;
+        bh=SltthD4NbtaeRWyxi1D4XcXo4egcyCVIbinwy09m8FU=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=KuNTqMFNMWoBMSOEUtzr0uQGn5HUyh+PTR+nBmoJYbnPeswReouo7wj+EBSeabn6B
+         z+b20KTF1Yt2p/87POEocxWE8VyW5eA3FIz/JPFwkLC9NUoFr5Zrnt/MjgBHlDBtNL
+         j7bCqkCIS4MnuaXxrPbcVI8dHwaOBJK6VvU0N6i0=
+Date:   Tue, 10 Dec 2019 08:41:15 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Andre Przywara <andre.przywara@arm.com>
+Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Andrew Murray <andrew.murray@arm.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Will Deacon <will@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] pcie: Add quirk for the Arm Neoverse N1SDP platform
+Message-ID: <20191210144115.GA94877@google.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJZ5v0h6_7AoYW5Syk=BUR656eW11A3GjA7uvmTA6ayByOaqBg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191209160638.141431-1-andre.przywara@arm.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 12/10/2019 4:27 PM, Rafael J. Wysocki wrote:
-> On Tue, Dec 10, 2019 at 9:19 AM Tao Xu <tao3.xu@intel.com> wrote:
->>
->> On 12/10/2019 4:06 PM, Rafael J. Wysocki wrote:
->>> On Tue, Dec 10, 2019 at 2:04 AM Tao Xu <tao3.xu@intel.com> wrote:
->>>>
->>>> On 12/9/2019 6:01 PM, Rafael J. Wysocki wrote:
->>>>> On Mon, Dec 2, 2019 at 8:03 AM Tao Xu <tao3.xu@intel.com> wrote:
->>>>>>
->>>>>> In chapter 5.2.27.5, Table 5-147: Field "Cache Attributes" of
->>>>>> ACPI 6.3 spec: 0 is "None", 1 is "Direct Mapped", 2 is "Complex Cache
->>>>>> Indexing" for Cache Associativity; 0 is "None", 1 is "Write Back",
->>>>>> 2 is "Write Through" for Write Policy.
->>>>>
->>>>> Well, I'm not sure what the connection between the above statement,
->>>>> which is correct AFAICS, and the changes made by the patch is.
->>>>>
->>>>> Is that the *_OTHER symbol names are confusing or something deeper?
->>>>>
->>>>
->>>> Because in include/acpi/actbl1.h:
->>>>
->>>> #define ACPI_HMAT_CA_NONE                     (0)
->>>>
->>>> ACPI_HMAT_CA_NONE is 0, but in include/linux/node.h:
->>>>
->>>>       enum cache_indexing {
->>>>              NODE_CACHE_DIRECT_MAP,
->>>>              NODE_CACHE_INDEXED,
->>>>              NODE_CACHE_OTHER,
->>>>       };
->>>> NODE_CACHE_OTHER is 2, and for otner enum:
->>>>
->>>>             case ACPI_HMAT_CA_DIRECT_MAPPED:
->>>>                     tcache->cache_attrs.indexing = NODE_CACHE_DIRECT_MAP;
->>>>                     break;
->>>>             case ACPI_HMAT_CA_COMPLEX_CACHE_INDEXING:
->>>>                     tcache->cache_attrs.indexing = NODE_CACHE_INDEXED;
->>>>                     break;
->>>> in include/acpi/actbl1.h:
->>>>
->>>>     #define ACPI_HMAT_CA_DIRECT_MAPPED            (1)
->>>>     #define ACPI_HMAT_CA_COMPLEX_CACHE_INDEXING   (2)
->>>>
->>>> but in include/linux/node.h:
->>>>
->>>> NODE_CACHE_DIRECT_MAP is 0, NODE_CACHE_INDEXED is 1. This is incorrect.
->>>
->>> Why is it incorrect?
->>
->> Sorry I paste the wrong pre-define.
->>
->> This is the incorrect line:
->>
->> case ACPI_HMAT_CA_DIRECT_MAPPED:
->> tcache->cache_attrs.indexing = NODE_CACHE_DIRECT_MAP;
->>
->> ACPI_HMAT_CA_DIRECT_MAPPED is 1, NODE_CACHE_DIRECT_MAP is 0. That means
->> if HMAT table input 1 for cache_attrs.indexing, kernel store 0 in
->> cache_attrs.indexing. But in ACPI 6.3, 0 means "None". So for the whole
->> switch codes:
+On Mon, Dec 09, 2019 at 04:06:38PM +0000, Andre Przywara wrote:
+> From: Deepak Pandey <Deepak.Pandey@arm.com>
 > 
-> This is a mapping between the ACPI-defined values and the generic ones
-> defined in the kernel.  There is not rule I know of by which they must
-> be the same numbers.  Or is there such a rule which I'm missing?
-> 
-> As long as cache_attrs.indexing is used consistently going forward,
-> the difference between the ACPI-defined numbers and its values
-> shouldn't matter, should it?
-> 
-Yes, it will not influence the ACPI HMAT tables. Only influence is the 
-sysfs, as in 
-https://www.kernel.org/doc/html/latest/admin-guide/mm/numaperf.html:
+> The Arm N1SDP SoC suffers from some PCIe integration issues, most
+> prominently config space accesses to not existing BDFs being answered
+> with a bus abort, resulting in an SError.
 
-# tree sys/devices/system/node/node0/memory_side_cache/
-/sys/devices/system/node/node0/memory_side_cache/
-|-- index1
-|   |-- indexing
-|   |-- line_size
-|   |-- size
-|   `-- write_policy
+Can we tease this apart a little more?  Linux doesn't program all the
+bits that control error signaling, so even on hardware that works
+perfectly, much of this behavior is determined by what firmware did.
+I wonder if Linux could be more careful about this.
 
-indexing is parsed in this file, so it can be read by user-space. 
-Although now there is no user-space tool use this information to do some 
-thing. But I am wondering if it is used in the future, someone use it to 
-show the memory side cache information to user or use it to do 
-performance turning.
+"Bus abort" is not a term used in PCIe.  IIUC, a config read to a
+device that doesn't exist should terminate with an Unsupported Request
+completion, e.g., see the implementation note in PCIe r5.0 sec 2.3.1.
+
+The UR should be an uncorrectable non-fatal error (Table 6-5), and
+Figures 6-2 and 6-3 show how it should be handled and when it should
+be signaled as a system error.  In case you don't have a copy of the
+spec, I extracted those two figures and put them at [1].
+
+Can you collect "lspci -vvxxx" output to see if we can correlate it
+with those figures and the behavior you see?
+
+[1] https://drive.google.com/file/d/1ihhdQvr0a7ZEJG-3gPddw1Tq7cTFAsah/view?usp=sharing
+
+> To mitigate this, the firmware scans the bus before boot (catching the
+> SErrors) and creates a table with valid BDFs, which acts as a filter for
+> Linux' config space accesses.
+> 
+> Add code consulting the table as an ACPI PCIe quirk, also register the
+> corresponding device tree based description of the host controller.
+> Also fix the other two minor issues on the way, namely not being fully
+> ECAM compliant and config space accesses being restricted to 32-bit
+> accesses only.
+
+As I'm sure you've noticed, controllers that support only 32-bit
+config writes are not spec compliant and devices may not work
+correctly.  The comment in pci_generic_config_write32() explains why.
+
+You may not trip over this problem frequently, but I wouldn't call it
+a "minor" issue because when you *do* trip over it, you have no
+indication that a register was corrupted.
+
+Even ECAM compliance is not really minor -- if this controller were
+fully compliant with the spec, you would need ZERO Linux changes to
+support it.  Every quirk like this means additional maintenance
+burden, and it's not just a one-time thing.  It means old kernels that
+*should* "just work" on your system will not work unless somebody
+backports the quirk.
+
+> This allows the Arm Neoverse N1SDP board to boot Linux without crashing
+> and to access *any* devices (there are no platform devices except UART).
