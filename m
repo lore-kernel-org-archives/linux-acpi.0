@@ -1,94 +1,137 @@
-Return-Path: <SRS0=4gY8=2A=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=EERw=2B=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FAKE_REPLY_C,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0AA8C2D0BF
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:52:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2300CC2D0C4
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Dec 2019 00:24:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABB9D2073B
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Dec 2019 21:52:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576014749;
-	bh=2ykNyvGZMJo7g3XX2Ffo2Sm4t/OZWneo6t2EKj0O0vs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
-	b=DNOfAA8w8GJrbq+kS6mjh59G9nG7bVlKW/xDKB0R8gPPIonohBUysl4/UxZnfIxpp
-	 XjhPdigrxDhVRRsRQMIDKWy1FxD6SG7cQV6LNcm3j3uaA4LxmfhyPU83O1mqPrafeF
-	 ZGceoDSQCF0DWdBNR6W/TlqiXylDsE0PtEnR6lQk=
+	by mail.kernel.org (Postfix) with ESMTP id EE29B207FF
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Dec 2019 00:24:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="cLhiqiuP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727415AbfLJVHp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Dec 2019 16:07:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54190 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727335AbfLJVHo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Dec 2019 16:07:44 -0500
-Received: from localhost (mobile-166-170-223-177.mycingular.net [166.170.223.177])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C86E82467E;
-        Tue, 10 Dec 2019 21:07:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576012064;
-        bh=2ykNyvGZMJo7g3XX2Ffo2Sm4t/OZWneo6t2EKj0O0vs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=tiZ5TXWGgfMMcgH1qAGW16vBSyFbf8QVFgba/3MyF+aPuDTbo4hJyiKvDLa/T3dHf
-         QC17RvTnsNWgjsiKExbDTckPZJk/RCI/j1M9mCOmDjgARxC0K8V6pKEybDPhvvojm+
-         0dNknNsvmHuDSPRrzN1/QfLHPNP0Fm1IwVXvM5HU=
-Date:   Tue, 10 Dec 2019 15:07:41 -0600
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
-Cc:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        iommu@lists.linux-foundation.org, joro@8bytes.org,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
-        sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        will@kernel.org, robin.murphy@arm.com, eric.auger@redhat.com,
-        jonathan.cameron@huawei.com, zhangfei.gao@linaro.org
-Subject: Re: [PATCH v3 12/13] PCI/ATS: Add PASID stubs
-Message-ID: <20191210210741.GA143420@google.com>
+        id S1726769AbfLKAYV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Dec 2019 19:24:21 -0500
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:39963 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727053AbfLKAYV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2019 19:24:21 -0500
+Received: by mail-lj1-f196.google.com with SMTP id s22so21929030ljs.7
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2019 16:24:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=FzptMs7UZH6tl5XnB4UdAl95BzHbDkNlnuDcD9QRDL8=;
+        b=cLhiqiuP6lKc2NY83ihPT47G3f+3QK4gZxKFKmw65nI/bJUTPbL1OjQ3/4EllNePCM
+         OBINPY2S7VQ49MkrBdTCMtAjDl6tcNokO7M8rS2kQtWpfU0g+d3zdtKiOMkYGsyKmOr8
+         JkZOg0YTxCt4YVjkOhCNImrhQDKtSjw6qYJNLuE8MQtu9GkRGEiq08YmpoX0yD2p5qPQ
+         D/sdqJRrkY1E0EaTMYyDhsblV9geNYlSdkpSKp8bRuByL3iYs0NdjZbsWTlKq1WwXOPo
+         kiJ8wMZb9xBnMw9ZnPAq1XrFyhqAluKOJjgBE0OSi8dd4m32SO0dsx7U/6aP4NqAZLoN
+         MH9w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FzptMs7UZH6tl5XnB4UdAl95BzHbDkNlnuDcD9QRDL8=;
+        b=lLJYKYlhT1XE116MElQ6tQiVpHTrMFkhx63Q+aHt5ssVJhYexWHwN0whdQIdppJkpq
+         WotmTG/nEKqm8rYcZ79Wn1Msi/V++9eelA1uLTRfikSTlANQPok7FKkftJNm8xea540D
+         hg42vmQaLzsT6fehTIijhyLzIjfi3iSdEx0uGVSvheepdhFMFRLbQr39onqbsT7o6YQe
+         oCrc1FpLFCJdBdhDBAQ2zKwzaOSZ46NXlzIHTeDrBbWYNPKVw1aMmneU1XsF0CysX4Au
+         n0ZHMol800FFxiJoQA8Nh7bfujOz2OB2xHDdjhzWvMg0h83gYfhHHsHa1Ob37LV1kHLZ
+         v+3Q==
+X-Gm-Message-State: APjAAAUHlkugzmbho1kJUH8SUYaUhKjS03oC7iWv8KvP/GZxhR6UfZ/7
+        svL7KJNqvLPZl2T7ujouvypdul6jLfvXsK5nJQvL1g==
+X-Google-Smtp-Source: APXvYqxunEspa1cPku2zi+O3v5VP7+hdM/iiNVHSELvrW9FMmlBlF5UcunUZT+DJ74s0UyP/7ItRKxU/YAJNU6q4iw0=
+X-Received: by 2002:a2e:9587:: with SMTP id w7mr74491ljh.42.1576023859174;
+ Tue, 10 Dec 2019 16:24:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191209180514.272727-13-jean-philippe@linaro.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20191129185836.2789-1-hdegoede@redhat.com> <20191129185836.2789-3-hdegoede@redhat.com>
+ <CACRpkdbRb-LF2tNN-ueo=tKuJc+u4B7Y20+BCyqnN7wYbm8y7Q@mail.gmail.com>
+ <87wobfj65b.fsf@intel.com> <47c36b75-bc30-502b-7f8d-035cf2348fc4@redhat.com>
+In-Reply-To: <47c36b75-bc30-502b-7f8d-035cf2348fc4@redhat.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Wed, 11 Dec 2019 01:24:07 +0100
+Message-ID: <CACRpkdaJGZsJpYu3cgQCeWuJD1y9CQyzuk_VYfGfAT8WC=_1VA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] drm/i915/vlv_dsi: Control panel and backlight enable
+ GPIOs on BYT
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        "open list:DRM PANEL DRIVERS" <dri-devel@lists.freedesktop.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Dec 09, 2019 at 07:05:13PM +0100, Jean-Philippe Brucker wrote:
-> The SMMUv3 driver, which may be built without CONFIG_PCI, will soon gain
-> PASID support.  Partially revert commit c6e9aefbf9db ("PCI/ATS: Remove
-> unused PRI and PASID stubs") to re-introduce the PASID stubs, and avoid
-> adding more #ifdefs to the SMMU driver.
-> 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+On Mon, Dec 2, 2019 at 4:49 PM Hans de Goede <hdegoede@redhat.com> wrote:
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> There is only one problem, currently is is not possible to
+> unregister a mapping added with pinctrl_register_mappings
+> and the i915 driver is typically a module which can be unloaded
+> and I believe actually is unloaded as part of the i915 CI.
+>
+> pinctrl_register_mappings copies the passed in mapping, but
+> it is a shallow copy, so it contains pointers to the modules
+> const segment and we do not want to re-add another copy of
+> the mapping when the module loads a second time.
+>
+> Fixing this is easy though, there already is a pinctrl_unregister_map()
+> function, we just need to export it so that the i915 driver can
+> remove the mapping when it is unbound.
+>
+> Linus would exporting this function be ok with you?
 
-> ---
->  include/linux/pci-ats.h | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/include/linux/pci-ats.h b/include/linux/pci-ats.h
-> index 5d62e78946a3..d08f0869f121 100644
-> --- a/include/linux/pci-ats.h
-> +++ b/include/linux/pci-ats.h
-> @@ -33,6 +33,9 @@ void pci_disable_pasid(struct pci_dev *pdev);
->  int pci_pasid_features(struct pci_dev *pdev);
->  int pci_max_pasids(struct pci_dev *pdev);
->  #else /* CONFIG_PCI_PASID */
-> +static inline int pci_enable_pasid(struct pci_dev *pdev, int features)
-> +{ return -EINVAL; }
-> +static inline void pci_disable_pasid(struct pci_dev *pdev) { }
->  static inline int pci_pasid_features(struct pci_dev *pdev)
->  { return -EINVAL; }
->  static inline int pci_max_pasids(struct pci_dev *pdev)
-> -- 
-> 2.24.0
-> 
+Yep!
+
+> Linus, question what is the purpose of the "dupping" / shallow
+> copying of the argument passed to pinctrl_register_map ?
+
+The initial commit contained this comment later removed:
+
++       /*
++        * Make a copy of the map array - string pointers will end up in the
++        * kernel const section anyway so these do not need to be deep copied.
++        */
+
+The use was to free up memory for platforms using boardfiles
+with a gazillion variants and huge pin control tables, so these
+could be marked  __initdata and discarded after boot.
+As the strings would anyway stay around we didn't need to
+deep copy.
+
+See for example in arch/arm/mach-u300/core.c
+static struct pinctrl_map __initdata u300_pinmux_map[]
+
+> Since
+> it is shallow the mem for any pointers contained within there need
+> to be kept around by the caller, so why not let the caller keep
+> the pinctrl_map struct itself around too?
+
+So the strings will be kept around because the kernel can't get
+rid of strings. (Yeah it is silly, should haven been fixed ages
+ago, but not by me, haha :)
+
+> If we are going to export pinctrl_unregister_map() we need to make it
+> do the right thing for dupped maps too, we can just store the dup flag
+> in struct pinctrl_maps. So this is easy, but I wonder if we cannot
+> get rid of the dupping all together ?
+
+Maybe ... I don't know. What do you think? I suppose you could
+make u300 crash if you do that.
+
+Yours,
+Linus Walleij
