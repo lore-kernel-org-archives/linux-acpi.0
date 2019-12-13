@@ -2,68 +2,60 @@ Return-Path: <SRS0=9Z4i=2D=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB8E1C2D0C9
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 23:10:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 781ADC43603
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 23:48:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE7D92073D
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 23:10:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576278643;
-	bh=3VDMKaOSGPTkNpHGoDx3v+RrnjumjThjkba1A8KfkFc=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=rfefZfAMhc2+3blF8chGRlgzqHA/k7msMScM3L2sTnJegJHqGED17JvsBrwPuwj7d
-	 7zPt4aBET8CQz5qxleUEjKR6EoFZtcIv7plHv7/DLiTtGVHoGb6R0Ru2jK10lPdg7N
-	 4QLlFq6xfw0sxRzP03qlZuQm4VDS0PPM8ez18kkk=
+	by mail.kernel.org (Postfix) with ESMTP id 6731A24656
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 23:48:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727166AbfLMXKi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 13 Dec 2019 18:10:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38034 "EHLO mail.kernel.org"
+        id S1726743AbfLMXsu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 13 Dec 2019 18:48:50 -0500
+Received: from mga03.intel.com ([134.134.136.65]:56595 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725818AbfLMXKM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 13 Dec 2019 18:10:12 -0500
-Subject: Re: [GIT PULL] Power management updates for v5.5-rc2
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576278611;
-        bh=3VDMKaOSGPTkNpHGoDx3v+RrnjumjThjkba1A8KfkFc=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=BkHi6nt36Apy1lP/ei9pr9TOOqlTGXJPjrwyZZNQh+18CKzwwrxqVjwubnHqgYN/+
-         I8QhRrt+EclosNFSkHNrtevejA8tBdIn5g3Z31/m6nfie6YWDOQ2Gk9tujK3ByQwiY
-         hp10230KRdUBAFeAVMauSiNEwUZrQXDz18uKCOc0=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0g-xo1f2yPWGzFnrGQKFuHV=aDk_nV6s7hpWNnhnqyv5g@mail.gmail.com>
-References: <CAJZ5v0g-xo1f2yPWGzFnrGQKFuHV=aDk_nV6s7hpWNnhnqyv5g@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0g-xo1f2yPWGzFnrGQKFuHV=aDk_nV6s7hpWNnhnqyv5g@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.5-rc2
-X-PR-Tracked-Commit-Id: 4c84515da8099f4bab5d9312a0ffaf40f14aa87b
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 6bd2c87aaffe0b58ce65233fe922b9eb5f7d9a85
-Message-Id: <157627861190.1837.9258292989054106751.pr-tracker-bot@kernel.org>
-Date:   Fri, 13 Dec 2019 23:10:11 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S1726741AbfLMXsu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 13 Dec 2019 18:48:50 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2019 15:48:50 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,311,1571727600"; 
+   d="scan'208";a="388836434"
+Received: from spandruv-mobl.jf.intel.com ([10.255.89.247])
+  by orsmga005.jf.intel.com with ESMTP; 13 Dec 2019 15:48:49 -0800
+From:   Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To:     rjw@rjwysocki.net, corbet@lwn.net, lenb@kernel.org,
+        rui.zhang@intel.com
+Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v2 0/2] ACPI / Fan: Performance states
+Date:   Fri, 13 Dec 2019 15:48:38 -0800
+Message-Id: <20191213234840.9791-1-srinivas.pandruvada@linux.intel.com>
+X-Mailer: git-send-email 2.17.2
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 13 Dec 2019 10:53:45 +0100:
+v2:
+- Modified the presentation of performance state attributes
+- Change the documentation to RST format
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.5-rc2
+Srinivas Pandruvada (2):
+  Documentation: ACPI: Documentation for Fan performance states
+  ACPI / fan: Display fan performance state information
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/6bd2c87aaffe0b58ce65233fe922b9eb5f7d9a85
-
-Thank you!
+ .../acpi/fan_performance_states.rst           | 65 +++++++++++++
+ Documentation/admin-guide/acpi/index.rst      |  1 +
+ drivers/acpi/fan.c                            | 96 +++++++++++++++++--
+ 3 files changed, 154 insertions(+), 8 deletions(-)
+ create mode 100644 Documentation/admin-guide/acpi/fan_performance_states.rst
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+2.17.2
+
