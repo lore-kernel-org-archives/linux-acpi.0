@@ -2,104 +2,126 @@ Return-Path: <SRS0=9Z4i=2D=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 907DCC43603
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 09:47:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C16C43603
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 09:53:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 605882253D
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 09:47:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18629214D8
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 09:53:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576230440;
-	bh=IKEdrsSKJblOibK5fe0H4I2W7nC4YKk1IrBD2NRgP1I=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=YOvRPbaMn38aT2P+9y5E+wB75JxOhzz+j2q3Sg7NLyC0JKVwbGj26Wf1y8tKK6E95
-	 Q4THmsNDIUEeb914Jwhz5snzWo5QCTfXQSuhO/RWL287Het8zzHh97cTnO05wb2oMd
-	 k1Q9MiRxkZXXEbl9Kyz7anqwdFlKjP+T4Ep7nYN4=
+	s=default; t=1576230838;
+	bh=jKIh3iYUlWtz83Qxczyg8PVQYY3+Pnl8BOzN1kt4UHA=;
+	h=From:Date:Subject:To:Cc:List-ID:From;
+	b=YfDhJvI0+oES1fHL53JuMDz4GtLpAYwIs0elVbyXADdejvup4UYgjLxo6Iyoz0inF
+	 YSH1oO9YQ4//gNUWJP1IE8GQChqJpyGYeS08r9OxZOSqYHhd9XYlC+jkK30jlfVkug
+	 U6aP816zxlFvfLEN1zBM8chArbjD7RbDnfgozQQA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725799AbfLMJrT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 13 Dec 2019 04:47:19 -0500
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:44861 "EHLO
+        id S1725948AbfLMJx5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 13 Dec 2019 04:53:57 -0500
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:34266 "EHLO
         mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725793AbfLMJrT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Dec 2019 04:47:19 -0500
-Received: by mail-ot1-f66.google.com with SMTP id x3so5714433oto.11;
-        Fri, 13 Dec 2019 01:47:19 -0800 (PST)
+        with ESMTP id S1725799AbfLMJx5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Dec 2019 04:53:57 -0500
+Received: by mail-ot1-f66.google.com with SMTP id a15so5794274otf.1;
+        Fri, 13 Dec 2019 01:53:56 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=LrgOuy/9sPvzhX64/ManuYWOHaw5/qKpeJcMH1l0dJw=;
-        b=ucbY6U5i8iqwKIzDam7juPFkESzPvu0Nt8Zw7vbAfvrJ0Y2MmuE5qnHyZjzKko8KGT
-         9bmH+IGTMX2gWt5jCkhhaJ8CCu2aRNSoWZ6obh3YBKkaRe0/KQIFVaffpZvDH/pok2pg
-         wdjzY0HL2qZ/XyjBXmm3prMfc+axkzjgPc0mba2RCUhsgPx931WfO+wk2MKf9HeyVPK7
-         yKB7xkmF28LtidaMUskmSe29l8CdGEk15l4/tBREkWhgMU2FCZDX01Ra31D83J1Lcgu4
-         nbDhuryen6RtncKNk+zsK7JA2uEfQZLr6dD5qunPw0q3mS7JxiUBSggi3Au7yicia2U5
-         tB+Q==
-X-Gm-Message-State: APjAAAXaDJOH97oLfFTRPfA2v9KHkxRTwmC4dZhvG2HjdSj1bu8iTKR7
-        4iENu6jUfaHFdUsicfXG4KXlmJx/jIkzPBP/pkE=
-X-Google-Smtp-Source: APXvYqyTYrRZu/3wd+jVnsU9fJlU3qWbi4XDyl6SoSVPdfbCj6mQh4LJVDI5doZGlsmV/j5Q03mkCLX7+C1j0mvjiyg=
-X-Received: by 2002:a05:6830:18cd:: with SMTP id v13mr13098278ote.118.1576230438826;
- Fri, 13 Dec 2019 01:47:18 -0800 (PST)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=kQXMOkKLQBuzsUmvhlFsweud8OIK7QsHH7RggCqtmtM=;
+        b=ZT4tK+3ACxlVp+ZkROCmgagZqkWnGXiBITNjKoJBRUgfVnCJ6NRLwjTokcRuvhpRCK
+         ylS5plvgBIH2GyCF38cjKWcg3+Jh8Bh7BHlBwSL3yPe3TNLz+/GhQ3piREgBYvshmnyi
+         jxGsgvKKo0shp3rjbf6oy0Vlc5XWAOLWx7tC790yD+8VEsphREz8EhA3zlIaw5simVuT
+         Vu8J+zKX+NfOOg3PuMkQoqAkAvY+48CcpUVDXF/rnfQoIJFkyDZoWolMsdC2gEX+V+Sz
+         JQlKYjlk3KEzCFbqgRD/AXWStWWQSbo4Wd+LtElNkuivVfpJeGVXXD1mpeUc4rqOGIIB
+         4Q8Q==
+X-Gm-Message-State: APjAAAWsW6hy3NRqrtLk0JFcfvYGysvL5P4sbuS0Pfu9HoNj17w16zjl
+        ddudbTioRf7cXKIDB87xUMJEmnYhacgA2CIOOhlVBoXM
+X-Google-Smtp-Source: APXvYqycFbChVrFtM0/G5UhaTCn0IsrJkn0qmL3txvpHumg1p3pXeX7Yx1NDMUDXiQsmNM2Jza76bAJY2XM3A/HAAb0=
+X-Received: by 2002:a05:6830:95:: with SMTP id a21mr12964851oto.167.1576230836441;
+ Fri, 13 Dec 2019 01:53:56 -0800 (PST)
 MIME-Version: 1.0
-References: <20191212171137.13872-1-david@redhat.com> <20191212171137.13872-2-david@redhat.com>
- <5687328.t4MNS9KDDX@kreacher> <ec81db03-b970-420a-9c1b-29849b5e8902@redhat.com>
-In-Reply-To: <ec81db03-b970-420a-9c1b-29849b5e8902@redhat.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 13 Dec 2019 10:47:07 +0100
-Message-ID: <CAJZ5v0iqgnhOF1UQQBfv7C_b5RyoAz=U3JYLt3a0U+UnZ48DUA@mail.gmail.com>
-Subject: Re: [PATCH RFC v4 01/13] ACPI: NUMA: export pxm_to_node
-To:     David Hildenbrand <david@redhat.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        virtio-dev@lists.oasis-open.org,
-        virtualization@lists.linux-foundation.org,
-        kvm-devel <kvm@vger.kernel.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "Michael S . Tsirkin" <mst@redhat.com>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Date:   Fri, 13 Dec 2019 10:53:45 +0100
+Message-ID: <CAJZ5v0g-xo1f2yPWGzFnrGQKFuHV=aDk_nV6s7hpWNnhnqyv5g@mail.gmail.com>
+Subject: [GIT PULL] Power management updates for v5.5-rc2
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Dec 13, 2019 at 10:41 AM David Hildenbrand <david@redhat.com> wrote:
->
-> On 12.12.19 22:43, Rafael J. Wysocki wrote:
-> > On Thursday, December 12, 2019 6:11:25 PM CET David Hildenbrand wrote:
-> >> Will be needed by virtio-mem to identify the node from a pxm.
-> >>
-> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >> Cc: Len Brown <lenb@kernel.org>
-> >> Cc: linux-acpi@vger.kernel.org
-> >> Signed-off-by: David Hildenbrand <david@redhat.com>
-> >> ---
-> >>  drivers/acpi/numa/srat.c | 1 +
-> >>  1 file changed, 1 insertion(+)
-> >>
-> >> diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-> >> index eadbf90e65d1..d5847fa7ac69 100644
-> >> --- a/drivers/acpi/numa/srat.c
-> >> +++ b/drivers/acpi/numa/srat.c
-> >> @@ -35,6 +35,7 @@ int pxm_to_node(int pxm)
-> >>              return NUMA_NO_NODE;
-> >>      return pxm_to_node_map[pxm];
-> >>  }
-> >> +EXPORT_SYMBOL(pxm_to_node);
-> >>
-> >>  int node_to_pxm(int node)
-> >>  {
-> >>
-> >
-> > This is fine by me FWIW.
->
-> Can I count that as an Acked-by and carry it along? Thanks!
+Hi Linus,
 
-Yes, please.
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-5.5-rc2
+
+with top-most commit 4c84515da8099f4bab5d9312a0ffaf40f14aa87b
+
+ Merge branches 'pm-cpuidle' and 'acpi-pm'
+
+on top of commit e42617b825f8073569da76dc4510bfa019b1c35a
+
+ Linux 5.5-rc1
+
+to receive power management updates for 5.5-rc2.
+
+These add PM QoS support to devfreq and fix a few issues in that
+subsystem, fix two cpuidle issues and do one minor cleanup in there,
+and address an ACPI power management problem related to devices with
+special power management requirements, like fans.
+
+Specifics:
+
+ - Add PM QoS support, based on the frequency QoS introduced during
+   the 5.4 cycle, to devfreq (Leonard Crestez).
+
+ - Fix some assorted devfreq issues (Leonard Crestez).
+
+ - Fix an unintentional cpuidle behavior change (introduced during
+   the 5.4 cycle) related to the active polling time limit (Marcelo
+   Tosatti).
+
+ - Fix a recently introduced cpuidle helper function and do a minor
+   cleanup in the cpuidle core (Rafael Wysocki).
+
+ - Avoid adding devices with special power management requirements,
+   like fans, to the generic ACPI PM domain (Rafael Wysocki).
+
+Thanks!
+
+
+---------------
+
+Leonard Crestez (6):
+      PM / devfreq: Fix devfreq_notifier_call returning errno
+      PM / devfreq: Set scaling_max_freq to max on OPP notifier error
+      PM / devfreq: Introduce get_freq_range helper
+      PM / devfreq: Don't fail devfreq_dev_release if not in list
+      PM / devfreq: Add PM QoS support
+      PM / devfreq: Use PM QoS for sysfs min/max_freq
+
+Marcelo Tosatti (1):
+      cpuidle: use first valid target residency as poll time
+
+Rafael J. Wysocki (3):
+      ACPI: PM: Avoid attaching ACPI PM domain to certain devices
+      cpuidle: Fix cpuidle_driver_state_disabled()
+      cpuidle: Drop unnecessary type cast in cpuidle_poll_time()
+
+---------------
+
+ drivers/acpi/device_pm.c  |  12 +-
+ drivers/cpuidle/cpuidle.c |   3 +-
+ drivers/cpuidle/driver.c  |  10 ++
+ drivers/devfreq/devfreq.c | 273 ++++++++++++++++++++++++++++++++++------------
+ include/linux/devfreq.h   |  14 ++-
+ 5 files changed, 235 insertions(+), 77 deletions(-)
