@@ -1,140 +1,78 @@
-Return-Path: <SRS0=9Z4i=2D=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=2gTD=2E=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72AD7C2D0CA
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 23:48:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45E5DC43603
+	for <linux-acpi@archiver.kernel.org>; Sat, 14 Dec 2019 20:36:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 63FEA214AF
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Dec 2019 23:48:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A796620706
+	for <linux-acpi@archiver.kernel.org>; Sat, 14 Dec 2019 20:36:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=matchafever.co.uk header.i=@matchafever.co.uk header.b="k/Xnlvdt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726808AbfLMXsv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 13 Dec 2019 18:48:51 -0500
-Received: from mga03.intel.com ([134.134.136.65]:56595 "EHLO mga03.intel.com"
+        id S1726942AbfLNUgq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 14 Dec 2019 15:36:46 -0500
+Received: from 12.wpacademy.ch ([91.134.180.84]:33475 "EHLO 12.wpacademy.ch"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726784AbfLMXsv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 13 Dec 2019 18:48:51 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2019 15:48:50 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.69,311,1571727600"; 
-   d="scan'208";a="388836441"
-Received: from spandruv-mobl.jf.intel.com ([10.255.89.247])
-  by orsmga005.jf.intel.com with ESMTP; 13 Dec 2019 15:48:49 -0800
-From:   Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-To:     rjw@rjwysocki.net, corbet@lwn.net, lenb@kernel.org,
-        rui.zhang@intel.com
-Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v2 1/2] Documentation: ACPI: Documentation for Fan performance states
-Date:   Fri, 13 Dec 2019 15:48:39 -0800
-Message-Id: <20191213234840.9791-2-srinivas.pandruvada@linux.intel.com>
-X-Mailer: git-send-email 2.17.2
-In-Reply-To: <20191213234840.9791-1-srinivas.pandruvada@linux.intel.com>
-References: <20191213234840.9791-1-srinivas.pandruvada@linux.intel.com>
+        id S1726484AbfLNUgq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 14 Dec 2019 15:36:46 -0500
+X-Greylist: delayed 12657 seconds by postgrey-1.27 at vger.kernel.org; Sat, 14 Dec 2019 15:36:45 EST
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=matchafever.co.uk; s=x; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:Message-ID:From:Date:Subject:To:Sender:Reply-To:Cc:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=+IGptH2NmbzKDUjaGzZkGNNx9oQ+wu0Ib8oIUsz6/O0=; b=k/Xnlvdt/eoCXWOYg05p8EV2N9
+        Ax9bOXCOwqIMXEqgwoactp9JSK9nZsm1CQF/ARBKb0MBB5sYQrkFsuj0kVXpqA63sRiLFhNV5ixgF
+        T4WUAYFeGjK6ZLi+FZ/Wj7g5y8XbrlkN2myiS1iMV2/aiZLmIdf+N4CgDSSE/fCdb3ZLYl9mO8Zm5
+        aAuUn/KaS4wTUQF93HMCkDRSzeX5ykJ36Dxy7F3/qudmn0lRyAABXOd+g/JBigklDhbYqYQCG2nYj
+        ah11Wk7Gdo99p7p/RY5aG1A4n1fHoEnHitILWvvcRvVnO9l9mrvT1KSRrk/Ia4/SXEB3xNNTX+wU/
+        loMOvXnA==;
+Received: from wpacademy by server.wacademy.network with local (Exim 4.90_1)
+        (envelope-from <bounce@w3academy.sk>)
+        id 1igArT-0003wG-0V
+        for linux-acpi@vger.kernel.org; Sat, 14 Dec 2019 19:05:47 +0200
+To:     linux-acpi@vger.kernel.org
+Subject: Hoping to help
+Date:   Sat, 14 Dec 2019 19:05:46 +0200
+From:   "kei@matchafever.co.uk" <kei@matchafever.co.uk>
+Message-ID: <331916a42921bdda6b13244a6f39da09@wpacademy.ch>
+Bounces-To: bounce@w3academy.sk
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Authenticated-Id: wpacademy
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Added documentation for performance states information for the ACPI
-Fan object.
+Hello, 
+ 
+I’ll be honest with you, this is another email trying to offer you something.
+ 
+However, if you stress over Christmas gifts this might be a time-saver for you.
+ 
+My name is Kei and I source high-quality matcha directly from the organic farm in Japan.
+ 
+It is a powdered green tea renowned for its numerous health benefits.
+ 
+You also can find some beautiful gift sets for everybody who appreciates a warm cup of tea.
+ 
+More on this:
+ 
+www.matchafever.co.uk/matchastoryy
+ 
+P.S. You can enjoy up to -35% on all products as well as guaranteed delivery before Christmas.
+ 
+All the best,
+ 
+Kei
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- .../acpi/fan_performance_states.rst           | 65 +++++++++++++++++++
- Documentation/admin-guide/acpi/index.rst      |  1 +
- 2 files changed, 66 insertions(+)
- create mode 100644 Documentation/admin-guide/acpi/fan_performance_states.rst
 
-diff --git a/Documentation/admin-guide/acpi/fan_performance_states.rst b/Documentation/admin-guide/acpi/fan_performance_states.rst
-new file mode 100644
-index 000000000000..91f10738e158
---- /dev/null
-+++ b/Documentation/admin-guide/acpi/fan_performance_states.rst
-@@ -0,0 +1,65 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+===========================
-+ACPI Fan Performance States
-+===========================
-+
-+When the optional object _FPS is present for ACPI devices PNP0C0B or INT3404,
-+additional attributes are displayed under acpi device object. These attributes
-+display information about each performance state.
-+
-+For more details about ACPI Fan _FPS please refer to the ACPI specification at:
-+
-+http://uefi.org/specifications
-+
-+Example display for INT3404 ACPI device folder::
-+
-+ $ ls -l /sys/bus/acpi/devices/INT3404:00/
-+ total 0
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state0
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state1
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state10
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state11
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state2
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state3
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state4
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state5
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state6
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state7
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state8
-+ -r--r--r-- 1 root root 4096 Dec 13 20:38 state9
-+ -r--r--r-- 1 root root 4096 Dec 13 01:00 status
-+ ...
-+ ...
-+
-+In the above example, each of the state* attribute represent one performance
-+state. Each performance state contains information about the properties of a
-+state in the following format:
-+
-+control_percent:trip_point_index:speed_rpm:noise_level_mdb:power_mw
-+
-+For example::
-+
-+ $cat /sys/bus/acpi/devices/INT3404:00/state1
-+ 25:0:3200:12500:1250
-+
-+Description of properties:
-+
-+* control_percent: Indicates the value to be used to set the fan speed to a
-+specific level using the _FSL object. The value here is from 0-100 percent.
-+
-+* trip_point_index: The active cooling trip point number that corresponds to this
-+performance state. The range is from 0-9.
-+
-+* speed_rpm: Indicates the speed of the fan in revolutions per minute.
-+
-+* noise_level_mdb: Indicates the audible noise emitted by the fan. By the
-+specification the value represents the noise in 10ths of decibels. Here
-+it is multiplied with 100 to present in milli-db, to avoid loss of
-+precision.
-+
-+* power_mw: Indicates the power consumption in milliwatts.
-+
-+When the fields are not populated or invalid in the configuration,
-+"not-defined" is displayed.
-+
-diff --git a/Documentation/admin-guide/acpi/index.rst b/Documentation/admin-guide/acpi/index.rst
-index 4d13eeea1eca..71277689ad97 100644
---- a/Documentation/admin-guide/acpi/index.rst
-+++ b/Documentation/admin-guide/acpi/index.rst
-@@ -12,3 +12,4 @@ the Linux ACPI support.
-    dsdt-override
-    ssdt-overlays
-    cppc_sysfs
-+   fan_performance_states
--- 
-2.17.2
 
