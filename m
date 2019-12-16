@@ -2,33 +2,35 @@ Return-Path: <SRS0=qnyy=2G=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32617C43603
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 11:25:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A052C43603
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 11:34:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05939206D3
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 11:25:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77249206D3
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 11:34:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727383AbfLPLY7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Dec 2019 06:24:59 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:42198 "EHLO
+        id S1727286AbfLPLex (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Dec 2019 06:34:53 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:49632 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727368AbfLPLY7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2019 06:24:59 -0500
+        with ESMTP id S1727138AbfLPLex (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2019 06:34:53 -0500
 Received: from 79.184.253.1.ipv4.supernova.orange.pl (79.184.253.1) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.320)
- id a75c78bdd54642d0; Mon, 16 Dec 2019 12:24:57 +0100
+ id 3930d591b1240d67; Mon, 16 Dec 2019 12:34:51 +0100
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Zhengyuan Liu <liuzhengyuan@kylinos.cn>
-Cc:     linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2] tools/acpi: fix compilation error
-Date:   Mon, 16 Dec 2019 12:24:57 +0100
-Message-ID: <3122906.rUR3b5QzkR@kreacher>
-In-Reply-To: <20191213162712.6208-1-liuzhengyuan@kylinos.cn>
-References: <20191213162712.6208-1-liuzhengyuan@kylinos.cn>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Len Brown <len.brown@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: processor: Make ACPI_PROCESSOR_CSTATE depend on ACPI_PROCESSOR
+Date:   Mon, 16 Dec 2019 12:34:50 +0100
+Message-ID: <16614264.JRhOIQ9zEg@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -37,51 +39,39 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Friday, December 13, 2019 5:27:12 PM CET Zhengyuan Liu wrote:
-> If we compile tools/acpi target in the top source directory, we'd get a
-> compilation error showing as bellow:
-> 
-> 	# make tools/acpi
-> 	  DESCEND  power/acpi
-> 	  DESCEND  tools/acpidbg
-> 	  CC       tools/acpidbg/acpidbg.o
-> 	Assembler messages:
-> 	Fatal error: can't create /home/lzy/kernel-upstream/power/acpi/\
-> 			tools/acpidbg/acpidbg.o: No such file or directory
-> 	../../Makefile.rules:26: recipe for target '/home/lzy/kernel-upstream/\
-> 			power/acpi/tools/acpidbg/acpidbg.o' failed
-> 	make[3]: *** [/home/lzy/kernel-upstream//power/acpi/tools/acpidbg/\
-> 			acpidbg.o] Error 1
-> 	Makefile:19: recipe for target 'acpidbg' failed
-> 	make[2]: *** [acpidbg] Error 2
-> 	Makefile:54: recipe for target 'acpi' failed
-> 	make[1]: *** [acpi] Error 2
-> 	Makefile:1607: recipe for target 'tools/acpi' failed
-> 	make: *** [tools/acpi] Error 2
-> 
-> Fixes: d5a4b1a540b ("tools/power/acpi: Remove direct kernel source include reference")
-> Signed-off-by: Zhengyuan Liu <liuzhengyuan@kylinos.cn>
-> ---
->  tools/power/acpi/Makefile.config | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
-> index 0111d246d1ca..54a2857c2510 100644
-> --- a/tools/power/acpi/Makefile.config
-> +++ b/tools/power/acpi/Makefile.config
-> @@ -15,7 +15,7 @@ include $(srctree)/../../scripts/Makefile.include
->  
->  OUTPUT=$(srctree)/
->  ifeq ("$(origin O)", "command line")
-> -	OUTPUT := $(O)/power/acpi/
-> +	OUTPUT := $(O)/tools/power/acpi/
->  endif
->  #$(info Determined 'OUTPUT' to be $(OUTPUT))
->  
-> 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Applying as 5.6 material, thanks!
+To avoid build errors when CONFIG_ACPI_PROCESSOR_CSTATE is set and
+CONFIG_ACPI_PROCESSOR is not (that may appear in randconfig builds),
+make the former depend on the latter.
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+The build issues addressed by this patch are exposed by the series adding ACPI
+support to intel_idle:
+
+https://lore.kernel.org/linux-pm/3950312.2WmFeOdZGY@kreacher/T/#t
+
+so it has been added to the intel_idle+acpi branch (which has been rebased on
+top of 5.5-rc2).
+
+---
+ drivers/acpi/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+Index: linux-pm/drivers/acpi/Kconfig
+===================================================================
+--- linux-pm.orig/drivers/acpi/Kconfig
++++ linux-pm/drivers/acpi/Kconfig
+@@ -241,6 +241,7 @@ config ACPI_CPU_FREQ_PSS
+ 
+ config ACPI_PROCESSOR_CSTATE
+ 	def_bool y
++	depends on ACPI_PROCESSOR
+ 	depends on IA64 || X86
+ 
+ config ACPI_PROCESSOR_IDLE
 
 
 
