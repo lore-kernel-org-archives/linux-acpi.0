@@ -2,88 +2,235 @@ Return-Path: <SRS0=qnyy=2G=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B54C43603
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 14:21:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60F29C43603
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 15:39:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D2C5205ED
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 14:21:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576506117;
-	bh=DyR7tL6XVvqzLf083I2Bl4aXPpGAB+e/nogKomWBQVw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=1dRQXWaAFyixOMpC3SVfTm3gkW7kggnxaE+9gEKP3JAtWP8WPUDwwD742VTOlfYEb
-	 dMLTl3dIvgxW6zAdW5B65By2HL5Cpebmw7WzSjvPsz2SERJE4m1q2Mp2I75GZ+kfR3
-	 YfvObihmAanwSkUhElkl5QLTDLw3q+lX1ooMoS5Q=
+	by mail.kernel.org (Postfix) with ESMTP id 3C6A3206D7
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Dec 2019 15:39:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728008AbfLPOV5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Dec 2019 09:21:57 -0500
-Received: from mail-oi1-f193.google.com ([209.85.167.193]:41905 "EHLO
-        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727995AbfLPOV5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2019 09:21:57 -0500
-Received: by mail-oi1-f193.google.com with SMTP id i1so3400321oie.8;
-        Mon, 16 Dec 2019 06:21:56 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=SaHjW4n0zvwoawguKMSzzinC58G2gxyriauO/X4GMCM=;
-        b=MW885Dak5dsQioDYXdbfU3nhTqapSRqr7FbHhXdegeeN5z91ISQpyizEXp4Loq3Qir
-         6ZkBC3ujouZmYcTkKwkmgqt3elY2JpM+eipY3uarzqY9XEOfkdW9ML4iYRVeyHqy4mw2
-         M0h0HzW2o4wBT+F0WQpfUmb4zC714xKjriIFBwvVXPf8axjEAUtcT5B481NXIEyDj2bv
-         qn1FAVEHmULzkjv3yiySWeeB+66EKYfz5Qxgy/OWYpcvv3yW8iZa6tqhqNbyvOnehzGU
-         mcwBKLTv98kS9AhvpoPE3iURtYVSoDL19m2iwNnoF1QzLiCsYnE5y+TC67A7v+koenFq
-         erBg==
-X-Gm-Message-State: APjAAAV2zkZEYkFhOYB/mGJ+LuEU6XFSYiX++SeHJpzhdLk42dSSNgnZ
-        nu9bn0mt1x+Yast+pmwkrdzMT+FWtgcgPY8cbkRvKw==
-X-Google-Smtp-Source: APXvYqx7e1cUSJQewGZjGCWSnzYCUwFNC6T/ar6UamMUtChiL1yRn9RrIJ5esh13a0l7XzpmylQ57sR31ILTFk2gVgU=
-X-Received: by 2002:a05:6808:1c5:: with SMTP id x5mr9945222oic.57.1576506116067;
- Mon, 16 Dec 2019 06:21:56 -0800 (PST)
+        id S1728454AbfLPPjB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Dec 2019 10:39:01 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7254 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728337AbfLPPjB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Dec 2019 10:39:01 -0500
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 49E8D730630F7F33D7E7;
+        Mon, 16 Dec 2019 23:38:58 +0800 (CST)
+Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
+ DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
+ 14.3.439.0; Mon, 16 Dec 2019 23:38:49 +0800
+From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, <x86@kernel.org>
+CC:     Keith Busch <keith.busch@intel.com>, <jglisse@redhat.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>, <linuxarm@huawei.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Tao Xu <tao3.xu@intel.com>,
+        Brice Goglin <brice.goglin@gmail.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH V6 1/7] ACPI: Support Generic Initiator only domains
+Date:   Mon, 16 Dec 2019 23:38:03 +0800
+Message-ID: <20191216153809.105463-2-Jonathan.Cameron@huawei.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20191216153809.105463-1-Jonathan.Cameron@huawei.com>
+References: <20191216153809.105463-1-Jonathan.Cameron@huawei.com>
 MIME-Version: 1.0
-References: <201912162148.hTRbNfPp%lkp@intel.com>
-In-Reply-To: <201912162148.hTRbNfPp%lkp@intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 16 Dec 2019 15:21:45 +0100
-Message-ID: <CAJZ5v0iTOSnvZqKuL7gy7QBtdHxcM7wPS8qdgbvs6+sQxZX5yg@mail.gmail.com>
-Subject: Re: [pm:intel_idle+acpi 4/10] acpi_processor.c:undefined reference to `acpi_processor_ffh_cstate_probe'
-To:     kbuild test robot <lkp@intel.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>, kbuild-all@lists.01.org,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux PM <linux-pm@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.123.41.22]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Dec 16, 2019 at 2:26 PM kbuild test robot <lkp@intel.com> wrote:
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git intel_idle+acpi
-> head:   dcedc03145600b929a32acb85b212131b079bc46
-> commit: 0300cf31f061e6287810c894337f29df2e200e2d [4/10] ACPI: processor: Export acpi_processor_evaluate_cst()
+Generic Initiators are a new ACPI concept that allows for the
+description of proximity domains that contain a device which
+performs memory access (such as a network card) but neither
+host CPU nor Memory.
 
-Outdated.  Please stop sending these.
+This patch has the parsing code and provides the infrastructure
+for an architecture to associate these new domains with their
+nearest memory processing node.
 
-> config: x86_64-randconfig-b002-20191216 (attached as .config)
-> compiler: gcc-7 (Debian 7.5.0-1) 7.5.0
-> reproduce:
->         git checkout 0300cf31f061e6287810c894337f29df2e200e2d
->         # save the attached .config to linux build tree
->         make ARCH=x86_64
->
-> If you fix the issue, kindly add following tag
-> Reported-by: kbuild test robot <lkp@intel.com>
->
-> All errors (new ones prefixed by >>):
->
->    ld: drivers/acpi/acpi_processor.o: in function `acpi_processor_evaluate_cst':
-> >> acpi_processor.c:(.text+0x542): undefined reference to `acpi_processor_ffh_cstate_probe'
->
-> ---
-> 0-DAY kernel test infrastructure                 Open Source Technology Center
-> https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org Intel Corporation
+Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/acpi/numa/srat.c       | 62 +++++++++++++++++++++++++++++++++-
+ drivers/base/node.c            |  3 ++
+ include/asm-generic/topology.h |  3 ++
+ include/linux/nodemask.h       |  1 +
+ include/linux/topology.h       |  7 ++++
+ 5 files changed, 75 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
+index eadbf90e65d1..a4a2cd52e706 100644
+--- a/drivers/acpi/numa/srat.c
++++ b/drivers/acpi/numa/srat.c
+@@ -170,6 +170,38 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ 		}
+ 		break;
+ 
++	case ACPI_SRAT_TYPE_GENERIC_AFFINITY:
++	{
++		struct acpi_srat_generic_affinity *p =
++			(struct acpi_srat_generic_affinity *)header;
++		char name[9] = {};
++
++		if (p->device_handle_type == 0) {
++			/*
++			 * For pci devices this may be the only place they
++			 * are assigned a proximity domain
++			 */
++			pr_debug("SRAT Generic Initiator(Seg:%u BDF:%u) in proximity domain %d %s\n",
++				 *(u16 *)(&p->device_handle[0]),
++				 *(u16 *)(&p->device_handle[2]),
++				 p->proximity_domain,
++				 (p->flags & ACPI_SRAT_GENERIC_AFFINITY_ENABLED) ?
++				 "enabled" : "disabled");
++		} else {
++			/*
++			 * In this case we can rely on the device having a
++			 * proximity domain reference
++			 */
++			memcpy(name, p->device_handle, 8);
++			pr_debug("SRAT Generic Initiator(HID=%.8s UID=%.4s) in proximity domain %d %s\n",
++				 (char *)(&p->device_handle[0]),
++				 (char *)(&p->device_handle[8]),
++				 p->proximity_domain,
++				 (p->flags & ACPI_SRAT_GENERIC_AFFINITY_ENABLED) ?
++				 "enabled" : "disabled");
++		}
++	}
++	break;
+ 	default:
+ 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
+ 			header->type);
+@@ -378,6 +410,32 @@ acpi_parse_gicc_affinity(union acpi_subtable_headers *header,
+ 	return 0;
+ }
+ 
++static int __init
++acpi_parse_gi_affinity(union acpi_subtable_headers *header,
++		       const unsigned long end)
++{
++	struct acpi_srat_generic_affinity *gi_affinity;
++	int node;
++
++	gi_affinity = (struct acpi_srat_generic_affinity *)header;
++	if (!gi_affinity)
++		return -EINVAL;
++	acpi_table_print_srat_entry(&header->common);
++
++	if (!(gi_affinity->flags & ACPI_SRAT_GENERIC_AFFINITY_ENABLED))
++		return -EINVAL;
++
++	node = acpi_map_pxm_to_node(gi_affinity->proximity_domain);
++	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
++		pr_err("SRAT: Too many proximity domains.\n");
++		return -EINVAL;
++	}
++	node_set(node, numa_nodes_parsed);
++	node_set_state(node, N_GENERIC_INITIATOR);
++
++	return 0;
++}
++
+ static int __initdata parsed_numa_memblks;
+ 
+ static int __init
+@@ -433,7 +491,7 @@ int __init acpi_numa_init(void)
+ 
+ 	/* SRAT: System Resource Affinity Table */
+ 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
+-		struct acpi_subtable_proc srat_proc[3];
++		struct acpi_subtable_proc srat_proc[4];
+ 
+ 		memset(srat_proc, 0, sizeof(srat_proc));
+ 		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
+@@ -442,6 +500,8 @@ int __init acpi_numa_init(void)
+ 		srat_proc[1].handler = acpi_parse_x2apic_affinity;
+ 		srat_proc[2].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
+ 		srat_proc[2].handler = acpi_parse_gicc_affinity;
++		srat_proc[3].id = ACPI_SRAT_TYPE_GENERIC_AFFINITY;
++		srat_proc[3].handler = acpi_parse_gi_affinity;
+ 
+ 		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
+ 					sizeof(struct acpi_table_srat),
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index 98a31bafc8a2..f6e80bf22547 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -974,6 +974,8 @@ static struct node_attr node_state_attr[] = {
+ #endif
+ 	[N_MEMORY] = _NODE_ATTR(has_memory, N_MEMORY),
+ 	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
++	[N_GENERIC_INITIATOR] = _NODE_ATTR(has_generic_initiator,
++					   N_GENERIC_INITIATOR),
+ };
+ 
+ static struct attribute *node_state_attrs[] = {
+@@ -985,6 +987,7 @@ static struct attribute *node_state_attrs[] = {
+ #endif
+ 	&node_state_attr[N_MEMORY].attr.attr,
+ 	&node_state_attr[N_CPU].attr.attr,
++	&node_state_attr[N_GENERIC_INITIATOR].attr.attr,
+ 	NULL
+ };
+ 
+diff --git a/include/asm-generic/topology.h b/include/asm-generic/topology.h
+index 238873739550..54d0b4176a45 100644
+--- a/include/asm-generic/topology.h
++++ b/include/asm-generic/topology.h
+@@ -71,6 +71,9 @@
+ #ifndef set_cpu_numa_mem
+ #define set_cpu_numa_mem(cpu, node)
+ #endif
++#ifndef set_gi_numa_mem
++#define set_gi_numa_mem(gi, node)
++#endif
+ 
+ #endif	/* !CONFIG_NUMA || !CONFIG_HAVE_MEMORYLESS_NODES */
+ 
+diff --git a/include/linux/nodemask.h b/include/linux/nodemask.h
+index 27e7fa36f707..1aebf766fb52 100644
+--- a/include/linux/nodemask.h
++++ b/include/linux/nodemask.h
+@@ -399,6 +399,7 @@ enum node_states {
+ #endif
+ 	N_MEMORY,		/* The node has memory(regular, high, movable) */
+ 	N_CPU,		/* The node has one or more cpus */
++	N_GENERIC_INITIATOR,	/* The node is a GI only node */
+ 	NR_NODE_STATES
+ };
+ 
+diff --git a/include/linux/topology.h b/include/linux/topology.h
+index eb2fe6edd73c..05ccf011e489 100644
+--- a/include/linux/topology.h
++++ b/include/linux/topology.h
+@@ -140,6 +140,13 @@ static inline void set_numa_mem(int node)
+ }
+ #endif
+ 
++#ifndef set_gi_numa_mem
++static inline void set_gi_numa_mem(int gi, int node)
++{
++	_node_numa_mem_[gi] = node;
++}
++#endif
++
+ #ifndef node_to_mem_node
+ static inline int node_to_mem_node(int node)
+ {
+-- 
+2.19.1
+
