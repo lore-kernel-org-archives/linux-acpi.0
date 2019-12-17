@@ -2,86 +2,114 @@ Return-Path: <SRS0=RODi=2H=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FD72C43603
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Dec 2019 08:23:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D392CC2D0CD
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Dec 2019 10:48:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E56221739
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Dec 2019 08:23:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576571008;
-	bh=Mu8a1xXHkANWU0g9IFGVAXwB5Slffgo09P7ewPab0Xw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=p4v/1fDsn3asZqLngwcIprEeFz+tQ8J2mT7jfrIGPhfu2uaW1hu3K0NEk3ep99MAB
-	 LHewqJ9fUSblKq0DluI9liLLwyZX6acLcx+TX8Umk/spHyFV0QVfBB2sFe+/qi3/7y
-	 iJkg71DjRyrt1YAoY4Oka9BLUr0n/YbOQBtDZEBc=
+	by mail.kernel.org (Postfix) with ESMTP id AB1B52072D
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Dec 2019 10:48:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ZdEizmhc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725940AbfLQIX1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Dec 2019 03:23:27 -0500
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:42954 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725805AbfLQIX1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2019 03:23:27 -0500
-Received: by mail-ot1-f68.google.com with SMTP id 66so12750373otd.9;
-        Tue, 17 Dec 2019 00:23:26 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JMeW8IXOTJKgWI7xudgMEupdZiEmd53J2UWjz91+kjc=;
-        b=sM31rMZapetO6Ni7ou9+CBdLG1gbYNU7NYP1rj0l3aQkRWzwQX4AqGDtp6TSm4D5Z8
-         ilF31TiA9TODiPMBav1uFEhOPdBeE3eWrBtwNbsQVTeizf3fguOVSly4Z4y3LyEhe8Jg
-         qe0SebMMheb1ukEK/hZzg/BOJVhR8G0rcN5uOScP51ux06GZnB2KbrJVDeNVoojInObz
-         QefH0vJu3H4Rp0bdj5ERsn9NVd//T5pfrOe+wfPiZ2sb18eSXmwTrMgUsNRtkQ0RcSl0
-         QhZAI10XzQDoze1QEXjbUntUez1xxnPWEfDBk9A5dKO72GfzwEUE4jGAmucWxGOOs97T
-         CPWQ==
-X-Gm-Message-State: APjAAAXI/l0wKvViqQZnMrGMoHqgf+HeLzpEeDgt9l9T+l+OC5N4zq4w
-        5b78rlVPOiBjIHpjljY4+ShwDmBmZ218sph8RNyNtw==
-X-Google-Smtp-Source: APXvYqwU6UFXX7ZWRxkmNxJknYkkQQJcxP69ST8Knq9cN3tyhoz7l2BTSbOZP1Sd1lP9XXAK5Dfdz1cAJ0+8CWWQ6uA=
-X-Received: by 2002:a05:6830:4b9:: with SMTP id l25mr37484806otd.266.1576571006380;
- Tue, 17 Dec 2019 00:23:26 -0800 (PST)
+        id S1725870AbfLQKsy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Dec 2019 05:48:54 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:35608 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726655AbfLQKsw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2019 05:48:52 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id xBHAmihR056883;
+        Tue, 17 Dec 2019 04:48:44 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1576579724;
+        bh=T3CMfOvjx9ecvb9eaAPNLrofr0AxqpXdmnvNE+n/PCk=;
+        h=From:To:CC:Subject:Date;
+        b=ZdEizmhcKA80AK6pc8WJjjoNy3fSuXzf8i++I4jbHgq1HHWRXqEdxgdLfu1dtlJh4
+         4KiziI+4GZldQWBj2WmDohVEKZ/oJVA3Mx4xalCh4JlnozmbfkcS5nGkx5OThfHwuG
+         WbfdStAR4Zc/AdhYOEmWp10bSHfwrbOj/5Yrt8+Y=
+Received: from DFLE102.ent.ti.com (dfle102.ent.ti.com [10.64.6.23])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id xBHAmijj093336
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 17 Dec 2019 04:48:44 -0600
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Tue, 17
+ Dec 2019 04:48:43 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
+ Frontend Transport; Tue, 17 Dec 2019 04:48:43 -0600
+Received: from feketebors.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id xBHAmfcv016608;
+        Tue, 17 Dec 2019 04:48:42 -0600
+From:   Peter Ujfalusi <peter.ujfalusi@ti.com>
+To:     <rjw@rjwysocki.net>, <lenb@kernel.org>
+CC:     <vkoul@kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: [PATCH] docs: firmware-guide: acpi: Change dma_request_slave_channel to dma_request_chan
+Date:   Tue, 17 Dec 2019 12:48:56 +0200
+Message-ID: <20191217104856.24987-1-peter.ujfalusi@ti.com>
+X-Mailer: git-send-email 2.24.0
 MIME-Version: 1.0
-References: <201912162148.hTRbNfPp%lkp@intel.com> <CAJZ5v0iTOSnvZqKuL7gy7QBtdHxcM7wPS8qdgbvs6+sQxZX5yg@mail.gmail.com>
- <831EE4E5E37DCC428EB295A351E66249522A215D@shsmsx102.ccr.corp.intel.com>
-In-Reply-To: <831EE4E5E37DCC428EB295A351E66249522A215D@shsmsx102.ccr.corp.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 17 Dec 2019 09:23:14 +0100
-Message-ID: <CAJZ5v0gFbjbqTOD845RjzpJQXQY=ko=9GxwVxoqw0fPccfig4w@mail.gmail.com>
-Subject: Re: [kbuild-all] Re: [pm:intel_idle+acpi 4/10] acpi_processor.c:undefined
- reference to `acpi_processor_ffh_cstate_probe'
-To:     "Li, Philip" <philip.li@intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>, lkp <lkp@intel.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        "kbuild-all@lists.01.org" <kbuild-all@lists.01.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux PM <linux-pm@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Dec 17, 2019 at 1:31 AM Li, Philip <philip.li@intel.com> wrote:
->
-> > Subject: [kbuild-all] Re: [pm:intel_idle+acpi 4/10] acpi_processor.c:undefined
-> > reference to `acpi_processor_ffh_cstate_probe'
-> >
-> > On Mon, Dec 16, 2019 at 2:26 PM kbuild test robot <lkp@intel.com> wrote:
-> > >
-> > > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-> > intel_idle+acpi
-> > > head:   dcedc03145600b929a32acb85b212131b079bc46
-> > > commit: 0300cf31f061e6287810c894337f29df2e200e2d [4/10] ACPI: processor:
-> > Export acpi_processor_evaluate_cst()
-> >
-> > Outdated.  Please stop sending these.
-> thanks for the input Rafael, we will ignore the following tests on it.
+dma_request_chan() is the preferred API to request slave channels.
 
-Well, the branch has been rebased since then and effectively it is a new one.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ .../firmware-guide/acpi/enumeration.rst          | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-My point is that if something like that happens, the script should
-discard the old branch and pull the new one from scratch.
+diff --git a/Documentation/firmware-guide/acpi/enumeration.rst b/Documentation/firmware-guide/acpi/enumeration.rst
+index 0a72b6321f5f..c13fee8b02ba 100644
+--- a/Documentation/firmware-guide/acpi/enumeration.rst
++++ b/Documentation/firmware-guide/acpi/enumeration.rst
+@@ -71,8 +71,8 @@ DMA support
+ DMA controllers enumerated via ACPI should be registered in the system to
+ provide generic access to their resources. For example, a driver that would
+ like to be accessible to slave devices via generic API call
+-dma_request_slave_channel() must register itself at the end of the probe
+-function like this::
++dma_request_chan() must register itself at the end of the probe function like
++this::
+ 
+ 	err = devm_acpi_dma_controller_register(dev, xlate_func, dw);
+ 	/* Handle the error if it's not a case of !CONFIG_ACPI */
+@@ -112,15 +112,15 @@ could look like::
+ 	}
+ 	#endif
+ 
+-dma_request_slave_channel() will call xlate_func() for each registered DMA
+-controller. In the xlate function the proper channel must be chosen based on
++dma_request_chan() will call xlate_func() for each registered DMA controller.
++In the xlate function the proper channel must be chosen based on
+ information in struct acpi_dma_spec and the properties of the controller
+ provided by struct acpi_dma.
+ 
+-Clients must call dma_request_slave_channel() with the string parameter that
+-corresponds to a specific FixedDMA resource. By default "tx" means the first
+-entry of the FixedDMA resource array, "rx" means the second entry. The table
+-below shows a layout::
++Clients must call dma_request_chan() with the string parameter that corresponds
++to a specific FixedDMA resource. By default "tx" means the first entry of the
++FixedDMA resource array, "rx" means the second entry. The table below shows a
++layout::
+ 
+ 	Device (I2C0)
+ 	{
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
