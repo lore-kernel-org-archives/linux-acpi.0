@@ -7,53 +7,53 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA6B1C43603
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Dec 2019 16:31:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 221F7C2D0D4
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Dec 2019 16:31:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ACF622467F
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Dec 2019 16:31:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC50124676
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Dec 2019 16:31:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="L6Y6F/bZ"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="E5aFBHpx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726976AbfLSQbb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 19 Dec 2019 11:31:31 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:36217 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726875AbfLSQb2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Dec 2019 11:31:28 -0500
-Received: by mail-wr1-f68.google.com with SMTP id z3so6637743wru.3
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Dec 2019 08:31:27 -0800 (PST)
+        id S1726996AbfLSQbf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 19 Dec 2019 11:31:35 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:37308 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726965AbfLSQbb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Dec 2019 11:31:31 -0500
+Received: by mail-wm1-f67.google.com with SMTP id f129so6286139wmf.2
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Dec 2019 08:31:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=dMO+Cx5tpHWBU9PvT9K3Ldxua2I75lUQvV4E3iN+Pd4=;
-        b=L6Y6F/bZ0X6GnA6kcBZgaXAVjxtjAyEeEzKHLOb7dyE7Xra2EWhN3E2FV1pD/3jeqF
-         Yl8MP7t7E6fc/B1SRXICTfrmmBAqXUHJRLw5pJcf29pPUWZ1hZGmH2wiA4Q4PGQA5yp0
-         drBOPo+Htx1MMDuIrvO0MavmC3p3Oar5PL9ngjx84tC3hJqd1xQdZ22JINufiVYFahyt
-         GQ4Ctzcx0fW8SfJ45uPErgBMYQESIqhJ9DHjaOzF4X5fsvpQM9FzqurIZlWcCEO3++B3
-         Y7uc8Bvn0GLBhxmFJ814rKwcuODaQ3avmBF9ttywapAxu57HzjwpSg6Vq2j/vEVr+wcg
-         pXvw==
+        bh=FYioDhZ/j/78qMyUi+NbeqzegCC3zzPggnOI7+kacPU=;
+        b=E5aFBHpxzJkkIdtB9W66GN6ZLoFLgZNBR0wli2z1R1GfTj4GDjCqIV7HMTgweAZs/m
+         ERMXbIUqhoOBDH6Y6yVu9fvJUbv1S/8bk4nVNiphi6Bj9Hr+xJPMF+CM0wdD4p/Nxi15
+         DDZ2eWHA4Po8SV0rJ2mSAgR36BjhDGY65Cg+Nrvt9skytm0oy8yLdbTRRrrti8PY8sxG
+         GqI3y8AJ1hhG5ISFHxJBz9r9FQVWnJK5gOR2aOQHSLuQPhBDyUQ6M6IhwH5s6ciR9Vts
+         9/GMh/foacnJ6Etj2gcl6Fz+phGe372ALVmMIdUJmCb95IS4K+ulNixBQU6NY1edO0qz
+         7V/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=dMO+Cx5tpHWBU9PvT9K3Ldxua2I75lUQvV4E3iN+Pd4=;
-        b=CzNkJeQ14pj+f5DdYkO7me9sSZqyICfAgh3kF4DF8v5s94Q2DpfATeBRdE16UGNepl
-         FMiJOYOcRv3MLFpcawhjIrdCyxbJpR9J7Jaea4301ucnbS9WiIV1Rm1mdwA6BQmb6HO1
-         ib6CnpNWeXhVJIgY97CHItRitWCRAL7cPziv6ibmp2yZKn6lW/FZA7erGQS+cuwMCi1N
-         P5KzKesC5YYUtZ8uOKL6czobBD0a27tK6yFdTz1grccAdA3xuOnCZLeJUVfQnpNJvuE0
-         ZhgZQ/eN8y3DOrlPjincLh0TRWOClFfc+Sd1bXAAlLVEoX2NTkIfoPFQgo/2cpmIqAhN
-         jPhQ==
-X-Gm-Message-State: APjAAAWeqScWatuzM9PTFC+FWopDLSqoXx1sFaaDU48PYA9UftJ66nTv
-        9szwwf0LBivQC9bOqbSrZT+1kA==
-X-Google-Smtp-Source: APXvYqyln7ft1HEYcBhtMdztDRUtjwcelgdooZlJCblVVFeLkALxpO+iJ6Q80B/Q1/dimC5vv0QgKA==
-X-Received: by 2002:adf:ce87:: with SMTP id r7mr10031904wrn.245.1576773086823;
-        Thu, 19 Dec 2019 08:31:26 -0800 (PST)
+        bh=FYioDhZ/j/78qMyUi+NbeqzegCC3zzPggnOI7+kacPU=;
+        b=C2Epgr0tKIwuQ0O0otKSO4OSI2dlGN2/nMXxZKTrej1S0PnaaYKQThek76nKE+B2re
+         VWYmJJl0iqz2TTXlIaS26V4ClZ+HUfnotrVJnuAFE40S3U3NVDvrlV2EthSaZE+yq10L
+         ZCZfbhFrjIgTO0tZeLf2pOANyncJzw9/1UlHWVQxfS/LrYe0uuzSxXQ9r8dOH3+Q9UvR
+         HT+AfCPM9RE8c2GXbjhQ/fsJVIH1RCjl/hvYzI3LwYW+QAVpXiJVDsSLwix4TLD2wqOS
+         m5yJlqzM2xH7EvpPDk5XDosaM5/+JIK9Y1PJe7+EmHsrYt0gmYQeko9whWyLBcYzCB9W
+         EAgQ==
+X-Gm-Message-State: APjAAAXtR+xhALJj88XRHiywbzEzK+LbxWNI3BkDbXtko2a5bXtUk8dG
+        Jr5OG97N2OP/4lxSLw48F5aNow==
+X-Google-Smtp-Source: APXvYqz3tbndDtmJIFC5nyvsIDtpq2oUpdByujhcgVkyGmtlGJFmTfIjiRRUks4oRR3Fv+Nm/TOV1w==
+X-Received: by 2002:a1c:80d4:: with SMTP id b203mr10896801wmd.102.1576773089551;
+        Thu, 19 Dec 2019 08:31:29 -0800 (PST)
 Received: from localhost.localdomain (adsl-84-227-176-239.adslplus.ch. [84.227.176.239])
-        by smtp.gmail.com with ESMTPSA id u22sm7092068wru.30.2019.12.19.08.31.25
+        by smtp.gmail.com with ESMTPSA id u22sm7092068wru.30.2019.12.19.08.31.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Dec 2019 08:31:26 -0800 (PST)
+        Thu, 19 Dec 2019 08:31:29 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
@@ -64,9 +64,9 @@ Cc:     joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com,
         will@kernel.org, robin.murphy@arm.com, bhelgaas@google.com,
         eric.auger@redhat.com, jonathan.cameron@huawei.com,
         zhangfei.gao@linaro.org
-Subject: [PATCH v4 06/13] iommu/arm-smmu-v3: Add context descriptor tables allocators
-Date:   Thu, 19 Dec 2019 17:30:26 +0100
-Message-Id: <20191219163033.2608177-7-jean-philippe@linaro.org>
+Subject: [PATCH v4 08/13] iommu/arm-smmu-v3: Propagate ssid_bits
+Date:   Thu, 19 Dec 2019 17:30:28 +0100
+Message-Id: <20191219163033.2608177-9-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20191219163033.2608177-1-jean-philippe@linaro.org>
 References: <20191219163033.2608177-1-jean-philippe@linaro.org>
@@ -77,113 +77,107 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Support for SSID will require allocating context descriptor tables. Move
-the context descriptor allocation to separate functions.
+Now that we support substream IDs, initialize s1cdmax with the number of
+SSID bits supported by a master and the SMMU.
 
+Context descriptor tables are allocated once for the first master
+attached to a domain. Therefore attaching multiple devices with
+different SSID sizes is tricky, and we currently don't support it.
+
+As a future improvement it would be nice to at least support attaching a
+SSID-capable device to a domain that isn't using SSID, by reallocating
+the SSID table. This would allow supporting a SSID-capable device that
+is in the same IOMMU group as a bridge, for example. Varying SSID size
+is less of a concern, since the PCIe specification "highly recommends"
+that devices supporting PASID implement all 20 bits of it.
+
+Tested-by: Zhangfei Gao <zhangfei.gao@linaro.org>
 Reviewed-by: Eric Auger <eric.auger@redhat.com>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- drivers/iommu/arm-smmu-v3.c | 57 ++++++++++++++++++++++++++++++-------
- 1 file changed, 46 insertions(+), 11 deletions(-)
+ drivers/iommu/arm-smmu-v3.c | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index b287e303b1d7..43d6a7ded6e4 100644
+index e1bec7e552b9..e147087198ef 100644
 --- a/drivers/iommu/arm-smmu-v3.c
 +++ b/drivers/iommu/arm-smmu-v3.c
-@@ -568,6 +568,7 @@ struct arm_smmu_cd_table {
- struct arm_smmu_s1_cfg {
- 	struct arm_smmu_cd_table	table;
- 	struct arm_smmu_ctx_desc	cd;
-+	u8				s1cdmax;
- };
- 
- struct arm_smmu_s2_cfg {
-@@ -1455,6 +1456,31 @@ static int arm_smmu_cmdq_issue_sync(struct arm_smmu_device *smmu)
+@@ -2279,6 +2279,7 @@ static void arm_smmu_domain_free(struct iommu_domain *domain)
  }
  
- /* Context descriptor manipulation functions */
-+static int arm_smmu_alloc_cd_leaf_table(struct arm_smmu_device *smmu,
-+					struct arm_smmu_cd_table *table,
-+					size_t num_entries)
-+{
-+	size_t size = num_entries * (CTXDESC_CD_DWORDS << 3);
-+
-+	table->ptr = dmam_alloc_coherent(smmu->dev, size, &table->ptr_dma,
-+					 GFP_KERNEL);
-+	if (!table->ptr) {
-+		dev_warn(smmu->dev,
-+			 "failed to allocate context descriptor table\n");
-+		return -ENOMEM;
-+	}
-+	return 0;
-+}
-+
-+static void arm_smmu_free_cd_leaf_table(struct arm_smmu_device *smmu,
-+					struct arm_smmu_cd_table *table,
-+					size_t num_entries)
-+{
-+	size_t size = num_entries * (CTXDESC_CD_DWORDS << 3);
-+
-+	dmam_free_coherent(smmu->dev, size, table->ptr, table->ptr_dma);
-+}
-+
- static u64 arm_smmu_cpu_tcr_to_cd(u64 tcr)
+ static int arm_smmu_domain_finalise_s1(struct arm_smmu_domain *smmu_domain,
++				       struct arm_smmu_master *master,
+ 				       struct io_pgtable_cfg *pgtbl_cfg)
  {
- 	u64 val = 0;
-@@ -1502,6 +1528,23 @@ static void arm_smmu_write_ctx_desc(struct arm_smmu_device *smmu,
- 	cdptr[3] = cpu_to_le64(cfg->cd.mair);
- }
- 
-+static int arm_smmu_alloc_cd_tables(struct arm_smmu_domain *smmu_domain)
-+{
-+	struct arm_smmu_device *smmu = smmu_domain->smmu;
-+	struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
-+
-+	return arm_smmu_alloc_cd_leaf_table(smmu, &cfg->table,
-+					    1 << cfg->s1cdmax);
-+}
-+
-+static void arm_smmu_free_cd_tables(struct arm_smmu_domain *smmu_domain)
-+{
-+	struct arm_smmu_device *smmu = smmu_domain->smmu;
-+	struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
-+
-+	arm_smmu_free_cd_leaf_table(smmu, &cfg->table, 1 << cfg->s1cdmax);
-+}
-+
- /* Stream table manipulation functions */
- static void
- arm_smmu_write_strtab_l1_desc(__le64 *dst, struct arm_smmu_strtab_l1_desc *desc)
-@@ -2145,11 +2188,7 @@ static void arm_smmu_domain_free(struct iommu_domain *domain)
- 		struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
- 
- 		if (cfg->table.ptr) {
--			dmam_free_coherent(smmu_domain->smmu->dev,
--					   CTXDESC_CD_DWORDS << 3,
--					   cfg->table.ptr,
--					   cfg->table.ptr_dma);
--
-+			arm_smmu_free_cd_tables(smmu_domain);
- 			arm_smmu_bitmap_free(smmu->asid_map, cfg->cd.asid);
- 		}
- 	} else {
-@@ -2173,13 +2212,9 @@ static int arm_smmu_domain_finalise_s1(struct arm_smmu_domain *smmu_domain,
+ 	int ret;
+@@ -2290,6 +2291,8 @@ static int arm_smmu_domain_finalise_s1(struct arm_smmu_domain *smmu_domain,
  	if (asid < 0)
  		return asid;
  
--	cfg->table.ptr = dmam_alloc_coherent(smmu->dev, CTXDESC_CD_DWORDS << 3,
--					     &cfg->table.ptr_dma, GFP_KERNEL);
--	if (!cfg->table.ptr) {
--		dev_warn(smmu->dev, "failed to allocate context descriptor\n");
--		ret = -ENOMEM;
-+	ret = arm_smmu_alloc_cd_tables(smmu_domain);
-+	if (ret)
++	cfg->s1cdmax = master->ssid_bits;
++
+ 	ret = arm_smmu_alloc_cd_tables(smmu_domain);
+ 	if (ret)
  		goto out_free_asid;
--	}
+@@ -2306,6 +2309,7 @@ static int arm_smmu_domain_finalise_s1(struct arm_smmu_domain *smmu_domain,
+ }
  
- 	cfg->cd.asid	= (u16)asid;
- 	cfg->cd.ttbr	= pgtbl_cfg->arm_lpae_s1_cfg.ttbr[0];
+ static int arm_smmu_domain_finalise_s2(struct arm_smmu_domain *smmu_domain,
++				       struct arm_smmu_master *master,
+ 				       struct io_pgtable_cfg *pgtbl_cfg)
+ {
+ 	int vmid;
+@@ -2322,7 +2326,8 @@ static int arm_smmu_domain_finalise_s2(struct arm_smmu_domain *smmu_domain,
+ 	return 0;
+ }
+ 
+-static int arm_smmu_domain_finalise(struct iommu_domain *domain)
++static int arm_smmu_domain_finalise(struct iommu_domain *domain,
++				    struct arm_smmu_master *master)
+ {
+ 	int ret;
+ 	unsigned long ias, oas;
+@@ -2330,6 +2335,7 @@ static int arm_smmu_domain_finalise(struct iommu_domain *domain)
+ 	struct io_pgtable_cfg pgtbl_cfg;
+ 	struct io_pgtable_ops *pgtbl_ops;
+ 	int (*finalise_stage_fn)(struct arm_smmu_domain *,
++				 struct arm_smmu_master *,
+ 				 struct io_pgtable_cfg *);
+ 	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+ 	struct arm_smmu_device *smmu = smmu_domain->smmu;
+@@ -2384,7 +2390,7 @@ static int arm_smmu_domain_finalise(struct iommu_domain *domain)
+ 	domain->geometry.aperture_end = (1UL << pgtbl_cfg.ias) - 1;
+ 	domain->geometry.force_aperture = true;
+ 
+-	ret = finalise_stage_fn(smmu_domain, &pgtbl_cfg);
++	ret = finalise_stage_fn(smmu_domain, master, &pgtbl_cfg);
+ 	if (ret < 0) {
+ 		free_io_pgtable_ops(pgtbl_ops);
+ 		return ret;
+@@ -2537,7 +2543,7 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 
+ 	if (!smmu_domain->smmu) {
+ 		smmu_domain->smmu = smmu;
+-		ret = arm_smmu_domain_finalise(domain);
++		ret = arm_smmu_domain_finalise(domain, master);
+ 		if (ret) {
+ 			smmu_domain->smmu = NULL;
+ 			goto out_unlock;
+@@ -2549,6 +2555,13 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 			dev_name(smmu->dev));
+ 		ret = -ENXIO;
+ 		goto out_unlock;
++	} else if (smmu_domain->stage == ARM_SMMU_DOMAIN_S1 &&
++		   master->ssid_bits != smmu_domain->s1_cfg.s1cdmax) {
++		dev_err(dev,
++			"cannot attach to incompatible domain (%u SSID bits != %u)\n",
++			smmu_domain->s1_cfg.s1cdmax, master->ssid_bits);
++		ret = -EINVAL;
++		goto out_unlock;
+ 	}
+ 
+ 	master->domain = smmu_domain;
 -- 
 2.24.1
 
