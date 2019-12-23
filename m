@@ -1,201 +1,76 @@
-Return-Path: <SRS0=rewc=2L=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=y5Mf=2N=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEA9BC43603
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Dec 2019 06:14:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E12D3C2D0C0
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Dec 2019 09:28:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 95D6221655
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Dec 2019 06:14:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE7FE2073A
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Dec 2019 09:28:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725838AbfLUGOU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Dec 2019 01:14:20 -0500
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:52656
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725773AbfLUGOT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Dec 2019 01:14:19 -0500
-X-IronPort-AV: E=Sophos;i="5.69,338,1571695200"; 
-   d="scan'208";a="333931587"
-Received: from abo-154-110-68.mrs.modulonet.fr (HELO hadrien) ([85.68.110.154])
-  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 21 Dec 2019 07:14:13 +0100
-Date:   Sat, 21 Dec 2019 07:14:12 +0100 (CET)
-From:   Julia Lawall <julia.lawall@inria.fr>
-X-X-Sender: jll@hadrien
-To:     Niklas Cassel <niklas.cassel@linaro.org>
-cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Jorge Ramirez-Ortiz <jorge.ramirez-ortiz@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>, linux-pm@vger.kernel.org,
-        devel@acpica.org, linux-acpi@vger.kernel.org,
-        kbuild-all@lists.01.org
-Subject: [pm:bleeding-edge 59/60] drivers/power/avs/qcom-cpr.c:1539:5-21:
- WARNING: Unsigned expression compared with zero: drv -> num_corners < 0
- (fwd)
-Message-ID: <alpine.DEB.2.21.1912210710140.2559@hadrien>
-User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+        id S1726063AbfLWJ20 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Dec 2019 04:28:26 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7729 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726059AbfLWJ20 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 23 Dec 2019 04:28:26 -0500
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id E6CCE65D4C28A1E9BEFB;
+        Mon, 23 Dec 2019 17:28:23 +0800 (CST)
+Received: from linux-ibm.site (10.175.102.37) by
+ DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
+ 14.3.439.0; Mon, 23 Dec 2019 17:28:17 +0800
+From:   Hanjun Guo <guohanjun@huawei.com>
+To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Pankaj Bansal" <pankaj.bansal@nxp.com>,
+        Erik Schmauss <erik.schmauss@intel.com>
+CC:     <linux-acpi@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
+        Hanjun Guo <guohanjun@huawei.com>
+Subject: [RFC PATCH 1/2] ACPICA/IORT: Correct the comment for id_count
+Date:   Mon, 23 Dec 2019 17:23:16 +0800
+Message-ID: <1577092997-9852-1-git-send-email-guohanjun@huawei.com>
+X-Mailer: git-send-email 1.7.12.4
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
+X-Originating-IP: [10.175.102.37]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Please see line 1539.  It seems that the num_corners field is unsigned, so
-it will not be less than 0.
+In IORT spec
+(http://infocenter.arm.com/help/topic/com.arm.doc.den0049d/DEN0049D_IO_Remapping_Table.pdf),
+id_num means Number of IDs minus one, update the comment.
 
-julia
-
-
-
----------- Forwarded message ----------
-Date: Sat, 21 Dec 2019 06:52:19 +0800
-From: kbuild test robot <lkp@intel.com>
-To: kbuild@lists.01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: [pm:bleeding-edge 59/60] drivers/power/avs/qcom-cpr.c:1539:5-21:
-    WARNING: Unsigned expression compared with zero: drv -> num_corners < 0
-
-CC: kbuild-all@lists.01.org
-CC: linux-acpi@vger.kernel.org
-CC: devel@acpica.org
-CC: linux-pm@vger.kernel.org
-TO: Niklas Cassel <niklas.cassel@linaro.org>
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC: "Jorge Ramirez-Ortiz" <jorge.ramirez-ortiz@linaro.org>
-CC: Bjorn Andersson <bjorn.andersson@linaro.org>
-CC: Ulf Hansson <ulf.hansson@linaro.org>
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-head:   89eba9e38dc4ed4576eaf7711c60403568663291
-commit: bf6910abf54871b0e976e52f56fb3b3dd1b90e48 [59/60] power: avs: Add support for CPR (Core Power Reduction)
-:::::: branch date: 13 hours ago
-:::::: commit date: 13 hours ago
-
-If you fix the issue, kindly add following tag
-Reported-by: kbuild test robot <lkp@intel.com>
-Reported-by: Julia Lawall <julia.lawall@lip6.fr>
-
->> drivers/power/avs/qcom-cpr.c:1539:5-21: WARNING: Unsigned expression compared with zero: drv -> num_corners < 0
-
-# https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?id=bf6910abf54871b0e976e52f56fb3b3dd1b90e48
-git remote add pm https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-git remote update pm
-git checkout bf6910abf54871b0e976e52f56fb3b3dd1b90e48
-vim +1539 drivers/power/avs/qcom-cpr.c
-
-bf6910abf54871 Niklas Cassel 2019-11-29  1487
-bf6910abf54871 Niklas Cassel 2019-11-29  1488  static int cpr_pd_attach_dev(struct generic_pm_domain *domain,
-bf6910abf54871 Niklas Cassel 2019-11-29  1489  			     struct device *dev)
-bf6910abf54871 Niklas Cassel 2019-11-29  1490  {
-bf6910abf54871 Niklas Cassel 2019-11-29  1491  	struct cpr_drv *drv = container_of(domain, struct cpr_drv, pd);
-bf6910abf54871 Niklas Cassel 2019-11-29  1492  	const struct acc_desc *acc_desc = drv->acc_desc;
-bf6910abf54871 Niklas Cassel 2019-11-29  1493  	int ret = 0;
-bf6910abf54871 Niklas Cassel 2019-11-29  1494
-bf6910abf54871 Niklas Cassel 2019-11-29  1495  	mutex_lock(&drv->lock);
-bf6910abf54871 Niklas Cassel 2019-11-29  1496
-bf6910abf54871 Niklas Cassel 2019-11-29  1497  	dev_dbg(drv->dev, "attach callback for: %s\n", dev_name(dev));
-bf6910abf54871 Niklas Cassel 2019-11-29  1498
-bf6910abf54871 Niklas Cassel 2019-11-29  1499  	/*
-bf6910abf54871 Niklas Cassel 2019-11-29  1500  	 * This driver only supports scaling voltage for a CPU cluster
-bf6910abf54871 Niklas Cassel 2019-11-29  1501  	 * where all CPUs in the cluster share a single regulator.
-bf6910abf54871 Niklas Cassel 2019-11-29  1502  	 * Therefore, save the struct device pointer only for the first
-bf6910abf54871 Niklas Cassel 2019-11-29  1503  	 * CPU device that gets attached. There is no need to do any
-bf6910abf54871 Niklas Cassel 2019-11-29  1504  	 * additional initialization when further CPUs get attached.
-bf6910abf54871 Niklas Cassel 2019-11-29  1505  	 */
-bf6910abf54871 Niklas Cassel 2019-11-29  1506  	if (drv->attached_cpu_dev)
-bf6910abf54871 Niklas Cassel 2019-11-29  1507  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1508
-bf6910abf54871 Niklas Cassel 2019-11-29  1509  	/*
-bf6910abf54871 Niklas Cassel 2019-11-29  1510  	 * cpr_scale_voltage() requires the direction (if we are changing
-bf6910abf54871 Niklas Cassel 2019-11-29  1511  	 * to a higher or lower OPP). The first time
-bf6910abf54871 Niklas Cassel 2019-11-29  1512  	 * cpr_set_performance_state() is called, there is no previous
-bf6910abf54871 Niklas Cassel 2019-11-29  1513  	 * performance state defined. Therefore, we call
-bf6910abf54871 Niklas Cassel 2019-11-29  1514  	 * cpr_find_initial_corner() that gets the CPU clock frequency
-bf6910abf54871 Niklas Cassel 2019-11-29  1515  	 * set by the bootloader, so that we can determine the direction
-bf6910abf54871 Niklas Cassel 2019-11-29  1516  	 * the first time cpr_set_performance_state() is called.
-bf6910abf54871 Niklas Cassel 2019-11-29  1517  	 */
-bf6910abf54871 Niklas Cassel 2019-11-29  1518  	drv->cpu_clk = devm_clk_get(dev, NULL);
-bf6910abf54871 Niklas Cassel 2019-11-29  1519  	if (IS_ERR(drv->cpu_clk)) {
-bf6910abf54871 Niklas Cassel 2019-11-29  1520  		ret = PTR_ERR(drv->cpu_clk);
-bf6910abf54871 Niklas Cassel 2019-11-29  1521  		if (ret != -EPROBE_DEFER)
-bf6910abf54871 Niklas Cassel 2019-11-29  1522  			dev_err(drv->dev, "could not get cpu clk: %d\n", ret);
-bf6910abf54871 Niklas Cassel 2019-11-29  1523  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1524  	}
-bf6910abf54871 Niklas Cassel 2019-11-29  1525  	drv->attached_cpu_dev = dev;
-bf6910abf54871 Niklas Cassel 2019-11-29  1526
-bf6910abf54871 Niklas Cassel 2019-11-29  1527  	dev_dbg(drv->dev, "using cpu clk from: %s\n",
-bf6910abf54871 Niklas Cassel 2019-11-29  1528  		dev_name(drv->attached_cpu_dev));
-bf6910abf54871 Niklas Cassel 2019-11-29  1529
-bf6910abf54871 Niklas Cassel 2019-11-29  1530  	/*
-bf6910abf54871 Niklas Cassel 2019-11-29  1531  	 * Everything related to (virtual) corners has to be initialized
-bf6910abf54871 Niklas Cassel 2019-11-29  1532  	 * here, when attaching to the power domain, since we need to know
-bf6910abf54871 Niklas Cassel 2019-11-29  1533  	 * the maximum frequency for each fuse corner, and this is only
-bf6910abf54871 Niklas Cassel 2019-11-29  1534  	 * available after the cpufreq driver has attached to us.
-bf6910abf54871 Niklas Cassel 2019-11-29  1535  	 * The reason for this is that we need to know the highest
-bf6910abf54871 Niklas Cassel 2019-11-29  1536  	 * frequency associated with each fuse corner.
-bf6910abf54871 Niklas Cassel 2019-11-29  1537  	 */
-bf6910abf54871 Niklas Cassel 2019-11-29  1538  	drv->num_corners = dev_pm_opp_get_opp_count(&drv->pd.dev);
-bf6910abf54871 Niklas Cassel 2019-11-29 @1539  	if (drv->num_corners < 0) {
-bf6910abf54871 Niklas Cassel 2019-11-29  1540  		ret = drv->num_corners;
-bf6910abf54871 Niklas Cassel 2019-11-29  1541  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1542  	}
-bf6910abf54871 Niklas Cassel 2019-11-29  1543  	if (drv->num_corners < 2) {
-bf6910abf54871 Niklas Cassel 2019-11-29  1544  		dev_err(drv->dev, "need at least 2 OPPs to use CPR\n");
-bf6910abf54871 Niklas Cassel 2019-11-29  1545  		ret = -EINVAL;
-bf6910abf54871 Niklas Cassel 2019-11-29  1546  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1547  	}
-bf6910abf54871 Niklas Cassel 2019-11-29  1548
-bf6910abf54871 Niklas Cassel 2019-11-29  1549  	dev_dbg(drv->dev, "number of OPPs: %d\n", drv->num_corners);
-bf6910abf54871 Niklas Cassel 2019-11-29  1550
-bf6910abf54871 Niklas Cassel 2019-11-29  1551  	drv->corners = devm_kcalloc(drv->dev, drv->num_corners,
-bf6910abf54871 Niklas Cassel 2019-11-29  1552  				    sizeof(*drv->corners),
-bf6910abf54871 Niklas Cassel 2019-11-29  1553  				    GFP_KERNEL);
-bf6910abf54871 Niklas Cassel 2019-11-29  1554  	if (!drv->corners) {
-bf6910abf54871 Niklas Cassel 2019-11-29  1555  		ret = -ENOMEM;
-bf6910abf54871 Niklas Cassel 2019-11-29  1556  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1557  	}
-bf6910abf54871 Niklas Cassel 2019-11-29  1558
-bf6910abf54871 Niklas Cassel 2019-11-29  1559  	ret = cpr_corner_init(drv);
-bf6910abf54871 Niklas Cassel 2019-11-29  1560  	if (ret)
-bf6910abf54871 Niklas Cassel 2019-11-29  1561  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1562
-bf6910abf54871 Niklas Cassel 2019-11-29  1563  	cpr_set_loop_allowed(drv);
-bf6910abf54871 Niklas Cassel 2019-11-29  1564
-bf6910abf54871 Niklas Cassel 2019-11-29  1565  	ret = cpr_init_parameters(drv);
-bf6910abf54871 Niklas Cassel 2019-11-29  1566  	if (ret)
-bf6910abf54871 Niklas Cassel 2019-11-29  1567  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1568
-bf6910abf54871 Niklas Cassel 2019-11-29  1569  	/* Configure CPR HW but keep it disabled */
-bf6910abf54871 Niklas Cassel 2019-11-29  1570  	ret = cpr_config(drv);
-bf6910abf54871 Niklas Cassel 2019-11-29  1571  	if (ret)
-bf6910abf54871 Niklas Cassel 2019-11-29  1572  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1573
-bf6910abf54871 Niklas Cassel 2019-11-29  1574  	ret = cpr_find_initial_corner(drv);
-bf6910abf54871 Niklas Cassel 2019-11-29  1575  	if (ret)
-bf6910abf54871 Niklas Cassel 2019-11-29  1576  		goto unlock;
-bf6910abf54871 Niklas Cassel 2019-11-29  1577
-bf6910abf54871 Niklas Cassel 2019-11-29  1578  	if (acc_desc->config)
-bf6910abf54871 Niklas Cassel 2019-11-29  1579  		regmap_multi_reg_write(drv->tcsr, acc_desc->config,
-bf6910abf54871 Niklas Cassel 2019-11-29  1580  				       acc_desc->num_regs_per_fuse);
-bf6910abf54871 Niklas Cassel 2019-11-29  1581
-bf6910abf54871 Niklas Cassel 2019-11-29  1582  	/* Enable ACC if required */
-bf6910abf54871 Niklas Cassel 2019-11-29  1583  	if (acc_desc->enable_mask)
-bf6910abf54871 Niklas Cassel 2019-11-29  1584  		regmap_update_bits(drv->tcsr, acc_desc->enable_reg,
-bf6910abf54871 Niklas Cassel 2019-11-29  1585  				   acc_desc->enable_mask,
-bf6910abf54871 Niklas Cassel 2019-11-29  1586  				   acc_desc->enable_mask);
-bf6910abf54871 Niklas Cassel 2019-11-29  1587
-bf6910abf54871 Niklas Cassel 2019-11-29  1588  unlock:
-bf6910abf54871 Niklas Cassel 2019-11-29  1589  	mutex_unlock(&drv->lock);
-bf6910abf54871 Niklas Cassel 2019-11-29  1590
-bf6910abf54871 Niklas Cassel 2019-11-29  1591  	return ret;
-bf6910abf54871 Niklas Cassel 2019-11-29  1592  }
-bf6910abf54871 Niklas Cassel 2019-11-29  1593
-
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
-0-DAY kernel test infrastructure                 Open Source Technology Center
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org Intel Corporation
+
+This patch just for comments, needs to be upstream in ACPICA first.
+
+ include/acpi/actbl2.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index e45ced2..382642f 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -104,7 +104,7 @@ enum acpi_iort_node_type {
+ 
+ struct acpi_iort_id_mapping {
+ 	u32 input_base;		/* Lowest value in input range */
+-	u32 id_count;		/* Number of IDs */
++	u32 id_count;		/* Number of IDs in the range minus one */
+ 	u32 output_base;	/* Lowest value in output range */
+ 	u32 output_reference;	/* A reference to the output node */
+ 	u32 flags;
+-- 
+1.7.12.4
+
