@@ -2,94 +2,412 @@ Return-Path: <SRS0=eFEZ=2U=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B949C2D0C3
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Dec 2019 06:03:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9811C2D0CE
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Dec 2019 09:46:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EE05C2071E
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Dec 2019 06:03:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D2D92071E
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Dec 2019 09:46:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727126AbfL3GDE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Dec 2019 01:03:04 -0500
-Received: from vuizook.err.no ([178.255.151.162]:60962 "EHLO vuizook.err.no"
+        id S1727273AbfL3JqP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Dec 2019 04:46:15 -0500
+Received: from mga05.intel.com ([192.55.52.43]:3531 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727115AbfL3GDE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 30 Dec 2019 01:03:04 -0500
-X-Greylist: delayed 998 seconds by postgrey-1.27 at vger.kernel.org; Mon, 30 Dec 2019 01:03:03 EST
-Received: from p576124-ipngn200707tokaisakaetozai.aichi.ocn.ne.jp ([122.31.139.124] helo=glandium.org)
-        by vuizook.err.no with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <mh@glandium.org>)
-        id 1ilnsl-0003LE-7D; Mon, 30 Dec 2019 05:46:23 +0000
-Received: from glandium by goemon.lan with local (Exim 4.92)
-        (envelope-from <mh@glandium.org>)
-        id 1ilnsi-000LHA-KC; Mon, 30 Dec 2019 14:46:20 +0900
-Date:   Mon, 30 Dec 2019 14:46:20 +0900
-From:   Mike Hommey <mh@glandium.org>
-To:     linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Subject: I2C/SMBus support for Threadripper 39x0X?
-Message-ID: <20191230054620.lesgynpyghprzmsh@glandium.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-GPG-Fingerprint: 182E 161D 1130 B9FC CD7D  B167 E42A A04F A6AA 8C72
-User-Agent: NeoMutt/20180716
+        id S1727243AbfL3JqP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 30 Dec 2019 04:46:15 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Dec 2019 01:46:13 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,374,1571727600"; 
+   d="scan'208";a="243812901"
+Received: from jsong16-mobl1.ccr.corp.intel.com (HELO rzhang1-mobile.ccr.corp.intel.com) ([10.255.30.53])
+  by fmsmga004.fm.intel.com with ESMTP; 30 Dec 2019 01:46:12 -0800
+From:   Zhang Rui <rui.zhang@intel.com>
+To:     rjw@rjwysocki.net
+Cc:     linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH V2] ACPI: introduce support for FPDT table
+Date:   Mon, 30 Dec 2019 17:46:01 +0800
+Message-Id: <20191230094601.16008-1-rui.zhang@intel.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+ACPI Firmware Performance Data Table (FPDT) provides information about
+firmware performance during system boot, S3 suspend and S3 resume.
 
-I recently built a machine with a Threadripper 3970X and a Gigabyte
-TRX40 Aorus pro wifi, and while it works for most of everything with
-5.5 rc3 or rc4, I do have an issue with SMBus support, which I was
-supposing is why I'm not seeing any readings for e.g. CPU fans with
-lm-sensors.
+Have the kernel parse the FPDT table, and expose the firmware
+performance data to userspace as syfs attributes under
+/sys/firmware/acpi/fpdt/.
 
-The i2c-piix4 driver loads, but does nothing, leaving this message in
-dmesg:
+Tested-by: Todd Brandt <todd.e.brandt@linux.intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ Documentation/ABI/testing/sysfs-firmware-acpi |  43 +++
+ drivers/acpi/Kconfig                          |   9 +
+ drivers/acpi/Makefile                         |   1 +
+ drivers/acpi/acpi_fpdt.c                      | 263 ++++++++++++++++++
+ 4 files changed, 316 insertions(+)
+ create mode 100644 drivers/acpi/acpi_fpdt.c
 
-[    2.711213] ACPI Warning: SystemIO range 0x0000000000000B00-0x0000000000000B08 conflicts with OpRegion 0x0000000000000B00-0x0000000000000B0F (\GSA1.SMBI) (20191018/utaddress-213)
-[    2.711218] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
+diff --git a/Documentation/ABI/testing/sysfs-firmware-acpi b/Documentation/ABI/testing/sysfs-firmware-acpi
+index 613f42a9d5cd..b76f0ef7945a 100644
+--- a/Documentation/ABI/testing/sysfs-firmware-acpi
++++ b/Documentation/ABI/testing/sysfs-firmware-acpi
+@@ -1,3 +1,46 @@
++What:		/sys/firmware/acpi/firmware_performance_data/
++Date:		Aug 2019
++Contact:	Zhang Rui <rui.zhang@intel.com>
++Description:
++		ACPI Firmware Performance Data Table (FPDT) provides
++		information for firmware performance data for system boot,
++		S3 suspend and S3 resume. This sysfs entry contains the
++		performance data retrieved from the FPDT.
++
++		boot_performance:
++			firmware_start_ns: Timer value logged at the beginning
++				of firmware image execution. In nanoseconds.
++			bootloader_load_ns: Timer value logged just prior to
++				loading the OS boot loader into memory.
++				In nanoseconds.
++			bootloader_launch_ns: Timer value logged just prior to
++				launching the currently loaded OS boot loader
++				image. In nanoseconds.
++			exitbootservice_start_ns: Timer value logged at the
++				point when the OS loader calls the
++				ExitBootServices function for UEFI compatible
++				firmware. In nanoseconds.
++			exitbootservice_end_ns: Timer value logged at the point
++				just prior to the OS loader gaining control
++				back from the ExitBootServices function for
++				UEFI compatible firmware. In nanoseconds.
++		suspend_performance:
++			suspend_start_ns: Timer value recorded at the previous
++				OS write to SLP_TYP upon entry to S3. In
++				nanoseconds.
++			suspend_end_ns: Timer value recorded at the previous
++				firmware write to SLP_TYP used to trigger
++				hardware entry to S3. In nanoseconds.
++		resume_performance:
++			resume_count: A count of the number of S3 resume cycles
++				since the last full boot sequence.
++			resume_avg_ns: Average timer value of all resume cycles
++				logged since the last full boot sequence,
++				including the most recent resume. In nanoseconds.
++			resume_prev_ns: Timer recorded at the end of the previous
++				platform runtime firmware S3 resume, just prior to
++				handoff to the OS waking vector. In nanoseconds.
++
+ What:		/sys/firmware/acpi/bgrt/
+ Date:		January 2012
+ Contact:	Matthew Garrett <mjg@redhat.com>
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ebe1e9e5fd81..8517c8ba4633 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -88,6 +88,15 @@ config ACPI_SPCR_TABLE
+ 	  This table provides information about the configuration of the
+ 	  earlycon console.
+ 
++config ACPI_FPDT
++	bool "ACPI Firmware Performance Data Table(FPDT)"
++	depends on X86_64
++	default y
++	help
++	  Enable support for the Firmware Performance Data Table (FPDT).
++	  This table provides information on the timing of the system
++	  boot, S3 suspend and S3 resume firmware code paths.
++
+ config ACPI_LPIT
+ 	bool
+ 	depends on X86_64
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 5d361e4e3405..3cabb112aec4 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -58,6 +58,7 @@ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ acpi-y				+= acpi_lpat.o
++acpi-$(CONFIG_ACPI_FPDT)	+= acpi_fpdt.o
+ acpi-$(CONFIG_ACPI_LPIT)	+= acpi_lpit.o
+ acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+ acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+diff --git a/drivers/acpi/acpi_fpdt.c b/drivers/acpi/acpi_fpdt.c
+new file mode 100644
+index 000000000000..2e4a4803f2d6
+--- /dev/null
++++ b/drivers/acpi/acpi_fpdt.c
+@@ -0,0 +1,263 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++/*
++ * FPDT support for exporting boot and suspend/resume performance data
++ *
++ * Copyright (C) 2019 Intel Corporation. All rights reserved.
++ */
++
++#define pr_fmt(fmt) "ACPI FPDT: " fmt
++
++#include <linux/acpi.h>
++
++/*
++ * FPDT contains ACPI table header and a number of fpdt_subtable_entries.
++ * Each fpdt_subtable_entry points to a subtable: FBPT or S3PT.
++ * Each FPDT subtable (FBPT/S3PT) is composed of a fpdt_subtable_header
++ * and a number of fpdt performance records.
++ * Each FPDT performance record is composed of a fpdt_record_header and
++ * performance data fields, for boot or suspend or resume phase.
++ */
++enum fpdt_subtable_type {
++	SUBTABLE_FBPT,
++	SUBTABLE_S3PT,
++};
++
++struct fpdt_subtable_entry {
++	u16 type;		/* refer to enum fpdt_subtable_type */
++	u8 length;
++	u8 revision;
++	u32 reserved;
++	u64 address;		/* physical address of the S3PT/FBPT table */
++};
++
++struct fpdt_subtable_header {
++	u32 signature;
++	u32 length;
++};
++
++enum fpdt_record_type {
++	RECORD_S3_RESUME,
++	RECORD_S3_SUSPEND,
++	RECORD_BOOT,
++};
++
++struct fpdt_record_header {
++	u16 type;		/* refer to enum fpdt_record_type */
++	u8 length;
++	u8 revision;
++};
++
++struct resume_performance_record {
++	struct fpdt_record_header header;
++	u32 resume_count;
++	u64 resume_prev;
++	u64 resume_avg;
++} __attribute__((packed));
++
++struct boot_performance_record {
++	struct fpdt_record_header header;
++	u32 reserved;
++	u64 firmware_start;
++	u64 bootloader_load;
++	u64 bootloader_launch;
++	u64 exitbootservice_start;
++	u64 exitbootservice_end;
++} __attribute__((packed));
++
++struct suspend_performance_record {
++	struct fpdt_record_header header;
++	u64 suspend_start;
++	u64 suspend_end;
++} __attribute__((packed));
++
++
++static struct resume_performance_record *record_resume;
++static struct suspend_performance_record *record_suspend;
++static struct boot_performance_record *record_boot;
++
++#define FPDT_ATTR(phase, name)	\
++static ssize_t name##_show(struct kobject *kobj,	\
++		 struct kobj_attribute *attr, char *buf)	\
++{	\
++	return sprintf(buf, "%llu\n", record_##phase->name);	\
++}	\
++static struct kobj_attribute name##_attr =	\
++__ATTR(name##_ns, 0444, name##_show, NULL)
++
++FPDT_ATTR(resume, resume_prev);
++FPDT_ATTR(resume, resume_avg);
++FPDT_ATTR(suspend, suspend_start);
++FPDT_ATTR(suspend, suspend_end);
++FPDT_ATTR(boot, firmware_start);
++FPDT_ATTR(boot, bootloader_load);
++FPDT_ATTR(boot, bootloader_launch);
++FPDT_ATTR(boot, exitbootservice_start);
++FPDT_ATTR(boot, exitbootservice_end);
++
++static ssize_t resume_count_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%u\n", record_resume->resume_count);
++}
++
++static struct kobj_attribute resume_count_attr =
++__ATTR_RO(resume_count);
++
++static struct attribute *resume_attrs[] = {
++	&resume_count_attr.attr,
++	&resume_prev_attr.attr,
++	&resume_avg_attr.attr,
++	NULL
++};
++
++static const struct attribute_group resume_attr_group = {
++	.attrs = resume_attrs,
++	.name = "resume",
++};
++
++static struct attribute *suspend_attrs[] = {
++	&suspend_start_attr.attr,
++	&suspend_end_attr.attr,
++	NULL
++};
++
++static const struct attribute_group suspend_attr_group = {
++	.attrs = suspend_attrs,
++	.name = "suspend",
++};
++
++static struct attribute *boot_attrs[] = {
++	&firmware_start_attr.attr,
++	&bootloader_load_attr.attr,
++	&bootloader_launch_attr.attr,
++	&exitbootservice_start_attr.attr,
++	&exitbootservice_end_attr.attr,
++	NULL
++};
++
++static const struct attribute_group boot_attr_group = {
++	.attrs = boot_attrs,
++	.name = "boot",
++};
++
++static struct kobject *fpdt_kobj;
++
++static int fpdt_process_subtable(u64 address, u32 subtable_type)
++{
++	struct fpdt_subtable_header *subtable_header;
++	struct fpdt_record_header *record_header;
++	char *signature = (subtable_type == SUBTABLE_FBPT ? "FBPT" : "S3PT");
++	u32 length, offset;
++	int result;
++
++	subtable_header = acpi_os_map_memory(address, sizeof(*subtable_header));
++	if (!subtable_header)
++		return -ENOMEM;
++
++	if (strncmp((char *)&subtable_header->signature, signature, 4)) {
++		pr_info(FW_BUG "subtable signature and type mismatch!\n");
++		return -EINVAL;
++	}
++
++	length = subtable_header->length;
++	acpi_os_unmap_memory(subtable_header, sizeof(*subtable_header));
++
++	subtable_header = acpi_os_map_memory(address, length);
++	if (!subtable_header)
++		return -ENOMEM;
++
++	offset = sizeof(*subtable_header);
++	while (offset < length) {
++		record_header = (void *)subtable_header + offset;
++		offset += record_header->length;
++
++		switch (record_header->type) {
++		case RECORD_S3_RESUME:
++			if (subtable_type != SUBTABLE_S3PT) {
++				pr_err(FW_BUG "Invalid record %d for subtable %s\n",
++				     record_header->type, signature);
++				return -EINVAL;
++			}
++			if (record_resume) {
++				pr_err("Duplicate resume performance record found.\n");
++				continue;
++			}
++			record_resume = (struct resume_performance_record *)record_header;
++			result = sysfs_create_group(fpdt_kobj, &resume_attr_group);
++			if (result)
++				return result;
++			break;
++		case RECORD_S3_SUSPEND:
++			if (subtable_type != SUBTABLE_S3PT) {
++				pr_err(FW_BUG "Invalid %d for subtable %s\n",
++				     record_header->type, signature);
++				continue;
++			}
++			if (record_suspend) {
++				pr_err("Duplicate suspend performance record found.\n");
++				continue;
++			}
++			record_suspend = (struct suspend_performance_record *)record_header;
++			result = sysfs_create_group(fpdt_kobj, &suspend_attr_group);
++			if (result)
++				return result;
++			break;
++		case RECORD_BOOT:
++			if (subtable_type != SUBTABLE_FBPT) {
++				pr_err(FW_BUG "Invalid %d for subtable %s\n",
++				     record_header->type, signature);
++				return -EINVAL;
++			}
++			if (record_boot) {
++				pr_err("Duplicate boot performance record found.\n");
++				continue;
++			}
++			record_boot = (struct boot_performance_record *)record_header;
++			result = sysfs_create_group(fpdt_kobj, &boot_attr_group);
++			if (result)
++				return result;
++			break;
++
++		default:
++			pr_err(FW_BUG "Invalid record %d found.\n", record_header->type);
++			return -EINVAL;
++		}
++	}
++	return 0;
++}
++
++void acpi_init_fpdt(void)
++{
++	acpi_status status;
++	struct acpi_table_header *header;
++	struct fpdt_subtable_entry *subtable;
++	u32 offset = sizeof(*header);
++
++	status = acpi_get_table(ACPI_SIG_FPDT, 0, &header);
++
++	if (ACPI_FAILURE(status))
++		return;
++
++	fpdt_kobj = kobject_create_and_add("fpdt", acpi_kobj);
++	if (!fpdt_kobj)
++		return;
++
++	while (offset < header->length) {
++		subtable = (void *)header + offset;
++		switch (subtable->type) {
++		case SUBTABLE_FBPT:
++		case SUBTABLE_S3PT:
++			fpdt_process_subtable(subtable->address,
++					      subtable->type);
++			break;
++		default:
++			pr_info(FW_BUG, "Invalid subtable type %d found.\n",
++			       subtable->type);
++			return;
++		}
++		offset += sizeof(*subtable);
++	}
++}
++
++fs_initcall(acpi_init_fpdt);
+-- 
+2.17.1
 
-Instrumenting the module, I can see it comes from
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/i2c/busses/i2c-piix4.c?id=fd6988496e79a6a4bdb514a4655d2920209eb85d#n323
-
-If I remove the check, the module loads and dmesg says:
-
-[ 7589.210039] piix4_smbus 0000:00:14.0: SMBus Host Controller at 0xb00, revision 0
-[ 7589.210041] piix4_smbus 0000:00:14.0: Using register 0x02 for SMBus port selection
-
-and now i2cdetect -l does find the smbus adapter, which it didn't find
-before the change.
-
-i2c-6   smbus           SMBus PIIX4 adapter port 2 at 0b00      SMBus adapter
-i2c-5   smbus           SMBus PIIX4 adapter port 0 at 0b00      SMBus adapter
-
-sensors-detect doesn't find any sensors in there, though (only SPD
-EEPROMs), so that may not be where my missing sensors are.
-
-In any case, the SMBus adapter is currently not initialized without tweaking the
-module.
-
-I should add, though, that during boot, I see a bunch of these in dmesg:
-
-[    0.388399] ACPI BIOS Error (bug): Failure creating named object [\_SB.I2CA.WT1A], AE_ALREADY_EXISTS (20191018/dswload2-324)
-[    0.388405] ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20191018/psobject-221)
-[    0.388407] ACPI: Skipping parse of AML opcode: OpcodeName unavailable (0x5B82)
-[    0.388408] ACPI BIOS Error (bug): Failure creating named object [\_SB.I2CA.MT1A], AE_ALREADY_EXISTS (20191018/dswload2-324)
-[    0.388411] ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20191018/psobject-221)
-[    0.388412] ACPI: Skipping parse of AML opcode: OpcodeName unavailable (0x5B82)
-(and many more similar ones)
-
-I don't know if they'd be related, but dumping the ACPI tables, it looks
-like there are "only" duplicates between the DSDT and one of the SSDT
-tables.
-
-Cheers,
-
-Mike
