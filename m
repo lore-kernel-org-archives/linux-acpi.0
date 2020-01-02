@@ -2,142 +2,137 @@ Return-Path: <SRS0=QZwD=2X=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46099C2D0DC
-	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jan 2020 21:37:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16EA8C3276D
+	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jan 2020 22:39:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1DEDC21655
-	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jan 2020 21:37:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC67020866
+	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jan 2020 22:39:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="VcwwnPXQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725989AbgABVhI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 2 Jan 2020 16:37:08 -0500
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:54424 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725851AbgABVhI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jan 2020 16:37:08 -0500
-X-IronPort-AV: E=Sophos;i="5.69,388,1571695200"; 
-   d="scan'208";a="429721732"
-Received: from vir91-18_migr-88-121-247-124.fbx.proxad.net (HELO [192.168.0.4]) ([88.121.247.124])
-  by mail2-relais-roc.national.inria.fr with ESMTP/TLS/AES128-SHA; 02 Jan 2020 22:37:05 +0100
-Subject: Re: [PATCH V6 0/7] ACPI: Support Generic Initiator proximity domains
-To:     Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-Cc:     linux-mm@kvack.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        x86@kernel.org, Keith Busch <kbusch@kernel.org>,
-        jglisse@redhat.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        linuxarm@huawei.com, Andrew Morton <akpm@linux-foundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Tao Xu <tao3.xu@intel.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@arm.com>
-References: <20191216153809.105463-1-Jonathan.Cameron@huawei.com>
- <dc5f5502-09c6-d476-db0e-0af3412bb031@gmail.com>
- <20191218145041.00005a11@Huawei.com>
- <1867024e-b0c4-c291-7190-262cc4b297a8@gmail.com>
- <20200102152604.000039f1@Huawei.com>
-From:   Brice Goglin <brice.goglin@gmail.com>
-Openpgp: preference=signencrypt
-Autocrypt: addr=brice.goglin@gmail.com; prefer-encrypt=mutual; keydata=
- mQINBFNg91oBEADMfOyfz9iilNPe1Yy3pheXLf5O/Vpr+gFJoXcjA80bMeSWBf4on8Mt5Fg/
- jpVuNBhii0Zyq4Lip1I2ve+WQjfL3ixYQqvNRLgfw/FL0gNHSOe9dVFo0ol0lT+vu3AXOVmh
- AM4IrsOp2Tmt+w89Oyvu+xwHW54CJX3kXp4c7COz79A6OhbMEPQUreerTavSvYpH5pLY55WX
- qOSdjmlXD45yobQbMg9rFBy1BECrj4DJSpym/zJMFVnyC5yAq2RdPFRyvYfS0c491adD/iw9
- eFZY1XWj+WqLSW8zEejdl78npWOucfin7eAKvov5Bqa1MLGS/2ojVMHXJN0qpStpKcueV5Px
- igX8i4O4pPT10xCXZ7R6KIGUe1FE0N7MLErLvBF6AjMyiFHix9rBG0pWADgCQUUFjc8YBKng
- nwIKl39uSpk5W5rXbZ9nF3Gp/uigTBNVvaLO4PIDw9J3svHQwCB31COsUWS1QhoLMIQPdUkk
- GarScanm8i37Ut9G+nB4nLeDRYpPIVBFXFD/DROIEfLqOXNbGwOjDd5RWuzA0TNzJSeOkH/0
- qYr3gywjiE81zALO3UeDj8TaPAv3Dmu7SoI86Bl7qm6UOnSL7KQxZWuMTlU3BF3d+0Ly0qxv
- k1XRPrL58IyoHIgAVom0uUnLkRKHczdhGDpNzsQDJaO71EPp8QARAQABuQINBFNg91oBEADp
- 3vwjw8tQBnNfYJNJMs6AXC8PXB5uApT1pJ0fioaXvifPNL6gzsGtAF53aLeqB7UXuByHr8Bm
- sz7BvwA06XfXXdyLQP+8Oz3ZnUpw5inDIzLpRbUuAjI+IjUtguIKAkU1rZNdCXMOqEwCaomR
- itwaiX9H7yiDTKCUaqx8yAuAQWactWDdyFii2FA7IwVlD/GBqMWVweZsMfeWgPumKB3jyElm
- 1RpkzULrtKbu7MToMH2fmWqBtTkRptABkY7VEd8qENKJBZKJGiskFk6ylp8VzZdwbAtEDDTG
- K00Vg4PZGiIGbQo8mBqbc63DY+MdyUEksTTu2gTcqZMm/unQUJA8xB4JrTAyljo/peIt6lsQ
- a4+/eVolfKL1t1C3DY8f4wMoqnZORagnWA2oHsLsYKvcnqzA0QtYIIb1S1YatV+MNMFf3HuN
- 7xr/jWlfdt59quXiOHU3qxIzXJo/OfC3mwNW4zQWJkG233UOf6YErmrSaTIBTIWF8CxGY9iX
- PaJGNYSUa6R/VJS09EWeZgRz9Gk3h5AyDrdo5RFN9HNwOj41o0cjeLDF69092Lg5p5isuOqs
- rlPi5imHKcDtrXS7LacUI6H0c8onWoH9LuW99WznEtFgPJg++TAvf9M2x57Gzl+/nYTB5/Kp
- l1qdPPC91zUipiKbnF5f8bQpol0WC+ovmQARAQABiQIfBBgBAgAJBQJTYPdaAhsMAAoJEESR
- kPMjWr074+0P/iEcN27dx3oBTzoeGEBhZUVQRZ7w4A61H/vW8oO8IPkZv9kFr5pCfIonmHEb
- Blg6yfjeHXwF5SF2ywWRKkRsFHpaFWywxqk9HWXu8cGR1pFsrwC3EdossuVbEFNmhjHvcAo1
- 1nJ7JFzPTEnlPjE6OY9tEDwl+kp1WvyXqNk9bosaX8ivikhmhB477BA3Kv8uUE7UL6p7CBdq
- umaOFISi1we5PYE4P/6YcyhQ9Z2wH6ad2PpwAFNBwxSu+xCrVmaDskAwknf6UVPN3bt67sFA
- aVgotepx6SPhBuH4OSOxVHMDDLMu7W7pJjnSKzMcAyXmdjON05SzSaILwfceByvHAnvcFh2p
- XK9U4E/SyWZDJEcGRRt79akzZxls52stJK/2Tsr0vKtZVAwogiaKuSp+m6BRQcVVhTo/Kq3E
- 0tSnsTHFeIO6QFHKJCJv4FRE3Dmtz15lueihUBowsq9Hk+u3UiLoSmrMAZ6KgA4SQxB2p8/M
- 53kNJl92HHc9nc//aCQDi1R71NyhtSx+6PyivoBkuaKYs+S4pHmtsFE+5+pkUNROtm4ExLen
- 4N4OL6Kq85mWGf2f6hd+OWtn8we1mADjDtdnDHuv+3E3cacFJPP/wFV94ZhqvW4QcyBWcRNF
- A5roa7vcnu/MsCcBoheR0UdYsOnJoEpSZswvC/BGqJTkA2sf
-Message-ID: <b428d231-4879-4462-ac42-900b5d094eee@gmail.com>
-Date:   Thu, 2 Jan 2020 22:37:04 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        id S1731201AbgABWjd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 2 Jan 2020 17:39:33 -0500
+Received: from smtp-fw-9101.amazon.com ([207.171.184.25]:6960 "EHLO
+        smtp-fw-9101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730817AbgABWjc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jan 2020 17:39:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1578004772; x=1609540772;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=7TqGOOQRMXQDqfI/H8WiMMbhJkMIrk3PbyXq26nkMlM=;
+  b=VcwwnPXQ1Anm5BJSTzOVMNT8jOLlnu9N48XAOW9wx/yFV84qe3UsGkEe
+   PZdLYHx2X4j3/RvCHO0i+eE/pKSwpAEp3pBgh/QPIlv4I1bnlve1btAty
+   dFah9PKXQ1hH+6vo4HD5ufvjpgySOKC47G1g80Ed8PZmYcyx+uPeyr6z4
+   8=;
+IronPort-SDR: lJXWZKDknXh8LPPE46OV9+Fk4+2ahxiBSsKmRn2G4IQrmch99sc/KA1NQ+IMlfUjAX6yxe7X55
+ UvrfEqMCp8Hg==
+X-IronPort-AV: E=Sophos;i="5.69,388,1571702400"; 
+   d="scan'208";a="8135281"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2c-6f38efd9.us-west-2.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-9101.sea19.amazon.com with ESMTP; 02 Jan 2020 22:39:21 +0000
+Received: from EX13MTAUWB001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan3.pdx.amazon.com [10.170.41.166])
+        by email-inbound-relay-2c-6f38efd9.us-west-2.amazon.com (Postfix) with ESMTPS id C5723A1BDE;
+        Thu,  2 Jan 2020 22:39:20 +0000 (UTC)
+Received: from EX13D13UWB001.ant.amazon.com (10.43.161.156) by
+ EX13MTAUWB001.ant.amazon.com (10.43.161.207) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Thu, 2 Jan 2020 22:39:20 +0000
+Received: from EX13MTAUEA001.ant.amazon.com (10.43.61.82) by
+ EX13D13UWB001.ant.amazon.com (10.43.161.156) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Thu, 2 Jan 2020 22:39:20 +0000
+Received: from dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com
+ (172.22.96.68) by mail-relay.amazon.com (10.43.61.243) with Microsoft SMTP
+ Server id 15.0.1367.3 via Frontend Transport; Thu, 2 Jan 2020 22:39:19 +0000
+Received: by dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com (Postfix, from userid 4335130)
+        id 1C37C40311; Thu,  2 Jan 2020 22:39:19 +0000 (UTC)
+Date:   Thu, 2 Jan 2020 22:39:19 +0000
+From:   Anchal Agarwal <anchalag@amazon.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC:     <sblbir@amazon.com>, <fllinden@amazon.com>,
+        <linux-acpi@vger.kernel.org>, <erik.kaneda@intel.com>
+Subject: Re: [PATCH] ACPICA: Enable sleep button on ACPI legacy wake
+Message-ID: <20200102223919.GA22256@dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com>
+References: <20191101212319.1FFC440EB1@dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com>
+ <5749186.Fh4Yg0zt7g@kreacher>
 MIME-Version: 1.0
-In-Reply-To: <20200102152604.000039f1@Huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <5749186.Fh4Yg0zt7g@kreacher>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Le 02/01/2020 à 16:27, Jonathan Cameron a écrit :
->
->> However the HMAT table gets ignored because find_mem_target() fails in
->> hmat_parse_proximity_domain(). The target should have been allocated in
->> alloc_memory_target() which is called in srat_parse_mem_affinity(), but
->> it seems to me that this function isn't called for GI nodes. Or should
->> SRAT also contain a normal Memory node with same PM as the GI?
->>
-> Hi Brice,
->
-> Yes you should see a node with 0kB memory.  Same as you get for a processor
-> only node I believe.
->
-> srat_parse_mem_affinity shouldn't call alloc_memory_target for the GI nodes
-> as they don't have any memory.   The hmat table should only refer to
-> GI domains as initiators.  Just to check, do you have them listed as
-> a target node?  Or perhaps in some hmat proximity entry as memory_PD?
->
+On Thu, Dec 12, 2019 at 11:10:32PM +0100, Rafael J. Wysocki wrote:
+> On Monday, October 29, 2018 6:52:16 PM CET Anchal Agarwal wrote:
+> > Currently we do not see sleep_enable bit set after guest resumes
+> > from hibernation. Hibernation is triggered in guest on receiving
+> > a sleep trigger from the hypervisor(S4 state). We see that power
+> > button is enabled on wake up from S4 state however sleep button
+> > isn't.
+> 
+> I'm not against this change in principle, although it may change behavior
+> in a somewhat unexpected way on some systems.
+> 
+Apologies for late response, I was out on vacation. 
+Can you please elaborate more on that?
+> > This causes subsequent invocation of sleep state to fail
+> > in the guest.
+> 
+> However, can you explain this in a bit more detail?
+>  
+I can explain this for my particular case, however, any code path going
+through acpi_hw_legacy_wake path will not have sleep button enabled. Why
+is only power button event enabled and not sleep here?
 
-Thanks, I finally got things to work. I am on x86. It's a dual-socket
-machine with SubNUMA clusters (2 nodes per socket) and NVDIMMs (one
-dax-kmem node per socket). Before adding a GI, initiators look like this:
-
-node0 -> node0 and node4
-
-node1 -> node1 and node5
-
-node2 -> node2 and node4
-
-node3 -> node3 and node5
-
-I added a GI with faster access to node0, node2, node4 (first socket).
-
-The GI node becomes an access0 initiator for node4, and node0 and node2
-remain access1 initiators.
-
-The GI node doesn't become access0 initiator for node0 and node2, likely
-because of this test :
-
-        /*
-         * If the Address Range Structure provides a local processor pxm, link
-         * only that one. Otherwise, find the best performance attributes and
-         * register all initiators that match.
-         */
-        if (target->processor_pxm != PXM_INVAL) {
-
-I guess I should split node0-3 into separate CPU nodes and memory nodes
-in SRAT?
-
-Brice
+In my case, I am using sleep button event to generate S4 state
+which causes guest VM running on xen to hibernate. I have found
+in my debugging process that after first resume when kernel goes 
+through this code path, sleep button event is not enabled and 
+when hypervisor try to generate sci interrupt, its not received in
+the guest since this path does not enable sleep event.
 
 
-
-
+Thanks,
+Anchal
+> > Signed-off-by: Anchal Agarwal <anchalag@amazon.com>
+> > Reviewed-by: Balbir Singh <sblbir@amazon.com>
+> > Reviewed-by: Frank van der Linden <fllinden@amazon.com>
+> > ---
+> >  drivers/acpi/acpica/hwsleep.c | 11 +++++++++++
+> >  1 file changed, 11 insertions(+)
+> > 
+> > diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+> > index b62db8ec446f..a176c7802760 100644
+> > --- a/drivers/acpi/acpica/hwsleep.c
+> > +++ b/drivers/acpi/acpica/hwsleep.c
+> > @@ -300,6 +300,17 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state)
+> >  				    [ACPI_EVENT_POWER_BUTTON].
+> >  				    status_register_id, ACPI_CLEAR_STATUS);
+> >  
+> > +	/* Enable sleep button */
+> > +	(void)
+> > +	      acpi_write_bit_register(acpi_gbl_fixed_event_info
+> > +				      [ACPI_EVENT_SLEEP_BUTTON].
+> > +				      enable_register_id, ACPI_ENABLE_EVENT);
+> > +
+> > +	(void)
+> > +	      acpi_write_bit_register(acpi_gbl_fixed_event_info
+> > +				      [ACPI_EVENT_SLEEP_BUTTON].
+> > +				      status_register_id, ACPI_CLEAR_STATUS);
+> > +
+> >  	acpi_hw_execute_sleep_method(METHOD_PATHNAME__SST, ACPI_SST_WORKING);
+> >  	return_ACPI_STATUS(status);
+> >  }
+> > 
+> 
+> 
+> 
+> 
