@@ -2,98 +2,84 @@ Return-Path: <SRS0=gEx+=24=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6A9FC33C9E
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 17:48:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 017BCC282DD
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 20:02:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B07A7214D8
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 17:48:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC60E20848
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 20:02:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="LJrGoOQa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728575AbgAGRsV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Jan 2020 12:48:21 -0500
-Received: from sauhun.de ([88.99.104.3]:53380 "EHLO pokefinder.org"
+        id S1728369AbgAGUCN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Jan 2020 15:02:13 -0500
+Received: from mail.skyhub.de ([5.9.137.197]:57262 "EHLO mail.skyhub.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728562AbgAGRsV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Jan 2020 12:48:21 -0500
-Received: from localhost (p5486CF8B.dip0.t-ipconnect.de [84.134.207.139])
-        by pokefinder.org (Postfix) with ESMTPSA id E5A752C3946;
-        Tue,  7 Jan 2020 18:48:19 +0100 (CET)
-From:   Wolfram Sang <wsa+renesas@sang-engineering.com>
-To:     linux-i2c@vger.kernel.org
-Cc:     Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 08/12] i2c: i2c-core-acpi: convert to use i2c_new_client_device()
-Date:   Tue,  7 Jan 2020 18:47:42 +0100
-Message-Id: <20200107174748.9616-9-wsa+renesas@sang-engineering.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200107174748.9616-1-wsa+renesas@sang-engineering.com>
-References: <20200107174748.9616-1-wsa+renesas@sang-engineering.com>
+        id S1728358AbgAGUCN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 Jan 2020 15:02:13 -0500
+Received: from zn.tnic (p200300EC2F0FB400453AE1B66C2BC925.dip0.t-ipconnect.de [IPv6:2003:ec:2f0f:b400:453a:e1b6:6c2b:c925])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 7B0701EC0CD3;
+        Tue,  7 Jan 2020 21:02:11 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1578427331;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=ysOcvAqAKnTyDEY5Saj0YcqW5rlYPZb9UU4KflK5iSs=;
+        b=LJrGoOQaZjEMccNlBstQ3nCwxvQ+RFSVIczJtEam+HYzGJ++W8NhjF62U9KL5vhcEkS4xI
+        sUhutd8vR2MkV21jR9aMhawxREor8jTEqEo9/gr9gDd3z3ZTW+YMmBEXdhqSjAb7++KNXW
+        qSZ3zJ7GRA5JK7xo4Hf87moF6gemf8E=
+Date:   Tue, 7 Jan 2020 21:02:08 +0100
+From:   Borislav Petkov <bp@alien8.de>
+To:     Robert Richter <rrichter@marvell.com>,
+        Bhaskar Upadhaya <bhaskar.upadhaya.linux@gmail.com>
+Cc:     Bhaskar Upadhaya <bupadhaya@marvell.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "rafael@kernel.org" <rafael@kernel.org>,
+        Ganapatrao Prabhakerrao Kulkarni <gkulkarni@marvell.com>
+Subject: Re: [RFC PATCH] apei/ghes: fix ghes_poll_func by registering in
+ non-deferrable mode
+Message-ID: <20200107200208.GN29542@zn.tnic>
+References: <1576652618-27017-1-git-send-email-bupadhaya@marvell.com>
+ <20200102180130.GG8345@zn.tnic>
+ <CAEYJA6oXTxTmJEji5_Hup2oB+GrgGnmSTiS-nNuzbNzGJ9VESA@mail.gmail.com>
+ <20200106130949.GD12238@zn.tnic>
+ <CAEYJA6rPiBYnM4rT5WJnvTSrk6GBHeLYxK5OF5oxmeVxVepGGQ@mail.gmail.com>
+ <20200107130421.6w67frcsllkblie2@rric.localdomain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20200107130421.6w67frcsllkblie2@rric.localdomain>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Move away from the deprecated API and return the shiny new ERRPTR where
-useful.
+On Tue, Jan 07, 2020 at 01:04:29PM +0000, Robert Richter wrote:
+> > Thanks Borislav, I will edit the commit message with you comments in
+> > the next patch.
+> > Can I get your Ack in the next patch ?
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
-Build tested only.
+Acks are being given when the new version arrives. Look at LKML archives
+for examples.
 
- drivers/i2c/i2c-core-acpi.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+> I guess Boris will apply the patch to his tree as maintainer, so no
+> need to ack it.
 
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 62a1c92ab803..8f3dbc97a057 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -225,7 +225,7 @@ static void i2c_acpi_register_device(struct i2c_adapter *adapter,
- 	adev->power.flags.ignore_parent = true;
- 	acpi_device_set_enumerated(adev);
- 
--	if (!i2c_new_device(adapter, info)) {
-+	if (IS_ERR(i2c_new_client_device(adapter, info))) {
- 		adev->power.flags.ignore_parent = false;
- 		dev_err(&adapter->dev,
- 			"failed to add I2C device %s from ACPI\n",
-@@ -451,7 +451,8 @@ struct notifier_block i2c_acpi_notifier = {
-  * resources, in that case this function can be used to create an i2c-client
-  * for other I2cSerialBus resources in the Current Resource Settings table.
-  *
-- * Also see i2c_new_device, which this function calls to create the i2c-client.
-+ * Also see i2c_new_client_device, which this function calls to create the
-+ * i2c-client.
-  *
-  * Returns a pointer to the new i2c-client, or error pointer in case of failure.
-  * Specifically, -EPROBE_DEFER is returned if the adapter is not found.
-@@ -461,7 +462,6 @@ struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
- {
- 	struct i2c_acpi_lookup lookup;
- 	struct i2c_adapter *adapter;
--	struct i2c_client *client;
- 	struct acpi_device *adev;
- 	LIST_HEAD(resource_list);
- 	int ret;
-@@ -489,11 +489,7 @@ struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
- 	if (!adapter)
- 		return ERR_PTR(-EPROBE_DEFER);
- 
--	client = i2c_new_device(adapter, info);
--	if (!client)
--		return ERR_PTR(-ENODEV);
--
--	return client;
-+	return i2c_new_client_device(adapter, info);
- }
- EXPORT_SYMBOL_GPL(i2c_acpi_new_device);
- 
+Nah, apei/ghes stuff goes through Rafael. I'm just a reviewer for the
+APEI side.
+
 -- 
-2.20.1
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
