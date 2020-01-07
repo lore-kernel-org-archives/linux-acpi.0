@@ -2,92 +2,87 @@ Return-Path: <SRS0=gEx+=24=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ED55C33C9E
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 12:38:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88A4EC33C8C
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 12:55:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 508D82087F
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 12:38:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5002D2075A
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 12:55:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="AEgy7ABR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728003AbgAGMix (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Jan 2020 07:38:53 -0500
-Received: from mga12.intel.com ([192.55.52.136]:28578 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727834AbgAGMix (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Jan 2020 07:38:53 -0500
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Jan 2020 04:38:43 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.69,406,1571727600"; 
-   d="scan'208";a="253741871"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga002.fm.intel.com with ESMTP; 07 Jan 2020 04:38:41 -0800
-Received: from andy by smile with local (Exim 4.93-RC7)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1ioo89-0005zu-PZ; Tue, 07 Jan 2020 14:38:41 +0200
-Date:   Tue, 7 Jan 2020 14:38:41 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Linus Walleij <linus.walleij@linaro.org>
+        id S1727834AbgAGMzk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Jan 2020 07:55:40 -0500
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:42445 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727814AbgAGMzj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2020 07:55:39 -0500
+Received: by mail-lf1-f65.google.com with SMTP id y19so38767259lfl.9
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Jan 2020 04:55:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/5M/Ch2CKDQ814/TnFy5fo83NcxCpktzh+5pz++zFSA=;
+        b=AEgy7ABR047DoLjVm1VO0WwndfqDMR7kB3D+0j8w9A6HDCfcOm51PX/oqmApgcFxD3
+         PzDu3j2hDWa7nH3TzAI517R6JqnBHA52XvUN2mmJjhEfVTU06u7/K76rmzjQoGqKOT1w
+         Cppn6/Y6kCgDnYae6PKPxT7a64fF9aEcAyvXIcx9q6Fc73emY3ZpIRrxApElzeX7qX2B
+         Yfjz/EWvd8PkFd/7F4Mvv5eFqxG4t4eonMSAVE7GXnEtV6u4Z0MjRNWbXXTA8tB4UIlg
+         +PGKIr1r+Ay4fZQov/DS0z6MzKi61kxcpE3KtW7XSMGyl1gj0nPhISsArIhce5H1nJux
+         aTgg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/5M/Ch2CKDQ814/TnFy5fo83NcxCpktzh+5pz++zFSA=;
+        b=bDrdsC0nEyahtrKl9IsQyPs1iL/QMg37rAmrEpS6XZghhMXw5uFCtxo4B8fBfLHlBI
+         r0xFMcvbiVaHLeYW1QjJ3Nkm67HTqUNYruw0Gy0vn/vRvo52gWvKnIlPTKHKsJU+mq36
+         4Py1z6uXrcPLF4T8iIMVi7dNEtK265IyMY67bKuW8FwMbL9aa0zFbeJ4nmWPG/mgTXup
+         fQLudCDLRvDBlhIgGbuxf7E8LvkKHPyOQjqxjz4gN5VawJmEiAERMm0s2B0443FJA9vp
+         GOzH8pxZMqHqFeD3EkbrlzbTCI1+Y+/9l4VVcs57W9RL3e1j5Pz6XFTxDM/F4ATDD4eV
+         yyUQ==
+X-Gm-Message-State: APjAAAWjiRTNOnCEcC4X39LoDZAb0dk2wnhfrBbfJ/SS7jQMr3TxZ6GE
+        FEHG20hdVna0agZYqG8XhxyJa5lXN1jVqLGmGPTZHQ==
+X-Google-Smtp-Source: APXvYqywW+1cO2Qz4LzNkTfh2xOv5aLJq+BCzv7q5D/XXcrloWHW/cXsbAUd1IJYb+6RnSPN6O161babyzIRRq1xBFE=
+X-Received: by 2002:ac2:5c4b:: with SMTP id s11mr58716304lfp.133.1578401738382;
+ Tue, 07 Jan 2020 04:55:38 -0800 (PST)
+MIME-Version: 1.0
+References: <20191227230447.32458-1-hdegoede@redhat.com> <CACRpkdaR4vFp=huuqvsnZTFnAmKNJmjpwM8sPpVX2aERp-LogA@mail.gmail.com>
+ <20200107123841.GE32742@smile.fi.intel.com>
+In-Reply-To: <20200107123841.GE32742@smile.fi.intel.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Tue, 7 Jan 2020 13:55:27 +0100
+Message-ID: <CACRpkdb5viFXj9S9nVU-p9ZFva1bFns83FrpXdFJHsnJMtomuA@mail.gmail.com>
+Subject: Re: [PATCH] pinctrl: baytrail: Do not clear IRQ flags on direct-irq
+ enabled pins
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Bastien Nocera <hadess@hadess.net>,
         Dmitry Mastykin <mastichi@gmail.com>,
         "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH] pinctrl: baytrail: Do not clear IRQ flags on direct-irq
- enabled pins
-Message-ID: <20200107123841.GE32742@smile.fi.intel.com>
-References: <20191227230447.32458-1-hdegoede@redhat.com>
- <CACRpkdaR4vFp=huuqvsnZTFnAmKNJmjpwM8sPpVX2aERp-LogA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACRpkdaR4vFp=huuqvsnZTFnAmKNJmjpwM8sPpVX2aERp-LogA@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 07, 2020 at 11:35:17AM +0100, Linus Walleij wrote:
-> On Sat, Dec 28, 2019 at 12:04 AM Hans de Goede <hdegoede@redhat.com> wrote:
-> 
-> > Suspending Goodix touchscreens requires changing the interrupt pin to
-> > output before sending them a power-down command. Followed by wiggling
-> > the interrupt pin to wake the device up, after which it is put back
-> > in input mode.
-> >
-> > On Bay Trail devices with a Goodix touchscreen direct-irq mode is used
-> > in combination with listing the pin as a normal GpioIo resource.
-> >
-> > This works fine, until the goodix driver gets rmmod-ed and then insmod-ed
-> > again. In this case byt_gpio_disable_free() calls
-> > byt_gpio_clear_triggering() which clears the IRQ flags and after that the
-> > (direct) IRQ no longer triggers.
-> >
-> > This commit fixes this by adding a check for the BYT_DIRECT_IRQ_EN flag
-> > to byt_gpio_clear_triggering().
-> >
-> > Note that byt_gpio_clear_triggering() only gets called from
-> > byt_gpio_disable_free() for direct-irq enabled pins, as these are excluded
-> > from the irq_valid mask by byt_init_irq_valid_mask().
-> >
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Patch applied as non-critical fix for v5.6 with Mika's ACK.
-> (Tell me if it's critical.)
+On Tue, Jan 7, 2020 at 1:38 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> On Tue, Jan 07, 2020 at 11:35:17AM +0100, Linus Walleij wrote:
 
-Can we collect it in our tree (what we are consider a proper for this) and
-submit a PR?
+> > Patch applied as non-critical fix for v5.6 with Mika's ACK.
+> > (Tell me if it's critical.)
+>
+> Can we collect it in our tree (what we are consider a proper for this) and
+> submit a PR?
 
--- 
-With Best Regards,
-Andy Shevchenko
+Sure that's true, I dropped the patch from my tree.
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-
+Yours,
+Linus Walleij
