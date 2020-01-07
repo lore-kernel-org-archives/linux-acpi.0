@@ -2,84 +2,102 @@ Return-Path: <SRS0=gEx+=24=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D156C33C99
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 10:53:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45F18C33C99
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 11:03:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D13F320678
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 10:53:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1578394393;
-	bh=bNilcerdl73VUIGDQZx6U+nfIxHICBuqIp8lXsS7xHE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=WGxM2/wqKx3KAVrnn/gOAiBH2ExNirx0ikl+q76fEq7mMzh1y3tY7W8g+8Qon0w2M
-	 cjqaptGcWn/BvnEOMu/RbWJt4HzEDy4/aKbDFkhFi+3pxw/cAIA1FlY2mZwjIa7hMv
-	 k8y3bMsDoipir2XCqRKK9/+rVaj6hX5U4t0evUeo=
+	by mail.kernel.org (Postfix) with ESMTP id 17C4A2073D
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jan 2020 11:03:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CcKZCfwZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727589AbgAGKxN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Jan 2020 05:53:13 -0500
-Received: from mail-ot1-f67.google.com ([209.85.210.67]:39266 "EHLO
-        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727427AbgAGKxN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2020 05:53:13 -0500
-Received: by mail-ot1-f67.google.com with SMTP id 77so75880307oty.6;
-        Tue, 07 Jan 2020 02:53:12 -0800 (PST)
+        id S1727427AbgAGLDg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Jan 2020 06:03:36 -0500
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:34639 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727211AbgAGLDg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2020 06:03:36 -0500
+Received: by mail-oi1-f195.google.com with SMTP id l136so17472016oig.1;
+        Tue, 07 Jan 2020 03:03:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=VIJiwe+IJSM2z0EGLFS2PQGz3M9nkcD68T5NhPhR9H8=;
+        b=CcKZCfwZJPCPqsKfYcPbHeCIgrb5nyuGzG4g8NYws1HU0a9pHjn9XpiO9j2ihiirp/
+         4W0jaMMVy6QhJrLRPaa47jd7wnZ4SXJDD1VPqIW//aernvkAjVWp+BSYpoyq4/pWcE4F
+         IkvPow5je2qqfsq6asNMRIePqXyHVf4xGwQXxIq8lq9KoTh/jHmZ59mvNlVGrnhJT1nL
+         lTA2kMODrx6Qu7UumTDdGbUG87l2yokDUt0qk6nEPHNI3eQMIen617qYU/eHaQELjAFd
+         6UFQ/hiQUToJA8Bj+q6X2cP0qvUoLNM9Pbun1i5ofCAzIkqQ2Cld/ffK7OyiQRhrIbxs
+         l6wQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=zQgMxIq/VfvRE3nG5UqBet/nAdYddLHDXbcSwRzGXB8=;
-        b=X7HHS3MYKnwUqyuAHO1GUAqQ97zQoNwtf9JHphX17XNdLTQpWyvvPhRRYrSxF2Rxw0
-         PggIhTLv1+bW5SyR4R+nBqiJcQR6zRG6BQmUYQuPmALeXkfNvuZQ3fQhXIKyRbKlKZhf
-         CCQHLWX6SbQoIT/n3QmvHJdq60Kt30/392G1EhocSDb0FgcqcFPBrBH6z7rdjwPFkfCN
-         4LHxRwoEqYqU4IzLjVEqpGVGjO7xZM4deO+D0Z5WQWKAHLcvbfyaquJWtMr+m0GYjuMd
-         Z8ChJQzW681NnREVVmyyYrvmdeSoo3kYwIa4BU0VHuUYSatGZC7H+g3guNZutIwqYbti
-         qOvg==
-X-Gm-Message-State: APjAAAUaW2rzHkGa82AeKwRsl7P+1DSFqey3OavPXdWxM9KdRSZcLL2c
-        sSpv7kpn5mdxANk3lnmKU1965fEsWdm627ymXX0=
-X-Google-Smtp-Source: APXvYqy0cMm1oxIX74m7J9Bap5GaDWP72fzfk1QKMa8V/r3WF4XJqww8DNutMlLPLM0vZKb7GMzTU+Le3mgFzN7L7W8=
-X-Received: by 2002:a05:6830:1651:: with SMTP id h17mr114686171otr.167.1578394392565;
- Tue, 07 Jan 2020 02:53:12 -0800 (PST)
+        bh=VIJiwe+IJSM2z0EGLFS2PQGz3M9nkcD68T5NhPhR9H8=;
+        b=XkG/PTnuCpPF88KA25UBMAFBzMDyXhBmN39ITfFfAdgutgZNvfq2MuD/Fd9rYsV04P
+         PnIoP4WNX5MRwHS9hGuusvekMEkSK6tM7EsIo3Bd1lIrUpEEocA3JAp7FtHOuFGv2r4r
+         9pZ7XyylsnvOip5dKx/tikv/MLaunML/vYBtoY01HQaoTusYkSegKmQ86+xa9D34+yQ2
+         T7ix54Yyt7uQIBfLFifNEt4fDLiS7CFzIwOu8+0QqqhHcUAz9rrjx0uf+xFA59Lzyhjf
+         APuF7TEWT8ZHvAwztWD/KZSpBXjnUng6O43mvqxH5Nc+EJx0/0z2voDyntoLw27Ttgnz
+         h17w==
+X-Gm-Message-State: APjAAAWUaKiHM7fbZ7aLfDMvBt+hwSyI67HI3nIZKveXuWBUJbYyBZ9d
+        w3/yB8Q152WtOeKtgEiXXN9ihPWx5mtQCOiG+lBcEw==
+X-Google-Smtp-Source: APXvYqwJdREpeWna05No2U9cVuqfKfYHIH1LmsXxw61Z6a3kpnZIlq7281h28otaUoQlZsAkbNf9FwtZsnV+bKGyLg8=
+X-Received: by 2002:aca:43c1:: with SMTP id q184mr6326963oia.116.1578395015612;
+ Tue, 07 Jan 2020 03:03:35 -0800 (PST)
 MIME-Version: 1.0
-References: <20191206175409.335568-1-jason@jlekstrand.net> <20200102202754.24028-1-jason@jlekstrand.net>
- <7eba4578-42e2-69da-99a3-2fc316a588b8@redhat.com>
-In-Reply-To: <7eba4578-42e2-69da-99a3-2fc316a588b8@redhat.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 7 Jan 2020 11:53:01 +0100
-Message-ID: <CAJZ5v0iBbHQ=jeKpsq45eQzNMS+xxH_8kCUS-T-VLVFT-tZDzw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: button: Add a DMI quirk for Razer Blade Stealth 13
- late 2019 lid-switch
-To:     Hans de Goede <hdegoede@redhat.com>,
-        Jason Ekstrand <jason@jlekstrand.net>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <1576652618-27017-1-git-send-email-bupadhaya@marvell.com>
+ <20200102180130.GG8345@zn.tnic> <CAEYJA6oXTxTmJEji5_Hup2oB+GrgGnmSTiS-nNuzbNzGJ9VESA@mail.gmail.com>
+ <20200106130949.GD12238@zn.tnic>
+In-Reply-To: <20200106130949.GD12238@zn.tnic>
+From:   Bhaskar Upadhaya <bhaskar.upadhaya.linux@gmail.com>
+Date:   Tue, 7 Jan 2020 16:33:24 +0530
+Message-ID: <CAEYJA6rPiBYnM4rT5WJnvTSrk6GBHeLYxK5OF5oxmeVxVepGGQ@mail.gmail.com>
+Subject: Re: [RFC PATCH] apei/ghes: fix ghes_poll_func by registering in
+ non-deferrable mode
+To:     Borislav Petkov <bp@alien8.de>
+Cc:     Bhaskar Upadhaya <bupadhaya@marvell.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-edac@vger.kernel.org, lenb@kernel.org, rafael@kernel.org,
+        gkulkarni@marvell.com, rrichter@marvell.com
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 2, 2020 at 10:27 PM Hans de Goede <hdegoede@redhat.com> wrote:
+On Mon, Jan 6, 2020 at 6:39 PM Borislav Petkov <bp@alien8.de> wrote:
 >
-> Hi,
+> On Mon, Jan 06, 2020 at 04:33:19PM +0530, Bhaskar Upadhaya wrote:
+> > Definition of poll interval as per spec (referred ACPI 6.3):
+> > "Indicates the poll interval in milliseconds OSPM should use to
+> > periodically check the error source for the presence of an error
+> > condition."
 >
-> On 02-01-2020 21:27, Jason Ekstrand wrote:
-> > Running evemu-record on the lid switch event shows that the lid reports
-> > the first close but then never reports an open.  This causes systemd to
-> > continuously re-suspend the laptop every 30s.  Resetting the _LID to
-> > open fixes the issue.
-> >
-> > v2: Updated the comment to better describe the behavior of ACPI
-> >
-> > Signed-off-by: Jason Ekstrand <jason@jlekstrand.net>
+> Please add that...
 >
-> Thanks, looks good to me now:
+> > We are observing an issue in our ThunderX2 platforms wherein
+> > ghes_poll_func is not called within poll interval when timer is
+> > configured with TIMER_DEFERRABLE flag(For NO_HZ kernel) and hence we
+> > are losing the error records.
 >
-> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+> ... and that to your commit message then, so that it is crystal clear
+> *why* you're making this change.
 
-Applied as 5.6 material, thanks!
+Thanks Borislav, I will edit the commit message with you comments in
+the next patch.
+Can I get your Ack in the next patch ?
+
+>
+> Thx.
+>
+> --
+> Regards/Gruss,
+>     Boris.
+>
+> https://people.kernel.org/tglx/notes-about-netiquette
