@@ -2,84 +2,135 @@ Return-Path: <SRS0=vw+v=26=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3777C33CA1
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 14:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4A6DC282DD
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 15:44:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F3A92072E
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 14:41:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1578580868;
-	bh=DlrMPvVhccNEDW9koI+U3MM8MLRCHlA/GNRJ1PYg/fQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=tLTuSqVnpepqzJjcOA8nFUhskJMawRrHOSHZa09VYtlDx7hCSfiPslIzcZAi59QHD
-	 uHRQTyov0dwsfIEnumETq+hcXhhyzrJl3VZUpUShwaDXA+w9Zpb051qxGigArIPb92
-	 swe8voko68OVpXRFiDNmgdHeetEQAL6IiDVoD9js=
+	by mail.kernel.org (Postfix) with ESMTP id B230D2067D
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 15:44:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728817AbgAIOlH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Jan 2020 09:41:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44790 "EHLO mail.kernel.org"
+        id S1732575AbgAIPom (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Jan 2020 10:44:42 -0500
+Received: from mga02.intel.com ([134.134.136.20]:3757 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725775AbgAIOlH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 9 Jan 2020 09:41:07 -0500
-Received: from willie-the-truck (236.31.169.217.in-addr.arpa [217.169.31.236])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7461720673;
-        Thu,  9 Jan 2020 14:41:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1578580866;
-        bh=DlrMPvVhccNEDW9koI+U3MM8MLRCHlA/GNRJ1PYg/fQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=hBGaU9mYNlsPavcKzkYmo8SaTZNfzP/+FyxOm3wgOBXu17YOlpUXWG+DX8Km4vn61
-         nhbPjGDttsPWISCNuaksOju0v0lwRPNIzEjOpQmHmWIn2zp2h5RLc3ywrmizM5H0fE
-         JZIoKiMKQKpN+2PBhZR09JXUtzQDao5gIDDtK21A=
-Date:   Thu, 9 Jan 2020 14:41:01 +0000
-From:   Will Deacon <will@kernel.org>
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
-Cc:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        iommu@lists.linux-foundation.org, mark.rutland@arm.com,
-        robin.murphy@arm.com, guohanjun@huawei.com, rjw@rjwysocki.net,
-        robh+dt@kernel.org, sudeep.holla@arm.com, bhelgaas@google.com,
-        zhangfei.gao@linaro.org, lenb@kernel.org
-Subject: Re: [PATCH v4 00/13] iommu: Add PASID support to Arm SMMUv3
-Message-ID: <20200109144100.GD12236@willie-the-truck>
-References: <20191219163033.2608177-1-jean-philippe@linaro.org>
- <20200109143618.GA942461@myrica>
+        id S1732548AbgAIPol (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Jan 2020 10:44:41 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Jan 2020 07:44:41 -0800
+X-IronPort-AV: E=Sophos;i="5.69,414,1571727600"; 
+   d="scan'208";a="227826443"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Jan 2020 07:44:38 -0800
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 2F22220F4E;
+        Thu,  9 Jan 2020 17:44:33 +0200 (EET)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1ipa01-00055H-HW; Thu, 09 Jan 2020 17:45:29 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-i2c@vger.kernel.org
+Cc:     Wolfram Sang <wsa@the-dreams.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH v3 5/5] at24: Support probing while off
+Date:   Thu,  9 Jan 2020 17:45:29 +0200
+Message-Id: <20200109154529.19484-6-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200109154529.19484-1-sakari.ailus@linux.intel.com>
+References: <20200109154529.19484-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200109143618.GA942461@myrica>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 09, 2020 at 03:36:18PM +0100, Jean-Philippe Brucker wrote:
-> On Thu, Dec 19, 2019 at 05:30:20PM +0100, Jean-Philippe Brucker wrote:
-> > Add support for Substream ID and PASIDs to the SMMUv3 driver. Since v3
-> > [1], I added review and tested tags where appropriate and applied the
-> > suggested changes, shown in the diff below. Thanks all!
-> > 
-> > I'm testing using the zip accelerator on the Hisilicon KunPeng920 and
-> > Zhangfei's uacce module [2]. The full SVA support, which I'll send out
-> > early next year, is available on my branch sva/zip-devel at
-> > https://jpbrucker.net/git/linux/
-> 
-> Is there anything more I should do for the PASID support? Ideally I'd like
-> to get this in v5.6 so I can focus on the rest of the SVA work and on
-> performance improvements.
+In certain use cases (where the chip is part of a camera module, and the
+camera module is wired together with a camera privacy LED), powering on
+the device during probe is undesirable. Add support for the at24 to
+execute probe while being powered off. For this to happen, a hint in form
+of a device property is required from the firmware.
 
-Apologies, I'm just behind with review what with the timing of the new
-year. You're on the list, but I was hoping to get Robin's TCR stuff dusted
-off so that Jordan doesn't have to depend on patches languishing on the
-mailing list and there's also the nvidia stuff to review as well.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/misc/eeprom/at24.c | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
-Going as fast as I can!
+diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
+index 0681d5fdd538a..41ac65d1e5d41 100644
+--- a/drivers/misc/eeprom/at24.c
++++ b/drivers/misc/eeprom/at24.c
+@@ -564,6 +564,7 @@ static int at24_probe(struct i2c_client *client)
+ 	bool i2c_fn_i2c, i2c_fn_block;
+ 	unsigned int i, num_addresses;
+ 	struct at24_data *at24;
++	bool low_power;
+ 	struct regmap *regmap;
+ 	bool writable;
+ 	u8 test_byte;
+@@ -701,19 +702,24 @@ static int at24_probe(struct i2c_client *client)
+ 
+ 	i2c_set_clientdata(client, at24);
+ 
+-	/* enable runtime pm */
+-	pm_runtime_set_active(dev);
++	low_power = acpi_dev_low_power_state_probe(&client->dev);
++	if (!low_power)
++		pm_runtime_set_active(dev);
++
+ 	pm_runtime_enable(dev);
+ 
+ 	/*
+-	 * Perform a one-byte test read to verify that the
+-	 * chip is functional.
++	 * Perform a one-byte test read to verify that the chip is functional,
++	 * unless powering on the device is to be avoided during probe (i.e.
++	 * it's powered off right now).
+ 	 */
+-	err = at24_read(at24, 0, &test_byte, 1);
+-	pm_runtime_idle(dev);
+-	if (err) {
+-		pm_runtime_disable(dev);
+-		return -ENODEV;
++	if (!low_power) {
++		err = at24_read(at24, 0, &test_byte, 1);
++		pm_runtime_idle(dev);
++		if (err) {
++			pm_runtime_disable(dev);
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	if (writable)
+@@ -728,8 +734,12 @@ static int at24_probe(struct i2c_client *client)
+ 
+ static int at24_remove(struct i2c_client *client)
+ {
++	bool low_power;
++
+ 	pm_runtime_disable(&client->dev);
+-	pm_runtime_set_suspended(&client->dev);
++	low_power = acpi_dev_low_power_state_probe(&client->dev);
++	if (!low_power)
++		pm_runtime_set_suspended(&client->dev);
+ 
+ 	return 0;
+ }
+@@ -743,6 +753,7 @@ static struct i2c_driver at24_driver = {
+ 	.probe_new = at24_probe,
+ 	.remove = at24_remove,
+ 	.id_table = at24_ids,
++	.probe_low_power = true,
+ };
+ 
+ static int __init at24_init(void)
+-- 
+2.20.1
 
-Will
