@@ -1,131 +1,174 @@
-Return-Path: <SRS0=Cg+F=25=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=vw+v=26=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AB36C33CA3
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jan 2020 20:18:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9256DC3F68F
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 09:05:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F0A320643
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jan 2020 20:18:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1578514688;
-	bh=k29/a7uEuYqNAIhFsBFDfjAE0p9XzbeHTZjXgbV00jY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=awqsWu50+v2vRnie051ZsJeEuLEFTkjYLWF+YF9rz7PdO0ctZRnttzp4dWzb3uoOM
-	 T8lcbBKGA1jsAIagpbQIZCjMhrB0aZKOHD2MksD/UPnIynWt9qbldgbVNIYcjKwrZU
-	 KZcY08SQFx5VHMHBg70E3U0hz/UUjwBsEpRLRePU=
+	by mail.kernel.org (Postfix) with ESMTP id 66D9C2073A
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 09:05:53 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CMbTjVAw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726617AbgAHUSH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 8 Jan 2020 15:18:07 -0500
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:43067 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726558AbgAHUSC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2020 15:18:02 -0500
-Received: by mail-ot1-f65.google.com with SMTP id p8so4835282oth.10
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Jan 2020 12:18:02 -0800 (PST)
+        id S1728448AbgAIJFx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Jan 2020 04:05:53 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:42495 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728538AbgAIJFw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jan 2020 04:05:52 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1578560752;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=zK88IxRXfREKS0/JDDDnXj7A7N2ld8TZBzTGvXLaSoM=;
+        b=CMbTjVAwyd7/3f2/lwh0XbERlxzjN8PjPAwxDtp9Icsv6tA9K4rk2eHFSPbk8sYk405q5Z
+        qSlcjBot8WGcldxmJEV9XOdlLLYUOpL/uBqFwwGXEBL0BiT0t6ZkBVJF9i5mzeu35vzQUG
+        uH19bhMqLc6Bx7gvCi3cvVkI+Dsj3yY=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-273-XUIn3JCkPgaA-JSjuT8GkQ-1; Thu, 09 Jan 2020 04:05:50 -0500
+X-MC-Unique: XUIn3JCkPgaA-JSjuT8GkQ-1
+Received: by mail-wm1-f72.google.com with SMTP id h130so651716wme.7
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Jan 2020 01:05:50 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=UM9Yhyyn+nTPYkkQGog0oC/YJwVnBTJCjtlyMYqJ2Ow=;
-        b=jAprxSfZFCOl8qPAN/LDfTJlycP4wEyLLe1+SWu60YJr//Y/DNsmLKOW6RMZ9kIq4u
-         kzHgyUraM2laJBj49J31ml13tTj8P4JiHj9SuAM1ECj3LXC1Bre+e1hb9C1GsjlfSS6l
-         73aYcmbVFeWZSAcVphXxeX1eRtpjC186d9SLzb3CU6KxjpUGTlx6AFBF/PlZUpQuNQPl
-         rFPYGGLJXRnkjLPeCUV6uGHWZKq0jBJHAPfBR2w85H2PE+HJc3FWnUZ4Go85eC8tIhIp
-         bcP40nmvG6iD3Hb6UTelFpFm3samyy6dxN7HE09cQFKhkKHrytwpRnuTtTrBQSwrHxqv
-         7m/g==
-X-Gm-Message-State: APjAAAXQk5/V7oYB38KdNwNSnV1KF0qvpCWh/mXWg+9lIb1X+tOJJpNc
-        92nKVXntGXe8eEIy2Bg53wsKEzM=
-X-Google-Smtp-Source: APXvYqyzgOnsSWv/y4lwiYY51Qdi03+7YGkItD1SWEwr/U7Uo2OXaxVfuP2klBFAl4I8rrzmHyiHOg==
-X-Received: by 2002:a9d:6857:: with SMTP id c23mr5213024oto.351.1578514681339;
-        Wed, 08 Jan 2020 12:18:01 -0800 (PST)
-Received: from rob-hp-laptop (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
-        by smtp.gmail.com with ESMTPSA id i12sm1481996otk.11.2020.01.08.12.18.00
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Jan 2020 12:18:00 -0800 (PST)
-Received: from rob (uid 1000)
-        (envelope-from rob@rob-hp-laptop)
-        id 2208fa
-        by rob-hp-laptop (DragonFly Mail Agent v0.11);
-        Wed, 08 Jan 2020 14:17:59 -0600
-Date:   Wed, 8 Jan 2020 14:17:59 -0600
-From:   Rob Herring <robh@kernel.org>
-To:     Masahiro Yamada <masahiroy@kernel.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        devicetree@vger.kernel.org, alsa-devel@alsa-project.org,
-        linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
-        netdev@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>,
-        linux-kernel@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>,
-        linux-mtd@lists.infradead.org, linux-crypto@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-i2c@vger.kernel.org
-Subject: Re: [PATCH] treewide: remove redundent IS_ERR() before error code
- check
-Message-ID: <20200108201759.GA28519@bogus>
-References: <20200106045833.1725-1-masahiroy@kernel.org>
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=zK88IxRXfREKS0/JDDDnXj7A7N2ld8TZBzTGvXLaSoM=;
+        b=tIDCwegbOSxFLkvWdHxmHgD1SqKdjSNT0DfHYKUO6xBUlxwKy0ZCVPLXRIyagM8cC+
+         71+JE8mGhfr9mOTQCATfaJgZkTGav59JQubg0QkAKbg5dorkJ8Ua47bUsw2rdrDq8KhX
+         +VHrjtZalyH2273oWYZy7llfBRw5Vu33S46GbNNK8zAR2qKor1wPRFukkyRoJ9NBVgrS
+         Z966Q7Dy1l58ZQSTxvnxMORdLLLpr6L4y2vElu5iSZdWpocjiKTnuVhcma39TrFFb40B
+         NskffbXrAlagbwYdkDhkwm3OJpCNd/LgJlge78Majtmwp2gOqzUDgIaFWx1/wL1hX11x
+         gbFA==
+X-Gm-Message-State: APjAAAW41/jp6sbiwUF/cLpSGvI/sOSxGMLpROfWvnayZDzxEqgpAUxx
+        vCdHg/5+Ff5ET5C7qs9eHAdYi4dEFCY3RFRGSHU+WV1DBE8AbG6Q2sgRBKOV2+16cyT9Aj/lRUr
+        Mew1PmZ1SmU7bi1C9w9l95A==
+X-Received: by 2002:a5d:4481:: with SMTP id j1mr10043163wrq.348.1578560749303;
+        Thu, 09 Jan 2020 01:05:49 -0800 (PST)
+X-Google-Smtp-Source: APXvYqyHjnkDwlOEyKu3IpoDulLUpT2xCVWE3SFlHplIHWtVIOOW6FziBpeXpvYKJscTbSQUFR+8Hw==
+X-Received: by 2002:a5d:4481:: with SMTP id j1mr10043116wrq.348.1578560748958;
+        Thu, 09 Jan 2020 01:05:48 -0800 (PST)
+Received: from shalem.localdomain (2001-1c00-0c0c-fe00-7e79-4dac-39d0-9c14.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:7e79:4dac:39d0:9c14])
+        by smtp.gmail.com with ESMTPSA id n16sm7900227wro.88.2020.01.09.01.05.48
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 09 Jan 2020 01:05:48 -0800 (PST)
+Subject: Re: [PATCH v3] pinctrl: baytrail: Replace WARN with dev_info_once
+ when setting direct-irq pin to output
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bastien Nocera <hadess@hadess.net>,
+        Dmitry Mastykin <mastichi@gmail.com>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+References: <20200101145243.15912-1-hdegoede@redhat.com>
+ <20200108174745.GG32742@smile.fi.intel.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <f1ace666-1c57-0688-9737-d3ab2f5a1073@redhat.com>
+Date:   Thu, 9 Jan 2020 10:05:47 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200106045833.1725-1-masahiroy@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20200108174745.GG32742@smile.fi.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon,  6 Jan 2020 13:58:33 +0900, Masahiro Yamada wrote:
-> 'PTR_ERR(p) == -E*' is a stronger condition than IS_ERR(p).
-> Hence, IS_ERR(p) is unneeded.
+Hi,
+
+On 08-01-2020 18:47, Andy Shevchenko wrote:
+> On Wed, Jan 01, 2020 at 03:52:43PM +0100, Hans de Goede wrote:
+>> Suspending Goodix touchscreens requires changing the interrupt pin to
+>> output before sending them a power-down command. Followed by wiggling
+>> the interrupt pin to wake the device up, after which it is put back
+>> in input mode.
+>>
+>> On Cherry Trail device the interrupt pin is listed as a GpioInt ACPI
+>> resource so we can do this without problems as long as we release the
+>> irq before changing the pin to output mode.
+>>
+>> On Bay Trail devices with a Goodix touchscreen direct-irq mode is used
+>> in combination with listing the pin as a normal GpioIo resource. This
+>> works fine, but this triggers the WARN in byt_gpio_set_direction-s output
+>> path because direct-irq support is enabled on the pin.
+>>
+>> This commit replaces the WARN call with a dev_info_once call, fixing a
+>> bunch of WARN splats in dmesg on each suspend/resume cycle.
 > 
-> The semantic patch that generates this commit is as follows:
+> Hmm...
 > 
-> // <smpl>
-> @@
-> expression ptr;
-> constant error_code;
-> @@
-> -IS_ERR(ptr) && (PTR_ERR(ptr) == - error_code)
-> +PTR_ERR(ptr) == - error_code
-> // </smpl>
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>> Changes in v3:
+>> - Replace WARN with a dev_info_once call, instead of dropping it
+>>
+>> Changes in v2:
+>> - Drop now unused conf_ref local variable
+>> ---
+>>   drivers/pinctrl/intel/pinctrl-baytrail.c | 6 +++---
+>>   1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/pinctrl/intel/pinctrl-baytrail.c b/drivers/pinctrl/intel/pinctrl-baytrail.c
+>> index c6f53ed626c9..17e6740a36c5 100644
+>> --- a/drivers/pinctrl/intel/pinctrl-baytrail.c
+>> +++ b/drivers/pinctrl/intel/pinctrl-baytrail.c
+>> @@ -811,15 +811,15 @@ static int byt_gpio_set_direction(struct pinctrl_dev *pctl_dev,
+>>   	value &= ~BYT_DIR_MASK;
+>>   	if (input)
+>>   		value |= BYT_OUTPUT_EN;
+>> -	else
+>> +	else if (readl(conf_reg) & BYT_DIRECT_IRQ_EN)
+>>   		/*
+>>   		 * Before making any direction modifications, do a check if gpio
+>>   		 * is set for direct IRQ.  On baytrail, setting GPIO to output
+>>   		 * does not make sense, so let's at least warn the caller before
 > 
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-> ---
+> ...if it's a warning, perhaps do a warning instead of info?
+> Otherwise, we probably need to change a comment here.
+
+I went with info on purpose since this will trigger on all BYT devices with
+a Goodix touchscreens of which we have quite a few, so my vote goes to maybe
+the comment. Note that although the log level is info (because it is somewhat
+expected to happen), the content of the log msg is still warning-ish.
+
+I guess we could replace "let's at least warn the caller before" with
+"let's at least let the caller know before"
+
+Regards,
+
+Hans
+
+
+
 > 
->  crypto/af_alg.c                      | 2 +-
->  drivers/acpi/scan.c                  | 2 +-
->  drivers/char/hw_random/bcm2835-rng.c | 2 +-
->  drivers/char/hw_random/omap-rng.c    | 4 ++--
->  drivers/clk/clk.c                    | 2 +-
->  drivers/dma/mv_xor_v2.c              | 2 +-
->  drivers/gpio/gpiolib-devres.c        | 2 +-
->  drivers/gpio/gpiolib-of.c            | 8 ++++----
->  drivers/gpio/gpiolib.c               | 2 +-
->  drivers/i2c/busses/i2c-mv64xxx.c     | 5 ++---
->  drivers/i2c/busses/i2c-synquacer.c   | 2 +-
->  drivers/mtd/ubi/build.c              | 2 +-
->  drivers/of/device.c                  | 2 +-
->  drivers/pci/controller/pci-tegra.c   | 2 +-
->  drivers/phy/phy-core.c               | 4 ++--
->  drivers/spi/spi-orion.c              | 3 +--
->  drivers/video/fbdev/imxfb.c          | 2 +-
->  fs/ext4/super.c                      | 2 +-
->  fs/f2fs/node.c                       | 2 +-
->  fs/ocfs2/suballoc.c                  | 2 +-
->  fs/sysfs/group.c                     | 2 +-
->  net/core/dev.c                       | 2 +-
->  net/core/filter.c                    | 2 +-
->  net/xfrm/xfrm_policy.c               | 2 +-
->  sound/soc/codecs/ak4104.c            | 3 +--
->  sound/soc/codecs/cs4270.c            | 3 +--
->  sound/soc/codecs/tlv320aic32x4.c     | 6 ++----
->  sound/soc/sunxi/sun4i-spdif.c        | 2 +-
->  28 files changed, 35 insertions(+), 41 deletions(-)
+>>   		 * they shoot themselves in the foot.
+>>   		 */
+>> -		WARN(readl(conf_reg) & BYT_DIRECT_IRQ_EN,
+>> -		     "Potential Error: Setting GPIO with direct_irq_en to output");
+>> +		dev_info_once(vg->dev, "Potential Error: Setting GPIO with direct_irq_en to output");
+>> +
+>>   	writel(value, val_reg);
+>>   
+>>   	raw_spin_unlock_irqrestore(&byt_lock, flags);
+> 
+> P.S. I have applied it for bots to play with, but will wait for answer to the
+> above.
+> 
+>> -- 
+>> 2.24.1
+>>
 > 
 
-Acked-by: Rob Herring <robh@kernel.org>
