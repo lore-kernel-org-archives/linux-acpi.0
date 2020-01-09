@@ -2,135 +2,223 @@ Return-Path: <SRS0=vw+v=26=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.2 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A792C282DD
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 15:45:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB01EC282DD
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 16:02:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 56E612067D
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 15:45:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B516206ED
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jan 2020 16:02:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730458AbgAIPpV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Jan 2020 10:45:21 -0500
-Received: from mga18.intel.com ([134.134.136.126]:35711 "EHLO mga18.intel.com"
+        id S1729522AbgAIQCd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Jan 2020 11:02:33 -0500
+Received: from foss.arm.com ([217.140.110.172]:33238 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728357AbgAIPpU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 9 Jan 2020 10:45:20 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Jan 2020 07:45:07 -0800
-X-IronPort-AV: E=Sophos;i="5.69,414,1571727600"; 
-   d="scan'208";a="303904700"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Jan 2020 07:45:05 -0800
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 14ABE207DD;
-        Thu,  9 Jan 2020 17:44:33 +0200 (EET)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1ipa01-000555-Ck; Thu, 09 Jan 2020 17:45:29 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     linux-i2c@vger.kernel.org
-Cc:     Wolfram Sang <wsa@the-dreams.de>,
+        id S1728956AbgAIQCd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Jan 2020 11:02:33 -0500
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D29601FB;
+        Thu,  9 Jan 2020 08:02:31 -0800 (PST)
+Received: from e121166-lin.cambridge.arm.com (e121166-lin.cambridge.arm.com [10.1.196.255])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9A93A3F703;
+        Thu,  9 Jan 2020 08:02:30 -0800 (PST)
+Date:   Thu, 9 Jan 2020 16:02:21 +0000
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     Robin Murphy <robin.murphy@arm.com>
+Cc:     Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>
-Subject: [PATCH v3 1/5] i2c: Allow driver to manage the device's power state during probe
-Date:   Thu,  9 Jan 2020 17:45:25 +0200
-Message-Id: <20200109154529.19484-2-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200109154529.19484-1-sakari.ailus@linux.intel.com>
-References: <20200109154529.19484-1-sakari.ailus@linux.intel.com>
+        Pankaj Bansal <pankaj.bansal@nxp.com>,
+        linux-acpi@vger.kernel.org, John Garry <john.garry@huawei.com>,
+        linuxarm@huawei.com, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v1] ACPI/IORT: Workaround for IORT ID count "minus one"
+ issue
+Message-ID: <20200109160220.GA27079@e121166-lin.cambridge.arm.com>
+References: <1577708824-4873-1-git-send-email-guohanjun@huawei.com>
+ <2ce224b2-d926-67b0-f9dd-85ac53d967c5@arm.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2ce224b2-d926-67b0-f9dd-85ac53d967c5@arm.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Enable drivers to tell ACPI that there's no need to power on a device for
-probe. Drivers should still perform this by themselves if there's a need
-to. In some cases powering on the device during probe is undesirable, and
-this change enables a driver to choose what fits best for it.
+On Mon, Jan 06, 2020 at 05:19:32PM +0000, Robin Murphy wrote:
+> On 30/12/2019 12:27 pm, Hanjun Guo wrote:
+> > The IORT spec [0] says Number of IDs = The number of IDs in the range minus
+> > one, it is confusing but it was written down in the first version of the
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/i2c/i2c-core-base.c | 15 ++++++++++++---
- include/linux/i2c.h         |  3 +++
- 2 files changed, 15 insertions(+), 3 deletions(-)
+Why is it confusing ? Because we botched the kernel code :) ?
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 9f8dcd3f83850..7bf1699c9044d 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -303,6 +303,14 @@ static int i2c_smbus_host_notify_to_irq(const struct i2c_client *client)
- 	return irq > 0 ? irq : -ENXIO;
- }
- 
-+static bool probe_low_power(struct device *dev)
-+{
-+	struct i2c_driver *driver = to_i2c_driver(dev->driver);
-+
-+	return driver->probe_low_power &&
-+		device_property_present(dev, "probe-low-power");
-+}
-+
- static int i2c_device_probe(struct device *dev)
- {
- 	struct i2c_client	*client = i2c_verify_client(dev);
-@@ -375,7 +383,8 @@ static int i2c_device_probe(struct device *dev)
- 	if (status < 0)
- 		goto err_clear_wakeup_irq;
- 
--	status = dev_pm_domain_attach(&client->dev, true);
-+	status = dev_pm_domain_attach(&client->dev,
-+				      !probe_low_power(&client->dev));
- 	if (status)
- 		goto err_clear_wakeup_irq;
- 
-@@ -397,7 +406,7 @@ static int i2c_device_probe(struct device *dev)
- 	return 0;
- 
- err_detach_pm_domain:
--	dev_pm_domain_detach(&client->dev, true);
-+	dev_pm_domain_detach(&client->dev, !probe_low_power(&client->dev));
- err_clear_wakeup_irq:
- 	dev_pm_clear_wake_irq(&client->dev);
- 	device_init_wakeup(&client->dev, false);
-@@ -419,7 +428,7 @@ static int i2c_device_remove(struct device *dev)
- 		status = driver->remove(client);
- 	}
- 
--	dev_pm_domain_detach(&client->dev, true);
-+	dev_pm_domain_detach(&client->dev, !probe_low_power(&client->dev));
- 
- 	dev_pm_clear_wake_irq(&client->dev);
- 	device_init_wakeup(&client->dev, false);
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 582ef05ec07ed..6d0d6af393c56 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -229,6 +229,8 @@ enum i2c_alert_protocol {
-  * @address_list: The I2C addresses to probe (for detect)
-  * @clients: List of detected clients we created (for i2c-core use only)
-  * @disable_i2c_core_irq_mapping: Tell the i2c-core to not do irq-mapping
-+ * @probe_low_power: Let the driver manage the device's power state
-+ *		     during probe and remove.
-  *
-  * The driver.owner field should be set to the module owner of this driver.
-  * The driver.name field should be set to the name of this driver.
-@@ -289,6 +291,7 @@ struct i2c_driver {
- 	struct list_head clients;
- 
- 	bool disable_i2c_core_irq_mapping;
-+	bool probe_low_power;
- };
- #define to_i2c_driver(d) container_of(d, struct i2c_driver, driver)
- 
--- 
-2.20.1
+> > IORT spec. But the IORT ID mapping function iort_id_map() did something
+> > wrong from the start, which bails out if:
+> > 
+> > the request ID >= the input base + number of IDs
+> > 
+> > This is wrong because it ignored the "minus one", and breaks some valid
+> > usecases such as ID mapping to contain single device mapping without
+> > single mapping flag set.
+> > 
+> > Pankaj Bansal proposed a solution to fix the issue [1], which bails
+> > out if:
+> > 
+> > the request ID > the input base + number of IDs
 
+Add a Link: tag, when I read a commit log I want to have a reference
+to the patches relevant to the commit in question (which in turn
+will help understand what Pankaj suggested).
+
+> > This works as the spec defined, unfortunately some firmware didn't
+> > minus one for the number of IDs in the range, and the propoased
+> > solution will break those systems in this way:
+> > 
+> > PCI hostbridge mapping entry 1:
+> > Input base:  0x1000
+> > ID Count:    0x100
+> > Output base: 0x1000
+> > Output reference: 0xC4  //ITS reference
+> > 
+> > PCI hostbridge mapping entry 2:
+> > Input base:  0x1100
+> > ID Count:    0x100
+> > Output base: 0x2000
+> > Output reference: 0xD4  //ITS reference
+> > 
+> > Two mapping entries which the second entry's Input base = the first
+> > entry's Input base + ID count, so for requester ID 0x1100 will map
+> > to ITS 0xC4 not 0xD4 if we update '>=' to '>'.
+> > 
+> > So introduce a workaround to match the IORT's OEM information for
+> > the broken firmware, also update the logic of the ID mapping for
+> > firmwares report the number of IDs as the IORT spec defined, to
+> > make the code compatible for both kinds of system.
+> > 
+> > I checked the ACPI tables in the tianocore/edk2-platforms [2], only
+> > HiSilicon HIP07/08 did wrong, so just add HIP07/08 to the workaround
+> > info table, if we break other platforms, we can add that later.
+> > 
+> > [0]: http://infocenter.arm.com/help/topic/com.arm.doc.den0049d/DEN0049D_IO_Remapping_Table.pdf
+> > [1]: https://patchwork.kernel.org/patch/11292823/
+
+Add a Link: tag to a message-ID
+
+> > [2]: https://github.com/tianocore/edk2-platforms
+
+It is useless in a commit log - this is a moving target.
+
+I can rewrite this commit log if you think it is faster.
+
+> > 
+> > Cc: Pankaj Bansal <pankaj.bansal@nxp.com>
+> > Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+> > ---
+> > 
+> > RFC->v1:
+> > - Print warning when matched the workaround info, suggested by Pankaj.
+> > 
+> >   drivers/acpi/arm64/iort.c | 55 ++++++++++++++++++++++++++++++++++++++++++++---
+> >   1 file changed, 52 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index 33f7198..60eb10d 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -298,6 +298,42 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+> >   	return status;
+> >   }
+> > +struct iort_workaround_oem_info {
+> > +	char oem_id[ACPI_OEM_ID_SIZE + 1];
+> > +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+> > +	u32 oem_revision;
+> > +};
+> > +
+> > +static bool apply_id_count_workaround;
+> > +
+> > +static struct iort_workaround_oem_info wa_info[] __initdata = {
+> > +	{
+> > +		.oem_id		= "HISI  ",
+> > +		.oem_table_id	= "HIP07   ",
+> > +		.oem_revision	= 0,
+> > +	}, {
+> > +		.oem_id		= "HISI  ",
+> > +		.oem_table_id	= "HIP08   ",
+> > +		.oem_revision	= 0,
+> > +	}
+> > +};
+> > +
+> > +static void __init
+> > +iort_check_id_count_workaround(struct acpi_table_header *tbl)
+> > +{
+> > +	int i;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(wa_info); i++) {
+> > +		if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
+> > +		    !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
+> > +		    wa_info[i].oem_revision == tbl->oem_revision) {
+> > +			apply_id_count_workaround = true;
+> > +			pr_warn(FW_BUG "ID count for ID mapping entry is wrong, applying workaround\n");
+> > +			break;
+> > +		}
+> > +	}
+> > +}
+> > +
+> >   static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+> >   		       u32 *rid_out)
+> >   {
+> > @@ -314,9 +350,21 @@ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+> >   		return -ENXIO;
+> >   	}
+> > -	if (rid_in < map->input_base ||
+> > -	    (rid_in >= map->input_base + map->id_count))
+> > -		return -ENXIO;
+> > +	/*
+> > +	 * IORT spec says Number of IDs = The number of IDs in the range minus
+
+Section, page, table number please, "IORT spec says" is too vague.
+
+> > +	 * one, but the IORT code ingored the "minus one", and some firmware
+
+s/ingored/ignored/
+
+> > +	 * did that too, so apply a workaround here to keep compatible with
+> > +	 * both new and old versions of the firmware.
+
+It is not "new" vs "old" it is spec compliant vs non-spec compliant.
+
+> > +	 */
+> > +	if (apply_id_count_workaround) {
+> > +		if (rid_in < map->input_base ||
+> > +			(rid_in >= map->input_base + map->id_count))
+> > +			return -ENXIO;
+> > +	} else {
+> > +		if (rid_in < map->input_base ||
+> > +			(rid_in > map->input_base + map->id_count))
+> > +			return -ENXIO;
+> > +	}
+> 
+> This seems needlessly repetitive and convoluted... how about refactoring to
+> something like:
+
++1
+
+> 
+> 	map_max = map->input_base + map->id_count;
+> 	if (apply_id_count_workaround)
+> 		map_max--;
+
+You can even turn it into an inline function (ie iort_get_map_max())
+with the comment above in it so that the quirk is isolated instead
+of having it in the middle of iort_id_map().
+
+I am fine either way. We need test coverage since I feel this may
+break a number of systems (ie I don't think it should be merged as
+a fix).
+
+Lorenzo
