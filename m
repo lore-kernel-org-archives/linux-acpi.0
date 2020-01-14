@@ -2,46 +2,44 @@ Return-Path: <SRS0=gnzp=3D=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3817DC3F68F
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jan 2020 15:25:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 026B7C33CB1
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jan 2020 15:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 02AB524686
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jan 2020 15:25:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA3532467E
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jan 2020 15:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579015548;
-	bh=lCzT2r10t8tKjNMq10HvvXZufirJmV3nQEiebEYP3gc=;
+	s=default; t=1579016415;
+	bh=Scmn4FCA0QfCQbkxnkpuG+cd4jIF88weR9x4vuOXxyY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=HfgiYNqpPbCgLgaxG909pMapNwE+sLDoHVU5TeFn0B76ntgxZcAcDS/cdsDuagUco
-	 M7fJTZv9sIBz4cMeRGQM92HRIJXBq1MDdLbBNtkhV0f4rzjyW4tWbq+V5Ha3ODguca
-	 O7QILA8X2YC1o4yzkF0vAB22jBw6RYZTZPNikcJQ=
+	b=buN3a/DoFmkgxxLuq38+25bi41rSpk01aQCRf7w/JWcntiIOes/qLBeZQojpMM5Gt
+	 6ZpbyxWvAye7k/SnfX03cndokAUBNSAs0ZZvaA7ZMTAtwz2EPQ3kZkNtDfahJ5GM/H
+	 ojvB/iOMFLe9cywjE9fgjk+GpeLzwUX3mWSmGueI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726839AbgANPZr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Jan 2020 10:25:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43950 "EHLO mail.kernel.org"
+        id S1728656AbgANPkP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Jan 2020 10:40:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35858 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725904AbgANPZq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 14 Jan 2020 10:25:46 -0500
+        id S1727102AbgANPkP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Jan 2020 10:40:15 -0500
 Received: from willie-the-truck (236.31.169.217.in-addr.arpa [217.169.31.236])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 945E02072B;
-        Tue, 14 Jan 2020 15:25:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0347B24672;
+        Tue, 14 Jan 2020 15:40:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579015545;
-        bh=lCzT2r10t8tKjNMq10HvvXZufirJmV3nQEiebEYP3gc=;
+        s=default; t=1579016414;
+        bh=Scmn4FCA0QfCQbkxnkpuG+cd4jIF88weR9x4vuOXxyY=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=RkN7x9BHeMRrLPT+H/Vs2eAvyxwdMCtxWZmirmotOXrXKM50Xkbz2VUrqG8FcVImK
-         P8szE3NrMlFvQuC5m4VfQX6pJmIKvCFzay0rFPkLwzHVZLgYMzftKk7hUjTc4jYYru
-         GRgHe2lPXAh9kwyaBFQssQ72gTeD94bIFnjasRYo=
-Date:   Tue, 14 Jan 2020 15:25:39 +0000
+        b=gFNR/cA6IMsPOxcO2Es5EXCXzP/RoXRHPogu0/vZloph2th4hE/fDSssbR+DDMqFX
+         FarFFXlJyEiW6iDxZ/CBxreszI3AyzmBT3DlXxlqs6qtCGkxpyfcRBSswoLsp0yaQq
+         TeZJQV80X6NjbqmlAA/eCgQBDxHaMD0xYA+EiYNU=
+Date:   Tue, 14 Jan 2020 15:40:07 +0000
 From:   Will Deacon <will@kernel.org>
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        robin.murphy@arm.com
+To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
 Cc:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
         iommu@lists.linux-foundation.org, joro@8bytes.org,
@@ -50,111 +48,73 @@ Cc:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
         robin.murphy@arm.com, bhelgaas@google.com, eric.auger@redhat.com,
         jonathan.cameron@huawei.com, zhangfei.gao@linaro.org
-Subject: Re: [PATCH v4 11/13] iommu/arm-smmu-v3: Improve add_device() error
- handling
-Message-ID: <20200114152538.GB2579@willie-the-truck>
+Subject: Re: [PATCH v4 00/13] iommu: Add PASID support to Arm SMMUv3
+Message-ID: <20200114154007.GC2579@willie-the-truck>
 References: <20191219163033.2608177-1-jean-philippe@linaro.org>
- <20191219163033.2608177-12-jean-philippe@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191219163033.2608177-12-jean-philippe@linaro.org>
+In-Reply-To: <20191219163033.2608177-1-jean-philippe@linaro.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Dec 19, 2019 at 05:30:31PM +0100, Jean-Philippe Brucker wrote:
-> Let add_device() clean up after itself. The iommu_bus_init() function
-> does call remove_device() on error, but other sites (e.g. of_iommu) do
-> not.
+On Thu, Dec 19, 2019 at 05:30:20PM +0100, Jean-Philippe Brucker wrote:
+> Add support for Substream ID and PASIDs to the SMMUv3 driver. Since v3
+> [1], I added review and tested tags where appropriate and applied the
+> suggested changes, shown in the diff below. Thanks all!
 > 
-> Don't free level-2 stream tables because we'd have to track if we
-> allocated each of them or if they are used by other endpoints. It's not
-> worth the hassle since they are managed resources.
+> I'm testing using the zip accelerator on the Hisilicon KunPeng920 and
+> Zhangfei's uacce module [2]. The full SVA support, which I'll send out
+> early next year, is available on my branch sva/zip-devel at
+> https://jpbrucker.net/git/linux/
 > 
-> Reviewed-by: Eric Auger <eric.auger@redhat.com>
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
-> ---
->  drivers/iommu/arm-smmu-v3.c | 28 +++++++++++++++++++++-------
->  1 file changed, 21 insertions(+), 7 deletions(-)
+> [1] https://lore.kernel.org/linux-iommu/20191209180514.272727-1-jean-philippe@linaro.org/
+> [2] https://lore.kernel.org/linux-iommu/1576465697-27946-1-git-send-email-zhangfei.gao@linaro.org/
+> 
+> Jean-Philippe Brucker (13):
+>   iommu/arm-smmu-v3: Drop __GFP_ZERO flag from DMA allocation
+>   dt-bindings: document PASID property for IOMMU masters
+>   iommu/arm-smmu-v3: Parse PASID devicetree property of platform devices
+>   ACPI/IORT: Parse SSID property of named component node
+>   iommu/arm-smmu-v3: Prepare arm_smmu_s1_cfg for SSID support
+>   iommu/arm-smmu-v3: Add context descriptor tables allocators
+>   iommu/arm-smmu-v3: Add support for Substream IDs
+>   iommu/arm-smmu-v3: Propagate ssid_bits
+>   iommu/arm-smmu-v3: Prepare for handling arm_smmu_write_ctx_desc()
+>     failure
+>   iommu/arm-smmu-v3: Add second level of context descriptor table
+>   iommu/arm-smmu-v3: Improve add_device() error handling
+>   PCI/ATS: Add PASID stubs
+>   iommu/arm-smmu-v3: Add support for PCI PASID
+> 
+>  .../devicetree/bindings/iommu/iommu.txt       |   6 +
+>  drivers/acpi/arm64/iort.c                     |  18 +
+>  drivers/iommu/arm-smmu-v3.c                   | 467 +++++++++++++++---
+>  drivers/iommu/of_iommu.c                      |   6 +-
+>  include/linux/iommu.h                         |   2 +
+>  include/linux/pci-ats.h                       |   3 +
+>  6 files changed, 442 insertions(+), 60 deletions(-)
 
-I think this is alright, with one caveat relating to:
+This is close, and I've replied to all of the patches I have comments on.
+To summarise:
 
+  1-5	I could queue these now
+  6	I can make the small change we discussed
+  7	I can make the changes if you agree (but I'd prefer you to change to
+  	batch submission since I can't test this)
+  8	Good to go once above is solved
+  9	Need your opinion
+  10	Some refactoring needed (sorry)
+  11	Needs Robin's input
+  12	Good to go once above is solved
+  13	Need clarification on PCIe behaviour from you
 
-	/*
-	 * We _can_ actually withstand dodgy bus code re-calling add_device()
-	 * without an intervening remove_device()/of_xlate() sequence, but
-	 * we're not going to do so quietly...
-	 */
-	if (WARN_ON_ONCE(fwspec->iommu_priv)) {
-		master = fwspec->iommu_priv;
-		smmu = master->smmu;
-	} ...
+In other words, I could probably take the first 8 or 9 patches for 5.6 if
+you can resolve those issues asap.
 
-
-which may be on shakey ground if the subsequent add_device() call can fail
-and free stuff that the first one allocated. At least, I don't know what
-we're trying to support with this, so it's hard to tell whether or not it
-still works as intended after your change.
-
-How is this supposed to work? I don't recall ever seeing that WARN fire,
-so can we just remove this and bail instead? Robin?
-
-Something like below before your changes...
+Cheers,
 
 Will
-
---->8
-
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index effe72eb89e7..6ae3df2f3495 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -2534,28 +2534,23 @@ static int arm_smmu_add_device(struct device *dev)
- 
- 	if (!fwspec || fwspec->ops != &arm_smmu_ops)
- 		return -ENODEV;
--	/*
--	 * We _can_ actually withstand dodgy bus code re-calling add_device()
--	 * without an intervening remove_device()/of_xlate() sequence, but
--	 * we're not going to do so quietly...
--	 */
--	if (WARN_ON_ONCE(fwspec->iommu_priv)) {
--		master = fwspec->iommu_priv;
--		smmu = master->smmu;
--	} else {
--		smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
--		if (!smmu)
--			return -ENODEV;
--		master = kzalloc(sizeof(*master), GFP_KERNEL);
--		if (!master)
--			return -ENOMEM;
- 
--		master->dev = dev;
--		master->smmu = smmu;
--		master->sids = fwspec->ids;
--		master->num_sids = fwspec->num_ids;
--		fwspec->iommu_priv = master;
--	}
-+	if (WARN_ON_ONCE(fwspec->iommu_priv))
-+		return -EBUSY;
-+
-+	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
-+	if (!smmu)
-+		return -ENODEV;
-+
-+	master = kzalloc(sizeof(*master), GFP_KERNEL);
-+	if (!master)
-+		return -ENOMEM;
-+
-+	master->dev = dev;
-+	master->smmu = smmu;
-+	master->sids = fwspec->ids;
-+	master->num_sids = fwspec->num_ids;
-+	fwspec->iommu_priv = master;
- 
- 	/* Check the SIDs are in range of the SMMU and our stream table */
- 	for (i = 0; i < master->num_sids; i++) {
