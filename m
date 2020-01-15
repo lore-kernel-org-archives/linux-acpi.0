@@ -4,56 +4,56 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 738EBC35240
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 12:53:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9EDFC3F68F
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 12:53:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D4122465A
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 12:53:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C063C206D7
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 12:53:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="dHOXOKHo"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="pq6uZQps"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729093AbgAOMxn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 Jan 2020 07:53:43 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:33574 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729081AbgAOMxm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2020 07:53:42 -0500
-Received: by mail-wm1-f65.google.com with SMTP id d139so4707759wmd.0
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Jan 2020 04:53:41 -0800 (PST)
+        id S1729077AbgAOMxk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 Jan 2020 07:53:40 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:34059 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728988AbgAOMxj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2020 07:53:39 -0500
+Received: by mail-wm1-f66.google.com with SMTP id w5so4684892wmi.1
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Jan 2020 04:53:37 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=k0PTgEa8Z2EtxKNp+bXlU3gMIeIQMMd4dvAJJmx7ucE=;
-        b=dHOXOKHoTxItty8Q5696Mr+qbLuMsFa+MTSqKPLipIvl2oTCGz6ML1mpeZ/hKlDF/w
-         0zv4zm331wgT2+KoHIxNr0EbnRGGQsLvPJyytnYPhCnUUDZJbkaemFEkNnu+UetF8/hv
-         V63rc3osvZrEsMSG1CYkzOLHHYC2msMAlTjspE9QoVjnwGTB+KftSreLBNSx3XxcNWWz
-         7qWRy0hn5i3tRV6yEIj4f9s5mv4xFHEO4sLGFIYhAVyLWiQK84QoCPspbr09hIqHacJb
-         keyJbpDsHaUOhTQQceVDxe4Do+EaZFZskEG7KV/7urpQlMM39SamhpMjxm3wKwlF46iZ
-         BDDA==
+        bh=VkGjwbrGa1wrMcO/KHo5uF2vFnVmce44IDO/Kf1WvcM=;
+        b=pq6uZQpsX3gU3Tcd0g31MBx+lVvCLRX8nZbjge2zbaX0o40wceneHPuMBzBFtJbnQL
+         rUphD/LvuXhsWoPi1Og8NoDIG7QjYbtE3v8hHk2uxTgndgP2lfnwgtXQ+UZsMAzgPKNE
+         6wxRLnJXPFcRyy2v8Krf7yS5doZHoY6lsNnNvZDBYlAoiS23SYnwL89liofvY0J2F/AX
+         ZYOl+WxomfHZtKAsdCpkAaCuyZSIRGodHQmCd7TdNUhI+LGOanQE085hqGg/w3JJ2o0b
+         I1QBD0/XrJyW23s8DR7txRnM8g1bWYQkQEz7aKlLGCKfhG3uLoGTHeVG9WQmgfSvDZbH
+         jWxw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=k0PTgEa8Z2EtxKNp+bXlU3gMIeIQMMd4dvAJJmx7ucE=;
-        b=ITVr3LftjVsvsnOVn6uQr6/vW/KnsudtAKCvfWk8xoPcGDRPW/F+AbUKy5/19atdI6
-         geyBtw4Tm5GQp39bO6/AHlXdq4Kg0d5M/4dUlT9if5pLKQbfTQco+IJIpFuXlK8TEYJt
-         RuBSpazIhMRuO0XA02XAv8D1Acz1GIgbzqLdf3sDqey3ZVwU6059tYp/6Dtl3TF1ZCR9
-         4hi4yiezLeEYpi3VvkQVprWT609l+3AuezMQalyWENlCIUM+NyD5G82Bgx8Kp2z/kevS
-         7PkeGqofNk6iBwAS/A4DtMMoo6//c2leMeFFA7IH6jPx2A8PK4uhkp6nY8161hjqDfYN
-         m0Hw==
-X-Gm-Message-State: APjAAAXVU2w4d8NaRNZXxVytIAmWiTHWIQIm1u749IldgHLNcQNkGUHi
-        rcoxHFFaPfzkfjbgervpafKthQ==
-X-Google-Smtp-Source: APXvYqw9Mt6OhEbO1QMqXTowh5t7SCfN3PgnBvH6KOJ1spMG2hboA0nCSsAfuEDMtgnKjfCtqj0iOg==
-X-Received: by 2002:a7b:c3d7:: with SMTP id t23mr34564949wmj.33.1579092821258;
-        Wed, 15 Jan 2020 04:53:41 -0800 (PST)
+        bh=VkGjwbrGa1wrMcO/KHo5uF2vFnVmce44IDO/Kf1WvcM=;
+        b=WS3B/XZBdK5ucO2GDC+aKLOMZ54JH9dr+ppgbOrKBxXSrcCJEzp923I58gqY+yBkLd
+         YhgG81D/MG+Gj4izQLAzb2IVuRiZZL0D6QqEL32r+C+rIjqSt+1Kny3p8Xb7hTcG+qd2
+         xbxeIHe7MpukvuOjMYqVogJU/MbyR88qHpn25C3b5/fRtXASHg3KgyrwYMJueX1a1NQZ
+         68EgOb/Ks5ohfz5YD9mOHUJleLWT3JaBDqXpmcHT0daGudWWGScm3ZoXCdAcmNJpCvGW
+         EzmvsqNErZB1pIt4wFBofk+lJENFSQLxs073+2SXivVoBf/CNfONBPzel81TC67S/Oih
+         r1vw==
+X-Gm-Message-State: APjAAAWH9/MQDwGgSLnReQ7UYcsMzVAIJjxeRv7KpEiQz5LxUesIg0b8
+        C+LgQZ+Lies9GgbBrllh9Yz90Q==
+X-Google-Smtp-Source: APXvYqxppRXM7W0rog1akfsKD1HDFU2AmK5typwsSWE2NQJlIYz8KU9v6BH6h5H2FeKoNTAxdXO+4Q==
+X-Received: by 2002:a1c:7d8b:: with SMTP id y133mr32316515wmc.165.1579092816792;
+        Wed, 15 Jan 2020 04:53:36 -0800 (PST)
 Received: from localhost.localdomain ([2001:171b:2266:ba60:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id d12sm25196171wrp.62.2020.01.15.04.53.40
+        by smtp.gmail.com with ESMTPSA id d12sm25196171wrp.62.2020.01.15.04.53.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Jan 2020 04:53:40 -0800 (PST)
+        Wed, 15 Jan 2020 04:53:36 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
@@ -63,9 +63,9 @@ Cc:     joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com,
         sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
         robin.murphy@arm.com, bhelgaas@google.com, eric.auger@redhat.com,
         jonathan.cameron@huawei.com, zhangfei.gao@linaro.org
-Subject: [PATCH v5 12/13] PCI/ATS: Add PASID stubs
-Date:   Wed, 15 Jan 2020 13:52:38 +0100
-Message-Id: <20200115125239.136759-13-jean-philippe@linaro.org>
+Subject: [PATCH v5 08/13] iommu/arm-smmu-v3: Propagate ssid_bits
+Date:   Wed, 15 Jan 2020 13:52:34 +0100
+Message-Id: <20200115125239.136759-9-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200115125239.136759-1-jean-philippe@linaro.org>
 References: <20200115125239.136759-1-jean-philippe@linaro.org>
@@ -76,33 +76,107 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The SMMUv3 driver, which may be built without CONFIG_PCI, will soon gain
-PASID support.  Partially revert commit c6e9aefbf9db ("PCI/ATS: Remove
-unused PRI and PASID stubs") to re-introduce the PASID stubs, and avoid
-adding more #ifdefs to the SMMU driver.
+Now that we support substream IDs, initialize s1cdmax with the number of
+SSID bits supported by a master and the SMMU.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Context descriptor tables are allocated once for the first master
+attached to a domain. Therefore attaching multiple devices with
+different SSID sizes is tricky, and we currently don't support it.
+
+As a future improvement it would be nice to at least support attaching a
+SSID-capable device to a domain that isn't using SSID, by reallocating
+the SSID table. This would allow supporting a SSID-capable device that
+is in the same IOMMU group as a bridge, for example. Varying SSID size
+is less of a concern, since the PCIe specification "highly recommends"
+that devices supporting PASID implement all 20 bits of it.
+
+Tested-by: Zhangfei Gao <zhangfei.gao@linaro.org>
 Reviewed-by: Eric Auger <eric.auger@redhat.com>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- include/linux/pci-ats.h | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/iommu/arm-smmu-v3.c | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/pci-ats.h b/include/linux/pci-ats.h
-index 5d62e78946a3..d08f0869f121 100644
---- a/include/linux/pci-ats.h
-+++ b/include/linux/pci-ats.h
-@@ -33,6 +33,9 @@ void pci_disable_pasid(struct pci_dev *pdev);
- int pci_pasid_features(struct pci_dev *pdev);
- int pci_max_pasids(struct pci_dev *pdev);
- #else /* CONFIG_PCI_PASID */
-+static inline int pci_enable_pasid(struct pci_dev *pdev, int features)
-+{ return -EINVAL; }
-+static inline void pci_disable_pasid(struct pci_dev *pdev) { }
- static inline int pci_pasid_features(struct pci_dev *pdev)
- { return -EINVAL; }
- static inline int pci_max_pasids(struct pci_dev *pdev)
+diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+index 6ab0e93518f6..7b7dea596f60 100644
+--- a/drivers/iommu/arm-smmu-v3.c
++++ b/drivers/iommu/arm-smmu-v3.c
+@@ -2277,6 +2277,7 @@ static void arm_smmu_domain_free(struct iommu_domain *domain)
+ }
+ 
+ static int arm_smmu_domain_finalise_s1(struct arm_smmu_domain *smmu_domain,
++				       struct arm_smmu_master *master,
+ 				       struct io_pgtable_cfg *pgtbl_cfg)
+ {
+ 	int ret;
+@@ -2288,6 +2289,8 @@ static int arm_smmu_domain_finalise_s1(struct arm_smmu_domain *smmu_domain,
+ 	if (asid < 0)
+ 		return asid;
+ 
++	cfg->s1cdmax = master->ssid_bits;
++
+ 	ret = arm_smmu_alloc_cd_tables(smmu_domain);
+ 	if (ret)
+ 		goto out_free_asid;
+@@ -2304,6 +2307,7 @@ static int arm_smmu_domain_finalise_s1(struct arm_smmu_domain *smmu_domain,
+ }
+ 
+ static int arm_smmu_domain_finalise_s2(struct arm_smmu_domain *smmu_domain,
++				       struct arm_smmu_master *master,
+ 				       struct io_pgtable_cfg *pgtbl_cfg)
+ {
+ 	int vmid;
+@@ -2320,7 +2324,8 @@ static int arm_smmu_domain_finalise_s2(struct arm_smmu_domain *smmu_domain,
+ 	return 0;
+ }
+ 
+-static int arm_smmu_domain_finalise(struct iommu_domain *domain)
++static int arm_smmu_domain_finalise(struct iommu_domain *domain,
++				    struct arm_smmu_master *master)
+ {
+ 	int ret;
+ 	unsigned long ias, oas;
+@@ -2328,6 +2333,7 @@ static int arm_smmu_domain_finalise(struct iommu_domain *domain)
+ 	struct io_pgtable_cfg pgtbl_cfg;
+ 	struct io_pgtable_ops *pgtbl_ops;
+ 	int (*finalise_stage_fn)(struct arm_smmu_domain *,
++				 struct arm_smmu_master *,
+ 				 struct io_pgtable_cfg *);
+ 	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+ 	struct arm_smmu_device *smmu = smmu_domain->smmu;
+@@ -2382,7 +2388,7 @@ static int arm_smmu_domain_finalise(struct iommu_domain *domain)
+ 	domain->geometry.aperture_end = (1UL << pgtbl_cfg.ias) - 1;
+ 	domain->geometry.force_aperture = true;
+ 
+-	ret = finalise_stage_fn(smmu_domain, &pgtbl_cfg);
++	ret = finalise_stage_fn(smmu_domain, master, &pgtbl_cfg);
+ 	if (ret < 0) {
+ 		free_io_pgtable_ops(pgtbl_ops);
+ 		return ret;
+@@ -2535,7 +2541,7 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 
+ 	if (!smmu_domain->smmu) {
+ 		smmu_domain->smmu = smmu;
+-		ret = arm_smmu_domain_finalise(domain);
++		ret = arm_smmu_domain_finalise(domain, master);
+ 		if (ret) {
+ 			smmu_domain->smmu = NULL;
+ 			goto out_unlock;
+@@ -2547,6 +2553,13 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 			dev_name(smmu->dev));
+ 		ret = -ENXIO;
+ 		goto out_unlock;
++	} else if (smmu_domain->stage == ARM_SMMU_DOMAIN_S1 &&
++		   master->ssid_bits != smmu_domain->s1_cfg.s1cdmax) {
++		dev_err(dev,
++			"cannot attach to incompatible domain (%u SSID bits != %u)\n",
++			smmu_domain->s1_cfg.s1cdmax, master->ssid_bits);
++		ret = -EINVAL;
++		goto out_unlock;
+ 	}
+ 
+ 	master->domain = smmu_domain;
 -- 
 2.24.1
 
