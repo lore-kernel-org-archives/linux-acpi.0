@@ -2,257 +2,109 @@ Return-Path: <SRS0=E2Kn=3E=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0DC7C33CB6
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 11:02:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A329C33CB6
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 12:53:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 96D6F2187F
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 11:02:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F34E12467A
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jan 2020 12:53:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="RQa6zVa9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729917AbgAOLCT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 Jan 2020 06:02:19 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:9619 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726165AbgAOLCT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Jan 2020 06:02:19 -0500
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 3D2CCD257A05CF6B5267;
-        Wed, 15 Jan 2020 19:02:16 +0800 (CST)
-Received: from DESKTOP-6T4S3DQ.china.huawei.com (10.202.226.55) by
- DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 15 Jan 2020 19:02:04 +0800
-From:   Shiju Jose <shiju.jose@huawei.com>
-To:     <linux-acpi@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <rjw@rjwysocki.net>,
-        <lenb@kernel.org>, <bp@alien8.de>, <james.morse@arm.com>,
-        <tony.luck@intel.com>, <gregkh@linuxfoundation.org>,
-        <zhangliguang@linux.alibaba.com>, <tglx@linutronix.de>
-CC:     <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-        <tanxiaofei@huawei.com>, <yangyicong@hisilicon.com>,
-        Shiju Jose <shiju.jose@huawei.com>
-Subject: [RFC PATCH 1/2] ACPI: APEI: Add support to notify the vendor specific HW errors
-Date:   Wed, 15 Jan 2020 11:01:39 +0000
-Message-ID: <20200115110141.12300-2-shiju.jose@huawei.com>
-X-Mailer: git-send-email 2.19.2.windows.1
-In-Reply-To: <20200115110141.12300-1-shiju.jose@huawei.com>
-References: <Shiju Jose>
- <20200115110141.12300-1-shiju.jose@huawei.com>
+        id S1726552AbgAOMxb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 Jan 2020 07:53:31 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:43936 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728895AbgAOMxb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2020 07:53:31 -0500
+Received: by mail-wr1-f67.google.com with SMTP id d16so15623892wre.10
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Jan 2020 04:53:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=+Rlh4fuYqJBRp2jOU8B0MlV1M4d0Kd3bn04JlNplJUI=;
+        b=RQa6zVa9SRTjAkDpWaeNQ+TzHNaqSmjwUNjLiSStgQQFU8m1OhdHW06usASKfswEOm
+         ekBnCK32y0eGel6xTuDdUakkQQN3qPA3G8RZ2bB2/vEsRD4EoWf2rDFY7CHKqlFY4vh0
+         QQFCA9QYc73ULV1UlWEobvL9/no+9Vz/XZYY2Tj674ONdjmt9oZZufAB1mBcKnbhBt2q
+         4ZyVannnpIUGVhmPOs8HxT18d9vQXPh7dxHC9oOgWg1bO+r8Uh6hZp5mpAIPltKup6q6
+         726G40en2MsW4RUUOKkrDY94g3Urf6AAlYT9SgfBjoDblDCkp9GNBhcmObIfka7aytXi
+         sROw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=+Rlh4fuYqJBRp2jOU8B0MlV1M4d0Kd3bn04JlNplJUI=;
+        b=j0S+RtH5vR6JGOtIOwULOStnSpqVsK8rOY0Bo2YaZ6PLbZNeUm5zqPiYiuXWkdl3Q6
+         TFftpf8Tv4Vc1yw6DYz7nvModVUWcp2I8BIuY/RTJXoY7DPUEDIW8FoNd6ST/F7QXEEX
+         uoLQ/IaNo8wZRxxA/KB6wXmwR0g+aZPA6FE95K0mUFornBi8w3ksGfgf7c4jad4Xsutc
+         yyU9oehvSDMD26qSQi6qmk7KDJnqat7PbDW+Yt0EKn7T6tUk2xYs/cIsjW/fmJfitl0v
+         f9gfBMeA1JMyNTUBjj6qDpTFZAb7PNzoHRGLdlk0pURrTZQETrirpWsvvfhRKhwOJx/7
+         YCXA==
+X-Gm-Message-State: APjAAAWUTLiycSYwFmD6t2gB/uSYENF4p+Tbe/di2gTcUS+QorA/g0s6
+        P90CVFx2UP++pHmKtgBhhkmWyQ==
+X-Google-Smtp-Source: APXvYqzMgS/+4YiEL+CRzGGcAhTGiJstPbrqmMFBjWd9wKtGLhNavA3EcOaksZRO/N8Ru4NFTMuSgQ==
+X-Received: by 2002:a05:6000:118d:: with SMTP id g13mr32846130wrx.141.1579092809778;
+        Wed, 15 Jan 2020 04:53:29 -0800 (PST)
+Received: from localhost.localdomain ([2001:171b:2266:ba60:116c:c27a:3e7f:5eaf])
+        by smtp.gmail.com with ESMTPSA id d12sm25196171wrp.62.2020.01.15.04.53.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Jan 2020 04:53:29 -0800 (PST)
+From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
+To:     linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        iommu@lists.linux-foundation.org, will@kernel.org
+Cc:     joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
+        sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
+        robin.murphy@arm.com, bhelgaas@google.com, eric.auger@redhat.com,
+        jonathan.cameron@huawei.com, zhangfei.gao@linaro.org
+Subject: [PATCH v5 02/13] dt-bindings: document PASID property for IOMMU masters
+Date:   Wed, 15 Jan 2020 13:52:28 +0100
+Message-Id: <20200115125239.136759-3-jean-philippe@linaro.org>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200115125239.136759-1-jean-philippe@linaro.org>
+References: <20200115125239.136759-1-jean-philippe@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.202.226.55]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Presently APEI does not support reporting the vendor specific
-HW errors, received in the vendor defined table entries, to the
-vendor drivers for any recovery.
+On Arm systems, some platform devices behind an SMMU may support the PASID
+feature, which offers multiple address space. Let the firmware tell us
+when a device supports PASID.
 
-This patch adds the support to register and unregister the
-error handling function for the vendor specific HW errors and
-notify the registered kernel driver.
-
-Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+Reviewed-by: Eric Auger <eric.auger@redhat.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- drivers/acpi/apei/ghes.c | 110 ++++++++++++++++++++++++++++++++++++++++++++---
- include/acpi/ghes.h      |  49 +++++++++++++++++++++
- 2 files changed, 154 insertions(+), 5 deletions(-)
+ Documentation/devicetree/bindings/iommu/iommu.txt | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 8906c80..3ba43b0 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -490,6 +490,103 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- #endif
- }
+diff --git a/Documentation/devicetree/bindings/iommu/iommu.txt b/Documentation/devicetree/bindings/iommu/iommu.txt
+index 5a8b4624defc..3c36334e4f94 100644
+--- a/Documentation/devicetree/bindings/iommu/iommu.txt
++++ b/Documentation/devicetree/bindings/iommu/iommu.txt
+@@ -86,6 +86,12 @@ have a means to turn off translation. But it is invalid in such cases to
+ disable the IOMMU's device tree node in the first place because it would
+ prevent any driver from properly setting up the translations.
  
-+struct ghes_event_notify {
-+	struct list_head list;
-+	struct rcu_head	rcu_head;
-+	guid_t sec_type; /* guid of the error record */
-+	ghes_event_handler_t event_handler; /* event handler function */
-+	void *data; /* handler driver's private data if any */
-+};
++Optional properties:
++--------------------
++- pasid-num-bits: Some masters support multiple address spaces for DMA, by
++  tagging DMA transactions with an address space identifier. By default,
++  this is 0, which means that the device only has one address space.
 +
-+/* List to store the registered event handling functions */
-+static DEFINE_MUTEX(ghes_event_notify_mutex);
-+static LIST_HEAD(ghes_event_handler_list);
-+
-+/**
-+ * ghes_register_event_handler - register an event handling
-+ * function for the non-fatal HW errors.
-+ * @sec_type: sec_type of the corresponding CPER to be notified.
-+ * @event_handler: pointer to the error handling function.
-+ * @data: handler driver's private data.
-+ *
-+ * return 0 : SUCCESS, non-zero : FAIL
-+ */
-+int ghes_register_event_handler(guid_t sec_type,
-+				ghes_event_handler_t event_handler,
-+				void *data)
-+{
-+	struct ghes_event_notify *event_notify;
-+
-+	event_notify = kzalloc(sizeof(*event_notify), GFP_KERNEL);
-+	if (!event_notify)
-+		return -ENOMEM;
-+
-+	event_notify->event_handler = event_handler;
-+	guid_copy(&event_notify->sec_type, &sec_type);
-+	event_notify->data = data;
-+
-+	mutex_lock(&ghes_event_notify_mutex);
-+	list_add_rcu(&event_notify->list, &ghes_event_handler_list);
-+	mutex_unlock(&ghes_event_notify_mutex);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ghes_register_event_handler);
-+
-+/**
-+ * ghes_unregister_event_handler - unregister the previously
-+ * registered event handling function.
-+ * @sec_type: sec_type of the corresponding CPER.
-+ */
-+void ghes_unregister_event_handler(guid_t sec_type)
-+{
-+	struct ghes_event_notify *event_notify;
-+	bool found = false;
-+
-+	mutex_lock(&ghes_event_notify_mutex);
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(event_notify,
-+				&ghes_event_handler_list, list) {
-+		if (guid_equal(&event_notify->sec_type, &sec_type)) {
-+			list_del_rcu(&event_notify->list);
-+			found = true;
-+			break;
-+		}
-+	}
-+	rcu_read_unlock();
-+	mutex_unlock(&ghes_event_notify_mutex);
-+
-+	if (!found) {
-+		pr_err("Tried to unregister a GHES event handler that has not been registered\n");
-+		return;
-+	}
-+
-+	synchronize_rcu();
-+	kfree(event_notify);
-+}
-+EXPORT_SYMBOL_GPL(ghes_unregister_event_handler);
-+
-+static int ghes_handle_non_standard_event(guid_t *sec_type,
-+	struct acpi_hest_generic_data *gdata, int sev)
-+{
-+	struct ghes_event_notify *event_notify;
-+	bool found = false;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(event_notify,
-+				&ghes_event_handler_list, list) {
-+		if (guid_equal(&event_notify->sec_type, sec_type)) {
-+			event_notify->event_handler(gdata, sev,
-+						    event_notify->data);
-+			found = true;
-+			break;
-+		}
-+	}
-+	rcu_read_unlock();
-+
-+	return found;
-+}
-+
- static void ghes_do_proc(struct ghes *ghes,
- 			 const struct acpi_hest_generic_status *estatus)
- {
-@@ -525,11 +622,14 @@ static void ghes_do_proc(struct ghes *ghes,
  
- 			log_arm_hw_error(err);
- 		} else {
--			void *err = acpi_hest_get_payload(gdata);
--
--			log_non_standard_event(sec_type, fru_id, fru_text,
--					       sec_sev, err,
--					       gdata->error_data_length);
-+			if (!ghes_handle_non_standard_event(sec_type, gdata,
-+							    sev)) {
-+				void *err = acpi_hest_get_payload(gdata);
-+
-+				log_non_standard_event(sec_type, fru_id,
-+						       fru_text, sec_sev, err,
-+						       gdata->error_data_length);
-+			}
- 		}
- 	}
- }
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index e3f1cdd..2564860 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -50,6 +50,55 @@ enum {
- 	GHES_SEV_PANIC = 0x3,
- };
- 
-+/**
-+ * typedef ghes_event_handler_t - event handling function
-+ * for the non-fatal HW errors.
-+ *
-+ * @gdata: acpi_hest_generic_data.
-+ * @sev: error severity of the entire error event defined in the
-+ *       ACPI spec table generic error status block.
-+ * @data: handler driver's private data.
-+ *
-+ * The error handling function is responsible for logging error and
-+ * this function would be called in the interrupt context.
-+ */
-+typedef void (*ghes_event_handler_t)(struct acpi_hest_generic_data *gdata,
-+				     int sev, void *data);
-+
-+#ifdef CONFIG_ACPI_APEI_GHES
-+/**
-+ * ghes_register_event_handler - register an event handling
-+ * function for the non-fatal HW errors.
-+ * @sec_type: sec_type of the corresponding CPER to be notified.
-+ * @event_handler: pointer to the event handling function.
-+ * @data: handler driver's private data.
-+ *
-+ * Return : 0 - SUCCESS, non-zero - FAIL.
-+ */
-+int ghes_register_event_handler(guid_t sec_type,
-+				ghes_event_handler_t event_handler,
-+				void *data);
-+
-+/**
-+ * ghes_unregister_event_handler - unregister the previously
-+ * registered event handling function.
-+ * @sec_type: sec_type of the corresponding CPER.
-+ */
-+void ghes_unregister_event_handler(guid_t sec_type);
-+
-+#else
-+int ghes_register_event_handler(guid_t sec_type,
-+				ghes_event_handler_t event_handler,
-+				void *data)
-+{
-+	return -ENODEV;
-+}
-+
-+void ghes_unregister_event_handler(guid_t sec_type)
-+{
-+}
-+#endif
-+
- int ghes_estatus_pool_init(int num_ghes);
- 
- /* From drivers/edac/ghes_edac.c */
+ Notes:
+ ======
 -- 
-1.9.1
-
+2.24.1
 
