@@ -2,109 +2,161 @@ Return-Path: <SRS0=JjJg=3F=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9E28C33CB3
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Jan 2020 09:40:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18B20C33CB6
+	for <linux-acpi@archiver.kernel.org>; Thu, 16 Jan 2020 16:47:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E75020748
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Jan 2020 09:40:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E419021582
+	for <linux-acpi@archiver.kernel.org>; Thu, 16 Jan 2020 16:47:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579167622;
-	bh=fU4iy348VebOCE+8xgICmRkD1LMLcUwcTkD3yaiLZ4I=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=2mILH8Nh8NK77PXLuy2j3luogCzr9kBqchUWd5xKh4qrPcix4t+6GwcVtaFrtr/4j
-	 SAd4KKHop38POMiDW+9xRmtKsD7E9fFvjxBoiMXq1Fv023iGWOUzRmi/FplSql0dwe
-	 2kxDvarquvytA9YJWc7Ob7kxH3RNO6DF9sggJAY8=
+	s=default; t=1579193237;
+	bh=Yy84DGQLF/tHpAhgKO6JE9/YdrRcR9e+usfeH9XJYXQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=U/1wcTpBCmW8/XCEbyE9ae0YvJtHIhe1CHWmLnKYh/kWaEOI40geGO/mntjSWf7Rj
+	 6CP1RrkcKhEkgO7mOBlzWolHKu1ynjHUzlti2BBi9dVOM9ez0nwAh8C8Daji41UTzi
+	 7eUP5ZKYKHlloftyVXdFModpWhdT2OUAWEuO86Jk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729274AbgAPJkW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Jan 2020 04:40:22 -0500
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:43259 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726653AbgAPJkW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2020 04:40:22 -0500
-Received: by mail-oi1-f195.google.com with SMTP id p125so18317182oif.10;
-        Thu, 16 Jan 2020 01:40:21 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ehZVRRgGA6K7LYKERYT9m9Kqby1XUIRO5leJf884LQg=;
-        b=tbNAoalcCFQwchIcvadfmk38UTHM9PFnmL7tSpYsOE3/h2lG03b0xJwvX7mOr8KBIc
-         lT/6p/Z4lv02ijdfMbmAy8NZA6jNue6nDAHb7bgULvVJT4HIAUWGvHiMxQE9cDru6Pm1
-         L9usN7+QSl+6G6Em5TpjK+ZVZeqPzOAapVbNoOAt7CeVJ0RNl5X1e2ZCT8LlUAd/B/Dg
-         XwGmssoLMrppPiyFR4eOH4q+sweyJhf6GhgObkY6OFfae/GYI2thu7OgEnuJadO+SxTF
-         qngHnAuop9Rjdrt2FUd0jTd8G9i91SvKzsljYsRszHjTOc0FvDhJig8vx53Nm55CxU4v
-         mNIA==
-X-Gm-Message-State: APjAAAWmeHXe7hnEpWHG2IhbMfJqm4PLD5Xq+g7lJGLyhd6P70E4vBLL
-        MV2zBaD6jKBpUPQ76sg9B4gXROh26jA4U/ooVzg=
-X-Google-Smtp-Source: APXvYqycvvoo15q+FPGQpz1gedkk2HzrTF+WByd8rPEEEg6NgUkf5VAlB3qg+1sxI+fx5OiEllxn+V4E7zXAb2JHu2Y=
-X-Received: by 2002:aca:cd92:: with SMTP id d140mr3388803oig.68.1579167621279;
- Thu, 16 Jan 2020 01:40:21 -0800 (PST)
+        id S1729030AbgAPQrL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:47:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56848 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729862AbgAPQrI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:47:08 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7B9CB21582;
+        Thu, 16 Jan 2020 16:47:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579193228;
+        bh=Yy84DGQLF/tHpAhgKO6JE9/YdrRcR9e+usfeH9XJYXQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=0duIkbEIGjIYHrud0BUWfk22jYXm9tdhBucvSHYYp6CGK/wNbVLi/CtbrYiLX7Vd2
+         kjpiGy9oX7kJdldVCh++RZQTgYe21usdK/LPSRgFO6Q+Cvq4dwZQWtzO/rXmdTEX5z
+         1OWlO0Z0ACtItmqlhOw4PzzwtM2TEOE6JXCxAfQg=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 050/205] ACPI: platform: Unregister stale platform devices
+Date:   Thu, 16 Jan 2020 11:40:25 -0500
+Message-Id: <20200116164300.6705-50-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
+References: <20200116164300.6705-1-sashal@kernel.org>
 MIME-Version: 1.0
-References: <20200115232629.GA9231@dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com>
-In-Reply-To: <20200115232629.GA9231@dev-dsk-anchalag-2a-9c2d1d96.us-west-2.amazon.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 16 Jan 2020 10:40:08 +0100
-Message-ID: <CAJZ5v0iHVzDzS5zZSTWOdy2CCSkyW74+p2-Et0+EcysOvL2CDg@mail.gmail.com>
-Subject: Re: [RESEND PATCH] ACPICA: Enable sleep button on ACPI legacy wake
-To:     Anchal Agarwal <anchalag@amazon.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Robert Moore <robert.moore@intel.com>
-Cc:     Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        "Singh, Balbir" <sblbir@amazon.com>, fllinden@amazon.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 16, 2020 at 12:26 AM Anchal Agarwal <anchalag@amazon.com> wrote:
->
-> Currently we do not see sleep_enable bit set after guest resumes
-> from hibernation. Hibernation is triggered in guest on receiving
-> a sleep trigger from the hypervisor(S4 state). We see that power
-> button is enabled on wake up from S4 state however sleep button
-> isn't. This causes subsequent invocation of sleep state to fail
-> in the guest. Any environment  going through acpi_hw_legacy_wake()
-> won't have sleep button enabled.
->
-> Signed-off-by: Anchal Agarwal <anchalag@amazon.com>
-> Reviewed-by: Balbir Singh <sblbir@amazon.com>
-> Reviewed-by: Frank van der Linden <fllinden@amazon.com>
-> ---
->  drivers/acpi/acpica/hwsleep.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
->
-> diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-> index b62db8ec446f..a176c7802760 100644
-> --- a/drivers/acpi/acpica/hwsleep.c
-> +++ b/drivers/acpi/acpica/hwsleep.c
-> @@ -300,6 +300,17 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state)
->                                     [ACPI_EVENT_POWER_BUTTON].
->                                     status_register_id, ACPI_CLEAR_STATUS);
->
-> +       /* Enable sleep button */
-> +       (void)
-> +             acpi_write_bit_register(acpi_gbl_fixed_event_info
-> +                                     [ACPI_EVENT_SLEEP_BUTTON].
-> +                                     enable_register_id, ACPI_ENABLE_EVENT);
-> +
-> +       (void)
-> +             acpi_write_bit_register(acpi_gbl_fixed_event_info
-> +                                     [ACPI_EVENT_SLEEP_BUTTON].
-> +                                     status_register_id, ACPI_CLEAR_STATUS);
-> +
->         acpi_hw_execute_sleep_method(METHOD_PATHNAME__SST, ACPI_SST_WORKING);
->         return_ACPI_STATUS(status);
->  }
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Erik, Bob, please pick this up if you don't have specific objections against it.
+[ Upstream commit cb0701acfa7e3fe9e919cf2aa2aa939b7fd603c2 ]
 
-I'll wait for it to show up in an upstream release.
+When commit 68bdb6773289 ("ACPI: add support for ACPI reconfiguration
+notifiers") introduced reconfiguration notifiers, it missed the point
+that the ACPI table, which might be loaded and then unloaded via
+ConfigFS, could contain devices that were not enumerated by their
+parents.
+
+In such cases, the stale platform device is dangling in the system
+while the rest of the devices from the same table are already gone.
+
+Introduce acpi_platform_device_remove_notify() notifier that, in
+similar way to I²C or SPI buses, unregisters the platform devices
+on table removal event.
+
+Fixes: 68bdb6773289 ("ACPI: add support for ACPI reconfiguration notifiers")
+Depends-on: 00500147cbd3 ("drivers: Introduce device lookup variants by ACPI_COMPANION device")
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+[ rjw: Changelog & function rename ]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/acpi_platform.c | 43 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/scan.c          |  1 +
+ 2 files changed, 44 insertions(+)
+
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 00ec4f2bf015..c05050f474cd 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -31,6 +31,44 @@ static const struct acpi_device_id forbidden_id_list[] = {
+ 	{"", 0},
+ };
+ 
++static struct platform_device *acpi_platform_device_find_by_companion(struct acpi_device *adev)
++{
++	struct device *dev;
++
++	dev = bus_find_device_by_acpi_dev(&platform_bus_type, adev);
++	return dev ? to_platform_device(dev) : NULL;
++}
++
++static int acpi_platform_device_remove_notify(struct notifier_block *nb,
++					      unsigned long value, void *arg)
++{
++	struct acpi_device *adev = arg;
++	struct platform_device *pdev;
++
++	switch (value) {
++	case ACPI_RECONFIG_DEVICE_ADD:
++		/* Nothing to do here */
++		break;
++	case ACPI_RECONFIG_DEVICE_REMOVE:
++		if (!acpi_device_enumerated(adev))
++			break;
++
++		pdev = acpi_platform_device_find_by_companion(adev);
++		if (!pdev)
++			break;
++
++		platform_device_unregister(pdev);
++		put_device(&pdev->dev);
++		break;
++	}
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block acpi_platform_notifier = {
++	.notifier_call = acpi_platform_device_remove_notify,
++};
++
+ static void acpi_platform_fill_resource(struct acpi_device *adev,
+ 	const struct resource *src, struct resource *dest)
+ {
+@@ -130,3 +168,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+ 	return pdev;
+ }
+ EXPORT_SYMBOL_GPL(acpi_create_platform_device);
++
++void __init acpi_platform_init(void)
++{
++	acpi_reconfig_notifier_register(&acpi_platform_notifier);
++}
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index aad6be5c0af0..915650bf519f 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2174,6 +2174,7 @@ int __init acpi_scan_init(void)
+ 	acpi_pci_root_init();
+ 	acpi_pci_link_init();
+ 	acpi_processor_init();
++	acpi_platform_init();
+ 	acpi_lpss_init();
+ 	acpi_apd_init();
+ 	acpi_cmos_rtc_init();
+-- 
+2.20.1
+
