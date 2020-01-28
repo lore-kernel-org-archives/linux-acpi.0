@@ -2,24 +2,24 @@ Return-Path: <SRS0=v6CU=3R=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7C3FC33C9E
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:18:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86784C3F68F
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:18:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A028921739
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:18:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E3DD24685
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:18:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725959AbgA1LSO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 Jan 2020 06:18:14 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:37672 "EHLO huawei.com"
+        id S1725941AbgA1LSP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 28 Jan 2020 06:18:15 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:37670 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725937AbgA1LSO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Jan 2020 06:18:14 -0500
+        id S1725948AbgA1LSP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Jan 2020 06:18:15 -0500
 Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 4F0272D8AA78D8510173;
+        by Forcepoint Email with ESMTP id 496A1E444703DA9C65CE;
         Tue, 28 Jan 2020 19:18:10 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.58) by
  DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
@@ -30,12 +30,10 @@ CC:     <jeremy.linton@arm.com>, <arnd@arndb.de>, <olof@lixom.net>,
         <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <guohanjun@huawei.com>, <gregkh@linuxfoundation.org>,
         John Garry <john.garry@huawei.com>
-Subject: [PATCH RFC 2/2] soc: Add a basic ACPI generic driver
-Date:   Tue, 28 Jan 2020 19:14:19 +0800
-Message-ID: <1580210059-199540-3-git-send-email-john.garry@huawei.com>
+Subject: [PATCH RFC 0/2] Add basic generic ACPI soc driver
+Date:   Tue, 28 Jan 2020 19:14:17 +0800
+Message-ID: <1580210059-199540-1-git-send-email-john.garry@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1580210059-199540-1-git-send-email-john.garry@huawei.com>
-References: <1580210059-199540-1-git-send-email-john.garry@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.58]
@@ -45,144 +43,44 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a generic driver for platforms which populate their ACPI PPTT
-processor package ID Type Structure according to suggestion in the ACPI
-spec - see ACPI 6.2, section 5.2.29.3 ID structure Type 2.
+A requirement has come up recently to be able to read system SoC packages
+identifiers from userspace [0].
 
-The soc_id is from member LEVEL_2_ID.
+For device tree FW-based systems, this would be quite straightforward, in
+that we could add a soc driver for that system and use the DT model
+identifier as the soc id - that's how most soc drivers seem to do it.
 
-For this, we need to use a whitelist of platforms which are known to
-populate the structure as suggested.
+For ACPI-based systems, the only place I know to get (put) such SoC
+information is in the PPTT, specifically the ID Type Structure for a
+processor package node. A processor package node describes a physical
+boundary of a processor topology.
 
-For now, only the vendor and soc_id fields are exposed.
+The ACPI spec does not declare how the fields in this structure must be
+used, however it does provide pretty clear examples, which I would expect
+most implementers to follow. As such, I try to solve the problem in 2
+parts:
+- Add ACPI PPTT API to get opaque package structure
+- Add basic ACPI generic soc driver, which can interpret the fields
+  for known platforms to fill in the ID Type Structure as per example
+  in the spec.
 
-Signed-off-by: John Garry <john.garry@huawei.com>
----
+So I'm hoping here for some comments on this approach - hence the RFC.
+I've cc'ed some folks which may have suggestions.
+
+[0] https://lore.kernel.org/linux-arm-kernel/1579876505-113251-6-git-send-email-john.garry@huawei.com/ ,
+    https://lore.kernel.org/linux-arm-kernel/1579876505-113251-1-git-send-email-john.garry@huawei.com/
+
+John Garry (2):
+  ACPI/PPTT: Add acpi_pptt_get_package_info() API
+  soc: Add a basic ACPI generic driver
+
+ drivers/acpi/pptt.c        |  81 +++++++++++++++++++++++++++++
  drivers/soc/Makefile       |   1 +
  drivers/soc/acpi_generic.c | 102 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 103 insertions(+)
+ include/linux/acpi.h       |  13 +++++
+ 4 files changed, 197 insertions(+)
  create mode 100644 drivers/soc/acpi_generic.c
 
-diff --git a/drivers/soc/Makefile b/drivers/soc/Makefile
-index 8b49d782a1ab..2a59a30a22cd 100644
---- a/drivers/soc/Makefile
-+++ b/drivers/soc/Makefile
-@@ -3,6 +3,7 @@
- # Makefile for the Linux Kernel SOC specific device drivers.
- #
- 
-+obj-$(CONFIG_ACPI_PPTT)		+= acpi_generic.o
- obj-$(CONFIG_ARCH_ACTIONS)	+= actions/
- obj-$(CONFIG_SOC_ASPEED)	+= aspeed/
- obj-$(CONFIG_ARCH_AT91)		+= atmel/
-diff --git a/drivers/soc/acpi_generic.c b/drivers/soc/acpi_generic.c
-new file mode 100644
-index 000000000000..34a1f5f8e063
---- /dev/null
-+++ b/drivers/soc/acpi_generic.c
-@@ -0,0 +1,102 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) John Garry, john.garry@huawei.com
-+ */
-+
-+#define pr_fmt(fmt) "SOC ACPI GENERIC: " fmt
-+
-+#include <linux/acpi.h>
-+#include <linux/sys_soc.h>
-+
-+/*
-+ * Known platforms that fill in PPTT package ID structures according to
-+ * ACPI spec examples, that being:
-+ * - Custom driver attribute is in ID Type Structure VENDOR_ID member
-+ * - SoC id is in ID Type Structure LEVEL_2_ID member
-+ *    See ACPI SPEC 6.2 Table 5-154 for PPTT ID Type Structure
-+ */
-+static struct acpi_platform_list plat_list[] = {
-+	{"HISI  ", "HIP08   ", 0, ACPI_SIG_PPTT, all_versions},
-+	{ } /* End */
-+};
-+
-+struct acpi_generic_soc_struct {
-+	struct soc_device_attribute dev_attr;
-+	u32 vendor;
-+};
-+
-+static ssize_t vendor_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct acpi_generic_soc_struct *soc = dev_get_drvdata(dev);
-+	u8 vendor_id[5] = {};
-+
-+	*(u32 *)vendor_id = soc->vendor;
-+
-+	return sprintf(buf, "%s\n", vendor_id);
-+}
-+
-+static DEVICE_ATTR_RO(vendor);
-+
-+static __init int soc_acpi_generic_init(void)
-+{
-+	int index;
-+
-+	index = acpi_match_platform_list(plat_list);
-+	if (index < 0)
-+		return -ENOENT;
-+
-+	index = 0;
-+	while (true) {
-+		struct acpi_pptt_package_info info;
-+
-+		if (!acpi_pptt_get_package_info(index, &info)) {
-+			struct soc_device_attribute *soc_dev_attr;
-+			struct acpi_generic_soc_struct *soc;
-+			struct soc_device *soc_dev;
-+			u8 soc_id[9] = {};
-+
-+			*(u64 *)soc_id = info.LEVEL_2_ID;
-+
-+			soc = kzalloc(sizeof(*soc), GFP_KERNEL);
-+			if (!soc)
-+				return -ENOMEM;
-+
-+			soc_dev_attr = &soc->dev_attr;
-+			soc_dev_attr->soc_id = kasprintf(GFP_KERNEL, "%s",
-+							 soc_id);
-+			if (!soc_dev_attr->soc_id) {
-+				kfree(soc);
-+				return -ENOMEM;
-+			}
-+			soc->vendor = info.vendor_id;
-+
-+			soc_dev = soc_device_register(soc_dev_attr);
-+			if (IS_ERR(soc_dev)) {
-+				int ret = PTR_ERR(soc_dev);
-+
-+				pr_info("could not register soc (%d) index=%d\n",
-+					ret, index);
-+				kfree(soc_dev_attr->soc_id);
-+				kfree(soc);
-+				return ret;
-+			}
-+			dev_set_drvdata(soc_device_to_device(soc_dev), soc);
-+			device_create_file(soc_device_to_device(soc_dev),
-+					   &dev_attr_vendor);
-+		} else {
-+			break;
-+		}
-+
-+		index++;
-+	}
-+
-+	return 0;
-+}
-+
-+module_init(soc_acpi_generic_init);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("John Garry <john.garry@huawei.com>");
-+MODULE_DESCRIPTION("Generic ACPI soc driver");
 -- 
 2.17.1
 
