@@ -2,125 +2,187 @@ Return-Path: <SRS0=v6CU=3R=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C99B7C33C9E
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:09:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7C3FC33C9E
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:18:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A237821739
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:09:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A028921739
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Jan 2020 11:18:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725927AbgA1LJ1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 Jan 2020 06:09:27 -0500
-Received: from foss.arm.com ([217.140.110.172]:55288 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725903AbgA1LJ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Jan 2020 06:09:27 -0500
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 09CAE30E;
-        Tue, 28 Jan 2020 03:09:24 -0800 (PST)
-Received: from e121166-lin.cambridge.arm.com (e121166-lin.cambridge.arm.com [10.1.196.255])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 147EF3F52E;
-        Tue, 28 Jan 2020 03:09:20 -0800 (PST)
-Date:   Tue, 28 Jan 2020 11:09:16 +0000
-From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-To:     Makarand Pawagi <makarand.pawagi@nxp.com>
-Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux@armlinux.org.uk, jon@solid-run.com,
-        cristian.sovaiala@nxp.com, laurentiu.tudor@nxp.com,
-        ioana.ciornei@nxp.com, V.Sethi@nxp.com, calvin.johnson@nxp.com,
-        pankaj.bansal@nxp.com, guohanjun@huawei.com, sudeep.holla@arm.com,
-        rjw@rjwysocki.net, lenb@kernel.org, stuyoder@gmail.com,
-        tglx@linutronix.de, jason@lakedaemon.net, maz@kernel.org,
-        shameerali.kolothum.thodi@huawei.com, will@kernel.org,
-        robin.murphy@arm.com, nleeder@codeaurora.org
-Subject: Re: [PATCH] bus: fsl-mc: Add ACPI support for fsl-mc
-Message-ID: <20200128110916.GA491@e121166-lin.cambridge.arm.com>
-References: <1580198925-50411-1-git-send-email-makarand.pawagi@nxp.com>
+        id S1725959AbgA1LSO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 28 Jan 2020 06:18:14 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:37672 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725937AbgA1LSO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Jan 2020 06:18:14 -0500
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 4F0272D8AA78D8510173;
+        Tue, 28 Jan 2020 19:18:10 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.58) by
+ DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
+ 14.3.439.0; Tue, 28 Jan 2020 19:18:02 +0800
+From:   John Garry <john.garry@huawei.com>
+To:     <rjw@rjwysocki.net>, <lenb@kernel.org>
+CC:     <jeremy.linton@arm.com>, <arnd@arndb.de>, <olof@lixom.net>,
+        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <guohanjun@huawei.com>, <gregkh@linuxfoundation.org>,
+        John Garry <john.garry@huawei.com>
+Subject: [PATCH RFC 2/2] soc: Add a basic ACPI generic driver
+Date:   Tue, 28 Jan 2020 19:14:19 +0800
+Message-ID: <1580210059-199540-3-git-send-email-john.garry@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1580210059-199540-1-git-send-email-john.garry@huawei.com>
+References: <1580210059-199540-1-git-send-email-john.garry@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1580198925-50411-1-git-send-email-makarand.pawagi@nxp.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.58]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 28, 2020 at 01:38:45PM +0530, Makarand Pawagi wrote:
-> ACPI support is added in the fsl-mc driver. Driver will parse
-> MC DSDT table to extract memory and other resorces.
-> 
-> Interrupt (GIC ITS) information will be extracted from MADT table
-> by drivers/irqchip/irq-gic-v3-its-fsl-mc-msi.c.
-> 
-> IORT table will be parsed to configure DMA.
-> 
-> Signed-off-by: Makarand Pawagi <makarand.pawagi@nxp.com>
-> ---
->  drivers/acpi/arm64/iort.c                   | 53 +++++++++++++++++++++
->  drivers/bus/fsl-mc/dprc-driver.c            |  3 +-
->  drivers/bus/fsl-mc/fsl-mc-bus.c             | 48 +++++++++++++------
->  drivers/bus/fsl-mc/fsl-mc-msi.c             | 10 +++-
->  drivers/bus/fsl-mc/fsl-mc-private.h         |  4 +-
->  drivers/irqchip/irq-gic-v3-its-fsl-mc-msi.c | 71 ++++++++++++++++++++++++++++-
->  include/linux/acpi_iort.h                   |  5 ++
->  7 files changed, 174 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 33f7198..beb9cd5 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -15,6 +15,7 @@
->  #include <linux/kernel.h>
->  #include <linux/list.h>
->  #include <linux/pci.h>
-> +#include <linux/fsl/mc.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  
-> @@ -622,6 +623,29 @@ static int iort_dev_find_its_id(struct device *dev, u32 req_id,
->  }
->  
->  /**
-> + * iort_get_fsl_mc_device_domain() - Find MSI domain related to a device
-> + * @dev: The device.
-> + * @mc_icid: ICID for the fsl_mc device.
-> + *
-> + * Returns: the MSI domain for this device, NULL otherwise
-> + */
-> +struct irq_domain *iort_get_fsl_mc_device_domain(struct device *dev,
-> +							u32 mc_icid)
-> +{
-> +	struct fwnode_handle *handle;
-> +	int its_id;
-> +
-> +	if (iort_dev_find_its_id(dev, mc_icid, 0, &its_id))
-> +		return NULL;
-> +
-> +	handle = iort_find_domain_token(its_id);
-> +	if (!handle)
-> +		return NULL;
-> +
-> +	return irq_find_matching_fwnode(handle, DOMAIN_BUS_FSL_MC_MSI);
-> +}
+Add a generic driver for platforms which populate their ACPI PPTT
+processor package ID Type Structure according to suggestion in the ACPI
+spec - see ACPI 6.2, section 5.2.29.3 ID structure Type 2.
 
-NAK
+The soc_id is from member LEVEL_2_ID.
 
-I am not willing to take platform specific code in the generic IORT
-layer.
+For this, we need to use a whitelist of platforms which are known to
+populate the structure as suggested.
 
-ACPI on ARM64 works on platforms that comply with SBSA/SBBR guidelines:
+For now, only the vendor and soc_id fields are exposed.
 
-https://developer.arm.com/architectures/platform-design/server-systems
+Signed-off-by: John Garry <john.garry@huawei.com>
+---
+ drivers/soc/Makefile       |   1 +
+ drivers/soc/acpi_generic.c | 102 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+)
+ create mode 100644 drivers/soc/acpi_generic.c
 
-Deviating from those requires butchering ACPI specifications (ie IORT)
-and related kernel code which goes totally against what ACPI is meant
-for on ARM64 systems, so there is no upstream pathway for this code
-I am afraid.
+diff --git a/drivers/soc/Makefile b/drivers/soc/Makefile
+index 8b49d782a1ab..2a59a30a22cd 100644
+--- a/drivers/soc/Makefile
++++ b/drivers/soc/Makefile
+@@ -3,6 +3,7 @@
+ # Makefile for the Linux Kernel SOC specific device drivers.
+ #
+ 
++obj-$(CONFIG_ACPI_PPTT)		+= acpi_generic.o
+ obj-$(CONFIG_ARCH_ACTIONS)	+= actions/
+ obj-$(CONFIG_SOC_ASPEED)	+= aspeed/
+ obj-$(CONFIG_ARCH_AT91)		+= atmel/
+diff --git a/drivers/soc/acpi_generic.c b/drivers/soc/acpi_generic.c
+new file mode 100644
+index 000000000000..34a1f5f8e063
+--- /dev/null
++++ b/drivers/soc/acpi_generic.c
+@@ -0,0 +1,102 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) John Garry, john.garry@huawei.com
++ */
++
++#define pr_fmt(fmt) "SOC ACPI GENERIC: " fmt
++
++#include <linux/acpi.h>
++#include <linux/sys_soc.h>
++
++/*
++ * Known platforms that fill in PPTT package ID structures according to
++ * ACPI spec examples, that being:
++ * - Custom driver attribute is in ID Type Structure VENDOR_ID member
++ * - SoC id is in ID Type Structure LEVEL_2_ID member
++ *    See ACPI SPEC 6.2 Table 5-154 for PPTT ID Type Structure
++ */
++static struct acpi_platform_list plat_list[] = {
++	{"HISI  ", "HIP08   ", 0, ACPI_SIG_PPTT, all_versions},
++	{ } /* End */
++};
++
++struct acpi_generic_soc_struct {
++	struct soc_device_attribute dev_attr;
++	u32 vendor;
++};
++
++static ssize_t vendor_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	struct acpi_generic_soc_struct *soc = dev_get_drvdata(dev);
++	u8 vendor_id[5] = {};
++
++	*(u32 *)vendor_id = soc->vendor;
++
++	return sprintf(buf, "%s\n", vendor_id);
++}
++
++static DEVICE_ATTR_RO(vendor);
++
++static __init int soc_acpi_generic_init(void)
++{
++	int index;
++
++	index = acpi_match_platform_list(plat_list);
++	if (index < 0)
++		return -ENOENT;
++
++	index = 0;
++	while (true) {
++		struct acpi_pptt_package_info info;
++
++		if (!acpi_pptt_get_package_info(index, &info)) {
++			struct soc_device_attribute *soc_dev_attr;
++			struct acpi_generic_soc_struct *soc;
++			struct soc_device *soc_dev;
++			u8 soc_id[9] = {};
++
++			*(u64 *)soc_id = info.LEVEL_2_ID;
++
++			soc = kzalloc(sizeof(*soc), GFP_KERNEL);
++			if (!soc)
++				return -ENOMEM;
++
++			soc_dev_attr = &soc->dev_attr;
++			soc_dev_attr->soc_id = kasprintf(GFP_KERNEL, "%s",
++							 soc_id);
++			if (!soc_dev_attr->soc_id) {
++				kfree(soc);
++				return -ENOMEM;
++			}
++			soc->vendor = info.vendor_id;
++
++			soc_dev = soc_device_register(soc_dev_attr);
++			if (IS_ERR(soc_dev)) {
++				int ret = PTR_ERR(soc_dev);
++
++				pr_info("could not register soc (%d) index=%d\n",
++					ret, index);
++				kfree(soc_dev_attr->soc_id);
++				kfree(soc);
++				return ret;
++			}
++			dev_set_drvdata(soc_device_to_device(soc_dev), soc);
++			device_create_file(soc_device_to_device(soc_dev),
++					   &dev_attr_vendor);
++		} else {
++			break;
++		}
++
++		index++;
++	}
++
++	return 0;
++}
++
++module_init(soc_acpi_generic_init);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("John Garry <john.garry@huawei.com>");
++MODULE_DESCRIPTION("Generic ACPI soc driver");
+-- 
+2.17.1
 
-Thanks,
-Lorenzo
