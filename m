@@ -2,74 +2,164 @@ Return-Path: <SRS0=M/vl=3T=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E11C33C9E
-	for <linux-acpi@archiver.kernel.org>; Thu, 30 Jan 2020 11:23:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6F5C35240
+	for <linux-acpi@archiver.kernel.org>; Thu, 30 Jan 2020 14:47:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12C612083E
-	for <linux-acpi@archiver.kernel.org>; Thu, 30 Jan 2020 11:23:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5ADCF214AF
+	for <linux-acpi@archiver.kernel.org>; Thu, 30 Jan 2020 14:47:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727027AbgA3LXq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 30 Jan 2020 06:23:46 -0500
-Received: from foss.arm.com ([217.140.110.172]:51236 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726902AbgA3LXq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Jan 2020 06:23:46 -0500
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EBFFB328;
-        Thu, 30 Jan 2020 03:23:45 -0800 (PST)
-Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 8139E3F67D;
-        Thu, 30 Jan 2020 03:23:44 -0800 (PST)
-Date:   Thu, 30 Jan 2020 11:23:38 +0000
-From:   Sudeep Holla <sudeep.holla@arm.com>
-To:     John Garry <john.garry@huawei.com>
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, jeremy.linton@arm.com,
-        arnd@arndb.de, olof@lixom.net, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, guohanjun@huawei.com,
-        gregkh@linuxfoundation.org, Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH RFC 1/2] ACPI/PPTT: Add acpi_pptt_get_package_info() API
-Message-ID: <20200130112338.GA54532@bogus>
-References: <1580210059-199540-1-git-send-email-john.garry@huawei.com>
- <1580210059-199540-2-git-send-email-john.garry@huawei.com>
- <20200128123415.GB36168@bogus>
+        id S1727366AbgA3Ork (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 30 Jan 2020 09:47:40 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:53773 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727241AbgA3Orj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jan 2020 09:47:39 -0500
+Received: from 79.184.253.19.ipv4.supernova.orange.pl (79.184.253.19) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
+ id cb4c27334bb16a9a; Thu, 30 Jan 2020 15:47:37 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Len Brown <len.brown@intel.com>,
+        Zhang Rui <rui.zhang@intel.com>,
+        David Box <david.e.box@linux.intel.com>,
+        Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [PATCH 2/2] intel_idle: Introduce 'states_off' module parameter
+Date:   Thu, 30 Jan 2020 15:47:24 +0100
+Message-ID: <16995896.bQtfYxEEOs@kreacher>
+In-Reply-To: <1720216.0Jr2BLnqKp@kreacher>
+References: <1720216.0Jr2BLnqKp@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200128123415.GB36168@bogus>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 28, 2020 at 12:34:15PM +0000, Sudeep Holla wrote:
-> On Tue, Jan 28, 2020 at 07:14:18PM +0800, John Garry wrote:
-> > The ACPI PPTT ID structure (see 6.2 spec, section 5.2.29.3) allows the
-> > vendor to provide an identifier (or vendor specific part number) for a
-> > particular processor hierarchy node structure. That may be a processor
-> > identifier for a processor node, or some chip identifier for a processor
-> > package node.
-> >
->
-> Unfortunately, there were plans to deprecate this in favour of the new
-> SOC_ID SMCCC API[1]. I am not sure if you or anyone in your company have
-> access to UEFI ASWG mantis where you can look for the ECR for the PPTT
-> Type 2 deprecation. I understand it's not ideal, but we need to converge,
-> please take a look at both before further discussion.
->
-> I personally would not prefer to add the support when I know it is getting
-> deprecated. I am not sure on kernel community policy on the same.
->
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-OK, the details on the proposal to deprecate can be now found in UEFI
-bugzilla [1]
+In certain system configurations it may not be desirable to use some
+C-states assumed to be available by intel_idle and the driver needs
+to be prevented from using them even before the cpuidle sysfs
+interface becomes accessible to user space.  Currently, the only way
+to achieve that is by setting the 'max_cstate' module parameter to a
+value lower than the index of the shallowest of the C-states in
+question, but that may be overly intrusive, because it effectively
+makes all of the idle states deeper than the 'max_cstate' one go
+away (and the C-state to avoid may be in the middle of the range
+normally regarded as available).
 
---
-Regards,
-Sudeep
+To allow that limitation to be overcome, introduce a new module
+parameter called 'states_off' to represent a list of idle states to
+be disabled by default in the form of a bitmask and update the
+documentation to cover it.
 
-[1] https://bugzilla.tianocore.org/show_bug.cgi?id=2492
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/admin-guide/pm/intel_idle.rst |   15 ++++++++++++++-
+ drivers/idle/intel_idle.c                   |   24 +++++++++++++++++++++---
+ 2 files changed, 35 insertions(+), 4 deletions(-)
+
+Index: linux-pm/drivers/idle/intel_idle.c
+===================================================================
+--- linux-pm.orig/drivers/idle/intel_idle.c
++++ linux-pm/drivers/idle/intel_idle.c
+@@ -63,6 +63,7 @@ static struct cpuidle_driver intel_idle_
+ };
+ /* intel_idle.max_cstate=0 disables driver */
+ static int max_cstate = CPUIDLE_STATE_MAX - 1;
++static unsigned int disabled_states_mask;
+ 
+ static unsigned int mwait_substates;
+ 
+@@ -1234,6 +1235,9 @@ static void __init intel_idle_init_cstat
+ 		if (cx->type > ACPI_STATE_C2)
+ 			state->flags |= CPUIDLE_FLAG_TLB_FLUSHED;
+ 
++		if (disabled_states_mask & BIT(cstate))
++			state->flags |= CPUIDLE_FLAG_OFF;
++
+ 		state->enter = intel_idle;
+ 		state->enter_s2idle = intel_idle_s2idle;
+ 	}
+@@ -1466,9 +1470,10 @@ static void __init intel_idle_init_cstat
+ 		/* Structure copy. */
+ 		drv->states[drv->state_count] = cpuidle_state_table[cstate];
+ 
+-		if ((icpu->use_acpi || use_acpi) &&
+-		    intel_idle_off_by_default(mwait_hint) &&
+-		    !(cpuidle_state_table[cstate].flags & CPUIDLE_FLAG_ALWAYS_ENABLE))
++		if ((disabled_states_mask & BIT(drv->state_count)) ||
++		    ((icpu->use_acpi || use_acpi) &&
++		     intel_idle_off_by_default(mwait_hint) &&
++		     !(cpuidle_state_table[cstate].flags & CPUIDLE_FLAG_ALWAYS_ENABLE)))
+ 			drv->states[drv->state_count].flags |= CPUIDLE_FLAG_OFF;
+ 
+ 		drv->state_count++;
+@@ -1487,6 +1492,10 @@ static void __init intel_idle_init_cstat
+ static void __init intel_idle_cpuidle_driver_init(struct cpuidle_driver *drv)
+ {
+ 	cpuidle_poll_state_init(drv);
++
++	if (disabled_states_mask & BIT(0))
++		drv->states[0].flags |= CPUIDLE_FLAG_OFF;
++
+ 	drv->state_count = 1;
+ 
+ 	if (icpu)
+@@ -1667,3 +1676,12 @@ device_initcall(intel_idle_init);
+  * is the easiest way (currently) to continue doing that.
+  */
+ module_param(max_cstate, int, 0444);
++/*
++ * The positions of the bits that are set in the two's complement representation
++ * of this value are the indices of the idle states to be disabled by default
++ * (as reflected by the names of the corresponding idle state directories in
++ * sysfs, "state0", "state1" ... "state<i>" ..., where <i> is the index of the
++ * given state).
++ */
++module_param_named(states_off, disabled_states_mask, uint, 0444);
++MODULE_PARM_DESC(states_off, "Mask of disabled idle states");
+Index: linux-pm/Documentation/admin-guide/pm/intel_idle.rst
+===================================================================
+--- linux-pm.orig/Documentation/admin-guide/pm/intel_idle.rst
++++ linux-pm/Documentation/admin-guide/pm/intel_idle.rst
+@@ -168,7 +168,7 @@ and ``idle=nomwait``.  If any of them is
+ ``MWAIT`` instruction is not allowed to be used, so the initialization of
+ ``intel_idle`` will fail.
+ 
+-Apart from that there are three module parameters recognized by ``intel_idle``
++Apart from that there are four module parameters recognized by ``intel_idle``
+ itself that can be set via the kernel command line (they cannot be updated via
+ sysfs, so that is the only way to change their values).
+ 
+@@ -195,6 +195,19 @@ driver ignore the system's ACPI tables e
+ recognized processor models, respectively (they both are unset by default and
+ ``use_acpi`` has no effect if ``no_acpi`` is set).
+ 
++The value of the ``states_off`` module parameter (0 by default) represents a
++list of idle states to be disabled by default in the form of a bitmask.  Namely,
++the positions of the bits that are set in the two's complement representation of
++that value are the indices of idle states to be disabled by default (as
++reflected by the names of the corresponding idle state directories in ``sysfs``,
++:file:`state0`, :file:`state1` ... :file:`state<i>` ..., where ``<i>`` is the
++index of the given idle state; see :ref:`idle-states-representation` in
++:doc:`cpuidle`).  For example, if ``states_off`` is equal to 3, the driver will
++disable idle states 0 and 1 by default, and if it is equal to 8, idle state 3
++will be disabled by default and so on (bit positions beyond the maximum idle
++state index are ignored).  The idle states disabled this way can be enabled (on
++a per-CPU basis) from user space via ``sysfs``.
++
+ 
+ .. _intel-idle-core-and-package-idle-states:
+ 
+
+
+
