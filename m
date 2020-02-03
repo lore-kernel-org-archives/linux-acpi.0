@@ -3,148 +3,101 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3578C35247
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Feb 2020 11:19:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05D75C35247
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Feb 2020 16:51:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B9C1621775
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Feb 2020 11:19:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC99C21582
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Feb 2020 16:51:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727830AbgBCLT2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 3 Feb 2020 06:19:28 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:59102 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727859AbgBCLT2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Feb 2020 06:19:28 -0500
-Received: from 79.184.253.222.ipv4.supernova.orange.pl (79.184.253.222) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
- id 1b2d49228637a18f; Mon, 3 Feb 2020 12:19:26 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux PM <linux-pm@vger.kernel.org>
-Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Len Brown <len.brown@intel.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        David Box <david.e.box@linux.intel.com>,
-        Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: [PATCH v2 1/2] intel_idle: Introduce 'use_acpi' module parameter
-Date:   Mon, 03 Feb 2020 12:15:42 +0100
-Message-ID: <2444753.PIBkttuji9@kreacher>
-In-Reply-To: <1921392.EN65KG1giI@kreacher>
-References: <1720216.0Jr2BLnqKp@kreacher> <1921392.EN65KG1giI@kreacher>
+        id S1728080AbgBCQvz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 3 Feb 2020 11:51:55 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:10144 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728074AbgBCQvz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 3 Feb 2020 11:51:55 -0500
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 9C6C7707665075F96F12;
+        Tue,  4 Feb 2020 00:51:50 +0800 (CST)
+Received: from DESKTOP-6T4S3DQ.china.huawei.com (10.202.226.55) by
+ DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
+ 14.3.439.0; Tue, 4 Feb 2020 00:51:41 +0800
+From:   Shiju Jose <shiju.jose@huawei.com>
+To:     <linux-acpi@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <rjw@rjwysocki.net>,
+        <helgaas@kernel.org>, <lenb@kernel.org>, <bp@alien8.de>,
+        <james.morse@arm.com>, <tony.luck@intel.com>,
+        <gregkh@linuxfoundation.org>, <zhangliguang@linux.alibaba.com>,
+        <tglx@linutronix.de>
+CC:     <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+        <tanxiaofei@huawei.com>, <yangyicong@hisilicon.com>,
+        Shiju Jose <shiju.jose@huawei.com>
+Subject: [PATCH v3 0/2] ACPI: APEI: Add support to notify the vendor specific HW errors
+Date:   Mon, 3 Feb 2020 16:51:20 +0000
+Message-ID: <20200203165122.17748-1-shiju.jose@huawei.com>
+X-Mailer: git-send-email 2.19.2.windows.1
+In-Reply-To: <Shiju Jose>
+References: <Shiju Jose>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.202.226.55]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Presently the vendor drivers are unable to do the recovery for the
+vendor specific recoverable HW errors, reported to the APEI driver
+in the vendor defined sections, because APEI driver does not support
+reporting the same to the vendor drivers.
 
-For diagnostics, it is generally useful to be able to make intel_idle
-take the system's ACPI tables into consideration even if that is not
-required for the processor model in there, so introduce a new module
-parameter, 'use_acpi', to make that happen and update the documentation
-to cover it.
+This patch set
+1. add an interface to the APEI driver to enable the vendor
+drivers to register the event handling functions for the corresponding
+vendor specific HW errors and report the error to the vendor driver.
 
-While at it, fix the 'no_acpi' module parameter name in the
-documentation.
+2. add driver to handle HiSilicon hip08 PCIe controller's errors
+   which is an example application of the above APEI interface.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Changes:
 
--> v2:
-   * Fix build for CONFIG_ACPI unset.
+V3:
+1. Fix the comments from Bjorn Helgaas.
 
----
- Documentation/admin-guide/pm/intel_idle.rst |   13 +++++++++----
- drivers/idle/intel_idle.c                   |   11 +++++++++--
- 2 files changed, 18 insertions(+), 6 deletions(-)
+V2:
+1. Changes in the HiSilicon PCIe controller's error handling driver
+   for the comments from Bjorn Helgaas.
+   
+2. Changes in the APEI interface to support reporting the vendor error
+   for module with multiple devices, but use the same section type.
+   In the error handler will use socket id/sub module id etc to distinguish
+   the device.
 
-Index: linux-pm/drivers/idle/intel_idle.c
-===================================================================
---- linux-pm.orig/drivers/idle/intel_idle.c
-+++ linux-pm/drivers/idle/intel_idle.c
-@@ -1131,6 +1131,10 @@ static bool no_acpi __read_mostly;
- module_param(no_acpi, bool, 0444);
- MODULE_PARM_DESC(no_acpi, "Do not use ACPI _CST for building the idle states list");
- 
-+static bool force_use_acpi __read_mostly; /* No effect if no_acpi is set. */
-+module_param_named(use_acpi, force_use_acpi, bool, 0444);
-+MODULE_PARM_DESC(use_acpi, "Use ACPI _CST for building the idle states list");
-+
- static struct acpi_processor_power acpi_state_table __initdata;
- 
- /**
-@@ -1258,6 +1262,8 @@ static bool __init intel_idle_off_by_def
- 	return true;
- }
- #else /* !CONFIG_ACPI_PROCESSOR_CSTATE */
-+#define force_use_acpi	(false)
-+
- static inline bool intel_idle_acpi_cst_extract(void) { return false; }
- static inline void intel_idle_init_cstates_acpi(struct cpuidle_driver *drv) { }
- static inline bool intel_idle_off_by_default(u32 mwait_hint) { return false; }
-@@ -1460,7 +1466,8 @@ static void __init intel_idle_init_cstat
- 		/* Structure copy. */
- 		drv->states[drv->state_count] = cpuidle_state_table[cstate];
- 
--		if (icpu->use_acpi && intel_idle_off_by_default(mwait_hint) &&
-+		if ((icpu->use_acpi || force_use_acpi) &&
-+		    intel_idle_off_by_default(mwait_hint) &&
- 		    !(cpuidle_state_table[cstate].flags & CPUIDLE_FLAG_ALWAYS_ENABLE))
- 			drv->states[drv->state_count].flags |= CPUIDLE_FLAG_OFF;
- 
-@@ -1607,7 +1614,7 @@ static int __init intel_idle_init(void)
- 	icpu = (const struct idle_cpu *)id->driver_data;
- 	if (icpu) {
- 		cpuidle_state_table = icpu->state_table;
--		if (icpu->use_acpi)
-+		if (icpu->use_acpi || force_use_acpi)
- 			intel_idle_acpi_cst_extract();
- 	} else if (!intel_idle_acpi_cst_extract()) {
- 		return -ENODEV;
-Index: linux-pm/Documentation/admin-guide/pm/intel_idle.rst
-===================================================================
---- linux-pm.orig/Documentation/admin-guide/pm/intel_idle.rst
-+++ linux-pm/Documentation/admin-guide/pm/intel_idle.rst
-@@ -60,6 +60,9 @@ of the system.  The former are always us
- recognized by ``intel_idle`` and the latter are used if that is required for
- the given processor model (which is the case for all server processor models
- recognized by ``intel_idle``) or if the processor model is not recognized.
-+[There is a module parameter that can be used to make the driver use the ACPI
-+tables with any processor model recognized by it; see
-+`below <intel-idle-parameters_>`_.]
- 
- If the ACPI tables are going to be used for building the list of available idle
- states, ``intel_idle`` first looks for a ``_CST`` object under one of the ACPI
-@@ -165,7 +168,7 @@ and ``idle=nomwait``.  If any of them is
- ``MWAIT`` instruction is not allowed to be used, so the initialization of
- ``intel_idle`` will fail.
- 
--Apart from that there are two module parameters recognized by ``intel_idle``
-+Apart from that there are three module parameters recognized by ``intel_idle``
- itself that can be set via the kernel command line (they cannot be updated via
- sysfs, so that is the only way to change their values).
- 
-@@ -186,9 +189,11 @@ QoS) feature can be used to prevent ``CP
- even if they have been enumerated (see :ref:`cpu-pm-qos` in :doc:`cpuidle`).
- Setting ``max_cstate`` to 0 causes the ``intel_idle`` initialization to fail.
- 
--The ``noacpi`` module parameter (which is recognized by ``intel_idle`` if the
--kernel has been configured with ACPI support), can be set to make the driver
--ignore the system's ACPI tables entirely (it is unset by default).
-+The ``no_acpi`` and ``use_acpi`` module parameters (recognized by ``intel_idle``
-+if the kernel has been configured with ACPI support) can be set to make the
-+driver ignore the system's ACPI tables entirely or use them for all of the
-+recognized processor models, respectively (they both are unset by default and
-+``use_acpi`` has no effect if ``no_acpi`` is set).
- 
- 
- .. _intel-idle-core-and-package-idle-states:
+V1:  
+1. Fix comments from James Morse.
 
+2. add driver to handle HiSilicon hip08 PCIe controller's errors,
+   which is an application of the above interface.
+
+Shiju Jose (1):
+  ACPI: APEI: Add support to notify the vendor specific HW errors
+
+Yicong Yang (1):
+  PCI: HIP: Add handling of HiSilicon HIP PCIe controller's errors
+
+ drivers/acpi/apei/ghes.c                 | 116 ++++++++++-
+ drivers/pci/controller/Kconfig           |   8 +
+ drivers/pci/controller/Makefile          |   1 +
+ drivers/pci/controller/pcie-hisi-error.c | 334 +++++++++++++++++++++++++++++++
+ include/acpi/ghes.h                      |  56 ++++++
+ 5 files changed, 510 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/pci/controller/pcie-hisi-error.c
+
+-- 
+1.9.1
 
 
