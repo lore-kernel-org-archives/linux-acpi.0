@@ -2,92 +2,131 @@ Return-Path: <SRS0=zRbm=32=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 467D3C3F68F
-	for <linux-acpi@archiver.kernel.org>; Thu,  6 Feb 2020 10:32:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59A50C352A2
+	for <linux-acpi@archiver.kernel.org>; Thu,  6 Feb 2020 14:45:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A962217BA
-	for <linux-acpi@archiver.kernel.org>; Thu,  6 Feb 2020 10:32:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A3BC21741
+	for <linux-acpi@archiver.kernel.org>; Thu,  6 Feb 2020 14:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728494AbgBFKcT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 6 Feb 2020 05:32:19 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:44890 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728304AbgBFKcT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Feb 2020 05:32:19 -0500
-Received: from 79.184.253.222.ipv4.supernova.orange.pl (79.184.253.222) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
- id 40d7a63af6c90ca3; Thu, 6 Feb 2020 11:32:17 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     Linux PM <linux-pm@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>, Chen Yu <yu.c.chen@intel.com>,
-        David Box <david.e.box@linux.intel.com>
-Subject: [PATCH] ACPI: EC: Fix flushing of pending work
-Date:   Thu, 06 Feb 2020 11:32:16 +0100
-Message-ID: <2209952.LFAxc7Zn43@kreacher>
+        id S1727379AbgBFOpx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 6 Feb 2020 09:45:53 -0500
+Received: from mx2.suse.de ([195.135.220.15]:55868 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726365AbgBFOpx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 6 Feb 2020 09:45:53 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id 08038ABEA;
+        Thu,  6 Feb 2020 14:45:52 +0000 (UTC)
+Date:   Thu, 6 Feb 2020 15:45:32 +0100
+From:   Jean Delvare <jdelvare@suse.de>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Guenter Roeck <linux@roeck-us.net>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        Wim Van Sebroeck <wim@linux-watchdog.org>,
+        linux-watchdog@vger.kernel.org, Tom Abraham <tabraham@suse.com>
+Subject: Re: Forcing non-ACPI watchdog driver
+Message-ID: <20200206154532.359086d6@endymion>
+In-Reply-To: <20200205163831.GG2667@lahna.fi.intel.com>
+References: <1580915129.23547.3.camel@suse.de>
+        <20200205152435.GE2667@lahna.fi.intel.com>
+        <20200205163048.GD25403@roeck-us.net>
+        <20200205163831.GG2667@lahna.fi.intel.com>
+Organization: SUSE Linux
+X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; x86_64-suse-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Mika,
 
-Commit 016b87ca5c8c ("ACPI: EC: Rework flushing of pending work")
-introduced a subtle bug into the flushing of pending EC work while
-suspended to idle, which may cause the EC driver to fail to
-re-enable the EC GPE after handling a non-wakeup event (like a
-battery status change event, for example).
+On Wed, 5 Feb 2020 18:38:31 +0200, Mika Westerberg wrote:
+> On Wed, Feb 05, 2020 at 08:30:48AM -0800, Guenter Roeck wrote:
+> > On Wed, Feb 05, 2020 at 05:24:35PM +0200, Mika Westerberg wrote:  
+> > > You should be able to revert to iTCO_wdt by simply disabling
+> > > CONFIG_WDAT_WDT from .config. Then acpi_has_watchdog() returns false
+> > > which means that iTCO_wdt is used instead.  
+> > 
+> > That may not be possible in a generic distribution.  
+> 
+> Right, they would need to build their own kernel. Currently there is no
+> way to do that without changing .config.
 
-The problem is that one of the work items flushed by the
-flush_scheduled_work() in __acpi_ec_flush_work() may disable the EC
-GPE and schedule another work item expected to re-enable it, but that
-new work item is not flushed, so __acpi_ec_flush_work() returns with
-the EC GPE disabled and the CPU running it goes into an idle state
-subsequently.  If all of the other CPUs are in idle states at that
-point, the EC GPE won't be re-enabled until at least one CPU is woken
-up by another interrupt source, so system wakeup events that would
-normally come from the EC then don't work.
+OK, that's pretty much what I was compl^Wworried about ;-) Would you
+consider applying something like the following patch?
 
-This is reproducible on a Dell XPS13 9360 in my office which
-sometimes stops reacting to power button and lid events (triggered
-by the EC on that machine) after switching from AC power to battery
-power or vice versa while suspended to idle (each of those switches
-causes the EC GPE to trigger for several times in a row, but they
-are not system wakeup events).
+From: Jean Delvare <jdelvare@suse.de>
+Subject: ACPI / watchdog: Allow disabling WDAT at boot
 
-To avoid this problem, change __acpi_ec_flush_work() to call
-drain_workqueue() on system_wq instead of flush_scheduled_work(),
-which is sufficient to make it go away on the machine mentioned
-above.
+In case the WDAT interface is broken, give the user the option to
+ignore it to let a native driver bind to the watchdog device instead.
 
-Fixes: 016b87ca5c8c ("ACPI: EC: Rework flushing of pending work")
-Cc: 5.4+ <stable@vger.kernel.org> # 5.4+
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/ec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/kernel-parameters.txt |    4 ++++
+ drivers/acpi/acpi_watchdog.c                    |   12 +++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-Index: linux-pm/drivers/acpi/ec.c
-===================================================================
---- linux-pm.orig/drivers/acpi/ec.c
-+++ linux-pm/drivers/acpi/ec.c
-@@ -535,7 +535,7 @@ static void acpi_ec_enable_event(struct
- #ifdef CONFIG_PM_SLEEP
- static void __acpi_ec_flush_work(void)
- {
--	flush_scheduled_work(); /* flush ec->work */
-+	drain_workqueue(system_wq); /* flush ec->work */
- 	flush_workqueue(ec_query_wq); /* flush queries */
+--- linux-5.4.orig/drivers/acpi/acpi_watchdog.c	2020-02-06 15:20:27.187333079 +0100
++++ linux-5.4/drivers/acpi/acpi_watchdog.c	2020-02-06 15:30:08.707408406 +0100
+@@ -55,12 +55,14 @@ static bool acpi_watchdog_uses_rtc(const
  }
+ #endif
  
++static bool acpi_no_watchdog;
++
+ static const struct acpi_table_wdat *acpi_watchdog_get_wdat(void)
+ {
+ 	const struct acpi_table_wdat *wdat = NULL;
+ 	acpi_status status;
+ 
+-	if (acpi_disabled)
++	if (acpi_disabled || acpi_no_watchdog)
+ 		return NULL;
+ 
+ 	status = acpi_get_table(ACPI_SIG_WDAT, 0,
+@@ -88,6 +90,14 @@ bool acpi_has_watchdog(void)
+ }
+ EXPORT_SYMBOL_GPL(acpi_has_watchdog);
+ 
++/* ACPI watchdog can be disabled on boot command line */
++static int __init disable_acpi_watchdog(char *str)
++{
++	acpi_no_watchdog = true;
++	return 1;
++}
++__setup("acpi_no_watchdog", disable_acpi_watchdog);
++
+ void __init acpi_watchdog_init(void)
+ {
+ 	const struct acpi_wdat_entry *entries;
+--- linux-5.4.orig/Documentation/admin-guide/kernel-parameters.txt	2020-02-06 15:20:27.187333079 +0100
++++ linux-5.4/Documentation/admin-guide/kernel-parameters.txt	2020-02-06 15:31:16.614155680 +0100
+@@ -136,6 +136,10 @@
+ 			dynamic table installation which will install SSDT
+ 			tables to /sys/firmware/acpi/tables/dynamic.
+ 
++	acpi_no_watchdog	[HW,ACPI,WDT]
++			Ignore the ACPI-based watchdog interface (WDAT) and let
++			a native driver control the watchdog device instead.
++
+ 	acpi_rsdp=	[ACPI,EFI,KEXEC]
+ 			Pass the RSDP address to the kernel, mostly used
+ 			on machines running EFI runtime service to boot the
 
-
-
+Thanks,
+-- 
+Jean Delvare
+SUSE L3 Support
