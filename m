@@ -1,70 +1,100 @@
-Return-Path: <SRS0=nFll=33=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=3x0j=34=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F9FDC35242
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Feb 2020 21:55:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12AC7C35254
+	for <linux-acpi@archiver.kernel.org>; Sat,  8 Feb 2020 18:43:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC08C22522
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Feb 2020 21:55:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581112540;
-	bh=fOCxGy7MCh6Fy+wzJ7TB/GLsOp9F+XkQM82zHKt/dy4=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=AViVD08equsccZ5fm1ouOB8dcgi1sv9E81d6lbA/MJkhFVNXZfqm5e+mIOGU/R6+U
-	 QmiN40z0Dg+iLtC2fshxlqQQryaphliN2jVVxsz8q14tGOhTJ9ck9Mz+UzLLeLslnx
-	 +4DsgJQcaafEOx2loX+2VjC+gQOguu1Zvof6lP00=
+	by mail.kernel.org (Postfix) with ESMTP id DD06622B48
+	for <linux-acpi@archiver.kernel.org>; Sat,  8 Feb 2020 18:43:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=semihalf-com.20150623.gappssmtp.com header.i=@semihalf-com.20150623.gappssmtp.com header.b="ms+A/tTu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727731AbgBGVzU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 7 Feb 2020 16:55:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42396 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727691AbgBGVzT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Feb 2020 16:55:19 -0500
-Subject: Re: [GIT PULL] Additional power management updates for v5.6-rc1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581112519;
-        bh=fOCxGy7MCh6Fy+wzJ7TB/GLsOp9F+XkQM82zHKt/dy4=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=gqJTqaewu2c2VeI6pZAfLJ8gD+QlUeHlkV4axuxLfndSj+IcODUlpKdW+8HLk49CW
-         Qu+WuFmV4YV8o9XB6shdoIoMs74GihUvgT7izgr6dSvFtTHKm3UFpYrHRhwUiltkAV
-         NLeIXmaF0qT5FpnTF7E+ieX9PvLNCRva+cxnUtCI=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0iDEpbZmZvTKxhZYq0CQWJSRZBDfhXgNOJT-wSxUrsb3g@mail.gmail.com>
-References: <CAJZ5v0iDEpbZmZvTKxhZYq0CQWJSRZBDfhXgNOJT-wSxUrsb3g@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0iDEpbZmZvTKxhZYq0CQWJSRZBDfhXgNOJT-wSxUrsb3g@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
- pm-5.6-rc1-3
-X-PR-Tracked-Commit-Id: 332008256f1f7cd8294acd6e288fb821f685d1a9
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: ba7dcfc7badad87e450e4aaec79662a038dbf9ed
-Message-Id: <158111251898.9631.17351659043416665666.pr-tracker-bot@kernel.org>
-Date:   Fri, 07 Feb 2020 21:55:18 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S1727484AbgBHSnj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 8 Feb 2020 13:43:39 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:52332 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727491AbgBHSnj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Feb 2020 13:43:39 -0500
+Received: by mail-wm1-f65.google.com with SMTP id p9so5728401wmc.2
+        for <linux-acpi@vger.kernel.org>; Sat, 08 Feb 2020 10:43:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=semihalf-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=5pkGGU8cEcpg1WQ5oeotxdCpOUBGNhi+JYRWVa+V80s=;
+        b=ms+A/tTuvVz3HZCbAlRinLVe0SmeiI3IuRip/0uQPzHbS9mUbtBNFcgeSke7bLaLSp
+         p5pgxVUFVWi2o+JvDU/dCAkNUKIwrCe5x+XurkivpcLK+ONpQm0aNnwLePtsKr2qGk0F
+         PIUqpCV4OgxB5Clg78ul1dEnBJQqlb+Wm/dVlpVgInHGrWnynXzHG5xdBFivNhc1a4y+
+         pWbLAE5x3LdoSNIyrCnG8Uq/2rd4rELIqEg8m69IeDmeAv1okYOMcgkjrScZ/bjfwNoT
+         BCQffulbka/25ZR/6d1EvPDrVwadiuJbkfmlKsw9jN9iVuThDkS/FMsdAa4OKYi0zKAQ
+         H/Cg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5pkGGU8cEcpg1WQ5oeotxdCpOUBGNhi+JYRWVa+V80s=;
+        b=nPOu4nalcYWLTtb98Psdwt4q14tzVZzLDyMpTJ6FAqu2oNGaNh3zC1bscI7jCGi9c0
+         4gqWGcuBRL9QffkHN/soogY8+1Z3czTchLRPcA2asrpv6MhiydOtBlLR+iZqzFVAGcat
+         fr1XS82he+8ebAoOVd5NuwKDHBEQBKShpioUsWzq6NHYI8S35cxOn1APmmHApGY2PhZn
+         z/Ld+9V0sLUGdo3b6R28R2VnTiOieOt8Z5rCFA4Ly7uuyhzAe3hMkZHN5DB72moEFZ+a
+         7w2ZEcFUSEeAp3Y/BAfdQ0oJJ8pDM4L5JmkFeI4R/ns5lDLE3zSmCSRJ8XQne99EnQAz
+         y3/w==
+X-Gm-Message-State: APjAAAVH3ws6CsMnkYUHO0SawfwZIVIEloCnDqucRWzFrJxwe4TxXwq3
+        SoEAdWGqjsw6eCbCAjUnFqANkKlgWSeAtNDEScAcKQ==
+X-Google-Smtp-Source: APXvYqxtmrVmPK8v7/hnwsOr9LLRPCmhswgHaA017VNaGV7/DhRBF2VBSd/TMopxN856SckCGc/G/zrwkCk+G1ht4Fw=
+X-Received: by 2002:a1c:9dce:: with SMTP id g197mr5128787wme.23.1581187416790;
+ Sat, 08 Feb 2020 10:43:36 -0800 (PST)
+MIME-Version: 1.0
+References: <20200205194804.1647-1-mst@semihalf.com> <20200206083149.GK2667@lahna.fi.intel.com>
+ <CAMiGqYi2rVAc=hepkY-4S1U_3dJdbR4pOoB0f8tbBL4pzWLdxA@mail.gmail.com> <20200207075654.GB2667@lahna.fi.intel.com>
+In-Reply-To: <20200207075654.GB2667@lahna.fi.intel.com>
+From:   =?UTF-8?Q?Micha=C5=82_Stanek?= <mst@semihalf.com>
+Date:   Sat, 8 Feb 2020 19:43:24 +0100
+Message-ID: <CAMiGqYjmd2edUezEXsX4JBSyOozzks1Pu8miPEviGsx=x59nZQ@mail.gmail.com>
+Subject: Re: [PATCH] pinctrl: cherryview: Add quirk with custom translation of
+ ACPI GPIO numbers
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stanekm@google.com,
+        stable@vger.kernel.org, Marcin Wojtas <mw@semihalf.com>,
+        levinale@chromium.org, andriy.shevchenko@linux.intel.com,
+        Linus Walleij <linus.walleij@linaro.org>,
+        bgolaszewski@baylibre.com, rafael.j.wysocki@intel.com,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 7 Feb 2020 11:34:48 +0100:
+> >
+> > Hi Mika,
+> >
+> > The previous patches from Dmitry handled IRQ numbering, here we have a
+> > similar issue with GPIO to pin translation - hardcoded values in FW
+> > which do not agree with the (non-consecutive) numbering in newer
+> > kernels.
+>
+> Hmm, so instead of passing GpioIo/GpioInt resources to devices the
+> firmware uses some hard-coded Linux GPIO numbering scheme? Would you
+> able to share the exact firmware description where this happens?
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.6-rc1-3
+Actually it is a GPIO offset in ACPI tables for Braswell that was
+hardcoded in the old firmware to match the previous (consecutive)
+Linux GPIO numbering.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/ba7dcfc7badad87e450e4aaec79662a038dbf9ed
+> > > What GPIO(s) we are talking about and how does it show up to the user?
+> >
+> > As an example, the issue manifests itself when you run 'crossystem
+> > wpsw_cur'. On my Kefka it incorrectly reports the value as 1 instead
+> > of 0 when the write protect screw is removed.
+>
+> Is it poking GPIOs directly through sysfs relying the Linux GPIO
+> numbering (which can change and is fragile anyway)?
 
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+I believe so, yes.
