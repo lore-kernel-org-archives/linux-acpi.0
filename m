@@ -2,142 +2,105 @@ Return-Path: <SRS0=mEda=4A=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.4 required=3.0 tests=DATE_IN_PAST_12_24,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C780C2BA83
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 15:44:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1059FC3B186
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 15:55:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4CC84206ED
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 15:44:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4B7120873
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 15:55:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728245AbgBLPod (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 Feb 2020 10:44:33 -0500
-Received: from foss.arm.com ([217.140.110.172]:34384 "EHLO foss.arm.com"
+        id S1728080AbgBLPzm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 Feb 2020 10:55:42 -0500
+Received: from mx2.suse.de ([195.135.220.15]:58208 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727026AbgBLPod (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Feb 2020 10:44:33 -0500
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3FD01328;
-        Wed, 12 Feb 2020 07:44:33 -0800 (PST)
-Received: from [192.168.122.164] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 081923F68F;
-        Wed, 12 Feb 2020 07:44:33 -0800 (PST)
-Subject: Re: About PPTT find_acpi_cpu_topology_package()
-To:     John Garry <john.garry@huawei.com>,
-        Sudeep Holla <sudeep.holla@arm.com>
-Cc:     "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "liuqi (BA)" <liuqi115@huawei.com>,
-        wanghuiqiang <wanghuiqiang@huawei.com>
-References: <7a888a84-d4c5-2b49-05f3-29876d49cae6@huawei.com>
- <20200212115945.GA36981@bogus>
- <be88fdfc-50a0-9753-4f8f-d80c303892be@huawei.com>
- <20200212135551.GB36981@bogus>
- <1a04ddf8-4903-2986-a94e-c070dc2c2160@huawei.com>
-From:   Jeremy Linton <jeremy.linton@arm.com>
-Message-ID: <3c15a54a-18ac-265e-c16c-272577b9dead@arm.com>
-Date:   Tue, 11 Feb 2020 13:31:43 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+        id S1727458AbgBLPzm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Feb 2020 10:55:42 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id 49C57AC9D;
+        Wed, 12 Feb 2020 15:55:40 +0000 (UTC)
+Date:   Wed, 12 Feb 2020 16:55:37 +0100
+From:   Jean Delvare <jdelvare@suse.de>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        Wim Van Sebroeck <wim@linux-watchdog.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        linux-watchdog@vger.kernel.org,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Tom Abraham <tabraham@suse.com>
+Subject: Re: [PATCH v2 2/3] ACPI / watchdog: Fix gas->access_width usage
+Message-ID: <20200212165537.46f251cf@endymion>
+In-Reply-To: <20200212145941.32914-3-mika.westerberg@linux.intel.com>
+References: <20200212145941.32914-1-mika.westerberg@linux.intel.com>
+        <20200212145941.32914-3-mika.westerberg@linux.intel.com>
+Organization: SUSE Linux
+X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; x86_64-suse-linux-gnu)
 MIME-Version: 1.0
-In-Reply-To: <1a04ddf8-4903-2986-a94e-c070dc2c2160@huawei.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+On Wed, 12 Feb 2020 17:59:40 +0300, Mika Westerberg wrote:
+> ACPI Generic Address Structure (GAS) access_width field is not in bytes
+> as the driver seems to expect in few places so fix this by using the
+> newly introduced macro ACPI_ACCESS_BYTE_WIDTH().
+> 
+> Fixes: b1abf6fc4982 ("ACPI / watchdog: Fix off-by-one error at resource assignment")
 
-On 2/12/20 8:41 AM, John Garry wrote:
-> On 12/02/2020 13:55, Sudeep Holla wrote:
->> On Wed, Feb 12, 2020 at 12:48:33PM +0000, John Garry wrote:
->>> On 12/02/2020 11:59, Sudeep Holla wrote:
->>
->> [...]
->>
-> 
-> Hi Sudeep,
-> 
->>>> Yes, as mentioned above. We are not going to do extra work for lazy 
->>>> firmware.
->>>
->>> I don't think it's reasonable to just label this as lazy. The table 
->>> may just
->>> not have the flag set unintentionally. FW and software guys make 
->>> mistakes,
->>> like the mistakes in PPTT, itself.
->>>
->>
->> We are not talking about flags, it's UID and it is pretty important if
->> there are more than one objects of same time.
->>
-> 
-> I am talking about the Processor ID valid flag, which is specifically 
-> related.
-> 
->>>> Linux also will be lazy on such platform and provide weird unique 
->>>> numbers
->>>> like in the above case you have mentioned.
->>>
->>> Personally I think that the kernel can be do better than provide 
->>> meaningless
->>> values like this, since it knows the processor IDs and which physical
->>> package they belong to.
->>>
->>
->> This was discussed quite a lot, I can dig and point you to it. That's the
->> reason for choosing offset. We are *not going back* to this again. Fix 
->> the
->> firmware before it gets copied for all future platforms and Linux has to
->> deal with that *forever*.
-> 
-> I would liked to have been made aware earlier of the oversight. Quite 
-> often we only find problems when someone or something complains.
-> 
-> It is a strange API to provide offsets like this, and I did not realize 
-> that they were actually being exposed to userspace.
-> 
->>
->>> If not, at least make the user know of potential deficiencies in the 
->>> table.
->>>
->>
->> How ? What are your suggestions ? Does adding a warning or note that UID
->> is missing and offset is chosen help ? 
-> 
-> I'd say so. I know now, but let's save others the potential hassle. And 
-> having this debate again.
-> 
-> I am kind of fine with that.
-> 
-> How about something like this:
-> 
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -515,6 +515,8 @@ static int topology_get_acpi_cpu_tag(struct 
-> acpi_table_header *table,
->    if (level == 0 || cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_ID_VALID)
->      return cpu_node->acpi_processor_id;
-> +   if (level == PPTT_ABORT_PACKAGE)
-> +    pr_warn_once("ACPI Processor ID valid not set for physical package 
-> node, will use node table offset as substitute for UID\n");
+It does not actually fix that commit, as the bug already existed prior
+to it. It has to be applied on top of that commit though because they
+touch the same lines, granted.
 
-To clarify my other email there, since I can't seem to type clearly..
-
-Just note that find_acpi_cpu_topology_hetero_id() is also using a 
-PPTT_ABORT_PACKAGE termination.
-
-
->                  return ACPI_PTR_DIFF(cpu_node, table);
->          }
->          pr_warn_once("PPTT table found, but unable to locate core %d 
-> (%d)\n",
+> Fixes: 058dfc767008 ("ACPI / watchdog: Add support for WDAT hardware watchdog")
+> Reported-by: Jean Delvare <jdelvare@suse.de>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_watchdog.c | 3 +--
+>  drivers/watchdog/wdat_wdt.c  | 2 +-
+>  2 files changed, 2 insertions(+), 3 deletions(-)
 > 
-> Thanks,
-> John
+> diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
+> index b5516b04ffc0..d827a4a3e946 100644
+> --- a/drivers/acpi/acpi_watchdog.c
+> +++ b/drivers/acpi/acpi_watchdog.c
+> @@ -126,12 +126,11 @@ void __init acpi_watchdog_init(void)
+>  		gas = &entries[i].register_region;
+>  
+>  		res.start = gas->address;
+> +		res.end = res.start + ACPI_ACCESS_BYTE_WIDTH(gas->access_width) - 1;
+>  		if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+>  			res.flags = IORESOURCE_MEM;
+> -			res.end = res.start + ALIGN(gas->access_width, 4) - 1;
+>  		} else if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+>  			res.flags = IORESOURCE_IO;
+> -			res.end = res.start + gas->access_width - 1;
+>  		} else {
+>  			pr_warn("Unsupported address space: %u\n",
+>  				gas->space_id);
+> diff --git a/drivers/watchdog/wdat_wdt.c b/drivers/watchdog/wdat_wdt.c
+> index b069349b52f5..e1b1fcfc02af 100644
+> --- a/drivers/watchdog/wdat_wdt.c
+> +++ b/drivers/watchdog/wdat_wdt.c
+> @@ -389,7 +389,7 @@ static int wdat_wdt_probe(struct platform_device *pdev)
+>  
+>  		memset(&r, 0, sizeof(r));
+>  		r.start = gas->address;
+> -		r.end = r.start + gas->access_width - 1;
+> +		r.end = r.start + ACPI_ACCESS_BYTE_WIDTH(gas->access_width) - 1;
+>  		if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+>  			r.flags = IORESOURCE_MEM;
+>  		} else if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
 
+Reviewed-by: Jean Delvare <jdelvare@suse.de>
+
+-- 
+Jean Delvare
+SUSE L3 Support
