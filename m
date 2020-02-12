@@ -2,68 +2,85 @@ Return-Path: <SRS0=mEda=4A=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0644CC2BA83
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 13:04:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9EEDC2BA83
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 13:55:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC1A820661
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 13:04:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581512658;
-	bh=XcyBnDmREiLpeUlrKtLecu1iRGsoDxvbHjAQAQ0neVY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=1SQ8L/3zno0pE+60lny4ip/ljUP0mhUI1GNJhbSebZFdv0wfgqDcadRjTtbMlu/3h
-	 bjhzmN8kEOuRyiSbigd3jbFSSv09BBTRWZINMijQOZ9PcP/A0GHhHUjVr7gD4HDyL8
-	 g+iTBGMmOi1rG9NC8coH00kduz7NfgHn3PnFf574=
+	by mail.kernel.org (Postfix) with ESMTP id 9BBA42082F
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 Feb 2020 13:55:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727439AbgBLNES (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 Feb 2020 08:04:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35246 "EHLO mail.kernel.org"
+        id S1727439AbgBLNzz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 Feb 2020 08:55:55 -0500
+Received: from foss.arm.com ([217.140.110.172]:33178 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725887AbgBLNES (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Feb 2020 08:04:18 -0500
-Received: from localhost (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8072120659;
-        Wed, 12 Feb 2020 13:04:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581512657;
-        bh=XcyBnDmREiLpeUlrKtLecu1iRGsoDxvbHjAQAQ0neVY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=CavNMyfy5j5HTJ+1TQ8oqg2WKNyX/ZQ+0MUJbeKLn9ibmiYV9kdhCmV8mblCtMY7k
-         EZyu1gXLCGbxUm0i8UMdyBvrMQ/2H+H17+jrmyq3gDOz2jTiqp54s9t8WoqkMiMeVw
-         GdzVLGgt6vaViMx/ikghb43q3QXISl2E8kooFeUY=
-Date:   Wed, 12 Feb 2020 08:04:16 -0500
-From:   Sasha Levin <sashal@kernel.org>
-To:     Steven Clarkson <sc@lambdal.com>
-Cc:     stable@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: Request to cherry pick 2b73ea379624 into 5.4.x and 5.5.x
-Message-ID: <20200212130416.GA32735@sasha-vm>
-References: <CAHKq8taawUbZWubQ8qzy05+qUKuCAYGy7kEZ-PkgPeFhode5gg@mail.gmail.com>
+        id S1725887AbgBLNzz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Feb 2020 08:55:55 -0500
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7F3AD328;
+        Wed, 12 Feb 2020 05:55:54 -0800 (PST)
+Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9994E3F6CF;
+        Wed, 12 Feb 2020 05:55:53 -0800 (PST)
+Date:   Wed, 12 Feb 2020 13:55:51 +0000
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     John Garry <john.garry@huawei.com>
+Cc:     Jeremy Linton <jeremy.linton@arm.com>,
+        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "liuqi (BA)" <liuqi115@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: About PPTT find_acpi_cpu_topology_package()
+Message-ID: <20200212135551.GB36981@bogus>
+References: <7a888a84-d4c5-2b49-05f3-29876d49cae6@huawei.com>
+ <20200212115945.GA36981@bogus>
+ <be88fdfc-50a0-9753-4f8f-d80c303892be@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHKq8taawUbZWubQ8qzy05+qUKuCAYGy7kEZ-PkgPeFhode5gg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <be88fdfc-50a0-9753-4f8f-d80c303892be@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Feb 11, 2020 at 09:17:02PM -0800, Steven Clarkson wrote:
->Greg,
+On Wed, Feb 12, 2020 at 12:48:33PM +0000, John Garry wrote:
+> On 12/02/2020 11:59, Sudeep Holla wrote:
+
+[...]
+
+> > Yes, as mentioned above. We are not going to do extra work for lazy firmware.
 >
->Commit 2b73ea379624 ("x86/boot: Handle malformed SRAT tables during
->early ACPI parsing") fixes a boot hang on some ASUS motherboards with
->an older BIOS. Could you pull this into 5.4.x and 5.5.x? Should cherry
->pick cleanly into both.
+> I don't think it's reasonable to just label this as lazy. The table may just
+> not have the flag set unintentionally. FW and software guys make mistakes,
+> like the mistakes in PPTT, itself.
+>
 
-I've queued it up for 5.5 and 5.4, thanks!
+We are not talking about flags, it's UID and it is pretty important if
+there are more than one objects of same time.
 
--- 
-Thanks,
-Sasha
+> > Linux also will be lazy on such platform and provide weird unique numbers
+> > like in the above case you have mentioned.
+>
+> Personally I think that the kernel can be do better than provide meaningless
+> values like this, since it knows the processor IDs and which physical
+> package they belong to.
+>
+
+This was discussed quite a lot, I can dig and point you to it. That's the
+reason for choosing offset. We are *not going back* to this again. Fix the
+firmware before it gets copied for all future platforms and Linux has to
+deal with that *forever*.
+
+> If not, at least make the user know of potential deficiencies in the table.
+>
+
+How ? What are your suggestions ? Does adding a warning or note that UID
+is missing and offset is chosen help ? I am kind of fine with that.
+
+--
+Regards,
+Sudeep
