@@ -2,51 +2,53 @@ Return-Path: <SRS0=0Hnf=4C=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0893C2BA83
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 17:31:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4A4DC2BA83
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 17:33:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 70DDD2082F
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 17:31:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E4892082F
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 17:33:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581701470;
-	bh=AQZv439aPs3a3pzVfoFsckJvPrDHpgNa6VOlnBmXrqI=;
+	s=default; t=1581701621;
+	bh=y0zsWFAAQt5O3YrdHCUxKn+ayPk7Zq2Z7TkvtAqN3tU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=MIwEgl/y5LY6XF5/SBvaQjAt4cWqcuUZ7Ri7LNb+WsA7EQTTpD26BGYojW2c/fwes
-	 wz7PsuOp4oXxTKkPnXbYLSgutnnh847mrp1ghrnYY20C1X+4rpgM6HrvbAbiiWczQ6
-	 jKvQU9cAvkB3E+sTfQ6aIyk96A/2CfmVXpHrUgiM=
+	b=B4KPEdGjQCBENpr8k0+6XNflWgqBEOOAz4MwhFiBoJgkMHvQSPfy1ZqM99gGQm9Zy
+	 yIVIPoyaub7fM/PMgKORUKLzunHv4fKIHj42AFNO92MzObIAU6BV3IWo4lsA9C8o4g
+	 npXKq0ZiDOAILVSWnnmsl0RQuXzgvPGAXG1tHaIs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391168AbgBNRbC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:31:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58436 "EHLO mail.kernel.org"
+        id S2389580AbgBNQGU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:06:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390246AbgBNQHP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:07:15 -0500
+        id S2390383AbgBNQGT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:06:19 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4BEFD2067D;
-        Fri, 14 Feb 2020 16:07:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 604112467B;
+        Fri, 14 Feb 2020 16:06:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696435;
-        bh=AQZv439aPs3a3pzVfoFsckJvPrDHpgNa6VOlnBmXrqI=;
+        s=default; t=1581696378;
+        bh=y0zsWFAAQt5O3YrdHCUxKn+ayPk7Zq2Z7TkvtAqN3tU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PKLLBDHxdzk4Pi34XzG6E1WWvnHpDjcbI9Yl0gmA+S3y3+na5yVM16JI0usyK6dP0
-         3iDrtTB3v+NwfUauYxBK3rIcuzzkgqMTnr9vohnLMet+H3OiSo3F71C5r65JqYdhem
-         vzQ6JxnWfiBP1mdX6pgVfPMPtZ8yrtgQ9sNarotA=
+        b=EmzoOsAj8MwnYLGffTb/X1PX2M25jTy3x5tGUQHQmMGX+a+yDgOnrAKIBJ4JvoTLN
+         P4h6/b+OIiGXiyXdbO68ajk9+eTC3yYXHIsyzs3EjLrcJZR0nfPTkRnZ/RpSxjTFow
+         5Zkhb4uw8Y0T0fyv+ctptc97eT+pITH4takRrKAI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Ekstrand <jason@jlekstrand.net>,
-        Hans de Goede <hdegoede@redhat.com>,
+Cc:     Erik Kaneda <erik.kaneda@intel.com>,
+        Elia Geretto <elia.f.geretto@gmail.com>,
+        Bob Moore <robert.moore@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 252/459] ACPI: button: Add DMI quirk for Razer Blade Stealth 13 late 2019 lid switch
-Date:   Fri, 14 Feb 2020 10:58:22 -0500
-Message-Id: <20200214160149.11681-252-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org
+Subject: [PATCH AUTOSEL 5.4 206/459] ACPICA: Disassembler: create buffer fields in ACPI_PARSE_LOAD_PASS1
+Date:   Fri, 14 Feb 2020 10:57:36 -0500
+Message-Id: <20200214160149.11681-206-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
 References: <20200214160149.11681-1-sashal@kernel.org>
@@ -59,45 +61,84 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jason Ekstrand <jason@jlekstrand.net>
+From: Erik Kaneda <erik.kaneda@intel.com>
 
-[ Upstream commit 0528904926aab19bffb2068879aa44db166c6d5f ]
+[ Upstream commit 5ddbd77181dfca61b16d2e2222382ea65637f1b9 ]
 
-Running evemu-record on the lid switch event shows that the lid reports
-the first "close" but then never reports an "open".  This causes systemd
-to continuously re-suspend the laptop every 30s.  Resetting the _LID to
-"open" fixes the issue.
+ACPICA commit 29cc8dbc5463a93625bed87d7550a8bed8913bf4
 
-Signed-off-by: Jason Ekstrand <jason@jlekstrand.net>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+create_buffer_field is a deferred op that is typically processed in
+load pass 2. However, disassembly of control method contents walk the
+parse tree with ACPI_PARSE_LOAD_PASS1 and AML_CREATE operators are
+processed in a later walk. This is a problem when there is a control
+method that has the same name as the AML_CREATE object. In this case,
+any use of the name segment will be detected as a method call rather
+than a reference to a buffer field. If this is detected as a method
+call, it can result in a mal-formed parse tree if the control methods
+have parameters.
+
+This change in processing AML_CREATE ops earlier solves this issue by
+inserting the named object in the ACPI namespace so that references
+to this name would be detected as a name string rather than a method
+call.
+
+Link: https://github.com/acpica/acpica/commit/29cc8dbc
+Reported-by: Elia Geretto <elia.f.geretto@gmail.com>
+Tested-by: Elia Geretto <elia.f.geretto@gmail.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/button.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/acpi/acpica/dsfield.c |  2 +-
+ drivers/acpi/acpica/dswload.c | 21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index ce93a355bd1c8..985afc62da82a 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -89,6 +89,17 @@ static const struct dmi_system_id lid_blacklst[] = {
- 		},
- 		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
- 	},
-+	{
-+		/*
-+		 * Razer Blade Stealth 13 late 2019, notification of the LID device
-+		 * only happens on close, not on open and _LID always returns closed.
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Razer Blade Stealth 13 Late 2019"),
-+		},
-+		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
-+	},
- 	{}
- };
+diff --git a/drivers/acpi/acpica/dsfield.c b/drivers/acpi/acpica/dsfield.c
+index cf4e061bb0f0b..8438e33aa4474 100644
+--- a/drivers/acpi/acpica/dsfield.c
++++ b/drivers/acpi/acpica/dsfield.c
+@@ -244,7 +244,7 @@ acpi_ds_create_buffer_field(union acpi_parse_object *op,
+  * FUNCTION:    acpi_ds_get_field_names
+  *
+  * PARAMETERS:  info            - create_field info structure
+- *  `           walk_state      - Current method state
++ *              walk_state      - Current method state
+  *              arg             - First parser arg for the field name list
+  *
+  * RETURN:      Status
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index c88fd31208a5b..4bcf15bf03ded 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -410,6 +410,27 @@ acpi_status acpi_ds_load1_end_op(struct acpi_walk_state *walk_state)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH, "Op=%p State=%p\n", op,
+ 			  walk_state));
  
++	/*
++	 * Disassembler: handle create field operators here.
++	 *
++	 * create_buffer_field is a deferred op that is typically processed in load
++	 * pass 2. However, disassembly of control method contents walk the parse
++	 * tree with ACPI_PARSE_LOAD_PASS1 and AML_CREATE operators are processed
++	 * in a later walk. This is a problem when there is a control method that
++	 * has the same name as the AML_CREATE object. In this case, any use of the
++	 * name segment will be detected as a method call rather than a reference
++	 * to a buffer field.
++	 *
++	 * This earlier creation during disassembly solves this issue by inserting
++	 * the named object in the ACPI namespace so that references to this name
++	 * would be a name string rather than a method call.
++	 */
++	if ((walk_state->parse_flags & ACPI_PARSE_DISASSEMBLE) &&
++	    (walk_state->op_info->flags & AML_CREATE)) {
++		status = acpi_ds_create_buffer_field(op, walk_state);
++		return_ACPI_STATUS(status);
++	}
++
+ 	/* We are only interested in opcodes that have an associated name */
+ 
+ 	if (!(walk_state->op_info->flags & (AML_NAMED | AML_FIELD))) {
 -- 
 2.20.1
 
