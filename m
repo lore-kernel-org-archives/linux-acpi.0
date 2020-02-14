@@ -7,17 +7,17 @@ X-Spam-Status: No, score=-14.8 required=3.0
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C374C3B1BE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4318C7114D
 	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F185B24682
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F3CD222C2
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388099AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2388122AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 14 Feb 2020 14:08:29 -0500
-Received: from mga02.intel.com ([134.134.136.20]:26791 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:26798 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388080AbgBNTI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S2388107AbgBNTI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 14 Feb 2020 14:08:29 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
@@ -25,17 +25,17 @@ Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Feb 2020 11:08:24 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,441,1574150400"; 
-   d="scan'208";a="227702892"
+   d="scan'208";a="227702890"
 Received: from sibelius.jf.intel.com ([10.54.75.38])
   by orsmga008.jf.intel.com with ESMTP; 14 Feb 2020 11:08:24 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 03/10] ACPICA: Fix a comment "enable" fixed events -> "disable" all fixed events.
-Date:   Fri, 14 Feb 2020 10:47:57 -0800
-Message-Id: <20200214184804.15114-4-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 01/10] ACPICA: ASL-ASL+ converter: remove function parameters from cv_init_file_tree ()
+Date:   Fri, 14 Feb 2020 10:47:55 -0800
+Message-Id: <20200214184804.15114-2-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200214184804.15114-1-erik.kaneda@intel.com>
 References: <20200214184804.15114-1-erik.kaneda@intel.com>
@@ -46,30 +46,56 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 3ba6fa55a4a32d8b6fc28f9f285506ea0e359296
 
-ACPICA commit af4462c6f41ebc9bf63b5370818c5fd96524e7a9
+These parameters can be computed inside of the function from the
+Table parameter.
 
-Link: https://github.com/acpica/acpica/commit/af4462c6
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/3ba6fa55
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/evevent.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/acconvert.h | 4 +---
+ drivers/acpi/acpica/acmacros.h  | 4 ++--
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evevent.c b/drivers/acpi/acpica/evevent.c
-index 8c83d8c620dc..89391938193d 100644
---- a/drivers/acpi/acpica/evevent.c
-+++ b/drivers/acpi/acpica/evevent.c
-@@ -130,7 +130,7 @@ static acpi_status acpi_ev_fixed_event_initialize(void)
+diff --git a/drivers/acpi/acpica/acconvert.h b/drivers/acpi/acpica/acconvert.h
+index ede4b9cc9e85..9eca93656116 100644
+--- a/drivers/acpi/acpica/acconvert.h
++++ b/drivers/acpi/acpica/acconvert.h
+@@ -65,9 +65,7 @@ void cg_write_aml_comment(union acpi_parse_object *op);
+ /*
+  * cvparser
+  */
+-void
+-cv_init_file_tree(struct acpi_table_header *table,
+-		  u8 *aml_start, u32 aml_length);
++void cv_init_file_tree(struct acpi_table_header *table);
  
- 	/*
- 	 * Initialize the structure that keeps track of fixed event handlers and
--	 * enable the fixed events.
-+	 * disable all of the fixed events.
- 	 */
- 	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++) {
- 		acpi_gbl_fixed_event_handlers[i].handler = NULL;
+ void cv_clear_op_comments(union acpi_parse_object *op);
+ 
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index 2269e10bc21b..87d06c963a60 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -477,7 +477,7 @@
+ #define ASL_CV_PRINT_ONE_COMMENT(a,b,c,d) cv_print_one_comment_type (a,b,c,d);
+ #define ASL_CV_PRINT_ONE_COMMENT_LIST(a,b) cv_print_one_comment_list (a,b);
+ #define ASL_CV_FILE_HAS_SWITCHED(a)       cv_file_has_switched(a)
+-#define ASL_CV_INIT_FILETREE(a,b,c)      cv_init_file_tree(a,b,c);
++#define ASL_CV_INIT_FILETREE(a)      cv_init_file_tree(a);
+ 
+ #else
+ 
+@@ -492,7 +492,7 @@
+ #define ASL_CV_PRINT_ONE_COMMENT(a,b,c,d)
+ #define ASL_CV_PRINT_ONE_COMMENT_LIST(a,b)
+ #define ASL_CV_FILE_HAS_SWITCHED(a)       0
+-#define ASL_CV_INIT_FILETREE(a,b,c)
++#define ASL_CV_INIT_FILETREE(a)
+ 
+ #endif
+ 
 -- 
 2.21.0
 
