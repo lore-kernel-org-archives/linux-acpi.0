@@ -7,17 +7,17 @@ X-Spam-Status: No, score=-14.8 required=3.0
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B7C1C3B1BE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14AEBC2BA83
 	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1559E24649
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D836D24649
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388082AbgBNTIZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2388081AbgBNTIZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 14 Feb 2020 14:08:25 -0500
 Received: from mga02.intel.com ([134.134.136.20]:26791 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388080AbgBNTIZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S2387995AbgBNTIZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 14 Feb 2020 14:08:25 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
@@ -25,17 +25,17 @@ Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Feb 2020 11:08:24 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,441,1574150400"; 
-   d="scan'208";a="227702908"
+   d="scan'208";a="227702905"
 Received: from sibelius.jf.intel.com ([10.54.75.38])
   by orsmga008.jf.intel.com with ESMTP; 14 Feb 2020 11:08:24 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     Bob Moore <robert.moore@intel.com>,
+Cc:     Sven Barth <sb@miray.de>, Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 09/10] ACPICA: Fix a couple of typos
-Date:   Fri, 14 Feb 2020 10:48:03 -0800
-Message-Id: <20200214184804.15114-10-erik.kaneda@intel.com>
+Subject: [PATCH 08/10] ACPICA: use acpi_size instead of u32 for prefix_path_length
+Date:   Fri, 14 Feb 2020 10:48:02 -0800
+Message-Id: <20200214184804.15114-9-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200214184804.15114-1-erik.kaneda@intel.com>
 References: <20200214184804.15114-1-erik.kaneda@intel.com>
@@ -46,47 +46,34 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Sven Barth <sb@miray.de>
 
-Squashed ACPICA commit e93a53d4d312a83a3ec72aa9cfb12d781b4fefca
-and df52c574572344cd9095b66a0f580d51249deb2a
+strlen() returns a size_t, so use acpi_size instead of u32 for
+prefix_path_length.
 
-Submitted by: ehaouas@noos.fr
+ACPICA commit 0f64c317e769a63679442404421da1d5bd61068a
 
-Link: https://github.com/acpica/acpica/commit/e93a53d4
+Link: https://github.com/acpica/acpica/commit/0f64c317
+Signed-off-by: Sven Barth <sb@miray.de>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- drivers/acpi/acpica/utobject.c | 2 +-
- include/acpi/actbl1.h          | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/nsnames.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/utobject.c b/drivers/acpi/acpica/utobject.c
-index 3e60bdac2200..bbec04c291d2 100644
---- a/drivers/acpi/acpica/utobject.c
-+++ b/drivers/acpi/acpica/utobject.c
-@@ -44,7 +44,7 @@ acpi_ut_get_element_length(u8 object_type,
-  *
-  * NOTE:        We always allocate the worst-case object descriptor because
-  *              these objects are cached, and we want them to be
-- *              one-size-satisifies-any-request. This in itself may not be
-+ *              one-size-satisfies-any-request. This in itself may not be
-  *              the most memory efficient, but the efficiency of the object
-  *              cache should more than make up for this!
-  *
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 02d06b79e1cd..43549547ed3e 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -862,7 +862,7 @@ enum acpi_erst_instructions {
- /* Command status return values */
+diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
+index 832b79c4b008..d4d26147610e 100644
+--- a/drivers/acpi/acpica/nsnames.c
++++ b/drivers/acpi/acpica/nsnames.c
+@@ -346,7 +346,7 @@ char *acpi_ns_build_prefixed_pathname(union acpi_generic_state *prefix_scope,
+ 	char *full_path = NULL;
+ 	char *external_path = NULL;
+ 	char *prefix_path = NULL;
+-	u32 prefix_path_length = 0;
++	acpi_size prefix_path_length = 0;
  
- enum acpi_erst_command_status {
--	ACPI_ERST_SUCESS = 0,
-+	ACPI_ERST_SUCCESS = 0,
- 	ACPI_ERST_NO_SPACE = 1,
- 	ACPI_ERST_NOT_AVAILABLE = 2,
- 	ACPI_ERST_FAILURE = 3,
+ 	/* If there is a prefix, get the pathname to it */
+ 
 -- 
 2.21.0
 
