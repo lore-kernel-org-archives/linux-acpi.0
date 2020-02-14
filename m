@@ -1,93 +1,65 @@
-Return-Path: <SRS0=Iqsm=4B=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=0Hnf=4C=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB2E1C3F68F
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Feb 2020 22:53:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E972C35242
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 06:30:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 78AEC21734
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Feb 2020 22:53:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581634404;
-	bh=wTy5oEUobwMPZZByZgWSyfKgKX3JE4QGAS8hrIHQIw8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=H+VFj0g6TLjQsAmVrb7LldvGJlz+sqHTGWSHYV5+1D5K+HHTwdA2lTconNNk5VArX
-	 1t+2yPz4hG7wmbmGb3liQOoxzJPB3hhQZuF4Bh3J9mdoM+3BMMckIrKdByUkJgM+lk
-	 1w5SO1zqw63dBll22Gb8yePlSDXeXFCWrldCG/S0=
+	by mail.kernel.org (Postfix) with ESMTP id 1E162222C2
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 06:30:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727519AbgBMWxY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 13 Feb 2020 17:53:24 -0500
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:34558 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726780AbgBMWxX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Feb 2020 17:53:23 -0500
-Received: by mail-oi1-f194.google.com with SMTP id l136so7579335oig.1;
-        Thu, 13 Feb 2020 14:53:23 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=h0MsZNA+zikNEsKgKngpsTvd+TUGMDouBdzTw78J+Ps=;
-        b=LDJH2B/2l/pvKRNaijjnjeaGjiszzm1qrMdoHZgqrVzpJiszDdz5PpCWkP4rFMWz65
-         GoPc7n8csaF7zddo42V+V2XYe/dUNCsWfiOxCqQDEKFtfHZy593eBMFy4mXUtvvSi0JF
-         uE/soTs0+qBbYXVpwE9z6CluE2acojIiqr/gn6YzkbdFhrx9a54E0NFD+7KtyzygjoKG
-         XRVXqPQ7WrPEmHHHA0z2LiydoAeMePFoJGYh8dcl2AnVVHU19fJ99qjD3539rh3Mj3/F
-         M3Seuer7qltZ4znXt56mGfsOGvVcXOEPBs7SkKu3w+2oRPxCKsSH0eGPDFZQnx2E0NVt
-         wn3A==
-X-Gm-Message-State: APjAAAWsNJEq/W3xuDgh5cg6asO2P0snD/+ziVrWHiICHPQSIQ/JkOFD
-        RiFV1JniDparKfbrm60JlWBThDucLjM3kePkwRE=
-X-Google-Smtp-Source: APXvYqxYRSRulfdfNW1Rxg1ou2/PjO+bhQGRe2/rkk5+xF+UmxvY8pM5qcKxGil9CTur1Gj2cZQURU3q1Ty7LiP0SfY=
-X-Received: by 2002:a54:4e96:: with SMTP id c22mr4736182oiy.110.1581634402980;
- Thu, 13 Feb 2020 14:53:22 -0800 (PST)
+        id S1728768AbgBNGaP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Feb 2020 01:30:15 -0500
+Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:44941 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728422AbgBNGaP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Feb 2020 01:30:15 -0500
+Received: from localhost.localdomain ([93.22.37.15])
+        by mwinf5d17 with ME
+        id 2WWB220080KcLDH03WWBpd; Fri, 14 Feb 2020 07:30:13 +0100
+X-ME-Helo: localhost.localdomain
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Fri, 14 Feb 2020 07:30:13 +0100
+X-ME-IP: 93.22.37.15
+From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To:     rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com,
+        erik.kaneda@intel.com
+Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] ACPICA: Fix a typo in acuuid.h
+Date:   Fri, 14 Feb 2020 07:30:03 +0100
+Message-Id: <20200214063003.29741-1-christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <20200212145941.32914-1-mika.westerberg@linux.intel.com>
-In-Reply-To: <20200212145941.32914-1-mika.westerberg@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 13 Feb 2020 23:53:12 +0100
-Message-ID: <CAJZ5v0hXQBoo4R-jsf+kY9s+fYj3q==ff2hbiWxx9ECYmXW6MQ@mail.gmail.com>
-Subject: Re: [PATCH v2 0/3] ACPI / watchdog: Fix two reported issues
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Jean Delvare <jdelvare@suse.de>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Wim Van Sebroeck <wim@linux-watchdog.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        linux-watchdog@vger.kernel.org,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Tom Abraham <tabraham@suse.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Feb 12, 2020 at 3:59 PM Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
->
-> Hi,
->
-> This is an updated version of the patch series posted here:
->
->   https://lore.kernel.org/linux-watchdog/20200212110540.83559-1-mika.westerberg@linux.intel.com/
->
-> This should fix the two issues reported by Jean Delvare. I also addressed
-> all the review comments and fixed the bugs in the previous version.
->
-> This time I actually tested these on Intel Joule board and the watchdog
-> still works as expected.
->
-> I'm now including ACPICA maintainers as well to get some feedback regarding
-> the first patch of the series.
->
-> Mika Westerberg (3):
->   ACPICA: Introduce ACPI_ACCESS_BYTE_WIDTH() macro
->   ACPI / watchdog: Fix gas->access_width usage
->   ACPI / watchdog: Set default timeout in probe
+The comment related to the ending of the include guard should be related to
+__ACUUID_H__, not __AUUID_H__ (i.e. 'C' is missing).
 
-Applied as fixes for 5.6, thanks!
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+ include/acpi/acuuid.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/acpi/acuuid.h b/include/acpi/acuuid.h
+index 9dd4689a39cf..9e1367b19069 100644
+--- a/include/acpi/acuuid.h
++++ b/include/acpi/acuuid.h
+@@ -57,4 +57,4 @@
+ #define UUID_THERMAL_EXTENSIONS         "14d399cd-7a27-4b18-8fb4-7cb7b9f4e500"
+ #define UUID_DEVICE_PROPERTIES          "daffd814-6eba-4d8c-8a91-bc9bbf4aa301"
+ 
+-#endif				/* __AUUID_H__ */
++#endif				/* __ACUUID_H__ */
+-- 
+2.20.1
+
