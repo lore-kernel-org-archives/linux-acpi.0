@@ -7,17 +7,17 @@ X-Spam-Status: No, score=-14.8 required=3.0
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E9DCC3B1BF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A450C4741C
 	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C71A524649
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CD3D24649
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388094AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2388080AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 14 Feb 2020 14:08:29 -0500
 Received: from mga02.intel.com ([134.134.136.20]:26795 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388099AbgBNTI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S2387995AbgBNTI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 14 Feb 2020 14:08:29 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
@@ -25,17 +25,17 @@ Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Feb 2020 11:08:24 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,441,1574150400"; 
-   d="scan'208";a="227702896"
+   d="scan'208";a="227702891"
 Received: from sibelius.jf.intel.com ([10.54.75.38])
   by orsmga008.jf.intel.com with ESMTP; 14 Feb 2020 11:08:24 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 05/10] ACPICA: Table Manager: Update comments in a function header
-Date:   Fri, 14 Feb 2020 10:47:59 -0800
-Message-Id: <20200214184804.15114-6-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 02/10] ACPICA: ASL-ASL+ converter: make root file a parameter for cv_init_file_tree
+Date:   Fri, 14 Feb 2020 10:47:56 -0800
+Message-Id: <20200214184804.15114-3-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200214184804.15114-1-erik.kaneda@intel.com>
 References: <20200214184804.15114-1-erik.kaneda@intel.com>
@@ -46,45 +46,54 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 5d160cc86cca440eac7055f981e48bc14d4eb9f7
 
-Update acpi_get_table_header to remove text stating that the caller
-must unmap any returned memory.
+This decouples cv_init_file_tree from acpi_gbl_output_file and allows
+it to be called independently of acpi_os_redirect_output()
 
-ACPICA commit 4f3a235cf0044b2d91958b1f99b4ca824c63f948
-
-Link: https://github.com/acpica/acpica/commit/4f3a235c
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/5d160cc8
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/tbxface.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/acconvert.h | 2 +-
+ drivers/acpi/acpica/acmacros.h  | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index f8403d480318..7490429ddbf6 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -202,14 +202,14 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_reallocate_root_table)
-  *
-  * PARAMETERS:  signature           - ACPI signature of needed table
-  *              instance            - Which instance (for SSDTs)
-- *              out_table_header    - The pointer to the table header to fill
-+ *              out_table_header    - The pointer to the where the table header
-+ *                                    is returned
-  *
-- * RETURN:      Status and pointer to mapped table header
-+ * RETURN:      Status and a copy of the table header
-  *
-- * DESCRIPTION: Finds an ACPI table header.
-- *
-- * NOTE:        Caller is responsible in unmapping the header with
-- *              acpi_os_unmap_memory
-+ * DESCRIPTION: Finds and returns an ACPI table header. Caller provides the
-+ *              memory where a copy of the header is to be returned
-+ *              (fixed length).
-  *
-  ******************************************************************************/
- acpi_status
+diff --git a/drivers/acpi/acpica/acconvert.h b/drivers/acpi/acpica/acconvert.h
+index 9eca93656116..cf85d66da6e7 100644
+--- a/drivers/acpi/acpica/acconvert.h
++++ b/drivers/acpi/acpica/acconvert.h
+@@ -65,7 +65,7 @@ void cg_write_aml_comment(union acpi_parse_object *op);
+ /*
+  * cvparser
+  */
+-void cv_init_file_tree(struct acpi_table_header *table);
++void cv_init_file_tree(struct acpi_table_header *table, FILE * root_file);
+ 
+ void cv_clear_op_comments(union acpi_parse_object *op);
+ 
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index 87d06c963a60..168904ba3086 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -477,7 +477,7 @@
+ #define ASL_CV_PRINT_ONE_COMMENT(a,b,c,d) cv_print_one_comment_type (a,b,c,d);
+ #define ASL_CV_PRINT_ONE_COMMENT_LIST(a,b) cv_print_one_comment_list (a,b);
+ #define ASL_CV_FILE_HAS_SWITCHED(a)       cv_file_has_switched(a)
+-#define ASL_CV_INIT_FILETREE(a)      cv_init_file_tree(a);
++#define ASL_CV_INIT_FILETREE(a,b)      cv_init_file_tree(a,b);
+ 
+ #else
+ 
+@@ -492,7 +492,7 @@
+ #define ASL_CV_PRINT_ONE_COMMENT(a,b,c,d)
+ #define ASL_CV_PRINT_ONE_COMMENT_LIST(a,b)
+ #define ASL_CV_FILE_HAS_SWITCHED(a)       0
+-#define ASL_CV_INIT_FILETREE(a)
++#define ASL_CV_INIT_FILETREE(a,b)
+ 
+ #endif
+ 
 -- 
 2.21.0
 
