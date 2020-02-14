@@ -2,70 +2,106 @@ Return-Path: <SRS0=0Hnf=4C=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE8AAC2BA83
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 10:02:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F209C2BA83
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 10:25:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ADCFC2187F
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 10:02:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3595B206B6
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 10:25:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581675910;
+	bh=W8rOXSxY1bOzTjistCDm/39xE5v2jUyjpAp/VR3P4oo=;
+	h=From:Date:Subject:To:Cc:List-ID:From;
+	b=V9zjDcCaCrWOoSRfigXBPALz70gxNX+AF57ksIcCJBVeDlGbLzcHxLUFPM+C42zTq
+	 BGc+MBWrk2U1QimniibU/KOy20ClxKO/c2s7bJPAYrVc8Yd9/TJRW/cn9EeLHefckd
+	 zQjaemEdJCW1rFeSaEAc4g+OHfsVLT9ArGPKq4JI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729014AbgBNKCK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Feb 2020 05:02:10 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:47224 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727965AbgBNKCK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Feb 2020 05:02:10 -0500
-Received: from 79.184.254.199.ipv4.supernova.orange.pl (79.184.254.199) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
- id 9072457127e571a4; Fri, 14 Feb 2020 11:02:07 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        erik.kaneda@intel.com
-Cc:     lenb@kernel.org, robert.moore@intel.com,
-        linux-acpi@vger.kernel.org, devel@acpica.org,
-        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] ACPICA: Fix a typo in acuuid.h
-Date:   Fri, 14 Feb 2020 11:02:07 +0100
-Message-ID: <2712088.SaWAGPlJqS@kreacher>
-In-Reply-To: <20200214063003.29741-1-christophe.jaillet@wanadoo.fr>
-References: <20200214063003.29741-1-christophe.jaillet@wanadoo.fr>
+        id S1729081AbgBNKZH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Feb 2020 05:25:07 -0500
+Received: from mail-oi1-f193.google.com ([209.85.167.193]:43613 "EHLO
+        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729070AbgBNKZH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Feb 2020 05:25:07 -0500
+Received: by mail-oi1-f193.google.com with SMTP id p125so8924810oif.10;
+        Fri, 14 Feb 2020 02:25:06 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=J/ylcXowH9IUbay2pFa/zekk1oZvednUbZRzx4NaqLY=;
+        b=Gg2LMxYDDKHkeXiZSi8T2Qoe/jW5qpnGqAoRcgpO9erhnA6U0DRgzW3+ZKLVvR548G
+         oH7YOLfbxxxewVbEfeojehjb+hwi+28alB1k5pVGMfBsDzUz8iDwnC33Osbbq9jENbcx
+         S5FgKIm0/4AWXFUpvqpMxp/DlolFvls1R523n+6zr64yIJpUIcC8PtZHBGY0x2wAN1Cl
+         C3qXMRGdXNEMhfNr7HMcVnxE3gkA023O2QAt7QVNQ4cmBkF2BtRupgbOxaXli36GB/uj
+         F7+HihWWYbnTKDm3oYHpX52GtGH/1XUQphmh7n0ZoyDjOljbHksZ35rG2NiR1K4xSv0l
+         VOnA==
+X-Gm-Message-State: APjAAAVRB7F5XRk4JByQEd5+FdhZMkvrEef0AnrtZuZOPq3HKPWOw5v7
+        h4uFMMeWzqF2R6gmIts4CQTJQC3/VjpvDJMiRW8Z8Y6E
+X-Google-Smtp-Source: APXvYqw/xXyV8lUVHLdZmTfxQI/QoiAon39/YamwUDTUht0OQpDS41igPTjvp8rgplu89uqrwLEPFjqDiXdtsD5i9Bk=
+X-Received: by 2002:aca:d6c8:: with SMTP id n191mr1411911oig.103.1581675906194;
+ Fri, 14 Feb 2020 02:25:06 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 14 Feb 2020 11:24:55 +0100
+Message-ID: <CAJZ5v0hpEebbSFUFdtRnLWvXhyruzNgNaL9o-Od1a3jkgYRQKg@mail.gmail.com>
+Subject: [GIT PULL] Power management fixes for v5.6-rc2
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Friday, February 14, 2020 7:30:03 AM CET Christophe JAILLET wrote:
-> The comment related to the ending of the include guard should be related to
-> __ACUUID_H__, not __AUUID_H__ (i.e. 'C' is missing).
-> 
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Hi Linus,
 
-Erik, please route this through the upstream.
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-5.6-rc2
+
+with top-most commit 3629ac5b92535793ba6226e243c2324a20c35fae
+
+ Merge branch 'pm-cpufreq'
+
+on top of commit bb6d3fb354c5ee8d6bde2d576eb7220ea09862b9
+
+ Linux 5.6-rc1
+
+to receive power management fixes for 5.6-rc2.
+
+These fix issues related to the handling of wakeup events signaled
+through the ACPI SCI while suspended to idle (Rafael Wysocki) and
+unexport an internal cpufreq variable (Yangtao Li).
 
 Thanks!
 
-> ---
->  include/acpi/acuuid.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/include/acpi/acuuid.h b/include/acpi/acuuid.h
-> index 9dd4689a39cf..9e1367b19069 100644
-> --- a/include/acpi/acuuid.h
-> +++ b/include/acpi/acuuid.h
-> @@ -57,4 +57,4 @@
->  #define UUID_THERMAL_EXTENSIONS         "14d399cd-7a27-4b18-8fb4-7cb7b9f4e500"
->  #define UUID_DEVICE_PROPERTIES          "daffd814-6eba-4d8c-8a91-bc9bbf4aa301"
->  
-> -#endif				/* __AUUID_H__ */
-> +#endif				/* __ACUUID_H__ */
-> 
 
+---------------
 
+Rafael J. Wysocki (4):
+      ACPI: EC: Fix flushing of pending work
+      ACPI: PM: s2idle: Avoid possible race related to the EC GPE
+      ACPICA: Introduce acpi_any_gpe_status_set()
+      ACPI: PM: s2idle: Prevent spurious SCIs from waking up the system
 
+Yangtao Li (1):
+      cpufreq: Make cpufreq_global_kobject static
 
+---------------
+
+ drivers/acpi/acpica/achware.h |  2 ++
+ drivers/acpi/acpica/evxfgpe.c | 32 +++++++++++++++++++
+ drivers/acpi/acpica/hwgpe.c   | 71 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/ec.c             | 44 ++++++++++++++++-----------
+ drivers/acpi/sleep.c          | 50 ++++++++++++++++++++++--------
+ drivers/cpufreq/cpufreq.c     |  5 ++-
+ include/acpi/acpixf.h         |  1 +
+ include/linux/cpufreq.h       |  3 --
+ include/linux/suspend.h       |  2 +-
+ kernel/power/suspend.c        |  9 +++---
+ 10 files changed, 177 insertions(+), 42 deletions(-)
