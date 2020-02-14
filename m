@@ -7,17 +7,17 @@ X-Spam-Status: No, score=-14.8 required=3.0
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBC28C2BA83
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4D60C47409
 	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7DA722168B
+	by mail.kernel.org (Postfix) with ESMTP id A7C54222C2
 	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388101AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2388137AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 14 Feb 2020 14:08:29 -0500
-Received: from mga02.intel.com ([134.134.136.20]:26795 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:26791 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387995AbgBNTI1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S2388094AbgBNTI1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 14 Feb 2020 14:08:27 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
@@ -25,17 +25,17 @@ Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Feb 2020 11:08:24 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,441,1574150400"; 
-   d="scan'208";a="227702902"
+   d="scan'208";a="227702910"
 Received: from sibelius.jf.intel.com ([10.54.75.38])
   by orsmga008.jf.intel.com with ESMTP; 14 Feb 2020 11:08:24 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     Sven Barth <sb@miray.de>, Bob Moore <robert.moore@intel.com>,
+Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 07/10] ACPICA: cast length arguement to acpi_ns_build_normalized_path() as u32
-Date:   Fri, 14 Feb 2020 10:48:01 -0800
-Message-Id: <20200214184804.15114-8-erik.kaneda@intel.com>
+Subject: [PATCH 10/10] ACPICA: Update version to 20200214 Version 20200214.
+Date:   Fri, 14 Feb 2020 10:48:04 -0800
+Message-Id: <20200214184804.15114-11-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200214184804.15114-1-erik.kaneda@intel.com>
 References: <20200214184804.15114-1-erik.kaneda@intel.com>
@@ -46,40 +46,30 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Sven Barth <sb@miray.de>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit d216e4c8d886d7fb82697948c4fee8a5777a1a5a
+ACPICA commit ac0c1b8a43a317702bb11e11fd5067a1c59e3002
 
-Link: https://github.com/acpica/acpica/commit/d216e4c8
-Signed-off-by: Sven Barth <sb@miray.de>
+Link: https://github.com/acpica/acpica/commit/ac0c1b8a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- drivers/acpi/acpica/nsnames.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/acpi/acpixf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
-index 370bbc867745..832b79c4b008 100644
---- a/drivers/acpi/acpica/nsnames.c
-+++ b/drivers/acpi/acpica/nsnames.c
-@@ -164,7 +164,7 @@ acpi_ns_handle_to_pathname(acpi_handle target_handle,
- 	/* Build the path in the caller buffer */
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 5867777bb7d0..e4faf1a9c8fb 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -12,7 +12,7 @@
  
- 	(void)acpi_ns_build_normalized_path(node, buffer->pointer,
--					    required_size, no_trailing);
-+					    (u32)required_size, no_trailing);
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "%s [%X]\n",
- 			  (char *)buffer->pointer, (u32) required_size));
-@@ -315,7 +315,7 @@ char *acpi_ns_get_normalized_pathname(struct acpi_namespace_node *node,
+-#define ACPI_CA_VERSION                 0x20200110
++#define ACPI_CA_VERSION                 0x20200214
  
- 	/* Build the path in the allocated buffer */
- 
--	(void)acpi_ns_build_normalized_path(node, name_buffer, size,
-+	(void)acpi_ns_build_normalized_path(node, name_buffer, (u32)size,
- 					    no_trailing);
- 
- 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_NAMES, "%s: Path \"%s\"\n",
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 2.21.0
 
