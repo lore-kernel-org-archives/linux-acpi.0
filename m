@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-14.8 required=3.0
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4D60C47409
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E9DCC3B1BF
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7C54222C2
+	by mail.kernel.org (Postfix) with ESMTP id C71A524649
 	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388137AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2388094AbgBNTI3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 14 Feb 2020 14:08:29 -0500
-Received: from mga02.intel.com ([134.134.136.20]:26791 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:26795 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388094AbgBNTI1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Feb 2020 14:08:27 -0500
+        id S2388099AbgBNTI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Feb 2020 14:08:29 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Feb 2020 11:08:24 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,441,1574150400"; 
-   d="scan'208";a="227702910"
+   d="scan'208";a="227702896"
 Received: from sibelius.jf.intel.com ([10.54.75.38])
   by orsmga008.jf.intel.com with ESMTP; 14 Feb 2020 11:08:24 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
@@ -33,9 +33,9 @@ To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
 Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 10/10] ACPICA: Update version to 20200214 Version 20200214.
-Date:   Fri, 14 Feb 2020 10:48:04 -0800
-Message-Id: <20200214184804.15114-11-erik.kaneda@intel.com>
+Subject: [PATCH 05/10] ACPICA: Table Manager: Update comments in a function header
+Date:   Fri, 14 Feb 2020 10:47:59 -0800
+Message-Id: <20200214184804.15114-6-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200214184804.15114-1-erik.kaneda@intel.com>
 References: <20200214184804.15114-1-erik.kaneda@intel.com>
@@ -48,28 +48,43 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit ac0c1b8a43a317702bb11e11fd5067a1c59e3002
+Update acpi_get_table_header to remove text stating that the caller
+must unmap any returned memory.
 
-Link: https://github.com/acpica/acpica/commit/ac0c1b8a
+ACPICA commit 4f3a235cf0044b2d91958b1f99b4ca824c63f948
+
+Link: https://github.com/acpica/acpica/commit/4f3a235c
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/acpixf.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/tbxface.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 5867777bb7d0..e4faf1a9c8fb 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -12,7 +12,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20200110
-+#define ACPI_CA_VERSION                 0x20200214
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index f8403d480318..7490429ddbf6 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -202,14 +202,14 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_reallocate_root_table)
+  *
+  * PARAMETERS:  signature           - ACPI signature of needed table
+  *              instance            - Which instance (for SSDTs)
+- *              out_table_header    - The pointer to the table header to fill
++ *              out_table_header    - The pointer to the where the table header
++ *                                    is returned
+  *
+- * RETURN:      Status and pointer to mapped table header
++ * RETURN:      Status and a copy of the table header
+  *
+- * DESCRIPTION: Finds an ACPI table header.
+- *
+- * NOTE:        Caller is responsible in unmapping the header with
+- *              acpi_os_unmap_memory
++ * DESCRIPTION: Finds and returns an ACPI table header. Caller provides the
++ *              memory where a copy of the header is to be returned
++ *              (fixed length).
+  *
+  ******************************************************************************/
+ acpi_status
 -- 
 2.21.0
 
