@@ -2,39 +2,43 @@ Return-Path: <SRS0=0Hnf=4C=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13474C3B1BD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B29C3F68F
 	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D37612168B
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F19F2168B
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 19:08:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388090AbgBNTI1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2388097AbgBNTI1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 14 Feb 2020 14:08:27 -0500
 Received: from mga02.intel.com ([134.134.136.20]:26791 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387995AbgBNTIZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Feb 2020 14:08:25 -0500
+        id S2388080AbgBNTI1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Feb 2020 14:08:27 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Feb 2020 11:08:24 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,441,1574150400"; 
-   d="scan'208";a="227702889"
+   d="scan'208";a="227702899"
 Received: from sibelius.jf.intel.com ([10.54.75.38])
   by orsmga008.jf.intel.com with ESMTP; 14 Feb 2020 11:08:24 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 00/10] ACPICA release 20200214
-Date:   Fri, 14 Feb 2020 10:47:54 -0800
-Message-Id: <20200214184804.15114-1-erik.kaneda@intel.com>
+Cc:     Sven Barth <sb@miray.de>, Bob Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH 06/10] ACPICA: cast the result of the pointer difference to u32
+Date:   Fri, 14 Feb 2020 10:48:00 -0800
+Message-Id: <20200214184804.15114-7-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20200214184804.15114-1-erik.kaneda@intel.com>
+References: <20200214184804.15114-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -42,51 +46,34 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This patch series contains the 20200214 release of ACPICA. For linux,
-this a relatively small release. Major changes include Enabling the
-sleep button on ACPI legacy wake. Aside from that, this release mainly
-consists of changes in the converter, type casts to suppress compiler
-warnings when building in 64 bit mode on msvc 2019, and updates to
-comments.
+From: Sven Barth <sb@miray.de>
 
-This patch set is also available for viewing at the following link:
+Altnatively we could declare aml_length as acpi_size, but then one
+would need to cast at the assignment for method_obj->method.aml_length
 
+ACPICA commit 72805936603fcf84e98f1b89bf99b5101af27fb8
 
+Link: https://github.com/acpica/acpica/commit/72805936
+Signed-off-by: Sven Barth <sb@miray.de>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+---
+ drivers/acpi/acpica/nsxfname.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Anchal Agarwal (1):
-  ACPICA: Enable sleep button on ACPI legacy wake
-
-Bob Moore (4):
-  ACPICA: Fix a comment "enable" fixed events -> "disable" all fixed
-    events.
-  ACPICA: Table Manager: Update comments in a function header
-  ACPICA: Fix a couple of typos
-  ACPICA: Update version to 20200214 Version 20200214.
-
-Erik Kaneda (2):
-  ACPICA: ASL-ASL+ converter: remove function parameters from
-    cv_init_file_tree ()
-  ACPICA: ASL-ASL+ converter: make root file a parameter for
-    cv_init_file_tree
-
-Sven Barth (3):
-  ACPICA: cast the result of the pointer difference to u32
-  ACPICA: cast length arguement to acpi_ns_build_normalized_path() as
-    u32
-  ACPICA: use acpi_size instead of u32 for prefix_path_length
-
- drivers/acpi/acpica/acconvert.h |  4 +---
- drivers/acpi/acpica/acmacros.h  |  4 ++--
- drivers/acpi/acpica/evevent.c   |  2 +-
- drivers/acpi/acpica/hwsleep.c   | 12 ++++++++++++
- drivers/acpi/acpica/nsnames.c   |  6 +++---
- drivers/acpi/acpica/nsxfname.c  |  2 +-
- drivers/acpi/acpica/tbxface.c   | 12 ++++++------
- drivers/acpi/acpica/utobject.c  |  2 +-
- include/acpi/acpixf.h           |  2 +-
- include/acpi/actbl1.h           |  2 +-
- 10 files changed, 29 insertions(+), 19 deletions(-)
-
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index 984129dcaa0c..0e6aba81605b 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -516,7 +516,7 @@ acpi_status acpi_install_method(u8 *buffer)
+ 
+ 	method_flags = *parser_state.aml++;
+ 	aml_start = parser_state.aml;
+-	aml_length = ACPI_PTR_DIFF(parser_state.pkg_end, aml_start);
++	aml_length = (u32)ACPI_PTR_DIFF(parser_state.pkg_end, aml_start);
+ 
+ 	/*
+ 	 * Allocate resources up-front. We don't want to have to delete a new
 -- 
 2.21.0
 
