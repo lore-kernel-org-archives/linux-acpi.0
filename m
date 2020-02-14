@@ -2,53 +2,51 @@ Return-Path: <SRS0=0Hnf=4C=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8533BC3B1B1
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 18:09:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35BB2C2BA83
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 18:23:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5D3BC2168B
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 18:09:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F36DD2086A
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 18:23:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581703765;
-	bh=a+0P4OBWj0cgdkkZQxHaAz1SpkpOLfghHWdDzLg8tj4=;
+	s=default; t=1581704596;
+	bh=riP2gCnJQ9qVck/TvSGiTv6mMO+xMxqF/8NwkLVdcj4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1prQ8F3zBgYHGvkm1N+3jJNUyaqlcuuILzknsEAZ+0H1j0wMaMIUMbPyURxD6Nb5X
-	 cASGul7AFKoXhQQSckg8HV8IYUGSjWwFUQKwXwDsdmGqfzjCl0ZFstffs++DjH5j7/
-	 F7Dk6ATP+oRZoeQV5HzpVd8Sv6yltPVTuwXTq0Tc=
+	b=QxMG+U5t2RnqrKvas4hu1LJkXtEoVXnB9cN5+VGX1oFPapwngW7Jv77CFU2okPF1w
+	 0DD2x5xW+PhRK6Yqdp36sWeoUHkUqg0LkV5zQJQ0RMcQqYERQ3WbEAx74dUE7QnMSR
+	 ScNIJjDEdwdntT8GJW3UybANECxAgNVngAbzQQTY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392885AbgBNSJY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Feb 2020 13:09:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33682 "EHLO mail.kernel.org"
+        id S2390702AbgBNSXP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Feb 2020 13:23:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52330 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731398AbgBNPyD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:54:03 -0500
+        id S1729557AbgBNPtZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:49:25 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EBEFE24673;
-        Fri, 14 Feb 2020 15:54:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 21FD12467C;
+        Fri, 14 Feb 2020 15:49:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695642;
-        bh=a+0P4OBWj0cgdkkZQxHaAz1SpkpOLfghHWdDzLg8tj4=;
+        s=default; t=1581695364;
+        bh=riP2gCnJQ9qVck/TvSGiTv6mMO+xMxqF/8NwkLVdcj4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Swwb9bs7DMktFX0cPgSP7+MBPh+yd+qDaqrH5fwBDa7ncF0NNfhyzIwbGqh/zZ/p/
-         BD5rFHEQbI/DMNHExaG+rOKXxXmXv9ZzHFVR0rW8AKDYwgplBiVIRhw5Q5LA7qczir
-         R8H6g7qm/9NgYFrs5KnLwLdYnzBEF/cnvtIJRR/g=
+        b=EugivuBG698vSvQkbsKbqzKI3WdzpLx8KKsWxXibXF4O9Ek1f2nQPs08V6al2R425
+         0l00wHYsKM7QK2PZtg4tXD8I0ietY+jg68gor8OEW39p3JeDyHKHiMTocq3I8rVKGX
+         T+sZnQPcsgJswecAx5mTpBQlDXr1uFPCIjZFwa78=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Erik Kaneda <erik.kaneda@intel.com>,
-        Elia Geretto <elia.f.geretto@gmail.com>,
-        Bob Moore <robert.moore@intel.com>,
+Cc:     Zhengyuan Liu <liuzhengyuan@kylinos.cn>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         devel@acpica.org
-Subject: [PATCH AUTOSEL 5.5 237/542] ACPICA: Disassembler: create buffer fields in ACPI_PARSE_LOAD_PASS1
-Date:   Fri, 14 Feb 2020 10:43:49 -0500
-Message-Id: <20200214154854.6746-237-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 023/542] tools/power/acpi: fix compilation error
+Date:   Fri, 14 Feb 2020 10:40:15 -0500
+Message-Id: <20200214154854.6746-23-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
 References: <20200214154854.6746-1-sashal@kernel.org>
@@ -61,84 +59,52 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Erik Kaneda <erik.kaneda@intel.com>
+From: Zhengyuan Liu <liuzhengyuan@kylinos.cn>
 
-[ Upstream commit 5ddbd77181dfca61b16d2e2222382ea65637f1b9 ]
+[ Upstream commit 1985f8c7f9a42a651a9750d6fcadc74336d182df ]
 
-ACPICA commit 29cc8dbc5463a93625bed87d7550a8bed8913bf4
+If we compile tools/acpi target in the top source directory, we'd get a
+compilation error showing as bellow:
 
-create_buffer_field is a deferred op that is typically processed in
-load pass 2. However, disassembly of control method contents walk the
-parse tree with ACPI_PARSE_LOAD_PASS1 and AML_CREATE operators are
-processed in a later walk. This is a problem when there is a control
-method that has the same name as the AML_CREATE object. In this case,
-any use of the name segment will be detected as a method call rather
-than a reference to a buffer field. If this is detected as a method
-call, it can result in a mal-formed parse tree if the control methods
-have parameters.
+	# make tools/acpi
+	  DESCEND  power/acpi
+	  DESCEND  tools/acpidbg
+	  CC       tools/acpidbg/acpidbg.o
+	Assembler messages:
+	Fatal error: can't create /home/lzy/kernel-upstream/power/acpi/\
+			tools/acpidbg/acpidbg.o: No such file or directory
+	../../Makefile.rules:26: recipe for target '/home/lzy/kernel-upstream/\
+			power/acpi/tools/acpidbg/acpidbg.o' failed
+	make[3]: *** [/home/lzy/kernel-upstream//power/acpi/tools/acpidbg/\
+			acpidbg.o] Error 1
+	Makefile:19: recipe for target 'acpidbg' failed
+	make[2]: *** [acpidbg] Error 2
+	Makefile:54: recipe for target 'acpi' failed
+	make[1]: *** [acpi] Error 2
+	Makefile:1607: recipe for target 'tools/acpi' failed
+	make: *** [tools/acpi] Error 2
 
-This change in processing AML_CREATE ops earlier solves this issue by
-inserting the named object in the ACPI namespace so that references
-to this name would be detected as a name string rather than a method
-call.
-
-Link: https://github.com/acpica/acpica/commit/29cc8dbc
-Reported-by: Elia Geretto <elia.f.geretto@gmail.com>
-Tested-by: Elia Geretto <elia.f.geretto@gmail.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+Fixes: d5a4b1a540b8 ("tools/power/acpi: Remove direct kernel source include reference")
+Signed-off-by: Zhengyuan Liu <liuzhengyuan@kylinos.cn>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpica/dsfield.c |  2 +-
- drivers/acpi/acpica/dswload.c | 21 +++++++++++++++++++++
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ tools/power/acpi/Makefile.config | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/dsfield.c b/drivers/acpi/acpica/dsfield.c
-index faa38a22263ad..ae713d746c8b8 100644
---- a/drivers/acpi/acpica/dsfield.c
-+++ b/drivers/acpi/acpica/dsfield.c
-@@ -243,7 +243,7 @@ acpi_ds_create_buffer_field(union acpi_parse_object *op,
-  * FUNCTION:    acpi_ds_get_field_names
-  *
-  * PARAMETERS:  info            - create_field info structure
-- *  `           walk_state      - Current method state
-+ *              walk_state      - Current method state
-  *              arg             - First parser arg for the field name list
-  *
-  * RETURN:      Status
-diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
-index c88fd31208a5b..4bcf15bf03ded 100644
---- a/drivers/acpi/acpica/dswload.c
-+++ b/drivers/acpi/acpica/dswload.c
-@@ -410,6 +410,27 @@ acpi_status acpi_ds_load1_end_op(struct acpi_walk_state *walk_state)
- 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH, "Op=%p State=%p\n", op,
- 			  walk_state));
+diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
+index 0111d246d1ca2..54a2857c2510a 100644
+--- a/tools/power/acpi/Makefile.config
++++ b/tools/power/acpi/Makefile.config
+@@ -15,7 +15,7 @@ include $(srctree)/../../scripts/Makefile.include
  
-+	/*
-+	 * Disassembler: handle create field operators here.
-+	 *
-+	 * create_buffer_field is a deferred op that is typically processed in load
-+	 * pass 2. However, disassembly of control method contents walk the parse
-+	 * tree with ACPI_PARSE_LOAD_PASS1 and AML_CREATE operators are processed
-+	 * in a later walk. This is a problem when there is a control method that
-+	 * has the same name as the AML_CREATE object. In this case, any use of the
-+	 * name segment will be detected as a method call rather than a reference
-+	 * to a buffer field.
-+	 *
-+	 * This earlier creation during disassembly solves this issue by inserting
-+	 * the named object in the ACPI namespace so that references to this name
-+	 * would be a name string rather than a method call.
-+	 */
-+	if ((walk_state->parse_flags & ACPI_PARSE_DISASSEMBLE) &&
-+	    (walk_state->op_info->flags & AML_CREATE)) {
-+		status = acpi_ds_create_buffer_field(op, walk_state);
-+		return_ACPI_STATUS(status);
-+	}
-+
- 	/* We are only interested in opcodes that have an associated name */
+ OUTPUT=$(srctree)/
+ ifeq ("$(origin O)", "command line")
+-	OUTPUT := $(O)/power/acpi/
++	OUTPUT := $(O)/tools/power/acpi/
+ endif
+ #$(info Determined 'OUTPUT' to be $(OUTPUT))
  
- 	if (!(walk_state->op_info->flags & (AML_NAMED | AML_FIELD))) {
 -- 
 2.20.1
 
