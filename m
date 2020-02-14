@@ -4,52 +4,57 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D48C2BA83
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 16:46:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 516E0C3B1A1
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 16:50:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7098E2082F
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 16:46:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2AE452082F
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 16:50:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581698796;
-	bh=ftB5Z6b5r/RLIwz3EN0MwqoxY3tOGyZahjT6k1BwxAA=;
+	s=default; t=1581699028;
+	bh=Vzdriidfqv4KpQkrRrtKv79yLdEO0q/tKHiRFvK6/kQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=L6iW2aunKKtMtcr3OjR2m/lJESdduBtKgZ9RpFHRe1yTRfpYM90eIzbFyHS1Zdwbc
-	 9IlVgk/IV2mBIsKFaEwsPyU+8I4obBr0+Tl//RDGnLMVl+w8jBl/SYsob/VYsgBjkL
-	 EO2H65q1MKqs2c48flCJz/7ChXgi71JNKDRdDGkk=
+	b=q5FHuv8STbXoBxBg4nuidP3RdbfU74V6054QI+YrG6nM/MsxhnbebW9OUdBhl+Sku
+	 SBVys3VN/KU3z1cLJpCdA0HXzJRrwbEFCK7iMFvamxvkk2Mabe5nM7HQr3Yole3gg+
+	 3Gst/qMFqbygTadv745PFn7w3eyNZrweAkpZ0Y1c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392950AbgBNQqg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Feb 2020 11:46:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56092 "EHLO mail.kernel.org"
+        id S2405147AbgBNQUN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:20:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392947AbgBNQV3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:21:29 -0500
+        id S2405149AbgBNQUM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:20:12 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EF48A246BA;
-        Fri, 14 Feb 2020 16:21:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1AE1124720;
+        Fri, 14 Feb 2020 16:20:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581697288;
-        bh=ftB5Z6b5r/RLIwz3EN0MwqoxY3tOGyZahjT6k1BwxAA=;
+        s=default; t=1581697211;
+        bh=Vzdriidfqv4KpQkrRrtKv79yLdEO0q/tKHiRFvK6/kQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=t+n+GYrJHJk3n83cynVFggCFQJya0hLFoG6ZVAn1gUQwjPGNHZQ5L2vBOQNBiNf0k
-         ZxdulhorJrp6p8twNUxEHu4BWkZRZsBrwnRIoqXl7EORNaGTWvaZbdVUGFZiSMnF1l
-         ArSh4rz2mKxkNditVTziWKcIejyM0xWSRkPyYLNI=
+        b=j7tM64pgTeybFFqarS5TZc80gN4hWhBRO+JjgL/JQmhEJ/vV9eyt1KqzWEvZ9QgPp
+         FOUU3aZsbiaB0UGz8sjuS87TDdSmFmrE0YMpq17BI9VKlMFYX2bblfka1ZiaWk4J1u
+         OyQjsdpXTdNQZXsHi/2BZYXV9fYoLgHSF3ixs4GA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Zhengyuan Liu <liuzhengyuan@kylinos.cn>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+Cc:     Hanjun Guo <guohanjun@huawei.com>,
+        Pankaj Bansal <pankaj.bansal@nxp.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org
-Subject: [PATCH AUTOSEL 4.9 005/141] tools/power/acpi: fix compilation error
-Date:   Fri, 14 Feb 2020 11:19:05 -0500
-Message-Id: <20200214162122.19794-5-sashal@kernel.org>
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH AUTOSEL 4.14 136/186] ACPI/IORT: Fix 'Number of IDs' handling in iort_id_map()
+Date:   Fri, 14 Feb 2020 11:16:25 -0500
+Message-Id: <20200214161715.18113-136-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214162122.19794-1-sashal@kernel.org>
-References: <20200214162122.19794-1-sashal@kernel.org>
+In-Reply-To: <20200214161715.18113-1-sashal@kernel.org>
+References: <20200214161715.18113-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,52 +64,154 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Zhengyuan Liu <liuzhengyuan@kylinos.cn>
+From: Hanjun Guo <guohanjun@huawei.com>
 
-[ Upstream commit 1985f8c7f9a42a651a9750d6fcadc74336d182df ]
+[ Upstream commit 3c23b83a88d00383e1d498cfa515249aa2fe0238 ]
 
-If we compile tools/acpi target in the top source directory, we'd get a
-compilation error showing as bellow:
+The IORT specification [0] (Section 3, table 4, page 9) defines the
+'Number of IDs' as 'The number of IDs in the range minus one'.
 
-	# make tools/acpi
-	  DESCEND  power/acpi
-	  DESCEND  tools/acpidbg
-	  CC       tools/acpidbg/acpidbg.o
-	Assembler messages:
-	Fatal error: can't create /home/lzy/kernel-upstream/power/acpi/\
-			tools/acpidbg/acpidbg.o: No such file or directory
-	../../Makefile.rules:26: recipe for target '/home/lzy/kernel-upstream/\
-			power/acpi/tools/acpidbg/acpidbg.o' failed
-	make[3]: *** [/home/lzy/kernel-upstream//power/acpi/tools/acpidbg/\
-			acpidbg.o] Error 1
-	Makefile:19: recipe for target 'acpidbg' failed
-	make[2]: *** [acpidbg] Error 2
-	Makefile:54: recipe for target 'acpi' failed
-	make[1]: *** [acpi] Error 2
-	Makefile:1607: recipe for target 'tools/acpi' failed
-	make: *** [tools/acpi] Error 2
+However, the IORT ID mapping function iort_id_map() treats the 'Number
+of IDs' field as if it were the full IDs mapping count, with the
+following check in place to detect out of boundary input IDs:
 
-Fixes: d5a4b1a540b8 ("tools/power/acpi: Remove direct kernel source include reference")
-Signed-off-by: Zhengyuan Liu <liuzhengyuan@kylinos.cn>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+InputID >= Input base + Number of IDs
+
+This check is flawed in that it considers the 'Number of IDs' field as
+the full number of IDs mapping and disregards the 'minus one' from
+the IDs count.
+
+The correct check in iort_id_map() should be implemented as:
+
+InputID > Input base + Number of IDs
+
+this implements the specification correctly but unfortunately it breaks
+existing firmwares that erroneously set the 'Number of IDs' as the full
+IDs mapping count rather than IDs mapping count minus one.
+
+e.g.
+
+PCI hostbridge mapping entry 1:
+Input base:  0x1000
+ID Count:    0x100
+Output base: 0x1000
+Output reference: 0xC4  //ITS reference
+
+PCI hostbridge mapping entry 2:
+Input base:  0x1100
+ID Count:    0x100
+Output base: 0x2000
+Output reference: 0xD4  //ITS reference
+
+Two mapping entries which the second entry's Input base = the first
+entry's Input base + ID count, so for InputID 0x1100 and with the
+correct InputID check in place in iort_id_map() the kernel would map
+the InputID to ITS 0xC4 not 0xD4 as it would be expected.
+
+Therefore, to keep supporting existing flawed firmwares, introduce a
+workaround that instructs the kernel to use the old InputID range check
+logic in iort_id_map(), so that we can support both firmwares written
+with the flawed 'Number of IDs' logic and the correct one as defined in
+the specifications.
+
+[0]: http://infocenter.arm.com/help/topic/com.arm.doc.den0049d/DEN0049D_IO_Remapping_Table.pdf
+
+Reported-by: Pankaj Bansal <pankaj.bansal@nxp.com>
+Link: https://lore.kernel.org/linux-acpi/20191215203303.29811-1-pankaj.bansal@nxp.com/
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Pankaj Bansal <pankaj.bansal@nxp.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Will Deacon <will@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- tools/power/acpi/Makefile.config | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/arm64/iort.c | 57 +++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 55 insertions(+), 2 deletions(-)
 
-diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
-index a1883bbb01447..fb5559f9819af 100644
---- a/tools/power/acpi/Makefile.config
-+++ b/tools/power/acpi/Makefile.config
-@@ -18,7 +18,7 @@ include $(srctree)/../../scripts/Makefile.include
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index b0a7afd4e7d35..f45bb681b3db5 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -282,6 +282,59 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+ 	return status;
+ }
  
- OUTPUT=$(srctree)/
- ifeq ("$(origin O)", "command line")
--	OUTPUT := $(O)/power/acpi/
-+	OUTPUT := $(O)/tools/power/acpi/
- endif
- #$(info Determined 'OUTPUT' to be $(OUTPUT))
++struct iort_workaround_oem_info {
++	char oem_id[ACPI_OEM_ID_SIZE + 1];
++	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
++	u32 oem_revision;
++};
++
++static bool apply_id_count_workaround;
++
++static struct iort_workaround_oem_info wa_info[] __initdata = {
++	{
++		.oem_id		= "HISI  ",
++		.oem_table_id	= "HIP07   ",
++		.oem_revision	= 0,
++	}, {
++		.oem_id		= "HISI  ",
++		.oem_table_id	= "HIP08   ",
++		.oem_revision	= 0,
++	}
++};
++
++static void __init
++iort_check_id_count_workaround(struct acpi_table_header *tbl)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(wa_info); i++) {
++		if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
++		    !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
++		    wa_info[i].oem_revision == tbl->oem_revision) {
++			apply_id_count_workaround = true;
++			pr_warn(FW_BUG "ID count for ID mapping entry is wrong, applying workaround\n");
++			break;
++		}
++	}
++}
++
++static inline u32 iort_get_map_max(struct acpi_iort_id_mapping *map)
++{
++	u32 map_max = map->input_base + map->id_count;
++
++	/*
++	 * The IORT specification revision D (Section 3, table 4, page 9) says
++	 * Number of IDs = The number of IDs in the range minus one, but the
++	 * IORT code ignored the "minus one", and some firmware did that too,
++	 * so apply a workaround here to keep compatible with both the spec
++	 * compliant and non-spec compliant firmwares.
++	 */
++	if (apply_id_count_workaround)
++		map_max--;
++
++	return map_max;
++}
++
+ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+ 		       u32 *rid_out)
+ {
+@@ -298,8 +351,7 @@ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+ 		return -ENXIO;
+ 	}
  
+-	if (rid_in < map->input_base ||
+-	    (rid_in >= map->input_base + map->id_count))
++	if (rid_in < map->input_base || rid_in > iort_get_map_max(map))
+ 		return -ENXIO;
+ 
+ 	*rid_out = map->output_base + (rid_in - map->input_base);
+@@ -1275,5 +1327,6 @@ void __init acpi_iort_init(void)
+ 		return;
+ 	}
+ 
++	iort_check_id_count_workaround(iort_table);
+ 	iort_init_platform_devices();
+ }
 -- 
 2.20.1
 
