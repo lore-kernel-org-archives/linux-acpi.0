@@ -1,69 +1,51 @@
-Return-Path: <SRS0=0Hnf=4C=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=g9IE=4D=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.5 required=3.0 tests=FREEMAIL_REPLYTO_END_DIGIT,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAEA2C3F68F
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 21:40:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A2F0C35242
+	for <linux-acpi@archiver.kernel.org>; Sat, 15 Feb 2020 01:25:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AC78A2467E
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Feb 2020 21:40:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581716443;
-	bh=oa+kZsrKTSn+2u96HUaHzFL+l3Q38YOUBibk/3f6Tdg=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=kOfY0INgrqHeiJGe86lwYiAgtiK4trhOTgtHG4E4KEob0mptMcgED374Ox0YnmF/T
-	 p+35rwJU+Vj4FvgiS1fb4Zr6oLxb6NJ4HGiN+5ROL1KYvFfGfkzElqSiWtcWT4U/+K
-	 XShZSXLYo4cjUU2GJ9y8JmkO3Vl/GWYd+KuQncDo=
+	by mail.kernel.org (Postfix) with ESMTP id 08C9D207FF
+	for <linux-acpi@archiver.kernel.org>; Sat, 15 Feb 2020 01:25:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388727AbgBNVk3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Feb 2020 16:40:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55080 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388153AbgBNVk3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Feb 2020 16:40:29 -0500
-Subject: Re: [GIT PULL] Power management fixes for v5.6-rc2
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581716428;
-        bh=oa+kZsrKTSn+2u96HUaHzFL+l3Q38YOUBibk/3f6Tdg=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=wyVW0923HjVqQYiM0tCbnrEhweANOhbyJUTyjAmx+x6KC++tnKKK70NBkElgeLsPK
-         Sep65wro5qZsbkPNaVwxXG5sKWM77zFUt/lRMfeyPly1yONUZMJlu6CLaCLRiSn+e2
-         IiWHNw2aeXVi33nKBpR3K0JC6lI/lUxFZWHyfY0g=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0hpEebbSFUFdtRnLWvXhyruzNgNaL9o-Od1a3jkgYRQKg@mail.gmail.com>
-References: <CAJZ5v0hpEebbSFUFdtRnLWvXhyruzNgNaL9o-Od1a3jkgYRQKg@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0hpEebbSFUFdtRnLWvXhyruzNgNaL9o-Od1a3jkgYRQKg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.6-rc2
-X-PR-Tracked-Commit-Id: 3629ac5b92535793ba6226e243c2324a20c35fae
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 4e03e4e6d2a03a9f2edeefaec12d4f336dee824d
-Message-Id: <158171642868.8400.10585778113157556990.pr-tracker-bot@kernel.org>
-Date:   Fri, 14 Feb 2020 21:40:28 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S1727680AbgBOBZN convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Feb 2020 20:25:13 -0500
+Received: from l37-192-35-170.novotelecom.ru ([37.192.35.170]:61612 "EHLO
+        glpak.ru" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727639AbgBOBZN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Feb 2020 20:25:13 -0500
+X-Greylist: delayed 748 seconds by postgrey-1.27 at vger.kernel.org; Fri, 14 Feb 2020 20:25:12 EST
+Received: from alex.glpak.ru (localhost [127.0.0.1])
+        by glpak.ru (Postfix) with ESMTP id 2C474A3DC19
+        for <linux-acpi@vger.kernel.org>; Sat, 15 Feb 2020 08:08:01 +0700 (NOVT)
+X-Virus-Scanned: amavisd-new at glpak.ru
+Received: from glpak.ru ([127.0.0.1])
+        by alex.glpak.ru (glpak.ru [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id GlX4p4ldxCJR for <linux-acpi@vger.kernel.org>;
+        Sat, 15 Feb 2020 08:08:01 +0700 (NOVT)
+Received: from [192.168.88.250] (unknown [185.248.13.181])
+        by glpak.ru (Postfix) with ESMTPA id 522E3A3DB1A
+        for <linux-acpi@vger.kernel.org>; Sat, 15 Feb 2020 08:08:00 +0700 (NOVT)
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: zionitld3@gmail.com
+To:     linux-acpi@vger.kernel.org
+From:   anna@glpak.ru
+Date:   Fri, 14 Feb 2020 17:09:44 -0800
+Reply-To: zionitld3@gmail.com
+X-Antivirus: Avast (VPS 200214-0, 02/14/2020), Outbound message
+X-Antivirus-Status: Clean
+Message-Id: <20200215010801.2C474A3DC19@glpak.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 14 Feb 2020 11:24:55 +0100:
-
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.6-rc2
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/4e03e4e6d2a03a9f2edeefaec12d4f336dee824d
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+Hello, We from Zion Finance Group currently offers loans to customers at a low interest rate of 3%. This is an opportunity that you cannot miss. We have a few questions to ask; Do you have debts? Do you want to pay off your debts? Do you want to be financially equipped? If so, request a loan today from Zion Finance Group. Interested, customers are expected to contact zionitld3@gmail.com for more information. We wish to assist you with a loan. Greetings, Mr. Bernard.
