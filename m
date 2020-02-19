@@ -1,339 +1,212 @@
-Return-Path: <SRS0=Sle6=4G=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=Bb8W=4H=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67F36C34026
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Feb 2020 15:24:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 355E1C34022
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Feb 2020 03:33:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D3F221D56
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Feb 2020 15:24:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00B7024655
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Feb 2020 03:33:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="OFFqnTCf"
+	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="b9vy0uLG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726770AbgBRPYM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 18 Feb 2020 10:24:12 -0500
-Received: from mail-eopbgr20074.outbound.protection.outlook.com ([40.107.2.74]:31710
-        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
+        id S1726475AbgBSDdV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 18 Feb 2020 22:33:21 -0500
+Received: from mail-eopbgr60083.outbound.protection.outlook.com ([40.107.6.83]:51560
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726761AbgBRPYM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 18 Feb 2020 10:24:12 -0500
+        id S1726446AbgBSDdV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Feb 2020 22:33:21 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=GfRN1N0pQPzgP5Fdn6VBaTlUkljwesv//+b2yH9qRNFLpCtTEy84j8dV2CmXcbcgkDmJvNCOlbF7dIar4UHISb1GMmctLoz4zlRWDIMHWiRG8vMiZvWQ7UCF7Y6iW766CDBCXDfo8hYNt2HZGkPAnik3JvAoESYL07WkFnl7Vxl5h8r3deqQ2H9b+nXejqXXReJe++GBx54mDhvPFPNMhJj6XE2wHdn2g63z3atXixEYTktkG5HneyNYBtTH8tuyoOceAP26k85L2Evp+QJ/Hz6utRVLOJmTQiPYKLSnW5jd2WlrJ0cP6cefYtXXIlFSX1IoZbWzjnSk6XU21gt2mg==
+ b=X+gbAtjPTXlnK66ayBUTiK9tYc47vYQS8/LlO+RjAIxrDxgAYnf7unDH5AhKpMmYmQSqb6qiJ5xqA2p5+CPqmuTYeiG0rX9j7g/jt9IYkp1iPPh4DDUvTlkKGtfHRJrha9vhTX9M30Nj9R+gVR+LWoPvBcMDB6rPzwZHOVwPUX6D3uKr4yofJOxzeDdJmgLz0vMNa9fvGer79cVTRBfmjaoCePT7oQxIpcpy+HIj/Ee/tQ9Im/MZWPqV7TZSse58/X5ZBuQ5jLdBxpNkZaKHxWdDdA/zoE7ocyB2/5aiI9wpUta+UGKdYID/ht7XakXErAX0vM49YiIE544/ihs/tA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GOVkb87yXurJu/NDHR+/f4K9MwtrB6LX0JSkHaZDOoA=;
- b=ml3h+X/Tx5c2f8IaX6jaoYLgSA5amyXeRrBjSWPiGj7iCPSZQW+x2lUrA/BM+h0gKQNDo5+LB637CYoSqTj8CjT/lZfWFrqmRmmAFqFIoa1VEtsVBEcCjDxt4sr6vRD5/An1aX+ZrPk8XSpzTCFOKRsyaJVqeGnbWXiORWLBBbdyey5Uq/AZ1Wc6CqHte4odx37iori88mb7STJM2Or0roLtfTIL1+3rUE6aq9BEWoJAaxdRbRKTmPrbRce9UP85XSBq/2AXCNHHUDRyJ23o975MZEgL3ufoX2xeWzsy8CP+O3lUXTDS9V23GL19NfrVADgS4c7j7D7umQgT562Vhw==
+ bh=6mrPv+sGnrjaACQFiTR4yTigFZSFQnNuor7YcAu1iAs=;
+ b=A2DJ9BaV/rBs3TJW9ZWGGyKpEVmuHpPxDX+LL4br9+nNqNM6sc89/FQWMUFCWvMkPxqz/Kgj96Msw+SRwNpzWdwPw+1DobRqJdW/CMOJnIHetDoimq09q1awCFYDdPUrhzRMFwUsj5SFM7BcSvHOoD7AzUYApYL24P0wl9DOQAh+ao+tf2Jy83h7xeHaIgwN93SqAp3uqEBIFoqq0nrf7XXzQ43E+6R1N5tlEsiQoLYGMBENEBLofy+o0PlffUFY4+aPlfC8YFRK9ShwEr4X0ooTCdRo7hy6t+2ddOVxEGM/rejKYbuYL9REWtI4IKA/z+C50tA3L2v/6XPfvGjdjQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector2-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GOVkb87yXurJu/NDHR+/f4K9MwtrB6LX0JSkHaZDOoA=;
- b=OFFqnTCfRCY4903djiILYQjN6LZugqwrg0tNi/88Nt3bsTatuBZOtYWjvih1omQ1t9+BFaJ01S36WDvVeqe7Kg10HOtHuPBN6obvIH4ArvhPVxUlkbS3zWTOOHrRV6q2hk8wmezWaA9KbdD0ENyXPizMwqwnGYTBBMM7FtVNz6Q=
-Authentication-Results: spf=none (sender IP is )
- smtp.mailfrom=diana.craciun@oss.nxp.com; 
-Received: from VI1PR0402MB2815.eurprd04.prod.outlook.com (10.172.255.144) by
- VI1PR0402MB2879.eurprd04.prod.outlook.com (10.175.24.10) with Microsoft SMTP
+ bh=6mrPv+sGnrjaACQFiTR4yTigFZSFQnNuor7YcAu1iAs=;
+ b=b9vy0uLGPlrl04Blpy7INr4fs1FW+qTwb3emAiqsAd3u4ewiWb4MQfxAJjDrQs1IDAPw1rw/0Iah+sZg137KMFum2jd4lVtZkOjFckZNJzdpjpjcPC18hzqRMsDMLQnQsoaJGaYUS2LTETscXSgIKj7Joyl1cwHQ9drwKIs1euY=
+Received: from VI1PR04MB5135.eurprd04.prod.outlook.com (20.177.52.139) by
+ VI1PR04MB3071.eurprd04.prod.outlook.com (10.170.225.142) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2729.25; Tue, 18 Feb 2020 15:24:07 +0000
-Received: from VI1PR0402MB2815.eurprd04.prod.outlook.com
- ([fe80::a8ee:1b0f:6b3e:4682]) by VI1PR0402MB2815.eurprd04.prod.outlook.com
- ([fe80::a8ee:1b0f:6b3e:4682%12]) with mapi id 15.20.2729.032; Tue, 18 Feb
- 2020 15:24:06 +0000
-Subject: Re: [PATCH] bus: fsl-mc: Add ACPI support for fsl-mc
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        "Pankaj Bansal (OSS)" <pankaj.bansal@oss.nxp.com>
-Cc:     Calvin Johnson <calvin.johnson@nxp.com>,
+ 15.20.2729.22; Wed, 19 Feb 2020 03:33:14 +0000
+Received: from VI1PR04MB5135.eurprd04.prod.outlook.com
+ ([fe80::ed73:9d46:d34:5e19]) by VI1PR04MB5135.eurprd04.prod.outlook.com
+ ([fe80::ed73:9d46:d34:5e19%6]) with mapi id 15.20.2729.032; Wed, 19 Feb 2020
+ 03:33:14 +0000
+From:   "Pankaj Bansal (OSS)" <pankaj.bansal@oss.nxp.com>
+To:     Robin Murphy <robin.murphy@arm.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC:     Hanjun Guo <guohanjun@huawei.com>, Marc Zyngier <maz@kernel.org>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        Makarand Pawagi <makarand.pawagi@nxp.com>,
+        Calvin Johnson <calvin.johnson@nxp.com>,
         "stuyoder@gmail.com" <stuyoder@gmail.com>,
         "nleeder@codeaurora.org" <nleeder@codeaurora.org>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
+        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
+        Will Deacon <will@kernel.org>,
         "jon@solid-run.com" <jon@solid-run.com>,
         Russell King <linux@armlinux.org.uk>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Len Brown <lenb@kernel.org>,
         Jason Cooper <jason@lakedaemon.net>,
-        Andy Wang <Andy.Wang@arm.com>,
-        Makarand Pawagi <makarand.pawagi@nxp.com>,
-        Varun Sethi <V.Sethi@nxp.com>,
+        Andy Wang <Andy.Wang@arm.com>, Varun Sethi <V.Sethi@nxp.com>,
         Thomas Gleixner <tglx@linutronix.de>,
         linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
         Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         Paul Yang <Paul.Yang@arm.com>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Shameerali Kolothum Thodi 
         <shameerali.kolothum.thodi@huawei.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>
+        Sudeep Holla <sudeep.holla@arm.com>
+Subject: RE: [PATCH] bus: fsl-mc: Add ACPI support for fsl-mc
+Thread-Topic: [PATCH] bus: fsl-mc: Add ACPI support for fsl-mc
+Thread-Index: AQHV5lZ7Xi36FCZsh0O+fGt3c05hNagg5R2wgAAiuoCAAAf0gIAAzAKA
+Date:   Wed, 19 Feb 2020 03:33:14 +0000
+Message-ID: <VI1PR04MB51357487F1AD6987B3641356B0100@VI1PR04MB5135.eurprd04.prod.outlook.com>
 References: <VI1PR04MB5135D7D8597D33DB76DA05BDB0110@VI1PR04MB5135.eurprd04.prod.outlook.com>
  <615c6807-c018-92c9-b66a-8afdda183699@huawei.com>
  <VI1PR04MB513558BF77192255CBE12102B0110@VI1PR04MB5135.eurprd04.prod.outlook.com>
  <20200218144653.GA4286@e121166-lin.cambridge.arm.com>
-From:   Diana Craciun OSS <diana.craciun@oss.nxp.com>
-Message-ID: <e566692c-9b2e-ab56-29db-465d3232d50d@oss.nxp.com>
-Date:   Tue, 18 Feb 2020 17:24:02 +0200
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.5.0
-In-Reply-To: <20200218144653.GA4286@e121166-lin.cambridge.arm.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+ <2762bb26-967d-3410-d250-a63d8d755d76@arm.com>
+In-Reply-To: <2762bb26-967d-3410-d250-a63d8d755d76@arm.com>
+Accept-Language: en-US
 Content-Language: en-US
-X-ClientProxiedBy: AM5P189CA0028.EURP189.PROD.OUTLOOK.COM
- (2603:10a6:206:15::41) To VI1PR0402MB2815.eurprd04.prod.outlook.com
- (2603:10a6:800:ae::16)
-MIME-Version: 1.0
-Received: from [10.171.73.123] (212.146.100.6) by AM5P189CA0028.EURP189.PROD.OUTLOOK.COM (2603:10a6:206:15::41) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2729.24 via Frontend Transport; Tue, 18 Feb 2020 15:24:04 +0000
-X-Originating-IP: [212.146.100.6]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 8aa3dfd3-52de-4151-aa54-08d7b4869801
-X-MS-TrafficTypeDiagnostic: VI1PR0402MB2879:|VI1PR0402MB2879:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <VI1PR0402MB2879BD20249E814F3FF35DD8BE110@VI1PR0402MB2879.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:3173;
-X-Forefront-PRVS: 031763BCAF
-X-Forefront-Antispam-Report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(366004)(396003)(136003)(39860400002)(376002)(189003)(199004)(5660300002)(52116002)(54906003)(86362001)(8676002)(4326008)(7416002)(81166006)(81156014)(31696002)(66946007)(110136005)(186003)(8936002)(66556008)(53546011)(16526019)(31686004)(2616005)(66476007)(26005)(956004)(2906002)(6486002)(6636002)(966005)(16576012)(478600001)(316002);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR0402MB2879;H:VI1PR0402MB2815.eurprd04.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:0;
-Received-SPF: None (protection.outlook.com: oss.nxp.com does not designate
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=pankaj.bansal@oss.nxp.com; 
+x-originating-ip: [49.36.133.139]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 63ffd350-140b-4393-c015-08d7b4ec73e8
+x-ms-traffictypediagnostic: VI1PR04MB3071:|VI1PR04MB3071:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <VI1PR04MB3071DE26A534E0F7313ADC67B0100@VI1PR04MB3071.eurprd04.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8273;
+x-forefront-prvs: 0318501FAE
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(136003)(39860400002)(366004)(346002)(376002)(396003)(199004)(189003)(9686003)(966005)(55016002)(7696005)(71200400001)(2906002)(478600001)(86362001)(52536014)(66476007)(316002)(4326008)(110136005)(7416002)(33656002)(8676002)(8936002)(54906003)(26005)(76116006)(66946007)(66556008)(81156014)(53546011)(5660300002)(66446008)(6506007)(64756008)(81166006)(186003);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR04MB3071;H:VI1PR04MB5135.eurprd04.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:0;MX:1;
+received-spf: None (protection.outlook.com: oss.nxp.com does not designate
  permitted sender hosts)
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: w0HsRxWqJbTuuzZOH9PYA31jCQ2g1WoL4Dzo0FyRpTVq4+5lsZkOo0UXpPkbVn8ixGMrehzOjieRWzk5w1n8dh4cGpoQV1ZvKGIZzhvu9MROKT10xQ9yJ2FnWGzBV0wOhcAF3I23HfRPtJgpCAcyoBnX8I+nwguNUjNYdS5EddNCcqAIiQjES76sjh59EUDq0N0/nGOwJkJlUp0oCkiHWIoGXvJ12ioXbdu2FUyniYSDsGiKvVEzCI5Fpy6dc700n/TQYtoNzSXpoH9YLF4odm1nz5l/Ho50+bJWquIwAiZK4shlgcBcBKdOPZ8SGVh8lmVR+ESR2ctrfpm9Ikxz+FC3gBXq1dlYTlYl8vFd0dLvsO+lZWkvpKExpS2SU/28S7U7BzQPHyurexeIVIZqk+t5TtiXqP0zOvPw7/S5cbE6h6jtW1Dwfy/0HgYpU9pgePrXNJF1Mgzb/OCrbxPipMzAXDz8L4cX4VlmiSPMgnWljOrN0b5pErniIL5FNKrp9ULX4ZkRtHKdhRxOFFmVWA==
-X-MS-Exchange-AntiSpam-MessageData: D+3ABepQNKo5212AlTwFc72wwJzqyblz1eRARjqgJv4sJ6QTm2+APQ7ecblzdksds8LWl68sFpPYKhENJFSRLneAvm4cLPjYZO0Faa21BZG1KpOUdJwziPqgRbZ1nCHecHQx1SfJGGXpRRmFVlHo+g==
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: spGuswZD3WwO2Yx248+S4MvsblKdWKBq4TDvkdiRayNbH06gRgu/lpPg7NYVR58QycR6ra9c2P7UMLOXoc2orZUAs8qrYs/X4fsYcxdBSWI1oZVDKBHCW0FozTi1okrinjmFo+4uliF1glY2kG6D+Ym6Wlh1i8RLPB0KPxun1h5aznaAx11KivHvNkicS9Rl70YxM9HMGBRHCvefb5NouHevE+ekGc9zW3QyCZVwUDgtz3N+jXHpags/Zk5K4OWVloMHah1kUFVmhhwCOgqIp96fqFMHw/78hLS6ToCI1PTKFJhddARg7rfrh6p0E6VM4I0hLQdCZTk7uk/ekVhi4wiF4rzub65HDwt/Krsm+mskRqInCBCIvWp9i15RFeV6ibqhbUTP0yxMd8rKnoUKsV8slmedVp7XZT0NOfPYOYzJ2Z8LFF5WUtNq7K8L1vIj7uRDLMoAyvmjJrpMPH1ldbwLbzwFLuZyyvGWj9hunLVNZovAOBXy//yuZFw1h+YEZEILTs9BNPwM43bFKDUdWw==
+x-ms-exchange-antispam-messagedata: feS4RcDvJvoruNhCRlnb2jJEs6B85LEDk5sYrtBNUw/6eWgUqIrob1n/tfqgnHTUJG0JtqKIVWtztyIOfrmOiBOUIfoHO/oYNb1xK2+0xa10ivSjqlrCZ1VadINyXCbs8rO0XOh+yKq7EJJjn7g7/A==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8aa3dfd3-52de-4151-aa54-08d7b4869801
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Feb 2020 15:24:06.9056
+X-MS-Exchange-CrossTenant-Network-Message-Id: 63ffd350-140b-4393-c015-08d7b4ec73e8
+X-MS-Exchange-CrossTenant-originalarrivaltime: 19 Feb 2020 03:33:14.5150
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: V4+aR5IHZLwljR2xsIlE4rxTz2vkeL7Df3bpRSXfOJukyT6gr+rk/6QgACQuEIfMmTM2CQDVPPLYlF5ajNRTmw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0402MB2879
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 0o03Sb9w+ZD7GGMUePcp8kEkt/XbzU6E4ZNcVB4g3N01khmv3585+jJRT72cdHXQAQpETn5kB7otz24XxusWREsXLVVp3Z10m1zxghAATL+8ZF72+6WTU94eQf9X3e5v
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR04MB3071
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
-
-On 2/18/2020 4:46 PM, Lorenzo Pieralisi wrote:
-> On Tue, Feb 18, 2020 at 12:48:39PM +0000, Pankaj Bansal (OSS) wrote:
->
-> [...]
->
->>>> In DT case, we create the domain DOMAIN_BUS_FSL_MC_MSI for MC bus and
->>> it's children.
->>>> And then when MC child device is created, we search the "msi-parent"
->>> property from the MC
->>>> DT node and get the ITS associated with MC bus. Then we search
->>> DOMAIN_BUS_FSL_MC_MSI
->>>> on that ITS. Once we find the domain, we can call msi_domain_alloc_irqs for
->>> that domain.
->>>> This is exactly what we tried to do initially with ACPI. But the searching
->>> DOMAIN_BUS_FSL_MC_MSI
->>>> associated to an ITS, is something that is part of drivers/acpi/arm64/iort.c.
->>>> (similar to DOMAIN_BUS_PLATFORM_MSI and DOMAIN_BUS_PCI_MSI)
->>> Can you have a look at mbigen driver (drivers/irqchip/irq-mbigen.c) to see if
->>> it helps you?
->>>
->>> mbigen is an irq converter to convert device's wired interrupts into MSI
->>> (connecting to ITS), which will alloc a bunch of MSIs from ITS platform MSI
->>> domain at the setup.
->> Unfortunately this is not the same case as ours. As I see Hisilicon IORT table
->> Is using single id mapping with named components.
->>
->> https://github.com/tianocore/edk2-platforms/blob/master/Silicon/Hisilicon/Hi1616/D05AcpiTables/D05Iort.asl#L300
->>
->> while we are not:
->>
->> https://source.codeaurora.org/external/qoriq/qoriq-components/edk2-platforms/tree/Platform/NXP/LX2160aRdbPkg/AcpiTables/Iort.aslc?h=LX2160_UEFI_ACPI_EAR1#n290
->>
->> This is because as I said, we are trying to represent a bus in IORT
->> via named components and not individual devices connected to that bus.
-> I had a thorough look into this and strictly speaking there is no
-> *mapping* requirement at all, all you need to know is what ITS the FSL
-> MC bus is mapping MSIs to. Which brings me to the next question (which
-> is orthogonal to how to model FSL MC in IORT, that has to be discussed
-> but I want to have a full picture in mind first).
->
-> When you probe the FSL MC as a platform device, the ACPI core,
-> through IORT (if you add the 1:1 mapping as an array of single
-> mappings) already link the platform device to ITS platform
-> device MSI domain (acpi_configure_pmsi_domain()).
->
-> The associated fwnode is the *same* (IIUC) as for the
-> DOMAIN_BUS_FSL_MC_MSI and ITS DOMAIN_BUS_NEXUS, so in practice
-> you don't need IORT code to retrieve the DOMAIN_BUS_FSL_MC_MSI
-> domain, the fwnode is the same as the one in the FSL MC platform
-> device IRQ domain->fwnode pointer and you can use it to
-> retrieve the DOMAIN_BUS_FSL_MC_MSI domain through it.
->
-> Is my reading correct ?
-
-Thank you very much for your effort! Really appreciated! Yes, the 
-understanding is correct. I have prototyped this idea for DT, see below [1].
-So, I get the fwnode from the platform device domain (because they are 
-the same with the devices underneath the MC-BUS bridge) and use the 
-fwnode to retrieve the MC-BUS domain.
-
->
-> Overall, DOMAIN_BUS_FSL_MC_MSI is just an MSI layer to override the
-> provide the MSI domain ->prepare hook (ie to stash the MC device id), no
-> more (ie its_fsl_mc_msi_prepare()).
->
-> That's it for the MSI layer - I need to figure out whether we *want* to
-> extend IORT (and/or ACPI) to defined bindings for "additional busses",
-> what I write above is a summary of my understanding, I have not made my
-> mind up yet.
->
-> As for the IOMMU code, it seems like the only thing needed is
-> extending named components configuration to child devices,
-> hierarchically.
-
-Laurentiu used a similar approach for DMA configuration (again 
-prototyped for DT). [2]
-It involves wiring up a custom .dma_configure for our devices as anyway, 
-it made little sense to pretend that these devices are platform devices 
-and trick the DT or ACPI layers into that. As a nice side effect, this 
-will allow to get rid of our existing hooks in the DT generic code.
-
->
-> As Marc already mentioned, IOMMU and IRQ code must be separate for
-> future postings but first we need to find a suitable answer to
-> the problem at hand.
->
-> Lorenzo
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
-[1] MSI configuration
-
-  drivers/bus/fsl-mc/fsl-mc-msi.c | 11 +++++++++--
-  1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/bus/fsl-mc/fsl-mc-msi.c 
-b/drivers/bus/fsl-mc/fsl-mc-msi.c
-index 8b9c66d7c4ff..674f5a60109b 100644
---- a/drivers/bus/fsl-mc/fsl-mc-msi.c
-+++ b/drivers/bus/fsl-mc/fsl-mc-msi.c
-@@ -182,16 +182,23 @@ int fsl_mc_find_msi_domain(struct device 
-*mc_platform_dev,
-  {
-      struct irq_domain *msi_domain;
-      struct device_node *mc_of_node = mc_platform_dev->of_node;
-+    struct fwnode_handle *fwnode;
-
--    msi_domain = of_msi_get_domain(mc_platform_dev, mc_of_node,
--                       DOMAIN_BUS_FSL_MC_MSI);
-+    msi_domain = dev_get_msi_domain(mc_platform_dev);
-      if (!msi_domain) {
-          pr_err("Unable to find fsl-mc MSI domain for %pOF\n",
-                 mc_of_node);
-
-          return -ENOENT;
-      }
-+    fwnode = msi_domain->fwnode;
-+    msi_domain = irq_find_matching_fwnode(fwnode, DOMAIN_BUS_FSL_MC_MSI);
-+    if (!msi_domain) {
-+        pr_err("Unable to find fsl-mc MSI domain for %pOF\n",
-+              mc_of_node);
-
-+        return -ENOENT;
-+    }
-      *mc_msi_domain = msi_domain;
-      return 0;
-  }
--- 
-2.17.1
-
-
-
-[2] DMA configuration
-
-  drivers/bus/fsl-mc/fsl-mc-bus.c | 42 ++++++++++++++++++++++++++++++++-
-  1 file changed, 41 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/bus/fsl-mc/fsl-mc-bus.c 
-b/drivers/bus/fsl-mc/fsl-mc-bus.c
-index f9bc9c384ab5..5c6021a13612 100644
---- a/drivers/bus/fsl-mc/fsl-mc-bus.c
-+++ b/drivers/bus/fsl-mc/fsl-mc-bus.c
-@@ -132,11 +132,51 @@ static int fsl_mc_bus_uevent(struct device *dev, 
-struct kobj_uevent_env *env)
-  static int fsl_mc_dma_configure(struct device *dev)
-  {
-      struct device *dma_dev = dev;
-+    struct iommu_fwspec *fwspec;
-+    const struct iommu_ops *iommu_ops;
-+    struct fsl_mc_device *mc_dev = to_fsl_mc_device(dev);
-+    int ret;
-+    u32 icid;
-
-      while (dev_is_fsl_mc(dma_dev))
-          dma_dev = dma_dev->parent;
-
--    return of_dma_configure(dev, dma_dev->of_node, 0);
-+    fwspec = dev_iommu_fwspec_get(dma_dev);
-+    if (!fwspec) {
-+        dev_err(dev, "%s: null fwspec\n", __func__);
-+        return -ENODEV;
-+    }
-+    iommu_ops = iommu_ops_from_fwnode(fwspec->iommu_fwnode);
-+    if (!iommu_ops) {
-+        dev_err(dev, "%s: null iommu ops\n", __func__);
-+        return -ENODEV;
-+    }
-+
-+    ret = iommu_fwspec_init(dev, fwspec->iommu_fwnode, iommu_ops);
-+    if (ret) {
-+        dev_err(dev, "%s: iommu_fwspec_init failed with %d\n", 
-__func__, ret);
-+        return ret;
-+    }
-+
-+    icid = mc_dev->icid;
-+    ret = iommu_fwspec_add_ids(dev, &icid, 1);
-+    if (ret) {
-+        dev_err(dev, "%s: iommu_fwspec_add_ids failed with %d\n", 
-__func__, ret);
-+        return ret;
-+    }
-+
-+    if (!device_iommu_mapped(dev)) {
-+        ret = iommu_probe_device(dev);
-+        if (ret) {
-+            dev_err(dev, "%s: iommu_fwspec_add_ids failed with %d\n", 
-__func__, ret);
-+            return ret;
-+        }
-+    }
-+
-+    arch_setup_dma_ops(dev, 0, *dma_dev->dma_mask + 1,
-+                iommu_ops, true);
-+
-+    return 0;
-  }
-
-  static ssize_t modalias_show(struct device *dev, struct 
-device_attribute *attr,
--- 
-2.17.1
-
-Regards,
-Diana
-
+PiANCj4gT24gMTgvMDIvMjAyMCAyOjQ2IHBtLCBMb3JlbnpvIFBpZXJhbGlzaSB3cm90ZToNCj4g
+PiBPbiBUdWUsIEZlYiAxOCwgMjAyMCBhdCAxMjo0ODozOVBNICswMDAwLCBQYW5rYWogQmFuc2Fs
+IChPU1MpIHdyb3RlOg0KPiA+DQo+ID4gWy4uLl0NCj4gPg0KPiA+Pj4+IEluIERUIGNhc2UsIHdl
+IGNyZWF0ZSB0aGUgZG9tYWluIERPTUFJTl9CVVNfRlNMX01DX01TSSBmb3IgTUMgYnVzDQo+IGFu
+ZA0KPiA+Pj4gaXQncyBjaGlsZHJlbi4NCj4gPj4+PiBBbmQgdGhlbiB3aGVuIE1DIGNoaWxkIGRl
+dmljZSBpcyBjcmVhdGVkLCB3ZSBzZWFyY2ggdGhlICJtc2ktcGFyZW50Ig0KPiA+Pj4gcHJvcGVy
+dHkgZnJvbSB0aGUgTUMNCj4gPj4+PiBEVCBub2RlIGFuZCBnZXQgdGhlIElUUyBhc3NvY2lhdGVk
+IHdpdGggTUMgYnVzLiBUaGVuIHdlIHNlYXJjaA0KPiA+Pj4gRE9NQUlOX0JVU19GU0xfTUNfTVNJ
+DQo+ID4+Pj4gb24gdGhhdCBJVFMuIE9uY2Ugd2UgZmluZCB0aGUgZG9tYWluLCB3ZSBjYW4gY2Fs
+bCBtc2lfZG9tYWluX2FsbG9jX2lycXMNCj4gZm9yDQo+ID4+PiB0aGF0IGRvbWFpbi4NCj4gPj4+
+Pg0KPiA+Pj4+IFRoaXMgaXMgZXhhY3RseSB3aGF0IHdlIHRyaWVkIHRvIGRvIGluaXRpYWxseSB3
+aXRoIEFDUEkuIEJ1dCB0aGUgc2VhcmNoaW5nDQo+ID4+PiBET01BSU5fQlVTX0ZTTF9NQ19NU0kN
+Cj4gPj4+PiBhc3NvY2lhdGVkIHRvIGFuIElUUywgaXMgc29tZXRoaW5nIHRoYXQgaXMgcGFydCBv
+ZiBkcml2ZXJzL2FjcGkvYXJtNjQvaW9ydC5jLg0KPiA+Pj4+IChzaW1pbGFyIHRvIERPTUFJTl9C
+VVNfUExBVEZPUk1fTVNJIGFuZCBET01BSU5fQlVTX1BDSV9NU0kpDQo+ID4+Pg0KPiA+Pj4gQ2Fu
+IHlvdSBoYXZlIGEgbG9vayBhdCBtYmlnZW4gZHJpdmVyIChkcml2ZXJzL2lycWNoaXAvaXJxLW1i
+aWdlbi5jKSB0byBzZWUgaWYNCj4gPj4+IGl0IGhlbHBzIHlvdT8NCj4gPj4+DQo+ID4+PiBtYmln
+ZW4gaXMgYW4gaXJxIGNvbnZlcnRlciB0byBjb252ZXJ0IGRldmljZSdzIHdpcmVkIGludGVycnVw
+dHMgaW50byBNU0kNCj4gPj4+IChjb25uZWN0aW5nIHRvIElUUyksIHdoaWNoIHdpbGwgYWxsb2Mg
+YSBidW5jaCBvZiBNU0lzIGZyb20gSVRTIHBsYXRmb3JtIE1TSQ0KPiA+Pj4gZG9tYWluIGF0IHRo
+ZSBzZXR1cC4NCj4gPj4NCj4gPj4gVW5mb3J0dW5hdGVseSB0aGlzIGlzIG5vdCB0aGUgc2FtZSBj
+YXNlIGFzIG91cnMuIEFzIEkgc2VlIEhpc2lsaWNvbiBJT1JUIHRhYmxlDQo+ID4+IElzIHVzaW5n
+IHNpbmdsZSBpZCBtYXBwaW5nIHdpdGggbmFtZWQgY29tcG9uZW50cy4NCj4gPj4NCj4gPj4gaHR0
+cHM6Ly9naXRodWIuY29tL3RpYW5vY29yZS9lZGsyLQ0KPiBwbGF0Zm9ybXMvYmxvYi9tYXN0ZXIv
+U2lsaWNvbi9IaXNpbGljb24vSGkxNjE2L0QwNUFjcGlUYWJsZXMvRDA1SW9ydC5hc2wjTDMwDQo+
+IDANCj4gPj4NCj4gPj4gd2hpbGUgd2UgYXJlIG5vdDoNCj4gPj4NCj4gPj4gaHR0cHM6Ly9zb3Vy
+Y2UuY29kZWF1cm9yYS5vcmcvZXh0ZXJuYWwvcW9yaXEvcW9yaXEtY29tcG9uZW50cy9lZGsyLQ0K
+PiBwbGF0Zm9ybXMvdHJlZS9QbGF0Zm9ybS9OWFAvTFgyMTYwYVJkYlBrZy9BY3BpVGFibGVzL0lv
+cnQuYXNsYz9oPUxYMjE2MF8NCj4gVUVGSV9BQ1BJX0VBUjEjbjI5MA0KPiA+Pg0KPiA+PiBUaGlz
+IGlzIGJlY2F1c2UgYXMgSSBzYWlkLCB3ZSBhcmUgdHJ5aW5nIHRvIHJlcHJlc2VudCBhIGJ1cyBp
+biBJT1JUDQo+ID4+IHZpYSBuYW1lZCBjb21wb25lbnRzIGFuZCBub3QgaW5kaXZpZHVhbCBkZXZp
+Y2VzIGNvbm5lY3RlZCB0byB0aGF0IGJ1cy4NCj4gPg0KPiA+IEkgaGFkIGEgdGhvcm91Z2ggbG9v
+ayBpbnRvIHRoaXMgYW5kIHN0cmljdGx5IHNwZWFraW5nIHRoZXJlIGlzIG5vDQo+ID4gKm1hcHBp
+bmcqIHJlcXVpcmVtZW50IGF0IGFsbCwgYWxsIHlvdSBuZWVkIHRvIGtub3cgaXMgd2hhdCBJVFMg
+dGhlIEZTTA0KPiA+IE1DIGJ1cyBpcyBtYXBwaW5nIE1TSXMgdG8uIFdoaWNoIGJyaW5ncyBtZSB0
+byB0aGUgbmV4dCBxdWVzdGlvbiAod2hpY2gNCj4gPiBpcyBvcnRob2dvbmFsIHRvIGhvdyB0byBt
+b2RlbCBGU0wgTUMgaW4gSU9SVCwgdGhhdCBoYXMgdG8gYmUgZGlzY3Vzc2VkDQo+ID4gYnV0IEkg
+d2FudCB0byBoYXZlIGEgZnVsbCBwaWN0dXJlIGluIG1pbmQgZmlyc3QpLg0KPiA+DQo+ID4gV2hl
+biB5b3UgcHJvYmUgdGhlIEZTTCBNQyBhcyBhIHBsYXRmb3JtIGRldmljZSwgdGhlIEFDUEkgY29y
+ZSwNCj4gPiB0aHJvdWdoIElPUlQgKGlmIHlvdSBhZGQgdGhlIDE6MSBtYXBwaW5nIGFzIGFuIGFy
+cmF5IG9mIHNpbmdsZQ0KPiA+IG1hcHBpbmdzKSBhbHJlYWR5IGxpbmsgdGhlIHBsYXRmb3JtIGRl
+dmljZSB0byBJVFMgcGxhdGZvcm0NCj4gPiBkZXZpY2UgTVNJIGRvbWFpbiAoYWNwaV9jb25maWd1
+cmVfcG1zaV9kb21haW4oKSkuDQo+ID4NCj4gPiBUaGUgYXNzb2NpYXRlZCBmd25vZGUgaXMgdGhl
+ICpzYW1lKiAoSUlVQykgYXMgZm9yIHRoZQ0KPiA+IERPTUFJTl9CVVNfRlNMX01DX01TSSBhbmQg
+SVRTIERPTUFJTl9CVVNfTkVYVVMsIHNvIGluIHByYWN0aWNlDQo+ID4geW91IGRvbid0IG5lZWQg
+SU9SVCBjb2RlIHRvIHJldHJpZXZlIHRoZSBET01BSU5fQlVTX0ZTTF9NQ19NU0kNCj4gPiBkb21h
+aW4sIHRoZSBmd25vZGUgaXMgdGhlIHNhbWUgYXMgdGhlIG9uZSBpbiB0aGUgRlNMIE1DIHBsYXRm
+b3JtDQo+ID4gZGV2aWNlIElSUSBkb21haW4tPmZ3bm9kZSBwb2ludGVyIGFuZCB5b3UgY2FuIHVz
+ZSBpdCB0bw0KPiA+IHJldHJpZXZlIHRoZSBET01BSU5fQlVTX0ZTTF9NQ19NU0kgZG9tYWluIHRo
+cm91Z2ggaXQuDQo+ID4NCj4gPiBJcyBteSByZWFkaW5nIGNvcnJlY3QgPw0KPiA+DQo+ID4gT3Zl
+cmFsbCwgRE9NQUlOX0JVU19GU0xfTUNfTVNJIGlzIGp1c3QgYW4gTVNJIGxheWVyIHRvIG92ZXJy
+aWRlIHRoZQ0KPiA+IHByb3ZpZGUgdGhlIE1TSSBkb21haW4gLT5wcmVwYXJlIGhvb2sgKGllIHRv
+IHN0YXNoIHRoZSBNQyBkZXZpY2UgaWQpLCBubw0KPiA+IG1vcmUgKGllIGl0c19mc2xfbWNfbXNp
+X3ByZXBhcmUoKSkuDQo+ID4NCj4gPiBUaGF0J3MgaXQgZm9yIHRoZSBNU0kgbGF5ZXIgLSBJIG5l
+ZWQgdG8gZmlndXJlIG91dCB3aGV0aGVyIHdlICp3YW50KiB0bw0KPiA+IGV4dGVuZCBJT1JUIChh
+bmQvb3IgQUNQSSkgdG8gZGVmaW5lZCBiaW5kaW5ncyBmb3IgImFkZGl0aW9uYWwgYnVzc2VzIiwN
+Cj4gPiB3aGF0IEkgd3JpdGUgYWJvdmUgaXMgYSBzdW1tYXJ5IG9mIG15IHVuZGVyc3RhbmRpbmcs
+IEkgaGF2ZSBub3QgbWFkZSBteQ0KPiA+IG1pbmQgdXAgeWV0Lg0KPiANCj4gSSdtIHJlYWxseSBu
+b3Qgc3VyZSB3ZSdkIG5lZWQgdG8gZ28gbmVhciBhbnkgYmluZGluZ3MgLSB0aGUgSU9SVCBzcGVj
+DQo+ICpjYW4qIHJlYXNvbmFibHkgZGVzY3JpYmUgImdpYW50IGJsYWNrIGJveCBvZiBEUEFBMiBz
+dHVmZiIgYXMgYSBzaW5nbGUNCj4gbmFtZWQgY29tcG9uZW50LCBhbmQgdGhhdCdzIGFyZ3VhYmx5
+IHRoZSBtb3N0IGFjY3VyYXRlIGFic3RyYWN0aW9uDQo+IGFscmVhZHksIGV2ZW4gd2hlbiBpdCBj
+b21lcyB0byB0aGUgbmFtZXNwYWNlIGRldmljZS4gVGhpcyBpc24ndCBhIGJ1cyBpbg0KPiBhbnkg
+dHJhZGl0aW9uYWwgc2Vuc2UsIGl0J3MgYSBzZXQgb2YgYWNjZWxlcmF0b3IgY29tcG9uZW50cyB3
+aXRoIGFuDQo+IGludGVyZmFjZSB0byBkeW5hbWljYWxseSBjb25maWd1cmUgdGhlbSBpbnRvIGN1
+c3RvbSBwaXBlbGluZXMsIGFuZCB0aGUNCj4gZXhwZWN0ZWQgdXNlLWNhc2Ugc2VlbXMgdG8gYmUg
+Zm9yIHVzZXJzcGFjZSB0byBmcmVlbHkgcmVjb25maWd1cmUNCj4gd2hhdGV2ZXIgdmlydHVhbCBu
+ZXR3b3JrIGFkYXB0ZXJzIGl0IHdhbnRzIGF0IGFueSBnaXZlbiB0aW1lLiBUaHVzIEkNCj4gZG9u
+J3Qgc2VlIHRoYXQgaXQncyBsb2dpY2FsIG9yIGV2ZW4gcHJhY3RpY2FsIGZvciBmaXJtd2FyZSBp
+dHNlbGYgdG8gYmUNCj4gaW52b2x2ZWQgYmV5b25kIGRlc2NyaWJpbmcgImhlcmUncyB5b3VyIHRv
+b2xib3giLCBhbmQgaW4gcGFydGljdWxhciwNCj4gYmFzaW5nIGFueSBkZWNpc2lvbnMgb24gdGhl
+IHBhcnRpY3VsYXIgd2F5IHRoYXQgRFBBQTIgaGFzIGJlZW4NCj4gc2hvZWhvcm5lZCBpbnRvIHRo
+ZSBMaW51eCBkcml2ZXIgbW9kZWwgd291bGQgYWxtb3N0IGNlcnRhaW5seSBiZSBhIHN0ZXANCj4g
+aW4gdGhlIHdyb25nIGRpcmVjdGlvbi4NCj4gDQo+IElNTyB0aGUgc2NvcGUgb2YgdGhpcyBpc3N1
+ZSBiZWxvbmdzIGVudGlyZWx5IHdpdGhpbiB0aGUNCj4gaW1wbGVtZW50YXRpb24ocykgb2YgTGlu
+dXgncyBvd24gYWJzdHJhY3Rpb24gbGF5ZXJzLg0KDQpJIGFncmVlLiBJIHRoaW5rIGZpcnN0IHdl
+IG91Z2h0IHRvIGdldCB0aGUgY29uc2Vuc3VzIG9uIGhvdyB0byByZXByZXNlbnQgdGhlIE1DDQpi
+dXMgaW4gSU9SVCB0YWJsZS4gQW5kIGl0IHNob3VsZCBub3QgYmUgYmFzZWQgb24gdGhlIGZhY3Qg
+dGhhdCAidGhhdCdzIGhvdyB3ZSBoYXZlDQpoYW5kbGVkIElPUlQgaW4gbGludXgiLiBPbmNlIHRo
+aXMgaXMgZG9uZSwgdGhlbiB3ZSBjYW4gbW92ZSBmb3J3YXJkIG9uIGhvdyB0bw0KaGFuZGxlIHRo
+YXQgaW4gbGludXguDQoNCj4gDQo+IFJvYmluLg0KPiANCj4gPiBBcyBmb3IgdGhlIElPTU1VIGNv
+ZGUsIGl0IHNlZW1zIGxpa2UgdGhlIG9ubHkgdGhpbmcgbmVlZGVkIGkNCj4gPiBleHRlbmRpbmcg
+bmFtZWQgY29tcG9uZW50cyBjb25maWd1cmF0aW9uIHRvIGNoaWxkIGRldmljZXMsDQo+ID4gaGll
+cmFyY2hpY2FsbHkuDQo+ID4NCj4gPiBBcyBNYXJjIGFscmVhZHkgbWVudGlvbmVkLCBJT01NVSBh
+bmQgSVJRIGNvZGUgbXVzdCBiZSBzZXBhcmF0ZSBmb3INCj4gPiBmdXR1cmUgcG9zdGluZ3MgYnV0
+IGZpcnN0IHdlIG5lZWQgdG8gZmluZCBhIHN1aXRhYmxlIGFuc3dlciB0bw0KPiA+IHRoZSBwcm9i
+bGVtIGF0IGhhbmQuDQo+ID4NCj4gPiBMb3JlbnpvDQo+ID4NCg==
