@@ -2,70 +2,100 @@ Return-Path: <SRS0=Bb8W=4H=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B97C3404D
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 Feb 2020 10:42:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7192AC11D85
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Feb 2020 22:30:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0943324676
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 Feb 2020 10:42:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B11724693
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Feb 2020 22:24:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1582151098;
+	bh=wZL3OOt1mgp9hbAl9bojkNL3ZJ0+D9P0cl+P8V4kYOs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=mOMkAOtV6J8r+34Rsqd7n5X+Sehx9r2LeFEd31+TTiaKYMFbH03C6xpOIPT+tvu5S
+	 Ym5uqj5O4g3Nwph9qUkSZRq1I54It+AFegFk7IraC+qExWgwgFVCXYuIZtFbbsFfiV
+	 5W1vsAFbshvoryW+iHSWdEb3NkfZdH7IkvguKztU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726717AbgBSKmr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 19 Feb 2020 05:42:47 -0500
-Received: from 8bytes.org ([81.169.241.247]:54904 "EHLO theia.8bytes.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726270AbgBSKmr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Feb 2020 05:42:47 -0500
-Received: by theia.8bytes.org (Postfix, from userid 1000)
-        id C31CF36C; Wed, 19 Feb 2020 11:42:45 +0100 (CET)
-Date:   Wed, 19 Feb 2020 11:42:44 +0100
-From:   Joerg Roedel <joro@8bytes.org>
+        id S1727469AbgBSWY5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 19 Feb 2020 17:24:57 -0500
+Received: from mail-oi1-f193.google.com ([209.85.167.193]:34831 "EHLO
+        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727163AbgBSWY5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2020 17:24:57 -0500
+Received: by mail-oi1-f193.google.com with SMTP id b18so25521148oie.2;
+        Wed, 19 Feb 2020 14:24:57 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=bw/arhxO0zD6uxPv9B55JT/z9CSekm6k6Bmp/kVtLV0=;
+        b=iDoyGV5c0sHKnm8fR8KkHHXF/ntWO0w46zg5ISA1UjqFbYZT6PWEJgNscnK/WbzFiq
+         zST2+piKM7q4lOxSJE3idurDkXnWN9cSm6HbTejthJM8QihAnSXj8sXAo7xbKMTtaAS7
+         R+WoTJmlNxUJkgnSnwOknoV1cqtrkw7YI9ZMijGBZoRy9hvljRb3nHsjSnn0202Hxko5
+         ctpdzYwDrwk5IAm+qS6+AOz7vbKP3Y95XtDb/Qv/Y2j1gvtcBF4uxDIfF+BjDYotZnno
+         20hfTkJf79AF5oeNR9v6EGFKZ/8u7aOzMtdKfUJeOVRhd5US+KM0S1fes2AIirl+AuPS
+         hjwQ==
+X-Gm-Message-State: APjAAAUGzG6jwCLUc/rfUKD8lpIHVFw6wRIecqwf7YvXqQxbHcZIFltT
+        MvGzhud4J5MSdT4SGnsLUg==
+X-Google-Smtp-Source: APXvYqzZzuIwDzmzfqhTKUe49az+Etwqyco/nG1nDw+t4D7VEkxMrWlgNAsahLPneOunxOSWnXEiHQ==
+X-Received: by 2002:aca:d903:: with SMTP id q3mr6124909oig.12.1582151096719;
+        Wed, 19 Feb 2020 14:24:56 -0800 (PST)
+Received: from rob-hp-laptop (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id l80sm428436oib.37.2020.02.19.14.24.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 19 Feb 2020 14:24:56 -0800 (PST)
+Received: (nullmailer pid 16262 invoked by uid 1000);
+        Wed, 19 Feb 2020 22:24:54 -0000
+Date:   Wed, 19 Feb 2020 16:24:54 -0600
+From:   Rob Herring <robh@kernel.org>
 To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
 Cc:     bhelgaas@google.com, will@kernel.org, robh+dt@kernel.org,
-        lorenzo.pieralisi@arm.com, baolu.lu@linux.intel.com,
-        linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org,
-        corbet@lwn.net, mark.rutland@arm.com, liviu.dudau@arm.com,
-        sudeep.holla@arm.com, guohanjun@huawei.com, rjw@rjwysocki.net,
-        lenb@kernel.org, robin.murphy@arm.com, dwmw2@infradead.org,
+        lorenzo.pieralisi@arm.com, joro@8bytes.org,
+        baolu.lu@linux.intel.com, linux-doc@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux-foundation.org, corbet@lwn.net,
+        mark.rutland@arm.com, liviu.dudau@arm.com, sudeep.holla@arm.com,
+        guohanjun@huawei.com, rjw@rjwysocki.net, lenb@kernel.org,
+        robin.murphy@arm.com, dwmw2@infradead.org,
         amurray@thegoodpenguin.co.uk, frowand.list@gmail.com
-Subject: Re: [PATCH 00/10] PCI/ATS: Device-tree support and other improvements
-Message-ID: <20200219104244.GD1961@8bytes.org>
+Subject: Re: [PATCH 01/11] dt-bindings: PCI: generic: Add ats-supported
+ property
+Message-ID: <20200219222454.GA16221@bogus>
 References: <20200213165049.508908-1-jean-philippe@linaro.org>
+ <20200213165049.508908-2-jean-philippe@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200213165049.508908-1-jean-philippe@linaro.org>
+In-Reply-To: <20200213165049.508908-2-jean-philippe@linaro.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Jean-Philippe,
+On Thu, 13 Feb 2020 17:50:39 +0100, Jean-Philippe Brucker wrote:
+> Add a way for firmware to tell the OS that ATS is supported by the PCI
+> root complex. An endpoint with ATS enabled may send Translation Requests
+> and Translated Memory Requests, which look just like Normal Memory
+> Requests with a non-zero AT field. So a root controller that ignores the
+> AT field may simply forward the request to the IOMMU as a Normal Memory
+> Request, which could end badly. In any case, the endpoint will be
+> unusable.
+> 
+> The ats-supported property allows the OS to only enable ATS in endpoints
+> if the root controller can handle ATS requests. Only add the property to
+> pcie-host-ecam-generic for the moment. For non-generic root controllers,
+> availability of ATS can be inferred from the compatible string.
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+> ---
+>  Documentation/devicetree/bindings/pci/host-generic-pci.yaml | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
 
-
-On Thu, Feb 13, 2020 at 05:50:38PM +0100, Jean-Philippe Brucker wrote:
-> Jean-Philippe Brucker (11):
->   dt-bindings: PCI: generic: Add ats-supported property
->   PCI: Add ats_supported host bridge flag
->   PCI: OF: Check whether the host bridge supports ATS
->   ACPI/IORT: Check ATS capability in root complex node
->   PCI/ATS: Gather checks into pci_ats_supported()
->   iommu/amd: Use pci_ats_supported()
->   iommu/arm-smmu-v3: Use pci_ats_supported()
->   iommu/vt-d: Use pci_ats_supported()
->   ACPI/IORT: Drop ATS fwspec flag
->   arm64: dts: fast models: Enable PCIe ATS for Base RevC FVP
->   Documentation: Generalize the "pci=noats" boot parameter 
-
-Nice patch-set! Thanks for the consolidation work. I can take it into
-the iommu-tree, given that the non-iommu parts get the necessary Acks.
-
-
-Regards,
-
-	Joerg
+Reviewed-by: Rob Herring <robh@kernel.org>
