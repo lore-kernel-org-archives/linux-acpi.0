@@ -2,103 +2,82 @@ Return-Path: <SRS0=+L+2=4I=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C6D9C11D07
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Feb 2020 09:53:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 946A6C11D24
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Feb 2020 22:41:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 170532465D
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Feb 2020 09:53:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582192434;
-	bh=xDKSlyPsYA/sk32fz/WhaIlZNcD868+FeMm6HXeGsrA=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=YkporVSclX1IgzU308llLSKms4w3iUb0u1kuzRYi6/nnZWu0HLDo3O9NUM5T9S76N
-	 JUZ7Q3+ZHUSWIdWVS1UscWOI5z37ea4ErRT6+OJ+aCR9pJX4iVx5YiDKXmjMahlzvo
-	 kPoeNFgazo2wuW7s+TJHcvB/vV8odfvl1rMWz0ZQ=
+	by mail.kernel.org (Postfix) with ESMTP id 74600208CD
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Feb 2020 22:41:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726799AbgBTJxw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Feb 2020 04:53:52 -0500
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:41915 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726771AbgBTJxw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Feb 2020 04:53:52 -0500
-Received: by mail-ot1-f66.google.com with SMTP id r27so3066300otc.8;
-        Thu, 20 Feb 2020 01:53:52 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jeN19GuMB9ysdWk9mvfpt7TayG82X3Z6MoBxOjoN1DQ=;
-        b=aj3HSdcnObpMLp28TZMsunEHb7Q79as1GgDSnPUDnmeqDlwUqh3X2s6AZk+JzsrATG
-         H6gVwRT7EZEE7W1Xek/mmnp6uV1kgpBqpOUAUjA7/OJGpPibP4RCe0fXZCFVDlRnJITc
-         ZmRUbqXUsefDtI5kZD+qUl+N0a7PgS8jHEC+BVq3iE/x0dKi0LqNzeFCZUTc0pZWRRMv
-         IqTQRcP9JPywkQc32E0lTVEa8VOdJ+7c31QrHZRrIaW2ChEXwRJ5jtMyuN7nmqJLi15m
-         /3GMHog5o3XEEvXlL+MqUIgPIgsSGI28XcCLB9NeHpLXt2JHTkiG3vr7nzF8wiak9rVR
-         Os/A==
-X-Gm-Message-State: APjAAAWvVnDdYOp7kiHXD+77UtUh2ChEdQOM/PdafJCBSQVqwnkUfuF2
-        5B6VbmlZwT/oFIE7ZIl5dJkGON2PQtNfKr1/Kj4=
-X-Google-Smtp-Source: APXvYqxLOo4uzE64DC6gPgGBW4hdqs+4rlt7vt1Fjhxf8+gu4PC1ikAdU8TeWnrzHm8OZrIZcVApDNT1MUzLwx8rN1w=
-X-Received: by 2002:a9d:7559:: with SMTP id b25mr22192490otl.189.1582192431589;
- Thu, 20 Feb 2020 01:53:51 -0800 (PST)
-MIME-Version: 1.0
-References: <98d72d3b-c9eb-36bc-1d68-2c3020bdf9c5@infradead.org>
-In-Reply-To: <98d72d3b-c9eb-36bc-1d68-2c3020bdf9c5@infradead.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 20 Feb 2020 10:53:39 +0100
-Message-ID: <CAJZ5v0hsoYc4CYw90CAQGKpeh=Zt5oC0YWkP-o-t2TuntSng2A@mail.gmail.com>
-Subject: Re: [PATCH] Documentation/admin-guide/acpi: fix fan_performance_states.rst
- warnings
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        ACPI Devel Mailing List <linux-acpi@vger.kernel.org>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        id S1728992AbgBTWlZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Feb 2020 17:41:25 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:48513 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729130AbgBTWlZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Feb 2020 17:41:25 -0500
+Received: from 79.184.254.252.ipv4.supernova.orange.pl (79.184.254.252) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
+ id e4bb8ae86d8915f1; Thu, 20 Feb 2020 23:41:22 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Chris Wilson <chris@chris-wilson.co.uk>
+Cc:     linux-kernel@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>
-Content-Type: text/plain; charset="UTF-8"
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Subject: Re: Linux 5.6-rc2
+Date:   Thu, 20 Feb 2020 23:41:22 +0100
+Message-ID: <10791544.HYfhKnFLvn@kreacher>
+In-Reply-To: <158197497594.2449.9692451182044632969@skylake-alporthouse-com>
+References: <CAHk-=wgqwiBLGvwTqU2kJEPNmafPpPe_K0XgBU-A58M+mkwpgQ@mail.gmail.com> <CAHk-=wik6C7uCyPZ_qwv0M29uVUdgrpOdubfaVHF8FVBAsCivA@mail.gmail.com> <158197497594.2449.9692451182044632969@skylake-alporthouse-com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Feb 17, 2020 at 5:42 AM Randy Dunlap <rdunlap@infradead.org> wrote:
->
-> From: Randy Dunlap <rdunlap@infradead.org>
->
-> Fix Sphinx format warnings in fan_performace_states.rst
-> by adding indentation.
->
-> Documentation/admin-guide/acpi/fan_performance_states.rst:21: WARNING: Literal block ends without a blank line; unexpected unindent.
-> Documentation/admin-guide/acpi/fan_performance_states.rst:41: WARNING: Literal block expected; none found.
->
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  Documentation/admin-guide/acpi/fan_performance_states.rst |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> --- lnx-56-rc2.orig/Documentation/admin-guide/acpi/fan_performance_states.rst
-> +++ lnx-56-rc2/Documentation/admin-guide/acpi/fan_performance_states.rst
-> @@ -18,7 +18,7 @@ may look as follows::
->
->   $ ls -l /sys/bus/acpi/devices/INT3404:00/
->   total 0
-> -...
-> + ...
->   -r--r--r-- 1 root root 4096 Dec 13 20:38 state0
->   -r--r--r-- 1 root root 4096 Dec 13 20:38 state1
->   -r--r--r-- 1 root root 4096 Dec 13 20:38 state10
-> @@ -38,7 +38,7 @@ where each of the "state*" files represe
->  and contains a colon-separated list of 5 integer numbers (fields) with the
->  following interpretation::
->
-> -control_percent:trip_point_index:speed_rpm:noise_level_mdb:power_mw
-> +  control_percent:trip_point_index:speed_rpm:noise_level_mdb:power_mw
->
->  * ``control_percent``: The percent value to be used to set the fan speed to a
->    specific level using the _FSL object (0-100).
+On Monday, February 17, 2020 10:29:35 PM CET Chris Wilson wrote:
+> Quoting Linus Torvalds (2020-02-17 21:20:27)
+> > On Mon, Feb 17, 2020 at 8:22 AM Chris Wilson <chris@chris-wilson.co.uk> wrote:
+> > >
+> > > Quoting Linus Torvalds (2020-02-16 21:32:32)
+> > > > Rafael J. Wysocki (4):
+> > > >       ACPI: EC: Fix flushing of pending work
+> > > >       ACPI: PM: s2idle: Avoid possible race related to the EC GPE
+> > > >       ACPICA: Introduce acpi_any_gpe_status_set()
+> > > >       ACPI: PM: s2idle: Prevent spurious SCIs from waking up the system
+> > >
+> > > Our S0 testing broke on all platforms, so we've reverted
+> > > e3728b50cd9b ("ACPI: PM: s2idle: Avoid possible race related to the EC GPE")
+> > > fdde0ff8590b ("ACPI: PM: s2idle: Prevent spurious SCIs from waking up the system")
+> > >
+> > > There wasn't much in the logs, for example,
+> > > https://intel-gfx-ci.01.org/tree/drm-tip/IGT_5445/fi-kbl-7500u/igt@gem_exec_suspend@basic-s0.html
+> > 
+> > So the machine suspends, but never comes back?
+> > 
+> > Do you need to revert both for it to work for you? Or is the revert of
+> > fdde0ff8590b just to avoid the conflict?
+> 
+> fdde0ff85 was just to avoid conflicts.
+>  
+> > I'm assuming you bisected this, and the bisect indicated e3728b50cd9b,
+> > and then to revert it you reverted the other commit too..
+> 
+> Lucky guess based on diff rc1..rc2. Bisect was going to be painful, but
+> could be done if this is not enough clue for Rafael.
 
-Applied as a fix for 5.6, thanks!
+Sorry for the delayed response, was away.
+
+I'm guessing that you are using rtcwake for wakeup, in which case reverting
+fdde0ff85 alone should unbreak it.
+
+Can you please double check that?
+
+
+
