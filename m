@@ -2,185 +2,102 @@ Return-Path: <SRS0=TC03=4K=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C2DAC35669
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Feb 2020 01:41:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DB5CC35673
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Feb 2020 07:37:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E4A920722
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Feb 2020 01:41:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="vPVdBWrp"
+	by mail.kernel.org (Postfix) with ESMTP id 1FD87214DB
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Feb 2020 07:37:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1582357069;
+	bh=wwlcvLyUUjq+aCUhLUkAhHiYjSH4uxAtpnE4vgF+h+s=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=TEGMdTS5fB0lQP9kRuGTSDP4XhRyRepHQPmHsx2x+hvLLz5W6Ev9MZB1r9nmWw6kB
+	 wg7aFALy+Lt/ovYW4s1mwX3y5xOEcgdAlM0JIBgz9CLbaiP7o/No39rlktaBhurZQK
+	 nOz3PZqaA07YF/q0BQS7XbGOv2WMG9NQE1KeTCOw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727646AbgBVBlI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Feb 2020 20:41:08 -0500
-Received: from mail-pf1-f201.google.com ([209.85.210.201]:34335 "EHLO
-        mail-pf1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727933AbgBVBkv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Feb 2020 20:40:51 -0500
-Received: by mail-pf1-f201.google.com with SMTP id q5so2354898pfh.1
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Feb 2020 17:40:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
-         :cc;
-        bh=On3eRiTUnDa5BtXq5RoayDWDf1ZPcj84ltPeiblPUMk=;
-        b=vPVdBWrpXeFBwDzA5UrONBEBUuLscK8+OhywnT5ys4wGN35JJJwulswpUcPpYhqgK1
-         m50/tOnt9RKLC2CDy1u57pKZq6LvoiBghI1GhMnyrgRkYCQ09XTbH5UbmTXGKlNWbuXQ
-         J3yEVs2TUYmfQDwog+NbQIKm5eJ9aYIVY/QkapqWh4uUSlngOAWp12+cTIlG5o3vOPN2
-         +awo8m7Idn6jacZxli1lQRoCqwPlXpk4w99usheYI6920vzDSttPbRIKRyN5a+UHZeOi
-         IeuX7ehPEmlkLhMAz2fRsHA3Tok+GPP1xMC6bUPf2tkLmvFdE1m5ArcijHdbPJaf50Lj
-         d1JA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=On3eRiTUnDa5BtXq5RoayDWDf1ZPcj84ltPeiblPUMk=;
-        b=C/O0we5PIuPonSWTeUYAjXw5BrAb5aKsuGqForVSCXlubyaFrenzCn14RncmDp+Wor
-         js50UX+6paPjeCiULUUK7x9IXbANUnypPQxxaaenTGGpD6wOzkjGmG26xvHGIxvXefRN
-         TO0b2XX0zsOd2/Uxu3lbk2vS4FIHOWIboA/0cg9aXJoM+FkUk3ss8tAy0AIz4NJI/PrL
-         kWX9tOcoNvpsWy6m3EeyMkwUpMUD4noIitEeTDZSNQh6rs+vWAfB+wU+7x+XIc+lLtc7
-         EzhA9QYsDa/4eZ39SsdmifxkcivRpChxwl962fpNf6D9kI0yKWUHw3uGDoHGtK8DGV5W
-         gPfQ==
-X-Gm-Message-State: APjAAAUTtBt2p8djINkh0vZ9ZOq4ritBp2DWe8p9+iDKD72YgcjBWQel
-        CRmLFsjrDRWr/MtYrd+vX/RD93JaSwcSU40=
-X-Google-Smtp-Source: APXvYqxcK8NEEB7SEtnQp1SzN8VYXqvTOUc2SeP/yCk74iurh+KqopNGx+3yHKNbMZyq5ledAISRoddCngOncis=
-X-Received: by 2002:a63:4a47:: with SMTP id j7mr40867151pgl.196.1582335649047;
- Fri, 21 Feb 2020 17:40:49 -0800 (PST)
-Date:   Fri, 21 Feb 2020 17:40:35 -0800
-In-Reply-To: <20200222014038.180923-1-saravanak@google.com>
-Message-Id: <20200222014038.180923-3-saravanak@google.com>
-Mime-Version: 1.0
-References: <20200222014038.180923-1-saravanak@google.com>
-X-Mailer: git-send-email 2.25.0.265.gbab2e86ba0-goog
-Subject: [PATCH v1 2/5] driver core: Add fw_devlink kernel commandline option
-From:   Saravana Kannan <saravanak@google.com>
-To:     Jonathan Corbet <corbet@lwn.net>,
+        id S1726794AbgBVHhr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 22 Feb 2020 02:37:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58362 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726836AbgBVHhp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 22 Feb 2020 02:37:45 -0500
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7819B24672
+        for <linux-acpi@vger.kernel.org>; Sat, 22 Feb 2020 07:37:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1582357064;
+        bh=wwlcvLyUUjq+aCUhLUkAhHiYjSH4uxAtpnE4vgF+h+s=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=Sde1d7C2Mjm5LUHGg8qaINBz5JTdkBfBVrrLfsWGpon33qFPiE/ee/UOtpXKaJU6b
+         JUmiiHm+dNfZJAYZYLPWDvCawpz4J8r21Z4cdbveVj32CVYxIg6nmgLiidgfRSy4eU
+         0giwVyyBDBzF7qhezjrG2J6RzGKmKwFQqALnjHkg=
+Received: by mail-wm1-f45.google.com with SMTP id t14so4200580wmi.5
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Feb 2020 23:37:44 -0800 (PST)
+X-Gm-Message-State: APjAAAXsajs1J7rxNxyCJtAK1WFfBJap3LLnqZXpT71Fk49Rq/Zaep2M
+        OKlmLkWMQboquTHhm47daC8ZbASDkfieQbbvRJ4WHw==
+X-Google-Smtp-Source: APXvYqzLEqjaOCEz1rffDgh/i9rxHLaVrhkmq+aVjKgFm+xgANVXwtlOL9ob2zJTeWHA7/jtQHU14ap2WODxfLZ++eY=
+X-Received: by 2002:a7b:c4cc:: with SMTP id g12mr9246324wmk.68.1582357062812;
+ Fri, 21 Feb 2020 23:37:42 -0800 (PST)
+MIME-Version: 1.0
+References: <20200222014038.180923-1-saravanak@google.com> <20200222014038.180923-4-saravanak@google.com>
+In-Reply-To: <20200222014038.180923-4-saravanak@google.com>
+From:   Ard Biesheuvel <ardb@kernel.org>
+Date:   Sat, 22 Feb 2020 08:37:31 +0100
+X-Gmail-Original-Message-ID: <CAKv+Gu8GtHQpFGM5U61uH86dnesnaVCkvqrPA6Y8wv4qRc8V4A@mail.gmail.com>
+Message-ID: <CAKv+Gu8GtHQpFGM5U61uH86dnesnaVCkvqrPA6Y8wv4qRc8V4A@mail.gmail.com>
+Subject: Re: [PATCH v1 3/5] efi/arm: Start using fw_devlink_get_flags()
+To:     Saravana Kannan <saravanak@google.com>
+Cc:     Jonathan Corbet <corbet@lwn.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Frank Rowand <frowand.list@gmail.com>,
-        Len Brown <lenb@kernel.org>
-Cc:     Saravana Kannan <saravanak@google.com>, kernel-team@android.com,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-efi@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org
+        Len Brown <lenb@kernel.org>,
+        Android Kernel Team <kernel-team@android.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-efi <linux-efi@vger.kernel.org>,
+        Devicetree List <devicetree@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-fwnode_operations.add_links allows creating device links from
-information provided by firmware.
+On Sat, 22 Feb 2020 at 02:40, Saravana Kannan <saravanak@google.com> wrote:
+>
+> The fw_devlink_get_flags() provides the right flags to use when creating
+> mandatory device links derived from information provided by the
+> firmware. So, use that.
+>
+> Signed-off-by: Saravana Kannan <saravanak@google.com>
+> ---
 
-fwnode_operations.add_links is currently implemented only by
-OF/devicetree code and a specific case of efi. However, there's nothing
-preventing ACPI or other firmware types from implementing it.
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
 
-The OF implementation is currently controlled by a kernel commandline
-parameter called of_devlink.
-
-Since this feature is generic isn't limited to OF, add a generic
-fw_devlink kernel commandline parameter to control this feature across
-firmware types.
-
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- .../admin-guide/kernel-parameters.txt         | 18 +++++++++++++
- drivers/base/core.c                           | 27 ++++++++++++++++++-
- include/linux/fwnode.h                        |  2 ++
- 3 files changed, 46 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index dbc22d684627..29985152b66d 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -1350,6 +1350,24 @@
- 			can be changed at run time by the max_graph_depth file
- 			in the tracefs tracing directory. default: 0 (no limit)
- 
-+	fw_devlink=	[KNL] Create device links between consumer and supplier
-+			devices by scanning the firmware to infer the
-+			consumer/supplier relationships. This feature is
-+			especially useful when drivers are loaded as modules as
-+			it ensures proper ordering of tasks like device probing
-+			(suppliers first, then consumers), supplier boot state
-+			clean up (only after all consumers have probed),
-+			suspend/resume & runtime PM (consumers first, then
-+			suppliers).
-+			Format: { off | permissive | on | rpm }
-+			off --	Don't create device links from firmware info.
-+			permissive -- Create device links from firmware info
-+				but use it only for ordering boot state clean
-+				up (sync_state() calls).
-+			on -- 	Create device links from firmware info and use it
-+				to enforce probe and suspend/resume ordering.
-+			rpm --	Like "on", but also use to order runtime PM.
-+
- 	gamecon.map[2|3]=
- 			[HW,JOY] Multisystem joystick and NES/SNES/PSX pad
- 			support via parallel port (up to 5 devices per port)
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index d32a3aefff32..aeaca8a3aad9 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -2345,6 +2345,31 @@ static int device_private_init(struct device *dev)
- 	return 0;
- }
- 
-+u32 fw_devlink_flags;
-+static int __init fw_devlink_setup(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	if (strcmp(arg, "off") == 0) {
-+		fw_devlink_flags = 0;
-+	} else if (strcmp(arg, "permissive") == 0) {
-+		fw_devlink_flags = DL_FLAG_SYNC_STATE_ONLY;
-+	} else if (strcmp(arg, "on") == 0) {
-+		fw_devlink_flags = DL_FLAG_AUTOPROBE_CONSUMER;
-+	} else if (strcmp(arg, "rpm") == 0) {
-+		fw_devlink_flags = DL_FLAG_AUTOPROBE_CONSUMER |
-+				   DL_FLAG_PM_RUNTIME;
-+	}
-+	return 0;
-+}
-+early_param("fw_devlink", fw_devlink_setup);
-+
-+u32 fw_devlink_get_flags(void)
-+{
-+	return fw_devlink_flags;
-+}
-+
- /**
-  * device_add - add device to device hierarchy.
-  * @dev: device.
-@@ -2493,7 +2518,7 @@ int device_add(struct device *dev)
- 	 */
- 	device_link_add_missing_supplier_links();
- 
--	if (fwnode_has_op(dev->fwnode, add_links)) {
-+	if (fw_devlink_flags && fwnode_has_op(dev->fwnode, add_links)) {
- 		fw_ret = fwnode_call_int_op(dev->fwnode, add_links, dev);
- 		if (fw_ret == -ENODEV)
- 			device_link_wait_for_mandatory_supplier(dev);
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 8feeb94b8acc..e0abafbb17f8 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -170,4 +170,6 @@ struct fwnode_operations {
- 	} while (false)
- #define get_dev_from_fwnode(fwnode)	get_device((fwnode)->dev)
- 
-+extern u32 fw_devlink_get_flags(void);
-+
- #endif
--- 
-2.25.0.265.gbab2e86ba0-goog
-
+>  drivers/firmware/efi/arm-init.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/firmware/efi/arm-init.c b/drivers/firmware/efi/arm-init.c
+> index d99f5b0c8a09..6703bedfa9e1 100644
+> --- a/drivers/firmware/efi/arm-init.c
+> +++ b/drivers/firmware/efi/arm-init.c
+> @@ -349,7 +349,7 @@ static int efifb_add_links(const struct fwnode_handle *fwnode,
+>          * If this fails, retrying this function at a later point won't
+>          * change anything. So, don't return an error after this.
+>          */
+> -       if (!device_link_add(dev, sup_dev, 0))
+> +       if (!device_link_add(dev, sup_dev, fw_devlink_get_flags()))
+>                 dev_warn(dev, "device_link_add() failed\n");
+>
+>         put_device(sup_dev);
+> --
+> 2.25.0.265.gbab2e86ba0-goog
+>
