@@ -1,103 +1,177 @@
-Return-Path: <SRS0=TC03=4K=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=sb1m=4L=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DB5CC35673
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Feb 2020 07:37:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A88C35670
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 06:08:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1FD87214DB
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Feb 2020 07:37:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582357069;
-	bh=wwlcvLyUUjq+aCUhLUkAhHiYjSH4uxAtpnE4vgF+h+s=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=TEGMdTS5fB0lQP9kRuGTSDP4XhRyRepHQPmHsx2x+hvLLz5W6Ev9MZB1r9nmWw6kB
-	 wg7aFALy+Lt/ovYW4s1mwX3y5xOEcgdAlM0JIBgz9CLbaiP7o/No39rlktaBhurZQK
-	 nOz3PZqaA07YF/q0BQS7XbGOv2WMG9NQE1KeTCOw=
+	by mail.kernel.org (Postfix) with ESMTP id 5001D206ED
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 06:08:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rTCl5UC1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726794AbgBVHhr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 22 Feb 2020 02:37:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58362 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726836AbgBVHhp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 22 Feb 2020 02:37:45 -0500
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7819B24672
-        for <linux-acpi@vger.kernel.org>; Sat, 22 Feb 2020 07:37:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1582357064;
-        bh=wwlcvLyUUjq+aCUhLUkAhHiYjSH4uxAtpnE4vgF+h+s=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=Sde1d7C2Mjm5LUHGg8qaINBz5JTdkBfBVrrLfsWGpon33qFPiE/ee/UOtpXKaJU6b
-         JUmiiHm+dNfZJAYZYLPWDvCawpz4J8r21Z4cdbveVj32CVYxIg6nmgLiidgfRSy4eU
-         0giwVyyBDBzF7qhezjrG2J6RzGKmKwFQqALnjHkg=
-Received: by mail-wm1-f45.google.com with SMTP id t14so4200580wmi.5
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Feb 2020 23:37:44 -0800 (PST)
-X-Gm-Message-State: APjAAAXsajs1J7rxNxyCJtAK1WFfBJap3LLnqZXpT71Fk49Rq/Zaep2M
-        OKlmLkWMQboquTHhm47daC8ZbASDkfieQbbvRJ4WHw==
-X-Google-Smtp-Source: APXvYqzLEqjaOCEz1rffDgh/i9rxHLaVrhkmq+aVjKgFm+xgANVXwtlOL9ob2zJTeWHA7/jtQHU14ap2WODxfLZ++eY=
-X-Received: by 2002:a7b:c4cc:: with SMTP id g12mr9246324wmk.68.1582357062812;
- Fri, 21 Feb 2020 23:37:42 -0800 (PST)
-MIME-Version: 1.0
-References: <20200222014038.180923-1-saravanak@google.com> <20200222014038.180923-4-saravanak@google.com>
-In-Reply-To: <20200222014038.180923-4-saravanak@google.com>
-From:   Ard Biesheuvel <ardb@kernel.org>
-Date:   Sat, 22 Feb 2020 08:37:31 +0100
-X-Gmail-Original-Message-ID: <CAKv+Gu8GtHQpFGM5U61uH86dnesnaVCkvqrPA6Y8wv4qRc8V4A@mail.gmail.com>
-Message-ID: <CAKv+Gu8GtHQpFGM5U61uH86dnesnaVCkvqrPA6Y8wv4qRc8V4A@mail.gmail.com>
-Subject: Re: [PATCH v1 3/5] efi/arm: Start using fw_devlink_get_flags()
-To:     Saravana Kannan <saravanak@google.com>
-Cc:     Jonathan Corbet <corbet@lwn.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Len Brown <lenb@kernel.org>,
-        Android Kernel Team <kernel-team@android.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-efi <linux-efi@vger.kernel.org>,
-        Devicetree List <devicetree@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        id S1726028AbgBWGI1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 23 Feb 2020 01:08:27 -0500
+Received: from mail-pj1-f65.google.com ([209.85.216.65]:37968 "EHLO
+        mail-pj1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725980AbgBWGI1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 01:08:27 -0500
+Received: by mail-pj1-f65.google.com with SMTP id j17so2636609pjz.3
+        for <linux-acpi@vger.kernel.org>; Sat, 22 Feb 2020 22:08:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=9HpNnUs7QncuZ77UZCIt45kwbpnyNIy2S/U3jF7+HbY=;
+        b=rTCl5UC12i6Z6Pga9r7uRu/5AxtgW3mgE2TbcQ8B1jy8IM4dFgFgUAlqT00VslKpwb
+         VynAs/IuFFaIcUmUR6EVAYQoBUaKnTXcJlTtDzBzkJQ5LdYvPv/oqCY9tYfAZK4+cn/W
+         sUWnl1bmS2Tejq2JdvNVH0s87qT3LEMjX0UyqQ4UfDTYb4T6uLBDQcLQn4W6bSwdPMBz
+         kULjF0/8Mn1fkI9XCJCUVH3xBXflbB0lNfoM5fppBTGmXnabe6SMgTfEaOrEPZETXIml
+         g/rile8hQGm69OwXufi3ViQdq4fXTt1w7oJzqqxCvlc06WmNcR+BbvCF1QEvqyo72cac
+         tkNA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=9HpNnUs7QncuZ77UZCIt45kwbpnyNIy2S/U3jF7+HbY=;
+        b=Y2UgqFmMS4in7bfQXedPXpSYM4yVtCTIFXUpXUlI1sI1pNk3z4au9jIWVtrjIWEGga
+         d+S8xFeRLPsgVzEEUkW44jhW5m/xsbD5UQsNpEB9D1AXj6jbNyaC3Sfr6IOhd7kRWeNu
+         KlCIshB4SrB5hzN962qbbKWlbM3VFRSk8dKzFe0CCZZXdR8Xx1uWcOeLHjbd5UN9M8I0
+         IDULMgehCWxyfibfWOsEc47JqpqYWP4Kpu6Wr2UvG7/G4Bbh5hgOhGCR9JRmKiXV1D0i
+         y2wDrTqWzZizcodHGM1AlXBwoDJV/s1hgb/Fp9fjWTmnYIRdqA2gMGZEAnxbdKUJbesI
+         XHSw==
+X-Gm-Message-State: APjAAAUEORG7fWNVCVwp+icKdQX4azeOJXiMo4aAxh8+KMnm7lWMhPQE
+        pExQzgStzw+hWu9p7Ul7+m4=
+X-Google-Smtp-Source: APXvYqxwIyPZ89JTL09e6DkttbqAFkllVgiz/P+NRaW09SGF9fBTB+G7M3FMiT4KR02KtDABiah3kQ==
+X-Received: by 2002:a17:90a:2486:: with SMTP id i6mr13556850pje.9.1582438106893;
+        Sat, 22 Feb 2020 22:08:26 -0800 (PST)
+Received: from localhost ([43.224.245.179])
+        by smtp.gmail.com with ESMTPSA id w26sm8144369pfj.119.2020.02.22.22.08.25
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Sat, 22 Feb 2020 22:08:26 -0800 (PST)
+From:   qiwuchen55@gmail.com
+To:     rjw@rjwysocki.net, lenb@kernel.org
+Cc:     linux-acpi@vger.kernel.org, chenqiwu <chenqiwu@xiaomi.com>
+Subject: [PATCH] acpi: list_for_each_safe() -> list_for_each_entry_safe()
+Date:   Sun, 23 Feb 2020 14:08:22 +0800
+Message-Id: <1582438102-29488-1-git-send-email-qiwuchen55@gmail.com>
+X-Mailer: git-send-email 1.9.1
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, 22 Feb 2020 at 02:40, Saravana Kannan <saravanak@google.com> wrote:
->
-> The fw_devlink_get_flags() provides the right flags to use when creating
-> mandatory device links derived from information provided by the
-> firmware. So, use that.
->
-> Signed-off-by: Saravana Kannan <saravanak@google.com>
-> ---
+From: chenqiwu <chenqiwu@xiaomi.com>
 
-Acked-by: Ard Biesheuvel <ardb@kernel.org>
+Use list_for_each_entry_safe() instead of list_for_each_safe()
+to simplify code.
 
->  drivers/firmware/efi/arm-init.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/firmware/efi/arm-init.c b/drivers/firmware/efi/arm-init.c
-> index d99f5b0c8a09..6703bedfa9e1 100644
-> --- a/drivers/firmware/efi/arm-init.c
-> +++ b/drivers/firmware/efi/arm-init.c
-> @@ -349,7 +349,7 @@ static int efifb_add_links(const struct fwnode_handle *fwnode,
->          * If this fails, retrying this function at a later point won't
->          * change anything. So, don't return an error after this.
->          */
-> -       if (!device_link_add(dev, sup_dev, 0))
-> +       if (!device_link_add(dev, sup_dev, fw_devlink_get_flags()))
->                 dev_warn(dev, "device_link_add() failed\n");
->
->         put_device(sup_dev);
-> --
-> 2.25.0.265.gbab2e86ba0-goog
->
+Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
+---
+ drivers/acpi/proc.c   | 14 ++++++--------
+ drivers/acpi/wakeup.c | 24 +++++++++---------------
+ 2 files changed, 15 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+index 0e62ef2..7892980 100644
+--- a/drivers/acpi/proc.c
++++ b/drivers/acpi/proc.c
+@@ -22,14 +22,13 @@
+ static int
+ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct list_head *node, *next;
++	struct acpi_device *dev, *tmp;
+ 
+ 	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
+ 
+ 	mutex_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device *dev =
+-		    container_of(node, struct acpi_device, wakeup_list);
++	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
++				 wakeup_list) {
+ 		struct acpi_device_physical_node *entry;
+ 
+ 		if (!dev->wakeup.flags.valid)
+@@ -96,7 +95,7 @@ static void physical_device_enable_wakeup(struct acpi_device *adev)
+ 				const char __user * buffer,
+ 				size_t count, loff_t * ppos)
+ {
+-	struct list_head *node, *next;
++	struct acpi_device *dev, *tmp;
+ 	char strbuf[5];
+ 	char str[5] = "";
+ 
+@@ -109,9 +108,8 @@ static void physical_device_enable_wakeup(struct acpi_device *adev)
+ 	sscanf(strbuf, "%s", str);
+ 
+ 	mutex_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device *dev =
+-		    container_of(node, struct acpi_device, wakeup_list);
++	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
++				 wakeup_list) {
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 
+diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+index 9614126..c28244d 100644
+--- a/drivers/acpi/wakeup.c
++++ b/drivers/acpi/wakeup.c
+@@ -30,12 +30,10 @@
+  */
+ void acpi_enable_wakeup_devices(u8 sleep_state)
+ {
+-	struct list_head *node, *next;
+-
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device *dev =
+-			container_of(node, struct acpi_device, wakeup_list);
++	struct acpi_device *dev, *tmp;
+ 
++	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
++				 wakeup_list) {
+ 		if (!dev->wakeup.flags.valid
+ 		    || sleep_state > (u32) dev->wakeup.sleep_state
+ 		    || !(device_may_wakeup(&dev->dev)
+@@ -57,12 +55,10 @@ void acpi_enable_wakeup_devices(u8 sleep_state)
+  */
+ void acpi_disable_wakeup_devices(u8 sleep_state)
+ {
+-	struct list_head *node, *next;
+-
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device *dev =
+-			container_of(node, struct acpi_device, wakeup_list);
++	struct acpi_device *dev, *tmp;
+ 
++	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
++				 wakeup_list) {
+ 		if (!dev->wakeup.flags.valid
+ 		    || sleep_state > (u32) dev->wakeup.sleep_state
+ 		    || !(device_may_wakeup(&dev->dev)
+@@ -79,13 +75,11 @@ void acpi_disable_wakeup_devices(u8 sleep_state)
+ 
+ int __init acpi_wakeup_device_init(void)
+ {
+-	struct list_head *node, *next;
++	struct acpi_device *dev, *tmp;
+ 
+ 	mutex_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device *dev = container_of(node,
+-						       struct acpi_device,
+-						       wakeup_list);
++	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
++				 wakeup_list) {
+ 		if (device_can_wakeup(&dev->dev)) {
+ 			/* Button GPEs are supposed to be always enabled. */
+ 			acpi_enable_gpe(dev->wakeup.gpe_device,
+-- 
+1.9.1
+
