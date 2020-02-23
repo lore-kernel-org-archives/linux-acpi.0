@@ -2,103 +2,79 @@ Return-Path: <SRS0=sb1m=4L=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49B41C35670
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07C68C35675
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:57:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 20D6C20880
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:19:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="r4STgYyA"
+	by mail.kernel.org (Postfix) with ESMTP id C77FE20727
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:57:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1582502262;
+	bh=ai/3b1qaSLbdV53wvmoNfCvPze83LtMRPjfisyynMg4=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=cJ/0xz0zz12hcgp9tmcM4AKsN7wl8aDl1/fT7ga/FRL1LtyBJ8Kq32Lks4rcPgmeq
+	 EnhiCKVdIXv+iF0Dlhn8qW5CWIZB8Bh5a7shaDSuJxP95lyalSbB5w7nYblf6pdsLb
+	 vqQ9RNtE8lIJL531/Gy1c7NSWdtKw43SRcb3GdTk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727158AbgBWXS4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 23 Feb 2020 18:18:56 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:45117 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727714AbgBWXSX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 18:18:23 -0500
-Received: by mail-wr1-f66.google.com with SMTP id g3so8198972wrs.12;
-        Sun, 23 Feb 2020 15:18:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=ccYGGn1uhoFTFXxc2+BMi8Zd6VbgRQR/G4zbVgFlOUE=;
-        b=r4STgYyAZux/o3Dt72R5Ko6iVKcPclN6D+za76CjVEHXwp2xpo50t4Sk2ftvec+6md
-         qufUrxwUIfQPvTvKCHy5caU007cv6vV0VC09jtOMlIJm0BOGfHS9ExLutNgwTkM6j4b0
-         JRQP1r9UZXQG0Y2MiBZvzKAiTtKxzm8J8HMw/ozs9pAohsOLmO7RmE7jjQxI42KQA6lo
-         TIz2mOQgcSYOgjylKHxSus783f3EKk3emoFKntkmZQxUbB+/eYMSxPXra0jFrFb+x6O3
-         tM4tHlI6rVujFLcvUW271ltzJfVXg7OFLxE4Tirir3h/jq0MiGeWQBEkjMuKtyXoWydc
-         En7w==
+        id S1727180AbgBWX5i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 23 Feb 2020 18:57:38 -0500
+Received: from mail-ot1-f47.google.com ([209.85.210.47]:45954 "EHLO
+        mail-ot1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727156AbgBWX5i (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 18:57:38 -0500
+Received: by mail-ot1-f47.google.com with SMTP id 59so7135264otp.12;
+        Sun, 23 Feb 2020 15:57:37 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ccYGGn1uhoFTFXxc2+BMi8Zd6VbgRQR/G4zbVgFlOUE=;
-        b=sikWP39GkGFe12Ls2TIbT3r97w2rqw3hdUiAfa6oYUQvWLP6FXc88MnZ/rTAgk/FMD
-         h0kDwh0NJs0TrDa1MPATPWBzON15QeMeA+lhUxVWEuMO/HJqHScvWui8uKi2+aa5piZE
-         FHEL5IRWtDr5+HQemGOvKKsWpvMRihkikSWPK2WUSLxHuSLn/+07r0BHK12mEqGjI9tm
-         o36/uFpc0nKWpmo+guL1tRFgpmRCkeZzVsFtNl+ioIVDf8/jBLnhCVYEe2+JesNXBUSc
-         vYkqmhg9PnoNldAbBqGj6Y/vwCY9zUC6UG1UUH8abFT1KQqD/dGfosUNnaeuRGsqAUTm
-         Q6gw==
-X-Gm-Message-State: APjAAAXbIvzlsihWLMce+bMfxW0Y80EXjrS3bYIo5OdVRrr31wkcfnU3
-        raml30ilGCSI5YTWp4ty8Q==
-X-Google-Smtp-Source: APXvYqze4QE8CTc6dz6axQ5sYtb2cIFpT5+DoqGVfDSvPVruLu/UNRhG1Tr1HgVBEm1bF2VSQAm7Ww==
-X-Received: by 2002:a5d:4443:: with SMTP id x3mr2849788wrr.379.1582499902227;
-        Sun, 23 Feb 2020 15:18:22 -0800 (PST)
-Received: from ninjahost.lan (host-2-102-13-223.as13285.net. [2.102.13.223])
-        by smtp.googlemail.com with ESMTPSA id q6sm8968203wrf.67.2020.02.23.15.18.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 23 Feb 2020 15:18:21 -0800 (PST)
-From:   Jules Irenge <jbi.octave@gmail.com>
-To:     boqun.feng@gmail.com
-Cc:     jbi.octave@gmail.com, linux-kernel@vger.kernel.org,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org (open list:ACPI)
-Subject: [PATCH 22/30] ACPI: OSL: Add missing annotation for acpi_os_acquire_lock()
-Date:   Sun, 23 Feb 2020 23:17:03 +0000
-Message-Id: <20200223231711.157699-23-jbi.octave@gmail.com>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200223231711.157699-1-jbi.octave@gmail.com>
-References: <0/30>
- <20200223231711.157699-1-jbi.octave@gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ai/3b1qaSLbdV53wvmoNfCvPze83LtMRPjfisyynMg4=;
+        b=C1CmNdM6NfG3nzLSVMnjMF/+EGQGDeplcZVSkHQnryp67pBWVTsnE38e0uN121cV66
+         gi5gmWAI7whTq9+9oi6ql+uQgU+0migS/Txvh7DtIPygYzXJBg0b7KvdXkEZuj4Ka124
+         dM/G9z0Jx17EcGHr8Mncm7sn/Th4ZfRZh+9PqiDN5zIePVIcKR4CcCXQikogRAXOOE2D
+         fNI4n8rT0D0CHkivYMFjPE8Ud6TsBL8pe1Ppei8U0LXlUREv2k1zJLKhY9+r/ofg8T61
+         ySbJfFpN2596eMCCqv9oWB+ClRzb4A9M9vIO0pNKVdnbdHlZssXQoNS7hsZ3nbAuOaq+
+         zU3g==
+X-Gm-Message-State: APjAAAWEuRMn5nn8JvCOQ4E0JCymZkGVCzDcxDm/FXwp+rdyiVO/qVyd
+        FSMUnl+omAUgP4mDs55QgbaXYYbc0lOagsST75k=
+X-Google-Smtp-Source: APXvYqxgn2ezY0c7O85EZeRyouHtRjAXdh/bIeYVOy2BpACjgbBbIrGMsiGbmRi2f3pjj95SI7nyzYK0QZ5UL2QX0W4=
+X-Received: by 2002:a9d:7653:: with SMTP id o19mr36497772otl.118.1582502257480;
+ Sun, 23 Feb 2020 15:57:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CAHk-=wgqwiBLGvwTqU2kJEPNmafPpPe_K0XgBU-A58M+mkwpgQ@mail.gmail.com>
+ <158197497594.2449.9692451182044632969@skylake-alporthouse-com>
+ <10791544.HYfhKnFLvn@kreacher> <4974198.mf5Me8BlfX@kreacher>
+ <158227678951.3099.15076882205129643027@skylake-alporthouse-com>
+ <CAJZ5v0h07em8y5bXcnUTBcjie8pCttADK9QX9W_cB0WQRcDfGQ@mail.gmail.com> <CAHk-=wihfx015Rr-nrMmBtN--357cFRbS4rjXeKXvEfB=GYT5g@mail.gmail.com>
+In-Reply-To: <CAHk-=wihfx015Rr-nrMmBtN--357cFRbS4rjXeKXvEfB=GYT5g@mail.gmail.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 24 Feb 2020 00:57:22 +0100
+Message-ID: <CAJZ5v0gqu5DnfTFNnG2YiMwWRHZc_6ZHRiExrukBMYoTwo5ubg@mail.gmail.com>
+Subject: Re: Linux 5.6-rc2
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Sparse reports a warning at acpi_os_acquire_lock()
+On Fri, Feb 21, 2020 at 7:02 PM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+> On Fri, Feb 21, 2020 at 2:54 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> >
+> > Please pick up this patch directly if you can.
+>
+> Done. Added Chris' tested-by too.
 
-warning: context imbalance in acpi_os_acquire_lock() - unexpected unlock
-
-The root cause is the missing annotation at acpi_os_acquire_lock()
-Add the missing annotation __acquires(lockp)
-
-Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
----
- drivers/acpi/osl.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 41168c027a5a..7094abc5ffc6 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1598,6 +1598,7 @@ void acpi_os_delete_lock(acpi_spinlock handle)
-  */
- 
- acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock lockp)
-+	__acquires(lockp)
- {
- 	acpi_cpu_flags flags;
- 	spin_lock_irqsave(lockp, flags);
--- 
-2.24.1
-
+Thank you!
