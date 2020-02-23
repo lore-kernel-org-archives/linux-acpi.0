@@ -2,52 +2,56 @@ Return-Path: <SRS0=sb1m=4L=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2FC1C35671
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 14:29:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E3A1C35671
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 14:29:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6D3B8206E0
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 14:29:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA31F206E0
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 14:29:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FfJI8VLi"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="KCU4Hh6N"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726377AbgBWO3r (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 23 Feb 2020 09:29:47 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:39006 "EHLO
+        id S1726534AbgBWO3u (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 23 Feb 2020 09:29:50 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:39101 "EHLO
         us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726302AbgBWO3r (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 09:29:47 -0500
+        with ESMTP id S1726302AbgBWO3u (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 09:29:50 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582468186;
+        s=mimecast20190719; t=1582468189;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=WSz2SL2nQKU3y5K6kw6Zwdg0kQYk9JDuryzGvJWmvjk=;
-        b=FfJI8VLiG/BDHBYAvuVyu/C95kndWueoVZ02pNr3EljtKRMu4lI1USJmCOOSz4k/mQE/ZS
-        v7nFGZziB1VoiaBOWUoLb7bS+Pe89vh3ijDcSv+ay3fW5zJJafAstfH8d/mo5IrN+VKabD
-        N0u+JCVtL2a31inDNT1a2XxEzyx8d9k=
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=2E/Kqk0nvY8Ox/tVC5G9l/kGRtFSPestMoAK8+V2IFk=;
+        b=KCU4Hh6N3bdjivp1B2hgWW/f8TCKaUakwsIv2DShcHbgEFPFld5YWA6/Tg+1ai1kLIZA6t
+        01oSWJ3jdfWphQmzjljSFkMJsZQHzEs9TCrHQuuH1e2sX/RDoikoCXQqiZ44pYISgXy65B
+        Aq87rY1/IeEq2NEviyUggCqhEBrmaYc=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-93-sxwF7hnqNmSYmE8SBboftQ-1; Sun, 23 Feb 2020 09:29:44 -0500
-X-MC-Unique: sxwF7hnqNmSYmE8SBboftQ-1
+ us-mta-190-r7awsrz5NWSXfbUw5nWrHg-1; Sun, 23 Feb 2020 09:29:47 -0500
+X-MC-Unique: r7awsrz5NWSXfbUw5nWrHg-1
 Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 88A29107ACC5;
-        Sun, 23 Feb 2020 14:29:43 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 19D99107ACC5;
+        Sun, 23 Feb 2020 14:29:46 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-116-120.ams2.redhat.com [10.36.116.120])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8C4641001902;
-        Sun, 23 Feb 2020 14:29:42 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1EADF1001B30;
+        Sun, 23 Feb 2020 14:29:44 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 0/2] ACPI / AC / battery: DMI quirk cleanups
-Date:   Sun, 23 Feb 2020 15:29:39 +0100
-Message-Id: <20200223142941.60705-1-hdegoede@redhat.com>
+Subject: [PATCH 2/2] ACPI / battery: Cleanup Lenovo Ideapad Miix 320 DMI table entry
+Date:   Sun, 23 Feb 2020 15:29:41 +0100
+Message-Id: <20200223142941.60705-3-hdegoede@redhat.com>
+In-Reply-To: <20200223142941.60705-1-hdegoede@redhat.com>
+References: <20200223142941.60705-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Content-Transfer-Encoding: quoted-printable
@@ -56,16 +60,49 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+The Lenovo Ideapad Miix 320 bat_dmi_table entry is using weird indentatio=
+n
+and is the only entry which (unnecessarily) uses DMI_EXACT_MATCH instead
+of DMI_MATCH, fixup both to make the entry consistent with the others.
 
-These 2 cleanup patches were preparation patches for adding a quirk
-to both drivers for one more model. But in the end I ended up solving
-the problem on that model in a different way.
+While at it also update the comments for battery_do_not_check_pmic_quirk
+entries, adding a bit of text explaining why the quirk is necessary.
 
-I still think the cleanups are good to have, so I'm submitting them
-without any further changes on top.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/battery.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Regards,
-
-Hans
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 111a407dcc77..366c389175d8 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1365,19 +1365,19 @@ static const struct dmi_system_id bat_dmi_table[]=
+ __initconst =3D {
+ 		},
+ 	},
+ 	{
+-		/* ECS EF20EA */
++		/* ECS EF20EA, AXP288 PMIC but uses separate fuel-gauge */
+ 		.callback =3D battery_do_not_check_pmic_quirk,
+ 		.matches =3D {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "EF20EA"),
+ 		},
+ 	},
+ 	{
+-		/* Lenovo Ideapad Miix 320 */
++		/* Lenovo Ideapad Miix 320, AXP288 PMIC, separate fuel-gauge */
+ 		.callback =3D battery_do_not_check_pmic_quirk,
+ 		.matches =3D {
+-		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "80XF"),
+-		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "Lenovo MIIX 320-10ICR"),
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "80XF"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo MIIX 320-10ICR"),
+ 		},
+ 	},
+ 	{},
+--=20
+2.25.0
 
