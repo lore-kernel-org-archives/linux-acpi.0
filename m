@@ -2,225 +2,103 @@ Return-Path: <SRS0=sb1m=4L=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42DC8C35666
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 15:18:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67057C35670
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:18:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 114502067D
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 15:18:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D1F721D7D
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:18:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HRqQLurJ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HwmZB7S8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726678AbgBWPSj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 23 Feb 2020 10:18:39 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:25601 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726302AbgBWPSj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 10:18:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582471117;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=1Q8QbgyrMBPu767akEnCfZ2jpfW2ZYDI0yhuYQOQ73g=;
-        b=HRqQLurJ3lNH5qb/ACUzXnrrdSweja1en3YdD8AusVfqEB4G9cu0bdR8+L8LZyRB0zuXQO
-        M4+45HdlrKNvRkSjLSc0LhrLlkfpmRH9RZ3QvZXK1HkP4Am3p6ELVwaEdrujCSntxszA7t
-        SdGwRtti4HED6UzGuRcXaRyl47a4okU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-370-i8sdVXy1P1WoFdezQrTBMg-1; Sun, 23 Feb 2020 10:18:36 -0500
-X-MC-Unique: i8sdVXy1P1WoFdezQrTBMg-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C4E6E107ACC4;
-        Sun, 23 Feb 2020 15:18:34 +0000 (UTC)
-Received: from x1.localdomain.com (ovpn-116-120.ams2.redhat.com [10.36.116.120])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 5AA4E398;
-        Sun, 23 Feb 2020 15:18:33 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Linus Walleij <linus.walleij@linaro.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH 2/2] gpiolib: acpi: Rename honor_wakeup option to ignore_wake, add extra quirk
-Date:   Sun, 23 Feb 2020 16:18:28 +0100
-Message-Id: <20200223151828.311682-3-hdegoede@redhat.com>
-In-Reply-To: <20200223151828.311682-1-hdegoede@redhat.com>
-References: <20200223151828.311682-1-hdegoede@redhat.com>
+        id S1727746AbgBWXSZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 23 Feb 2020 18:18:25 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:35789 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727736AbgBWXSY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 18:18:24 -0500
+Received: by mail-wm1-f66.google.com with SMTP id b17so7458149wmb.0;
+        Sun, 23 Feb 2020 15:18:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=eQ5r1R+UXgGBuhFGCv+iPfwy5B5w68fhiQyCKeEBPYo=;
+        b=HwmZB7S8xicuJrpOFUlYj6Ywn+OcDppxlvgApU3s1ba85vApmC+cFGYcw1DfOobyc+
+         377o2d2eVuGlEGGsGSrGfo1nh0BMD+Gf/tHin6Ro+tEEnUH0EGHqFTgMaavwLJi86Nr9
+         p/QGVc/Oo4oFsgCtjMe+2EIvVKqsOSKzfIX0ZI7Jt2PQBjf43lRChJ/mE8oOaGGGhuQU
+         XQvZkkWki2aSOv9m86A6T2UG5t6F7YD5uYy1Y7pmAqETA+NYfQPUJs0snqG5pdvp/aLq
+         K+8kL0OfVBmD1tS0XT66jfv29XWpVp8p1CpQyEv6PEpz1VmaTRr/FlxBpvQ4gfjfPDrl
+         hslA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=eQ5r1R+UXgGBuhFGCv+iPfwy5B5w68fhiQyCKeEBPYo=;
+        b=ucRtrGTh+GWdEoEKlAP+5GW2fBCv5O3kTR7cYnuXMkYxu5xPFL5c8jgg/aoDLuqUUF
+         gxEm34mULCdNgwBlDCUpLQvbPoiG29+I4qyvynHgs8JoXpGVvnXIuvoSkuGAiNoQtDwD
+         DwGlYS2PWgdgGu/TApbwfMuBWy1o0XkoaAd7J92sLBkiyIhiFKClgBJ1PPQ/v1ep9Vfz
+         39QvS+4+m7NzFl6mKNb5W5WKBjU3ME/4atU2REtW+0n6BoHGkeJbQXvxywpXQ+gTz9/F
+         DgP0603jAkf9CLT6TykwdvXMf73S0Tdfve6VtGKS9cdemfnCiWTqjrbCzB0hkOPa5GV8
+         zW7A==
+X-Gm-Message-State: APjAAAV7JMk9w+s464yAT9AV/5EO4Yp/1wLocH/lELBdIahcVU8bU2+q
+        WUDfyqUYiNQu2s34zrzEbg==
+X-Google-Smtp-Source: APXvYqwuXB8nvNhZzMwFqEvDoIykVeaCu/TUBfTRvhnQKrU5oyx+n944YvUaV3THAhlRAMI2/lRwzw==
+X-Received: by 2002:a7b:cb97:: with SMTP id m23mr17317321wmi.37.1582499903296;
+        Sun, 23 Feb 2020 15:18:23 -0800 (PST)
+Received: from ninjahost.lan (host-2-102-13-223.as13285.net. [2.102.13.223])
+        by smtp.googlemail.com with ESMTPSA id q6sm8968203wrf.67.2020.02.23.15.18.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 23 Feb 2020 15:18:22 -0800 (PST)
+From:   Jules Irenge <jbi.octave@gmail.com>
+To:     boqun.feng@gmail.com
+Cc:     jbi.octave@gmail.com, linux-kernel@vger.kernel.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org (open list:ACPI)
+Subject: [PATCH 23/30] ACPI: OSL: Add missing annotation for acpi_os_release_lock()
+Date:   Sun, 23 Feb 2020 23:17:04 +0000
+Message-Id: <20200223231711.157699-24-jbi.octave@gmail.com>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200223231711.157699-1-jbi.octave@gmail.com>
+References: <0/30>
+ <20200223231711.157699-1-jbi.octave@gmail.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Commit aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option +
-quirk mechanism") was added to deal with spurious wakeups on one specific
-model of the HP x2 10 series. In the mean time I have learned that there
-are at least 3 variants of the HP x2 10 models:
+Sparse reports a warning at acpi_os_release_lock()
 
-Bay Trail SoC + AXP288 PMIC
-Cherry Trail SoC + AXP288 PMIC
-Cherry Trail SoC + TI PMIC
+warning: context imbalance in acpi_os_release_lock() - unexpected unlock
 
-It turns out that the need to ignore wakeup on *all* ACPI GPIO event
-handlers is unique to the Cherry Trail SoC + TI PMIC variant for which
-the first quirk was added.
+The root cause is the missing annotation at acpi_os_release_lock()
+Add the missing annotation __releases(lockp)
 
-The 2 variants with the AXP288 PMIC only need to have wakeup disabled on
-the embedded-controller event handler. We want to e.g. keep wakeup on the
-event handler connected to the GPIO for the lid open/closed sensor.
-
-Since the honor_wakeup option was added to be able to ignore wake events,
-the name was perhaps not the best, this commit renames it to ignore_wake,
-this version of the option has te following possible values:
-
-values >=3D 0: a pin number on which to ignore wakeups, the ACPI wake fla=
-g
-will still be honored on all other pins
-value -1: auto: check for DMI quirk, otherwise honor the flag on all pins
-value -2: all:  ignore the flag on all pins
-value -3: none: honor wakeups on all pins
-
-Note that it is possible for an ACPI table to request events on the same
-pin-number on multiple GPIO controllers, in that case if such a pin-numbe=
-r
-is used as ignore_wake value then wakeups will be ignored for that pin on
-all GPIO controllers.
-
-The existing quirk for the Cherry Trail + TI PMIC models is changed to
-IGNORE_WAKE_ALL, keeping the current behavior; and a new quirk is added
-for the Bay Trail + AXP288 model, ignoring wakeups on the EC GPIO pin onl=
-y.
-
-I'm still waiting for testing feedback for the quirk for ignoring wakeups
-on the EC GPIO pin only on the Cherry Trail + AXP288 model.
-
-Fixes: aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option + qui=
-rk mechanism")
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
 ---
- drivers/gpio/gpiolib-acpi.c | 59 +++++++++++++++++++++++++++++--------
- 1 file changed, 47 insertions(+), 12 deletions(-)
+ drivers/acpi/osl.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index bc96f28d4807..83103efa5862 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -21,19 +21,27 @@
- #include "gpiolib.h"
- #include "gpiolib-acpi.h"
-=20
--#define QUIRK_NO_EDGE_EVENTS_ON_BOOT		0x01l
--#define QUIRK_NO_WAKEUP				0x02l
-+#define QUIRK_IGNORE_WAKE_MASK			GENMASK(15, 0)
-+#define QUIRK_IGNORE_WAKE_SET			BIT(16)
-+#define QUIRK_NO_EDGE_EVENTS_ON_BOOT		BIT(17)
-+
-+#define QUIRK_IGNORE_WAKE(x) \
-+	(((x) & QUIRK_IGNORE_WAKE_MASK) | QUIRK_IGNORE_WAKE_SET)
-+
-+#define IGNORE_WAKE_AUTO			-1
-+#define IGNORE_WAKE_ALL				-2
-+#define IGNORE_WAKE_NONE			-3
-+
-+static int ignore_wake =3D IGNORE_WAKE_AUTO;
-+module_param(ignore_wake, int, 0444);
-+MODULE_PARM_DESC(ignore_wake,
-+	"Ignore ACPI wake flag: x=3Dignore-for-pin-x, -1=3Dauto, -2=3Dall, -3=3D=
-none");
-=20
- static int run_edge_events_on_boot =3D -1;
- module_param(run_edge_events_on_boot, int, 0444);
- MODULE_PARM_DESC(run_edge_events_on_boot,
- 		 "Run edge _AEI event-handlers at boot: 0=3Dno, 1=3Dyes, -1=3Dauto");
-=20
--static int honor_wakeup =3D -1;
--module_param(honor_wakeup, int, 0444);
--MODULE_PARM_DESC(honor_wakeup,
--		 "Honor the ACPI wake-capable flag: 0=3Dno, 1=3Dyes, -1=3Dauto");
--
- /**
-  * struct acpi_gpio_event - ACPI GPIO event handler data
-  *
-@@ -214,6 +222,7 @@ static acpi_status acpi_gpiochip_alloc_event(struct a=
-cpi_resource *ares,
- 	irq_handler_t handler =3D NULL;
- 	struct gpio_desc *desc;
- 	int ret, pin, irq;
-+	bool honor_wakeup;
-=20
- 	if (!acpi_gpio_get_irq_resource(ares, &agpio))
- 		return AE_OK;
-@@ -286,6 +295,17 @@ static acpi_status acpi_gpiochip_alloc_event(struct =
-acpi_resource *ares,
- 		}
- 	}
-=20
-+	switch (ignore_wake) {
-+	case IGNORE_WAKE_ALL:
-+		honor_wakeup =3D false;
-+		break;
-+	case IGNORE_WAKE_NONE:
-+		honor_wakeup =3D true;
-+		break;
-+	default:
-+		honor_wakeup =3D ignore_wake !=3D pin;
-+	}
-+
- 	event->handle =3D evt_handle;
- 	event->handler =3D handler;
- 	event->irq =3D irq;
-@@ -1363,7 +1383,22 @@ static const struct dmi_system_id gpiolib_acpi_qui=
-rks[] =3D {
- 			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
- 			DMI_MATCH(DMI_PRODUCT_NAME, "HP x2 Detachable 10-p0XX"),
- 		},
--		.driver_data =3D (void *)QUIRK_NO_WAKEUP,
-+		.driver_data =3D (void *)QUIRK_IGNORE_WAKE(IGNORE_WAKE_ALL),
-+	},
-+	{
-+		/*
-+		 * HP X2 10 models with Bay Trail SoC + AXP288 PMIC use an
-+		 * external embedded-controller connected via I2C + an ACPI
-+		 * GPIO event handler for pin 0x1c, causing spurious wakeups.
-+		 * Unlike the Cherry Trail + TI PMIC models, we do want to
-+		 * honor the ACPI wake flag on the other GPIOs.
-+		 */
-+		.matches =3D {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion x2 Detachable"),
-+			DMI_MATCH(DMI_BOARD_NAME, "815D"),
-+		},
-+		.driver_data =3D (void *)QUIRK_IGNORE_WAKE(0x1c),
- 	},
- 	{} /* Terminating entry */
- };
-@@ -1384,11 +1419,11 @@ static int acpi_gpio_setup_params(void)
- 			run_edge_events_on_boot =3D 1;
- 	}
-=20
--	if (honor_wakeup < 0) {
--		if (quirks & QUIRK_NO_WAKEUP)
--			honor_wakeup =3D 0;
-+	if (ignore_wake =3D=3D IGNORE_WAKE_AUTO) {
-+		if (quirks & QUIRK_IGNORE_WAKE_SET)
-+			ignore_wake =3D (s16)(quirks & QUIRK_IGNORE_WAKE_MASK);
- 		else
--			honor_wakeup =3D 1;
-+			ignore_wake =3D IGNORE_WAKE_NONE;
- 	}
-=20
- 	return 0;
---=20
-2.25.0
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 7094abc5ffc6..762c5d50b8fe 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1610,6 +1610,7 @@ acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock lockp)
+  */
+ 
+ void acpi_os_release_lock(acpi_spinlock lockp, acpi_cpu_flags flags)
++	__releases(lockp)
+ {
+ 	spin_unlock_irqrestore(lockp, flags);
+ }
+-- 
+2.24.1
 
