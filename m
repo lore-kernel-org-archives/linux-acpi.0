@@ -2,126 +2,87 @@ Return-Path: <SRS0=sb1m=4L=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAE97C35666
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 14:29:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42924C35671
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 15:18:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C2057206E0
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 14:29:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C35E2067D
+	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 15:18:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GKlTrxnv"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Sqf8wAQQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726302AbgBWO3v (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 23 Feb 2020 09:29:51 -0500
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:45880 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726490AbgBWO3v (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 23 Feb 2020 09:29:51 -0500
+        id S1726534AbgBWPSf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 23 Feb 2020 10:18:35 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:21296 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726208AbgBWPSf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 10:18:35 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582468190;
+        s=mimecast20190719; t=1582471114;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=5tPAEitkZkP4qj5iTmbxQ0xqVpp7vgl4rO3MxdieB8k=;
-        b=GKlTrxnv82NAo13+hx9TX8J3S3xBPftI2CDLOUmwbH36hm0Fsh+UHYFbr24VovaHh/O9AS
-        AltUgVinYWN69s7bhAHvPFrmFhuBkAtJPAJfkwmMWMSdbsbXP9oaufTtEXlGHUEPazrxXI
-        urg105iB2+LrXNWlW0KAnK9h8iFDqio=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=YXSldU4rp7h4W4vTeJugaLuXIu5wGOGxej7iJwzQz/Y=;
+        b=Sqf8wAQQg39lS0W68LXTLdoqqQK/WmqywDJqkyIsr0AOtwiYmWJycQmOmaoP/+7vNGJJIB
+        IC0ukOOzz12GH2r/dsvDS8Ci1VV9/pci7efTZTDpdH+P4tpenxI7xYDSzOuNCjibJOsMkg
+        dUoc1nuYK0QIpAHLjX7VlNOpN+vxanU=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-23-Ef_ompNIOKumoEbXUPnkQA-1; Sun, 23 Feb 2020 09:29:46 -0500
-X-MC-Unique: Ef_ompNIOKumoEbXUPnkQA-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+ us-mta-11-lKDw3IOOO9O-kUDf_BzGSQ-1; Sun, 23 Feb 2020 10:18:32 -0500
+X-MC-Unique: lKDw3IOOO9O-kUDf_BzGSQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id CD830800D53;
-        Sun, 23 Feb 2020 14:29:44 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 489D2107ACC7;
+        Sun, 23 Feb 2020 15:18:31 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-116-120.ams2.redhat.com [10.36.116.120])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id CD7601001B07;
-        Sun, 23 Feb 2020 14:29:43 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A664D398;
+        Sun, 23 Feb 2020 15:18:29 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 1/2] ACPI / AC: Cleanup DMI quirk table
-Date:   Sun, 23 Feb 2020 15:29:40 +0100
-Message-Id: <20200223142941.60705-2-hdegoede@redhat.com>
-In-Reply-To: <20200223142941.60705-1-hdegoede@redhat.com>
-References: <20200223142941.60705-1-hdegoede@redhat.com>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Linus Walleij <linus.walleij@linaro.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH 0/2] gpiolib: acpi: ignore-wakeup handling rework
+Date:   Sun, 23 Feb 2020 16:18:26 +0100
+Message-Id: <20200223151828.311682-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The 3 different entries we have sofar all use different identation and
-2 of the use DMI_MATCH where as 1 unnecessarily used DMI_EXACT_MATCH
-Fix this to just use full tab idents for each level and DMI_MATCH
-everywhere and sort the entries alphabetically.
+Hi All,
 
-Also add a bit of text to the comments explaining why the quirk is
-necessary.
+The first patch just updates the comment describing why we are ignoring
+GPIO ACPI event wakeups on HP x2 10 models.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/ac.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+The second patch is more interesting, in the mean time I've learned their
+are actually at least 3 variants of the HP x2 10, and the original quirk
+only applies to the Cherry Trail with TI PMIC variant (and the original
+DMI match only matches that model). We need a similar quirk for the
+Bay Trail with AXP288 model, but there we only want to ignore the wakeups
+for the GPIO ACPI event which is (ab)used for embedded-controller events
+on this model while still honoring the wakeup flags on other pins.
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 829f37d36b9f..69d2db13886b 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -293,29 +293,30 @@ static int __init ac_do_not_check_pmic_quirk(const =
-struct dmi_system_id *d)
- 	return 0;
- }
-=20
-+/* Please keep this list alphabetically sorted */
- static const struct dmi_system_id ac_dmi_table[]  __initconst =3D {
- 	{
--	/* Thinkpad e530 */
--	.callback =3D thinkpad_e530_quirk,
--	.matches =3D {
--		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "32597CG"),
-+		/* ECS EF20EA, AXP288 PMIC but uses separate fuel-gauge */
-+		.callback =3D ac_do_not_check_pmic_quirk,
-+		.matches =3D {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "EF20EA"),
- 		},
- 	},
- 	{
--		/* ECS EF20EA */
-+		/* Lenovo Ideapad Miix 320, AXP288 PMIC, separate fuel-gauge */
- 		.callback =3D ac_do_not_check_pmic_quirk,
- 		.matches =3D {
--			DMI_MATCH(DMI_PRODUCT_NAME, "EF20EA"),
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "80XF"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo MIIX 320-10ICR"),
- 		},
- 	},
- 	{
--		/* Lenovo Ideapad Miix 320 */
--		.callback =3D ac_do_not_check_pmic_quirk,
-+		/* Lenovo Thinkpad e530, see comment in acpi_ac_notify() */
-+		.callback =3D thinkpad_e530_quirk,
- 		.matches =3D {
--		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "80XF"),
--		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "Lenovo MIIX 320-10ICR"),
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "32597CG"),
- 		},
- 	},
- 	{},
---=20
-2.25.0
+I'm not 100% happy with the solution I've come up with to allow ignoring
+events on a single pin. But this was the best KISS thing I could come up
+with. Alternatives would involve string parsing (*), which I would rather
+avoid. I'm very much open to alternatives for the current approach in the
+second patch.
+
+Regards,
+
+Hans
+
+
+*) And more complex DMI quirk handling since now we would need to store
+a string + some other flags in the DMI driver_data
 
