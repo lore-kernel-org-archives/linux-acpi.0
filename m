@@ -1,80 +1,91 @@
-Return-Path: <SRS0=sb1m=4L=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=0A3+=4M=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07C68C35675
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:57:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96CD9C35671
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Feb 2020 13:21:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C77FE20727
-	for <linux-acpi@archiver.kernel.org>; Sun, 23 Feb 2020 23:57:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582502262;
-	bh=ai/3b1qaSLbdV53wvmoNfCvPze83LtMRPjfisyynMg4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=cJ/0xz0zz12hcgp9tmcM4AKsN7wl8aDl1/fT7ga/FRL1LtyBJ8Kq32Lks4rcPgmeq
-	 EnhiCKVdIXv+iF0Dlhn8qW5CWIZB8Bh5a7shaDSuJxP95lyalSbB5w7nYblf6pdsLb
-	 vqQ9RNtE8lIJL531/Gy1c7NSWdtKw43SRcb3GdTk=
+	by mail.kernel.org (Postfix) with ESMTP id 5F7C020838
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Feb 2020 13:21:59 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="lxE4UnPO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727180AbgBWX5i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 23 Feb 2020 18:57:38 -0500
-Received: from mail-ot1-f47.google.com ([209.85.210.47]:45954 "EHLO
-        mail-ot1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727156AbgBWX5i (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2020 18:57:38 -0500
-Received: by mail-ot1-f47.google.com with SMTP id 59so7135264otp.12;
-        Sun, 23 Feb 2020 15:57:37 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ai/3b1qaSLbdV53wvmoNfCvPze83LtMRPjfisyynMg4=;
-        b=C1CmNdM6NfG3nzLSVMnjMF/+EGQGDeplcZVSkHQnryp67pBWVTsnE38e0uN121cV66
-         gi5gmWAI7whTq9+9oi6ql+uQgU+0migS/Txvh7DtIPygYzXJBg0b7KvdXkEZuj4Ka124
-         dM/G9z0Jx17EcGHr8Mncm7sn/Th4ZfRZh+9PqiDN5zIePVIcKR4CcCXQikogRAXOOE2D
-         fNI4n8rT0D0CHkivYMFjPE8Ud6TsBL8pe1Ppei8U0LXlUREv2k1zJLKhY9+r/ofg8T61
-         ySbJfFpN2596eMCCqv9oWB+ClRzb4A9M9vIO0pNKVdnbdHlZssXQoNS7hsZ3nbAuOaq+
-         zU3g==
-X-Gm-Message-State: APjAAAWEuRMn5nn8JvCOQ4E0JCymZkGVCzDcxDm/FXwp+rdyiVO/qVyd
-        FSMUnl+omAUgP4mDs55QgbaXYYbc0lOagsST75k=
-X-Google-Smtp-Source: APXvYqxgn2ezY0c7O85EZeRyouHtRjAXdh/bIeYVOy2BpACjgbBbIrGMsiGbmRi2f3pjj95SI7nyzYK0QZ5UL2QX0W4=
-X-Received: by 2002:a9d:7653:: with SMTP id o19mr36497772otl.118.1582502257480;
- Sun, 23 Feb 2020 15:57:37 -0800 (PST)
+        id S1727444AbgBXNV7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Feb 2020 08:21:59 -0500
+Received: from mail.skyhub.de ([5.9.137.197]:39444 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727348AbgBXNV6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Feb 2020 08:21:58 -0500
+Received: from zn.tnic (p200300EC2F0C0F00754C15A63F97C369.dip0.t-ipconnect.de [IPv6:2003:ec:2f0c:f00:754c:15a6:3f97:c369])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 74D611EC06AC;
+        Mon, 24 Feb 2020 14:21:56 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1582550516;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=APjkWpDkYH8yw2wswFHOWZARM3dlj65G1SzI9xgA+P4=;
+        b=lxE4UnPODOkaacszfRk6SFjs53/XedHYzkTkjwsQeni5GNQ9cNkYoZG8wiG40LRf/vIlZ0
+        Qkr8rbk2qp2J5olJmt6WVSUnb/CulXVkOxvp3ZOxNFbtJ5/dj+jY+I76cXFTgACF9e9grz
+        6v39vyX+2O+d+4EaZn4c+ZjiJNXFxHw=
+Date:   Mon, 24 Feb 2020 14:21:52 +0100
+From:   Borislav Petkov <bp@alien8.de>
+To:     Cao jin <caoj.fnst@cn.fujitsu.com>
+Cc:     x86@kernel.org, linux-pm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz,
+        tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Subject: Re: [RFC PATCH 1/2] x86/acpi: Improve code readablity of early madt
+ processing
+Message-ID: <20200224132152.GB29318@zn.tnic>
+References: <20200123014144.19155-1-caoj.fnst@cn.fujitsu.com>
+ <20200123014144.19155-2-caoj.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-References: <CAHk-=wgqwiBLGvwTqU2kJEPNmafPpPe_K0XgBU-A58M+mkwpgQ@mail.gmail.com>
- <158197497594.2449.9692451182044632969@skylake-alporthouse-com>
- <10791544.HYfhKnFLvn@kreacher> <4974198.mf5Me8BlfX@kreacher>
- <158227678951.3099.15076882205129643027@skylake-alporthouse-com>
- <CAJZ5v0h07em8y5bXcnUTBcjie8pCttADK9QX9W_cB0WQRcDfGQ@mail.gmail.com> <CAHk-=wihfx015Rr-nrMmBtN--357cFRbS4rjXeKXvEfB=GYT5g@mail.gmail.com>
-In-Reply-To: <CAHk-=wihfx015Rr-nrMmBtN--357cFRbS4rjXeKXvEfB=GYT5g@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 24 Feb 2020 00:57:22 +0100
-Message-ID: <CAJZ5v0gqu5DnfTFNnG2YiMwWRHZc_6ZHRiExrukBMYoTwo5ubg@mail.gmail.com>
-Subject: Re: Linux 5.6-rc2
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20200123014144.19155-2-caoj.fnst@cn.fujitsu.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Feb 21, 2020 at 7:02 PM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> On Fri, Feb 21, 2020 at 2:54 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > Please pick up this patch directly if you can.
->
-> Done. Added Chris' tested-by too.
+On Thu, Jan 23, 2020 at 09:41:43AM +0800, Cao jin wrote:
+> Current processing logic is confusing.
+> 
+> Return value of early_acpi_parse_madt_lapic_addr_ovr() indicates error(< 0),
+> parsed entry number(>= 0).
 
-Thank you!
+You mean, the count of table entries parsed successfully?
+
+> So, it makes no sense to initialize acpi_lapic & smp_found_config
+> seeing no override entry, instead, initialize them seeing MADT.
+
+Err, that logical conclusion is not really clear to me - pls try
+again with more detail. I kinda see what you mean by looking at
+acpi_process_madt() but before I commit a change like that, I better
+have the warm and fuzzy feeling that it is correct and properly
+explained in its commit message.
+
+So why did
+
+  cbf9bd603ab1 ("acpi: get boot_cpu_id as early for k8_scan_nodes")
+
+do it this way? Was it wrong or why?
+
+I'm very wary about touching ACPI parsing code for no good reason
+because, well, it is ACPI...
+
+Thx.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
