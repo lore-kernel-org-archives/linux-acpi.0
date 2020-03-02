@@ -2,117 +2,117 @@ Return-Path: <SRS0=pAKN=4T=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91C5BC3F2DA
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 11:12:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0961AC3F2D1
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 11:45:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6993822B48
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 11:12:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FU25M/Kv"
+	by mail.kernel.org (Postfix) with ESMTP id AD99E214DB
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 11:45:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1583149514;
+	bh=vIoBeIWjUNLTuoGcAXMCEry0YLOFGilpxKVJx7rdzZs=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=KHe7XOexj2N3SuC2xuolH/qYaPWRGsbdV8KIcyhPW5NQDIhv74vHKBfQJfJx5e8B1
+	 roC8Ckurd3/7eJNKSCYHzg+Zv+hbBUzXHIz855YYW3xrMlREbdnLnSnCp3JfzalNiS
+	 g+8SOUimNr2Id4u8qaBiayxY7p19rXyj1GLBI0lQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725996AbgCBLMj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 2 Mar 2020 06:12:39 -0500
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:56447 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727146AbgCBLMi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Mar 2020 06:12:38 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1583147557;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=7TJmlavzxpo1sG+sGuPYoxsgZCSCYz2PZPuzaP3aV9g=;
-        b=FU25M/Kv+SBcGQWGECIhrYZ7/vcQqlU6mZoq9j6Iz4uy7ZwD0bqYVPx2rEjbNkyDF66FL8
-        604zYTfKpE44WmlOl4rV4db5XK3+D/r3OaoBk24jle4fO8bqKtnUdwASjuQuI+MNKSuGh+
-        YH2oqFZ2drYUfVZzP5CnzAI5bLPU8K8=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-140-ov0BeJUIO2OiF4XaBZIIlg-1; Mon, 02 Mar 2020 06:12:36 -0500
-X-MC-Unique: ov0BeJUIO2OiF4XaBZIIlg-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id CEEDA13E4;
-        Mon,  2 Mar 2020 11:12:34 +0000 (UTC)
-Received: from x1.localdomain.com (unknown [10.36.118.189])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 407035D9C9;
-        Mon,  2 Mar 2020 11:12:33 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Linus Walleij <linus.walleij@linaro.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        Marc Lehmann <schmorp@schmorp.de>, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH v2 4/4] gpiolib: acpi: Add quirk to ignore EC wakeups on HP x2 10 CHT + AXP288 model
-Date:   Mon,  2 Mar 2020 12:12:25 +0100
-Message-Id: <20200302111225.6641-4-hdegoede@redhat.com>
-In-Reply-To: <20200302111225.6641-1-hdegoede@redhat.com>
-References: <20200302111225.6641-1-hdegoede@redhat.com>
+        id S1727107AbgCBLpO convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 2 Mar 2020 06:45:14 -0500
+Received: from mail-oi1-f193.google.com ([209.85.167.193]:41910 "EHLO
+        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726806AbgCBLpN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Mar 2020 06:45:13 -0500
+Received: by mail-oi1-f193.google.com with SMTP id i1so9946699oie.8;
+        Mon, 02 Mar 2020 03:45:13 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=SLNYhHV8VgjuhrZ6PkGrsfgyd81HsPtycIyiuh3CoLI=;
+        b=qENEVz8ucXvymnHgkfj+OlQhRD8RsxUadDyJjGTJEth/6yrV8vPp5nFarAG/HC+AAp
+         MQn4+BKUrWj/4HurMKjV0l7Gha8LRsWf5rTHn/763dkOR4ZsesPSEIvKZ0iL4OkRklHC
+         hDhuxHo9uSjcuNs/aH40v4J22tDbBqB2f22Y/Mg6zUcUCeyOOdoe+ZpPvG9nw19q+4Us
+         8D9zCZnysUwtNJIT+GmG11fICAzMl9t8AFEn9OGRnPhDsUV7QLWQ/DwaE0Bcq5RaoaWi
+         6TX1s3tMlpUQiZdxg7mRtJ5MV7uAWlw1N0jqc0Q9X0oxixriwXEUNJHBoORTX2JL49KE
+         wl8Q==
+X-Gm-Message-State: APjAAAWHVrzvly8KAGnhapmyoyevWgIem1sRBTRel9V/XJ6Y1xBHtZoE
+        Fbd/bJmCweKkCQe+0KRECJ0yDcmmnmp/NKbHuww=
+X-Google-Smtp-Source: APXvYqw52kt1OueUejBSTej59FJzkSRmsyOjRvbmPvah+zgjVX4FkHL5Pr4NN28Le28iXSOTo5WdzOdiIxXYm+925zU=
+X-Received: by 2002:aca:ebcf:: with SMTP id j198mr9618581oih.115.1583149512878;
+ Mon, 02 Mar 2020 03:45:12 -0800 (PST)
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-Content-Transfer-Encoding: quoted-printable
+References: <2094703.CetWLLyMuz@kreacher> <CAD8Lp46VbG3b5NV54vmBFQH2YLY6wRngYv0oY2tiveovPRhiVw@mail.gmail.com>
+ <CAPpJ_edfTg11QZs25MrThj2+FKUo2103rv7iYNzo=kr-jeg1MA@mail.gmail.com> <CAJZ5v0gB9yuVmPjJ_MvfT8aFpvP-X5JRsNfZn8+Mv5RwTednGg@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gB9yuVmPjJ_MvfT8aFpvP-X5JRsNfZn8+Mv5RwTednGg@mail.gmail.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 2 Mar 2020 12:45:01 +0100
+Message-ID: <CAJZ5v0imqwdmXzKayqs1kgHOb-mXrkr61uNxVka8J9bKca989Q@mail.gmail.com>
+Subject: Re: [PATCH 0/6] ACPI: EC: Updates related to initialization
+To:     Jian-Hong Pan <jian-hong@endlessm.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Daniel Drake <drake@endlessm.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There are at least 3 models of the HP x2 10 models:
+On Mon, Mar 2, 2020 at 11:38 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Mon, Mar 2, 2020 at 6:54 AM Jian-Hong Pan <jian-hong@endlessm.com> wrote:
+> >
+> > Daniel Drake <drake@endlessm.com> 於 2020年2月28日 週五 下午5:43寫道：
+> > >
+> > > On Thu, Feb 27, 2020 at 10:25 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > > > The purpose of this series of update of the ACPI EC driver is to make its
+> > > > initialization more straightforward.
+> > > >
+> > > > They fix a couple of issues, clean up some things, remove redundant code etc.
+> > > >
+> > > > Please refer to the changelogs of individual patches for details.
+> > > >
+> > > > For easier access, the series is available in the git branch at
+> > > >
+> > > >  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+> > > >  acpi-ec-work
+> > > >
+> > > > on top of 5.6-rc3.
+> > >
+> > > Jian-Hong, can you please test this on Asus UX434DA?
+> > > Check if the screen brightness hotkeys are still working after these changes.
+> >
+> > Hi Rafael,
+> >
+> > Thanks for your patches, but we found an issue:
+> > The laptops like ASUS UX434DA's screen brightness hotkeys work before
+> > this patch series.  However, the hotkeys are failed with the patch
+> > "ACPI: EC: Unify handling of event handler installation failures".
+>
+> So I have modified the series to avoid the change that can possibly break this.
+>
+> Can you please pull the new series from
+>
+>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+>  acpi-ec-work
+>
+> (same branch) and retest?
 
-Bay Trail SoC + AXP288 PMIC
-Cherry Trail SoC + AXP288 PMIC
-Cherry Trail SoC + TI PMIC
+Note that the current top-most commit in that branch is
 
-Like on the other HP x2 10 models we need to ignore wakeup for ACPI GPIO
-events on the external embedded-controller pin to avoid spurious wakeups
-on the HP x2 10 CHT + AXP288 model too.
+0957d98f50da ACPI: EC: Consolidate event handler installation code
 
-This commit adds an extra DMI based quirk for the HP x2 10 CHT + AXP288
-model, ignoring wakeups for ACPI GPIO events on the EC interrupt pin
-on this model. This fixes spurious wakeups from suspend on this model.
 
-Fixes: aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option + qui=
-rk mech
-Reported-and-tested-by: Marc Lehmann <schmorp@schmorp.de>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/gpio/gpiolib-acpi.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index d1ef060a5873..0017367e94ee 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -1437,6 +1437,21 @@ static const struct dmi_system_id gpiolib_acpi_qui=
-rks[] =3D {
- 			.ignore_wake =3D "INT33FC:02@28",
- 		},
- 	},
-+	{
-+		/*
-+		 * HP X2 10 models with Cherry Trail SoC + AXP288 PMIC use an
-+		 * external embedded-controller connected via I2C + an ACPI GPIO
-+		 * event handler on INT33FF:01 pin 0, causing spurious wakeups.
-+		 */
-+		.matches =3D {
-+			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion x2 Detachable"),
-+			DMI_MATCH(DMI_BOARD_NAME, "813E"),
-+		},
-+		.driver_data =3D &(struct acpi_gpiolib_dmi_quirk) {
-+			.ignore_wake =3D "INT33FF:01@0",
-+		},
-+	},
- 	{} /* Terminating entry */
- };
-=20
---=20
-2.25.1
-
+>
+> I'll post the updated patches later this week, but it would be good to
+> try them on now if possible.
+>
+> Thanks!
