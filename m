@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5F22C3F2D1
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 14:25:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11A9AC3F2D2
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 14:26:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD2AD2173E
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 14:25:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDE5F217F4
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Mar 2020 14:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727085AbgCBOZb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 2 Mar 2020 09:25:31 -0500
-Received: from mga06.intel.com ([134.134.136.31]:2360 "EHLO mga06.intel.com"
+        id S1727075AbgCBO0O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 2 Mar 2020 09:26:14 -0500
+Received: from mga17.intel.com ([192.55.52.151]:59000 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727053AbgCBOZb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 2 Mar 2020 09:25:31 -0500
+        id S1727032AbgCBO0O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 2 Mar 2020 09:26:14 -0500
 X-Amp-Result: UNKNOWN
 X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Mar 2020 06:25:30 -0800
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Mar 2020 06:26:13 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,507,1574150400"; 
-   d="scan'208";a="351551677"
+   d="scan'208";a="351551791"
 Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
-  by fmsmga001.fm.intel.com with SMTP; 02 Mar 2020 06:25:27 -0800
-Received: by lahna (sSMTP sendmail emulation); Mon, 02 Mar 2020 16:25:26 +0200
-Date:   Mon, 2 Mar 2020 16:25:26 +0200
+  by fmsmga001.fm.intel.com with SMTP; 02 Mar 2020 06:26:11 -0800
+Received: by lahna (sSMTP sendmail emulation); Mon, 02 Mar 2020 16:26:10 +0200
+Date:   Mon, 2 Mar 2020 16:26:10 +0200
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     Hans de Goede <hdegoede@redhat.com>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -37,43 +37,38 @@ Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
         Marc Lehmann <schmorp@schmorp.de>, linux-gpio@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 3/4] gpiolib: acpi: Add quirk to ignore EC wakeups on
- HP x2 10 BYT + AXP288 model
-Message-ID: <20200302142526.GF2667@lahna.fi.intel.com>
+Subject: Re: [PATCH v2 4/4] gpiolib: acpi: Add quirk to ignore EC wakeups on
+ HP x2 10 CHT + AXP288 model
+Message-ID: <20200302142610.GG2667@lahna.fi.intel.com>
 References: <20200302111225.6641-1-hdegoede@redhat.com>
- <20200302111225.6641-3-hdegoede@redhat.com>
+ <20200302111225.6641-4-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200302111225.6641-3-hdegoede@redhat.com>
+In-Reply-To: <20200302111225.6641-4-hdegoede@redhat.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Mar 02, 2020 at 12:12:24PM +0100, Hans de Goede wrote:
-> Commit aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option +
-> quirk mechanism") was added to deal with spurious wakeups on one specific
-> model of the HP x2 10 series. In the mean time I have learned that there
-> are at least 3 different HP x2 10 models:
+On Mon, Mar 02, 2020 at 12:12:25PM +0100, Hans de Goede wrote:
+> There are at least 3 models of the HP x2 10 models:
 > 
 > Bay Trail SoC + AXP288 PMIC
 > Cherry Trail SoC + AXP288 PMIC
 > Cherry Trail SoC + TI PMIC
 > 
-> And the original quirk is only correct for (and only matches the)
-> Cherry Trail SoC + TI PMIC model.
+> Like on the other HP x2 10 models we need to ignore wakeup for ACPI GPIO
+> events on the external embedded-controller pin to avoid spurious wakeups
+> on the HP x2 10 CHT + AXP288 model too.
 > 
-> The Bay Trail SoC + AXP288 PMIC model has different DMI strings, has
-> the external EC interrupt on a different GPIO pin and only needs to ignore
-> wakeups on the EC interrupt, the INT0002 device works fine on this model.
-> 
-> This commit adds an extra DMI based quirk for the HP x2 10 BYT + AXP288
+> This commit adds an extra DMI based quirk for the HP x2 10 CHT + AXP288
 > model, ignoring wakeups for ACPI GPIO events on the EC interrupt pin
 > on this model. This fixes spurious wakeups from suspend on this model.
 > 
-> Fixes: aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option + quirk mechanism")
+> Fixes: aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option + quirk mech
+> Reported-and-tested-by: Marc Lehmann <schmorp@schmorp.de>
 > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
 Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
