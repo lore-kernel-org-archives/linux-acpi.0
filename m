@@ -4,34 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE3AC3F2D1
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:53:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91282C3F2D1
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:57:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5855C2166E
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:53:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70CB92166E
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:57:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387805AbgCDKwz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 4 Mar 2020 05:52:55 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:61188 "EHLO
+        id S1728998AbgCDK5r (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 4 Mar 2020 05:57:47 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:64346 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729261AbgCDKwz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2020 05:52:55 -0500
+        with ESMTP id S1728953AbgCDK5r (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2020 05:57:47 -0500
 Received: from 79.184.237.41.ipv4.supernova.orange.pl (79.184.237.41) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
- id e6e3b8ac55937e48; Wed, 4 Mar 2020 11:52:54 +0100
+ id d6ba944d08654965; Wed, 4 Mar 2020 11:57:44 +0100
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Daniel Drake <drake@endlessm.com>,
-        Jian-Hong Pan <jian-hong@endlessm.com>
-Subject: [PATCH v2 4/6] ACPI: EC: Simplify acpi_ec_add()
-Date:   Wed, 04 Mar 2020 11:48:10 +0100
-Message-ID: <3645328.ZVAHyXvlRV@kreacher>
-In-Reply-To: <2411774.6kdisLRoUK@kreacher>
-References: <2094703.CetWLLyMuz@kreacher> <2411774.6kdisLRoUK@kreacher>
+To:     qiwuchen55@gmail.com
+Cc:     lenb@kernel.org, linux-acpi@vger.kernel.org,
+        chenqiwu <chenqiwu@xiaomi.com>
+Subject: Re: [PATCH] acpi: list_for_each_safe() -> list_for_each_entry_safe()
+Date:   Wed, 04 Mar 2020 11:57:44 +0100
+Message-ID: <2166554.vSs1JGyd92@kreacher>
+In-Reply-To: <1582438102-29488-1-git-send-email-qiwuchen55@gmail.com>
+References: <1582438102-29488-1-git-send-email-qiwuchen55@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -40,85 +38,117 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Sunday, February 23, 2020 7:08:22 AM CET qiwuchen55@gmail.com wrote:
+> From: chenqiwu <chenqiwu@xiaomi.com>
+> 
+> Use list_for_each_entry_safe() instead of list_for_each_safe()
+> to simplify code.
+> 
+> Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
+> ---
+>  drivers/acpi/proc.c   | 14 ++++++--------
+>  drivers/acpi/wakeup.c | 24 +++++++++---------------
+>  2 files changed, 15 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+> index 0e62ef2..7892980 100644
+> --- a/drivers/acpi/proc.c
+> +++ b/drivers/acpi/proc.c
+> @@ -22,14 +22,13 @@
+>  static int
+>  acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+>  {
+> -	struct list_head *node, *next;
+> +	struct acpi_device *dev, *tmp;
+>  
+>  	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
+>  
+>  	mutex_lock(&acpi_device_lock);
+> -	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev =
+> -		    container_of(node, struct acpi_device, wakeup_list);
+> +	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
+> +				 wakeup_list) {
+>  		struct acpi_device_physical_node *entry;
+>  
+>  		if (!dev->wakeup.flags.valid)
+> @@ -96,7 +95,7 @@ static void physical_device_enable_wakeup(struct acpi_device *adev)
+>  				const char __user * buffer,
+>  				size_t count, loff_t * ppos)
+>  {
+> -	struct list_head *node, *next;
+> +	struct acpi_device *dev, *tmp;
+>  	char strbuf[5];
+>  	char str[5] = "";
+>  
+> @@ -109,9 +108,8 @@ static void physical_device_enable_wakeup(struct acpi_device *adev)
+>  	sscanf(strbuf, "%s", str);
+>  
+>  	mutex_lock(&acpi_device_lock);
+> -	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev =
+> -		    container_of(node, struct acpi_device, wakeup_list);
+> +	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
+> +				 wakeup_list) {
+>  		if (!dev->wakeup.flags.valid)
+>  			continue;
+>  
+> diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+> index 9614126..c28244d 100644
+> --- a/drivers/acpi/wakeup.c
+> +++ b/drivers/acpi/wakeup.c
+> @@ -30,12 +30,10 @@
+>   */
+>  void acpi_enable_wakeup_devices(u8 sleep_state)
+>  {
+> -	struct list_head *node, *next;
+> -
+> -	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev =
+> -			container_of(node, struct acpi_device, wakeup_list);
+> +	struct acpi_device *dev, *tmp;
+>  
+> +	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
+> +				 wakeup_list) {
+>  		if (!dev->wakeup.flags.valid
+>  		    || sleep_state > (u32) dev->wakeup.sleep_state
+>  		    || !(device_may_wakeup(&dev->dev)
+> @@ -57,12 +55,10 @@ void acpi_enable_wakeup_devices(u8 sleep_state)
+>   */
+>  void acpi_disable_wakeup_devices(u8 sleep_state)
+>  {
+> -	struct list_head *node, *next;
+> -
+> -	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev =
+> -			container_of(node, struct acpi_device, wakeup_list);
+> +	struct acpi_device *dev, *tmp;
+>  
+> +	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
+> +				 wakeup_list) {
+>  		if (!dev->wakeup.flags.valid
+>  		    || sleep_state > (u32) dev->wakeup.sleep_state
+>  		    || !(device_may_wakeup(&dev->dev)
+> @@ -79,13 +75,11 @@ void acpi_disable_wakeup_devices(u8 sleep_state)
+>  
+>  int __init acpi_wakeup_device_init(void)
+>  {
+> -	struct list_head *node, *next;
+> +	struct acpi_device *dev, *tmp;
+>  
+>  	mutex_lock(&acpi_device_lock);
+> -	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev = container_of(node,
+> -						       struct acpi_device,
+> -						       wakeup_list);
+> +	list_for_each_entry_safe(dev, tmp, &acpi_wakeup_device_list,
+> +				 wakeup_list) {
+>  		if (device_can_wakeup(&dev->dev)) {
+>  			/* Button GPEs are supposed to be always enabled. */
+>  			acpi_enable_gpe(dev->wakeup.gpe_device,
+> 
 
-First, notice that if the device ID in acpi_ec_add() is equal to
-ACPI_ECDT_HID, boot_ec_is_ecdt must be set, because this means
-that the device object passed to acpi_ec_add() comes from
-acpi_ec_ecdt_start() which fails if boot_ec_is_ecdt is unset.
-Accordingly, boot_ec_is_ecdt need not be set again in that case,
-so drop that redundant update of it from the code.
-
-Next, ec->handle must be a valid ACPI handle right before
-returning 0 from acpi_ec_add(), because it either is the handle
-of the device object passed to that function, or it is the boot EC
-handle coming from acpi_ec_ecdt_start() which fails if it cannot
-find a valid handle for the boot EC.  Moreover, the object with
-that handle is regarded as a valid representation of the EC in all
-cases, so there is no reason to avoid the _DEP list update walk if
-that handle is the boot EC handle.  Accordingly, drop the dep_update
-local variable from acpi_ec_add() and call acpi_walk_dep_device_list()
-for ec->handle unconditionally before returning 0 from it.
-
-Finally, the ec local variable in acpi_ec_add() need not be
-initialized to NULL and the status local variable declaration
-can be moved to the block in which it is used, so change the code
-in accordance with these observations.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
--> v2: Reorder (previously [5/6]) and rebase.
-
----
- drivers/acpi/ec.c | 16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 6f501d552e6e..116163add41b 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1605,19 +1605,18 @@ static bool acpi_ec_ecdt_get_handle(acpi_handle *phandle)
- 
- static int acpi_ec_add(struct acpi_device *device)
- {
--	struct acpi_ec *ec = NULL;
--	bool dep_update = true;
--	acpi_status status;
-+	struct acpi_ec *ec;
- 	int ret;
- 
- 	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
- 
- 	if (!strcmp(acpi_device_hid(device), ACPI_ECDT_HID)) {
--		boot_ec_is_ecdt = true;
-+		/* Fast path: this device corresponds to the boot EC. */
- 		ec = boot_ec;
--		dep_update = false;
- 	} else {
-+		acpi_status status;
-+
- 		ec = acpi_ec_alloc();
- 		if (!ec)
- 			return -ENOMEM;
-@@ -1660,10 +1659,9 @@ static int acpi_ec_add(struct acpi_device *device)
- 	ret = !!request_region(ec->command_addr, 1, "EC cmd");
- 	WARN(!ret, "Could not request EC cmd io port 0x%lx", ec->command_addr);
- 
--	if (dep_update) {
--		/* Reprobe devices depending on the EC */
--		acpi_walk_dep_device_list(ec->handle);
--	}
-+	/* Reprobe devices depending on the EC */
-+	acpi_walk_dep_device_list(ec->handle);
-+
- 	acpi_handle_debug(ec->handle, "enumerated.\n");
- 	return 0;
- 
--- 
-2.16.4
-
+Applied with modified subject and changelog as 5.7 material, thanks!
 
 
 
