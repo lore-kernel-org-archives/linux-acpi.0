@@ -2,110 +2,79 @@ Return-Path: <SRS0=rtgw=4V=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99877C3F2CD
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:10:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41B14C3F2D1
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:52:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 696ED20848
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:10:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=zytor.com header.i=@zytor.com header.b="iPlIPmCg"
+	by mail.kernel.org (Postfix) with ESMTP id 1FF0520870
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Mar 2020 10:52:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728301AbgCDKK4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 4 Mar 2020 05:10:56 -0500
-Received: from terminus.zytor.com ([198.137.202.136]:51935 "EHLO
-        mail.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726860AbgCDKK4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 4 Mar 2020 05:10:56 -0500
-Received: from [IPv6:2601:646:8600:3281:d841:929b:f37:3a31] ([IPv6:2601:646:8600:3281:d841:929b:f37:3a31])
-        (authenticated bits=0)
-        by mail.zytor.com (8.15.2/8.15.2) with ESMTPSA id 024AAZQc311953
-        (version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NO);
-        Wed, 4 Mar 2020 02:10:38 -0800
-DKIM-Filter: OpenDKIM Filter v2.11.0 mail.zytor.com 024AAZQc311953
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zytor.com;
-        s=2020022001; t=1583316638;
-        bh=c7JAi1VlSKPPzJ5Tyh0qCJzeKbXKmYAvZ7n163Neqv4=;
-        h=Date:In-Reply-To:References:Subject:To:CC:From:From;
-        b=iPlIPmCgk+q9AqXQuGU1Ne5GrRRYgzMxOsSienrKJi4avOWTvi1nVZl2Uzea2quY/
-         7ZgB4oFPQM3M/qHL+4EaBZB5D2toljgmT+YaIhyO+I8qA3IiCC4eGR4QWPD6NynVkl
-         PyNNusTks1jPeOSADA1BFMGuTzIdkXcuN8gwxn/fg9Cs+ybuXVcIZFnrR6J0KJA1bx
-         Wip1QbfPCQ31sEWmzVnlCqXUTGm3G7YEaO0E4shdZMichts0BSZSEtPFNAF9E5tQRH
-         sRjVMBjdTzII1psNWgP2boxOzpMTfkHWUX8Du9NWcTZ4Hi5Y6u5SrS+jR+nTlq62/F
-         frE66rXl65kmA==
-Date:   Wed, 04 Mar 2020 02:10:29 -0800
-User-Agent: K-9 Mail for Android
-In-Reply-To: <20200304100437.GM2596@hirez.programming.kicks-ass.net>
-References: <20200303204144.GA9913@avx2> <9947D7CB-B9CD-47E0-BC5E-C7FC3A81FC7B@zytor.com> <20200304100437.GM2596@hirez.programming.kicks-ass.net>
+        id S2387688AbgCDKwz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 4 Mar 2020 05:52:55 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:61848 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726583AbgCDKwz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2020 05:52:55 -0500
+Received: from 79.184.237.41.ipv4.supernova.orange.pl (79.184.237.41) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
+ id 75065426972dc4d4; Wed, 4 Mar 2020 11:52:53 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Daniel Drake <drake@endlessm.com>,
+        Jian-Hong Pan <jian-hong@endlessm.com>
+Subject: [PATCH v2 5/6] ACPI: EC: Use fast path in acpi_ec_add() for DSDT boot EC
+Date:   Wed, 04 Mar 2020 11:49:14 +0100
+Message-ID: <9601387.QWTSTiWaJV@kreacher>
+In-Reply-To: <2411774.6kdisLRoUK@kreacher>
+References: <2094703.CetWLLyMuz@kreacher> <2411774.6kdisLRoUK@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH] x86/acpi: make "asmlinkage" part first thing in the function definition
-To:     Peter Zijlstra <peterz@infradead.org>
-CC:     Alexey Dobriyan <adobriyan@gmail.com>, rjw@rjwysocki.net,
-        lenb@kernel.org, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, luto@kernel.org, x86@kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-From:   hpa@zytor.com
-Message-ID: <E88DA201-307C-4F47-A931-13C3894D2E8F@zytor.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On March 4, 2020 2:04:38 AM PST, Peter Zijlstra <peterz@infradead=2Eorg> wr=
-ote:
->On Wed, Mar 04, 2020 at 12:54:09AM -0800, hpa@zytor=2Ecom wrote:
->> On March 3, 2020 12:41:44 PM PST, Alexey Dobriyan
-><adobriyan@gmail=2Ecom> wrote:
->> >g++ insists that function declaration must start with extern "C"
->> >(which asmlinkage expands to)=2E
->> >
->> >gcc doesn't care=2E
->> >
->> >Signed-off-by: _Z6Alexeyv <adobriyan@gmail=2Ecom>
->> >---
->> >
->> > arch/x86/kernel/acpi/sleep=2Ec |    2 +-
->> > arch/x86/kernel/acpi/sleep=2Eh |    2 +-
->> > 2 files changed, 2 insertions(+), 2 deletions(-)
->> >
->> >--- a/arch/x86/kernel/acpi/sleep=2Ec
->> >+++ b/arch/x86/kernel/acpi/sleep=2Ec
->> >@@ -43,7 +43,7 @@ unsigned long acpi_get_wakeup_address(void)
->> >  *
->> >  * Wrapper around acpi_enter_sleep_state() to be called by
->assmebly=2E
->> >  */
->> >-acpi_status asmlinkage __visible x86_acpi_enter_sleep_state(u8
->state)
->> >+asmlinkage acpi_status __visible x86_acpi_enter_sleep_state(u8
->state)
->> > {
->> > 	return acpi_enter_sleep_state(state);
->> > }
->> >--- a/arch/x86/kernel/acpi/sleep=2Eh
->> >+++ b/arch/x86/kernel/acpi/sleep=2Eh
->> >@@ -19,4 +19,4 @@ extern void do_suspend_lowlevel(void);
->> >=20
->> > extern int x86_acpi_suspend_lowlevel(void);
->> >=20
->> >-acpi_status asmlinkage x86_acpi_enter_sleep_state(u8 state);
->> >+asmlinkage acpi_status x86_acpi_enter_sleep_state(u8 state);
->>=20
->> Are you building the kernel with C++?!
->
->He is :-) IIRC he's got a whole bunch of patches that removes all the
->C++ keywords from the kernel=2E
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-I'm genuinely curious: I have heard it says that gcc is something like 10x=
- slower in C++ mode even for what is otherwise basically C code (i=2Ee=2E n=
-o templates etc=2E)
+If the boot EC comes from the DSDT, its ACPI handle is equal to the
+handle of a device object with the PNP0C09 device ID.  If that
+device object is passed to acpi_ec_add(), it is not necessary to
+allocate a new EC structure for it and parse it, because that has
+been done already, so change the function to use the fast path in
+that case.
 
-Does that match observations?
---=20
-Sent from my Android device with K-9 Mail=2E Please excuse my brevity=2E
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+-> v2: Reorder (previously [6/6]) and rebase.
+
+---
+ drivers/acpi/ec.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 116163add41b..355d6973cb70 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1611,7 +1611,8 @@ static int acpi_ec_add(struct acpi_device *device)
+ 	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
+ 
+-	if (!strcmp(acpi_device_hid(device), ACPI_ECDT_HID)) {
++	if ((boot_ec && boot_ec->handle == device->handle) ||
++	    !strcmp(acpi_device_hid(device), ACPI_ECDT_HID)) {
+ 		/* Fast path: this device corresponds to the boot EC. */
+ 		ec = boot_ec;
+ 	} else {
+-- 
+2.16.4
+
+
+
+
