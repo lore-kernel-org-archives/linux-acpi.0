@@ -2,108 +2,71 @@ Return-Path: <SRS0=dGKo=4W=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46B26C3F2D1
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 09:06:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F930C3F2D1
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 12:24:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 068EF2073D
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 09:06:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583399161;
-	bh=2uYDBF1IAay/Qv+U/5AVUMUXPlcyvxUV498YeMp98t0=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=zStq9ZbHSs/QStCjOy2QW9OSxL/xW3TkrIKj3myvaZyLtKuWSq3Ge2Tt6aw8cvjbi
-	 MPycBXCAfh1dyrZo5rrP7GESVn0BhB6TZRlrAj3do5WqVLJOWtwnR0Pd3XW64YWIpO
-	 vLgbcE2SuVyg7t1yGISXip1n3Z7vInib/J+TOtWc=
+	by mail.kernel.org (Postfix) with ESMTP id 6D82220717
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 12:24:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725946AbgCEJGA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Mar 2020 04:06:00 -0500
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:37544 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725912AbgCEJGA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2020 04:06:00 -0500
-Received: by mail-oi1-f195.google.com with SMTP id q65so5224697oif.4;
-        Thu, 05 Mar 2020 01:06:00 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=TFaIpxONCt+sIKKd0QPqj0IgGgaDTj/hC/vgrFizdCQ=;
-        b=GuzS8nT3AauttJ6WfU/a6zTaQ464al1hHmereqWJb/Ssz+PgO89ZNSWLT+2xGhbIAb
-         k9erFuzRmTtgQv5VAtIXO2M48mIXQTze4OmmMGMkyHfBYvVnfvvpgphvSP7urJVN1uoT
-         /hievaawLxaBuoYt6FFYCNHeMc6Tdx83HiNwDG3Di+L2TAP4dH1SjL3HelJ4Dq1OXm/6
-         KN18lIlFBwzefLKQEUc0+4XbKPUztBe/OnkkwLdjaf9TbVf4wNLvBDv87SwCxw81eBvl
-         jfy2O+jxRxuQsFahzVIwLFcI9fsEmN8fuusIlYPo0xo8ANcO89wlEEA74bxZ6UulYTki
-         xPDw==
-X-Gm-Message-State: ANhLgQ3c8xrF+uhqJ94aaBppbfyaejCbRxlkwV9HifavVxJzTm0aiYCV
-        zPqBSuiafriJr3uXxEwSeQWDHCsiYkavvdE27pE=
-X-Google-Smtp-Source: ADFU+vsVto72cKF3MbnXe+qIld4wE26jLbmiKoIvdaN3p8hl2BHPVRl6eXOwNLvQlumM0l5svFNoiVz3tZWVRYd3M0s=
-X-Received: by 2002:aca:bfc2:: with SMTP id p185mr5074380oif.57.1583399159819;
- Thu, 05 Mar 2020 01:05:59 -0800 (PST)
+        id S1725948AbgCEMYc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Mar 2020 07:24:32 -0500
+Received: from a3.inai.de ([88.198.85.195]:60814 "EHLO a3.inai.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725926AbgCEMYc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Mar 2020 07:24:32 -0500
+Received: by a3.inai.de (Postfix, from userid 65534)
+        id 8472F5872F8D4; Thu,  5 Mar 2020 13:24:31 +0100 (CET)
+Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:10b:45d8::f8])
+        by a3.inai.de (Postfix) with ESMTP id 0A61058078513;
+        Thu,  5 Mar 2020 13:24:26 +0100 (CET)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     linux-acpi@vger.kernel.org
+Cc:     jengelh@inai.de
+Subject: [PATCH] x86: ignore unspecified bit positions in the ACPI global lock field
+Date:   Thu,  5 Mar 2020 13:24:25 +0100
+Message-Id: <20200305122425.32223-1-jengelh@inai.de>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20200305013509.GF5972@shao2-debian> <951b0986-bb35-d9a5-1639-0a8cdb3dcd04@intel.com>
- <cbe4887c-d54a-c4aa-e4bf-981b5fcc291d@intel.com>
-In-Reply-To: <cbe4887c-d54a-c4aa-e4bf-981b5fcc291d@intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 5 Mar 2020 10:05:48 +0100
-Message-ID: <CAJZ5v0g2vzYQ04GyrpubLx2+B0O4SDbqoTDCvhnSyaj1j1xswA@mail.gmail.com>
-Subject: Re: [cpufreq] 909c0e9cc1: fwq.fwq.med 210.0% improvement
-To:     Rong Chen <rong.a.chen@intel.com>
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux PM <linux-pm@vger.kernel.org>, lkp@lists.01.org,
-        Rafael Wysocki <rafael@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Mar 5, 2020 at 9:18 AM Rong Chen <rong.a.chen@intel.com> wrote:
->
->
->
-> On 3/5/20 3:50 PM, Rafael J. Wysocki wrote:
-> > On 3/5/2020 2:35 AM, kernel test robot wrote:
-> >> Greeting,
-> >>
-> >> FYI, we noticed a 210.0% improvement of fwq.fwq.med due to commit:
-> >
-> > Well, that sounds impressive. :-)
-> >
-> >
-> >>
-> >> commit: 909c0e9cc11ba39fa5a660583b25c2431cf54deb ("cpufreq:
-> >> intel_pstate: Use passive mode by default without HWP")
-> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git
-> >> intel_pstate-passive
-> >>
-> >> in testcase: fwq
-> >> on test machine: 16 threads Intel(R) Xeon(R) CPU D-1541 @ 2.10GHz
-> >> with 48G memory
-> >> with following parameters:
-> >>
-> >>     nr_task: 100%
-> >>     samples: 100000ss
-> >>     iterations: 18x
-> >>     cpufreq_governor: powersave
-> >
-> > The governor should be schedutil, though, unless it is explicitly set
-> > to powersave in the test environment.
-> >
-> > Is that the case?
-> >
-> >
->
-> Hi Rafael,
->
-> Yes, we set to powersave for this test.
+The value in "new" is constructed from "old" such that all bits defined
+as reserved by the ACPI spec[1] are left untouched. But if those bits
+do not happen to be all zero, "new < 3" will not evaluate to true.
 
-I wonder why this is done?  Is there any particular technical reason
-for doing that?
+The firmware of the laptop(s) Medion MD63490 / Akoya P15648 comes with
+garbage inside the "FACS" ACPI table. The starting value is
+old=0x4944454d, therefore new=0x4944454e, which is >= 3. Mask off
+the reserved bits.
+
+[1] https://uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=206553
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ arch/x86/kernel/acpi/boot.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 04205ce127a1..f9e84a0e2fa2 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1740,7 +1740,7 @@ int __acpi_acquire_global_lock(unsigned int *lock)
+ 		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+ 		val = cmpxchg(lock, old, new);
+ 	} while (unlikely (val != old));
+-	return (new < 3) ? -1 : 0;
++	return ((new & 0x3) < 3) ? -1 : 0;
+ }
+ 
+ int __acpi_release_global_lock(unsigned int *lock)
+-- 
+2.25.1
+
