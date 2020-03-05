@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D825C3F2D7
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 17:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4C07C3F2D2
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 17:19:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 628FE2166E
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 17:17:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C83120848
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Mar 2020 17:19:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583428647;
-	bh=KLdV1W7v+XUkCDtJRVdJ1TK9zKJReuB6m3r1pJnyvLU=;
+	s=default; t=1583428749;
+	bh=cZr6PQdmiL0Y5o22uj5yyFQjh/COZT2QBmPyV9LF2xA=;
 	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=2QSwUSP6WDbb2y749AA/qAdKeivfVXlZ6BNf79oT1aBWoVZPAmcYqZ3MT1wdV9uiN
-	 ehN+vO0bLqDUkiA3ZLCnDsRuk1TKjkK8uOe1VqyMV+GiJthDE7wesZHPWKRC6xEFlD
-	 QPnDkSYrl5CrQ4YUt4PlpS5StSRchKIqsIWXVicY=
+	b=LopAT4ZchyudfZ99Shw8pBZpeFmH29+fXhHZfebABznEP2CuzWlcjuFo+JeQKgACk
+	 diJg2fbwBTU02uL3MCY3JukbSfzkSjQiyQkz7nyCEiLjw2eyTrhGN09rdHXgFM+Vqr
+	 jCXBMk1IKw02Kh84MbYnYklO2ijrQHZgqE9Pbc1o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727668AbgCERRU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Mar 2020 12:17:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43010 "EHLO mail.kernel.org"
+        id S1727556AbgCERTB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Mar 2020 12:19:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728346AbgCERQB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 5 Mar 2020 12:16:01 -0500
+        id S1728008AbgCERPS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Mar 2020 12:15:18 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 56279207FD;
-        Thu,  5 Mar 2020 17:16:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3234C207FD;
+        Thu,  5 Mar 2020 17:15:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583428561;
-        bh=KLdV1W7v+XUkCDtJRVdJ1TK9zKJReuB6m3r1pJnyvLU=;
+        s=default; t=1583428518;
+        bh=cZr6PQdmiL0Y5o22uj5yyFQjh/COZT2QBmPyV9LF2xA=;
         h=From:To:Cc:Subject:Date:From;
-        b=Y/hG0rLlR1QXUvrySgcIVE2yVI+YqJVO9nix0h7LNJo7jk4BcfV3a1alJiqAugWpq
-         NaPpRZwRHOCYNGRn1WOeRU+YqecvBkWqXrPnsSsY+t99tspNvCNe1Mwb6isdbqgKRN
-         OZ/3hnSbrKeBBC23bgmxzsukmKAa7fgNfrMR1KQk=
+        b=O5o4zH6uBRMgYUdIS61ti0g0F4ugazmvtokGw0NkSUZ7TyC/OluK+uPGHlQipQetY
+         iq3GtgwQIRw/AWddhnjqiV/DmqeCbXSKmqCtQNQ9vO5wW+cjDtZEiFYxWJ9VkcnhEY
+         gLsKlsYraesdri2OEA54BtscznK3KIBOwxGJEXiM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jean Delvare <jdelvare@suse.de>,
@@ -45,9 +45,9 @@ Cc:     Jean Delvare <jdelvare@suse.de>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-doc@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 01/12] ACPI: watchdog: Allow disabling WDAT at boot
-Date:   Thu,  5 Mar 2020 12:15:48 -0500
-Message-Id: <20200305171559.30422-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 01/31] ACPI: watchdog: Allow disabling WDAT at boot
+Date:   Thu,  5 Mar 2020 12:14:45 -0500
+Message-Id: <20200305171516.30028-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 X-stable: review
@@ -70,15 +70,15 @@ Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- Documentation/kernel-parameters.txt |  4 ++++
- drivers/acpi/acpi_watchdog.c        | 12 +++++++++++-
+ Documentation/admin-guide/kernel-parameters.txt |  4 ++++
+ drivers/acpi/acpi_watchdog.c                    | 12 +++++++++++-
  2 files changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index b2d2f4539a3fe..e05d65d6fcb68 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -335,6 +335,10 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index 8bf0c0532046f..1a5101b7e853c 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -136,6 +136,10 @@
  			dynamic table installation which will install SSDT
  			tables to /sys/firmware/acpi/tables/dynamic.
  
@@ -90,7 +90,7 @@ index b2d2f4539a3fe..e05d65d6fcb68 100644
  			Pass the RSDP address to the kernel, mostly used
  			on machines running EFI runtime service to boot the
 diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
-index 396e358c2cee0..0c9d5f0fcf56c 100644
+index 95600309ce420..685fd0ef9e8f2 100644
 --- a/drivers/acpi/acpi_watchdog.c
 +++ b/drivers/acpi/acpi_watchdog.c
 @@ -58,12 +58,14 @@ static bool acpi_watchdog_uses_rtc(const struct acpi_table_wdat *wdat)
