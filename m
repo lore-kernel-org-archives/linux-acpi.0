@@ -6,47 +6,47 @@ X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A7DAC10DCE
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Mar 2020 10:18:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1415FC10DCE
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Mar 2020 10:20:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 24B052084E
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Mar 2020 10:18:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D06022070A
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Mar 2020 10:20:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583489933;
-	bh=OOG5NB9RJxSZ10jow0eNiz9o93fP8bI14824u/TpXyo=;
+	s=default; t=1583490013;
+	bh=aOTadVMUjunbuAlZ+hWcvx3ThyQGjvk6DPNPsvctAIA=;
 	h=From:Date:Subject:To:Cc:List-ID:From;
-	b=dGYn+tEPmdIxsijPcUl/5q4YsNGzswIOzDvjOQ38nA+CVMZvQufetXHaMQJRYD2ny
-	 wIvl/6sLY4gfN5aUfPdXr634hGre8wxeI3cTk8YFZbXkz+WmYSND0x/Vq5cW5XkRYM
-	 7Oy08zN54vwPZ0/JzWNW8iYLcjclGF2WVDctnaZk=
+	b=MVjzPmox/zQsb5XUZrHP4v9Zw7X29bFG7dJ2rFUG57nnfJloJi3icPk2ErRnNZolj
+	 C45abeyAEI1tc+Zq2uu4RCtWtL5bI1UCej6FyLlkFH4HWV8MMw0TQENVFLEVODThoU
+	 oo6UOnE6xGbjB3Ma7P4FwBBif1piSkf9yWypZcdI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726026AbgCFKSw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Mar 2020 05:18:52 -0500
-Received: from mail-oi1-f174.google.com ([209.85.167.174]:36737 "EHLO
-        mail-oi1-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726010AbgCFKSw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Mar 2020 05:18:52 -0500
-Received: by mail-oi1-f174.google.com with SMTP id t24so2046284oij.3;
-        Fri, 06 Mar 2020 02:18:52 -0800 (PST)
+        id S1726026AbgCFKUN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 Mar 2020 05:20:13 -0500
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:39230 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726090AbgCFKUN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Mar 2020 05:20:13 -0500
+Received: by mail-ot1-f66.google.com with SMTP id x97so1902623ota.6;
+        Fri, 06 Mar 2020 02:20:13 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=pBGDyn9+QX+LdnDHx3BkVjv8dhcNCQI8pss/MoHaa/8=;
-        b=RxpnsL3eLOsU8pROKuILry3sfMN7ySOaImnNzFH3ofmhJ8C7/cDr1rF5jCIGAH4oOs
-         ygE1qOKw8qftYRz3GAqgC5MDeYzmw7ZVI1Xop3C56abiQr5X/8jrPplUEdu/B59hY8jg
-         AAPcj6TQkSfDJC6IYW7UiJUUL2dn/KqnVg8bP95cLc4lShqYruwwWHh5B9fV7RycVdYz
-         ixO3G9CN0g7r3KjHmwnNooOlV1IIqZMRON4lsomjuenvXvvoy77DMll/l+sy6ICnPo4O
-         4ucOLvaIYvw5PaoZA8Zf2fcobelq05jdGPfftlc1Qv4rWhWakLbOkddw0lUmBpHUV22x
-         Aztg==
-X-Gm-Message-State: ANhLgQ0rEMyeSysOp4EtTRJ5QQ7v9osWht/1AUPk2s0yh48IF6NxRAGh
-        YZB5iLI4jvJAd/VdkUlpvvjYVoy7iJpcpDeozP66+404
-X-Google-Smtp-Source: ADFU+vu8kbz8bz/u5Ksox53bjHQ3vaFiM1M89FiCv76TOI1OnsZrNghbKnlig5x6pZuN6ZUKY7NxThFJYncOW0BYOEo=
-X-Received: by 2002:aca:ebcf:: with SMTP id j198mr1933251oih.115.1583489931843;
- Fri, 06 Mar 2020 02:18:51 -0800 (PST)
+        bh=Mal+x1JmrCy7zwZs9KPsswluRim3HphUgYrnlEClDdE=;
+        b=Xniqih+iqcsNXEOWFzWhQgDXhAB+8nt1LEZoOmZVXTj6rkETDZvoHdManIGcRf0Uob
+         07awvZZxfRb1pElGsvNXVx+v6mJSlcxfZB2Y6ayWhj93wY3pOD+EeG8UuUQqU/Tv/vqe
+         GZpT1kGJM8pn7LSffE5ZSdNqkFzSHYVIxkZ4+wkxBJ2RZ5+eJNG6unuRjWy75Sx4stAW
+         A1uXenMNTTUyFr1XuzyUdonAkXeR1opquf9MSCL5AZuer361WxO6AKN57ho3FGYidG0z
+         zBP2gdAlrX3Bgul7u2VyYwokDZeNvE+7JMmPq0JyQZ0+7ExsPREQIM6oU+hI7iH9KB+J
+         VVaA==
+X-Gm-Message-State: ANhLgQ0q5rVcKKCe7Hgo1gK205hvel0GQWHPEi2iDOrE1LIeSZH0jLdK
+        4yfZ7gQt6OA2ANB0U+kXc5gmOwKX4Mg0zkXtZYp5jLwq
+X-Google-Smtp-Source: ADFU+vvZYSEfh9IaW1N2dhdzBJK6wf6jhcKcDKKi5QFrmON0XXLEtAiopT6g4y/kfHa+ooMThsR9xoi/7dA9ZmUEYNI=
+X-Received: by 2002:a9d:6b04:: with SMTP id g4mr1765710otp.167.1583490012633;
+ Fri, 06 Mar 2020 02:20:12 -0800 (PST)
 MIME-Version: 1.0
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 6 Mar 2020 11:18:40 +0100
-Message-ID: <CAJZ5v0g+iTke+8DL28YzCBeDbe=WNQnUhWuO8QjLhAwGy3U0=A@mail.gmail.com>
-Subject: [GIT PULL] ACPI documentation fix for v5.6-rc5
+Date:   Fri, 6 Mar 2020 11:20:01 +0100
+Message-ID: <CAJZ5v0j8jvHpHW+BBALg9L8=hq8PjyVyMQHfUCmusMeTLDifVg@mail.gmail.com>
+Subject: [GIT PULL] Device properties framework fix for v5.6-rc5
 To:     Linus Torvalds <torvalds@linux-foundation.org>
 Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
@@ -61,30 +61,30 @@ Hi Linus,
 Please pull from the tag
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.6-rc5
+ devprop-5.6-rc5
 
-with top-most commit 86dfa5bec24952f99f2cfa778975d5a914c3a1d2
+with top-most commit 7589238a8cf37331607c3222a64ac3140b29532d
 
- Merge branch 'acpi-doc'
+ Revert "software node: Simplify software_node_release() function"
 
 on top of commit 98d54f81e36ba3bf92172791eba5ca5bd813989b
 
  Linux 5.6-rc4
 
-to receive an ACPI documentation fix for 5.6-rc5.
+to receive a device properties framework fix for 5.6-rc5.
 
-This fixes Sphinx format warinings in an ACPI fan document added
-recently (Randy Dunlap).
+This reverts a problematic commit from the 5.3 development
+cycle (Brendan Higgins).
 
 Thanks!
 
 
 ---------------
 
-Randy Dunlap (1):
-      Documentation/admin-guide/acpi: fix fan_performance_states.rst warnings
+Brendan Higgins (1):
+      Revert "software node: Simplify software_node_release() function"
 
 ---------------
 
- Documentation/admin-guide/acpi/fan_performance_states.rst | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/swnode.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
