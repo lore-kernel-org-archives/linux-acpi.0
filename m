@@ -2,135 +2,109 @@ Return-Path: <SRS0=efKK=42=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 705C5C10F28
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Mar 2020 01:17:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0C45C3F2D1
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Mar 2020 08:40:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55CBD206D5
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Mar 2020 01:17:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91F1820848
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Mar 2020 08:40:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="v6Du+XE2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726463AbgCIBRG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 8 Mar 2020 21:17:06 -0400
-Received: from mga01.intel.com ([192.55.52.88]:17101 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726346AbgCIBRG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 8 Mar 2020 21:17:06 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Mar 2020 18:17:05 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.70,530,1574150400"; 
-   d="scan'208";a="235513376"
-Received: from yhuang-dev.sh.intel.com (HELO yhuang-dev) ([10.239.159.23])
-  by orsmga008.jf.intel.com with ESMTP; 08 Mar 2020 18:17:02 -0700
-From:   "Huang\, Ying" <ying.huang@intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Rong Chen <rong.a.chen@intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list\:ACPI COMPONENT ARCHITECTURE \(ACPICA\)" 
-        <devel@acpica.org>, Linux PM <linux-pm@vger.kernel.org>,
-        <lkp@lists.01.org>, Andi Kleen <andi.kleen@intel.com>
-Subject: Re: [LKP] Re: [cpufreq] 909c0e9cc1: fwq.fwq.med 210.0% improvement
-References: <20200305013509.GF5972@shao2-debian>
-        <951b0986-bb35-d9a5-1639-0a8cdb3dcd04@intel.com>
-        <cbe4887c-d54a-c4aa-e4bf-981b5fcc291d@intel.com>
-        <CAJZ5v0g2vzYQ04GyrpubLx2+B0O4SDbqoTDCvhnSyaj1j1xswA@mail.gmail.com>
-        <87zhcuyxce.fsf@yhuang-dev.intel.com>
-        <CAJZ5v0g3f1Rf0HFLH+hWkbW6q0_E1RjhX2AeUxa_DHfJRQj7Qw@mail.gmail.com>
-Date:   Mon, 09 Mar 2020 09:17:02 +0800
-In-Reply-To: <CAJZ5v0g3f1Rf0HFLH+hWkbW6q0_E1RjhX2AeUxa_DHfJRQj7Qw@mail.gmail.com>
-        (Rafael J. Wysocki's message of "Fri, 6 Mar 2020 10:54:42 +0100")
-Message-ID: <87imjez5rl.fsf@yhuang-dev.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        id S1726465AbgCIIk3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Mar 2020 04:40:29 -0400
+Received: from mail-lf1-f67.google.com ([209.85.167.67]:42468 "EHLO
+        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726461AbgCIIk2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Mar 2020 04:40:28 -0400
+Received: by mail-lf1-f67.google.com with SMTP id t21so6937842lfe.9
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Mar 2020 01:40:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=3xc6nYtcHeI3nUAsvlwvFDVldekJcu/6WJf1MOERlR0=;
+        b=v6Du+XE2GP9xbhFGeBO9ublYzQJf3LEBVbe870Gyqu/sY4rq8tzhco5JlqK3bALfQt
+         /+hi0cyj+AeqwYX9Y+AeBJ9MRrXh0otFjtj5zxhgbmSdimAuqgX0kjB7D7qv05stIR7d
+         DvmVxhe6V8UkGisPuv5HnX93Ff27WzDD0EtmcDnURUibU7el2nhJjqkPsYIHL4VQ0FfO
+         la2KXPRKzQME0KRed1LiwQR2ADZJuos95PowFqQ9Msp79PSb++COj8bWj1/KmTjca6gE
+         ZFi1iSBphRwPn5nisIV/8DVeFTgumPclS5pFES30c0i9RYqa5PA0tNPzWBWmPYBym6Gt
+         Y7rw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3xc6nYtcHeI3nUAsvlwvFDVldekJcu/6WJf1MOERlR0=;
+        b=UqJZvlKGkeldCGNFNS7f/lPPal9f7xGn295iwVELD54SluKyhA1QFxJx3BC06dMuqK
+         LGcZp81XAtPSAZInUvPql4FgbdYSIDQbsysvP8i8ww0/lLJABw+6/qlcv4KlJmEGOpQe
+         aCuWWOm3rqXXDeE1aIdlCDQTcafj00v/41Cqf7Pvc5xeTP/K4S+H4yUQJ7X7BXV29E2l
+         HladNXvXpCMj1VSH2zW/BcCjDNdr0tbL3Zv1s1lMcNALglpotZQAm81ZRCk1x3pY+6AY
+         hQDy599cxZ/A70hw0hMf87am3oZjKEeRq0PPuah+tk1nSZwi9Q++I2L0zXFnwH/vII3j
+         Dm2g==
+X-Gm-Message-State: ANhLgQ3YSAzl9uL16uBA76njCMiSuUCfmC2eqNE40AP/LrUVDYLN2gmw
+        I9ItLZtlQ30+E5UpNaJfGvCZB7BXc7lAynNVBLaUWaj1
+X-Google-Smtp-Source: ADFU+vtZiOyVpvvPchK/T5MCGbWLAw4L5MXXvowEbUSL8myExRrfels5CQayMDoYi5Vk2nhEjFDJZQQtZW7VJFPtxW4=
+X-Received: by 2002:ac2:4a84:: with SMTP id l4mr8633887lfp.217.1583743226344;
+ Mon, 09 Mar 2020 01:40:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+References: <20200302111225.6641-1-hdegoede@redhat.com>
+In-Reply-To: <20200302111225.6641-1-hdegoede@redhat.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Mon, 9 Mar 2020 09:40:15 +0100
+Message-ID: <CACRpkdYdCXHd8EwmkyYbDjH8BD+8zGtzix5LOuyKZ94OLPJN_Q@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] gpiolib: acpi: Correct comment for HP x2 10
+ honor_wakeup quirk
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Marc Lehmann <schmorp@schmorp.de>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-"Rafael J. Wysocki" <rafael@kernel.org> writes:
+On Mon, Mar 2, 2020 at 12:12 PM Hans de Goede <hdegoede@redhat.com> wrote:
 
-> On Fri, Mar 6, 2020 at 4:29 AM Huang, Ying <ying.huang@intel.com> wrote:
->>
->> Hi, Rafael,
->>
->> "Rafael J. Wysocki" <rafael@kernel.org> writes:
->>
->> > On Thu, Mar 5, 2020 at 9:18 AM Rong Chen <rong.a.chen@intel.com> wrote:
->> >>
->> >>
->> >>
->> >> On 3/5/20 3:50 PM, Rafael J. Wysocki wrote:
->> >> > On 3/5/2020 2:35 AM, kernel test robot wrote:
->> >> >> Greeting,
->> >> >>
->> >> >> FYI, we noticed a 210.0% improvement of fwq.fwq.med due to commit:
->> >> >
->> >> > Well, that sounds impressive. :-)
->> >> >
->> >> >
->> >> >>
->> >> >> commit: 909c0e9cc11ba39fa5a660583b25c2431cf54deb ("cpufreq:
->> >> >> intel_pstate: Use passive mode by default without HWP")
->> >> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git
->> >> >> intel_pstate-passive
->> >> >>
->> >> >> in testcase: fwq
->> >> >> on test machine: 16 threads Intel(R) Xeon(R) CPU D-1541 @ 2.10GHz
->> >> >> with 48G memory
->> >> >> with following parameters:
->> >> >>
->> >> >>     nr_task: 100%
->> >> >>     samples: 100000ss
->> >> >>     iterations: 18x
->> >> >>     cpufreq_governor: powersave
->> >> >
->> >> > The governor should be schedutil, though, unless it is explicitly set
->> >> > to powersave in the test environment.
->> >> >
->> >> > Is that the case?
->> >> >
->> >> >
->> >>
->> >> Hi Rafael,
->> >>
->> >> Yes, we set to powersave for this test.
->> >
->> > I wonder why this is done?  Is there any particular technical reason
->> > for doing that?
->>
->> fwq is a noise benchmark to measure the hardware and software noise
->> level.  More information could be found in the following document.
->>
->> https://asc.llnl.gov/sequoia/benchmarks/FTQ_summary_v1.1.pdf
->>
->> In 0day, to measure the noise introduced by power management, we will
->> run fwq with the performance and powersave governors.  Do you think this
->> is reasonable?  Or we should use some other governors?
+> Commit aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option +
+> quirk mechanism") added a quirk for some models of the HP x2 10 series.
 >
-> I think that the schedutil governor should be tested too if present.
+> There are 2 issues with the comment describing the quirk:
+> 1) The comment claims the DMI quirk applies to all Cherry Trail based HP x2
+>    10 models. In the mean time I have learned that there are at least 3
+>    models of the HP x2 10 models:
 >
-> Also note that for the intel_pstate driver "powersave" may mean
-> different things depending on the current operation mode of the
-> driver.  If scaling_driver is "intel_pstate", then "powersave" is the
-> driver's built-in algorithm.  If scaling_driver is "intel_cpufreq",
-> though, "powersave" means running at the minimum frequency all the
-> time.
+>    Bay Trail SoC + AXP288 PMIC
+>    Cherry Trail SoC + AXP288 PMIC
+>    Cherry Trail SoC + TI PMIC
+>
+>    And this quirk's DMI matches only match the Cherry Trail SoC + TI PMIC
+>    SoC, which is good because we want a slightly different quirk for the
+>    others. This commit updates the comment to make it clear that the quirk
+>    is only for the Cherry Trail SoC + TI PMIC models.
+>
+> 2) The comment says that it is ok to disable wakeup on all ACPI GPIO event
+>    handlers, because there is only the one for the embedded-controller
+>    events. This is not true, there also is a handler for the special
+>    INT0002 device which is related to USB wakeups. We need to also disable
+>    wakeups on that one because the device turns of the USB-keyboard built
+>    into the dock when closing the lid. The XHCI controller takes a while
+>    to notice this, so it only notices it when already suspended, causing
+>    a spurious wakeup because of this. So disabling wakeup on all handlers
+>    is the right thing to do, but not because there only is the one handler
+>    for the EC events. This commit updates the comment to correctly reflect
+>    this.
+>
+> Fixes: aa23ca3d98f7 ("gpiolib: acpi: Add honor_wakeup module-option + quirk mechanism")
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Thanks for your guidance.  We will test schedutil governor in the future
-too.
+Patch applied with Mika's ACK.
 
-As for powersave, should we stop testing it?  Or just pay attention to
-the possible issue you pointed out?
-
-Should we add ondemand governor?
-
-Best Regards,
-Huang, Ying
+Yours,
+Linus Walleij
