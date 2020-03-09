@@ -1,125 +1,136 @@
-Return-Path: <SRS0=0xCt=4Y=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=efKK=42=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 733F9C10F00
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Mar 2020 11:30:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 705C5C10F28
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Mar 2020 01:17:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 383612075A
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Mar 2020 11:30:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.de header.i=@amazon.de header.b="kx8zo4x9"
+	by mail.kernel.org (Postfix) with ESMTP id 55CBD206D5
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Mar 2020 01:17:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726102AbgCGLaz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 7 Mar 2020 06:30:55 -0500
-Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:1776 "EHLO
-        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726086AbgCGLaz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Mar 2020 06:30:55 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.de; i=@amazon.de; q=dns/txt; s=amazon201209;
-  t=1583580653; x=1615116653;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:mime-version:
-   content-transfer-encoding;
-  bh=DFpsOxrHOqsf0PQAJMXueEicUk8UR3W/BgR/3MNxtGQ=;
-  b=kx8zo4x93/8NT/ABPXIkAyyZo2Up2E66QoDTeIwVet8hYa9xCi1tyG0c
-   7tzRlGxRJWPIwKbqkZxBMaRuPhLe/mh0N/Npquo68C4O73nvLvKVgx8bJ
-   xgUI6y72q4MPlLAo6/0980+ea6ObVz2hvo9FUSsRCwiuAk4OXoyoOrHuV
-   Q=;
-IronPort-SDR: TVStLvUeAY3cWlpbB4oPKkh+oDA9sILjqRezunIG3dlMAeC36jziCEbc+HO8qYdc6zwS/hZK9v
- dhgte9maTtDQ==
-X-IronPort-AV: E=Sophos;i="5.70,525,1574121600"; 
-   d="scan'208";a="29821054"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2c-168cbb73.us-west-2.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 07 Mar 2020 11:30:51 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
-        by email-inbound-relay-2c-168cbb73.us-west-2.amazon.com (Postfix) with ESMTPS id B77A4A20FD;
-        Sat,  7 Mar 2020 11:30:49 +0000 (UTC)
-Received: from EX13D04EUB003.ant.amazon.com (10.43.166.235) by
- EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
- id 15.0.1236.3; Sat, 7 Mar 2020 11:30:49 +0000
-Received: from EX13D04EUB003.ant.amazon.com (10.43.166.235) by
- EX13D04EUB003.ant.amazon.com (10.43.166.235) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Sat, 7 Mar 2020 11:30:46 +0000
-Received: from EX13D04EUB003.ant.amazon.com ([10.43.166.235]) by
- EX13D04EUB003.ant.amazon.com ([10.43.166.235]) with mapi id 15.00.1497.006;
- Sat, 7 Mar 2020 11:30:46 +0000
-From:   "Spassov, Stanislav" <stanspas@amazon.de>
-To:     "Spassov, Stanislav" <stanspas@amazon.de>,
-        "rafael@kernel.org" <rafael@kernel.org>
-CC:     "corbet@lwn.net" <corbet@lwn.net>,
-        "alex.williamson@redhat.com" <alex.williamson@redhat.com>,
-        "ashok.raj@intel.com" <ashok.raj@intel.com>,
-        "okaya@kernel.org" <okaya@kernel.org>,
-        "tglx@linutronix.de" <tglx@linutronix.de>,
-        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
-        "lkp@intel.com" <lkp@intel.com>,
-        "amurray@thegoodpenguin.co.uk" <amurray@thegoodpenguin.co.uk>,
-        "thomas.petazzoni@bootlin.com" <thomas.petazzoni@bootlin.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "Schoenherr, Jan H." <jschoenh@amazon.de>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "jason@lakedaemon.net" <jason@lakedaemon.net>,
-        "rajatja@google.com" <rajatja@google.com>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "bhelgaas@google.com" <bhelgaas@google.com>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH v3 07/17] PCI: Clean up and document PM/reset delays
-Thread-Topic: [PATCH v3 07/17] PCI: Clean up and document PM/reset delays
-Thread-Index: AQHV9HPXqrNJUMOXV0awv4Rv3HN/bA==
-Date:   Sat, 7 Mar 2020 11:30:45 +0000
-Message-ID: <575f12241914cc6fa48e250f24db92af560cc375.camel@amazon.de>
-References: <20200303132852.13184-1-stanspas@amazon.com>
-         <20200303132852.13184-8-stanspas@amazon.com>
-         <CAJZ5v0gD4XweLHQzQfRiBxWz8O5mFsc5Chj4JNhX+5ja6Cxrig@mail.gmail.com>
-In-Reply-To: <CAJZ5v0gD4XweLHQzQfRiBxWz8O5mFsc5Chj4JNhX+5ja6Cxrig@mail.gmail.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.43.164.196]
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <1C301443B08B384BA0AF6268820C3620@amazon.com>
+        id S1726463AbgCIBRG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 8 Mar 2020 21:17:06 -0400
+Received: from mga01.intel.com ([192.55.52.88]:17101 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726346AbgCIBRG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 8 Mar 2020 21:17:06 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Mar 2020 18:17:05 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.70,530,1574150400"; 
+   d="scan'208";a="235513376"
+Received: from yhuang-dev.sh.intel.com (HELO yhuang-dev) ([10.239.159.23])
+  by orsmga008.jf.intel.com with ESMTP; 08 Mar 2020 18:17:02 -0700
+From:   "Huang\, Ying" <ying.huang@intel.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Rong Chen <rong.a.chen@intel.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "open list\:ACPI COMPONENT ARCHITECTURE \(ACPICA\)" 
+        <devel@acpica.org>, Linux PM <linux-pm@vger.kernel.org>,
+        <lkp@lists.01.org>, Andi Kleen <andi.kleen@intel.com>
+Subject: Re: [LKP] Re: [cpufreq] 909c0e9cc1: fwq.fwq.med 210.0% improvement
+References: <20200305013509.GF5972@shao2-debian>
+        <951b0986-bb35-d9a5-1639-0a8cdb3dcd04@intel.com>
+        <cbe4887c-d54a-c4aa-e4bf-981b5fcc291d@intel.com>
+        <CAJZ5v0g2vzYQ04GyrpubLx2+B0O4SDbqoTDCvhnSyaj1j1xswA@mail.gmail.com>
+        <87zhcuyxce.fsf@yhuang-dev.intel.com>
+        <CAJZ5v0g3f1Rf0HFLH+hWkbW6q0_E1RjhX2AeUxa_DHfJRQj7Qw@mail.gmail.com>
+Date:   Mon, 09 Mar 2020 09:17:02 +0800
+In-Reply-To: <CAJZ5v0g3f1Rf0HFLH+hWkbW6q0_E1RjhX2AeUxa_DHfJRQj7Qw@mail.gmail.com>
+        (Rafael J. Wysocki's message of "Fri, 6 Mar 2020 10:54:42 +0100")
+Message-ID: <87imjez5rl.fsf@yhuang-dev.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ascii
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-T24gVHVlLCAyMDIwLTAzLTAzIGF0IDIwOjAzICswMTAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
-ZToNCj4gDQo+IFdoYXQgIm1hZ2ljIG51bWJlcnMiIGV4YWN0bHkgZG8geW91IG1lYW4/ICBUaGUg
-U1JJT1YgYW5kIEZMUiBkZWxheXM/DQo+IFdoeSBub3QgdG8gYmUgbW9yZSBzcGVjaWZpYyBoZXJl
-IGlmIHNvPw0KDQpZb3UgYXJlIHJpZ2h0LiBJIGFtIGV4dGVuZGluZyB0aGUgY29tbWl0IG1lc3Nh
-Z2UgbGlrZSB0aGlzIGZvciB0aGUgbmV4dCB2ZXJzaW9uOg0KDQogICAgUENJOiBDbGVhbiB1cCBh
-bmQgZG9jdW1lbnQgUE0vcmVzZXQgZGVsYXlzDQogICAgDQogICAgVGhlIGV4aXN0aW5nIHNldCBv
-ZiBQQ0lfUE1fKiBjb25zdGFudHMgaGFzIHNvbWUgaW5jb25zaXN0ZW5jaWVzIChfV0FJVA0KICAg
-IHZzIF9ERUxBWSBzdWZmaXgpLCBhbmQgZG9lcyBub3QgY292ZXIgYWxsIHRoZSBzY2VuYXJpb3Mg
-dGhhdCB0aGUgUENJZQ0KICAgIHNwZWNpZmljYXRpb25zIG1hbmRhdGVzIHdhaXRpbmcgcGVyaW9k
-cyBmb3IuDQogICAgDQogICAgSW4gcHJlcGFyYXRpb24gZm9yIGFkZGluZyBpbmZyYXN0cnVjdHVy
-ZSB0byBvdmVycmlkZSwgb24gYSBwZXItZGV2aWNlDQogICAgYmFzaXMsIHRoZSBpbmRpdmlkdWFs
-IHdhaXRpbmcgcGVyaW9kcyB1c2luZyBzdGFuZGFyZGl6ZWQgbWVjaGFuaXNtcywNCiAgICB0aGlz
-IGNvbW1pdCBpbnRyb2R1Y2VzIGFuZCBkb2N1bWVudHMgY29uc3RhbnRzIHByb3ZpZGluZyB0aGUg
-ZGVmYXVsdA0KICAgIHZhbHVlcyBmb3IgdmFyaW91cyB3YWl0aW5nIHNjZW5hcmlvcyBhbGwgYXJv
-dW5kIFBDSSBkZXZpY2UgcmVzZXRzLA0KICAgIFBNIHN0YXRlIGNoYW5nZXMsIGFuZCBlbmFibGlu
-ZyBTUi1JT1YgVkZzLg0KICAgIA0KICAgIFNldmVyYWwgaW5zdGFuY2VzIG9mICdtc2xlZXAoMTAw
-KScgaW4gdGhlIEZMUiBhbmQgVkYgZW5hYmxlIGNvZGVwYXRocw0KICAgIGhhdmUgYmVlbiBhZGp1
-c3RlZCB0byB1c2UgdGhlIG5ld2x5IGludHJvZHVjZWQgY29uc3RhbnRzIGluc3RlYWQuDQogICAg
-Q29ycmVzcG9uZGluZyBleHBsYW5hdG9yeSBjb2RlIGNvbW1lbnRzIHdlcmUgcmVtb3ZlZCwgYXMg
-dGhleSBhcmUgbm93DQogICAgc3VwZXJzZWRlZCBieSB0aGUgZG9jdW1lbnRhdGlvbiBvZiB0aGUg
-Y29uc3RhbnRzLg0KCgoKQW1hem9uIERldmVsb3BtZW50IENlbnRlciBHZXJtYW55IEdtYkgKS3Jh
-dXNlbnN0ci4gMzgKMTAxMTcgQmVybGluCkdlc2NoYWVmdHNmdWVocnVuZzogQ2hyaXN0aWFuIFNj
-aGxhZWdlciwgSm9uYXRoYW4gV2Vpc3MKRWluZ2V0cmFnZW4gYW0gQW10c2dlcmljaHQgQ2hhcmxv
-dHRlbmJ1cmcgdW50ZXIgSFJCIDE0OTE3MyBCClNpdHo6IEJlcmxpbgpVc3QtSUQ6IERFIDI4OSAy
-MzcgODc5CgoK
+"Rafael J. Wysocki" <rafael@kernel.org> writes:
 
+> On Fri, Mar 6, 2020 at 4:29 AM Huang, Ying <ying.huang@intel.com> wrote:
+>>
+>> Hi, Rafael,
+>>
+>> "Rafael J. Wysocki" <rafael@kernel.org> writes:
+>>
+>> > On Thu, Mar 5, 2020 at 9:18 AM Rong Chen <rong.a.chen@intel.com> wrote:
+>> >>
+>> >>
+>> >>
+>> >> On 3/5/20 3:50 PM, Rafael J. Wysocki wrote:
+>> >> > On 3/5/2020 2:35 AM, kernel test robot wrote:
+>> >> >> Greeting,
+>> >> >>
+>> >> >> FYI, we noticed a 210.0% improvement of fwq.fwq.med due to commit:
+>> >> >
+>> >> > Well, that sounds impressive. :-)
+>> >> >
+>> >> >
+>> >> >>
+>> >> >> commit: 909c0e9cc11ba39fa5a660583b25c2431cf54deb ("cpufreq:
+>> >> >> intel_pstate: Use passive mode by default without HWP")
+>> >> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git
+>> >> >> intel_pstate-passive
+>> >> >>
+>> >> >> in testcase: fwq
+>> >> >> on test machine: 16 threads Intel(R) Xeon(R) CPU D-1541 @ 2.10GHz
+>> >> >> with 48G memory
+>> >> >> with following parameters:
+>> >> >>
+>> >> >>     nr_task: 100%
+>> >> >>     samples: 100000ss
+>> >> >>     iterations: 18x
+>> >> >>     cpufreq_governor: powersave
+>> >> >
+>> >> > The governor should be schedutil, though, unless it is explicitly set
+>> >> > to powersave in the test environment.
+>> >> >
+>> >> > Is that the case?
+>> >> >
+>> >> >
+>> >>
+>> >> Hi Rafael,
+>> >>
+>> >> Yes, we set to powersave for this test.
+>> >
+>> > I wonder why this is done?  Is there any particular technical reason
+>> > for doing that?
+>>
+>> fwq is a noise benchmark to measure the hardware and software noise
+>> level.  More information could be found in the following document.
+>>
+>> https://asc.llnl.gov/sequoia/benchmarks/FTQ_summary_v1.1.pdf
+>>
+>> In 0day, to measure the noise introduced by power management, we will
+>> run fwq with the performance and powersave governors.  Do you think this
+>> is reasonable?  Or we should use some other governors?
+>
+> I think that the schedutil governor should be tested too if present.
+>
+> Also note that for the intel_pstate driver "powersave" may mean
+> different things depending on the current operation mode of the
+> driver.  If scaling_driver is "intel_pstate", then "powersave" is the
+> driver's built-in algorithm.  If scaling_driver is "intel_cpufreq",
+> though, "powersave" means running at the minimum frequency all the
+> time.
+
+Thanks for your guidance.  We will test schedutil governor in the future
+too.
+
+As for powersave, should we stop testing it?  Or just pay attention to
+the possible issue you pointed out?
+
+Should we add ondemand governor?
+
+Best Regards,
+Huang, Ying
