@@ -6,29 +6,25 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEA7FC4332E
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Mar 2020 11:38:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1105BC4332D
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Mar 2020 13:23:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B3EED20722
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Mar 2020 11:38:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD68720780
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Mar 2020 13:23:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728487AbgCULey (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Mar 2020 07:34:54 -0400
-Received: from Galois.linutronix.de ([193.142.43.55]:38418 "EHLO
+        id S1726592AbgCUNXH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 21 Mar 2020 09:23:07 -0400
+Received: from Galois.linutronix.de ([193.142.43.55]:38630 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725932AbgCULex (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Mar 2020 07:34:53 -0400
+        with ESMTP id S1726192AbgCUNXH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Mar 2020 09:23:07 -0400
 Received: from p5de0bf0b.dip0.t-ipconnect.de ([93.224.191.11] helo=nanos.tec.linutronix.de)
         by Galois.linutronix.de with esmtpsa (TLS1.2:DHE_RSA_AES_256_CBC_SHA256:256)
         (Exim 4.80)
         (envelope-from <tglx@linutronix.de>)
-        id 1jFcOQ-0001zF-3g; Sat, 21 Mar 2020 12:34:18 +0100
-Received: from nanos.tec.linutronix.de (localhost [IPv6:::1])
-        by nanos.tec.linutronix.de (Postfix) with ESMTP id 2A835FFBBF;
-        Sat, 21 Mar 2020 12:34:17 +0100 (CET)
-Message-Id: <20200321112544.878032781@linutronix.de>
-User-Agent: quilt/0.65
-Date:   Sat, 21 Mar 2020 12:25:44 +0100
+        id 1jFe4i-0003bB-3f; Sat, 21 Mar 2020 14:22:04 +0100
+Received: by nanos.tec.linutronix.de (Postfix, from userid 1000)
+        id 6F881FFC8D; Sat, 21 Mar 2020 14:22:03 +0100 (CET)
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
@@ -38,6 +34,10 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Joel Fernandes <joel@joelfernandes.org>,
         Oleg Nesterov <oleg@redhat.com>,
         Davidlohr Bueso <dave@stgolabs.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Geoff Levand <geoff@infradead.org>,
+        linuxppc-dev@lists.ozlabs.org,
         Logan Gunthorpe <logang@deltatee.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Kurt Schwemmer <kurt.schwemmer@microsemi.com>,
@@ -62,16 +62,17 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-hexagon@vger.kernel.org, Tony Luck <tony.luck@intel.com>,
         Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org,
         Michal Simek <monstr@monstr.eu>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Geoff Levand <geoff@infradead.org>,
-        linuxppc-dev@lists.ozlabs.org,
         "Paul E . McKenney" <paulmck@kernel.org>,
         Jonathan Corbet <corbet@lwn.net>,
         Randy Dunlap <rdunlap@infradead.org>,
         Davidlohr Bueso <dbueso@suse.de>
-Subject: [patch V3 00/20] Lock ordering documentation and annotation for lockdep
-Content-transfer-encoding: 8-bit
+Subject: Re: [patch V3 12/20] powerpc/ps3: Convert half completion to rcuwait
+In-Reply-To: <20200321113241.930037873@linutronix.de>
+References: <20200321112544.878032781@linutronix.de> <20200321113241.930037873@linutronix.de>
+Date:   Sat, 21 Mar 2020 14:22:03 +0100
+Message-ID: <87v9mxrgg4.fsf@nanos.tec.linutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain
 X-Linutronix-Spam-Score: -1.0
 X-Linutronix-Spam-Level: -
 X-Linutronix-Spam-Status: No , -1.0 points, 5.0 required,  ALL_TRUSTED=-1,SHORTCIRCUIT=-0.0001
@@ -80,22 +81,11 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is the third and hopefully final version of this work. The second one
-can be found here:
+Thomas Gleixner <tglx@linutronix.de> writes:
 
-   https://lore.kernel.org/r/20200318204302.693307984@linutronix.de
+> From: Thomas Gleixner <tglx@linutronix.de>
 
-Changes since V2:
+That's obviously bogus and wants to be:
 
-  - Included the arch/XXX fixups for the rcuwait changes (Sebastian)
-
-  - Folded the init fix for the PS3 change (Sebastian)
-
-  - Addressed feedback on documentation (Paul, Davidlohr, Jonathan)
-
-  - Picked up acks and reviewed tags
-
-Thanks,
-
-	tglx
+From: Peter Zijlstra (Intel) <peterz@infradead.org>
 
