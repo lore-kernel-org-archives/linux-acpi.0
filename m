@@ -2,194 +2,229 @@ Return-Path: <SRS0=508x=5H=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D233C4332E
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Mar 2020 16:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A6D3C4332B
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Mar 2020 17:38:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E610F20724
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 Mar 2020 16:29:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41316206F8
+	for <linux-acpi@archiver.kernel.org>; Sun, 22 Mar 2020 17:38:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727063AbgCVQ3F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 22 Mar 2020 12:29:05 -0400
-Received: from mga12.intel.com ([192.55.52.136]:57351 "EHLO mga12.intel.com"
+        id S1726583AbgCVRiS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 22 Mar 2020 13:38:18 -0400
+Received: from mga01.intel.com ([192.55.52.88]:25022 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726896AbgCVQ3F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 22 Mar 2020 12:29:05 -0400
-IronPort-SDR: ojcOi2Ce572HZRlc7AjST7P9mVX2pMlHBr7dXUcgicV5J0zu38omGs8XmjsYo/88D6qkgG4JJN
- NhXtWaqa9WoA==
+        id S1725971AbgCVRiS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 22 Mar 2020 13:38:18 -0400
+IronPort-SDR: Dlr++7ZPvOT9OEfFRUIUb0KfKCGh6CxsF/jmqekSn0wly5ayZC2XXd5HQqneNdaGKCZq5pC+Tp
+ Z0bd5KUwKThg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2020 09:29:03 -0700
-IronPort-SDR: hy334qU9gf7XAtxMeIChPaVru7f5WDXBOOEXmmF/GOf+dFYHqfZwnEYJD7N6C6bPuXCZkTzNcY
- 6XKBj8EfOaWA==
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2020 10:38:17 -0700
+IronPort-SDR: 75OJ+XSFnPbilSvJNh7auC25X+IoZQ5yjZZor8KXmnidXOrtT6UfLfISE2LgUhjEBhM/RGXjzW
+ kIrk8a7L3k6g==
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,293,1580803200"; 
-   d="scan'208";a="325353273"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2020 09:29:04 -0700
-Subject: [PATCH v2 6/6] ACPI: HMAT: Attach a device for each soft-reserved
- range
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Brice Goglin <Brice.Goglin@inria.fr>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Jeff Moyer <jmoyer@redhat.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, peterz@infradead.org,
-        dave.hansen@linux.intel.com, linux-nvdimm@lists.01.org,
-        linux-kernel@vger.kernel.org, x86@kernel.org,
-        joao.m.martins@oracle.com
-Date:   Sun, 22 Mar 2020 09:12:58 -0700
-Message-ID: <158489357825.1457606.17352509511987748598.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+   d="scan'208";a="419264868"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga005.jf.intel.com with ESMTP; 22 Mar 2020 10:38:14 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1jG4YA-0009Ey-3y; Mon, 23 Mar 2020 01:38:14 +0800
+Date:   Mon, 23 Mar 2020 01:38:03 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [pm:bleeding-edge] BUILD SUCCESS
+ 5e3ada361a7aef36e173fc7004a8e9f0066f9010
+Message-ID: <5e77a27b.sp4WeAC/AqdcPMv1%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The hmem enabling in commit 'cf8741ac57ed ("ACPI: NUMA: HMAT: Register
-"soft reserved" memory as an "hmem" device")' only registered ranges to
-the hmem driver for each soft-reservation that also appeared in the
-HMAT. While this is meant to encourage platform firmware to "do the
-right thing" and publish an HMAT, the corollary is that platforms that
-fail to publish an accurate HMAT will strand memory from Linux usage.
-Additionally, the "efi_fake_mem" kernel command line option enabling
-will strand memory by default without an HMAT.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git  bleeding-edge
+branch HEAD: 5e3ada361a7aef36e173fc7004a8e9f0066f9010  Merge branch 'pnp' into linux-next
 
-Arrange for "soft reserved" memory that goes unclaimed by HMAT entries
-to be published as raw resource ranges for the hmem driver to consume.
+elapsed time: 480m
 
-Include a module parameter to disable either this fallback behavior, or
-the hmat enabling from creating hmem devices. The module parameter
-requires the hmem device enabling to have unique name in the module
-namespace: "device_hmem".
+configs tested: 162
+configs skipped: 0
 
-Rather than mark this x86-only, include an interim phys_to_target_node()
-implementation for arm64.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+arm                              allmodconfig
+arm                               allnoconfig
+arm                              allyesconfig
+arm64                            allmodconfig
+arm64                             allnoconfig
+arm64                            allyesconfig
+arm                        shmobile_defconfig
+arm64                               defconfig
+arm                           sunxi_defconfig
+arm                         at91_dt_defconfig
+arm                           efm32_defconfig
+arm                          exynos_defconfig
+arm                        multi_v5_defconfig
+arm                        multi_v7_defconfig
+sparc                            allyesconfig
+s390                              allnoconfig
+powerpc                             defconfig
+i386                              allnoconfig
+i386                             alldefconfig
+i386                             allyesconfig
+i386                                defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                              allnoconfig
+ia64                             allyesconfig
+ia64                             alldefconfig
+c6x                              allyesconfig
+c6x                        evmc6678_defconfig
+nios2                         10m50_defconfig
+nios2                         3c120_defconfig
+openrisc                    or1ksim_defconfig
+openrisc                 simple_smp_defconfig
+xtensa                       common_defconfig
+xtensa                          iss_defconfig
+nds32                               defconfig
+nds32                             allnoconfig
+csky                                defconfig
+alpha                               defconfig
+h8300                       h8s-sim_defconfig
+h8300                     edosk2674_defconfig
+m68k                       m5475evb_defconfig
+m68k                             allmodconfig
+h8300                    h8300h-sim_defconfig
+m68k                           sun3_defconfig
+m68k                          multi_defconfig
+arc                                 defconfig
+arc                              allyesconfig
+powerpc                       ppc64_defconfig
+powerpc                          rhel-kconfig
+microblaze                      mmu_defconfig
+microblaze                    nommu_defconfig
+powerpc                           allnoconfig
+mips                      fuloong2e_defconfig
+mips                      malta_kvm_defconfig
+mips                             allyesconfig
+mips                         64r6el_defconfig
+mips                              allnoconfig
+mips                           32r2_defconfig
+mips                             allmodconfig
+parisc                            allnoconfig
+parisc                           allyesconfig
+parisc                generic-32bit_defconfig
+parisc                generic-64bit_defconfig
+x86_64               randconfig-a001-20200322
+x86_64               randconfig-a002-20200322
+x86_64               randconfig-a003-20200322
+i386                 randconfig-a001-20200322
+i386                 randconfig-a002-20200322
+i386                 randconfig-a003-20200322
+mips                 randconfig-a001-20200322
+nds32                randconfig-a001-20200322
+m68k                 randconfig-a001-20200322
+parisc               randconfig-a001-20200322
+alpha                randconfig-a001-20200322
+riscv                randconfig-a001-20200322
+h8300                randconfig-a001-20200322
+microblaze           randconfig-a001-20200322
+nios2                randconfig-a001-20200322
+c6x                  randconfig-a001-20200322
+sparc64              randconfig-a001-20200322
+csky                 randconfig-a001-20200322
+openrisc             randconfig-a001-20200322
+s390                 randconfig-a001-20200322
+sh                   randconfig-a001-20200322
+xtensa               randconfig-a001-20200322
+i386                 randconfig-b003-20200322
+i386                 randconfig-b001-20200322
+x86_64               randconfig-b003-20200322
+i386                 randconfig-b002-20200322
+x86_64               randconfig-b002-20200322
+x86_64               randconfig-c001-20200322
+x86_64               randconfig-c002-20200322
+x86_64               randconfig-c003-20200322
+i386                 randconfig-c001-20200322
+i386                 randconfig-c002-20200322
+i386                 randconfig-c003-20200322
+i386                 randconfig-d003-20200322
+i386                 randconfig-d001-20200322
+i386                 randconfig-d002-20200322
+x86_64               randconfig-d001-20200322
+x86_64               randconfig-d003-20200322
+x86_64               randconfig-d002-20200322
+x86_64               randconfig-e001-20200322
+x86_64               randconfig-e002-20200322
+x86_64               randconfig-e003-20200322
+i386                 randconfig-e001-20200322
+i386                 randconfig-e002-20200322
+i386                 randconfig-e003-20200322
+i386                 randconfig-f001-20200322
+i386                 randconfig-f003-20200322
+i386                 randconfig-f002-20200322
+x86_64               randconfig-f002-20200322
+x86_64               randconfig-f003-20200322
+x86_64               randconfig-f001-20200322
+i386                 randconfig-g003-20200322
+x86_64               randconfig-g002-20200322
+i386                 randconfig-g001-20200322
+i386                 randconfig-g002-20200322
+x86_64               randconfig-g001-20200322
+x86_64               randconfig-g003-20200322
+x86_64               randconfig-h002-20200322
+x86_64               randconfig-h003-20200322
+i386                 randconfig-h003-20200322
+x86_64               randconfig-h001-20200322
+i386                 randconfig-h001-20200322
+i386                 randconfig-h002-20200322
+arm                  randconfig-a001-20200322
+arm64                randconfig-a001-20200322
+ia64                 randconfig-a001-20200322
+arc                  randconfig-a001-20200322
+sparc                randconfig-a001-20200322
+riscv                            allmodconfig
+riscv                             allnoconfig
+riscv                            allyesconfig
+riscv                               defconfig
+riscv                    nommu_virt_defconfig
+riscv                          rv32_defconfig
+s390                             alldefconfig
+s390                             allmodconfig
+s390                             allyesconfig
+s390                          debug_defconfig
+s390                                defconfig
+s390                       zfcpdump_defconfig
+sh                               allmodconfig
+sh                                allnoconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                            titan_defconfig
+sparc                               defconfig
+sparc64                          allmodconfig
+sparc64                           allnoconfig
+sparc64                          allyesconfig
+sparc64                             defconfig
+um                           x86_64_defconfig
+um                             i386_defconfig
+um                                  defconfig
+x86_64                              fedora-25
+x86_64                                  kexec
+x86_64                                    lkp
+x86_64                                   rhel
+x86_64                         rhel-7.2-clear
+x86_64                               rhel-7.6
+
 ---
- arch/arm64/mm/numa.c      |   13 +++++++++++++
- drivers/dax/Kconfig       |    1 +
- drivers/dax/hmem/Makefile |    3 ++-
- drivers/dax/hmem/device.c |   33 +++++++++++++++++++++++++++++++++
- 4 files changed, 49 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-index 4decf1659700..00fba21eaec0 100644
---- a/arch/arm64/mm/numa.c
-+++ b/arch/arm64/mm/numa.c
-@@ -468,3 +468,16 @@ int memory_add_physaddr_to_nid(u64 addr)
- 	pr_warn("Unknown node for memory at 0x%llx, assuming node 0\n", addr);
- 	return 0;
- }
-+
-+/*
-+ * device-dax instance registrations want a valid target-node in case
-+ * they are ever onlined as memory (see hmem_register_device()).
-+ *
-+ * TODO: consult cached numa info
-+ */
-+int phys_to_target_node(phys_addr_t addr)
-+{
-+	pr_warn_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
-+			addr);
-+	return 0;
-+}
-diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-index a229f45d34aa..163edde6ba41 100644
---- a/drivers/dax/Kconfig
-+++ b/drivers/dax/Kconfig
-@@ -50,6 +50,7 @@ config DEV_DAX_HMEM
- 
- config DEV_DAX_HMEM_DEVICES
- 	depends on DEV_DAX_HMEM
-+	select NUMA_KEEP_MEMINFO if NUMA
- 	def_bool y
- 
- config DEV_DAX_KMEM
-diff --git a/drivers/dax/hmem/Makefile b/drivers/dax/hmem/Makefile
-index a9d353d0c9ed..57377b4c3d47 100644
---- a/drivers/dax/hmem/Makefile
-+++ b/drivers/dax/hmem/Makefile
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_DEV_DAX_HMEM) += dax_hmem.o
--obj-$(CONFIG_DEV_DAX_HMEM_DEVICES) += device.o
-+obj-$(CONFIG_DEV_DAX_HMEM_DEVICES) += device_hmem.o
- 
-+device_hmem-y := device.o
- dax_hmem-y := hmem.o
-diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
-index 99bc15a8b031..f9c5fa8b1880 100644
---- a/drivers/dax/hmem/device.c
-+++ b/drivers/dax/hmem/device.c
-@@ -4,6 +4,9 @@
- #include <linux/module.h>
- #include <linux/mm.h>
- 
-+static bool nohmem;
-+module_param_named(disable, nohmem, bool, 0444);
-+
- void hmem_register_device(int target_nid, struct resource *r)
- {
- 	/* define a clean / non-busy resource for the platform device */
-@@ -16,6 +19,9 @@ void hmem_register_device(int target_nid, struct resource *r)
- 	struct memregion_info info;
- 	int rc, id;
- 
-+	if (nohmem)
-+		return;
-+
- 	rc = region_intersects(res.start, resource_size(&res), IORESOURCE_MEM,
- 			IORES_DESC_SOFT_RESERVED);
- 	if (rc != REGION_INTERSECTS)
-@@ -62,3 +68,30 @@ void hmem_register_device(int target_nid, struct resource *r)
- out_pdev:
- 	memregion_free(id);
- }
-+
-+static __init int hmem_register_one(struct resource *res, void *data)
-+{
-+	/*
-+	 * If the resource is not a top-level resource it was already
-+	 * assigned to a device by the HMAT parsing.
-+	 */
-+	if (res->parent != &iomem_resource)
-+		return 0;
-+
-+	hmem_register_device(phys_to_target_node(res->start), res);
-+
-+	return 0;
-+}
-+
-+static __init int hmem_init(void)
-+{
-+	walk_iomem_res_desc(IORES_DESC_SOFT_RESERVED,
-+			IORESOURCE_MEM, 0, -1, NULL, hmem_register_one);
-+	return 0;
-+}
-+
-+/*
-+ * As this is a fallback for address ranges unclaimed by the ACPI HMAT
-+ * parsing it must be at an initcall level greater than hmat_init().
-+ */
-+late_initcall(hmem_init);
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
