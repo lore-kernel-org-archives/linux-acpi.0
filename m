@@ -2,256 +2,130 @@ Return-Path: <SRS0=dG93=5K=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E93C1975A
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 Mar 2020 10:56:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C0FBC43331
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 Mar 2020 11:10:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CDBA82078E
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 Mar 2020 10:56:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1270220775
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 Mar 2020 11:10:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1585134647;
+	bh=+oORi421RJ9kNbff15hBXNngbNzPdLiPd7dkY8ZfVx8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=fv8NwmkjXpQYRc8y8TZzihvyWrPu5/Bwv5bvx5Fnl0OeY0oHCKOPPe/yw6oIvbLDv
+	 pl0DtjnJ/0U7RZ7Xi09TZMmWMY4OWj9d5EMHQGZOEoMW8j+0qlB3WJ+ZBEldcnPrOH
+	 P73vfMo8n0xMcNDauvEHsl9NG8bXCgY5v0fl82M8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727259AbgCYK4l convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 25 Mar 2020 06:56:41 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:45404 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726154AbgCYK4k (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Mar 2020 06:56:40 -0400
-Received: from 185.80.35.16 (185.80.35.16) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.341)
- id 832396319de3948e; Wed, 25 Mar 2020 11:56:38 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     Linux PM <linux-pm@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Bob Moore <robert.moore@intel.com>,
-        =?utf-8?B?T25kxZllag==?= Caletka <ondrej@caletka.cz>
-Subject: [PATCH 1/2] ACPICA: Allow acpi_any_gpe_status_set() to skip one GPE
-Date:   Wed, 25 Mar 2020 11:54:29 +0100
-Message-ID: <2501943.mi8mbN1kY1@kreacher>
-In-Reply-To: <9291082.ZuhHelrm8h@kreacher>
-References: <9291082.ZuhHelrm8h@kreacher>
+        id S1726264AbgCYLKq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 25 Mar 2020 07:10:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55142 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726262AbgCYLKq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 25 Mar 2020 07:10:46 -0400
+Received: from willie-the-truck (236.31.169.217.in-addr.arpa [217.169.31.236])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6B8A320714;
+        Wed, 25 Mar 2020 11:10:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1585134645;
+        bh=+oORi421RJ9kNbff15hBXNngbNzPdLiPd7dkY8ZfVx8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=LyTvEz1HkRScEIks3fLO6NxSaEHP3bTnF7g8lw6/Sw86AIEcst4Vj/SPWtZuK/NmF
+         k0ZGmVK6WItq5DMMpc4X2IZd9Mq49bJLWf0Xffqqi6SYMw1UYEfFYhdKwRRgO6bl8X
+         /zcT5VGeyoe/A3wFwuVze9CnAzNQ3nI/5MVCmnjU=
+Date:   Wed, 25 Mar 2020 11:10:40 +0000
+From:   Will Deacon <will@kernel.org>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     linux-acpi@vger.kernel.org,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Brice Goglin <Brice.Goglin@inria.fr>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Jeff Moyer <jmoyer@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        peterz@infradead.org, dave.hansen@linux.intel.com,
+        linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
+        x86@kernel.org, joao.m.martins@oracle.com
+Subject: Re: [PATCH v2 6/6] ACPI: HMAT: Attach a device for each
+ soft-reserved range
+Message-ID: <20200325111039.GA32109@willie-the-truck>
+References: <158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <158489357825.1457606.17352509511987748598.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <158489357825.1457606.17352509511987748598.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Sun, Mar 22, 2020 at 09:12:58AM -0700, Dan Williams wrote:
+> The hmem enabling in commit 'cf8741ac57ed ("ACPI: NUMA: HMAT: Register
+> "soft reserved" memory as an "hmem" device")' only registered ranges to
+> the hmem driver for each soft-reservation that also appeared in the
+> HMAT. While this is meant to encourage platform firmware to "do the
+> right thing" and publish an HMAT, the corollary is that platforms that
+> fail to publish an accurate HMAT will strand memory from Linux usage.
+> Additionally, the "efi_fake_mem" kernel command line option enabling
+> will strand memory by default without an HMAT.
+> 
+> Arrange for "soft reserved" memory that goes unclaimed by HMAT entries
+> to be published as raw resource ranges for the hmem driver to consume.
+> 
+> Include a module parameter to disable either this fallback behavior, or
+> the hmat enabling from creating hmem devices. The module parameter
+> requires the hmem device enabling to have unique name in the module
+> namespace: "device_hmem".
+> 
+> Rather than mark this x86-only, include an interim phys_to_target_node()
+> implementation for arm64.
+> 
+> Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Cc: Brice Goglin <Brice.Goglin@inria.fr>
+> Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will@kernel.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  arch/arm64/mm/numa.c      |   13 +++++++++++++
+>  drivers/dax/Kconfig       |    1 +
+>  drivers/dax/hmem/Makefile |    3 ++-
+>  drivers/dax/hmem/device.c |   33 +++++++++++++++++++++++++++++++++
+>  4 files changed, 49 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+> index 4decf1659700..00fba21eaec0 100644
+> --- a/arch/arm64/mm/numa.c
+> +++ b/arch/arm64/mm/numa.c
+> @@ -468,3 +468,16 @@ int memory_add_physaddr_to_nid(u64 addr)
+>  	pr_warn("Unknown node for memory at 0x%llx, assuming node 0\n", addr);
+>  	return 0;
+>  }
+> +
+> +/*
+> + * device-dax instance registrations want a valid target-node in case
+> + * they are ever onlined as memory (see hmem_register_device()).
+> + *
+> + * TODO: consult cached numa info
+> + */
+> +int phys_to_target_node(phys_addr_t addr)
+> +{
+> +	pr_warn_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
+> +			addr);
+> +	return 0;
+> +}
 
-The check carried out by acpi_any_gpe_status_set() is not precise enough
-for the suspend-to-idle implementation in Linux and in some cases it is
-necessary make it skip one GPE (specifically, the EC GPE) from the check
-to prevent a race condition leading to a premature system resume from
-occurring.
+Could you implement a generic version of this by iterating over the nodes
+with for_each_{,online_}node() and checking for intersection with
+node_{start,end}_pfn()?
 
-For this reason, redefine acpi_any_gpe_status_set() to take the number
-of a GPE to skip as an argument.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=206629
-Tested-by: Ondřej Caletka <ondrej@caletka.cz>
-Cc: 5.4+ <stable@vger.kernel.org> # 5.4+
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/achware.h |  2 +-
- drivers/acpi/acpica/evxfgpe.c | 17 +++++++++++-----
- drivers/acpi/acpica/hwgpe.c   | 47 ++++++++++++++++++++++++++++++++++---------
- drivers/acpi/sleep.c          |  2 +-
- include/acpi/acpixf.h         |  2 +-
- 5 files changed, 53 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
-index 6ad0517553d5..ebf6453d0e21 100644
---- a/drivers/acpi/acpica/achware.h
-+++ b/drivers/acpi/acpica/achware.h
-@@ -101,7 +101,7 @@ acpi_status acpi_hw_enable_all_runtime_gpes(void);
- 
- acpi_status acpi_hw_enable_all_wakeup_gpes(void);
- 
--u8 acpi_hw_check_all_gpes(void);
-+u8 acpi_hw_check_all_gpes(acpi_handle gpe_skip_device, u32 gpe_skip_number);
- 
- acpi_status
- acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
-diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-index f2de66bfd8a7..3be60673e461 100644
---- a/drivers/acpi/acpica/evxfgpe.c
-+++ b/drivers/acpi/acpica/evxfgpe.c
-@@ -799,17 +799,19 @@ ACPI_EXPORT_SYMBOL(acpi_enable_all_wakeup_gpes)
-  *
-  * FUNCTION:    acpi_any_gpe_status_set
-  *
-- * PARAMETERS:  None
-+ * PARAMETERS:  gpe_skip_number      - Number of the GPE to skip
-  *
-  * RETURN:      Whether or not the status bit is set for any GPE
-  *
-- * DESCRIPTION: Check the status bits of all enabled GPEs and return TRUE if any
-- *              of them is set or FALSE otherwise.
-+ * DESCRIPTION: Check the status bits of all enabled GPEs, except for the one
-+ *              represented by the "skip" argument, and return TRUE if any of
-+ *              them is set or FALSE otherwise.
-  *
-  ******************************************************************************/
--u32 acpi_any_gpe_status_set(void)
-+u32 acpi_any_gpe_status_set(u32 gpe_skip_number)
- {
- 	acpi_status status;
-+	acpi_handle gpe_device;
- 	u8 ret;
- 
- 	ACPI_FUNCTION_TRACE(acpi_any_gpe_status_set);
-@@ -819,7 +821,12 @@ u32 acpi_any_gpe_status_set(void)
- 		return (FALSE);
- 	}
- 
--	ret = acpi_hw_check_all_gpes();
-+	status = acpi_get_gpe_device(gpe_skip_number, &gpe_device);
-+	if (ACPI_FAILURE(status)) {
-+		gpe_device = NULL;
-+	}
-+
-+	ret = acpi_hw_check_all_gpes(gpe_device, gpe_skip_number);
- 	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
- 
- 	return (ret);
-diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
-index f4c285c2f595..49c46d4dd070 100644
---- a/drivers/acpi/acpica/hwgpe.c
-+++ b/drivers/acpi/acpica/hwgpe.c
-@@ -444,12 +444,19 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 	return (AE_OK);
- }
- 
-+struct acpi_gpe_block_status_context {
-+	struct acpi_gpe_register_info *gpe_skip_register_info;
-+	u8 gpe_skip_mask;
-+	u8 retval;
-+};
-+
- /******************************************************************************
-  *
-  * FUNCTION:    acpi_hw_get_gpe_block_status
-  *
-  * PARAMETERS:  gpe_xrupt_info      - GPE Interrupt info
-  *              gpe_block           - Gpe Block info
-+ *              context             - GPE list walk context data
-  *
-  * RETURN:      Success
-  *
-@@ -460,12 +467,13 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- static acpi_status
- acpi_hw_get_gpe_block_status(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 			     struct acpi_gpe_block_info *gpe_block,
--			     void *ret_ptr)
-+			     void *context)
- {
-+	struct acpi_gpe_block_status_context *c = context;
- 	struct acpi_gpe_register_info *gpe_register_info;
- 	u64 in_enable, in_status;
- 	acpi_status status;
--	u8 *ret = ret_ptr;
-+	u8 ret_mask;
- 	u32 i;
- 
- 	/* Examine each GPE Register within the block */
-@@ -485,7 +493,11 @@ acpi_hw_get_gpe_block_status(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 			continue;
- 		}
- 
--		*ret |= in_enable & in_status;
-+		ret_mask = in_enable & in_status;
-+		if (ret_mask && c->gpe_skip_register_info == gpe_register_info) {
-+			ret_mask &= ~c->gpe_skip_mask;
-+		}
-+		c->retval |= ret_mask;
- 	}
- 
- 	return (AE_OK);
-@@ -561,24 +573,41 @@ acpi_status acpi_hw_enable_all_wakeup_gpes(void)
-  *
-  * FUNCTION:    acpi_hw_check_all_gpes
-  *
-- * PARAMETERS:  None
-+ * PARAMETERS:  gpe_skip_device      - GPE devoce of the GPE to skip
-+ *              gpe_skip_number      - Number of the GPE to skip
-  *
-  * RETURN:      Combined status of all GPEs
-  *
-- * DESCRIPTION: Check all enabled GPEs in all GPE blocks and return TRUE if the
-+ * DESCRIPTION: Check all enabled GPEs in all GPE blocks, except for the one
-+ *              represented by the "skip" arguments, and return TRUE if the
-  *              status bit is set for at least one of them of FALSE otherwise.
-  *
-  ******************************************************************************/
- 
--u8 acpi_hw_check_all_gpes(void)
-+u8 acpi_hw_check_all_gpes(acpi_handle gpe_skip_device, u32 gpe_skip_number)
- {
--	u8 ret = 0;
-+	struct acpi_gpe_block_status_context context = {
-+		.gpe_skip_register_info = NULL,
-+		.retval = 0,
-+	};
-+	struct acpi_gpe_event_info *gpe_event_info;
-+	acpi_cpu_flags flags;
- 
- 	ACPI_FUNCTION_TRACE(acpi_hw_check_all_gpes);
- 
--	(void)acpi_ev_walk_gpe_list(acpi_hw_get_gpe_block_status, &ret);
-+	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
-+
-+	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_skip_device,
-+						    gpe_skip_number);
-+	if (gpe_event_info) {
-+		context.gpe_skip_register_info = gpe_event_info->register_info;
-+		context.gpe_skip_mask = acpi_hw_get_gpe_register_bit(gpe_event_info);
-+	}
-+
-+	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
- 
--	return (ret != 0);
-+	(void)acpi_ev_walk_gpe_list(acpi_hw_get_gpe_block_status, &context);
-+	return (context.retval != 0);
- }
- 
- #endif				/* !ACPI_REDUCED_HARDWARE */
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index e5f95922bc21..857a6165c534 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -1022,7 +1022,7 @@ static bool acpi_s2idle_wake(void)
- 		 * status bit from unset to set between the checks with the
- 		 * status bits of all the other GPEs unset.
- 		 */
--		if (acpi_any_gpe_status_set() && !acpi_ec_dispatch_gpe())
-+		if (acpi_any_gpe_status_set(U32_MAX) && !acpi_ec_dispatch_gpe())
- 			return true;
- 
- 		/*
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 8e8be989c2a6..a50d6dea44c3 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -752,7 +752,7 @@ ACPI_HW_DEPENDENT_RETURN_UINT32(u32 acpi_dispatch_gpe(acpi_handle gpe_device, u3
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_disable_all_gpes(void))
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_enable_all_runtime_gpes(void))
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_enable_all_wakeup_gpes(void))
--ACPI_HW_DEPENDENT_RETURN_UINT32(u32 acpi_any_gpe_status_set(void))
-+ACPI_HW_DEPENDENT_RETURN_UINT32(u32 acpi_any_gpe_status_set(u32 gpe_skip_number))
- ACPI_HW_DEPENDENT_RETURN_UINT32(u32 acpi_any_fixed_event_status_set(void))
- 
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
--- 
-2.16.4
-
-
-
-
+Will
