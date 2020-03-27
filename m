@@ -2,77 +2,100 @@ Return-Path: <SRS0=d41Y=5M=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.7 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE0D1C2D0EC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92D03C43331
 	for <linux-acpi@archiver.kernel.org>; Fri, 27 Mar 2020 22:43:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9069A2072F
+	by mail.kernel.org (Postfix) with ESMTP id 6464520717
 	for <linux-acpi@archiver.kernel.org>; Fri, 27 Mar 2020 22:43:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727774AbgC0WnM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1727752AbgC0WnM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 27 Mar 2020 18:43:12 -0400
 Received: from mga14.intel.com ([192.55.52.115]:52441 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727729AbgC0WnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 27 Mar 2020 18:43:12 -0400
-IronPort-SDR: 3tZDiJip0Rk80SpZZL+UvVeh7/DjKQYXaH4uKbOeiwQw+w9tGfH6fl84eB8nyfsm9mDI1XVYaw
- +ahtnF4tKpmw==
+        id S1727705AbgC0WnL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 27 Mar 2020 18:43:11 -0400
+IronPort-SDR: zfxCffLH+XHALRiGDuXris5Eim3VA8dASGTvTaA/U5fBx7BAJJxhxz/6LT3QshGD9QMCyebVaQ
+ hpRC2YpSJZig==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
   by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2020 15:43:11 -0700
-IronPort-SDR: aYZ6ppsJB56oAUO9AfJjoOiukDHNFmebYyhoYhbNCcNtF2W0XIz5VO+jIwq7RBn0MDTzM99P0O
- zexVrICc6fIg==
+IronPort-SDR: BB7k24liULIHfQcX0jqnd94/qgziqdT9uEHSnjOHkQ3Q6l7Tm0nUH3QE27LbXwAfm8dvkqtWxF
+ 3K/xOe6qcEEw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,314,1580803200"; 
-   d="scan'208";a="294051963"
+   d="scan'208";a="294051959"
 Received: from sibelius.jf.intel.com ([10.54.75.172])
   by FMSMGA003.fm.intel.com with ESMTP; 27 Mar 2020 15:43:10 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 01/10] ACPICA: Fix a typo in a comment field
-Date:   Fri, 27 Mar 2020 15:21:01 -0700
-Message-Id: <20200327222110.1204634-2-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH 00/10] ACPICA release 20200326
+Date:   Fri, 27 Mar 2020 15:21:00 -0700
+Message-Id: <20200327222110.1204634-1-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200327222110.1204634-1-erik.kaneda@intel.com>
-References: <20200327222110.1204634-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+This patch set contains the linux-ized patches of the ACPICA release
+version 20200326
 
-ACPICA commit f3504c591c8766c70402dcc786391ff6748b515a
+This release mostly consists of changes in the iASL compiler and the
+acpiexec utility so linux changes are quite small. The acpiexec
+change is specifically intended for the userspace utility's custom
+initialization feature so there is no functional change in the kernel
+space AML interpreter. Other than that, there were several additions to
+ACPI tables such a new IVRS subtype and NHLT as well as trivial typo
+fixes.
 
-Link: https://github.com/acpica/acpica/commit/f3504c59
-Reported-by: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
----
- include/acpi/acuuid.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Bob Moore (3):
+  ACPICA: Fix a typo in a comment field
+  ACPICA: Fixes for acpiExec namespace init file
+  ACPICA: Update version 20200326
 
-diff --git a/include/acpi/acuuid.h b/include/acpi/acuuid.h
-index 9dd4689a39cf..9e1367b19069 100644
---- a/include/acpi/acuuid.h
-+++ b/include/acpi/acuuid.h
-@@ -57,4 +57,4 @@
- #define UUID_THERMAL_EXTENSIONS         "14d399cd-7a27-4b18-8fb4-7cb7b9f4e500"
- #define UUID_DEVICE_PROPERTIES          "daffd814-6eba-4d8c-8a91-bc9bbf4aa301"
- 
--#endif				/* __AUUID_H__ */
-+#endif				/* __ACUUID_H__ */
+Cezary Rojewski (1):
+  ACPICA: Add NHLT table signature
+
+Erik Kaneda (3):
+  ACPICA: Change PlatformCommChannel ASL keyword to PCC
+  ACPICA: acpiexec: remove redeclaration of
+    acpi_gbl_db_opt_no_region_support
+  ACPICA: WSMT: Fix typo, no functional change
+
+John Levon (1):
+  ACPICA: utilities: fix sprintf()
+
+Michał Żygowski (2):
+  ACPICA: Implement IVRS IVHD type 11h parsing
+  ACPICA: Fix IVRS IVHD type 10h reserved field name
+
+ drivers/acpi/acpica/acnamesp.h |  2 ++
+ drivers/acpi/acpica/dbinput.c  | 16 +++++++--------
+ drivers/acpi/acpica/dbxface.c  |  1 +
+ drivers/acpi/acpica/dswexec.c  | 33 +++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/dswload.c  |  2 --
+ drivers/acpi/acpica/dswload2.c | 36 ++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/nsnames.c  |  6 +-----
+ drivers/acpi/acpica/utdecode.c |  2 +-
+ drivers/acpi/acpica/utdelete.c |  9 +++++----
+ drivers/acpi/acpica/utprint.c  |  7 ++++++-
+ drivers/acpi/tables.c          |  2 +-
+ include/acpi/acpixf.h          |  2 +-
+ include/acpi/actbl2.h          | 21 +++++++++++++++++---
+ include/acpi/actbl3.h          |  6 +++---
+ include/acpi/acuuid.h          |  2 +-
+ 15 files changed, 116 insertions(+), 31 deletions(-)
+
 -- 
 2.25.1
 
