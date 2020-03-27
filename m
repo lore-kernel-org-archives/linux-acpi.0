@@ -7,111 +7,93 @@ X-Spam-Status: No, score=-14.7 required=3.0
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC24C2D0E5
-	for <linux-acpi@archiver.kernel.org>; Fri, 27 Mar 2020 22:43:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82BA9C2D0F1
+	for <linux-acpi@archiver.kernel.org>; Fri, 27 Mar 2020 22:43:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC53C20717
-	for <linux-acpi@archiver.kernel.org>; Fri, 27 Mar 2020 22:43:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56DC820663
+	for <linux-acpi@archiver.kernel.org>; Fri, 27 Mar 2020 22:43:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727775AbgC0WnM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 27 Mar 2020 18:43:12 -0400
+        id S1727791AbgC0WnN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 27 Mar 2020 18:43:13 -0400
 Received: from mga14.intel.com ([192.55.52.115]:52441 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727705AbgC0WnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 27 Mar 2020 18:43:12 -0400
-IronPort-SDR: dfu2FATabOKgeSSVAJ9m1LVgVga05VnGJ/EzP1NPO8meH8PcvR/sqO82RqSQ1YgUlapJhSzr5V
- Kr2rMq0XdERQ==
+        id S1727781AbgC0WnN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 27 Mar 2020 18:43:13 -0400
+IronPort-SDR: KgwRsrTrUVV6jLnywDwERy1pHxjszm1aktIWlmKiwQOIZ/S2TRqwJdUDJCMJxcGCuq7/4J9guq
+ VPJgiAYAxR4w==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
   by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2020 15:43:12 -0700
-IronPort-SDR: RkD8fRJzT0T69WqeOl+dg6R6+HETAYcb1OPVoQjm5P6IEs3JBaKDyxvKwo9jZu872fo73gmgSK
- L4ozl72nfELg==
+IronPort-SDR: RwrZBSuGXdkIsVpivyBYWUzqiD4FKeEQ+sp3SzgNjXNKqYLeqwDcaNi0IKjulCZyxcBUlyIaCP
+ 27WO6kKPAGsA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,314,1580803200"; 
-   d="scan'208";a="294051966"
+   d="scan'208";a="294051979"
 Received: from sibelius.jf.intel.com ([10.54.75.172])
-  by FMSMGA003.fm.intel.com with ESMTP; 27 Mar 2020 15:43:10 -0700
+  by FMSMGA003.fm.intel.com with ESMTP; 27 Mar 2020 15:43:11 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     =?UTF-8?q?Micha=C5=82=20=C5=BBygowski?= <michal.zygowski@3mdeb.com>,
+Cc:     John Levon <john.levon@joyent.com>,
+        MSathieu <18145111+MSathieu@users.noreply.github.com>,
         Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 02/10] ACPICA: Implement IVRS IVHD type 11h parsing
-Date:   Fri, 27 Mar 2020 15:21:02 -0700
-Message-Id: <20200327222110.1204634-3-erik.kaneda@intel.com>
+Subject: [PATCH 06/10] ACPICA: utilities: fix sprintf()
+Date:   Fri, 27 Mar 2020 15:21:06 -0700
+Message-Id: <20200327222110.1204634-7-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327222110.1204634-1-erik.kaneda@intel.com>
 References: <20200327222110.1204634-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Michał Żygowski <michal.zygowski@3mdeb.com>
+From: John Levon <john.levon@joyent.com>
 
-ACPICA commit 6ddc19419896e4149ced1b5f35f0dc12516c0399
+This commit contains changes for the following commit ID's:
+8f99a6ccd3b8e5c3d3d68c53fdbb054c2477eeb4
+d30647af53abd334cbcf6362387464ea647bac9e
+d3c5fb4cf5b2880d789c987eb847fc3de3774abc
 
-The AMD IVRS table parsing supported only IVHD type 10h structures.
-Parsing an IVHD type 11h caused the iasl to report unknown subtable type.
-Add necessary structure definition for IVHD type 11h and apply correct
-parsing method based on subtable type.
+On 32-bit, the provided sprintf() is non-functional: with a size of
+ACPI_UINT32_MAX, String + Size will wrap, meaning End < Start, and
+acpi_ut_bound_string_output() will never output anything as a result.
 
-Link: https://github.com/acpica/acpica/commit/6ddc1941
-Signed-off-by: Michał Żygowski <michal.zygowski@3mdeb.com>
+The symptom we saw of this was acpixtract failing to output anything.
+
+Link: https://github.com/acpica/acpica/commit/8f99a6cc
+Link: https://github.com/acpica/acpica/commit/d30647af
+Link: https://github.com/acpica/acpica/commit/d3c5fb4c
+Signed-off-by: MSathieu <18145111+MSathieu@users.noreply.github.com>
+Signed-off-by: John Levon <john.levon@joyent.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl2.h | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/utprint.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index b818ba60e19d..93323aeddc5a 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -274,7 +274,8 @@ struct acpi_ivrs_header {
- /* Values for subtable Type above */
+diff --git a/drivers/acpi/acpica/utprint.c b/drivers/acpi/acpica/utprint.c
+index a874dac7db5c..681c11f4af4e 100644
+--- a/drivers/acpi/acpica/utprint.c
++++ b/drivers/acpi/acpica/utprint.c
+@@ -332,7 +332,12 @@ int vsnprintf(char *string, acpi_size size, const char *format, va_list args)
+ 	int i;
  
- enum acpi_ivrs_type {
--	ACPI_IVRS_TYPE_HARDWARE = 0x10,
-+	ACPI_IVRS_TYPE_HARDWARE1 = 0x10,
-+	ACPI_IVRS_TYPE_HARDWARE2 = 0x11,
- 	ACPI_IVRS_TYPE_MEMORY1 = 0x20,
- 	ACPI_IVRS_TYPE_MEMORY2 = 0x21,
- 	ACPI_IVRS_TYPE_MEMORY3 = 0x22
-@@ -301,7 +302,7 @@ enum acpi_ivrs_type {
- 
- /* 0x10: I/O Virtualization Hardware Definition Block (IVHD) */
- 
--struct acpi_ivrs_hardware {
-+struct acpi_ivrs_hardware_10 {
- 	struct acpi_ivrs_header header;
- 	u16 capability_offset;	/* Offset for IOMMU control fields */
- 	u64 base_address;	/* IOMMU control registers */
-@@ -310,6 +311,19 @@ struct acpi_ivrs_hardware {
- 	u32 reserved;
- };
- 
-+/* 0x11: I/O Virtualization Hardware Definition Block (IVHD) */
+ 	pos = string;
+-	end = string + size;
 +
-+struct acpi_ivrs_hardware_11 {
-+	struct acpi_ivrs_header header;
-+	u16 capability_offset;	/* Offset for IOMMU control fields */
-+	u64 base_address;	/* IOMMU control registers */
-+	u16 pci_segment_group;
-+	u16 info;		/* MSI number and unit ID */
-+	u32 attributes;
-+	u64 efr_register_image;
-+	u64 reserved;
-+};
-+
- /* Masks for Info field above */
++	if (size != ACPI_UINT32_MAX) {
++		end = string + size;
++	} else {
++		end = ACPI_CAST_PTR(char, ACPI_UINT32_MAX);
++	}
  
- #define ACPI_IVHD_MSI_NUMBER_MASK   0x001F	/* 5 bits, MSI message number */
+ 	for (; *format; ++format) {
+ 		if (*format != '%') {
 -- 
 2.25.1
 
