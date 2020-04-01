@@ -2,82 +2,100 @@ Return-Path: <SRS0=k5xT=5R=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43516C2D0E7
-	for <linux-acpi@archiver.kernel.org>; Wed,  1 Apr 2020 08:37:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25A35C2D0F2
+	for <linux-acpi@archiver.kernel.org>; Wed,  1 Apr 2020 09:05:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 19DBB20784
-	for <linux-acpi@archiver.kernel.org>; Wed,  1 Apr 2020 08:37:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E667B20787
+	for <linux-acpi@archiver.kernel.org>; Wed,  1 Apr 2020 09:05:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1585731950;
+	bh=dYnwFkWvQCi/4RsslUhKhGsUJy6ilgkHanAfAP9SWJc=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=N76OnMHXCyOfaDRo7ZqIFcAZOVuPCsQGdoH/nNK3nhwI/bWTqkiWlG4DrJIPwXQXv
+	 kptF4BYqrtqiX+5XTw77aKus0o9/ulBbyzDpuGikqwv5DMdovC+qADXn813+v72MMa
+	 bF/8YY4mn8248d2QYzQKJKeK+nkg+oEp5FAW/teY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731743AbgDAIhm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 1 Apr 2020 04:37:42 -0400
-Received: from mga18.intel.com ([134.134.136.126]:4228 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730821AbgDAIhg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 1 Apr 2020 04:37:36 -0400
-IronPort-SDR: AcdjHQV8OvQKXXJ5fpFG+xxnofjEeyp1ovN3+DpD60MFBOJbom9Q8BmBvO0+v5A+5ABAB8BJsg
- K060/dbiKm8Q==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2020 01:37:35 -0700
-IronPort-SDR: /b9M4uVVdfFwYF+eLcG0YgHzbAm+2wMrLNO/iMT7tdQjqU/n6RCUDHEDg1dQhNsSmXKOCvkOF6
- EtGE4tXUYcpQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.72,331,1580803200"; 
-   d="scan'208";a="422630387"
-Received: from vikasjox-mobl.amr.corp.intel.com (HELO localhost) ([10.249.39.53])
-  by orsmga005.jf.intel.com with ESMTP; 01 Apr 2020 01:37:31 -0700
-Date:   Wed, 1 Apr 2020 11:37:29 +0300
-From:   Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-To:     Stefan Berger <stefanb@linux.vnet.ibm.com>, rjw@rjwysocki.net
-Cc:     linux-integrity@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
+        id S1729662AbgDAJFt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 1 Apr 2020 05:05:49 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:35003 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728087AbgDAJFt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2020 05:05:49 -0400
+Received: by mail-ot1-f68.google.com with SMTP id v2so20595618oto.2;
+        Wed, 01 Apr 2020 02:05:48 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3Fstvq6bf/isSvXClPNvU/mMqL1HK/pXGHf70k9sUOo=;
+        b=knfpKXqvnLZzXvI4ynzplYgQYdnP6nXqncQM723/3EkvYgkE8EvFWO8h7kwBfPe0LE
+         mR47Pa/+cZcdNO7lJ1j7mU6MnUQUYkeu/brEAhh+yD3V/ORqMjvEIThWQgx6N9mnXTBf
+         /ICtFFh6kAbCsUuMQZPoG1ebFbK4y/VLFaigUc6Vqbs3Jn5xW70VzlwQEZUxrhh9Dx6Q
+         k6wv2gO4S+nCGGTfVnikmavK+VJ2ScNXtbcamoFzeW38cOYbWRASDbpdPULRtYsozR9Z
+         tE7ZpyAmcExwoMq7HCGoM1xyLwNZM45biBlouJFHh7OTwn8BZYzMYgEeswn5Ob1zOTyl
+         +teg==
+X-Gm-Message-State: ANhLgQ22Can+bKJ/LOIqQ2x0xPwu9ilzU9hKTOf7NxggGDqph2uZLqNy
+        o7QV6PmuiZUzwWVa+B87f9PybZ8W7vrX1/8bVFLhWg==
+X-Google-Smtp-Source: ADFU+vs8rdELrg94gi2naBSfmudqSPJ7IVSOD/AD2w9UhPFDQZB/mQeMNupqUem7PyopiRqiRpQkRQR4+RbvnVUVUEk=
+X-Received: by 2002:a4a:7555:: with SMTP id g21mr16266455oof.46.1585731948303;
+ Wed, 01 Apr 2020 02:05:48 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200331214949.883781-1-stefanb@linux.vnet.ibm.com> <20200401083729.GD17325@linux.intel.com>
+In-Reply-To: <20200401083729.GD17325@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 1 Apr 2020 11:05:36 +0200
+Message-ID: <CAJZ5v0gQ04h1+zN4wHj1vkwPvqu3RPfsY60VJ+GOtgUrvWuxLQ@mail.gmail.com>
+Subject: Re: [PATCH v3] acpi: Extend TPM2 ACPI table with missing log fields
+To:     Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc:     Stefan Berger <stefanb@linux.vnet.ibm.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        linux-integrity@vger.kernel.org,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-security-module@vger.kernel.org,
         Stefan Berger <stefanb@linux.ibm.com>
-Subject: Re: [PATCH v3] acpi: Extend TPM2 ACPI table with missing log fields
-Message-ID: <20200401083729.GD17325@linux.intel.com>
-References: <20200331214949.883781-1-stefanb@linux.vnet.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200331214949.883781-1-stefanb@linux.vnet.ibm.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 31, 2020 at 05:49:49PM -0400, Stefan Berger wrote:
-> From: Stefan Berger <stefanb@linux.ibm.com>
-> 
-> Recent extensions of the TPM2 ACPI table added 3 more fields
-> including 12 bytes of start method specific parameters and Log Area
-> Minimum Length (u32) and Log Area Start Address (u64). So, we extend
-> the existing structure with these fields to allow non-UEFI systems
-> to access the TPM2's log.
-> 
-> The specification that has the new fields is the following:
->   TCG ACPI Specification
->   Family "1.2" and "2.0"
->   Version 1.2, Revision 8
-> 
-> Adapt all existing table size calculations to use
-> offsetof(struct acpi_table_tpm2, start_method_specific)
-> [where start_method_specific is a newly added field]
-> rather than sizeof(struct acpi_table_tpm2) so that the addition
-> of the new fields does not affect current systems that may not
-> have them.
-> 
-> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
-> Cc: linux-acpi@vger.kernel.org
+On Wed, Apr 1, 2020 at 10:37 AM Jarkko Sakkinen
+<jarkko.sakkinen@linux.intel.com> wrote:
+>
+> On Tue, Mar 31, 2020 at 05:49:49PM -0400, Stefan Berger wrote:
+> > From: Stefan Berger <stefanb@linux.ibm.com>
+> >
+> > Recent extensions of the TPM2 ACPI table added 3 more fields
+> > including 12 bytes of start method specific parameters and Log Area
+> > Minimum Length (u32) and Log Area Start Address (u64). So, we extend
+> > the existing structure with these fields to allow non-UEFI systems
+> > to access the TPM2's log.
+> >
+> > The specification that has the new fields is the following:
+> >   TCG ACPI Specification
+> >   Family "1.2" and "2.0"
+> >   Version 1.2, Revision 8
+> >
+> > Adapt all existing table size calculations to use
+> > offsetof(struct acpi_table_tpm2, start_method_specific)
+> > [where start_method_specific is a newly added field]
+> > rather than sizeof(struct acpi_table_tpm2) so that the addition
+> > of the new fields does not affect current systems that may not
+> > have them.
+> >
+> > Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> > Cc: linux-acpi@vger.kernel.org
+>
+> I think I'm cool with this but needs an ack from ACPI maintainer.
+>
+> Rafael, given that this not an intrusive change in any possible means,
+> can I pick this patch and put it to my next pull request?
 
-I think I'm cool with this but needs an ack from ACPI maintainer.
+Yes, please.
 
-Rafael, given that this not an intrusive change in any possible means,
-can I pick this patch and put it to my next pull request?
-
-/Jarkko
+Thanks!
