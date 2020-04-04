@@ -2,219 +2,77 @@ Return-Path: <SRS0=civS=5U=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32BA6C2BA1E
-	for <linux-acpi@archiver.kernel.org>; Sat,  4 Apr 2020 11:52:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F3CDC4332B
+	for <linux-acpi@archiver.kernel.org>; Sat,  4 Apr 2020 17:51:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A265206E9
-	for <linux-acpi@archiver.kernel.org>; Sat,  4 Apr 2020 11:52:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Z3OHSHnW"
+	by mail.kernel.org (Postfix) with ESMTP id 4DAD22070E
+	for <linux-acpi@archiver.kernel.org>; Sat,  4 Apr 2020 17:51:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1586022661;
+	bh=Y95rECaQ8JB4IMFJRuAfYH3Qk60HSfmhEkxfieQ/dWg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=HriERFtsaAp1vMbojLVAk419G62RpLup4P3Yoqvg/Rlr/x3suS57D0lEjCiMkbsOf
+	 hkS1D6ZvzlvLatT3GQo9SWFuw1Wf0UM2UVyZ33JdWSFETYb//O30kG7cK8TsheJCnG
+	 Z5JeN6ConrlJn6PxipourtRYzhgdgft2+dcw4p4c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726303AbgDDLw4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 4 Apr 2020 07:52:56 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:60569 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726307AbgDDLwz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2020 07:52:55 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1586001173;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=f64FR+wQwG4Rf+1Nwf9deQLAxinVjgUZ9huOaCrREcU=;
-        b=Z3OHSHnWPWsWIyIGN/wtzxXfwRCbOzgoDMqprZpfeMmNuoRNLuu0mV4ryC6WHKcV5lU+jk
-        NaQnC7XcMk0xBeaXYyczpDqj2fgxvPSleYPHilcUqJL/8IUDe4y6w1l6QzBQzva/yi1ZcQ
-        lsjoUPEKUW7H0aOPQI8uyqsEzod3qkQ=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-364-c4q4cfetPwGpxztdcL_Caw-1; Sat, 04 Apr 2020 07:52:52 -0400
-X-MC-Unique: c4q4cfetPwGpxztdcL_Caw-1
-Received: by mail-wm1-f71.google.com with SMTP id f81so67435wmf.2
-        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2020 04:52:51 -0700 (PDT)
+        id S1726683AbgDDRvA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 4 Apr 2020 13:51:00 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:34396 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726679AbgDDRvA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2020 13:51:00 -0400
+Received: by mail-ot1-f65.google.com with SMTP id m2so10902895otr.1;
+        Sat, 04 Apr 2020 10:51:00 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=f64FR+wQwG4Rf+1Nwf9deQLAxinVjgUZ9huOaCrREcU=;
-        b=uoIX+SP6EwG0bkefGHouYXhrsVS8uX7aOkROT0BOaIIgD98ZGKUaa2P3WB+5dW1/kO
-         UAy6oJ+lmzsSygM58/pJIA69zczsa2GCyFtjdzNd8c7no3jpeircdXxMXUALKgt7tqs5
-         Yqdwe5rBwagCKpVAbttt6qNrIACYtjarqA0mIIIShbtngJfUHNq/TZOXYmZfg8AmNYCT
-         VlTkUlXvei8MKcVjw8K2HYlS92atVOC1h5M1Z93NZ1z7LZGyCDhhoxAw/gESXA7qdTJp
-         la326J8nAGJQYBb0gPiVkISQUdd60VzFra1SOW0MW2dIq6gzjnas0ZeSCNMBdRIZnqfh
-         u4HQ==
-X-Gm-Message-State: AGi0Pua2NZIK4Reg9Z04kJL7uTVD35RPlhXv60c3hEageP79WUApX/uq
-        aVjlgWr0jz0r4y7s5iiwbT6wpFgqp78d7/w4XhG4FevTH8r0HVKTn1HRZ/PJeATbjdtsKj8MpO2
-        M7MpcuiuIhmdeQyr229xOcA==
-X-Received: by 2002:a7b:cb59:: with SMTP id v25mr13986475wmj.13.1586001170108;
-        Sat, 04 Apr 2020 04:52:50 -0700 (PDT)
-X-Google-Smtp-Source: APiQypK0AZLIM+VFnAkYrCUNC87FZEsHxgjBLzBFl6igf0XOnAGiRT//XV5W7FDIbXfi3Leu5nrGlA==
-X-Received: by 2002:a7b:cb59:: with SMTP id v25mr13986456wmj.13.1586001169826;
-        Sat, 04 Apr 2020 04:52:49 -0700 (PDT)
-Received: from x1.localdomain (2001-1c00-0c0c-fe00-d2ea-f29d-118b-24dc.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:d2ea:f29d:118b:24dc])
-        by smtp.gmail.com with ESMTPSA id z16sm346059wrg.66.2020.04.04.04.52.48
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 04 Apr 2020 04:52:49 -0700 (PDT)
-Subject: Re: [PATCH v3 2/2] platform/x86: intel_int0002_vgpio: Use
- acpi_register_wakeup_handler()
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "5 . 4+" <stable@vger.kernel.org>
-References: <20200403154834.303105-1-hdegoede@redhat.com>
- <20200403154834.303105-2-hdegoede@redhat.com> <3798902.sSGyZ91sKY@kreacher>
- <CAHp75VfThW1CrkneP5kEm_7KejQgS2dhDi0YyDrL4y3=uY9ZbA@mail.gmail.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <f054f195-d5e7-8041-4995-8a52d2bd7674@redhat.com>
-Date:   Sat, 4 Apr 2020 13:52:47 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Y95rECaQ8JB4IMFJRuAfYH3Qk60HSfmhEkxfieQ/dWg=;
+        b=l4eADaJJP50tnMxSIRVwn/ducog3dlch4SMXXXBsaNnU4CxbudhlHhi0yXdAjfhGk7
+         1HH3WXqq55Huz9Kv5ozHX9Oo/+Dnd9hyd/OdAyiTl7LF35BnMOoqU1aMsZHqvnvS5jmT
+         gDt8MMaf7cCOWKK03ek3oRWyWM+BemBewqMtSHX/9hqeJqMEeoDHY6FHGQIZhXeG6aZ+
+         yaGzl14vElYELcrIHPu/2ZSYVkKy0IeVgWnGOlWeCtd78Wwg7MVuNkYkWtCvHosYiEqd
+         bBhKtyi1/ZG/cHgAQTNoDYX7zbWpW2sYWxb/iVWH0t94rHIQsIBFBpcqQ0gjg8gzfdD4
+         klrQ==
+X-Gm-Message-State: AGi0PuZER9iMjk6dZ9DDOJ2ZPXrxDlv0ZJlW2eyHTSbUqPDBwWa3A9n1
+        ZvQdG+o8+EVGllBZauzV5253l4YBMX9YNn44/es=
+X-Google-Smtp-Source: APiQypJXXSKrtbFEwdda3esGGDETkJrOSOvYCy5M8vLD2IXdxdKJ69CPDhiUNzeJjGIdiud49pm4phv+b+5KqB034Yg=
+X-Received: by 2002:a9d:7402:: with SMTP id n2mr11522707otk.262.1586022660147;
+ Sat, 04 Apr 2020 10:51:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAHp75VfThW1CrkneP5kEm_7KejQgS2dhDi0YyDrL4y3=uY9ZbA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20200403140345.3828-1-cai@lca.pw> <CAJZ5v0jjZzSosFwR3Yqu9mWtUNms1u9fbJbQb=tc5=CPc7r_1w@mail.gmail.com>
+ <20200403165305.GF20218@zn.tnic>
+In-Reply-To: <20200403165305.GF20218@zn.tnic>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Sat, 4 Apr 2020 19:50:48 +0200
+Message-ID: <CAJZ5v0hZH0LU9NeTkjRqzXyMoU8YWn7gpvO4vJQqYDaHAW3ixA@mail.gmail.com>
+Subject: Re: [PATCH v3] x86/acpi: fix a deadlock with cpu hotplug
+To:     Borislav Petkov <bp@alien8.de>, Qian Cai <cai@lca.pw>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+On Fri, Apr 3, 2020 at 6:53 PM Borislav Petkov <bp@alien8.de> wrote:
+>
+> On Fri, Apr 03, 2020 at 05:45:10PM +0200, Rafael J. Wysocki wrote:
+> > I can take this one unless there are objections or concerns.
+>
+> Please do - I did trigger that yesterday again.
+>
+> Tested-by: Borislav Petkov <bp@suse.de>
 
-On 4/3/20 6:23 PM, Andy Shevchenko wrote:
-> On Fri, Apr 3, 2020 at 7:08 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->>
->> On Friday, April 3, 2020 5:48:34 PM CEST Hans de Goede wrote:
->>> The Power Management Events (PMEs) the INT0002 driver listens for get
->>> signalled by the Power Management Controller (PMC) using the same IRQ
->>> as used for the ACPI SCI.
->>>
->>> Since commit fdde0ff8590b ("ACPI: PM: s2idle: Prevent spurious SCIs from
->>> waking up the system") the SCI triggering, without there being a wakeup
->>> cause recognized by the ACPI sleep code, will no longer wakeup the system.
->>>
->>> This breaks PMEs / wakeups signalled to the INT0002 driver, the system
->>> never leaves the s2idle_loop() now.
->>>
->>> Use acpi_register_wakeup_handler() to register a function which checks
->>> the GPE0a_STS register for a PME and trigger a wakeup when a PME has
->>> been signalled.
->>>
->>> Fixes: fdde0ff8590b ("ACPI: PM: s2idle: Prevent spurious SCIs from waking up the system")
->>> Cc: 5.4+ <stable@vger.kernel.org> # 5.4+
->>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>
->> Andy, any objections?
-> 
-> No,
-> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> 
-> Hans, just today when testing some other stuff noticed this
-> 
-> [   49.279001] irq 9: nobody cared (try booting with the "irqpoll" option)
-> [   49.289176] CPU: 0 PID: 168 Comm: irq/123-ATML100 Not tainted
-> 5.6.0-next-20200403+ #212
-> [   49.300915] Hardware name: Intel Corporation CHERRYVIEW D0
-> PLATFORM/Braswell CRB, BIOS BRAS.X64.B082.R00.150727 0557 07/27/2015
-> [   49.316520] Call Trace:
-> [   49.322093]  <IRQ>
-> [   49.327193]  dump_stack+0x50/0x70
-> [   49.333744]  __report_bad_irq+0x30/0xa2
-> [   49.340858]  note_interrupt.cold+0xb/0x62
-> ...
-> [   49.685087] handlers:
-> [   49.690307] [<000000000ab3cf88>] acpi_irq
-> [   49.697463] [<00000000e5d78029>] int0002_irq [intel_int0002_vgpio]
-> [   49.707063] Disabling IRQ #9
-> 
-> Is this what your series fixes?
-
-I don't think that my series fixes this.
-
-My series fixes CHT devices no longer waking up from s2idle
-when woken by pressing a key on the USB attached keyboard dock
-of various 2-in-1s. Before we were relying on the ACPI code
-also waking up on IRQs which from the ACPI SCI handler pov where
-spurious. Rafael fixed the ACPI SCI handling during s2idle
-also waking the system on spurious events. My patch hooks
-the INT0002 driver into the ACPI SCI handling / wakeup checks
-during s2idle.
-
-I guess Rafael may have made some related changes elsewhere
-though where the SCI no longer returns IRQ_HANDLED in some cases?
-
-Rafael?
-
-Regards,
-
-Hans
-
-
-
-
-> 
->>
->>> ---
->>> Changes in v3:
->>> - Keep the pm_wakeup_hard_event() call
->>>
->>> Changes in v2:
->>> - Adjust for the wakeup-handler registration function being renamed to
->>>    acpi_register_wakeup_handler()
->>> ---
->>>   drivers/platform/x86/intel_int0002_vgpio.c | 10 ++++++++++
->>>   1 file changed, 10 insertions(+)
->>>
->>> diff --git a/drivers/platform/x86/intel_int0002_vgpio.c b/drivers/platform/x86/intel_int0002_vgpio.c
->>> index f14e2c5f9da5..55f088f535e2 100644
->>> --- a/drivers/platform/x86/intel_int0002_vgpio.c
->>> +++ b/drivers/platform/x86/intel_int0002_vgpio.c
->>> @@ -127,6 +127,14 @@ static irqreturn_t int0002_irq(int irq, void *data)
->>>        return IRQ_HANDLED;
->>>   }
->>>
->>> +static bool int0002_check_wake(void *data)
->>> +{
->>> +     u32 gpe_sts_reg;
->>> +
->>> +     gpe_sts_reg = inl(GPE0A_STS_PORT);
->>> +     return (gpe_sts_reg & GPE0A_PME_B0_STS_BIT);
->>> +}
->>> +
->>>   static struct irq_chip int0002_byt_irqchip = {
->>>        .name                   = DRV_NAME,
->>>        .irq_ack                = int0002_irq_ack,
->>> @@ -220,6 +228,7 @@ static int int0002_probe(struct platform_device *pdev)
->>>                return ret;
->>>        }
->>>
->>> +     acpi_register_wakeup_handler(irq, int0002_check_wake, NULL);
->>>        device_init_wakeup(dev, true);
->>>        return 0;
->>>   }
->>> @@ -227,6 +236,7 @@ static int int0002_probe(struct platform_device *pdev)
->>>   static int int0002_remove(struct platform_device *pdev)
->>>   {
->>>        device_init_wakeup(&pdev->dev, false);
->>> +     acpi_unregister_wakeup_handler(int0002_check_wake, NULL);
->>>        return 0;
->>>   }
->>>
->>>
->>
->>
->>
->>
-> 
-> 
-
+OK, applied now, thanks!
