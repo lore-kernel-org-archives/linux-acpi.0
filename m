@@ -2,225 +2,132 @@ Return-Path: <SRS0=1oae=5X=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD693C2BA80
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Apr 2020 04:00:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61BCEC2BB1D
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Apr 2020 12:02:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 84CEB206B8
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Apr 2020 04:00:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 424002078A
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Apr 2020 12:02:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725802AbgDGEAE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Apr 2020 00:00:04 -0400
-Received: from mga05.intel.com ([192.55.52.43]:28685 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725446AbgDGEAE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Apr 2020 00:00:04 -0400
-IronPort-SDR: YIGH71TTfOMdnDdki6ztm7XXMw6MlSnOpfdXWmsJcWqWg3SGmNTS/ItrfJcsmQ6HXwd1gW8CJ9
- X08eH4QS5ssw==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2020 21:00:03 -0700
-IronPort-SDR: oPp9iF4cDpIIQq8i/FsRP1Usxl85uFKeTHqFFr5EwvBEdNKK83LWs6CqvRcYN84NIuHqWRsBeE
- uRjgyvEbayyg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.72,353,1580803200"; 
-   d="scan'208";a="286103231"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga002.fm.intel.com with ESMTP; 06 Apr 2020 21:00:01 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jLfP6-0003OM-OL; Tue, 07 Apr 2020 12:00:00 +0800
-Date:   Tue, 07 Apr 2020 11:59:20 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [pm:bleeding-edge] BUILD SUCCESS
- b1eebcf18a87987171c4b2f32e59eda369290e83
-Message-ID: <5e8bfa98.OXxSha8xumclcWvG%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1728075AbgDGMCX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Apr 2020 08:02:23 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:12621 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728054AbgDGMCX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 Apr 2020 08:02:23 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id A996815DFE328D95E41A;
+        Tue,  7 Apr 2020 20:02:18 +0800 (CST)
+Received: from DESKTOP-6T4S3DQ.china.huawei.com (10.47.82.134) by
+ DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
+ 14.3.487.0; Tue, 7 Apr 2020 20:02:12 +0800
+From:   Shiju Jose <shiju.jose@huawei.com>
+To:     <linux-acpi@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <rjw@rjwysocki.net>,
+        <bp@alien8.de>, <james.morse@arm.com>, <helgaas@kernel.org>,
+        <lenb@kernel.org>, <tony.luck@intel.com>,
+        <dan.carpenter@oracle.com>, <gregkh@linuxfoundation.org>,
+        <zhangliguang@linux.alibaba.com>, <tglx@linutronix.de>
+CC:     <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+        <tanxiaofei@huawei.com>, <yangyicong@hisilicon.com>,
+        Shiju Jose <shiju.jose@huawei.com>
+Subject: [v7 PATCH 0/6] ACPI / APEI: Add support to notify non-fatal HW errors
+Date:   Tue, 7 Apr 2020 13:00:39 +0100
+Message-ID: <20200407120045.958-1-shiju.jose@huawei.com>
+X-Mailer: git-send-email 2.26.0.windows.1
+In-Reply-To: <Shiju Jose>
+References: <Shiju Jose>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.47.82.134]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git  bleeding-edge
-branch HEAD: b1eebcf18a87987171c4b2f32e59eda369290e83  Merge branch 'pm-sleep' into bleeding-edge
+Add common interface for queuing up the non-fatal HW errors and notify
+the registered kernel drivers.The interface supports drivers to register
+to receive the callback for the non-fatal HW errors, including the vendor
+specific HW errors, for the recovery and supports handling the non-fatal
+errors in the bottom half.
 
-elapsed time: 481m
+Patch set
+1. add the new interface to the APEI driver for the non-fatal HW
+   error notification.
+2. change the existing error handling for the standard errors
+   to use the above notification interface.
+2. add driver to handle HiSilicon hip PCIe controller's errors.
 
-configs tested: 158
-configs skipped: 0
+Changes:
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+V7:
+1. Add changes in the APEI driver suggested by Borislav Petkov, for
+   queuing up all the non-fatal HW errors to the work queue and
+   notify the registered kernel drivers from the bottom half using
+   blocking notifier, common interface for both standard and
+   vendor-spcific errors.
+2. Fix for further feedbacks in v5 HIP PCIe error handler driver
+   by Bjorn Helgaas.
 
-arm64                            allyesconfig
-arm                              allyesconfig
-arm64                            allmodconfig
-arm                              allmodconfig
-arm64                             allnoconfig
-arm                               allnoconfig
-arm                           efm32_defconfig
-arm                         at91_dt_defconfig
-arm                        shmobile_defconfig
-arm64                               defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                           sunxi_defconfig
-arm                        multi_v7_defconfig
-sparc                            allyesconfig
-i386                              allnoconfig
-i386                             allyesconfig
-i386                             alldefconfig
-i386                                defconfig
-i386                              debian-10.3
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-ia64                             alldefconfig
-nios2                         3c120_defconfig
-nios2                         10m50_defconfig
-c6x                        evmc6678_defconfig
-xtensa                          iss_defconfig
-c6x                              allyesconfig
-xtensa                       common_defconfig
-openrisc                 simple_smp_defconfig
-openrisc                    or1ksim_defconfig
-nds32                               defconfig
-nds32                             allnoconfig
-csky                                defconfig
-alpha                               defconfig
-h8300                       h8s-sim_defconfig
-h8300                     edosk2674_defconfig
-m68k                       m5475evb_defconfig
-m68k                             allmodconfig
-h8300                    h8300h-sim_defconfig
-m68k                           sun3_defconfig
-m68k                          multi_defconfig
-arc                                 defconfig
-arc                              allyesconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-powerpc                          rhel-kconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-powerpc                           allnoconfig
-mips                      fuloong2e_defconfig
-mips                      malta_kvm_defconfig
-mips                             allyesconfig
-mips                         64r6el_defconfig
-mips                              allnoconfig
-mips                           32r2_defconfig
-mips                             allmodconfig
-parisc                            allnoconfig
-parisc                generic-64bit_defconfig
-parisc                generic-32bit_defconfig
-parisc                           allyesconfig
-x86_64               randconfig-a003-20200407
-i386                 randconfig-a002-20200407
-x86_64               randconfig-a002-20200407
-x86_64               randconfig-a001-20200407
-i386                 randconfig-a001-20200407
-i386                 randconfig-a003-20200407
-mips                 randconfig-a001-20200406
-nds32                randconfig-a001-20200406
-m68k                 randconfig-a001-20200406
-parisc               randconfig-a001-20200406
-alpha                randconfig-a001-20200406
-riscv                randconfig-a001-20200406
-sparc64              randconfig-a001-20200406
-h8300                randconfig-a001-20200406
-nios2                randconfig-a001-20200406
-microblaze           randconfig-a001-20200406
-c6x                  randconfig-a001-20200406
-s390                 randconfig-a001-20200406
-xtensa               randconfig-a001-20200406
-csky                 randconfig-a001-20200406
-openrisc             randconfig-a001-20200406
-sh                   randconfig-a001-20200406
-i386                 randconfig-b003-20200406
-x86_64               randconfig-b002-20200406
-x86_64               randconfig-b001-20200406
-i386                 randconfig-b001-20200406
-x86_64               randconfig-b003-20200406
-i386                 randconfig-b002-20200406
-i386                 randconfig-c003-20200406
-i386                 randconfig-c001-20200406
-x86_64               randconfig-c002-20200406
-x86_64               randconfig-c003-20200406
-i386                 randconfig-c002-20200406
-x86_64               randconfig-c001-20200406
-i386                 randconfig-e001-20200407
-i386                 randconfig-e003-20200407
-x86_64               randconfig-e002-20200407
-x86_64               randconfig-e001-20200407
-i386                 randconfig-e002-20200407
-x86_64               randconfig-e003-20200407
-i386                 randconfig-f001-20200407
-x86_64               randconfig-f003-20200407
-i386                 randconfig-f003-20200407
-x86_64               randconfig-f001-20200407
-x86_64               randconfig-f002-20200407
-i386                 randconfig-f002-20200407
-x86_64               randconfig-g003-20200406
-i386                 randconfig-g003-20200406
-x86_64               randconfig-g002-20200406
-i386                 randconfig-g001-20200406
-i386                 randconfig-g002-20200406
-x86_64               randconfig-g001-20200406
-x86_64               randconfig-h002-20200406
-i386                 randconfig-h002-20200406
-i386                 randconfig-h003-20200406
-i386                 randconfig-h001-20200406
-x86_64               randconfig-h003-20200406
-x86_64               randconfig-h001-20200406
-arm64                randconfig-a001-20200406
-sparc                randconfig-a001-20200406
-ia64                 randconfig-a001-20200406
-arc                  randconfig-a001-20200406
-arm                  randconfig-a001-20200406
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-s390                       zfcpdump_defconfig
-s390                          debug_defconfig
-s390                             allyesconfig
-s390                              allnoconfig
-s390                             allmodconfig
-s390                             alldefconfig
-s390                                defconfig
-sh                          rsk7269_defconfig
-sh                               allmodconfig
-sh                            titan_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                                allnoconfig
-sparc                               defconfig
-sparc64                             defconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                          allmodconfig
-um                           x86_64_defconfig
-um                             i386_defconfig
-um                                  defconfig
-x86_64                                   rhel
-x86_64                               rhel-7.6
-x86_64                         rhel-7.2-clear
-x86_64                                    lkp
-x86_64                              fedora-25
-x86_64                                  kexec
+V6:
+1. Fix few changes in the patch subject line suggested by Bjorn Helgaas.
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+V5:
+1. Fix comments from James Morse.
+1.1 Changed the notification method to use the atomic_notifier_chain.
+1.2 Add the error handled status for the user space.  
+
+V4:
+1. Fix for the following smatch warning in the PCIe error driver,
+   reported by kbuild test robot<lkp@intel.com>:
+   warn: should '((((1))) << (9 + i))' be a 64 bit type?
+   if (err->val_bits & BIT(HISI_PCIE_LOCAL_VALID_ERR_MISC + i))
+	^^^ This should be BIT_ULL() because it goes up to 9 + 32.
+
+V3:
+1. Fix the comments from Bjorn Helgaas.
+
+V2:
+1. Changes in the HiSilicon PCIe controller's error handling driver
+   for the comments from Bjorn Helgaas.
+   
+2. Changes in the APEI interface to support reporting the vendor error
+   for module with multiple devices, but use the same section type.
+   In the error handler will use socket id/sub module id etc to distinguish
+   the device.
+
+V1:  
+1. Fix comments from James Morse.
+
+2. add driver to handle HiSilicon hip08 PCIe controller's errors,
+   which is an application of the above interface.
+
+Shiju Jose (5):
+  ACPI / APEI: Add support to queuing up the non-fatal HW errors and
+    notify
+  ACPI / APEI: Add callback for memory errors to the GHES notifier
+  ACPI / APEI: Add callback for AER to the GHES notifier
+  ACPI / APEI: Add callback for ARM HW errors to the GHES notifier
+  ACPI / APEI: Add callback for non-standard HW errors to the GHES
+    notifier
+
+Yicong Yang (1):
+  PCI: hip: Add handling of HiSilicon HIP PCIe controller errors
+
+ drivers/acpi/apei/ghes.c                 | 268 ++++++++++++++++---
+ drivers/pci/controller/Kconfig           |   8 +
+ drivers/pci/controller/Makefile          |   1 +
+ drivers/pci/controller/pcie-hisi-error.c | 323 +++++++++++++++++++++++
+ include/acpi/ghes.h                      |  28 ++
+ 5 files changed, 595 insertions(+), 33 deletions(-)
+ create mode 100644 drivers/pci/controller/pcie-hisi-error.c
+
+-- 
+2.17.1
+
+
