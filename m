@@ -6,33 +6,33 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 341C1C2D0EA
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Apr 2020 16:09:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D12C2BA1A
+	for <linux-acpi@archiver.kernel.org>; Wed,  8 Apr 2020 16:09:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16BD52087E
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Apr 2020 16:09:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF7DD2087E
+	for <linux-acpi@archiver.kernel.org>; Wed,  8 Apr 2020 16:09:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730215AbgDHQJd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1730205AbgDHQJd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 8 Apr 2020 12:09:33 -0400
-Received: from mga14.intel.com ([192.55.52.115]:25663 "EHLO mga14.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:63799 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730191AbgDHQJb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 8 Apr 2020 12:09:31 -0400
-IronPort-SDR: 4sr+lDj9e8L9d9pyuf6VCuhKeUwcg61Fkk6CiHOUaGc1fVAeZo7eeQ8khGcKd7brsXhwsZldRg
- lI9OsqdL6rsQ==
+        id S1730173AbgDHQJc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 8 Apr 2020 12:09:32 -0400
+IronPort-SDR: foenlJ2M7o8tKKwL1irB0KshPl6Y/DRb+j04OlmMEUtCh/ipM7ov5o4GjTKbyy/7gWB9ZDJVBg
+ HzNVo+zAcbCQ==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Apr 2020 09:09:31 -0700
-IronPort-SDR: TjA+ciCjEebbP61BDavfwtxOOiIohUJ+M1KKjf1Vg1wm76UFFko+STHBvYiJL5I/8s4Lv760+3
- SJz20DewCbcw==
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Apr 2020 09:09:29 -0700
+IronPort-SDR: X7K3cfxw9wb/vfWmFA7aza0AMK/BaIgSjTFpumBZKNg0NHDglshgz7FL84CbVTmJFgTfPFMiE+
+ csmp79d02iJg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,359,1580803200"; 
-   d="scan'208";a="361882381"
+   d="scan'208";a="451655834"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 08 Apr 2020 09:09:26 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 08 Apr 2020 09:09:26 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 7B61A1FD; Wed,  8 Apr 2020 19:09:25 +0300 (EEST)
+        id 95B9279A; Wed,  8 Apr 2020 19:09:25 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-kernel@vger.kernel.org,
@@ -43,9 +43,9 @@ To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         platform-driver-x86@vger.kernel.org,
         Darren Hart <dvhart@infradead.org>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 2/6] software node: Allow register and unregister software node groups
-Date:   Wed,  8 Apr 2020 19:09:02 +0300
-Message-Id: <20200408160905.12101-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/6] platform/x86: intel_cht_int33fe: Convert to use set_secondary_fwnode()
+Date:   Wed,  8 Apr 2020 19:09:04 +0300
+Message-Id: <20200408160905.12101-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200408160905.12101-1-andriy.shevchenko@linux.intel.com>
 References: <20200408160905.12101-1-andriy.shevchenko@linux.intel.com>
@@ -56,88 +56,28 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Sometimes it's more convenient to register a set of individual software nodes
-grouped together. Add couple of functions for that.
+In one place we open coded set_secondary_fwnode().
+Let's replace it with a helper.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/base/swnode.c    | 48 ++++++++++++++++++++++++++++++++++++++++
- include/linux/property.h |  3 +++
- 2 files changed, 51 insertions(+)
+ drivers/platform/x86/intel_cht_int33fe_typec.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index de8d3543e8fe..2079937ddb51 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -726,6 +726,54 @@ void software_node_unregister_nodes(const struct software_node *nodes)
- }
- EXPORT_SYMBOL_GPL(software_node_unregister_nodes);
- 
-+/**
-+ * software_node_register_node_group - Register a group of software nodes
-+ * @node_group: NULL terminated array of software node pointers to be registered
-+ *
-+ * Register multiple software nodes at once.
-+ */
-+int software_node_register_node_group(const struct software_node **node_group)
-+{
-+	unsigned int i;
-+	int ret;
-+
-+	if (!node_group)
-+		return 0;
-+
-+	for (i = 0; node_group[i]; i++) {
-+		ret = software_node_register(node_group[i]);
-+		if (ret) {
-+			software_node_unregister_node_group(node_group);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(software_node_register_node_group);
-+
-+/**
-+ * software_node_unregister_node_group - Unregister a group of software nodes
-+ * @node_group: NULL terminated array of software node pointers to be unregistered
-+ *
-+ * Unregister multiple software nodes at once.
-+ */
-+void software_node_unregister_node_group(const struct software_node **node_group)
-+{
-+	struct swnode *swnode;
-+	unsigned int i;
-+
-+	if (!node_group)
-+		return;
-+
-+	for (i = 0; node_group[i]; i++) {
-+		swnode = software_node_to_swnode(node_group[i]);
-+		if (swnode)
-+			fwnode_remove_software_node(&swnode->fwnode);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(software_node_unregister_node_group);
-+
- /**
-  * software_node_register - Register static software node
-  * @node: The software node to be registered
-diff --git a/include/linux/property.h b/include/linux/property.h
-index d86de017c689..c7b5f3db36aa 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -440,6 +440,9 @@ software_node_find_by_name(const struct software_node *parent,
- int software_node_register_nodes(const struct software_node *nodes);
- void software_node_unregister_nodes(const struct software_node *nodes);
- 
-+int software_node_register_node_group(const struct software_node **node_group);
-+void software_node_unregister_node_group(const struct software_node **node_group);
-+
- int software_node_register(const struct software_node *node);
- 
- int software_node_notify(struct device *dev, unsigned long action);
+diff --git a/drivers/platform/x86/intel_cht_int33fe_typec.c b/drivers/platform/x86/intel_cht_int33fe_typec.c
+index 0f547d35c90d..904e75d39953 100644
+--- a/drivers/platform/x86/intel_cht_int33fe_typec.c
++++ b/drivers/platform/x86/intel_cht_int33fe_typec.c
+@@ -239,8 +239,7 @@ cht_int33fe_register_max17047(struct device *dev, struct cht_int33fe_data *data)
+ 	i2c_for_each_dev(&max17047, cht_int33fe_check_for_max17047);
+ 	if (max17047) {
+ 		/* Pre-existing i2c-client for the max17047, add device-props */
+-		fwnode->secondary = ERR_PTR(-ENODEV);
+-		max17047->dev.fwnode->secondary = fwnode;
++		set_secondary_fwnode(&max17047->dev, fwnode);
+ 		/* And re-probe to get the new device-props applied. */
+ 		ret = device_reprobe(&max17047->dev);
+ 		if (ret)
 -- 
 2.25.1
 
