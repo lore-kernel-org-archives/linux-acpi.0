@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4760CC2BB1D
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 Apr 2020 03:57:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98A3FC2D0EC
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Apr 2020 04:02:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F7A520BED
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 Apr 2020 03:57:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 654132063A
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Apr 2020 04:02:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586491029;
-	bh=4Z31UL/A8ueeNZlm3bpzNtRxUv08MKmOUDs5UrehlB8=;
+	s=default; t=1586491341;
+	bh=wXjcofiFvFahVRTswUeqglP9vGCBEyPL97IqTxFzP7w=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Gil18/0wRadGEODQgbjHMUgNDA0Jd+6I34VZPCGUsdldWmTcU1B/bcE7YTO42XPuR
-	 A5og6LiuF9lre/tyVz7tNHWvEIPYziLD5t9RxjlYavKlGPMltgEY1CoU2aGbI5qCps
-	 SeMuo9Pq3Kt/d+8tybHABqBDp1HSRN44HVURStGc=
+	b=vVl6y2YANUeCJLq2b22zMycNAmjZdnW+BfUW2SUsd5rVLNgXa+2a6lPvaDN+u1PY/
+	 mYfLZskTO7hE+eztI664G3psoqmmu3h9mp3pNHo+Cqpe0VHkTVbJjWELzKsdBQgBsE
+	 mOaT9xdBnnTJ5wSUykz2lju9kvccUTQh1Gen+Y6M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726979AbgDJD5E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Apr 2020 23:57:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33318 "EHLO mail.kernel.org"
+        id S1727004AbgDJDrH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Apr 2020 23:47:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57520 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728528AbgDJDtY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 9 Apr 2020 23:49:24 -0400
+        id S1726997AbgDJDrG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Apr 2020 23:47:06 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 78299212CC;
-        Fri, 10 Apr 2020 03:49:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 453A72145D;
+        Fri, 10 Apr 2020 03:47:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586490564;
-        bh=4Z31UL/A8ueeNZlm3bpzNtRxUv08MKmOUDs5UrehlB8=;
+        s=default; t=1586490426;
+        bh=wXjcofiFvFahVRTswUeqglP9vGCBEyPL97IqTxFzP7w=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=iIRGc1wgNjnNt9AxmeE3MCBjUvbItB3QXzpKFhexsV7QjDZ4Rr3FSnkOwAognCu9m
-         h1kVr52AJo1TsZuzzcLJwxnk9dZTG7cUrIbsec/zfUQXW6SvfWWJ4fNGlqPiknjIIQ
-         a2mb8sDpQoptsTMWnL/L7hOKAkJD2xThioO1ym0o=
+        b=XNi2a81+ifBu3u7iJGX9J1EFwy8mbIWg7nMnubZfNQDHaJIlvmcRtlYm2kQu62UqC
+         zEv3KzFSkUNgiJZTz2qLH2KE2U0lCEEw57owvfek+GpgZQnJBtn0Z/DtHFt5mKBqWd
+         LBopjMDQjzDoX4OCLyKm45jUQl0ESkYucsZ+GoJY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 11/46] ACPI: EC: Do not clear boot_ec_is_ecdt in acpi_ec_add()
-Date:   Thu,  9 Apr 2020 23:48:34 -0400
-Message-Id: <20200410034909.8922-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 25/68] ACPI: EC: Do not clear boot_ec_is_ecdt in acpi_ec_add()
+Date:   Thu,  9 Apr 2020 23:45:50 -0400
+Message-Id: <20200410034634.7731-25-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200410034909.8922-1-sashal@kernel.org>
-References: <20200410034909.8922-1-sashal@kernel.org>
+In-Reply-To: <20200410034634.7731-1-sashal@kernel.org>
+References: <20200410034634.7731-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -82,10 +82,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index ca5cdb621c2a7..2dba4e7a83b76 100644
+index d1f1cf5d4bf08..3385be8b057c8 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -1573,7 +1573,6 @@ static int acpi_ec_add(struct acpi_device *device)
+@@ -1641,7 +1641,6 @@ static int acpi_ec_add(struct acpi_device *device)
  
  		if (boot_ec && ec->command_addr == boot_ec->command_addr &&
  		    ec->data_addr == boot_ec->data_addr) {
@@ -93,7 +93,7 @@ index ca5cdb621c2a7..2dba4e7a83b76 100644
  			/*
  			 * Trust PNP0C09 namespace location rather than
  			 * ECDT ID. But trust ECDT GPE rather than _GPE
-@@ -1593,9 +1592,12 @@ static int acpi_ec_add(struct acpi_device *device)
+@@ -1661,9 +1660,12 @@ static int acpi_ec_add(struct acpi_device *device)
  
  	if (ec == boot_ec)
  		acpi_handle_info(boot_ec->handle,
