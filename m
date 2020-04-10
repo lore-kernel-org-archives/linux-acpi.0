@@ -1,310 +1,112 @@
-Return-Path: <SRS0=OeUF=5Z=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=MBWV=52=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A6EBC352B6
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Apr 2020 23:49:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD68FC2BBFD
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Apr 2020 03:48:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DE05A20757
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Apr 2020 23:49:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BEDB2137B
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Apr 2020 03:48:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586476177;
-	bh=S9AB3+Tsx7J19eEW1TaLcO/fC3HnfYnFR3dyw8h7c+U=;
+	s=default; t=1586490505;
+	bh=t6NJkxg/UoyJvKDLvCs0NmGB1mpeIXUzCQ01MywZPuk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LaebwepkWpVuYSpmxi9/shEOAkA3ZBgnTmsENoRrPFxUV23ZXD/IHG0s0riog4q4p
-	 yn9LlPrWMKfNs/0YRWPoSLNcouzp/eO6zGVxsRoZKuxD7sjJbz8+YzJ8uyfnocgwHU
-	 mvpGLQwtG3q0SkGgAY1WZ4P2MQ56VEjPB4rw7SwE=
+	b=FnH+FmaYi2cnO886Tcm1lJedcpnwzyphC0Y1NpbXdetKAmMAyPU5Epx8rY6jNiwLM
+	 uA1Ba+eMwIsJvG2H5lgKNWZqJya5+/gF2rX/TuRbh5LhDb7tJ84OcT+Ijz1KvXbSHT
+	 i6BS4FoK1DZtIGKbCDYeW18GIRhHf6p8KvvtMmtM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726936AbgDIXtf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Apr 2020 19:49:35 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:35438 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726726AbgDIXtf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Apr 2020 19:49:35 -0400
-Received: by mail-io1-f68.google.com with SMTP id w20so227059iob.2;
-        Thu, 09 Apr 2020 16:49:34 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=fsFz03cVlyUKvUVnGieh3oxHpNilVECqAGJgEoC0c7M=;
-        b=PolnOrYFBaaDITFG4zBKiw/HE5y8zPUxNIHHDV3rDxpT9TFsAwpLFatlqPFSZAWF0s
-         MpcSz78jOpWFqVkv45s541vDG9aEyViOcrErn3SjTldoQavR8Bkp+TRbOakN/zdjfMHr
-         t0WrZ8tt7nP8P5didB80eOsDEZVdxULZFRyqVh3fV02U+62Q2C89xK5vTtl73Y+tg0FX
-         LwM+IloJQTFLmaNPZtTleatCe2BmtUGn5BVzMga8TI0zpxzaK5g5yndH8jL4mbqqaJ1X
-         xJkITkLmBjfRmu3lClY+AjKqRqOTuOukDbSSrQZdvW/EEK1J2h+8zHH6ECXfIGcx2p6+
-         qpWA==
-X-Gm-Message-State: AGi0PuZzWHjCGL1YNfJil/PkWvrU0nhLMP8sBTSLVbRuX30+mYgJx1U5
-        WjcK0KsRJ0Is1N+RMcEKCQ==
-X-Google-Smtp-Source: APiQypLqrY1IbsEwkeqc1fPB7uBxtzjUwc62zIg6o0IpJEI79OSAmxl+HVZGBtZ2DF2+YhPeGl8i+w==
-X-Received: by 2002:a02:9a0d:: with SMTP id b13mr2129894jal.60.1586476174014;
-        Thu, 09 Apr 2020 16:49:34 -0700 (PDT)
-Received: from xps15.herring.priv ([64.188.179.248])
-        by smtp.googlemail.com with ESMTPSA id w7sm93416ior.51.2020.04.09.16.49.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Apr 2020 16:49:33 -0700 (PDT)
-From:   Rob Herring <robh@kernel.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Will Deacon <will@kernel.org>
-Cc:     Andrew Murray <amurray@thegoodpenguin.co.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Mans Rullgard <mans@mansr.com>,
-        Marc Gonzalez <marc.w.gonzalez@free.fr>,
-        Robert Richter <rrichter@marvell.com>,
-        Zhou Wang <wangzhou1@hisilicon.com>,
-        Toan Le <toan@os.amperecomputing.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Jonathan Chocron <jonnyc@amazon.com>,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-pci@vger.kernel.org
-Subject: [PATCH 3/3] PCI: host-generic: Eliminate pci_host_common_probe wrappers
-Date:   Thu,  9 Apr 2020 17:49:23 -0600
-Message-Id: <20200409234923.21598-4-robh@kernel.org>
+        id S1726817AbgDJDsW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Apr 2020 23:48:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59738 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728164AbgDJDsV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Apr 2020 23:48:21 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4D6902137B;
+        Fri, 10 Apr 2020 03:48:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1586490501;
+        bh=t6NJkxg/UoyJvKDLvCs0NmGB1mpeIXUzCQ01MywZPuk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=FdvhQe10lSgI4+YM29HMFuJUIRPMVTySAo173DnqOqa09c5CoYbpYNOfrMyocuo0t
+         p3kex69uqC+R9IZ0hDhNeb0eJoq8NhwPF7XiMme9KyqKOcs3Fw0rSFUm9zn0PBQasO
+         jOw8V2I7t1XYZ5c2nOcSq2D9vaRAjNjrvFUBjq4k=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.5 17/56] ACPI: EC: Do not clear boot_ec_is_ecdt in acpi_ec_add()
+Date:   Thu,  9 Apr 2020 23:47:21 -0400
+Message-Id: <20200410034800.8381-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200409234923.21598-1-robh@kernel.org>
-References: <20200409234923.21598-1-robh@kernel.org>
+In-Reply-To: <20200410034800.8381-1-sashal@kernel.org>
+References: <20200410034800.8381-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Most ECAM host drivers are just different pci_ecam_ops which can be DT
-match table data. That's already the case in some cases, but let's
-do that for all the ECAM drivers. Then we can use
-of_device_get_match_data() in pci_host_common_probe() and eliminate the
-probe wrapper functions and use pci_host_common_probe() directly for
-probe.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Cc: Zhou Wang <wangzhou1@hisilicon.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Andrew Murray <amurray@thegoodpenguin.co.uk>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Robert Richter <rrichter@marvell.com>
-Cc: Marc Gonzalez <marc.w.gonzalez@free.fr>
-Cc: Mans Rullgard <mans@mansr.com>
-Cc: linux-pci@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Signed-off-by: Rob Herring <robh@kernel.org>
+[ Upstream commit 65a691f5f8f0bb63d6a82eec7b0ffd193d8d8a5f ]
+
+The reason for clearing boot_ec_is_ecdt in acpi_ec_add() (if a
+PNP0C09 device object matching the ECDT boot EC had been found in
+the namespace) was to cause acpi_ec_ecdt_start() to return early,
+but since the latter does not look at boot_ec_is_ecdt any more,
+acpi_ec_add() need not clear it.
+
+Moreover, doing that may be confusing as it may cause "DSDT" to be
+printed instead of "ECDT" in the EC initialization completion
+message, so stop doing it.
+
+While at it, split the EC initialization completion message into
+two messages, one regarding the boot EC and another one printed
+regardless of whether or not the EC at hand is the boot one.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/pci/controller/dwc/pcie-hisi.c    | 11 +----------
- drivers/pci/controller/pci-host-common.c  |  9 +++++++--
- drivers/pci/controller/pci-host-generic.c | 15 +--------------
- drivers/pci/controller/pci-thunder-ecam.c | 12 +++++-------
- drivers/pci/controller/pci-thunder-pem.c  | 12 +++++-------
- drivers/pci/controller/pcie-tango.c       |  7 +++++--
- include/linux/pci-ecam.h                  |  3 +--
- 7 files changed, 25 insertions(+), 44 deletions(-)
+ drivers/acpi/ec.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-hisi.c b/drivers/pci/controller/dwc/pcie-hisi.c
-index 90017045334d..0ba50fb473b1 100644
---- a/drivers/pci/controller/dwc/pcie-hisi.c
-+++ b/drivers/pci/controller/dwc/pcie-hisi.c
-@@ -332,15 +332,6 @@ static struct platform_driver hisi_pcie_driver = {
- };
- builtin_platform_driver(hisi_pcie_driver);
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index bd74c78366759..f351d0711e495 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1649,7 +1649,6 @@ static int acpi_ec_add(struct acpi_device *device)
  
--static int hisi_pcie_almost_ecam_probe(struct platform_device *pdev)
--{
--	struct device *dev = &pdev->dev;
--	struct pci_ecam_ops *ops;
--
--	ops = (struct pci_ecam_ops *)of_device_get_match_data(dev);
--	return pci_host_common_probe(pdev, ops);
--}
--
- static int hisi_pcie_platform_init(struct pci_config_window *cfg)
- {
- 	struct device *dev = cfg->parent;
-@@ -385,7 +376,7 @@ static const struct of_device_id hisi_pcie_almost_ecam_of_match[] = {
- };
+ 		if (boot_ec && ec->command_addr == boot_ec->command_addr &&
+ 		    ec->data_addr == boot_ec->data_addr) {
+-			boot_ec_is_ecdt = false;
+ 			/*
+ 			 * Trust PNP0C09 namespace location rather than
+ 			 * ECDT ID. But trust ECDT GPE rather than _GPE
+@@ -1669,9 +1668,12 @@ static int acpi_ec_add(struct acpi_device *device)
  
- static struct platform_driver hisi_pcie_almost_ecam_driver = {
--	.probe  = hisi_pcie_almost_ecam_probe,
-+	.probe  = pci_host_common_probe,
- 	.driver = {
- 		   .name = "hisi-pcie-almost-ecam",
- 		   .of_match_table = hisi_pcie_almost_ecam_of_match,
-diff --git a/drivers/pci/controller/pci-host-common.c b/drivers/pci/controller/pci-host-common.c
-index 6d15bc12e726..953de57f6c57 100644
---- a/drivers/pci/controller/pci-host-common.c
-+++ b/drivers/pci/controller/pci-host-common.c
-@@ -10,6 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of_address.h>
-+#include <linux/of_device.h>
- #include <linux/of_pci.h>
- #include <linux/pci-ecam.h>
- #include <linux/platform_device.h>
-@@ -55,15 +56,19 @@ static struct pci_config_window *gen_pci_init(struct device *dev,
- 	return ERR_PTR(err);
- }
+ 	if (ec == boot_ec)
+ 		acpi_handle_info(boot_ec->handle,
+-				 "Boot %s EC used to handle transactions and events\n",
++				 "Boot %s EC initialization complete\n",
+ 				 boot_ec_is_ecdt ? "ECDT" : "DSDT");
  
--int pci_host_common_probe(struct platform_device *pdev,
--			  const struct pci_ecam_ops *ops)
-+int pci_host_common_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct pci_host_bridge *bridge;
- 	struct pci_config_window *cfg;
- 	struct list_head resources;
-+	const struct pci_ecam_ops *ops;
- 	int ret;
- 
-+	ops = of_device_get_match_data(&pdev->dev);
-+	if (!ops)
-+		return -ENODEV;
++	acpi_handle_info(ec->handle,
++			 "EC: Used to handle transactions and events\n");
 +
- 	bridge = devm_pci_alloc_host_bridge(dev, 0);
- 	if (!bridge)
- 		return -ENOMEM;
-diff --git a/drivers/pci/controller/pci-host-generic.c b/drivers/pci/controller/pci-host-generic.c
-index fd8cff61de14..b51977abfdf1 100644
---- a/drivers/pci/controller/pci-host-generic.c
-+++ b/drivers/pci/controller/pci-host-generic.c
-@@ -11,8 +11,6 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
--#include <linux/of_address.h>
--#include <linux/of_pci.h>
- #include <linux/pci-ecam.h>
- #include <linux/platform_device.h>
+ 	device->driver_data = ec;
  
-@@ -79,23 +77,12 @@ static const struct of_device_id gen_pci_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, gen_pci_of_match);
- 
--static int gen_pci_probe(struct platform_device *pdev)
--{
--	const struct of_device_id *of_id;
--	struct pci_ecam_ops *ops;
--
--	of_id = of_match_node(gen_pci_of_match, pdev->dev.of_node);
--	ops = (struct pci_ecam_ops *)of_id->data;
--
--	return pci_host_common_probe(pdev, ops);
--}
--
- static struct platform_driver gen_pci_driver = {
- 	.driver = {
- 		.name = "pci-host-generic",
- 		.of_match_table = gen_pci_of_match,
- 	},
--	.probe = gen_pci_probe,
-+	.probe = pci_host_common_probe,
- 	.remove = pci_host_common_remove,
- };
- module_platform_driver(gen_pci_driver);
-diff --git a/drivers/pci/controller/pci-thunder-ecam.c b/drivers/pci/controller/pci-thunder-ecam.c
-index c3fdd3e6b21c..7e8835fee5f7 100644
---- a/drivers/pci/controller/pci-thunder-ecam.c
-+++ b/drivers/pci/controller/pci-thunder-ecam.c
-@@ -357,22 +357,20 @@ const struct pci_ecam_ops pci_thunder_ecam_ops = {
- #ifdef CONFIG_PCI_HOST_THUNDER_ECAM
- 
- static const struct of_device_id thunder_ecam_of_match[] = {
--	{ .compatible = "cavium,pci-host-thunder-ecam" },
-+	{
-+		.compatible = "cavium,pci-host-thunder-ecam",
-+		.data = &pci_thunder_ecam_ops,
-+	},
- 	{ },
- };
- 
--static int thunder_ecam_probe(struct platform_device *pdev)
--{
--	return pci_host_common_probe(pdev, &pci_thunder_ecam_ops);
--}
--
- static struct platform_driver thunder_ecam_driver = {
- 	.driver = {
- 		.name = KBUILD_MODNAME,
- 		.of_match_table = thunder_ecam_of_match,
- 		.suppress_bind_attrs = true,
- 	},
--	.probe = thunder_ecam_probe,
-+	.probe = pci_host_common_probe,
- };
- builtin_platform_driver(thunder_ecam_driver);
- 
-diff --git a/drivers/pci/controller/pci-thunder-pem.c b/drivers/pci/controller/pci-thunder-pem.c
-index 2e792707ceab..3f847969143e 100644
---- a/drivers/pci/controller/pci-thunder-pem.c
-+++ b/drivers/pci/controller/pci-thunder-pem.c
-@@ -451,22 +451,20 @@ static const struct pci_ecam_ops pci_thunder_pem_ops = {
- };
- 
- static const struct of_device_id thunder_pem_of_match[] = {
--	{ .compatible = "cavium,pci-host-thunder-pem" },
-+	{
-+		.compatible = "cavium,pci-host-thunder-pem",
-+		.data = &pci_thunder_pem_ops,
-+	},
- 	{ },
- };
- 
--static int thunder_pem_probe(struct platform_device *pdev)
--{
--	return pci_host_common_probe(pdev, &pci_thunder_pem_ops);
--}
--
- static struct platform_driver thunder_pem_driver = {
- 	.driver = {
- 		.name = KBUILD_MODNAME,
- 		.of_match_table = thunder_pem_of_match,
- 		.suppress_bind_attrs = true,
- 	},
--	.probe = thunder_pem_probe,
-+	.probe = pci_host_common_probe,
- };
- builtin_platform_driver(thunder_pem_driver);
- 
-diff --git a/drivers/pci/controller/pcie-tango.c b/drivers/pci/controller/pcie-tango.c
-index 3b2b10906fdd..c56c5539da6b 100644
---- a/drivers/pci/controller/pcie-tango.c
-+++ b/drivers/pci/controller/pcie-tango.c
-@@ -295,11 +295,14 @@ static int tango_pcie_probe(struct platform_device *pdev)
- 	spin_lock_init(&pcie->used_msi_lock);
- 	irq_set_chained_handler_and_data(virq, tango_msi_isr, pcie);
- 
--	return pci_host_common_probe(pdev, &smp8759_ecam_ops);
-+	return pci_host_common_probe(pdev);
- }
- 
- static const struct of_device_id tango_pcie_ids[] = {
--	{ .compatible = "sigma,smp8759-pcie" },
-+	{
-+		.compatible = "sigma,smp8759-pcie",
-+		.data = &smp8759_ecam_ops,
-+ 	},
- 	{ },
- };
- 
-diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-index fd0edb8b8a00..1af5cb02ef7f 100644
---- a/include/linux/pci-ecam.h
-+++ b/include/linux/pci-ecam.h
-@@ -61,8 +61,7 @@ extern const struct pci_ecam_ops al_pcie_ops;	/* Amazon Annapurna Labs PCIe */
- 
- #if IS_ENABLED(CONFIG_PCI_HOST_COMMON)
- /* for DT-based PCI controllers that support ECAM */
--int pci_host_common_probe(struct platform_device *pdev,
--			  const struct pci_ecam_ops *ops);
-+int pci_host_common_probe(struct platform_device *pdev);
- int pci_host_common_remove(struct platform_device *pdev);
- #endif
- #endif
+ 	ret = !!request_region(ec->data_addr, 1, "EC data");
 -- 
 2.20.1
 
