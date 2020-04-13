@@ -1,66 +1,115 @@
-Return-Path: <SRS0=cKQi=53=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=k1C7=55=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.2 required=3.0 tests=DEAR_FRIEND,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D04E7C2BA2B
-	for <linux-acpi@archiver.kernel.org>; Sat, 11 Apr 2020 14:43:16 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A540E20769
-	for <linux-acpi@archiver.kernel.org>; Sat, 11 Apr 2020 14:43:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E32B3C352BE
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Apr 2020 06:36:06 +0000 (UTC)
+Received: from vger.kernel.org (unknown [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id B211D2076B
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Apr 2020 06:36:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="uz5+521n"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B211D2076B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-acpi-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726054AbgDKOnP convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 11 Apr 2020 10:43:15 -0400
-Received: from unallocated-static.datacentres.rogers.com ([72.142.144.38]:56727
-        "EHLO smartermail2" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726037AbgDKOnP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2020 10:43:15 -0400
-X-Greylist: delayed 1680 seconds by postgrey-1.27 at vger.kernel.org; Sat, 11 Apr 2020 10:43:15 EDT
-Received: from coris.com (UnknownHost [103.207.36.17]) by smartermail2 with SMTP;
-   Thu, 9 Apr 2020 23:32:32 -0400
-Reply-To: kentpace@sina.com
-From:   Kent Pace <kentpace@coris.com>
-To:     linux-acpi@vger.kernel.org
-Subject: Urgent!!!!! Please read
-Date:   09 Apr 2020 20:32:29 -0700
-Message-ID: <20200409203229.1AB6244E110426C2@coris.com>
+        id S1728544AbgDMGgC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Apr 2020 02:36:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.18]:51890 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727536AbgDMGgC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2020 02:36:02 -0400
+Received: from mail-qk1-x742.google.com (mail-qk1-x742.google.com [IPv6:2607:f8b0:4864:20::742])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFAB3C008673;
+        Sun, 12 Apr 2020 23:36:01 -0700 (PDT)
+Received: by mail-qk1-x742.google.com with SMTP id t3so4691483qkg.1;
+        Sun, 12 Apr 2020 23:36:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=KMpw6K79lA/hKqIcCn2kKRSspiTDXkb2D8JjBGFr8zQ=;
+        b=uz5+521nlHBocaytihEXa/MzRtF6lSl6OnhByj/4tYGgzxMgsJepipn9S0nNQZMDJz
+         P9ee2v+EOPvrZl1stRWdTm9Of9V5vQioB7DSLHUIFvX8TZX3V1LKRUTYZ0fERav4znaL
+         ZQk7orz6i9h4g6ZzPYHczp93XiJ1euMZ2rulHWmEGDtfoxa4CRd/aewcwaAEHQdI75YQ
+         umHMLAFnEEzpJsCqD/LGFB7rPxGqxW9NBs//tY0mSGGrX1NmQJq+BRbg3orUyls6Eq5f
+         nMjVM/Z+9Tvx9dFxQHWvQGH1c63oXgjcGODdQ7gvgZTD0bQCB1/tpNBC/EHYReMxxX+J
+         oKMQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=KMpw6K79lA/hKqIcCn2kKRSspiTDXkb2D8JjBGFr8zQ=;
+        b=tgqWtRRrxSr2eDB/injdtVY48C4Ki1TeIZ/oQz6vho80zdfdI8SgHX8YETDSlapzGq
+         JPSoiq9GdKnusBkzmEPQ/JTmq3DJoWBrBJ4XEGbMQ+EP/vdYXs51yK7p2O4nQZGzdfAL
+         hZ/XTzoRHQyXEMux98sq3bfzQMAZEQfK11ZGQWZKoiQdiQRjGHsDuqOaGW5RL6i8E/U2
+         FPe94y6mOmDhkEf1Nr20ImDAwuUw4zM7pP3r8wekiKbXH2grtTSLEaeF1SsstnUqnQPJ
+         iSZtE76y+N0yZChluiMYylYi9uBxLiWZeFY9/CpU25C/rVw/0rqu/CRxDiss/mqnWpEu
+         GWqQ==
+X-Gm-Message-State: AGi0PuZ55bqQ9oU4+nwCRXo5BALb5VDWQVThe4IKTmOn4vjsOwVp5rVz
+        C5MWyAUUVkTiJ3nXhfHlOGC1eQDa2KP8bVf/Jng=
+X-Google-Smtp-Source: APiQypLAkeIgbG9vE5BMPoUzyd5dJuTAeNpXUZF1UwhH8UT1xsBlzhBm3dFEKEbDE+I8yBJb7oDCmyFUzPvyYPBCdUQ=
+X-Received: by 2002:a37:ac6:: with SMTP id 189mr952703qkk.60.1586759759747;
+ Sun, 12 Apr 2020 23:35:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+References: <1888197.j9z7NJ8yPn@kreacher> <5092680.jloV5Ae5OO@kreacher>
+In-Reply-To: <5092680.jloV5Ae5OO@kreacher>
+From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Date:   Sun, 12 Apr 2020 23:35:48 -0700
+Message-ID: <CAL3LdT71aa3NfqoGTvmz-XzS7Ng=LqpwPROWyf=w_+PyvEET-w@mail.gmail.com>
+Subject: Re: [PATCH 5/7] PM: sleep: core: Rename DPM_FLAG_NEVER_SKIP
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Hans De Goede <hdegoede@redhat.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        DRI-devel <dri-devel@lists.freedesktop.org>,
+        Intel Graphics <intel-gfx@lists.freedesktop.org>,
+        intel-wired-lan <intel-wired-lan@lists.osuosl.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dear Friend,
+On Fri, Apr 10, 2020 at 9:03 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>
+> Rename DPM_FLAG_NEVER_SKIP to DPM_FLAG_NO_DIRECT_COMPLETE which
+> matches its purpose more closely.
+>
+> No functional impact.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 
-There is something very important I need to discuss with you.  I 
-am writing  this letter in tears and fear. In tears because I 
-will soon depart and in fear because I don't really know if you 
-will do this faithfully.
+For the driver changes to e1000e, igb and igc.
 
-
-I am COVID-19  patient and the doctor has already confirmed I may 
-not last for the next 7 days.
-
-I have substantial amount of money deposited in a security vault 
-around your country. It is in trunk boxes and once  I receive 
-your response and see your readiness to claim the money 
-immediately, I will forward the needed documents and the contact 
-of the security vault where the consignment is deposited,
-I am not asking you to give me anything but I want you to help 
-people that has been infected with this deadly virus with 60% of 
-the money and 40% should be for you and your family.
-
-I will disclose exact amount in the boxes as soon as I 
-receive your response.
-
-
-Regards
-
+> ---
+>  Documentation/driver-api/pm/devices.rst    |  6 +++---
+>  Documentation/power/pci.rst                | 10 +++++-----
+>  drivers/base/power/main.c                  |  2 +-
+>  drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c    |  2 +-
+>  drivers/gpu/drm/i915/intel_runtime_pm.c    |  2 +-
+>  drivers/gpu/drm/radeon/radeon_kms.c        |  2 +-
+>  drivers/misc/mei/pci-me.c                  |  2 +-
+>  drivers/misc/mei/pci-txe.c                 |  2 +-
+>  drivers/net/ethernet/intel/e1000e/netdev.c |  2 +-
+>  drivers/net/ethernet/intel/igb/igb_main.c  |  2 +-
+>  drivers/net/ethernet/intel/igc/igc_main.c  |  2 +-
+>  drivers/pci/pcie/portdrv_pci.c             |  2 +-
+>  include/linux/pm.h                         |  6 +++---
+>  13 files changed, 21 insertions(+), 21 deletions(-)
+>
