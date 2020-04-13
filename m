@@ -2,198 +2,89 @@ Return-Path: <SRS0=k1C7=55=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	LOTS_OF_MONEY,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89C54C2BBFD
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Apr 2020 14:13:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5127C2BA2B
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Apr 2020 16:52:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64DBB2075E
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Apr 2020 14:13:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586787189;
-	bh=fFn92oT/7JQWOe+eb1RWwMKoz4lHaWYcfVSK1R2f98g=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=QJxau7WW4dLhshlUqL6X+YV519QGswiid/TypWSJzBjBhw5XmFuUvcCJrmQAp3YLP
-	 DRQDcmnc9JaRyFYK4BedR5/92k7iCYumHAOcLGm7nx6+N8eCWTXpI4tjgpC+yG0IYw
-	 NkyDJaj0JACMyLYzFL2C/JC53V5voxYFIgCU/gng=
+	by mail.kernel.org (Postfix) with ESMTP id C9CF22076D
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Apr 2020 16:52:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730404AbgDMONE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Apr 2020 10:13:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46564 "EHLO mail.kernel.org"
+        id S1731834AbgDMQwW convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Apr 2020 12:52:22 -0400
+Received: from mail.ngud.de ([213.61.216.254]:36020 "EHLO mail.ngud.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730372AbgDMONC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Apr 2020 10:13:02 -0400
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1731842AbgDMQwU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 13 Apr 2020 12:52:20 -0400
+X-Greylist: delayed 999 seconds by postgrey-1.27 at vger.kernel.org; Mon, 13 Apr 2020 12:52:19 EDT
+Received: from mail.ngud.de (localhost [127.0.0.1])
+        by mail.ngud.de (Postfix) with ESMTP id 964C019E7E9
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Apr 2020 18:28:01 +0200 (CEST)
+Received: from ngud.de (unknown [80.209.240.10])
+        (using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4BBD92075E;
-        Mon, 13 Apr 2020 14:13:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586787181;
-        bh=fFn92oT/7JQWOe+eb1RWwMKoz4lHaWYcfVSK1R2f98g=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=p1DHCiESlvhTiPZXniInk1VZLp/N5TlSG67QXKQaLE/7xtmztnwaoAlrbwH5ELOkB
-         BvIMAszq+85y4jImTos0W1yPNDl3NDZtkYOLxn+yVOiI+giGpnsHdNn9GcEfOC0YO+
-         L+qGrW8oYr3+k09cmhLzaHT7/wUuI33WGYwAoJAQ=
-Date:   Mon, 13 Apr 2020 16:12:59 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Collabora Kernel ML <kernel@collabora.com>,
-        groeck@chromium.org, bleung@chromium.org, dtor@chromium.org,
-        gwendal@chromium.org, vbendeb@chromium.org, andy@infradead.org,
-        Ayman Bagabas <ayman.bagabas@gmail.com>,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        =?utf-8?B?Qmxhxb4=?= Hrastnik <blaz@mxxn.io>,
-        Darren Hart <dvhart@infradead.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Jeremy Soller <jeremy@system76.com>,
-        Mattias Jacobsson <2pi@mok.nu>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Rajat Jain <rajatja@google.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v4] platform: x86: Add ACPI driver for ChromeOS
-Message-ID: <20200413141259.GA3458877@kroah.com>
-References: <20200413134611.478441-1-enric.balletbo@collabora.com>
+        by mail.ngud.de (Postfix) with ESMTPSA id 4222F19E7D4
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Apr 2020 18:28:01 +0200 (CEST)
+Reply-To: ask.schulmanpeter@gmail.com
+From:   Peter Schulman <peter.schulman@ngud.de>
+To:     linux-acpi@vger.kernel.org
+Subject: Hello
+Date:   13 Apr 2020 19:28:01 +0300
+Message-ID: <20200413192800.80F02DA5B3707C4E@ngud.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200413134611.478441-1-enric.balletbo@collabora.com>
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Meta-comment to the ACPI developers, shouldn't all of this happen
-"automatically" with the existing ACPI entries in sysfs?  If not, is
-this driver the proper way to do this?
+Cześć,
 
-Minor review comments below:
+Wcześniej wysłałem Ci wiadomość e-mail o spadku bez Twojej 
+wiadomości. Pozwól mi ponownie wprowadzić do ciebie mój e-mail i 
+niezwłocznie odpowiedz.
+Nazywam się Peter Schulman, główny adwokat w Kancelarii 
+Prawniczej Jeffery & Schulman z siedzibą w Kanadzie. Kontaktuję 
+się z tobą z powodu mojego zmarłego klienta, który zmarł, 
+pozostawiając fundusze w banku w Europie w wysokości 9,850,000 
+USD.  Chcę ogłosić cię jako spadkobiercę / beneficjenta funduszu.
+Nie musisz się martwić, ta transakcja zostanie przeprowadzona 
+zgodnie z prawem bez żadnego problemu. Jeśli jesteś 
+zainteresowany, mogę podać więcej informacji o mojej propozycji, 
+jak tylko otrzymam twoją odpowiedź.
 
+Z poważaniem,
 
-On Mon, Apr 13, 2020 at 03:46:11PM +0200, Enric Balletbo i Serra wrote:
-> +What:		/sys/bus/acpi/devices/GGL0001:00/BINF.{0,1,4}
-> +Date:		April 2020
-> +KernelVersion:	5.8
-> +Description:
-> +		This file is reserved and doesn't shows useful information
-> +		for now.
+Hello,
+I sent you an email before about an inheritance without hearing 
+from you. Let me reintroduce my email again to you and please 
+reply immediately.
+My name is Mr. Peter Schulman the principal attorney at Jeffery & 
+Schulman Law Office based in Canada. I am contacting you because 
+of my deceased client who died leaving some funds with a bank in 
+Europe in the sum of 9,850,000 USD. I want to announce you as a 
+heir/beneficiary to the fund.
 
-Then do not even have it present.  sysfs should never export files that
-nothing can be done with them, userspace "knows" that if a file is not
-present, it can not use it.  Bring it back when it is useful.
+You don't have to worry, this transaction will be done legally 
+without any problem. If you are interested, I can give you more 
+information about my proposal as soon as i get your reply.
 
-> +What:		/sys/bus/acpi/devices/GGL0001:00/MECK
-> +Date:		April 2020
-> +KernelVersion:	5.8
-> +Description:
-> +		This binary file returns the SHA-1 or SHA-256 hash that is
-> +		read out of the Management Engine extend registers during
-> +		boot. The hash is exported vi ACPI so the OS can verify that
-> +		the Management Engine firmware has not changed. If Management
-> +		Engine is not present, or if the firmware was unable to read the
-> +		extend registers, this buffer can be zero.
+Regards,
+Best Regards,
 
-The size is zero, or the contents are 0?
+Mr. Peter Schulman
+Senior Partner | Project Manager | Litigation
 
-> +static char *chromeos_acpi_alloc_name(char *name, int count, int index)
-> +{
-> +	char *str;
-> +
-> +	if (count == 1)
-> +		str = kstrdup(name, GFP_KERNEL);
-> +	else
-> +		str = kasprintf(GFP_KERNEL, "%s.%d", name, index);
+Jeffery & Schulman Law Office
+1230 Bay Street
+Suite 810 Toronto
+Ontario, M5R 2A7
+Phone: +1 647 490 7060
+Private Email: ask.schulmanpeter@gmail.com
 
-That's crazy, make this more obvious that "count" affects the name so
-much.  As it is, no one would know this unless they read the function
-code, and not just the name.
-
-
-> +/**
-> + * chromeos_acpi_add_group() - Create a sysfs group including attributes
-> + *			       representing a nested ACPI package.
-> + *
-> + * @adev: ACPI device.
-> + * @obj: Package contents as returned by ACPI.
-> + * @name: Name of the group.
-> + * @num_attrs: Number of attributes of this package.
-> + * @index: Index number of this particular group.
-> + *
-> + * The created group is called @name in case there is a single instance, or
-> + * @name.@index otherwise.
-> + *
-> + * All group and attribute storage allocations are included in the lists for
-> + * tracking of allocated memory.
-> + *
-> + * Return: 0 on success, negative errno on failure.
-> + */
-
-Meta-comment, no need for kerneldoc on static functions.  It's nice to
-see, but nothing is going to notice them...
-
-> +static int chromeos_acpi_add_method(struct acpi_device *adev, char *name)
-> +{
-> +	struct device *dev = &adev->dev;
-> +	struct acpi_buffer output;
-> +	union acpi_object *obj;
-> +	acpi_status status;
-> +	int ret = 0;
-> +
-> +	output.length = ACPI_ALLOCATE_BUFFER;
-> +
-> +	status = acpi_evaluate_object(adev->handle, name, NULL, &output);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_err(dev, "failed to retrieve %s (%d)\n", name, status);
-> +		return status;
-> +	}
-> +
-> +	obj = output.pointer;
-> +	if (obj->type == ACPI_TYPE_PACKAGE)
-> +		ret = chromeos_acpi_handle_package(adev, obj, name);
-> +
-> +	kfree(output.pointer);
-
-Why the need for 'obj' at all in this function?  Minor nit.
-
-> +
-> +	return ret;
-> +}
-> +
-> +static int chromeos_acpi_device_add(struct acpi_device *adev)
-> +{
-> +	struct chromeos_acpi_attribute_group *aag = chromeos_acpi.root;
-> +	struct device *dev = &adev->dev;
-> +	int i, ret;
-> +
-> +	aag = kzalloc(sizeof(*aag), GFP_KERNEL);
-> +	if (!aag)
-> +		return -ENOMEM;
-> +
-> +	INIT_LIST_HEAD(&aag->attribs);
-> +	INIT_LIST_HEAD(&aag->list);
-> +	INIT_LIST_HEAD(&chromeos_acpi.groups);
-> +
-> +	chromeos_acpi.root = aag;
-> +
-> +	/*
-> +	 * Attempt to add methods by querying the device's MLST method
-> +	 * for the list of methods.
-> +	 */
-> +	if (!chromeos_acpi_process_mlst(adev))
-> +		return 0;
-> +
-> +	dev_info(dev, "falling back to default list of methods\n");
-
-Is this debugging code left over?  If not, make it an error, and what
-would a user be able to do with it?
-
-thanks,
-
-greg k-h
