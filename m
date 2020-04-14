@@ -2,26 +2,25 @@ Return-Path: <SRS0=DEsm=56=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F39C2BA19
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 18:03:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BC55C352BE
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 18:03:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0177B2076B
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 18:03:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1382920767
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 18:03:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2503303AbgDNSDN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Apr 2020 14:03:13 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:46732 "EHLO
+        id S2503169AbgDNSBU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Apr 2020 14:01:20 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:46626 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2503184AbgDNSBZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Apr 2020 14:01:25 -0400
+        with ESMTP id S1730908AbgDNSBS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Apr 2020 14:01:18 -0400
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: andrzej.p)
-        with ESMTPSA id 7B46E2A1BDF
+        with ESMTPSA id 5A7222A1BDC
 From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
 To:     linux-pm@vger.kernel.org
 Cc:     Zhang Rui <rui.zhang@intel.com>,
@@ -48,129 +47,61 @@ Cc:     Zhang Rui <rui.zhang@intel.com>,
         platform-driver-x86@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, kernel@collabora.com,
         Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-Subject: [RFC v2 3/9] thermal: Properly handle mode values in .set_mode()
-Date:   Tue, 14 Apr 2020 20:00:59 +0200
-Message-Id: <20200414180105.20042-4-andrzej.p@collabora.com>
+Subject: [RFC v2 0/9] Stop monitoring disabled devices
+Date:   Tue, 14 Apr 2020 20:00:56 +0200
+Message-Id: <20200414180105.20042-1-andrzej.p@collabora.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200414180105.20042-1-andrzej.p@collabora.com>
+In-Reply-To: <2bc5a902-acde-526a-11a5-2357d899916c@linaro.org>
 References: <2bc5a902-acde-526a-11a5-2357d899916c@linaro.org>
- <20200414180105.20042-1-andrzej.p@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Allow only THERMAL_DEVICE_ENABLED and THERMAL_DEVICE_DISABLED as valid
-states to transition to.
+This is the second iteration of this RFC.
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@collabora.com>
----
- drivers/net/ethernet/mellanox/mlxsw/core_thermal.c | 8 ++++++--
- drivers/platform/x86/acerhdf.c                     | 4 ++++
- drivers/thermal/imx_thermal.c                      | 4 +++-
- drivers/thermal/intel/intel_quark_dts_thermal.c    | 5 ++++-
- drivers/thermal/of-thermal.c                       | 4 +++-
- 5 files changed, 20 insertions(+), 5 deletions(-)
+The series now focuses on cleaning up the code in the first place.
 
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/core_thermal.c b/drivers/net/ethernet/mellanox/mlxsw/core_thermal.c
-index ce0a6837daa3..cd435ca7adbe 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/core_thermal.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/core_thermal.c
-@@ -296,8 +296,10 @@ static int mlxsw_thermal_set_mode(struct thermal_zone_device *tzdev,
- 
- 	if (mode == THERMAL_DEVICE_ENABLED)
- 		tzdev->polling_delay = thermal->polling_delay;
--	else
-+	else if (mode == THERMAL_DEVICE_DISABLED)
- 		tzdev->polling_delay = 0;
-+	else
-+		return -EINVAL;
- 
- 	mutex_unlock(&tzdev->lock);
- 
-@@ -486,8 +488,10 @@ static int mlxsw_thermal_module_mode_set(struct thermal_zone_device *tzdev,
- 
- 	if (mode == THERMAL_DEVICE_ENABLED)
- 		tzdev->polling_delay = thermal->polling_delay;
--	else
-+	else if (mode == THERMAL_DEVICE_DISABLED)
- 		tzdev->polling_delay = 0;
-+	else
-+		return -EINVAL;
- 
- 	mutex_unlock(&tzdev->lock);
- 
-diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-index 8cc86f4e3ac1..d5188c1d688b 100644
---- a/drivers/platform/x86/acerhdf.c
-+++ b/drivers/platform/x86/acerhdf.c
-@@ -431,6 +431,10 @@ static int acerhdf_get_mode(struct thermal_zone_device *thermal,
- static int acerhdf_set_mode(struct thermal_zone_device *thermal,
- 			    enum thermal_device_mode mode)
- {
-+	if (mode != THERMAL_DEVICE_DISABLED &&
-+	    mode != THERMAL_DEVICE_ENABLED)
-+		return -EINVAL;
-+
- 	if (mode == THERMAL_DEVICE_DISABLED && kernelmode)
- 		acerhdf_revert_to_bios_mode();
- 	else if (mode == THERMAL_DEVICE_ENABLED && !kernelmode)
-diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
-index e761c9b42217..36b1924f1938 100644
---- a/drivers/thermal/imx_thermal.c
-+++ b/drivers/thermal/imx_thermal.c
-@@ -361,7 +361,7 @@ static int imx_set_mode(struct thermal_zone_device *tz,
- 			data->irq_enabled = true;
- 			enable_irq(data->irq);
- 		}
--	} else {
-+	} else if (mode == THERMAL_DEVICE_DISABLED) {
- 		regmap_write(map, soc_data->sensor_ctrl + REG_CLR,
- 			     soc_data->measure_temp_mask);
- 		regmap_write(map, soc_data->sensor_ctrl + REG_SET,
-@@ -374,6 +374,8 @@ static int imx_set_mode(struct thermal_zone_device *tz,
- 			disable_irq(data->irq);
- 			data->irq_enabled = false;
- 		}
-+	} else {
-+		return -EINVAL;
- 	}
- 
- 	data->mode = mode;
-diff --git a/drivers/thermal/intel/intel_quark_dts_thermal.c b/drivers/thermal/intel/intel_quark_dts_thermal.c
-index d704fc104cfd..11d7db895125 100644
---- a/drivers/thermal/intel/intel_quark_dts_thermal.c
-+++ b/drivers/thermal/intel/intel_quark_dts_thermal.c
-@@ -325,8 +325,11 @@ static int sys_set_mode(struct thermal_zone_device *tzd,
- 	mutex_lock(&dts_update_mutex);
- 	if (mode == THERMAL_DEVICE_ENABLED)
- 		ret = soc_dts_enable(tzd);
--	else
-+	else if (mode == THERMAL_DEVICE_DISABLED)
- 		ret = soc_dts_disable(tzd);
-+	else
-+		return -EINVAL;
-+
- 	mutex_unlock(&dts_update_mutex);
- 
- 	return ret;
-diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-index 874a47d6923f..36bebf623980 100644
---- a/drivers/thermal/of-thermal.c
-+++ b/drivers/thermal/of-thermal.c
-@@ -289,9 +289,11 @@ static int of_thermal_set_mode(struct thermal_zone_device *tz,
- 	if (mode == THERMAL_DEVICE_ENABLED) {
- 		tz->polling_delay = data->polling_delay;
- 		tz->passive_delay = data->passive_delay;
--	} else {
-+	} else if (mode == THERMAL_DEVICE_DISABLED) {
- 		tz->polling_delay = 0;
- 		tz->passive_delay = 0;
-+	} else {
-+		return -EINVAL;
- 	}
- 
- 	mutex_unlock(&tz->lock);
+After the cleanups in patches 1-3 struct thermal_zone_device is extended
+so that it contains a "mode" member (patch 4/9).
+
+The next patch (5/9) makes all thermal zone devices use the "mode" member.
+This patch makes drivers' ->get_mode() methods redundant, so the next one
+(6/9) removes the method altogether.
+
+Patches 7-8/9 ensure that after changing thermal zone device's mode
+an attempt will be made to monitor the device.
+
+And finally patch 9/9 prevents DISABLED devices from being monitored.
+It also adds THERMAL_DEVICE_INITIAL to accommodate the devices, which
+should be monitored but cannot be initially ENABLED.
+
+Andrzej Pietrasiewicz (9):
+  thermal: int3400_thermal: Statically initialize
+    .get_mode()/.set_mode() ops
+  thermal: Eliminate an always-false condition
+  thermal: Properly handle mode values in .set_mode()
+  thermal: core: Let thermal zone device's mode be stored in its struct
+  thermal: Store mode in thermal_zone_device
+  thermal: Remove get_mode() method
+  thermal: core: Monitor thermal zone after mode change
+  thermal: of: Monitor thermal zone after enabling it
+  thermal: core: Stop polling DISABLED thermal devices
+
+ drivers/acpi/thermal.c                        | 44 +++++----------
+ .../ethernet/mellanox/mlxsw/core_thermal.c    | 43 ++++-----------
+ drivers/platform/x86/acerhdf.c                | 28 +++++-----
+ drivers/thermal/da9062-thermal.c              | 12 +---
+ drivers/thermal/imx_thermal.c                 | 30 ++++------
+ .../intel/int340x_thermal/int3400_thermal.c   | 39 +++----------
+ .../thermal/intel/intel_quark_dts_thermal.c   | 27 ++++-----
+ drivers/thermal/of-thermal.c                  | 28 ++++------
+ drivers/thermal/thermal_core.c                | 40 ++++++++++++--
+ drivers/thermal/thermal_core.h                |  2 +
+ drivers/thermal/thermal_sysfs.c               | 40 ++++----------
+ include/linux/thermal.h                       | 55 ++++++++++++++++++-
+ 12 files changed, 180 insertions(+), 208 deletions(-)
+
 -- 
 2.17.1
 
