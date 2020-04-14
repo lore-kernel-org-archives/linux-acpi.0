@@ -2,106 +2,120 @@ Return-Path: <SRS0=DEsm=56=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BC55C352BE
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 18:03:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8388BC2BB1D
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 20:22:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1382920767
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 18:03:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FC212074D
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Apr 2020 20:22:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2503169AbgDNSBU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Apr 2020 14:01:20 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:46626 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730908AbgDNSBS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Apr 2020 14:01:18 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: andrzej.p)
-        with ESMTPSA id 5A7222A1BDC
-From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-To:     linux-pm@vger.kernel.org
-Cc:     Zhang Rui <rui.zhang@intel.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Jiri Pirko <jiri@mellanox.com>,
-        Ido Schimmel <idosch@mellanox.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Peter Kaestle <peter@piie.net>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Amit Kucheria <amit.kucheria@verdurent.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Allison Randal <allison@lohutok.net>,
-        Enrico Weigelt <info@metux.net>,
-        Gayatri Kammela <gayatri.kammela@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        linux-acpi@vger.kernel.org, netdev@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, kernel@collabora.com,
-        Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-Subject: [RFC v2 0/9] Stop monitoring disabled devices
-Date:   Tue, 14 Apr 2020 20:00:56 +0200
-Message-Id: <20200414180105.20042-1-andrzej.p@collabora.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <2bc5a902-acde-526a-11a5-2357d899916c@linaro.org>
-References: <2bc5a902-acde-526a-11a5-2357d899916c@linaro.org>
+        id S2632966AbgDNUWu convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Apr 2020 16:22:50 -0400
+Received: from mga06.intel.com ([134.134.136.31]:52201 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2633019AbgDNUWp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Apr 2020 16:22:45 -0400
+IronPort-SDR: TaG4wlkcMUzvzbGZWoWhj5AiYzGSnQ56NJoK2i09u24qDwhgkH0XKUFezb6UmXJjYBDFzDaiz+
+ jM6uDlBjl4OA==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Apr 2020 13:22:42 -0700
+IronPort-SDR: V0+HOszgHeIq+0rekuUIV0Y5Q1Ykf6UNOYs4D2TW1H2VxAUm2gYsw9HXh0Xx3tblx45u/ZzrI5
+ 5d9Vclu4QyOA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.72,384,1580803200"; 
+   d="scan'208";a="245510622"
+Received: from orsmsx102.amr.corp.intel.com ([10.22.225.129])
+  by fmsmga008.fm.intel.com with ESMTP; 14 Apr 2020 13:22:42 -0700
+Received: from orsmsx158.amr.corp.intel.com (10.22.240.20) by
+ ORSMSX102.amr.corp.intel.com (10.22.225.129) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Tue, 14 Apr 2020 13:22:41 -0700
+Received: from orsmsx108.amr.corp.intel.com ([169.254.2.172]) by
+ ORSMSX158.amr.corp.intel.com ([169.254.10.99]) with mapi id 14.03.0439.000;
+ Tue, 14 Apr 2020 13:22:41 -0700
+From:   "Moore, Robert" <robert.moore@intel.com>
+To:     Jason Yan <yanaijie@huawei.com>,
+        "Kaneda, Erik" <erik.kaneda@intel.com>,
+        "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "devel@acpica.org" <devel@acpica.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH] ACPICA: Use ARRAY_SIZE instead of hardcoded siz
+Thread-Topic: [PATCH] ACPICA: Use ARRAY_SIZE instead of hardcoded siz
+Thread-Index: AQHWEZysu7u4opIOMUyKgwd1vmqkR6h5D5pA
+Date:   Tue, 14 Apr 2020 20:22:40 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3C68A849E@ORSMSX108.amr.corp.intel.com>
+References: <20200413143156.22633-1-yanaijie@huawei.com>
+In-Reply-To: <20200413143156.22633-1-yanaijie@huawei.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-version: 11.2.0.6
+dlp-reaction: no-action
+x-originating-ip: [10.22.254.140]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is the second iteration of this RFC.
+I think we've discussed this in the past. ARRAY_SIZE is not standard, and will get in the way of portability:
 
-The series now focuses on cleaning up the code in the first place.
+On gcc v7.4.0:
+../../../source/components/resources/rsdumpinfo.c:335:25: note: in expansion of macro 'ACPI_RSD_TABLE_SIZE'
+     {ACPI_RSD_TITLE,    ACPI_RSD_TABLE_SIZE (AcpiRsDumpGenericReg),         "Generic Register",         NULL},
 
-After the cleanups in patches 1-3 struct thermal_zone_device is extended
-so that it contains a "mode" member (patch 4/9).
+../../../source/components/resources/rsdumpinfo.c:166:37: error: initializer element is not constant
+ #define ACPI_RSD_TABLE_SIZE(name)   ARRAY_SIZE (name)
 
-The next patch (5/9) makes all thermal zone devices use the "mode" member.
-This patch makes drivers' ->get_mode() methods redundant, so the next one
-(6/9) removes the method altogether.
 
-Patches 7-8/9 ensure that after changing thermal zone device's mode
-an attempt will be made to monitor the device.
+And, on MSVC 2017:
+Severity	Code	Description	Project	File	Line	Suppression State
+Warning	C4013	'ARRAY_SIZE' undefined; assuming extern returning int	AcpiExec	c:\acpica\source\components\resources\rsdumpinfo.c	179	
+-----Original Message-----
+From: Jason Yan <yanaijie@huawei.com> 
+Sent: Monday, April 13, 2020 7:32 AM
+To: Moore, Robert <robert.moore@intel.com>; Kaneda, Erik <erik.kaneda@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>; lenb@kernel.org; linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
+Cc: Jason Yan <yanaijie@huawei.com>
+Subject: [PATCH] ACPICA: Use ARRAY_SIZE instead of hardcoded siz
 
-And finally patch 9/9 prevents DISABLED devices from being monitored.
-It also adds THERMAL_DEVICE_INITIAL to accommodate the devices, which
-should be monitored but cannot be initially ENABLED.
+Fix the following coccicheck warning:
 
-Andrzej Pietrasiewicz (9):
-  thermal: int3400_thermal: Statically initialize
-    .get_mode()/.set_mode() ops
-  thermal: Eliminate an always-false condition
-  thermal: Properly handle mode values in .set_mode()
-  thermal: core: Let thermal zone device's mode be stored in its struct
-  thermal: Store mode in thermal_zone_device
-  thermal: Remove get_mode() method
-  thermal: core: Monitor thermal zone after mode change
-  thermal: of: Monitor thermal zone after enabling it
-  thermal: core: Stop polling DISABLED thermal devices
+./drivers/acpi/acpica/rsdumpinfo.c:18:48-49: WARNING: Use ARRAY_SIZE
+./drivers/acpi/acpica/rsdumpinfo.c:18:48-49: WARNING: Use ARRAY_SIZE
+./drivers/acpi/acpica/rsdumpinfo.c:18:48-49: WARNING: Use ARRAY_SIZE
+./drivers/acpi/acpica/rsdumpinfo.c:18:48-49: WARNING: Use ARRAY_SIZE
+./drivers/acpi/acpica/rsdumpinfo.c:18:48-49: WARNING: Use ARRAY_SIZE
+./drivers/acpi/acpica/rsdumpinfo.c:18:48-49: WARNING: Use ARRAY_SIZE
+./drivers/acpi/acpica/rsdumpinfo.c:18:48-49: WARNING: Use ARRAY_SIZE
 
- drivers/acpi/thermal.c                        | 44 +++++----------
- .../ethernet/mellanox/mlxsw/core_thermal.c    | 43 ++++-----------
- drivers/platform/x86/acerhdf.c                | 28 +++++-----
- drivers/thermal/da9062-thermal.c              | 12 +---
- drivers/thermal/imx_thermal.c                 | 30 ++++------
- .../intel/int340x_thermal/int3400_thermal.c   | 39 +++----------
- .../thermal/intel/intel_quark_dts_thermal.c   | 27 ++++-----
- drivers/thermal/of-thermal.c                  | 28 ++++------
- drivers/thermal/thermal_core.c                | 40 ++++++++++++--
- drivers/thermal/thermal_core.h                |  2 +
- drivers/thermal/thermal_sysfs.c               | 40 ++++----------
- include/linux/thermal.h                       | 55 ++++++++++++++++++-
- 12 files changed, 180 insertions(+), 208 deletions(-)
+Signed-off-by: Jason Yan <yanaijie@huawei.com>
+---
+ drivers/acpi/acpica/rsdumpinfo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-2.17.1
+diff --git a/drivers/acpi/acpica/rsdumpinfo.c b/drivers/acpi/acpica/rsdumpinfo.c
+index cafa8134b4c6..f1ba4cd8080f 100644
+--- a/drivers/acpi/acpica/rsdumpinfo.c
++++ b/drivers/acpi/acpica/rsdumpinfo.c
+@@ -15,7 +15,7 @@ ACPI_MODULE_NAME("rsdumpinfo")  #if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DISASSEMBLER) || defined(ACPI_DEBUGGER)
+ #define ACPI_RSD_OFFSET(f)          (u8) ACPI_OFFSET (union acpi_resource_data,f)
+ #define ACPI_PRT_OFFSET(f)          (u8) ACPI_OFFSET (struct acpi_pci_routing_table,f)
+-#define ACPI_RSD_TABLE_SIZE(name)   (sizeof(name) / sizeof (struct acpi_rsdump_info))
++#define ACPI_RSD_TABLE_SIZE(name)   ARRAY_SIZE(name)
+ /*******************************************************************************
+  *
+  * Resource Descriptor info tables
+--
+2.21.1
 
