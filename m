@@ -2,224 +2,176 @@ Return-Path: <SRS0=2dAm=57=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D97FC3815B
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 13:02:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E345C3815B
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 15:43:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DEA72078B
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 13:02:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586955759;
-	bh=9comZy+VKV018j2KhxsEbXwamZKAXU7+CY3v7/ohlVE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ztRd13PP4k4JcyCHHI9HbAsrn+AG00Akzs3m8sDK9OEfu+9PlI4KmvNdpr8Sb7xOq
-	 MENJcdwDz4rrbNGOiDcNh+qzLTlQwFrxloC8HdY5f5wKyL38ObbUdrdEAFLEJ1Xe0c
-	 lXp9wrNjbMajJJYvznbdmO9ZTyVOp1L8VF+KzdrM=
+	by mail.kernel.org (Postfix) with ESMTP id 00FAA20771
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 15:43:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S370657AbgDONCh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 Apr 2020 09:02:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56292 "EHLO mail.kernel.org"
+        id S1414809AbgDOPnc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 Apr 2020 11:43:32 -0400
+Received: from foss.arm.com ([217.140.110.172]:47474 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2897151AbgDOLge (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Apr 2020 07:36:34 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 42EAF2137B;
-        Wed, 15 Apr 2020 11:36:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586950590;
-        bh=9comZy+VKV018j2KhxsEbXwamZKAXU7+CY3v7/ohlVE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=0MKbMs/pxMpt7jsydgq8mr46M8rE/+MRYA/DksFcBA3+QS+5+LbXT+oHNT7ExIDWR
-         nu/GPPRmKkyNKSY2ikmZd9wXzu+Ypsu4OWjU95J8lxXK88WJxojULWe+laoN46bzuN
-         UboM/0fWSG2S2hnm4j0V3lvLMynIN6N7koiYEmL0=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Qian Cai <cai@lca.pw>, Borislav Petkov <bp@suse.de>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-pm@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 5.6 087/129] x86: ACPI: fix CPU hotplug deadlock
-Date:   Wed, 15 Apr 2020 07:34:02 -0400
-Message-Id: <20200415113445.11881-87-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200415113445.11881-1-sashal@kernel.org>
-References: <20200415113445.11881-1-sashal@kernel.org>
+        id S1414835AbgDOPn2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Apr 2020 11:43:28 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 145191FB;
+        Wed, 15 Apr 2020 08:43:27 -0700 (PDT)
+Received: from red-moon.cambridge.arm.com (unknown [10.57.31.189])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 562743F6C4;
+        Wed, 15 Apr 2020 08:43:24 -0700 (PDT)
+Date:   Wed, 15 Apr 2020 16:43:18 +0100
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     Makarand Pawagi <makarand.pawagi@nxp.com>
+Cc:     Laurentiu Tudor <laurentiu.tudor@nxp.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>,
+        Ioana Ciornei <ioana.ciornei@nxp.com>,
+        "Diana Madalina Craciun (OSS)" <diana.craciun@oss.nxp.com>,
+        "maz@kernel.org" <maz@kernel.org>,
+        "jon@solid-run.com" <jon@solid-run.com>,
+        Pankaj Bansal <pankaj.bansal@nxp.com>,
+        Calvin Johnson <calvin.johnson@nxp.com>,
+        Varun Sethi <V.Sethi@nxp.com>,
+        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
+        "Stuart.Yoder@arm.com" <Stuart.Yoder@arm.com>,
+        "jeremy.linton@arm.com" <jeremy.linton@arm.com>,
+        "joro@8bytes.org" <joro@8bytes.org>,
+        "tglx@linutronix.de" <tglx@linutronix.de>,
+        "jason@lakedaemon.net" <jason@lakedaemon.net>
+Subject: Re: [EXT] Re: [RFC PATCH 1/4] bus: fsl-mc: add custom .dma_configure
+ implementation
+Message-ID: <20200415153901.GA21296@red-moon.cambridge.arm.com>
+References: <20200227100542.13819-1-laurentiu.tudor@nxp.com>
+ <20200325125109.GA5430@red-moon.cambridge.arm.com>
+ <499fbf9a-416f-d7c7-0655-881d92138a6c@nxp.com>
+ <20200414143211.GA14905@red-moon.cambridge.arm.com>
+ <DB7PR04MB4986A8A3427DBA096628D6FBEBDB0@DB7PR04MB4986.eurprd04.prod.outlook.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <DB7PR04MB4986A8A3427DBA096628D6FBEBDB0@DB7PR04MB4986.eurprd04.prod.outlook.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Qian Cai <cai@lca.pw>
+On Wed, Apr 15, 2020 at 05:42:03AM +0000, Makarand Pawagi wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Sent: Tuesday, April 14, 2020 8:02 PM
+> > To: Laurentiu Tudor <laurentiu.tudor@nxp.com>
+> > Cc: linux-kernel@vger.kernel.org; iommu@lists.linux-foundation.org; linux-arm-
+> > kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
+> > robin.murphy@arm.com; ard.biesheuvel@linaro.org; Ioana Ciornei
+> > <ioana.ciornei@nxp.com>; Diana Madalina Craciun (OSS)
+> > <diana.craciun@oss.nxp.com>; maz@kernel.org; jon@solid-run.com; Pankaj
+> > Bansal <pankaj.bansal@nxp.com>; Makarand Pawagi
+> > <makarand.pawagi@nxp.com>; Calvin Johnson <calvin.johnson@nxp.com>;
+> > Varun Sethi <V.Sethi@nxp.com>; Cristi Sovaiala <cristian.sovaiala@nxp.com>;
+> > Stuart.Yoder@arm.com; jeremy.linton@arm.com; joro@8bytes.org;
+> > tglx@linutronix.de; jason@lakedaemon.net
+> > Subject: [EXT] Re: [RFC PATCH 1/4] bus: fsl-mc: add custom .dma_configure
+> > implementation
+> > 
+> > Caution: EXT Email
+> > 
+> > On Wed, Mar 25, 2020 at 06:48:55PM +0200, Laurentiu Tudor wrote:
+> > > Hi Lorenzo,
+> > >
+> > > On 3/25/2020 2:51 PM, Lorenzo Pieralisi wrote:
+> > > > On Thu, Feb 27, 2020 at 12:05:39PM +0200, laurentiu.tudor@nxp.com wrote:
+> > > >> From: Laurentiu Tudor <laurentiu.tudor@nxp.com>
+> > > >>
+> > > >> The devices on this bus are not discovered by way of device tree
+> > > >> but by queries to the firmware. It makes little sense to trick the
+> > > >> generic of layer into thinking that these devices are of related so
+> > > >> that we can get our dma configuration. Instead of doing that, add
+> > > >> our custom dma configuration implementation.
+> > > >>
+> > > >> Signed-off-by: Laurentiu Tudor <laurentiu.tudor@nxp.com>
+> > > >> ---
+> > > >>  drivers/bus/fsl-mc/fsl-mc-bus.c | 31
+> > > >> ++++++++++++++++++++++++++++++-
+> > > >>  1 file changed, 30 insertions(+), 1 deletion(-)
+> > > >>
+> > > >> diff --git a/drivers/bus/fsl-mc/fsl-mc-bus.c
+> > > >> b/drivers/bus/fsl-mc/fsl-mc-bus.c index 36eb25f82c8e..eafaa0e0b906
+> > > >> 100644
+> > > >> --- a/drivers/bus/fsl-mc/fsl-mc-bus.c
+> > > >> +++ b/drivers/bus/fsl-mc/fsl-mc-bus.c
+> > > >> @@ -132,11 +132,40 @@ static int fsl_mc_bus_uevent(struct device
+> > > >> *dev, struct kobj_uevent_env *env)  static int
+> > > >> fsl_mc_dma_configure(struct device *dev)  {
+> > > >>    struct device *dma_dev = dev;
+> > > >> +  struct iommu_fwspec *fwspec;
+> > > >> +  const struct iommu_ops *iommu_ops;  struct fsl_mc_device *mc_dev
+> > > >> + = to_fsl_mc_device(dev);  int ret;
+> > > >> +  u32 icid;
+> > > >>
+> > > >>    while (dev_is_fsl_mc(dma_dev))
+> > > >>            dma_dev = dma_dev->parent;
+> > > >>
+> > > >> -  return of_dma_configure(dev, dma_dev->of_node, 0);
+> > > >> +  fwspec = dev_iommu_fwspec_get(dma_dev);  if (!fwspec)
+> > > >> +          return -ENODEV;
+> > > >> +  iommu_ops = iommu_ops_from_fwnode(fwspec->iommu_fwnode);
+> > > >> +  if (!iommu_ops)
+> > > >> +          return -ENODEV;
+> > > >> +
+> > > >> +  ret = iommu_fwspec_init(dev, fwspec->iommu_fwnode, iommu_ops);
+> > > >> + if (ret)
+> > > >> +          return ret;
+> > > >> +
+> > > >> +  icid = mc_dev->icid;
+> > > >> +  ret = iommu_fwspec_add_ids(dev, &icid, 1);
+> > > >
+> > > > I see. So with this patch we would use the MC named component only
+> > > > to retrieve the iommu_ops
+> > >
+> > > Right. I'd also add that the implementation tries to follow the
+> > > existing standard .dma_configure implementations, e.g.
+> > > of_dma_configure + of_iommu_configure. I'd also note that similarly to
+> > > the ACPI case, this MC FW device is probed as a platform device in the
+> > > DT scenario, binding here [1].
+> > > A similar approach is used for the retrieval of the msi irq domain,
+> > > see following patch.
+> > >
+> > > > - the streamid are injected directly here bypassing OF/IORT bindings
+> > translations altogether.
+> > >
+> > > Actually I've submitted a v2 [2] that calls into .of_xlate() to allow
+> > > the smmu driver to do some processing on the raw streamid coming from
+> > > the firmware. I have not yet tested this with ACPI but expect it to
+> > > work, however, it's debatable how valid is this approach in the
+> > > context of ACPI.
+> > 
+> > Actually, what I think you need is of_map_rid() (and an IORT equivalent, that I
+> > am going to write - generalizing iort_msi_map_rid()).
+> > 
+> 
+> That would help.
+> 
+> > Would that be enough to enable IORT "normal" mappings in the MC bus named
+> > components ?
+> > 
+> 
+> But still the question remain unanswered that how we are going to represent MC? As Platform device with single ID mapping flag?
 
-[ Upstream commit 696ac2e3bf267f5a2b2ed7d34e64131f2287d0ad ]
+No, "normal" mappings, that's what I wrote above and it is not a
+platform device it is a named component in ACPI/IORT terms.
 
-Similar to commit 0266d81e9bf5 ("acpi/processor: Prevent cpu hotplug
-deadlock") except this is for acpi_processor_ffh_cstate_probe():
-
-"The problem is that the work is scheduled on the current CPU from the
-hotplug thread associated with that CPU.
-
-It's not required to invoke these functions via the workqueue because
-the hotplug thread runs on the target CPU already.
-
-Check whether current is a per cpu thread pinned on the target CPU and
-invoke the function directly to avoid the workqueue."
-
- WARNING: possible circular locking dependency detected
- ------------------------------------------------------
- cpuhp/1/15 is trying to acquire lock:
- ffffc90003447a28 ((work_completion)(&wfc.work)){+.+.}-{0:0}, at: __flush_work+0x4c6/0x630
-
- but task is already holding lock:
- ffffffffafa1c0e8 (cpuidle_lock){+.+.}-{3:3}, at: cpuidle_pause_and_lock+0x17/0x20
-
- which lock already depends on the new lock.
-
- the existing dependency chain (in reverse order) is:
-
- -> #1 (cpu_hotplug_lock){++++}-{0:0}:
- cpus_read_lock+0x3e/0xc0
- irq_calc_affinity_vectors+0x5f/0x91
- __pci_enable_msix_range+0x10f/0x9a0
- pci_alloc_irq_vectors_affinity+0x13e/0x1f0
- pci_alloc_irq_vectors_affinity at drivers/pci/msi.c:1208
- pqi_ctrl_init+0x72f/0x1618 [smartpqi]
- pqi_pci_probe.cold.63+0x882/0x892 [smartpqi]
- local_pci_probe+0x7a/0xc0
- work_for_cpu_fn+0x2e/0x50
- process_one_work+0x57e/0xb90
- worker_thread+0x363/0x5b0
- kthread+0x1f4/0x220
- ret_from_fork+0x27/0x50
-
- -> #0 ((work_completion)(&wfc.work)){+.+.}-{0:0}:
- __lock_acquire+0x2244/0x32a0
- lock_acquire+0x1a2/0x680
- __flush_work+0x4e6/0x630
- work_on_cpu+0x114/0x160
- acpi_processor_ffh_cstate_probe+0x129/0x250
- acpi_processor_evaluate_cst+0x4c8/0x580
- acpi_processor_get_power_info+0x86/0x740
- acpi_processor_hotplug+0xc3/0x140
- acpi_soft_cpu_online+0x102/0x1d0
- cpuhp_invoke_callback+0x197/0x1120
- cpuhp_thread_fun+0x252/0x2f0
- smpboot_thread_fn+0x255/0x440
- kthread+0x1f4/0x220
- ret_from_fork+0x27/0x50
-
- other info that might help us debug this:
-
- Chain exists of:
- (work_completion)(&wfc.work) --> cpuhp_state-up --> cpuidle_lock
-
- Possible unsafe locking scenario:
-
- CPU0                    CPU1
- ----                    ----
- lock(cpuidle_lock);
-                         lock(cpuhp_state-up);
-                         lock(cpuidle_lock);
- lock((work_completion)(&wfc.work));
-
- *** DEADLOCK ***
-
- 3 locks held by cpuhp/1/15:
- #0: ffffffffaf51ab10 (cpu_hotplug_lock){++++}-{0:0}, at: cpuhp_thread_fun+0x69/0x2f0
- #1: ffffffffaf51ad40 (cpuhp_state-up){+.+.}-{0:0}, at: cpuhp_thread_fun+0x69/0x2f0
- #2: ffffffffafa1c0e8 (cpuidle_lock){+.+.}-{3:3}, at: cpuidle_pause_and_lock+0x17/0x20
-
- Call Trace:
- dump_stack+0xa0/0xea
- print_circular_bug.cold.52+0x147/0x14c
- check_noncircular+0x295/0x2d0
- __lock_acquire+0x2244/0x32a0
- lock_acquire+0x1a2/0x680
- __flush_work+0x4e6/0x630
- work_on_cpu+0x114/0x160
- acpi_processor_ffh_cstate_probe+0x129/0x250
- acpi_processor_evaluate_cst+0x4c8/0x580
- acpi_processor_get_power_info+0x86/0x740
- acpi_processor_hotplug+0xc3/0x140
- acpi_soft_cpu_online+0x102/0x1d0
- cpuhp_invoke_callback+0x197/0x1120
- cpuhp_thread_fun+0x252/0x2f0
- smpboot_thread_fn+0x255/0x440
- kthread+0x1f4/0x220
- ret_from_fork+0x27/0x50
-
-Signed-off-by: Qian Cai <cai@lca.pw>
-Tested-by: Borislav Petkov <bp@suse.de>
-[ rjw: Subject ]
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/x86/kernel/acpi/cstate.c       | 3 ++-
- drivers/acpi/processor_throttling.c | 7 -------
- include/acpi/processor.h            | 8 ++++++++
- 3 files changed, 10 insertions(+), 8 deletions(-)
-
-diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-index caf2edccbad2e..49ae4e1ac9cd8 100644
---- a/arch/x86/kernel/acpi/cstate.c
-+++ b/arch/x86/kernel/acpi/cstate.c
-@@ -161,7 +161,8 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
- 
- 	/* Make sure we are running on right CPU */
- 
--	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
-+	retval = call_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx,
-+			     false);
- 	if (retval == 0) {
- 		/* Use the hint in CST */
- 		percpu_entry->states[cx->index].eax = cx->address;
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 532a1ae3595a7..a0bd56ece3ff5 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -897,13 +897,6 @@ static long __acpi_processor_get_throttling(void *data)
- 	return pr->throttling.acpi_processor_get_throttling(pr);
- }
- 
--static int call_on_cpu(int cpu, long (*fn)(void *), void *arg, bool direct)
--{
--	if (direct || (is_percpu_thread() && cpu == smp_processor_id()))
--		return fn(arg);
--	return work_on_cpu(cpu, fn, arg);
--}
--
- static int acpi_processor_get_throttling(struct acpi_processor *pr)
- {
- 	if (!pr)
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 47805172e73d8..683e124ad517d 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -297,6 +297,14 @@ static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
- }
- #endif
- 
-+static inline int call_on_cpu(int cpu, long (*fn)(void *), void *arg,
-+			      bool direct)
-+{
-+	if (direct || (is_percpu_thread() && cpu == smp_processor_id()))
-+		return fn(arg);
-+	return work_on_cpu(cpu, fn, arg);
-+}
-+
- /* in processor_perflib.c */
- 
- #ifdef CONFIG_CPU_FREQ
--- 
-2.20.1
-
+Thanks,
+Lorenzo
