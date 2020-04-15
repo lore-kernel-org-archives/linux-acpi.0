@@ -2,55 +2,54 @@ Return-Path: <SRS0=2dAm=57=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9E14C3815B
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 11:44:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CE4DC2BA19
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 11:47:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81F5520775
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 11:44:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B72F214D8
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 11:47:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586951065;
-	bh=mhBjTDI4vCH59s+ziiF3tVpz1mt1i8VO8riopu5unnc=;
+	s=default; t=1586951223;
+	bh=ReiwWY5DS7R9ZcBugP7lliqJr2hem4U0KmNLfZYzg2s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=EW5dwmiY0gxFthwQnG4eWvt+dElp9U/kXDb8gX3Dh8yaZsg6R0qk6cR7UcK6o4JOz
-	 Xv8UvhmcUY/zNhzf3btxx4pvqDnabJUFxXKG+WskFQ+fxzBXLymbc9KCuKPJkisdPc
-	 xQ31ouKaJiG8WB81pz9m7ouVHiyKs+EQiDtqMrt4=
+	b=hjZbC0Giv/63VOveMOeF6XeNq1xoHwIuljsaklTgW9bneuH4h7yQEmqnnR/1GjpIo
+	 VxD+4pta+ok393qiB7chNQDQcHtxhivCmqTdV41VOkJKRN28ZGi6jhotk8U58LuMQ3
+	 kctei2tNrDxbpqJeCDmgPjAkcK4bc2fA3WpJ/n0k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2897398AbgDOLoP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 Apr 2020 07:44:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36578 "EHLO mail.kernel.org"
+        id S2897582AbgDOLq6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 Apr 2020 07:46:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2409053AbgDOLoL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Apr 2020 07:44:11 -0400
+        id S2897576AbgDOLqz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Apr 2020 07:46:55 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E904520768;
-        Wed, 15 Apr 2020 11:44:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C9D2420768;
+        Wed, 15 Apr 2020 11:46:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586951049;
-        bh=mhBjTDI4vCH59s+ziiF3tVpz1mt1i8VO8riopu5unnc=;
+        s=default; t=1586951214;
+        bh=ReiwWY5DS7R9ZcBugP7lliqJr2hem4U0KmNLfZYzg2s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=pNpZ7+pFoSVJ4rIW6nTCtLo4V+9jZu7jKPhDddzST5QyaCgGzpQUkH+ONjgOPLYyK
-         eEUDxrJsMMKWVGPvtrr8RZa6DujxHvSr9TxhsEb2JgzoF6tNZ1abgosGTuxmmLPLWw
-         iZuumKuX1R56ofog3jXm/rq5JKoHZEhkwwnye14o=
+        b=KNTmdoaVKt0OtVqUF6LY8DonqEOpcsfeBEVRvVnBo0yXO04KdOxPWERAhaiwlWiVw
+         ahXoeIXsMp4P+9BEoGhJ6DM00o5MwCqeEhM7Qz5StD762/3O4g0Ge/qrqbuzrhdA7P
+         +gVuGq3t37gO/sZpb1p9kUyUdzOrWDyMhktLQgJs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
+Cc:     Qian Cai <cai@lca.pw>, Borislav Petkov <bp@suse.de>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org
-Subject: [PATCH AUTOSEL 5.5 084/106] ACPICA: Fixes for acpiExec namespace init file
-Date:   Wed, 15 Apr 2020 07:42:04 -0400
-Message-Id: <20200415114226.13103-84-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-pm@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devel@acpica.org
+Subject: [PATCH AUTOSEL 4.19 26/40] x86: ACPI: fix CPU hotplug deadlock
+Date:   Wed, 15 Apr 2020 07:46:09 -0400
+Message-Id: <20200415114623.14972-26-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200415114226.13103-1-sashal@kernel.org>
-References: <20200415114226.13103-1-sashal@kernel.org>
+In-Reply-To: <20200415114623.14972-1-sashal@kernel.org>
+References: <20200415114623.14972-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,297 +59,167 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Qian Cai <cai@lca.pw>
 
-[ Upstream commit 9a1ae80412dcaa67a29eecf19de44f32b5f1c357 ]
+[ Upstream commit 696ac2e3bf267f5a2b2ed7d34e64131f2287d0ad ]
 
-This is the result of squashing the following ACPICA commit ID's:
-6803997e5b4f3635cea6610b51ff69e29d251de3
-f31cdf8bfda22fe265c1a176d0e33d311c82a7f7
+Similar to commit 0266d81e9bf5 ("acpi/processor: Prevent cpu hotplug
+deadlock") except this is for acpi_processor_ffh_cstate_probe():
 
-This change fixes several problems with the support for the
-acpi_exec namespace init file (-fi option). Specifically, it
-fixes AE_ALREADY_EXISTS errors, as well as various seg faults.
+"The problem is that the work is scheduled on the current CPU from the
+hotplug thread associated with that CPU.
 
-Link: https://github.com/acpica/acpica/commit/f31cdf8b
-Link: https://github.com/acpica/acpica/commit/6803997e
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+It's not required to invoke these functions via the workqueue because
+the hotplug thread runs on the target CPU already.
+
+Check whether current is a per cpu thread pinned on the target CPU and
+invoke the function directly to avoid the workqueue."
+
+ WARNING: possible circular locking dependency detected
+ ------------------------------------------------------
+ cpuhp/1/15 is trying to acquire lock:
+ ffffc90003447a28 ((work_completion)(&wfc.work)){+.+.}-{0:0}, at: __flush_work+0x4c6/0x630
+
+ but task is already holding lock:
+ ffffffffafa1c0e8 (cpuidle_lock){+.+.}-{3:3}, at: cpuidle_pause_and_lock+0x17/0x20
+
+ which lock already depends on the new lock.
+
+ the existing dependency chain (in reverse order) is:
+
+ -> #1 (cpu_hotplug_lock){++++}-{0:0}:
+ cpus_read_lock+0x3e/0xc0
+ irq_calc_affinity_vectors+0x5f/0x91
+ __pci_enable_msix_range+0x10f/0x9a0
+ pci_alloc_irq_vectors_affinity+0x13e/0x1f0
+ pci_alloc_irq_vectors_affinity at drivers/pci/msi.c:1208
+ pqi_ctrl_init+0x72f/0x1618 [smartpqi]
+ pqi_pci_probe.cold.63+0x882/0x892 [smartpqi]
+ local_pci_probe+0x7a/0xc0
+ work_for_cpu_fn+0x2e/0x50
+ process_one_work+0x57e/0xb90
+ worker_thread+0x363/0x5b0
+ kthread+0x1f4/0x220
+ ret_from_fork+0x27/0x50
+
+ -> #0 ((work_completion)(&wfc.work)){+.+.}-{0:0}:
+ __lock_acquire+0x2244/0x32a0
+ lock_acquire+0x1a2/0x680
+ __flush_work+0x4e6/0x630
+ work_on_cpu+0x114/0x160
+ acpi_processor_ffh_cstate_probe+0x129/0x250
+ acpi_processor_evaluate_cst+0x4c8/0x580
+ acpi_processor_get_power_info+0x86/0x740
+ acpi_processor_hotplug+0xc3/0x140
+ acpi_soft_cpu_online+0x102/0x1d0
+ cpuhp_invoke_callback+0x197/0x1120
+ cpuhp_thread_fun+0x252/0x2f0
+ smpboot_thread_fn+0x255/0x440
+ kthread+0x1f4/0x220
+ ret_from_fork+0x27/0x50
+
+ other info that might help us debug this:
+
+ Chain exists of:
+ (work_completion)(&wfc.work) --> cpuhp_state-up --> cpuidle_lock
+
+ Possible unsafe locking scenario:
+
+ CPU0                    CPU1
+ ----                    ----
+ lock(cpuidle_lock);
+                         lock(cpuhp_state-up);
+                         lock(cpuidle_lock);
+ lock((work_completion)(&wfc.work));
+
+ *** DEADLOCK ***
+
+ 3 locks held by cpuhp/1/15:
+ #0: ffffffffaf51ab10 (cpu_hotplug_lock){++++}-{0:0}, at: cpuhp_thread_fun+0x69/0x2f0
+ #1: ffffffffaf51ad40 (cpuhp_state-up){+.+.}-{0:0}, at: cpuhp_thread_fun+0x69/0x2f0
+ #2: ffffffffafa1c0e8 (cpuidle_lock){+.+.}-{3:3}, at: cpuidle_pause_and_lock+0x17/0x20
+
+ Call Trace:
+ dump_stack+0xa0/0xea
+ print_circular_bug.cold.52+0x147/0x14c
+ check_noncircular+0x295/0x2d0
+ __lock_acquire+0x2244/0x32a0
+ lock_acquire+0x1a2/0x680
+ __flush_work+0x4e6/0x630
+ work_on_cpu+0x114/0x160
+ acpi_processor_ffh_cstate_probe+0x129/0x250
+ acpi_processor_evaluate_cst+0x4c8/0x580
+ acpi_processor_get_power_info+0x86/0x740
+ acpi_processor_hotplug+0xc3/0x140
+ acpi_soft_cpu_online+0x102/0x1d0
+ cpuhp_invoke_callback+0x197/0x1120
+ cpuhp_thread_fun+0x252/0x2f0
+ smpboot_thread_fn+0x255/0x440
+ kthread+0x1f4/0x220
+ ret_from_fork+0x27/0x50
+
+Signed-off-by: Qian Cai <cai@lca.pw>
+Tested-by: Borislav Petkov <bp@suse.de>
+[ rjw: Subject ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpica/acnamesp.h |  2 ++
- drivers/acpi/acpica/dbinput.c  | 16 +++++++---------
- drivers/acpi/acpica/dswexec.c  | 33 ++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/dswload.c  |  2 --
- drivers/acpi/acpica/dswload2.c | 35 ++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/nsnames.c  |  6 +-----
- drivers/acpi/acpica/utdelete.c |  9 +++++----
- 7 files changed, 83 insertions(+), 20 deletions(-)
+ arch/x86/kernel/acpi/cstate.c       | 3 ++-
+ drivers/acpi/processor_throttling.c | 7 -------
+ include/acpi/processor.h            | 8 ++++++++
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
-index 7da1864798a0e..ecaa28733dc61 100644
---- a/drivers/acpi/acpica/acnamesp.h
-+++ b/drivers/acpi/acpica/acnamesp.h
-@@ -256,6 +256,8 @@ u32
- acpi_ns_build_normalized_path(struct acpi_namespace_node *node,
- 			      char *full_path, u32 path_size, u8 no_trailing);
+diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+index 158ad1483c435..92539a1c3e317 100644
+--- a/arch/x86/kernel/acpi/cstate.c
++++ b/arch/x86/kernel/acpi/cstate.c
+@@ -133,7 +133,8 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
  
-+void acpi_ns_normalize_pathname(char *original_path);
-+
- char *acpi_ns_get_normalized_pathname(struct acpi_namespace_node *node,
- 				      u8 no_trailing);
+ 	/* Make sure we are running on right CPU */
  
-diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
-index e1632b340182b..c0b8342513fa2 100644
---- a/drivers/acpi/acpica/dbinput.c
-+++ b/drivers/acpi/acpica/dbinput.c
-@@ -468,16 +468,14 @@ char *acpi_db_get_next_token(char *string,
- 		return (NULL);
- 	}
+-	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
++	retval = call_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx,
++			     false);
+ 	if (retval == 0) {
+ 		/* Use the hint in CST */
+ 		percpu_entry->states[cx->index].eax = cx->address;
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index fbc936cf2025c..62c0fe9ef4124 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -910,13 +910,6 @@ static long __acpi_processor_get_throttling(void *data)
+ 	return pr->throttling.acpi_processor_get_throttling(pr);
+ }
  
--	/* Remove any spaces at the beginning */
-+	/* Remove any spaces at the beginning, ignore blank lines */
- 
--	if (*string == ' ') {
--		while (*string && (*string == ' ')) {
--			string++;
--		}
-+	while (*string && isspace(*string)) {
-+		string++;
-+	}
- 
--		if (!(*string)) {
--			return (NULL);
--		}
-+	if (!(*string)) {
-+		return (NULL);
- 	}
- 
- 	switch (*string) {
-@@ -570,7 +568,7 @@ char *acpi_db_get_next_token(char *string,
- 
- 		/* Find end of token */
- 
--		while (*string && (*string != ' ')) {
-+		while (*string && !isspace(*string)) {
- 			string++;
- 		}
- 		break;
-diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
-index d75aae3045958..a68237b97c4c8 100644
---- a/drivers/acpi/acpica/dswexec.c
-+++ b/drivers/acpi/acpica/dswexec.c
-@@ -16,6 +16,9 @@
- #include "acinterp.h"
- #include "acnamesp.h"
- #include "acdebug.h"
-+#ifdef ACPI_EXEC_APP
-+#include "aecommon.h"
-+#endif
- 
- #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dswexec")
-@@ -329,6 +332,10 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
- 	u32 op_class;
- 	union acpi_parse_object *next_op;
- 	union acpi_parse_object *first_arg;
-+#ifdef ACPI_EXEC_APP
-+	char *namepath;
-+	union acpi_operand_object *obj_desc;
-+#endif
- 
- 	ACPI_FUNCTION_TRACE_PTR(ds_exec_end_op, walk_state);
- 
-@@ -537,6 +544,32 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
- 
- 			status =
- 			    acpi_ds_eval_buffer_field_operands(walk_state, op);
-+			if (ACPI_FAILURE(status)) {
-+				break;
-+			}
-+#ifdef ACPI_EXEC_APP
-+			/*
-+			 * acpi_exec support for namespace initialization file (initialize
-+			 * buffer_fields in this code.)
-+			 */
-+			namepath =
-+			    acpi_ns_get_external_pathname(op->common.node);
-+			status = ae_lookup_init_file_entry(namepath, &obj_desc);
-+			if (ACPI_SUCCESS(status)) {
-+				status =
-+				    acpi_ex_write_data_to_field(obj_desc,
-+								op->common.
-+								node->object,
-+								NULL);
-+				if ACPI_FAILURE
-+					(status) {
-+					ACPI_EXCEPTION((AE_INFO, status,
-+							"While writing to buffer field"));
-+					}
-+			}
-+			ACPI_FREE(namepath);
-+			status = AE_OK;
-+#endif
- 			break;
- 
- 		case AML_TYPE_CREATE_OBJECT:
-diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
-index 4bcf15bf03ded..6cf93fae4d07f 100644
---- a/drivers/acpi/acpica/dswload.c
-+++ b/drivers/acpi/acpica/dswload.c
-@@ -14,7 +14,6 @@
- #include "acdispat.h"
- #include "acinterp.h"
- #include "acnamesp.h"
+-static int call_on_cpu(int cpu, long (*fn)(void *), void *arg, bool direct)
+-{
+-	if (direct || (is_percpu_thread() && cpu == smp_processor_id()))
+-		return fn(arg);
+-	return work_on_cpu(cpu, fn, arg);
+-}
 -
- #ifdef ACPI_ASL_COMPILER
- #include "acdisasm.h"
- #endif
-@@ -399,7 +398,6 @@ acpi_status acpi_ds_load1_end_op(struct acpi_walk_state *walk_state)
- 	union acpi_parse_object *op;
- 	acpi_object_type object_type;
- 	acpi_status status = AE_OK;
--
- #ifdef ACPI_ASL_COMPILER
- 	u8 param_count;
- #endif
-diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
-index 935a8e2623e4b..15d92bf15f0b6 100644
---- a/drivers/acpi/acpica/dswload2.c
-+++ b/drivers/acpi/acpica/dswload2.c
-@@ -15,6 +15,9 @@
- #include "acinterp.h"
- #include "acnamesp.h"
- #include "acevents.h"
-+#ifdef ACPI_EXEC_APP
-+#include "aecommon.h"
-+#endif
- 
- #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dswload2")
-@@ -373,6 +376,10 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
- 	struct acpi_namespace_node *new_node;
- 	u32 i;
- 	u8 region_space;
-+#ifdef ACPI_EXEC_APP
-+	union acpi_operand_object *obj_desc;
-+	char *namepath;
-+#endif
- 
- 	ACPI_FUNCTION_TRACE(ds_load2_end_op);
- 
-@@ -466,6 +473,11 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
- 		 * be evaluated later during the execution phase
- 		 */
- 		status = acpi_ds_create_buffer_field(op, walk_state);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"CreateBufferField failure"));
-+			goto cleanup;
-+			}
- 		break;
- 
- 	case AML_TYPE_NAMED_FIELD:
-@@ -604,6 +616,29 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
- 		case AML_NAME_OP:
- 
- 			status = acpi_ds_create_node(walk_state, node, op);
-+			if (ACPI_FAILURE(status)) {
-+				goto cleanup;
-+			}
-+#ifdef ACPI_EXEC_APP
-+			/*
-+			 * acpi_exec support for namespace initialization file (initialize
-+			 * Name opcodes in this code.)
-+			 */
-+			namepath = acpi_ns_get_external_pathname(node);
-+			status = ae_lookup_init_file_entry(namepath, &obj_desc);
-+			if (ACPI_SUCCESS(status)) {
-+
-+				/* Detach any existing object, attach new object */
-+
-+				if (node->object) {
-+					acpi_ns_detach_object(node);
-+				}
-+				acpi_ns_attach_object(node, obj_desc,
-+						      obj_desc->common.type);
-+			}
-+			ACPI_FREE(namepath);
-+			status = AE_OK;
-+#endif
- 			break;
- 
- 		case AML_METHOD_OP:
-diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
-index 370bbc8677453..c717fff7d9b57 100644
---- a/drivers/acpi/acpica/nsnames.c
-+++ b/drivers/acpi/acpica/nsnames.c
-@@ -13,9 +13,6 @@
- #define _COMPONENT          ACPI_NAMESPACE
- ACPI_MODULE_NAME("nsnames")
- 
--/* Local Prototypes */
--static void acpi_ns_normalize_pathname(char *original_path);
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ns_get_external_pathname
-@@ -30,7 +27,6 @@ static void acpi_ns_normalize_pathname(char *original_path);
-  *              for error and debug statements.
-  *
-  ******************************************************************************/
--
- char *acpi_ns_get_external_pathname(struct acpi_namespace_node *node)
+ static int acpi_processor_get_throttling(struct acpi_processor *pr)
  {
- 	char *name_buffer;
-@@ -411,7 +407,7 @@ char *acpi_ns_build_prefixed_pathname(union acpi_generic_state *prefix_scope,
-  *
-  ******************************************************************************/
+ 	if (!pr)
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 1194a4c78d557..5b9eab15a1e6c 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -293,6 +293,14 @@ static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
+ }
+ #endif
  
--static void acpi_ns_normalize_pathname(char *original_path)
-+void acpi_ns_normalize_pathname(char *original_path)
- {
- 	char *input_path = original_path;
- 	char *new_path_buffer;
-diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
-index eee263cb7beb0..c365faf4e6cd4 100644
---- a/drivers/acpi/acpica/utdelete.c
-+++ b/drivers/acpi/acpica/utdelete.c
-@@ -452,13 +452,13 @@ acpi_ut_update_ref_count(union acpi_operand_object *object, u32 action)
-  *
-  * FUNCTION:    acpi_ut_update_object_reference
-  *
-- * PARAMETERS:  object              - Increment ref count for this object
-- *                                    and all sub-objects
-+ * PARAMETERS:  object              - Increment or decrement the ref count for
-+ *                                    this object and all sub-objects
-  *              action              - Either REF_INCREMENT or REF_DECREMENT
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Increment the object reference count
-+ * DESCRIPTION: Increment or decrement the object reference count
-  *
-  * Object references are incremented when:
-  * 1) An object is attached to a Node (namespace object)
-@@ -492,7 +492,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
- 		}
- 
- 		/*
--		 * All sub-objects must have their reference count incremented
-+		 * All sub-objects must have their reference count updated
- 		 * also. Different object types have different subobjects.
- 		 */
- 		switch (object->common.type) {
-@@ -559,6 +559,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
- 					break;
- 				}
- 			}
++static inline int call_on_cpu(int cpu, long (*fn)(void *), void *arg,
++			      bool direct)
++{
++	if (direct || (is_percpu_thread() && cpu == smp_processor_id()))
++		return fn(arg);
++	return work_on_cpu(cpu, fn, arg);
++}
 +
- 			next_object = NULL;
- 			break;
+ /* in processor_perflib.c */
  
+ #ifdef CONFIG_CPU_FREQ
 -- 
 2.20.1
 
