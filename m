@@ -2,62 +2,63 @@ Return-Path: <SRS0=2dAm=57=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EA4FC2BA19
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 10:10:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 937F4C2BA19
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 10:40:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0789A20775
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 10:10:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EE7820737
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 10:40:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="F+vVTrYT"
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="qdwRsKTS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2896214AbgDOKJz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 Apr 2020 06:09:55 -0400
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:46599 "EHLO
+        id S2408541AbgDOKkt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 Apr 2020 06:40:49 -0400
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:56827 "EHLO
         mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2896210AbgDOKJq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2020 06:09:46 -0400
+        with ESMTP id S2408835AbgDOKkN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2020 06:40:13 -0400
 Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
-        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20200415100945euoutp026ead391c80a6ad48e5a6e3fef8726132~F9mucPXVq3100031000euoutp02X
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2020 10:09:45 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20200415100945euoutp026ead391c80a6ad48e5a6e3fef8726132~F9mucPXVq3100031000euoutp02X
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20200415104011euoutp02e2a1d844c64c18ee08b3c7026d47025c~F_BS9N55k1827918279euoutp02C
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2020 10:40:11 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20200415104011euoutp02e2a1d844c64c18ee08b3c7026d47025c~F_BS9N55k1827918279euoutp02C
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-        s=mail20170921; t=1586945385;
-        bh=hy53jcbN1hQcobPDd2wliURBggIkGahlr5dTChgt6Fg=;
+        s=mail20170921; t=1586947211;
+        bh=ilbWDGWbaRmexJKmcC9EJmUzad9wnDBQcm71APgXbnk=;
         h=Subject:To:Cc:From:Date:In-Reply-To:References:From;
-        b=F+vVTrYT2IOhS0YRCMosN/7ROMce1gTETYgfWzd0KwitqkaHtf1BFldm2iI1+1mRG
-         4rXjz9LSqWtwxRC+BlkVamEqJWHC+scFy8YAXcT0lovJDEyP/v8Zgo1fbdIpmxDsjS
-         O43ByKS+d3nHly0g4V0diMXABmIoOdDn5uUIEuVg=
-Received: from eusmges3new.samsung.com (unknown [203.254.199.245]) by
-        eucas1p1.samsung.com (KnoxPortal) with ESMTP id
-        20200415100945eucas1p1aa4f8a443591406032d911421dd8d4b0~F9mt-N0ND3022630226eucas1p1l;
-        Wed, 15 Apr 2020 10:09:45 +0000 (GMT)
+        b=qdwRsKTSNMK1fAZXMy5zYYLm50MlaZ/u/e/tTTHag0EDTTg02uhHDLQWhwt/AIi1v
+         pukbWAo6DDMEg4veEhwcyZuiZvTV2WwAA8oql3nGwWVmSyal8zmuobqReRSJl9a1Qn
+         DEIdcR7gnv/HZbkUFZb5xbssMTxpYEX7q1XoNS70=
+Received: from eusmges2new.samsung.com (unknown [203.254.199.244]) by
+        eucas1p2.samsung.com (KnoxPortal) with ESMTP id
+        20200415104011eucas1p237a10ec69b125ca05daa8bfa24607cd2~F_BSiSR-B0638006380eucas1p2G;
+        Wed, 15 Apr 2020 10:40:11 +0000 (GMT)
 Received: from eucas1p2.samsung.com ( [182.198.249.207]) by
-        eusmges3new.samsung.com (EUCPMTA) with SMTP id A2.AE.60698.96DD69E5; Wed, 15
-        Apr 2020 11:09:45 +0100 (BST)
-Received: from eusmtrp1.samsung.com (unknown [182.198.249.138]) by
+        eusmges2new.samsung.com (EUCPMTA) with SMTP id F4.66.60679.B84E69E5; Wed, 15
+        Apr 2020 11:40:11 +0100 (BST)
+Received: from eusmtrp2.samsung.com (unknown [182.198.249.139]) by
         eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
-        20200415100944eucas1p1dcfeb784e790ca2fc3417fd2797e3f5d~F9mtpd1bi0596205962eucas1p1b;
-        Wed, 15 Apr 2020 10:09:44 +0000 (GMT)
+        20200415104010eucas1p101278e53e34a2e56dfc7c82b533a9122~F_BSNbnvX2212922129eucas1p1F;
+        Wed, 15 Apr 2020 10:40:10 +0000 (GMT)
 Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
-        eusmtrp1.samsung.com (KnoxPortal) with ESMTP id
-        20200415100944eusmtrp133f86e2db262813d9ace24cbc70dda2e~F9mtodNUt1618016180eusmtrp1l;
-        Wed, 15 Apr 2020 10:09:44 +0000 (GMT)
-X-AuditID: cbfec7f5-a0fff7000001ed1a-97-5e96dd69b12f
+        eusmtrp2.samsung.com (KnoxPortal) with ESMTP id
+        20200415104010eusmtrp284c0e1fa3491e3a5d7df659fc36fcdcc~F_BSMVzis0073600736eusmtrp2y;
+        Wed, 15 Apr 2020 10:40:10 +0000 (GMT)
+X-AuditID: cbfec7f4-0cbff7000001ed07-7b-5e96e48b1b50
 Received: from eusmtip1.samsung.com ( [203.254.199.221]) by
-        eusmgms2.samsung.com (EUCPMTA) with SMTP id 24.EE.07950.86DD69E5; Wed, 15
-        Apr 2020 11:09:44 +0100 (BST)
+        eusmgms2.samsung.com (EUCPMTA) with SMTP id 79.23.07950.A84E69E5; Wed, 15
+        Apr 2020 11:40:10 +0100 (BST)
 Received: from [106.120.51.71] (unknown [106.120.51.71]) by
         eusmtip1.samsung.com (KnoxPortal) with ESMTPA id
-        20200415100943eusmtip137db8f225d7ca69f2d0d1757b57f8fd4~F9msZ0Gmi2340423404eusmtip1Z;
-        Wed, 15 Apr 2020 10:09:43 +0000 (GMT)
-Subject: Re: [RFC 3/8] thermal: Store thermal mode in a dedicated enum
+        20200415104009eusmtip14f72f942ba7857a4c5f586d41e0a2cc9~F_BRLVgds1086210862eusmtip1I;
+        Wed, 15 Apr 2020 10:40:09 +0000 (GMT)
+Subject: Re: [RFC 0/8] Stop monitoring disabled devices
 To:     Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-Cc:     linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>,
+Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>, Jiri Pirko <jiri@mellanox.com>,
         Ido Schimmel <idosch@mellanox.com>,
@@ -66,7 +67,6 @@ Cc:     linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>,
         Darren Hart <dvhart@infradead.org>,
         Andy Shevchenko <andy@infradead.org>,
         Support Opensource <support.opensource@diasemi.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
         Amit Kucheria <amit.kucheria@verdurent.com>,
         Shawn Guo <shawnguo@kernel.org>,
         Sascha Hauer <s.hauer@pengutronix.de>,
@@ -81,259 +81,135 @@ Cc:     linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>,
         platform-driver-x86@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, kernel@collabora.com
 From:   Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Message-ID: <4085ca11-5060-c786-93af-f77d6f5d6e60@samsung.com>
-Date:   Wed, 15 Apr 2020 12:09:43 +0200
+Message-ID: <dc999149-d168-0b86-0559-7660e0fdec77@samsung.com>
+Date:   Wed, 15 Apr 2020 12:40:09 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
         Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <20200407174926.23971-4-andrzej.p@collabora.com>
+In-Reply-To: <aeec2ce8-8fb9-9353-f3dd-36a476ceeb3b@collabora.com>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0wTWRTHc2em06FLzaUoPYsSTRMfGIUa9sONrgajMZMYHzEb4wPQiiOS
-        pWhaYcUPClHAVnyBiDZ1QUWgNfIob0RieOmKFlZXIqtsZGmkNVbQgoAuuC0jkW+/8z//e//n
-        JIejFU1sMBefeETQJWoSVKyMqWkf71we33s5Rt055k8sDycZMmofp0hR/z8Myb7ylSa/e0KI
-        ufMUQ4zX1aTv+RaS4bnCkL7760hP2l2KmJ3JpNKeJSHW3HqG1Pe5WVLcdB4RW3+3hBg/W2ji
-        OduKSHtBEOnqiiK3G500edzxVEIcfedYMlFrY4izSknupf9Jk0pbLh05j6/rLUR8laWH4ks+
-        hvP1pl4pX1mylL/Z6KJ4m9XA8q+6G1n+vd3u1QtP8B/eOaT8m7wWir8w5Gb5ivd1FH9+Qs2P
-        PXsn2Rq4S/bzfiEhPlnQha/ZKzvoLKqmD1esOJrfcgelotzFRuTHAf4J3IMGqRHJOAUuQXDJ
-        cI8Si2EEQ18tlM+lwB4Erek/Tr8YOlMgFfViBKlFS0R2I5i8vNvHgXgDOMbaJT6ejSNgvMY9
-        lUDjT1Jo/stF+xosXgkXM63Ix3K8BkayH00xgxfCl8GTU8Fz8A74+LpFInoC4I+rDsbHfng1
-        DOa1Tv1DYyX87cinRJ4PtW4zLQ6a6Qc3rDEirwejLYsSORDePqiSijwPOnKyGN9wgEsRTJx2
-        0mJRi6A4Z5IVXavglf2zlzlvQiiUNYSL8lqwdvXSPhnwLHjhDhBnmAXZNXnfZDmczlCI7kVQ
-        XlTOTsca6y30BaQyzdjMNGMb04xtTN9zCxBjRUohSa+NE/QRicJvYXqNVp+UGBcWe0hrQ96r
-        7ph8MFKHmv7b14wwh1T+8gVluTEKiSZZn6JtRsDRqtnyMq1Xku/XpBwTdIf26JISBH0zmssx
-        KqU84oYrWoHjNEeEXwXhsKCb7lKcX3AqkvHl1TLl9U1hQoox55jr1rqdkU8+RD+NjhiODfp3
-        mXqIaysOCQqMMiSf697Y+HLbHMwef5nWn2keXMI6j6uuHYgMKHw4WuK2PI72r+ppG45Ke92Z
-        +Wn0h9ZSTyoaGQj9pSEuqGJl8NrYZwM30zG42u6aQ5ybM6qZamfDwPztaoOK0R/UrFhK6/Sa
-        /wG5JSu10QMAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHe885O5vS4jQtX6QbCzGCpmfLfAwTMYjzrcKiKM2WHjRyznY2
-        yz6Uod1W3iLL1igz89aNNvNSdtNllmFr1cArmKMWNa3E0rTLpgV++/H8/78HHngkpMwhCpbs
-        ztDzugx1upz2pzp+P+1bkdZ3dkf40QIWatp/U/Cjc5yAysF+Ck6X/iHh4shCML/Mo8B4ORwG
-        3q6HoyOlFAw8Wgtdh+8RYHZngbXzlAhqS5ooaBrw0FD1oBCBZdApAuPPGhJG8m0I2srmg92e
-        ANea3SS86HCIwDVQQMOvBgsF7roguH/kFQlWSwkZu4Br7KtAXF1NF8FVfwvjmkx9Ys5avZy7
-        0vyR4Cy1J2iu19lMc0Odnd55xSHu62eXmHt/rpXgir54aO72UCPBFf4K58ZefxZtCNimiNZp
-        DXp+SZpW0K+Rb2dBqWCjQKFcGaVgVZGJq5UR8rCY6BQ+fXcWrwuL2alIc1feITNvs/svtd5A
-        Oagk1Ij8JJhZib+cLBMbkb9ExlxFuKL9LmlEEm+wAD+9lTXdCcCTTiM93fmEcHlxDu0LAph1
-        2DXWJvJxIKPC4/WeqUUkMybGo93VpC+QMVrsKPxO+ZhmVuPiY7XIx1ImBo+efj7FFBOCJ4Zz
-        CR/PY7bi1kbTv85c/Oy8a8r1Y9bg4XO2qZ0kE4onLzr+cRDudl0ipnkxbvCYySIkM83QTTMU
-        0wzFNEMpQ1QtCuQNgiZVIygVglojGDJSFclajQV5/6m+bbyuERmH4lsQI0Hy2dL26yU7ZCJ1
-        lpCtaUFYQsoDpbc03pE0RZ19gNdpk3SGdF5oQRHe44rJ4HnJWu93ZuiT2Ag2EqLYSFWkahXI
-        g6THmccJMiZVref38Hwmr/vvERK/4ByUGOcCtj33AldVeZ62W6zrrFs2HuwJMX8oVXVN/tz1
-        pmF40URub67bIXdmVu11f5hjXpriIZIHlfmfRgt27X1i/5iStOwPUz9RcaY+btO7h/F5/M1s
-        i/+TwY0xK/qNx77Nmrt9c1t0gPNH+T7bTlt2XmvB9xs9hgmxLT6io8gemy+nhDQ1u5zUCeq/
-        DC6zDWUDAAA=
-X-CMS-MailID: 20200415100944eucas1p1dcfeb784e790ca2fc3417fd2797e3f5d
+Content-Transfer-Encoding: 8bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Se0xTZxjG8507uOrnAeWNSkYaNREzYcPoF3UGMpeczET3z9QQL3RyhmS0
+        mh7A6R+bGwpY5wUnt0o2EFNajIAFkXKpE6ZlkRXES7yA0lFdcRadqBMjKIcjkf+ePM/7+97n
+        TT6BFt3cLCHVlC6bTYY0PRfK1F8a7vzogL9gc2z2BZ442kcZ8r93mCK2/rsMOVr0hia/DkWS
+        ks69DLGUxRLf9bUke6iIIb7fPyO3fmyiSEkgk9R6f2ZJZb6LIS5fkCMV7sOIOPtvsMTyykGT
+        oYN/IHKpdCbp6tpITjUHaNJxuZslft8hjoycczIkUBdBWvZdoUmtM5+OnyM19J5EUp3jFiXZ
+        n8ZILmsvL9Xao6Xy5gFKclbu56SeG82cNOj1jvknf5D+e+TnpQeFbZR05EmQk84MNlDS4ZFY
+        6eXVR+yXYYmhK5LltNRM2RyzMil0m7to7o6L+LuSe4XsHtSgs6AQAfBicJy30RYUKojYjqDJ
+        /oRSAxE/Q/CyI00LhhD09bfTE0TZtcZ3RAWCY/sHOI0IIrAHNqk6DC+F4522cT8cx8FwfZBX
+        ARq/4OH++X8YNeDwMsjLqUSq1uGVUPzT87FXBYHB86A2a5pqz8Ab4GlfG6uNTIc/i/3jaAhO
+        gH+7u3hV0zgCbvt/ozT9IWSdPT5eDvCBELhZUExprVfBtb1NrKbD4KGnjtf0HHjjUmEVqEIw
+        kht4R59DUPHLKKdNLYce7ytObUfjBVDdGKPZCXCxo4pXbcBT4WZwulZiKhytL6Q1Wwe52aI2
+        PR9qbDXcxFqLy0EfQXrrpNOsk86xTjrH+n5vKWIqUYScoRhTZOUTk7xzkWIwKhmmlEVbtxud
+        aOxXXx71PGtAja+/bkVYQPoPdFHV+ZtF1pCp7DK2IhBofbiu2jhm6ZINu3bL5u1bzBlpstKK
+        ZguMPkIXd2Jgk4hTDOnyt7K8QzZPpJQQMmsP2j1i7Lggjya618d9PqUndfX1aVH+Y1VW0ZP1
+        ouyLb5JbHnYnPfZFpeftG2aXD65jok8Hvkoqt4t1kUX9oscUl/N6yhXm70/L18U0r6ox3NMV
+        5PN385Z1KbY1iUu2bpgbn+PpQ21rZvz1+GB7fGxp+Iry503u7/2R7Z47BQsTelvoXD2jbDN8
+        HE2bFcNbHona49EDAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Se0hTYRiH+XbOzqa1Ok3NDzWLUQlF07mtfYtaVhQnsuyCUdlt6EEtt9k5
+        U7KC1MzqkJmVtyWmdNNVRNNslkmpqVEsL2UoWYojFS9YFqZ4aUsD/3v4vb+HlxdeISZu5HsJ
+        o/VGmtFrYySEK/5usq59FWfPOhzwqN4fFddP4mjENspD97q+4uhazhSG8ocXobwPKTjiCgNQ
+        56cQlDqcg6POV5tQa9ILHsrriUcltst8ZM4sx1F55wCB7lemA2TpauEjbqwYQ8NpNQDVFixE
+        DQ0H0YOKHgy9f9fER/bOKwSaeGbBUU+pJ3p5vhFDJZZMLMiHsrbfAVRpcSuPKvrpT5Wb2gVU
+        SdEK6nZFL4+ymC8R1JeWCoIatNkc+Z2z1I9+u4D6nl3No64ODRDUk0Erj0qfCKD+NPfzd7od
+        kK5lDHFGekmUgTWuk4TJUKBUpkbSQIVaKpOrDq0JVEr8NWsj6JjoeJrx1xyVRlXmLI19Q57M
+        +5bNTwRWEQdchJBUwMKPzzEOuArF5F0Aa7L6CQ4IHQMfWPc4frrjBsdbOGK60wdg9+AU3zlw
+        I1Xw5od7hJPdSTkcLRsQOEsY+UcAr3T9mjHuA2h5MPLPIMg1MOOCGThZRGpgbvJvzLkNJ5fB
+        knPznbEHuQ9WW00zlQXwba4dd7ILuQH2NTUInIyRfnA8vwmbZk/YZr/Fm+bF8NzTm9hVIDbN
+        0k2zFNMsxTRLKQC4GbjTcawuUscGSlmtjo3TR0rDDToLcLxTWe1oqRVwg3uqACkEkrmi+oeZ
+        h8V8bTyboKsCUIhJ3EWPdY5IFKFNOEUzhiNMXAzNVgGl47YMzMsj3OB4Tr3xiEwpUyG1TCVX
+        yVcjiafoIvn6oJiM1Brp4zQdSzP/PZ7QxSsRZFwOHWhL0+d694d4DgWEZjHbolZiY/vXf05I
+        3Rqs2cs2zHu4N/V6h+8ThZpI37JjpGNzgbpXHs5tjvY+U6dU7G/bjd9W+DG+Sbn4dltdiPvz
+        7aLTOcneldY5J7RcypaMG081x8K8d3klhprVk2kbK1OS8aEg340jG5rnLu+epwyW4GyUVrYC
+        Y1jtX4N//AhkAwAA
+X-CMS-MailID: 20200415104010eucas1p101278e53e34a2e56dfc7c82b533a9122
 X-Msg-Generator: CA
 Content-Type: text/plain; charset="utf-8"
-X-RootMTR: 20200415100944eucas1p1dcfeb784e790ca2fc3417fd2797e3f5d
+X-RootMTR: 20200415104010eucas1p101278e53e34a2e56dfc7c82b533a9122
 X-EPHeader: CA
 CMS-TYPE: 201P
-X-CMS-RootMailID: 20200415100944eucas1p1dcfeb784e790ca2fc3417fd2797e3f5d
+X-CMS-RootMailID: 20200415104010eucas1p101278e53e34a2e56dfc7c82b533a9122
 References: <20200407174926.23971-1-andrzej.p@collabora.com>
-        <20200407174926.23971-4-andrzej.p@collabora.com>
-        <CGME20200415100944eucas1p1dcfeb784e790ca2fc3417fd2797e3f5d@eucas1p1.samsung.com>
+        <2bc5a902-acde-526a-11a5-2357d899916c@linaro.org>
+        <aeec2ce8-8fb9-9353-f3dd-36a476ceeb3b@collabora.com>
+        <CGME20200415104010eucas1p101278e53e34a2e56dfc7c82b533a9122@eucas1p1.samsung.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 
-On 4/7/20 7:49 PM, Andrzej Pietrasiewicz wrote:
-> Prepare for adding THERMAL_DEVICE_INITIAL mode.
+On 4/9/20 1:10 PM, Andrzej Pietrasiewicz wrote:
+> Hi Daniel,
 > 
-> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-> ---
->  drivers/acpi/thermal.c                        | 27 +++++++++----------
->  drivers/platform/x86/acerhdf.c                | 12 ++++++---
->  .../intel/int340x_thermal/int3400_thermal.c   | 18 +++++--------
->  3 files changed, 27 insertions(+), 30 deletions(-)
+> W dniu 09.04.2020 o 12:29, Daniel Lezcano pisze:
+>> On 07/04/2020 19:49, Andrzej Pietrasiewicz wrote:
+>>> The current kernel behavior is to keep polling the thermal zone devices
+>>> regardless of their current mode. This is not desired, as all such "disabled"
+>>> devices are meant to be handled by userspace,> so polling them makes no sense.
+>>
+>> Thanks for proposing these changes.
+>>
+>> I've been (quickly) through the series and the description below. I have
+>> the feeling the series makes more complex while the current code which
+>> would deserve a cleanup.
+>>
+>> Why not first:
+>>
+>>   - Add a 'mode' field in the thermal zone device
+>>   - Kill all set/get_mode callbacks in the drivers which are duplicated code.
+>>   - Add a function:
+>>
+>>   enum thermal_device_mode thermal_zone_get_mode( *tz)
+>>   {
+>>     ...
+>>     if (tz->ops->get_mode)
+>>         return tz->ops->get_mode();
+>>
+>>     return tz->mode;
+>>   }
+>>
+>>
+>>   int thermal_zone_set_mode(..*tz, enum thermal_device_mode mode)
+>>   {
+>>     ...
+>>     if (tz->ops->set_mode)
+>>         return tz->ops->set_mode(tz, mode);
+>>
+>>     tz->mode = mode;
+>>
+>>     return 0;
+>>   }
+>>
+>>   static inline thermal_zone_enable(... *tz)
+>>   {
+>>     thermal_zone_set_mode(tz, THERMAL_DEVICE_ENABLED);
+>>   }
+>>
+>>   static inline thermal_zone_disable(... *tz) {
+>>     thermal_zone_set_mode(tz, THERMAL_DEVICE_DISABLED);
+>>   }
+>>
+>> And then when the code is consolidated, use the mode to enable/disable
+>> the polling and continue killing the duplicated code in of-thermal.c and
+>> anywhere else.
+>>
+>>
 > 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 19067a5e5293..a93b0412dd6b 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -172,7 +172,7 @@ struct acpi_thermal {
->  	struct acpi_thermal_trips trips;
->  	struct acpi_handle_list devices;
->  	struct thermal_zone_device *thermal_zone;
-> -	int tz_enabled;
-> +	enum thermal_device_mode mode;
->  	int kelvin_offset;	/* in millidegrees */
->  	struct work_struct thermal_check_work;
->  };
-> @@ -500,7 +500,7 @@ static void acpi_thermal_check(void *data)
->  {
->  	struct acpi_thermal *tz = data;
->  
-> -	if (!tz->tz_enabled)
-> +	if (tz->mode != THERMAL_DEVICE_ENABLED)
->  		return;
->  
->  	thermal_zone_device_update(tz->thermal_zone,
-> @@ -534,8 +534,7 @@ static int thermal_get_mode(struct thermal_zone_device *thermal,
->  	if (!tz)
->  		return -EINVAL;
->  
-> -	*mode = tz->tz_enabled ? THERMAL_DEVICE_ENABLED :
-> -		THERMAL_DEVICE_DISABLED;
-> +	*mode = tz->mode;
->  
->  	return 0;
->  }
-> @@ -544,27 +543,25 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
->  				enum thermal_device_mode mode)
->  {
->  	struct acpi_thermal *tz = thermal->devdata;
-> -	int enable;
->  
->  	if (!tz)
->  		return -EINVAL;
->  
-> +	if (mode != THERMAL_DEVICE_DISABLED &&
-> +	    mode != THERMAL_DEVICE_ENABLED)
-> +		return -EINVAL;
->  	/*
->  	 * enable/disable thermal management from ACPI thermal driver
->  	 */
-> -	if (mode == THERMAL_DEVICE_ENABLED)
-> -		enable = 1;
-> -	else if (mode == THERMAL_DEVICE_DISABLED) {
-> -		enable = 0;
-> +	if (mode == THERMAL_DEVICE_DISABLED)
->  		pr_warn("thermal zone will be disabled\n");
-> -	} else
-> -		return -EINVAL;
->  
-> -	if (enable != tz->tz_enabled) {
-> -		tz->tz_enabled = enable;
-> +	if (mode != tz->mode) {
-> +		tz->mode = mode;
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  			"%s kernel ACPI thermal control\n",
-> -			tz->tz_enabled ? "Enable" : "Disable"));
-> +			tz->mode == THERMAL_DEVICE_ENABLED ?
-> +			"Enable" : "Disable"));
->  		acpi_thermal_check(tz);
->  	}
->  	return 0;
-> @@ -913,7 +910,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->  
-> -	tz->tz_enabled = 1;
-> +	tz->mode = THERMAL_DEVICE_ENABLED;
->  
->  	dev_info(&tz->device->dev, "registered as thermal_zone%d\n",
->  		 tz->thermal_zone->id);
-> diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> index d5188c1d688b..87e357017d4a 100644
-> --- a/drivers/platform/x86/acerhdf.c
-> +++ b/drivers/platform/x86/acerhdf.c
-> @@ -65,8 +65,10 @@
->  
->  #ifdef START_IN_KERNEL_MODE
->  static int kernelmode = 1;
-> +static enum thermal_device_mode thermal_mode = THERMAL_DEVICE_ENABLED;
->  #else
->  static int kernelmode;
-> +static enum thermal_device_mode thermal_mode = THERMAL_DEVICE_DISABLED;
->  #endif
->  
->  static unsigned int interval = 10;
-> @@ -416,8 +418,7 @@ static int acerhdf_get_mode(struct thermal_zone_device *thermal,
->  	if (verbose)
->  		pr_notice("kernel mode fan control %d\n", kernelmode);
->  
-> -	*mode = (kernelmode) ? THERMAL_DEVICE_ENABLED
-> -			     : THERMAL_DEVICE_DISABLED;
-> +	*mode = thermal_mode;
->  
->  	return 0;
->  }
-> @@ -435,10 +436,13 @@ static int acerhdf_set_mode(struct thermal_zone_device *thermal,
->  	    mode != THERMAL_DEVICE_ENABLED)
->  		return -EINVAL;
->  
-> -	if (mode == THERMAL_DEVICE_DISABLED && kernelmode)
-> +	if (mode == THERMAL_DEVICE_DISABLED && kernelmode) {
->  		acerhdf_revert_to_bios_mode();
-> -	else if (mode == THERMAL_DEVICE_ENABLED && !kernelmode)
-> +		thermal_mode = THERMAL_DEVICE_DISABLED;
-> +	} else if (mode == THERMAL_DEVICE_ENABLED && !kernelmode) {
->  		acerhdf_enable_kernelmode();
-> +		thermal_mode = THERMAL_DEVICE_ENABLED;
-> +	}
->  
->  	return 0;
->  }
+> Thanks for feedback.
+> 
+> Anyone else?
 
-The conversion missed:
+Yes. :)
 
-* handling of "force_bios" and force_product" kernel parameters:
+Please take a look at the following patchset (which I'm reviving currently):
 
-	if (force_bios[0]) {
-		version = force_bios;
-		pr_info("forcing BIOS version: %s\n", version);
-		kernelmode = 0;
-	}
+	https://lkml.org/lkml/2018/10/17/926
 
-	if (force_product[0]) {
-		product = force_product;
-		pr_info("forcing BIOS product: %s\n", product);
-		kernelmode = 0;
-	}
-
-* acerhdf_revert_to_bios_mode() call on error in acerhdf_set_cur_state()
+It overlaps partially with your work so we need to coordinate our efforts.
 
 Best regards,
 --
 Bartlomiej Zolnierkiewicz
 Samsung R&D Institute Poland
 Samsung Electronics
-
-> diff --git a/drivers/thermal/intel/int340x_thermal/int3400_thermal.c b/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
-> index 634b943e9e3d..fcbd1b14fa74 100644
-> --- a/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
-> +++ b/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
-> @@ -44,7 +44,7 @@ static char *int3400_thermal_uuids[INT3400_THERMAL_MAXIMUM_UUID] = {
->  struct int3400_thermal_priv {
->  	struct acpi_device *adev;
->  	struct thermal_zone_device *thermal;
-> -	int mode;
-> +	enum thermal_device_mode mode;
->  	int art_count;
->  	struct art *arts;
->  	int trt_count;
-> @@ -247,24 +247,20 @@ static int int3400_thermal_set_mode(struct thermal_zone_device *thermal,
->  				enum thermal_device_mode mode)
->  {
->  	struct int3400_thermal_priv *priv = thermal->devdata;
-> -	bool enable;
->  	int result = 0;
->  
->  	if (!priv)
->  		return -EINVAL;
->  
-> -	if (mode == THERMAL_DEVICE_ENABLED)
-> -		enable = true;
-> -	else if (mode == THERMAL_DEVICE_DISABLED)
-> -		enable = false;
-> -	else
-> +	if (mode != THERMAL_DEVICE_ENABLED &&
-> +	    mode != THERMAL_DEVICE_DISABLED)
->  		return -EINVAL;
->  
-> -	if (enable != priv->mode) {
-> -		priv->mode = enable;
-> +	if (mode != priv->mode) {
-> +		priv->mode = mode;
->  		result = int3400_thermal_run_osc(priv->adev->handle,
-> -						 priv->current_uuid_index,
-> -						 enable);
-> +						priv->current_uuid_index,
-> +						mode == THERMAL_DEVICE_ENABLED);
->  	}
->  	return result;
->  }
-> 
-
