@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E699FC2BB55
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 12:01:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70F01C2BB55
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 12:18:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C766620575
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 12:01:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D518208FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Apr 2020 12:18:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586952065;
-	bh=fNvkOOLN2cnYhJMXeJjzecyXBCk4CvWhpDwNDVKmJq8=;
+	s=default; t=1586953086;
+	bh=S8BciryhmOjmP06oCroyDH/n35WS5a6CLZ6N5yiRrvQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=lDyu9IIHDyTfbbM6JTr+3RPHB9sQl+wa/8kb2q+ct+MfJlceQ7SqqZpvNnTzAKjNh
-	 eKeqlTcdkRLSEUyihu/zb1pLZmyFYa5qPP4hy/JJkyPMZ8clfQSEdLXwlNoWTJCSa/
-	 7X/dBEahwEAPLiqwAvCRBsPcpqr5ZjEfpl15+6XM=
+	b=izCKXMy7gdZo4MmMKXyv6sXYUicETaR+L2aRw3kB2eeXpLAmEJGIL7GcZbzqyLiEb
+	 ++QkOjO7iCAnIIDbyrzYSF5GWrYN+hz5Fk11LFPT9JjfOtN5CnZHpMz6SGGftMn5F2
+	 93erLfEbmWP2cLiarmPYKI0+ppUV4/sWbemVTFq0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409369AbgDOLrm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 Apr 2020 07:47:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43014 "EHLO mail.kernel.org"
+        id S368829AbgDOMR5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 Apr 2020 08:17:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2409351AbgDOLri (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Apr 2020 07:47:38 -0400
+        id S2409281AbgDOLqT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Apr 2020 07:46:19 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 69948214D8;
-        Wed, 15 Apr 2020 11:47:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 62B0420775;
+        Wed, 15 Apr 2020 11:46:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586951257;
-        bh=fNvkOOLN2cnYhJMXeJjzecyXBCk4CvWhpDwNDVKmJq8=;
+        s=default; t=1586951179;
+        bh=S8BciryhmOjmP06oCroyDH/n35WS5a6CLZ6N5yiRrvQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JdsBlbPZzutdtnMPp0td3Nr6kFl0ET/r9P9LHR/AqcVbFYMtIhRJtz4QzGQFeJG3k
-         SLKgAM8ZecXNBO9bEGZCJUhHtCJTlFI9j0JAenc+BjtwTPnwGJWQ96XddHBupVOKiH
-         IQzBzmCmOohJOruWtbSWZY5d8J9AECsvIiTTlpAI=
+        b=sIqtJTvw+0jZ6EXCJaAgF4Ewv76mM1WB1uOkribtNJ0hToIgXdxYNKVOSyz5D0wEO
+         1J5CUby2ZJpmqkDYO76picHP0pEwslKlbEwfxsgZ3zMdH0m0dzbo2sDbbO5/6O3CvY
+         47IMQhupxMkelyAxleALbe1npxnJmALPGsSsnACQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Qian Cai <cai@lca.pw>, Borislav Petkov <bp@suse.de>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-pm@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 4.14 21/30] x86: ACPI: fix CPU hotplug deadlock
-Date:   Wed, 15 Apr 2020 07:47:02 -0400
-Message-Id: <20200415114711.15381-21-sashal@kernel.org>
+Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 82/84] acpi/nfit: improve bounds checking for 'func'
+Date:   Wed, 15 Apr 2020 07:44:39 -0400
+Message-Id: <20200415114442.14166-82-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200415114711.15381-1-sashal@kernel.org>
-References: <20200415114711.15381-1-sashal@kernel.org>
+In-Reply-To: <20200415114442.14166-1-sashal@kernel.org>
+References: <20200415114442.14166-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,167 +59,84 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Qian Cai <cai@lca.pw>
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-[ Upstream commit 696ac2e3bf267f5a2b2ed7d34e64131f2287d0ad ]
+[ Upstream commit 01091c496f920e634ea84b689f480c39016752a8 ]
 
-Similar to commit 0266d81e9bf5 ("acpi/processor: Prevent cpu hotplug
-deadlock") except this is for acpi_processor_ffh_cstate_probe():
+The 'func' variable can come from the user in the __nd_ioctl().  If it's
+too high then the (1 << func) shift in acpi_nfit_clear_to_send() is
+undefined.  In acpi_nfit_ctl() we pass 'func' to test_bit(func, &dsm_mask)
+which could result in an out of bounds access.
 
-"The problem is that the work is scheduled on the current CPU from the
-hotplug thread associated with that CPU.
+To fix these issues, I introduced the NVDIMM_CMD_MAX (31) define and
+updated nfit_dsm_revid() to use that define as well instead of magic
+numbers.
 
-It's not required to invoke these functions via the workqueue because
-the hotplug thread runs on the target CPU already.
-
-Check whether current is a per cpu thread pinned on the target CPU and
-invoke the function directly to avoid the workqueue."
-
- WARNING: possible circular locking dependency detected
- ------------------------------------------------------
- cpuhp/1/15 is trying to acquire lock:
- ffffc90003447a28 ((work_completion)(&wfc.work)){+.+.}-{0:0}, at: __flush_work+0x4c6/0x630
-
- but task is already holding lock:
- ffffffffafa1c0e8 (cpuidle_lock){+.+.}-{3:3}, at: cpuidle_pause_and_lock+0x17/0x20
-
- which lock already depends on the new lock.
-
- the existing dependency chain (in reverse order) is:
-
- -> #1 (cpu_hotplug_lock){++++}-{0:0}:
- cpus_read_lock+0x3e/0xc0
- irq_calc_affinity_vectors+0x5f/0x91
- __pci_enable_msix_range+0x10f/0x9a0
- pci_alloc_irq_vectors_affinity+0x13e/0x1f0
- pci_alloc_irq_vectors_affinity at drivers/pci/msi.c:1208
- pqi_ctrl_init+0x72f/0x1618 [smartpqi]
- pqi_pci_probe.cold.63+0x882/0x892 [smartpqi]
- local_pci_probe+0x7a/0xc0
- work_for_cpu_fn+0x2e/0x50
- process_one_work+0x57e/0xb90
- worker_thread+0x363/0x5b0
- kthread+0x1f4/0x220
- ret_from_fork+0x27/0x50
-
- -> #0 ((work_completion)(&wfc.work)){+.+.}-{0:0}:
- __lock_acquire+0x2244/0x32a0
- lock_acquire+0x1a2/0x680
- __flush_work+0x4e6/0x630
- work_on_cpu+0x114/0x160
- acpi_processor_ffh_cstate_probe+0x129/0x250
- acpi_processor_evaluate_cst+0x4c8/0x580
- acpi_processor_get_power_info+0x86/0x740
- acpi_processor_hotplug+0xc3/0x140
- acpi_soft_cpu_online+0x102/0x1d0
- cpuhp_invoke_callback+0x197/0x1120
- cpuhp_thread_fun+0x252/0x2f0
- smpboot_thread_fn+0x255/0x440
- kthread+0x1f4/0x220
- ret_from_fork+0x27/0x50
-
- other info that might help us debug this:
-
- Chain exists of:
- (work_completion)(&wfc.work) --> cpuhp_state-up --> cpuidle_lock
-
- Possible unsafe locking scenario:
-
- CPU0                    CPU1
- ----                    ----
- lock(cpuidle_lock);
-                         lock(cpuhp_state-up);
-                         lock(cpuidle_lock);
- lock((work_completion)(&wfc.work));
-
- *** DEADLOCK ***
-
- 3 locks held by cpuhp/1/15:
- #0: ffffffffaf51ab10 (cpu_hotplug_lock){++++}-{0:0}, at: cpuhp_thread_fun+0x69/0x2f0
- #1: ffffffffaf51ad40 (cpuhp_state-up){+.+.}-{0:0}, at: cpuhp_thread_fun+0x69/0x2f0
- #2: ffffffffafa1c0e8 (cpuidle_lock){+.+.}-{3:3}, at: cpuidle_pause_and_lock+0x17/0x20
-
- Call Trace:
- dump_stack+0xa0/0xea
- print_circular_bug.cold.52+0x147/0x14c
- check_noncircular+0x295/0x2d0
- __lock_acquire+0x2244/0x32a0
- lock_acquire+0x1a2/0x680
- __flush_work+0x4e6/0x630
- work_on_cpu+0x114/0x160
- acpi_processor_ffh_cstate_probe+0x129/0x250
- acpi_processor_evaluate_cst+0x4c8/0x580
- acpi_processor_get_power_info+0x86/0x740
- acpi_processor_hotplug+0xc3/0x140
- acpi_soft_cpu_online+0x102/0x1d0
- cpuhp_invoke_callback+0x197/0x1120
- cpuhp_thread_fun+0x252/0x2f0
- smpboot_thread_fn+0x255/0x440
- kthread+0x1f4/0x220
- ret_from_fork+0x27/0x50
-
-Signed-off-by: Qian Cai <cai@lca.pw>
-Tested-by: Borislav Petkov <bp@suse.de>
-[ rjw: Subject ]
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Fixes: 11189c1089da ("acpi/nfit: Fix command-supported detection")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Link: https://lore.kernel.org/r/20200225161927.hvftuq7kjn547fyj@kili.mountain
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/x86/kernel/acpi/cstate.c       | 3 ++-
- drivers/acpi/processor_throttling.c | 7 -------
- include/acpi/processor.h            | 8 ++++++++
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/acpi/nfit/core.c | 10 ++++++----
+ drivers/acpi/nfit/nfit.h |  1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-index dde437f5d14ff..596e7640d895a 100644
---- a/arch/x86/kernel/acpi/cstate.c
-+++ b/arch/x86/kernel/acpi/cstate.c
-@@ -133,7 +133,8 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 14e68f202f810..12d980aafc5ff 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -360,7 +360,7 @@ static union acpi_object *acpi_label_info(acpi_handle handle)
  
- 	/* Make sure we are running on right CPU */
- 
--	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
-+	retval = call_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx,
-+			     false);
- 	if (retval == 0) {
- 		/* Use the hint in CST */
- 		percpu_entry->states[cx->index].eax = cx->address;
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 7f9aff4b8d627..9fdc13a2f2d59 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -909,13 +909,6 @@ static long __acpi_processor_get_throttling(void *data)
- 	return pr->throttling.acpi_processor_get_throttling(pr);
- }
- 
--static int call_on_cpu(int cpu, long (*fn)(void *), void *arg, bool direct)
--{
--	if (direct || (is_percpu_thread() && cpu == smp_processor_id()))
--		return fn(arg);
--	return work_on_cpu(cpu, fn, arg);
--}
--
- static int acpi_processor_get_throttling(struct acpi_processor *pr)
+ static u8 nfit_dsm_revid(unsigned family, unsigned func)
  {
- 	if (!pr)
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index d591bb77f592b..f4bff23135479 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -291,6 +291,14 @@ static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
- }
- #endif
+-	static const u8 revid_table[NVDIMM_FAMILY_MAX+1][32] = {
++	static const u8 revid_table[NVDIMM_FAMILY_MAX+1][NVDIMM_CMD_MAX+1] = {
+ 		[NVDIMM_FAMILY_INTEL] = {
+ 			[NVDIMM_INTEL_GET_MODES] = 2,
+ 			[NVDIMM_INTEL_GET_FWINFO] = 2,
+@@ -386,7 +386,7 @@ static u8 nfit_dsm_revid(unsigned family, unsigned func)
  
-+static inline int call_on_cpu(int cpu, long (*fn)(void *), void *arg,
-+			      bool direct)
-+{
-+	if (direct || (is_percpu_thread() && cpu == smp_processor_id()))
-+		return fn(arg);
-+	return work_on_cpu(cpu, fn, arg);
-+}
-+
- /* in processor_perflib.c */
+ 	if (family > NVDIMM_FAMILY_MAX)
+ 		return 0;
+-	if (func > 31)
++	if (func > NVDIMM_CMD_MAX)
+ 		return 0;
+ 	id = revid_table[family][func];
+ 	if (id == 0)
+@@ -492,7 +492,8 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	 * Check for a valid command.  For ND_CMD_CALL, we also have to
+ 	 * make sure that the DSM function is supported.
+ 	 */
+-	if (cmd == ND_CMD_CALL && !test_bit(func, &dsm_mask))
++	if (cmd == ND_CMD_CALL &&
++	    (func > NVDIMM_CMD_MAX || !test_bit(func, &dsm_mask)))
+ 		return -ENOTTY;
+ 	else if (!test_bit(cmd, &cmd_mask))
+ 		return -ENOTTY;
+@@ -3499,7 +3500,8 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 	if (nvdimm && cmd == ND_CMD_CALL &&
+ 			call_pkg->nd_family == NVDIMM_FAMILY_INTEL) {
+ 		func = call_pkg->nd_command;
+-		if ((1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
++		if (func > NVDIMM_CMD_MAX ||
++		    (1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
+ 			return -EOPNOTSUPP;
+ 	}
  
- #ifdef CONFIG_CPU_FREQ
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 24241941181ce..b317f4043705f 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -34,6 +34,7 @@
+ 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
+ 
+ #define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
++#define NVDIMM_CMD_MAX 31
+ 
+ #define NVDIMM_STANDARD_CMDMASK \
+ (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
 -- 
 2.20.1
 
