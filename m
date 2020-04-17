@@ -1,109 +1,182 @@
-Return-Path: <SRS0=lKzK=6A=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=W2wb=6B=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28934C2BB55
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Apr 2020 15:21:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 298D4C352BE
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Apr 2020 02:06:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 093E6214D8
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Apr 2020 15:21:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05F6222243
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Apr 2020 02:06:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hKnRbOBs"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="FQVf+DFn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403757AbgDPPV3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Apr 2020 11:21:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45098 "EHLO
+        id S1728985AbgDQCGq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 16 Apr 2020 22:06:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2408935AbgDPPVX (ORCPT
+        by vger.kernel.org with ESMTP id S1728954AbgDQCGp (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Apr 2020 11:21:23 -0400
-Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14F5BC061A0C;
-        Thu, 16 Apr 2020 08:21:23 -0700 (PDT)
-Received: by mail-pg1-x542.google.com with SMTP id r4so1791133pgg.4;
-        Thu, 16 Apr 2020 08:21:23 -0700 (PDT)
+        Thu, 16 Apr 2020 22:06:45 -0400
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAF97C061A0F
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2020 19:06:45 -0700 (PDT)
+Received: by mail-pg1-x543.google.com with SMTP id x26so340589pgc.10
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2020 19:06:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=PqhlYvcZrmCM70l8lqNpCrbISzWwKQ5w1U1k6I8jKZA=;
-        b=hKnRbOBsCft+ZCJ3dOvl2hctclPsJj4Mm+JVYqlNJxl8IHZr4V0qPXZZM+ivEpKEr3
-         SiN+TJT7MwvBlrUZGKKnHLyuM09g2LTZ5sFEPYO2Bre9v1C57e3OEQzt+kQMlPAAU7bL
-         jT0KyN96EsaQH2rinKl69nFDw/sZWH5DDkU/O4cF2UmDzXP9sncAFR8MLi/sIqWHacV1
-         58Fu08H460YfxgFvw+eku5Xt1o1O02wzOt2uvW4l497UWGzwVRSjjjN32yjTL4x8Hb6/
-         yTs+chUep9thohSNFC3EA5qoHgYo1fuIHABHIVuWXuQQUGEAO5L/w7IuMCsfcBrVTRll
-         V8sw==
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=Hfdx7uDJvgrGkRYQDhx6DARmHevGcYuM4GwFr74akkA=;
+        b=FQVf+DFnRHPeQ/SGO5Hw0smu9KCNhym996v6AIV/dsuwaWRyhQrYQwMlpB1zt0+nX/
+         BSOYTHaqkFX/m3b9KlZPcrLzLGvOlmcJROEVN5Y5MvozAx1dvDjYDESncXlfAe105qfx
+         onkTOTzapOUqP3I+4socEd8Os145UAQyxt7/I=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=PqhlYvcZrmCM70l8lqNpCrbISzWwKQ5w1U1k6I8jKZA=;
-        b=Hzj7qJu9xBwq6KI+wckzFF1oSuRKCOwKOlT3ldv9A+dLzE4mdM08YNYwcRAB4/XhP8
-         M3J2QmOGr2McDKNmWL5wo1Swx1ddTu2K45hMyBqlGRGOXq5mKuHaLzZf7hd580BThJSZ
-         cRUx1q3o4tlmmv6bQCbMKXABtW1zROXuXCz3WppJp7nrj/2ikvJ+0dwi3XBHtIjiIrRB
-         O6rM0X/w5SrkTPK5QycWmroJUM0yftqrP0fL5KGbpRShJbJFZvzWJS1qWMe8nwnDjfqv
-         AHUQjFa1ur1BJ+Hqf5lDOxcA+CWhhyY6qA8c5/Ry+dk1/gXtB4nH54oPfdj+nYIm0wjS
-         31Cw==
-X-Gm-Message-State: AGi0PuZi1v5vaJuVNC+l5Xn46p3yWQkit2uxylndkxp5uneXSYDNnBHx
-        4hkIeG3KZHN0uNhXFiAyOucYisPH+mh/aB86HJ8=
-X-Google-Smtp-Source: APiQypL4QpTvQB0/qCwH/MWZ7VIatjMX02cplXwC/TTrnIKMzbV6jUInWZ+z6zydE0IKy2JVTEJ6y3JIo/biM4hFQT4=
-X-Received: by 2002:a63:5511:: with SMTP id j17mr15897581pgb.4.1587050482349;
- Thu, 16 Apr 2020 08:21:22 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=Hfdx7uDJvgrGkRYQDhx6DARmHevGcYuM4GwFr74akkA=;
+        b=oeNqlfYvd4iXwA7dgT6GEz1wks0gKTucX1pxiIRG5sq8G4ub7uVGs6MQ3IhBCvMn9d
+         EJlJvBNHn+WQQoZXGc9t25341woAt6SsyCf3RturoWAStDJR+EHo3zIYkU67RZYOkZHH
+         DQb4XzUktus2p56P85YSvvjLtbpmgqq1DQVfxohxYtSnd0oL8M3YPOYE0UYQOpcv03N0
+         6IJyb8Oq07X5ECUxWwLRmsfz0bgEOo3xzUF01uxfHYwiWlvtnekgD3koNEkvWJ5OTUVz
+         MnsHbwCMULtzdSN2iXPDtquOMeeuhx/SzOC0sG78BfPF3itfP/n7SuHr0qzdVJXt3+3E
+         UEvA==
+X-Gm-Message-State: AGi0PuZKhJtNhmegOGvZpZTWaPHJUuQDi8IptUG8n2iPZcP/N3NJzQ7f
+        GGJnKeDbIHzMmTGr/AH500Vx1g==
+X-Google-Smtp-Source: APiQypIAm+eOkLnh9jfVGsJPFCRSE3u2oQZAeMT8zXL+p+ToKv0aaogvmqJScYekjpJ7CEwbwJZhCw==
+X-Received: by 2002:a63:2cce:: with SMTP id s197mr761627pgs.184.1587089205194;
+        Thu, 16 Apr 2020 19:06:45 -0700 (PDT)
+Received: from google.com ([2620:15c:202:1:534:b7c0:a63c:460c])
+        by smtp.gmail.com with ESMTPSA id t5sm365532pjo.19.2020.04.16.19.06.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Apr 2020 19:06:44 -0700 (PDT)
+Date:   Thu, 16 Apr 2020 19:06:41 -0700
+From:   Brian Norris <briannorris@chromium.org>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     =?utf-8?Q?Micha=C5=82?= Stanek <mst@semihalf.com>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stanekm@google.com,
+        stable@vger.kernel.org, Marcin Wojtas <mw@semihalf.com>,
+        levinale@chromium.org, andriy.shevchenko@linux.intel.com,
+        Linus Walleij <linus.walleij@linaro.org>,
+        bgolaszewski@baylibre.com, rafael.j.wysocki@intel.com,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] pinctrl: cherryview: Add quirk with custom translation
+ of ACPI GPIO numbers
+Message-ID: <20200417020641.GA145784@google.com>
+References: <20200205194804.1647-1-mst@semihalf.com>
+ <20200206083149.GK2667@lahna.fi.intel.com>
+ <CAMiGqYi2rVAc=hepkY-4S1U_3dJdbR4pOoB0f8tbBL4pzWLdxA@mail.gmail.com>
+ <20200207075654.GB2667@lahna.fi.intel.com>
+ <CAMiGqYjmd2edUezEXsX4JBSyOozzks1Pu8miPEviGsx=x59nZQ@mail.gmail.com>
+ <20200210101414.GN2667@lahna.fi.intel.com>
+ <CAMiGqYiYp=aSgW-4ro5ceUEaB7g0XhepFg+HZgfPvtvQL9Z1jA@mail.gmail.com>
+ <20200310144913.GY2540@lahna.fi.intel.com>
 MIME-Version: 1.0
-References: <20200408160905.12101-1-andriy.shevchenko@linux.intel.com>
- <20200416141730.GE185537@smile.fi.intel.com> <CAJZ5v0ihzD4knW=pKFmcsW0Q9c5rfyJMFh2ChiePe5SWO6G_TQ@mail.gmail.com>
-In-Reply-To: <CAJZ5v0ihzD4knW=pKFmcsW0Q9c5rfyJMFh2ChiePe5SWO6G_TQ@mail.gmail.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 16 Apr 2020 18:21:15 +0300
-Message-ID: <CAHp75Vf6MT1AFacUkRUP3760nv=3V5kzF2AHWJG64tr5yZ2=dg@mail.gmail.com>
-Subject: Re: [PATCH v1 0/6] platform/x86: intel_cht_int33fe: clean up series
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        Darren Hart <dvhart@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200310144913.GY2540@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Apr 16, 2020 at 6:05 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> On Thu, Apr 16, 2020 at 4:17 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > On Wed, Apr 08, 2020 at 07:09:00PM +0300, Andy Shevchenko wrote:
-> > > When I started looking into the intel_cht_int33fe driver for an example of use
-> > > software node API, I have noticed that it's hard to get and code a bit messy.
-> > > Here is a clean up, main part of which is to introduce node groups and API to
-> > > register and unregister them. This and some pre-existing APIs can be used in
-> > > the driver.
+Hi Mika,
+
+I'm following along with attempts to "fix" our user space to paper over
+this issue, and I think some of this conversation missed the mark.
+(Sorry for jumping in late.)
+
+On Tue, Mar 10, 2020 at 04:49:13PM +0200, Mika Westerberg wrote:
+> On Tue, Mar 10, 2020 at 03:12:00PM +0100, Michał Stanek wrote:
+> > On Mon, Feb 10, 2020 at 11:14 AM Mika Westerberg
+> > <mika.westerberg@linux.intel.com> wrote:
+> > > On Sat, Feb 08, 2020 at 07:43:24PM +0100, Michał Stanek wrote:
+> > > > > >
+> > > > > > Hi Mika,
+> > > > > >
+> > > > > > The previous patches from Dmitry handled IRQ numbering, here we have a
+> > > > > > similar issue with GPIO to pin translation - hardcoded values in FW
+> > > > > > which do not agree with the (non-consecutive) numbering in newer
+> > > > > > kernels.
+> > > > >
+> > > > > Hmm, so instead of passing GpioIo/GpioInt resources to devices the
+> > > > > firmware uses some hard-coded Linux GPIO numbering scheme? Would you
+> > > > > able to share the exact firmware description where this happens?
+> > > >
+> > > > Actually it is a GPIO offset in ACPI tables for Braswell that was
+> > > > hardcoded in the old firmware to match the previous (consecutive)
+> > > > Linux GPIO numbering.
 > > >
-> > > So, because of cross-subsystem nature of this series, I may recommend to create
-> > > myself the immutable branch which can be pulled to Rafael's and Greg's trees
-> > > respectively. I'm also open for other proposals how to proceed.
-> >
-> > Greg, Rafael,
-> > any suggestion how to proceed with this series?
-> >
-> > (It has been reviewed and tested).
->
-> You can merge them through platform/x86 as far as I'm concerned, or
-> please let me know if you want me to pick them up.
+> > > Can you share the ACPI tables and point me to the GPIO that is using
+> > > Linux number?
+> > 
+> > I think this is the one:
+> > https://chromium-review.googlesource.com/c/chromiumos/third_party/coreboot/%2B/286534/2/src/mainboard/google/cyan/acpi/chromeos.asl
+> > 
+> > On Kefka the sysfs GPIO number for wpsw_cur was gpio392 before the
+> > translation change occurred in Linux.
+> 
+> But that table does not seem to have any GPIO numbers in it.
 
-Works for me, but I would like to ask for formal Ack tag.
-Thanks!
+Actually, it's encoding pin numbers, not GPIO numbers. The 0x10016 (or
+now, 0x10013) is encoding a bank offset (0x10000) and pin number (0x16
+or 0x13). The actual pin numbers is 0x16, I believe, but someone decided
+to subtract 3, because the Linux numbering used to be contiguous,
+skipping over the hole between 11 and 15.
 
--- 
-With Best Regards,
-Andy Shevchenko
+So no, nobody was hard-coding gpiochip numbers -- we were hard-coding
+the contiguous pin number (relative to the bank). Now that commit
+03c4749dd6c7ff94 ("gpio / ACPI: Drop unnecessary ACPI GPIO to Linux GPIO
+translation") made those non-contiguous, we're kinda screwed -- we have
+to guess (based on the kernel version number) whether pin numbers
+(within a single bank!) are contiguous or not.
+
+> > > This is something that should be fixed in userspace. Using global Linux
+> > > GPIO or IRQ numbers is fragile and source of issues like this.
+
+To be clear, we're not hard-coding global <anything> numbers in user
+space.
+
+> > > in case of sysfs, you can
+> > > find the base of the chip
+
+We're doing that.
+
+> > > and then user relative numbering against it or
+> > > switch
+
+^^ This is the problem. The *bank-relative* numbers changed.
+
+> > > Both cases the GPIO number are relative against the GPIO chip so
+> > > they work even if global Linux GPIO numbering changes.
+> > 
+> > I analyzed crossystem source code and it looks like it is doing
+> > exactly what you're saying without any hardcoded assumptions.
+
+^^ Exactly.
+
+> > With the newer kernel the gpiochip%d number is different so crossystem
+> > ends up reading the wrong pin.
+> 
+> Hmm, so gpiochipX is also not considered a stable number. It is based on
+> ARCH_NR_GPIOS which may change. So if the userspace is relaying certain GPIO
+> chip is always gpichip200 for example then it is wrong.
+
+If you just read the last sentence from Michal, you get the wrong
+picture. There's no hard-coding of gpiochipX numbers going on. We only
+had the pin offsets "hardcoded" (in ACPI), and the kernel driver
+unilaterally changed from a contiguous mapping to a non-contiguous
+mapping.
+
+How do you recommend determining (both pre- and
+post-commit-03c4749dd6c7ff94) whether pin 22 is at offset 22, vs. offset
+19?
+
+Brian
