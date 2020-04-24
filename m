@@ -1,231 +1,81 @@
-Return-Path: <SRS0=FoMF=6L=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=x+Qm=6M=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.7 required=3.0 tests=DEAR_FRIEND,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	SUBJ_ALL_CAPS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C07A0C81CFF
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 22:53:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5977DC83001
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 00:06:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A45372087E
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 22:53:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 387B72078C
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 00:06:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726257AbgD0Wxo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Apr 2020 18:53:44 -0400
-Received: from mga05.intel.com ([192.55.52.43]:36248 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726224AbgD0Wxo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Apr 2020 18:53:44 -0400
-IronPort-SDR: C8D2f4/JJQW62+iyEpgjg2a+olzh+Xj4YP5jEttJwZEcqSCFZr+Xe36VesAZ0ZBONOAg4tQUjG
- fcXQwkbF8xCA==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2020 15:53:43 -0700
-IronPort-SDR: lNKASbKakoVXGeU36spOwtsFUDGFO8rO7y2DOUivpuz2aMgo7zqvoMcQCjt1mHZUzv8/ZcAzuA
- Fll5fhn94FRA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,325,1583222400"; 
-   d="scan'208";a="281938361"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga004.fm.intel.com with ESMTP; 27 Apr 2020 15:53:41 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jTCdB-00084P-9L; Tue, 28 Apr 2020 06:53:41 +0800
-Date:   Tue, 28 Apr 2020 06:52:38 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [pm:bleeding-edge] BUILD SUCCESS
- d38f9bc9261a2b20e8509370b5df9bdb3badaf81
-Message-ID: <5ea76236.pPK9Hk8xf8NYLcIc%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1726335AbgD1AGG convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Apr 2020 20:06:06 -0400
+Received: from [116.62.10.213] ([116.62.10.213]:58430 "EHLO mail.qdztrk.com"
+        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+        id S1726284AbgD1AGG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Apr 2020 20:06:06 -0400
+X-Greylist: delayed 71580 seconds by postgrey-1.27 at vger.kernel.org; Mon, 27 Apr 2020 20:06:05 EDT
+Received: from localhost (localhost [127.0.0.1])
+        by mail.qdztrk.com (Postfix) with ESMTP id 09C551E8EC6
+        for <linux-acpi@vger.kernel.org>; Sat, 25 Apr 2020 08:21:44 +0800 (CST)
+Received: from mail.qdztrk.com ([127.0.0.1])
+        by localhost (mail.qdztrk.com [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id oxvpohftqzvX for <linux-acpi@vger.kernel.org>;
+        Sat, 25 Apr 2020 08:21:43 +0800 (CST)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.qdztrk.com (Postfix) with ESMTP id C166E1C36A1
+        for <linux-acpi@vger.kernel.org>; Sat, 25 Apr 2020 08:03:41 +0800 (CST)
+X-Virus-Scanned: amavisd-new at mail.qdztrk.com
+Received: from mail.qdztrk.com ([127.0.0.1])
+        by localhost (mail.qdztrk.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id 8JDxe4t4VGe1 for <linux-acpi@vger.kernel.org>;
+        Sat, 25 Apr 2020 08:03:41 +0800 (CST)
+Received: from coris.com (unknown [103.207.36.17])
+        by mail.qdztrk.com (Postfix) with ESMTP id 94B50240ECD
+        for <linux-acpi@vger.kernel.org>; Sat, 25 Apr 2020 07:46:22 +0800 (CST)
+Reply-To: kentpace@sina.com
+From:   Kent Pace <kentpace@coris.com>
+To:     linux-acpi@vger.kernel.org
+Subject: URGENT!! PLEASE READ
+Date:   24 Apr 2020 16:46:18 -0700
+Message-ID: <20200424164618.B38B525F83CFEA14@coris.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git  bleeding-edge
-branch HEAD: d38f9bc9261a2b20e8509370b5df9bdb3badaf81  Merge branch 'pm-acpi' into linux-next
+Dear Friend,
 
-elapsed time: 855m
 
-configs tested: 163
-configs skipped: 0
+There is something very important I need to discuss with you.  I 
+am writing  this letter in tears and fear. In tears because I 
+will soon depart and in fear because I don't really know if you 
+will do this faithfully.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+I am COVID-19  patient and the doctor has already confirmed I may 
+not last for the next 7 days.
 
-arm                           efm32_defconfig
-arm                         at91_dt_defconfig
-arm                        shmobile_defconfig
-arm64                               defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                           sunxi_defconfig
-arm                        multi_v7_defconfig
-arm64                            allyesconfig
-arm                              allyesconfig
-arm64                            allmodconfig
-arm                              allmodconfig
-arm64                             allnoconfig
-arm                               allnoconfig
-sparc                            allyesconfig
-h8300                    h8300h-sim_defconfig
-c6x                              allyesconfig
-ia64                              allnoconfig
-openrisc                 simple_smp_defconfig
-mips                  decstation_64_defconfig
-riscv                             allnoconfig
-riscv                          rv32_defconfig
-i386                              allnoconfig
-i386                             allyesconfig
-i386                             alldefconfig
-i386                                defconfig
-i386                              debian-10.3
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                        generic_defconfig
-ia64                          tiger_defconfig
-ia64                         bigsur_defconfig
-ia64                             allyesconfig
-ia64                             alldefconfig
-xtensa                          iss_defconfig
-xtensa                       common_defconfig
-openrisc                    or1ksim_defconfig
-nios2                         3c120_defconfig
-nios2                         10m50_defconfig
-c6x                        evmc6678_defconfig
-nds32                               defconfig
-nds32                             allnoconfig
-csky                                defconfig
-alpha                               defconfig
-h8300                       h8s-sim_defconfig
-h8300                     edosk2674_defconfig
-m68k                       m5475evb_defconfig
-m68k                             allmodconfig
-m68k                           sun3_defconfig
-m68k                          multi_defconfig
-arc                                 defconfig
-arc                              allyesconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-powerpc                          rhel-kconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-powerpc                           allnoconfig
-mips                      fuloong2e_defconfig
-mips                      malta_kvm_defconfig
-mips                            ar7_defconfig
-mips                             allyesconfig
-mips                         64r6el_defconfig
-mips                              allnoconfig
-mips                           32r2_defconfig
-mips                             allmodconfig
-mips                malta_kvm_guest_defconfig
-mips                         tb0287_defconfig
-mips                       capcella_defconfig
-mips                           ip32_defconfig
-mips                      loongson3_defconfig
-mips                          ath79_defconfig
-mips                        bcm63xx_defconfig
-parisc                            allnoconfig
-parisc                generic-64bit_defconfig
-parisc                generic-32bit_defconfig
-parisc                           allyesconfig
-parisc                           allmodconfig
-parisc               randconfig-a001-20200427
-alpha                randconfig-a001-20200427
-mips                 randconfig-a001-20200427
-m68k                 randconfig-a001-20200427
-riscv                randconfig-a001-20200427
-nds32                randconfig-a001-20200427
-nios2                randconfig-a001-20200427
-c6x                  randconfig-a001-20200427
-h8300                randconfig-a001-20200427
-sparc64              randconfig-a001-20200427
-microblaze           randconfig-a001-20200427
-sh                   randconfig-a001-20200427
-csky                 randconfig-a001-20200427
-xtensa               randconfig-a001-20200427
-openrisc             randconfig-a001-20200427
-i386                 randconfig-b003-20200427
-i386                 randconfig-b002-20200427
-x86_64               randconfig-b001-20200427
-i386                 randconfig-b001-20200427
-x86_64               randconfig-b002-20200427
-x86_64               randconfig-b003-20200427
-i386                 randconfig-c002-20200427
-i386                 randconfig-c001-20200427
-x86_64               randconfig-c002-20200427
-x86_64               randconfig-c001-20200427
-i386                 randconfig-c003-20200427
-x86_64               randconfig-c003-20200427
-x86_64               randconfig-d001-20200427
-x86_64               randconfig-d002-20200427
-i386                 randconfig-d002-20200427
-i386                 randconfig-d001-20200427
-x86_64               randconfig-d003-20200427
-i386                 randconfig-d003-20200427
-i386                 randconfig-e003-20200427
-x86_64               randconfig-e002-20200427
-x86_64               randconfig-e003-20200427
-i386                 randconfig-e002-20200427
-i386                 randconfig-e001-20200427
-x86_64               randconfig-e001-20200427
-i386                 randconfig-f003-20200427
-i386                 randconfig-g003-20200427
-i386                 randconfig-g001-20200427
-x86_64               randconfig-g001-20200427
-i386                 randconfig-g002-20200427
-x86_64               randconfig-g003-20200427
-i386                 randconfig-h003-20200427
-x86_64               randconfig-h002-20200427
-i386                 randconfig-h002-20200427
-i386                 randconfig-h001-20200427
-sparc                randconfig-a001-20200427
-ia64                 randconfig-a001-20200427
-arm                  randconfig-a001-20200427
-arm64                randconfig-a001-20200427
-arc                  randconfig-a001-20200427
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                               defconfig
-riscv                            allmodconfig
-s390                       zfcpdump_defconfig
-s390                          debug_defconfig
-s390                             allyesconfig
-s390                              allnoconfig
-s390                             allmodconfig
-s390                             alldefconfig
-s390                                defconfig
-sh                          rsk7269_defconfig
-sh                               allmodconfig
-sh                            titan_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                                allnoconfig
-sparc                               defconfig
-sparc64                             defconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                          allmodconfig
-um                           x86_64_defconfig
-um                             i386_defconfig
-um                                  defconfig
-x86_64                                   rhel
-x86_64                               rhel-7.6
-x86_64                    rhel-7.6-kselftests
-x86_64                         rhel-7.2-clear
-x86_64                                    lkp
-x86_64                              fedora-25
-x86_64                                  kexec
+I have substantial amount of money deposited in a security vault 
+around your country. It is in trunk boxes and once  I receive 
+your response and see your readiness to claim the money 
+immediately, I will forward the needed documents and the contact 
+of the security vault where the consignment is deposited,
+I am not asking you to give me anything but I want you to help 
+people that has been infected with this deadly virus with 60% of 
+the money and 40% should be for you and your family.
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+I will disclose exact amount in the boxes as soon as I 
+receive your response.
+
+
+Regards.
+
