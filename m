@@ -1,130 +1,145 @@
-Return-Path: <SRS0=kWb1=6H=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=0GmD=6I=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C90AC54FCB
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Apr 2020 17:07:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A65CC55192
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Apr 2020 03:17:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BC7E20781
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Apr 2020 17:07:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587661642;
-	bh=yw9wJXzgI852NvRxPmOyJyXU9gysczH5+gd8R6BRqdg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
-	b=zH2na6MAnamKt0Dl72eJTgFRSJjn1TpLdmnHIHEw17RPHnJNp2EmNwo4oZaID0dPH
-	 7R+emFW4AbW1MJQaE4dBeo+WHUMD4er77jObMLj4E5yOABD+CcO2mGi6Bt3awHRGDC
-	 wmuUVd3Jx5FXX7n8M9WzhglPhIgPohpCH6kVacd0=
+	by mail.kernel.org (Postfix) with ESMTP id 31DC320728
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Apr 2020 03:17:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="AO8Vnscd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729841AbgDWRHV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Apr 2020 13:07:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48938 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729840AbgDWRHV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 23 Apr 2020 13:07:21 -0400
-Received: from localhost (mobile-166-175-187-210.mycingular.net [166.175.187.210])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3E0BB2076C;
-        Thu, 23 Apr 2020 17:07:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587661640;
-        bh=yw9wJXzgI852NvRxPmOyJyXU9gysczH5+gd8R6BRqdg=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=jRBGlpIAOMr0aJEhtE9qf9xmylLTnD1+54cwHWFclX7d4jCcl2dYjP2Ky/QQ44gSB
-         cw+8hXorBVHvZRIKuHFLtZExR5YTTmPk8/qfasQtq4F55wkr9CzeWvU9INQJntPHzP
-         74k2wAD7i4pxKssLvx8nwPa1cqjoK93h+egLbs1w=
-Date:   Thu, 23 Apr 2020 12:07:18 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Linux PM <linux-pm@vger.kernel.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
+        id S1726190AbgDXDQ7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Apr 2020 23:16:59 -0400
+Received: from mail-eopbgr60072.outbound.protection.outlook.com ([40.107.6.72]:3072
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725982AbgDXDQ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Apr 2020 23:16:58 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=O/8eldznQLvZrO904IQrt350kuFHzGkwB/yO1fn/o22wZpMw+rcZQpzgf+z265Hy4PMlTUHeo0jOpQ5RJJwHgW5FzAP5xqyBm/JHN9S7Ry69IPcbCrov6YEJIWp31ZUGnuSbY9wQ/lSU5+KUW/hVzT7dWqGQixU0SdIAa+LT0Njzr13qLvVcGr5s/W1QXlPfgGDoFCZbRFJfje/76rqji7gh7ar0Mqs7r9DKBX5nEuSqHOhkNRmGcUSkDugBwCFRsUT867R5P1v83yC/NUVJjY9Gt7UumsW5swB6e+MQQYiGv8uCeaCDyTSS1Y/Sc1I3ZwmR1yiW19N9ga8kVYRYsA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=TJrrKFcJj3+4b7N2H1iiMO/M4JRjznloM8XjSAKSD8k=;
+ b=f1CmnYcVsLYpaMSVNkKKv02WKV0Dj682avmlorXVwMYmK5af09uvVyNY3hFa3eKJ0/Lwj3LHRzRGOKRnnpX6q3aI4KEh95ePJm8HSOcN4Gm2cwfE6ApSArHKPgc3//8+D7KZAiYHXm6rj9MRP9MuZ3YXBYO80msS63rb+wmOwOwaE3qdPculyYMmPavICjThzHWVWvtNZPLMTGZ9ZvW9FbjWadIws/DeTu5O/HvDRII+JqbBTCDPNPqDzd10aEUYEbyeDymb4AXyj7zLHPXS4ZwipLOrgepvFfcMFbnvRDQTYcnJJd7TwP3MKL1vVNbOOLObguOoxOnVAdpnfuHt1Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
+ dkim=pass header.d=oss.nxp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
+ s=selector2-NXP1-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=TJrrKFcJj3+4b7N2H1iiMO/M4JRjznloM8XjSAKSD8k=;
+ b=AO8VnscdxjPszv+bw8fdlmeHQU47kfxYuvHTHIMjxoNbtW1vgQDrJWoOkddXHGHE090kKIjU4RCY2749Uj+ffsRl+9HnLcpAAdudNvPt+t4Y6i5tVKzAMcd/6v6zh6MSfHF+C8Z5X4ReVp5QmL+M2jaMG+ytqlP9674ro4M+OXk=
+Authentication-Results: spf=none (sender IP is )
+ smtp.mailfrom=calvin.johnson@oss.nxp.com; 
+Received: from AM0PR04MB5636.eurprd04.prod.outlook.com (2603:10a6:208:130::22)
+ by AM0PR04MB6788.eurprd04.prod.outlook.com (2603:10a6:208:18e::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2937.13; Fri, 24 Apr
+ 2020 03:16:54 +0000
+Received: from AM0PR04MB5636.eurprd04.prod.outlook.com
+ ([fe80::c4fe:d4a4:f0e1:a75b]) by AM0PR04MB5636.eurprd04.prod.outlook.com
+ ([fe80::c4fe:d4a4:f0e1:a75b%4]) with mapi id 15.20.2921.030; Fri, 24 Apr 2020
+ 03:16:54 +0000
+From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
+To:     linux.cj@gmail.com, Jeremy Linton <jeremy.linton@arm.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
+        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
+        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
+        Ioana Ciornei <ioana.ciornei@nxp.com>,
+        Madalin Bucur <madalin.bucur@oss.nxp.com>
+Cc:     Laurentiu Tudor <laurentiu.tudor@nxp.com>,
+        linux-acpi@vger.kernel.org,
+        Diana Madalina Craciun <diana.craciun@nxp.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Pankaj Bansal <pankaj.bansal@nxp.com>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        Varun Sethi <V.Sethi@nxp.com>, Marcin Wojtas <mw@semihalf.com>,
+        Makarand Pawagi <makarand.pawagi@nxp.com>,
+        "Rajesh V . Bikkina" <rajesh.bikkina@nxp.com>,
+        Calvin Johnson <calvin.johnson@oss.nxp.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Hans De Goede <hdegoede@redhat.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2 0/9] PM: sleep: core: Rearrange the handling of driver
- power management flags
-Message-ID: <20200423170718.GA190576@google.com>
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>
+Subject: [net-next PATCH v1 0/2] Introduce new APIs to support phylink and phy layers
+Date:   Fri, 24 Apr 2020 08:46:15 +0530
+Message-Id: <20200424031617.24033-1-calvin.johnson@oss.nxp.com>
+X-Mailer: git-send-email 2.17.1
+Content-Type: text/plain
+X-ClientProxiedBy: SG2PR01CA0122.apcprd01.prod.exchangelabs.com
+ (2603:1096:4:40::26) To AM0PR04MB5636.eurprd04.prod.outlook.com
+ (2603:10a6:208:130::22)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5673945.BT02kTCndr@kreacher>
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR01CA0122.apcprd01.prod.exchangelabs.com (2603:1096:4:40::26) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2937.13 via Frontend Transport; Fri, 24 Apr 2020 03:16:47 +0000
+X-Mailer: git-send-email 2.17.1
+X-Originating-IP: [14.142.151.118]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 9a18e40c-2bc5-464a-b9c0-08d7e7fdf07e
+X-MS-TrafficTypeDiagnostic: AM0PR04MB6788:|AM0PR04MB6788:
+X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM0PR04MB6788154F4A9CE76419D7739FD2D00@AM0PR04MB6788.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:1728;
+X-Forefront-PRVS: 03838E948C
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(346002)(396003)(39860400002)(366004)(136003)(376002)(2616005)(8676002)(956004)(5660300002)(8936002)(81156014)(186003)(6506007)(16526019)(26005)(54906003)(86362001)(110136005)(52116002)(55236004)(2906002)(1076003)(4744005)(316002)(478600001)(44832011)(66946007)(6512007)(6666004)(6486002)(1006002)(7416002)(4326008)(66556008)(6636002)(66476007)(110426005)(921003);DIR:OUT;SFP:1101;
+Received-SPF: None (protection.outlook.com: oss.nxp.com does not designate
+ permitted sender hosts)
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: dCsP/QPRSPAUxNxZJ4eoa/zz3EqRmHC9TArQJt+q6J2FiJbRSCh1AlejB+s9hyUOLP9eS0Z0mnDPcKjhY7XGEDqSb2xybYlS0F0tFU2h8xM+GWBbC1nIxeL9ozn++5O/URn/fZkC2L4Uk7P9kqnl+zn+HRAxcoDyePBdCqrnHiRxdvGSZnB+g7tHuyCPoC3VAW7kIbHooN4e7dq6RrWAahcI07Dde6ISmZjjTZfY0KQkBCjj6EGFuSBv7VyO9FzqsqFJz2HFwZ4/nZ+HG8EQ6i/RvwuxhdiAt9d0tF6r2KeD5MWRD4ucQ4YpVqvjkX+vm6lPz0CKty2mn9Ot1eWl4eng1SvvvZ320KIVcZqmoeqH2tbKCv1VV5/qDO2Za3UdhGJW+vNkIYXOXpX0LjoHcuT6kIS1qEQ+xjj9gqOgp4SxYQJUey4ZiC7eMNUePmrLrWz628vuweiNpOQavHq5Pbvy0XJ8Dr2LvuHwK6ylBCq8m//f6dCWVKsjELXsUAPz/pAF54xLFpkfjOhgz4Ms3A==
+X-MS-Exchange-AntiSpam-MessageData: Ebr4Z3QciwkNvQ42QuOa4Qnxz+R0EyuBx6m22qZ3d/H7ND9J7RlthYWoVnRtpdk+uZDtvfl1POf50jm1kvVS1lYmBgn89XNwlxbat1vflMBsvIw5Qb3es8+oH9RAFMo+irCn/KX4HldLcJNwEwrJkA==
+X-OriginatorOrg: oss.nxp.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9a18e40c-2bc5-464a-b9c0-08d7e7fdf07e
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Apr 2020 03:16:54.8071
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: pIkOqWZBfwx9u6+XtJPAOcqqltcxh5pUFPpa0Ka+38xLCvrHeetoeSFEhoEV179VDLIGB1vMGckIksGs1dJlQQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR04MB6788
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Apr 18, 2020 at 06:23:08PM +0200, Rafael J. Wysocki wrote:
-> Hi,
-> 
-> This is an update including some fixes and extra patches based on the
-> continuation of the discussion [1].
-> 
-> On Friday, April 10, 2020 5:46:27 PM CEST Rafael J. Wysocki wrote:
-> > Hi Alan,
-> > 
-> > Following our recent discussion regarding the DPM_FLAG_* family of flags [1],
-> > I have decided to follow some of your recommendations and make changes to the
-> > core code handling those flags.
-> > 
-> > The purpose of this is basically to make the code more consistent internally,
-> > easier to follow and better documented.
-> > 
-> > First of all, patch [1/7] changes the PM core to skip driver-level "late"
-> > and "noirq" suspend callbacks for devices with SMART_SUSPEND set if they are
-> > still runtime-suspended during the "late" system-wide suspend phase (without
-> > the patch it does that only if subsystem-level late/noirq/early suspend/resume
-> > callbacks are not present for the device, which is demonstrably inconsistent)
-> > and updates the resume part of the code accordingly (it doesn't need to check
-> > whether or not the subsystem-level callbacks are present any more).
-> > 
-> > The next patch, [2/7], is purely cosmetic and its only purpose is to reduce
-> > the LOC number and move related pieces of code closer to each other.
-> 
-> The first two patches have not changed.
-> 
-> > Patch [3/7] changes the PM core so that it doesn't skip any subsystem-level
-> > callbacks during system-wide resume (without the patch they may be skipped in
-> > the "early resume" and "resume" phases due to LEAVE_SUSPENDED being set which
-> > may be problematic) and to always run the driver's ->resume callback if the
-> > corresponding subsystem-level callback is not present (without the patch it
-> > may be skipped if LEAVE_SUSPENDED is set) to let it reverse the changes made
-> > by the driver's ->suspend callback (which always runs too) if need be.
-> 
-> The difference between this one and patch [3/9] in the v2 is the fixed
-> definition of dev_pm_may_skip_resume(), renamed to dev_pm_skip_resume() by
-> one of the next patches.
-> 
-> Patch [4/9] changes the handling of the power.may_skip_resume flag to set it
-> to 'true' by default and updates the subsystems aware of it to clear it when
-> they don't want devices to stay in suspend.
-> 
-> > Patches [4-6/7] rename one function in the PM core and two driver PM flags to
-> > make their names better reflect their purpose.
-> 
-> These are patches [5/9] and [7-8/9] in the v2 and patch [6/9] renames
-> dev_pm_smart_suspend_and_suspended() to dev_pm_skip_suspend().
-> 
-> > Finally, patch [7/7] updates the documentation of the driver PM flags to
-> > reflect the new code flows.
-> 
-> This patch [9/9] now and it has been updated to reflect the new code changes.
-> 
-> The pm-sleep-core branch:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
->   pm-sleep-core
-> 
-> contains the v2 now.
+Following functions are defined:
+  phylink_fwnode_phy_connect()
+  phylink_device_phy_connect()
+  fwnode_phy_find_device()
+  device_phy_find_device()
 
-For the drivers/pci parts:
+First two help in connecting phy to phylink instance.
+Remaining two help to find a phy on a mdiobus.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+Calvin Johnson (2):
+  device property: Introduce fwnode_phy_find_device()
+  phylink: introduce phylink_fwnode_phy_connect()
+
+ drivers/base/property.c   | 41 ++++++++++++++++++
+ drivers/net/phy/phylink.c | 90 +++++++++++++++++++++++++++++++++++++++
+ include/linux/phylink.h   |  6 +++
+ include/linux/property.h  |  5 +++
+ 4 files changed, 142 insertions(+)
+
+-- 
+2.17.1
 
