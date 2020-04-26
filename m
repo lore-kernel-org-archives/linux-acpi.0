@@ -4,45 +4,46 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F034C55199
-	for <linux-acpi@archiver.kernel.org>; Sun, 26 Apr 2020 11:03:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03103C5519A
+	for <linux-acpi@archiver.kernel.org>; Sun, 26 Apr 2020 11:03:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D6A220706
+	by mail.kernel.org (Postfix) with ESMTP id D804A20706
 	for <linux-acpi@archiver.kernel.org>; Sun, 26 Apr 2020 11:03:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UOm08aUd"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JjwZuCMo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726226AbgDZLDk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 26 Apr 2020 07:03:40 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:55760 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726215AbgDZLDU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Apr 2020 07:03:20 -0400
+        id S1726208AbgDZLDs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 26 Apr 2020 07:03:48 -0400
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:31213 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726194AbgDZLDR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 26 Apr 2020 07:03:17 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1587898999;
+        s=mimecast20190719; t=1587898994;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=M+b26ndc6zVYTP424qBUkq5rKzs/VJMdgytlvMYK02Q=;
-        b=UOm08aUdYzo1m5lAH2bHrBDbw45vud8dhyUssaSc8Pc0vyLFpYcn1NmJTqr0J2feeKjtSE
-        Gzs1BJlb+K5nk+Bdug3NBm/1hICKIMBbHeLEQqWcZtB966DGMKeZJLy45t7mPs0dCJw/Om
-        8wOCkRc/C6S8HVRZYxCrsPB65dhWL4U=
+        bh=fXLiQJEgJIAZ33GQH+ZdeDYQB6EWJcpn8dhyOK+F2yU=;
+        b=JjwZuCMoOwrvLr5DhoD4hg97XCWLBp7JJCeLeEH1DcsVl0chrT+hyJWUd4GmW3ijhBW80z
+        H85a3X7rb++qS/Rd68vlIjhuzU7SDZTJLeA/BmwLL8v0+zytylBfzeS2M2H5NLvEECAgP9
+        VaGFizYjB/377hXK0wuRjIQZsax1olY=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-506-r22GhwiBNJep_CXCVPeLcQ-1; Sun, 26 Apr 2020 07:03:16 -0400
-X-MC-Unique: r22GhwiBNJep_CXCVPeLcQ-1
+ us-mta-265-cHT5LGLVPTyxdpjYYHWR9w-1; Sun, 26 Apr 2020 07:03:10 -0400
+X-MC-Unique: cHT5LGLVPTyxdpjYYHWR9w-1
 Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2C6EC1009600;
-        Sun, 26 Apr 2020 11:03:14 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 73D3839380;
+        Sun, 26 Apr 2020 11:03:08 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-112-32.ams2.redhat.com [10.36.112.32])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 98C6810013A1;
-        Sun, 26 Apr 2020 11:03:11 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E1A0E10013A1;
+        Sun, 26 Apr 2020 11:03:05 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
@@ -56,9 +57,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
         Lars-Peter Clausen <lars@metafoo.de>,
         Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
         linux-iio@vger.kernel.org
-Subject: [PATCH 5/8] iio: light: cm32181: Use units of 1/100000th for calibscale and lux_per_bit
-Date:   Sun, 26 Apr 2020 13:02:53 +0200
-Message-Id: <20200426110256.218186-5-hdegoede@redhat.com>
+Subject: [PATCH 3/8] iio: light: cm32181: Handle ACPI instantiating a cm32181 client on the SMBus ARA
+Date:   Sun, 26 Apr 2020 13:02:51 +0200
+Message-Id: <20200426110256.218186-3-hdegoede@redhat.com>
 In-Reply-To: <20200426110256.218186-1-hdegoede@redhat.com>
 References: <20200426110256.218186-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -69,77 +70,68 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Use units of 1/100000th for calibscale and lux_per_bit. The similar
-cm3232 driver already uses 1/100000th as unit for calibscale.
+Some ACPI systems list 2 I2C resources for the CM3218 sensor. On these
+systems the first I2cSerialBus ACPI-resource points to the SMBus Alert
+Response Address (ARA, 0x0c) and the second I2cSerialBus ACPI-resource
+points to the actual CM3218 sensor address.
 
-This allows for higher-accuracy and makes it easier to add support
-for getting device-specific calibscale and lux_per_bit values from
-a device's ACPI tables, as the values in the ACPI tables also use
-1/100000th units.
+From the ACPI/x86 side devices with more then 1 I2cSerialBus ACPI-resourc=
+e
+are handled by the drivers/platform/x86/i2c-multi-instantiate.c code.
+This code will instantiate "cm32181" i2c_client-s for both resources.
 
-This units change means that our intermediate values in cm32181_get_lux()
-may get quite big, change the type of the lux variable to a u64 to
-deal with this.
+Add a check to cm32181_probe() for the client's address being the ARA
+address, and in that case fail the probe with -ENODEV.
+
+On these ACPI systems the sensor may have a SMBus Alert asserted at boot,
+if this is the case the sensor will not respond to any i2c_transfers on
+its actual address until we read from the ARA register to clear the Alert=
+.
+
+Therefor we must (try to) read a byte from the client with the ARA
+register, before returning -ENODEV, so that we clear the Alert and when
+we get called again for the client instantiated for the second
+I2cSerialBus ACPI-resource the sensor will respond to our i2c-transfers.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/iio/light/cm32181.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/iio/light/cm32181.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
 diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
-index e31c1005b03d..4fdf2f4a23ab 100644
+index fd371b36c7b3..e8be20d3902c 100644
 --- a/drivers/iio/light/cm32181.c
 +++ b/drivers/iio/light/cm32181.c
-@@ -45,11 +45,11 @@
- #define CM32181_CMD_ALS_SM_MASK		(0x03 << CM32181_CMD_ALS_SM_SHIFT)
- #define CM32181_CMD_ALS_SM_DEFAULT	(0x01 << CM32181_CMD_ALS_SM_SHIFT)
+@@ -51,6 +51,8 @@
+ #define CM32181_CALIBSCALE_RESOLUTION	1000
+ #define MLUX_PER_LUX			1000
 =20
--#define CM32181_MLUX_PER_BIT		5	/* ALS_SM=3D01 IT=3D800ms */
--#define CM32181_MLUX_PER_BIT_BASE_IT	800000	/* Based on IT=3D800ms */
--#define	CM32181_CALIBSCALE_DEFAULT	1000
--#define CM32181_CALIBSCALE_RESOLUTION	1000
--#define MLUX_PER_LUX			1000
-+#define CM32181_LUX_PER_BIT		500	/* ALS_SM=3D01 IT=3D800ms */
-+#define CM32181_LUX_PER_BIT_RESOLUTION	100000
-+#define CM32181_LUX_PER_BIT_BASE_IT	800000	/* Based on IT=3D800ms */
-+#define CM32181_CALIBSCALE_DEFAULT	100000
-+#define CM32181_CALIBSCALE_RESOLUTION	100000
-=20
- #define SMBUS_ALERT_RESPONSE_ADDRESS	0x0c
-=20
-@@ -208,15 +208,15 @@ static int cm32181_get_lux(struct cm32181_chip *cm3=
-2181)
- 	struct i2c_client *client =3D cm32181->client;
++#define SMBUS_ALERT_RESPONSE_ADDRESS	0x0c
++
+ static const u8 cm32181_reg[CM32181_CONF_REG_NUM] =3D {
+ 	CM32181_REG_ADDR_CMD,
+ };
+@@ -333,6 +335,20 @@ static int cm32181_probe(struct i2c_client *client,
+ 	struct iio_dev *indio_dev;
  	int ret;
- 	int als_it;
--	unsigned long lux;
-+	u64 lux;
 =20
- 	ret =3D cm32181_read_als_it(cm32181, &als_it);
- 	if (ret < 0)
- 		return -EINVAL;
-=20
--	lux =3D CM32181_MLUX_PER_BIT;
--	lux *=3D CM32181_MLUX_PER_BIT_BASE_IT;
--	lux /=3D als_it;
-+	lux =3D CM32181_LUX_PER_BIT;
-+	lux *=3D CM32181_LUX_PER_BIT_BASE_IT;
-+	lux =3D div_u64(lux, als_it);
-=20
- 	ret =3D i2c_smbus_read_word_data(client, CM32181_REG_ADDR_ALS);
- 	if (ret < 0)
-@@ -224,8 +224,8 @@ static int cm32181_get_lux(struct cm32181_chip *cm321=
-81)
-=20
- 	lux *=3D ret;
- 	lux *=3D cm32181->calibscale;
--	lux /=3D CM32181_CALIBSCALE_RESOLUTION;
--	lux /=3D MLUX_PER_LUX;
-+	lux =3D div_u64(lux, CM32181_CALIBSCALE_RESOLUTION);
-+	lux =3D div_u64(lux, CM32181_LUX_PER_BIT_RESOLUTION);
-=20
- 	if (lux > 0xFFFF)
- 		lux =3D 0xFFFF;
++	/*
++	 * Some ACPI systems list 2 I2C resources for the CM3218 sensor, the
++	 * SMBus Alert Response Address (ARA, 0x0c) and the actual I2C address.
++	 * drivers/platform/x86/i2c-multi-instantiate.c instantiates "cm32181"
++	 * i2c_client-s for both resources, ignore the ARA client.
++	 * On these systems the sensor may have a SMBus Alert asserted at boot,
++	 * in that case the ARA must be read to clear the Alert otherwise the
++	 * sensor will not respond on its actual I2C address.
++	 */
++	if (client->addr =3D=3D SMBUS_ALERT_RESPONSE_ADDRESS) {
++		i2c_smbus_read_byte(client);
++		return -ENODEV;
++	}
++
+ 	indio_dev =3D devm_iio_device_alloc(&client->dev, sizeof(*cm32181));
+ 	if (!indio_dev) {
+ 		dev_err(&client->dev, "devm_iio_device_alloc failed\n");
 --=20
 2.26.0
 
