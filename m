@@ -1,154 +1,197 @@
-Return-Path: <SRS0=iKE5=6K=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=FoMF=6L=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CD48C54FCB
-	for <linux-acpi@archiver.kernel.org>; Sun, 26 Apr 2020 17:59:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5421DC55199
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 09:05:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12F982071C
-	for <linux-acpi@archiver.kernel.org>; Sun, 26 Apr 2020 17:59:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="D+54ufDn"
+	by mail.kernel.org (Postfix) with ESMTP id 3D2732064C
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 09:05:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726162AbgDZR70 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 26 Apr 2020 13:59:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41084 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726151AbgDZR70 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 26 Apr 2020 13:59:26 -0400
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 065DDC061A0F;
-        Sun, 26 Apr 2020 10:59:26 -0700 (PDT)
-Received: by mail-pj1-x1044.google.com with SMTP id fu13so5740691pjb.5;
-        Sun, 26 Apr 2020 10:59:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Agzoq47FRAesCK4Rm+PNfIIc52RShRiY7S7ixZtkBsE=;
-        b=D+54ufDnGv47BkQQ1bzXZXAplN0jl0a3HMKhmlSujd7BkzQWTv5MMNZlpNKH5Hv4F+
-         wG/kVHv9W+g1B6TvQzGrkIlhClxOByklmfjWQ0/J6mJT5wT50LEh2ZQ3hXFv+YTI6MVc
-         f4oAaISJDUsSolgLd1j+RbMVDRNYJXkm50WZfSbv6UPXE8IUpt540cU7QbHrqLozQmU+
-         86f2CZgDfqUkV89/nbYTWPbcV3upvhpsgISN0XVjhoqckLP54Fym7B1wQnM/7mIyY6sj
-         XIbNDj77Y6+smfwlOQfesNAd/pX1COmmJ73moCuKB0o4d+zx00dCI5C6qPGQudHjhT+q
-         4pdw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Agzoq47FRAesCK4Rm+PNfIIc52RShRiY7S7ixZtkBsE=;
-        b=Z7208m2c0gwCMhZtz7/VrGrAfqgyMy3SOjBmTY7cKa4uisxFdVovPBrZg0BLx0Wvsv
-         4LR4zbpK+Ls6xvvDayO86oeSSfAfFd6y73RkYK8bTwLAyrnJzAqmp/cg6UuA3Uc/LOQV
-         ULweUBhya+Q82IDa72FB7tdY2eaiXcXWasBARY/cmU0QH32blksgwurRzAtjjHC7cK8L
-         AsknCRA4Z4BPKMuzON9poEpQ9rYgiCW5NM4Lj76/GJ0Ds8LjTr2W2dn0U2GUS5XlYEZn
-         xgBhn71CmuvaoTP3/DQos9pEROo4FjN3uPIu5vNgEkPck8a8bO82GPWZ6GJTKasmW+TA
-         bb6A==
-X-Gm-Message-State: AGi0PualRn+eiIPXjt5Hdy+LuhfIq8DbB4akvmfWbb/mNpjjpArRDZKw
-        gXcgcIWfEavVty7HYRzNyt7Exd1KlYY+pq3rvAk=
-X-Google-Smtp-Source: APiQypKr7+xGIaQ9h2OCGldijVYo+DjRbDucxSshbdQ6ouY4jUw/nEapxN+Daolzha+UYcKkTAyTQFf+OG03z6wcCHY=
-X-Received: by 2002:a17:90a:2401:: with SMTP id h1mr19557530pje.1.1587923965301;
- Sun, 26 Apr 2020 10:59:25 -0700 (PDT)
+        id S1726507AbgD0JFQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Apr 2020 05:05:16 -0400
+Received: from mo-csw-fb1116.securemx.jp ([210.130.202.175]:36920 "EHLO
+        mo-csw-fb.securemx.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726183AbgD0JFQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2020 05:05:16 -0400
+X-Greylist: delayed 711 seconds by postgrey-1.27 at vger.kernel.org; Mon, 27 Apr 2020 05:05:14 EDT
+Received: by mo-csw-fb.securemx.jp (mx-mo-csw-fb1116) id 03R8rOaE008423; Mon, 27 Apr 2020 17:53:24 +0900
+Received: by mo-csw.securemx.jp (mx-mo-csw1114) id 03R8qwAY012935; Mon, 27 Apr 2020 17:52:58 +0900
+X-Iguazu-Qid: 2wHHmtTglbDiQFar0U
+X-Iguazu-QSIG: v=2; s=0; t=1587977578; q=2wHHmtTglbDiQFar0U; m=xkIQ5G8uB+mBuk2KpbYQ9WX+PVEjESxzVhAAS6YBJ14=
+Received: from imx12.toshiba.co.jp (imx12.toshiba.co.jp [61.202.160.132])
+        by relay.securemx.jp (mx-mr1111) id 03R8qucT003817;
+        Mon, 27 Apr 2020 17:52:56 +0900
+Received: from enc02.toshiba.co.jp ([61.202.160.51])
+        by imx12.toshiba.co.jp  with ESMTP id 03R8quBJ001287;
+        Mon, 27 Apr 2020 17:52:56 +0900 (JST)
+Received: from hop101.toshiba.co.jp ([133.199.85.107])
+        by enc02.toshiba.co.jp  with ESMTP id 03R8qtgc029882;
+        Mon, 27 Apr 2020 17:52:55 +0900
+From:   Punit Agrawal <punit1.agrawal@toshiba.co.jp>
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     linux-kernel@vger.kernel.org,
+        Punit Agrawal <punit1.agrawal@toshiba.co.jp>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Borislav Petkov <bp@alien8.de>,
+        James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org,
+        linux-efi@vger.kernel.org
+Subject: [PATCH] efi: cper: Add support for printing Firmware Error Record Reference
+Date:   Mon, 27 Apr 2020 17:52:42 +0900
+X-TSB-HOP: ON
+Message-Id: <20200427085242.2380614-1-punit1.agrawal@toshiba.co.jp>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-References: <20200426104713.216896-1-hdegoede@redhat.com> <20200426104713.216896-2-hdegoede@redhat.com>
-In-Reply-To: <20200426104713.216896-2-hdegoede@redhat.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Sun, 26 Apr 2020 20:59:14 +0300
-Message-ID: <CAHp75VdOd6C36oR7HAnqrKiinVBr4YcqqJ=dv3NpR3=Xp0QQ-Q@mail.gmail.com>
-Subject: Re: [PATCH 1/2] platform/x86: i2c-multi-instantiate: Add flag for
- passing fwnode
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Apr 26, 2020 at 1:47 PM Hans de Goede <hdegoede@redhat.com> wrote:
->
-> In some cases the driver for the i2c_client-s which i2c-multi-instantiate
-> instantiates may need access some fields / methods from to the ACPI fwnode
-> for which i2c_clients are being instantiated.
->
-> An example of this are CPLM3218 ACPI device-s. These contain CPM0 and
-> CPM1 packages with various information (e.g. register init values) which
-> the driver needs.
->
-> Passing the fwnode through the i2c_board_info struct also gives the
-> i2c-core access to it, and if we do not pass an IRQ then the i2c-core
-> will use the fwnode to get an IRQ, see i2c_acpi_get_irq().
+While debugging a boot failure, the following unknown error record was
+seen in the boot logs.
 
-I'm wondering, can we rather do it in the same way like we do for
-GPIO/APIC case here.
-Introduce IRQ_RESOURCE_SHARED (or so) and
+    <...>
+    BERT: Error records from previous boot:
+    [Hardware Error]: event severity: fatal
+    [Hardware Error]:  Error 0, type: fatal
+    [Hardware Error]:   section type: unknown, 81212a96-09ed-4996-9471-8d729c8e69ed
+    [Hardware Error]:   section length: 0x290
+    [Hardware Error]:   00000000: 00000001 00000000 00000000 00020002  ................
+    [Hardware Error]:   00000010: 00020002 0000001f 00000320 00000000  ........ .......
+    [Hardware Error]:   00000020: 00000000 00000000 00000000 00000000  ................
+    [Hardware Error]:   00000030: 00000000 00000000 00000000 00000000  ................
+    <...>
 
-case _SHARED:
- irq = i2c_acpi_get_irq();
-...
+On further investigation, it was found that the error record with
+UUID (81212a96-09ed-4996-9471-8d729c8e69ed) has been defined in the
+UEFI Specification at least since v2.4 and has recently had additional
+fields defined in v2.7 Section N.2.10 Firmware Error Record Reference.
 
-?
+Add support for parsing and printing the defined fields to give users
+a chance to figure out what's went wrong.
 
->
-> This is a problem when there is only an IRQ for 1 of the clients described
-> in the ACPI device we are instantiating clients for. If we unconditionally
-> pass the fwnode, then i2c_acpi_get_irq() will assign the same IRQ to all
-> clients instantiated, leading to kernel-oopses like this (BSG1160 device):
->
-> [   27.340557] genirq: Flags mismatch irq 76. 00002001 (bmc150_magn_event) vs. 00000001 (bmc150_accel_event)
-> [   27.340567] Call Trace:
-> ...
->
-> So we cannot simply always pass the fwnode. This commit adds a PASS_FWNODE
-> flag, which can be used to pass the fwnode in cases where we do not have
-> the IRQ problem and the driver for the instantiated client(s) needs access
-> to the fwnode.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/platform/x86/i2c-multi-instantiate.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/platform/x86/i2c-multi-instantiate.c
-> index 6acc8457866e..dcafb1a29d17 100644
-> --- a/drivers/platform/x86/i2c-multi-instantiate.c
-> +++ b/drivers/platform/x86/i2c-multi-instantiate.c
-> @@ -20,6 +20,8 @@
->  #define IRQ_RESOURCE_GPIO      1
->  #define IRQ_RESOURCE_APIC      2
->
-> +#define PASS_FWNODE            BIT(2)
-> +
->  struct i2c_inst_data {
->         const char *type;
->         unsigned int flags;
-> @@ -93,6 +95,10 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
->                 snprintf(name, sizeof(name), "%s-%s.%d", dev_name(dev),
->                          inst_data[i].type, i);
->                 board_info.dev_name = name;
-> +
-> +               if (inst_data[i].flags & PASS_FWNODE)
-> +                       board_info.fwnode = dev->fwnode;
-> +
->                 switch (inst_data[i].flags & IRQ_RESOURCE_TYPE) {
->                 case IRQ_RESOURCE_GPIO:
->                         ret = acpi_dev_gpio_irq_get(adev, inst_data[i].irq_idx);
-> --
-> 2.26.0
->
+Signed-off-by: Punit Agrawal <punit1.agrawal@toshiba.co.jp>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: James Morse <james.morse@arm.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-efi@vger.kernel.org
+---
 
+Hi,
 
+I ran into this while debugging a boot failure on an end product
+device. Parsing known record types can help the user narrow down the
+investigation quickly to the failing components - firmware error in
+this case.
+
+It would be good to support the record types specified in the
+standard.
+
+Feedback welcome.
+
+Thanks,
+Punit
+---
+ drivers/firmware/efi/cper.c | 49 +++++++++++++++++++++++++++++++++++++
+ include/linux/cper.h        | 11 +++++++++
+ 2 files changed, 60 insertions(+)
+
+diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+index 9d2512913d25..153b95257e23 100644
+--- a/drivers/firmware/efi/cper.c
++++ b/drivers/firmware/efi/cper.c
+@@ -407,6 +407,46 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+ 	}
+ }
+ 
++static const char * const fw_err_rec_type_strs[] = {
++	"IPF SAL Error Record",
++	"SOC Firmware Error Record Type1 (Legacy CrashLog Support)",
++	"SOC Firmware Error Record Type2",
++};
++
++static void cper_print_fw_err(const char *pfx,
++			      struct acpi_hest_generic_data *gdata,
++			      const struct cper_sec_fw_err_rec_ref *fw_err)
++{
++	void *buf = acpi_hest_get_payload(gdata);
++	u32 offset, length = gdata->error_data_length;
++
++	printk("%s""Firmware Error Record Type: %s\n", pfx,
++	       fw_err->record_type < ARRAY_SIZE(fw_err_rec_type_strs) ?
++	       fw_err_rec_type_strs[fw_err->record_type] : "unknown");
++
++	/* Record Type based on UEFI 2.7 */
++	if (fw_err->revision == 0)
++		printk("%s""Record Identifier: %08llx\n", pfx,
++		       fw_err->record_identifier);
++	else if (fw_err->revision == 2)
++		printk("%s""Record Identifier: %pUl\n", pfx,
++		       &fw_err->record_identifier_guid);
++
++	if (fw_err->revision == 0)
++		offset = offsetof(struct cper_sec_fw_err_rec_ref,
++				  record_identifier_guid);
++	else if (fw_err->revision == 1)
++		offset = offsetof(struct cper_sec_fw_err_rec_ref,
++				  record_identifier);
++	else
++		offset = sizeof(*fw_err);
++
++	buf += offset;
++	length -= offset;
++
++	print_hex_dump(pfx, "", DUMP_PREFIX_OFFSET, 16, 4, buf, length, true);
++}
++
+ static void cper_print_tstamp(const char *pfx,
+ 				   struct acpi_hest_generic_data_v300 *gdata)
+ {
+@@ -494,6 +534,15 @@ cper_estatus_print_section(const char *pfx, struct acpi_hest_generic_data *gdata
+ 		else
+ 			goto err_section_too_small;
+ #endif
++	} else if (guid_equal(sec_type, &CPER_SEC_FW_ERR_REC_REF)) {
++		struct cper_sec_fw_err_rec_ref *fw_err = acpi_hest_get_payload(gdata);
++
++		printk("%ssection_type: Firmware Error Record Reference\n",
++		       newpfx);
++		if (gdata->error_data_length >= sizeof(*fw_err))
++			cper_print_fw_err(newpfx, gdata, fw_err);
++		else
++			goto err_section_too_small;
+ 	} else {
+ 		const void *err = acpi_hest_get_payload(gdata);
+ 
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index 4f005d95ce88..5cb57e69df70 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -521,6 +521,17 @@ struct cper_sec_pcie {
+ 	u8	aer_info[96];
+ };
+ 
++/* Firmware Error Record Reference, UEFI v2.7 sec N.2.10  */
++struct cper_sec_fw_err_rec_ref {
++	u8 record_type;
++	union {
++		u8 revision;
++		u8 reserved[7];
++	};
++	u64 record_identifier;
++	guid_t record_identifier_guid;
++};
++
+ /* Reset to default packing */
+ #pragma pack()
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.26.2
+
