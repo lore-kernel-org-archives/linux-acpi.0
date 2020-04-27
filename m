@@ -7,43 +7,42 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5029C7C8A0
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 15:51:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31085C7C8A1
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 15:51:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B5049206D4
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 15:51:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BE87206B6
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 15:51:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MbSuDOcZ"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JNrbOBrR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728516AbgD0PvJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Apr 2020 11:51:09 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:40631 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728510AbgD0PvJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Apr 2020 11:51:09 -0400
+        id S1728485AbgD0Pu7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Apr 2020 11:50:59 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:47916 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728477AbgD0Pu6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2020 11:50:58 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1588002667;
+        s=mimecast20190719; t=1588002657;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=O0EVbd8yvTnodt/PwOFNSr4NOJBYWtmio5+4hHlbVdA=;
-        b=MbSuDOcZjHsiLgGzFWjiHQzuMnH1n4njgSiooB0wV/YDqhB9+Z1BzIS3mh1u748gOSIbvx
-        IwO54eMrEaNvLgJwpjrWUK8IY7IFry188xZY7Ec0anWqtVcmgzrH/KusCx+UAhNIEV1MQz
-        9EPE0Ij0YLhN6lpaXb10rYb2cFVPcdY=
+        bh=uTu7U87130Tm1Bbuc0WtjOMOvCBgywKq98+g5D2l0S0=;
+        b=JNrbOBrRmYddHV+D4UJ+md5i2p+zcuFlUY8yB+SUJ18M7h1roT6/H8UiTLWqW89A8cdzDQ
+        jATfUzIhstKxMJjB1Rnd4DoaHKbJ/Ao/VF/oCJXrh01rAzp0K7Lm1rLx8GRmu8B+y0xYVa
+        z8CUqZvN5JZAYPdtGpQ+qBEtkKCz2EE=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-309-nI1rz6WXPVO-hYMpnkVNJQ-1; Mon, 27 Apr 2020 11:51:03 -0400
-X-MC-Unique: nI1rz6WXPVO-hYMpnkVNJQ-1
+ us-mta-368-8eVknis9MTCZeGw72nwOSA-1; Mon, 27 Apr 2020 11:50:55 -0400
+X-MC-Unique: 8eVknis9MTCZeGw72nwOSA-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B660B835B40;
-        Mon, 27 Apr 2020 15:51:01 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3A0C0107ACF7;
+        Mon, 27 Apr 2020 15:50:53 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-114-38.ams2.redhat.com [10.36.114.38])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 316A96063C;
-        Mon, 27 Apr 2020 15:50:59 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A038E6063C;
+        Mon, 27 Apr 2020 15:50:50 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
@@ -57,9 +56,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
         Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
         linux-iio@vger.kernel.org,
         Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH v2 8/8] iio: light: cm32181: Fix integartion time typo
-Date:   Mon, 27 Apr 2020 17:50:37 +0200
-Message-Id: <20200427155037.218390-8-hdegoede@redhat.com>
+Subject: [PATCH v2 5/8] iio: light: cm32181: Use units of 1/100000th for calibscale and lux_per_bit
+Date:   Mon, 27 Apr 2020 17:50:34 +0200
+Message-Id: <20200427155037.218390-5-hdegoede@redhat.com>
 In-Reply-To: <20200427155037.218390-1-hdegoede@redhat.com>
 References: <20200427155037.218390-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -70,29 +69,78 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fix integartion time typo and while at it improve the comment with
-the typo a bit in general.
+Use units of 1/100000th for calibscale and lux_per_bit. The similar
+cm3232 driver already uses 1/100000th as unit for calibscale.
+
+This allows for higher-accuracy and makes it easier to add support
+for getting device-specific calibscale and lux_per_bit values from
+a device's ACPI tables, as the values in the ACPI tables also use
+1/100000th units.
+
+This units change means that our intermediate values in cm32181_get_lux()
+may get quite big, change the type of the lux variable to a u64 to
+deal with this.
 
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/iio/light/cm32181.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/iio/light/cm32181.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
-index 04ba636415c9..95c57b0cb230 100644
+index 194aa5a0ad08..ebdbc7f865f3 100644
 --- a/drivers/iio/light/cm32181.c
 +++ b/drivers/iio/light/cm32181.c
-@@ -236,7 +236,7 @@ static int cm32181_reg_init(struct cm32181_chip *cm32=
-181)
-  *  @cm32181:	pointer of struct cm32181
-  *  @val2:	pointer of int to load the als_it value.
-  *
-- *  Report the current integartion time by millisecond.
-+ *  Report the current integration time in milliseconds.
-  *
-  *  Return: IIO_VAL_INT_PLUS_MICRO for success, otherwise -EINVAL.
-  */
+@@ -45,11 +45,11 @@
+ #define CM32181_CMD_ALS_SM_MASK		(0x03 << CM32181_CMD_ALS_SM_SHIFT)
+ #define CM32181_CMD_ALS_SM_DEFAULT	(0x01 << CM32181_CMD_ALS_SM_SHIFT)
+=20
+-#define CM32181_MLUX_PER_BIT		5	/* ALS_SM=3D01 IT=3D800ms */
+-#define CM32181_MLUX_PER_BIT_BASE_IT	800000	/* Based on IT=3D800ms */
+-#define	CM32181_CALIBSCALE_DEFAULT	1000
+-#define CM32181_CALIBSCALE_RESOLUTION	1000
+-#define MLUX_PER_LUX			1000
++#define CM32181_LUX_PER_BIT		500	/* ALS_SM=3D01 IT=3D800ms */
++#define CM32181_LUX_PER_BIT_RESOLUTION	100000
++#define CM32181_LUX_PER_BIT_BASE_IT	800000	/* Based on IT=3D800ms */
++#define CM32181_CALIBSCALE_DEFAULT	100000
++#define CM32181_CALIBSCALE_RESOLUTION	100000
+=20
+ #define SMBUS_ALERT_RESPONSE_ADDRESS	0x0c
+=20
+@@ -206,15 +206,15 @@ static int cm32181_get_lux(struct cm32181_chip *cm3=
+2181)
+ 	struct i2c_client *client =3D cm32181->client;
+ 	int ret;
+ 	int als_it;
+-	unsigned long lux;
++	u64 lux;
+=20
+ 	ret =3D cm32181_read_als_it(cm32181, &als_it);
+ 	if (ret < 0)
+ 		return -EINVAL;
+=20
+-	lux =3D CM32181_MLUX_PER_BIT;
+-	lux *=3D CM32181_MLUX_PER_BIT_BASE_IT;
+-	lux /=3D als_it;
++	lux =3D CM32181_LUX_PER_BIT;
++	lux *=3D CM32181_LUX_PER_BIT_BASE_IT;
++	lux =3D div_u64(lux, als_it);
+=20
+ 	ret =3D i2c_smbus_read_word_data(client, CM32181_REG_ADDR_ALS);
+ 	if (ret < 0)
+@@ -222,8 +222,8 @@ static int cm32181_get_lux(struct cm32181_chip *cm321=
+81)
+=20
+ 	lux *=3D ret;
+ 	lux *=3D cm32181->calibscale;
+-	lux /=3D CM32181_CALIBSCALE_RESOLUTION;
+-	lux /=3D MLUX_PER_LUX;
++	lux =3D div_u64(lux, CM32181_CALIBSCALE_RESOLUTION);
++	lux =3D div_u64(lux, CM32181_LUX_PER_BIT_RESOLUTION);
+=20
+ 	if (lux > 0xFFFF)
+ 		lux =3D 0xFFFF;
 --=20
 2.26.0
 
