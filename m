@@ -2,137 +2,154 @@ Return-Path: <SRS0=FoMF=6L=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EABFC7C8A2
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 15:51:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBDF7C54FCB
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 17:33:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E20FD206B6
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 15:51:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8B8D206D9
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Apr 2020 17:33:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="U/yocaQ0"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fvHmORI8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728478AbgD0PvV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Apr 2020 11:51:21 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:51966 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728469AbgD0Pu4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2020 11:50:56 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1588002655;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=uVbZSaI2POy6fJtwh+hojPBmfthgWVtJ9egPhBMBtdg=;
-        b=U/yocaQ0bO2Z0XbQbSNMPvX53CAMu7f6coKGCf/KY5ByGvkjFmOJ0ixN4ApOE6XR0rKFJE
-        dVE4KUzWKV/cL/0nhpiZiyqTI+yeHJy4q9zkNCZk/9HhtZqH1+R2eePvh+jWdd7pO3yG4J
-        LJ4sruKkSTqjz+7N8Llly5f11aPFNqg=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-395-F3ejC_FSN4yQldq6iUzilg-1; Mon, 27 Apr 2020 11:50:52 -0400
-X-MC-Unique: F3ejC_FSN4yQldq6iUzilg-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5538C835B40;
-        Mon, 27 Apr 2020 15:50:50 +0000 (UTC)
-Received: from x1.localdomain.com (ovpn-114-38.ams2.redhat.com [10.36.114.38])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id C704660BEC;
-        Mon, 27 Apr 2020 15:50:47 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        id S1726463AbgD0RdN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Apr 2020 13:33:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34830 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726213AbgD0RdM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2020 13:33:12 -0400
+Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2641C0610D5;
+        Mon, 27 Apr 2020 10:33:12 -0700 (PDT)
+Received: by mail-pj1-x1041.google.com with SMTP id e6so7721347pjt.4;
+        Mon, 27 Apr 2020 10:33:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=gU5i7xmKV34tR5F18itWfVo5V/gDkXmz2Qiw6wo4HPA=;
+        b=fvHmORI8FOw7Qnvkc8nYVBXsWY9A+k7s1JKSy4iw5c1skxBXGFDtcccC7ybwQcyeQE
+         EHBSUbeOMHCY5hqkQMLi3XZPTl1OUBUyf+EoSspklOMMGi8oN/AsOwEbTxO5G0q1As9L
+         nMGdi5+JyGZbp9fhH7Qc7RcDKyIvqyrj+O4LGRVhayF5I1r9BH4pFJGaoUsvyk3i3GaF
+         4NIFdbygiyXpXLRs/Kw6iE0vqEnACIG/5DPNZAsEIIhlVpNi7x2GMZdiy0mAe52+YVDc
+         a561/fl228wTi8k9iGW6QYhCd0hrOZycroUO7r4O6iz7ZtvdESTuNL0wVDIU5cSSNG/n
+         UZFQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=gU5i7xmKV34tR5F18itWfVo5V/gDkXmz2Qiw6wo4HPA=;
+        b=QoKvvscu/jN/IjBFa7ts520Dbxx72suUAK7RdUBVXh2/vNzzkHkEA09C4aJ4qT/DV6
+         n2KQ2IuhO+bY/Mgp6mV6HwMNaMSg6I3k5GzL5QKaygF9cFb/uZGIYAYIoVreWfBu4GwV
+         aKdzjR5qM9zpxRFqAcuNhvCI9GnzMTAqec9cJq6316gEhEVf4E1yCTgv5I+Qx5fDrZV6
+         fuamcu+rOSDw+6m91GU10n/uk290njJo+nbgm9XuOWplXwFCdoue3hLZhifvLnnlZB58
+         xlRKw2jCg7cxk6oB6beawRcvTeAXTN2FIpSLxeAMl7Ls9Jpw2tcoQVBChivabjQ0iHXm
+         TK+A==
+X-Gm-Message-State: AGi0Pub7WryJCIsBRKqNaSuf2irr2NPqiyIWYbCVjzW/fQjCvLnDrqf9
+        EsEw64frgtwgLeiNXU/ERxihYNa2JHiIFdZ+UM0=
+X-Google-Smtp-Source: APiQypLuzTP1I0aucyGGrv5MdEMHvOrysU+8xgEZbNToy2ArdtXmL+44edA6Rtf4T72RL+fcuOcvArSe8zmt+BW0BBo=
+X-Received: by 2002:a17:90a:224b:: with SMTP id c69mr25228026pje.8.1588008792167;
+ Mon, 27 Apr 2020 10:33:12 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200426104713.216896-1-hdegoede@redhat.com> <20200426104713.216896-2-hdegoede@redhat.com>
+ <CAHp75VdOd6C36oR7HAnqrKiinVBr4YcqqJ=dv3NpR3=Xp0QQ-Q@mail.gmail.com>
+ <b5bdffb4-0af2-abb7-21f7-2f5da56d5dc6@redhat.com> <CAHp75VegakBqAzxn1e+MzF3EgB6fNya3L0eZHMh11yct6HHNKw@mail.gmail.com>
+ <66619a61-c398-5a8a-4ee0-13dbe5d2c559@redhat.com>
+In-Reply-To: <66619a61-c398-5a8a-4ee0-13dbe5d2c559@redhat.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Mon, 27 Apr 2020 20:33:05 +0300
+Message-ID: <CAHp75VcBf1OYQ=W+k1ygHnXkNbA+NuZoiSOQOq6g7SJNc2iFiA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] platform/x86: i2c-multi-instantiate: Add flag for
+ passing fwnode
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Wolfram Sang <wsa@the-dreams.de>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
         Darren Hart <dvhart@infradead.org>,
         Andy Shevchenko <andy@infradead.org>,
-        Jonathan Cameron <jic23@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        linux-iio@vger.kernel.org,
-        Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH v2 4/8] iio: light: cm32181: Change reg_init to use a bitmap of which registers to init
-Date:   Mon, 27 Apr 2020 17:50:33 +0200
-Message-Id: <20200427155037.218390-4-hdegoede@redhat.com>
-In-Reply-To: <20200427155037.218390-1-hdegoede@redhat.com>
-References: <20200427155037.218390-1-hdegoede@redhat.com>
-MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-i2c <linux-i2c@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is a preparation patch for reading some ACPI tables which give
-init values for multiple registers.
+On Mon, Apr 27, 2020 at 6:06 PM Hans de Goede <hdegoede@redhat.com> wrote:
+> On 4/27/20 3:18 PM, Andy Shevchenko wrote:
+> > On Mon, Apr 27, 2020 at 3:51 PM Hans de Goede <hdegoede@redhat.com> wro=
+te:
+> >> On 4/26/20 7:59 PM, Andy Shevchenko wrote:
+> >>> On Sun, Apr 26, 2020 at 1:47 PM Hans de Goede <hdegoede@redhat.com> w=
+rote:
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v2:
-- Use unsigned long for init_regs_bitmap
-- Use for_each_set_bit()
----
- drivers/iio/light/cm32181.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+> >>>> In some cases the driver for the i2c_client-s which i2c-multi-instan=
+tiate
+> >>>> instantiates may need access some fields / methods from to the ACPI =
+fwnode
+> >>>> for which i2c_clients are being instantiated.
+> >>>>
+> >>>> An example of this are CPLM3218 ACPI device-s. These contain CPM0 an=
+d
+> >>>> CPM1 packages with various information (e.g. register init values) w=
+hich
+> >>>> the driver needs.
+> >>>>
+> >>>> Passing the fwnode through the i2c_board_info struct also gives the
+> >>>> i2c-core access to it, and if we do not pass an IRQ then the i2c-cor=
+e
+> >>>> will use the fwnode to get an IRQ, see i2c_acpi_get_irq().
+> >>>
+> >>> I'm wondering, can we rather do it in the same way like we do for
+> >>> GPIO/APIC case here.
+> >>> Introduce IRQ_RESOURCE_SHARED (or so) and
+> >>>
+> >>> case _SHARED:
+> >>>    irq =3D i2c_acpi_get_irq();
+> >>> ...
+> >>>
+> >>> ?
+> >>
+> >> I think you are miss-understanding the problem. The problem is not tha=
+t
+> >> we want to share the IRQ, the problem is that we want to pass the sing=
+le
+> >> IRQ in the resources to only 1 of the instantiated I2C-clients. But if=
+ we
+> >> do not pass an IRQ (we leave it at 0) and we do pass the fwnode then
+> >> i2c-core-base.c will see that there is an ACPI-node attached to the
+> >> device and will call i2c_acpi_get_irq().
+> >
+> > Do we know ahead which device should take IRQ resource and which should=
+ not?
+> > Can we use current _NONE flag for them?
+>
+> The problem is not internal to i2c-multi-instantiate.c, the problem
+> (once we pass a fwnode) is the API between i2c-multi-instantiate.c and
+> the i2c-core. For the IRQ_RESOURCE_NONE case i2c-multi-instantiate.c
+> sets board_info.irq to 0, which is the correct way to specify that
+> we do not have an IRQ, but if don't pass an IRQ then the i2c-core
+> will try to find one itself.  And once we pass the fwnode, then
+> the "try to find one itself" code will call i2c_acpi_get_irq()
+> and find the same IRQ for clients we instantiate, leading to
+> the earlier mentioned IRQ conflict.
 
-diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
-index 4c26a4a8a070..194aa5a0ad08 100644
---- a/drivers/iio/light/cm32181.c
-+++ b/drivers/iio/light/cm32181.c
-@@ -26,7 +26,7 @@
- #define CM32181_REG_ADDR_ID		0x07
-=20
- /* Number of Configurable Registers */
--#define CM32181_CONF_REG_NUM		0x01
-+#define CM32181_CONF_REG_NUM		4
-=20
- /* CMD register */
- #define CM32181_CMD_ALS_DISABLE		BIT(0)
-@@ -53,10 +53,6 @@
-=20
- #define SMBUS_ALERT_RESPONSE_ADDRESS	0x0c
-=20
--static const u8 cm32181_reg[CM32181_CONF_REG_NUM] =3D {
--	CM32181_REG_ADDR_CMD,
--};
--
- /* CM3218 Family */
- static const int cm3218_als_it_bits[] =3D { 0, 1, 2, 3 };
- static const int cm3218_als_it_values[] =3D { 100000, 200000, 400000, 80=
-0000 };
-@@ -71,6 +67,7 @@ struct cm32181_chip {
- 	struct i2c_client *client;
- 	struct mutex lock;
- 	u16 conf_regs[CM32181_CONF_REG_NUM];
-+	unsigned long init_regs_bitmap;
- 	int calibscale;
- 	int num_als_it;
- 	const int *als_it_bits;
-@@ -117,12 +114,13 @@ static int cm32181_reg_init(struct cm32181_chip *cm=
-32181)
- 	/* Default Values */
- 	cm32181->conf_regs[CM32181_REG_ADDR_CMD] =3D
- 			CM32181_CMD_ALS_IT_DEFAULT | CM32181_CMD_ALS_SM_DEFAULT;
-+	cm32181->init_regs_bitmap =3D BIT(CM32181_REG_ADDR_CMD);
- 	cm32181->calibscale =3D CM32181_CALIBSCALE_DEFAULT;
-=20
- 	/* Initialize registers*/
--	for (i =3D 0; i < CM32181_CONF_REG_NUM; i++) {
--		ret =3D i2c_smbus_write_word_data(client, cm32181_reg[i],
--			cm32181->conf_regs[i]);
-+	for_each_set_bit(i, &cm32181->init_regs_bitmap, CM32181_CONF_REG_NUM) {
-+		ret =3D i2c_smbus_write_word_data(client, i,
-+						cm32181->conf_regs[i]);
- 		if (ret < 0)
- 			return ret;
- 	}
+I'm missing something here. Why we need to pass an fwnode in the first plac=
+e?
+Seems you would like to access to methods from the driver.
+But if you simple enumerate the driver in ACPI multi-instantiate won't
+be needed.
+
+As far as I understand, the actual driver consumes *both* I=C2=B2C
+resources. It's not a multi-instantiate in this case.
+
+
 --=20
-2.26.0
-
+With Best Regards,
+Andy Shevchenko
