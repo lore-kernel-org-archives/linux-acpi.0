@@ -1,81 +1,221 @@
 Return-Path: <SRS0=x+Qm=6M=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.7 required=3.0 tests=DEAR_FRIEND,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	SUBJ_ALL_CAPS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5977DC83001
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 00:06:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74CFFC83001
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 00:32:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 387B72078C
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 00:06:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47A222078C
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 00:32:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726335AbgD1AGG convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Apr 2020 20:06:06 -0400
-Received: from [116.62.10.213] ([116.62.10.213]:58430 "EHLO mail.qdztrk.com"
-        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-        id S1726284AbgD1AGG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Apr 2020 20:06:06 -0400
-X-Greylist: delayed 71580 seconds by postgrey-1.27 at vger.kernel.org; Mon, 27 Apr 2020 20:06:05 EDT
-Received: from localhost (localhost [127.0.0.1])
-        by mail.qdztrk.com (Postfix) with ESMTP id 09C551E8EC6
-        for <linux-acpi@vger.kernel.org>; Sat, 25 Apr 2020 08:21:44 +0800 (CST)
-Received: from mail.qdztrk.com ([127.0.0.1])
-        by localhost (mail.qdztrk.com [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id oxvpohftqzvX for <linux-acpi@vger.kernel.org>;
-        Sat, 25 Apr 2020 08:21:43 +0800 (CST)
-Received: from localhost (localhost [127.0.0.1])
-        by mail.qdztrk.com (Postfix) with ESMTP id C166E1C36A1
-        for <linux-acpi@vger.kernel.org>; Sat, 25 Apr 2020 08:03:41 +0800 (CST)
-X-Virus-Scanned: amavisd-new at mail.qdztrk.com
-Received: from mail.qdztrk.com ([127.0.0.1])
-        by localhost (mail.qdztrk.com [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id 8JDxe4t4VGe1 for <linux-acpi@vger.kernel.org>;
-        Sat, 25 Apr 2020 08:03:41 +0800 (CST)
-Received: from coris.com (unknown [103.207.36.17])
-        by mail.qdztrk.com (Postfix) with ESMTP id 94B50240ECD
-        for <linux-acpi@vger.kernel.org>; Sat, 25 Apr 2020 07:46:22 +0800 (CST)
-Reply-To: kentpace@sina.com
-From:   Kent Pace <kentpace@coris.com>
-To:     linux-acpi@vger.kernel.org
-Subject: URGENT!! PLEASE READ
-Date:   24 Apr 2020 16:46:18 -0700
-Message-ID: <20200424164618.B38B525F83CFEA14@coris.com>
+        id S1726284AbgD1Acu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Apr 2020 20:32:50 -0400
+Received: from mga14.intel.com ([192.55.52.115]:59646 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726257AbgD1Acu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Apr 2020 20:32:50 -0400
+IronPort-SDR: t5lbXe2wPNkEx/Ok4eLR5uJKOXDOi19SLvfuei1shi8b2Hs3jKID2tCTpGauAALjvQ2hj1nLGH
+ zt02tQMj0LwA==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2020 17:32:50 -0700
+IronPort-SDR: 34+iHEPkybRq6Oeh47PcPNcKJ8fWXXno08aPz344bOPHq5SVrhIh3DMLCn6PJmSUzsfjGxRxp6
+ 5ZUEZjy9VZXA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,325,1583222400"; 
+   d="scan'208";a="336470353"
+Received: from linux.intel.com ([10.54.29.200])
+  by orsmga001.jf.intel.com with ESMTP; 27 Apr 2020 17:32:49 -0700
+Received: from debox1-hc.jf.intel.com (debox1-hc.jf.intel.com [10.54.75.159])
+        by linux.intel.com (Postfix) with ESMTP id C1097580820;
+        Mon, 27 Apr 2020 17:32:49 -0700 (PDT)
+From:   "David E. Box" <david.e.box@linux.intel.com>
+To:     rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com,
+        kbusch@kernel.org, axboe@fb.com, hch@lst.de, sagi@grimberg.me
+Cc:     "David E. Box" <david.e.box@linux.intel.com>,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 1/2] pci: Add ACPI StorageD3Enable _DSD support
+Date:   Mon, 27 Apr 2020 17:32:13 -0700
+Message-Id: <20200428003214.3764-2-david.e.box@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200428003214.3764-1-david.e.box@linux.intel.com>
+References: <20200428003214.3764-1-david.e.box@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dear Friend,
+NVMe storage power management during suspend-to-idle, particularly on
+laptops, has been inconsistent with some devices working with D3 while
+others must rely on NVMe APST in order for power savings to be realized.
+Currently the default is to use APST unless quirked to do otherwise.
+However newer platforms, like Intel Comet Lake systems, may require NVMe
+drives to use D3 in order for the PCIe ports to be properly power managed.
+To make it easier for drivers to choose, these platforms may supply a
+special "StorageD3Enable" _DSD property under the root port that the device
+is attached to. If supplied, the driver must use D3 in order for the
+platform to realize the deepest power savings in suspend-to-idle.
 
+Adds support for the _DSD to the pci/acpi layer.
 
-There is something very important I need to discuss with you.  I 
-am writing  this letter in tears and fear. In tears because I 
-will soon depart and in fear because I don't really know if you 
-will do this faithfully.
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Link: https://docs.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-intro
+Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+---
+ drivers/acpi/property.c |  3 +++
+ drivers/pci/pci-acpi.c  | 47 +++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.c       |  6 ++++++
+ drivers/pci/pci.h       |  4 ++++
+ include/linux/pci.h     |  1 +
+ 5 files changed, 61 insertions(+)
 
-I am COVID-19  patient and the doctor has already confirmed I may 
-not last for the next 7 days.
-
-I have substantial amount of money deposited in a security vault 
-around your country. It is in trunk boxes and once  I receive 
-your response and see your readiness to claim the money 
-immediately, I will forward the needed documents and the contact 
-of the security vault where the consignment is deposited,
-I am not asking you to give me anything but I want you to help 
-people that has been infected with this deadly virus with 60% of 
-the money and 40% should be for you and your family.
-
-I will disclose exact amount in the boxes as soon as I 
-receive your response.
-
-
-Regards.
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index e601c4511a8b..f09375ab40e4 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -45,6 +45,9 @@ static const guid_t prp_guids[] = {
+ 	/* Thunderbolt GUID for WAKE_SUPPORTED: 6c501103-c189-4296-ba72-9bf5a26ebe5d */
+ 	GUID_INIT(0x6c501103, 0xc189, 0x4296,
+ 		  0xba, 0x72, 0x9b, 0xf5, 0xa2, 0x6e, 0xbe, 0x5d),
++	/* D3 Support for storage devivce: 5025030f-842f-4ab4-a561-99a5189762d0 */
++	GUID_INIT(0x5025030f, 0x842f, 0x4ab4,
++		  0xa5, 0x61, 0x99, 0xa5, 0x18, 0x97, 0x62, 0xd0),
+ };
+ 
+ /* ACPI _DSD data subnodes GUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index d21969fba6ab..5df249ebf022 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -972,6 +972,52 @@ static bool acpi_pci_bridge_d3(struct pci_dev *dev)
+ 	return val == 1;
+ }
+ 
++static bool acpi_pci_storage_d3(struct pci_dev *dev)
++{
++	const struct fwnode_handle *fwnode;
++	struct acpi_device *adev;
++	struct pci_dev *root;
++	acpi_handle handle;
++	acpi_status status;
++	u8 val;
++
++	/*
++	 * Look for _DSD property specifying that the storage device on
++	 * the port must use D3 to support deep platform power savings during
++	 * suspend-to-idle
++	 */
++	root = pci_find_pcie_root_port(dev);
++	if (!root)
++		return false;
++
++	adev = ACPI_COMPANION(&root->dev);
++	if (root == dev) {
++		/*
++		 * It is possible that the ACPI companion is not yet bound
++		 * for the root port so look it up manually here.
++		 */
++		if (!adev && !pci_dev_is_added(root))
++			adev = acpi_pci_find_companion(&root->dev);
++	}
++
++	if (!adev)
++		return false;
++
++	status = acpi_get_handle(adev->handle, "PXSX", &handle);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	adev = acpi_bus_get_acpi_device(handle);
++	if (!adev)
++		return false;
++
++	fwnode = acpi_fwnode_handle(adev);
++	if (!fwnode_property_read_u8(fwnode, "StorageD3Enable", &val))
++		return val == 1;
++
++	return false;
++}
++
+ static bool acpi_pci_power_manageable(struct pci_dev *dev)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+@@ -1100,6 +1146,7 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
+ 
+ static const struct pci_platform_pm_ops acpi_pci_platform_pm = {
+ 	.bridge_d3 = acpi_pci_bridge_d3,
++	.storage_d3 = acpi_pci_storage_d3,
+ 	.is_manageable = acpi_pci_power_manageable,
+ 	.set_state = acpi_pci_set_power_state,
+ 	.get_state = acpi_pci_get_power_state,
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 595fcf59843f..217d89f31e8b 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -871,6 +871,11 @@ static inline bool platform_pci_bridge_d3(struct pci_dev *dev)
+ 	return pci_platform_pm ? pci_platform_pm->bridge_d3(dev) : false;
+ }
+ 
++static inline bool platform_pci_storage_d3(struct pci_dev *dev)
++{
++	return pci_platform_pm->storage_d3(dev);
++}
++
+ /**
+  * pci_raw_set_power_state - Use PCI PM registers to set the power state of
+  *			     given PCI device
+@@ -2903,6 +2908,7 @@ void pci_pm_init(struct pci_dev *dev)
+ 	dev->d3_delay = PCI_PM_D3_WAIT;
+ 	dev->d3cold_delay = PCI_PM_D3COLD_WAIT;
+ 	dev->bridge_d3 = pci_bridge_d3_possible(dev);
++	dev->storage_d3 = platform_pci_storage_d3(dev);
+ 	dev->d3cold_allowed = true;
+ 
+ 	dev->d1_support = false;
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 6d3f75867106..4dc4d05da810 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -53,6 +53,9 @@ int pci_bus_error_reset(struct pci_dev *dev);
+  *
+  * @bridge_d3: Does the bridge allow entering into D3
+  *
++ * @storage_d3: 'true' if the bridge contains a storage device that must use D3
++ *		to support platform s2idle
++ *
+  * @is_manageable: returns 'true' if given device is power manageable by the
+  *		   platform firmware
+  *
+@@ -77,6 +80,7 @@ int pci_bus_error_reset(struct pci_dev *dev);
+  */
+ struct pci_platform_pm_ops {
+ 	bool (*bridge_d3)(struct pci_dev *dev);
++	bool (*storage_d3)(struct pci_dev *dev);
+ 	bool (*is_manageable)(struct pci_dev *dev);
+ 	int (*set_state)(struct pci_dev *dev, pci_power_t state);
+ 	pci_power_t (*get_state)(struct pci_dev *dev);
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 83ce1cdf5676..cbba1555020b 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -346,6 +346,7 @@ struct pci_dev {
+ 	unsigned int	no_d1d2:1;	/* D1 and D2 are forbidden */
+ 	unsigned int	no_d3cold:1;	/* D3cold is forbidden */
+ 	unsigned int	bridge_d3:1;	/* Allow D3 for bridge */
++	unsigned int	storage_d3:1;	/* Storage dev must use D3 for s2idle */
+ 	unsigned int	d3cold_allowed:1;	/* D3cold is allowed by user */
+ 	unsigned int	mmio_always_on:1;	/* Disallow turning off io/mem
+ 						   decoding during BAR sizing */
+-- 
+2.20.1
 
