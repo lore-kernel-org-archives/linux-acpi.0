@@ -2,88 +2,83 @@ Return-Path: <SRS0=x+Qm=6M=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A7A5C83001
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 15:27:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 803A0C83000
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 17:21:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 023B7206E2
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 15:27:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E5DB20B80
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 17:21:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1588094517;
+	bh=nzJMTuSFPROth1NlDLQvcUO+nV0x7fXVJzHHhcpaQk0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=0gQJShtIkJEs+Yq7vDY9gbk1V1YIs2OrU2YJejvM525FyScJQV8a4Z+sJcMOJLO/4
+	 Zu3G8pH5m7/+/rpD5UL5M/djH0Cc64gS44nAfJUGwBi9cD0uMhNgBv1vqwq3ZiDrRj
+	 u2ATYWdkv1AffpokJ8Oz72CQdyw7CycxxWHVNh/g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728191AbgD1P1x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 Apr 2020 11:27:53 -0400
-Received: from mga18.intel.com ([134.134.136.126]:64740 "EHLO mga18.intel.com"
+        id S1728304AbgD1RV5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 28 Apr 2020 13:21:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40604 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728147AbgD1P1x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Apr 2020 11:27:53 -0400
-IronPort-SDR: 9k1KmL5It0WMjCTJopVCfWUgFlm47pMqB6RZxA8al4pkM4pxnFUSZmduJLmozlBPLGGWa+Bt/t
- i06yC9brxIvA==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2020 08:27:51 -0700
-IronPort-SDR: UNnU/pmBRK2OkJ3qAl3VQ1s9gW2e4JpF7lPfFAiI7yqU9sbKROyoly5hqXVOgWqX5u3I4vC1Fw
- PsaBRrDB9MQg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,328,1583222400"; 
-   d="scan'208";a="282179569"
-Received: from linux.intel.com ([10.54.29.200])
-  by fmsmga004.fm.intel.com with ESMTP; 28 Apr 2020 08:27:50 -0700
-Received: from debox1-desk1.jf.intel.com (debox1-desk1.jf.intel.com [10.7.201.137])
-        by linux.intel.com (Postfix) with ESMTP id 38EE4580CC1;
-        Tue, 28 Apr 2020 08:27:50 -0700 (PDT)
-Message-ID: <de2d78556fcb10f97364201256ac8f342a58eb75.camel@linux.intel.com>
-Subject: Re: [PATCH 0/2] Add support for StorageD3Enable _DSD property
-From:   "David E. Box" <david.e.box@linux.intel.com>
-Reply-To: david.e.box@linux.intel.com
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com,
-        kbusch@kernel.org, axboe@fb.com, sagi@grimberg.me,
-        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org
-Date:   Tue, 28 Apr 2020 08:27:50 -0700
-In-Reply-To: <20200428142247.GB5439@lst.de>
-References: <20200428003214.3764-1-david.e.box@linux.intel.com>
-         <20200428051312.GB17146@lst.de>
-         <de052d30cc881ac67f9410b50b0760ee5bf9a623.camel@linux.intel.com>
-         <20200428142247.GB5439@lst.de>
-Organization: David E. Box
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.34.3 (3.34.3-1.fc31) 
+        id S1726406AbgD1RV4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Apr 2020 13:21:56 -0400
+Received: from localhost.localdomain (236.31.169.217.in-addr.arpa [217.169.31.236])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9FE3F2082E;
+        Tue, 28 Apr 2020 17:21:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1588094516;
+        bh=nzJMTuSFPROth1NlDLQvcUO+nV0x7fXVJzHHhcpaQk0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=jJOjBWthKvniDH6z/EcMBa21tK7+WuCcE3id4La+LJBSpPNdpKYM1jDEC5aKBtCs7
+         NeFo0x57X3xOJ+VEAJzUom80LMVoLEw0D+jOKqa87wUOV4frNdBkNa1CsL28lK+rbi
+         XWZGNp7nx+C3P5PjAsoiB/skJznvyLZEv2UC8rrk=
+From:   Will Deacon <will@kernel.org>
+To:     linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>
+Cc:     catalin.marinas@arm.com, Will Deacon <will@kernel.org>,
+        sudeep.holla@arm.com, rjw@rjwysocki.net,
+        Andrei Warkentin <awarkentin@vmware.com>, guohanjun@huawei.com,
+        lenb@kernel.org, lorenzo.pieralisi@arm.com,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] ACPI/IORT: take _DMA methods into account for named components
+Date:   Tue, 28 Apr 2020 18:21:48 +0100
+Message-Id: <158809356800.149651.3435193422736187713.b4-ty@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200420092753.9819-1-ardb@kernel.org>
+References: <20200420092753.9819-1-ardb@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 2020-04-28 at 16:22 +0200, Christoph Hellwig wrote:
-> On Tue, Apr 28, 2020 at 07:09:59AM -0700, David E. Box wrote:
-> > > I'm not sure who came up with the idea to put this into ACPI, but
-> > > it
-> > > belongs into NVMe.  Please talk to the NVMe technical working
-> > > group
-> > > instead of trying to overrules them in an unrelated group that
-> > > doesn't
-> > > apply to all of PCIe.
-> > 
-> > Agreed that this is not ideal since it does not apply to all of
-> > PCIe.
-> > But as the property already exists on shipping systems, we need to
-> > be
-> > able to read it in the NVMe driver and the patch is consitent with
-> > the
-> > way properties under PCI ports are read.
+On Mon, 20 Apr 2020 11:27:53 +0200, Ard Biesheuvel wrote:
+> Where IORT nodes for named components can describe simple DMA limits
+> expressed as the number of address bits a device can drive, _DMA methods
+> in AML can express more complex topologies, involving DMA translation in
+> particular.
 > 
-> The point is that it is not the BIOSes job do decide how Linux does
-> power management.  For example D3 has really horrible entry and exit
-> latencies in many cases, and will lead to higher power usage.
+> Currently, we only take this _DMA method into account if it appears on a
+> ACPI device node describing a PCIe root complex, but it is perfectly
+> acceptable to use them for named components as well, so let's ensure
+> we take them into account in those cases too.
+> 
+> [...]
 
-The platform can know which pm policies will save the most power. But
-since the solution doesn't apply to all PCIe devices (despite BIOS
-specifying it that way) I'll withdraw this patch. Thanks.
+Applied to arm64 (for-next/acpi), thanks!
 
-David
+[1/1] ACPI/IORT: take _DMA methods into account for named components
+      https://git.kernel.org/arm64/c/7fb89e1d44cb
 
+Cheers,
+-- 
+Will
+
+https://fixes.arm64.dev
+https://next.arm64.dev
