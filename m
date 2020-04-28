@@ -2,141 +2,102 @@ Return-Path: <SRS0=x+Qm=6M=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCD49C83000
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 17:30:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02A5FC83000
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 21:58:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD5632085B
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 17:30:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XI/5dnY1"
+	by mail.kernel.org (Postfix) with ESMTP id CFE382072A
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Apr 2020 21:58:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728537AbgD1R3p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 Apr 2020 13:29:45 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:37214 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728534AbgD1R3o (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Apr 2020 13:29:44 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1588094982;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=302JfAKXdeKAFP9le9Cjh8LmYPnDyvK9wzRhL+36K80=;
-        b=XI/5dnY13D4mxmog/WZEi7IG8HEIgtEvjoanFj9d+19AJgMSBzZxp3IMPyEoCqGBgAwHi4
-        9qCTCjVJMT8Y7LQWWN7NHEQgSZCKpMLuJ+CusoPAUP4pTrYpbUSnwv8EERLbO3tpPySVtp
-        bcLK4z9Jf5JCyfTB6Ym7BOBtSxRKB84=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-323-3bqQkQLhOoGCWHtZ7pgt1A-1; Tue, 28 Apr 2020 13:29:39 -0400
-X-MC-Unique: 3bqQkQLhOoGCWHtZ7pgt1A-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 08BE91054F93;
-        Tue, 28 Apr 2020 17:29:37 +0000 (UTC)
-Received: from x1.localdomain.com (ovpn-114-62.ams2.redhat.com [10.36.114.62])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 71BB25C1D4;
-        Tue, 28 Apr 2020 17:29:34 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Jonathan Cameron <jic23@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        linux-iio@vger.kernel.org,
-        Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH v3 03/11] iio: light: cm32181: Add some extra register defines
-Date:   Tue, 28 Apr 2020 19:29:15 +0200
-Message-Id: <20200428172923.567806-3-hdegoede@redhat.com>
-In-Reply-To: <20200428172923.567806-1-hdegoede@redhat.com>
-References: <20200428172923.567806-1-hdegoede@redhat.com>
+        id S1726274AbgD1V6b (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 28 Apr 2020 17:58:31 -0400
+Received: from mout.kundenserver.de ([212.227.126.133]:59571 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726364AbgD1V6b (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2020 17:58:31 -0400
+Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
+ (mreue011 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1M433w-1jTYEw1kga-00087w; Tue, 28 Apr 2020 23:58:06 +0200
+From:   Arnd Bergmann <arnd@arndb.de>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rob Herring <robh@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] acpi: avoid uninialized-variable warning
+Date:   Tue, 28 Apr 2020 23:55:57 +0200
+Message-Id: <20200428215804.48481-1-arnd@arndb.de>
+X-Mailer: git-send-email 2.26.0
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:UioHM7Mj+0Eo0lESm9cPbfkNKElkE5FMMWyONEoJUL+MKkYiYil
+ oFmRQoS00WIFOIRokjNgrOqfgyz+XZriPo4zilWeliotO9S216I/cUxqpEmo2dh5CZGDKCS
+ 9U9ZGSAOV5LRyV+xcupEmhAsnbvLiU+fUCaM1Ky1ouQVgw2NeL6Jxhwk2V4XGc3/PVefbyE
+ C/tpE041GA1fONZ4EGXEg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:cvniJsNKSy0=:5TtgRtaldRNY5gEaxEUgyV
+ TsLJswhqx9Rrt16rpyK+XAOskon0V4l9A5tlxioAw3pOJ0NukBjJqdEMwc+sqTo3s+wxvoSh5
+ wZ8mireBKdITbU+2gXsXjqtmDmg6lTkvtf4k3Pk8Zd/V4k3k5Ne1i8JZdtAiVK9XdWwjZ8EhA
+ Hy/4QfZkmnLK5sLJKOZ0ee6RI2a2vRPnkgzQth9cf9aaAii6EtNY3tdrAp0oWihzADADePcol
+ DyFrn6EwEyBlzawwvT3di6zIY7qsaLZ6Y62RgNiuDvwb0mX1cIKrz/ZYZ3ZO2B0MQ5qMyNqku
+ R0+4dcEhmzA3SRDEejgpErvQeUQf/K7yl33TcmaiGmR2jiU5A16IKrH/FHHtOKvZYYKYGqvzb
+ bHIfWeRtFSzlPmQxFJ6ACepqCV+SgvMi20+fjlWhYo8claiKAqq6REucizeCPN6AiYIsZflLw
+ oS/LnV3g7dw1oHCAstVwigFpFZAH7xLMkB0EMj+6FmwLfzaMaQ+6iN4PmVnqnmb/+Fud77XPO
+ pOnjWYUwgwY64tVx6rHSTGIsF/tacQkbdiwAy47jT/n4pCnWRdXDh11A4TKAJmGjQRxyk2iR9
+ wYuE32CYEeA1nLYrJOAuVhRlH5Dx27esK/X7F/wOQnaHJVBkT0z11+OqucfP6WSCGvyhD80Xi
+ 8v13g8uGsC8W1NNpidgz2b30o6AS7Mu4OzzaaDE0Y2tb2EvcY71W+B5TVv/2sV1JHNFb53kmm
+ ymyNn76swXp5C3NXGyajcLdb8xkP5W9fbCFpwjjKikABlKvItV1sMFnNDK/S8LnK/2UPHQPth
+ MllxHZHqBfzknC7kbWgeHH6rof/qredVGu9j/ZJdO3n0QM8YLw=
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-These come from a newer version of cm32181.c, which is floating around
-the net, with a copyright of:
+Older compilers like gcc-4.8 produce a bogus warning here
 
- * Copyright (C) 2014 Capella Microsystems Inc.
- * Author: Kevin Tsai <ktsai@capellamicro.com>
- *
- * This program is free software; you can redistribute it and/or modify i=
-t
- * under the terms of the GNU General Public License version 2, as publis=
-hed
- * by the Free Software Foundation.
+In file included from include/linux/compiler_types.h:68:0,
+                 from <command-line>:0:
+drivers/acpi/property.c: In function 'acpi_data_prop_read':
+include/linux/compiler-gcc.h:75:45: error: 'obj' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+ #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
+                                             ^
+drivers/acpi/property.c:934:27: note: 'obj' was declared here
+  const union acpi_object *obj;
+                           ^
 
-Note that this removes the bogus CM32181_CMD_ALS_ENABLE define, there
-is no enable bit, only a disable bit and enabled is the absence of
-being disabled.
+Ensure the output is always initialized even when returning an error
+to avoid the warning.
 
-This is a preparation patch for adding support for the older
-CM3218 model of the light sensor.
-
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/iio/light/cm32181.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/acpi/property.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
-index 5ca8bbf6667c..6fc0a753c499 100644
---- a/drivers/iio/light/cm32181.c
-+++ b/drivers/iio/light/cm32181.c
-@@ -18,6 +18,9 @@
-=20
- /* Registers Address */
- #define CM32181_REG_ADDR_CMD		0x00
-+#define CM32181_REG_ADDR_WH		0x01
-+#define CM32181_REG_ADDR_WL		0x02
-+#define CM32181_REG_ADDR_TEST		0x03
- #define CM32181_REG_ADDR_ALS		0x04
- #define CM32181_REG_ADDR_STATUS		0x06
- #define CM32181_REG_ADDR_ID		0x07
-@@ -26,9 +29,13 @@
- #define CM32181_CONF_REG_NUM		0x01
-=20
- /* CMD register */
--#define CM32181_CMD_ALS_ENABLE		0x00
--#define CM32181_CMD_ALS_DISABLE		0x01
--#define CM32181_CMD_ALS_INT_EN		0x02
-+#define CM32181_CMD_ALS_DISABLE		BIT(0)
-+#define CM32181_CMD_ALS_INT_EN		BIT(1)
-+#define CM32181_CMD_ALS_THRES_WINDOW	BIT(2)
-+
-+#define CM32181_CMD_ALS_PERS_SHIFT	4
-+#define CM32181_CMD_ALS_PERS_MASK	(0x03 << CM32181_CMD_ALS_PERS_SHIFT)
-+#define CM32181_CMD_ALS_PERS_DEFAULT	(0x01 << CM32181_CMD_ALS_PERS_SHIFT=
-)
-=20
- #define CM32181_CMD_ALS_IT_SHIFT	6
- #define CM32181_CMD_ALS_IT_MASK		(0x0F << CM32181_CMD_ALS_IT_SHIFT)
-@@ -82,7 +89,7 @@ static int cm32181_reg_init(struct cm32181_chip *cm3218=
-1)
- 		return -ENODEV;
-=20
- 	/* Default Values */
--	cm32181->conf_regs[CM32181_REG_ADDR_CMD] =3D CM32181_CMD_ALS_ENABLE |
-+	cm32181->conf_regs[CM32181_REG_ADDR_CMD] =3D
- 			CM32181_CMD_ALS_IT_DEFAULT | CM32181_CMD_ALS_SM_DEFAULT;
- 	cm32181->calibscale =3D CM32181_CALIBSCALE_DEFAULT;
-=20
---=20
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index e601c4511a8b..3aa71daeb0b4 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -587,8 +587,10 @@ static int acpi_data_get_property_array(const struct acpi_device_data *data,
+ 	int ret, i;
+ 
+ 	ret = acpi_data_get_property(data, name, ACPI_TYPE_PACKAGE, &prop);
+-	if (ret)
++	if (ret && obj) {
++		*obj = NULL;
+ 		return ret;
++	}
+ 
+ 	if (type != ACPI_TYPE_ANY) {
+ 		/* Check that all elements are of correct type. */
+-- 
 2.26.0
 
