@@ -2,154 +2,101 @@ Return-Path: <SRS0=Vavf=6Q=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB0DC3A5A9
-	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 18:30:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89CCFC3A5A9
+	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 19:56:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 72F302098B
-	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 18:30:24 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SmXxSX6P"
+	by mail.kernel.org (Postfix) with ESMTP id 5BB4520731
+	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 19:56:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1588449418;
+	bh=6khIIjEMbm1Tuwemg9wmWGvqJsIsSm9Lt5n/s/+i/r4=;
+	h=From:Date:Subject:To:Cc:List-ID:From;
+	b=mJyrIOZx+3J4PvQu+GlQd+NiRDoCRdtAuabT9tu9S6ntB2g4OjDca7auXzb4ldDeS
+	 DlB9yuq9b/2LidzMY0uDQkYq2pJmZADvfqJYtnGpA+HGCN4sJJcrUE27QcXCvfF8Ek
+	 tJucPZp/HhvpBxoA7baOLC4RFs/5bj66MfnumbN8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728605AbgEBSaX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 2 May 2020 14:30:23 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:59813 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728592AbgEBSaL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 2 May 2020 14:30:11 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1588444210;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=YsgUF1C7OvxapW2kOGl/SeXQ11P/c0ZuQmVKNq3BzFE=;
-        b=SmXxSX6Ph+owdqNTQtsaMYe0UcES+LtXIe1/w9jnjKaIwXr/kKc+sO8+oNK3GhaPseiaB4
-        8LmpAuYKPcrN+IyM5YrfUsZTP2/iWYlpQJyvOLzHoA1diyDO6GVQielZaCZiNIZjIrN7dq
-        m9EXF9YIjuFmkwWzCn9NEmCSizgu6as=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-277-r-IdcUsxNU6-Ya_7iakpmA-1; Sat, 02 May 2020 14:30:06 -0400
-X-MC-Unique: r-IdcUsxNU6-Ya_7iakpmA-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3F12F1009613;
-        Sat,  2 May 2020 18:30:05 +0000 (UTC)
-Received: from x1.localdomain.com (ovpn-112-4.ams2.redhat.com [10.36.112.4])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id AE89D605DE;
-        Sat,  2 May 2020 18:30:01 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Mario Limonciello <mario.limonciello@dell.com>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/5] platform/x86: intel-vbtn: Also handle tablet-mode switch on "Detachable" and "Portable" chassis-types
-Date:   Sat,  2 May 2020 20:29:50 +0200
-Message-Id: <20200502182951.114231-5-hdegoede@redhat.com>
-In-Reply-To: <20200502182951.114231-1-hdegoede@redhat.com>
-References: <20200502182951.114231-1-hdegoede@redhat.com>
+        id S1728475AbgEBT45 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 2 May 2020 15:56:57 -0400
+Received: from mail-ot1-f42.google.com ([209.85.210.42]:34424 "EHLO
+        mail-ot1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728107AbgEBT45 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 2 May 2020 15:56:57 -0400
+Received: by mail-ot1-f42.google.com with SMTP id 72so5454610otu.1;
+        Sat, 02 May 2020 12:56:57 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=Ku7FT7H/qujkTpfndppU/5D0Q3HreZKL0CE63+jkaGE=;
+        b=C9KuUp2jQKVlt00/MfqggsyuEh2lma18QJUeiBA8/VyP/ybUc+MW0WmDasZMp7U5aS
+         AP4VNa1KowaJzlkeR7AldWzaF3ejEBD52vEZ7ubFfJBgEmGbFalt2GfMLVjSQFkOJrKP
+         XGr4WZpS7tHzWlDXM0+YttPszbJU5aIloh+GMOQCjwff712Dof45VPJMozUMdYmVn+yk
+         iPPMKlErrW5fuAbbZtfmHCANPLZlXjkOgjQGrhDLFp8JdfM9Mrt+Zh1E421/N/9j/LWQ
+         0WeqKZGLGk5cdrJsy4TgwMmI63/d1Gssh4Qz2N1fkpZH9//E6xZzqnB9PeUSTFXGorVS
+         bLXg==
+X-Gm-Message-State: AGi0PuYjSOI2S/F1rJbNs5qZVevfNRCVpq8Z5oCw/USibZfQKK/lEx+Q
+        ycOcPSadf6f/49gByI0FJ9ayveHumo1SZUFzVtKXgi8C
+X-Google-Smtp-Source: APiQypJDMfsCYoxZLVpdfFCTqyN+78U8CyqwHxduOqRrk0pa7UvzuIcoyttl7/Fwd66VN6AF8QRPAV5Orra9qj/xcKg=
+X-Received: by 2002:a05:6830:18d0:: with SMTP id v16mr8217505ote.118.1588449416859;
+ Sat, 02 May 2020 12:56:56 -0700 (PDT)
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-Content-Transfer-Encoding: quoted-printable
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Sat, 2 May 2020 21:56:46 +0200
+Message-ID: <CAJZ5v0huWpQa3NgmmJ_OWGB_ngQvA4V3YCX1i3-QutqSxZOzdw@mail.gmail.com>
+Subject: [GIT PULL] Power management fixes for v5.7-rc4
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Commit de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode
-switch on 2-in-1's") added a DMI chassis-type check to avoid accidentally
-reporting SW_TABLET_MODE =3D 1 to userspace on laptops.
+Hi Linus,
 
-Some devices with a detachable keyboard and using the intel-vbnt (INT33D6=
-)
-interface to report if they are in tablet mode (keyboard detached) or not=
-,
-report 32 / "Detachable" as chassis-type, e.g. the HP Pavilion X2 series.
+Please pull from the tag
 
-Other devices with a detachable keyboard and using the intel-vbnt (INT33D=
-6)
-interface to report SW_TABLET_MODE, report 8 / "Portable" as chassis-type=
-.
-The Dell Venue 11 Pro 7130 is an example of this.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-5.7-rc4
 
-Extend the DMI chassis-type check to also accept Portables and Detachable=
-s
-so that the intel-vbtn driver will report SW_TABLET_MODE on these devices=
-.
+with top-most commit a53839963ee22470a716de665bca39d2dae63c27
 
-Note the chassis-type check was originally added to avoid a false-positiv=
-e
-tablet-mode report on the Dell XPS 9360 laptop. To the best of my knowled=
-ge
-that laptop is using a chassis-type of 9 / "Laptop", so after this commit
-we still ignore the tablet-switch for that chassis-type.
+ Merge branches 'pm-cpufreq' and 'pm-sleep'
 
-Fixes: de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode=
- switch on 2-in-1's")
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Looking at the Microsoft Windows documentation for tablet-mode reporting:
-https://docs.microsoft.com/en-us/windows-hardware/drivers/gpiobtn/button-=
-implementation
+on top of commit 6a8b55ed4056ea5559ebe4f6a4b247f627870d4c
 
-Then the presence of a tablet-mode switch is indicated by the presence
-of a PNP0C60 compatible ACPI devices. There are 2 ways in which this devi=
-ce
-can report the tablet-mode. 1. Directly providing a GpioInt resource insi=
-de
-the PNP0C60 device, 2. Through injecting events from a Windows driver.
+ Linux 5.7-rc3
 
-It seems that the intel-vbtn / the INT33D6 ACPI device is the ACPI side
-of Intel's generic solution for the case where the tablet-mode comes from
-the embedded-controller and needs to be "injected".
+to receive power management fixes for 5.7-rc4.
 
-This all suggests that it might be better to replace the chassis-type
-check with a acpi_dev_present("PNP0C60", NULL, -1) check.
+These prevent the intel_pstate driver from printing excessive
+diagnostic messages in some cases (Chris Wilson), make the
+hibernation restore kernel freeze kernel threads as well as user
+space tasks (Dexuan Cui) and fix the ACPI device PM disagnostic
+messages to include the correct power state name (Kai-Heng Feng).
 
-Mario, can you provide an acpidump and alsa-info.sh output for the
-Dell XPS 9360, so that I can check if that might help with the issue
-there, and thus is a potential candidate to replace the chassis-type
-check?
----
- drivers/platform/x86/intel-vbtn.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Thanks!
 
-diff --git a/drivers/platform/x86/intel-vbtn.c b/drivers/platform/x86/int=
-el-vbtn.c
-index 500fae82e12c..4921fc15dc6c 100644
---- a/drivers/platform/x86/intel-vbtn.c
-+++ b/drivers/platform/x86/intel-vbtn.c
-@@ -158,12 +158,22 @@ static void detect_tablet_mode(struct platform_devi=
-ce *device)
- static bool intel_vbtn_has_switches(acpi_handle handle)
- {
- 	const char *chassis_type =3D dmi_get_system_info(DMI_CHASSIS_TYPE);
-+	unsigned long chassis_type_int;
- 	unsigned long long vgbs;
- 	acpi_status status;
-=20
--	if (!(chassis_type && strcmp(chassis_type, "31") =3D=3D 0))
-+	if (kstrtoul(chassis_type, 10, &chassis_type_int))
- 		return false;
-=20
-+	switch (chassis_type_int) {
-+	case  8: /* Portable */
-+	case 31: /* Convertible */
-+	case 32: /* Detachable */
-+		break;
-+	default:
-+		return false;
-+	}
-+
- 	status =3D acpi_evaluate_integer(handle, "VGBS", NULL, &vgbs);
- 	return ACPI_SUCCESS(status);
- }
---=20
-2.26.0
 
+---------------
+
+Chris Wilson (1):
+      cpufreq: intel_pstate: Only mention the BIOS disabling turbo mode once
+
+Dexuan Cui (1):
+      PM: hibernate: Freeze kernel threads in software_resume()
+
+Kai-Heng Feng (1):
+      PM: ACPI: Output correct message on target power state
+
+---------------
+
+ drivers/acpi/device_pm.c       | 4 ++--
+ drivers/cpufreq/intel_pstate.c | 2 +-
+ kernel/power/hibernate.c       | 7 +++++++
+ 3 files changed, 10 insertions(+), 3 deletions(-)
