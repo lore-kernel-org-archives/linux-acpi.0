@@ -4,54 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F9F9C3A5A9
-	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 18:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B99C47256
+	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 18:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DBC620731
+	by mail.kernel.org (Postfix) with ESMTP id E0BF0206F1
 	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 18:30:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LK69Wu4+"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hL5vRFCD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728588AbgEBSaG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 2 May 2020 14:30:06 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:22204 "EHLO
+        id S1728600AbgEBSaK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 2 May 2020 14:30:10 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:40803 "EHLO
         us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728573AbgEBSaE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 2 May 2020 14:30:04 -0400
+        with ESMTP id S1728439AbgEBSaJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 2 May 2020 14:30:09 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1588444203;
+        s=mimecast20190719; t=1588444209;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=zcEcrCn5D0OhCHYjh6wHfqw4y+Glm2KA2NUo7TRLpVo=;
-        b=LK69Wu4+EJh+k6IjkGRI9Rz02ejdLd23o9FZXmp1zHfHZ2zrFtnMvokZnFQbsYnQLGYie3
-        x9bclvu4PghFgXZkxSZgEUwsD5K7fLxMdI+MKYRVoR8XbbsMXYTWFnR6NObRfcfNtnW8g3
-        lhPmOmBo5DvHtZQsD0vF9sX1nktrbdo=
+        bh=vWzxMqNlOC6t+ssQJeLOK12H0pCtC6V2Mp/yIbRouko=;
+        b=hL5vRFCDP+60+0Ib2oAg9FLpA/NXnZWgtsYBgA7JAtNEWEr0lo5ewSiiux9+6VPAe1FfsL
+        YL2y/uuqGaFwdP/LxAXUlWPVuh54rXf6SaTrUY5GNuAYaNrInOD0L7bAPvUJzFmALBh7U2
+        1mbPjuiZdL3G1mFTZUGwR7NPQx+cxVQ=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-514-8YzLH5AWOl-R9M4Zaz63Gg-1; Sat, 02 May 2020 14:29:59 -0400
-X-MC-Unique: 8YzLH5AWOl-R9M4Zaz63Gg-1
+ us-mta-447-zhv_AHgHNl2pfLVhwXdKNQ-1; Sat, 02 May 2020 14:30:02 -0400
+X-MC-Unique: zhv_AHgHNl2pfLVhwXdKNQ-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F0891100960F;
-        Sat,  2 May 2020 18:29:57 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 65CB380B714;
+        Sat,  2 May 2020 18:30:01 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-112-4.ams2.redhat.com [10.36.112.4])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 30E5C600E5;
-        Sat,  2 May 2020 18:29:55 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 00911600E5;
+        Sat,  2 May 2020 18:29:59 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Darren Hart <dvhart@infradead.org>,
         Andy Shevchenko <andy@infradead.org>,
         Mario Limonciello <mario.limonciello@dell.com>
 Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
         platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/5] platform/x86: intel-vbtn: Use acpi_evaluate_integer()
-Date:   Sat,  2 May 2020 20:29:47 +0200
-Message-Id: <20200502182951.114231-2-hdegoede@redhat.com>
+Subject: [PATCH 3/5] platform/x86: intel-vbtn: Do not advertise switches to userspace if they are not there
+Date:   Sat,  2 May 2020 20:29:49 +0200
+Message-Id: <20200502182951.114231-4-hdegoede@redhat.com>
 In-Reply-To: <20200502182951.114231-1-hdegoede@redhat.com>
 References: <20200502182951.114231-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -62,59 +62,108 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Use acpi_evaluate_integer() instead of open-coding it.
+Commit de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode
+switch on 2-in-1's") added a DMI chassis-type check to avoid accidentally
+reporting SW_TABLET_MODE =3D 1 to userspace on laptops (specifically on t=
+he
+Dell XPS 9360), to avoid e.g. userspace ignoring touchpad events because
+userspace thought the device was in tablet-mode.
 
-This is a preparation patch for adding a intel_vbtn_has_switches()
-helper function.
+But if we are not getting the initial status of the switch because the
+device does not have a tablet mode, then we really should not advertise
+the presence of a tablet-mode switch to userspace at all, as userspace ma=
+y
+use the mere presence of this switch for certain heuristics.
 
 Fixes: de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode=
  switch on 2-in-1's")
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/intel-vbtn.c | 19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ drivers/platform/x86/intel-vbtn.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/platform/x86/intel-vbtn.c b/drivers/platform/x86/int=
 el-vbtn.c
-index b5880936d785..191894d648bb 100644
+index 634096cef21a..500fae82e12c 100644
 --- a/drivers/platform/x86/intel-vbtn.c
 +++ b/drivers/platform/x86/intel-vbtn.c
-@@ -119,28 +119,21 @@ static void detect_tablet_mode(struct platform_devi=
-ce *device)
- 	const char *chassis_type =3D dmi_get_system_info(DMI_CHASSIS_TYPE);
+@@ -55,6 +55,7 @@ static const struct key_entry intel_vbtn_switchmap[] =3D=
+ {
+ struct intel_vbtn_priv {
+ 	struct key_entry keymap[KEYMAP_LEN];
+ 	struct input_dev *input_dev;
++	bool has_switches;
+ 	bool wakeup_mode;
+ };
+=20
+@@ -70,7 +71,7 @@ static int intel_vbtn_input_setup(struct platform_devic=
+e *device)
+ 		keymap_len +=3D ARRAY_SIZE(intel_vbtn_keymap);
+ 	}
+=20
+-	if (true) {
++	if (priv->has_switches) {
+ 		memcpy(&priv->keymap[keymap_len], intel_vbtn_switchmap,
+ 		       ARRAY_SIZE(intel_vbtn_switchmap) *
+ 		       sizeof(struct key_entry));
+@@ -138,16 +139,12 @@ static void notify_handler(acpi_handle handle, u32 =
+event, void *context)
+=20
+ static void detect_tablet_mode(struct platform_device *device)
+ {
+-	const char *chassis_type =3D dmi_get_system_info(DMI_CHASSIS_TYPE);
  	struct intel_vbtn_priv *priv =3D dev_get_drvdata(&device->dev);
  	acpi_handle handle =3D ACPI_HANDLE(&device->dev);
--	struct acpi_buffer vgbs_output =3D { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
-+	unsigned long long vgbs;
+ 	unsigned long long vgbs;
  	acpi_status status;
  	int m;
 =20
- 	if (!(chassis_type && strcmp(chassis_type, "31") =3D=3D 0))
--		goto out;
-+		return;
-=20
--	status =3D acpi_evaluate_object(handle, "VGBS", NULL, &vgbs_output);
-+	status =3D acpi_evaluate_integer(handle, "VGBS", NULL, &vgbs);
- 	if (ACPI_FAILURE(status))
--		goto out;
+-	if (!(chassis_type && strcmp(chassis_type, "31") =3D=3D 0))
+-		return;
 -
--	obj =3D vgbs_output.pointer;
--	if (!(obj && obj->type =3D=3D ACPI_TYPE_INTEGER))
--		goto out;
-+		return;
-=20
--	m =3D !(obj->integer.value & TABLET_MODE_FLAG);
-+	m =3D !(vgbs & TABLET_MODE_FLAG);
- 	input_report_switch(priv->input_dev, SW_TABLET_MODE, m);
--	m =3D (obj->integer.value & DOCK_MODE_FLAG) ? 1 : 0;
-+	m =3D (vgbs & DOCK_MODE_FLAG) ? 1 : 0;
+ 	status =3D acpi_evaluate_integer(handle, "VGBS", NULL, &vgbs);
+ 	if (ACPI_FAILURE(status))
+ 		return;
+@@ -158,6 +155,19 @@ static void detect_tablet_mode(struct platform_devic=
+e *device)
  	input_report_switch(priv->input_dev, SW_DOCK, m);
--out:
--	kfree(vgbs_output.pointer);
  }
 =20
++static bool intel_vbtn_has_switches(acpi_handle handle)
++{
++	const char *chassis_type =3D dmi_get_system_info(DMI_CHASSIS_TYPE);
++	unsigned long long vgbs;
++	acpi_status status;
++
++	if (!(chassis_type && strcmp(chassis_type, "31") =3D=3D 0))
++		return false;
++
++	status =3D acpi_evaluate_integer(handle, "VGBS", NULL, &vgbs);
++	return ACPI_SUCCESS(status);
++}
++
  static int intel_vbtn_probe(struct platform_device *device)
+ {
+ 	acpi_handle handle =3D ACPI_HANDLE(&device->dev);
+@@ -176,13 +186,16 @@ static int intel_vbtn_probe(struct platform_device =
+*device)
+ 		return -ENOMEM;
+ 	dev_set_drvdata(&device->dev, priv);
+=20
++	priv->has_switches =3D intel_vbtn_has_switches(handle);
++
+ 	err =3D intel_vbtn_input_setup(device);
+ 	if (err) {
+ 		pr_err("Failed to setup Intel Virtual Button\n");
+ 		return err;
+ 	}
+=20
+-	detect_tablet_mode(device);
++	if (priv->has_switches)
++		detect_tablet_mode(device);
+=20
+ 	status =3D acpi_install_notify_handler(handle,
+ 					     ACPI_DEVICE_NOTIFY,
 --=20
 2.26.0
 
