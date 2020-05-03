@@ -1,102 +1,149 @@
-Return-Path: <SRS0=Vavf=6Q=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=iUjq=6R=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89CCFC3A5A9
-	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 19:56:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11786C47247
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 May 2020 10:55:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BB4520731
-	for <linux-acpi@archiver.kernel.org>; Sat,  2 May 2020 19:56:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E63142075B
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 May 2020 10:55:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588449418;
-	bh=6khIIjEMbm1Tuwemg9wmWGvqJsIsSm9Lt5n/s/+i/r4=;
-	h=From:Date:Subject:To:Cc:List-ID:From;
-	b=mJyrIOZx+3J4PvQu+GlQd+NiRDoCRdtAuabT9tu9S6ntB2g4OjDca7auXzb4ldDeS
-	 DlB9yuq9b/2LidzMY0uDQkYq2pJmZADvfqJYtnGpA+HGCN4sJJcrUE27QcXCvfF8Ek
-	 tJucPZp/HhvpBxoA7baOLC4RFs/5bj66MfnumbN8=
+	s=default; t=1588503315;
+	bh=fZQ7cC46CUTZaUrGeHFBxKEhMwBLwuhUAblK/lbIiCw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=G1wrktAiUiEaaJZrXIiIX1Q7jUlo2bmAQ7ATNS2sENm4De995DdrnzM99kiltxruD
+	 ZYuieqpELL22tCVFsXYFnSbygUOz1VFFs1CnDrQn3GCxlZcmPKIp0B3OIGHgM4oPhf
+	 OYRrRsM9doejwVBncpj5JxXzQT3bfN1lY4AB4ilw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728475AbgEBT45 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 2 May 2020 15:56:57 -0400
-Received: from mail-ot1-f42.google.com ([209.85.210.42]:34424 "EHLO
-        mail-ot1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728107AbgEBT45 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 2 May 2020 15:56:57 -0400
-Received: by mail-ot1-f42.google.com with SMTP id 72so5454610otu.1;
-        Sat, 02 May 2020 12:56:57 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=Ku7FT7H/qujkTpfndppU/5D0Q3HreZKL0CE63+jkaGE=;
-        b=C9KuUp2jQKVlt00/MfqggsyuEh2lma18QJUeiBA8/VyP/ybUc+MW0WmDasZMp7U5aS
-         AP4VNa1KowaJzlkeR7AldWzaF3ejEBD52vEZ7ubFfJBgEmGbFalt2GfMLVjSQFkOJrKP
-         XGr4WZpS7tHzWlDXM0+YttPszbJU5aIloh+GMOQCjwff712Dof45VPJMozUMdYmVn+yk
-         iPPMKlErrW5fuAbbZtfmHCANPLZlXjkOgjQGrhDLFp8JdfM9Mrt+Zh1E421/N/9j/LWQ
-         0WeqKZGLGk5cdrJsy4TgwMmI63/d1Gssh4Qz2N1fkpZH9//E6xZzqnB9PeUSTFXGorVS
-         bLXg==
-X-Gm-Message-State: AGi0PuYjSOI2S/F1rJbNs5qZVevfNRCVpq8Z5oCw/USibZfQKK/lEx+Q
-        ycOcPSadf6f/49gByI0FJ9ayveHumo1SZUFzVtKXgi8C
-X-Google-Smtp-Source: APiQypJDMfsCYoxZLVpdfFCTqyN+78U8CyqwHxduOqRrk0pa7UvzuIcoyttl7/Fwd66VN6AF8QRPAV5Orra9qj/xcKg=
-X-Received: by 2002:a05:6830:18d0:: with SMTP id v16mr8217505ote.118.1588449416859;
- Sat, 02 May 2020 12:56:56 -0700 (PDT)
+        id S1728188AbgECKzE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 3 May 2020 06:55:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50950 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727051AbgECKzC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 3 May 2020 06:55:02 -0400
+Received: from archlinux (cpc149474-cmbg20-2-0-cust94.5-4.cable.virginm.net [82.4.196.95])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 649022071C;
+        Sun,  3 May 2020 10:54:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1588503301;
+        bh=fZQ7cC46CUTZaUrGeHFBxKEhMwBLwuhUAblK/lbIiCw=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=rKPgZktsbGAKq1XOfzayn1qZg/K1bsR9r1qYuSGx7TsbIyUMmMTjnc6eF+dVyQHuv
+         +Pobfei/LEOes8lv1CB6MJN1LEtEURzR7XdXUE8N4sJHSjccaoTqQvPlQKXNl/sTno
+         upr/67Tz/pX+U05sd+8isKEE8GMbJS9z1n1T4rAY=
+Date:   Sun, 3 May 2020 11:54:56 +0100
+From:   Jonathan Cameron <jic23@kernel.org>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        linux-iio@vger.kernel.org
+Subject: Re: [PATCH v3 01/11] iio: light: cm32181: Switch to new style
+ i2c-driver probe function
+Message-ID: <20200503115456.11a16411@archlinux>
+In-Reply-To: <20200428172923.567806-1-hdegoede@redhat.com>
+References: <20200428172923.567806-1-hdegoede@redhat.com>
+X-Mailer: Claws Mail 3.17.5 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Sat, 2 May 2020 21:56:46 +0200
-Message-ID: <CAJZ5v0huWpQa3NgmmJ_OWGB_ngQvA4V3YCX1i3-QutqSxZOzdw@mail.gmail.com>
-Subject: [GIT PULL] Power management fixes for v5.7-rc4
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Tue, 28 Apr 2020 19:29:13 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Please pull from the tag
+> Switch to the new style i2c-driver probe_new probe function and drop the
+> unnecessary i2c_device_id table (we do not have any old style board files
+> using this).
+> 
+> This is a preparation patch for adding ACPI binding support.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> Changes in v3:
+> - This is a new patch in v3 of this patch-set
+> ---
+>  drivers/iio/light/cm32181.c | 15 +++------------
+>  1 file changed, 3 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
+> index 5f4fb5674fa0..cc57190a24cb 100644
+> --- a/drivers/iio/light/cm32181.c
+> +++ b/drivers/iio/light/cm32181.c
+> @@ -294,8 +294,7 @@ static const struct iio_info cm32181_info = {
+>  	.attrs			= &cm32181_attribute_group,
+>  };
+>  
+> -static int cm32181_probe(struct i2c_client *client,
+> -			const struct i2c_device_id *id)
+> +static int cm32181_probe(struct i2c_client *client)
+>  {
+>  	struct cm32181_chip *cm32181;
+>  	struct iio_dev *indio_dev;
+> @@ -316,7 +315,7 @@ static int cm32181_probe(struct i2c_client *client,
+>  	indio_dev->channels = cm32181_channels;
+>  	indio_dev->num_channels = ARRAY_SIZE(cm32181_channels);
+>  	indio_dev->info = &cm32181_info;
+> -	indio_dev->name = id->name;
+> +	indio_dev->name = dev_name(&client->dev);
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-5.7-rc4
+ABI breakage.  The name needs to be unaffected by this patch and I'm 
+fairly sure it just gained the vendor prefix.
 
-with top-most commit a53839963ee22470a716de665bca39d2dae63c27
+So to drop that table, you need to provide the 'clean' part number
+somewhere else.  Seeing as driver currently only supports one number,
+you could just provide it directly here. However, as you are
+going to add support for another part number later, you'll need
+to do something more clever when you introduce that. 
 
- Merge branches 'pm-cpufreq' and 'pm-sleep'
+I'll make this suggestion in that patch, but I think you should add
+a chip_info structure for each of the supported chips rather than using
+a switch to put a number of different elements in place.  The name
+would then go in there.
 
-on top of commit 6a8b55ed4056ea5559ebe4f6a4b247f627870d4c
-
- Linux 5.7-rc3
-
-to receive power management fixes for 5.7-rc4.
-
-These prevent the intel_pstate driver from printing excessive
-diagnostic messages in some cases (Chris Wilson), make the
-hibernation restore kernel freeze kernel threads as well as user
-space tasks (Dexuan Cui) and fix the ACPI device PM disagnostic
-messages to include the correct power state name (Kai-Heng Feng).
-
-Thanks!
+Jonathan
 
 
----------------
+>  	indio_dev->modes = INDIO_DIRECT_MODE;
+>  
+>  	ret = cm32181_reg_init(cm32181);
+> @@ -338,13 +337,6 @@ static int cm32181_probe(struct i2c_client *client,
+>  	return 0;
+>  }
+>  
+> -static const struct i2c_device_id cm32181_id[] = {
+> -	{ "cm32181", 0 },
+> -	{ }
+> -};
+> -
+> -MODULE_DEVICE_TABLE(i2c, cm32181_id);
+> -
+>  static const struct of_device_id cm32181_of_match[] = {
+>  	{ .compatible = "capella,cm32181" },
+>  	{ }
+> @@ -356,8 +348,7 @@ static struct i2c_driver cm32181_driver = {
+>  		.name	= "cm32181",
+>  		.of_match_table = of_match_ptr(cm32181_of_match),
+>  	},
+> -	.id_table       = cm32181_id,
+> -	.probe		= cm32181_probe,
+> +	.probe_new	= cm32181_probe,
+>  };
+>  
+>  module_i2c_driver(cm32181_driver);
 
-Chris Wilson (1):
-      cpufreq: intel_pstate: Only mention the BIOS disabling turbo mode once
-
-Dexuan Cui (1):
-      PM: hibernate: Freeze kernel threads in software_resume()
-
-Kai-Heng Feng (1):
-      PM: ACPI: Output correct message on target power state
-
----------------
-
- drivers/acpi/device_pm.c       | 4 ++--
- drivers/cpufreq/intel_pstate.c | 2 +-
- kernel/power/hibernate.c       | 7 +++++++
- 3 files changed, 10 insertions(+), 3 deletions(-)
