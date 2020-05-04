@@ -2,105 +2,219 @@ Return-Path: <SRS0=TdZe=6S=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CE45C47258
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 17:09:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EB18C47257
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 18:37:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67CC220721
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 17:09:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FE612075A
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 18:37:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=endlessm-com.20150623.gappssmtp.com header.i=@endlessm-com.20150623.gappssmtp.com header.b="RSKYyByh"
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="Ffwvw4KO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730187AbgEDRJp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 May 2020 13:09:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48998 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1730188AbgEDRJm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2020 13:09:42 -0400
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B921EC061A0F
-        for <linux-acpi@vger.kernel.org>; Mon,  4 May 2020 10:09:42 -0700 (PDT)
-Received: by mail-ot1-x344.google.com with SMTP id c3so9541818otp.8
-        for <linux-acpi@vger.kernel.org>; Mon, 04 May 2020 10:09:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=endlessm-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=i+2pl33LoND8rn0Y7JhGeOTRVPWpQ6iAUIg7IYjQeRY=;
-        b=RSKYyByhc+B/qJYIIeWcVTJnYVebWzTt/X13WENuNH3vl26htM3tC+/678WIYTcNZW
-         Ah6An8uLH78KIYFnnBerBnB1jWxJx7V9RpZNh0p/PcpOcNQ5VZD1lrX02jPkdHZMUans
-         JyWDmvE10S/7Z5436S0/a4rZVc/lnnzSXddKza0QQyj1Chv7HT5OADcnNKgRKPpJqjgz
-         FPOm7tHRUvxY0h4oG39JyfBe7tc986/TI9hn2B27UvuSE175IO62QMUR2/ppXFX0eeAq
-         HvmECHPi19MnFBQrbUFoYUjfD9ZB/F9yZ8+O2wb82K7H+HvgVB37nQGjf13TF9xCrx74
-         +YNQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=i+2pl33LoND8rn0Y7JhGeOTRVPWpQ6iAUIg7IYjQeRY=;
-        b=SLwqP33kqtqS0DhcDlZCssaKyNN+gj/V0JgeCBwFwrMr/bB61IyMC8FcoMUwYp0T0x
-         d7ddFnNUb+act8yPS7SiSwhsTkmYuelqJySRVoTYPltQ0U/P/UeBKqtG4q8cSLElEsDl
-         jSPRwKVm3P7eySwa2KJaxxh+6vBQL446yvpDdr+ZwXkUGfELkWGYqCpG3YZviWS+pc8y
-         uXl8il7A75/LpzmCCQ2YYiDb1ep/PImeZ9Q6JdFsW6D0gsMdwExU0P6IrCdz3VaFmDic
-         nVe3IVd4KJmyQAQmfWUw39xGd479ijS6CL2L9vbhbtWl442Vrr3uHu7oiNZCFHPjsUpL
-         zXcw==
-X-Gm-Message-State: AGi0PubYj0C3/BG8bZ4TH5+0Y2kz0Y93y/C2xUqHj1t9Gt/hv3lcZYoO
-        NLhwvgXn+WkvSTKCyw1+W7V+P1AiESAvmUPbpHyrFA==
-X-Google-Smtp-Source: APiQypKXW+FJtDmn09+9G0JZswb8TqwRgVG3w81exM8OTS25LQ22PZbLlhXgmBt4on9QtQZVasvrd4RgJukPl3UW1gI=
-X-Received: by 2002:a05:6830:1212:: with SMTP id r18mr15724444otp.144.1588612181892;
- Mon, 04 May 2020 10:09:41 -0700 (PDT)
+        id S1726291AbgEDSh1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 May 2020 14:37:27 -0400
+Received: from mx0a-00154904.pphosted.com ([148.163.133.20]:6174 "EHLO
+        mx0a-00154904.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725981AbgEDSh1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2020 14:37:27 -0400
+X-Greylist: delayed 10771 seconds by postgrey-1.27 at vger.kernel.org; Mon, 04 May 2020 14:37:27 EDT
+Received: from pps.filterd (m0170391.ppops.net [127.0.0.1])
+        by mx0a-00154904.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 044FVLif032765;
+        Mon, 4 May 2020 11:37:54 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=from : to : cc :
+ subject : date : message-id : references : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=smtpout1;
+ bh=qKQjYVmtNTVgpbpac2gqElMiV14sV7QCUi4AU9A9xJo=;
+ b=Ffwvw4KOWUQzKXiWWP0056LuzyE4Me+2yUY5XgAhf0vXZbfxsgeaSY0jY/ufipHDxErl
+ VLQZQfgcMttzZq9VO2bVHdsSqtQ7arYubUsAp8CX/8b9/EsIhsHpcki7U8NBDcLfAkEW
+ SqCiL2p19EmCcvdusbYp4wxokLeiZELS00HdzblfDN0rd5zNSjiFcPZkwzDnt7BzvOIT
+ irOXmFjSd3uheocPw8k4KFZZYfW0gIG2cHha9UC+wsTd/V/U/3yoPmx5BtcHZaUPY14C
+ BqyVtMYg8Dyn+GgPBkYDibi/Rs2tx+08XkxzcmZAoeGGIVN9Zav8n8PQakRr38scKYxq ZQ== 
+Received: from mx0a-00154901.pphosted.com (mx0a-00154901.pphosted.com [67.231.149.39])
+        by mx0a-00154904.pphosted.com with ESMTP id 30sxjm2eks-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 04 May 2020 11:37:54 -0400
+Received: from pps.filterd (m0090351.ppops.net [127.0.0.1])
+        by mx0b-00154901.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 044FWhDC053426;
+        Mon, 4 May 2020 11:37:54 -0400
+Received: from ausxippc101.us.dell.com (ausxippc101.us.dell.com [143.166.85.207])
+        by mx0b-00154901.pphosted.com with ESMTP id 30s57eg0g7-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 04 May 2020 11:37:54 -0400
+X-LoopCount0: from 10.166.132.128
+X-PREM-Routing: D-Outbound
+X-IronPort-AV: E=Sophos;i="5.60,346,1549951200"; 
+   d="scan'208";a="1384301358"
+From:   <Mario.Limonciello@dell.com>
+To:     <hdegoede@redhat.com>, <dvhart@infradead.org>, <andy@infradead.org>
+CC:     <linux-acpi@vger.kernel.org>,
+        <platform-driver-x86@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH 4/5] platform/x86: intel-vbtn: Also handle tablet-mode
+ switch on "Detachable" and "Portable" chassis-types
+Thread-Topic: [PATCH 4/5] platform/x86: intel-vbtn: Also handle tablet-mode
+ switch on "Detachable" and "Portable" chassis-types
+Thread-Index: AQHWIK+7lmbxrem4aUOvjmuguWcpP6iYECVg
+Date:   Mon, 4 May 2020 15:37:51 +0000
+Message-ID: <7c3e5f844a224ff780cd8e3b3f5f7641@AUSX13MPC101.AMER.DELL.COM>
+References: <20200502182951.114231-1-hdegoede@redhat.com>
+ <20200502182951.114231-5-hdegoede@redhat.com>
+In-Reply-To: <20200502182951.114231-5-hdegoede@redhat.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+msip_labels: MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Enabled=True;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_SiteId=945c199a-83a2-4e80-9f8c-5a91be5752dd;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Owner=Mario_Limonciello@Dell.com;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_SetDate=2020-05-04T15:37:48.8278993Z;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Name=External Public;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Application=Microsoft Azure
+ Information Protection;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_ActionId=5e6660b9-a2eb-46dd-82e8-74aa2b3a23f5;
+ MSIP_Label_17cb76b2-10b8-4fe1-93d4-2202842406cd_Extended_MSFT_Method=Manual
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [143.166.24.60]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-From:   Chris Chiu <chiu@endlessm.com>
-Date:   Tue, 5 May 2020 01:09:30 +0800
-Message-ID: <CAB4CAwdqo7=MvyG_PE+PGVfeA17AHF5i5JucgaKqqMX6mjArbQ@mail.gmail.com>
-Subject: System fails to exit s2idle by a keystroke on my laptop
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        seth.forshee@canonical.com, Len Brown <lenb@kernel.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Linux Upstreaming Team <linux@endlessm.com>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
+ definitions=2020-05-04_10:2020-05-04,2020-05-04 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ adultscore=0 spamscore=0 mlxscore=0 lowpriorityscore=0 suspectscore=0
+ bulkscore=0 phishscore=0 clxscore=1011 mlxlogscore=999 impostorscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2005040126
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0 mlxscore=0
+ malwarescore=0 adultscore=0 clxscore=1011 spamscore=0 priorityscore=1501
+ phishscore=0 suspectscore=0 lowpriorityscore=0 impostorscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2005040126
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-    I have an Intel X5-Z8350 laptop which used to work fine on s2idle
-enter/exit with kernel 5.3. After upgrading to kernel 5.4 and later,
-the system can still exit s2idle by power button. However, if I try to
-wake it up from a keystroke, the system will freeze and then no longer
-respond even to the power button. I can only shut it down and power on
-again.
 
-    I tried to 'git bisect' to find out which commit causes the
-difference, it shows me the commit "ACPI: PM: s2idle: Prevent spurious
-SCIs from waking up the system". My laptop can work as usual to exit
-s2idle by a keystroke with reverting it on kernel 5.4.
 
-    Then I tried to check whether I can reproduce it on the latest
-mainline kernel, the same problem still there. But I can not fix it by
-simply reverting. I found the acpi_s2idle_wake() has been refined on
-the latest mainline kernel, and I have to make modifications as
-follows to make my laptop work.
+> -----Original Message-----
+> From: Hans de Goede <hdegoede@redhat.com>
+> Sent: Saturday, May 2, 2020 1:30 PM
+> To: Darren Hart; Andy Shevchenko; Limonciello, Mario
+> Cc: Hans de Goede; linux-acpi@vger.kernel.org; platform-driver-
+> x86@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH 4/5] platform/x86: intel-vbtn: Also handle tablet-mode sw=
+itch
+> on "Detachable" and "Portable" chassis-types
+>=20
+>=20
+> [EXTERNAL EMAIL]
+>=20
+> Commit de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode
+> switch on 2-in-1's") added a DMI chassis-type check to avoid accidentally
+> reporting SW_TABLET_MODE =3D 1 to userspace on laptops.
+>=20
+> Some devices with a detachable keyboard and using the intel-vbnt (INT33D6=
+)
+> interface to report if they are in tablet mode (keyboard detached) or not=
+,
+> report 32 / "Detachable" as chassis-type, e.g. the HP Pavilion X2 series.
+>=20
+> Other devices with a detachable keyboard and using the intel-vbnt (INT33D=
+6)
+> interface to report SW_TABLET_MODE, report 8 / "Portable" as chassis-type=
+.
+> The Dell Venue 11 Pro 7130 is an example of this.
+>=20
+> Extend the DMI chassis-type check to also accept Portables and Detachable=
+s
+> so that the intel-vbtn driver will report SW_TABLET_MODE on these devices=
+.
+>=20
+> Note the chassis-type check was originally added to avoid a false-positiv=
+e
+> tablet-mode report on the Dell XPS 9360 laptop. To the best of my knowled=
+ge
+> that laptop is using a chassis-type of 9 / "Laptop", so after this commit
+> we still ignore the tablet-switch for that chassis-type.
 
-@@ -1024,7 +1024,7 @@ static bool acpi_s2idle_wake(void)
-                 * regarded as a spurious one.
-                 */
-                if (!acpi_ec_dispatch_gpe())
--                       return false;
-+                       return true;
+Yes that's correct.
 
-                /*
-                 * Cancel the wakeup and process all pending events in case
+>=20
+> Fixes: de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode
+> switch on 2-in-1's")
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> Looking at the Microsoft Windows documentation for tablet-mode reporting:
+> https://docs.microsoft.com/en-us/windows-hardware/drivers/gpiobtn/button-
+> implementation
+>=20
+> Then the presence of a tablet-mode switch is indicated by the presence
+> of a PNP0C60 compatible ACPI devices. There are 2 ways in which this devi=
+ce
+> can report the tablet-mode. 1. Directly providing a GpioInt resource insi=
+de
+> the PNP0C60 device, 2. Through injecting events from a Windows driver.
+>=20
+> It seems that the intel-vbtn / the INT33D6 ACPI device is the ACPI side
+> of Intel's generic solution for the case where the tablet-mode comes from
+> the embedded-controller and needs to be "injected".
+>=20
+> This all suggests that it might be better to replace the chassis-type
+> check with a acpi_dev_present("PNP0C60", NULL, -1) check.
+>=20
+> Mario, can you provide an acpidump and alsa-info.sh output for the
+> Dell XPS 9360, so that I can check if that might help with the issue
+> there, and thus is a potential candidate to replace the chassis-type
+> check?
 
-    Maybe there's something special on my laptop so a keystroke is
-considered as a spurious event on this machine? Don't know if the DSDT
-helps or not.
-https://gist.github.com/mschiu77/de8af6da78be12cf442853e7747f76ed
+Unfortunately with WFH right now, I don't have access to a XPS 9630 to
+double check the patch series.
 
-    Please let me know if there's anything I can help to address this
-problem. Thanks
+However I do agree this should be a good approach.
 
-Chris
+Reviewed-by: Mario Limonciello <Mario.limonciello@dell.com>
+
+> ---
+>  drivers/platform/x86/intel-vbtn.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/platform/x86/intel-vbtn.c b/drivers/platform/x86/int=
+el-
+> vbtn.c
+> index 500fae82e12c..4921fc15dc6c 100644
+> --- a/drivers/platform/x86/intel-vbtn.c
+> +++ b/drivers/platform/x86/intel-vbtn.c
+> @@ -158,12 +158,22 @@ static void detect_tablet_mode(struct platform_devi=
+ce
+> *device)
+>  static bool intel_vbtn_has_switches(acpi_handle handle)
+>  {
+>  	const char *chassis_type =3D dmi_get_system_info(DMI_CHASSIS_TYPE);
+> +	unsigned long chassis_type_int;
+>  	unsigned long long vgbs;
+>  	acpi_status status;
+>=20
+> -	if (!(chassis_type && strcmp(chassis_type, "31") =3D=3D 0))
+> +	if (kstrtoul(chassis_type, 10, &chassis_type_int))
+>  		return false;
+>=20
+> +	switch (chassis_type_int) {
+> +	case  8: /* Portable */
+> +	case 31: /* Convertible */
+> +	case 32: /* Detachable */
+> +		break;
+> +	default:
+> +		return false;
+> +	}
+> +
+>  	status =3D acpi_evaluate_integer(handle, "VGBS", NULL, &vgbs);
+>  	return ACPI_SUCCESS(status);
+>  }
+> --
+> 2.26.0
+
