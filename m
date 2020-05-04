@@ -2,147 +2,166 @@ Return-Path: <SRS0=TdZe=6S=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BC67C47257
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 12:57:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A63C3A5A9
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 14:55:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC79F20757
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 12:57:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76321206B9
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 May 2020 14:55:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Z3FbPmU1"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dRC8mDVu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728357AbgEDM5C (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 May 2020 08:57:02 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:49245 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727102AbgEDM4Y (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2020 08:56:24 -0400
+        id S1727915AbgEDOzQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 May 2020 10:55:16 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:25642 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1725941AbgEDOzO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2020 10:55:14 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1588596983;
+        s=mimecast20190719; t=1588604112;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=rJNru8ixfqjGEtDeeNyMt8t7n+JBAGgwnT5Seqsq/6E=;
-        b=Z3FbPmU1WQHEhm/+Qq+JHhUg7RGGGWdk1I2jiJ/xWC3dB7AjW/QzEZofo5GABWAyfcJEJ6
-        6D8Gm2feunyFADpuRocro6iyIsdnGc1j/J4G9jjca7FWtgTZDUG8kZGwMF0VvPrXa8Mq/c
-        uRac58bOVDkoU4H9+fYT94UMTt07hck=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-139-bneyd7u0MQy9k0ZSwgs9BA-1; Mon, 04 May 2020 08:56:19 -0400
-X-MC-Unique: bneyd7u0MQy9k0ZSwgs9BA-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 79231108BD1D;
-        Mon,  4 May 2020 12:56:17 +0000 (UTC)
-Received: from x1.localdomain.com (ovpn-114-224.ams2.redhat.com [10.36.114.224])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id EA3875D9D5;
-        Mon,  4 May 2020 12:56:14 +0000 (UTC)
+        bh=3AdIoxC25r7jO/Pdtv3nZcFN5tMrEVw7Ox5wknWjVNE=;
+        b=dRC8mDVuHCi4laCQrGzjQcVXBBelJ1RNvmStFcC+w7aDD5gP1FOZdASY9kkq9PwkE9x/PQ
+        +3EbIdMvrh1Vwl7rB3GZO3EOqtTWYrQCepWGI8DpSGUX+1FUkHWIENnIKj2WqAsXNXF/ft
+        CVvsM8y+B+ZM/I2D1e9TzroSFkPYr2o=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-136-7KH6HTHoMPSaNkOMcyDHTg-1; Mon, 04 May 2020 10:55:11 -0400
+X-MC-Unique: 7KH6HTHoMPSaNkOMcyDHTg-1
+Received: by mail-wr1-f72.google.com with SMTP id j16so10875872wrw.20
+        for <linux-acpi@vger.kernel.org>; Mon, 04 May 2020 07:55:10 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=3AdIoxC25r7jO/Pdtv3nZcFN5tMrEVw7Ox5wknWjVNE=;
+        b=sAsdMLYsYtzYweMIpevm36UxlxwM5LwONdhSWcrV0r2DMxq4w/c+JIOVy1Fz35SNH6
+         hKRHanKiWqX/1a2Kjx8NxS1HJf/K9bQV0yKzDNzPLCwJDG9eJ802ukhc+uuac9blZKdm
+         /qkCByy6H1xmYG/FQzGOtLpHS+JIdhV+phUIkodwrT8H1wvWu3a/ppwrTG71z50ZVArp
+         vH06Sh1v1IOmV10B/AdDrmGoS/IqdwgiPGKofUBQ0IMUHk2Qb3fHw7petl2wuoMldvQi
+         7q+MiWrV4e76jjrmkUhB/JKXZMXZgQI+K/dHjx0/YrEZghoVKFr72RoLuef68PqUeeMX
+         akow==
+X-Gm-Message-State: AGi0PuYJJpbJZyb22Q5RF7lBNksFmcp6utDBwTDd4nmPwHai5pw65viP
+        59ML3wgD02ygIxYvx+A1rHUHKq1T3MOiI5jHXWy3XwNT9QLyG40ns452JDrEQHpEXFCGl823hUO
+        KEPkV6otjcUAVvCMylrgD3w==
+X-Received: by 2002:a5d:6584:: with SMTP id q4mr21448529wru.403.1588604109869;
+        Mon, 04 May 2020 07:55:09 -0700 (PDT)
+X-Google-Smtp-Source: APiQypJtCDadA0Me7xawY37NL+GzfwqqIbbwQSm4VPOWLLN2eI0jrq/ItNfvETO74HKCEfeCJH03kw==
+X-Received: by 2002:a5d:6584:: with SMTP id q4mr21448446wru.403.1588604109110;
+        Mon, 04 May 2020 07:55:09 -0700 (PDT)
+Received: from x1.localdomain (2001-1c00-0c0c-fe00-d2ea-f29d-118b-24dc.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:d2ea:f29d:118b:24dc])
+        by smtp.gmail.com with ESMTPSA id k14sm19162025wrp.53.2020.05.04.07.55.08
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 04 May 2020 07:55:08 -0700 (PDT)
+Subject: Re: [PATCH] pinctrl: cherryview: Ensure _REG(ACPI_ADR_SPACE_GPIO, 1)
+ gets called
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        stable@vger.kernel.org
+References: <20200429104651.63643-1-hdegoede@redhat.com>
+ <20200429142159.GJ185537@smile.fi.intel.com>
 From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Jonathan Cameron <jic23@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        linux-iio@vger.kernel.org
-Subject: [PATCH v4 05/11] iio: light: cm32181: Clean up the probe function a bit
-Date:   Mon,  4 May 2020 14:55:45 +0200
-Message-Id: <20200504125551.434647-5-hdegoede@redhat.com>
-In-Reply-To: <20200504125551.434647-1-hdegoede@redhat.com>
-References: <20200504125551.434647-1-hdegoede@redhat.com>
+Message-ID: <413bfc53-e3cb-aac1-2e3d-3eec9ed5a304@redhat.com>
+Date:   Mon, 4 May 2020 16:55:07 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20200429142159.GJ185537@smile.fi.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-3 small cleanups to cm32181_probe():
+Hi,
 
-1. Do not log an error when we fail to allocate memory (as a general
-rule drivers do not log errors for this as the kernel will already
-have complained loudly that it could not alloc the mem).
+On 4/29/20 4:21 PM, Andy Shevchenko wrote:
+> On Wed, Apr 29, 2020 at 12:46:51PM +0200, Hans de Goede wrote:
+>> On Cherry Trail devices there are 2 possible ACPI OpRegions for
+>> accessing GPIOs. The standard GeneralPurposeIo OpRegion and the Cherry
+>> Trail specific UserDefined 0x9X OpRegions.
+>>
+>> Having 2 different types of OpRegions leads to potential issues with
+>> checks for OpRegion availability, or in other words checks if _REG has
+>> been called for the OpRegion which the ACPI code wants to use.
+>>
+>> The ACPICA core does not call _REG on an ACPI node which does not
+>> define an OpRegion matching the type being registered; and the reference
+>> design DSDT, from which most Cherry Trail DSDTs are derived, does not
+>> define GeneralPurposeIo, nor UserDefined(0x93) OpRegions for the GPO2
+>> (UID 3) device, because no pins were assigned ACPI controlled functions
+>> in the reference design.
+>>
+>> Together this leads to the perfect storm, at least on the Cherry Trail
+>> based Medion Akayo E1239T. This design does use a GPO2 pin from its ACPI
+>> code and has added the Cherry Trail specific UserDefined(0x93) opregion
+>> to its GPO2 ACPI node to access this pin.
+>>
+>> But it uses a has _REG been called availability check for the standard
+>> GeneralPurposeIo OpRegion. This clearly is a bug in the DSDT, but this
+>> does work under Windows. This issue leads to the intel_vbtn driver
+>> reporting the device always being in tablet-mode at boot, even if it
+>> is in laptop mode. Which in turn causes userspace to ignore touchpad
+>> events. So iow this issues causes the touchpad to not work at boot.
+>>
+>> Since the bug in the DSDT stems from the confusion of having 2 different
+>> OpRegion types for accessing GPIOs on Cherry Trail devices, I believe
+>> that this is best fixed inside the cherryview pinctrl driver.
+>>
+>> This commit adds a workaround to the cherryview pinctrl driver so
+>> that the DSDT's expectations of _REG always getting called for the
+>> GeneralPurposeIo OpRegion are met.
+> 
+> s/cherryview/Cherryview/g
 
-2. Remove the i2c_set_clientdata() call, we never use i2c_get_clientdata(=
-)
-or dev_get_drvdata() anywhere.
+Fixed for v2.
 
-3. Add a dev helper variable and use it in various places instead of
-&client->dev.
+> 
+> ...
+> 
+>> +	if (acpi_has_method(adev->handle, "_REG")) {
+> 
+> And this check si redundant, you may call it as is (you didn't check for error
+> anyway), see also below.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v3:
-- This is a new patch in v3 of this patch-set
----
- drivers/iio/light/cm32181.c | 20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+Good point, also dropped for v2.
 
-diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
-index 92b9ce91fe0a..f6261798baa3 100644
---- a/drivers/iio/light/cm32181.c
-+++ b/drivers/iio/light/cm32181.c
-@@ -342,22 +342,20 @@ static const struct iio_info cm32181_info =3D {
-=20
- static int cm32181_probe(struct i2c_client *client)
- {
-+	struct device *dev =3D &client->dev;
- 	struct cm32181_chip *cm32181;
- 	struct iio_dev *indio_dev;
- 	int ret;
-=20
--	indio_dev =3D devm_iio_device_alloc(&client->dev, sizeof(*cm32181));
--	if (!indio_dev) {
--		dev_err(&client->dev, "devm_iio_device_alloc failed\n");
-+	indio_dev =3D devm_iio_device_alloc(dev, sizeof(*cm32181));
-+	if (!indio_dev)
- 		return -ENOMEM;
--	}
-=20
- 	cm32181 =3D iio_priv(indio_dev);
--	i2c_set_clientdata(client, indio_dev);
- 	cm32181->client =3D client;
-=20
- 	mutex_init(&cm32181->lock);
--	indio_dev->dev.parent =3D &client->dev;
-+	indio_dev->dev.parent =3D dev;
- 	indio_dev->channels =3D cm32181_channels;
- 	indio_dev->num_channels =3D ARRAY_SIZE(cm32181_channels);
- 	indio_dev->info =3D &cm32181_info;
-@@ -365,19 +363,15 @@ static int cm32181_probe(struct i2c_client *client)
-=20
- 	ret =3D cm32181_reg_init(cm32181);
- 	if (ret) {
--		dev_err(&client->dev,
--			"%s: register init failed\n",
--			__func__);
-+		dev_err(dev, "%s: register init failed\n", __func__);
- 		return ret;
- 	}
-=20
- 	indio_dev->name =3D cm32181->info->name;
-=20
--	ret =3D devm_iio_device_register(&client->dev, indio_dev);
-+	ret =3D devm_iio_device_register(dev, indio_dev);
- 	if (ret) {
--		dev_err(&client->dev,
--			"%s: regist device failed\n",
--			__func__);
-+		dev_err(dev, "%s: regist device failed\n", __func__);
- 		return ret;
- 	}
-=20
---=20
-2.26.0
+>> +		struct acpi_object_list input;
+>> +		union acpi_object params[2];
+>> +
+>> +		input.count = 2;
+>> +		input.pointer = params;
+>> +		params[0].type = ACPI_TYPE_INTEGER;
+>> +		params[0].integer.value = ACPI_ADR_SPACE_GPIO;
+>> +		params[1].type = ACPI_TYPE_INTEGER;
+>> +		params[1].integer.value = 1;
+>> +		acpi_evaluate_object(adev->handle, "_REG", &input, NULL);
+>> +	}
+> 
+> Can you consider to unify this with one in drivers/pci/hotplug/acpiphp_glue.c,
+> so we will have some helper function at the end? (perhaps as separate changes
+> to make less burden on backporting this one)
+
+I think that for backporting it is best to keep this patch as is
+(with your other comments addresed). Also this way this can hopefully
+be merged for a 5.7-rc# candidate.
+
+I will do a follow up series adding a helper and moving both cases
+over to the helper.
+
+Regards,
+
+Hans
 
