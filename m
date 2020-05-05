@@ -2,43 +2,49 @@ Return-Path: <SRS0=QAkL=6T=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD94BC3A5A9
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 01:08:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D227C47254
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 01:08:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFAC4206C0
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 01:08:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D892206C0
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 01:08:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726531AbgEEBIf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 May 2020 21:08:35 -0400
+        id S1726897AbgEEBIh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 May 2020 21:08:37 -0400
 Received: from mga12.intel.com ([192.55.52.136]:50714 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726421AbgEEBIf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 4 May 2020 21:08:35 -0400
-IronPort-SDR: uzgTF1zdiVs0CX3EjmJPvJOl9Y9ATCA/BdUfdwHaGwV7e/tP1c+5QHHmf5c4Hsaj4muInY99+z
- GDQ5qCBMEfsA==
+        id S1726421AbgEEBIg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 May 2020 21:08:36 -0400
+IronPort-SDR: NvOZxq5yyPK5PEcFGQFIUeHx4q2rv6Xvq+naPQm0P4kn93/0ZFIXRQzw698CiCSIP+15kgpLuF
+ Aow/QK2calOQ==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 May 2020 18:08:34 -0700
-IronPort-SDR: ZEliSZhdmcO8tbbZVzukINvlDsQx6pepLMhyE0QWTYfJmNn+qcKwsw8RQQRyKuZh8pNJgObIJh
- mMXeJBrfJ+fw==
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 May 2020 18:08:36 -0700
+IronPort-SDR: w8fiM1mmUcq1rOpOjS15evfn/Eo/ZMRrKaoEtpSgKrAR1fuwudbsCxe+810pFqmMy+03gptZju
+ rr/B+GGMR1fQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,354,1583222400"; 
-   d="scan'208";a="460865782"
+   d="scan'208";a="460865792"
 Received: from sibelius.jf.intel.com ([10.54.75.172])
-  by fmsmga005.fm.intel.com with ESMTP; 04 May 2020 18:08:34 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 04 May 2020 18:08:35 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-acpi@vger.kernel.org
-Cc:     Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 0/6] ACPICA release 20200430
-Date:   Mon,  4 May 2020 17:46:48 -0700
-Message-Id: <20200505004654.2870591-1-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>,
+        Hulk Robot <hulkci@huawei.com>,
+        Jason Yan <yanaijie@huawei.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 2/6] ACPICA: Move acpi_gbl_next_cmd_num definition to acglobal.h
+Date:   Mon,  4 May 2020 17:46:50 -0700
+Message-Id: <20200505004654.2870591-3-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200505004654.2870591-1-erik.kaneda@intel.com>
+References: <20200505004654.2870591-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -46,35 +52,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This series contains the linux-ized patches of the 20200430 ACPICA
-release. There are two patches to fix sparse warnings that are
-generated from global variables, and a fix to avoid null pointer
-dereferences in the dispatcher. Aside from that, there is a fix to
-correct the required parameters for the predefined ACPI methods _NIH
-and _NIG.
+ACPICA commit 8296a24f33984c26a61103c590b049de3c9b61ff
 
-Bob Moore (1):
-  ACPICA: Update version to 20200430
+This commit cleans up the code by moving the global definition out of
+dbhistry.c to acglobal.h.
 
-Erik Kaneda (4):
-  ACPICA: Move acpi_gbl_next_cmd_num definition to acglobal.h
-  ACPICA: Disassembler: ignore AE_ALREADY_EXISTS status when parsing
-    create operators
-  ACPICA: Dispatcher: add status checks to avoid NULL pointer
-    dereference on field objects
-  ACPICA: Fix required parameters for _NIG and _NIH
+Link: https://github.com/acpica/acpica/commit/8296a24f
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Suggested-by: Jason Yan <yanaijie@huawei.com>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/acglobal.h | 1 +
+ drivers/acpi/acpica/dbhistry.c | 1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-Yue Haibing (1):
-  ACPICA: Make acpi_protocol_lengths static
-
- drivers/acpi/acpica/acglobal.h |  1 +
- drivers/acpi/acpica/acpredef.h |  4 ++--
- drivers/acpi/acpica/dbhistry.c |  1 -
- drivers/acpi/acpica/dsfield.c  | 22 ++++++++++++++++------
- drivers/acpi/acpica/exfield.c  |  2 +-
- include/acpi/acpixf.h          |  2 +-
- 6 files changed, 21 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 38ffa2c0a496..1030a0ce1599 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -290,6 +290,7 @@ ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
+ #ifdef ACPI_DEBUGGER
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_abort_method, FALSE);
+ ACPI_INIT_GLOBAL(acpi_thread_id, acpi_gbl_db_thread_id, ACPI_INVALID_THREAD_ID);
++ACPI_INIT_GLOBAL(u32, acpi_gbl_next_cmd_num, 1);
+ 
+ ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_ini_methods);
+ ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_region_support);
+diff --git a/drivers/acpi/acpica/dbhistry.c b/drivers/acpi/acpica/dbhistry.c
+index bb9600b867ee..f5fba14461a6 100644
+--- a/drivers/acpi/acpica/dbhistry.c
++++ b/drivers/acpi/acpica/dbhistry.c
+@@ -27,7 +27,6 @@ static HISTORY_INFO acpi_gbl_history_buffer[HISTORY_SIZE];
+ static u16 acpi_gbl_lo_history = 0;
+ static u16 acpi_gbl_num_history = 0;
+ static u16 acpi_gbl_next_history_index = 0;
+-u32 acpi_gbl_next_cmd_num = 1;
+ 
+ /*******************************************************************************
+  *
 -- 
 2.25.1
 
