@@ -2,191 +2,186 @@ Return-Path: <SRS0=QAkL=6T=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 820FDC47247
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 13:30:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE88C47247
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 13:50:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 581C82073B
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 13:30:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB42E206A5
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 13:50:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="X8xJiPTz"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="js1IjRE2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729142AbgEEN37 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 May 2020 09:29:59 -0400
-Received: from mail-eopbgr60080.outbound.protection.outlook.com ([40.107.6.80]:52966
-        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729012AbgEEN34 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 5 May 2020 09:29:56 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=LlcNQST8L2+E6gSdNITLTV0uhpyMuXsBf7lTMJXiDpA+kP4hk9b/lnUoNfKM8+CafGpBKmLryLa6CBD4NI6R/bZv8RawN1HXipoIdFmfO8CJxfN6zhDQXBRw6jKl0qbc7yIwPVTaSoB9fkqBsgVMC7ObBt7ExZgUvb06IpEsvAbYIYPuAuC6jBPTrV8qzEHFCEjL0OsG7gWIGIg1PJmyNH24LUvSL/x3gG0/2VsrBgRx3fZZvY0bK3kx/BXjCv1X7/jTdMWPXO0L/sI0DB3Tcn/IorklaGt3PpwgY+dpHfgyApEN1ZhHh5uk3AniZBwjcFr6GzoAP5YXGlTeYUkrOw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=BqxbcbJWBHfccJLJBdJsst4kyt+4TEgCtDk4QU17y/0=;
- b=AksE7OvIQDQYD4myJ+V+FOu+8e/SlamswE/bnQIxCy4/xjP18aePM2pO2o8RBc56GRh3fbHhy9msbf742XTN0VOnK4SvvDD0FAhhNclxBjWQ6MF2ZNwV++fqdgSIihG/iwkhECk7HxrJ2oCSLJH9OPC3g3GP3sHPKqF2QOF3t6VIlD5WbsfRcwcvUgakiFWDoNNYvbwfNyZweFrf08fJgGeX6zUlzvgvzQQG/1khPSf/CiyLJrbucZOozUK8QVnQZkuzYRVHn/Y72cWLIObvvGSozCR5C+4wHF+vjDn8SWoP8whuzapZicL2wABAhhNo6/WSjt/+sAD2UuCY+aqleg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
- dkim=pass header.d=oss.nxp.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
- s=selector2-NXP1-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=BqxbcbJWBHfccJLJBdJsst4kyt+4TEgCtDk4QU17y/0=;
- b=X8xJiPTzTsGsOIM4P3i8WAbcplmx7nePpRmG5KX56bdQwroTA6HW+6gTsh6wKKO77Cgk/FuDrAv0oWWd0rsc6GLHS7SHRYvRSVc+hccjMIpw+UCmqFowz/6q0PnPp+x80lew2g9zZQAWydfInB2ixMlnuUkFcpkNidQOvy24Sj4=
-Authentication-Results: spf=none (sender IP is )
- smtp.mailfrom=calvin.johnson@oss.nxp.com; 
-Received: from DB8PR04MB5643.eurprd04.prod.outlook.com (2603:10a6:10:aa::25)
- by DB8PR04MB5596.eurprd04.prod.outlook.com (2603:10a6:10:a2::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.26; Tue, 5 May
- 2020 13:29:53 +0000
-Received: from DB8PR04MB5643.eurprd04.prod.outlook.com
- ([fe80::4031:5fb3:b908:40e9]) by DB8PR04MB5643.eurprd04.prod.outlook.com
- ([fe80::4031:5fb3:b908:40e9%7]) with mapi id 15.20.2958.030; Tue, 5 May 2020
- 13:29:53 +0000
-From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        linux.cj@gmail.com, Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     Varun Sethi <V.Sethi@nxp.com>,
-        "Rajesh V . Bikkina" <rajesh.bikkina@nxp.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        netdev@vger.kernel.org, Marcin Wojtas <mw@semihalf.com>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        Makarand Pawagi <makarand.pawagi@nxp.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Pankaj Bansal <pankaj.bansal@nxp.com>,
-        Calvin Johnson <calvin.johnson@oss.nxp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [net-next PATCH v3 4/5] net: phy: Introduce fwnode_get_phy_id()
-Date:   Tue,  5 May 2020 18:59:04 +0530
-Message-Id: <20200505132905.10276-5-calvin.johnson@oss.nxp.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200505132905.10276-1-calvin.johnson@oss.nxp.com>
-References: <20200505132905.10276-1-calvin.johnson@oss.nxp.com>
-Content-Type: text/plain
-X-ClientProxiedBy: SG2PR03CA0096.apcprd03.prod.outlook.com
- (2603:1096:4:7c::24) To DB8PR04MB5643.eurprd04.prod.outlook.com
- (2603:10a6:10:aa::25)
+        id S1729088AbgEENuU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 May 2020 09:50:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44776 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728512AbgEENuU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2020 09:50:20 -0400
+Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35AAAC061A0F;
+        Tue,  5 May 2020 06:50:19 -0700 (PDT)
+Received: by mail-wm1-x344.google.com with SMTP id x25so2396389wmc.0;
+        Tue, 05 May 2020 06:50:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:subject:to:cc:references:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=aZ0Qk3lr7qtEXdcvAALeI6LX4V+/Z6o4WYTfNR+yDHc=;
+        b=js1IjRE218jK/P3YrCihXZZGDDxGRorwxOaxRkiApPP2ZO+K0c50XZAG3/q81hSy60
+         tIdG7xSc2ujEDXRnoS7wy3yAPbAQdMNDiK1OAjAIX84JRb1qSnHWM/NbgFdkJHt7jtxr
+         xctZBXXuK43htEVsipypnZbKMDdVguUC+Rzzz+CTYNkt8jOH3xnSkth7lmsn3SqlYQ4/
+         +KliZFePE+e31YW5UByMzFJ6UBiK1oUzWJ/I2c4kjDnmdUAkToXIhz4lb57iHGC8dn5Y
+         G7SxYdLiJ6abLftTR/v8wPndwfv8Tdc7YIK0xJ+YEZXr9z3AeSsBXXKXH39kk0z8p63i
+         WTdA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:subject:to:cc:references:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=aZ0Qk3lr7qtEXdcvAALeI6LX4V+/Z6o4WYTfNR+yDHc=;
+        b=Fz9aJ3DNxnq+YdqSIlsDPDXzAl/QCJ5pDwwyBMcF2pieJnGUn/XQzgAuyNZkYy+QSp
+         cA6AUtTmp9MOBTfI2pClYtMT/Fh1tvT0M3zNxoJ6M4j6nn+TR+NTYBiNqkb7vA/Yqmi4
+         hEc6O4MV2HXoyuK+651nBmzNhAsEj+FQaBr13ogKIjSYHfMmmdVumSU7zwhyorBLExcB
+         f42nmc+Pbmoh0iMVwZKH3z5y8xZyr54BBlK5svBLjwlizMtQft0NviFTbLT184NqYf0J
+         q9PnirXH11L1QyOs5BBmvteLbvH8cura3QhPb/eyWwFC742fCG8NtBzpdq9MhrDvuOR2
+         Hxtg==
+X-Gm-Message-State: AGi0PuYsfOhInaq8nK330BuNHtGrczZV2rvR6QNSyhyLgez/QYDUVFC7
+        jBwKNfu6UzQeivful2ziiJfiB9lY
+X-Google-Smtp-Source: APiQypKAT3yV8prJyFdi1XTuypc5++ACcuzgdJgmdbjZjkart5eR37gxpUCMWy0oQv9ZuJTJEN3vnQ==
+X-Received: by 2002:a1c:3b0a:: with SMTP id i10mr3561075wma.26.1588686617456;
+        Tue, 05 May 2020 06:50:17 -0700 (PDT)
+Received: from [192.168.2.202] (pD9E5A5BE.dip0.t-ipconnect.de. [217.229.165.190])
+        by smtp.gmail.com with ESMTPSA id p7sm3532619wrf.31.2020.05.05.06.50.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 05 May 2020 06:50:16 -0700 (PDT)
+From:   Maximilian Luz <luzmaximilian@gmail.com>
+Subject: Re: 5.6 regression caused by "ACPICA: Dispatcher: always generate
+ buffer objects for ASL create_field() operator"
+To:     Hans de Goede <hdegoede@redhat.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Bob Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Mattia Dongili <malattia@linux.it>,
+        William Bader <williambader@hotmail.com>,
+        Dominik Mierzejewski <dominik@greysector.net>
+Cc:     linux-acpi <linux-acpi@vger.kernel.org>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        platform-driver-x86@vger.kernel.org
+References: <49f20a91-9362-6249-d413-1461258d56a9@redhat.com>
+Message-ID: <11795a75-70de-5fcc-878f-14a0381947ea@gmail.com>
+Date:   Tue, 5 May 2020 15:50:15 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR03CA0096.apcprd03.prod.outlook.com (2603:1096:4:7c::24) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.14 via Frontend Transport; Tue, 5 May 2020 13:29:46 +0000
-X-Mailer: git-send-email 2.17.1
-X-Originating-IP: [14.142.151.118]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 152946e8-89fc-4a03-9b6a-08d7f0f864af
-X-MS-TrafficTypeDiagnostic: DB8PR04MB5596:|DB8PR04MB5596:
-X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <DB8PR04MB559623ABD161AAD5C5DF7451D2A70@DB8PR04MB5596.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:5236;
-X-Forefront-PRVS: 0394259C80
-Received-SPF: None (protection.outlook.com: oss.nxp.com does not designate
- permitted sender hosts)
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: SgJiaV0u18zLRZSGsfmZnv5kUu2F7fV0QEJl0f0BXk0Fj3HS09BqUls5bS8+zoowQBAqRqw7SxrM04+kJB8lr1DYFteBXatBabfjYZ8+N0wtJr8Ua/8NgR/wnBxb1Jj2qwJ/NGZHnNxAS1hjwxetY034aJdabF63EcHbBi3UxyHck/QR+sa3IJ5DMCcRp/DpQn4Q1mnPy4AOui5q54540l/GKeiqBKb2EYMqfaB/HE/ILbro5eqS+BASddaxdUkpHfw1W6dAY1BWpGUb2K1K7TYzGQA/aYLbDZBgedg8XAIKnMHTGN1JEPa/ZavNgSd6WtA5QL2QiyOY/peBNOA0nWQNQo11E0u5w5X65g8LfU4PMFwKnkUtCM61pT6cF9phoVDvCJTHuNm7c/OSzcwNn9HGkTtmzcNt/LcrXuU07m9sbRXzDi2B+yjRiUUgSwuR9kU2MFaWx0YEU0wZer39d9xO130c0gl/taIorxYAna3cko0HSKkAf5qmCjcxlwOWCNMvlCb0Y5X6j4J/Hq2gLV2zzcalWgTzjvarY9SdwRs=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB8PR04MB5643.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(366004)(6486002)(5660300002)(44832011)(26005)(55236004)(66556008)(66946007)(66476007)(498600001)(6506007)(52116002)(4326008)(956004)(2616005)(2906002)(186003)(1076003)(16526019)(7416002)(6512007)(86362001)(110136005)(54906003)(6666004)(8936002)(1006002)(8676002)(110426005)(921003)(1121003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: XJZ5SRoVwIVb++6m9pCq/+05NEqGNP78BEWeqanvy/8YLF9cPE07RNgldIWWKTfbD/l6lYhDNq0pCFTz5vcjUo1RGAIIZZas8OqoituL0a3PCxJglZ6V1N056NKYmLRsPqaGFW30huAKf1KNaTCWc9VlaKDRvz6Xp3EIoQDhHWjxcMHSe9dIB877vLQG5xCsHU05zMhhBoQMAekxQozh8lQnCM+3R8gUB4/LiU8VpkZwNrlVX/DzURJHxIMBwdz/QYhhF9WCnDzzzUaK6ivzlsyH2MxzRwhwlaTc/J291k30SsNey5GmcVZO5YMqIjTlj7+OXK9BqQxLDS77WN+GJpRM2cFHs1VPrac/uVIZt1G9Agj83UDqXcXiuZsyx69Wn5//clyPNfVdcxUNK+tpxYgtFPU0X8s2Mm/3vwPxOAKNNyxOOnLvEguqPWkIaAf0gDxmtbPP913UClegalqsRjpZTb0l0F3C6vMoBSnfuDXlNRjCa4gcvWmK+m4eilUy3t+b1PJo4WAVowL4fYdEEbgVvvicKZEegQ0PwrYa6PxMOUsXlG24U2PwnmtIV7wehuSftrUBhWVCBomiTmv8+foGf7mhWxI1WhOMpK1kSibTk+aoGzXfDrnbuMNiwLJKrd4+WaEgT5t0kv4memNDdjGkITund8sDjr99QQuk+5O1XGgmrVatp8ltOFWafC0nDVNrx2merg0PWHiBFvynSVYvDR8/yVFeW40JD586CXfc1+E3LcirQ1XQaR6t91wK3UgNCpkUsInW1CqGWVKUDc+UMoFt+53auIHPWvp0XjE=
-X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 152946e8-89fc-4a03-9b6a-08d7f0f864af
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 May 2020 13:29:53.0648
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: zB1MTVHmxKXzta2D0xWmSRq4u2vNuVORPqgN5rjZcTH6ZcsfkcbsAHTSkNz51geSgCQARu8DTuHii6nbC+d/9g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB8PR04MB5596
+In-Reply-To: <49f20a91-9362-6249-d413-1461258d56a9@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Extract phy_id from compatible string. This will be used by
-fwnode_mdiobus_register_phy() to create phy device using the
-phy_id.
+On 5/5/20 2:55 PM, Hans de Goede wrote:
+> Hi All,
+> 
+> Commit 6d232b29cfce ("ACPICA: Dispatcher: always generate buffer
+> objects for ASL create_field() operator") has dropped the
+> automatic conversion of small buffers into integers.
+> 
+> But some drivers relied on this automatic conversion, these
+> drivers have checks like this:
+> 
+>          if (object->type != ACPI_TYPE_INTEGER) {
+>                  pr_warn("Invalid acpi_object: expected 0x%x got 0x%x\n",
+>                                  ACPI_TYPE_INTEGER, object->type);
+>                  kfree(object);
+>                  return -EINVAL;
+>          }
+> 
+> This specific bit comes from the sony-laptop (platform/x86) code,
+> the ACPICA change has broken this code, causing systems using this
+> driver to hang on resume from suspend.
+> 
+> We have multiple bug-reports open for this already:
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=207491
+> https://bugzilla.redhat.com/show_bug.cgi?id=1829096
+> https://bugzilla.redhat.com/show_bug.cgi?id=1830150
+> 
+> Mattia Dongili, the sony-laptop driver has already submitted
+> a fix for this upstream, adjusting the sony-laptop driver
+> to deal with the returned object type now being a BUFFER.
+> 
+> The goal of this email is to:
+> 
+> 1. Make everyone involved aware of this breakage as we
+> may see similar breakage elsewhere.
+> 
+> 2. Discuss if we should maybe revert the ACPICA change.
+> 
+> If you are reading this then 1. has been accomplished :)
+> 
+> Which leaves us with 2. I'm tending towards keeping the
+> change, since it seems the right thing to do and dealing
+> with the fallout. But since there is fallout we should
+> also at least consider reverting the ACPICA change.
+> 
+> So ACPI maintainers what is you take on this ?
+> 
+> Regards,
+> 
+> Hans
 
-Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
----
+Hi,
 
-Changes in v3: None
-Changes in v2: None
+I'd like to advise against reverting the commit. Quite honestly, I don't
+think reverting the commit is a good idea. This will break things for
+devices that assume Microsoft-like AML interpreter behavior _inside_ the
+DSDT. Such as the MS Surface devices for example, which, as stated in the
+commit message, depend on the type being Buffer via a check on
+ObjectType(...). There is no fix for those devices other than a)
+accepting MS behavior in ACPICA, b) introducing a quirk in ACPICA which
+switches between behaviors on a device basis, or c) patching the DSDT of
+those devices specifically for Linux.
 
- drivers/net/phy/phy_device.c | 21 +++++++++++++++++++++
- include/linux/phy.h          |  5 +++++
- 2 files changed, 26 insertions(+)
+I'd also argue that since this is MS behavior, this is the behavior that
+almost all consumer electronics devices with ACPI will expect. Case in
+point, the DSDT of one of the affected Sony laptops, which contains the
+following code:
 
-diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index 4204d49586cd..f4ad47f73f8d 100644
---- a/drivers/net/phy/phy_device.c
-+++ b/drivers/net/phy/phy_device.c
-@@ -662,6 +662,27 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
- }
- EXPORT_SYMBOL(phy_device_create);
- 
-+/* Extract the phy ID from the compatible string of the form
-+ * ethernet-phy-idAAAA.BBBB.
-+ */
-+int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
-+{
-+	const char *cp;
-+	unsigned int upper, lower;
-+	int ret;
-+
-+	ret = fwnode_property_read_string(fwnode, "compatible", &cp);
-+	if (!ret) {
-+		if (sscanf(cp, "ethernet-phy-id%4x.%4x",
-+			   &upper, &lower) == 2) {
-+			*phy_id = ((upper & 0xFFFF) << 16) | (lower & 0xFFFF);
-+			return 0;
-+		}
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(fwnode_get_phy_id);
-+
- /* get_phy_c45_devs_in_pkg - reads a MMD's devices in package registers.
-  * @bus: the target MII bus
-  * @addr: PHY address on the MII bus
-diff --git a/include/linux/phy.h b/include/linux/phy.h
-index f2664730a331..d78ae56509e1 100644
---- a/include/linux/phy.h
-+++ b/include/linux/phy.h
-@@ -1141,6 +1141,7 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
- 				     bool is_c45,
- 				     struct phy_c45_device_ids *c45_ids);
- #if IS_ENABLED(CONFIG_PHYLIB)
-+int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id);
- struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode);
- struct phy_device *device_phy_find_device(struct device *dev);
- struct fwnode_handle *fwnode_get_phy_node(struct fwnode_handle *fwnode);
-@@ -1148,6 +1149,10 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45);
- int phy_device_register(struct phy_device *phy);
- void phy_device_free(struct phy_device *phydev);
- #else
-+static inline int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
-+{
-+	return 0;
-+}
- static inline
- struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode)
- {
--- 
-2.17.1
+         CreateField (SNBF, Zero, 0x20, SNBD)
+         CreateWordField (SNBF, 0x02, CPW0)
+         CreateWordField (SNBF, 0x04, CPW1)
+         CreateWordField (SNBF, Zero, RCW0)
+         CreateWordField (SNBF, 0x02, RCW1)
+
+They explicitly create a Buffer field of 32 bits via CreateField and not
+a 32 bit Integer field via CreateDWordField. I'd argue that if they
+wanted this field to be an Integer, CreateDWordField would be the
+straight-forward approach.
+
+Unfortunately, I also don't see a way to identify all affected calls to
+ACPI functions automatically or easily, as this requires to look at the
+DSDTs and the code behind those calls. If you have DSDTs, here's a way
+to identify if that particular DSDT/driver combo is affected:
+
+If a call to an ACPI function expects an Integer and the ACPI function
+returns a field created with CreateField(...) and the field is smaller
+than 64 bits (on 64bit machines), then this call is affected.
+
+The only semi-reasonable way, as far as I can see, to identify this on a
+broad scale is to get this information out to the respective maintainers
+of drivers with apci_evaluate_{integer,object,dsm,..?} calls and ask them
+to check those calls against DSDTs. Also maybe help them by introducing a
+function which does Buffer-to-Integer conversion.
+
+Regards,
+Maximilian
+
 
