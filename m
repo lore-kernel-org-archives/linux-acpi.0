@@ -2,168 +2,176 @@ Return-Path: <SRS0=QAkL=6T=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA0A6C47254
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 14:22:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E74C47254
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 14:27:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 87B1F206FA
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 14:22:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4577B20675
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 May 2020 14:27:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fppBqTIE"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FMGNXT2f"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730617AbgEEOWI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 May 2020 10:22:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50152 "EHLO
+        id S1729247AbgEEO1w (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 May 2020 10:27:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1730616AbgEEOWH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2020 10:22:07 -0400
-Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A521AC061A0F;
-        Tue,  5 May 2020 07:22:07 -0700 (PDT)
-Received: by mail-pg1-x542.google.com with SMTP id b8so1072278pgi.11;
-        Tue, 05 May 2020 07:22:07 -0700 (PDT)
+        by vger.kernel.org with ESMTP id S1729346AbgEEO1t (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2020 10:27:49 -0400
+Received: from mail-pj1-x1031.google.com (mail-pj1-x1031.google.com [IPv6:2607:f8b0:4864:20::1031])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45F61C061A0F;
+        Tue,  5 May 2020 07:27:48 -0700 (PDT)
+Received: by mail-pj1-x1031.google.com with SMTP id t9so1215266pjw.0;
+        Tue, 05 May 2020 07:27:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=DGtEu1KsY1dr41QJrz50PNo/qEe9hhqV40ULoK/JQEY=;
-        b=fppBqTIEYFEQOtLCh6kQJwvY3nR8D9p8ij1Nzx+hThzSI07ASyz3kBNezKy+tic7KP
-         Zsf+wOm64CalAwkvMC2Mn9o9GRINg584C08ghOx8sZ4R8wGd/azhLscwrtMcgP/mYDnB
-         ZgRFeECtreW8oFOaEZr6Qg21KCWVxM01TVWPcQxJ2DMZ9UR37Nzdv0e41hgJ0k7F79h8
-         2JYbgfr495aRcvDK02NYDBI3LfbGcvRNNJN+672pBDjqas9b7zmCfil/XJjjqPYnS0P7
-         sIoQmrXY0ZceG8GEVLvJ9Y3oGMXtLSJXeRx2/ukitX0em9Qy7H+YEvjg3qurclkmeY3s
-         xjnw==
+        bh=0d2zCfXjqEkoPjXPCO2eW50jfsT6IHtXFCM1nqKnraI=;
+        b=FMGNXT2fKKRoI0Pby3QgAP4Puaf5obX+oQRGw4q02LmDjkOt+RB6cbjPh0JwHzPXfm
+         AHgHRP5heysnfoNbOXjMjPwe8r8YvUqZYGmP0RO83fTG6L+69/EfRbWXibcjJEy4klyV
+         ZkVXEgz1N+v2K2Upz/9ML8/Ba9tJGB9+/XJ9/7DVg8asisv+bu2bxXRwNeUmRu4GS+rQ
+         rnmONhdRXEj+ZJuD0x7PLI2XHbxKq8lKli1c1n4pX2VMrBHmcR28oHgqtcjOLi7KktiM
+         b8StMxT9POylTHoanWOo3dIONP33MQIuul6kPigKUGMMWQ3HZmwaUKYbJBSJB+xZNnaH
+         zY0w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=DGtEu1KsY1dr41QJrz50PNo/qEe9hhqV40ULoK/JQEY=;
-        b=r4QbKiuehOirAHmkQXQ9+tylWtr3Hanltq1D8hA0eP7+WTUmIMWi8mq9pHgE+HmzMu
-         JinNsrox4nMxR+Z6OvnSaaEZZ/sZ/BiVTfoNlO3ofiPJ9OKLrrWrsGEKQCaZKFYR/BEX
-         TijO9TswO0CNGBBRxrTxPa6/bd3y/E32q5y3HurziAfIuKC8V4+j608C8PlfI45TQIYX
-         1LQCU1E73fSpkyn5++mF7MaPd6Ym7LO6FuG1fdIc88ZaCdJpmW0izyTg6gBJ9KjaTRHf
-         37GjCFttVhTbJIiJWUjGY9sO9FED/QKRvc+2DUxREyEGnI5wWbYIYzAxcZBApT4ldSmm
-         CurQ==
-X-Gm-Message-State: AGi0PublH/Gc2piZWPhx7oErDGWNGwdyQFs9Zo5gH9jMPlmKmYTNFhqq
-        cHAfJs1WGZSH8UKaLtrSPHIxIyeySjkEfb2uUgI=
-X-Google-Smtp-Source: APiQypIUZH8pTQ1mbnyQiBF+62SPk1HAQJexRMaWRWP7pjcZ9uW5NVk9E1Cq2JTRPBaIyTEIMjg4XAmxWxh6LToXh94=
-X-Received: by 2002:a65:6251:: with SMTP id q17mr3052332pgv.4.1588688527041;
- Tue, 05 May 2020 07:22:07 -0700 (PDT)
+        bh=0d2zCfXjqEkoPjXPCO2eW50jfsT6IHtXFCM1nqKnraI=;
+        b=icpyOGM7V3Lj9PJQO6gvlswQnj7J4IHV0uB5If0bkIbI1vroxNNT5d99CedpzeCkbb
+         xXWtQsCfuN6zgdUL6a1yuiFhZb5gLw1hlspxqn4ElJYmgrT1cFPScKrkRSIxZCOrHz3L
+         aePNq+eoo/UmqwK9Spm0pCQh0XmzXhEI90mlxM3O1dlt5HItVqftUWzlIOihZw0C2eVe
+         BUpBlPI2/vr7iof0Fueo+Kc1x/HOOew0hrEHbtyoy2S/3B1UXJ12OzghauTFpuo96iEO
+         7O/HVkzDj/AbdhQt90pJNYpnlTI3Pl9WjIkqCBa9qzkwrJ6gOUSJ5uT4HRfoLBbz4gvQ
+         JCzA==
+X-Gm-Message-State: AGi0PuYTCai6Cv7s/X3Oj7Hh9T3qme0msReFwrkwSHl2/zur5q6T+Nmb
+        rsDqlbekm0iI2mD56ic+J3pJBM8AqYxoKD96cDs=
+X-Google-Smtp-Source: APiQypI3q+uz07fz96ONWB3ggyRrtBojxXIGIS+eu+fruU+zGJ0LKKFfiU+ajF4EFSxYHvXi9wX/IzALXoeJqGzIQko=
+X-Received: by 2002:a17:90a:fa81:: with SMTP id cu1mr3442100pjb.25.1588688867728;
+ Tue, 05 May 2020 07:27:47 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200505132905.10276-1-calvin.johnson@oss.nxp.com> <20200505132905.10276-6-calvin.johnson@oss.nxp.com>
-In-Reply-To: <20200505132905.10276-6-calvin.johnson@oss.nxp.com>
+References: <20200502182951.114231-1-hdegoede@redhat.com> <20200502182951.114231-5-hdegoede@redhat.com>
+ <7c3e5f844a224ff780cd8e3b3f5f7641@AUSX13MPC101.AMER.DELL.COM>
+ <13a8ec94-1eae-4d95-7238-85c612ebc896@redhat.com> <afe7c366c97f4ab18d5a98a9695ceff6@AUSX13MPC101.AMER.DELL.COM>
+In-Reply-To: <afe7c366c97f4ab18d5a98a9695ceff6@AUSX13MPC101.AMER.DELL.COM>
 From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Tue, 5 May 2020 17:22:00 +0300
-Message-ID: <CAHp75VfOcQiACsOcfWyJSP1dzdYpaCa-_KKf==4YCkaM_Wk3Tg@mail.gmail.com>
-Subject: Re: [net-next PATCH v3 5/5] net: mdiobus: Introduce fwnode_mdiobus_register_phy()
-To:     Calvin Johnson <calvin.johnson@oss.nxp.com>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        linux.cj@gmail.com, Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Varun Sethi <V.Sethi@nxp.com>,
-        "Rajesh V . Bikkina" <rajesh.bikkina@nxp.com>,
+Date:   Tue, 5 May 2020 17:27:41 +0300
+Message-ID: <CAHp75VcNJFfgshhL_pYsHodF1pMNySw08Z_4jr-vVkE-Xpj_ng@mail.gmail.com>
+Subject: Re: [PATCH 4/5] platform/x86: intel-vbtn: Also handle tablet-mode
+ switch on "Detachable" and "Portable" chassis-types
+To:     Mario Limonciello <Mario.Limonciello@dell.com>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        netdev <netdev@vger.kernel.org>, Marcin Wojtas <mw@semihalf.com>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        Makarand Pawagi <makarand.pawagi@nxp.com>,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        Pankaj Bansal <pankaj.bansal@nxp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Heiner Kallweit <hkallweit1@gmail.com>
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, May 5, 2020 at 4:30 PM Calvin Johnson
-<calvin.johnson@oss.nxp.com> wrote:
+On Tue, May 5, 2020 at 5:22 PM <Mario.Limonciello@dell.com> wrote:
 >
-> Introduce fwnode_mdiobus_register_phy() to register PHYs on the
-> mdiobus. From the compatible string, identify whether the PHY is
-> c45 and based on this create a PHY device instance which is
-> registered on the mdiobus.
+> > -----Original Message-----
+> > From: platform-driver-x86-owner@vger.kernel.org <platform-driver-x86-
+> > owner@vger.kernel.org> On Behalf Of Hans de Goede
+> > Sent: Tuesday, May 5, 2020 4:06 AM
+> > To: Limonciello, Mario; dvhart@infradead.org; andy@infradead.org
+> > Cc: linux-acpi@vger.kernel.org; platform-driver-x86@vger.kernel.org; linux-
+> > kernel@vger.kernel.org
+> > Subject: Re: [PATCH 4/5] platform/x86: intel-vbtn: Also handle tablet-mode
+> > switch on "Detachable" and "Portable" chassis-types
+> >
+> >
+> > [EXTERNAL EMAIL]
+> >
+> > Hi,
+> >
+> > On 5/4/20 5:37 PM, Mario.Limonciello@dell.com wrote:
+> > >
+> > >
+> > >> -----Original Message-----
+> > >> From: Hans de Goede <hdegoede@redhat.com>
+> > >> Sent: Saturday, May 2, 2020 1:30 PM
+> > >> To: Darren Hart; Andy Shevchenko; Limonciello, Mario
+> > >> Cc: Hans de Goede; linux-acpi@vger.kernel.org; platform-driver-
+> > >> x86@vger.kernel.org; linux-kernel@vger.kernel.org
+> > >> Subject: [PATCH 4/5] platform/x86: intel-vbtn: Also handle tablet-mode
+> > switch
+> > >> on "Detachable" and "Portable" chassis-types
+> > >>
+> > >>
+> > >> [EXTERNAL EMAIL]
+> > >>
+> > >> Commit de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode
+> > >> switch on 2-in-1's") added a DMI chassis-type check to avoid accidentally
+> > >> reporting SW_TABLET_MODE = 1 to userspace on laptops.
+> > >>
+> > >> Some devices with a detachable keyboard and using the intel-vbnt (INT33D6)
+> > >> interface to report if they are in tablet mode (keyboard detached) or not,
+> > >> report 32 / "Detachable" as chassis-type, e.g. the HP Pavilion X2 series.
+> > >>
+> > >> Other devices with a detachable keyboard and using the intel-vbnt (INT33D6)
+> > >> interface to report SW_TABLET_MODE, report 8 / "Portable" as chassis-type.
+> > >> The Dell Venue 11 Pro 7130 is an example of this.
+> > >>
+> > >> Extend the DMI chassis-type check to also accept Portables and Detachables
+> > >> so that the intel-vbtn driver will report SW_TABLET_MODE on these devices.
+> > >>
+> > >> Note the chassis-type check was originally added to avoid a false-positive
+> > >> tablet-mode report on the Dell XPS 9360 laptop. To the best of my knowledge
+> > >> that laptop is using a chassis-type of 9 / "Laptop", so after this commit
+> > >> we still ignore the tablet-switch for that chassis-type.
+> > >
+> > > Yes that's correct.
+> > >
+> > >>
+> > >> Fixes: de9647efeaa9 ("platform/x86: intel-vbtn: Only activate tablet mode
+> > >> switch on 2-in-1's")
+> > >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> > >> ---
+> > >> Looking at the Microsoft Windows documentation for tablet-mode reporting:
+> > >> https://docs.microsoft.com/en-us/windows-hardware/drivers/gpiobtn/button-
+> > >> implementation
+> > >>
+> > >> Then the presence of a tablet-mode switch is indicated by the presence
+> > >> of a PNP0C60 compatible ACPI devices. There are 2 ways in which this device
+> > >> can report the tablet-mode. 1. Directly providing a GpioInt resource inside
+> > >> the PNP0C60 device, 2. Through injecting events from a Windows driver.
+> > >>
+> > >> It seems that the intel-vbtn / the INT33D6 ACPI device is the ACPI side
+> > >> of Intel's generic solution for the case where the tablet-mode comes from
+> > >> the embedded-controller and needs to be "injected".
+> > >>
+> > >> This all suggests that it might be better to replace the chassis-type
+> > >> check with a acpi_dev_present("PNP0C60", NULL, -1) check.
+> > >>
+> > >> Mario, can you provide an acpidump and alsa-info.sh output for the
+> > >> Dell XPS 9360, so that I can check if that might help with the issue
+> > >> there, and thus is a potential candidate to replace the chassis-type
+> > >> check?
+> > >
+> > > Unfortunately with WFH right now, I don't have access to a XPS 9630 to
+> > > double check the patch series.
+> > >
+> > > However I do agree this should be a good approach.
+> >
+> > Ok, so lets stick with the chassis-type check (as amended by this patch)
+> > for now then. Then once you are able to go to your office again, we
+> > can examine the acpi_dev_present("PNP0C60", NULL, -1) alternative.
+>
+> I know XPS 13's are pretty popular, perhaps someone on the mailing list who has
+> one can share ACPI dump in the interim.
 
-...
-
-> +int fwnode_mdiobus_register_phy(struct mii_bus *bus,
-> +                               struct fwnode_handle *child, u32 addr)
-> +{
-> +       struct phy_device *phy;
-
-> +       bool is_c45 = false;
-
-Redundant assignment, see below.
-
-> +       const char *cp;
-> +       u32 phy_id;
-> +       int rc;
-> +
-
-> +       fwnode_property_read_string(child, "compatible", &cp);
-
-Consider rc = ...; otherwise you will have UB below.
-
-> +       if (!strcmp(cp, "ethernet-phy-ieee802.3-c45"))
-
-UB!
-
-> +               is_c45 = true;
-
-is_c45 = !(rc || strcmp(...));
-
-> +       if (!is_c45 && !fwnode_get_phy_id(child, &phy_id))
-
-Perhaps positive conditional
-
-if (is_c45 || fwnode_...(...))
-  get_phy_device();
-else
-  ...
-
-> +               phy = phy_device_create(bus, addr, phy_id, 0, NULL);
-> +       else
-> +               phy = get_phy_device(bus, addr, is_c45);
-> +       if (IS_ERR(phy))
-> +               return PTR_ERR(phy);
-> +
-> +       phy->irq = bus->irq[addr];
-> +
-> +       /* Associate the fwnode with the device structure so it
-> +        * can be looked up later.
-> +        */
-> +       phy->mdio.dev.fwnode = child;
-> +
-> +       /* All data is now stored in the phy struct, so register it */
-> +       rc = phy_device_register(phy);
-> +       if (rc) {
-> +               phy_device_free(phy);
-
-> +               fwnode_handle_put(child);
-
-Shouldn't mdio.dev.fwnode be put rather than child (yes, I see the assignment)
-
-> +               return rc;
-> +       }
-> +
-> +       dev_dbg(&bus->dev, "registered phy at address %i\n", addr);
-> +
-> +       return 0;
-> +}
+https://github.com/intel/dptfxtract/issues/13
+?
 
 -- 
 With Best Regards,
