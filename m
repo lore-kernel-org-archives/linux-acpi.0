@@ -2,77 +2,245 @@ Return-Path: <SRS0=rlKP=6V=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD438C47257
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:16:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DE8FC38A24
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 10:15:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBB6C2078C
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:16:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D63572186A
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 10:15:30 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="B5QYluKJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725953AbgEGJQQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 May 2020 05:16:16 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:36574 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725923AbgEGJQQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 7 May 2020 05:16:16 -0400
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 5D328569DE4C27DD665D;
-        Thu,  7 May 2020 17:16:06 +0800 (CST)
-Received: from linux-ibm.site (10.175.102.37) by
- DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 7 May 2020 17:15:58 +0800
-From:   Hanjun Guo <guohanjun@huawei.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC:     James Morse <james.morse@arm.com>, Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>, <linux-acpi@vger.kernel.org>,
-        Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 0/9] ACPI: Call acpi_put_table() to release the ACPI table mappings
-Date:   Thu, 7 May 2020 17:09:12 +0800
-Message-ID: <1588842561-32907-1-git-send-email-guohanjun@huawei.com>
-X-Mailer: git-send-email 1.7.12.4
+        id S1725953AbgEGKPa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 May 2020 06:15:30 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:26968 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725893AbgEGKP3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2020 06:15:29 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1588846527;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=28J0wM8FSO+gLlCMWFny6wSN2sJ0Eg75ZijOfB4R940=;
+        b=B5QYluKJS6X49b7fIIO2GeuXEVIneLUcmrF2AjZsp3wWy/Kz9eafomixZr734HSNnqciEo
+        jwKflSrw3arVtCR/QtTBy+f/14mS9Z26GlahkHEmrOp6sUluLk6gRBhM+p/i4eO66Vi24W
+        OsYTS51Bvv7F+fBn5mRgQa4HpBJo1Is=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-106-hhz9-SsZOm6KFWaApVhOCQ-1; Thu, 07 May 2020 06:15:12 -0400
+X-MC-Unique: hhz9-SsZOm6KFWaApVhOCQ-1
+Received: by mail-wr1-f70.google.com with SMTP id u4so3144960wrm.13
+        for <linux-acpi@vger.kernel.org>; Thu, 07 May 2020 03:15:12 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=28J0wM8FSO+gLlCMWFny6wSN2sJ0Eg75ZijOfB4R940=;
+        b=RhLOkFoVBYX3k3noHmQsbBaNgFr265AvMJhxoAaTD8PfnCNLn5+xUj5HfOD4Pqk/md
+         SlwO1URdukU4HF3rzE8flpPccM6a+EeayT9D4MCzxmDnET3T0jjkPKXPEvj1d03Mjb+p
+         /0l99MvNlDCekP1mGOibDubQxnnYK/olCw8ED08FA5k1MAFqFlnGyTwhkEk6FF0BlONZ
+         Bvw9/5rjF21oQjdcpp0cQl5ZIx8il8Gm/GViDco6GvLg4CCQ4bn8kNV6vLUIo5tqhSwr
+         CNG92ydgCmcbC4DF+S7Vw6cAPCkqaYDEdkmkBKAkb0x0cN+LxKt2tI4CiErPmkZUV+wI
+         fiDQ==
+X-Gm-Message-State: AGi0PuY7fuabqAW0mG0IrKDCF2BJvT13XbtDlB5QWBOen8SHQSnHfwt6
+        QLZ3xGpGQy8ssCCFYAYYEA12cQ2lQpZPzFFuKYe1v3Lf1F6QzxVVTEebrGG7wEo2eHh+/Y48o3u
+        AC+ym6CUEXBVP92wdkGkmig==
+X-Received: by 2002:a5d:5646:: with SMTP id j6mr15696582wrw.207.1588846510768;
+        Thu, 07 May 2020 03:15:10 -0700 (PDT)
+X-Google-Smtp-Source: APiQypK2xT6JtFSwdPS8WS/+fUDarjawSg9Ssq0Uu6J56P4ODn9Q1qqkNllbI6Px2XrTjWeSd+Qr0A==
+X-Received: by 2002:a5d:5646:: with SMTP id j6mr15696553wrw.207.1588846510476;
+        Thu, 07 May 2020 03:15:10 -0700 (PDT)
+Received: from x1.localdomain (2001-1c00-0c0c-fe00-d2ea-f29d-118b-24dc.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:d2ea:f29d:118b:24dc])
+        by smtp.gmail.com with ESMTPSA id 92sm7314402wrm.71.2020.05.07.03.15.09
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 07 May 2020 03:15:09 -0700 (PDT)
+Subject: Re: [PATCH v2] pinctrl: cherryview: Ensure _REG(ACPI_ADR_SPACE_GPIO,
+ 1) gets called
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
+        stable@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Bob Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+References: <20200504145957.480418-1-hdegoede@redhat.com>
+ <20200506064057.GU487496@lahna.fi.intel.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <f7ebb693-94ec-fd9f-c0a8-cfe8f9d4e9bf@redhat.com>
+Date:   Thu, 7 May 2020 12:15:09 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.102.37]
-X-CFilter-Loop: Reflected
+In-Reply-To: <20200506064057.GU487496@lahna.fi.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The acpi_get_table() should be coupled with acpi_put_table() if the
-mapped table is not used for runtime after the initialization, or the
-error path or the initialization, to release the table mapping.
+Hi,
 
-This patchset just scan for every acpi_get_table() in ACPI subsystem to
-see if acpi_put_table() is needed, this is not urgent and I think can
-be merged for 5.8 if this patchset makes sense.
+On 5/6/20 8:40 AM, Mika Westerberg wrote:
+> +Rafael and ACPICA folks.
+> 
+> On Mon, May 04, 2020 at 04:59:57PM +0200, Hans de Goede wrote:
+>> On Cherry Trail devices there are 2 possible ACPI OpRegions for
+>> accessing GPIOs. The standard GeneralPurposeIo OpRegion and the Cherry
+>> Trail specific UserDefined 0x9X OpRegions.
+>>
+>> Having 2 different types of OpRegions leads to potential issues with
+>> checks for OpRegion availability, or in other words checks if _REG has
+>> been called for the OpRegion which the ACPI code wants to use.
+>>
+>> The ACPICA core does not call _REG on an ACPI node which does not
+>> define an OpRegion matching the type being registered; and the reference
+>> design DSDT, from which most Cherry Trail DSDTs are derived, does not
+>> define GeneralPurposeIo, nor UserDefined(0x93) OpRegions for the GPO2
+>> (UID 3) device, because no pins were assigned ACPI controlled functions
+>> in the reference design.
+>>
+>> Together this leads to the perfect storm, at least on the Cherry Trail
+>> based Medion Akayo E1239T. This design does use a GPO2 pin from its ACPI
+>> code and has added the Cherry Trail specific UserDefined(0x93) opregion
+>> to its GPO2 ACPI node to access this pin.
+>>
+>> But it uses a has _REG been called availability check for the standard
+>> GeneralPurposeIo OpRegion. This clearly is a bug in the DSDT, but this
+>> does work under Windows.
+> 
+> Do we know why this works under Windows? I mean if possible we should do
+> the same and I kind of suspect that they forcibly call _REG in their
+> GPIO driver.
 
-Hanjun Guo (9):
-  ACPI: LPIT: Put the low power idle table after using it
-  ACPI: watchdog: Put the watchdog action table after parsing
-  ACPI: APEI: Put the boot error record table after parsing
-  ACPI: APEI: Put the error injection table for error path and module
-    exit
-  ACPI: APEI: Put the error record serialization table for error path
-  ACPI: APEI: Put the HEST table for error path
-  ACPI: EC: Put the ACPI table after using it
-  ACPI: scan: Put SPCR and STAO table after using it
-  ACPI: sleep: Put the FACS table after using it
+Windows has its own ACPI implementation, so it could also be that their
+equivalent of the:
 
- drivers/acpi/acpi_lpit.c     |  3 ++-
- drivers/acpi/acpi_watchdog.c |  7 +++++--
- drivers/acpi/apei/bert.c     |  6 ++++--
- drivers/acpi/apei/einj.c     |  5 ++++-
- drivers/acpi/apei/erst.c     |  4 +++-
- drivers/acpi/apei/hest.c     |  5 +++--
- drivers/acpi/ec.c            | 14 ++++++++++----
- drivers/acpi/scan.c          | 15 ++++++++++-----
- drivers/acpi/sleep.c         |  4 +++-
- 9 files changed, 44 insertions(+), 19 deletions(-)
+         status = acpi_install_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
+                                                     acpi_gpio_adr_space_handler,
+                                                     NULL, achip);
 
--- 
-1.7.12.4
+Call from drivers/gpio/gpiolib-acpi.c indeed always calls _REG on the handle
+without checking that there is an actual OpRegion with a space-id
+of ACPI_ADR_SPACE_GPIO defined, as the ACPICA code does.  Note that the
+current ACPICA code would require significant rework to allow this, or
+it would need to add a _REG call at the end of acpi_install_address_space_handler(),
+potentially calling _REG twice in many cases.
+
+We could move the manual _REG call I'm adding to pinctrl-cherry-view.c
+but that has the same issue of calling _REG twice in many cases.
+
+Most (all?) _REG implementations are fine with that, as they just set a
+variable to 1 (to the Arg1 value). Still calling _REG twice is something
+which we might want to avoid.
+
+As a compromise I've chosen to add the extra unconditional _REG call
+to pinctrl-cherryview.c because:
+
+1. The problem in the DSDT in question stems from there being 2
+different OpRegions for accessing GPIOs which AFAIK is unique to
+cherryview
+
+2. I've seen many many cherryview DSDT-s and as such I'm confident
+that calling _REG twice is not an issue on cherryview.
+
+> Are the ACPI tables from this system available somewhere?
+
+Here you go:
+https://fedorapeople.org/~jwrdegoede/medion-e1239t-dsdt.dsl
+
+The problem is that on line 12624 there is a GPO2.AVBL == One
+check, before GPO2.DCDT is used. If you then look at line
+17688 you see that _REG for the GPO2 device checkes for a
+space-id of 8 (ACPI_ADR_SPACE_GPIO) to set AVBL
+
+But the only OpRegion defined for the GPO2 device, and the
+OpRegion to which GPO2.DCDT is mapped is the cherryview
+UserDefined 0x93 GPIO access OpRegion, see line 17760.
+Since there is no OpRegion for the ACPI_ADR_SPACE_GPIO
+space-id, ACPICA never calls _REG with Arg0 == 8.
+
+So as already mentioned the problem stems from the confusion
+of there being 2 different OpRegions for accessing GPIOs
+on cherryview.
+
+Regards,
+
+Hans
+
+
+
+>> This issue leads to the intel_vbtn driver
+>> reporting the device always being in tablet-mode at boot, even if it
+>> is in laptop mode. Which in turn causes userspace to ignore touchpad
+>> events. So iow this issues causes the touchpad to not work at boot.
+>>
+>> Since the bug in the DSDT stems from the confusion of having 2 different
+>> OpRegion types for accessing GPIOs on Cherry Trail devices, I believe
+>> that this is best fixed inside the Cherryview pinctrl driver.
+>>
+>> This commit adds a workaround to the Cherryview pinctrl driver so
+>> that the DSDT's expectations of _REG always getting called for the
+>> GeneralPurposeIo OpRegion are met.
+> 
+> I would like to understand the issue bit better before we do this.
+> 
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>> Changes in v2:
+>> - Drop unnecessary if (acpi_has_method(adev->handle, "_REG")) check
+>> - Fix Cherryview spelling in the commit message
+>> ---
+>>   drivers/pinctrl/intel/pinctrl-cherryview.c | 18 ++++++++++++++++++
+>>   1 file changed, 18 insertions(+)
+>>
+>> diff --git a/drivers/pinctrl/intel/pinctrl-cherryview.c b/drivers/pinctrl/intel/pinctrl-cherryview.c
+>> index 4c74fdde576d..4817aec114d6 100644
+>> --- a/drivers/pinctrl/intel/pinctrl-cherryview.c
+>> +++ b/drivers/pinctrl/intel/pinctrl-cherryview.c
+>> @@ -1693,6 +1693,8 @@ static acpi_status chv_pinctrl_mmio_access_handler(u32 function,
+>>   
+>>   static int chv_pinctrl_probe(struct platform_device *pdev)
+>>   {
+>> +	struct acpi_object_list input;
+>> +	union acpi_object params[2];
+>>   	struct chv_pinctrl *pctrl;
+>>   	struct acpi_device *adev;
+>>   	acpi_status status;
+>> @@ -1755,6 +1757,22 @@ static int chv_pinctrl_probe(struct platform_device *pdev)
+>>   	if (ACPI_FAILURE(status))
+>>   		dev_err(&pdev->dev, "failed to install ACPI addr space handler\n");
+>>   
+>> +	/*
+>> +	 * Some DSDT-s use the chv_pinctrl_mmio_access_handler while checking
+>> +	 * for the regular GeneralPurposeIo OpRegion availability, mixed with
+>> +	 * the DSDT not defining a GeneralPurposeIo OpRegion at all. In this
+>> +	 * case the ACPICA code will not call _REG to signal availability of
+>> +	 * the GeneralPurposeIo OpRegion. Manually call _REG here so that
+>> +	 * the DSDT-s GeneralPurposeIo availability checks will succeed.
+>> +	 */
+>> +	params[0].type = ACPI_TYPE_INTEGER;
+>> +	params[0].integer.value = ACPI_ADR_SPACE_GPIO;
+>> +	params[1].type = ACPI_TYPE_INTEGER;
+>> +	params[1].integer.value = 1;
+>> +	input.count = 2;
+>> +	input.pointer = params;
+>> +	acpi_evaluate_object(adev->handle, "_REG", &input, NULL);
+>> +
+>>   	platform_set_drvdata(pdev, pctrl);
+>>   
+>>   	return 0;
+>> -- 
+>> 2.26.0
+> 
 
