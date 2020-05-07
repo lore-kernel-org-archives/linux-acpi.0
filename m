@@ -2,136 +2,124 @@ Return-Path: <SRS0=rlKP=6V=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4572CC54E49
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 15:09:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AE0EC38A24
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 16:40:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 257F020838
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 15:09:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2DA7216FD
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 16:40:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1588869612;
+	bh=GG1N4eYVC6gF2jkWtOf+2i+94GM+Npe39EG8Lf+ifms=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=NAPCIvPygseTPQ6mQItVnI5XrjO8oDrxRmW8P0Jny+B26LVsjwln2ePiszKcEVogl
+	 bSv09mn/y27w2W+G3PltnYN6Ivzefx4Y07tv+nTpWHaKygeh+8tOVE2HpAHx5kh9hd
+	 FBKRLyroRYV+N3uAAEj/a6IEBFONMbmgnkBrA8eA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727119AbgEGPJH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 May 2020 11:09:07 -0400
-Received: from mga09.intel.com ([134.134.136.24]:51959 "EHLO mga09.intel.com"
+        id S1726788AbgEGQkM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 May 2020 12:40:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726074AbgEGPJG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 7 May 2020 11:09:06 -0400
-IronPort-SDR: gS1L6o4TKnqL34qvH0708YlAerJyLAN5izssj4p92lZ6FoJVJjYjKGDSS5g3/fiD8vdJGY/uWT
- 5YYFfw+h+bDA==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2020 08:09:05 -0700
-IronPort-SDR: QC+4mudJ9wfcqdNd0xGussco6cO6WWj0JFCpTHA8voeqeFU9tklzAMCAFiyXnmomrdpqwOANda
- zMqM74xOhS2w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,364,1583222400"; 
-   d="scan'208";a="370143308"
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 07 May 2020 08:09:03 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Prashant Malani <pmalani@chromium.org>,
-        Benson Leung <bleung@chromium.org>, linux-usb@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [PATCH 1/4] usb: typec: Add typec_find_orientation()
-Date:   Thu,  7 May 2020 18:08:57 +0300
-Message-Id: <20200507150900.12102-2-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200507150900.12102-1-heikki.krogerus@linux.intel.com>
-References: <20200507150900.12102-1-heikki.krogerus@linux.intel.com>
+        id S1726222AbgEGQkM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 May 2020 12:40:12 -0400
+Received: from mail-io1-f42.google.com (mail-io1-f42.google.com [209.85.166.42])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7BFD02084D
+        for <linux-acpi@vger.kernel.org>; Thu,  7 May 2020 16:40:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1588869611;
+        bh=GG1N4eYVC6gF2jkWtOf+2i+94GM+Npe39EG8Lf+ifms=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=HgJwnUm2oLXN80bpkEvbRGUcxO7po8C3x+eey1I1d9h16G8qEy4dyYPWtHMA+/CU8
+         wMP9Z9o7JuhBTBldGAWOeFWND8Css3TFi7aacE4S84ZElrx+cepmd8zVX0UWmm6+CO
+         mDQ/VUMY2FfS/WO8rZqbmImH6hXwc58bgV3p6Rko=
+Received: by mail-io1-f42.google.com with SMTP id d7so2790076ioq.5
+        for <linux-acpi@vger.kernel.org>; Thu, 07 May 2020 09:40:11 -0700 (PDT)
+X-Gm-Message-State: AGi0PuYQZX2ujFsaxdQdZ6u2rCmBvooFoFQOJUACIRXC15jqXQG9w+Fy
+        QsM46fs53+CXIJ9+iRf7aotn8mXtunrj4XVYANk=
+X-Google-Smtp-Source: APiQypJU8CxXD0K+wmjkUZLW0ktGnLc+EwVNbQw+UBmlCqtOEoPpKmbWJbvupmPg1sRh5Xk+l48nSrDsKKRjQXG30+w=
+X-Received: by 2002:a02:3341:: with SMTP id k1mr13309473jak.74.1588869610945;
+ Thu, 07 May 2020 09:40:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <1588858868-18039-1-git-send-email-guohanjun@huawei.com>
+ <CAMj1kXHGfW=OKLO1S1Mf__9TzNXkrZ5BNvD8H_QYUTtF+awwpg@mail.gmail.com>
+ <251b222a-7340-2d06-f07b-f81a9c19ac43@huawei.com> <628896e3-e43f-5814-a5ff-2bd5de223f20@huawei.com>
+In-Reply-To: <628896e3-e43f-5814-a5ff-2bd5de223f20@huawei.com>
+From:   Ard Biesheuvel <ardb@kernel.org>
+Date:   Thu, 7 May 2020 18:39:59 +0200
+X-Gmail-Original-Message-ID: <CAMj1kXHY1mwtWYe3JnO4Gw_oEqSgNLiRxVyFFR2rxp4nh6sF0g@mail.gmail.com>
+Message-ID: <CAMj1kXHY1mwtWYe3JnO4Gw_oEqSgNLiRxVyFFR2rxp4nh6sF0g@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: IORT: Add extra message "applying workaround" for
+ off-by-1 issue
+To:     Hanjun Guo <guohanjun@huawei.com>
+Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Will Deacon <will@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Function that converts orientation string into orientation
-value.
+On Thu, 7 May 2020 at 16:02, Hanjun Guo <guohanjun@huawei.com> wrote:
+>
+> On 2020/5/7 21:53, Hanjun Guo wrote:
+> > Hi Ard,
+> >
+> > On 2020/5/7 21:49, Ard Biesheuvel wrote:
+> >> On Thu, 7 May 2020 at 15:47, Hanjun Guo <guohanjun@huawei.com> wrote:
+> >>>
+> >>> As we already applied a workaround for the off-by-1 issue,
+> >>> it's good to add extra message "applying workaround" to
+> >>> make people less uneasy to see such message in the boot log.
+> >>>
+> >>> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+> >>
+> >> Hi Hanjun,
+> >>
+> >>> ---
+> >>>
+> >>> Based on top of for-next/acpi branch of ARM64 repo
+> >>>
+> >>>   drivers/acpi/arm64/iort.c | 2 +-
+> >>>   1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >>> index b011d25..f3d492a 100644
+> >>> --- a/drivers/acpi/arm64/iort.c
+> >>> +++ b/drivers/acpi/arm64/iort.c
+> >>> @@ -328,7 +328,7 @@ static int iort_id_map(struct
+> >>> acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+> >>>                   * Otherwise, things are *really* broken, and we
+> >>> just disregard
+> >>>                   * duplicate matches entirely to retain compatibility.
+> >>>                   */
+> >>> -               pr_err(FW_BUG "[map %p] conflicting mapping for input
+> >>> ID 0x%x\n",
+> >>> +               pr_err(FW_BUG "[map %p] conflicting mapping for input
+> >>> ID 0x%x, applying workaround\n",
+> >>
+> >> This is not correct. The workaround is only applied if rid_in ==
+> >> map->input_base, so better to print a second line after the 'return'
+> >> below that is only reached in that particular case.
+> >
+> > Obvious I'm wrong, I will update this patch, thanks a lot!
+>
+> By the way, how about the print below? Should I add something more?
+>
+>                  if (rid_in != map->input_base)
+>                          return -ENXIO;
+> +
+> +         pr_err(FW_BUG "applying workaround for the conflicting
+> mapping\n");
+>
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/usb/typec/class.c | 36 ++++++++++++++++++++++++------------
- include/linux/usb/typec.h |  1 +
- 2 files changed, 25 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/usb/typec/class.c b/drivers/usb/typec/class.c
-index 8d894bdff77d..c9234748537a 100644
---- a/drivers/usb/typec/class.c
-+++ b/drivers/usb/typec/class.c
-@@ -917,6 +917,12 @@ EXPORT_SYMBOL_GPL(typec_unregister_cable);
- /* ------------------------------------------------------------------------- */
- /* USB Type-C ports */
- 
-+static const char * const typec_orientations[] = {
-+	[TYPEC_ORIENTATION_NONE]	= "unknown",
-+	[TYPEC_ORIENTATION_NORMAL]	= "normal",
-+	[TYPEC_ORIENTATION_REVERSE]	= "reverse",
-+};
-+
- static const char * const typec_roles[] = {
- 	[TYPEC_SINK]	= "sink",
- 	[TYPEC_SOURCE]	= "source",
-@@ -1248,18 +1254,9 @@ static ssize_t orientation_show(struct device *dev,
- 				   struct device_attribute *attr,
- 				   char *buf)
- {
--	struct typec_port *p = to_typec_port(dev);
--	enum typec_orientation orientation = typec_get_orientation(p);
--
--	switch (orientation) {
--	case TYPEC_ORIENTATION_NORMAL:
--		return sprintf(buf, "%s\n", "normal");
--	case TYPEC_ORIENTATION_REVERSE:
--		return sprintf(buf, "%s\n", "reverse");
--	case TYPEC_ORIENTATION_NONE:
--	default:
--		return sprintf(buf, "%s\n", "unknown");
--	}
-+	struct typec_port *port = to_typec_port(dev);
-+
-+	return sprintf(buf, "%s\n", typec_orientations[port->orientation]);
- }
- static DEVICE_ATTR_RO(orientation);
- 
-@@ -1451,6 +1448,21 @@ void typec_set_pwr_opmode(struct typec_port *port,
- }
- EXPORT_SYMBOL_GPL(typec_set_pwr_opmode);
- 
-+/**
-+ * typec_find_orientation - Convert orientation string to enum typec_orientation
-+ * @name: Orientation string
-+ *
-+ * This routine is used to find the typec_orientation by its string name @name.
-+ *
-+ * Returns the orientation value on success, otherwise negative error code.
-+ */
-+int typec_find_orientation(const char *name)
-+{
-+	return match_string(typec_orientations, ARRAY_SIZE(typec_orientations),
-+			    name);
-+}
-+EXPORT_SYMBOL_GPL(typec_find_orientation);
-+
- /**
-  * typec_find_port_power_role - Get the typec port power capability
-  * @name: port power capability string
-diff --git a/include/linux/usb/typec.h b/include/linux/usb/typec.h
-index b00a2642a9cd..5daa1c49761c 100644
---- a/include/linux/usb/typec.h
-+++ b/include/linux/usb/typec.h
-@@ -254,6 +254,7 @@ int typec_set_mode(struct typec_port *port, int mode);
- 
- void *typec_get_drvdata(struct typec_port *port);
- 
-+int typec_find_orientation(const char *name);
- int typec_find_port_power_role(const char *name);
- int typec_find_power_role(const char *name);
- int typec_find_port_data_role(const char *name);
--- 
-2.26.2
-
+Simply 'applying workaround' should do it imo.
