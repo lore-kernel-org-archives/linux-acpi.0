@@ -6,32 +6,32 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C396C38A24
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80F35C47257
 	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:16:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F27F2075E
+	by mail.kernel.org (Postfix) with ESMTP id 626C721582
 	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:16:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726308AbgEGJQK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1725985AbgEGJQK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Thu, 7 May 2020 05:16:10 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:36508 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:36626 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725985AbgEGJQK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1725939AbgEGJQK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Thu, 7 May 2020 05:16:10 -0400
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 5909F2A0D55836450B63;
+        by Forcepoint Email with ESMTP id 64C4CA3A8AEB6D954CDB;
         Thu,  7 May 2020 17:16:06 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 7 May 2020 17:15:59 +0800
+ 14.3.487.0; Thu, 7 May 2020 17:16:00 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 CC:     James Morse <james.morse@arm.com>, Tony Luck <tony.luck@intel.com>,
         Borislav Petkov <bp@alien8.de>, <linux-acpi@vger.kernel.org>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 3/9] ACPI: APEI: Put the boot error record table after parsing
-Date:   Thu, 7 May 2020 17:09:15 +0800
-Message-ID: <1588842561-32907-4-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 4/9] ACPI: APEI: Put the error injection table for error path and module exit
+Date:   Thu, 7 May 2020 17:09:16 +0800
+Message-ID: <1588842561-32907-5-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1588842561-32907-1-git-send-email-guohanjun@huawei.com>
 References: <1588842561-32907-1-git-send-email-guohanjun@huawei.com>
@@ -44,45 +44,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The mapped boot error record table is not used after
-bert_init(), release it.
+The mapped error injection table will be used after einj_init()
+for debugfs, but it should be released for module exit and error
+path of einj_init().
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/apei/bert.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/apei/einj.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-index 1155fb9..19e50fc 100644
---- a/drivers/acpi/apei/bert.c
-+++ b/drivers/acpi/apei/bert.c
-@@ -119,7 +119,7 @@ static int __init bert_init(void)
- 	rc = bert_check_table(bert_tab);
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 086373f..13315675 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -692,7 +692,7 @@ static int __init einj_init(void)
+ 	rc = einj_check_table(einj_tab);
  	if (rc) {
- 		pr_err(FW_BUG "table invalid.\n");
--		return rc;
-+		goto out_put_bert_tab;
+ 		pr_warn(FW_BUG "Invalid EINJ table.\n");
+-		return -EINVAL;
++		goto err_put_table;
  	}
  
- 	region_len = bert_tab->region_length;
-@@ -127,7 +127,7 @@ static int __init bert_init(void)
- 	rc = apei_resources_add(&bert_resources, bert_tab->address,
- 				region_len, true);
- 	if (rc)
--		return rc;
-+		goto out_put_bert_tab;
- 	rc = apei_resources_request(&bert_resources, "APEI BERT");
- 	if (rc)
- 		goto out_fini;
-@@ -142,6 +142,8 @@ static int __init bert_init(void)
- 	apei_resources_release(&bert_resources);
- out_fini:
- 	apei_resources_fini(&bert_resources);
-+out_put_bert_tab:
-+	acpi_put_table((struct acpi_table_header *)bert_tab);
+ 	rc = -ENOMEM;
+@@ -760,6 +760,8 @@ static int __init einj_init(void)
+ err_fini:
+ 	apei_resources_fini(&einj_resources);
+ 	debugfs_remove_recursive(einj_debug_dir);
++err_put_table:
++	acpi_put_table((struct acpi_table_header *)einj_tab);
  
  	return rc;
  }
+@@ -780,6 +782,7 @@ static void __exit einj_exit(void)
+ 	apei_resources_release(&einj_resources);
+ 	apei_resources_fini(&einj_resources);
+ 	debugfs_remove_recursive(einj_debug_dir);
++	acpi_put_table((struct acpi_table_header *)einj_tab);
+ }
+ 
+ module_init(einj_init);
 -- 
 1.7.12.4
 
