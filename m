@@ -2,126 +2,87 @@ Return-Path: <SRS0=rlKP=6V=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2512BC38A24
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:11:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C396C38A24
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:16:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06BCF208E4
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:11:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kVxUpNAU"
+	by mail.kernel.org (Postfix) with ESMTP id 4F27F2075E
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 May 2020 09:16:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725900AbgEGJLB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 May 2020 05:11:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55694 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725848AbgEGJLA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2020 05:11:00 -0400
-Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com [IPv6:2607:f8b0:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFE05C061A10;
-        Thu,  7 May 2020 02:11:00 -0700 (PDT)
-Received: by mail-pl1-x643.google.com with SMTP id u10so1830978pls.8;
-        Thu, 07 May 2020 02:11:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JBT6KrKPDV5CjqbR8NDCy7mpTcDdeEp7C5NBrNvcrDY=;
-        b=kVxUpNAU2X5gF8L0wi+DyBySR80rdREgOTCndFcxAxZ5o1/ZAGVfUqtsWKwLF0Pa/u
-         5VlziewE/8fe6NnCkGc3Ph2U6L2/oSl/f8uR72qd3yHNwaqdpv2dvNMAW1V6ZK6GmZpF
-         XufJCfMyHxhC43y07FPPo6k6b4e6UWM1L9UIseHpeJakHL2EDV8nuqNy1lOlb7/Lvovx
-         +Qr8DuTQ62XSzBiO9K+0Sy9zPbrwHFV3jEPKUwqIHxZfJQ6mIwmROmv/B8yYWXUa1+Hd
-         afZ9rgolKYC6b4dwrtUFVeaOonYWK/bbkkYwAxSkHn4eQ5RuvJlmrbmxTSe3vpUhlwXO
-         i/9g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JBT6KrKPDV5CjqbR8NDCy7mpTcDdeEp7C5NBrNvcrDY=;
-        b=mKk58xCj7IrgyFPzlX4HP0/1UQ6jAl4gS3mGosze9G5sR1uZeD1PUBQnBF2WwnQEqO
-         ohTdy693f95D52qms3rIreJhdaml6/nLBabmw7IbHCGJyYV8CI1RFCLllXRnMOfp6q5s
-         9XBIHF31rQxYMCypBjcxUJlAT5QUmTRG6CKCSxfXD2HJi50kgHR/3sDr81dsc3rO96YM
-         Qi9cAodITc1BqfNmcWElFvgAHzlV/NT0PSgaJZEwLNi4UsEqAmQVNiHZ+MGqpH/yQwUU
-         5AEArHZJ9QPll3uy7mfhIhAxT8mHMU4y5VwY3CjkYZodgDnXbEnC5741KUeFcxPLyf8g
-         jr4g==
-X-Gm-Message-State: AGi0Pubt88k8/P26Bs2QGLaij4qRkB0W5jV4afOfG+rn+dI0oiShJZN4
-        6HdH2pYkC/06F0iaZWrFOPCScPBZe6cEkGdT88g=
-X-Google-Smtp-Source: APiQypLSmUDlB8+hESCKFexeV6yOLtQ3+jQd1hZaeXg3Qh7fHvakmbggZLIgn4AzvrXWYYT9Q3xQHb/UA6E5FX3UzOE=
-X-Received: by 2002:a17:90a:340c:: with SMTP id o12mr13739254pjb.22.1588842660053;
- Thu, 07 May 2020 02:11:00 -0700 (PDT)
+        id S1726308AbgEGJQK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 May 2020 05:16:10 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:36508 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725985AbgEGJQK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 May 2020 05:16:10 -0400
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 5909F2A0D55836450B63;
+        Thu,  7 May 2020 17:16:06 +0800 (CST)
+Received: from linux-ibm.site (10.175.102.37) by
+ DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
+ 14.3.487.0; Thu, 7 May 2020 17:15:59 +0800
+From:   Hanjun Guo <guohanjun@huawei.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC:     James Morse <james.morse@arm.com>, Tony Luck <tony.luck@intel.com>,
+        Borislav Petkov <bp@alien8.de>, <linux-acpi@vger.kernel.org>,
+        Hanjun Guo <guohanjun@huawei.com>
+Subject: [PATCH 3/9] ACPI: APEI: Put the boot error record table after parsing
+Date:   Thu, 7 May 2020 17:09:15 +0800
+Message-ID: <1588842561-32907-4-git-send-email-guohanjun@huawei.com>
+X-Mailer: git-send-email 1.7.12.4
+In-Reply-To: <1588842561-32907-1-git-send-email-guohanjun@huawei.com>
+References: <1588842561-32907-1-git-send-email-guohanjun@huawei.com>
 MIME-Version: 1.0
-References: <20200505132905.10276-1-calvin.johnson@oss.nxp.com>
- <20200505132905.10276-6-calvin.johnson@oss.nxp.com> <CAHp75VfOcQiACsOcfWyJSP1dzdYpaCa-_KKf==4YCkaM_Wk3Tg@mail.gmail.com>
- <20200507074435.GA10296@lsv03152.swis.in-blr01.nxp.com>
-In-Reply-To: <20200507074435.GA10296@lsv03152.swis.in-blr01.nxp.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 7 May 2020 12:10:48 +0300
-Message-ID: <CAHp75VeFCzJ97c7AZD8ksA-r3C-XyM24Rt30+Obw6tCaR4xprA@mail.gmail.com>
-Subject: Re: [net-next PATCH v3 5/5] net: mdiobus: Introduce fwnode_mdiobus_register_phy()
-To:     Calvin Johnson <calvin.johnson@oss.nxp.com>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        linux.cj@gmail.com, Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Varun Sethi <V.Sethi@nxp.com>,
-        "Rajesh V . Bikkina" <rajesh.bikkina@nxp.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        netdev <netdev@vger.kernel.org>, Marcin Wojtas <mw@semihalf.com>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        Makarand Pawagi <makarand.pawagi@nxp.com>,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        Pankaj Bansal <pankaj.bansal@nxp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Heiner Kallweit <hkallweit1@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-Originating-IP: [10.175.102.37]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, May 7, 2020 at 10:44 AM Calvin Johnson
-<calvin.johnson@oss.nxp.com> wrote:
->
-> On Tue, May 05, 2020 at 05:22:00PM +0300, Andy Shevchenko wrote:
-> > On Tue, May 5, 2020 at 4:30 PM Calvin Johnson
-> > <calvin.johnson@oss.nxp.com> wrote:
+The mapped boot error record table is not used after
+bert_init(), release it.
 
-...
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+---
+ drivers/acpi/apei/bert.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-> > > +       bool is_c45 = false;
-> >
-> > Redundant assignment, see below.
-> >
-> > > +       const char *cp;
-> > > +       u32 phy_id;
-> > > +       int rc;
-
-> > > +       fwnode_property_read_string(child, "compatible", &cp);
-> >
-> > Consider rc = ...; otherwise you will have UB below.
-> >
-> > > +       if (!strcmp(cp, "ethernet-phy-ieee802.3-c45"))
-> >
-> > UB!
->
-> Thanks for the comments! I've considered all of them.
-> What is UB, by the way? :)-
-
-Undefined Behaviour.
-
+diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
+index 1155fb9..19e50fc 100644
+--- a/drivers/acpi/apei/bert.c
++++ b/drivers/acpi/apei/bert.c
+@@ -119,7 +119,7 @@ static int __init bert_init(void)
+ 	rc = bert_check_table(bert_tab);
+ 	if (rc) {
+ 		pr_err(FW_BUG "table invalid.\n");
+-		return rc;
++		goto out_put_bert_tab;
+ 	}
+ 
+ 	region_len = bert_tab->region_length;
+@@ -127,7 +127,7 @@ static int __init bert_init(void)
+ 	rc = apei_resources_add(&bert_resources, bert_tab->address,
+ 				region_len, true);
+ 	if (rc)
+-		return rc;
++		goto out_put_bert_tab;
+ 	rc = apei_resources_request(&bert_resources, "APEI BERT");
+ 	if (rc)
+ 		goto out_fini;
+@@ -142,6 +142,8 @@ static int __init bert_init(void)
+ 	apei_resources_release(&bert_resources);
+ out_fini:
+ 	apei_resources_fini(&bert_resources);
++out_put_bert_tab:
++	acpi_put_table((struct acpi_table_header *)bert_tab);
+ 
+ 	return rc;
+ }
 -- 
-With Best Regards,
-Andy Shevchenko
+1.7.12.4
+
