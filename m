@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF28C47247
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 May 2020 14:41:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB55C54E8A
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 May 2020 14:41:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7B2B214D8
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 May 2020 14:41:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F258221841
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 May 2020 14:41:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728281AbgEHOlF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 May 2020 10:41:05 -0400
-Received: from 8bytes.org ([81.169.241.247]:41756 "EHLO theia.8bytes.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728152AbgEHOk4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1728193AbgEHOk4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 8 May 2020 10:40:56 -0400
+Received: from 8bytes.org ([81.169.241.247]:41750 "EHLO theia.8bytes.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728137AbgEHOkz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 8 May 2020 10:40:55 -0400
 Received: by theia.8bytes.org (Postfix, from userid 1000)
-        id 6C5F34F2; Fri,  8 May 2020 16:40:51 +0200 (CEST)
+        id 0144E47C; Fri,  8 May 2020 16:40:50 +0200 (CEST)
 From:   Joerg Roedel <joro@8bytes.org>
 To:     x86@kernel.org
 Cc:     hpa@zytor.com, Dave Hansen <dave.hansen@linux.intel.com>,
@@ -33,9 +33,9 @@ Cc:     hpa@zytor.com, Dave Hansen <dave.hansen@linux.intel.com>,
         Joerg Roedel <jroedel@suse.de>, joro@8bytes.org,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-arch@vger.kernel.org, linux-mm@kvack.org
-Subject: [RFC PATCH 6/7] mm: Remove vmalloc_sync_(un)mappings()
-Date:   Fri,  8 May 2020 16:40:42 +0200
-Message-Id: <20200508144043.13893-7-joro@8bytes.org>
+Subject: [RFC PATCH 4/7] x86/mm/64: Implement arch_sync_kernel_mappings()
+Date:   Fri,  8 May 2020 16:40:40 +0200
+Message-Id: <20200508144043.13893-5-joro@8bytes.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200508144043.13893-1-joro@8bytes.org>
 References: <20200508144043.13893-1-joro@8bytes.org>
@@ -46,180 +46,42 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Joerg Roedel <jroedel@suse.de>
 
-These functions are not needed anymore because the vmalloc and ioremap
-mappings are now synchronized when they are created or teared down.
-
-Remove all callers and function definitions.
+Implement the function to sync changes in vmalloc and ioremap ranges
+to all page-tables.
 
 Signed-off-by: Joerg Roedel <jroedel@suse.de>
 ---
- arch/x86/mm/fault.c      | 37 -------------------------------------
- drivers/acpi/apei/ghes.c |  6 ------
- include/linux/vmalloc.h  |  2 --
- kernel/notifier.c        |  1 -
- mm/nommu.c               | 12 ------------
- mm/vmalloc.c             | 21 ---------------------
- 6 files changed, 79 deletions(-)
+ arch/x86/include/asm/pgtable_64_types.h | 2 ++
+ arch/x86/mm/init_64.c                   | 5 +++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
-index edeb2adaf31f..255fc631b042 100644
---- a/arch/x86/mm/fault.c
-+++ b/arch/x86/mm/fault.c
-@@ -214,26 +214,6 @@ void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
- 	}
+diff --git a/arch/x86/include/asm/pgtable_64_types.h b/arch/x86/include/asm/pgtable_64_types.h
+index 52e5f5f2240d..8f63efb2a2cc 100644
+--- a/arch/x86/include/asm/pgtable_64_types.h
++++ b/arch/x86/include/asm/pgtable_64_types.h
+@@ -159,4 +159,6 @@ extern unsigned int ptrs_per_p4d;
+ 
+ #define PGD_KERNEL_START	((PAGE_SIZE / 2) / sizeof(pgd_t))
+ 
++#define ARCH_PAGE_TABLE_SYNC_MASK	(pgtable_l5_enabled() ?	PGTBL_PGD_MODIFIED : PGTBL_P4D_MODIFIED)
++
+ #endif /* _ASM_X86_PGTABLE_64_DEFS_H */
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 3b289c2f75cd..541af8e5bcd4 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -217,6 +217,11 @@ void sync_global_pgds(unsigned long start, unsigned long end)
+ 		sync_global_pgds_l4(start, end);
  }
  
--static void vmalloc_sync(void)
--{
--	unsigned long address;
--
--	if (SHARED_KERNEL_PMD)
--		return;
--
--	arch_sync_kernel_mappings(VMALLOC_START, VMALLOC_END);
--}
--
--void vmalloc_sync_mappings(void)
--{
--	vmalloc_sync();
--}
--
--void vmalloc_sync_unmappings(void)
--{
--	vmalloc_sync();
--}
--
++void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
++{
++	sync_global_pgds(start, end);
++}
++
  /*
-  * 32-bit:
-  *
-@@ -336,23 +316,6 @@ static void dump_pagetable(unsigned long address)
- 
- #else /* CONFIG_X86_64: */
- 
--void vmalloc_sync_mappings(void)
--{
--	/*
--	 * 64-bit mappings might allocate new p4d/pud pages
--	 * that need to be propagated to all tasks' PGDs.
--	 */
--	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END);
--}
--
--void vmalloc_sync_unmappings(void)
--{
--	/*
--	 * Unmappings never allocate or free p4d/pud pages.
--	 * No work is required here.
--	 */
--}
--
- /*
-  * 64-bit:
-  *
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 24c9642e8fc7..aabe9c5ee515 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -167,12 +167,6 @@ int ghes_estatus_pool_init(int num_ghes)
- 	if (!addr)
- 		goto err_pool_alloc;
- 
--	/*
--	 * New allocation must be visible in all pgd before it can be found by
--	 * an NMI allocating from the pool.
--	 */
--	vmalloc_sync_mappings();
--
- 	rc = gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
- 	if (rc)
- 		goto err_pool_add;
-diff --git a/include/linux/vmalloc.h b/include/linux/vmalloc.h
-index eb364000cb03..9063cdeb15bb 100644
---- a/include/linux/vmalloc.h
-+++ b/include/linux/vmalloc.h
-@@ -141,8 +141,6 @@ extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
- 
- extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- 							unsigned long pgoff);
--void vmalloc_sync_mappings(void);
--void vmalloc_sync_unmappings(void);
- 
- /*
-  * Architectures can set this mask to a combination of PGTBL_P?D_MODIFIED values
-diff --git a/kernel/notifier.c b/kernel/notifier.c
-index 5989bbb93039..84c987dfbe03 100644
---- a/kernel/notifier.c
-+++ b/kernel/notifier.c
-@@ -519,7 +519,6 @@ NOKPROBE_SYMBOL(notify_die);
- 
- int register_die_notifier(struct notifier_block *nb)
- {
--	vmalloc_sync_mappings();
- 	return atomic_notifier_chain_register(&die_chain, nb);
- }
- EXPORT_SYMBOL_GPL(register_die_notifier);
-diff --git a/mm/nommu.c b/mm/nommu.c
-index 318df4e236c9..b4267e1471f3 100644
---- a/mm/nommu.c
-+++ b/mm/nommu.c
-@@ -369,18 +369,6 @@ void vm_unmap_aliases(void)
- }
- EXPORT_SYMBOL_GPL(vm_unmap_aliases);
- 
--/*
-- * Implement a stub for vmalloc_sync_[un]mapping() if the architecture
-- * chose not to have one.
-- */
--void __weak vmalloc_sync_mappings(void)
--{
--}
--
--void __weak vmalloc_sync_unmappings(void)
--{
--}
--
- struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes)
- {
- 	BUG();
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index 184f5a556cf7..901540e4773b 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -1332,12 +1332,6 @@ static bool __purge_vmap_area_lazy(unsigned long start, unsigned long end)
- 	if (unlikely(valist == NULL))
- 		return false;
- 
--	/*
--	 * First make sure the mappings are removed from all page-tables
--	 * before they are freed.
--	 */
--	vmalloc_sync_unmappings();
--
- 	/*
- 	 * TODO: to calculate a flush range without looping.
- 	 * The list can be up to lazy_max_pages() elements.
-@@ -3177,21 +3171,6 @@ int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- }
- EXPORT_SYMBOL(remap_vmalloc_range);
- 
--/*
-- * Implement stubs for vmalloc_sync_[un]mappings () if the architecture chose
-- * not to have one.
-- *
-- * The purpose of this function is to make sure the vmalloc area
-- * mappings are identical in all page-tables in the system.
-- */
--void __weak vmalloc_sync_mappings(void)
--{
--}
--
--void __weak vmalloc_sync_unmappings(void)
--{
--}
--
- static int f(pte_t *pte, unsigned long addr, void *data)
- {
- 	pte_t ***p = data;
+  * NOTE: This function is marked __ref because it calls __init function
+  * (alloc_bootmem_pages). It's safe to do it ONLY when after_bootmem == 0.
 -- 
 2.17.1
 
