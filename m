@@ -2,84 +2,128 @@ Return-Path: <SRS0=zZB4=62=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ADB2C54E8D
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 May 2020 05:52:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F9F1C54E4A
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 May 2020 07:45:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 682CB20836
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 May 2020 05:52:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589262724;
-	bh=/s72hXBEtVh97CNJT+5n4ZXc/V+UPmHBVHcaDXRUQC4=;
-	h=From:Cc:Subject:Date:To:List-ID:From;
-	b=KNisoMYWh+g6RfkvkMA29Iz06s4Wx3S1s+9zJ4HSoAw94eFQ8rc//BTM0PxfKal8m
-	 ZEI4qZly9cnDiksKda2opsFS0n/zUbhoHEHwqhSKYfaVEpGLF2ovqYpP3jhOA3sTtF
-	 914j9OogB74Xx5X/F0kgI2ae85QKeC1tSI9Qb3bg=
+	by mail.kernel.org (Postfix) with ESMTP id 041B4206F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 May 2020 07:45:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ECRZz9oj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728191AbgELFwD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 May 2020 01:52:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44814 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728209AbgELFwD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 May 2020 01:52:03 -0400
-Received: from mail.kernel.org (ip5f5ad5c5.dynamic.kabel-deutschland.de [95.90.213.197])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 18E1B20769;
-        Tue, 12 May 2020 05:52:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589262723;
-        bh=/s72hXBEtVh97CNJT+5n4ZXc/V+UPmHBVHcaDXRUQC4=;
-        h=From:To:Cc:Subject:Date:From;
-        b=h99wYss8+ssH8BEU/yFXk08Ocs2YOryD3QSkzplXc5ML5lroF50c3Pu4+hqOKiwPt
-         Yxo7UDScseg8/36+cLIb/FG+rKwd9p1e4xlxS2HnKNP4+RObsoq6+VghTt31LbuWyC
-         MctcVj8u0jvqKb2jqhpp907QrDEoKfP937FAi9rc=
-Received: from mchehab by mail.kernel.org with local (Exim 4.93)
-        (envelope-from <mchehab@kernel.org>)
-        id 1jYNpg-001Yqp-K4; Tue, 12 May 2020 07:52:00 +0200
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        id S1726193AbgELHpR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 May 2020 03:45:17 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:39465 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725823AbgELHpR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 May 2020 03:45:17 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1589269515;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=qogJlqBrtgB8Cetl7KnaPS+eRicDS5Deuj/Ua6MW4IA=;
+        b=ECRZz9ojE/Vg44GuQwN6t/izaYzol8NzRXyS2HB7x7KssrhadulmUTH7e6Bcidjo1xnqgr
+        NAR4rRS3SE+71D7H0mjj9ox499y0qxZJRYqYWCvdu2OqU0pEPMVJrABIvgAFB6L0leuaPh
+        /QTR07Jad1WrpfGOLr9Aar83W2qb/PA=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-384-_5bUo0tSO2eKKvRhLtEKGA-1; Tue, 12 May 2020 03:45:14 -0400
+X-MC-Unique: _5bUo0tSO2eKKvRhLtEKGA-1
+Received: by mail-wr1-f69.google.com with SMTP id z8so6505319wrp.7
+        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2020 00:45:14 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=qogJlqBrtgB8Cetl7KnaPS+eRicDS5Deuj/Ua6MW4IA=;
+        b=GjX1OY3+1Ido7GLzNM+FGilT4tsCV2w1Aos7MheUHI80LfWRyuKPILHYq3WO96n/hQ
+         97qepHDjDZUBIlrTKO+qo2KhNY+oivOkSTULmU8D7hLoSHYZbSPTa8YE9mutXGg97XWl
+         HztiLnyqHTKgHROF751DVF/cg7dRWuzXnj8uY17+8Lt2eCZFGbqACBlI0lRNoMaRnopf
+         mposjEgW7MLKwcCtUQyhKGPzNCGSxC0jzZzZbkmEhhuD1Q0OZMmVdjh7cag6+kphbyPE
+         vtMGAbSU39lFLSZEEE+QIkooVlmFjssPdPgbqnSnzY6sc3TbKpzaOy7ZoD1YTFdiwjmU
+         Btbg==
+X-Gm-Message-State: AGi0PuYn7V2iuv/QzgO/HgWuEuMD+bzo2k85/yRIwmBR/Hxx4UAGGWXQ
+        jM3LdEfv8TXg7RpW25gV527SQCq0TZ+0xZFjwtN9qfVxbp1b6EC41mdwqLvJI5IWAKCzVyMcdNJ
+        dG9A4p9ilbdT5LZHMaEISJQ==
+X-Received: by 2002:a1c:7415:: with SMTP id p21mr35150268wmc.93.1589269512832;
+        Tue, 12 May 2020 00:45:12 -0700 (PDT)
+X-Google-Smtp-Source: APiQypIGfg6opgkdevY9siA7TOIK+FzCH62oLKl8E96YDTwIJUq/LcuamnpbU9ZUopthrFhTdIWAqQ==
+X-Received: by 2002:a1c:7415:: with SMTP id p21mr35150262wmc.93.1589269512658;
+        Tue, 12 May 2020 00:45:12 -0700 (PDT)
+Received: from x1.localdomain (2001-1c00-0c0c-fe00-d2ea-f29d-118b-24dc.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:d2ea:f29d:118b:24dc])
+        by smtp.gmail.com with ESMTPSA id f5sm21069562wrp.70.2020.05.12.00.45.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 12 May 2020 00:45:12 -0700 (PDT)
+Subject: Re: [PATCH 1/2] ACPI / PMIC: Add i2c address for thermal control
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/2] Solve a few issues with intel_pmic_chtdc_ti.c 
-Date:   Tue, 12 May 2020 07:51:55 +0200
-Message-Id: <cover.1589262490.git.mchehab+huawei@kernel.org>
-X-Mailer: git-send-email 2.26.2
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-acpi@vger.kernel.org
+References: <cover.1589262490.git.mchehab+huawei@kernel.org>
+ <4ea6a89bcde8c72427e69a87551bdfca8bf1af11.1589262490.git.mchehab+huawei@kernel.org>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <2038c2ab-bbca-f26b-e2e2-fff04ca48272@redhat.com>
+Date:   Tue, 12 May 2020 09:45:11 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+In-Reply-To: <4ea6a89bcde8c72427e69a87551bdfca8bf1af11.1589262490.git.mchehab+huawei@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-While doing some tests with a device that I'm using to work with the
-atomisp driver (an Asus T101HA), I noticed some warnings  produced
-by the i915 driver.
+Hi,
 
-The first one is that building intel_pmic_chtdc_ti as a module is too
-late, as fbcon driver (and i915) will need it earlier.
+On 5/12/20 7:51 AM, Mauro Carvalho Chehab wrote:
+> On Asus T101HA, we keep receiving those error messages:
+> 
+> 	i915 0000:00:02.0: [drm] *ERROR* mipi_exec_pmic failed, error: -95
+> 	intel_soc_pmic_exec_mipi_pmic_seq_element: Not implemented
+> 	intel_soc_pmic_exec_mipi_pmic_seq_element: i2c-addr: 0x5e reg-addr 0x4b value 0x59 mask 0xff
+> 
+> Because the opregion is missing the I2C address.
+> 
+> Suggested-by: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 
-The second one is that the thermal I2C OpRegion needed by the i915
-is not registered.
+Looks good to me:
 
-Those patches address the issues I detected.
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 
-Mauro Carvalho Chehab (2):
-  ACPI / PMIC: Add i2c address for thermal control
-  mfd: Kconfig: change INTEL_SOC_PMIC_CHTDC_TI to bool
+Regards,
 
- drivers/acpi/pmic/intel_pmic_chtdc_ti.c | 1 +
- drivers/mfd/Kconfig                     | 6 +++++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+Hans
 
--- 
-2.26.2
 
+> ---
+>   drivers/acpi/pmic/intel_pmic_chtdc_ti.c | 1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/acpi/pmic/intel_pmic_chtdc_ti.c b/drivers/acpi/pmic/intel_pmic_chtdc_ti.c
+> index 7ccd7d9660bc..a5101b07611a 100644
+> --- a/drivers/acpi/pmic/intel_pmic_chtdc_ti.c
+> +++ b/drivers/acpi/pmic/intel_pmic_chtdc_ti.c
+> @@ -102,6 +102,7 @@ static struct intel_pmic_opregion_data chtdc_ti_pmic_opregion_data = {
+>   	.power_table_count = ARRAY_SIZE(chtdc_ti_power_table),
+>   	.thermal_table = chtdc_ti_thermal_table,
+>   	.thermal_table_count = ARRAY_SIZE(chtdc_ti_thermal_table),
+> +	.pmic_i2c_address = 0x5e,
+>   };
+>   
+>   static int chtdc_ti_pmic_opregion_probe(struct platform_device *pdev)
+> 
 
