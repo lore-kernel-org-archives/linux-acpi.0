@@ -2,111 +2,205 @@ Return-Path: <SRS0=7Mdx=63=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A39FDCA90AF
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 May 2020 10:29:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA091C433DF
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 May 2020 15:21:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7972620659
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 May 2020 10:29:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08141207D3
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 May 2020 15:21:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728049AbgEMK3D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 13 May 2020 06:29:03 -0400
-Received: from foss.arm.com ([217.140.110.172]:42530 "EHLO foss.arm.com"
+        id S1729781AbgEMPVo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 13 May 2020 11:21:44 -0400
+Received: from 8bytes.org ([81.169.241.247]:42572 "EHLO theia.8bytes.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727932AbgEMK3C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 May 2020 06:29:02 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9E4691FB;
-        Wed, 13 May 2020 03:29:01 -0700 (PDT)
-Received: from [10.57.36.85] (unknown [10.57.36.85])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F355B3F305;
-        Wed, 13 May 2020 03:28:59 -0700 (PDT)
-Subject: Re: [PATCH v2] ACPI/IORT: Fix PMCG node always look for a single ID
- mapping.
-To:     Hanjun Guo <guohanjun@huawei.com>,
-        Tuan Phan <tuanphan@os.amperecomputing.com>
-Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        id S1729327AbgEMPVn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 May 2020 11:21:43 -0400
+Received: by theia.8bytes.org (Postfix, from userid 1000)
+        id 2A3326A7; Wed, 13 May 2020 17:21:41 +0200 (CEST)
+From:   Joerg Roedel <joro@8bytes.org>
+To:     x86@kernel.org
+Cc:     hpa@zytor.com, Dave Hansen <dave.hansen@linux.intel.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>, rjw@rjwysocki.net,
+        Arnd Bergmann <arnd@arndb.de>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Michal Hocko <mhocko@kernel.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        Joerg Roedel <jroedel@suse.de>, joro@8bytes.org,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        patches@amperecomputing.com, linux-arm-kernel@lists.infradead.org,
-        Len Brown <lenb@kernel.org>
-References: <1589327760-5464-1-git-send-email-tuanphan@os.amperecomputing.com>
- <6f9996d3-18f1-0432-0e59-adc2cf086c9c@huawei.com>
-From:   Robin Murphy <robin.murphy@arm.com>
-Message-ID: <2c2795ed-c2cb-a166-cd6d-0e920bd05ea3@arm.com>
-Date:   Wed, 13 May 2020 11:28:57 +0100
-User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
-MIME-Version: 1.0
-In-Reply-To: <6f9996d3-18f1-0432-0e59-adc2cf086c9c@huawei.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        linux-arch@vger.kernel.org, linux-mm@kvack.org
+Subject: [PATCH v2 3/7] mm/ioremap: Track which page-table levels were modified
+Date:   Wed, 13 May 2020 17:21:33 +0200
+Message-Id: <20200513152137.32426-4-joro@8bytes.org>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200513152137.32426-1-joro@8bytes.org>
+References: <20200513152137.32426-1-joro@8bytes.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2020-05-13 4:16 am, Hanjun Guo wrote:
-> On 2020/5/13 7:56, Tuan Phan wrote:
->> PMCG node can have zero ID mapping if its overflow interrupt
->> is wire based. The code to parse PMCG node can not assume it will
->> have a single ID mapping.
->>
->> Signed-off-by: Tuan Phan <tuanphan@os.amperecomputing.com>
-> 
-> It's better to add
-> 
-> Fixes: 24e516049360 ("ACPI/IORT: Add support for PMCG")
-> 
->> ---
->> Changes in v2:
->> - Used pmcg node to detect wired base overflow interrupt.
->>   drivers/acpi/arm64/iort.c | 5 +++++
->>   1 file changed, 5 insertions(+)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index ed3d2d1..11a4e8e 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -414,6 +414,7 @@ static struct acpi_iort_node 
->> *iort_node_get_id(struct acpi_iort_node *node,
->>   static int iort_get_id_mapping_index(struct acpi_iort_node *node)
->>   {
->>       struct acpi_iort_smmu_v3 *smmu;
->> +    struct acpi_iort_pmcg *pmcg;
->>       switch (node->type) {
->>       case ACPI_IORT_NODE_SMMU_V3:
->> @@ -441,6 +442,10 @@ static int iort_get_id_mapping_index(struct 
->> acpi_iort_node *node)
->>           return smmu->id_mapping_index;
->>       case ACPI_IORT_NODE_PMCG:
->> +        pmcg = (struct acpi_iort_pmcg *)node->node_data;
->> +        if (pmcg->overflow_gsiv)
+From: Joerg Roedel <jroedel@suse.de>
 
-	if (pmcg->overflow_gsiv || node->mapping_count == 0)
+Track at which levels in the page-table entries were modified by
+ioremap_page_range(). After the page-table has been modified, use that
+information do decide whether the new arch_sync_kernel_mappings()
+needs to be called. The iounmap path re-uses vunmap(), which has
+already been taken care of.
 
-...if there is no GSIV, we should still *also* check that index 0 is 
-valid before we return it.
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+---
+ lib/ioremap.c | 46 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 31 insertions(+), 15 deletions(-)
 
-Robin.
+diff --git a/lib/ioremap.c b/lib/ioremap.c
+index 3f0e18543de8..ad485f08173b 100644
+--- a/lib/ioremap.c
++++ b/lib/ioremap.c
+@@ -61,13 +61,14 @@ static inline int ioremap_pmd_enabled(void) { return 0; }
+ #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+ 
+ static int ioremap_pte_range(pmd_t *pmd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
+ {
+ 	pte_t *pte;
+ 	u64 pfn;
+ 
+ 	pfn = phys_addr >> PAGE_SHIFT;
+-	pte = pte_alloc_kernel(pmd, addr);
++	pte = pte_alloc_kernel_track(pmd, addr, mask);
+ 	if (!pte)
+ 		return -ENOMEM;
+ 	do {
+@@ -75,6 +76,7 @@ static int ioremap_pte_range(pmd_t *pmd, unsigned long addr,
+ 		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
+ 		pfn++;
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
++	*mask |= PGTBL_PTE_MODIFIED;
+ 	return 0;
+ }
+ 
+@@ -101,21 +103,24 @@ static int ioremap_try_huge_pmd(pmd_t *pmd, unsigned long addr,
+ }
+ 
+ static inline int ioremap_pmd_range(pud_t *pud, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
+ 
+-	pmd = pmd_alloc(&init_mm, pud, addr);
++	pmd = pmd_alloc_track(&init_mm, pud, addr, mask);
+ 	if (!pmd)
+ 		return -ENOMEM;
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+ 
+-		if (ioremap_try_huge_pmd(pmd, addr, next, phys_addr, prot))
++		if (ioremap_try_huge_pmd(pmd, addr, next, phys_addr, prot)) {
++			*mask |= PGTBL_PMD_MODIFIED;
+ 			continue;
++		}
+ 
+-		if (ioremap_pte_range(pmd, addr, next, phys_addr, prot))
++		if (ioremap_pte_range(pmd, addr, next, phys_addr, prot, mask))
+ 			return -ENOMEM;
+ 	} while (pmd++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
+@@ -144,21 +149,24 @@ static int ioremap_try_huge_pud(pud_t *pud, unsigned long addr,
+ }
+ 
+ static inline int ioremap_pud_range(p4d_t *p4d, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
+ 
+-	pud = pud_alloc(&init_mm, p4d, addr);
++	pud = pud_alloc_track(&init_mm, p4d, addr, mask);
+ 	if (!pud)
+ 		return -ENOMEM;
+ 	do {
+ 		next = pud_addr_end(addr, end);
+ 
+-		if (ioremap_try_huge_pud(pud, addr, next, phys_addr, prot))
++		if (ioremap_try_huge_pud(pud, addr, next, phys_addr, prot)) {
++			*mask |= PGTBL_PUD_MODIFIED;
+ 			continue;
++		}
+ 
+-		if (ioremap_pmd_range(pud, addr, next, phys_addr, prot))
++		if (ioremap_pmd_range(pud, addr, next, phys_addr, prot, mask))
+ 			return -ENOMEM;
+ 	} while (pud++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
+@@ -187,21 +195,24 @@ static int ioremap_try_huge_p4d(p4d_t *p4d, unsigned long addr,
+ }
+ 
+ static inline int ioremap_p4d_range(pgd_t *pgd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
+ {
+ 	p4d_t *p4d;
+ 	unsigned long next;
+ 
+-	p4d = p4d_alloc(&init_mm, pgd, addr);
++	p4d = p4d_alloc_track(&init_mm, pgd, addr, mask);
+ 	if (!p4d)
+ 		return -ENOMEM;
+ 	do {
+ 		next = p4d_addr_end(addr, end);
+ 
+-		if (ioremap_try_huge_p4d(p4d, addr, next, phys_addr, prot))
++		if (ioremap_try_huge_p4d(p4d, addr, next, phys_addr, prot)) {
++			*mask |= PGTBL_P4D_MODIFIED;
+ 			continue;
++		}
+ 
+-		if (ioremap_pud_range(p4d, addr, next, phys_addr, prot))
++		if (ioremap_pud_range(p4d, addr, next, phys_addr, prot, mask))
+ 			return -ENOMEM;
+ 	} while (p4d++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
+@@ -214,6 +225,7 @@ int ioremap_page_range(unsigned long addr,
+ 	unsigned long start;
+ 	unsigned long next;
+ 	int err;
++	pgtbl_mod_mask mask = 0;
+ 
+ 	might_sleep();
+ 	BUG_ON(addr >= end);
+@@ -222,13 +234,17 @@ int ioremap_page_range(unsigned long addr,
+ 	pgd = pgd_offset_k(addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+-		err = ioremap_p4d_range(pgd, addr, next, phys_addr, prot);
++		err = ioremap_p4d_range(pgd, addr, next, phys_addr, prot,
++					&mask);
+ 		if (err)
+ 			break;
+ 	} while (pgd++, phys_addr += (next - addr), addr = next, addr != end);
+ 
+ 	flush_cache_vmap(start, end);
+ 
++	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
++		arch_sync_kernel_mappings(start, end);
++
+ 	return err;
+ }
+ 
+-- 
+2.17.1
 
->> +            return -EINVAL;
->> +
->>           return 0;
->>       default:
->>           return -EINVAL;
-> 
-> With my comments addressed,
-> 
-> Reviewed-by: Hanjun Guo <guoahanjun@huawei.com>
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
