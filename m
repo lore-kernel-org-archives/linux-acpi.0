@@ -2,68 +2,186 @@ Return-Path: <SRS0=vzJg=65=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 086C9C433DF
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 May 2020 13:03:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2640AC433E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 May 2020 14:00:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E129020767
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 May 2020 13:03:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A7B3207D4
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 May 2020 14:00:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726140AbgEONDS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 May 2020 09:03:18 -0400
-Received: from mx2.suse.de ([195.135.220.15]:58712 "EHLO mx2.suse.de"
+        id S1726168AbgEOOA1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 May 2020 10:00:27 -0400
+Received: from 8bytes.org ([81.169.241.247]:43292 "EHLO theia.8bytes.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726371AbgEONDS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 May 2020 09:03:18 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx2.suse.de (Postfix) with ESMTP id 30290ABC7;
-        Fri, 15 May 2020 13:03:19 +0000 (UTC)
-Date:   Fri, 15 May 2020 15:03:13 +0200
-From:   Joerg Roedel <jroedel@suse.de>
-To:     Andy Lutomirski <luto@kernel.org>
-Cc:     Joerg Roedel <joro@8bytes.org>, X86 ML <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        id S1726163AbgEOOA1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 May 2020 10:00:27 -0400
+Received: by theia.8bytes.org (Postfix, from userid 1000)
+        id 4A493261; Fri, 15 May 2020 16:00:25 +0200 (CEST)
+From:   Joerg Roedel <joro@8bytes.org>
+To:     x86@kernel.org
+Cc:     hpa@zytor.com, Dave Hansen <dave.hansen@linux.intel.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>, rjw@rjwysocki.net,
         Arnd Bergmann <arnd@arndb.de>,
         Andrew Morton <akpm@linux-foundation.org>,
         Steven Rostedt <rostedt@goodmis.org>,
         Vlastimil Babka <vbabka@suse.cz>,
         Michal Hocko <mhocko@kernel.org>,
         Matthew Wilcox <willy@infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>
-Subject: Re: [PATCH v2 0/7] mm: Get rid of vmalloc_sync_(un)mappings()
-Message-ID: <20200515130313.GI8135@suse.de>
-References: <20200513152137.32426-1-joro@8bytes.org>
- <CALCETrW1Y2Q7dWwv4X7PHf3yxOGMcDaBG0NK7BWPAR=FiqsoPQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALCETrW1Y2Q7dWwv4X7PHf3yxOGMcDaBG0NK7BWPAR=FiqsoPQ@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Joerg Roedel <jroedel@suse.de>, joro@8bytes.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-mm@kvack.org
+Subject: [PATCH v3 1/7] mm: Add functions to track page directory modifications
+Date:   Fri, 15 May 2020 16:00:17 +0200
+Message-Id: <20200515140023.25469-2-joro@8bytes.org>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200515140023.25469-1-joro@8bytes.org>
+References: <20200515140023.25469-1-joro@8bytes.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, May 13, 2020 at 09:01:04AM -0700, Andy Lutomirski wrote:
-> I would love to see a followup patch that preallocates the vmalloc
-> region on 64-bit and compiles out pgd_list and all of the associated
-> gunk.
+From: Joerg Roedel <jroedel@suse.de>
 
-Looked a bit into this, with pre-allocation and a few more changes all
-but one users of pgd_list and pgd_lock can be get rid of on x86-64. But
-there is the XEN-PV code which also needs to traverse pgd_list, and I am
-not sure how to get rid of that.
+Add page-table allocation functions which will keep track of changed
+directory entries. They are needed for new PGD, P4D, PUD, and PMD
+entries and will be used in vmalloc and ioremap code to decide whether
+any changes in the kernel mappings need to be synchronized between
+page-tables in the system.
 
-Regards,
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+Acked-by: Andy Lutomirski <luto@kernel.org>
+---
+ include/asm-generic/5level-fixup.h |  5 ++--
+ include/asm-generic/pgtable.h      | 23 +++++++++++++++
+ include/linux/mm.h                 | 46 ++++++++++++++++++++++++++++++
+ 3 files changed, 72 insertions(+), 2 deletions(-)
 
-	Joerg
+diff --git a/include/asm-generic/5level-fixup.h b/include/asm-generic/5level-fixup.h
+index 4c74b1c1d13b..58046ddc08d0 100644
+--- a/include/asm-generic/5level-fixup.h
++++ b/include/asm-generic/5level-fixup.h
+@@ -17,8 +17,9 @@
+ 	((unlikely(pgd_none(*(p4d))) && __pud_alloc(mm, p4d, address)) ? \
+ 		NULL : pud_offset(p4d, address))
+ 
+-#define p4d_alloc(mm, pgd, address)	(pgd)
+-#define p4d_offset(pgd, start)		(pgd)
++#define p4d_alloc(mm, pgd, address)		(pgd)
++#define p4d_alloc_track(mm, pgd, address, mask)	(pgd)
++#define p4d_offset(pgd, start)			(pgd)
+ 
+ #ifndef __ASSEMBLY__
+ static inline int p4d_none(p4d_t p4d)
+diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
+index 329b8c8ca703..bf1418ae91a2 100644
+--- a/include/asm-generic/pgtable.h
++++ b/include/asm-generic/pgtable.h
+@@ -1209,6 +1209,29 @@ static inline bool arch_has_pfn_modify_check(void)
+ # define PAGE_KERNEL_EXEC PAGE_KERNEL
+ #endif
+ 
++/*
++ * Page Table Modification bits for pgtbl_mod_mask.
++ *
++ * These are used by the p?d_alloc_track*() set of functions an in the generic
++ * vmalloc/ioremap code to track at which page-table levels entries have been
++ * modified. Based on that the code can better decide when vmalloc and ioremap
++ * mapping changes need to be synchronized to other page-tables in the system.
++ */
++#define		__PGTBL_PGD_MODIFIED	0
++#define		__PGTBL_P4D_MODIFIED	1
++#define		__PGTBL_PUD_MODIFIED	2
++#define		__PGTBL_PMD_MODIFIED	3
++#define		__PGTBL_PTE_MODIFIED	4
++
++#define		PGTBL_PGD_MODIFIED	BIT(__PGTBL_PGD_MODIFIED)
++#define		PGTBL_P4D_MODIFIED	BIT(__PGTBL_P4D_MODIFIED)
++#define		PGTBL_PUD_MODIFIED	BIT(__PGTBL_PUD_MODIFIED)
++#define		PGTBL_PMD_MODIFIED	BIT(__PGTBL_PMD_MODIFIED)
++#define		PGTBL_PTE_MODIFIED	BIT(__PGTBL_PTE_MODIFIED)
++
++/* Page-Table Modification Mask */
++typedef unsigned int pgtbl_mod_mask;
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #ifndef io_remap_pfn_range
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 5a323422d783..022fe682af9e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2078,13 +2078,54 @@ static inline pud_t *pud_alloc(struct mm_struct *mm, p4d_t *p4d,
+ 	return (unlikely(p4d_none(*p4d)) && __pud_alloc(mm, p4d, address)) ?
+ 		NULL : pud_offset(p4d, address);
+ }
++
++static inline p4d_t *p4d_alloc_track(struct mm_struct *mm, pgd_t *pgd,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++
++{
++	if (unlikely(pgd_none(*pgd))) {
++		if (__p4d_alloc(mm, pgd, address))
++			return NULL;
++		*mod_mask |= PGTBL_PGD_MODIFIED;
++	}
++
++	return p4d_offset(pgd, address);
++}
++
+ #endif /* !__ARCH_HAS_5LEVEL_HACK */
+ 
++static inline pud_t *pud_alloc_track(struct mm_struct *mm, p4d_t *p4d,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++{
++	if (unlikely(p4d_none(*p4d))) {
++		if (__pud_alloc(mm, p4d, address))
++			return NULL;
++		*mod_mask |= PGTBL_P4D_MODIFIED;
++	}
++
++	return pud_offset(p4d, address);
++}
++
+ static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
+ {
+ 	return (unlikely(pud_none(*pud)) && __pmd_alloc(mm, pud, address))?
+ 		NULL: pmd_offset(pud, address);
+ }
++
++static inline pmd_t *pmd_alloc_track(struct mm_struct *mm, pud_t *pud,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++{
++	if (unlikely(pud_none(*pud))) {
++		if (__pmd_alloc(mm, pud, address))
++			return NULL;
++		*mod_mask |= PGTBL_PUD_MODIFIED;
++	}
++
++	return pmd_offset(pud, address);
++}
+ #endif /* CONFIG_MMU */
+ 
+ #if USE_SPLIT_PTE_PTLOCKS
+@@ -2200,6 +2241,11 @@ static inline void pgtable_pte_page_dtor(struct page *page)
+ 	((unlikely(pmd_none(*(pmd))) && __pte_alloc_kernel(pmd))? \
+ 		NULL: pte_offset_kernel(pmd, address))
+ 
++#define pte_alloc_kernel_track(pmd, address, mask)			\
++	((unlikely(pmd_none(*(pmd))) &&					\
++	  (__pte_alloc_kernel(pmd) || ({*(mask)|=PGTBL_PMD_MODIFIED;0;})))?\
++		NULL: pte_offset_kernel(pmd, address))
++
+ #if USE_SPLIT_PMD_PTLOCKS
+ 
+ static struct page *pmd_to_page(pmd_t *pmd)
+-- 
+2.17.1
+
