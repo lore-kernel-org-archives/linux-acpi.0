@@ -1,75 +1,126 @@
-Return-Path: <SRS0=zzfK=66=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=OQFr=67=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AB26C433E0
-	for <linux-acpi@archiver.kernel.org>; Sat, 16 May 2020 12:56:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A9AFC433E0
+	for <linux-acpi@archiver.kernel.org>; Sun, 17 May 2020 12:58:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 522F4207D8
-	for <linux-acpi@archiver.kernel.org>; Sat, 16 May 2020 12:56:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16D1F207D4
+	for <linux-acpi@archiver.kernel.org>; Sun, 17 May 2020 12:58:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1589720315;
+	bh=Rnx4PKhR9N7HkKTSbEqSZqvHuX0lxDTfH9izm/bufok=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=aDZEQL4KftoY37Japa9LY7DZXyv9YQpDZXz4FnL1ElAU2DdEsGlq8DX1YnSUtro7F
+	 +jddTfAv7J3oeQSUg28O7O0rGg3/1ytBFovdCMKQA+KQiCbRxzLzveSjtOv18PUzOJ
+	 ZlMsvAKJ2bE1Cke+VrBnaQXH1W7rm7dB2KeaCgdw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726349AbgEPM4q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 16 May 2020 08:56:46 -0400
-Received: from mx2.suse.de ([195.135.220.15]:60782 "EHLO mx2.suse.de"
+        id S1727983AbgEQM6b (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 17 May 2020 08:58:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726295AbgEPM4p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 16 May 2020 08:56:45 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx2.suse.de (Postfix) with ESMTP id B3754AB8F;
-        Sat, 16 May 2020 12:56:46 +0000 (UTC)
-Date:   Sat, 16 May 2020 14:56:41 +0200
-From:   Joerg Roedel <jroedel@suse.de>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Joerg Roedel <joro@8bytes.org>, x86@kernel.org, hpa@zytor.com,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Andy Lutomirski <luto@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>, rjw@rjwysocki.net,
-        Arnd Bergmann <arnd@arndb.de>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Michal Hocko <mhocko@kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v3 2/7] mm/vmalloc: Track which page-table levels were
- modified
-Message-ID: <20200516125641.GK8135@suse.de>
-References: <20200515140023.25469-1-joro@8bytes.org>
- <20200515140023.25469-3-joro@8bytes.org>
- <20200515130142.4ca90ee590e9d8ab88497676@linux-foundation.org>
+        id S1727893AbgEQM6b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 17 May 2020 08:58:31 -0400
+Received: from e123331-lin.nice.arm.com (amontpellier-657-1-18-247.w109-210.abo.wanadoo.fr [109.210.65.247])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 893D2204EC;
+        Sun, 17 May 2020 12:58:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1589720310;
+        bh=Rnx4PKhR9N7HkKTSbEqSZqvHuX0lxDTfH9izm/bufok=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Z1lNhALMlTRK79px1LZ6rb2gyoKcocn1rIV58uSDYBbpgE79hr5mnBXqHehXzpgHt
+         s/bJpD3kj1GSAwTcI6SPg3CueSZwZFexx4TMGY01zm1FScj4seBbFyb/k1oAe30CLd
+         6XA77dQaVezUibpC0eDvv6aLgKghbd2ZXP40wq6Y=
+From:   Ard Biesheuvel <ardb@kernel.org>
+To:     linux-efi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Cc:     Ard Biesheuvel <ardb@kernel.org>, linux-kernel@vger.kernel.org,
+        Arvind Sankar <nivedita@alum.mit.edu>,
+        Benjamin Thiel <b.thiel@posteo.de>,
+        Borislav Petkov <bp@alien8.de>, Dave Young <dyoung@redhat.com>,
+        Heinrich Schuchardt <xypron.glpk@gmx.de>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Jerry Snitselaar <jsnitsel@redhat.com>,
+        Lenny Szubowicz <lszubowi@redhat.com>,
+        linux-acpi@vger.kernel.org, Loic Yhuel <loic.yhuel@gmail.com>,
+        Matthew Garrett <mjg59@google.com>,
+        Mike Lothian <mike@fireburn.co.uk>,
+        Punit Agrawal <punit1.agrawal@toshiba.co.jp>
+Subject: [GIT PULL 0/7] EFI fixes for v5.7
+Date:   Sun, 17 May 2020 14:57:47 +0200
+Message-Id: <20200517125754.8934-1-ardb@kernel.org>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200515130142.4ca90ee590e9d8ab88497676@linux-foundation.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Andrew,
+The following changes since commit a088b858f16af85e3db359b6c6aaa92dd3bc0921:
 
-On Fri, May 15, 2020 at 01:01:42PM -0700, Andrew Morton wrote:
-> On Fri, 15 May 2020 16:00:18 +0200 Joerg Roedel <joro@8bytes.org> wrote:
-> Lots of collisions here with Christoph's "decruft the vmalloc API" series
-> (http://lkml.kernel.org/r/20200414131348.444715-1-hch@lst.de).
-> 
-> I attempted to fix things up.
-> 
-> unmap_kernel_range_noflush() needed to be redone.
-> 
-> map_kernel_range_noflush() might need the arch_sync_kernel_mappings() call?
+  efi/x86: Revert struct layout change to fix kexec boot regression (2020-04-14 08:32:17 +0200)
 
-Yes, map_kernel_range_noflush() needs the arch_sync_kernel_mappings()
-call as well.
+are available in the Git repository at:
 
-Regards,
+  git://git.kernel.org/pub/scm/linux/kernel/git/efi/efi.git tags/efi-urgent
 
-	Joerg
+for you to fetch changes up to b4f1874c62168159fdb419ced4afc77c1b51c475:
 
+  tpm: check event log version before reading final events (2020-05-17 11:46:50 +0200)
+
+----------------------------------------------------------------
+EFI fixes for v5.7-rcX:
+- fix EFI framebuffer earlycon for wide fonts
+- avoid filling screen_info with garbage if the EFI framebuffer is not
+  available
+- fix a potential host tool build error due to a symbol clash on x86
+- work around a EFI firmware bug regarding the binary format of the TPM
+  final events table
+- fix a missing memory free by reworking the E820 table sizing routine to
+  not do the allocation in the first place
+- add CPER parsing for firmware errors
+
+----------------------------------------------------------------
+Arvind Sankar (1):
+      x86/boot: Mark global variables as static
+
+Benjamin Thiel (1):
+      efi: Pull up arch-specific prototype efi_systab_show_arch()
+
+Dave Young (1):
+      efi/earlycon: Fix early printk for wider fonts
+
+Heinrich Schuchardt (1):
+      efi/libstub: Avoid returning uninitialized data from setup_graphics()
+
+Lenny Szubowicz (1):
+      efi/libstub/x86: Avoid EFI map buffer alloc in allocate_e820()
+
+Loïc Yhuel (1):
+      tpm: check event log version before reading final events
+
+Punit Agrawal (1):
+      efi: cper: Add support for printing Firmware Error Record Reference
+
+ arch/x86/boot/tools/build.c             | 16 ++++-----
+ drivers/firmware/efi/cper.c             | 62 +++++++++++++++++++++++++++++++++
+ drivers/firmware/efi/earlycon.c         | 14 ++++----
+ drivers/firmware/efi/efi.c              |  5 +--
+ drivers/firmware/efi/libstub/arm-stub.c |  6 +++-
+ drivers/firmware/efi/libstub/efistub.h  | 13 +++++++
+ drivers/firmware/efi/libstub/mem.c      |  2 --
+ drivers/firmware/efi/libstub/tpm.c      |  5 +--
+ drivers/firmware/efi/libstub/x86-stub.c | 24 +++++--------
+ drivers/firmware/efi/tpm.c              |  5 ++-
+ include/linux/cper.h                    |  9 +++++
+ include/linux/efi.h                     |  2 ++
+ 12 files changed, 124 insertions(+), 39 deletions(-)
