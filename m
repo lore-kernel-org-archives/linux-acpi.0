@@ -2,137 +2,129 @@ Return-Path: <SRS0=sdW+=7A=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBBF1C433DF
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 May 2020 10:48:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6FA2C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 May 2020 11:07:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D53D320825
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 May 2020 10:48:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A31D52070A
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 May 2020 11:07:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1589800026;
+	bh=LCB4h5qQa8kr6PNIkCQnlbVCrlbCpsZ1eSHMy4btkQo=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=1C/nHu04UOF0yBFVwivvJ4T762Nw7HgIjIMsDtLiy8+2oTiVMmIzvYVluaSlsPyN+
+	 iKK1rhj5W/r6G6hqEjPxqZ02iyg9fglCEhCeqQwh+XjNvkroqqpYkgqg16lnvARiHA
+	 JAQBhRcS84b4ybZFvMPj9ZCtJ3yfyKTEBASNCURw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbgERKsV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 May 2020 06:48:21 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:38648 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726127AbgERKsU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2020 06:48:20 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: andrzej.p)
-        with ESMTPSA id 849C52A04C1
-Subject: Re: [PATCHv2 0/7] Support inhibiting input devices
-To:     Hans de Goede <hdegoede@redhat.com>, linux-input@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        patches@opensource.cirrus.com,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Sylvain Lemieux <slemieux.tyco@gmail.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Barry Song <baohua@kernel.org>,
-        Michael Hennerich <michael.hennerich@analog.com>,
-        Nick Dyer <nick@shmanahar.org>,
-        Ferruh Yigit <fery@cypress.com>,
-        Sangwon Jee <jeesw@melfas.com>,
-        Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>,
-        kernel@collabora.com, Peter Hutterer <peter.hutterer@redhat.com>,
-        Benjamin Tissoires <btissoir@redhat.com>
-References: <20200506002746.GB89269@dtor-ws>
- <20200515164943.28480-1-andrzej.p@collabora.com>
- <842b95bb-8391-5806-fe65-be64b02de122@redhat.com>
-From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-Message-ID: <e6030957-97dc-5b04-7855-bc14a78164c8@collabora.com>
-Date:   Mon, 18 May 2020 12:48:11 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
+        id S1726511AbgERLHG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 May 2020 07:07:06 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:40826 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726279AbgERLHG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2020 07:07:06 -0400
+Received: by mail-oi1-f196.google.com with SMTP id v128so8598439oia.7
+        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2020 04:07:04 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FmJIEp+kiSI8MxrxJgq0AuNakTvh0ueYA1Hz0tZ7A1g=;
+        b=VpjHWSRCHFkjnEVZ/yNWE1kew4aWFU9bVrS2H7hQEE1ksPD0zjXCC2xsGwYP4fev9+
+         QpgbBeC88Iy8Yb0okZHBbVCICR/ZK7jjI20eGLskaL9otVW/MQP3fepdt2ZTNcgHU3ri
+         ZtiKPpLnckbtsb6yTVygWLAyroBQRYbD/rbBnci3LEVgRa/89QuAWn6GXK9w++OfHk5s
+         9rgkjf9jbwBs8c3pgWcNvjS6GkfuIkXseUdkkRM6a2X9mjDcoU+Ubmww4YHuEsfZB5w/
+         VJXAm15nABF+KkrXaqekbESZLd6Tp8+WX7v56gbWWt5kVxpJM6gCn69BaDpSPMWUOWPd
+         iy9g==
+X-Gm-Message-State: AOAM533CkJz3vVvCBwmiBnrPWmLDxYeewtlHHumKdjQJIjOFwla6runs
+        vEZqm3dwNXV13zXpcjGmZY/HUWKO1e2g4PedyiY=
+X-Google-Smtp-Source: ABdhPJyO7qj9urHg5mFVtUCuSaO3piwA11qlqpAMBinji3EbviBFsC2R0Ew7QVX3YcdhPsOxsE0dCMTibQXzwldtoWA=
+X-Received: by 2002:a05:6808:486:: with SMTP id z6mr576935oid.103.1589800024528;
+ Mon, 18 May 2020 04:07:04 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <842b95bb-8391-5806-fe65-be64b02de122@redhat.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+References: <cover.1589262490.git.mchehab+huawei@kernel.org>
+ <4ea6a89bcde8c72427e69a87551bdfca8bf1af11.1589262490.git.mchehab+huawei@kernel.org>
+ <CAJZ5v0gRScLoBGr6546=zJBtZj2D0-Yv48RZobN-0eih01L29A@mail.gmail.com>
+ <89fd7ece-ab9c-cee0-e575-7652a992fe3a@redhat.com> <20200518101845.65da0634@coco.lan>
+In-Reply-To: <20200518101845.65da0634@coco.lan>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 18 May 2020 13:06:53 +0200
+Message-ID: <CAJZ5v0hGyRRPkh+79ApUk97UXx6nEjia4XKfqBijVD23hbi3sQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ACPI / PMIC: Add i2c address for thermal control
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Hans,
+On Mon, May 18, 2020 at 10:18 AM Mauro Carvalho Chehab
+<mchehab+huawei@kernel.org> wrote:
+>
+> Em Mon, 18 May 2020 09:22:53 +0200
+> Hans de Goede <hdegoede@redhat.com> escreveu:
+>
+> > Hi Rafael,
+> >
+> > On 5/15/20 6:28 PM, Rafael J. Wysocki wrote:
+> > > On Tue, May 12, 2020 at 7:52 AM Mauro Carvalho Chehab
+> > > <mchehab+huawei@kernel.org> wrote:
+> > >>
+> > >> On Asus T101HA, we keep receiving those error messages:
+> > >>
+> > >>          i915 0000:00:02.0: [drm] *ERROR* mipi_exec_pmic failed, error: -95
+> > >>          intel_soc_pmic_exec_mipi_pmic_seq_element: Not implemented
+> > >>          intel_soc_pmic_exec_mipi_pmic_seq_element: i2c-addr: 0x5e reg-addr 0x4b value 0x59 mask 0xff
+> > >>
+> > >> Because the opregion is missing the I2C address.
+> > >>
+> > >> Suggested-by: Hans de Goede <hdegoede@redhat.com>
+> > >> Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+> > >> ---
+> > >>   drivers/acpi/pmic/intel_pmic_chtdc_ti.c | 1 +
+> > >>   1 file changed, 1 insertion(+)
+> > >>
+> > >> diff --git a/drivers/acpi/pmic/intel_pmic_chtdc_ti.c b/drivers/acpi/pmic/intel_pmic_chtdc_ti.c
+> > >> index 7ccd7d9660bc..a5101b07611a 100644
+> > >> --- a/drivers/acpi/pmic/intel_pmic_chtdc_ti.c
+> > >> +++ b/drivers/acpi/pmic/intel_pmic_chtdc_ti.c
+> > >> @@ -102,6 +102,7 @@ static struct intel_pmic_opregion_data chtdc_ti_pmic_opregion_data = {
+> > >>          .power_table_count = ARRAY_SIZE(chtdc_ti_power_table),
+> > >>          .thermal_table = chtdc_ti_thermal_table,
+> > >>          .thermal_table_count = ARRAY_SIZE(chtdc_ti_thermal_table),
+> > >> +       .pmic_i2c_address = 0x5e,
+> > >>   };
+> > >>
+> > >>   static int chtdc_ti_pmic_opregion_probe(struct platform_device *pdev)
+> > >> --
+> > >
+> > > This appears to be part of a series, but the second patch has not been
+> > > CCed to linux-acpi.
+> >
+> > Mauro send out 3 patches related to the PMIC, this one and 2 MFD patches.
+> > I think his intention was to send out this standalone and the 2 MFD patches
+> > as a series, but instead he send out this 1 + 1 MFD patch as a series and
+> > the other MFD patch as a standalone patch.
+> >
+> > Either way this patch is a standalone patch, the 2/2 patch is almost
+> > completely unrelated, so if you can pick this one up, then that would be
+> > great.
+>
+> Yeah, patch 2/2 is independent of this one. It touches only drivers/mfd/Kconfig,
+> addressing a problem when building with INTEL_SOC_PMIC_CHTDC_TI=m.
+>
+> The third patch for the MFD tree addresses similar issues with drivers that
+> register an OpRegion, but won't work properly if compiled as module.
+>
+> Please pick this one via your tree.
 
-W dniu 15.05.2020 o 20:19, Hans de Goede pisze:
-> Hi Andrezj,
-> 
-> On 5/15/20 6:49 PM, Andrzej Pietrasiewicz wrote:
->> Userspace might want to implement a policy to temporarily disregard input
->> from certain devices, including not treating them as wakeup sources.
->>
->> An example use case is a laptop, whose keyboard can be folded under the
->> screen to create tablet-like experience. The user then must hold the laptop
->> in such a way that it is difficult to avoid pressing the keyboard keys. It
->> is therefore desirable to temporarily disregard input from the keyboard,
->> until it is folded back. This obviously is a policy which should be kept
->> out of the kernel, but the kernel must provide suitable means to implement
->> such a policy.
-> 
-> Actually libinput already binds together (inside libinput) SW_TABLET_MODE
-> generating evdev nodes and e.g. internal keyboards on devices with 360°
-> hinges for this reason. libinput simply closes the /dev/input/event#
-> node when folded and re-opens it when the keyboard should become active
-> again. Thus not only suppresses events but allows e.g. touchpads to
-> enter runtime suspend mode which saves power. Typically closing the
-> /dev/input/event# node will also disable the device as wakeup source.
-> 
-> So I wonder what this series actually adds for functionality for
-> userspace which can not already be achieved this way?
-> 
-> I also noticed that you keep the device open (do not call the
-> input_device's close callback) when inhibited and just throw away
-
-I'm not sure if I understand you correctly, it is called:
-
-+static inline void input_stop(struct input_dev *dev)
-+{
-+	if (dev->poller)
-+		input_dev_poller_stop(dev->poller);
-+	if (dev->close)
-+		dev->close(dev);
-                 ^^^^^^^^^^^^^^^^
-+static int input_inhibit(struct input_dev *dev)
-+{
-+	int ret = 0;
-+
-+	mutex_lock(&dev->mutex);
-+
-+	if (dev->inhibited)
-+		goto out;
-+
-+	if (dev->users) {
-+		if (dev->inhibit) {
-+			ret = dev->inhibit(dev);
-+			if (ret)
-+				goto out;
-+		}
-+		input_stop(dev);
-                 ^^^^^^^^^^^^^^^^
-
-It will not be called when dev->users is zero, but if it is zero,
-then nobody has opened the device yet so there is nothing to close.
-
-Andrzej
+OK, applied as 5.8 material, thanks!
