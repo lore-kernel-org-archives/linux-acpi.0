@@ -2,53 +2,86 @@ Return-Path: <SRS0=hksk=7B=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78850C433DF
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 May 2020 10:40:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75EEEC433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 May 2020 11:07:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BE23205CB
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 May 2020 10:40:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CCCC204EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 May 2020 11:07:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1589886451;
+	bh=QA2rHolsn+tJibnYNXvUISvhxpI4nCOUMELeH1kwuOw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=X78+RKSjnZRPGrSn57uUxlzMYjfpeLdiDB0EHFrqh9cSQrusVmcAU2Swem7MdkuH4
+	 Z8EUQpRcOnXZd6EGLAg9Wvs/SrTOlKWLWzux4Up7+5fmFSYWvwiEknFedTvv0z9aQp
+	 Iz2d6Ime4yx2LmV7wdusQ2FatTUvlKE8/VjH90B4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726121AbgESKkm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 May 2020 06:40:42 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:52692 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725911AbgESKkm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 19 May 2020 06:40:42 -0400
-Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 363123CF16D80D759112
-        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2020 18:40:41 +0800 (CST)
-Received: from [127.0.0.1] (10.74.173.29) by DGGEMS413-HUB.china.huawei.com
- (10.3.19.213) with Microsoft SMTP Server id 14.3.487.0; Tue, 19 May 2020
- 18:40:36 +0800
-From:   "shenyang (M)" <shenyang39@huawei.com>
-To:     <linux-acpi@vger.kernel.org>
-Subject: Question about ACPI_THERMAL_HID of thermal
-Message-ID: <c61a713e-2d4b-91ba-26fa-e3c2f3c50b44@huawei.com>
-Date:   Tue, 19 May 2020 18:40:37 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.7.1
+        id S1726505AbgESLHa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 May 2020 07:07:30 -0400
+Received: from mail-ot1-f43.google.com ([209.85.210.43]:36731 "EHLO
+        mail-ot1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726466AbgESLHa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2020 07:07:30 -0400
+Received: by mail-ot1-f43.google.com with SMTP id h7so3778516otr.3
+        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2020 04:07:29 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=QA2rHolsn+tJibnYNXvUISvhxpI4nCOUMELeH1kwuOw=;
+        b=um6TR7l7WV/oRzNF7TkZ0dTcsCK2uKCeyF4ZalmTI4eSCX4JWEcOUGbExSJLAyf24b
+         x9AWIYmlkH/WoI+474ZPjVbhEr7eXqLdUkFBVzXya8SvZeZoycOZU6Ut7++sXcFb5RPi
+         394F8KAfdKCaUW9rUAgQ/+8cyAt3/XMIHqmsCHaHlQbq+BTqsD6Tu5aniMHKi99f4Jds
+         3SUc2kbW04APghYyVwzymcy9AJXW5g3/c7FHKzRF1vHpQ85qJb6+CHqILfMzk5E6Z7BD
+         mRx+74CK9UN7th5v1flwxDpetBbTdUtkjv4uCYcWNNPnUtUB6/JltC5d89NnUeYgA5Wl
+         5Y3Q==
+X-Gm-Message-State: AOAM531YocmfBxxpig2NpBIapA7/VDZQU3fSmIruLfRnkRJ5ZsBty6BX
+        lzUDQ568GQ1f6FW+fNlzEU/ZeKk9oUuZf9Kbsy8=
+X-Google-Smtp-Source: ABdhPJzUEaLivSBf/kObnSg0Ut+3rE56HNahK9iJ86MapeaNnKuls/d5X7+FMHtDu4MkuQucUGkhc1y1jy4TcB+xy6o=
+X-Received: by 2002:a9d:3d05:: with SMTP id a5mr4584915otc.262.1589886448560;
+ Tue, 19 May 2020 04:07:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.74.173.29]
-X-CFilter-Loop: Reflected
+References: <c61a713e-2d4b-91ba-26fa-e3c2f3c50b44@huawei.com>
+In-Reply-To: <c61a713e-2d4b-91ba-26fa-e3c2f3c50b44@huawei.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 19 May 2020 13:07:16 +0200
+Message-ID: <CAJZ5v0i8qwmJEGEDbHwuaVUGK7PWgnS9o91sqFxni96uSUVfKw@mail.gmail.com>
+Subject: Re: Question about ACPI_THERMAL_HID of thermal
+To:     "shenyang (M)" <shenyang39@huawei.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+On Tue, May 19, 2020 at 12:40 PM shenyang (M) <shenyang39@huawei.com> wrote:
+>
+> Hi,
+>
+> Sorry for disturbing you.
 
-Sorry for disturbing you.
-I want to use the driver thermal.ko. But here I got a question:
-the ACPI_THERMAL_HID does not comply with ACPI spec. So I want to know
-if any device is using this driver. And if no one is using this driver,
-can I modify this HID to comply with ACPI specifications?
+No worries.
 
-Thanks,
-Yang
+> I want to use the driver thermal.ko. But here I got a question:
+> the ACPI_THERMAL_HID does not comply with ACPI spec. So I want to know
+> if any device is using this driver.
 
+Yes.
+
+ACPI_THERMAL_HID is automatically given to ACPI objects of the
+ACPI_TYPE_THERMAL type that represent thermal zones.
+
+> And if no one is using this driver,
+> can I modify this HID to comply with ACPI specifications?
+
+This artificial device ID is used internally by the kernel and there's
+no need for you to manipulate it.
+
+In order for the ACPI thermal driver to be used, at least one thermal
+zone needs to be declared in the ACPI namespace.
+
+Thanks!
