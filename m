@@ -2,68 +2,80 @@ Return-Path: <SRS0=fe6V=7C=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92FDCC433E0
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 May 2020 19:30:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3EBFC433E1
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 May 2020 21:19:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 70D2D20709
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 May 2020 19:30:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590003008;
-	bh=DBC1ySMu3GUFU7h8ZiQfJ32UKjW5VmXm7PUvd/lAiEI=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=Ges43fyAgbZWh08BmtarCkldXYr3eiPsq+303FV5B3rR7+qj8HKEkOhLC12+LaqHe
-	 ONgjYfPKJlafD2r8S2lz5zB/1l6jeqRWxaG+/jzIECbHHsmEkQl1RNdRG2ut8CLzq/
-	 vW6VLaDFrlJOAbY0tc+lNjJ48N8CPFCwxrh3sMcs=
+	by mail.kernel.org (Postfix) with ESMTP id D19A120873
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 May 2020 21:19:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726838AbgETTaE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 May 2020 15:30:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40562 "EHLO mail.kernel.org"
+        id S1727909AbgETVTV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 May 2020 17:19:21 -0400
+Received: from mga17.intel.com ([192.55.52.151]:7202 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726548AbgETTaE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 20 May 2020 15:30:04 -0400
-Subject: Re: [GIT PULL] Power management fix for v5.7-rc7
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590003003;
-        bh=DBC1ySMu3GUFU7h8ZiQfJ32UKjW5VmXm7PUvd/lAiEI=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=2UggvqTCXsA4NNHtOvB1Zv6vHn+MKoWMuCL5CFZ1EU4UkRGG5cBDscDYBw08fBffJ
-         m80ioFhURTvLhj7c8rVk/CKfvjIsmCjZI9PHQJVT8cdFRDBMVn7D19FFM/zXPN/erI
-         xPd5MGxP6D1bCz4UON8JY0jBDa3QowDYfn5aAvO0=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0jE6tnyd741Y1B_1gzVMtcf112e1EOqjJ1AR+oUd5ee_w@mail.gmail.com>
-References: <CAJZ5v0jE6tnyd741Y1B_1gzVMtcf112e1EOqjJ1AR+oUd5ee_w@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0jE6tnyd741Y1B_1gzVMtcf112e1EOqjJ1AR+oUd5ee_w@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.7-rc7
-X-PR-Tracked-Commit-Id: 607b9df63057a56f6172d560d5366cca6a030c76
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 2ea1940b84e55420a9e8feddcafd173edfe4df11
-Message-Id: <159000300388.7201.5708064379590396620.pr-tracker-bot@kernel.org>
-Date:   Wed, 20 May 2020 19:30:03 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S1727083AbgETVTV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 20 May 2020 17:19:21 -0400
+IronPort-SDR: JMY2KxPrHelOdHjFKH09R6S03Oc44Oy4V6WnV4dyolD+/DzZLXmrap0vhwVxkbX5svTb93Zgfh
+ 79qp4Glj+qDg==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2020 14:19:20 -0700
+IronPort-SDR: b1zvrwV+JVBpTD1IzUBKm297bpY7NPFn9ws2U9MwPdsmirPn1aYYzVGQ+xaeWRa2V9Qw6w3U5O
+ 1po8kFLUmUBw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,415,1583222400"; 
+   d="scan'208";a="264823758"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga003.jf.intel.com with ESMTP; 20 May 2020 14:19:18 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id D57E517E; Thu, 21 May 2020 00:19:17 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        linux-gpio@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-acpi@vger.kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 3/5] gpio: pca953x: Drop unneeded ACPI_PTR()
+Date:   Thu, 21 May 2020 00:19:14 +0300
+Message-Id: <20200520211916.25727-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200520211916.25727-1-andriy.shevchenko@linux.intel.com>
+References: <20200520211916.25727-1-andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Wed, 20 May 2020 17:17:02 +0200:
+ACPI_PTR() becomes a no-op when !CONFIG_ACPI. This is not needed since
+we always have ID table enabled. Moreover, in the mentioned case compiler
+will complain about defined but not used variable.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.7-rc7
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpio-pca953x.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/2ea1940b84e55420a9e8feddcafd173edfe4df11
-
-Thank you!
-
+diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
+index 4bb3d3524bc7..1fca8dd7824f 100644
+--- a/drivers/gpio/gpio-pca953x.c
++++ b/drivers/gpio/gpio-pca953x.c
+@@ -1176,7 +1176,7 @@ static struct i2c_driver pca953x_driver = {
+ 		.name	= "pca953x",
+ 		.pm	= &pca953x_pm_ops,
+ 		.of_match_table = pca953x_dt_ids,
+-		.acpi_match_table = ACPI_PTR(pca953x_acpi_ids),
++		.acpi_match_table = pca953x_acpi_ids,
+ 	},
+ 	.probe		= pca953x_probe,
+ 	.remove		= pca953x_remove,
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+2.26.2
+
