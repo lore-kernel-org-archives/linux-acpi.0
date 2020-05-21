@@ -7,44 +7,43 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21481C433E3
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 May 2020 13:00:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49663C433E4
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 May 2020 13:00:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06E6D2078B
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 May 2020 13:00:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3145520826
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 May 2020 13:00:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729407AbgEUNAm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 May 2020 09:00:42 -0400
-Received: from foss.arm.com ([217.140.110.172]:46156 "EHLO foss.arm.com"
+        id S1729410AbgEUNAo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 May 2020 09:00:44 -0400
+Received: from foss.arm.com ([217.140.110.172]:46196 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729166AbgEUNAi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 21 May 2020 09:00:38 -0400
+        id S1729404AbgEUNAm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 21 May 2020 09:00:42 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2126B1042;
-        Thu, 21 May 2020 06:00:36 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8C5DC1045;
+        Thu, 21 May 2020 06:00:41 -0700 (PDT)
 Received: from red-moon.arm.com (unknown [10.57.29.145])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9D9AE3F305;
-        Thu, 21 May 2020 06:00:33 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 30A613F305;
+        Thu, 21 May 2020 06:00:39 -0700 (PDT)
 From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 To:     linux-arm-kernel@lists.infradead.org
-Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+Cc:     Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         Rob Herring <robh+dt@kernel.org>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Joerg Roedel <joro@8bytes.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         iommu@lists.linux-foundation.org, linux-acpi@vger.kernel.org,
         devicetree@vger.kernel.org, linux-pci@vger.kernel.org,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Joerg Roedel <joro@8bytes.org>,
         Hanjun Guo <guohanjun@huawei.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Sudeep Holla <sudeep.holla@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
         Makarand Pawagi <makarand.pawagi@nxp.com>,
         Diana Craciun <diana.craciun@oss.nxp.com>
-Subject: [PATCH 07/12] of/device: Add input id to of_dma_configure()
-Date:   Thu, 21 May 2020 14:00:03 +0100
-Message-Id: <20200521130008.8266-8-lorenzo.pieralisi@arm.com>
+Subject: [PATCH 09/12] dt-bindings: arm: fsl: Add msi-map device-tree binding for fsl-mc bus
+Date:   Thu, 21 May 2020 14:00:05 +0100
+Message-Id: <20200521130008.8266-10-lorenzo.pieralisi@arm.com>
 X-Mailer: git-send-email 2.26.1
 In-Reply-To: <20200521130008.8266-1-lorenzo.pieralisi@arm.com>
 References: <20200521130008.8266-1-lorenzo.pieralisi@arm.com>
@@ -55,234 +54,89 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Devices sitting on proprietary busses have a device ID space that
-is owned by the respective bus and related firmware bindings. In order
-to let the generic OF layer handle the input translations to
-an IOMMU id, for such busses the current of_dma_configure() interface
-should be extended in order to allow the bus layer to provide the
-device input id parameter - that is retrieved/assigned in bus
-specific code and firmware.
+From: Laurentiu Tudor <laurentiu.tudor@nxp.com>
 
-Augment of_dma_configure() to add an optional input_id parameter,
-leaving current functionality unchanged.
+The existing bindings cannot be used to specify the relationship
+between fsl-mc devices and GIC ITSes.
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Add a generic binding for mapping fsl-mc devices to GIC ITSes, using
+msi-map property.
+
+Signed-off-by: Laurentiu Tudor <laurentiu.tudor@nxp.com>
 Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Laurentiu Tudor <laurentiu.tudor@nxp.com>
 ---
- drivers/bus/fsl-mc/fsl-mc-bus.c |  4 ++-
- drivers/iommu/of_iommu.c        | 53 +++++++++++++++++++++------------
- drivers/of/device.c             |  8 +++--
- include/linux/of_device.h       | 16 ++++++++--
- include/linux/of_iommu.h        |  6 ++--
- 5 files changed, 60 insertions(+), 27 deletions(-)
+ .../devicetree/bindings/misc/fsl,qoriq-mc.txt | 30 +++++++++++++++++--
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/bus/fsl-mc/fsl-mc-bus.c b/drivers/bus/fsl-mc/fsl-mc-bus.c
-index 40526da5c6a6..8ead3f0238f2 100644
---- a/drivers/bus/fsl-mc/fsl-mc-bus.c
-+++ b/drivers/bus/fsl-mc/fsl-mc-bus.c
-@@ -118,11 +118,13 @@ static int fsl_mc_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
- static int fsl_mc_dma_configure(struct device *dev)
- {
- 	struct device *dma_dev = dev;
-+	struct fsl_mc_device *mc_dev = to_fsl_mc_device(dev);
-+	u32 input_id = mc_dev->icid;
+diff --git a/Documentation/devicetree/bindings/misc/fsl,qoriq-mc.txt b/Documentation/devicetree/bindings/misc/fsl,qoriq-mc.txt
+index 9134e9bcca56..b0813b2d0493 100644
+--- a/Documentation/devicetree/bindings/misc/fsl,qoriq-mc.txt
++++ b/Documentation/devicetree/bindings/misc/fsl,qoriq-mc.txt
+@@ -18,9 +18,9 @@ same hardware "isolation context" and a 10-bit value called an ICID
+ the requester.
  
- 	while (dev_is_fsl_mc(dma_dev))
- 		dma_dev = dma_dev->parent;
+ The generic 'iommus' property is insufficient to describe the relationship
+-between ICIDs and IOMMUs, so an iommu-map property is used to define
+-the set of possible ICIDs under a root DPRC and how they map to
+-an IOMMU.
++between ICIDs and IOMMUs, so the iommu-map and msi-map properties are used
++to define the set of possible ICIDs under a root DPRC and how they map to
++an IOMMU and a GIC ITS respectively.
  
--	return of_dma_configure(dev, dma_dev->of_node, 0);
-+	return of_dma_configure_id(dev, dma_dev->of_node, 0, &input_id);
- }
+ For generic IOMMU bindings, see
+ Documentation/devicetree/bindings/iommu/iommu.txt.
+@@ -28,6 +28,9 @@ Documentation/devicetree/bindings/iommu/iommu.txt.
+ For arm-smmu binding, see:
+ Documentation/devicetree/bindings/iommu/arm,smmu.yaml.
  
- static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
-diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-index ad96b87137d6..4516d5bf6cc9 100644
---- a/drivers/iommu/of_iommu.c
-+++ b/drivers/iommu/of_iommu.c
-@@ -139,25 +139,53 @@ static int of_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
- 	return err;
- }
- 
--static int of_fsl_mc_iommu_init(struct fsl_mc_device *mc_dev,
--				struct device_node *master_np)
-+static int of_iommu_configure_dev_id(struct device_node *master_np,
-+				     struct device *dev,
-+				     const u32 *id)
- {
- 	struct of_phandle_args iommu_spec = { .args_count = 1 };
- 	int err;
- 
--	err = of_map_id(master_np, mc_dev->icid, "iommu-map",
-+	err = of_map_id(master_np, *id, "iommu-map",
- 			 "iommu-map-mask", &iommu_spec.np,
- 			 iommu_spec.args);
- 	if (err)
- 		return err == -ENODEV ? NO_IOMMU : err;
- 
--	err = of_iommu_xlate(&mc_dev->dev, &iommu_spec);
-+	err = of_iommu_xlate(dev, &iommu_spec);
- 	of_node_put(iommu_spec.np);
- 	return err;
- }
- 
-+static int of_iommu_configure_dev(struct device_node *master_np,
-+				  struct device *dev)
-+{
-+	struct of_phandle_args iommu_spec;
-+	int err = NO_IOMMU, idx = 0;
++For GICv3 and GIC ITS bindings, see:
++Documentation/devicetree/bindings/interrupt-controller/arm,gic-v3.yaml.
 +
-+	while (!of_parse_phandle_with_args(master_np, "iommus",
-+					   "#iommu-cells",
-+					   idx, &iommu_spec)) {
-+		err = of_iommu_xlate(dev, &iommu_spec);
-+		of_node_put(iommu_spec.np);
-+		idx++;
-+		if (err)
-+			break;
-+	}
+ Required properties:
+ 
+     - compatible
+@@ -119,6 +122,15 @@ Optional properties:
+   associated with the listed IOMMU, with the iommu-specifier
+   (i - icid-base + iommu-base).
+ 
++- msi-map: Maps an ICID to a GIC ITS and associated iommu-specifier
++  data.
 +
-+	return err;
-+}
++  The property is an arbitrary number of tuples of
++  (icid-base,iommu,iommu-base,length).
 +
-+static int of_iommu_configure_device(struct device_node *master_np,
-+				     struct device *dev, const u32 *id)
-+{
-+	return (id) ? of_iommu_configure_dev_id(master_np, dev, id) :
-+		      of_iommu_configure_dev(master_np, dev);
-+}
++  Any ICID in the interval [icid-base, icid-base + length) is
++  associated with the listed GIC ITS, with the iommu-specifier
++  (i - icid-base + iommu-base).
+ Example:
+ 
+         smmu: iommu@5000000 {
+@@ -128,6 +140,16 @@ Example:
+                ...
+         };
+ 
++	gic: interrupt-controller@6000000 {
++		compatible = "arm,gic-v3";
++		...
++		its: gic-its@6020000 {
++			compatible = "arm,gic-v3-its";
++			msi-controller;
++			...
++		};
++	};
 +
- const struct iommu_ops *of_iommu_configure(struct device *dev,
--					   struct device_node *master_np)
-+					   struct device_node *master_np,
-+					   const u32 *id)
- {
- 	const struct iommu_ops *ops = NULL;
- 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-@@ -188,21 +216,8 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
- 		pci_request_acs();
- 		err = pci_for_each_dma_alias(to_pci_dev(dev),
- 					     of_pci_iommu_init, &info);
--	} else if (dev_is_fsl_mc(dev)) {
--		err = of_fsl_mc_iommu_init(to_fsl_mc_device(dev), master_np);
- 	} else {
--		struct of_phandle_args iommu_spec;
--		int idx = 0;
--
--		while (!of_parse_phandle_with_args(master_np, "iommus",
--						   "#iommu-cells",
--						   idx, &iommu_spec)) {
--			err = of_iommu_xlate(dev, &iommu_spec);
--			of_node_put(iommu_spec.np);
--			idx++;
--			if (err)
--				break;
--		}
-+		err = of_iommu_configure_device(master_np, dev, id);
+         fsl_mc: fsl-mc@80c000000 {
+                 compatible = "fsl,qoriq-mc";
+                 reg = <0x00000008 0x0c000000 0 0x40>,    /* MC portal base */
+@@ -135,6 +157,8 @@ Example:
+                 msi-parent = <&its>;
+                 /* define map for ICIDs 23-64 */
+                 iommu-map = <23 &smmu 23 41>;
++                /* define msi map for ICIDs 23-64 */
++                msi-map = <23 &its 23 41>;
+                 #address-cells = <3>;
+                 #size-cells = <1>;
  
- 		fwspec = dev_iommu_fwspec_get(dev);
- 		if (!err && fwspec)
-diff --git a/drivers/of/device.c b/drivers/of/device.c
-index 27203bfd0b22..b439c1e05434 100644
---- a/drivers/of/device.c
-+++ b/drivers/of/device.c
-@@ -78,6 +78,7 @@ int of_device_add(struct platform_device *ofdev)
-  * @np:		Pointer to OF node having DMA configuration
-  * @force_dma:  Whether device is to be set up by of_dma_configure() even if
-  *		DMA capability is not explicitly described by firmware.
-+ * @id:		Optional const pointer value input id
-  *
-  * Try to get devices's DMA configuration from DT and update it
-  * accordingly.
-@@ -86,7 +87,8 @@ int of_device_add(struct platform_device *ofdev)
-  * can use a platform bus notifier and handle BUS_NOTIFY_ADD_DEVICE events
-  * to fix up DMA configuration.
-  */
--int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
-+int of_dma_configure_id(struct device *dev, struct device_node *np,
-+			bool force_dma, const u32 *id)
- {
- 	u64 dma_addr, paddr, size = 0;
- 	int ret;
-@@ -160,7 +162,7 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
- 	dev_dbg(dev, "device is%sdma coherent\n",
- 		coherent ? " " : " not ");
- 
--	iommu = of_iommu_configure(dev, np);
-+	iommu = of_iommu_configure(dev, np, id);
- 	if (PTR_ERR(iommu) == -EPROBE_DEFER)
- 		return -EPROBE_DEFER;
- 
-@@ -171,7 +173,7 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(of_dma_configure);
-+EXPORT_SYMBOL_GPL(of_dma_configure_id);
- 
- int of_device_register(struct platform_device *pdev)
- {
-diff --git a/include/linux/of_device.h b/include/linux/of_device.h
-index 8d31e39dd564..07ca187fc5e4 100644
---- a/include/linux/of_device.h
-+++ b/include/linux/of_device.h
-@@ -55,9 +55,15 @@ static inline struct device_node *of_cpu_device_node_get(int cpu)
- 	return of_node_get(cpu_dev->of_node);
- }
- 
--int of_dma_configure(struct device *dev,
-+int of_dma_configure_id(struct device *dev,
- 		     struct device_node *np,
--		     bool force_dma);
-+		     bool force_dma, const u32 *id);
-+static inline int of_dma_configure(struct device *dev,
-+				   struct device_node *np,
-+				   bool force_dma)
-+{
-+	return of_dma_configure_id(dev, np, force_dma, NULL);
-+}
- #else /* CONFIG_OF */
- 
- static inline int of_driver_match_device(struct device *dev,
-@@ -106,6 +112,12 @@ static inline struct device_node *of_cpu_device_node_get(int cpu)
- 	return NULL;
- }
- 
-+static inline int of_dma_configure_id(struct device *dev,
-+				   struct device_node *np,
-+				   bool force_dma)
-+{
-+	return 0;
-+}
- static inline int of_dma_configure(struct device *dev,
- 				   struct device_node *np,
- 				   bool force_dma)
-diff --git a/include/linux/of_iommu.h b/include/linux/of_iommu.h
-index f3d40dd7bb66..16f4b3e87f20 100644
---- a/include/linux/of_iommu.h
-+++ b/include/linux/of_iommu.h
-@@ -13,7 +13,8 @@ extern int of_get_dma_window(struct device_node *dn, const char *prefix,
- 			     size_t *size);
- 
- extern const struct iommu_ops *of_iommu_configure(struct device *dev,
--					struct device_node *master_np);
-+					struct device_node *master_np,
-+					const u32 *id);
- 
- #else
- 
-@@ -25,7 +26,8 @@ static inline int of_get_dma_window(struct device_node *dn, const char *prefix,
- }
- 
- static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
--					 struct device_node *master_np)
-+					 struct device_node *master_np,
-+					 const u32 *id)
- {
- 	return NULL;
- }
 -- 
 2.26.1
 
