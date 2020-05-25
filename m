@@ -2,144 +2,219 @@ Return-Path: <SRS0=a4yS=7H=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBCF9C433E1
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 18:26:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2C1AC433DF
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 19:35:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBC4320776
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 18:26:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC8D320723
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 19:35:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389253AbgEYS0N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 25 May 2020 14:26:13 -0400
-Received: from mail-ej1-f66.google.com ([209.85.218.66]:37236 "EHLO
-        mail-ej1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387644AbgEYS0N (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 May 2020 14:26:13 -0400
-Received: by mail-ej1-f66.google.com with SMTP id l21so21340052eji.4;
-        Mon, 25 May 2020 11:26:11 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=1qikXNcYuPEp2SbYrhq3PIeLmdf37Vp6toU2hryNiAU=;
-        b=UmCbsIdwmg0jEmX4PliEuAzxbhnr++enG6DM+5PuammxCnBstbdR/KQuR+PQ0y42pB
-         fELpWJdXAh9RRdvCdWiH9zJBGAFpDDjj9hVcqgZRFsmp+QEJ3TaWFO9YfkzBGYJJHvAw
-         o4Q+ZpiNqa5bc5+55Ii/p9IZQV6zI7wmnkKzetFoTXnND07uZfTbO0xCl/Lq513bMTAH
-         5Wh8pwjGqrxPUiH1SErSegLkfEqMhFcnq8ekW5Ri//s16Av17xL3ey9iqTng4x6xVtNd
-         6L3rIuXUbnfs+yEY4cuwJJkqbYguGR9w4bl6PHVt3r2SZMgjF5r8gFw3XllbqpAHOW39
-         eTGQ==
-X-Gm-Message-State: AOAM530wgjA9f4C4bbwoAhVYMprvnaEiCXOn5aEnfXakvXVCvKmo8Wih
-        B7R6u9qx8iVPnxwLifqJiBg=
-X-Google-Smtp-Source: ABdhPJxkEBfJS/XXtSSCnmQUkO84UroYhCAKuA4jbTqreWDo9ErA8dsQuCsf23LSLacMkksSHFqFeg==
-X-Received: by 2002:a17:906:4bc1:: with SMTP id x1mr19051208ejv.13.1590431170704;
-        Mon, 25 May 2020 11:26:10 -0700 (PDT)
-Received: from workstation.lan ([95.155.85.46])
-        by smtp.gmail.com with ESMTPSA id n15sm15555707ejs.10.2020.05.25.11.26.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 May 2020 11:26:09 -0700 (PDT)
-From:   =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>
-To:     Dan Carpenter <dan.carpenter@oracle.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Kevin Hilman <khilman@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "James E.J. Bottomley" <jejb@linux.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Julian Wiedmann <jwi@linux.ibm.com>,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Ursula Braun <ubraun@linux.ibm.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        John Stultz <john.stultz@linaro.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        greybus-dev@lists.linaro.org, netdev@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: [PATCH 0/8] Add helper for accessing Power Management callbacs
-Date:   Mon, 25 May 2020 18:26:00 +0000
-Message-Id: <20200525182608.1823735-1-kw@linux.com>
-X-Mailer: git-send-email 2.26.2
+        id S2390116AbgEYTfi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 25 May 2020 15:35:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37708 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389904AbgEYTfh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 May 2020 15:35:37 -0400
+Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E722C061A0E;
+        Mon, 25 May 2020 12:35:37 -0700 (PDT)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: andrzej.p)
+        with ESMTPSA id 812F52A17E9
+Subject: Re: [RFC v3 1/2] thermal: core: Let thermal zone device's mode be
+ stored in its struct
+To:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        linux-pm@vger.kernel.org
+Cc:     Zhang Rui <rui.zhang@intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Jiri Pirko <jiri@mellanox.com>,
+        Ido Schimmel <idosch@mellanox.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Peter Kaestle <peter@piie.net>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Support Opensource <support.opensource@diasemi.com>,
+        Amit Kucheria <amit.kucheria@verdurent.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Allison Randal <allison@lohutok.net>,
+        Enrico Weigelt <info@metux.net>,
+        Gayatri Kammela <gayatri.kammela@intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        linux-acpi@vger.kernel.org, netdev@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, kernel@collabora.com,
+        Barlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+References: <9ac3b37a-8746-b8ee-70e1-9c876830ac83@linaro.org>
+ <20200417162020.19980-1-andrzej.p@collabora.com>
+ <20200417162020.19980-2-andrzej.p@collabora.com>
+ <f39c5ca6-5efa-889c-21f5-632dfd24715e@linaro.org>
+From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
+Message-ID: <802b4bd5-07c9-de3a-2ac6-5905b12d6adc@collabora.com>
+Date:   Mon, 25 May 2020 21:35:31 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <f39c5ca6-5efa-889c-21f5-632dfd24715e@linaro.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This series aims to add a new driver_to_pm() helper allowing for
-accessing the Power Management callbacs for a particular device.
+Hi Daniel,
 
-Access to the callbacs (struct dev_pm_ops) is normally done through
-using the pm pointer that is embedded within the device_driver struct.
+W dniu 23.05.2020 o 23:24, Daniel Lezcano pisze:
+> Hi Andrzej,
+> 
+> On 17/04/2020 18:20, Andrzej Pietrasiewicz wrote:
+>> Thermal zone devices' mode is stored in individual drivers. This patch
+>> changes it so that mode is stored in struct thermal_zone_device instead.
+>>
+>> As a result all driver-specific variables storing the mode are not needed
+>> and are removed. Consequently, the get_mode() implementations have nothing
+>> to operate on and need to be removed, too.
+>>
+>> Some thermal framework specific functions are introduced:
+>>
+>> thermal_zone_device_get_mode()
+>> thermal_zone_device_set_mode()
+>> thermal_zone_device_enable()
+>> thermal_zone_device_disable()
+>>
+>> thermal_zone_device_get_mode() and its "set" counterpart take tzd's lock
+>> and the "set" calls driver's set_mode() if provided, so the latter must
+>> not take this lock again. At the end of the "set"
+>> thermal_zone_device_update() is called so drivers don't need to repeat this
+>> invocation in their specific set_mode() implementations.
+>>
+>> The scope of the above 4 functions is purposedly limited to the thermal
+>> framework and drivers are not supposed to call them. This encapsulation
+>> does not fully work at the moment for some drivers, though:
+>>
+>> - platform/x86/acerhdf.c
+>> - drivers/thermal/imx_thermal.c
+>> - drivers/thermal/intel/intel_quark_dts_thermal.c
+>> - drivers/thermal/of-thermal.c
+>>
+>> and they manipulate struct thermal_zone_device's members directly.
+>>
+>> struct thermal_zone_params gains a new member called initial_mode, which
+>> is used to set tzd's mode at registration time.
+>>
+>> The sysfs "mode" attribute is always exposed from now on, because all
+>> thermal zone devices now have their get_mode() implemented at the generic
+>> level and it is always available. Exposing "mode" doesn't hurt the drivers
+>> which don't provide their own set_mode(), because writing to "mode" will
+>> result in -EPERM, as expected.
+> 
+> The result is great, that is a nice cleanup of the thermal framework.
+> 
+> After review it appears there are still problems IMO, especially with
+> the suspend / resume path. The patch is big, it is a bit complex to
+> comment. I suggest to re-org the changes as following:
+> 
+>   - patch 1 : Add the four functions:
+> 
+>   * thermal_zone_device_set_mode()
+>   * thermal_zone_device_enable()
+>   * thermal_zone_device_disable()
+>   * thermal_zone_device_is_enabled()
+> 
+> *but* do not export thermal_zone_device_set_mode(), it must stay private
+> to the thermal framework ATM.
 
-This new helper allows for the code required to reference the pm pointer
-and access Power Management callbas to be simplified.  Changing the
-following:
+Not exporting thermal_zone_device_set_mode() implies not exporting
+thermal_zone_device_enable()/thermal_zone_device_disable() because they
+are implemented in terms of the former. Or do you have a different idea?
 
-  struct device_driver *drv = dev->driver;
-  if (dev->driver && dev->driver->pm && dev->driver->pm->prepare) {
-      int ret = dev->driver->pm->prepare(dev);
+> 
+>   - patch 2 : Add the mode THERMAL_DEVICE_SUSPENDED
+> 
+> In the thermal_pm_notify() in the:
+> 
+>   - PM_SUSPEND_PREPARE case, set the mode to THERMAL_DEVICE_SUSPENDED if
+> the mode is THERMAL_DEVICE_ENABLED
+> 
+>   - PM_POST_SUSPEND case, set the mode to THERMAL_DEVICE_ENABLED, if the
+> mode is THERMAL_DEVICE_SUSPENDED
+> 
+>   - patch 3 : Change the monitor function
+> 
+> Change monitor_thermal_zone() function to set the polling to zero if the
+> mode is THERMAL_DEVICE_DISABLED
 
-To:
+So we assume this: if a driver creates a tz which is initially ENABLED,
+it will be polled. If a driver creates a tz which is initially DISABLED
+(which is what you suggest the drivers should be doing, but not all of them
+do), it won't be polled unless the driver explicitly enables its tz.
 
-  const struct dev_pm_ops *pm = driver_to_pm(dev->driver);
-  if (pm && pm->prepare) {
-      int ret = pm->prepare(dev);
+Am I concluding right that a suspended device will remain polled? Is it ok?
 
-Or, changing the following:
+> 
+>   - patch 4 : Do the changes to remove get_mode() ops
+> 
+> Make sure there is no access to tz->mode from the drivers anymore but
+> use of the functions of patch 1. IMO, this is the tricky part because a
+> part of the drivers are not calling the update after setting the mode
+> while the function thermal_zone_device_enable()/disable() call update
+> via the thermal_zone_device_set_mode(), so we must be sure to not break
+> anything.
 
-     const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
+Ah, I guess now is the time to make the functions from patch 1 exported?
 
-To:
-     const struct dev_pm_ops *pm = driver_to_pm(dev->driver);
+Ensuring no driver accesses tz->mode directly might be tricky, indeed.
+If it can be shown that calling the update doesn't hurt a particular driver,
+it can be converted to use the helpers instead of manipulating tz->mode
+directly. If, however, it does make a difference then it all depends and
+getting rid of accessing tz->mode directly might require help from the
+respective maintainers.
 
-This series builds on top of the previous commit 6da2f2ccfd2d ("PCI/PM:
-Make power management op coding style consistent") that had an aim to
-make accessing the Power Managemnet callbacs more consistent.
+This also calls for storing tz's mode in struct thermal_zone_device
+rather than in individual drivers. In fact it seems the purpose
+of ->get_mode() is to produce the state stored internally in drivers.
+Removing ->get_mode() requires changing the place where the state is
+stored. struct thermal_zone_device seems most appropriate. So this patch
+is not going to be small.
 
-No functional change intended.
+Once we start storing tz's state in struct thermal_zone_device the
+->set_mode() implementations need to be changed, too. To me it seems
+awkward to split this change in two patches: if we keep the changes
+split then in patch 4 we need to introduce code which implements
+->set_mode() in terms of the new state location, only to remove it
+in the very next patch.
 
-Links:
-  https://lore.kernel.org/driverdev-devel/20191014230016.240912-6-helgaas@kernel.org/
-  https://lore.kernel.org/driverdev-devel/8592302.r4xC6RIy69@kreacher/
-  https://lore.kernel.org/driverdev-devel/20191016135002.GA24678@kadam/
+While we are at it some drivers, namely acpi/thermal and int3400 store
+their mode in an int rather than enum thermal_device_mode. So maybe
+changing this should go even before patch 4? acerhdf does not store
+its mode at all and on top of it it wants to manipulate the polling
+delay directly and it has a module parameter which specifies it.
 
-Krzysztof Wilczyński (8):
-  driver core: Add helper for accessing Power Management callbacs
-  ACPI: PM: Use the new device_to_pm() helper to access struct
-    dev_pm_ops
-  greybus: Use the new device_to_pm() helper to access struct dev_pm_ops
-  scsi: pm: Use the new device_to_pm() helper to access struct
-    dev_pm_ops
-  usb: phy: fsl: Use the new device_to_pm() helper to access struct
-    dev_pm_ops
-  PCI/PM: Use the new device_to_pm() helper to access struct dev_pm_ops
-  PM: Use the new device_to_pm() helper to access struct dev_pm_ops
-  net/iucv: Use the new device_to_pm() helper to access struct
-    dev_pm_ops
+> 
+>   - patch 5 : Do the changes to remove set_mode() ops users
+> 
+> As the patch 3 sets the polling to zero, the routine in the driver
+> setting the polling to zero is no longer needed (eg. in the mellanox
+> driver). I expect int300 to be the last user of this ops, hopefully we
+> can find a way to get rid of the specific call done inside and then
+> remove the ops.
 
- drivers/acpi/device_pm.c         |  5 ++-
- drivers/base/power/domain.c      | 12 ++++--
- drivers/base/power/generic_ops.c | 65 ++++++++++++++------------------
- drivers/base/power/main.c        | 48 +++++++++++++++--------
- drivers/base/power/runtime.c     |  7 ++--
- drivers/greybus/bundle.c         |  4 +-
- drivers/pci/pci-driver.c         | 32 ++++++++--------
- drivers/scsi/scsi_pm.c           |  8 ++--
- drivers/usb/phy/phy-fsl-usb.c    | 11 ++++--
- include/linux/device/driver.h    | 15 ++++++++
- net/iucv/iucv.c                  | 30 +++++++++------
- 11 files changed, 138 insertions(+), 99 deletions(-)
+acerhdf wants ->set_mode() desperately.
 
--- 
-2.26.2
+> 
+> The initial_mode approach looks hackish, I suggest to make the default
+> the thermal zone disabled after creating and then explicitly enable it.
 
+Is it needed in drivers which create their thermal zone enabled?
+
+Regards,
+
+Andrzej
