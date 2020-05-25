@@ -2,90 +2,108 @@ Return-Path: <SRS0=a4yS=7H=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D72B2C433E1
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 17:58:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9428AC433DF
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 18:26:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC9FC206DD
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 17:58:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8668420787
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 May 2020 18:26:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389089AbgEYR6S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 25 May 2020 13:58:18 -0400
-Received: from mga17.intel.com ([192.55.52.151]:1962 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388621AbgEYR6S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 25 May 2020 13:58:18 -0400
-IronPort-SDR: 1bLnnjYspA/HiSrxC9nRy4BZBqO2w7i44M5a7SZsA94t3a+1NWxOji2sybPGzA/SUN76CRBQKn
- Bhf3Y2HDcjdg==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2020 10:58:17 -0700
-IronPort-SDR: dAW2DDab8oCauVF6/XP8YptLHsfq5RctMgjObr8XInrBa9OO/3UJmVqKGIWSS9ttndHfTM+fJS
- 8h8/gQttPQ0g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,434,1583222400"; 
-   d="scan'208";a="441796163"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga005.jf.intel.com with ESMTP; 25 May 2020 10:58:16 -0700
-Received: from andy by smile with local (Exim 4.93)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1jdHMh-008pwC-Cg; Mon, 25 May 2020 20:58:19 +0300
-Date:   Mon, 25 May 2020 20:58:19 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        linux-gpio@vger.kernel.org,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v1 3/5] gpio: pca953x: Drop unneeded ACPI_PTR()
-Message-ID: <20200525175819.GH1634618@smile.fi.intel.com>
-References: <20200520211916.25727-1-andriy.shevchenko@linux.intel.com>
- <20200520211916.25727-3-andriy.shevchenko@linux.intel.com>
+        id S2389327AbgEYS0R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 25 May 2020 14:26:17 -0400
+Received: from mail-ej1-f66.google.com ([209.85.218.66]:44954 "EHLO
+        mail-ej1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389294AbgEYS0Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 May 2020 14:26:16 -0400
+Received: by mail-ej1-f66.google.com with SMTP id x20so21290395ejb.11;
+        Mon, 25 May 2020 11:26:14 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=cTkeVh1JeKZCZ25CUvY4TadYKZCO3Tcb6SZa4hMT8IQ=;
+        b=ErZDhe/nw0VBHNE09tJiYT8HuuFIU8OF9d7KmDSDeh6OPhx9NfzI7GEZwtHgNIuIAo
+         z3Rug+PKmlFi0LSz53Y93viq4cKqJtIOZ3IATi1eJYnREu2hKEtuQmJzhI8G139ldjju
+         vtCJ+MwBw7G8La7TV0d1NqHwgK+0uY5A7k9Au2sTNX47qMtSbx4OSU6yf9ICZLA/O+OY
+         Ym36uvgEcDO8haC2zthQacXTgXVP4NeNF4/GN791QAkOCuGrzKxZMytch9ZnqJOdoCz7
+         rhgJstt5PA9Mn7nA2K3zway34GTCnPxeeb98i1+kiYEO+VIXfGbT0HwN2SeFX7s6EC5t
+         bZYg==
+X-Gm-Message-State: AOAM532QuPXqEBi3DCayGz3Xlt/5sh2THPMGZY1oVGCw30m+nSq8s+c4
+        mEd+uBa7D8vwh3WA0/KXFsU=
+X-Google-Smtp-Source: ABdhPJwJ72EePelVfvR4GiaP04Cb7Af4MA+NTBXjPW6AogUELMABp0aGx0/LBvMTHK50C97aqq0rIg==
+X-Received: by 2002:a17:906:ae93:: with SMTP id md19mr19856282ejb.4.1590431173903;
+        Mon, 25 May 2020 11:26:13 -0700 (PDT)
+Received: from workstation.lan ([95.155.85.46])
+        by smtp.gmail.com with ESMTPSA id n15sm15555707ejs.10.2020.05.25.11.26.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 May 2020 11:26:13 -0700 (PDT)
+From:   =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Kevin Hilman <khilman@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "James E.J. Bottomley" <jejb@linux.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Julian Wiedmann <jwi@linux.ibm.com>,
+        Karsten Graul <kgraul@linux.ibm.com>,
+        Ursula Braun <ubraun@linux.ibm.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        John Stultz <john.stultz@linaro.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        greybus-dev@lists.linaro.org, netdev@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: [PATCH 2/8] ACPI: PM: Use the new device_to_pm() helper to access struct dev_pm_ops
+Date:   Mon, 25 May 2020 18:26:02 +0000
+Message-Id: <20200525182608.1823735-3-kw@linux.com>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200525182608.1823735-1-kw@linux.com>
+References: <20200525182608.1823735-1-kw@linux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200520211916.25727-3-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, May 21, 2020 at 12:19:14AM +0300, Andy Shevchenko wrote:
-> ACPI_PTR() becomes a no-op when !CONFIG_ACPI. This is not needed since
-> we always have ID table enabled. Moreover, in the mentioned case compiler
-> will complain about defined but not used variable.
+Use the new device_to_pm() helper to access Power Management callbacs
+(struct dev_pm_ops) for a particular device (struct device_driver).
 
-Bart, are you going to apply this one, or should I resend it as a part of v2?
+No functional change intended.
 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/gpio/gpio-pca953x.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
-> index 4bb3d3524bc7..1fca8dd7824f 100644
-> --- a/drivers/gpio/gpio-pca953x.c
-> +++ b/drivers/gpio/gpio-pca953x.c
-> @@ -1176,7 +1176,7 @@ static struct i2c_driver pca953x_driver = {
->  		.name	= "pca953x",
->  		.pm	= &pca953x_pm_ops,
->  		.of_match_table = pca953x_dt_ids,
-> -		.acpi_match_table = ACPI_PTR(pca953x_acpi_ids),
-> +		.acpi_match_table = pca953x_acpi_ids,
->  	},
->  	.probe		= pca953x_probe,
->  	.remove		= pca953x_remove,
-> -- 
-> 2.26.2
-> 
+Signed-off-by: Krzysztof Wilczyński <kw@linux.com>
+---
+ drivers/acpi/device_pm.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index 5832bc10aca8..b98a32c48fbe 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -1022,9 +1022,10 @@ static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
+ int acpi_subsys_prepare(struct device *dev)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(dev);
++	const struct dev_pm_ops *pm = driver_to_pm(dev->driver);
+ 
+-	if (dev->driver && dev->driver->pm && dev->driver->pm->prepare) {
+-		int ret = dev->driver->pm->prepare(dev);
++	if (pm && pm->prepare) {
++		int ret = pm->prepare(dev);
+ 
+ 		if (ret < 0)
+ 			return ret;
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.26.2
 
