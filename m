@@ -2,129 +2,660 @@ Return-Path: <SRS0=oerE=7J=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4024EC433DF
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 13:52:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAE0CC433DF
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 15:33:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20E15208C3
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 13:52:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="IQd9QRIu"
+	by mail.kernel.org (Postfix) with ESMTP id CB62D20C09
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 15:33:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388516AbgE0NwN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 27 May 2020 09:52:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38556 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388899AbgE0NwJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2020 09:52:09 -0400
-Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 113A4C08C5C1
-        for <linux-acpi@vger.kernel.org>; Wed, 27 May 2020 06:52:09 -0700 (PDT)
-Received: by mail-pj1-x1042.google.com with SMTP id 5so1549302pjd.0
-        for <linux-acpi@vger.kernel.org>; Wed, 27 May 2020 06:52:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=sVOrxsk18BnSFATyAjPbeo6+7yMbRqTwIElwDUYrAFk=;
-        b=IQd9QRIugzIzBpTvp3+gDmqldfXigO2E49gsEa4gWjkW8zQ7okCePzzME85lMseCYp
-         C6UogWhM76FwGK5GWiG8mRjoqMxQAiVMmmfU32mB1clNfA4oHsd9jNVbdkKq9iRLaZ6o
-         /GSx8wknomZEweg/pRNTs5AEyhz2TlPsVfIh1FVWAsub3p7gsfYfKsWEW0GjuGLOSeH3
-         JX/KrTERHguXCxqwKCC2l18gU5RD125PFLl4ooOSVZXxkfqWDt3XB8oULXtxbINGB7jy
-         IZ+Ys2oL0/yBtqmoT9wOKg1LwOZXfABmxwNOY7WVGXRfz3jB/ahveiTxn+3ArAeBKNsp
-         azNw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=sVOrxsk18BnSFATyAjPbeo6+7yMbRqTwIElwDUYrAFk=;
-        b=B88+wehxVVmMotv+p9ArXqnm2jkQf9Ukb5DQOLyKrft4qNeofKhdP4jDuN7APIGXkb
-         Hdz0gHuuXQEIJ107KwaODTo02d6IU1py+SKIO4OGYh3wDqKBeGROsbQQOIE6Or0ODHa4
-         aFJNso1xGIX8YTF1gDkR0cwDX1F6UeLX00lk8hmGOOIWk0RTEtACz68cPjNVDMvQYpCX
-         WKg/kXAZIlK/VYPfqAfdpbTHuIvxLSN+T7hQi4hQrf+XjYkxXALXVrqm5i0cgrNkG5Dg
-         0Nyhnyg7kJVCVetSVG8i0u/8JTtK7ItKs3TvTX13gi+SLI7Ln9+Ljl7n1FFWj3IbKrCk
-         LYoQ==
-X-Gm-Message-State: AOAM533wnJROweJRU7EaXfc4Xh4M03LrJcGZ5ykKtMJNfSfB0NpehpKW
-        WELCRYSIgTgg6qkEblv3pO89YQ==
-X-Google-Smtp-Source: ABdhPJyJEWrfFe5MlHVlgCY+nDX0MeA9yhMhsez39F2xUkBVmUD/N243xLXOBOeIAja47JbP7VfxPQ==
-X-Received: by 2002:a17:90a:2ac2:: with SMTP id i2mr5055611pjg.80.1590587528565;
-        Wed, 27 May 2020 06:52:08 -0700 (PDT)
-Received: from [192.168.11.133] (li1566-229.members.linode.com. [139.162.86.229])
-        by smtp.gmail.com with ESMTPSA id s15sm2106775pgv.5.2020.05.27.06.51.46
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 27 May 2020 06:52:07 -0700 (PDT)
-Subject: Re: [PATCH 0/2] Introduce PCI_FIXUP_IOMMU
-To:     Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Joerg Roedel <joro@8bytes.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        jean-philippe <jean-philippe@linaro.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        kenneth-lee-2012@foxmail.com, Wangzhou <wangzhou1@hisilicon.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE" 
-        <linux-crypto@vger.kernel.org>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-pci <linux-pci@vger.kernel.org>
-References: <1590493749-13823-1-git-send-email-zhangfei.gao@linaro.org>
- <20200527090007.GA179718@kroah.com>
- <CAK8P3a35fjXt1F2hJygup5gWfjPHZTuU+VD69K5uzrNhhgu0Pw@mail.gmail.com>
-From:   Zhangfei Gao <zhangfei.gao@linaro.org>
-Message-ID: <ec994862-ac1c-bb6e-4fe6-ce5bf74f614a@linaro.org>
-Date:   Wed, 27 May 2020 21:51:13 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
+        id S1725681AbgE0PdI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 27 May 2020 11:33:08 -0400
+Received: from mx2.suse.de ([195.135.220.15]:50542 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725320AbgE0PdI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 27 May 2020 11:33:08 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id 43606AD72;
+        Wed, 27 May 2020 15:33:07 +0000 (UTC)
+From:   Thomas Renninger <trenn@suse.de>
+To:     linux-acpi@vger.kernel.org
+Cc:     rafael.j.wysocki@intel.com, rui.zhang@intel.com
+Subject: Remove last acpi procfs dirs after being marked deprecated for a decade
+Date:   Wed, 27 May 2020 17:33:03 +0200
+Message-ID: <1696561.dScFM4BVNv@c100>
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a35fjXt1F2hJygup5gWfjPHZTuU+VD69K5uzrNhhgu0Pw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Kernel development should not be hindered anymore by this absolutely
+outdated stuff.
+
+CC: Sorin Manolache <sorinm@gmail.com>
+CC: Lan Tianyu <tianyu.lan@intel.com>
+CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+CC: Zhang Rui <rui.zhang@intel.com>
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ce2730d61a8f..db3c45305414 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -99,23 +99,6 @@ config ACPI_SLEEP
+ 	depends on ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	default y
+ 
+-config ACPI_PROCFS_POWER
+-	bool "Deprecated power /proc/acpi directories"
+-	depends on X86 && PROC_FS
+-	help
+-	  For backwards compatibility, this option allows
+-	  deprecated power /proc/acpi/ directories to exist, even when
+-	  they have been replaced by functions in /sys.
+-	  The deprecated directories (and their replacements) include:
+-	  /proc/acpi/battery/* (/sys/class/power_supply/*) and
+-	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*).
+-	  This option has no effect on /proc/acpi/ directories
+-	  and functions which do not yet exist in /sys.
+-	  This option, together with the proc directories, will be
+-	  deleted in the future.
+-
+-	  Say N to delete power /proc/acpi/ directories that have moved to /sys.
+-
+ config ACPI_REV_OVERRIDE_POSSIBLE
+ 	bool "Allow supported ACPI revision to be overridden"
+ 	depends on X86
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index e81e1ebbfb32..9a957544e357 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -55,7 +55,6 @@ acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
+ acpi-$(CONFIG_X86)		+= x86/apple.o
+ acpi-$(CONFIG_X86)		+= x86/utils.o
+ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+-acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ acpi-y				+= acpi_lpat.o
+ acpi-$(CONFIG_ACPI_LPIT)	+= acpi_lpit.o
+ acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 69d2db13886b..0149893f9e66 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -13,10 +13,6 @@
+ #include <linux/types.h>
+ #include <linux/dmi.h>
+ #include <linux/delay.h>
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#endif
+ #include <linux/platform_device.h>
+ #include <linux/power_supply.h>
+ #include <linux/acpi.h>
+@@ -66,12 +62,6 @@ static int acpi_ac_resume(struct device *dev);
+ #endif
+ static SIMPLE_DEV_PM_OPS(acpi_ac_pm, NULL, acpi_ac_resume);
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-extern struct proc_dir_entry *acpi_lock_ac_dir(void);
+-extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
+-#endif
+-
+-
+ static int ac_sleep_before_get_state_ms;
+ static int ac_check_pmic = 1;
+ 
+@@ -150,77 +140,6 @@ static enum power_supply_property ac_props[] = {
+ 	POWER_SUPPLY_PROP_ONLINE,
+ };
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-/* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-
+-static struct proc_dir_entry *acpi_ac_dir;
+-
+-static int acpi_ac_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_ac *ac = seq->private;
+-
+-
+-	if (!ac)
+-		return 0;
+-
+-	if (acpi_ac_get_state(ac)) {
+-		seq_puts(seq, "ERROR: Unable to read AC Adapter state\n");
+-		return 0;
+-	}
+-
+-	seq_puts(seq, "state:                   ");
+-	switch (ac->state) {
+-	case ACPI_AC_STATUS_OFFLINE:
+-		seq_puts(seq, "off-line\n");
+-		break;
+-	case ACPI_AC_STATUS_ONLINE:
+-		seq_puts(seq, "on-line\n");
+-		break;
+-	default:
+-		seq_puts(seq, "unknown\n");
+-		break;
+-	}
+-
+-	return 0;
+-}
+-
+-static int acpi_ac_add_fs(struct acpi_ac *ac)
+-{
+-	struct proc_dir_entry *entry = NULL;
+-
+-	printk(KERN_WARNING PREFIX "Deprecated procfs I/F for AC is loaded,"
+-			" please retry with CONFIG_ACPI_PROCFS_POWER cleared\n");
+-	if (!acpi_device_dir(ac->device)) {
+-		acpi_device_dir(ac->device) =
+-			proc_mkdir(acpi_device_bid(ac->device), acpi_ac_dir);
+-		if (!acpi_device_dir(ac->device))
+-			return -ENODEV;
+-	}
+-
+-	/* 'state' [R] */
+-	entry = proc_create_single_data(ACPI_AC_FILE_STATE, S_IRUGO,
+-			acpi_device_dir(ac->device), acpi_ac_seq_show, ac);
+-	if (!entry)
+-		return -ENODEV;
+-	return 0;
+-}
+-
+-static int acpi_ac_remove_fs(struct acpi_ac *ac)
+-{
+-
+-	if (acpi_device_dir(ac->device)) {
+-		remove_proc_entry(ACPI_AC_FILE_STATE,
+-				  acpi_device_dir(ac->device));
+-		remove_proc_entry(acpi_device_bid(ac->device), acpi_ac_dir);
+-		acpi_device_dir(ac->device) = NULL;
+-	}
+-
+-	return 0;
+-}
+-#endif
+-
+ /* --------------------------------------------------------------------------
+                                    Driver Model
+    -------------------------------------------------------------------------- */
+@@ -348,11 +267,6 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	psy_cfg.drv_data = ac;
+ 
+ 	ac->charger_desc.name = acpi_device_bid(device);
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	result = acpi_ac_add_fs(ac);
+-	if (result)
+-		goto end;
+-#endif
+ 	ac->charger_desc.type = POWER_SUPPLY_TYPE_MAINS;
+ 	ac->charger_desc.properties = ac_props;
+ 	ac->charger_desc.num_properties = ARRAY_SIZE(ac_props);
+@@ -372,9 +286,6 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	register_acpi_notifier(&ac->battery_nb);
+ end:
+ 	if (result) {
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-		acpi_ac_remove_fs(ac);
+-#endif
+ 		kfree(ac);
+ 	}
+ 
+@@ -418,10 +329,6 @@ static int acpi_ac_remove(struct acpi_device *device)
+ 	power_supply_unregister(ac->charger);
+ 	unregister_acpi_notifier(&ac->battery_nb);
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	acpi_ac_remove_fs(ac);
+-#endif
+-
+ 	kfree(ac);
+ 
+ 	return 0;
+@@ -447,18 +354,8 @@ static int __init acpi_ac_init(void)
+ 			}
+ 	}
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	acpi_ac_dir = acpi_lock_ac_dir();
+-	if (!acpi_ac_dir)
+-		return -ENODEV;
+-#endif
+-
+-
+ 	result = acpi_bus_register_driver(&acpi_ac_driver);
+ 	if (result < 0) {
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-		acpi_unlock_ac_dir(acpi_ac_dir);
+-#endif
+ 		return -ENODEV;
+ 	}
+ 
+@@ -468,9 +365,6 @@ static int __init acpi_ac_init(void)
+ static void __exit acpi_ac_exit(void)
+ {
+ 	acpi_bus_unregister_driver(&acpi_ac_driver);
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	acpi_unlock_ac_dir(acpi_ac_dir);
+-#endif
+ }
+ module_init(acpi_ac_init);
+ module_exit(acpi_ac_exit);
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 366c389175d8..cab4af532f36 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -24,12 +24,6 @@
+ 
+ #include <asm/unaligned.h>
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/uaccess.h>
+-#endif
+-
+ #include <linux/acpi.h>
+ #include <linux/power_supply.h>
+ 
+@@ -69,11 +63,6 @@ static unsigned int cache_time = 1000;
+ module_param(cache_time, uint, 0644);
+ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-extern struct proc_dir_entry *acpi_lock_battery_dir(void);
+-extern void *acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir);
+-#endif
+-
+ static const struct acpi_device_id battery_device_ids[] = {
+ 	{"PNP0C0A", 0},
+ 	{"", 0},
+@@ -1023,226 +1012,6 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
+ 	sysfs_add_battery(battery);
+ }
+ 
+-/* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-static struct proc_dir_entry *acpi_battery_dir;
+-
+-static const char *acpi_battery_units(const struct acpi_battery *battery)
+-{
+-	return (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) ?
+-		"mA" : "mW";
+-}
+-
+-static int acpi_battery_info_proc_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	int result = acpi_battery_update(battery, false);
+-
+-	if (result)
+-		goto end;
+-
+-	seq_printf(seq, "present:                 %s\n",
+-		   acpi_battery_present(battery) ? "yes" : "no");
+-	if (!acpi_battery_present(battery))
+-		goto end;
+-	if (battery->design_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
+-		seq_printf(seq, "design capacity:         unknown\n");
+-	else
+-		seq_printf(seq, "design capacity:         %d %sh\n",
+-			   battery->design_capacity,
+-			   acpi_battery_units(battery));
+-
+-	if (battery->full_charge_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
+-		seq_printf(seq, "last full capacity:      unknown\n");
+-	else
+-		seq_printf(seq, "last full capacity:      %d %sh\n",
+-			   battery->full_charge_capacity,
+-			   acpi_battery_units(battery));
+-
+-	seq_printf(seq, "battery technology:      %srechargeable\n",
+-		   battery->technology ? "" : "non-");
+-
+-	if (battery->design_voltage == ACPI_BATTERY_VALUE_UNKNOWN)
+-		seq_printf(seq, "design voltage:          unknown\n");
+-	else
+-		seq_printf(seq, "design voltage:          %d mV\n",
+-			   battery->design_voltage);
+-	seq_printf(seq, "design capacity warning: %d %sh\n",
+-		   battery->design_capacity_warning,
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "design capacity low:     %d %sh\n",
+-		   battery->design_capacity_low,
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "cycle count:		  %i\n", battery->cycle_count);
+-	seq_printf(seq, "capacity granularity 1:  %d %sh\n",
+-		   battery->capacity_granularity_1,
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "capacity granularity 2:  %d %sh\n",
+-		   battery->capacity_granularity_2,
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "model number:            %s\n", battery->model_number);
+-	seq_printf(seq, "serial number:           %s\n", battery->serial_number);
+-	seq_printf(seq, "battery type:            %s\n", battery->type);
+-	seq_printf(seq, "OEM info:                %s\n", battery->oem_info);
+-      end:
+-	if (result)
+-		seq_printf(seq, "ERROR: Unable to read battery info\n");
+-	return result;
+-}
+-
+-static int acpi_battery_state_proc_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	int result = acpi_battery_update(battery, false);
+-
+-	if (result)
+-		goto end;
+-
+-	seq_printf(seq, "present:                 %s\n",
+-		   acpi_battery_present(battery) ? "yes" : "no");
+-	if (!acpi_battery_present(battery))
+-		goto end;
+-
+-	seq_printf(seq, "capacity state:          %s\n",
+-			(battery->state & 0x04) ? "critical" : "ok");
+-	if ((battery->state & 0x01) && (battery->state & 0x02))
+-		seq_printf(seq,
+-			   "charging state:          charging/discharging\n");
+-	else if (battery->state & 0x01)
+-		seq_printf(seq, "charging state:          discharging\n");
+-	else if (battery->state & 0x02)
+-		seq_printf(seq, "charging state:          charging\n");
+-	else
+-		seq_printf(seq, "charging state:          charged\n");
+-
+-	if (battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN)
+-		seq_printf(seq, "present rate:            unknown\n");
+-	else
+-		seq_printf(seq, "present rate:            %d %s\n",
+-			   battery->rate_now, acpi_battery_units(battery));
+-
+-	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN)
+-		seq_printf(seq, "remaining capacity:      unknown\n");
+-	else
+-		seq_printf(seq, "remaining capacity:      %d %sh\n",
+-			   battery->capacity_now, acpi_battery_units(battery));
+-	if (battery->voltage_now == ACPI_BATTERY_VALUE_UNKNOWN)
+-		seq_printf(seq, "present voltage:         unknown\n");
+-	else
+-		seq_printf(seq, "present voltage:         %d mV\n",
+-			   battery->voltage_now);
+-      end:
+-	if (result)
+-		seq_printf(seq, "ERROR: Unable to read battery state\n");
+-
+-	return result;
+-}
+-
+-static int acpi_battery_alarm_proc_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	int result = acpi_battery_update(battery, false);
+-
+-	if (result)
+-		goto end;
+-
+-	if (!acpi_battery_present(battery)) {
+-		seq_printf(seq, "present:                 no\n");
+-		goto end;
+-	}
+-	seq_printf(seq, "alarm:                   ");
+-	if (battery->alarm) {
+-		seq_printf(seq, "%u %sh\n", battery->alarm,
+-				acpi_battery_units(battery));
+-	} else {
+-		seq_printf(seq, "unsupported\n");
+-	}
+-      end:
+-	if (result)
+-		seq_printf(seq, "ERROR: Unable to read battery alarm\n");
+-	return result;
+-}
+-
+-static ssize_t acpi_battery_write_alarm(struct file *file,
+-					const char __user * buffer,
+-					size_t count, loff_t * ppos)
+-{
+-	int result = 0;
+-	char alarm_string[12] = { '\0' };
+-	struct seq_file *m = file->private_data;
+-	struct acpi_battery *battery = m->private;
+-
+-	if (!battery || (count > sizeof(alarm_string) - 1))
+-		return -EINVAL;
+-	if (!acpi_battery_present(battery)) {
+-		result = -ENODEV;
+-		goto end;
+-	}
+-	if (copy_from_user(alarm_string, buffer, count)) {
+-		result = -EFAULT;
+-		goto end;
+-	}
+-	alarm_string[count] = '\0';
+-	if (kstrtoint(alarm_string, 0, &battery->alarm)) {
+-		result = -EINVAL;
+-		goto end;
+-	}
+-	result = acpi_battery_set_alarm(battery);
+-      end:
+-	if (result)
+-		return result;
+-	return count;
+-}
+-
+-static int acpi_battery_alarm_proc_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_battery_alarm_proc_show, PDE_DATA(inode));
+-}
+-
+-static const struct proc_ops acpi_battery_alarm_proc_ops = {
+-	.proc_open	= acpi_battery_alarm_proc_open,
+-	.proc_read	= seq_read,
+-	.proc_write	= acpi_battery_write_alarm,
+-	.proc_lseek	= seq_lseek,
+-	.proc_release	= single_release,
+-};
+-
+-static int acpi_battery_add_fs(struct acpi_device *device)
+-{
+-	pr_warn(PREFIX "Deprecated procfs I/F for battery is loaded, please retry with CONFIG_ACPI_PROCFS_POWER cleared\n");
+-	if (!acpi_device_dir(device)) {
+-		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
+-						     acpi_battery_dir);
+-		if (!acpi_device_dir(device))
+-			return -ENODEV;
+-	}
+-
+-	if (!proc_create_single_data("info", S_IRUGO, acpi_device_dir(device),
+-			acpi_battery_info_proc_show, acpi_driver_data(device)))
+-		return -ENODEV;
+-	if (!proc_create_single_data("state", S_IRUGO, acpi_device_dir(device),
+-			acpi_battery_state_proc_show, acpi_driver_data(device)))
+-		return -ENODEV;
+-	if (!proc_create_data("alarm", S_IFREG | S_IRUGO | S_IWUSR,
+-			acpi_device_dir(device), &acpi_battery_alarm_proc_ops,
+-			acpi_driver_data(device)))
+-		return -ENODEV;
+-	return 0;
+-}
+-
+-static void acpi_battery_remove_fs(struct acpi_device *device)
+-{
+-	if (!acpi_device_dir(device))
+-		return;
+-	remove_proc_subtree(acpi_device_bid(device), acpi_battery_dir);
+-	acpi_device_dir(device) = NULL;
+-}
+-
+-#endif
+-
+ /* --------------------------------------------------------------------------
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
+@@ -1432,14 +1201,6 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (result)
+ 		goto fail;
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	result = acpi_battery_add_fs(device);
+-	if (result) {
+-		acpi_battery_remove_fs(device);
+-		goto fail;
+-	}
+-#endif
+-
+ 	pr_info(PREFIX "%s Slot [%s] (battery %s)\n",
+ 		ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
+ 		device->status.battery_present ? "present" : "absent");
+@@ -1468,9 +1229,6 @@ static int acpi_battery_remove(struct acpi_device *device)
+ 	device_init_wakeup(&device->dev, 0);
+ 	battery = acpi_driver_data(device);
+ 	unregister_pm_notifier(&battery->pm_nb);
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	acpi_battery_remove_fs(device);
+-#endif
+ 	sysfs_remove_battery(battery);
+ 	mutex_destroy(&battery->lock);
+ 	mutex_destroy(&battery->sysfs_lock);
+@@ -1531,16 +1289,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+ 			}
+ 	}
+ 
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	acpi_battery_dir = acpi_lock_battery_dir();
+-	if (!acpi_battery_dir)
+-		return;
+-#endif
+ 	result = acpi_bus_register_driver(&acpi_battery_driver);
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	if (result < 0)
+-		acpi_unlock_battery_dir(acpi_battery_dir);
+-#endif
+ 	battery_driver_registered = (result == 0);
+ }
+ 
+@@ -1560,10 +1309,6 @@ static void __exit acpi_battery_exit(void)
+ 		acpi_bus_unregister_driver(&acpi_battery_driver);
+ 		battery_hook_exit();
+ 	}
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	if (acpi_battery_dir)
+-		acpi_unlock_battery_dir(acpi_battery_dir);
+-#endif
+ }
+ 
+ module_init(acpi_battery_init);
+diff --git a/drivers/acpi/cm_sbs.c b/drivers/acpi/cm_sbs.c
+deleted file mode 100644
+index 0ca9f82de8ba..000000000000
+--- a/drivers/acpi/cm_sbs.c
++++ /dev/null
+@@ -1,87 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
+-
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/acpi.h>
+-#include <linux/types.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <acpi/acpi_bus.h>
+-#include <acpi/acpi_drivers.h>
+-
+-#define PREFIX "ACPI: "
+-
+-ACPI_MODULE_NAME("cm_sbs");
+-#define ACPI_AC_CLASS		"ac_adapter"
+-#define ACPI_BATTERY_CLASS	"battery"
+-#define _COMPONENT		ACPI_SBS_COMPONENT
+-static struct proc_dir_entry *acpi_ac_dir;
+-static struct proc_dir_entry *acpi_battery_dir;
+-
+-static DEFINE_MUTEX(cm_sbs_mutex);
+-
+-static int lock_ac_dir_cnt;
+-static int lock_battery_dir_cnt;
+-
+-struct proc_dir_entry *acpi_lock_ac_dir(void)
+-{
+-	mutex_lock(&cm_sbs_mutex);
+-	if (!acpi_ac_dir)
+-		acpi_ac_dir = proc_mkdir(ACPI_AC_CLASS, acpi_root_dir);
+-	if (acpi_ac_dir) {
+-		lock_ac_dir_cnt++;
+-	} else {
+-		printk(KERN_ERR PREFIX
+-				  "Cannot create %s\n", ACPI_AC_CLASS);
+-	}
+-	mutex_unlock(&cm_sbs_mutex);
+-	return acpi_ac_dir;
+-}
+-EXPORT_SYMBOL(acpi_lock_ac_dir);
+-
+-void acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir_param)
+-{
+-	mutex_lock(&cm_sbs_mutex);
+-	if (acpi_ac_dir_param)
+-		lock_ac_dir_cnt--;
+-	if (lock_ac_dir_cnt == 0 && acpi_ac_dir_param && acpi_ac_dir) {
+-		remove_proc_entry(ACPI_AC_CLASS, acpi_root_dir);
+-		acpi_ac_dir = NULL;
+-	}
+-	mutex_unlock(&cm_sbs_mutex);
+-}
+-EXPORT_SYMBOL(acpi_unlock_ac_dir);
+-
+-struct proc_dir_entry *acpi_lock_battery_dir(void)
+-{
+-	mutex_lock(&cm_sbs_mutex);
+-	if (!acpi_battery_dir) {
+-		acpi_battery_dir =
+-		    proc_mkdir(ACPI_BATTERY_CLASS, acpi_root_dir);
+-	}
+-	if (acpi_battery_dir) {
+-		lock_battery_dir_cnt++;
+-	} else {
+-		printk(KERN_ERR PREFIX
+-				  "Cannot create %s\n", ACPI_BATTERY_CLASS);
+-	}
+-	mutex_unlock(&cm_sbs_mutex);
+-	return acpi_battery_dir;
+-}
+-EXPORT_SYMBOL(acpi_lock_battery_dir);
+-
+-void acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir_param)
+-{
+-	mutex_lock(&cm_sbs_mutex);
+-	if (acpi_battery_dir_param)
+-		lock_battery_dir_cnt--;
+-	if (lock_battery_dir_cnt == 0 && acpi_battery_dir_param
+-	    && acpi_battery_dir) {
+-		remove_proc_entry(ACPI_BATTERY_CLASS, acpi_root_dir);
+-		acpi_battery_dir = NULL;
+-	}
+-	mutex_unlock(&cm_sbs_mutex);
+-	return;
+-}
+-EXPORT_SYMBOL(acpi_unlock_battery_dir);
 
 
-On 2020/5/27 下午5:53, Arnd Bergmann wrote:
-> On Wed, May 27, 2020 at 11:00 AM Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
->> On Tue, May 26, 2020 at 07:49:07PM +0800, Zhangfei Gao wrote:
->>> Some platform devices appear as PCI but are actually on the AMBA bus,
->> Why would these devices not just show up on the AMBA bus and use all of
->> that logic instead of being a PCI device and having to go through odd
->> fixes like this?
-> There is a general move to having hardware be discoverable even with
-> ARM processors. Having on-chip devices be discoverable using PCI config
-> space is how x86 SoCs usually do it, and that is generally a good thing
-> as it means we don't need to describe them in DT
->
-> I guess as the hardware designers are still learning about it, this is not
-> always done correctly. In general, we can also describe PCI devices on
-> DT and do fixups during the probing there, but I suspect that won't work
-> as easily using ACPI probing, so the fixup is keyed off the hardware ID,
-> again as is common for x86 on-chip devices.
->
->   
-Yes, thanks Arnd :)
-
-In order to use pasid, io page fault has to be supported,
-either by PCI PRI feature (from pci device) or stall mode from smmu 
-(platform device).
-Here is letting system know the platform device can support smmu stall 
-mode, as a result support pasid.
-While stall is not a pci capability, so we use a fixup here.
-
-Thanks
 
