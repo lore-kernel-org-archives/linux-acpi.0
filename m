@@ -2,82 +2,90 @@ Return-Path: <SRS0=oerE=7J=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 431ABC433E0
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 11:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E71C8C433DF
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 13:13:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1849C20873
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 11:37:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590579435;
-	bh=cSNlxUzk0MNNvImhPNGTduznUBJKKonX/iJwL6eba6Q=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=rG4bS1/9E2ZCWrQTOFSU6n7SME91np2VrYQhm1kwHZK/QT9FsxHYaqZeDkvvAQSVz
-	 wUQnCU+Xn0d47ceUFqFtP3gc7PrOFVF9Xa/aYOlnUEHiykf6pUv8ueYiterb1DF0+b
-	 lE0tmpbCUgT+VZSmhnZnx35lYQwEWWqNufGQQyBw=
+	by mail.kernel.org (Postfix) with ESMTP id BE2DB208FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 May 2020 13:13:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=baylibre-com.20150623.gappssmtp.com header.i=@baylibre-com.20150623.gappssmtp.com header.b="eYHFnwj6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729617AbgE0LhO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 27 May 2020 07:37:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37454 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729506AbgE0LhL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 27 May 2020 07:37:11 -0400
-Received: from e123331-lin.nice.arm.com (amontpellier-657-1-18-247.w109-210.abo.wanadoo.fr [109.210.65.247])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 47E26207D3;
-        Wed, 27 May 2020 11:37:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590579431;
-        bh=cSNlxUzk0MNNvImhPNGTduznUBJKKonX/iJwL6eba6Q=;
-        h=From:To:Cc:Subject:Date:From;
-        b=0lpjpCJAUvcWP3uE4bzBhrb1CA4JE/+j20vdEJ0Q6Fp4IY9X6hEQtgOfF7Afvxlco
-         vGO/CTH/IHkSy0OUAGM+PQysna3MWvxqFur8ScxiLHNtdjBmmpgx/yczMKU/zL2w5N
-         23nDZ6TZpQFACmCdjUZASBxc4dzprJIau03znPaM=
-From:   Ard Biesheuvel <ardb@kernel.org>
-To:     linux-acpi@vger.kernel.org
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org,
-        Ard Biesheuvel <ardb@kernel.org>
-Subject: [PATCH] ACPI: GED: use correct trigger type field in  _Exx / _Lxx handling
-Date:   Wed, 27 May 2020 13:37:00 +0200
-Message-Id: <20200527113700.3579-1-ardb@kernel.org>
-X-Mailer: git-send-email 2.17.1
+        id S1730212AbgE0NNY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 27 May 2020 09:13:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60710 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725267AbgE0NNX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2020 09:13:23 -0400
+Received: from mail-qk1-x743.google.com (mail-qk1-x743.google.com [IPv6:2607:f8b0:4864:20::743])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79B84C08C5C1
+        for <linux-acpi@vger.kernel.org>; Wed, 27 May 2020 06:13:23 -0700 (PDT)
+Received: by mail-qk1-x743.google.com with SMTP id w3so18695714qkb.6
+        for <linux-acpi@vger.kernel.org>; Wed, 27 May 2020 06:13:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=W8Wp5Vcg8Shxvh02rtp//fSQyOO7mc0Dh1ryTtDSaFY=;
+        b=eYHFnwj6M3RYQoPnToNTdlvWzrJHt6QqlRhV6QOEklF/5+0ZPGH1i+KTumI9se/Ix2
+         apiYbl7kNvdL0fEO0Zq3pWFqxLiHv0FMBuBQPSFoZYh5uV6Bx3RmVGTJ4obkRF75SA4k
+         fgTG4uo5clo7aH2orbEXlocGnNo2Wed8Xdd+lIGwms+6T8tFdES29KKEn6pZQvO5sPYL
+         7XJe2MPPEzR+czLk+z7LgAamSzJomKZiSudFBq3GX3wkf3WIy/UK6DnQ/Olb2NCRFjRg
+         xeVpocblb+dg+LDjU7TWx9hrZZikipwgAqZ1e/8enLmO7FJIsDeiyC5Hp2Q8ifAedI5x
+         KHeA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=W8Wp5Vcg8Shxvh02rtp//fSQyOO7mc0Dh1ryTtDSaFY=;
+        b=H6zkGsyEA/ddRGoV7g2W4t7Z01N9OqPfuxMbquyaF2ERl+MmlrOsQ5NQeufpOfp26N
+         bKBujn3I623rIOtc3gfdNbIz5Rpoh+BOcl1TXnqhRRSTnw5VyN3z5NyaFFQmdZsECJyx
+         wHTPmXG9Oww0hQ/JNzcx35UeG8lGDw0Wiwkl7VaKeu/d2wf/SIZGPDktUF8tqdmpcK63
+         WiqPkRN+uYKng3iOziBWFjSY77wt7MumX6g63rERvdlMkR5Pqx/oJCr+smgOs5Cjbs2O
+         Cnt1WL4P147Va7ZY9A3+cr+WFB0GBVHcvyA4amt7V5FybtGERoI4jvA75MINHvPSWmeE
+         l1Kw==
+X-Gm-Message-State: AOAM530T/wpxMsqgL6j8wKXXtxzuKhajEDW4j0mq9pvVZDmouMXYrp7r
+        5oXivdTZocWee10q8vye+4EbbhxXnVO2m3ZqRp9UsQ==
+X-Google-Smtp-Source: ABdhPJxofls6X6p3Yv3wostc+q2QUxJw61VdkyuBZpGV8cnknebyv28yszuoypfJfYqH3rjbtz6hFW2WYFfbHFCZUck=
+X-Received: by 2002:a37:dd6:: with SMTP id 205mr3768475qkn.323.1590585202733;
+ Wed, 27 May 2020 06:13:22 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200520211916.25727-1-andriy.shevchenko@linux.intel.com>
+ <20200520211916.25727-3-andriy.shevchenko@linux.intel.com> <20200525175819.GH1634618@smile.fi.intel.com>
+In-Reply-To: <20200525175819.GH1634618@smile.fi.intel.com>
+From:   Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date:   Wed, 27 May 2020 15:13:11 +0200
+Message-ID: <CAMpxmJW71t5Vy6q+wdRO1dkmZbeDKZcP-_9W=CKXX69A866n8g@mail.gmail.com>
+Subject: Re: [PATCH v1 3/5] gpio: pca953x: Drop unneeded ACPI_PTR()
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>
+Cc:     linux-gpio <linux-gpio@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Commit ea6f3af4c5e63f69 ("ACPI: GED: add support for _Exx / _Lxx handler
-methods") added a reference to the 'triggering' field of either the
-normal or the extended ACPI IRQ resource struct, but inadvertently used
-the wrong pointer in the latter case. Note that both pointers refer to the
-same union, and the 'triggering' field appears at the same offset in both
-struct types, so it currently happens to work by accident. But let's fix
-it nonetheless
+pon., 25 maj 2020 o 19:58 Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> napisa=C5=82(a):
+>
+> On Thu, May 21, 2020 at 12:19:14AM +0300, Andy Shevchenko wrote:
+> > ACPI_PTR() becomes a no-op when !CONFIG_ACPI. This is not needed since
+> > we always have ID table enabled. Moreover, in the mentioned case compil=
+er
+> > will complain about defined but not used variable.
+>
+> Bart, are you going to apply this one, or should I resend it as a part of=
+ v2?
+>
 
-Fixes: ea6f3af4c5e63f69 ("ACPI: GED: add support for _Exx / _Lxx handler methods")
-Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
----
- drivers/acpi/evged.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Ugh, I already sent my last PRs to Linus both for v5.7 fixes & v5.8
+updates. I'll let Linus pick it up once he pulls from my tree.
 
-diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-index 6d7a522952bf..ccd900690b6f 100644
---- a/drivers/acpi/evged.c
-+++ b/drivers/acpi/evged.c
-@@ -94,7 +94,7 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 		trigger = p->triggering;
- 	} else {
- 		gsi = pext->interrupts[0];
--		trigger = p->triggering;
-+		trigger = pext->triggering;
- 	}
- 
- 	irq = r.start;
--- 
-2.17.1
-
+Bart
