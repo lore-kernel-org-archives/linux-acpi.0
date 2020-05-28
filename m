@@ -2,25 +2,29 @@ Return-Path: <SRS0=zZaR=7K=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D30EBC433DF
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 May 2020 19:21:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B80BC433E1
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 May 2020 19:22:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B858C2078C
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 May 2020 19:21:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B50F208B8
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 May 2020 19:22:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406322AbgE1TVO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 May 2020 15:21:14 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57514 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2406317AbgE1TVJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2020 15:21:09 -0400
+        id S2406433AbgE1TWI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 May 2020 15:22:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59506 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2406423AbgE1TWF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2020 15:22:05 -0400
+Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3A70C08C5C6;
+        Thu, 28 May 2020 12:22:04 -0700 (PDT)
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: andrzej.p)
-        with ESMTPSA id E76512A41B5
+        with ESMTPSA id 5D9472A41CC
 From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
 To:     linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
@@ -65,123 +69,121 @@ Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
         Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
         kernel@collabora.com
-Subject: [PATCH v4 00/11] Stop monitoring disabled devices
-Date:   Thu, 28 May 2020 21:20:40 +0200
-Message-Id: <20200528192051.28034-1-andrzej.p@collabora.com>
+Subject: [PATCH v4 06/11] thermal: Add mode helpers
+Date:   Thu, 28 May 2020 21:20:46 +0200
+Message-Id: <20200528192051.28034-7-andrzej.p@collabora.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <Message-ID: <4493c0e4-51aa-3907-810c-74949ff27ca4@samsung.com>
+In-Reply-To: <20200528192051.28034-1-andrzej.p@collabora.com>
 References: <Message-ID: <4493c0e4-51aa-3907-810c-74949ff27ca4@samsung.com>
+ <20200528192051.28034-1-andrzej.p@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There is already a reviewed v3 (not to be confused with RFC v3), which can
-be considered for merging:
+Prepare for making the drivers not access tzd's private members.
 
-https://lore.kernel.org/linux-pm/20200423165705.13585-2-andrzej.p@collabora.com/
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@collabora.com>
+---
+ drivers/thermal/thermal_core.c | 53 ++++++++++++++++++++++++++++++++++
+ include/linux/thermal.h        | 13 +++++++++
+ 2 files changed, 66 insertions(+)
 
-Let me cite Bartlomiej Zolnierkiewicz:
-
-"I couldn't find the problems with the patch itself (no new issues
-being introduced, all changes seem to be improvements over the current
-situation).
-
-Also the patch is not small but it also not that big and it mostly
-removes the code:
-
-17 files changed, 105 insertions(+), 244 deletions(-)"
-
-There have been raised some concerns about bisectability and about
-introducing "initial_mode" member in struct thermal_zone_params.
-
-This v4 series addresses those concerns: it takes a more gradual
-approach and uses explicit tzd state initialization, hence there are more
-insertions than in v3, and the net effect is -63 lines versus -139 lines
-in v3.
-
-Patch 2/11 converts the 3 drivers which don't store their mode in
-enum thermal_device_mode to do so. Once that is cleared,
-struct thermal_zone_device gains its "mode" member (patch 3/11) and then
-all interested drivers change the location where they store their
-state: instead of storing it in some variable in a driver, they store it
-in struct thermal_zone_device (patch 4/11). Patch 4/11 does not introduce
-other changes. Then get_mode() driver method becomes redundant, and so
-it is removed (patch 5/11). This is the first part of the groundwork.
-
-The second part of the groundwork is to add (patch 6/11) and use (patch
-7/11) helpers for accessing tzd's state from drivers. From this moment
-on the drivers don't access tzd->mode directly. Please note that after
-patch 4/11 all thermal zone devices have their mode implicitly initialized
-to DISABLED, as a result of kzalloc and THERMAL_DEVICE_DISABLED == 0.
-This is not a problem from the point of view of polling them, because
-their state is not considered when deciding to poll or to cease polling.
-In preparation for considering tzd's state when deciding to poll or to
-cease polling it ensured (patch 8/11 and some in patch 7/11) that all the
-drivers are explicitly initialized with regard to their state.
-
-With all that groundwork in place now it makes sense to modify thermal_core
-so that it stops polling DISABLED devices (patch 9/11), which is the
-ultimate purpose of this work.
-
-While at it, some set_mode() implementations only change the polling
-variables to make the core stop polling their drivers, but that is now
-unnecessary and those set_mode() implementations are removed. In other
-implementations polling variables modifications are removed. Some other
-set_mode() implementations are simplified or removed (patch 10/11).
-
-set_mode() is now only called when tzd's mode is about to change. Actual
-setting is performed in thermal_core, in thermal_zone_device_set_mode().
-The meaning of set_mode() callback is actually to notify the driver about
-the mode being changed and giving the driver a chance to oppose such
-a change. To better reflect the purpose of the method it is renamed to
-change_mode() (patch 11/11).
-
-Andrzej Pietrasiewicz (11):
-  acpi: thermal: Fix error handling in the register function
-  thermal: Store thermal mode in a dedicated enum
-  thermal: Add current mode to thermal zone device
-  thermal: Store device mode in struct thermal_zone_device
-  thermal: remove get_mode() operation of drivers
-  thermal: Add mode helpers
-  thermal: Use mode helpers in drivers
-  thermal: Explicitly enable non-changing thermal zone devices
-  thermal: core: Stop polling DISABLED thermal devices
-  thermal: Simplify or eliminate unnecessary set_mode() methods
-  thermal: Rename set_mode() to change_mode()
-
- drivers/acpi/thermal.c                        | 75 +++++----------
- .../ethernet/chelsio/cxgb4/cxgb4_thermal.c    |  8 ++
- .../ethernet/mellanox/mlxsw/core_thermal.c    | 91 ++++---------------
- drivers/net/wireless/intel/iwlwifi/mvm/tt.c   |  9 +-
- drivers/platform/x86/acerhdf.c                | 33 +++----
- drivers/platform/x86/intel_mid_thermal.c      |  6 ++
- drivers/power/supply/power_supply_core.c      |  9 +-
- drivers/thermal/armada_thermal.c              |  6 ++
- drivers/thermal/da9062-thermal.c              | 16 +---
- drivers/thermal/dove_thermal.c                |  6 ++
- drivers/thermal/hisi_thermal.c                |  6 +-
- drivers/thermal/imx_thermal.c                 | 57 ++++--------
- .../intel/int340x_thermal/int3400_thermal.c   | 43 +++------
- .../int340x_thermal/int340x_thermal_zone.c    |  5 +
- drivers/thermal/intel/intel_pch_thermal.c     |  5 +
- .../thermal/intel/intel_quark_dts_thermal.c   | 34 ++-----
- drivers/thermal/intel/intel_soc_dts_iosf.c    |  3 +
- drivers/thermal/intel/x86_pkg_temp_thermal.c  |  6 ++
- drivers/thermal/kirkwood_thermal.c            |  7 ++
- drivers/thermal/rcar_thermal.c                |  9 +-
- drivers/thermal/rockchip_thermal.c            |  6 +-
- drivers/thermal/spear_thermal.c               |  7 ++
- drivers/thermal/sprd_thermal.c                |  6 +-
- drivers/thermal/st/st_thermal.c               |  5 +
- drivers/thermal/thermal_core.c                | 76 ++++++++++++++--
- drivers/thermal/thermal_of.c                  | 51 ++---------
- drivers/thermal/thermal_sysfs.c               | 37 +-------
- include/linux/thermal.h                       | 19 +++-
- 28 files changed, 289 insertions(+), 352 deletions(-)
-
-
-base-commit: 351f4911a477ae01239c42f771f621d85b06ea10
+diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
+index 14d3b1b94c4f..f2a5c5ee3455 100644
+--- a/drivers/thermal/thermal_core.c
++++ b/drivers/thermal/thermal_core.c
+@@ -459,6 +459,59 @@ static void thermal_zone_device_reset(struct thermal_zone_device *tz)
+ 	thermal_zone_device_init(tz);
+ }
+ 
++int thermal_zone_device_set_mode(struct thermal_zone_device *tz,
++				 enum thermal_device_mode mode)
++{
++	int ret = 0;
++
++	mutex_lock(&tz->lock);
++
++	/* do nothing if mode isn't changing */
++	if (mode == tz->mode) {
++		mutex_unlock(&tz->lock);
++
++		return ret;
++	}
++
++	if (tz->ops->set_mode)
++		ret = tz->ops->set_mode(tz, mode);
++
++	if (!ret)
++		tz->mode = mode;
++
++	mutex_unlock(&tz->lock);
++
++	thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
++
++	return ret;
++}
++
++int thermal_zone_device_enable(struct thermal_zone_device *tz)
++{
++	return thermal_zone_device_set_mode(tz, THERMAL_DEVICE_ENABLED);
++}
++EXPORT_SYMBOL(thermal_zone_device_enable);
++
++int thermal_zone_device_disable(struct thermal_zone_device *tz)
++{
++	return thermal_zone_device_set_mode(tz, THERMAL_DEVICE_DISABLED);
++}
++EXPORT_SYMBOL(thermal_zone_device_disable);
++
++int thermal_zone_device_is_enabled(struct thermal_zone_device *tz)
++{
++	enum thermal_device_mode mode;
++
++	mutex_lock(&tz->lock);
++
++	mode = tz->mode;
++
++	mutex_unlock(&tz->lock);
++
++	return mode == THERMAL_DEVICE_ENABLED;
++}
++EXPORT_SYMBOL(thermal_zone_device_is_enabled);
++
+ void thermal_zone_device_update(struct thermal_zone_device *tz,
+ 				enum thermal_notify_event event)
+ {
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index a808f6fa2777..df013c39ba9b 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -416,6 +416,9 @@ int thermal_zone_get_offset(struct thermal_zone_device *tz);
+ 
+ void thermal_cdev_update(struct thermal_cooling_device *);
+ void thermal_notify_framework(struct thermal_zone_device *, int);
++int thermal_zone_device_enable(struct thermal_zone_device *tz);
++int thermal_zone_device_disable(struct thermal_zone_device *tz);
++int thermal_zone_device_is_enabled(struct thermal_zone_device *tz);
+ #else
+ static inline struct thermal_zone_device *thermal_zone_device_register(
+ 	const char *type, int trips, int mask, void *devdata,
+@@ -463,6 +466,16 @@ static inline void thermal_cdev_update(struct thermal_cooling_device *cdev)
+ static inline void thermal_notify_framework(struct thermal_zone_device *tz,
+ 	int trip)
+ { }
++
++static inline int thermal_zone_device_enable(struct thermal_zone_device *tz)
++{ return -ENODEV; }
++
++static inline int thermal_zone_device_disable(struct thermal_zone_device *tz)
++{ return -ENODEV; }
++
++static inline int
++thermal_zone_device_is_enabled(struct thermal_zone_device *tz)
++{ return -ENODEV; }
+ #endif /* CONFIG_THERMAL */
+ 
+ #endif /* __THERMAL_H__ */
 -- 
 2.17.1
 
