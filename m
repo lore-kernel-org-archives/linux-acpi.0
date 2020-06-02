@@ -2,69 +2,131 @@ Return-Path: <SRS0=xoOB=7P=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC5F5C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Jun 2020 20:35:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D553C433E0
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Jun 2020 21:34:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5F0A2072F
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Jun 2020 20:35:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF2692072F
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Jun 2020 21:34:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591130131;
-	bh=2rVwh4/siikVrpgwYQuuD+buqge9Sw5sBfNz6/5D/G4=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=ysh0iZp/pxX0eE+TmuXGgMST+k05JT1KHfJtFYMB20Y9hynhxpgnOp41DoIU84zbu
-	 ImIkMmDqHlr4suYnuYmgdYqAscZxa4/UWf2TQk+/AZbGgKLY6n4t9Z6xLWf3jxdu1U
-	 UgvRGkeNTonzyI/WVa4qNxM+sQXb8ul3OWO5bSAw=
+	s=default; t=1591133695;
+	bh=U5VQLBA0K584HyMnp25pHX350Ep4BaZZoHpAMfzXWOE=;
+	h=Date:From:To:Cc:Subject:List-ID:From;
+	b=nNxvjM9SMo5VzvX9rqMkj9N7/LemltVoHouyzOcUtyJ4eeRUfX6UsgPWebnvVtCz0
+	 Zz2LhhRAXpYfIITH1xrTjMmkhf/F0lVOKEFLrG8S59gDRLG8CAFF0ZB9uhO8fxAUby
+	 qG3y3Tdwv1Gn7CloDXPltw6nBkcevmH8x0sziKzo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728592AbgFBUfa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Jun 2020 16:35:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46384 "EHLO mail.kernel.org"
+        id S1726373AbgFBVez (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Jun 2020 17:34:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728459AbgFBUfG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:35:06 -0400
-Subject: Re: [GIT PULL] Power management updates for v5.8-rc1
+        id S1726130AbgFBVez (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:34:55 -0400
+Received: from embeddedor (unknown [189.207.59.248])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id F30AE206E2;
+        Tue,  2 Jun 2020 21:34:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591130106;
-        bh=2rVwh4/siikVrpgwYQuuD+buqge9Sw5sBfNz6/5D/G4=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=DaTHAH+Ih2x/zpFGh+ICXsG43LB4CLkxU33kHtD/QNLxT1+vEP6H0f1vDbrWmymFl
-         +o/95tHMuX+6Z+3XQYlMXf1y6f6H29Kb6083QTTHM+nneHBiYOjFCTz5bQWEAaqIod
-         VYKiuvCkpQTkLaYEgjCmRReZf858bTknNPNc6P0A=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0gV2T9BUBGT8TOt+kdO6+T_WwmcO1PPonWu76REGkoorQ@mail.gmail.com>
-References: <CAJZ5v0gV2T9BUBGT8TOt+kdO6+T_WwmcO1PPonWu76REGkoorQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0gV2T9BUBGT8TOt+kdO6+T_WwmcO1PPonWu76REGkoorQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.8-rc1
-X-PR-Tracked-Commit-Id: a34024d98eeaa78e2cd22017180df778800b83fc
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 355ba37d756c38962fe9bb616f5f48eb12a7e11e
-Message-Id: <159113010624.19446.15600149439571163343.pr-tracker-bot@kernel.org>
-Date:   Tue, 02 Jun 2020 20:35:06 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>
+        s=default; t=1591133694;
+        bh=U5VQLBA0K584HyMnp25pHX350Ep4BaZZoHpAMfzXWOE=;
+        h=Date:From:To:Cc:Subject:From;
+        b=LHEuC4+DoL1LbalzPAmeFzSITJzZ7hODWN7PopM1OKU+1s8mHEmJJtHec0GBEaHoj
+         203o2uDa+HjRZEJ1ThVBUBux4B3RnuMMwJjI90C9OcpYK9g5Fej+OXAXSDFMG3iGp/
+         JDOBTjJS3zzuKz4zqk0Lsbfmp1Fi573mV5FbiVZk=
+Date:   Tue, 2 Jun 2020 16:39:58 -0500
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>
+Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH v2] ACPICA: Replace one-element array with flexible-array
+Message-ID: <20200602213958.GA32150@embeddedor>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Mon, 1 Jun 2020 17:48:27 +0200:
+The current codebase makes use of one-element arrays in the following
+form:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.8-rc1
+struct something {
+    int length;
+    u8 data[1];
+};
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/355ba37d756c38962fe9bb616f5f48eb12a7e11e
+struct something *instance;
 
-Thank you!
+instance = kmalloc(sizeof(*instance) + size, GFP_KERNEL);
+instance->length = size;
+memcpy(instance->data, source, size);
 
+but the preferred mechanism to declare variable-length types such as
+these ones is a flexible array member[1][2], introduced in C99:
+
+struct foo {
+        int stuff;
+        struct boo array[];
+};
+
+By making use of the mechanism above, we will get a compiler warning
+in case the flexible array does not occur last in the structure, which
+will help us prevent some kind of undefined behavior bugs from being
+inadvertently introduced[3] to the codebase from now on.
+
+This issue was found with the help of Coccinelle and audited _manually_.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+Changes in v2:
+ - Don't use struct_size() for now.
+ - Update subject line and changelog text.
+
+ drivers/acpi/acpica/utids.c | 2 +-
+ include/acpi/actypes.h      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
+index 3bb06935a2ad3..225f3c60203c7 100644
+--- a/drivers/acpi/acpica/utids.c
++++ b/drivers/acpi/acpica/utids.c
+@@ -263,7 +263,7 @@ acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
+ 	 * 3) Size of the actual CID strings
+ 	 */
+ 	cid_list_size = sizeof(struct acpi_pnp_device_id_list) +
+-	    ((count - 1) * sizeof(struct acpi_pnp_device_id)) +
++	    count * sizeof(struct acpi_pnp_device_id) +
+ 	    string_area_size;
+ 
+ 	cid_list = ACPI_ALLOCATE_ZEROED(cid_list_size);
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 4defed58ea338..c7bcda0ad366a 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1145,7 +1145,7 @@ struct acpi_pnp_device_id {
+ struct acpi_pnp_device_id_list {
+ 	u32 count;		/* Number of IDs in Ids array */
+ 	u32 list_size;		/* Size of list, including ID strings */
+-	struct acpi_pnp_device_id ids[1];	/* ID array */
++	struct acpi_pnp_device_id ids[];	/* ID array */
+ };
+ 
+ /*
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+2.27.0
+
