@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F22EEC433E2
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75BA2C433E0
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D23EE207F9
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 576DA207DF
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Am7oVJuK"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BCftdV50"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728908AbgFFU03 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 6 Jun 2020 16:26:29 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:24623 "EHLO
+        id S1728918AbgFFU0f (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 6 Jun 2020 16:26:35 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:58050 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728914AbgFFU00 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Jun 2020 16:26:26 -0400
+        by vger.kernel.org with ESMTP id S1728914AbgFFU0e (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Jun 2020 16:26:34 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591475185;
+        s=mimecast20190719; t=1591475193;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=BYaFESd6VxwpoNNiHY/1pHClEA8Pw/V+7HZeIA9iDaU=;
-        b=Am7oVJuK29SCjGXaCX/kDg/1F+9D76UvqRcx+RVXzMpTJYKsbCq7qjYOyoB7ArFIEtEeQ7
-        dpFWxtSaXTJ1O+zr0iG2Peu+z9kAa4+Ko4n3tFo2D9TVXJGxKKYeNv2cwWJ6k31NYfbadw
-        +bmVDcpSwJS42Ggj5uoSFIrA7FUOcPs=
+        bh=enDmigKPZ6hGhbnIXLCk/1+mW1SDxZUvwf02x4z1WGI=;
+        b=BCftdV50ALhoeHN0wrkTq2Cbh18kaQImRku830E0zxR5RSpFqaU7r+YUt0Q7HfwQhHG4WW
+        1+Tw3jLynULef2qlW3ofyangmS3tWaVGH5jMMEVi4ImpLetR/VnZghb6OrX9cMXw+YDnsZ
+        WON/BR+fvV89SmB6eSbdnuDU5z3dYQA=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-353-uYtqJm-lO4-ZZsPCYXSaGQ-1; Sat, 06 Jun 2020 16:26:24 -0400
-X-MC-Unique: uYtqJm-lO4-ZZsPCYXSaGQ-1
+ us-mta-44-7YYIbBAIOxmBDR0HiDxK_g-1; Sat, 06 Jun 2020 16:26:29 -0400
+X-MC-Unique: 7YYIbBAIOxmBDR0HiDxK_g-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 197C0107ACCA;
-        Sat,  6 Jun 2020 20:26:22 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 99C3C1005510;
+        Sat,  6 Jun 2020 20:26:27 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-112-50.ams2.redhat.com [10.36.112.50])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 9C3BB5C557;
-        Sat,  6 Jun 2020 20:26:19 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 273615C557;
+        Sat,  6 Jun 2020 20:26:25 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
@@ -59,9 +59,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 06/16] pwm: lpss: Add debug prints, test patch for moving i915 to atomic PWM
-Date:   Sat,  6 Jun 2020 22:25:51 +0200
-Message-Id: <20200606202601.48410-7-hdegoede@redhat.com>
+Subject: [PATCH 08/16] pwm: crc: Fix off-by-one error in the clock-divider calculations
+Date:   Sat,  6 Jun 2020 22:25:53 +0200
+Message-Id: <20200606202601.48410-9-hdegoede@redhat.com>
 In-Reply-To: <20200606202601.48410-1-hdegoede@redhat.com>
 References: <20200606202601.48410-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -72,54 +72,51 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add debug prints, test patch for moving i915 to atomic PWM.
+The CRC PWM controller has a clock-divider which divides the clock with
+a value between 1-128. But as can seen from the PWM_DIV_CLK_xxx
+defines, this range maps to a register value of 0-127.
+
+So after calculating the clock-divider we must subtract 1 to get the
+register value, unless the requested frequency was so high that the
+calculation has already resulted in a (rounded) divider value of 0.
+
+Note that before this fix, setting a period of PWM_MAX_PERIOD_NS which
+corresponds to the max. divider value of 128 could have resulted in a
+bug where the code would use 128 as divider-register value which would
+have resulted in an actual divider value of 0 (and the enable bit being
+set). A rounding error stopped this bug from actually happen. This
+same rounding error means that after the subtraction of 1 it is impossible
+to set the divider to 128. Also bump PWM_MAX_PERIOD_NS by 1 ns to allow
+setting a divider of 128 (register-value 127).
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/pwm/pwm-lpss.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/pwm/pwm-crc.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pwm/pwm-lpss.c b/drivers/pwm/pwm-lpss.c
-index 2cb0e2a9c08c..c1f8e6da0cd7 100644
---- a/drivers/pwm/pwm-lpss.c
-+++ b/drivers/pwm/pwm-lpss.c
-@@ -119,6 +119,8 @@ static void pwm_lpss_prepare(struct pwm_lpss_chip *lpwm, struct pwm_device *pwm,
- 		ctrl |= PWM_ENABLE;
+diff --git a/drivers/pwm/pwm-crc.c b/drivers/pwm/pwm-crc.c
+index 43fc912c1fe9..5ba2a65c524c 100644
+--- a/drivers/pwm/pwm-crc.c
++++ b/drivers/pwm/pwm-crc.c
+@@ -22,7 +22,7 @@
+ #define PWM_MAX_LEVEL		0xFF
  
- 	if (orig_ctrl != ctrl) {
-+		dev_err(pwm->chip->dev, "prepare 0x%08x -> 0x%08lx\n",
-+			orig_ctrl, ctrl | PWM_SW_UPDATE);
- 		pwm_lpss_write(pwm, ctrl);
- 		pwm_lpss_write(pwm, ctrl | PWM_SW_UPDATE);
- 	}
-@@ -126,8 +128,15 @@ static void pwm_lpss_prepare(struct pwm_lpss_chip *lpwm, struct pwm_device *pwm,
+ #define PWM_BASE_CLK_MHZ	6	/* 6 MHz */
+-#define PWM_MAX_PERIOD_NS	5461333	/* 183 Hz */
++#define PWM_MAX_PERIOD_NS	5461334	/* 183 Hz */
  
- static inline void pwm_lpss_cond_enable(struct pwm_device *pwm, bool cond)
- {
--	if (cond)
--		pwm_lpss_write(pwm, pwm_lpss_read(pwm) | PWM_ENABLE);
-+	if (cond) {
-+		u32 orig_ctrl, ctrl;
-+
-+		orig_ctrl = ctrl = pwm_lpss_read(pwm);
-+		ctrl |= PWM_ENABLE;
-+		dev_err(pwm->chip->dev, "enable 0x%08x -> 0x%08x\n",
-+			orig_ctrl, ctrl);
-+		pwm_lpss_write(pwm, ctrl);
-+	}
- }
+ #define NSEC_PER_MHZ		1000
  
- static int pwm_lpss_apply(struct pwm_chip *chip, struct pwm_device *pwm,
-@@ -200,6 +209,9 @@ static void pwm_lpss_get_state(struct pwm_chip *chip, struct pwm_device *pwm,
- 	state->enabled = !!(ctrl & PWM_ENABLE);
+@@ -75,6 +75,9 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
+ 		/* changing the clk divisor, need to disable fisrt */
+ 		crc_pwm_disable(c, pwm);
+ 		clk_div = PWM_BASE_CLK_MHZ * period_ns / (256 * NSEC_PER_MHZ);
++		/* clk_div 1 - 128, maps to register values 0-127 */
++		if (clk_div > 0)
++			clk_div--;
  
- 	pm_runtime_put(chip->dev);
-+
-+	dev_err(pwm->chip->dev, "initial state 0x%08x period %d duty_cycle %d enabled %d\n",
-+		ctrl, state->period, state->duty_cycle, state->enabled);
- }
- 
- static const struct pwm_ops pwm_lpss_ops = {
+ 		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
+ 					clk_div | PWM_OUTPUT_ENABLE);
 -- 
 2.26.2
 
