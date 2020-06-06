@@ -4,45 +4,45 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DD04C433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF7CC433E5
 	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24E41207DF
+	by mail.kernel.org (Postfix) with ESMTP id 4FDAC2088E
 	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="fqCtrgLK"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HEpPxD3N"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728920AbgFFU0l (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1728925AbgFFU0l (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Sat, 6 Jun 2020 16:26:41 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:34360 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728925AbgFFU0l (ORCPT
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:40646 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728928AbgFFU0l (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Jun 2020 16:26:41 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591475199;
+        s=mimecast20190719; t=1591475200;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=R4xyCpsnyFP/IgmIE5mjiCG2zWFUJ/yjZ7Igp3ZZReY=;
-        b=fqCtrgLKwol3eDCWoYj5u0k0RQd2uCPBb7Q8D+pv0KV3j+r822XT4O6PKYLKj40/tMNEdh
-        fOBubZi5xZVvf9ES8riSvULDmKbDvP2QNtXthW2dTd0bbjNGjBUd7KR6/SgvDIbDJ89zhL
-        Sz7i/Rq/JoneAFncnDTXpBunsvVU+3I=
+        bh=bzR5wJk9hqmAJndMjPuTZRIr7gmgMinW4Tv3VnbU63Q=;
+        b=HEpPxD3NDeBeVBa1d3BrqW/sg12INOwy8RjciMnEaAopmXatWvX7LlLeomcOOoqT6lIxF1
+        x5wh1+ZcgoHfOxQWbwWNvV8B17M0VwvwfIDRMdP7JWADHdu92Waa9pn1Yjj6lSsNP2KlTU
+        B0p1igyWTWMsZCSKBNsDQP7H2TDmDtw=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-109-R1Z8yG2dMUKqXnQoWDRfjA-1; Sat, 06 Jun 2020 16:26:38 -0400
-X-MC-Unique: R1Z8yG2dMUKqXnQoWDRfjA-1
+ us-mta-249-iGmkoaDNPEK76MBinfSSsw-1; Sat, 06 Jun 2020 16:26:32 -0400
+X-MC-Unique: iGmkoaDNPEK76MBinfSSsw-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 06CF27BAD;
-        Sat,  6 Jun 2020 20:26:36 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5AD897BAC;
+        Sat,  6 Jun 2020 20:26:30 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-112-50.ams2.redhat.com [10.36.112.50])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8E7615C557;
-        Sat,  6 Jun 2020 20:26:33 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E049B5C557;
+        Sat,  6 Jun 2020 20:26:27 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
@@ -59,9 +59,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 11/16] pwm: crc: Implement apply() method to support the new atomic PWM API
-Date:   Sat,  6 Jun 2020 22:25:56 +0200
-Message-Id: <20200606202601.48410-12-hdegoede@redhat.com>
+Subject: [PATCH 09/16] pwm: crc: Fix period changes not having any effect
+Date:   Sat,  6 Jun 2020 22:25:54 +0200
+Message-Id: <20200606202601.48410-10-hdegoede@redhat.com>
 In-Reply-To: <20200606202601.48410-1-hdegoede@redhat.com>
 References: <20200606202601.48410-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -72,148 +72,65 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Replace the enable, disable and config pwm_ops with an apply op,
-to support the new atomic PWM API.
+The pwm-crc code is using 2 different enable bits:
+1. bit 7 of the PWM0_CLK_DIV (PWM_OUTPUT_ENABLE)
+2. bit 0 of the BACKLIGHT_EN register
+
+I strongly suspect that the BACKLIGHT_EN register at address 0x51 really
+controls a separate output-only GPIO which is connected to the LCD panels
+backlight-enable input. Like how the PANEL_EN register at address 0x52
+controls an output-only GPIO which is earmarked for the LCD panel's
+enable pin. If this is correct then this GPIO should really be added to
+the gpio-crystalcove.c driver and the PWM driver should stop poking it.
+But I've been unable to come up with a definitive answer here, so I'm
+keeping this as is for now.
+
+As the comment in the old code already indicates we must disable the PWM
+before we can change the clock divider. But the crc_pwm_disable() and
+crc_pwm_enable() calls the old code make for this only change the
+BACKLIGHT_EN register; and the value of that register does not matter for
+changing the period / the divider. What does matter is that the
+PWM_OUTPUT_ENABLE bit must be cleared before a new value can be written.
+
+This commit modifies crc_pwm_config() to clear PWM_OUTPUT_ENABLE instead
+when changing the period, so that period changes actually work.
+
+Note this fix will cause a significant behavior change on some devices
+using the CRC PWM output to drive their backlight. Before the PWM would
+always run with the output frequency configured by the BIOS at boot, now
+the period time specified by the i915 driver will actually be honored.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/pwm/pwm-crc.c | 107 +++++++++++++++++++++++-------------------
- 1 file changed, 59 insertions(+), 48 deletions(-)
+ drivers/pwm/pwm-crc.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/pwm/pwm-crc.c b/drivers/pwm/pwm-crc.c
-index 53734bcf67e1..58c7e9ef7278 100644
+index 5ba2a65c524c..ef49a6e3c4d6 100644
 --- a/drivers/pwm/pwm-crc.c
 +++ b/drivers/pwm/pwm-crc.c
-@@ -41,70 +41,81 @@ static inline struct crystalcove_pwm *to_crc_pwm(struct pwm_chip *pc)
- 	return container_of(pc, struct crystalcove_pwm, chip);
- }
+@@ -72,8 +72,9 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
+ 	if (pwm_get_period(pwm) != period_ns) {
+ 		int clk_div;
  
--static int crc_pwm_calc_clk_div(int period_ns)
-+static int crc_pwm_apply(struct pwm_chip *chip, struct pwm_device *pwm,
-+			 const struct pwm_state *state)
- {
--	int clk_div;
--
--	clk_div = PWM_BASE_CLK_MHZ * period_ns / (256 * NSEC_PER_MHZ);
--	/* clk_div 1 - 128, maps to register values 0-127 */
--	if (clk_div > 0)
--		clk_div--;
--
--	return clk_div;
--}
--
--static int crc_pwm_enable(struct pwm_chip *c, struct pwm_device *pwm)
--{
--	struct crystalcove_pwm *crc_pwm = to_crc_pwm(c);
--	int div = crc_pwm_calc_clk_div(pwm_get_period(pwm));
--
--	regmap_write(crc_pwm->regmap, PWM0_CLK_DIV, div | PWM_OUTPUT_ENABLE);
--	regmap_write(crc_pwm->regmap, BACKLIGHT_EN, 1);
--
--	return 0;
--}
--
--static void crc_pwm_disable(struct pwm_chip *c, struct pwm_device *pwm)
--{
--	struct crystalcove_pwm *crc_pwm = to_crc_pwm(c);
--	int div = crc_pwm_calc_clk_div(pwm_get_period(pwm));
--
--	regmap_write(crc_pwm->regmap, BACKLIGHT_EN, 0);
--	regmap_write(crc_pwm->regmap, PWM0_CLK_DIV, div);
--}
--
--static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
--			  int duty_ns, int period_ns)
--{
--	struct crystalcove_pwm *crc_pwm = to_crc_pwm(c);
-+	struct crystalcove_pwm *crc_pwm = to_crc_pwm(chip);
-+	int err, clk_div, level, pwm_output_enable;
- 	struct device *dev = crc_pwm->chip.dev;
--	int level;
+-		/* changing the clk divisor, need to disable fisrt */
+-		crc_pwm_disable(c, pwm);
++		/* changing the clk divisor, clear PWM_OUTPUT_ENABLE first */
++		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV, 0);
++
+ 		clk_div = PWM_BASE_CLK_MHZ * period_ns / (256 * NSEC_PER_MHZ);
+ 		/* clk_div 1 - 128, maps to register values 0-127 */
+ 		if (clk_div > 0)
+@@ -81,9 +82,6 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
  
--	if (period_ns > PWM_MAX_PERIOD_NS) {
-+	if (state->period > PWM_MAX_PERIOD_NS) {
- 		dev_err(dev, "un-supported period_ns\n");
- 		return -EINVAL;
+ 		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
+ 					clk_div | PWM_OUTPUT_ENABLE);
+-
+-		/* enable back */
+-		crc_pwm_enable(c, pwm);
  	}
  
--	if (pwm_get_period(pwm) != period_ns) {
--		int clk_div = crc_pwm_calc_clk_div(period_ns);
-+	if (state->polarity != PWM_POLARITY_NORMAL)
-+		return -ENOTSUPP;
-+
-+	if (pwm_is_enabled(pwm) && !state->enabled) {
-+		err = regmap_write(crc_pwm->regmap, BACKLIGHT_EN, 0);
-+		if (err) {
-+			dev_err(dev, "Error writing BACKLIGHT_EN %d\n", err);
-+			return err;
-+		}
-+	}
-+
-+	if (pwm_get_duty_cycle(pwm) != state->duty_cycle ||
-+	    pwm_get_period(pwm) != state->period) {
-+		level = state->duty_cycle * PWM_MAX_LEVEL / state->period;
- 
-+		err = regmap_write(crc_pwm->regmap, PWM0_DUTY_CYCLE, level);
-+		if (err) {
-+			dev_err(dev, "Error writing PWM0_DUTY_CYCLE %d\n", err);
-+			return err;
-+		}
-+	}
-+
-+	if (pwm_is_enabled(pwm) && state->enabled &&
-+	    pwm_get_period(pwm) != state->period) {
- 		/* changing the clk divisor, clear PWM_OUTPUT_ENABLE first */
--		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV, 0);
--		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
--					clk_div | PWM_OUTPUT_ENABLE);
-+		err = regmap_write(crc_pwm->regmap, PWM0_CLK_DIV, 0);
-+		if (err) {
-+			dev_err(dev, "Error writing PWM0_CLK_DIV %d\n", err);
-+			return err;
-+		}
- 	}
- 
--	/* change the pwm duty cycle */
--	level = duty_ns * PWM_MAX_LEVEL / period_ns;
--	regmap_write(crc_pwm->regmap, PWM0_DUTY_CYCLE, level);
-+	if (pwm_get_period(pwm) != state->period ||
-+	    pwm_is_enabled(pwm) != state->enabled) {
-+		clk_div = PWM_BASE_CLK_MHZ * state->period /
-+			  (256 * NSEC_PER_MHZ);
-+		/* clk_div 1 - 128, maps to register values 0-127 */
-+		if (clk_div > 0)
-+			clk_div--;
-+
-+		pwm_output_enable = state->enabled ? PWM_OUTPUT_ENABLE : 0;
-+
-+		err = regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
-+				   clk_div | pwm_output_enable);
-+		if (err) {
-+			dev_err(dev, "Error writing PWM0_CLK_DIV %d\n", err);
-+			return err;
-+		}
-+	}
-+
-+	if (!pwm_is_enabled(pwm) && state->enabled) {
-+		err = regmap_write(crc_pwm->regmap, BACKLIGHT_EN, 1);
-+		if (err) {
-+			dev_err(dev, "Error writing BACKLIGHT_EN %d\n", err);
-+			return err;
-+		}
-+	}
- 
- 	return 0;
- }
- 
- static const struct pwm_ops crc_pwm_ops = {
--	.config = crc_pwm_config,
--	.enable = crc_pwm_enable,
--	.disable = crc_pwm_disable,
-+	.apply = crc_pwm_apply,
- };
- 
- static int crystalcove_pwm_probe(struct platform_device *pdev)
+ 	/* change the pwm duty cycle */
 -- 
 2.26.2
 
