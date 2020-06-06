@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CBDCC433DF
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AAFFC433E2
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 793E9207D3
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D38D207DF
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Jun 2020 20:26:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LTil8TGV"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Y1pqiZ8g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728899AbgFFU0Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 6 Jun 2020 16:26:16 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:33987 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728350AbgFFU0P (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Jun 2020 16:26:15 -0400
+        id S1728873AbgFFU0T (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 6 Jun 2020 16:26:19 -0400
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:48632 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728904AbgFFU0S (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Jun 2020 16:26:18 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591475174;
+        s=mimecast20190719; t=1591475177;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=HFSbgw+jMLXkeGeVQko9oA8LjxZw2ty0U8jf3NzNvyw=;
-        b=LTil8TGVx3JYC/qXdlam9jlRxxZX+I2o2nReFmDy5yI14z02d9ncLdgSRrBXOk/XFOMF1r
-        FFHBUZIiAg3LviBr9wCajm8oMDZlkTBVO/ZQcfIS8Igp2YTzxvroyFtCKQ9mTPdT7J2j0G
-        ZSe5jft4l0pMnjWk8ZBLzicTWauehQA=
+        bh=cWk/To7CyUecrdM3R5nBGROQ1lUsEmkED3rqhu0hGtk=;
+        b=Y1pqiZ8gK6M4Fb2HAEzylknwtTekNTP9Ak0Fa1JTNfEHlueWS0WEWFEpxuIHm5GtknuWmd
+        LnUkmuWzJK+7+7P0bylAv4snUs2GTw4u6JphQlBqxyV9RxXkQhU5K99iuROEtugxKVQbQi
+        kHw7utC0x+k931cwR2VkATTMFzTLuQg=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-8-yfoI-trrOVuyI2u1DDXtvQ-1; Sat, 06 Jun 2020 16:26:10 -0400
-X-MC-Unique: yfoI-trrOVuyI2u1DDXtvQ-1
+ us-mta-253-IJqhuvT6PYKDsLrJCF5QIg-1; Sat, 06 Jun 2020 16:26:15 -0400
+X-MC-Unique: IJqhuvT6PYKDsLrJCF5QIg-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 58C15107ACF2;
-        Sat,  6 Jun 2020 20:26:08 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id D0757835B40;
+        Sat,  6 Jun 2020 20:26:13 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-112-50.ams2.redhat.com [10.36.112.50])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D81075C57D;
-        Sat,  6 Jun 2020 20:26:05 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5FE4A5C557;
+        Sat,  6 Jun 2020 20:26:11 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
@@ -59,9 +59,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 01/16] ACPI / LPSS: Resume Cherry Trail PWM controller in no-irq phase
-Date:   Sat,  6 Jun 2020 22:25:46 +0200
-Message-Id: <20200606202601.48410-2-hdegoede@redhat.com>
+Subject: [PATCH 03/16] pwm: lpss: Add range limit check for the base_unit register value
+Date:   Sat,  6 Jun 2020 22:25:48 +0200
+Message-Id: <20200606202601.48410-4-hdegoede@redhat.com>
 In-Reply-To: <20200606202601.48410-1-hdegoede@redhat.com>
 References: <20200606202601.48410-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -72,61 +72,56 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The DSDTs on most Cherry Trail devices have an ugly clutch where the PWM
-controller gets poked from the _PS0 method of the graphics-card device:
+When the user requests a high enough period ns value, then the
+calculations in pwm_lpss_prepare() might result in a base_unit value of 0.
 
-	Local0 = PSAT /* \_SB_.PCI0.GFX0.PSAT */
-	If (((Local0 & 0x03) == 0x03))
-	{
-	    PSAT &= 0xFFFFFFFC
-	    Local1 = PSAT /* \_SB_.PCI0.GFX0.PSAT */
-	    RSTA = Zero
-	    RSTF = Zero
-	    RSTA = One
-	    RSTF = One
-	    PWMB |= 0xC0000000
-	    PWMC = PWMB /* \_SB_.PCI0.GFX0.PWMB */
-	}
+But according to the data-sheet the way the PWM controller works is that
+each input clock-cycle the base_unit gets added to a N bit counter and
+that counter overflowing determines the PWM output frequency. Adding 0
+to the counter is a no-op. The data-sheet even explicitly states that
+writing 0 to the base_unit bits will result in the PWM outputting a
+continuous 0 signal.
 
-Where PSAT is the power-status register of the PWM controller, so if it
-is in D3 when the GFX0 device's PS0 method runs then it will turn it on
-and restore the PWM ctrl register value it saved from its PS3 handler.
-Note not only does it restore it, it ors it with 0xC0000000 turning it
-on at a time where we may not want it to get turned on at all.
-
-The pwm_get call which the i915 driver does to get a reference to the
-PWM controller, already adds a device-link making the GFX0 device a
-consumer of the PWM device. So it should already have been resumed when
-the above AML runs and the AML should thus not do its undesirable poking
-of the PWM controller register.
-
-But the PCI core powers on PCI devices in the no-irq resume phase and
-thus calls the troublesome PS0 method in the no-irq resume phase.
-Where as LPSS devices by default are resumed in the early resume phase.
-
-This commit sets the resume_from_noirq flag in the bsw_pwm_dev_desc
-struct, so that Cherry Trail PWM controllers will be resumed in the
-no-irq phase. Together with the device-link added by the pwm-get this
-ensures that the PWM controller will be on when the troublesome PS0
-method runs, which stops it from poking the PWM controller.
+base_unit values > (base_unit_range / 256), or iow base_unit values using
+the 8 most significant bits, cause loss of resolution of the duty-cycle.
+E.g. assuming a base_unit_range of 65536 steps, then a base_unit value of
+768 (256 * 3), limits the duty-cycle resolution to 65536 / 768 = 85 steps.
+Clamp the max base_unit value to base_unit_range / 32 to ensure a
+duty-cycle resolution of at least 32 steps. This limits the maximum
+output frequency to 600 KHz / 780 KHz depending on the base clock.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/acpi_lpss.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/pwm/pwm-lpss.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 5e2bfbcf526f..67892fc0b822 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -257,6 +257,7 @@ static const struct lpss_device_desc bsw_pwm_dev_desc = {
- 	.flags = LPSS_SAVE_CTX | LPSS_NO_D3_DELAY,
- 	.prv_offset = 0x800,
- 	.setup = bsw_pwm_setup,
-+	.resume_from_noirq = true,
- };
+diff --git a/drivers/pwm/pwm-lpss.c b/drivers/pwm/pwm-lpss.c
+index 9d965ffe66d1..cae74ce61654 100644
+--- a/drivers/pwm/pwm-lpss.c
++++ b/drivers/pwm/pwm-lpss.c
+@@ -97,6 +97,14 @@ static void pwm_lpss_prepare(struct pwm_lpss_chip *lpwm, struct pwm_device *pwm,
+ 	freq *= base_unit_range;
  
- static const struct lpss_device_desc byt_uart_dev_desc = {
+ 	base_unit = DIV_ROUND_CLOSEST_ULL(freq, c);
++	/*
++	 * base_unit must not be 0 and for values > (base_unit_range / 256)
++	 * (values using the 8 most significant bits) the duty-cycle resolution
++	 * degrades. Clamp the maximum value to base_unit_range / 32 which
++	 * leaves a duty-cycle resolution of 32 steps.
++	 */
++	base_unit = clamp_t(unsigned long long, base_unit, 1,
++			    base_unit_range / 32);
+ 
+ 	on_time_div = 255ULL * duty_ns;
+ 	do_div(on_time_div, period_ns);
+@@ -105,7 +113,6 @@ static void pwm_lpss_prepare(struct pwm_lpss_chip *lpwm, struct pwm_device *pwm,
+ 	orig_ctrl = ctrl = pwm_lpss_read(pwm);
+ 	ctrl &= ~PWM_ON_TIME_DIV_MASK;
+ 	ctrl &= ~(base_unit_range << PWM_BASE_UNIT_SHIFT);
+-	base_unit &= base_unit_range;
+ 	ctrl |= (u32) base_unit << PWM_BASE_UNIT_SHIFT;
+ 	ctrl |= on_time_div;
+ 
 -- 
 2.26.2
 
