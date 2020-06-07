@@ -2,115 +2,131 @@ Return-Path: <SRS0=2dCt=7U=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A448C433DF
-	for <linux-acpi@archiver.kernel.org>; Sun,  7 Jun 2020 18:19:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 456D7C433DF
+	for <linux-acpi@archiver.kernel.org>; Sun,  7 Jun 2020 20:24:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 168112074B
-	for <linux-acpi@archiver.kernel.org>; Sun,  7 Jun 2020 18:19:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="STZQMwPx"
+	by mail.kernel.org (Postfix) with ESMTP id 2C09A2067B
+	for <linux-acpi@archiver.kernel.org>; Sun,  7 Jun 2020 20:24:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730148AbgFGSTj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 7 Jun 2020 14:19:39 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:49264 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730143AbgFGSTi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jun 2020 14:19:38 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591553977;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=aD0U0nj+eoOBxkRm+vQR3prqd59NNlNzFOHiBlv90gk=;
-        b=STZQMwPxsU3wFnbpxHfMCSlJgB/Iujvt9lf6joA+EM8AkczHA5v9f9GUnuIdgIqETnYJf9
-        ufaQzRi8FwWGHOqWlunVcitFsBsmnfRgYjgZ+QrGlxrO1dBiPwBCjNawAzAvkgL6MwReGL
-        lWdYcT8M399j/Jd3l+be4q59DzLOK5w=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-453-oNMRjCBeNee_IRdKuw0bZw-1; Sun, 07 Jun 2020 14:19:31 -0400
-X-MC-Unique: oNMRjCBeNee_IRdKuw0bZw-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 180AE8015CE;
-        Sun,  7 Jun 2020 18:19:29 +0000 (UTC)
-Received: from x1.localdomain.com (ovpn-112-92.ams2.redhat.com [10.36.112.92])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 914F75C1BD;
-        Sun,  7 Jun 2020 18:19:26 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Thierry Reding <thierry.reding@gmail.com>,
-        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= 
-        <ville.syrjala@linux.intel.com>,
+        id S1726872AbgFGUYS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 7 Jun 2020 16:24:18 -0400
+Received: from jabberwock.ucw.cz ([46.255.230.98]:53638 "EHLO
+        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726093AbgFGUYS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jun 2020 16:24:18 -0400
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 44C241C0BD2; Sun,  7 Jun 2020 22:24:15 +0200 (CEST)
+Date:   Sun, 7 Jun 2020 22:24:14 +0200
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Andrzej Pietrasiewicz <andrzej.p@collabora.com>
+Cc:     linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-tegra@vger.kernel.org, patches@opensource.cirrus.com,
+        ibm-acpi-devel@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
-        intel-gfx <intel-gfx@lists.freedesktop.org>,
-        dri-devel@lists.freedesktop.org,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH v2 14/15] drm/i915: panel: Honor the VBT PWM min setting for devs with an external PWM controller
-Date:   Sun,  7 Jun 2020 20:18:39 +0200
-Message-Id: <20200607181840.13536-15-hdegoede@redhat.com>
-In-Reply-To: <20200607181840.13536-1-hdegoede@redhat.com>
-References: <20200607181840.13536-1-hdegoede@redhat.com>
+        Len Brown <lenb@kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Sylvain Lemieux <slemieux.tyco@gmail.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Barry Song <baohua@kernel.org>,
+        Michael Hennerich <michael.hennerich@analog.com>,
+        Nick Dyer <nick@shmanahar.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Ferruh Yigit <fery@cypress.com>,
+        Sangwon Jee <jeesw@melfas.com>,
+        Peter Hutterer <peter.hutterer@redhat.com>,
+        Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>,
+        kernel@collabora.com
+Subject: Re: [PATCH v3 0/7] Support inhibiting input devices
+Message-ID: <20200607202414.GB13138@amd>
+References: <20200604072853.GP89269@dtor-ws>
+ <20200605173335.13753-1-andrzej.p@collabora.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="E39vaYmALEf/7YXx"
+Content-Disposition: inline
+In-Reply-To: <20200605173335.13753-1-andrzej.p@collabora.com>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-So far for devices using an external PWM controller (devices using
-pwm_setup_backlight()), we have been hardcoding the minimum allowed
-PWM level to 0. But several of these devices specify a non 0 minimum
-setting in their VBT.
 
-Change pwm_setup_backlight() to use get_backlight_min_vbt() to get
-the minimum level.
+--E39vaYmALEf/7YXx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/gpu/drm/i915/display/intel_panel.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+On Fri 2020-06-05 19:33:28, Andrzej Pietrasiewicz wrote:
+> Userspace might want to implement a policy to temporarily disregard input
+> from certain devices.
 
-diff --git a/drivers/gpu/drm/i915/display/intel_panel.c b/drivers/gpu/drm/i915/display/intel_panel.c
-index 14e611c92194..cb28b9908ca4 100644
---- a/drivers/gpu/drm/i915/display/intel_panel.c
-+++ b/drivers/gpu/drm/i915/display/intel_panel.c
-@@ -1925,8 +1925,8 @@ static int pwm_setup_backlight(struct intel_connector *connector,
- 	 */
- 	pwm_apply_args(panel->backlight.pwm);
- 
--	panel->backlight.min = 0; /* 0% */
- 	panel->backlight.max = 100; /* 100% */
-+	panel->backlight.min = get_backlight_min_vbt(connector);
- 	level = intel_panel_compute_brightness(connector, 100);
- 	ns = DIV_ROUND_UP(level * panel->backlight.pwm_period_ns, 100);
- 
-@@ -1941,8 +1941,9 @@ static int pwm_setup_backlight(struct intel_connector *connector,
- 
- 	level = DIV_ROUND_UP(pwm_get_duty_cycle(panel->backlight.pwm) * 100,
- 			     panel->backlight.pwm_period_ns);
--	panel->backlight.level =
--		intel_panel_compute_brightness(connector, level);
-+	level = intel_panel_compute_brightness(connector, level);
-+	panel->backlight.level = clamp(level, panel->backlight.min,
-+				       panel->backlight.max);
- 	panel->backlight.enabled = panel->backlight.level != 0;
- 
- 	drm_info(&dev_priv->drm, "Using %s PWM for LCD backlight control\n",
--- 
-2.26.2
+Wow, you certainly cc a lot of lists.
 
+> An example use case is a convertible laptop, whose keyboard can be folded
+> under the screen to create tablet-like experience. The user then must hold
+> the laptop in such a way that it is difficult to avoid pressing the keybo=
+ard
+> keys. It is therefore desirable to temporarily disregard input from the
+> keyboard, until it is folded back. This obviously is a policy which should
+> be kept out of the kernel, but the kernel must provide suitable means to
+> implement such a policy.
+>=20
+> Due to interactions with suspend/resume, a helper has been added for driv=
+ers
+> to decide if the device is being used or not (PATCH 1/7) and it has been
+> applied to relevant drivers (PATCH 2,4,5,6/7).
+
+But is that a right way to implement it?
+
+We want this for cellphones, too -- touchscreen should be disabled
+while the device is locked in the pocket -- but we really want the
+touchscreen hardware to be powered down in that case (because it keeps
+SoC busy and eats a _lot_ of electricity).
+
+But simplistic "receive an event and then drop it if device is
+inhibited" does not allow that...
+
+Best regards,
+								Pavel
+							=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--E39vaYmALEf/7YXx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAl7dTO4ACgkQMOfwapXb+vKNuACgw3cpx7Z15Nm3EAs8yyTuu1RS
+DsYAn1yorcZKMbA2oKpOoVakbRalRIie
+=Dt1J
+-----END PGP SIGNATURE-----
+
+--E39vaYmALEf/7YXx--
