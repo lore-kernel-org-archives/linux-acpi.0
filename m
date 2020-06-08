@@ -6,35 +6,35 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD890C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 03:50:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80D4BC433E0
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 03:55:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7FAC52076A
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 03:50:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E1E12053B
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 03:55:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728855AbgFHDuZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 7 Jun 2020 23:50:25 -0400
-Received: from mga02.intel.com ([134.134.136.20]:26678 "EHLO mga02.intel.com"
+        id S1728773AbgFHDzN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 7 Jun 2020 23:55:13 -0400
+Received: from mga11.intel.com ([192.55.52.93]:54054 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728763AbgFHDuY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 7 Jun 2020 23:50:24 -0400
-IronPort-SDR: 7TlQWMk6JyuNyJJ32t/eiOAOn2gBLDhdrdy0qCLhA+UiotKU+NK+FEqD1F4GVXXRw+4AIACxYR
- LcX8BpFC7sGg==
+        id S1728763AbgFHDzN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 7 Jun 2020 23:55:13 -0400
+IronPort-SDR: 7ku5LjBTjsWhi+HPfszCx699bQ+hIbNMiGFpzkwi94bLJ01pH4PpIH25Yi4gTXrcASnXfDqkET
+ rrpoE2+lCLWw==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jun 2020 20:50:24 -0700
-IronPort-SDR: aBms9IEQNhijJBDDXaj4Ih289dsactoAreSJwOIoFVQlNORC8n8IEK99gECcaTtaEP8q7YgwB+
- d2CD1mMArAWQ==
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jun 2020 20:55:13 -0700
+IronPort-SDR: YNhNatDKk0QsxJql0eJaS+rm9XydwHtk7fa1palvrzLF+RZd9dpT7sKRAmctSRtkiSpoojEGYQ
+ V5hg57xbK0YA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,486,1583222400"; 
-   d="scan'208";a="446588491"
+   d="scan'208";a="349043083"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga005.jf.intel.com with ESMTP; 07 Jun 2020 20:50:21 -0700
+  by orsmga001.jf.intel.com with ESMTP; 07 Jun 2020 20:55:09 -0700
 Received: from andy by smile with local (Exim 4.93)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1ji8nn-00Ba6K-HD; Mon, 08 Jun 2020 06:50:23 +0300
-Date:   Mon, 8 Jun 2020 06:50:23 +0300
+        id 1ji8sS-00Ba8y-32; Mon, 08 Jun 2020 06:55:12 +0300
+Date:   Mon, 8 Jun 2020 06:55:12 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Hans de Goede <hdegoede@redhat.com>
 Cc:     Thierry Reding <thierry.reding@gmail.com>,
@@ -50,44 +50,38 @@ Cc:     Thierry Reding <thierry.reding@gmail.com>,
         dri-devel@lists.freedesktop.org,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 03/15] pwm: lpss: Add range limit check for the
- base_unit register value
-Message-ID: <20200608035023.GZ2428291@smile.fi.intel.com>
+Subject: Re: [PATCH v2 04/15] pwm: lpss: Fix off by one error in base_unit
+ math in pwm_lpss_prepare()
+Message-ID: <20200608035512.GA2428291@smile.fi.intel.com>
 References: <20200607181840.13536-1-hdegoede@redhat.com>
- <20200607181840.13536-4-hdegoede@redhat.com>
+ <20200607181840.13536-5-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200607181840.13536-4-hdegoede@redhat.com>
+In-Reply-To: <20200607181840.13536-5-hdegoede@redhat.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Jun 07, 2020 at 08:18:28PM +0200, Hans de Goede wrote:
-> When the user requests a high enough period ns value, then the
-> calculations in pwm_lpss_prepare() might result in a base_unit value of 0.
-> 
-> But according to the data-sheet the way the PWM controller works is that
+On Sun, Jun 07, 2020 at 08:18:29PM +0200, Hans de Goede wrote:
+> According to the data-sheet the way the PWM controller works is that
 > each input clock-cycle the base_unit gets added to a N bit counter and
-> that counter overflowing determines the PWM output frequency. Adding 0
-> to the counter is a no-op. The data-sheet even explicitly states that
-> writing 0 to the base_unit bits will result in the PWM outputting a
-> continuous 0 signal.
+> that counter overflowing determines the PWM output frequency.
+> 
+> So assuming e.g. a 16 bit counter this means that if base_unit is set to 1,
+> after 65535 input clock-cycles the counter has been increased from 0 to
+> 65535 and it will overflow on the next cycle, so it will overflow after
+> every 65536 clock cycles and thus the calculations done in
+> pwm_lpss_prepare() should use 65536 and not 65535.
+> 
+> This commit fixes this. Note this also aligns the calculations in
+> pwm_lpss_prepare() with those in pwm_lpss_get_state().
 
-So, and why it's a problem?
-
-> base_unit values > (base_unit_range / 256), or iow base_unit values using
-> the 8 most significant bits, cause loss of resolution of the duty-cycle.
-> E.g. assuming a base_unit_range of 65536 steps, then a base_unit value of
-> 768 (256 * 3), limits the duty-cycle resolution to 65536 / 768 = 85 steps.
-> Clamp the max base_unit value to base_unit_range / 32 to ensure a
-> duty-cycle resolution of at least 32 steps. This limits the maximum
-> output frequency to 600 KHz / 780 KHz depending on the base clock.
-
-This part I don't understand. Why we limiting base unit? I seems like a
-deliberate regression.
+This one sounds like a bug which I have noticed on Broxton (but thought as a
+hardware issue). In any case it has to be tested on various platforms to see
+how it affects on them.
 
 -- 
 With Best Regards,
