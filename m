@@ -1,70 +1,79 @@
-Return-Path: <SRS0=2P8q=7V=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=PV1G=7W=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4495C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 20:29:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05096C433E2
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 00:06:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 89F9120760
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 20:29:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B92152072F
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 00:06:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="pw8Bxdhl"
+	dkim=pass (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="eZg+Hlz4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726735AbgFHU35 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Jun 2020 16:29:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41692 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726730AbgFHU34 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jun 2020 16:29:56 -0400
-Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8576C08C5C4
-        for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2020 13:29:56 -0700 (PDT)
-Received: by mail-pl1-x644.google.com with SMTP id bh7so7097376plb.11
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Jun 2020 13:29:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9/ePEPr3ygUN4g38F3++3TkPRxfaceUs+kBlSlUSKY0=;
-        b=pw8Bxdhl9XS8tPgtRzulSMnEvJeKhw67A+rrpfiRgoNRVcVxkndGIyj1Htofn7jVH4
-         QQfC8wwV1c2hsbd3F+BArgJJLlVJygelysnZp9v8OWukz4LhpZm+mPNjLH12Rd6OrYqv
-         FEepyuJwLd31BVubTZVtn1FwTiI9AReTM8JynaA0xsEGX3ndHt2r47Zqeq30tgQZ8wVC
-         8g6XsZLQuN3A2UBO1Vc4xRfN66xu2jdQFy7ZOSpEIlWqwg+LIA2MCYx82el77wcfvMaA
-         K7z7TSrp13wbs0s5jkpBtBoquIhBmNnU+rdDHrJolRI2C6P7l78M4Jbr0MihSflNPFXb
-         +zfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9/ePEPr3ygUN4g38F3++3TkPRxfaceUs+kBlSlUSKY0=;
-        b=Yjcv5PERdwDfGw/LUIgUVFagSOa4WcCjkSKDJI69FSzB3zM6eWridf9QaViz13Ehu0
-         WKCsW5KTJSYucAxm/KHZP/HAvelH3uuer4241cpp2Y7HVpBPnJka5eF0OmAfex7H6N1L
-         6WYz/LGNnxi0jxKTBiVDQ0h7IoX9XZslFjLa6ok8XvXhg3j+V+5mttA1/n0UtVS3DSAg
-         DbLl0nDd+oUcf3mTGzeOWTAeLk6qAdi93vne1dE/pk8bgXHGv43kXnBDKMq0PqoG02z5
-         6ljYTiquKFC3tAogxjl/du0pEsiafwwtoR4jlWuLWqd0Wau4h5Szm0elFZ4AgKAkihUQ
-         FZ/Q==
-X-Gm-Message-State: AOAM533QYXs1r3JyIuJXKjYti2gvBZpzwlvcTGK2CKRO1jFvYZePSwUj
-        EKYYjq1pUdAyM7tzQ/vzHE31nfRerhytn+GNgQQEmg==
-X-Google-Smtp-Source: ABdhPJxqTvjFFkKCm0i/uL4/XPDo2bwuLtgj0Uxawq6E2pFoZqBvslwKDi6qgeiJF1A8ll3duqQhBNh0BQd5R/EezHw=
-X-Received: by 2002:a17:90a:e2c4:: with SMTP id fr4mr1046413pjb.32.1591648195517;
- Mon, 08 Jun 2020 13:29:55 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAMj1kXErFuvOoG=DB6sz5HBvDuHDiKwWD8uOyLuxaX-u8-+dbA@mail.gmail.com>
- <20200601231805.207441-1-ndesaulniers@google.com> <BYAPR11MB30969737340044437013BF44F08B0@BYAPR11MB3096.namprd11.prod.outlook.com>
- <CAKwvOdmsCmPFiDOq7AYUyEx=60B=qo8u9yhnJDQ6nd6Ew7xDkQ@mail.gmail.com> <20200608145150.GA7418@willie-the-truck>
-In-Reply-To: <20200608145150.GA7418@willie-the-truck>
-From:   Nick Desaulniers <ndesaulniers@google.com>
-Date:   Mon, 8 Jun 2020 13:29:44 -0700
-Message-ID: <CAKwvOdnBhHnhUZ9MHgqEQ4nEyzHWUH+DPV-J0KoYyWNEnsDHbg@mail.gmail.com>
-Subject: Re: [PATCH] ACPICA: fix UBSAN warning using __builtin_offsetof
-To:     Will Deacon <will@kernel.org>,
-        "Moore, Robert" <robert.moore@intel.com>
-Cc:     "Kaneda, Erik" <erik.kaneda@intel.com>,
+        id S1732885AbgFIAGq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Jun 2020 20:06:46 -0400
+Received: from mga18.intel.com ([134.134.136.126]:2406 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731073AbgFHXVB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:21:01 -0400
+IronPort-SDR: WBiv3I24bZurSAhkGpXGFiFrwIbiKstz0RGAcsWoCOEgd6w7FsEdiMjRcme4FHlV9leZhra7Oz
+ Ks5fVE2M00kA==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2020 16:20:56 -0700
+IronPort-SDR: GVEKN+Sdzpyjph5He8dWFqU4792RyNmdgbHW6dezk+RIVHItTPaj/0e8G7ouifjCXLPaZfiiyw
+ 1z9/1ezyYMRg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,489,1583222400"; 
+   d="scan'208";a="472877250"
+Received: from fmsmsx107.amr.corp.intel.com ([10.18.124.205])
+  by fmsmga005.fm.intel.com with ESMTP; 08 Jun 2020 16:20:56 -0700
+Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
+ fmsmsx107.amr.corp.intel.com (10.18.124.205) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Mon, 8 Jun 2020 16:20:55 -0700
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Mon, 8 Jun 2020 16:20:52 -0700
+Received: from FMSEDG002.ED.cps.intel.com (10.1.192.134) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.1713.5
+ via Frontend Transport; Mon, 8 Jun 2020 16:20:52 -0700
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.175)
+ by edgegateway.intel.com (192.55.55.69) with Microsoft SMTP Server (TLS) id
+ 14.3.439.0; Mon, 8 Jun 2020 16:20:51 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HGAAZYpk5bmrzlSboH+WX2LojCGPp3Ci2ISrptZGsBWMtBoFXuDlCe4lZIYkjj8YxXPxk+MG5S8nOSxxghkLyBDmyLbcIG+7xY5rgGe92J7QQNGOSKODJ6+QnNosJ16leyl/tcI+EDhuxoc00buiTvIbXQpaYGkHTae2mEjPsqRrn07XhRSztriwyIXDmjKQvqiFO64uTHmpZVaaoUoEjsQEfetRmnfveWbGHyAoXr/rf0ZMJKwW4w+SbaemXkxp91RYb66qaNCME9S0WGYBNl97Ue5Hzne+xaztVo4Q+w4mumKCyx6Lu6EQIdac21e9tQfk2NsAMLuEUUW9GaKPyA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=f6aVbVROYJmQsF3MUYrpfaXpatbExk4/M5Bzum+K41c=;
+ b=Cb6hUFcYwF47hpCQ8i40p63VzrTVEzRyPoxmcCiJs1KyXIVwtUFC1M/Ece/7DNpzbVa0LFwOdQPx+TAInaZ501awOoV2me6WIFYnvZoleRxKxGCznsTb+GftVhBoAJzB+ZWN28H8bxv6k8eQZfcpMWUJpSBKUkN+fWDkOgYV/l1BxaGSD/qPEHpi3nRirgoZwhMJJy2Fd5t0mA5qZC/jHKah7kySJPidIkpoJipVn22s/xfJ3InVwiVmLHrR3GwHZWMdwR3HObZ/KhQRuzQ93WDc49+7ruiWRYXGWPZifNTZ0BLPjCwY2+5/DzflMuUzMcJS1bVrnAReiccziYuQKg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=f6aVbVROYJmQsF3MUYrpfaXpatbExk4/M5Bzum+K41c=;
+ b=eZg+Hlz4v51BDG53O6IfrlrZXmcj1wZi6ti3BMWnZYCugXTsXh55dJhBxfe0JlJMAJXMFoSB1o9ywN6zdCxk2OVjQqioo8+DgJy/FKAXzx+WsrVMMsVOYVgGiRl6vh/Ovwp2fYMDIGgMHrsE40d0C3470qxMRaxB01aN0jsTgMc=
+Received: from BYAPR11MB3096.namprd11.prod.outlook.com (2603:10b6:a03:8f::14)
+ by BYAPR11MB3512.namprd11.prod.outlook.com (2603:10b6:a03:8f::26) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3066.18; Mon, 8 Jun
+ 2020 23:20:44 +0000
+Received: from BYAPR11MB3096.namprd11.prod.outlook.com
+ ([fe80::ad0c:c6a9:6f39:eb92]) by BYAPR11MB3096.namprd11.prod.outlook.com
+ ([fe80::ad0c:c6a9:6f39:eb92%5]) with mapi id 15.20.3066.023; Mon, 8 Jun 2020
+ 23:20:44 +0000
+From:   "Kaneda, Erik" <erik.kaneda@intel.com>
+To:     Nick Desaulniers <ndesaulniers@google.com>
+CC:     "Moore, Robert" <robert.moore@intel.com>,
         "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>,
         Len Brown <lenb@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
         "dvyukov@google.com" <dvyukov@google.com>,
@@ -77,124 +86,114 @@ Cc:     "Kaneda, Erik" <erik.kaneda@intel.com>,
         "mark.rutland@arm.com" <mark.rutland@arm.com>,
         "pcc@google.com" <pcc@google.com>,
         "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "will@kernel.org" <will@kernel.org>,
         "stable@vger.kernel.org" <stable@vger.kernel.org>,
         "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
         "devel@acpica.org" <devel@acpica.org>
-Content-Type: text/plain; charset="UTF-8"
+Subject: RE: [PATCH] ACPICA: fix UBSAN warning using __builtin_offsetof
+Thread-Topic: [PATCH] ACPICA: fix UBSAN warning using __builtin_offsetof
+Thread-Index: AQHWOGr94BDOASQdIU6ZpTv243EHY6jEbrjQgAE8tYCACbloIA==
+Date:   Mon, 8 Jun 2020 23:20:43 +0000
+Message-ID: <BYAPR11MB309660952553AB3EA9A303B5F0850@BYAPR11MB3096.namprd11.prod.outlook.com>
+References: <CAMj1kXErFuvOoG=DB6sz5HBvDuHDiKwWD8uOyLuxaX-u8-+dbA@mail.gmail.com>
+ <20200601231805.207441-1-ndesaulniers@google.com>
+ <BYAPR11MB30969737340044437013BF44F08B0@BYAPR11MB3096.namprd11.prod.outlook.com>
+ <CAKwvOdmsCmPFiDOq7AYUyEx=60B=qo8u9yhnJDQ6nd6Ew7xDkQ@mail.gmail.com>
+In-Reply-To: <CAKwvOdmsCmPFiDOq7AYUyEx=60B=qo8u9yhnJDQ6nd6Ew7xDkQ@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-version: 11.2.0.6
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+authentication-results: google.com; dkim=none (message not signed)
+ header.d=none;google.com; dmarc=none action=none header.from=intel.com;
+x-originating-ip: [192.55.52.197]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: f035c9f2-12f6-42b0-89bd-08d80c02915d
+x-ms-traffictypediagnostic: BYAPR11MB3512:
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <BYAPR11MB35129814DE957994DFC43656F0850@BYAPR11MB3512.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8882;
+x-forefront-prvs: 042857DBB5
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: WqFK+UvF7i6eRfNr77zIL5DNUv+HZfiwAfdoVCoepnnFaomnlIoUeUY83/r3nMihO6bKaxtTky12cFEHljD8Bo7AoMo2FJ96+qrkatfnjztnsv/DuB3yk55U9J70PHRa5wovK8gnFTqRhPVnnkhzFhTPElpSlLM/HUlNAu6xgxJ7brBzK4FNk6WmNrhG0aDMrwGgYszi7NuoHgJxREVzAFzbHX876o+BhSIPJQUiPs11MePD72wJsNmWs0S6Vjq0lrS8HwI7I4eY60HDh4J9YEhI4mwFHNn+eQ6rIw/jJSWqaXmfR3aKflLqYdFq0fTJLgxjx5dgijzjp8AzwCMIsg==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR11MB3096.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(136003)(39860400002)(396003)(376002)(346002)(366004)(26005)(4326008)(8936002)(7696005)(186003)(6506007)(52536014)(6916009)(55016002)(9686003)(53546011)(5660300002)(86362001)(83380400001)(54906003)(478600001)(66946007)(76116006)(66446008)(66476007)(316002)(2906002)(66556008)(7416002)(71200400001)(8676002)(64756008)(33656002);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: bZeWdsZSEwydr1UGhtRW9SfMujJW6tm6HY+L4NjaQ2AYCEHOZjJaumv1bed4sNjg6wJrU9HnlzJBmXKqyqb1L2ddx5qD+Ogejr3UCk2Iyw4SILSpuru1dN5cxc5DfCY2iZU2iOf6louyx3BJThnn/ysPinPxSvp8WHtlc3Yve31c+PMLNRpw9oTgHy4xVYRb+oq+7PJD9ic8uEoxA+O9wCV/9tgXjYX9NVhVYousLtwuX70BmUF4MgfurfHbmzwTKOV9zOLPLOWLLrvKwLXdTW4lnk18JB4/xsfGFx+kkqKlnMmai3JNMJzzpm/TDVtZIP/R1x3UnnclUiFSFxv2CiG3BD83V/fHt3KTBjxOtSxqSzXjEm1k7ohSxfr+TdX6EOoZTlBI3wcRB5kKwcpt20sq1cozeQRxzefJOchltdkQbdcjhRgylewbsnHOI8ao0ZsVXq2ZoMW+k5CexRk6WVviti2ddIOp51HAnmrtk9A=
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-MS-Exchange-CrossTenant-Network-Message-Id: f035c9f2-12f6-42b0-89bd-08d80c02915d
+X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Jun 2020 23:20:43.9990
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: lh1a80XnT7qUEBYXJe9c321NHddbM2J/3VHG42hATQqSuELaqb+g44bTJKMXQZzD/nw8qjRni1kQVCLyou92HQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB3512
+X-OriginatorOrg: intel.com
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jun 8, 2020 at 7:51 AM Will Deacon <will@kernel.org> wrote:
->
-> Hey Nick,
->
-> On Tue, Jun 02, 2020 at 11:46:31AM -0700, Nick Desaulniers wrote:
-> > On Mon, Jun 1, 2020 at 5:03 PM Kaneda, Erik <erik.kaneda@intel.com> wrote:
-> > > > Will reported UBSAN warnings:
-> > > > UBSAN: null-ptr-deref in drivers/acpi/acpica/tbfadt.c:459:37
-> > > > UBSAN: null-ptr-deref in arch/arm64/kernel/smp.c:596:6
-> > > >
-> > > > Looks like the emulated offsetof macro ACPI_OFFSET is causing these. We
-> > > > can avoid this by using the compiler builtin, __builtin_offsetof.
-> > >
-> > > I'll take a look at this tomorrow
-> > > >
-> > > > The non-kernel runtime of UBSAN would print:
-> > > > runtime error: member access within null pointer of type for this macro.
-> > >
-> > > actypes.h is owned by ACPICA so we typically do not allow compiler-specific
-> > > extensions because the code is intended to be compiled using the C99 standard
-> > > without compiler extensions. We could allow this sort of thing in a Linux-specific
-> > > header file like include/acpi/platform/aclinux.h but I'll take a look at the error as well..
-> >
-> > If I'm not allowed to touch that header, it looks like I can include
-> > <linux/stddef.h> (rather than my host's <stddef.h>) to get a
-> > definition of `offsetof` thats implemented in terms of
-> > `__builtin_offsetof`.  I should be able to use that to replace uses of
-> > ACPI_OFFSET.  Are any of these off limits?
->
-> It's not so much about not being allowed to touch the header, but rather
-> that the kernel imports the code from a different project:
->
-> https://acpica.org/community
->
-> > $ grep -rn ACPI_OFFSET
-> > arch/arm64/include/asm/acpi.h:34:#define ACPI_MADT_GICC_MIN_LENGTH
-> > ACPI_OFFSET(  \
-> > arch/arm64/include/asm/acpi.h:41:#define ACPI_MADT_GICC_SPE
-> > (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
->
-> I'm happy to take patches to the stuff under arch/arm64/, fwiw.
-
-Not really sure how to untangle this.  Those two cases under
-arch/arm64/ are straightforward to fix:
-```
-diff --git a/arch/arm64/include/asm/acpi.h
-b/arch/arm64/include/asm/acpi.h
-index b263e239cb59..a45366c3909b 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -12,6 +12,7 @@
- #include <linux/efi.h>
- #include <linux/memblock.h>
- #include <linux/psci.h>
-+#include <linux/stddef.h>
-
- #include <asm/cputype.h>
- #include <asm/io.h>
-@@ -31,14 +32,14 @@
-  * is therefore used to delimit the MADT GICC structure minimum length
-  * appropriately.
-  */
--#define ACPI_MADT_GICC_MIN_LENGTH   ACPI_OFFSET(  \
-+#define ACPI_MADT_GICC_MIN_LENGTH   offsetof(  \
-        struct acpi_madt_generic_interrupt, efficiency_class)
-
- #define BAD_MADT_GICC_ENTRY(entry, end)
-         \
-        (!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
-        (unsigned long)(entry) + (entry)->header.length > (end))
-
--#define ACPI_MADT_GICC_SPE  (ACPI_OFFSET(struct acpi_madt_generic_interrupt, \
-+#define ACPI_MADT_GICC_SPE  (offsetof(struct acpi_madt_generic_interrupt, \
-        spe_interrupt) + sizeof(u16))
-
- /* Basic configuration for ACPI */
-```
-
-But for one of the warnings you reported, as an example:
-UBSAN: null-ptr-deref in drivers/acpi/acpica/tbfadt.c:459:37
-
-```
-$ ag ACPI_FADT_V2_SIZE
-include/acpi/actbl.h
-394:#define ACPI_FADT_V2_SIZE       (u32) (ACPI_FADT_OFFSET
-(minor_revision) + 1)
-
-drivers/acpi/acpica/tbfadt.c
-459:    if (acpi_gbl_FADT.header.length <= ACPI_FADT_V2_SIZE) {
-
-$ ag ACPI_FADT_OFFSET
-...
-include/acpi/actbl.h
-376:#define ACPI_FADT_OFFSET(f)             (u16) ACPI_OFFSET (struct
-acpi_table_fadt, f)
-...
-```
-So the use of ACPI_FADT_V2_SIZE in drivers/acpi/acpica/tbfadt.c is
-triggering one of the warnings.  ACPI_FADT_V2_SIZE is defined in terms
-of ACPI_FADT_OFFSET which is defined in terms of ACPI_OFFSET in
-include/acpi/actbl.h.  From the link you posted, include/acpi/actbl.h
-is from the project under source/include/.
-
-Further, drivers/acpi/acpica/tbfadt.c seems to also be from the
-upstream project under source/components/tables/tbfadt.c.
-
-Regardless, the second of the two warnings is definitely fixed by my
-above diff, so let me rephrase the previous commit message with that
-diff and resend.
--- 
-Thanks,
-~Nick Desaulniers
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTmljayBEZXNhdWxuaWVy
+cyA8bmRlc2F1bG5pZXJzQGdvb2dsZS5jb20+DQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMiwgMjAy
+MCAxMTo0NyBBTQ0KPiBUbzogS2FuZWRhLCBFcmlrIDxlcmlrLmthbmVkYUBpbnRlbC5jb20+DQo+
+IENjOiBNb29yZSwgUm9iZXJ0IDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPjsgV3lzb2NraSwgUmFm
+YWVsIEoNCj4gPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPjsgTGVuIEJyb3duIDxsZW5iQGtl
+cm5lbC5vcmc+OyBBcmQNCj4gQmllc2hldXZlbCA8YXJkYkBrZXJuZWwub3JnPjsgZHZ5dWtvdkBn
+b29nbGUuY29tOyBnbGlkZXJAZ29vZ2xlLmNvbTsNCj4gZ3VvaGFuanVuQGh1YXdlaS5jb207IGxp
+bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgbGludXgtDQo+IGtlcm5lbEB2Z2Vy
+Lmtlcm5lbC5vcmc7IGxvcmVuem8ucGllcmFsaXNpQGFybS5jb207DQo+IG1hcmsucnV0bGFuZEBh
+cm0uY29tOyBwY2NAZ29vZ2xlLmNvbTsgcmp3QHJqd3lzb2NraS5uZXQ7DQo+IHdpbGxAa2VybmVs
+Lm9yZzsgc3RhYmxlQHZnZXIua2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7
+DQo+IGRldmVsQGFjcGljYS5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSUNBOiBmaXgg
+VUJTQU4gd2FybmluZyB1c2luZyBfX2J1aWx0aW5fb2Zmc2V0b2YNCj4gDQo+IE9uIE1vbiwgSnVu
+IDEsIDIwMjAgYXQgNTowMyBQTSBLYW5lZGEsIEVyaWsgPGVyaWsua2FuZWRhQGludGVsLmNvbT4N
+Cj4gd3JvdGU6DQo+ID4NCj4gPg0KPiA+IEhpLA0KPiA+DQo+ID4gPiBXaWxsIHJlcG9ydGVkIFVC
+U0FOIHdhcm5pbmdzOg0KPiA+ID4gVUJTQU46IG51bGwtcHRyLWRlcmVmIGluIGRyaXZlcnMvYWNw
+aS9hY3BpY2EvdGJmYWR0LmM6NDU5OjM3DQo+ID4gPiBVQlNBTjogbnVsbC1wdHItZGVyZWYgaW4g
+YXJjaC9hcm02NC9rZXJuZWwvc21wLmM6NTk2OjYNCj4gPiA+DQo+ID4gPiBMb29rcyBsaWtlIHRo
+ZSBlbXVsYXRlZCBvZmZzZXRvZiBtYWNybyBBQ1BJX09GRlNFVCBpcyBjYXVzaW5nIHRoZXNlLg0K
+PiA+ID4gV2UgY2FuIGF2b2lkIHRoaXMgYnkgdXNpbmcgdGhlIGNvbXBpbGVyIGJ1aWx0aW4sIF9f
+YnVpbHRpbl9vZmZzZXRvZi4NCj4gPg0KPiA+IEknbGwgdGFrZSBhIGxvb2sgYXQgdGhpcyB0b21v
+cnJvdw0KPiA+ID4NCj4gPiA+IFRoZSBub24ta2VybmVsIHJ1bnRpbWUgb2YgVUJTQU4gd291bGQg
+cHJpbnQ6DQo+ID4gPiBydW50aW1lIGVycm9yOiBtZW1iZXIgYWNjZXNzIHdpdGhpbiBudWxsIHBv
+aW50ZXIgb2YgdHlwZSBmb3IgdGhpcyBtYWNyby4NCj4gPg0KPiA+IGFjdHlwZXMuaCBpcyBvd25l
+ZCBieSBBQ1BJQ0Egc28gd2UgdHlwaWNhbGx5IGRvIG5vdCBhbGxvdw0KPiA+IGNvbXBpbGVyLXNw
+ZWNpZmljIGV4dGVuc2lvbnMgYmVjYXVzZSB0aGUgY29kZSBpcyBpbnRlbmRlZCB0byBiZQ0KPiA+
+IGNvbXBpbGVkIHVzaW5nIHRoZSBDOTkgc3RhbmRhcmQgd2l0aG91dCBjb21waWxlciBleHRlbnNp
+b25zLiBXZSBjb3VsZA0KPiA+IGFsbG93IHRoaXMgc29ydCBvZiB0aGluZyBpbiBhIExpbnV4LXNw
+ZWNpZmljIGhlYWRlciBmaWxlIGxpa2UNCj4gaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjbGludXgu
+aCBidXQgSSdsbCB0YWtlIGEgbG9vayBhdCB0aGUgZXJyb3IgYXMgd2VsbC4uDQo+IA0KSGksDQoN
+Cj4gSWYgSSdtIG5vdCBhbGxvd2VkIHRvIHRvdWNoIHRoYXQgaGVhZGVyLCBpdCBsb29rcyBsaWtl
+IEkgY2FuIGluY2x1ZGUNCj4gPGxpbnV4L3N0ZGRlZi5oPiAocmF0aGVyIHRoYW4gbXkgaG9zdCdz
+IDxzdGRkZWYuaD4pIHRvIGdldCBhIGRlZmluaXRpb24gb2YNCg0KV2h5IG5vdCB1c2UgeW91ciBo
+b3N0J3Mgc3RkZGVmLmg/DQoNCj4gYG9mZnNldG9mYCB0aGF0cyBpbXBsZW1lbnRlZCBpbiB0ZXJt
+cyBvZiBgX19idWlsdGluX29mZnNldG9mYC4gIEkgc2hvdWxkIGJlDQo+IGFibGUgdG8gdXNlIHRo
+YXQgdG8gcmVwbGFjZSB1c2VzIG9mIEFDUElfT0ZGU0VULiAgQXJlIGFueSBvZiB0aGVzZSBvZmYg
+bGltaXRzPw0KDQpZZXMsIHRoZSBpZGVhIGlzIHRvIGRlZmluZSBBQ1BJX09GRlNFVCBpbiBhIHdh
+eSB0aGF0IHlvdSB3YW50IHNvIHRoYXQgd2UgZG9uJ3QgdG91Y2ggdGhlIHVzZXMgYmVsb3cuDQoN
+CkVyaWsNCj4gDQo+ICQgZ3JlcCAtcm4gQUNQSV9PRkZTRVQNCj4gYXJjaC9hcm02NC9pbmNsdWRl
+L2FzbS9hY3BpLmg6MzQ6I2RlZmluZQ0KPiBBQ1BJX01BRFRfR0lDQ19NSU5fTEVOR1RIDQo+IEFD
+UElfT0ZGU0VUKCAgXCBhcmNoL2FybTY0L2luY2x1ZGUvYXNtL2FjcGkuaDo0MTojZGVmaW5lDQo+
+IEFDUElfTUFEVF9HSUNDX1NQRSAoQUNQSV9PRkZTRVQoc3RydWN0IGFjcGlfbWFkdF9nZW5lcmlj
+X2ludGVycnVwdCwgXA0KPiBpbmNsdWRlL2FjcGkvYWN0YmwuaDozNzY6I2RlZmluZSBBQ1BJX0ZB
+RFRfT0ZGU0VUKGYpICAgICAgICAgICAgICh1MTYpDQo+IEFDUElfT0ZGU0VUIChzdHJ1Y3QgYWNw
+aV90YWJsZV9mYWR0LCBmKQ0KPiBkcml2ZXJzL2FjcGkvYWNwaWNhL2FjcmVzcmMuaDo4NDojZGVm
+aW5lIEFDUElfUlNfT0ZGU0VUKGYpDQo+ICAgKHU4KSBBQ1BJX09GRlNFVCAoc3RydWN0IGFjcGlf
+cmVzb3VyY2UsZikNCj4gZHJpdmVycy9hY3BpL2FjcGljYS9hY3Jlc3JjLmg6ODU6I2RlZmluZSBB
+TUxfT0ZGU0VUKGYpDQo+ICAgKHU4KSBBQ1BJX09GRlNFVCAodW5pb24gYW1sX3Jlc291cmNlLGYp
+DQo+IGRyaXZlcnMvYWNwaS9hY3BpY2EvYWNpbnRlcnAuaDoxNzojZGVmaW5lIEFDUElfRVhEX09G
+RlNFVChmKQ0KPiAodTgpIEFDUElfT0ZGU0VUICh1bmlvbiBhY3BpX29wZXJhbmRfb2JqZWN0LGYp
+DQo+IGRyaXZlcnMvYWNwaS9hY3BpY2EvYWNpbnRlcnAuaDoxODojZGVmaW5lIEFDUElfRVhEX05T
+T0ZGU0VUKGYpDQo+ICh1OCkgQUNQSV9PRkZTRVQgKHN0cnVjdCBhY3BpX25hbWVzcGFjZV9ub2Rl
+LGYpDQo+IGRyaXZlcnMvYWNwaS9hY3BpY2EvcnNkdW1waW5mby5jOjE2OiNkZWZpbmUgQUNQSV9S
+U0RfT0ZGU0VUKGYpDQo+ICAodTgpIEFDUElfT0ZGU0VUICh1bmlvbiBhY3BpX3Jlc291cmNlX2Rh
+dGEsZikNCj4gZHJpdmVycy9hY3BpL2FjcGljYS9yc2R1bXBpbmZvLmM6MTc6I2RlZmluZSBBQ1BJ
+X1BSVF9PRkZTRVQoZikNCj4gICh1OCkgQUNQSV9PRkZTRVQgKHN0cnVjdCBhY3BpX3BjaV9yb3V0
+aW5nX3RhYmxlLGYpDQo+IA0KPiAtLQ0KPiBUaGFua3MsDQo+IH5OaWNrIERlc2F1bG5pZXJzDQo=
