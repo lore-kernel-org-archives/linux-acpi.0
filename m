@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CC13C433E2
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 00:47:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A121DC433E0
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 01:05:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DE3F20774
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 00:47:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 750B92078C
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 01:05:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591663668;
-	bh=WalAKmd2wJyO633C/RRtz+BX1RofonbPiTJF5TW5uS0=;
+	s=default; t=1591664700;
+	bh=YE2oEMu6XyWmC2vXfQbvn/OXs6e+k5Ysv8EGha9IAKY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Hkcr1NSLHoc7qOExiWARyHYtA9NiTDrKh+Ev7PBhucIbN/GIrIg628uxH9LAjmDeC
-	 2CHra+yxugXPa89yyFkjbOTmt/sOC6Q+fp/UaRTHiNdzVG+VzgubDWxs/CBPMEQ9h9
-	 hiJcetM7Odu3JdCn1LbfIsrebpDdphM9cdOaJHkU=
+	b=im1YF5/eG6uznMQPjjK+O796WMrNGqC2bYfZlqtrB5mozTdB806mZx45tq+sQm8r5
+	 2UqQ80NvViDv1CIVDkcUjbyOh/dtGiXk9GZ+fttaqfQOpapsx3HLm8/gshVlcyD6Fa
+	 9Rg/vOZK4aT2m6L0SPC0E4F5pKD6g9ZZ/pnzSl6s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728882AbgFHXLS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Jun 2020 19:11:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58000 "EHLO mail.kernel.org"
+        id S1733048AbgFIBEo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Jun 2020 21:04:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51154 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727920AbgFHXLR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:11:17 -0400
+        id S1727866AbgFHXHW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:07:22 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7DF86212CC;
-        Mon,  8 Jun 2020 23:11:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 427F920888;
+        Mon,  8 Jun 2020 23:07:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591657877;
-        bh=WalAKmd2wJyO633C/RRtz+BX1RofonbPiTJF5TW5uS0=;
+        s=default; t=1591657642;
+        bh=YE2oEMu6XyWmC2vXfQbvn/OXs6e+k5Ysv8EGha9IAKY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Cm0AFNWnARbden/cCzJHjYhiAHojxkFzVL3SSQ4YgraW+FAC1pDDOyjrbteTIZlG5
-         hW+OLl7V0QzKuHt5UZokqLqR8bfRAAxpqmwCevnhQtreCKAK9eBHPoX3Zgh0modg5A
-         B3tBtg/1WbdWZrV4DnTStEcn7mj1rs+vGXUNUc7A=
+        b=vq3CXwS5riurYyniTn2wDL2g6iruKlXF/O1OrrnMMI8uYpXATpiUtjeAgFcO6UiNy
+         M7fd0sJ+yx1nUKqaI00KSJvdpaCRCpeXbZumSdsVXZp0ufOROOgyWpipaCdI1DIASl
+         xOk65YxxlQ7ir1q9nQpboSrPO3zMNb8iXqRuouZg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Paul Menzel <pmenzel@molgen.mpg.de>,
-        Hans de Goede <hdegoede@redhat.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.7 234/274] ACPI: video: Use native backlight on Acer TravelMate 5735Z
-Date:   Mon,  8 Jun 2020 19:05:27 -0400
-Message-Id: <20200608230607.3361041-234-sashal@kernel.org>
+Cc:     Tuan Phan <tuanphan@os.amperecomputing.com>,
+        Hanjun Guo <guoahanjun@huawei.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Will Deacon <will@kernel.org>, Sasha Levin <sashal@kernel.org>,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH AUTOSEL 5.7 059/274] ACPI/IORT: Fix PMCG node single ID mapping handling
+Date:   Mon,  8 Jun 2020 19:02:32 -0400
+Message-Id: <20200608230607.3361041-59-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200608230607.3361041-1-sashal@kernel.org>
 References: <20200608230607.3361041-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -60,55 +60,52 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Paul Menzel <pmenzel@molgen.mpg.de>
+From: Tuan Phan <tuanphan@os.amperecomputing.com>
 
-[ Upstream commit c41c36e900a337b4132b12ccabc97f5578248b44 ]
+[ Upstream commit 50c8ab8d9fbf5b18d5162a797ca26568afc0af1a ]
 
-Currently, changing the brightness of the internal display of the Acer
-TravelMate 5735Z does not work. Pressing the function keys or changing the
-slider, GNOME Shell 3.36.2 displays the OSD (five steps), but the
-brightness does not change.
+An IORT PMCG node can have no ID mapping if its overflow interrupt is
+wire based therefore the code that parses the PMCG node can not assume
+the node will always have a single mapping present at index 0.
 
-The Acer TravelMate 5735Z shipped with Windows 7 and as such does not
-trigger our "win8 ready" heuristic for preferring the native backlight
-interface.
+Fix iort_get_id_mapping_index() by checking for an overflow interrupt
+and mapping count.
 
-Still ACPI backlight control doesn't work on this model, where as the
-native (intel_video) backlight interface does work by adding
-`acpi_backlight=native` or `acpi_backlight=none` to Linux’ command line.
+Fixes: 24e516049360 ("ACPI/IORT: Add support for PMCG")
 
-So, add a quirk to force using native backlight control on this model.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=207835
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Tuan Phan <tuanphan@os.amperecomputing.com>
+Reviewed-by: Hanjun Guo <guoahanjun@huawei.com>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Link: https://lore.kernel.org/r/1589994787-28637-1-git-send-email-tuanphan@os.amperecomputing.com
+Signed-off-by: Will Deacon <will@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/video_detect.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/acpi/arm64/iort.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index b4994e50608d..2499d7e3c710 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -361,6 +361,16 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_BOARD_NAME, "JV50"),
- 		},
- 	},
-+	{
-+	 /* https://bugzilla.kernel.org/show_bug.cgi?id=207835 */
-+	 .callback = video_detect_force_native,
-+	 .ident = "Acer TravelMate 5735Z",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 5735Z"),
-+		DMI_MATCH(DMI_BOARD_NAME, "BA51_MV"),
-+		},
-+	},
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 7d04424189df..ec04435a7cea 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -414,6 +414,7 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+ {
+ 	struct acpi_iort_smmu_v3 *smmu;
++	struct acpi_iort_pmcg *pmcg;
  
- 	/*
- 	 * Desktops which falsely report a backlight and which our heuristics
+ 	switch (node->type) {
+ 	case ACPI_IORT_NODE_SMMU_V3:
+@@ -441,6 +442,10 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+ 
+ 		return smmu->id_mapping_index;
+ 	case ACPI_IORT_NODE_PMCG:
++		pmcg = (struct acpi_iort_pmcg *)node->node_data;
++		if (pmcg->overflow_gsiv || node->mapping_count == 0)
++			return -EINVAL;
++
+ 		return 0;
+ 	default:
+ 		return -EINVAL;
 -- 
 2.25.1
 
