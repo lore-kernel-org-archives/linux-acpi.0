@@ -2,184 +2,135 @@ Return-Path: <SRS0=2P8q=7V=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94386C433E1
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 11:23:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AEFFC433E0
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 12:52:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CE402076C
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 11:23:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E851C206C3
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Jun 2020 12:52:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729551AbgFHLWY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Jun 2020 07:22:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41618 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729437AbgFHLWY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jun 2020 07:22:24 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 413CBC08C5C2;
-        Mon,  8 Jun 2020 04:22:24 -0700 (PDT)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: andrzej.p)
-        with ESMTPSA id EEEA02A35BA
-From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-To:     linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-tegra@vger.kernel.org, patches@opensource.cirrus.com,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Sylvain Lemieux <slemieux.tyco@gmail.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Barry Song <baohua@kernel.org>,
-        Michael Hennerich <michael.hennerich@analog.com>,
-        Nick Dyer <nick@shmanahar.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Ferruh Yigit <fery@cypress.com>,
-        Sangwon Jee <jeesw@melfas.com>,
-        Peter Hutterer <peter.hutterer@redhat.com>,
-        Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>,
-        Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
-        kernel@collabora.com
-Subject: [PATCH v4 0/7] Support inhibiting input devices
-Date:   Mon,  8 Jun 2020 13:22:04 +0200
-Message-Id: <20200608112211.12125-1-andrzej.p@collabora.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <2336e15d-ff4b-bbb6-c701-dbf3aa110fcd@redhat.com>
-References: <2336e15d-ff4b-bbb6-c701-dbf3aa110fcd@redhat.com>
+        id S1729225AbgFHMwE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Jun 2020 08:52:04 -0400
+Received: from mga07.intel.com ([134.134.136.100]:23970 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729041AbgFHMv6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Jun 2020 08:51:58 -0400
+IronPort-SDR: aTO5fAM1PjEleqLh/BKzrgziR6SdJvB1JvfjbksFddVfqyoe8Brh1uklt27lf44wSxMpCFcG5m
+ w8mqWWOCtYww==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2020 05:51:56 -0700
+IronPort-SDR: yBMVSPyyp7lz0e2u3NNEyiCyUCcmELNVK23rmt80Ry4FPMW/Q3yAeFobu+TT7OB9V/fzwh7jXO
+ bZhjfoouSrcA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,487,1583222400"; 
+   d="scan'208";a="313869498"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by FMSMGA003.fm.intel.com with ESMTP; 08 Jun 2020 05:51:53 -0700
+Received: from andy by smile with local (Exim 4.93)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1jiHFs-00BgIc-6t; Mon, 08 Jun 2020 15:51:56 +0300
+Date:   Mon, 8 Jun 2020 15:51:56 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Thierry Reding <thierry.reding@gmail.com>,
+        Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Ville =?iso-8859-1?Q?Syrj=E4l=E4?= 
+        <ville.syrjala@linux.intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-pwm@vger.kernel.org,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        dri-devel@lists.freedesktop.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2 03/15] pwm: lpss: Add range limit check for the
+ base_unit register value
+Message-ID: <20200608125156.GL2428291@smile.fi.intel.com>
+References: <20200607181840.13536-1-hdegoede@redhat.com>
+ <20200607181840.13536-4-hdegoede@redhat.com>
+ <20200608035023.GZ2428291@smile.fi.intel.com>
+ <90769dc0-3174-195b-34e0-ef4bb9d9b982@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <90769dc0-3174-195b-34e0-ef4bb9d9b982@redhat.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is a quick respin of v3, with just two small changes, please see
-the changelog below.
+On Mon, Jun 08, 2020 at 01:07:12PM +0200, Hans de Goede wrote:
+> On 6/8/20 5:50 AM, Andy Shevchenko wrote:
+> > On Sun, Jun 07, 2020 at 08:18:28PM +0200, Hans de Goede wrote:
+> > > When the user requests a high enough period ns value, then the
+> > > calculations in pwm_lpss_prepare() might result in a base_unit value of 0.
+> > > 
+> > > But according to the data-sheet the way the PWM controller works is that
+> > > each input clock-cycle the base_unit gets added to a N bit counter and
+> > > that counter overflowing determines the PWM output frequency. Adding 0
+> > > to the counter is a no-op. The data-sheet even explicitly states that
+> > > writing 0 to the base_unit bits will result in the PWM outputting a
+> > > continuous 0 signal.
+> > 
+> > So, and why it's a problem?
+> 
+> Lets sya the user requests a PWM output frequency of 100Hz on Cherry Trail
+> which has a 19200000 Hz clock this will result in 100 * 65536 / 19200000 =
+> 0.3 -> 0 as base-unit value. So instead of getting 100 Hz the user will
+> now get a pin which is always outputting low.
+> 
+> OTOH if we clamp to 1 as lowest value, the user will get 192000000 / 65536
+> = 292 Hz as output frequency which is as close to the requested value as
+> we can get while actually still working as a PWM controller.
 
-Userspace might want to implement a policy to temporarily disregard input
-from certain devices.
+So, we should basically divide and round up, no?
 
-An example use case is a convertible laptop, whose keyboard can be folded
-under the screen to create tablet-like experience. The user then must hold
-the laptop in such a way that it is difficult to avoid pressing the keyboard
-keys. It is therefore desirable to temporarily disregard input from the
-keyboard, until it is folded back. This obviously is a policy which should
-be kept out of the kernel, but the kernel must provide suitable means to
-implement such a policy.
+At least for 0 we will get 0.
 
-Due to interactions with suspend/resume, a helper has been added for drivers
-to decide if the device is being used or not (PATCH 1/7) and it has been
-applied to relevant drivers (PATCH 2,4,5,6/7).
+> > > base_unit values > (base_unit_range / 256), or iow base_unit values using
+> > > the 8 most significant bits, cause loss of resolution of the duty-cycle.
+> > > E.g. assuming a base_unit_range of 65536 steps, then a base_unit value of
+> > > 768 (256 * 3), limits the duty-cycle resolution to 65536 / 768 = 85 steps.
+> > > Clamp the max base_unit value to base_unit_range / 32 to ensure a
+> > > duty-cycle resolution of at least 32 steps. This limits the maximum
+> > > output frequency to 600 KHz / 780 KHz depending on the base clock.
+> > 
+> > This part I don't understand. Why we limiting base unit? I seems like a
+> > deliberate regression.
+> 
+> The way the PWM controller works is that the base-unit gets added to
+> say a 16 bit (on CHT) counter each input clock and then the highest 8
+> bits of that counter get compared to the value programmed into the
+> ON_TIME_DIV bits.
+> 
+> Lets say we do not clamp and allow any value and lets say the user
+> selects an output frequency of half the input clock, so base-unit
+> value is 32768, then the counter will only have 2 values:
+> 0 and 32768 after that it will wrap around again. So any on time-div
+> value < 128 will result in the output being always high and any
+> value > 128 will result in the output being high/low 50% of the time
+> and a value of 255 will make the output always low.
+> 
+> So in essence we now only have 3 duty cycle levels, which seems like
+> a bad idea to me / not what a pwm controller is supposed to do.
 
-PATCH 7/7 adds support for inhibiting input devices.
+It's exactly what is written in the documentation. I can't buy base unit clamp.
+Though, I can buy, perhaps, on time divisor granularity, i.e.
+  1/	0% - 25%-1 (0%)
+  2/	25% - 50% - 75% (50%)
+  3/	75%+1 - 100% (100%)
+And so on till we got a maximum resolution (8 bits).
 
-This work is inspired by:
-
-https://chromium.googlesource.com/chromiumos/third_party/kernel/+/45c2d7bb398f74adfae0017e20b224152fde3822
-
-and
-
-https://chromium.googlesource.com/chromiumos/third_party/kernel/+/4ce0e8a3697edb8fd071110b3af65014512061c7
-
-In this respin the elan_i2c patch is dropped and converting it will be
-addressed later.
-
-v3..v4:
-- updated the comment in input_open_device() (Hans)
-- used more straightforward locking pattern in adc/exynos (Michał)
-
-v2..v3:
-- ignored autorepeat events in input_get_disposition() if a key is not
-pressed (Hans)
-- dropped inhibit()/uninhibit() driver callbacks (Hans)
-- split ACPI button patch into taking the lock and using the helper (Rafael)
-- dropped the elan_i2c conversion
-- fixed typos in exynos adc
-
-v1..v2:
-- added input_device_enabled() helper and used it in drivers (Dmitry)
-- the fact of open() and close() being called in inhibit/uninhibit paths has
-been emphasized in the commit message of PATCH 6/7 (Dmitry)
-
-Andrzej Pietrasiewicz (6):
-  Input: add input_device_enabled()
-  Input: use input_device_enabled()
-  ACPI: button: Access input device's users under appropriate mutex
-  ACPI: button: Use input_device_enabled() helper
-  iio: adc: exynos: Use input_device_enabled()
-  platform/x86: thinkpad_acpi: Use input_device_enabled()
-
-Patrik Fimml (1):
-  Input: Add "inhibited" property
-
- drivers/acpi/button.c                       |   7 +-
- drivers/iio/adc/exynos_adc.c                |   6 +-
- drivers/input/input.c                       | 125 ++++++++++++++++++--
- drivers/input/joystick/xpad.c               |   4 +-
- drivers/input/keyboard/ep93xx_keypad.c      |   2 +-
- drivers/input/keyboard/gpio_keys.c          |   4 +-
- drivers/input/keyboard/imx_keypad.c         |   4 +-
- drivers/input/keyboard/ipaq-micro-keys.c    |   2 +-
- drivers/input/keyboard/lpc32xx-keys.c       |   4 +-
- drivers/input/keyboard/pmic8xxx-keypad.c    |   4 +-
- drivers/input/keyboard/pxa27x_keypad.c      |   2 +-
- drivers/input/keyboard/samsung-keypad.c     |   4 +-
- drivers/input/keyboard/spear-keyboard.c     |   8 +-
- drivers/input/keyboard/st-keyscan.c         |   4 +-
- drivers/input/keyboard/tegra-kbc.c          |   4 +-
- drivers/input/misc/drv260x.c                |   4 +-
- drivers/input/misc/drv2665.c                |   4 +-
- drivers/input/misc/drv2667.c                |   4 +-
- drivers/input/misc/gp2ap002a00f.c           |   4 +-
- drivers/input/misc/kxtj9.c                  |   4 +-
- drivers/input/misc/sirfsoc-onkey.c          |   2 +-
- drivers/input/mouse/navpoint.c              |   4 +-
- drivers/input/touchscreen/ad7879.c          |   6 +-
- drivers/input/touchscreen/atmel_mxt_ts.c    |   4 +-
- drivers/input/touchscreen/auo-pixcir-ts.c   |   8 +-
- drivers/input/touchscreen/bu21029_ts.c      |   4 +-
- drivers/input/touchscreen/chipone_icn8318.c |   4 +-
- drivers/input/touchscreen/cyttsp_core.c     |   4 +-
- drivers/input/touchscreen/eeti_ts.c         |   4 +-
- drivers/input/touchscreen/ektf2127.c        |   4 +-
- drivers/input/touchscreen/imx6ul_tsc.c      |   4 +-
- drivers/input/touchscreen/ipaq-micro-ts.c   |   2 +-
- drivers/input/touchscreen/iqs5xx.c          |   4 +-
- drivers/input/touchscreen/lpc32xx_ts.c      |   4 +-
- drivers/input/touchscreen/melfas_mip4.c     |   4 +-
- drivers/input/touchscreen/mms114.c          |   6 +-
- drivers/input/touchscreen/pixcir_i2c_ts.c   |   8 +-
- drivers/input/touchscreen/ucb1400_ts.c      |   4 +-
- drivers/input/touchscreen/wm97xx-core.c     |  14 ++-
- drivers/input/touchscreen/zforce_ts.c       |   8 +-
- drivers/platform/x86/thinkpad_acpi.c        |   4 +-
- include/linux/input.h                       |  14 ++-
- 42 files changed, 228 insertions(+), 96 deletions(-)
-
-
-base-commit: 3d77e6a8804abcc0504c904bd6e5cdf3a5cf8162
 -- 
-2.17.1
+With Best Regards,
+Andy Shevchenko
+
 
