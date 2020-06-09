@@ -2,65 +2,68 @@ Return-Path: <SRS0=PV1G=7W=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00836C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 11:13:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57294C433E0
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 11:13:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4561207F9
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 11:13:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591701185;
-	bh=OdDa6FOuHaEzYzy7yhXy/IuRfvsjZXDtHPm1HnIBno8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=TRpiO26cqNa6qGa/3vRx0aXin/2x/NPoxYM0CpBMurmqdVuNlpTutyDGbQz9dRoBw
-	 rNoO9Dj+3unjQQUuqI4idrSw9285Ueq2coo8Tnbwj8z11ClUQgILYJyu5QOhQVqE6E
-	 6RYw/Iv6V691fag/2FQWfCdYSbdPAO7nkwUG5fHM=
+	by mail.kernel.org (Postfix) with ESMTP id 2788A207F9
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Jun 2020 11:13:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Mr+GK9aS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728570AbgFILMz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Jun 2020 07:12:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38654 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727906AbgFILMy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 Jun 2020 07:12:54 -0400
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D0CE7207ED;
-        Tue,  9 Jun 2020 11:12:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591701174;
-        bh=OdDa6FOuHaEzYzy7yhXy/IuRfvsjZXDtHPm1HnIBno8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=lgSKqYnFRv3uB3Y4aOb8f2660QiGhY534hS78U9s6Z4YRKrhQfRRDWPbNwffZzbYa
-         wjGTLDiaSuwNPJTelJzjWtrgH6fQrz6e5+Fm+Mr4fkzDbu8jg98IdhhE5245A5dWz7
-         gXMhgdR3plUBAbHcEOsygM60HeYdOXs2JRgOtTWA=
-Date:   Tue, 9 Jun 2020 13:12:52 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+        id S1727906AbgFILNZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Jun 2020 07:13:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36524 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727002AbgFILNX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2020 07:13:23 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8449C05BD1E;
+        Tue,  9 Jun 2020 04:13:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=gcscR0Yfazu+mbRWZ4zmH8mLd3Y4emKJd4hyLaHgeiA=; b=Mr+GK9aS7fz437C7cOrYK/MY5w
+        50scOJQ+OTdg0V4MZ6Onm4Kt2MnDEDupATCyukVE6ovW8GxEOUEfu4R5lgi7E3AyG7jcYUm0cA9Mh
+        RxaMLKaLK+YtF9vjPhUwvtx11fK5/s/a/diWQasD3/Y1AgO/dzXf5vQuo5CjarB94r57raU5/N6Jp
+        nouKAYmEak6wfqqPYL2HDFuFhHdoeMZ5QXwUYPFY4EyjJ12AKeYLtKR9nRwNIECIS1Zx44elCRfFa
+        BZbr9vQMkd7IZshsNgsJQMiJc+T0VCPn2ZllAqJlXROPA96sWCWB6A+tJLlnpIPulPfogqWVBRHDa
+        5pF+ytLg==;
+Received: from willy by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jicC3-0003ai-GS; Tue, 09 Jun 2020 11:13:23 +0000
+Date:   Tue, 9 Jun 2020 04:13:23 -0700
+From:   Matthew Wilcox <willy@infradead.org>
 To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-btrfs@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org, Joe Perches <joe@perches.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Jason Baron <jbaron@akamai.com>
-Subject: Re: [PATCH v3 4/7] printk: Add pr_debug_level macro over dynamic one
-Message-ID: <20200609111252.GB780233@kroah.com>
+Subject: Re: [PATCH v3 0/7] Venus dynamic debug
+Message-ID: <20200609111323.GA19604@bombadil.infradead.org>
 References: <20200609104604.1594-1-stanimir.varbanov@linaro.org>
- <20200609104604.1594-5-stanimir.varbanov@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200609104604.1594-5-stanimir.varbanov@linaro.org>
+In-Reply-To: <20200609104604.1594-1-stanimir.varbanov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jun 09, 2020 at 01:46:01PM +0300, Stanimir Varbanov wrote:
-> Introduce new pr_debug_level macro over dynamic_debug level one
-> to allow dynamic debugging to show only important messages.
+On Tue, Jun 09, 2020 at 01:45:57PM +0300, Stanimir Varbanov wrote:
+> Here is the third version of dynamic debug improvements in Venus
+> driver.  As has been suggested on previous version by Joe [1] I've
+> made the relevant changes in dynamic debug core to handle leveling
+> as more generic way and not open-code/workaround it in the driver.
+> 
+> About changes:
+>  - added change in the dynamic_debug and in documentation
+>  - added respective pr_debug_level and dev_dbg_level
 
-What does "important messages" mean???
-
+Honestly, this seems like you want to use tracepoints, not dynamic debug.
