@@ -2,322 +2,124 @@ Return-Path: <SRS0=oHFs=7X=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E8C6C433DF
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Jun 2020 12:23:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C8ABC433E0
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Jun 2020 12:26:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 413982078D
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Jun 2020 12:23:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 469DC20734
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Jun 2020 12:26:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1591792010;
+	bh=PBnbsD1r4hBJSwpcdPlA8plwD/kWkJiD61twepTwXNE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=ZTn8mouaJR2VhOToPxnTk6M4sGvwG9cymNznN3qBXLUot6a986poE+qqnV3q3noV+
+	 Wn2WX026FNyKVfo1I4BP3ud93gHjpnlPhv1GCMRrrGQgPmbxymNSQmlcJJ8fQCFFxE
+	 Ps1iNxPHmD2BealmllbfIevBps7+mf5GMm1PToWo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728995AbgFJMXt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Jun 2020 08:23:49 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:42616 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728571AbgFJMXl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2020 08:23:41 -0400
-Received: from 89-64-83-71.dynamic.chello.pl (89.64.83.71) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.415)
- id 670f8dd764f22f7b; Wed, 10 Jun 2020 14:23:38 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Dan Williams <dan.j.williams@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Cc:     rafael.j.wysocki@intel.com, Len Brown <lenb@kernel.org>,
-        Borislav Petkov <bp@alien8.de>,
-        Ira Weiny <ira.weiny@intel.com>,
-        James Morse <james.morse@arm.com>,
-        Myron Stowe <myron.stowe@redhat.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-nvdimm@lists.01.org, Bob Moore <robert.moore@intel.com>
-Subject: [RFT][PATCH 1/3] ACPICA: Defer unmapping of memory used in memory opregions
-Date:   Wed, 10 Jun 2020 14:20:46 +0200
-Message-ID: <4511068.xvW0IOXlyI@kreacher>
-In-Reply-To: <318372766.6LKUBsbRXE@kreacher>
-References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com> <318372766.6LKUBsbRXE@kreacher>
+        id S1729087AbgFJM0t (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Jun 2020 08:26:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38506 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729077AbgFJM0s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Jun 2020 08:26:48 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id A8D02206F4;
+        Wed, 10 Jun 2020 12:26:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1591792007;
+        bh=PBnbsD1r4hBJSwpcdPlA8plwD/kWkJiD61twepTwXNE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=jJpTTwI4BcRIVrN10ZRmWWQHb9uLqvUrrTbyJC1G5ckdCzOCEOBlPdgX2dMouNv0y
+         YAgEbPCewSSW4UUxn4RQtfuCNeuAdQ/VXQBBn5Ha87ZqsZt+1tcxAPrnMH0pHm3w0F
+         EFkHX/7w+geTl3Np545ZBkOWixSYUU12SBQ6Y3Ls=
+Date:   Wed, 10 Jun 2020 14:26:41 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, linux-acpi@vger.kernel.org,
+        netdev@vger.kernel.org, Joe Perches <joe@perches.com>,
+        Jason Baron <jbaron@akamai.com>,
+        Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v3 1/7] Documentation: dynamic-debug: Add description of
+ level bitmask
+Message-ID: <20200610122641.GB1900758@kroah.com>
+References: <20200609104604.1594-1-stanimir.varbanov@linaro.org>
+ <20200609104604.1594-2-stanimir.varbanov@linaro.org>
+ <20200609111615.GD780233@kroah.com>
+ <0830ba57-d416-4788-351a-6d1b2ca5b7d8@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0830ba57-d416-4788-351a-6d1b2ca5b7d8@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Wed, Jun 10, 2020 at 01:29:20PM +0300, Stanimir Varbanov wrote:
+> Hi Greg,
+> 
+> On 6/9/20 2:16 PM, Greg Kroah-Hartman wrote:
+> > On Tue, Jun 09, 2020 at 01:45:58PM +0300, Stanimir Varbanov wrote:
+> >> This adds description of the level bitmask feature.
+> >>
+> >> Cc: Jonathan Corbet <corbet@lwn.net> (maintainer:DOCUMENTATION)
+> >>
+> >> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> >> ---
+> >>  Documentation/admin-guide/dynamic-debug-howto.rst | 10 ++++++++++
+> >>  1 file changed, 10 insertions(+)
+> >>
+> >> diff --git a/Documentation/admin-guide/dynamic-debug-howto.rst b/Documentation/admin-guide/dynamic-debug-howto.rst
+> >> index 0dc2eb8e44e5..c2b751fc8a17 100644
+> >> --- a/Documentation/admin-guide/dynamic-debug-howto.rst
+> >> +++ b/Documentation/admin-guide/dynamic-debug-howto.rst
+> >> @@ -208,6 +208,12 @@ line
+> >>  	line -1605          // the 1605 lines from line 1 to line 1605
+> >>  	line 1600-          // all lines from line 1600 to the end of the file
+> >>  
+> >> +level
+> >> +    The given level will be a bitmask ANDed with the level of the each ``pr_debug()``
+> >> +    callsite. This will allow to group debug messages and show only those of the
+> >> +    same level.  The -p flag takes precedence over the given level. Note that we can
+> >> +    have up to five groups of debug messages.
+> > 
+> > As was pointed out, this isn't a "level", it's some arbitrary type of
+> > "grouping".
+> 
+> Yes, it is grouping of KERN_DEBUG level messages by importance (my
+> fault, I put incorrect name).  What is important is driver author
+> decision.  Usually when the driver is huge and has a lot of debug
+> messages it is not practical to enable all of them to chasing a
+> particular bug or issue.  You know that debugging (printk) add delays
+> which could hide or rise additional issue(s) which would complicate
+> debug and waste time.
 
-The ACPI OS layer in Linux uses RCU to protect the list of ACPI
-memory mappings from being walked while it is being updated.  Among
-other situations, that list can be walked in (NMI and non-NMI)
-interrupt context, so using a sleeping lock to protect it is not
-an option.
+That is why it is possible to turn on and off debugging messages on a
+function/line basis already.  Why not just use that instead?
 
-However, performance issues related to the RCU usage in there
-appear, as described by Dan Williams:
+> For the Venus driver I have defined three groups of KERN_DEBUG - low,
+> medium and high (again the driver author(s) will decide what the
+> importance is depending on his past experience).
+> 
+> There is another point where the debugging is made by person who is not
+> familiar with the driver code. In that case he/she cannot enable lines
+> or range of lines because he don't know the details. Here the grouping
+> by importance could help.
 
-"Recently a performance problem was reported for a process invoking
-a non-trival ASL program. The method call in this case ends up
-repetitively triggering a call path like:
+And they will really know what "low/medium/high" are?
 
-    acpi_ex_store
-    acpi_ex_store_object_to_node
-    acpi_ex_write_data_to_field
-    acpi_ex_insert_into_field
-    acpi_ex_write_with_update_rule
-    acpi_ex_field_datum_io
-    acpi_ex_access_region
-    acpi_ev_address_space_dispatch
-    acpi_ex_system_memory_space_handler
-    acpi_os_map_cleanup.part.14
-    _synchronize_rcu_expedited.constprop.89
-    schedule
+Anyway, that makes a bit more sense, but the documentation could use a
+lot more in order to describe this type of behavior, and what is
+expected by both driver authors, and users of the interface.
 
-The end result of frequent synchronize_rcu_expedited() invocation is
-tiny sub-millisecond spurts of execution where the scheduler freely
-migrates this apparently sleepy task. The overhead of frequent
-scheduler invocation multiplies the execution time by a factor
-of 2-3X."
+thanks,
 
-The source of this is that acpi_ex_system_memory_space_handler()
-unmaps the memory mapping currently cached by it at the access time
-it that mapping doesn't cover the memory area being accessed.
-Consequently, if there is a memory opregion with two fields
-separated from each other by an unused chunk of address space that
-is large enough for not being covered by a single mapping, and they
-happen to be used in an alternating pattern, the unmapping will
-occur on every acpi_ex_system_memory_space_handler() invocation for
-that memory opregion and that will lead to significant overhead.
-
-To remedy that, modify acpi_ex_system_memory_space_handler() so it
-can defer the unmapping of the memory mapped by it till it is
-deactivated if a special ACPI_OS_MAP_MEMORY_FAST_PATH() macro,
-allowing its users to get an extra reference to a known-existing
-memory mapping without actually mapping it again, is defined in the
-OS layer.
-
-Namely, make acpi_ex_system_memory_space_handler() manage an internal
-list of memory mappings covering all memory accesses through it that
-have occurred so far if ACPI_OS_MAP_MEMORY_FAST_PATH() is present, so
-that every new mapping is added to that list with an extra reference
-obtained via ACPI_OS_MAP_MEMORY_FAST_PATH() which prevents it from
-being unmapped by acpi_ex_system_memory_space_handler() itself.
-Of course, those mappings need to go away at one point, so change
-acpi_ev_system_memory_region_setup() to unmap them when the memory
-opregion holding them is deactivated.
-
-This should reduce the acpi_ex_system_memory_space_handler() overhead
-for memory opregions that do not appear and then go away immediately
-after a single access.  [of course, ACPI_OS_MAP_MEMORY_FAST_PATH()
-needs to be implemented by the OS for this change to take effect.]
-
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/evrgnini.c | 14 +++++-
- drivers/acpi/acpica/exregion.c | 90 ++++++++++++++++++++++++++++++++--
- include/acpi/actypes.h         |  8 +++
- 3 files changed, 107 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
-index aefc0145e583..48a5e6eaf9b9 100644
---- a/drivers/acpi/acpica/evrgnini.c
-+++ b/drivers/acpi/acpica/evrgnini.c
-@@ -38,6 +38,9 @@ acpi_ev_system_memory_region_setup(acpi_handle handle,
- 	union acpi_operand_object *region_desc =
- 	    (union acpi_operand_object *)handle;
- 	struct acpi_mem_space_context *local_region_context;
-+#ifdef ACPI_OS_MAP_MEMORY_FAST_PATH
-+	struct acpi_mem_mapping *mapping;
-+#endif
- 
- 	ACPI_FUNCTION_TRACE(ev_system_memory_region_setup);
- 
-@@ -46,13 +49,22 @@ acpi_ev_system_memory_region_setup(acpi_handle handle,
- 			local_region_context =
- 			    (struct acpi_mem_space_context *)*region_context;
- 
--			/* Delete a cached mapping if present */
-+			/* Delete memory mappings if present */
- 
- 			if (local_region_context->mapped_length) {
- 				acpi_os_unmap_memory(local_region_context->
- 						     mapped_logical_address,
- 						     local_region_context->
- 						     mapped_length);
-+#ifdef ACPI_OS_MAP_MEMORY_FAST_PATH
-+				while (local_region_context->first_mapping) {
-+					mapping = local_region_context->first_mapping;
-+					local_region_context->first_mapping = mapping->next;
-+					acpi_os_unmap_memory(mapping->logical_address,
-+							     mapping->length);
-+					ACPI_FREE(mapping);
-+				}
-+#endif
- 			}
- 			ACPI_FREE(local_region_context);
- 			*region_context = NULL;
-diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
-index d15a66de26c0..703868db9551 100644
---- a/drivers/acpi/acpica/exregion.c
-+++ b/drivers/acpi/acpica/exregion.c
-@@ -44,6 +44,9 @@ acpi_ex_system_memory_space_handler(u32 function,
- 	u32 length;
- 	acpi_size map_length;
- 	acpi_size page_boundary_map_length;
-+#ifdef ACPI_OS_MAP_MEMORY_FAST_PATH
-+	struct acpi_mem_mapping *mapping;
-+#endif
- #ifdef ACPI_MISALIGNMENT_NOT_SUPPORTED
- 	u32 remainder;
- #endif
-@@ -102,7 +105,7 @@ acpi_ex_system_memory_space_handler(u32 function,
- 					 mem_info->mapped_length))) {
- 		/*
- 		 * The request cannot be resolved by the current memory mapping;
--		 * Delete the existing mapping and create a new one.
-+		 * Delete the current cached mapping and get a new one.
- 		 */
- 		if (mem_info->mapped_length) {
- 
-@@ -112,6 +115,40 @@ acpi_ex_system_memory_space_handler(u32 function,
- 					     mem_info->mapped_length);
- 		}
- 
-+#ifdef ACPI_OS_MAP_MEMORY_FAST_PATH
-+		/*
-+		 * Look for an existing saved mapping matching the request at
-+		 * hand.  If found, bump up its reference counter in the OS
-+		 * layer, cache it and carry out the access.
-+		 */
-+		for (mapping = mem_info->first_mapping; mapping;
-+		     mapping = mapping->next) {
-+			if (address < mapping->physical_address)
-+				continue;
-+
-+			if ((u64)address + length >
-+					(u64)mapping->physical_address +
-+					mapping->length)
-+				continue;
-+
-+			/*
-+			 * When called on a known-existing memory mapping,
-+			 * ACPI_OS_MAP_MEMORY_FAST_PATH() must return the same
-+			 * logical address as before or NULL.
-+			 */
-+			if (!ACPI_OS_MAP_MEMORY_FAST_PATH(mapping->physical_address,
-+							  mapping->length))
-+				continue;
-+
-+			mem_info->mapped_logical_address =
-+						mapping->logical_address;
-+			mem_info->mapped_physical_address =
-+						mapping->physical_address;
-+			mem_info->mapped_length = mapping->length;
-+			goto access;
-+		}
-+#endif /* ACPI_OS_MAP_MEMORY_FAST_PATH */
-+
- 		/*
- 		 * October 2009: Attempt to map from the requested address to the
- 		 * end of the region. However, we will never map more than one
-@@ -143,9 +180,8 @@ acpi_ex_system_memory_space_handler(u32 function,
- 
- 		/* Create a new mapping starting at the address given */
- 
--		mem_info->mapped_logical_address =
--		    acpi_os_map_memory(address, map_length);
--		if (!mem_info->mapped_logical_address) {
-+		logical_addr_ptr = acpi_os_map_memory(address, map_length);
-+		if (!logical_addr_ptr) {
- 			ACPI_ERROR((AE_INFO,
- 				    "Could not map memory at 0x%8.8X%8.8X, size %u",
- 				    ACPI_FORMAT_UINT64(address),
-@@ -156,10 +192,56 @@ acpi_ex_system_memory_space_handler(u32 function,
- 
- 		/* Save the physical address and mapping size */
- 
-+		mem_info->mapped_logical_address = logical_addr_ptr;
- 		mem_info->mapped_physical_address = address;
- 		mem_info->mapped_length = map_length;
-+
-+#ifdef ACPI_OS_MAP_MEMORY_FAST_PATH
-+		/*
-+		 * Get memory to save the new mapping for removal at the
-+		 * operation region deactivation time.
-+		 */
-+		mapping = ACPI_ALLOCATE_ZEROED(sizeof(*mapping));
-+		if (!mapping) {
-+			/*
-+			 * No room to save the new mapping, but this is not
-+			 * critical.  Just log the error and carry out the
-+			 * access as requested.
-+			 */
-+			ACPI_ERROR((AE_INFO,
-+				    "Not enough memory to save memory mapping at 0x%8.8X%8.8X, size %u",
-+				    ACPI_FORMAT_UINT64(address),
-+				    (u32)map_length));
-+			goto access;
-+		}
-+		/*
-+		 * Bump up the mapping's reference counter in the OS layer to
-+		 * prevent it from getting dropped prematurely.
-+		 */
-+		if (!ACPI_OS_MAP_MEMORY_FAST_PATH(address, map_length)) {
-+			/*
-+			 * Something has gone wrong, but this is not critical.
-+			 * Log the error, free the memory that won't be used and
-+			 * carry out the access as requested.
-+			 */
-+			ACPI_ERROR((AE_INFO,
-+				    "Unable to save memory mapping at 0x%8.8X%8.8X, size %u",
-+				    ACPI_FORMAT_UINT64(address),
-+				    (u32)map_length));
-+			ACPI_FREE(mapping);
-+			goto access;
-+		}
-+		mapping->physical_address = address;
-+		mapping->logical_address = logical_addr_ptr;
-+		mapping->length = map_length;
-+		mapping->next = mem_info->first_mapping;
-+		mem_info->first_mapping = mapping;
- 	}
- 
-+access:
-+#else /* !ACPI_OS_MAP_MEMORY_FAST_PATH */
-+	}
-+#endif /* !ACPI_OS_MAP_MEMORY_FAST_PATH */
- 	/*
- 	 * Generate a logical pointer corresponding to the address we want to
- 	 * access
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 4defed58ea33..64ab323b81b4 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1200,12 +1200,20 @@ struct acpi_pci_id {
- 	u16 function;
- };
- 
-+struct acpi_mem_mapping {
-+	acpi_physical_address physical_address;
-+	u8 *logical_address;
-+	acpi_size length;
-+	struct acpi_mem_mapping *next;
-+};
-+
- struct acpi_mem_space_context {
- 	u32 length;
- 	acpi_physical_address address;
- 	acpi_physical_address mapped_physical_address;
- 	u8 *mapped_logical_address;
- 	acpi_size mapped_length;
-+	struct acpi_mem_mapping *first_mapping;
- };
- 
- /*
--- 
-2.26.2
-
-
-
-
+greg k-h
