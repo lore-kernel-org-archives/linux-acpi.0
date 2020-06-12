@@ -2,155 +2,93 @@ Return-Path: <SRS0=iPjk=7Z=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06439C433DF
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Jun 2020 17:05:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D1C3C433E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Jun 2020 20:48:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D47DB207F7
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Jun 2020 17:05:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GfLF7ROt"
+	by mail.kernel.org (Postfix) with ESMTP id 0E48B207ED
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Jun 2020 20:48:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726541AbgFLRFI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Jun 2020 13:05:08 -0400
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:28437 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726290AbgFLRFI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Jun 2020 13:05:08 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591981506;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=aJhsLiuB5MJfhLZW+3GQ1NI8Ulud2FZJOWodXiS4/hM=;
-        b=GfLF7ROtNq42iFi2xkFP4NuD8AtZ3d//czP9ln540v7x6n9A2VPGdE+o2Yipoyh4UuLEHu
-        eG7X/J9B8i4M5BgkMZn6M7jPjy/xITU/QJH/riczVHN5T8a86K37o9ojW2VporGOeJwjvt
-        9UDHZdiB4lIXsKB9jOSxnITflMEp16o=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-76-YJ-hleG_Ml--rlD8HlkIgw-1; Fri, 12 Jun 2020 13:04:55 -0400
-X-MC-Unique: YJ-hleG_Ml--rlD8HlkIgw-1
-Received: by mail-ed1-f69.google.com with SMTP id dh12so3174088edb.9
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2020 10:04:54 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=aJhsLiuB5MJfhLZW+3GQ1NI8Ulud2FZJOWodXiS4/hM=;
-        b=RlI57sqMtbGl6xxDEoFttee1lh6cDUzRaqxXNUCsdwL6bYFbpWAiYSSVZM8EbziOQb
-         vvHL9CMoPMWAo4IPQ0Z4Gm0LoQfri3eIMEOfTbUWM8wWxk2T1dBndEml5aUjovf0f4wP
-         DeuUZVhbTJDPzUq4j8kLvaH755WEiBlFa2TrkWD1LE0JtGZlbPrvuQhEj/xRVADnki4t
-         TkSkNl7r6+RK4maiIZ5e+93GacfzcYh7/kUgn9/eZIWJ9vlH+H7hlydT8gMlAWUMuNlJ
-         uuGc0CAmckMs1mn47IdAmPmsa9Kc5ztx+ksxaLpKzx/ndaVp6wiLs6iGgPnbc5/Pfdi+
-         i3iQ==
-X-Gm-Message-State: AOAM5303Z/Vk+3wk0lkFk2pXQhvl3NGPuCE6XKQHvq9upDOhF3EcZL2v
-        UlI0geYG6bIfKydMW6LPPB7xd8Tyu9JmekCH61XSp/C4fd+XNpnKZvly3ATF9AePKPsoACP0f/X
-        twmb3J5bAY/lz3THu/yBQSw==
-X-Received: by 2002:a17:906:3041:: with SMTP id d1mr14497154ejd.7.1591981493744;
-        Fri, 12 Jun 2020 10:04:53 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJy8/X6kVaFS8fcJPbnnHMtvzqT2kk50X8Vfwy3lEhe+LE8MdjUbh7IV+C3pCB1j1LapjG6OZw==
-X-Received: by 2002:a17:906:3041:: with SMTP id d1mr14497118ejd.7.1591981493412;
-        Fri, 12 Jun 2020 10:04:53 -0700 (PDT)
-Received: from x1.localdomain (2001-1c00-0c0c-fe00-d2ea-f29d-118b-24dc.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:d2ea:f29d:118b:24dc])
-        by smtp.gmail.com with ESMTPSA id o5sm3842626eje.66.2020.06.12.10.04.52
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 12 Jun 2020 10:04:52 -0700 (PDT)
-Subject: Re: pwm/i915: Convert pwm-crc and i915 driver's PWM code to use the
- atomic PWM API
-To:     =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>,
-        Daniel Vetter <daniel@ffwll.ch>
-Cc:     Thierry Reding <thierry.reding@gmail.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-pwm@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        intel-gfx <intel-gfx@lists.freedesktop.org>,
-        dri-devel@lists.freedesktop.org,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-References: <20200606202601.48410-1-hdegoede@redhat.com>
- <20200608143500.GX20149@phenom.ffwll.local>
- <20200611212144.i7ma7kriznidds4r@taurus.defre.kleine-koenig.org>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <58972efb-003d-ca87-0637-ece4c93aeeb5@redhat.com>
-Date:   Fri, 12 Jun 2020 19:04:51 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        id S1726335AbgFLUsH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Jun 2020 16:48:07 -0400
+Received: from mga03.intel.com ([134.134.136.65]:44482 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726268AbgFLUsH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Jun 2020 16:48:07 -0400
+IronPort-SDR: T7EW+TBF+4jkSITuM1sJRqvEMPMwoc5BeoBbSP7NiKovzhr0T1bzkpq2Ofz2pvO2K/iCn/46yh
+ p7281TyMm5CQ==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2020 13:48:07 -0700
+IronPort-SDR: LFgYyzHi1cf6/D4dh3wIX+ANgQ30imkG5tn9trlkftoohDgt4bJgNWyrwJyDfgLr3bATu/+5G8
+ CdBnIvZrXwzg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,504,1583222400"; 
+   d="scan'208";a="307352135"
+Received: from linux.intel.com ([10.54.29.200])
+  by orsmga008.jf.intel.com with ESMTP; 12 Jun 2020 13:48:06 -0700
+Received: from debox1-desk2.jf.intel.com (debox1-desk2.jf.intel.com [10.54.75.16])
+        by linux.intel.com (Postfix) with ESMTP id C7EDF5803C5;
+        Fri, 12 Jun 2020 13:48:06 -0700 (PDT)
+From:   "David E. Box" <david.e.box@linux.intel.com>
+To:     shyjumon.n@intel.com, rjw@rjwysocki.net, lenb@kernel.org,
+        bhelgaas@google.com, dan.j.williams@intel.com, kbusch@kernel.org,
+        axboe@fb.com, hch@lst.de, sagi@grimberg.me
+Cc:     "David E. Box" <david.e.box@linux.intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org
+Subject: [PATCH V2 0/2] nvme: Add support for ACPI StorageD3Enable property
+Date:   Fri, 12 Jun 2020 13:48:18 -0700
+Message-Id: <20200612204820.20111-1-david.e.box@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200428003214.3764-1-david.e.box@linux.intel.com>
+References: <20200428003214.3764-1-david.e.box@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20200611212144.i7ma7kriznidds4r@taurus.defre.kleine-koenig.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+This patch set implements a solution for a BIOS hack used on some currently
+shipping Intel systems to address issues with power management policy
+decisions concerning PCIe NVMe drives. Some newer Intel platforms, like
+some Comet Lake systems, require that PCIe devices use D3 when doing
+suspend-to-idle in order to allow the platform to realize maximum power
+savings. This is particularly needed to support ATX power supply shutdown
+on desktop systems. In order to ensure this happens for root ports with
+storage devices, Microsoft apparently created this ACPI _DSD property as a
+way to override their driver policy. To my knowledge this property has not
+been discussed with the NVME specification body.
 
-On 6/11/20 11:21 PM, Uwe Kleine-König wrote:
-> Hello,
-> 
-> On Mon, Jun 08, 2020 at 04:35:00PM +0200, Daniel Vetter wrote:
->> On Sat, Jun 06, 2020 at 10:25:45PM +0200, Hans de Goede wrote:
->>> Hi All,
->>>
->>> This patch series converts the i915 driver's cpde for controlling the
->>> panel's backlight with an external PWM controller to use the atomic PWM API.
->>>
->>> Initially the plan was for this series to consist of 2 parts:
->>> 1. convert the pwm-crc driver to support the atomic PWM API and
->>> 2. convert the i915 driver's PWM code to use the atomic PWM API.
->>>
->>> But during testing I've found a number of bugs in the pwm-lpss and I
->>> found that the acpi_lpss code needs some special handling because of
->>> some ugliness found in most Cherry Trail DSDTs.
->>>
->>> So now this series has grown somewhat large and consists of 4 parts:
->>>
->>> 1. acpi_lpss fixes workarounds for Cherry Trail DSTD nastiness
->>> 2. various fixes to the pwm-lpss driver
->>> 3. convert the pwm-crc driver to support the atomic PWM API and
->>> 4. convert the i915 driver's PWM code to use the atomic PWM API
->>>
->>> So we need to discuss how to merge this (once it passes review).
->>> Although the inter-dependencies are only runtime I still think we should
->>> make sure that 1-3 are in the drm-intel-next-queued (dinq) tree before
->>> merging the i915 changes. Both to make sure that the intel-gfx CI system
->>> does not become unhappy and for bisecting reasons.
->>
->> Simplest is if acpi acks the acpi patches for merging through
->> drm-intel.git. Second simplest is topic branch (drm-intel maintainers can
->> do that) with the entire pile, which then acpi and drm-intel can both pull
->> in.
->>
->> Up to the two maintainer teams to figure this one out.
-> 
-> I'm unclear about the dependencies
+Though the solution is not ideal, it addresses a problem that also affects
+Linux since the NVMe driver's default policy of using NVMe APST during
+suspend-to-idle would lead to higher power consumption for these platforms.
 
-There is a runtime dependency of the i915 changes on the PWM changes
-and since the intel-gfx folks use a lot of CI, we this need to get the
-PWM changes into the drm-intel tree before the i915 changes can land.
+Patch 1 provides a symbol in the PCI/ACPI layer to read the property.
+Patch 2 uses the symbol in the NVMe driver to select D3 as a quirk if set.
 
-> , but the changes to drivers/pwm need
-> an ack (or processing) by the PWM team.
+Changes from V2:
+	- Export the pci_acpi_storage_d3 function for use by drivers as
+	  needed instead of modifying the pci header.
+	- Add missing put on acpi device handle.
+	- Add 'noacpi' module parameter to allow undoing this change.
+	- Add info message that this is a platform quirk.
 
-Of course, I asked for an Acked-by from the PWM team
-(once this passes review) for merging this through
-the drm-intel tree, as the i915 driver is the main
-(only AFAIK) consumer of the PWMs controlled by these
-2 drivers.  Daniel <snip>-ed that bit when he replied.
+David E. Box (2):
+  PCI: Add ACPI StorageD3Enable _DSD support
+  drivers/nvme: Add support for ACPI StorageD3Enable property
 
-Regards,
+ drivers/acpi/property.c |  3 +++
+ drivers/nvme/host/pci.c | 14 ++++++++++
+ drivers/pci/pci-acpi.c  | 59 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/pci.h     |  2 ++
+ 4 files changed, 78 insertions(+)
 
-Hans
+-- 
+2.20.1
 
