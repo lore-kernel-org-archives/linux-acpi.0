@@ -1,178 +1,117 @@
-Return-Path: <SRS0=iPjk=7Z=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=tUaV=72=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62539C433DF
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Jun 2020 20:48:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2D0CC433E0
+	for <linux-acpi@archiver.kernel.org>; Sat, 13 Jun 2020 07:41:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BF4920835
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Jun 2020 20:48:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFF0D2081A
+	for <linux-acpi@archiver.kernel.org>; Sat, 13 Jun 2020 07:41:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=virtuozzo.com header.i=@virtuozzo.com header.b="rQU1aqhw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726302AbgFLUsR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Jun 2020 16:48:17 -0400
-Received: from mga18.intel.com ([134.134.136.126]:65310 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726268AbgFLUsR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Jun 2020 16:48:17 -0400
-IronPort-SDR: /AMq4vIQzi9x+yFRB0xvCw+2uMzbdjv32tZNHVO/FNrRD9hr/sv+WwBvo5YK2M/S98CvRFSAS4
- Esp0RiNvz2KQ==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2020 13:48:15 -0700
-IronPort-SDR: 4NjQm8C+pO5dahmYLr9aLSNxsQI3iPrulmY0iZIV1TRQ+RfaIf8wugJooB1goa9bH+hO+N2gkq
- l4xr+WQwfPhw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,504,1583222400"; 
-   d="scan'208";a="448426985"
-Received: from linux.intel.com ([10.54.29.200])
-  by orsmga005.jf.intel.com with ESMTP; 12 Jun 2020 13:48:14 -0700
-Received: from debox1-desk2.jf.intel.com (debox1-desk2.jf.intel.com [10.54.75.16])
-        by linux.intel.com (Postfix) with ESMTP id DE0F95803C5;
-        Fri, 12 Jun 2020 13:48:14 -0700 (PDT)
-From:   "David E. Box" <david.e.box@linux.intel.com>
-To:     shyjumon.n@intel.com, rjw@rjwysocki.net, lenb@kernel.org,
-        bhelgaas@google.com, dan.j.williams@intel.com, kbusch@kernel.org,
-        axboe@fb.com, hch@lst.de, sagi@grimberg.me
-Cc:     "David E. Box" <david.e.box@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org
-Subject: [PATCH V2 1/2] PCI: Add ACPI StorageD3Enable _DSD support
-Date:   Fri, 12 Jun 2020 13:48:19 -0700
-Message-Id: <20200612204820.20111-2-david.e.box@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200428003214.3764-1-david.e.box@linux.intel.com>
-References: <20200428003214.3764-1-david.e.box@linux.intel.com>
+        id S1726048AbgFMHlG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 13 Jun 2020 03:41:06 -0400
+Received: from mail-db8eur05on2123.outbound.protection.outlook.com ([40.107.20.123]:4832
+        "EHLO EUR05-DB8-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725875AbgFMHlF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 13 Jun 2020 03:41:05 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=n0YrE4558HMw6dm/T1SRsEJ2ramwGXdIhNyzRYhPc2OKAulFtcPFfrSmRusg7k1xCKtvl5d1KWQ84BKBs/woQmByaM3AK/JEG4l4zkEzhmKxk3+RwZkzAByXcZBfCNqwXRy/D01jqZIv+EzpyNmERhlIQTjrRA8tqjdkIbtHg4inq2CEzn8t3YxPXva+85fpm+hOBDKLlenloiJ1Q3mYPDHkViaG7qzR0byAuRtCvSTpSRigEVSNP7KMKNMGSJ4/RHBIXrr99fvqO0HvYGrtRQLu3s2FHpx2UDjqWCsBswKwFKYGSE4jDSVdc3hkVdA2FhE47UVbGPPeNZbcZ67puA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=m/9soN2ZSarYhD+X725uTRieIjVYbjX7XO2/rKgKco0=;
+ b=L/4z4swv6IPoZabyDAKoKeDREbEnT6fLKRX3ypB7SUk4fgsWF1yrmvjMjPTzBqzI02dgPc10i4OscQpN7HuvdBiBTDilRaF1DtwwajeKm7ka45MWvnl2/hC2I7KY0DGSGA6bd/MLUBUOt9lKyywyjtRyX/rCPgjV/pthdSDyDugBFuFdaegX/vos7biSbzMNqrNyRto3zWGrF0/nVuxfcJDlCA05bLHiONA0LdJECx84r4lEyfkx1h5IWN2i/SotUGfFxQBpJ8w66u/7F6bqIZSb7WbwDyQw05edxZUP6MYvAshJf6pB8ukUhWHagBh9oF1Cvw/YZJ76AEKbTGhesg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
+ header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=m/9soN2ZSarYhD+X725uTRieIjVYbjX7XO2/rKgKco0=;
+ b=rQU1aqhwLoTkBhdrz7RNjfBOYRcL4dNLmCfEgJYr/lrB4CXz1ifLWAbTqKUcFOAlLSCAZfl+umD2r89n+iVsdMnRTioZFOeb0TGNI04KTkHWTRYhqny3xhsxBAVVSV7lHGCrI90nOEWJejBk4CoknO44KQzuX8ksbmCQQDESs+8=
+Authentication-Results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=virtuozzo.com;
+Received: from AM6PR08MB5141.eurprd08.prod.outlook.com (2603:10a6:20b:e6::26)
+ by AM6PR08MB3288.eurprd08.prod.outlook.com (2603:10a6:209:47::29) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3088.25; Sat, 13 Jun
+ 2020 07:41:02 +0000
+Received: from AM6PR08MB5141.eurprd08.prod.outlook.com
+ ([fe80::9c6e:e0d8:57b1:4cfd]) by AM6PR08MB5141.eurprd08.prod.outlook.com
+ ([fe80::9c6e:e0d8:57b1:4cfd%7]) with mapi id 15.20.3088.026; Sat, 13 Jun 2020
+ 07:41:02 +0000
+From:   Vasily Averin <vvs@virtuozzo.com>
+Subject: [PATCH] ACPI / hotplug / PCI: lost acpiphp_put_context in
+ acpiphp_grab_context()
+To:     linux-acpi@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Message-ID: <83d51ff2-a359-9a67-10d6-53c9c2287bf8@virtuozzo.com>
+Date:   Sat, 13 Jun 2020 10:41:00 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: AM4PR0202CA0008.eurprd02.prod.outlook.com
+ (2603:10a6:200:89::18) To AM6PR08MB5141.eurprd08.prod.outlook.com
+ (2603:10a6:20b:e6::26)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [172.16.24.21] (185.231.240.5) by AM4PR0202CA0008.eurprd02.prod.outlook.com (2603:10a6:200:89::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3088.18 via Frontend Transport; Sat, 13 Jun 2020 07:41:01 +0000
+X-Originating-IP: [185.231.240.5]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 2a82be18-2896-4554-b9f4-08d80f6d1f06
+X-MS-TrafficTypeDiagnostic: AM6PR08MB3288:
+X-Microsoft-Antispam-PRVS: <AM6PR08MB3288563E35E436A7BAC7B920AA9E0@AM6PR08MB3288.eurprd08.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:404;
+X-Forefront-PRVS: 0433DB2766
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: X1soZXxbVwakKFWAZnY0s5aKboUZD9pA/rmgxUcN8MrPLLdtOIaDBZkRbnaeviOlEQbH3Z58ZH12i0VaXUGw+lrL4KvJLcIH+xZF9Q700yOswvkQ4y4Hhgkkd5hrCxWnYWXDLEXlOABdIOFnjRoXt07hBaTqEZ6b8a3S9jw8gr8YBT/PBAF89/5ONINIrw+SMcEIbfoJGy0v7Yj0lTvBNz6R9jiiMA7EL5yUwdyQ6OEQcIdm7t//AXiLFoLf5ZtH6YCjpk9p0RKKMQMFIPp8jqLklAM4fsKBJwmkKt3Y9Ba1W0J3LlLUNs/IiAC8B8a04MQh8yhXlwjk2B2UOdAFdZ0baJHt9wwIQnTg1vTV74JZdB0YO3zNwsamZk1TUAn5
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR08MB5141.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(346002)(39840400004)(396003)(366004)(376002)(136003)(66946007)(66556008)(66476007)(2616005)(956004)(52116002)(6916009)(478600001)(26005)(316002)(16526019)(2906002)(6486002)(16576012)(54906003)(186003)(8936002)(8676002)(86362001)(4326008)(31686004)(31696002)(36756003)(5660300002)(4744005)(83380400001)(43740500002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: 3uMa1FqC9dEy+q9knz7KzrnLKSLMEvrXZng8ogL5WZ84u7Xg8eENrvL1hn0s9KrxxlI5TIiecT6esrebveBYSkFZXd+rTFUJc/u6wsIeWZisJXbQDUzAgxE42qBAgDkqEP0oayp/+qwUa+EVtSw8BtHLVT5GtxrkXVXqE6HPMipE4MHXg2nwR+C58jxGBWh0rUoRWpbX26nvG7hEf5Y+5Y5Kkw+JWM8GquGfvkim4Qvh9nmLsVioZOecDTnY0y+0PqbsirRV/K8WpfZOUfqVfyu5Z2xdnNwDkJloWotMjwCdMRMmp3VBokfiLjw25jX2D8FZimH5YUiDh+XL6dWVg+P8iz2Hk93f7NQxsfy8TbwZgbOjgPBOA8MVd1QVBIXvJUMltO0s0w9geccjRTspFa/1jLTLdcJ43mz97cuwiNjUGV7blmweqbAcGunk2Te+2unkbRqLFKr317LkpuqLgO1w37HWVu4d5nis7LL9xJs=
+X-OriginatorOrg: virtuozzo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2a82be18-2896-4554-b9f4-08d80f6d1f06
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jun 2020 07:41:02.1410
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: snI35c2lVnDPNJ2oxCVmHJzulb1bfFf77gkZt8MqDxzlsxLyFhW33uzHyG2zwczVVxIN+7CaHTaK06rO1tQufg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR08MB3288
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-StorageD3Enable is a boolean property that indicates that the platform
-wants to use D3 for PCIe storage drives during suspend-to-idle. It is a
-BIOS work around that is currently in use on shipping systems like some
-Intel Comet Lake platforms. It is meant to change default driver policy for
-suspend that may cause higher power consumption.
-
-Add the DSD property for recognition by fwnode calls and provide an
-exported symbol for device drivers to use to read the property as needed.
-
-Link: https://docs.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-intro
-Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+Fixes: edf5bf34d408 ("ACPI / dock: Use callback pointers from devices' ACPI hotplug contexts")
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- drivers/acpi/property.c |  3 +++
- drivers/pci/pci-acpi.c  | 59 +++++++++++++++++++++++++++++++++++++++++
- include/linux/pci.h     |  2 ++
- 3 files changed, 64 insertions(+)
+ drivers/pci/hotplug/acpiphp_glue.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index e601c4511a8b..c2e2ae774a19 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -45,6 +45,9 @@ static const guid_t prp_guids[] = {
- 	/* Thunderbolt GUID for WAKE_SUPPORTED: 6c501103-c189-4296-ba72-9bf5a26ebe5d */
- 	GUID_INIT(0x6c501103, 0xc189, 0x4296,
- 		  0xba, 0x72, 0x9b, 0xf5, 0xa2, 0x6e, 0xbe, 0x5d),
-+	/* Storage device needs D3 GUID: 5025030f-842f-4ab4-a561-99a5189762d0 */
-+	GUID_INIT(0x5025030f, 0x842f, 0x4ab4,
-+		  0xa5, 0x61, 0x99, 0xa5, 0x18, 0x97, 0x62, 0xd0),
- };
- 
- /* ACPI _DSD data subnodes GUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index d21969fba6ab..732df524e09c 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -972,6 +972,65 @@ static bool acpi_pci_bridge_d3(struct pci_dev *dev)
- 	return val == 1;
- }
- 
-+/**
-+ * pci_acpi_storage_d3 - whether root port requests D3 for idle suspend
-+ * @pdev: PCI device to check
-+ *
-+ * Returns true if the ACPI companion device contains the "StorageD3Enable"
-+ * _DSD property and the value is 1. This indicates that the root port is
-+ * used by a storage device and the platform is requesting D3 for the
-+ * device during suspend to idle in order to support platform pm.
-+ */
-+bool pci_acpi_storage_d3(struct pci_dev *dev)
-+{
-+	const struct fwnode_handle *fwnode;
-+	struct acpi_device *adev;
-+	struct pci_dev *root;
-+	acpi_handle handle;
-+	acpi_status status;
-+	bool ret = false;
-+	u8 val;
-+
-+	/*
-+	 * Look for _DSD property specifying that the storage device on
-+	 * the port must use D3 to support deep platform power savings during
-+	 * suspend-to-idle
-+	 */
-+	root = pci_find_pcie_root_port(dev);
-+	if (!root)
-+		return false;
-+
-+	adev = ACPI_COMPANION(&root->dev);
-+	if (!adev) {
-+		/*
-+		 * It is possible that the ACPI companion is not yet bound
-+		 * for the root port so look it up manually here.
-+		 */
-+		if (!adev && !pci_dev_is_added(root))
-+			adev = acpi_pci_find_companion(&root->dev);
-+	}
-+
-+	if (!adev)
-+		return false;
-+
-+	status = acpi_get_handle(adev->handle, "PXSX", &handle);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	adev = acpi_bus_get_acpi_device(handle);
-+	if (!adev)
-+		return false;
-+
-+	fwnode = acpi_fwnode_handle(adev);
-+	if (!fwnode_property_read_u8(fwnode, "StorageD3Enable", &val))
-+		ret = (val == 1);
-+
-+	acpi_bus_put_acpi_device(adev);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(pci_acpi_storage_d3);
-+
- static bool acpi_pci_power_manageable(struct pci_dev *dev)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 83ce1cdf5676..396fcb269a60 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -2318,10 +2318,12 @@ struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus);
- void
- pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *));
- bool pci_pr3_present(struct pci_dev *pdev);
-+bool pci_acpi_storage_d3(struct pci_dev *dev);
- #else
- static inline struct irq_domain *
- pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
- static inline bool pci_pr3_present(struct pci_dev *pdev) { return false; }
-+static inline bool pci_acpi_storage_d3(struct pci_dev *dev) { return false; }
- #endif
- 
- #ifdef CONFIG_EEH
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index b386995..e49ec95 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -124,6 +124,8 @@ static struct acpiphp_context *acpiphp_grab_context(struct acpi_device *adev)
+ 	acpi_lock_hp_context();
+ 	context = acpiphp_get_context(adev);
+ 	if (!context || context->func.parent->is_going_away) {
++		if (context)
++			acpiphp_put_context(context);
+ 		acpi_unlock_hp_context();
+ 		return NULL;
+ 	}
 -- 
-2.20.1
+1.8.3.1
 
