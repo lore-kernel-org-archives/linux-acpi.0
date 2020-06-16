@@ -2,38 +2,36 @@ Return-Path: <SRS0=oJzu=75=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E411DC433DF
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jun 2020 09:20:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE4CC433DF
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jun 2020 09:20:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5DA82078E
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jun 2020 09:20:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4CBD207BC
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Jun 2020 09:20:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726261AbgFPJUZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1728014AbgFPJUZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Tue, 16 Jun 2020 05:20:25 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6333 "EHLO huawei.com"
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6332 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725911AbgFPJUZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1726052AbgFPJUZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 16 Jun 2020 05:20:25 -0400
 Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id EFF4E7CABB7DC5C85B51;
-        Tue, 16 Jun 2020 17:20:22 +0800 (CST)
+        by Forcepoint Email with ESMTP id 00982DC7001A3BFF068A;
+        Tue, 16 Jun 2020 17:20:23 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
  DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 16 Jun 2020 17:20:17 +0800
+ 14.3.487.0; Tue, 16 Jun 2020 17:20:16 +0800
 From:   Xiongfeng Wang <wangxiongfeng2@huawei.com>
 To:     <rjw@rjwysocki.net>, <lenb@kernel.org>
 CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <guohanjun@huawei.com>, <wangxiongfeng2@huawei.com>
-Subject: [PATCH 1/2] ACPI: EC: add a newline when printing module parameter 'ec_event_clearing'
-Date:   Tue, 16 Jun 2020 17:14:08 +0800
-Message-ID: <1592298849-41530-2-git-send-email-wangxiongfeng2@huawei.com>
+Subject: [PATCH 0/2] ACPI: sysfs: add missing newlines when printing acpi module parameters
+Date:   Tue, 16 Jun 2020 17:14:07 +0800
+Message-ID: <1592298849-41530-1-git-send-email-wangxiongfeng2@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
-In-Reply-To: <1592298849-41530-1-git-send-email-wangxiongfeng2@huawei.com>
-References: <1592298849-41530-1-git-send-email-wangxiongfeng2@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.175.102.37]
@@ -43,40 +41,26 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When I cat acpi module parameter
-'/sys/module/acpi/parameters/ec_event_clearing', it displays as follows.
-It is better to add a newline for easy reading.
+When I cat module parameters in '/sys/module/acpi/parameters/',
+I found several parameters need a newline.
 
-[root@hulk-202 ~]# cat /sys/module/acpi/parameters/ec_event_clearing
-query[root@hulk-202 ~]#
+[root@hulk-202 ~]# cd /sys/module/acpi/parameters/
+[root@hulk-202 parameters]# cat acpica_version
+20180810[root@hulk-202 parameters]# cat ec_event_clearing
+query[root@hulk-202 parameters]# 
+[root@localhost parameters]# cat trace_method_name
+(null)[root@localhost parameters]# cat trace_state
+disable[root@localhost parameters]#
 
-Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
----
- drivers/acpi/ec.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Xiongfeng Wang (2):
+  ACPI: EC: add a newline when printing module parameter
+    'ec_event_clearing'
+  ACPI: sysfs: add missing newlines when printing module parameters
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 04ce2b9..fcddda3 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -2059,13 +2059,13 @@ static int param_get_event_clearing(char *buffer,
- {
- 	switch (ec_event_clearing) {
- 	case ACPI_EC_EVT_TIMING_STATUS:
--		return sprintf(buffer, "status");
-+		return sprintf(buffer, "status\n");
- 	case ACPI_EC_EVT_TIMING_QUERY:
--		return sprintf(buffer, "query");
-+		return sprintf(buffer, "query\n");
- 	case ACPI_EC_EVT_TIMING_EVENT:
--		return sprintf(buffer, "event");
-+		return sprintf(buffer, "event\n");
- 	default:
--		return sprintf(buffer, "invalid");
-+		return sprintf(buffer, "invalid\n");
- 	}
- 	return 0;
- }
+ drivers/acpi/ec.c    |  8 ++++----
+ drivers/acpi/sysfs.c | 12 ++++++------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+
 -- 
 1.7.12.4
 
