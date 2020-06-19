@@ -2,219 +2,182 @@ Return-Path: <SRS0=dwnP=AA=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E00C433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 Jun 2020 02:27:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1AF0C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Jun 2020 08:21:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E9DB20773
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 Jun 2020 02:27:41 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="iSB7ZTw+"
+	by mail.kernel.org (Postfix) with ESMTP id 9232220885
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Jun 2020 08:21:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729497AbgFSC1h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Jun 2020 22:27:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52874 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729485AbgFSC1f (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2020 22:27:35 -0400
-Received: from mail-pg1-x544.google.com (mail-pg1-x544.google.com [IPv6:2607:f8b0:4864:20::544])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AC36C0613F0
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Jun 2020 19:27:33 -0700 (PDT)
-Received: by mail-pg1-x544.google.com with SMTP id q22so974526pgk.2
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Jun 2020 19:27:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=1NQyD9WrJsbI510glYgHlSP0TyLa8enW/S/MPeeFMi8=;
-        b=iSB7ZTw+y0hCECv5tinmjWIPeUtBXssd1nCzvz4v0Ji07pHfe4hOOuinagdLEsBnl3
-         1yvnOogYr4IdD4GKi+hlWXiXUcBp+mI1mL0rQnbc5LiAwqrSjyiV+ePIuyZGXynZj/kA
-         MsOHM8PJTRRZfUNM9zxlB+rjPg44kU5qgB+H1jJ9cyDYvWo1c8ZmTgkKLupeID2Q/nHK
-         KS2/2XoHlKRQXxal9WCrDhn7AYRQzNByypRXA3NWxWldotqEMAZIh6VkflS8HSQ21XgB
-         KKf0sLNo8kZ+iQKLWmNZafoS1eN4KpmYVWogKmmLYWx36Y+RjG6YCMKZa0wgaqvm3cM5
-         yX+Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=1NQyD9WrJsbI510glYgHlSP0TyLa8enW/S/MPeeFMi8=;
-        b=awt50TiSUXpR0/ITA2Z+Z29czuTSjJWyxeDy9l2Z6KYyD5FbX2izeLZfWm6e5ka+Yk
-         DtDAdgav9pY0UDsqD56ynYXKptfAxGhTPQOC7l6+TTxVWWRJsvbuRM7mrgi3HGor4IhC
-         DOpYbufxOmLrCgMc4q8c9eO7BtEuzudlP8jZ3xdTamKNiycy7yBGfKDlAM9MyzcmLtuN
-         hfo/T0ZrOVg7D3DKGS72e2AMnWp1G2K4OU5q2ZluOQjxTodQXTucWJbfe6jOKqh3aTb3
-         F03yCFTHzxEkHgSEwHtCcU7/WqtEbji7FrbtY5kd+jg/o6ihuIvE6+PM94qCYUL0vj9Y
-         fYdg==
-X-Gm-Message-State: AOAM533hVeN4Z1Q3NE4vbGb8Hu61PjLZPQsMxBTcT1z2RkreKhjM9Tco
-        aIq0NoXkNTtrsaDiUMn0tLADyw==
-X-Google-Smtp-Source: ABdhPJwPV/l1romnvuaB3bf+oXNo9TD61AfC0QGCLewyWOibz0ocQr1j4hIskA+JR5hNdLoitEbUKQ==
-X-Received: by 2002:a65:6496:: with SMTP id e22mr1264866pgv.63.1592533652044;
-        Thu, 18 Jun 2020 19:27:32 -0700 (PDT)
-Received: from ?IPv6:240e:362:4d1:900:683e:57c:525:a3cd? ([240e:362:4d1:900:683e:57c:525:a3cd])
-        by smtp.gmail.com with ESMTPSA id a8sm1181029pga.64.2020.06.18.19.27.00
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 18 Jun 2020 19:27:31 -0700 (PDT)
-Subject: Re: [PATCH 0/2] Introduce PCI_FIXUP_IOMMU
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <joro@8bytes.org>,
+        id S1731375AbgFSIVn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 19 Jun 2020 04:21:43 -0400
+Received: from foss.arm.com ([217.140.110.172]:46890 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730924AbgFSIUe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 19 Jun 2020 04:20:34 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6B66E11B3;
+        Fri, 19 Jun 2020 01:20:33 -0700 (PDT)
+Received: from red-moon.arm.com (unknown [10.57.58.158])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E82783F71F;
+        Fri, 19 Jun 2020 01:20:30 -0700 (PDT)
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     linux-arm-kernel@lists.infradead.org
+Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Will Deacon <will@kernel.org>,
         Hanjun Guo <guohanjun@huawei.com>,
         Sudeep Holla <sudeep.holla@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        jean-philippe <jean-philippe@linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        kenneth-lee-2012@foxmail.com, Wangzhou <wangzhou1@hisilicon.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE" 
-        <linux-crypto@vger.kernel.org>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-pci <linux-pci@vger.kernel.org>,
-        Thanu Rangarajan <Thanu.Rangarajan@arm.com>,
-        Souvik Chakravarty <Souvik.Chakravarty@arm.com>,
-        wanghuiqiang <wanghuiqiang@huawei.com>
-References: <20200615235217.GA1921846@bjorn-Precision-5520>
-From:   Zhangfei Gao <zhangfei.gao@linaro.org>
-Message-ID: <c5d7b2f1-6b32-d965-3b60-eb70a26e02b4@linaro.org>
-Date:   Fri, 19 Jun 2020 10:26:54 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        iommu@lists.linux-foundation.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-pci@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>, Marc Zyngier <maz@kernel.org>,
+        Makarand Pawagi <makarand.pawagi@nxp.com>,
+        Diana Craciun <diana.craciun@oss.nxp.com>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>
+Subject: [PATCH v2 02/12] ACPI/IORT: Make iort_get_device_domain IRQ domain agnostic
+Date:   Fri, 19 Jun 2020 09:20:03 +0100
+Message-Id: <20200619082013.13661-3-lorenzo.pieralisi@arm.com>
+X-Mailer: git-send-email 2.26.1
+In-Reply-To: <20200619082013.13661-1-lorenzo.pieralisi@arm.com>
+References: <20200521130008.8266-1-lorenzo.pieralisi@arm.com>
+ <20200619082013.13661-1-lorenzo.pieralisi@arm.com>
 MIME-Version: 1.0
-In-Reply-To: <20200615235217.GA1921846@bjorn-Precision-5520>
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi, Bjorn
+iort_get_device_domain() is PCI specific but it need not be,
+since it can be used to retrieve IRQ domain nexus of any kind
+by adding an irq_domain_bus_token input to it.
 
-On 2020/6/16 上午7:52, Bjorn Helgaas wrote:
-> On Sat, Jun 13, 2020 at 10:30:56PM +0800, Zhangfei Gao wrote:
->> On 2020/6/11 下午9:44, Bjorn Helgaas wrote:
->>> +++ b/drivers/iommu/iommu.c
->>>>>>>>>>> @@ -2418,6 +2418,10 @@ int iommu_fwspec_init(struct device *dev, struct
->>>>>>>>>>> fwnode_handle *iommu_fwnode,
->>>>>>>>>>>              fwspec->iommu_fwnode = iommu_fwnode;
->>>>>>>>>>>              fwspec->ops = ops;
->>>>>>>>>>>              dev_iommu_fwspec_set(dev, fwspec);
->>>>>>>>>>> +
->>>>>>>>>>> +       if (dev_is_pci(dev))
->>>>>>>>>>> +               pci_fixup_device(pci_fixup_final, to_pci_dev(dev));
->>>>>>>>>>> +
->>>>>>>>>>>
->>>>>>>>>>> Then pci_fixup_final will be called twice, the first in pci_bus_add_device.
->>>>>>>>>>> Here in iommu_fwspec_init is the second time, specifically for iommu_fwspec.
->>>>>>>>>>> Will send this when 5.8-rc1 is open.
->>>>>>>>>> Wait, this whole fixup approach seems wrong to me.  No matter how you
->>>>>>>>>> do the fixup, it's still a fixup, which means it requires ongoing
->>>>>>>>>> maintenance.  Surely we don't want to have to add the Vendor/Device ID
->>>>>>>>>> for every new AMBA device that comes along, do we?
->>>>>>>>>>
->>>>>>>>> Here the fake pci device has standard PCI cfg space, but physical
->>>>>>>>> implementation is base on AMBA
->>>>>>>>> They can provide pasid feature.
->>>>>>>>> However,
->>>>>>>>> 1, does not support tlp since they are not real pci devices.
->>>>>>>>> 2. does not support pri, instead support stall (provided by smmu)
->>>>>>>>> And stall is not a pci feature, so it is not described in struct pci_dev,
->>>>>>>>> but in struct iommu_fwspec.
->>>>>>>>> So we use this fixup to tell pci system that the devices can support stall,
->>>>>>>>> and hereby support pasid.
->>>>>>>> This did not answer my question.  Are you proposing that we update a
->>>>>>>> quirk every time a new AMBA device is released?  I don't think that
->>>>>>>> would be a good model.
->>>>>>> Yes, you are right, but we do not have any better idea yet.
->>>>>>> Currently we have three fake pci devices, which support stall and pasid.
->>>>>>> We have to let pci system know the device can support pasid, because of
->>>>>>> stall feature, though not support pri.
->>>>>>> Do you have any other ideas?
->>>>>> It sounds like the best way would be to allocate a PCI capability for it, so
->>>>>> detection can be done through config space, at least in future devices,
->>>>>> or possibly after a firmware update if the config space in your system
->>>>>> is controlled by firmware somewhere.  Once there is a proper mechanism
->>>>>> to do this, using fixups to detect the early devices that don't use that
->>>>>> should be uncontroversial. I have no idea what the process or timeline
->>>>>> is to add new capabilities into the PCIe specification, or if this one
->>>>>> would be acceptable to the PCI SIG at all.
->>>>> That sounds like a possibility.  The spec already defines a
->>>>> Vendor-Specific Extended Capability (PCIe r5.0, sec 7.9.5) that might
->>>>> be a candidate.
->>>> Will investigate this, thanks Bjorn
->>> FWIW, there's also a Vendor-Specific Capability that can appear in the
->>> first 256 bytes of config space (the Vendor-Specific Extended
->>> Capability must appear in the "Extended Configuration Space" from
->>> 0x100-0xfff).
->> Unfortunately our silicon does not have either Vendor-Specific Capability or
->> Vendor-Specific Extended Capability.
->>
->> Studied commit 8531e283bee66050734fb0e89d53e85fd5ce24a4
->> Looks this method requires adding member (like can_stall) to struct pci_dev,
->> looks difficult.
-> The problem is that we don't want to add device IDs every time a new
-> chip comes out.  Adding one or two device IDs for silicon that's
-> already released is not a problem as long as you have a strategy for
-> *future* devices so they don't require a quirk.
->
->>>>>> If detection cannot be done through PCI config space, the next best
->>>>>> alternative is to pass auxiliary data through firmware. On DT based
->>>>>> machines, you can list non-hotpluggable PCIe devices and add custom
->>>>>> properties that could be read during device enumeration. I assume
->>>>>> ACPI has something similar, but I have not done that.
->>>> Yes, thanks Arnd
->>>>> ACPI has _DSM (ACPI v6.3, sec 9.1.1), which might be a candidate.  I
->>>>> like this better than a PCI capability because the property you need
->>>>> to expose is not a PCI property.
->>>> _DSM may not workable, since it is working in runtime.
->>>> We need stall information in init stage, neither too early (after allocation
->>>> of iommu_fwspec)
->>>> nor too late (before arm_smmu_add_device ).
->>> I'm not aware of a restriction on when _DSM can be evaluated.  I'm
->>> looking at ACPI v6.3, sec 9.1.1.  Are you seeing something different?
->> DSM method seems requires vendor specific guid, and code would be vendor
->> specific.
-> _DSM indeed requires a vendor-specific UUID, precisely *because*
-> vendors are free to define their own functionality without requiring
-> changes to the ACPI spec.  From the spec (ACPI v6.3, sec 9.1.1):
->
->    New UUIDs may also be created by OEMs and IHVs for custom devices
->    and other interface or device governing bodies (e.g. the PCI SIG),
->    as long as the UUID is different from other published UUIDs.
-Have studied _DSM method, two issues we met comparing using quirk.
+Make it PCI agnostic by also renaming the requestor ID input
+to a more generic ID name.
 
-1. Need change definition of either pci_host_bridge or pci_dev, like 
-adding member can_stall,
-while pci system does not know stall now.
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>   # pci/msi.c
+Cc: Will Deacon <will@kernel.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+ drivers/acpi/arm64/iort.c | 14 +++++++-------
+ drivers/pci/msi.c         |  3 ++-
+ include/linux/acpi_iort.h |  7 ++++---
+ 3 files changed, 13 insertions(+), 11 deletions(-)
 
-a, pci devices do not have uuid: uuid need be described in dsdt, while 
-pci devices are not defined in dsdt.
-     so we have to use host bridge.
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 5eee81758184..902e2aaca946 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -550,7 +550,6 @@ static struct acpi_iort_node *iort_find_dev_node(struct device *dev)
+ 		node = iort_get_iort_node(dev->fwnode);
+ 		if (node)
+ 			return node;
+-
+ 		/*
+ 		 * if not, then it should be a platform device defined in
+ 		 * DSDT/SSDT (with Named Component node in IORT)
+@@ -641,13 +640,13 @@ static int __maybe_unused iort_find_its_base(u32 its_id, phys_addr_t *base)
+ /**
+  * iort_dev_find_its_id() - Find the ITS identifier for a device
+  * @dev: The device.
+- * @req_id: Device's requester ID
++ * @id: Device's ID
+  * @idx: Index of the ITS identifier list.
+  * @its_id: ITS identifier.
+  *
+  * Returns: 0 on success, appropriate error value otherwise
+  */
+-static int iort_dev_find_its_id(struct device *dev, u32 req_id,
++static int iort_dev_find_its_id(struct device *dev, u32 id,
+ 				unsigned int idx, int *its_id)
+ {
+ 	struct acpi_iort_its_group *its;
+@@ -657,7 +656,7 @@ static int iort_dev_find_its_id(struct device *dev, u32 req_id,
+ 	if (!node)
+ 		return -ENXIO;
+ 
+-	node = iort_node_map_id(node, req_id, NULL, IORT_MSI_TYPE);
++	node = iort_node_map_id(node, id, NULL, IORT_MSI_TYPE);
+ 	if (!node)
+ 		return -ENXIO;
+ 
+@@ -680,19 +679,20 @@ static int iort_dev_find_its_id(struct device *dev, u32 req_id,
+  *
+  * Returns: the MSI domain for this device, NULL otherwise
+  */
+-struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
++struct irq_domain *iort_get_device_domain(struct device *dev, u32 id,
++					  enum irq_domain_bus_token bus_token)
+ {
+ 	struct fwnode_handle *handle;
+ 	int its_id;
+ 
+-	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
++	if (iort_dev_find_its_id(dev, id, 0, &its_id))
+ 		return NULL;
+ 
+ 	handle = iort_find_domain_token(its_id);
+ 	if (!handle)
+ 		return NULL;
+ 
+-	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
++	return irq_find_matching_fwnode(handle, bus_token);
+ }
+ 
+ static void iort_set_device_domain(struct device *dev,
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index 6b43a5455c7a..74a91f52ecc0 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -1558,7 +1558,8 @@ struct irq_domain *pci_msi_get_device_domain(struct pci_dev *pdev)
+ 	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
+ 	dom = of_msi_map_get_device_domain(&pdev->dev, rid);
+ 	if (!dom)
+-		dom = iort_get_device_domain(&pdev->dev, rid);
++		dom = iort_get_device_domain(&pdev->dev, rid,
++					     DOMAIN_BUS_PCI_MSI);
+ 	return dom;
+ }
+ #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index 8e7e2ec37f1b..08ec6bd2297f 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -29,7 +29,8 @@ struct fwnode_handle *iort_find_domain_token(int trans_id);
+ #ifdef CONFIG_ACPI_IORT
+ void acpi_iort_init(void);
+ u32 iort_msi_map_rid(struct device *dev, u32 req_id);
+-struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
++struct irq_domain *iort_get_device_domain(struct device *dev, u32 id,
++					  enum irq_domain_bus_token bus_token);
+ void acpi_configure_pmsi_domain(struct device *dev);
+ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
+ /* IOMMU interface */
+@@ -40,8 +41,8 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head);
+ static inline void acpi_iort_init(void) { }
+ static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+ { return req_id; }
+-static inline struct irq_domain *iort_get_device_domain(struct device *dev,
+-							u32 req_id)
++static inline struct irq_domain *iort_get_device_domain(
++	struct device *dev, u32 id, enum irq_domain_bus_token bus_token)
+ { return NULL; }
+ static inline void acpi_configure_pmsi_domain(struct device *dev) { }
+ /* IOMMU interface */
+-- 
+2.26.1
 
-b,  Parsing dsdt is in in pci subsystem.
-Like drivers/acpi/pci_root.c:
-        obj = acpi_evaluate_dsm(ACPI_HANDLE(bus->bridge), 
-&pci_acpi_dsm_guid, 1,
-                                 IGNORE_PCI_BOOT_CONFIG_DSM, NULL);
-
-After parsing DSM in pci, we need record this info.
-Currently, can_stall info is recorded in iommu_fwspec,
-which is allocated in iommu_fwspec_init and called by 
-iort_iommu_configure for uefi.
-
-2. Guest kernel also need support sva.
-Using quirk, the guest can boot with sva enabled, since quirk is 
-self-contained by kernel.
-If using  _DSM, a specific uefi or dtb has to be provided,
-currently we can useQEMU_EFI.fd from apt install qemu-efi
-
-
-Thanks
