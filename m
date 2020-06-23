@@ -2,47 +2,46 @@ Return-Path: <SRS0=1DYQ=AE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47A8FC433DF
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:06:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B54C433DF
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:07:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D62A2072E
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:06:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 905FE2072E
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:07:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732396AbgFWMGm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Jun 2020 08:06:42 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:34544 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729552AbgFWMGm (ORCPT
+        id S1732562AbgFWMHn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Jun 2020 08:07:43 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:53122 "EHLO
+        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732333AbgFWMHm (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jun 2020 08:06:42 -0400
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05NC6984016333;
-        Tue, 23 Jun 2020 08:06:39 -0400
-Received: from ppma05wdc.us.ibm.com (1b.90.2fa9.ip4.static.sl-reverse.com [169.47.144.27])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 31ufgj3sj2-1
+        Tue, 23 Jun 2020 08:07:42 -0400
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05NC2K1K015116;
+        Tue, 23 Jun 2020 08:06:38 -0400
+Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 31uhcqr422-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
         Tue, 23 Jun 2020 08:06:38 -0400
-Received: from pps.filterd (ppma05wdc.us.ibm.com [127.0.0.1])
-        by ppma05wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05NC06Nw028394;
+Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
+        by ppma03wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05NBuFk6001568;
         Tue, 23 Jun 2020 12:06:38 GMT
-Received: from b01cxnp23032.gho.pok.ibm.com (b01cxnp23032.gho.pok.ibm.com [9.57.198.27])
-        by ppma05wdc.us.ibm.com with ESMTP id 31sa38q15j-1
+Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
+        by ppma03wdc.us.ibm.com with ESMTP id 31sa38eywe-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
         Tue, 23 Jun 2020 12:06:38 +0000
 Received: from b01ledav002.gho.pok.ibm.com (b01ledav002.gho.pok.ibm.com [9.57.199.107])
-        by b01cxnp23032.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05NC6cTt40239612
+        by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05NC6bSD16122874
         (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 23 Jun 2020 12:06:38 GMT
+        Tue, 23 Jun 2020 12:06:37 GMT
 Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id EC1E0124052;
+        by IMSVA (Postfix) with ESMTP id B403212405A;
         Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
 Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id D416D124054;
+        by IMSVA (Postfix) with ESMTP id 9AE72124054;
         Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
 Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
         by b01ledav002.gho.pok.ibm.com (Postfix) with ESMTP;
@@ -51,122 +50,62 @@ From:   Stefan Berger <stefanb@linux.vnet.ibm.com>
 To:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
         jarkko.sakkinen@linux.intel.com, linux-acpi@vger.kernel.org,
         linux-security-module@vger.kernel.org
-Cc:     Stefan Berger <stefanb@linux.ibm.com>
-Subject: [PATCH v5 2/2] tpm: Add support for event log pointer found in TPM2 ACPI table
-Date:   Tue, 23 Jun 2020 08:06:36 -0400
-Message-Id: <20200623120636.1453470-3-stefanb@linux.vnet.ibm.com>
+Cc:     Stefan Berger <stfeanb@linux.ibm.com>
+Subject: [PATCH v5 0/2] tpm2: Make TPM2 logs accessible for non-UEFI firmware
+Date:   Tue, 23 Jun 2020 08:06:34 -0400
+Message-Id: <20200623120636.1453470-1-stefanb@linux.vnet.ibm.com>
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200623120636.1453470-1-stefanb@linux.vnet.ibm.com>
-References: <20200623120636.1453470-1-stefanb@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
  definitions=2020-06-23_06:2020-06-23,2020-06-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 suspectscore=0
- priorityscore=1501 mlxscore=0 mlxlogscore=999 impostorscore=0 spamscore=0
- adultscore=0 cotscore=-2147483648 clxscore=1015 bulkscore=0 phishscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2004280000 definitions=main-2006230088
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
+ suspectscore=0 mlxlogscore=715 spamscore=0 bulkscore=0 lowpriorityscore=0
+ cotscore=-2147483648 mlxscore=0 priorityscore=1501 malwarescore=0
+ clxscore=1011 impostorscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2006230088
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Stefan Berger <stefanb@linux.ibm.com>
+From: Stefan Berger <stfeanb@linux.ibm.com>
 
-In case a TPM2 is attached, search for a TPM2 ACPI table when trying
-to get the event log from ACPI. If one is found, use it to get the
-start and length of the log area. This allows non-UEFI systems, such
-as SeaBIOS, to pass an event log when using a TPM2.
+This series of patches extends the existing TPM2 ACPI table with additional
+fields found in the TPM2 TCG ACPI specification (reference is in the patch)
+that allow access to the log's address and its size. We then modify the
+code that so far only enables access to a TPM 1.2's log for a TPM2 as well.
+This then enables access to the TPM2's log on non-UEFI system that for example
+run SeaBIOS.
 
-Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
-Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
----
+   Stefan
+
+v4->v5:
+ - Added R-bs and A-bs.
+
+v3->v4:
+  - Repost as one series
+
+v2->v3:
+  - Split the series into two separate patches
+  - Added comments to ACPI table fields
+  - Added check for null pointer to log area and zero log size
+
+v1->v2:
+  - Repost of the series
+
+
+Stefan Berger (2):
+  acpi: Extend TPM2 ACPI table with missing log fields
+  tpm: Add support for event log pointer found in TPM2 ACPI table
+
  drivers/char/tpm/eventlog/acpi.c | 56 ++++++++++++++++++++------------
- 1 file changed, 35 insertions(+), 21 deletions(-)
+ drivers/char/tpm/tpm_crb.c       | 13 ++++++--
+ drivers/char/tpm/tpm_tis.c       |  4 ++-
+ include/acpi/actbl3.h            |  5 +--
+ 4 files changed, 51 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/char/tpm/eventlog/acpi.c b/drivers/char/tpm/eventlog/acpi.c
-index 63ada5e53f13..e714a2bd0423 100644
---- a/drivers/char/tpm/eventlog/acpi.c
-+++ b/drivers/char/tpm/eventlog/acpi.c
-@@ -49,9 +49,8 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
- 	void __iomem *virt;
- 	u64 len, start;
- 	struct tpm_bios_log *log;
--
--	if (chip->flags & TPM_CHIP_FLAG_TPM2)
--		return -ENODEV;
-+	struct acpi_table_tpm2 *tbl;
-+	int format;
- 
- 	log = &chip->log;
- 
-@@ -61,23 +60,38 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
- 	if (!chip->acpi_dev_handle)
- 		return -ENODEV;
- 
--	/* Find TCPA entry in RSDT (ACPI_LOGICAL_ADDRESSING) */
--	status = acpi_get_table(ACPI_SIG_TCPA, 1,
--				(struct acpi_table_header **)&buff);
--
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	switch(buff->platform_class) {
--	case BIOS_SERVER:
--		len = buff->server.log_max_len;
--		start = buff->server.log_start_addr;
--		break;
--	case BIOS_CLIENT:
--	default:
--		len = buff->client.log_max_len;
--		start = buff->client.log_start_addr;
--		break;
-+	if (chip->flags & TPM_CHIP_FLAG_TPM2) {
-+		status = acpi_get_table("TPM2", 1,
-+					(struct acpi_table_header **)&tbl);
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
-+		if (tbl->header.length < sizeof(*tbl))
-+			return -ENODEV;
-+		len = tbl->log_area_minimum_length;
-+		start = tbl->log_area_start_address;
-+		if (!start || !len)
-+			return -ENODEV;
-+		format = EFI_TCG2_EVENT_LOG_FORMAT_TCG_2;
-+	} else {
-+		/* Find TCPA entry in RSDT (ACPI_LOGICAL_ADDRESSING) */
-+		status = acpi_get_table(ACPI_SIG_TCPA, 1,
-+					(struct acpi_table_header **)&buff);
-+
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
-+
-+		switch (buff->platform_class) {
-+		case BIOS_SERVER:
-+			len = buff->server.log_max_len;
-+			start = buff->server.log_start_addr;
-+			break;
-+		case BIOS_CLIENT:
-+		default:
-+			len = buff->client.log_max_len;
-+			start = buff->client.log_start_addr;
-+			break;
-+		}
-+		format = EFI_TCG2_EVENT_LOG_FORMAT_TCG_1_2;
- 	}
- 	if (!len) {
- 		dev_warn(&chip->dev, "%s: TCPA log area empty\n", __func__);
-@@ -98,7 +112,7 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
- 	memcpy_fromio(log->bios_event_log, virt, len);
- 
- 	acpi_os_unmap_iomem(virt, len);
--	return EFI_TCG2_EVENT_LOG_FORMAT_TCG_1_2;
-+	return format;
- 
- err:
- 	kfree(log->bios_event_log);
 -- 
 2.26.2
 
