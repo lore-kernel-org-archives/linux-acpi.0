@@ -2,140 +2,176 @@ Return-Path: <SRS0=1DYQ=AE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C286BC433DF
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 11:28:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D69C433DF
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:06:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9E3120768
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 11:28:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A00912072E
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:06:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732332AbgFWL1w (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Jun 2020 07:27:52 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:34780 "EHLO
-        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732189AbgFWL1u (ORCPT
+        id S1732499AbgFWMGo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Jun 2020 08:06:44 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:42232 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1732333AbgFWMGn (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jun 2020 07:27:50 -0400
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05NB6EWM032232;
-        Tue, 23 Jun 2020 07:27:45 -0400
-Received: from ppma05wdc.us.ibm.com (1b.90.2fa9.ip4.static.sl-reverse.com [169.47.144.27])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 31uds05fvx-1
+        Tue, 23 Jun 2020 08:06:43 -0400
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05NC1BDd194257;
+        Tue, 23 Jun 2020 08:06:39 -0400
+Received: from ppma04wdc.us.ibm.com (1a.90.2fa9.ip4.static.sl-reverse.com [169.47.144.26])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 31ufmyu1vd-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 Jun 2020 07:27:45 -0400
-Received: from pps.filterd (ppma05wdc.us.ibm.com [127.0.0.1])
-        by ppma05wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05NBQ8ZX015213;
-        Tue, 23 Jun 2020 11:27:44 GMT
-Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
-        by ppma05wdc.us.ibm.com with ESMTP id 31sa38ptxf-1
+        Tue, 23 Jun 2020 08:06:38 -0400
+Received: from pps.filterd (ppma04wdc.us.ibm.com [127.0.0.1])
+        by ppma04wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05NBxuQJ012491;
+        Tue, 23 Jun 2020 12:06:38 GMT
+Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
+        by ppma04wdc.us.ibm.com with ESMTP id 31u20cwaua-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 Jun 2020 11:27:44 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-        by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05NBRgYO10617418
+        Tue, 23 Jun 2020 12:06:38 +0000
+Received: from b01ledav002.gho.pok.ibm.com (b01ledav002.gho.pok.ibm.com [9.57.199.107])
+        by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05NC6b6L24707410
         (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 23 Jun 2020 11:27:42 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id B43586A054;
-        Tue, 23 Jun 2020 11:27:43 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 002E16A047;
-        Tue, 23 Jun 2020 11:27:42 +0000 (GMT)
+        Tue, 23 Jun 2020 12:06:37 GMT
+Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id D27C6124053;
+        Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
+Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B90C012405B;
+        Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
 Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
-        by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-        Tue, 23 Jun 2020 11:27:42 +0000 (GMT)
-Subject: Re: [PATCH v3] acpi: Extend TPM2 ACPI table with missing log fields
-To:     Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Stefan Berger <stefanb@linux.vnet.ibm.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        linux-integrity@vger.kernel.org,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        by b01ledav002.gho.pok.ibm.com (Postfix) with ESMTP;
+        Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
+From:   Stefan Berger <stefanb@linux.vnet.ibm.com>
+To:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
+        jarkko.sakkinen@linux.intel.com, linux-acpi@vger.kernel.org,
         linux-security-module@vger.kernel.org
-References: <20200331214949.883781-1-stefanb@linux.vnet.ibm.com>
- <20200401083729.GD17325@linux.intel.com>
- <CAJZ5v0gQ04h1+zN4wHj1vkwPvqu3RPfsY60VJ+GOtgUrvWuxLQ@mail.gmail.com>
- <20200402192145.GB10314@linux.intel.com>
- <dfd2d622-90cb-9621-7b7d-5282f5ee7359@linux.ibm.com>
- <20200623005647.GD28795@linux.intel.com>
-From:   Stefan Berger <stefanb@linux.ibm.com>
-Message-ID: <8d032b3c-650b-b806-3d97-2921341b7f0e@linux.ibm.com>
-Date:   Tue, 23 Jun 2020 07:27:42 -0400
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+Cc:     Stefan Berger <stefanb@linux.ibm.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH v5 1/2] acpi: Extend TPM2 ACPI table with missing log fields
+Date:   Tue, 23 Jun 2020 08:06:35 -0400
+Message-Id: <20200623120636.1453470-2-stefanb@linux.vnet.ibm.com>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200623120636.1453470-1-stefanb@linux.vnet.ibm.com>
+References: <20200623120636.1453470-1-stefanb@linux.vnet.ibm.com>
 MIME-Version: 1.0
-In-Reply-To: <20200623005647.GD28795@linux.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
  definitions=2020-06-23_06:2020-06-23,2020-06-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 impostorscore=0
- malwarescore=0 adultscore=0 phishscore=0 suspectscore=0
- cotscore=-2147483648 clxscore=1015 mlxscore=0 bulkscore=0 mlxlogscore=999
- lowpriorityscore=0 priorityscore=1501 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2006230084
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 malwarescore=0
+ suspectscore=0 priorityscore=1501 phishscore=0 spamscore=0 clxscore=1011
+ cotscore=-2147483648 mlxlogscore=999 adultscore=0 impostorscore=0
+ lowpriorityscore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2006230088
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 6/22/20 8:56 PM, Jarkko Sakkinen wrote:
-> On Fri, Jun 19, 2020 at 11:14:20AM -0400, Stefan Berger wrote:
->> On 4/2/20 3:21 PM, Jarkko Sakkinen wrote:
->>> On Wed, Apr 01, 2020 at 11:05:36AM +0200, Rafael J. Wysocki wrote:
->>>> On Wed, Apr 1, 2020 at 10:37 AM Jarkko Sakkinen
->>>> <jarkko.sakkinen@linux.intel.com> wrote:
->>>>> On Tue, Mar 31, 2020 at 05:49:49PM -0400, Stefan Berger wrote:
->>>>>> From: Stefan Berger <stefanb@linux.ibm.com>
->>>>>>
->>>>>> Recent extensions of the TPM2 ACPI table added 3 more fields
->>>>>> including 12 bytes of start method specific parameters and Log Area
->>>>>> Minimum Length (u32) and Log Area Start Address (u64). So, we extend
->>>>>> the existing structure with these fields to allow non-UEFI systems
->>>>>> to access the TPM2's log.
->>>>>>
->>>>>> The specification that has the new fields is the following:
->>>>>>     TCG ACPI Specification
->>>>>>     Family "1.2" and "2.0"
->>>>>>     Version 1.2, Revision 8
->>>>>>
->>>>>> Adapt all existing table size calculations to use
->>>>>> offsetof(struct acpi_table_tpm2, start_method_specific)
->>>>>> [where start_method_specific is a newly added field]
->>>>>> rather than sizeof(struct acpi_table_tpm2) so that the addition
->>>>>> of the new fields does not affect current systems that may not
->>>>>> have them.
->>>>>>
->>>>>> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
->>>>>> Cc: linux-acpi@vger.kernel.org
->>>>> I think I'm cool with this but needs an ack from ACPI maintainer.
->>>>>
->>>>> Rafael, given that this not an intrusive change in any possible means,
->>>>> can I pick this patch and put it to my next pull request?
->>>> Yes, please.
->>>>
->>>> Thanks!
->>> Great, thanks Rafael.
->>>
->>> Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
->>>
->>> Do you mind if I add your ack to the commit?
->>
->> Any chance to get v4 applied?
-> You should split the actbl3.h change to a separate patch and add 'Cc:'
-> tag to Rafael to the commit message.
+From: Stefan Berger <stefanb@linux.ibm.com>
 
-I did this in one patch because it seems like a mistake to extend the 
-structure and not modify the size checks.
+Recent extensions of the TPM2 ACPI table added 3 more fields
+including 12 bytes of start method specific parameters and Log Area
+Minimum Length (u32) and Log Area Start Address (u64). So, we extend
+the existing structure with these fields to allow non-UEFI systems
+to access the TPM2's log.
 
-   Stefan
+The specification that has the new fields is the following:
+  TCG ACPI Specification
+  Family "1.2" and "2.0"
+  Version 1.2, Revision 8
 
->
-> /Jarkko
+Adapt all existing table size calculations to use
+offsetof(struct acpi_table_tpm2, start_method_specific)
+[where start_method_specific is a newly added field]
+rather than sizeof(struct acpi_table_tpm2) so that the addition
+of the new fields does not affect current systems that may not
+have them.
 
+Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+Cc: linux-acpi@vger.kernel.org
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+---
+ drivers/char/tpm/tpm_crb.c | 13 ++++++++++---
+ drivers/char/tpm/tpm_tis.c |  4 +++-
+ include/acpi/actbl3.h      |  5 +++--
+ 3 files changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/char/tpm/tpm_crb.c b/drivers/char/tpm/tpm_crb.c
+index a9dcf31eadd2..0565aa5482f9 100644
+--- a/drivers/char/tpm/tpm_crb.c
++++ b/drivers/char/tpm/tpm_crb.c
+@@ -669,7 +669,9 @@ static int crb_acpi_add(struct acpi_device *device)
+ 
+ 	status = acpi_get_table(ACPI_SIG_TPM2, 1,
+ 				(struct acpi_table_header **) &buf);
+-	if (ACPI_FAILURE(status) || buf->header.length < sizeof(*buf)) {
++	if (ACPI_FAILURE(status) || buf->header.length <
++			offsetof(struct acpi_table_tpm2,
++				 start_method_specific)) {
+ 		dev_err(dev, FW_BUG "failed to get TPM2 ACPI table\n");
+ 		return -EINVAL;
+ 	}
+@@ -684,14 +686,19 @@ static int crb_acpi_add(struct acpi_device *device)
+ 		return -ENOMEM;
+ 
+ 	if (sm == ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC) {
+-		if (buf->header.length < (sizeof(*buf) + sizeof(*crb_smc))) {
++		if (buf->header.length <
++			(offsetof(struct acpi_table_tpm2,
++				  start_method_specific) +
++			 sizeof(*crb_smc))) {
+ 			dev_err(dev,
+ 				FW_BUG "TPM2 ACPI table has wrong size %u for start method type %d\n",
+ 				buf->header.length,
+ 				ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC);
+ 			return -EINVAL;
+ 		}
+-		crb_smc = ACPI_ADD_PTR(struct tpm2_crb_smc, buf, sizeof(*buf));
++		crb_smc = ACPI_ADD_PTR(struct tpm2_crb_smc, buf,
++			   offsetof(struct acpi_table_tpm2,
++				    start_method_specific));
+ 		priv->smc_func_id = crb_smc->smc_func_id;
+ 	}
+ 
+diff --git a/drivers/char/tpm/tpm_tis.c b/drivers/char/tpm/tpm_tis.c
+index e7df342a317d..a80f36860bac 100644
+--- a/drivers/char/tpm/tpm_tis.c
++++ b/drivers/char/tpm/tpm_tis.c
+@@ -111,7 +111,9 @@ static int check_acpi_tpm2(struct device *dev)
+ 	 */
+ 	st =
+ 	    acpi_get_table(ACPI_SIG_TPM2, 1, (struct acpi_table_header **)&tbl);
+-	if (ACPI_FAILURE(st) || tbl->header.length < sizeof(*tbl)) {
++	if (ACPI_FAILURE(st) || tbl->header.length <
++			offsetof(struct acpi_table_tpm2,
++				 start_method_specific)) {
+ 		dev_err(dev, FW_BUG "failed to get TPM2 ACPI table\n");
+ 		return -EINVAL;
+ 	}
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index b0b163b9efc6..8b55426bbcf6 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -411,8 +411,9 @@ struct acpi_table_tpm2 {
+ 	u16 reserved;
+ 	u64 control_address;
+ 	u32 start_method;
+-
+-	/* Platform-specific data follows */
++	u8  start_method_specific[12];
++	u32 log_area_minimum_length;		/* optional */
++	u64 log_area_start_address;		/* optional */
+ };
+ 
+ /* Values for start_method above */
+-- 
+2.26.2
 
