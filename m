@@ -2,110 +2,112 @@ Return-Path: <SRS0=1DYQ=AE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B54C433DF
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:07:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D32AC433DF
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 13:35:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 905FE2072E
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 12:07:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24479207D8
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 13:35:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732562AbgFWMHn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Jun 2020 08:07:43 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:53122 "EHLO
-        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732333AbgFWMHm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jun 2020 08:07:42 -0400
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05NC2K1K015116;
-        Tue, 23 Jun 2020 08:06:38 -0400
-Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 31uhcqr422-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 Jun 2020 08:06:38 -0400
-Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
-        by ppma03wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05NBuFk6001568;
-        Tue, 23 Jun 2020 12:06:38 GMT
-Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
-        by ppma03wdc.us.ibm.com with ESMTP id 31sa38eywe-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 Jun 2020 12:06:38 +0000
-Received: from b01ledav002.gho.pok.ibm.com (b01ledav002.gho.pok.ibm.com [9.57.199.107])
-        by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05NC6bSD16122874
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 23 Jun 2020 12:06:37 GMT
-Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id B403212405A;
-        Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
-Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 9AE72124054;
-        Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
-Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
-        by b01ledav002.gho.pok.ibm.com (Postfix) with ESMTP;
-        Tue, 23 Jun 2020 12:06:37 +0000 (GMT)
-From:   Stefan Berger <stefanb@linux.vnet.ibm.com>
-To:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
-        jarkko.sakkinen@linux.intel.com, linux-acpi@vger.kernel.org,
-        linux-security-module@vger.kernel.org
-Cc:     Stefan Berger <stfeanb@linux.ibm.com>
-Subject: [PATCH v5 0/2] tpm2: Make TPM2 logs accessible for non-UEFI firmware
-Date:   Tue, 23 Jun 2020 08:06:34 -0400
-Message-Id: <20200623120636.1453470-1-stefanb@linux.vnet.ibm.com>
-X-Mailer: git-send-email 2.24.1
+        id S1732639AbgFWNfW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Jun 2020 09:35:22 -0400
+Received: from jabberwock.ucw.cz ([46.255.230.98]:59518 "EHLO
+        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732616AbgFWNfW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2020 09:35:22 -0400
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 5FFD01C0C0A; Tue, 23 Jun 2020 15:35:19 +0200 (CEST)
+Date:   Tue, 23 Jun 2020 15:35:12 +0200
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Andrzej Pietrasiewicz <andrzej.p@collabora.com>
+Cc:     linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-tegra@vger.kernel.org, patches@opensource.cirrus.com,
+        ibm-acpi-devel@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Sylvain Lemieux <slemieux.tyco@gmail.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Barry Song <baohua@kernel.org>,
+        Michael Hennerich <michael.hennerich@analog.com>,
+        Nick Dyer <nick@shmanahar.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Sangwon Jee <jeesw@melfas.com>,
+        Peter Hutterer <peter.hutterer@redhat.com>,
+        Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>,
+        Micha?? Miros??aw <mirq-linux@rere.qmqm.pl>,
+        kernel@collabora.com
+Subject: Re: [PATCH v2] Input: document inhibiting
+Message-ID: <20200623133512.GA2783@bug>
+References: <f9007f37-c526-5fa4-3188-a554d2434177@redhat.com>
+ <20200617101822.8558-1-andrzej.p@collabora.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
- definitions=2020-06-23_06:2020-06-23,2020-06-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
- suspectscore=0 mlxlogscore=715 spamscore=0 bulkscore=0 lowpriorityscore=0
- cotscore=-2147483648 mlxscore=0 priorityscore=1501 malwarescore=0
- clxscore=1011 impostorscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2006230088
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200617101822.8558-1-andrzej.p@collabora.com>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Stefan Berger <stfeanb@linux.ibm.com>
+Hi!
 
-This series of patches extends the existing TPM2 ACPI table with additional
-fields found in the TPM2 TCG ACPI specification (reference is in the patch)
-that allow access to the log's address and its size. We then modify the
-code that so far only enables access to a TPM 1.2's log for a TPM2 as well.
-This then enables access to the TPM2's log on non-UEFI system that for example
-run SeaBIOS.
+> +Inhibiting input devices
+> +~~~~~~~~~~~~~~~~~~~~~~~~
+> +
+> +Inhibiting a device means ignoring input events from it. As such it is about maintaining
+> +relationships with input handlers - either already existing relationships, or relationships
+> +to be established while the device is in inhibited state.
+> +
+> +If a device is inhibited, no input handler will receive events from it.
+> +
+> +The fact that nobody wants events from the device is exploited further, by calling device's
+> +close() (if there are users) and open() (if there are users) on inhibit and uninhibit
+> +operations, respectively. Indeed, the meaning of close() is to stop providing events
+> +to the input core and that of open() is to start providing events to the input core.
+> +
+> +Calling the device's close() method on inhibit (if there are users) allows the driver
+> +to save power. Either by directly powering down the device or by releasing the
+> +runtime-pm reference it got in open() when the driver is using runtime-pm.
+> +
+> +Inhibiting and uninhibiting are orthogonal to opening and closing the device by input
+> +handlers. Userspace might want to inhibit a device in anticipation before any handler is
+> +positively matched against it.
 
-   Stefan
+Ok.
 
-v4->v5:
- - Added R-bs and A-bs.
+> +Inhibiting and uninhibiting are orthogonal to device's being a wakeup source, too. 
+> Being a +wakeup source plays a role when the system is sleeping, not when the system is 
+> operating. +How drivers should program their interaction between inhibiting, sleeping 
+> and being a wakeup +source is driver-specific. + +Taking the analogy with the network 
 
-v3->v4:
-  - Repost as one series
+I don't believe making interaction driver-specific is good idea. We should decide
+what reasonable behaviour is and then make drivers implement that...
 
-v2->v3:
-  - Split the series into two separate patches
-  - Added comments to ACPI table fields
-  - Added check for null pointer to log area and zero log size
-
-v1->v2:
-  - Repost of the series
-
-
-Stefan Berger (2):
-  acpi: Extend TPM2 ACPI table with missing log fields
-  tpm: Add support for event log pointer found in TPM2 ACPI table
-
- drivers/char/tpm/eventlog/acpi.c | 56 ++++++++++++++++++++------------
- drivers/char/tpm/tpm_crb.c       | 13 ++++++--
- drivers/char/tpm/tpm_tis.c       |  4 ++-
- include/acpi/actbl3.h            |  5 +--
- 4 files changed, 51 insertions(+), 27 deletions(-)
-
+Best regards,
+									Pavel
 -- 
-2.26.2
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
