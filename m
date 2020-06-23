@@ -2,196 +2,140 @@ Return-Path: <SRS0=1DYQ=AE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90AE9C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 09:38:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C286BC433DF
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 11:28:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6CD2C20768
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 09:38:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592905082;
-	bh=mMyTdfqlEJCtK0nIyv1ZsiGElWiwcBv8MsUB3i8mgS0=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=fFYGWjiKIfGaehzI1UgQRvRL+m6tHNXjAV7aq0dKWpyTEcUJs6GuQ/sCdx+qdigT0
-	 tm4Y2jtidRW8PeGRbSLuZLyVkbVCRqPRBWraFuYa1pfzLBJB0OQAXDxzRGGFhT8XbZ
-	 mpTCyIOVP58do+WQZlWo1yGeTiXfe/R1qhgM3MII=
+	by mail.kernel.org (Postfix) with ESMTP id A9E3120768
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Jun 2020 11:28:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731815AbgFWJiC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Jun 2020 05:38:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54608 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731786AbgFWJiB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jun 2020 05:38:01 -0400
-Received: from localhost.localdomain (lfbn-nic-1-188-42.w2-15.abo.wanadoo.fr [2.15.37.42])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4BB9920723;
-        Tue, 23 Jun 2020 09:37:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592905081;
-        bh=mMyTdfqlEJCtK0nIyv1ZsiGElWiwcBv8MsUB3i8mgS0=;
-        h=From:To:Cc:Subject:Date:From;
-        b=uT2lPca4Z/UX7Rc1st0ryL60dTMNezaWm8I8Ub5YsHp/n0CgrN+Kx2kRBKUU1C1UH
-         Es9IaNFyNJ3UPizZZej1cpDgbTZFez9bBpJYWs/2lCPJXDK1bee+9yJakPgeRLc73v
-         PcOlRk44qNpNi9rs3jEzu+YMDllg+pMNV9cw0UGA=
-From:   Ard Biesheuvel <ardb@kernel.org>
-To:     linux-arm-kernel@lists.infradead.org
-Cc:     linux-acpi@vger.kernel.org, will@kernel.org,
-        catalin.marinas@arm.com, lorenzo.pieralisi@arm.com,
-        sudeep.holla@arm.com, kernel-hardening@lists.openwall.com,
-        Ard Biesheuvel <ardb@kernel.org>,
-        "Jason A . Donenfeld" <Jason@zx2c4.com>
-Subject: [RFC PATCH v2] arm64/acpi: disallow AML memory opregions to access kernel memory
-Date:   Tue, 23 Jun 2020 11:37:55 +0200
-Message-Id: <20200623093755.1534006-1-ardb@kernel.org>
-X-Mailer: git-send-email 2.27.0
+        id S1732332AbgFWL1w (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Jun 2020 07:27:52 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:34780 "EHLO
+        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732189AbgFWL1u (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Jun 2020 07:27:50 -0400
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05NB6EWM032232;
+        Tue, 23 Jun 2020 07:27:45 -0400
+Received: from ppma05wdc.us.ibm.com (1b.90.2fa9.ip4.static.sl-reverse.com [169.47.144.27])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 31uds05fvx-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 23 Jun 2020 07:27:45 -0400
+Received: from pps.filterd (ppma05wdc.us.ibm.com [127.0.0.1])
+        by ppma05wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05NBQ8ZX015213;
+        Tue, 23 Jun 2020 11:27:44 GMT
+Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
+        by ppma05wdc.us.ibm.com with ESMTP id 31sa38ptxf-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 23 Jun 2020 11:27:44 +0000
+Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
+        by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05NBRgYO10617418
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 23 Jun 2020 11:27:42 GMT
+Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B43586A054;
+        Tue, 23 Jun 2020 11:27:43 +0000 (GMT)
+Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 002E16A047;
+        Tue, 23 Jun 2020 11:27:42 +0000 (GMT)
+Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
+        by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
+        Tue, 23 Jun 2020 11:27:42 +0000 (GMT)
+Subject: Re: [PATCH v3] acpi: Extend TPM2 ACPI table with missing log fields
+To:     Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Stefan Berger <stefanb@linux.vnet.ibm.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        linux-integrity@vger.kernel.org,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-security-module@vger.kernel.org
+References: <20200331214949.883781-1-stefanb@linux.vnet.ibm.com>
+ <20200401083729.GD17325@linux.intel.com>
+ <CAJZ5v0gQ04h1+zN4wHj1vkwPvqu3RPfsY60VJ+GOtgUrvWuxLQ@mail.gmail.com>
+ <20200402192145.GB10314@linux.intel.com>
+ <dfd2d622-90cb-9621-7b7d-5282f5ee7359@linux.ibm.com>
+ <20200623005647.GD28795@linux.intel.com>
+From:   Stefan Berger <stefanb@linux.ibm.com>
+Message-ID: <8d032b3c-650b-b806-3d97-2921341b7f0e@linux.ibm.com>
+Date:   Tue, 23 Jun 2020 07:27:42 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 MIME-Version: 1.0
+In-Reply-To: <20200623005647.GD28795@linux.intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
+ definitions=2020-06-23_06:2020-06-23,2020-06-23 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 impostorscore=0
+ malwarescore=0 adultscore=0 phishscore=0 suspectscore=0
+ cotscore=-2147483648 clxscore=1015 mlxscore=0 bulkscore=0 mlxlogscore=999
+ lowpriorityscore=0 priorityscore=1501 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2006230084
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-AML uses SystemMemory opregions to allow AML handlers to access MMIO
-registers of, e.g., GPIO controllers, or access reserved regions of
-memory that are owned by the firmware.
+On 6/22/20 8:56 PM, Jarkko Sakkinen wrote:
+> On Fri, Jun 19, 2020 at 11:14:20AM -0400, Stefan Berger wrote:
+>> On 4/2/20 3:21 PM, Jarkko Sakkinen wrote:
+>>> On Wed, Apr 01, 2020 at 11:05:36AM +0200, Rafael J. Wysocki wrote:
+>>>> On Wed, Apr 1, 2020 at 10:37 AM Jarkko Sakkinen
+>>>> <jarkko.sakkinen@linux.intel.com> wrote:
+>>>>> On Tue, Mar 31, 2020 at 05:49:49PM -0400, Stefan Berger wrote:
+>>>>>> From: Stefan Berger <stefanb@linux.ibm.com>
+>>>>>>
+>>>>>> Recent extensions of the TPM2 ACPI table added 3 more fields
+>>>>>> including 12 bytes of start method specific parameters and Log Area
+>>>>>> Minimum Length (u32) and Log Area Start Address (u64). So, we extend
+>>>>>> the existing structure with these fields to allow non-UEFI systems
+>>>>>> to access the TPM2's log.
+>>>>>>
+>>>>>> The specification that has the new fields is the following:
+>>>>>>     TCG ACPI Specification
+>>>>>>     Family "1.2" and "2.0"
+>>>>>>     Version 1.2, Revision 8
+>>>>>>
+>>>>>> Adapt all existing table size calculations to use
+>>>>>> offsetof(struct acpi_table_tpm2, start_method_specific)
+>>>>>> [where start_method_specific is a newly added field]
+>>>>>> rather than sizeof(struct acpi_table_tpm2) so that the addition
+>>>>>> of the new fields does not affect current systems that may not
+>>>>>> have them.
+>>>>>>
+>>>>>> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+>>>>>> Cc: linux-acpi@vger.kernel.org
+>>>>> I think I'm cool with this but needs an ack from ACPI maintainer.
+>>>>>
+>>>>> Rafael, given that this not an intrusive change in any possible means,
+>>>>> can I pick this patch and put it to my next pull request?
+>>>> Yes, please.
+>>>>
+>>>> Thanks!
+>>> Great, thanks Rafael.
+>>>
+>>> Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+>>>
+>>> Do you mind if I add your ack to the commit?
+>>
+>> Any chance to get v4 applied?
+> You should split the actbl3.h change to a separate patch and add 'Cc:'
+> tag to Rafael to the commit message.
 
-Currently, we also allow AML access to memory that is owned by the
-kernel and mapped via the linear region, which does not seem to be
-supported by a valid use case, and exposes the kernel's internal
-state to AML methods that may be buggy and exploitable.
+I did this in one patch because it seems like a mistake to extend the 
+structure and not modify the size checks.
 
-On arm64, ACPI support requires booting in EFI mode, and so we can cross
-reference the requested region against the EFI memory map, rather than
-just do a minimal check on the first page. So let's only permit regions
-to be remapped by the ACPI core if
-- they don't appear in the EFI memory map at all (which is the case for
-  most MMIO), or
-- they are covered by a single region in the EFI memory map, which is not
-  of a type that describes memory that is given to the kernel at boot.
+   Stefan
 
-Reported-by: Jason A. Donenfeld <Jason@zx2c4.com>
-Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
----
-v2: do a more elaborate check on the region, against the EFI memory map
+>
+> /Jarkko
 
- arch/arm64/include/asm/acpi.h | 15 +---
- arch/arm64/kernel/acpi.c      | 72 ++++++++++++++++++++
- 2 files changed, 73 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index a45366c3909b..bd68e1b7f29f 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -47,20 +47,7 @@
- pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
- 
- /* ACPI table mapping after acpi_permanent_mmap is set */
--static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
--					    acpi_size size)
--{
--	/* For normal memory we already have a cacheable mapping. */
--	if (memblock_is_map_memory(phys))
--		return (void __iomem *)__phys_to_virt(phys);
--
--	/*
--	 * We should still honor the memory's attribute here because
--	 * crash dump kernel possibly excludes some ACPI (reclaim)
--	 * regions from memblock list.
--	 */
--	return __ioremap(phys, size, __acpi_get_mem_attribute(phys));
--}
-+void __iomem *acpi_os_ioremap(acpi_physical_address phys, acpi_size size);
- #define acpi_os_ioremap acpi_os_ioremap
- 
- typedef u64 phys_cpuid_t;
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index a7586a4db142..4696f765d1ac 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -261,6 +261,78 @@ pgprot_t __acpi_get_mem_attribute(phys_addr_t addr)
- 	return __pgprot(PROT_DEVICE_nGnRnE);
- }
- 
-+void __iomem *acpi_os_ioremap(acpi_physical_address phys, acpi_size size)
-+{
-+	efi_memory_desc_t *md, *region = NULL;
-+	pgprot_t prot;
-+
-+	if (WARN_ON_ONCE(!efi_enabled(EFI_MEMMAP)))
-+		return NULL;
-+
-+	for_each_efi_memory_desc(md) {
-+		u64 end = md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT);
-+
-+		if (phys < md->phys_addr || phys >= end)
-+			continue;
-+
-+		if (phys + size > end) {
-+			pr_warn(FW_BUG "requested region covers multiple EFI memory regions\n");
-+			return NULL;
-+		}
-+		region = md;
-+		break;
-+	}
-+
-+	/*
-+	 * It is fine for AML to remap regions that are not represented in the
-+	 * EFI memory map at all, as it only describes normal memory, and MMIO
-+	 * regions that require a virtual mapping to make them accessible to
-+	 * the EFI runtime services.
-+	 */
-+	prot = __pgprot(PROT_DEVICE_nGnRnE);
-+	if (region) {
-+		switch (region->type) {
-+		case EFI_LOADER_CODE:
-+		case EFI_LOADER_DATA:
-+		case EFI_BOOT_SERVICES_CODE:
-+		case EFI_BOOT_SERVICES_DATA:
-+		case EFI_CONVENTIONAL_MEMORY:
-+		case EFI_PERSISTENT_MEMORY:
-+			pr_warn(FW_BUG "requested region covers kernel memory @ %pa\n", &phys);
-+			return NULL;
-+
-+		case EFI_ACPI_RECLAIM_MEMORY:
-+			/*
-+			 * ACPI reclaim memory is used to pass firmware tables
-+			 * and other data that is intended for consumption by
-+			 * the OS only, which may decide it wants to reclaim
-+			 * that memory and use it for something else. We never
-+			 * do that, but we add it to the linear map anyway, and
-+			 * so we must use the existing mapping.
-+			 */
-+			return (void __iomem *)__phys_to_virt(phys);
-+
-+		case EFI_RUNTIME_SERVICES_CODE:
-+			/*
-+			 * This would be unusual, but not problematic per se,
-+			 * as long as we take care not to create a writable
-+			 * mapping for executable code.
-+			 */
-+			prot = PAGE_KERNEL_RO;
-+			break;
-+
-+		default:
-+			if (region->attribute & EFI_MEMORY_WB)
-+				prot = PAGE_KERNEL;
-+			else if (region->attribute & EFI_MEMORY_WT)
-+				prot = __pgprot(PROT_NORMAL_WT);
-+			else if (region->attribute & EFI_MEMORY_WC)
-+				prot = __pgprot(PROT_NORMAL_NC);
-+		}
-+	}
-+	return __ioremap(phys, size, prot);
-+}
-+
- /*
-  * Claim Synchronous External Aborts as a firmware first notification.
-  *
--- 
-2.27.0
 
