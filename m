@@ -2,121 +2,232 @@ Return-Path: <SRS0=JCqC=AG=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
+X-Spam-Status: No, score=-12.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CB80C433E3
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jun 2020 12:42:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 655CEC433DF
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jun 2020 17:07:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FC2720720
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jun 2020 12:42:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 387E320707
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Jun 2020 17:07:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404733AbgFYMmc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Jun 2020 08:42:32 -0400
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:10258 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2404658AbgFYMm3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Jun 2020 08:42:29 -0400
-Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05PCX64J099542;
-        Thu, 25 Jun 2020 08:42:28 -0400
-Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 31uwynn47u-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 25 Jun 2020 08:42:27 -0400
-Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
-        by ppma03wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05PCaGKk022979;
-        Thu, 25 Jun 2020 12:42:26 GMT
-Received: from b01cxnp22034.gho.pok.ibm.com (b01cxnp22034.gho.pok.ibm.com [9.57.198.24])
-        by ppma03wdc.us.ibm.com with ESMTP id 31uus1ky36-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 25 Jun 2020 12:42:26 +0000
-Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
-        by b01cxnp22034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05PCgPmt41943424
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 25 Jun 2020 12:42:26 GMT
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id E02F7AE05F;
-        Thu, 25 Jun 2020 12:42:25 +0000 (GMT)
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id D0E4EAE062;
-        Thu, 25 Jun 2020 12:42:25 +0000 (GMT)
-Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
-        by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
-        Thu, 25 Jun 2020 12:42:25 +0000 (GMT)
-From:   Stefan Berger <stefanb@linux.vnet.ibm.com>
-To:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
-        jarkko.sakkinen@linux.intel.com, linux-acpi@vger.kernel.org,
-        linux-security-module@vger.kernel.org
-Cc:     Stefan Berger <stefanb@linux.ibm.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Jiandi An <anjiandi@codeaurora.org>
-Subject: [PATCH v6 1/2] acpi: Extend TPM2 ACPI table with missing log fields
-Date:   Thu, 25 Jun 2020 08:42:21 -0400
-Message-Id: <20200625124222.1954580-2-stefanb@linux.vnet.ibm.com>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200625124222.1954580-1-stefanb@linux.vnet.ibm.com>
-References: <20200625124222.1954580-1-stefanb@linux.vnet.ibm.com>
+        id S2406645AbgFYRHH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Jun 2020 13:07:07 -0400
+Received: from mga17.intel.com ([192.55.52.151]:62673 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2404317AbgFYRHG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 Jun 2020 13:07:06 -0400
+IronPort-SDR: Hvotsl3EfQ6uOPWWlXVaP0UI3ufm7v8dV7VosErf4+3SJqWgLAnTtXsfeckNabLiXkFgMe8v8u
+ nt3Q+CJqHSPg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9663"; a="125228107"
+X-IronPort-AV: E=Sophos;i="5.75,280,1589266800"; 
+   d="scan'208";a="125228107"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2020 10:07:05 -0700
+IronPort-SDR: /GjSqtvB7JpoKmeoiKtapQriYCQHUe2yBzDZcba5ww/50F+IAnYPGmgBW839dUkOoM+97miSi5
+ GMxW9WM986oA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,280,1589266800"; 
+   d="scan'208";a="279875278"
+Received: from linux.intel.com ([10.54.29.200])
+  by orsmga006.jf.intel.com with ESMTP; 25 Jun 2020 10:07:04 -0700
+Received: from debox1-desk1.jf.intel.com (debox1-desk1.jf.intel.com [10.7.201.137])
+        by linux.intel.com (Postfix) with ESMTP id A052C5804B4;
+        Thu, 25 Jun 2020 10:07:04 -0700 (PDT)
+Message-ID: <caf3ac3324cc64686a88cb7bc369bcfb500c2767.camel@linux.intel.com>
+Subject: Re: [PATCH V2 1/2] PCI: Add ACPI StorageD3Enable _DSD support
+From:   "David E. Box" <david.e.box@linux.intel.com>
+Reply-To: david.e.box@linux.intel.com
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     shyjumon.n@intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@fb.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-nvme <linux-nvme@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>
+Date:   Thu, 25 Jun 2020 10:07:04 -0700
+In-Reply-To: <CAJZ5v0i8dCN=HMFk_+ZX-Wr73P6kdQBtV0i3FtrZrO9cegXsvQ@mail.gmail.com>
+References: <20200612204820.20111-2-david.e.box@linux.intel.com>
+         <20200624211549.GA2586552@bjorn-Precision-5520>
+         <CAJZ5v0i8dCN=HMFk_+ZX-Wr73P6kdQBtV0i3FtrZrO9cegXsvQ@mail.gmail.com>
+Organization: David E. Box
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.34.3 (3.34.3-1.fc31) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
- definitions=2020-06-25_08:2020-06-25,2020-06-25 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- cotscore=-2147483648 spamscore=0 malwarescore=0 adultscore=0
- impostorscore=0 mlxlogscore=999 clxscore=1011 phishscore=0
- lowpriorityscore=0 suspectscore=0 bulkscore=0 mlxscore=0 classifier=spam
- adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2006250080
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Stefan Berger <stefanb@linux.ibm.com>
+On Thu, 2020-06-25 at 13:30 +0200, Rafael J. Wysocki wrote:
+> On Wed, Jun 24, 2020 at 11:15 PM Bjorn Helgaas <helgaas@kernel.org>
+> wrote:
+> > On Fri, Jun 12, 2020 at 01:48:19PM -0700, David E. Box wrote:
+> > > StorageD3Enable is a boolean property that indicates that the
+> > > platform
+> > > wants to use D3 for PCIe storage drives during suspend-to-idle.
+> > > It is a
+> > > BIOS work around that is currently in use on shipping systems
+> > > like some
+> > > Intel Comet Lake platforms. It is meant to change default driver
+> > > policy for
+> > > suspend that may cause higher power consumption.
+> > > 
+> > > Add the DSD property for recognition by fwnode calls and provide
+> > > an
+> > > exported symbol for device drivers to use to read the property as
+> > > needed.
+> > > 
+> > > Link: 
+> > > https://docs.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-intro
+> > > Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+> > > ---
+> > >  drivers/acpi/property.c |  3 +++
+> > >  drivers/pci/pci-acpi.c  | 59
+> > > +++++++++++++++++++++++++++++++++++++++++
+> > >  include/linux/pci.h     |  2 ++
+> > >  3 files changed, 64 insertions(+)
+> > > 
+> > > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> > > index e601c4511a8b..c2e2ae774a19 100644
+> > > --- a/drivers/acpi/property.c
+> > > +++ b/drivers/acpi/property.c
+> > > @@ -45,6 +45,9 @@ static const guid_t prp_guids[] = {
+> > >       /* Thunderbolt GUID for WAKE_SUPPORTED: 6c501103-c189-4296-
+> > > ba72-9bf5a26ebe5d */
+> > >       GUID_INIT(0x6c501103, 0xc189, 0x4296,
+> > >                 0xba, 0x72, 0x9b, 0xf5, 0xa2, 0x6e, 0xbe, 0x5d),
+> > > +     /* Storage device needs D3 GUID: 5025030f-842f-4ab4-a561-
+> > > 99a5189762d0 */
+> > > +     GUID_INIT(0x5025030f, 0x842f, 0x4ab4,
+> > > +               0xa5, 0x61, 0x99, 0xa5, 0x18, 0x97, 0x62, 0xd0),
+> > >  };
+> > > 
+> > >  /* ACPI _DSD data subnodes GUID: dbb8e3e6-5886-4ba6-8795-
+> > > 1319f52a966b */
+> > > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> > > index d21969fba6ab..732df524e09c 100644
+> > > --- a/drivers/pci/pci-acpi.c
+> > > +++ b/drivers/pci/pci-acpi.c
+> > > @@ -972,6 +972,65 @@ static bool acpi_pci_bridge_d3(struct
+> > > pci_dev *dev)
+> > >       return val == 1;
+> > >  }
+> > > 
+> > > +/**
+> > > + * pci_acpi_storage_d3 - whether root port requests D3 for idle
+> > > suspend
+> > > + * @pdev: PCI device to check
+> > > + *
+> > > + * Returns true if the ACPI companion device contains the
+> > > "StorageD3Enable"
+> > > + * _DSD property and the value is 1. This indicates that the
+> > > root port is
+> > > + * used by a storage device and the platform is requesting D3
+> > > for the
+> > > + * device during suspend to idle in order to support platform
+> > > pm.
+> > > + */
+> > > +bool pci_acpi_storage_d3(struct pci_dev *dev)
+> > > +{
+> > > +     const struct fwnode_handle *fwnode;
+> > > +     struct acpi_device *adev;
+> > > +     struct pci_dev *root;
+> > > +     acpi_handle handle;
+> > > +     acpi_status status;
+> > > +     bool ret = false;
+> > > +     u8 val;
+> > > +
+> > > +     /*
+> > > +      * Look for _DSD property specifying that the storage
+> > > device on
+> > > +      * the port must use D3 to support deep platform power
+> > > savings during
+> > > +      * suspend-to-idle
+> > > +      */
+> > > +     root = pci_find_pcie_root_port(dev);
+> > 
+> > I think this would need to be updated to apply to v5.8-rc1 after
+> > 6ae72bfa656e ("PCI: Unify pcie_find_root_port() and
+> > pci_find_pcie_root_port()").
+> > 
+> > https://git.kernel.org/linus/6ae72bfa656e
+> > 
+> > > +     if (!root)
+> > > +             return false;
+> > > +
+> > > +     adev = ACPI_COMPANION(&root->dev);
+> > > +     if (!adev) {
+> > > +             /*
+> > > +              * It is possible that the ACPI companion is not
+> > > yet bound
+> > > +              * for the root port so look it up manually here.
+> > > +              */
+> > > +             if (!adev && !pci_dev_is_added(root))
+> > > +                     adev = acpi_pci_find_companion(&root->dev);
+> > 
+> > I see that you copied this "ACPI companion not yet bound" thing
+> > from
+> > acpi_pci_bridge_d3().  But it's ugly.
+> > 
+> > Isn't there a way we can bind the ACPI companion during normal PCI
+> > enumeration so we don't need this exception case?
+> > 
+> > I really do not like the idea of putting this code in the PCI core
+> > because AFAICT the PCI core can do nothing with this information.
+> > 
+> > If we could make sure during enumeration that the root port always
+> > has
+> > an ACPI companion, this code could go to the nvme driver itself.
 
-Recent extensions of the TPM2 ACPI table added 3 more fields
-including 12 bytes of start method specific parameters and Log Area
-Minimum Length (u32) and Log Area Start Address (u64). So, we define
-a new structure acpi_tpm2_phy that holds these optional new fields.
-The new fields allow non-UEFI systems to access the TPM2's log.
+This is fine with me if it's acceptable with the nvme maintainers.
 
-The specification that has the new fields is the following:
-  TCG ACPI Specification
-  Family "1.2" and "2.0"
-  Version 1.2, Revision 8
+> >   And
+> > we could also clean up the ugliness in acpi_pci_bridge_d3().
+> > 
+> > Rafael, is that possible?  I don't really know how the companion
+> > device gets set.
+> 
+> That's a bit convoluted.
+> 
+> device_add() calls device_platform_notify(), before calling
+> bus_add_device().
+> 
+> device_platform_notify() calls acpi_platform_notify() which invokes
+> acpi_device_notify() that looks for the companion via
+> type->find_companion() which for PCI points to
+> acpi_pci_find_companion().  If found, the companion is attached to
+> the
+> dev structure as a physical_node, via acpi_bind_one().
+> 
+> So by the time bus_probe_device() runs, the companion should be there
+> already - if it is there at all.
+> 
+> The parent ACPI companion should be present when the child is probing
+> too, as per the above.
+> 
+> > Maybe this is could be done somewhere around pci_device_add()?
+> 
+> It is done in there.
+> 
+> It is not necessary to call acpi_pci_find_companion() from
+> pci_acpi_storage_d3() as long as that function is required to be
+> called by the target device's driver probe or later.
 
-https://trustedcomputinggroup.org/wp-content/uploads/TCG_ACPIGeneralSpecification_v1.20_r8.pdf
+Thanks for the clarification. Since this would get called at driver
+probe this bit of code is not needed.
 
-Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
-Cc: linux-acpi@vger.kernel.org
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Jiandi An <anjiandi@codeaurora.org>
----
- include/acpi/actbl3.h | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index b0b163b9efc6..bdcac69fa6bd 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -415,6 +415,13 @@ struct acpi_table_tpm2 {
- 	/* Platform-specific data follows */
- };
- 
-+/* Optional trailer for revision 4 holding platform-specific data */
-+struct acpi_tpm2_phy {
-+	u8  start_method_specific[12];
-+	u32 log_area_minimum_length;
-+	u64 log_area_start_address;
-+};
-+
- /* Values for start_method above */
- 
- #define ACPI_TPM2_NOT_ALLOWED                       0
--- 
-2.26.2
+David
 
