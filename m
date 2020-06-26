@@ -2,128 +2,119 @@ Return-Path: <SRS0=hPtF=AH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14FB1C433E0
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 15:39:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B237C433E1
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 15:40:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E909D207D8
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 15:39:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593185953;
-	bh=wZ7OWTnSecrf7D07hrerdFH+pIDkkrkHI6TyZ43C4OY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
-	b=RXIAvLBfN6Ny/lYi9LaaLzWPDfmtXMifHWMUh5pOD6o6ip5c/t2P3ZPk66ElKZcq4
-	 3ct2JsIlrcaB7RFu8zycOCPUXDaJBY+unfjieG0dpQ3bzMyUspxnNS6SRu6WXfytQt
-	 3kStFTiPJqVaRzivf0yT/4Yg4LWseNAFoyCw50Xg=
+	by mail.kernel.org (Postfix) with ESMTP id 61A2920773
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 15:40:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729667AbgFZPjJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Jun 2020 11:39:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55770 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726613AbgFZPjI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 26 Jun 2020 11:39:08 -0400
-Received: from localhost (mobile-166-170-222-206.mycingular.net [166.170.222.206])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 301B720773;
-        Fri, 26 Jun 2020 15:39:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1593185948;
-        bh=wZ7OWTnSecrf7D07hrerdFH+pIDkkrkHI6TyZ43C4OY=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=g+vts0eFjefmiqi5onoMJ/9l7FfnI3aXem80MtyFtg3iWBMJ9Pxzbs+jX51NtgM1d
-         lDmnxfa0+90uxMSnkCRI7WY1RQX10VnnsNMFX772+BALvhnuJ/QUoHrzS/1jK+ejmS
-         zW9ol5x3OCMJmeDo2ax7nCIXEZUKlV8kq98qK4u0=
-Date:   Fri, 26 Jun 2020 10:39:06 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Rajat Jain <rajatja@google.com>
-Cc:     David Woodhouse <dwmw2@infradead.org>,
-        Lu Baolu <baolu.lu@linux.intel.com>,
-        Joerg Roedel <joro@8bytes.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, iommu@lists.linux-foundation.org,
-        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, Raj Ashok <ashok.raj@intel.com>,
-        lalithambika.krishnakumar@intel.com,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Prashant Malani <pmalani@google.com>,
-        Benson Leung <bleung@google.com>,
-        Todd Broch <tbroch@google.com>,
-        Alex Levin <levinale@google.com>,
-        Mattias Nissler <mnissler@google.com>,
-        Rajat Jain <rajatxjain@gmail.com>,
-        Bernie Keany <bernie.keany@intel.com>,
-        Aaron Durbin <adurbin@google.com>,
-        Diego Rivas <diegorivas@google.com>,
-        Duncan Laurie <dlaurie@google.com>,
-        Furquan Shaikh <furquan@google.com>,
-        Jesse Barnes <jsbarnes@google.com>,
-        Christian Kellner <christian@kellner.me>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        oohall@gmail.com
-Subject: Re: [PATCH 1/2] pci: Add pci device even if the driver failed to
- attach
-Message-ID: <20200626153906.GA2897118@bjorn-Precision-5520>
+        id S1729814AbgFZPj6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Jun 2020 11:39:58 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:48678 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729803AbgFZPj5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Jun 2020 11:39:57 -0400
+Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05QFX1hr144059;
+        Fri, 26 Jun 2020 11:39:52 -0400
+Received: from ppma04wdc.us.ibm.com (1a.90.2fa9.ip4.static.sl-reverse.com [169.47.144.26])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 31wexy9cqs-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 26 Jun 2020 11:39:52 -0400
+Received: from pps.filterd (ppma04wdc.us.ibm.com [127.0.0.1])
+        by ppma04wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05QFaOtX026851;
+        Fri, 26 Jun 2020 15:39:51 GMT
+Received: from b03cxnp07028.gho.boulder.ibm.com (b03cxnp07028.gho.boulder.ibm.com [9.17.130.15])
+        by ppma04wdc.us.ibm.com with ESMTP id 31uurymwvq-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 26 Jun 2020 15:39:51 +0000
+Received: from b03ledav005.gho.boulder.ibm.com (b03ledav005.gho.boulder.ibm.com [9.17.130.236])
+        by b03cxnp07028.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05QFdocH46858742
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 26 Jun 2020 15:39:51 GMT
+Received: from b03ledav005.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id E08B2BE053;
+        Fri, 26 Jun 2020 15:39:50 +0000 (GMT)
+Received: from b03ledav005.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 60F35BE051;
+        Fri, 26 Jun 2020 15:39:50 +0000 (GMT)
+Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
+        by b03ledav005.gho.boulder.ibm.com (Postfix) with ESMTP;
+        Fri, 26 Jun 2020 15:39:50 +0000 (GMT)
+From:   Stefan Berger <stefanb@linux.vnet.ibm.com>
+To:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
+        jarkko.sakkinen@linux.intel.com, linux-acpi@vger.kernel.org,
+        linux-security-module@vger.kernel.org
+Cc:     Stefan Berger <stefanb@linux.ibm.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH v8 1/2] acpi: Extend TPM2 ACPI table with missing log fields
+Date:   Fri, 26 Jun 2020 11:39:47 -0400
+Message-Id: <20200626153948.2059251-2-stefanb@linux.vnet.ibm.com>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200626153948.2059251-1-stefanb@linux.vnet.ibm.com>
+References: <20200626153948.2059251-1-stefanb@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200626002710.110200-1-rajatja@google.com>
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
+ definitions=2020-06-26_08:2020-06-26,2020-06-26 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0
+ priorityscore=1501 mlxscore=0 adultscore=0 clxscore=1015 suspectscore=0
+ bulkscore=0 lowpriorityscore=0 spamscore=0 mlxlogscore=999 phishscore=0
+ cotscore=-2147483648 impostorscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2006260108
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Nit: when you update these patches, can you run "git log --oneline
-drivers/pci/bus.c" and make your subject lines match the convention?
-E.g.,
+From: Stefan Berger <stefanb@linux.ibm.com>
 
-  PCI: Add device even if driver attach failed
+Recent extensions of the TPM2 ACPI table added 3 more fields
+including 12 bytes of start method specific parameters and Log Area
+Minimum Length (u32) and Log Area Start Address (u64). So, we define
+a new structure acpi_tpm2_phy that holds these optional new fields.
+The new fields allow non-UEFI systems to access the TPM2's log.
 
-On Thu, Jun 25, 2020 at 05:27:09PM -0700, Rajat Jain wrote:
-> device_attach() returning failure indicates a driver error
-> while trying to probe the device. In such a scenario, the PCI
-> device should still be added in the system and be visible to
-> the user.
+The specification that has the new fields is the following:
+  TCG ACPI Specification
+  Family "1.2" and "2.0"
+  Version 1.2, Revision 8
 
-Nit: please wrap logs to fill 75 characters.  "git log" adds 4 spaces
-at the beginning, so 75+4 still fits nicely in 80 columns without
-wrapping.
+https://trustedcomputinggroup.org/wp-content/uploads/TCG_ACPIGeneralSpecification_v1.20_r8.pdf
 
-> This patch partially reverts:
-> commit ab1a187bba5c ("PCI: Check device_attach() return value always")
-> 
-> Signed-off-by: Rajat Jain <rajatja@google.com>
-> ---
->  drivers/pci/bus.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-> index 8e40b3e6da77d..3cef835b375fd 100644
-> --- a/drivers/pci/bus.c
-> +++ b/drivers/pci/bus.c
-> @@ -322,12 +322,8 @@ void pci_bus_add_device(struct pci_dev *dev)
->  
->  	dev->match_driver = true;
->  	retval = device_attach(&dev->dev);
-> -	if (retval < 0 && retval != -EPROBE_DEFER) {
-> +	if (retval < 0 && retval != -EPROBE_DEFER)
->  		pci_warn(dev, "device attach failed (%d)\n", retval);
-> -		pci_proc_detach_device(dev);
-> -		pci_remove_sysfs_dev_files(dev);
+Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+Cc: linux-acpi@vger.kernel.org
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+---
+ include/acpi/actbl3.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Thanks for catching my bug!
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index b0b163b9efc6..bdcac69fa6bd 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -415,6 +415,13 @@ struct acpi_table_tpm2 {
+ 	/* Platform-specific data follows */
+ };
+ 
++/* Optional trailer for revision 4 holding platform-specific data */
++struct acpi_tpm2_phy {
++	u8  start_method_specific[12];
++	u32 log_area_minimum_length;
++	u64 log_area_start_address;
++};
++
+ /* Values for start_method above */
+ 
+ #define ACPI_TPM2_NOT_ALLOWED                       0
+-- 
+2.26.2
 
-> -		return;
-> -	}
->  
->  	pci_dev_assign_added(dev, true);
->  }
-> -- 
-> 2.27.0.212.ge8ba1cc988-goog
-> 
