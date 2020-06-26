@@ -2,398 +2,126 @@ Return-Path: <SRS0=hPtF=AH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
+	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D36FFC433E0
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 00:07:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 788FCC433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 00:27:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA83020773
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 00:07:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C55920767
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 00:27:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="gsWwDuEW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726002AbgFZAHp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Jun 2020 20:07:45 -0400
-Received: from mga05.intel.com ([192.55.52.43]:11602 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725936AbgFZAHo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Jun 2020 20:07:44 -0400
-IronPort-SDR: b/o3bgEBl/7LeFeX1JHUdZm4sOlTdzIbv1afLwrXrgGiEKvFytC19qBtJ8Lm5lfr6HF8FfgByU
- QGuCe1cwLxoA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9663"; a="229870944"
-X-IronPort-AV: E=Sophos;i="5.75,281,1589266800"; 
-   d="scan'208";a="229870944"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2020 17:07:13 -0700
-IronPort-SDR: SCgRkAYbql9izvCjtRPbr2DwF1vMkOGNMHYbkqJu0LzTl8avkpNjcmJg7/atMxWqexL8qG4xEt
- XvfjNyR2y/rw==
-X-IronPort-AV: E=Sophos;i="5.75,281,1589266800"; 
-   d="scan'208";a="265491889"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2020 17:07:12 -0700
-Subject: [PATCH 07/12] tools/testing/nvdimm: Emulate firmware activation
- commands
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     linux-nvdimm@lists.01.org
-Cc:     Andy Shevchenko <andriy.shevchenko@intel.com>,
-        vishal.l.verma@intel.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Date:   Thu, 25 Jun 2020 16:50:58 -0700
-Message-ID: <159312905799.1850128.2108805065253287501.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <159312902033.1850128.1712559453279208264.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <159312902033.1850128.1712559453279208264.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+        id S1725859AbgFZA1R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Jun 2020 20:27:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54770 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725801AbgFZA1Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2020 20:27:16 -0400
+Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7739CC08C5C1
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2020 17:27:16 -0700 (PDT)
+Received: by mail-yb1-xb4a.google.com with SMTP id s7so7853363ybg.10
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2020 17:27:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:message-id:mime-version:subject:from:to:cc;
+        bh=iv7sfYwPBb+T3sh9Tm/gYiOZsGJSNCHeo7sHuB/mAjU=;
+        b=gsWwDuEWxxXpafc13YiTJ2OicmolQf5h7KB/1owTbiu6Ee1j93pn2eUyAh2einvluw
+         E8nZ02G/7r07CFhIK5dPv0ZlK2iUzky20NJwNJzL3BmkInHkfTJUi0whj4v7SeoBFp3g
+         L/3uvCEgLYksFm2o4W1T7X4v2l1c/6dVt1wvCZUbCr3HPRrMHD/Wx73XJpbZlJYqrhpV
+         KaBzdZ96OBEfsKzgIwFT42MUz/2ka3sVvK4ATXx/XlaVPmoIodvUZOQza8cC5ubLjNIz
+         E74HpampI/OVzg9d/tQFsKbYUOV6dBx9FZXpN2zmmaEvoJ5q72zzytovyjewoIGXtbDl
+         naBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
+        bh=iv7sfYwPBb+T3sh9Tm/gYiOZsGJSNCHeo7sHuB/mAjU=;
+        b=CRlt08nQU9jX5qyy8GXBCBGVIs99ai9P/8MVjL4ytqehWvyy/pCJN/ahgYDgd93UEr
+         3O4vP3R/UaYeDDxs4llY2/1jURfv4j2N8bbcTWK8FJ8x/SxOUX/2xMvhNNmAzc1fnPIG
+         9v2M4TxOx8qmAbE9q2CL8QtT5RFr7ePjH5LsZUgHbtV36YifDaeV1dge4DIixjHpfxyY
+         pTd7al857ZYU5z5xHVADjkUDxoCRUIc2mczkUc2LM7Sqc3HoxgKEPple6mXwvsp1SCDZ
+         4hLDjdZ1eHDX1y3KnK/+obVa5XF7RnRGmLWVlsnD9Ibzw76DW2QrasdTCOvhxIpi0wED
+         Qt9g==
+X-Gm-Message-State: AOAM531xTeDNmcfXERBtuuuRfTrZydMsEUjmyFZfoM1itbvQ9r19uWnr
+        ubXYgjNIUHSsjWRQdYdoMNdowevI6txB
+X-Google-Smtp-Source: ABdhPJyJZ32y84BWOCzPlXnj6DBPie+kwwNvt36mcjomQYjcSGXpCQX3nGJKpsx74v22jf/R8UEafr0WqCf3
+X-Received: by 2002:a25:aaa9:: with SMTP id t38mr763977ybi.312.1593131235516;
+ Thu, 25 Jun 2020 17:27:15 -0700 (PDT)
+Date:   Thu, 25 Jun 2020 17:27:09 -0700
+Message-Id: <20200626002710.110200-1-rajatja@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.27.0.212.ge8ba1cc988-goog
+Subject: [PATCH 1/2] pci: Add pci device even if the driver failed to attach
+From:   Rajat Jain <rajatja@google.com>
+To:     David Woodhouse <dwmw2@infradead.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        Joerg Roedel <joro@8bytes.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, iommu@lists.linux-foundation.org,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, Raj Ashok <ashok.raj@intel.com>,
+        lalithambika.krishnakumar@intel.com,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Prashant Malani <pmalani@google.com>,
+        Benson Leung <bleung@google.com>,
+        Todd Broch <tbroch@google.com>,
+        Alex Levin <levinale@google.com>,
+        Mattias Nissler <mnissler@google.com>,
+        Rajat Jain <rajatxjain@gmail.com>,
+        Bernie Keany <bernie.keany@intel.com>,
+        Aaron Durbin <adurbin@google.com>,
+        Diego Rivas <diegorivas@google.com>,
+        Duncan Laurie <dlaurie@google.com>,
+        Furquan Shaikh <furquan@google.com>,
+        Jesse Barnes <jsbarnes@google.com>,
+        Christian Kellner <christian@kellner.me>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        oohall@gmail.com
+Cc:     Rajat Jain <rajatja@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Augment the existing firmware update emulation to track activations and
-validate proper update vs activate sequencing.
+device_attach() returning failure indicates a driver error
+while trying to probe the device. In such a scenario, the PCI
+device should still be added in the system and be visible to
+the user.
 
-The DIMM firmware activate capability has a concept of a maximum amount
-of time platform firmware will quiesce the system relative to how many
-DIMMs are being activated in parallel. Simulate that DIMM activation
-happens serially, 1 second per-DIMM, and limit the max at 3 seconds. The
-nfit_test0 bus emulates 5 DIMMs so it will take 2 activations to update
-all DIMMs.
+This patch partially reverts:
+commit ab1a187bba5c ("PCI: Check device_attach() return value always")
 
-Reported-by: Andy Shevchenko <andriy.shevchenko@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Rajat Jain <rajatja@google.com>
 ---
- drivers/acpi/nfit/intel.h        |    5 +
- tools/testing/nvdimm/test/nfit.c |  209 +++++++++++++++++++++++++++++++++++++-
- 2 files changed, 210 insertions(+), 4 deletions(-)
+ drivers/pci/bus.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
-index 868d073731cc..49a598623024 100644
---- a/drivers/acpi/nfit/intel.h
-+++ b/drivers/acpi/nfit/intel.h
-@@ -132,6 +132,9 @@ struct nd_intel_fw_activate_dimminfo {
- 	u8 reserved[7];
- } __packed;
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index 8e40b3e6da77d..3cef835b375fd 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -322,12 +322,8 @@ void pci_bus_add_device(struct pci_dev *dev)
  
-+#define ND_INTEL_DIMM_FWA_ARM 1
-+#define ND_INTEL_DIMM_FWA_DISARM 0
-+
- struct nd_intel_fw_activate_arm {
- 	u8 activate_arm;
- 	u32 status;
-@@ -160,6 +163,8 @@ struct nd_intel_bus_fw_activate_businfo {
- #define ND_INTEL_BUS_FWA_STATUS_NOIDLE (6 | 5 << 16)
- #define ND_INTEL_BUS_FWA_STATUS_ABORT  (6 | 6 << 16)
+ 	dev->match_driver = true;
+ 	retval = device_attach(&dev->dev);
+-	if (retval < 0 && retval != -EPROBE_DEFER) {
++	if (retval < 0 && retval != -EPROBE_DEFER)
+ 		pci_warn(dev, "device attach failed (%d)\n", retval);
+-		pci_proc_detach_device(dev);
+-		pci_remove_sysfs_dev_files(dev);
+-		return;
+-	}
  
-+#define ND_INTEL_BUS_FWA_IODEV_FORCE_IDLE (0)
-+#define ND_INTEL_BUS_FWA_IODEV_OS_IDLE (1)
- struct nd_intel_bus_fw_activate {
- 	u8 iodev_state;
- 	u32 status;
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 2b0bfbfc0abb..a1a5dc645b40 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -173,6 +173,9 @@ struct nfit_test_fw {
- 	u64 version;
- 	u32 size_received;
- 	u64 end_time;
-+	bool armed;
-+	bool missed_activate;
-+	unsigned long last_activate;
- };
- 
- struct nfit_test {
-@@ -345,7 +348,7 @@ static int nd_intel_test_finish_fw(struct nfit_test *t,
- 			__func__, t, nd_cmd, buf_len, idx);
- 
- 	if (fw->state == FW_STATE_UPDATED) {
--		/* update already done, need cold boot */
-+		/* update already done, need activation */
- 		nd_cmd->status = 0x20007;
- 		return 0;
- 	}
-@@ -430,6 +433,7 @@ static int nd_intel_test_finish_query(struct nfit_test *t,
- 		}
- 		dev_dbg(dev, "%s: transition out verify\n", __func__);
- 		fw->state = FW_STATE_UPDATED;
-+		fw->missed_activate = false;
- 		/* fall through */
- 	case FW_STATE_UPDATED:
- 		nd_cmd->status = 0;
-@@ -1178,6 +1182,134 @@ static int nd_intel_test_cmd_master_secure_erase(struct nfit_test *t,
- 	return 0;
+ 	pci_dev_assign_added(dev, true);
  }
- 
-+static unsigned long last_activate;
-+
-+static int nvdimm_bus_intel_fw_activate_businfo(struct nfit_test *t,
-+		struct nd_intel_bus_fw_activate_businfo *nd_cmd,
-+		unsigned int buf_len)
-+{
-+	int i, armed = 0;
-+	int state;
-+	u64 tmo;
-+
-+	for (i = 0; i < NUM_DCR; i++) {
-+		struct nfit_test_fw *fw = &t->fw[i];
-+
-+		if (fw->armed)
-+			armed++;
-+	}
-+
-+	/*
-+	 * Emulate 3 second activation max, and 1 second incremental
-+	 * quiesce time per dimm requiring multiple activates to get all
-+	 * DIMMs updated.
-+	 */
-+	if (armed)
-+		state = ND_INTEL_FWA_ARMED;
-+	else if (!last_activate || time_after(jiffies, last_activate + 3 * HZ))
-+		state = ND_INTEL_FWA_IDLE;
-+	else
-+		state = ND_INTEL_FWA_BUSY;
-+
-+	tmo = armed * USEC_PER_SEC;
-+	*nd_cmd = (struct nd_intel_bus_fw_activate_businfo) {
-+		.capability = ND_INTEL_BUS_FWA_CAP_FWQUIESCE
-+			| ND_INTEL_BUS_FWA_CAP_OSQUIESCE
-+			| ND_INTEL_BUS_FWA_CAP_RESET,
-+		.state = state,
-+		.activate_tmo = tmo,
-+		.cpu_quiesce_tmo = tmo,
-+		.io_quiesce_tmo = tmo,
-+		.max_quiesce_tmo = 3 * USEC_PER_SEC,
-+	};
-+
-+	return 0;
-+}
-+
-+static int nvdimm_bus_intel_fw_activate(struct nfit_test *t,
-+		struct nd_intel_bus_fw_activate *nd_cmd,
-+		unsigned int buf_len)
-+{
-+	struct nd_intel_bus_fw_activate_businfo info;
-+	u32 status = 0;
-+	int i;
-+
-+	nvdimm_bus_intel_fw_activate_businfo(t, &info, sizeof(info));
-+	if (info.state == ND_INTEL_FWA_BUSY)
-+		status = ND_INTEL_BUS_FWA_STATUS_BUSY;
-+	else if (info.activate_tmo > info.max_quiesce_tmo)
-+		status = ND_INTEL_BUS_FWA_STATUS_TMO;
-+	else if (info.state == ND_INTEL_FWA_IDLE)
-+		status = ND_INTEL_BUS_FWA_STATUS_NOARM;
-+
-+	dev_dbg(&t->pdev.dev, "status: %d\n", status);
-+	nd_cmd->status = status;
-+	if (status && status != ND_INTEL_BUS_FWA_STATUS_TMO)
-+		return 0;
-+
-+	last_activate = jiffies;
-+	for (i = 0; i < NUM_DCR; i++) {
-+		struct nfit_test_fw *fw = &t->fw[i];
-+
-+		if (!fw->armed)
-+			continue;
-+		if (fw->state != FW_STATE_UPDATED)
-+			fw->missed_activate = true;
-+		else
-+			fw->state = FW_STATE_NEW;
-+		fw->armed = false;
-+		fw->last_activate = last_activate;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_fw_activate_dimminfo(struct nfit_test *t,
-+		struct nd_intel_fw_activate_dimminfo *nd_cmd,
-+		unsigned int buf_len, int dimm)
-+{
-+	struct nd_intel_bus_fw_activate_businfo info;
-+	struct nfit_test_fw *fw = &t->fw[dimm];
-+	u32 result, state;
-+
-+	nvdimm_bus_intel_fw_activate_businfo(t, &info, sizeof(info));
-+
-+	if (info.state == ND_INTEL_FWA_BUSY)
-+		state = ND_INTEL_FWA_BUSY;
-+	else if (info.state == ND_INTEL_FWA_IDLE)
-+		state = ND_INTEL_FWA_IDLE;
-+	else if (fw->armed)
-+		state = ND_INTEL_FWA_ARMED;
-+	else
-+		state = ND_INTEL_FWA_IDLE;
-+
-+	result = ND_INTEL_DIMM_FWA_NONE;
-+	if (last_activate && fw->last_activate == last_activate &&
-+			state == ND_INTEL_FWA_IDLE) {
-+		if (fw->missed_activate)
-+			result = ND_INTEL_DIMM_FWA_NOTSTAGED;
-+		else
-+			result = ND_INTEL_DIMM_FWA_SUCCESS;
-+	}
-+
-+	*nd_cmd = (struct nd_intel_fw_activate_dimminfo) {
-+		.result = result,
-+		.state = state,
-+	};
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_fw_activate_arm(struct nfit_test *t,
-+		struct nd_intel_fw_activate_arm *nd_cmd,
-+		unsigned int buf_len, int dimm)
-+{
-+	struct nfit_test_fw *fw = &t->fw[dimm];
-+
-+	fw->armed = nd_cmd->activate_arm == ND_INTEL_DIMM_FWA_ARM;
-+	nd_cmd->status = 0;
-+	return 0;
-+}
- 
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
-@@ -1296,6 +1428,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				rc = nd_intel_test_cmd_master_secure_erase(t,
- 						buf, buf_len, i);
- 				break;
-+			case NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO:
-+				rc = nd_intel_test_cmd_fw_activate_dimminfo(
-+					t, buf, buf_len, i);
-+				break;
-+			case NVDIMM_INTEL_FW_ACTIVATE_ARM:
-+				rc = nd_intel_test_cmd_fw_activate_arm(
-+					t, buf, buf_len, i);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -1380,9 +1520,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		if (!nd_desc)
- 			return -ENOTTY;
- 
--		if (cmd == ND_CMD_CALL) {
-+		if (cmd == ND_CMD_CALL && call_pkg->nd_family
-+				== NVDIMM_BUS_FAMILY_NFIT) {
- 			func = call_pkg->nd_command;
--
- 			buf_len = call_pkg->nd_size_in + call_pkg->nd_size_out;
- 			buf = (void *) call_pkg->nd_payload;
- 
-@@ -1406,7 +1546,26 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			default:
- 				return -ENOTTY;
- 			}
--		}
-+		} else if (cmd == ND_CMD_CALL && call_pkg->nd_family
-+				== NVDIMM_BUS_FAMILY_INTEL) {
-+			func = call_pkg->nd_command;
-+			buf_len = call_pkg->nd_size_in + call_pkg->nd_size_out;
-+			buf = (void *) call_pkg->nd_payload;
-+
-+			switch (func) {
-+			case NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO:
-+				rc = nvdimm_bus_intel_fw_activate_businfo(t,
-+						buf, buf_len);
-+				return rc;
-+			case NVDIMM_BUS_INTEL_FW_ACTIVATE:
-+				rc = nvdimm_bus_intel_fw_activate(t, buf,
-+						buf_len);
-+				return rc;
-+			default:
-+				return -ENOTTY;
-+			}
-+		} else if (cmd == ND_CMD_CALL)
-+			return -ENOTTY;
- 
- 		if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
- 			return -ENOTTY;
-@@ -1832,6 +1991,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	struct acpi_nfit_flush_address *flush;
- 	struct acpi_nfit_capabilities *pcap;
- 	unsigned int offset = 0, i;
-+	unsigned long *acpi_mask;
- 
- 	/*
- 	 * spa0 (interleave first half of dimm0 and dimm1, note storage
-@@ -2558,6 +2718,12 @@ static void nfit_test0_setup(struct nfit_test *t)
- 			&acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_MASTER_SECURE_ERASE,
- 			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_FW_ACTIVATE_ARM, &acpi_desc->dimm_cmd_force_en);
-+
-+	acpi_mask = &acpi_desc->family_dsm_mask[NVDIMM_BUS_FAMILY_INTEL];
-+	set_bit(NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO, acpi_mask);
-+	set_bit(NVDIMM_BUS_INTEL_FW_ACTIVATE, acpi_mask);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -2733,6 +2899,7 @@ static int nfit_ctl_test(struct device *dev)
- 			struct nd_cmd_clear_error clear_err;
- 			struct nd_cmd_ars_status ars_stat;
- 			struct nd_cmd_ars_cap ars_cap;
-+			struct nd_intel_bus_fw_activate_businfo fwa_info;
- 			char buf[sizeof(struct nd_cmd_ars_status)
- 				+ sizeof(struct nd_ars_record)];
- 		};
-@@ -2761,11 +2928,15 @@ static int nfit_ctl_test(struct device *dev)
- 			.module = THIS_MODULE,
- 			.provider_name = "ACPI.NFIT",
- 			.ndctl = acpi_nfit_ctl,
-+			.bus_family_mask = 1UL << NVDIMM_BUS_FAMILY_NFIT
-+				| 1UL << NVDIMM_BUS_FAMILY_INTEL,
- 		},
- 		.bus_dsm_mask = 1UL << NFIT_CMD_TRANSLATE_SPA
- 			| 1UL << NFIT_CMD_ARS_INJECT_SET
- 			| 1UL << NFIT_CMD_ARS_INJECT_CLEAR
- 			| 1UL << NFIT_CMD_ARS_INJECT_GET,
-+		.family_dsm_mask[NVDIMM_BUS_FAMILY_INTEL] =
-+			NVDIMM_BUS_INTEL_FW_ACTIVATE_CMDMASK,
- 		.dev = &adev->dev,
- 	};
- 
-@@ -2932,6 +3103,36 @@ static int nfit_ctl_test(struct device *dev)
- 		return -EIO;
- 	}
- 
-+	/* test firmware activate bus info */
-+	cmd_size = sizeof(cmd.fwa_info);
-+	cmd = (struct nfit_ctl_test_cmd) {
-+		.pkg = {
-+			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO,
-+			.nd_family = NVDIMM_BUS_FAMILY_INTEL,
-+			.nd_size_out = cmd_size,
-+			.nd_fw_size = cmd_size,
-+		},
-+		.fwa_info = {
-+			.state = ND_INTEL_FWA_IDLE,
-+			.capability = ND_INTEL_BUS_FWA_CAP_FWQUIESCE
-+				| ND_INTEL_BUS_FWA_CAP_OSQUIESCE,
-+			.activate_tmo = 1,
-+			.cpu_quiesce_tmo = 1,
-+			.io_quiesce_tmo = 1,
-+			.max_quiesce_tmo = 1,
-+		},
-+	};
-+	rc = setup_result(cmd.buf, cmd_size);
-+	if (rc)
-+		return rc;
-+	rc = acpi_nfit_ctl(&acpi_desc->nd_desc, NULL, ND_CMD_CALL,
-+			&cmd, sizeof(cmd.pkg) + cmd_size, &cmd_rc);
-+	if (rc < 0 || cmd_rc) {
-+		dev_dbg(dev, "%s: failed at: %d rc: %d cmd_rc: %d\n",
-+				__func__, __LINE__, rc, cmd_rc);
-+		return -EIO;
-+	}
-+
- 	return 0;
- }
- 
+-- 
+2.27.0.212.ge8ba1cc988-goog
 
