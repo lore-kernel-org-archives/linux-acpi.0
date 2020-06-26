@@ -2,68 +2,84 @@ Return-Path: <SRS0=hPtF=AH=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 051DAC433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 19:40:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1398C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 20:50:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D578E206C0
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 19:40:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593200415;
-	bh=kElnDE6C6jzwH97BZEfkiPFYGGRw875DbsH31Dz8CfQ=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=l5lYTD9foDWnPcCKV50gLPx62u4T7Zesj67a11IFPwpksF9O9V+BwQfnCTcv+yH6+
-	 Y3a1eeRC3zudWGMdCofLiiS+IWPpYqHqFdy02v167RqE79GjJSvwLEU0V5fGv1g6dW
-	 +39z9LKJGAO8QmIUsveYI4WO3Lo74K/RHiBLvCCw=
+	by mail.kernel.org (Postfix) with ESMTP id C82962088E
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Jun 2020 20:50:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725828AbgFZTkP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Jun 2020 15:40:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39398 "EHLO mail.kernel.org"
+        id S1725821AbgFZUur (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Jun 2020 16:50:47 -0400
+Received: from mga07.intel.com ([134.134.136.100]:6194 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725900AbgFZTkO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 26 Jun 2020 15:40:14 -0400
-Subject: Re: [GIT PULL] ACPI fixes for v5.8-rc3
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1593200414;
-        bh=kElnDE6C6jzwH97BZEfkiPFYGGRw875DbsH31Dz8CfQ=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=u+NVsDsur4rYnboEK+wO/K1Y/41AD9t4MgGsRIrF/uhSFFrXGLAK1Anhpvrse0lQu
-         K6nxrJ5RkHJ33frw7AiFFpP+x1nbf+vJ5COHHJ7zlchTedE+fMRgkC0V+0uMBc9Cvn
-         p5PIiQ8HsL7yEHV55Gdb+g+NMpLCLfuEv7CXSlrU=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0iCm=bku-rKaOLveA-Kr0NbJ0Wp3mvQGTv2G9mpjJZpxg@mail.gmail.com>
-References: <CAJZ5v0iCm=bku-rKaOLveA-Kr0NbJ0Wp3mvQGTv2G9mpjJZpxg@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0iCm=bku-rKaOLveA-Kr0NbJ0Wp3mvQGTv2G9mpjJZpxg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
- acpi-5.8-rc3
-X-PR-Tracked-Commit-Id: 0f29c20bf4342c7757d9f4bf81159b02498b1b0d
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 1590a2e1c681b0991bd42c992cabfd380e0338f2
-Message-Id: <159320041441.11855.5823032730660572788.pr-tracker-bot@kernel.org>
-Date:   Fri, 26 Jun 2020 19:40:14 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S1725793AbgFZUuq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Jun 2020 16:50:46 -0400
+IronPort-SDR: VFadBMFE+uJSKkUN13RWEZTJ+lfF4xk3ULhsC33Yp6DNsSfXhI7MzDGea9p/M2T9VYmes9ifzf
+ LlkRKJWZ9uIQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9664"; a="210549812"
+X-IronPort-AV: E=Sophos;i="5.75,285,1589266800"; 
+   d="scan'208";a="210549812"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jun 2020 13:50:46 -0700
+IronPort-SDR: AuR8/NPV8hVVfs7GGCeAhJof99S+JiqdQoJgXcDV4kQ8g11utH7iJv2vhfl8d1cpqInkCOBzHv
+ 5qLZWt7FRIQQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,285,1589266800"; 
+   d="scan'208";a="294303365"
+Received: from lkp-server01.sh.intel.com (HELO 538b5e3c8319) ([10.239.97.150])
+  by orsmga002.jf.intel.com with ESMTP; 26 Jun 2020 13:50:42 -0700
+Received: from kbuild by 538b5e3c8319 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1jovJ3-0002Ro-GC; Fri, 26 Jun 2020 20:50:41 +0000
+Date:   Sat, 27 Jun 2020 04:50:28 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
+        linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
+Cc:     kbuild-all@lists.01.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Subject: [RFC PATCH] thermal: thermal_zone_device_set_mode() can be static
+Message-ID: <20200626205028.GA2296@014f859222aa>
+References: <20200626173755.26379-7-andrzej.p@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200626173755.26379-7-andrzej.p@collabora.com>
+X-Patchwork-Hint: ignore
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 26 Jun 2020 17:40:06 +0200:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.8-rc3
+Signed-off-by: kernel test robot <lkp@intel.com>
+---
+ thermal_core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/1590a2e1c681b0991bd42c992cabfd380e0338f2
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
+index 3181295075b9a..f02c57c986f0e 100644
+--- a/drivers/thermal/thermal_core.c
++++ b/drivers/thermal/thermal_core.c
+@@ -459,8 +459,8 @@ static void thermal_zone_device_reset(struct thermal_zone_device *tz)
+ 	thermal_zone_device_init(tz);
+ }
+ 
+-int thermal_zone_device_set_mode(struct thermal_zone_device *tz,
+-				 enum thermal_device_mode mode)
++static int thermal_zone_device_set_mode(struct thermal_zone_device *tz,
++					enum thermal_device_mode mode)
+ {
+ 	int ret = 0;
+ 
