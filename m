@@ -7,24 +7,24 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EEAAC433E1
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 21:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6914C433E1
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 21:12:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A0392081A
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 21:04:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1EE8206F1
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 21:12:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390055AbgF2VEE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Jun 2020 17:04:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43366 "EHLO
+        id S1731163AbgF2VL6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Jun 2020 17:11:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731121AbgF2TMp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2020 15:12:45 -0400
+        with ESMTP id S1730168AbgF2S5p (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2020 14:57:45 -0400
 Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 814D9C0085D8;
-        Mon, 29 Jun 2020 04:16:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13E70C00F80A;
+        Mon, 29 Jun 2020 05:29:51 -0700 (PDT)
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: andrzej.p)
-        with ESMTPSA id 5CAD22A21CE
+        with ESMTPSA id 03B7B2A2D9B
 From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
 To:     linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
@@ -69,13 +69,12 @@ Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
         Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
         kernel@collabora.com
-Subject: [PATCH v6 03/11] thermal: Add current mode to thermal zone device
-Date:   Mon, 29 Jun 2020 13:16:07 +0200
-Message-Id: <20200629111615.18131-4-andrzej.p@collabora.com>
+Subject: [PATCH v7 03/11] thermal: Add current mode to thermal zone device
+Date:   Mon, 29 Jun 2020 14:29:17 +0200
+Message-Id: <20200629122925.21729-4-andrzej.p@collabora.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200629111615.18131-1-andrzej.p@collabora.com>
-References: <CAHLCerO2XOOX9akEwaTu_cjSqRycFpNmoVxkSe36L8B4ALWidA@mail.gmail.com>
- <20200629111615.18131-1-andrzej.p@collabora.com>
+In-Reply-To: <20200629122925.21729-1-andrzej.p@collabora.com>
+References: <20200629122925.21729-1-andrzej.p@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
