@@ -2,267 +2,317 @@ Return-Path: <SRS0=VUYi=AK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 286B2C433E3
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:19:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EFE8C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:22:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1514420723
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:19:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 660B7206F1
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:22:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730226AbgF2TS5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Jun 2020 15:18:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43352 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731759AbgF2TOU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2020 15:14:20 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4BE6C0085D5;
-        Mon, 29 Jun 2020 04:16:27 -0700 (PDT)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: andrzej.p)
-        with ESMTPSA id 9391127D8DE
-From:   Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-To:     linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-renesas-soc@vger.kernel.org,
-        linux-rockchip@lists.infradead.org
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Vishal Kulkarni <vishal@chelsio.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jiri Pirko <jiri@mellanox.com>,
-        Ido Schimmel <idosch@mellanox.com>,
-        Johannes Berg <johannes.berg@intel.com>,
-        Emmanuel Grumbach <emmanuel.grumbach@intel.com>,
-        Luca Coelho <luciano.coelho@intel.com>,
-        Intel Linux Wireless <linuxwifi@intel.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Peter Kaestle <peter@piie.net>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Sebastian Reichel <sre@kernel.org>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Amit Kucheria <amit.kucheria@verdurent.com>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang7@gmail.com>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Allison Randal <allison@lohutok.net>,
-        Enrico Weigelt <info@metux.net>,
-        Gayatri Kammela <gayatri.kammela@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
-        kernel@collabora.com
-Subject: [PATCH v6 02/11] thermal: Store thermal mode in a dedicated enum
-Date:   Mon, 29 Jun 2020 13:16:06 +0200
-Message-Id: <20200629111615.18131-3-andrzej.p@collabora.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200629111615.18131-1-andrzej.p@collabora.com>
-References: <CAHLCerO2XOOX9akEwaTu_cjSqRycFpNmoVxkSe36L8B4ALWidA@mail.gmail.com>
- <20200629111615.18131-1-andrzej.p@collabora.com>
+        id S1729409AbgF2TVg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Jun 2020 15:21:36 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:59190 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732200AbgF2TVf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2020 15:21:35 -0400
+Received: from 89-64-84-69.dynamic.chello.pl (89.64.84.69) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.415)
+ id 4a4c27ae3a89cb78; Mon, 29 Jun 2020 18:34:53 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Dan Williams <dan.j.williams@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Cc:     rafael.j.wysocki@intel.com, Len Brown <lenb@kernel.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Ira Weiny <ira.weiny@intel.com>,
+        James Morse <james.morse@arm.com>,
+        Myron Stowe <myron.stowe@redhat.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-nvdimm@lists.01.org, Bob Moore <robert.moore@intel.com>
+Subject: [PATCH v4 1/2] ACPI: OSL: Implement deferred unmapping of ACPI memory
+Date:   Mon, 29 Jun 2020 18:33:10 +0200
+Message-ID: <7504970.auntBLC07g@kreacher>
+In-Reply-To: <1666722.UopIai5n7p@kreacher>
+References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com> <2788992.3K7huLjdjL@kreacher> <1666722.UopIai5n7p@kreacher>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Prepare for storing mode in struct thermal_zone_device.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-[for acerhdf]
-Acked-by: Peter Kaestle <peter@piie.net>
-Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Reviewed-by: Amit Kucheria <amit.kucheria@linaro.org>
+The ACPI OS layer in Linux uses RCU to protect the walkers of the
+list of ACPI memory mappings from seeing an inconsistent state
+while it is being updated.  Among other situations, that list can
+be walked in (NMI and non-NMI) interrupt context, so using a
+sleeping lock to protect it is not an option.
+
+However, performance issues related to the RCU usage in there
+appear, as described by Dan Williams:
+
+"Recently a performance problem was reported for a process invoking
+a non-trival ASL program. The method call in this case ends up
+repetitively triggering a call path like:
+
+    acpi_ex_store
+    acpi_ex_store_object_to_node
+    acpi_ex_write_data_to_field
+    acpi_ex_insert_into_field
+    acpi_ex_write_with_update_rule
+    acpi_ex_field_datum_io
+    acpi_ex_access_region
+    acpi_ev_address_space_dispatch
+    acpi_ex_system_memory_space_handler
+    acpi_os_map_cleanup.part.14
+    _synchronize_rcu_expedited.constprop.89
+    schedule
+
+The end result of frequent synchronize_rcu_expedited() invocation is
+tiny sub-millisecond spurts of execution where the scheduler freely
+migrates this apparently sleepy task. The overhead of frequent
+scheduler invocation multiplies the execution time by a factor
+of 2-3X."
+
+The source of this is that acpi_ex_system_memory_space_handler()
+unmaps the memory mapping currently cached by it at the access time
+if that mapping doesn't cover the memory area being accessed.
+Consequently, if there is a memory opregion with two fields
+separated from each other by an unused chunk of address space that
+is large enough for not being covered by a single mapping, and they
+happen to be used in an alternating pattern, the unmapping will
+occur on every acpi_ex_system_memory_space_handler() invocation for
+that memory opregion and that will lead to significant overhead.
+
+Moreover, acpi_ex_system_memory_space_handler() carries out the
+memory unmapping with the namespace and interpreter mutexes held
+which may lead to additional latency, because all of the tasks
+wanting to acquire on of these mutexes need to wait for the
+memory unmapping operation to complete.
+
+To address that, rework acpi_os_unmap_memory() so that it does not
+release the memory mapping covering the given address range right
+away and instead make it queue up the mapping at hand for removal
+via queue_rcu_work().
+
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/thermal.c                        | 27 +++++++++----------
- drivers/platform/x86/acerhdf.c                |  8 ++++--
- .../intel/int340x_thermal/int3400_thermal.c   | 18 +++++--------
- 3 files changed, 25 insertions(+), 28 deletions(-)
+ drivers/acpi/osl.c | 112 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 77 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 6de8066ca1e7..fb46070c66d8 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -172,7 +172,7 @@ struct acpi_thermal {
- 	struct acpi_thermal_trips trips;
- 	struct acpi_handle_list devices;
- 	struct thermal_zone_device *thermal_zone;
--	int tz_enabled;
-+	enum thermal_device_mode mode;
- 	int kelvin_offset;	/* in millidegrees */
- 	struct work_struct thermal_check_work;
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 762c5d50b8fe..5ced89a756a8 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -77,7 +77,10 @@ struct acpi_ioremap {
+ 	void __iomem *virt;
+ 	acpi_physical_address phys;
+ 	acpi_size size;
+-	unsigned long refcount;
++	union {
++		unsigned long refcount;
++		struct rcu_work rwork;
++	} track;
  };
-@@ -500,7 +500,7 @@ static void acpi_thermal_check(void *data)
- {
- 	struct acpi_thermal *tz = data;
  
--	if (!tz->tz_enabled)
-+	if (tz->mode != THERMAL_DEVICE_ENABLED)
+ static LIST_HEAD(acpi_ioremaps);
+@@ -250,7 +253,7 @@ void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size)
+ 	map = acpi_map_lookup(phys, size);
+ 	if (map) {
+ 		virt = map->virt + (phys - map->phys);
+-		map->refcount++;
++		map->track.refcount++;
+ 	}
+ 	mutex_unlock(&acpi_ioremap_lock);
+ 	return virt;
+@@ -335,7 +338,7 @@ void __iomem __ref
+ 	/* Check if there's a suitable mapping already. */
+ 	map = acpi_map_lookup(phys, size);
+ 	if (map) {
+-		map->refcount++;
++		map->track.refcount++;
+ 		goto out;
+ 	}
+ 
+@@ -358,7 +361,7 @@ void __iomem __ref
+ 	map->virt = virt;
+ 	map->phys = pg_off;
+ 	map->size = pg_sz;
+-	map->refcount = 1;
++	map->track.refcount = 1;
+ 
+ 	list_add_tail_rcu(&map->list, &acpi_ioremaps);
+ 
+@@ -374,41 +377,46 @@ void *__ref acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+ 
++static void acpi_os_map_remove(struct acpi_ioremap *map)
++{
++	acpi_unmap(map->phys, map->virt);
++	kfree(map);
++}
++
++static void acpi_os_map_cleanup_deferred(struct work_struct *work)
++{
++	acpi_os_map_remove(container_of(to_rcu_work(work), struct acpi_ioremap,
++					track.rwork));
++}
++
+ /* Must be called with mutex_lock(&acpi_ioremap_lock) */
+-static unsigned long acpi_os_drop_map_ref(struct acpi_ioremap *map)
++static bool acpi_os_drop_map_ref(struct acpi_ioremap *map, bool defer)
+ {
+-	unsigned long refcount = --map->refcount;
++	if (--map->track.refcount)
++		return true;
+ 
+-	if (!refcount)
+-		list_del_rcu(&map->list);
+-	return refcount;
++	list_del_rcu(&map->list);
++
++	if (defer) {
++		INIT_RCU_WORK(&map->track.rwork, acpi_os_map_cleanup_deferred);
++		queue_rcu_work(system_wq, &map->track.rwork);
++	}
++	return defer;
+ }
+ 
+ static void acpi_os_map_cleanup(struct acpi_ioremap *map)
+ {
++	if (!map)
++		return;
++
+ 	synchronize_rcu_expedited();
+-	acpi_unmap(map->phys, map->virt);
+-	kfree(map);
++	acpi_os_map_remove(map);
+ }
+ 
+-/**
+- * acpi_os_unmap_iomem - Drop a memory mapping reference.
+- * @virt: Start of the address range to drop a reference to.
+- * @size: Size of the address range to drop a reference to.
+- *
+- * Look up the given virtual address range in the list of existing ACPI memory
+- * mappings, drop a reference to it and unmap it if there are no more active
+- * references to it.
+- *
+- * During early init (when acpi_permanent_mmap has not been set yet) this
+- * routine simply calls __acpi_unmap_table() to get the job done.  Since
+- * __acpi_unmap_table() is an __init function, the __ref annotation is needed
+- * here.
+- */
+-void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
++static void __ref __acpi_os_unmap_iomem(void __iomem *virt, acpi_size size,
++					bool defer)
+ {
+ 	struct acpi_ioremap *map;
+-	unsigned long refcount;
+ 
+ 	if (!acpi_permanent_mmap) {
+ 		__acpi_unmap_table(virt, size);
+@@ -416,23 +424,56 @@ void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
+ 	}
+ 
+ 	mutex_lock(&acpi_ioremap_lock);
++
+ 	map = acpi_map_lookup_virt(virt, size);
+ 	if (!map) {
+ 		mutex_unlock(&acpi_ioremap_lock);
+ 		WARN(true, PREFIX "%s: bad address %p\n", __func__, virt);
+ 		return;
+ 	}
+-	refcount = acpi_os_drop_map_ref(map);
++	if (acpi_os_drop_map_ref(map, defer))
++		map = NULL;
++
+ 	mutex_unlock(&acpi_ioremap_lock);
+ 
+-	if (!refcount)
+-		acpi_os_map_cleanup(map);
++	acpi_os_map_cleanup(map);
++}
++
++/**
++ * acpi_os_unmap_iomem - Drop a memory mapping reference.
++ * @virt: Start of the address range to drop a reference to.
++ * @size: Size of the address range to drop a reference to.
++ *
++ * Look up the given virtual address range in the list of existing ACPI memory
++ * mappings, drop a reference to it and unmap it if there are no more active
++ * references to it.
++ *
++ * During early init (when acpi_permanent_mmap has not been set yet) this
++ * routine simply calls __acpi_unmap_table() to get the job done.  Since
++ * __acpi_unmap_table() is an __init function, the __ref annotation is needed
++ * here.
++ */
++void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
++{
++	__acpi_os_unmap_iomem(virt, size, false);
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_iomem);
+ 
++/**
++ * acpi_os_unmap_memory - Drop a memory mapping reference.
++ * @virt: Start of the address range to drop a reference to.
++ * @size: Size of the address range to drop a reference to.
++ *
++ * Look up the given virtual address range in the list of existing ACPI memory
++ * mappings, drop a reference to it and if there are no more active references
++ * to it, put it in the list of unused memory mappings.
++ *
++ * During early init (when acpi_permanent_mmap has not been set yet) this
++ * routine behaves like acpi_os_unmap_iomem().
++ */
+ void __ref acpi_os_unmap_memory(void *virt, acpi_size size)
+ {
+-	return acpi_os_unmap_iomem((void __iomem *)virt, size);
++	__acpi_os_unmap_iomem((void __iomem *)virt, size, true);
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+ 
+@@ -461,7 +502,6 @@ void acpi_os_unmap_generic_address(struct acpi_generic_address *gas)
+ {
+ 	u64 addr;
+ 	struct acpi_ioremap *map;
+-	unsigned long refcount;
+ 
+ 	if (gas->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
+ 		return;
+@@ -472,16 +512,18 @@ void acpi_os_unmap_generic_address(struct acpi_generic_address *gas)
  		return;
  
- 	thermal_zone_device_update(tz->thermal_zone,
-@@ -534,8 +534,7 @@ static int thermal_get_mode(struct thermal_zone_device *thermal,
- 	if (!tz)
- 		return -EINVAL;
+ 	mutex_lock(&acpi_ioremap_lock);
++
+ 	map = acpi_map_lookup(addr, gas->bit_width / 8);
+ 	if (!map) {
+ 		mutex_unlock(&acpi_ioremap_lock);
+ 		return;
+ 	}
+-	refcount = acpi_os_drop_map_ref(map);
++	if (acpi_os_drop_map_ref(map, false))
++		map = NULL;
++
+ 	mutex_unlock(&acpi_ioremap_lock);
  
--	*mode = tz->tz_enabled ? THERMAL_DEVICE_ENABLED :
--		THERMAL_DEVICE_DISABLED;
-+	*mode = tz->mode;
- 
- 	return 0;
+-	if (!refcount)
+-		acpi_os_map_cleanup(map);
++	acpi_os_map_cleanup(map);
  }
-@@ -544,27 +543,25 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
- 				enum thermal_device_mode mode)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
--	int enable;
+ EXPORT_SYMBOL(acpi_os_unmap_generic_address);
  
- 	if (!tz)
- 		return -EINVAL;
- 
-+	if (mode != THERMAL_DEVICE_DISABLED &&
-+	    mode != THERMAL_DEVICE_ENABLED)
-+		return -EINVAL;
- 	/*
- 	 * enable/disable thermal management from ACPI thermal driver
- 	 */
--	if (mode == THERMAL_DEVICE_ENABLED)
--		enable = 1;
--	else if (mode == THERMAL_DEVICE_DISABLED) {
--		enable = 0;
-+	if (mode == THERMAL_DEVICE_DISABLED)
- 		pr_warn("thermal zone will be disabled\n");
--	} else
--		return -EINVAL;
- 
--	if (enable != tz->tz_enabled) {
--		tz->tz_enabled = enable;
-+	if (mode != tz->mode) {
-+		tz->mode = mode;
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			"%s kernel ACPI thermal control\n",
--			tz->tz_enabled ? "Enable" : "Disable"));
-+			tz->mode == THERMAL_DEVICE_ENABLED ?
-+			"Enable" : "Disable"));
- 		acpi_thermal_check(tz);
- 	}
- 	return 0;
-@@ -915,7 +912,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 		goto remove_dev_link;
- 	}
- 
--	tz->tz_enabled = 1;
-+	tz->mode = THERMAL_DEVICE_ENABLED;
- 
- 	dev_info(&tz->device->dev, "registered as thermal_zone%d\n",
- 		 tz->thermal_zone->id);
-diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-index 4df7609b4aa9..9d1030b1a4f4 100644
---- a/drivers/platform/x86/acerhdf.c
-+++ b/drivers/platform/x86/acerhdf.c
-@@ -68,6 +68,7 @@ static int kernelmode = 1;
- #else
- static int kernelmode;
- #endif
-+static enum thermal_device_mode thermal_mode;
- 
- static unsigned int interval = 10;
- static unsigned int fanon = 60000;
-@@ -397,6 +398,7 @@ static inline void acerhdf_revert_to_bios_mode(void)
- {
- 	acerhdf_change_fanstate(ACERHDF_FAN_AUTO);
- 	kernelmode = 0;
-+	thermal_mode = THERMAL_DEVICE_DISABLED;
- 	if (thz_dev)
- 		thz_dev->polling_delay = 0;
- 	pr_notice("kernel mode fan control OFF\n");
-@@ -404,6 +406,7 @@ static inline void acerhdf_revert_to_bios_mode(void)
- static inline void acerhdf_enable_kernelmode(void)
- {
- 	kernelmode = 1;
-+	thermal_mode = THERMAL_DEVICE_ENABLED;
- 
- 	thz_dev->polling_delay = interval*1000;
- 	thermal_zone_device_update(thz_dev, THERMAL_EVENT_UNSPECIFIED);
-@@ -416,8 +419,7 @@ static int acerhdf_get_mode(struct thermal_zone_device *thermal,
- 	if (verbose)
- 		pr_notice("kernel mode fan control %d\n", kernelmode);
- 
--	*mode = (kernelmode) ? THERMAL_DEVICE_ENABLED
--			     : THERMAL_DEVICE_DISABLED;
-+	*mode = thermal_mode;
- 
- 	return 0;
- }
-@@ -739,6 +741,8 @@ static int __init acerhdf_register_thermal(void)
- 	if (IS_ERR(cl_dev))
- 		return -EINVAL;
- 
-+	thermal_mode = kernelmode ?
-+		THERMAL_DEVICE_ENABLED : THERMAL_DEVICE_DISABLED;
- 	thz_dev = thermal_zone_device_register("acerhdf", 2, 0, NULL,
- 					      &acerhdf_dev_ops,
- 					      &acerhdf_zone_params, 0,
-diff --git a/drivers/thermal/intel/int340x_thermal/int3400_thermal.c b/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
-index 0b3a62655843..e84faaadff87 100644
---- a/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
-+++ b/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
-@@ -48,7 +48,7 @@ struct int3400_thermal_priv {
- 	struct acpi_device *adev;
- 	struct platform_device *pdev;
- 	struct thermal_zone_device *thermal;
--	int mode;
-+	enum thermal_device_mode mode;
- 	int art_count;
- 	struct art *arts;
- 	int trt_count;
-@@ -395,24 +395,20 @@ static int int3400_thermal_set_mode(struct thermal_zone_device *thermal,
- 				enum thermal_device_mode mode)
- {
- 	struct int3400_thermal_priv *priv = thermal->devdata;
--	bool enable;
- 	int result = 0;
- 
- 	if (!priv)
- 		return -EINVAL;
- 
--	if (mode == THERMAL_DEVICE_ENABLED)
--		enable = true;
--	else if (mode == THERMAL_DEVICE_DISABLED)
--		enable = false;
--	else
-+	if (mode != THERMAL_DEVICE_ENABLED &&
-+	    mode != THERMAL_DEVICE_DISABLED)
- 		return -EINVAL;
- 
--	if (enable != priv->mode) {
--		priv->mode = enable;
-+	if (mode != priv->mode) {
-+		priv->mode = mode;
- 		result = int3400_thermal_run_osc(priv->adev->handle,
--						 priv->current_uuid_index,
--						 enable);
-+						priv->current_uuid_index,
-+						mode == THERMAL_DEVICE_ENABLED);
- 	}
- 
- 	evaluate_odvp(priv);
 -- 
-2.17.1
+2.26.2
+
+
+
 
