@@ -2,160 +2,153 @@ Return-Path: <SRS0=VUYi=AK=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90737C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:08:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9185FC433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:13:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 708B3206F1
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:08:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593457701;
-	bh=yixfN7ccO44MqzgMpW3HYIsge8QklCebeIHvXKNdYHI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=Ahv+n8CfXc0nSkh/aoSrxl3RAx6kIu7IIPuH7heD8hOH6KWlG0rQjXos+Ry4EGgqd
-	 ox0uKgyKDZieiocFonu8UVUjH1Khgo5FK/drmU9H2qZnqbttF7HbCyIS+vIsHpSNEE
-	 fRCvye15UqkE9XllPWLh31/IjMJXryoenirUqshE=
+	by mail.kernel.org (Postfix) with ESMTP id 72D7D206E2
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Jun 2020 19:13:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=verdurent-com.20150623.gappssmtp.com header.i=@verdurent-com.20150623.gappssmtp.com header.b="ttB2j8Ew"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729389AbgF2TG1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Jun 2020 15:06:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41744 "EHLO
+        id S1731350AbgF2TNY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Jun 2020 15:13:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730525AbgF2TCn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2020 15:02:43 -0400
-Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com [IPv6:2607:f8b0:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45E39C02A54F;
-        Mon, 29 Jun 2020 06:02:47 -0700 (PDT)
-Received: by mail-ot1-x342.google.com with SMTP id n5so15423190otj.1;
-        Mon, 29 Jun 2020 06:02:47 -0700 (PDT)
+        with ESMTP id S1731316AbgF2TNT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2020 15:13:19 -0400
+Received: from mail-vs1-xe44.google.com (mail-vs1-xe44.google.com [IPv6:2607:f8b0:4864:20::e44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C78DBC09B059
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2020 00:20:02 -0700 (PDT)
+Received: by mail-vs1-xe44.google.com with SMTP id r5so8647755vso.11
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2020 00:20:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=verdurent-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=FLsjiHozNvDgrzZmIQ2WouKu5DGkcV6Zi4pLil1Ar3w=;
+        b=ttB2j8EwlPtN89bjJxgTu6zN6r9fAS6dOKjdEH5q5VgMNoawKPbasYLeO6Wib3Imiu
+         Txm/pUueF19FSodecKaZf3ZCJfrG2w/E1RbAWvWvaWLmozbRr0o+MyQ7Vxyu66mUVwFe
+         /MZk9rP3wex38QGJdlpG8PBJhrr5KQXRJnt7Ook8usx2iRD6oBwGhzP3MrMOF9jCbkfq
+         eSr9Kpja5TQMUcLHo5FvLvaFIOmhzprhE5iUWmMHkVkAKT40wuc3HhlD8Mu+pYd20+vk
+         8fp8IK3heEU6zqUmyhzEWQIjcRkJvNFJ8lZm1mu5e2bjNw9dQXVcD8D+oPj0s/f4WY+P
+         5OuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=7nlhWJJwNwhWkeMdSwXObsiOh2VHz3Q74vTd3L4F/E4=;
-        b=lGDfCfLqwyum+wheMtxLdsXH0kBg80MIs9SllgK3dlDn7I2Hoo8MoBDen1jtsdaAvs
-         pgcCEGXBUBtaIS6g5b1tZsw1sk0+/ATD9U+Yn1qMJ/E4dEi+kWcpGAZyTI/JCnzP0cRc
-         XR1RnL5PwpnVI7ezWGLTCFlRRzWZclbns1W2vNzY+EP0VjlwitiMDDLlxdivoa8i0ER4
-         6fJSfzPNOkaJ6CxzpdQQAlnd1Om2Z3fow1qjzQTqJvV6fOSfdPaajcdM/LKIi0B9Givj
-         X8Oa2kuKHAVLgvMMjsQS+2h+GiQD98GFYQEt2luBeMjlm1Ig8eQ18hWVa+eQhJIquOVd
-         eX6g==
-X-Gm-Message-State: AOAM530NYrlYHf+0nzK8xQoU7g74mUSKAppZEL68Ilkrfzdmrhh+AgcC
-        hHg4kOWniClj8vs4n6w9L/BXIw/RG7uE20dyiIBJUwjf
-X-Google-Smtp-Source: ABdhPJzIQwbdDVQsoe/mDFdG+UuqRokNsn9twuQiuHEM1ZLnII4nXYOarqbPDTLCqJLyUEpbS+m1QKmIfJ6D/m1WVN0=
-X-Received: by 2002:a9d:7d15:: with SMTP id v21mr12817982otn.118.1593435766462;
- Mon, 29 Jun 2020 06:02:46 -0700 (PDT)
+        bh=FLsjiHozNvDgrzZmIQ2WouKu5DGkcV6Zi4pLil1Ar3w=;
+        b=cXByrFJ1WfGapelLsQ2o8ZW3ko6W5wDnoGvWOfEnr8Me7DqzGmkMRQhXgyWmfM1fzV
+         Sr2j3Jj6Xq5ZIqISnnSgSXIx7LPsUDKBaRaKNHFr1mHtizMDooYir/9Qj3HZkVlNyTpI
+         990DBI5ALKi2kz77MFb9wSgpFrSuMcaNKSp8XJfz2gXvDCCB1/ArWn69oDXHH8gA7hO2
+         UVy0Q+IoZWuwFr5YTyTT6LZccMxeu4H8pf7GFL889nnb1+53py0i9zejAgH8bZvNJBNL
+         H8dC+tfIV96sFMP0GS5iu7sFuKSujeMBnEOWozVjv29rLlLwnqfzLo1N9pbmoznM0vgL
+         igkw==
+X-Gm-Message-State: AOAM532zEOTpFCo5vflDStf5SifOgwAO3d62wfbITUB8OyD9zPlSTTVC
+        8e5UUlLhSIySBa25eLcri/Ujs6A0duSOF8w3/ku1YQ==
+X-Google-Smtp-Source: ABdhPJw1dMYfsxBM8+BKZp4XBDpFgIheslKYpyoIyIHIog2rFo9mF/XWUJd4HbD/zb2zQFhnhGkGFwPawu8DZjqwdrU=
+X-Received: by 2002:a67:7f04:: with SMTP id a4mr5058336vsd.9.1593415201875;
+ Mon, 29 Jun 2020 00:20:01 -0700 (PDT)
 MIME-Version: 1.0
-References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com>
- <2713141.s8EVnczdoM@kreacher> <13749323.0m2ImmhSHx@kreacher> <MWHPR11MB1599FBA57730E5C74B9B4588F0930@MWHPR11MB1599.namprd11.prod.outlook.com>
-In-Reply-To: <MWHPR11MB1599FBA57730E5C74B9B4588F0930@MWHPR11MB1599.namprd11.prod.outlook.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 29 Jun 2020 15:02:31 +0200
-Message-ID: <CAJZ5v0iXzYVb6RAR9p2mH=RjSjo4c9g39T7uaccXMm6uoLWDzw@mail.gmail.com>
-Subject: Re: [RFT][PATCH v2 3/4] ACPICA: Preserve memory opregion mappings if
- supported by OS
-To:     "Kaneda, Erik" <erik.kaneda@intel.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        "Williams, Dan J" <dan.j.williams@intel.com>,
-        "Moore, Robert" <robert.moore@intel.com>,
-        "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>,
-        "Weiny, Ira" <ira.weiny@intel.com>,
-        James Morse <james.morse@arm.com>,
-        Myron Stowe <myron.stowe@redhat.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+References: <9cbffad6-69e4-0b33-4640-fde7c4f6a6e7@linaro.org>
+ <20200626173755.26379-1-andrzej.p@collabora.com> <20200626173755.26379-4-andrzej.p@collabora.com>
+In-Reply-To: <20200626173755.26379-4-andrzej.p@collabora.com>
+From:   Amit Kucheria <amit.kucheria@verdurent.com>
+Date:   Mon, 29 Jun 2020 12:49:51 +0530
+Message-ID: <CAHLCerNXcst72EDWf-xRTdUJ78jMDhhxpf31MO2WPgtJxzv6bA@mail.gmail.com>
+Subject: Re: [PATCH v5 03/11] thermal: Add current mode to thermal zone device
+To:     Andrzej Pietrasiewicz <andrzej.p@collabora.com>
+Cc:     Linux PM list <linux-pm@vger.kernel.org>,
+        linux-acpi@vger.kernel.org, netdev@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        lakml <linux-arm-kernel@lists.infradead.org>,
+        linux-renesas-soc@vger.kernel.org,
+        linux-rockchip@lists.infradead.org,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Vishal Kulkarni <vishal@chelsio.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Ido Schimmel <idosch@mellanox.com>,
+        Johannes Berg <johannes.berg@intel.com>,
+        Emmanuel Grumbach <emmanuel.grumbach@intel.com>,
+        Luca Coelho <luciano.coelho@intel.com>,
+        Intel Linux Wireless <linuxwifi@intel.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Peter Kaestle <peter@piie.net>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Sebastian Reichel <sre@kernel.org>,
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Support Opensource <support.opensource@diasemi.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang7@gmail.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Allison Randal <allison@lohutok.net>,
+        Enrico Weigelt <info@metux.net>,
+        Gayatri Kammela <gayatri.kammela@intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        kernel@collabora.com
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Jun 27, 2020 at 12:53 AM Kaneda, Erik <erik.kaneda@intel.com> wrote:
+On Fri, Jun 26, 2020 at 11:08 PM Andrzej Pietrasiewicz
+<andrzej.p@collabora.com> wrote:
 >
+> Prepare for changing the place where the mode is stored: now it is in
+> drivers, which might or might not implement get_mode()/set_mode() methods.
+> A lot of cleanup can be done thanks to storing it in struct tzd. The
+> get_mode() methods will become redundant.
 >
+> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@collabora.com>
+> Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+> Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+
+Reviewed-by: Amit Kucheria <amit.kucheria@linaro.org>
+
+
+> ---
+>  include/linux/thermal.h | 2 ++
+>  1 file changed, 2 insertions(+)
 >
-> > -----Original Message-----
-> > From: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > Sent: Monday, June 22, 2020 7:02 AM
-> > To: Williams, Dan J <dan.j.williams@intel.com>; Kaneda, Erik
-> > <erik.kaneda@intel.com>
-> > Cc: Wysocki, Rafael J <rafael.j.wysocki@intel.com>; Len Brown
-> > <lenb@kernel.org>; Borislav Petkov <bp@alien8.de>; Weiny, Ira
-> > <ira.weiny@intel.com>; James Morse <james.morse@arm.com>; Myron
-> > Stowe <myron.stowe@redhat.com>; Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com>; linux-kernel@vger.kernel.org; linux-
-> > acpi@vger.kernel.org; linux-nvdimm@lists.01.org; Moore, Robert
-> > <robert.moore@intel.com>
-> > Subject: [RFT][PATCH v2 3/4] ACPICA: Preserve memory opregion mappings
-> > if supported by OS
-> >
-> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> >
-> > The ACPICA's strategy with respect to the handling of memory mappings
-> > associated with memory operation regions is to avoid mapping the
-> > entire region at once which may be problematic at least in principle
-> > (for example, it may lead to conflicts with overlapping mappings
-> > having different attributes created by drivers).  It may also be
-> > wasteful, because memory opregions on some systems take up vast
-> > chunks of address space while the fields in those regions actually
-> > accessed by AML are sparsely distributed.
-> >
-> > For this reason, a one-page "window" is mapped for a given opregion
-> > on the first memory access through it and if that "window" does not
-> > cover an address range accessed through that opregion subsequently,
-> > it is unmapped and a new "window" is mapped to replace it.  Next,
-> > if the new "window" is not sufficient to access memory through the
-> > opregion in question in the future, it will be replaced with yet
-> > another "window" and so on.  That may lead to a suboptimal sequence
-> > of memory mapping and unmapping operations, for example if two fields
-> > in one opregion separated from each other by a sufficiently wide
-> > chunk of unused address space are accessed in an alternating pattern.
-> >
-> > The situation may still be suboptimal if the deferred unmapping
-> > introduced previously is supported by the OS layer.  For instance,
-> > the alternating memory access pattern mentioned above may produce
-> > a relatively long list of mappings to release with substantial
-> > duplication among the entries in it, which could be avoided if
-> > acpi_ex_system_memory_space_handler() did not release the mapping
-> > used by it previously as soon as the current access was not covered
-> > by it.
-> >
-> > In order to improve that, modify acpi_ex_system_memory_space_handler()
-> > to take advantage of the memory mappings reference counting at the OS
-> > level if a suitable interface is provided.
-> >
-> Hi,
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 216185bb3014..5f91d7f04512 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -128,6 +128,7 @@ struct thermal_cooling_device {
+>   * @trip_temp_attrs:   attributes for trip points for sysfs: trip temperature
+>   * @trip_type_attrs:   attributes for trip points for sysfs: trip type
+>   * @trip_hyst_attrs:   attributes for trip points for sysfs: trip hysteresis
+> + * @mode:              current mode of this thermal zone
+>   * @devdata:   private pointer for device private data
+>   * @trips:     number of trip points the thermal zone supports
+>   * @trips_disabled;    bitmap for disabled trips
+> @@ -170,6 +171,7 @@ struct thermal_zone_device {
+>         struct thermal_attr *trip_temp_attrs;
+>         struct thermal_attr *trip_type_attrs;
+>         struct thermal_attr *trip_hyst_attrs;
+> +       enum thermal_device_mode mode;
+>         void *devdata;
+>         int trips;
+>         unsigned long trips_disabled;   /* bitmap for disabled trips */
+> --
+> 2.17.1
 >
-> > Namely, if ACPI_USE_FAST_PATH_MAPPING is set, the OS is expected to
-> > implement acpi_os_map_memory_fast_path() that will return NULL if
-> > there is no mapping covering the given address range known to it.
-> > If such a mapping is there, however, its reference counter will be
-> > incremented and a pointer representing the requested virtual address
-> > will be returned right away without any additional consequences.
->
-> I do not fully understand why this is under a #ifdef. Is this to support operating systems that might not want to add support for this behavior?
-
-Yes, and to protect the ones that have not added support for it just yet.
-
-Without the "fast-path" mapping support, ACPICA has no way to obtain
-additional references to known-existing mappings and the new code
-won't work as expected without it, so it is better to avoid building
-that code at all in those cases IMO.
-
-> Also, instead of using the terminology fast_path, I think it would be easier to use terminology that describes the mechanism..
-> It might be easier for other Operating systems to understand something like acpi_os_map_preserved_memory or acpi_os_map_sysmem_opregion_memory.
-
-Well, the naming is not particularly important to me to be honest, but
-this is mostly about being able to get a new reference to a
-known-existing memory mapping.
-
-So something like acpi_os_ref_memory_map() perhaps?
-
-But I'm thinking that this can be implemented without the "fast-path"
-mapping support too, let me try to do that.
-
-Cheers!
