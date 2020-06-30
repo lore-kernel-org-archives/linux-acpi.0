@@ -2,160 +2,136 @@ Return-Path: <SRS0=JTIW=AL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
+	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E05C433DF
-	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jun 2020 03:06:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D78C433E6
+	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jun 2020 04:49:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C118206C3
-	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jun 2020 03:06:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63EF3207FB
+	for <linux-acpi@archiver.kernel.org>; Tue, 30 Jun 2020 04:49:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="EmhVGqKj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728925AbgF3DGt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Jun 2020 23:06:49 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6883 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728686AbgF3DGt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 29 Jun 2020 23:06:49 -0400
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id D42CA454729246FBD81E;
-        Tue, 30 Jun 2020 11:06:46 +0800 (CST)
-Received: from [127.0.0.1] (10.174.179.33) by DGGEMS408-HUB.china.huawei.com
- (10.3.19.208) with Microsoft SMTP Server id 14.3.487.0; Tue, 30 Jun 2020
- 11:06:43 +0800
-Subject: Re: [PATCH v2 01/12] ACPI/IORT: Make iort_match_node_callback walk
- the ACPI namespace for NC
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-CC:     <linux-arm-kernel@lists.infradead.org>,
-        Will Deacon <will@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        <iommu@lists.linux-foundation.org>, <linux-acpi@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
+        id S1729429AbgF3Et5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 30 Jun 2020 00:49:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48860 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729468AbgF3Et4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2020 00:49:56 -0400
+Received: from mail-qt1-x849.google.com (mail-qt1-x849.google.com [IPv6:2607:f8b0:4864:20::849])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57994C061755
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2020 21:49:56 -0700 (PDT)
+Received: by mail-qt1-x849.google.com with SMTP id l26so13710227qtr.14
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2020 21:49:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=1pgr6KaNRkuRhLLKbqD3ulE84r9BXBrKXG+wTgasJBs=;
+        b=EmhVGqKj1hxcynFazVyM9BBAatcEV5Glfv6IolcJAU+WZt80BhCC7S95uetkKS69rG
+         moLJ6mFVxETH0uu9E5a71IdGi1EO4Jhlu5hsB7433iTczY02C02gemnhGbY2HbNsmeK9
+         p89uUnKxxwP9D13BCKNLWLjQu3I1+cvnyQpwfOIonoAfzeqNwq8mWanYN1hfu7UVEnqu
+         7AVkwFxIC+IhNltLvEX3U89fGJ3pMmvPsScLgILybybvho+KO8QYE5NqN/pAWR+OXe8w
+         GvuFxrbWomAp5dLYDnySp6VAEjs1FyccCG1hfRZ3TOXSnaYyLVsaVOXiMQes4cgLhzF1
+         WihQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=1pgr6KaNRkuRhLLKbqD3ulE84r9BXBrKXG+wTgasJBs=;
+        b=pyqXBaNYP2aJ1zk/sz9+erHjKyC2GBMi9WXgq8apkGpF37XmgqrijFPuDCmVM4vro0
+         OZ6SzAQNqT4pTyl+oU48GIdEQbI3DoHFztzWV4p5SltbZJBw8nx9n6A8kX4L4soZg4GW
+         F8KuVhBaGkBDYJKbeHYM5ohmsVev7JuNBc80MZ4nECI1B/mA3I4Kp5Ud9UULXHOy/hhC
+         kmPMkps54bxAWWLtAXt5xM398ygcp6mJUO0k2JX08IAJG8gI8L0yW0EJ5eZ2J79+BJeL
+         AtpCbshZiRFA8/7IEx2fwLHKnkEk+rtA+gOUm1Qu2y2K8pl4nYZ1uTK7r/EYm9OM66TB
+         +kFA==
+X-Gm-Message-State: AOAM530e0tgus1tHMELjTXKHlOIAofqPM/DehHlThHaOslpnZmVOvzSe
+        hV4M7IACThUwnSeVyx1CftddxplptdFv
+X-Google-Smtp-Source: ABdhPJxPqRsEUkTJy7xBvIqn4j64tLwwndWDL29Mu8/+Z31HqzfgXJZ/paNZUVBIuCrmANpGN0BjB5/3u/Zp
+X-Received: by 2002:a05:6214:18f2:: with SMTP id ep18mr7665592qvb.96.1593492595480;
+ Mon, 29 Jun 2020 21:49:55 -0700 (PDT)
+Date:   Mon, 29 Jun 2020 21:49:40 -0700
+In-Reply-To: <20200630044943.3425049-1-rajatja@google.com>
+Message-Id: <20200630044943.3425049-5-rajatja@google.com>
+Mime-Version: 1.0
+References: <20200630044943.3425049-1-rajatja@google.com>
+X-Mailer: git-send-email 2.27.0.212.ge8ba1cc988-goog
+Subject: [PATCH v2 4/7] PCI: Add device even if driver attach failed
+From:   Rajat Jain <rajatja@google.com>
+To:     David Woodhouse <dwmw2@infradead.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
         Joerg Roedel <joro@8bytes.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Makarand Pawagi <makarand.pawagi@nxp.com>,
-        Diana Craciun <diana.craciun@oss.nxp.com>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>
-References: <20200521130008.8266-1-lorenzo.pieralisi@arm.com>
- <20200619082013.13661-1-lorenzo.pieralisi@arm.com>
- <20200619082013.13661-2-lorenzo.pieralisi@arm.com>
- <718cae1f-2f33-f6d9-f278-157300b73116@huawei.com>
- <20200629090551.GA28873@e121166-lin.cambridge.arm.com>
-From:   Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <765078e7-b3ec-af5d-0405-7834ba0f120a@huawei.com>
-Date:   Tue, 30 Jun 2020 11:06:41 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
-MIME-Version: 1.0
-In-Reply-To: <20200629090551.GA28873@e121166-lin.cambridge.arm.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.179.33]
-X-CFilter-Loop: Reflected
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, iommu@lists.linux-foundation.org,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, Raj Ashok <ashok.raj@intel.com>,
+        lalithambika.krishnakumar@intel.com,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Prashant Malani <pmalani@google.com>,
+        Benson Leung <bleung@google.com>,
+        Todd Broch <tbroch@google.com>,
+        Alex Levin <levinale@google.com>,
+        Mattias Nissler <mnissler@google.com>,
+        Rajat Jain <rajatxjain@gmail.com>,
+        Bernie Keany <bernie.keany@intel.com>,
+        Aaron Durbin <adurbin@google.com>,
+        Diego Rivas <diegorivas@google.com>,
+        Duncan Laurie <dlaurie@google.com>,
+        Furquan Shaikh <furquan@google.com>,
+        Jesse Barnes <jsbarnes@google.com>,
+        Christian Kellner <christian@kellner.me>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        oohall@gmail.com, Saravana Kannan <saravanak@google.com>,
+        Suzuki K Poulose <suzuki.poulose@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     Rajat Jain <rajatja@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2020/6/29 17:05, Lorenzo Pieralisi wrote:
-> On Mon, Jun 29, 2020 at 12:24:43PM +0800, Hanjun Guo wrote:
->> Hi Lorenzo,
->>
->> On 2020/6/19 16:20, Lorenzo Pieralisi wrote:
->>> When the iort_match_node_callback is invoked for a named component
->>> the match should be executed upon a device with an ACPI companion.
->>>
->>> For devices with no ACPI companion set-up the ACPI device tree must be
->>> walked in order to find the first parent node with a companion set and
->>> check the parent node against the named component entry to check whether
->>> there is a match and therefore an IORT node describing the in/out ID
->>> translation for the device has been found.
->>>
->>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>> Cc: Will Deacon <will@kernel.org>
->>> Cc: Hanjun Guo <guohanjun@huawei.com>
->>> Cc: Sudeep Holla <sudeep.holla@arm.com>
->>> Cc: Catalin Marinas <catalin.marinas@arm.com>
->>> Cc: Robin Murphy <robin.murphy@arm.com>
->>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>> ---
->>>    drivers/acpi/arm64/iort.c | 20 ++++++++++++++++++--
->>>    1 file changed, 18 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->>> index 28a6b387e80e..5eee81758184 100644
->>> --- a/drivers/acpi/arm64/iort.c
->>> +++ b/drivers/acpi/arm64/iort.c
->>> @@ -264,15 +264,31 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
->>>    	if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT) {
->>>    		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
->>> -		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
->>> +		struct acpi_device *adev;
->>>    		struct acpi_iort_named_component *ncomp;
->>> +		struct device *nc_dev = dev;
->>> +
->>> +		/*
->>> +		 * Walk the device tree to find a device with an
->>> +		 * ACPI companion; there is no point in scanning
->>> +		 * IORT for a device matching a named component if
->>> +		 * the device does not have an ACPI companion to
->>> +		 * start with.
->>> +		 */
->>> +		do {
->>> +			adev = ACPI_COMPANION(nc_dev);
->>> +			if (adev)
->>> +				break;
->>> +
->>> +			nc_dev = nc_dev->parent;
->>> +		} while (nc_dev);
->>
->> I'm lost here, we need the ACPI_COMPANION (the same as
->> to_acpi_device_node()) of the device, but why do we need to go
->> up to find the parent node?
-> 
-> For devices that aren't described in the DSDT - IORT translations
-> are determined by their ACPI parent device. Do you see/Have you
-> found any issue with this approach ?
+device_attach() returning failure indicates a driver error while trying to
+probe the device. In such a scenario, the PCI device should still be added
+in the system and be visible to the user.
 
-The spec says "Describes the IO relationships between devices
-represented in the ACPI namespace.", and in section 3.1.1.3 Named
-component node, it says:
+This patch partially reverts:
+commit ab1a187bba5c ("PCI: Check device_attach() return value always")
 
-"Named component nodes are used to describe devices that are also
-included in the Differentiated System Description Table (DSDT). See
-[ACPI]."
+Signed-off-by: Rajat Jain <rajatja@google.com>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+v2: Cosmetic change in commit log.
+    Add Greg's "reviewed-by"
 
-So from my understanding, the IORT spec for now, can only do ID
-translations for devices in the DSDT.
+ drivers/pci/bus.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-> 
->> For a platform device, if I use its parent's full path name for
->> its named component entry, then it will match, but this will violate
->> the IORT spec.
-> 
-> Can you elaborate on this please I don't get the point you
-> are making.
-
-For example, device A is not described in DSDT so can't represent
-as a NC node in IORT. Device B can be described in DSDT and it
-is the parent of device A, so device B can be represented in IORT
-with memory access properties and node flags with Substream width
-and Stall supported info.
-
-When we trying to translate device A's ID, we reuse all the memory
-access properties and node flags from its parent (device B), but
-will it the same?
-
-So the IORT spec don't support this, at least it's pretty vague
-I think.
-
-Thanks
-Hanjun
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index 8e40b3e6da77d..3cef835b375fd 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -322,12 +322,8 @@ void pci_bus_add_device(struct pci_dev *dev)
+ 
+ 	dev->match_driver = true;
+ 	retval = device_attach(&dev->dev);
+-	if (retval < 0 && retval != -EPROBE_DEFER) {
++	if (retval < 0 && retval != -EPROBE_DEFER)
+ 		pci_warn(dev, "device attach failed (%d)\n", retval);
+-		pci_proc_detach_device(dev);
+-		pci_remove_sysfs_dev_files(dev);
+-		return;
+-	}
+ 
+ 	pci_dev_assign_added(dev, true);
+ }
+-- 
+2.27.0.212.ge8ba1cc988-goog
 
