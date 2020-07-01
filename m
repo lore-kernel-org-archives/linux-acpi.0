@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33DE5C433E1
-	for <linux-acpi@archiver.kernel.org>; Wed,  1 Jul 2020 10:23:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E74FC433E0
+	for <linux-acpi@archiver.kernel.org>; Wed,  1 Jul 2020 10:28:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13F512067D
-	for <linux-acpi@archiver.kernel.org>; Wed,  1 Jul 2020 10:23:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6FE52067D
+	for <linux-acpi@archiver.kernel.org>; Wed,  1 Jul 2020 10:28:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Hv3t7+iu"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F640izKj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729905AbgGAKXo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 1 Jul 2020 06:23:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40620 "EHLO
+        id S1729822AbgGAK17 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 1 Jul 2020 06:27:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729781AbgGAKXm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2020 06:23:42 -0400
-Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D919C061755;
-        Wed,  1 Jul 2020 03:23:42 -0700 (PDT)
-Received: by mail-pg1-x543.google.com with SMTP id j19so4628361pgm.11;
-        Wed, 01 Jul 2020 03:23:42 -0700 (PDT)
+        with ESMTP id S1729683AbgGAK16 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2020 06:27:58 -0400
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23E93C061755;
+        Wed,  1 Jul 2020 03:27:58 -0700 (PDT)
+Received: by mail-pf1-x442.google.com with SMTP id 207so10628659pfu.3;
+        Wed, 01 Jul 2020 03:27:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=XlyOreYcq7l3PbaTN7d7mPxu6E5D6MEe46NhFAGwU6E=;
-        b=Hv3t7+iuMbkQLI/nvjRpT8LkUq23BXDfCK9qAIxtbwGDzsm27zbq6qFP8dofmINNVe
-         KKEPgdIceIfx7gsmAn9SQi/UUWWKZwo+DjvYnn7/5C/yeLCJ4rDPgPvBJfNwFOHtybxZ
-         XShxPE39LUaQ0fRe+ahUp/yn+IsriZJWpvw/9w3gERmxozRAsmpNZ08kwK2xvxaGyxww
-         zwmwlgsv5JLPoyBmDm04n5BQajIAgjboGLr/SD63PycmODS6rwb3g/sVbYWCED4Ng9IO
-         /x16kmrkmBt1s2drY7QFf1odm1rfgVMyZMWDNHAZHPlKx/MwA773XfFMnXtFDeTAz3xg
-         jIHg==
+        bh=m3FZxDrlLt48LmtqU4CU5m/XuCUHORmhZRpZzXJKt1c=;
+        b=F640izKjqUNFfwPYQodt/bdItFy5xb3UYVBMO+wQyVBhRzFY6FTSR1/wjdawZlsdOF
+         uwqSjtvxrvZQrjISy88NsGRrFSAqF8r8qk1D6Cx047QUUxU8AaUF+5EoW/ZodwfNH0Rv
+         oaEcs7F9b6LEGPC21F8PatjRXvNVrIA/OFywxfuoPllg/wPGWh1egNkfLVPm9bJgg5Hm
+         YrWNoTef2d7X2RP/jUrdO63vYRJKwkIvTc1W3V8ycuiz8ypXojiDluMEGuT6vS6IPQN3
+         WyIgwQAvou/CIvRiN/y02zqPY8YN3ppcL9XAfdC0vS4MnfW48JAM2XSSnDM5Lu2mqbzl
+         hB7A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=XlyOreYcq7l3PbaTN7d7mPxu6E5D6MEe46NhFAGwU6E=;
-        b=bSsiEBq/FH0eDw1jWgWm3mXIdrt10hlvKSAhbLzX1QHtyL2y0Yz5f2Udn6YaNfOoOn
-         yHWw3kSY9Og6lor6oTxTaiFU7dZNW4byIu9aA3Ohv9I6UZ3ZRe+E8aW3a6WYqZ1kvn7W
-         L6aZ2ui4zDgFaB5AA15Vlas3NvgR9yRx4ZAIeYxFFUNQatqLNBGN2d4udGfIk6IOqoI3
-         J/YIRgoVo/e9i3ph5OvKiifMjgbfB9LKOIPB51emuWNHGgOMChMPDPb6QpRpARH/9/RN
-         Sx54NBFSB+y61GMuHlB0z9GPR8oUAvoaioexEwwk7GkEBB+HOcFA8nhFURqUICRm4mpp
-         yYNQ==
-X-Gm-Message-State: AOAM531KnMLMttqt2QsfmzYWKaGkmTPUAEIrx9CZuCOiwRmxx8zpHjQa
-        CuHxS3P/3MuNh8+BCrtj0aqLM1Zg+bIERBYlK3M=
-X-Google-Smtp-Source: ABdhPJx0SLfaSW02C8p6MHec9QZP/GgouZWuLhNL6jXiQPupAa6Coi1OYPtqiFf5YIPDoIvWF5rcwi96zputH6jNHgQ=
-X-Received: by 2002:a63:a05f:: with SMTP id u31mr13486486pgn.4.1593599021934;
- Wed, 01 Jul 2020 03:23:41 -0700 (PDT)
+        bh=m3FZxDrlLt48LmtqU4CU5m/XuCUHORmhZRpZzXJKt1c=;
+        b=sZBY63nJJGos73vBJ+R0saH9pK7kfGU+6rdftdlj4GPtY+GBcMik6FcBcW7RWpDOLN
+         4ohd/Y07Zq5Q09JLTDjQGptXkqwHw4b7IoZxJU8PWEWGUe8HQgV2Mg2lp4wis7+nBVUU
+         FXzpnCRNye19HHlPRw0MBUtWyGN/nB8/WhLSl2A2WGoF5JgYId/g5ZsiFhGPhSEI9Pp6
+         DhXydhObcPXTB1ZjC/p8ajwF6RJCKIheumyR3JhbPpp+707pyaZqFkZkYESLy5c0JqW/
+         dGSiLqLeU3zHR9shYlMxj5Tklo6FHGVXePdNT+OhMRMak51b4lmBAZm/2jtp3gnE2gy5
+         m4nw==
+X-Gm-Message-State: AOAM5332kfB440ygVNfRVpV6iJd47AacEz4QSR9QYnkhdVblA/RkJxn7
+        lroQVCMUFnNxcdlcB1ThfeWS/os68SElypLC+IA=
+X-Google-Smtp-Source: ABdhPJwEM2tn83JW4KiTR3vh672XMQ7bxMrQqVOpB9OU+4kR2m5bq4L4a4iK+7TUI0oFW8gFMQKq7VKddB3VE3QbFqA=
+X-Received: by 2002:a63:a05f:: with SMTP id u31mr13499247pgn.4.1593599277215;
+ Wed, 01 Jul 2020 03:27:57 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200701061233.31120-1-calvin.johnson@oss.nxp.com> <20200701061233.31120-2-calvin.johnson@oss.nxp.com>
-In-Reply-To: <20200701061233.31120-2-calvin.johnson@oss.nxp.com>
+References: <20200701061233.31120-1-calvin.johnson@oss.nxp.com> <20200701061233.31120-3-calvin.johnson@oss.nxp.com>
+In-Reply-To: <20200701061233.31120-3-calvin.johnson@oss.nxp.com>
 From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Wed, 1 Jul 2020 13:23:28 +0300
-Message-ID: <CAHp75VdhuPsx0Kz8=NHxf6KtC0ff9oJWkSMEdNsLeMznEGLnqQ@mail.gmail.com>
-Subject: Re: [net-next PATCH v2 1/3] net: phy: introduce find_phy_device()
+Date:   Wed, 1 Jul 2020 13:27:43 +0300
+Message-ID: <CAHp75VfxpogiUhiwGDaj3wT5BN7U4s9coMd3Rw10zX=sxSn6Lg@mail.gmail.com>
+Subject: Re: [net-next PATCH v2 2/3] Documentation: ACPI: DSD: Document MDIO PHY
 To:     Calvin Johnson <calvin.johnson@oss.nxp.com>
 Cc:     Jeremy Linton <jeremy.linton@arm.com>,
         Russell King - ARM Linux admin <linux@armlinux.org.uk>,
@@ -71,9 +71,8 @@ Cc:     Jeremy Linton <jeremy.linton@arm.com>,
         Madalin Bucur <madalin.bucur@oss.nxp.com>,
         netdev <netdev@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux.cj@gmail.com, "David S. Miller" <davem@davemloft.net>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
+        linux.cj@gmail.com, Len Brown <lenb@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
@@ -84,39 +83,27 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 On Wed, Jul 1, 2020 at 9:13 AM Calvin Johnson
 <calvin.johnson@oss.nxp.com> wrote:
 >
-> The PHYs on a mdiobus are probed and registered using mdiobus_register().
-> Later, for connecting these PHYs to MAC, the PHYs registered on the
-> mdiobus have to be referenced.
+> Introduce ACPI mechanism to get PHYs registered on a MDIO bus and
+> provide them to be connected to MAC.
 >
-> For each MAC node, a property "mdio-handle" is used to reference the
-> MDIO bus on which the PHYs are registered. On getting hold of the MDIO
-> bus, use find_phy_device() to get the PHY connected to the MAC.
+> An ACPI node property "mdio-handle" is introduced to reference the
+> MDIO bus on which PHYs are registered with autoprobing method used
+> by mdiobus_register().
 
 ...
 
-> +       struct platform_device *pdev;
+> +                    Package (2) {"mdio-handle", Package (){\_SB.MDI0}}
 
-This...
+Reference as a package? Hmm... Is it really possible to have more than
+one handle here?
 
-> +       fwnode_mdio = fwnode_find_reference(fwnode, "mdio-handle", 0);
-> +       dev = bus_find_device_by_fwnode(&platform_bus_type, fwnode_mdio);
+...
 
-> +       if (IS_ERR_OR_NULL(dev))
+> +                   Package (2) {"phy-channel", 2},
+> +                   Package (2) {"phy-mode", "rgmii-id"},
+> +                   Package (2) {"mdio-handle", Package (){\_SB.MDI0}}
 
-IS_ERR()?!
-
-> +               return NULL;
-
-> +       pdev =  to_platform_device(dev);
-> +       mdio = platform_get_drvdata(pdev);
-
-...and this can be simple:
-
-mdio = dev_get_drvdata(dev);
-
-> +       err = fwnode_property_read_u32(fwnode, "phy-channel", &addr);
-> +       if (err < 0 || addr < 0 || addr >= PHY_MAX_ADDR)
-> +               return NULL;
+And drop all these 2s. They are counted automatically by `iasl`.
 
 -- 
 With Best Regards,
