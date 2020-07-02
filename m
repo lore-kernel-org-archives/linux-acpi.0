@@ -2,139 +2,99 @@ Return-Path: <SRS0=Mx2k=AN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF02AC433E0
-	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jul 2020 09:35:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3AA7C433E0
+	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jul 2020 12:17:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7F362075D
-	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jul 2020 09:35:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TVEnUSpK"
+	by mail.kernel.org (Postfix) with ESMTP id 7E41920772
+	for <linux-acpi@archiver.kernel.org>; Thu,  2 Jul 2020 12:17:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727847AbgGBJfG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 2 Jul 2020 05:35:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58156 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726475AbgGBJfG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2020 05:35:06 -0400
-Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com [IPv6:2607:f8b0:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDB95C08C5C1;
-        Thu,  2 Jul 2020 02:35:05 -0700 (PDT)
-Received: by mail-pf1-x444.google.com with SMTP id 67so8230319pfg.5;
-        Thu, 02 Jul 2020 02:35:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=1MSOyhRxeOlZZV64ERgtop/oxnrPChw5nLGPyTva4Vo=;
-        b=TVEnUSpK1abcjZ10U2QydBOOnzNT5Wgz11XhjEaZmJNpQo5VNiuwzY07xp477pR1mb
-         h3WadbpIkM2HrXm8eTkP9nvzYDcoXLRPJLLaw8pFw0Sn9dRdDlU3SiauVqTK3uNg/4cs
-         8uVyrWW3EwKuPNxmCjxlVSzbxVKU+kq8AiqewqwiDuD8+JGVoIArG8tJRFogHNf0v0JL
-         EfWSq+Rt7LshYeYoOmSWcFnz7fqddRiAzR9k+RvQDg0pYRkaDLfHRna+xW7CnZTfihhG
-         lQ/1JIPrPdJX3hBNOxN8gNw3fv6bCnZIv+crKfssoIWD/e2fqTi1zNuE5o0RHcDnE2/l
-         Xu2A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=1MSOyhRxeOlZZV64ERgtop/oxnrPChw5nLGPyTva4Vo=;
-        b=lSfnlhqPEVlg9uLl5Z+Nq+oPOR9mCLkd5Ns/SckG7eEdp7d3iJZsrmUdzJcWMPy0jb
-         u0AIBJxgMvQP04tEsauGoOkzad/DEKviLPLhQd59r0sb6HO2KXc5ENQ+73cuqlXVawFn
-         ZJUv3NmT8mY/6K9J8ewFdrY0m4F3704jvI0EZxpECoQ7hxvkNcfrkQaAUZn5z8X4YsAG
-         yjGbndgFPrBsVMXusPsbkY8zInpabmlEJcUz2Byh7BOtcLiq9x7Q906cVPCm6XoNPNpM
-         MHIcuah9H/t2JXLK3sP9PHcR2eoUFDcN3wKeMDr+XXBo7RpXf2mKGO0QZ69pMtq0o+WG
-         JWew==
-X-Gm-Message-State: AOAM5301/ni9QIbhamdJO+avjEZci1DBDi0EHbJeMeZvcOaWhS0gNC/W
-        jyBE29TldZK27kSHN/cmwF8XcSGOsRusD9qEmpw=
-X-Google-Smtp-Source: ABdhPJx+aVzkyyxLXExp4j2eKsWyN8fDRmTvCNbRTsS3OPkewUF1d8RWW+Ai+/aGfbaAdni+2CmOVnGZq4Bi2mFIHYc=
-X-Received: by 2002:aa7:8bcb:: with SMTP id s11mr14668987pfd.170.1593682505328;
- Thu, 02 Jul 2020 02:35:05 -0700 (PDT)
+        id S1728861AbgGBMRk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 2 Jul 2020 08:17:40 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:51610 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728730AbgGBMRj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2020 08:17:39 -0400
+Received: from 89-64-84-242.dynamic.chello.pl (89.64.84.242) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.415)
+ id 6d37b7b0716e4b45; Thu, 2 Jul 2020 14:17:37 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Bob Moore <robert.moore@intel.com>,
+        Len Brown <len.brown@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dan Williams <dan.j.williams.korg@gmail.com>
+Subject: [PATCH 3/3] ACPI: OSL: Clean up the removal of unused memory mappings
+Date:   Thu, 02 Jul 2020 14:14:05 +0200
+Message-ID: <3982287.opqQOJBojm@kreacher>
+In-Reply-To: <22474080.3crLlKV2y5@kreacher>
+References: <22474080.3crLlKV2y5@kreacher>
 MIME-Version: 1.0
-References: <20200701061233.31120-1-calvin.johnson@oss.nxp.com>
- <20200701061233.31120-4-calvin.johnson@oss.nxp.com> <VI1PR0402MB387145B3181911668E024264E06D0@VI1PR0402MB3871.eurprd04.prod.outlook.com>
-In-Reply-To: <VI1PR0402MB387145B3181911668E024264E06D0@VI1PR0402MB3871.eurprd04.prod.outlook.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 2 Jul 2020 12:34:48 +0300
-Message-ID: <CAHp75VeFBOwN92XKJRZfpJn23bY4CGKxQCCn9n_krwxXtAdtLA@mail.gmail.com>
-Subject: Re: [net-next PATCH v2 3/3] net: dpaa2-mac: Add ACPI support for
- DPAA2 MAC driver
-To:     Ioana Ciornei <ioana.ciornei@nxp.com>
-Cc:     "Calvin Johnson (OSS)" <calvin.johnson@oss.nxp.com>,
-        Jeremy Linton <jeremy.linton@arm.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Jon <jon@solid-run.com>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        "Madalin Bucur (OSS)" <madalin.bucur@oss.nxp.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux.cj@gmail.com" <linux.cj@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Ioana Ciocoi Radulescu <ruxandra.radulescu@nxp.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jul 2, 2020 at 11:48 AM Ioana Ciornei <ioana.ciornei@nxp.com> wrote:
->
-> > Subject: [net-next PATCH v2 3/3] net: dpaa2-mac: Add ACPI support for DPAA2
-> > MAC driver
-> >
-> > Modify dpaa2_mac_connect() to support ACPI along with DT.
-> > Modify dpaa2_mac_get_node() to get the dpmac fwnode from either DT or
-> > ACPI.
-> > Replace of_get_phy_mode with fwnode_get_phy_mode to get phy-mode for a
-> > dpmac_node.
-> > Define and use helper function find_phy_device() to find phy_dev that is later
-> > connected to mac->phylink.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-...
+Fold acpi_os_map_cleanup_deferred() into acpi_os_map_remove() and
+pass the latter to INIT_RCU_WORK() in acpi_os_drop_map_ref() to make
+the code more straightforward.
 
-> > -     while ((dpmac = of_get_next_child(dpmacs, dpmac)) != NULL) {
-> > -             err = of_property_read_u32(dpmac, "reg", &id);
-> > -             if (err)
-> > -                     continue;
-> > -             if (id == dpmac_id)
-> > -                     break;
-> > +     if (is_of_node(fsl_mc_fwnode)) {
-> > +             dpmacs = device_get_named_child_node(fsl_mc, "dpmacs");
-> > +             if (!dpmacs)
-> > +                     return NULL;
-> > +
-> > +             while ((dpmac = fwnode_get_next_child_node(dpmacs,
-> > dpmac))) {
-> > +                     err = fwnode_property_read_u32(dpmac, "reg", &id);
-> > +                     if (err)
-> > +                             continue;
-> > +                     if (id == dpmac_id)
-> > +                             return dpmac;
-> > +             }
-> > +     } else if (is_acpi_node(fsl_mc_fwnode)) {
-> > +             adev = acpi_find_child_device(ACPI_COMPANION(dev->parent),
-> > +                                           dpmac_id, false);
-> > +             if (adev)
-> > +                     return (&adev->fwnode);
-> >       }
-> > -
-> > -     of_node_put(dpmacs);
-> > -
->
-> This of_node_put() on the 'dpmacs'  node still needs to happen for the OF case.
+No intentional functional impact.
 
-Actually this also raises the question if ACPI case increases refcount
-or not and it should be fixed accordingly (Note, we have to take
-reference to fwnode before return in ACPI case and drop reference to
-adev).
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/osl.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 816d9f8ac6b6..6ad8cb05f672 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -377,18 +377,16 @@ void *__ref acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+ 
+-static void acpi_os_map_remove(struct acpi_ioremap *map)
++static void acpi_os_map_remove(struct work_struct *work)
+ {
++	struct acpi_ioremap *map = container_of(to_rcu_work(work),
++						struct acpi_ioremap,
++						track.rwork);
++
+ 	acpi_unmap(map->phys, map->virt);
+ 	kfree(map);
+ }
+ 
+-static void acpi_os_map_cleanup_deferred(struct work_struct *work)
+-{
+-	acpi_os_map_remove(container_of(to_rcu_work(work), struct acpi_ioremap,
+-					track.rwork));
+-}
+-
+ /* Must be called with mutex_lock(&acpi_ioremap_lock) */
+ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+ {
+@@ -397,7 +395,7 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+ 
+ 	list_del_rcu(&map->list);
+ 
+-	INIT_RCU_WORK(&map->track.rwork, acpi_os_map_cleanup_deferred);
++	INIT_RCU_WORK(&map->track.rwork, acpi_os_map_remove);
+ 	queue_rcu_work(system_wq, &map->track.rwork);
+ }
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.26.2
+
+
+
+
