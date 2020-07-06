@@ -2,85 +2,176 @@ Return-Path: <SRS0=wzlJ=AR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB6BCC433E0
-	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 17:09:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79897C433E1
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 18:20:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C96BB21582
-	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 17:09:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6119A206E2
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 18:20:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729478AbgGFRJv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 6 Jul 2020 13:09:51 -0400
-Received: from foss.arm.com ([217.140.110.172]:57132 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729386AbgGFRJv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Jul 2020 13:09:51 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9A05D1FB;
-        Mon,  6 Jul 2020 10:09:50 -0700 (PDT)
-Received: from arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 301E33F68F;
-        Mon,  6 Jul 2020 10:09:49 -0700 (PDT)
-Date:   Mon, 6 Jul 2020 18:09:47 +0100
-From:   Dave Martin <Dave.Martin@arm.com>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        linux-doc@vger.kernel.org,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>,
-        Will Deacon <will@kernel.org>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 3/3] Documentation: arm64/sve: drop duplicate words
-Message-ID: <20200706170946.GF10992@arm.com>
-References: <20200703205110.29873-1-rdunlap@infradead.org>
- <20200703205110.29873-4-rdunlap@infradead.org>
+        id S1729750AbgGFSUA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 6 Jul 2020 14:20:00 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:62126 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729703AbgGFST7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2020 14:19:59 -0400
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 066I24f4003185;
+        Mon, 6 Jul 2020 14:19:56 -0400
+Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 3248udrkqy-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 06 Jul 2020 14:19:56 -0400
+Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
+        by ppma04dal.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 066IEBZC013337;
+        Mon, 6 Jul 2020 18:19:56 GMT
+Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
+        by ppma04dal.us.ibm.com with ESMTP id 322hd8nvfn-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 06 Jul 2020 18:19:56 +0000
+Received: from b01ledav003.gho.pok.ibm.com (b01ledav003.gho.pok.ibm.com [9.57.199.108])
+        by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 066IJtsg36503916
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 6 Jul 2020 18:19:55 GMT
+Received: from b01ledav003.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 5FA36B2066;
+        Mon,  6 Jul 2020 18:19:55 +0000 (GMT)
+Received: from b01ledav003.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 4744EB2067;
+        Mon,  6 Jul 2020 18:19:55 +0000 (GMT)
+Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
+        by b01ledav003.gho.pok.ibm.com (Postfix) with ESMTP;
+        Mon,  6 Jul 2020 18:19:55 +0000 (GMT)
+From:   Stefan Berger <stefanb@linux.vnet.ibm.com>
+To:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
+        jarkko.sakkinen@linux.intel.com, linux-acpi@vger.kernel.org,
+        linux-security-module@vger.kernel.org
+Cc:     Stefan Berger <stefanb@linux.ibm.com>
+Subject: [PATCH v9 2/2] tpm: Add support for event log pointer found in TPM2 ACPI table
+Date:   Mon,  6 Jul 2020 14:19:53 -0400
+Message-Id: <20200706181953.3592084-3-stefanb@linux.vnet.ibm.com>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200706181953.3592084-1-stefanb@linux.vnet.ibm.com>
+References: <20200706181953.3592084-1-stefanb@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200703205110.29873-4-rdunlap@infradead.org>
-User-Agent: Mutt/1.5.23 (2014-03-12)
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-07-06_15:2020-07-06,2020-07-06 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 phishscore=0
+ adultscore=0 spamscore=0 lowpriorityscore=0 priorityscore=1501
+ malwarescore=0 clxscore=1015 cotscore=-2147483648 mlxscore=0
+ impostorscore=0 mlxlogscore=999 bulkscore=0 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2007060123
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jul 03, 2020 at 01:51:10PM -0700, Randy Dunlap wrote:
-> Drop the doubled word "for".
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: linux-doc@vger.kernel.org
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: Dave Martin <Dave.Martin@arm.com>
+From: Stefan Berger <stefanb@linux.ibm.com>
 
-Thanks!
+In case a TPM2 is attached, search for a TPM2 ACPI table when trying
+to get the event log from ACPI. If one is found, use it to get the
+start and length of the log area. This allows non-UEFI systems, such
+as SeaBIOS, to pass an event log when using a TPM2.
 
-Acked-by: Dave Martin <Dave.Martin@arm.com>
+Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+---
+ drivers/char/tpm/eventlog/acpi.c | 63 +++++++++++++++++++++-----------
+ 1 file changed, 42 insertions(+), 21 deletions(-)
 
-> ---
->  Documentation/arm64/sve.rst |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- linux-next-20200701.orig/Documentation/arm64/sve.rst
-> +++ linux-next-20200701/Documentation/arm64/sve.rst
-> @@ -494,7 +494,7 @@ Appendix B.  ARMv8-A FP/SIMD programmer'
->  Note: This section is for information only and not intended to be complete or
->  to replace any architectural specification.
->  
-> -Refer to [4] for for more information.
-> +Refer to [4] for more information.
->  
->  ARMv8-A defines the following floating-point / SIMD register state:
->  
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+diff --git a/drivers/char/tpm/eventlog/acpi.c b/drivers/char/tpm/eventlog/acpi.c
+index 63ada5e53f13..3633ed70f48f 100644
+--- a/drivers/char/tpm/eventlog/acpi.c
++++ b/drivers/char/tpm/eventlog/acpi.c
+@@ -49,9 +49,9 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
+ 	void __iomem *virt;
+ 	u64 len, start;
+ 	struct tpm_bios_log *log;
+-
+-	if (chip->flags & TPM_CHIP_FLAG_TPM2)
+-		return -ENODEV;
++	struct acpi_table_tpm2 *tbl;
++	struct acpi_tpm2_phy *tpm2_phy;
++	int format;
+ 
+ 	log = &chip->log;
+ 
+@@ -61,23 +61,44 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
+ 	if (!chip->acpi_dev_handle)
+ 		return -ENODEV;
+ 
+-	/* Find TCPA entry in RSDT (ACPI_LOGICAL_ADDRESSING) */
+-	status = acpi_get_table(ACPI_SIG_TCPA, 1,
+-				(struct acpi_table_header **)&buff);
+-
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	switch(buff->platform_class) {
+-	case BIOS_SERVER:
+-		len = buff->server.log_max_len;
+-		start = buff->server.log_start_addr;
+-		break;
+-	case BIOS_CLIENT:
+-	default:
+-		len = buff->client.log_max_len;
+-		start = buff->client.log_start_addr;
+-		break;
++	if (chip->flags & TPM_CHIP_FLAG_TPM2) {
++		status = acpi_get_table("TPM2", 1,
++					(struct acpi_table_header **)&tbl);
++		if (ACPI_FAILURE(status))
++			return -ENODEV;
++
++		if (tbl->header.length <
++				sizeof(*tbl) + sizeof(struct acpi_tpm2_phy))
++			return -ENODEV;
++
++		tpm2_phy = (void *)tbl + sizeof(*tbl);
++		len = tpm2_phy->log_area_minimum_length;
++
++		start = tpm2_phy->log_area_start_address;
++		if (!start || !len)
++			return -ENODEV;
++
++		format = EFI_TCG2_EVENT_LOG_FORMAT_TCG_2;
++	} else {
++		/* Find TCPA entry in RSDT (ACPI_LOGICAL_ADDRESSING) */
++		status = acpi_get_table(ACPI_SIG_TCPA, 1,
++					(struct acpi_table_header **)&buff);
++		if (ACPI_FAILURE(status))
++			return -ENODEV;
++
++		switch (buff->platform_class) {
++		case BIOS_SERVER:
++			len = buff->server.log_max_len;
++			start = buff->server.log_start_addr;
++			break;
++		case BIOS_CLIENT:
++		default:
++			len = buff->client.log_max_len;
++			start = buff->client.log_start_addr;
++			break;
++		}
++
++		format = EFI_TCG2_EVENT_LOG_FORMAT_TCG_1_2;
+ 	}
+ 	if (!len) {
+ 		dev_warn(&chip->dev, "%s: TCPA log area empty\n", __func__);
+@@ -98,7 +119,7 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
+ 	memcpy_fromio(log->bios_event_log, virt, len);
+ 
+ 	acpi_os_unmap_iomem(virt, len);
+-	return EFI_TCG2_EVENT_LOG_FORMAT_TCG_1_2;
++	return format;
+ 
+ err:
+ 	kfree(log->bios_event_log);
+-- 
+2.26.2
+
