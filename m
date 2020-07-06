@@ -1,112 +1,131 @@
-Return-Path: <SRS0=97Wi=AM=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=wzlJ=AR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FBA2C433E0
-	for <linux-acpi@archiver.kernel.org>; Wed,  1 Jul 2020 07:29:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32F9BC433DF
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 18:48:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38D8A206A1
-	for <linux-acpi@archiver.kernel.org>; Wed,  1 Jul 2020 07:29:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="fi0aXQP+"
+	by mail.kernel.org (Postfix) with ESMTP id 11581207BB
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 18:48:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1594061337;
+	bh=TmzFSzpXz/IVyxhzyFOMQr63SdCmzzt9hF2zFcEfusA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=I0/40Anx97rcZllCt+vgo227+aozTHSNQUoj+0FzzGbm2cHzvb/fPS666sKX+LPq3
+	 pLBC3Rfq9VSEHuA+8IXppbZeVUQJhmHJVkwyvDZ6V5UM8NJZlLVAszpbsHk+d60+dn
+	 5027LC6dxJWJ4aBYC0MZc64rT2jOuW1RiYGkAA+4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728203AbgGAH3o (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 1 Jul 2020 03:29:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41526 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727981AbgGAH3o (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2020 03:29:44 -0400
-Received: from hillosipuli.retiisi.org.uk (hillosipuli.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::81:2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47CB2C061755;
-        Wed,  1 Jul 2020 00:29:44 -0700 (PDT)
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::80:2])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 7BFAD634C87;
-        Wed,  1 Jul 2020 10:29:26 +0300 (EEST)
-Authentication-Results: hillosipuli.retiisi.org.uk;
-        dkim=pass (1024-bit key; unprotected) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="fi0aXQP+";
-        dkim-atps=neutral
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.92)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1jqXBO-0000nn-Hl; Wed, 01 Jul 2020 10:29:26 +0300
-Received: from javiela.iki.fi (javiela.iki.fi [185.185.170.41])
+        id S1729745AbgGFSs4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 6 Jul 2020 14:48:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42452 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729569AbgGFSs4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Jul 2020 14:48:56 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 6E168634C89
-        for <sakke+iki@retiisi.org.uk>; Wed,  1 Jul 2020 09:21:45 +0300 (EEST)
-Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [213.167.242.64])
-        by javiela.iki.fi (8.15.2/8.15.2) with ESMTPS id 0616LvcW000268
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO)
-        for <sakari.ailus@iki.fi>; Wed, 1 Jul 2020 09:21:59 +0300 (EEST)
-Received: from pendragon.bb.dnainternet.fi (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id F118455B;
-        Wed,  1 Jul 2020 08:21:51 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1593584512;
-        bh=/+m3Ksh55Q3cNYCFz7Xh4xcWcjcp+zge4slRCex/PDQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fi0aXQP+EX4/FIhBmj2gx0bZQ9pClNeI7Coa7Qfjx5c/kpCB1TxVE1z/BdzrQEX8w
-         XwAXoYfVbkEM0lo/EC0Uj0Rt3aqAcMC741AoEOXBzSfQIFPWjUAzTsepargsO+pwKI
-         E/7n7odtylH0YQnoM4T0D+HCqKkynpZDWzcw2tFI=
-From:   Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To:     linux-media@vger.kernel.org
-Cc:     linux-renesas-soc@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v4 1/4] device property: Add a function to test is a fwnode is a graph endpoint
-Date:   Wed,  1 Jul 2020 09:21:37 +0300
-Message-Id: <20200701062140.12953-2-laurent.pinchart+renesas@ideasonboard.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200701062140.12953-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20200701062140.12953-1-laurent.pinchart+renesas@ideasonboard.com>
+        by mail.kernel.org (Postfix) with ESMTPSA id 44B6A20773;
+        Mon,  6 Jul 2020 18:48:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1594061336;
+        bh=TmzFSzpXz/IVyxhzyFOMQr63SdCmzzt9hF2zFcEfusA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=T+FtnLgdUY+221uDBs5Ha8exDMqail3b7n8Jia7lbUoHBH/GyyUX5isSnxbdpDMfl
+         mVA69kh3JU6+46LL4UY7kQ3nrwbAPSFmEZtZE9KDoUTV9TdouG4oB4qeEehE9HG4mH
+         LXwLsGTCgO/ih+UHSnsrlItO5tNGvguXMDwGK2tk=
+Date:   Mon, 6 Jul 2020 20:48:55 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     Rajat Jain <rajatja@google.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        Joerg Roedel <joro@8bytes.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, iommu@lists.linux-foundation.org,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, Raj Ashok <ashok.raj@intel.com>,
+        lalithambika.krishnakumar@intel.com,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Prashant Malani <pmalani@google.com>,
+        Benson Leung <bleung@google.com>,
+        Todd Broch <tbroch@google.com>,
+        Alex Levin <levinale@google.com>,
+        Mattias Nissler <mnissler@google.com>,
+        Rajat Jain <rajatxjain@gmail.com>,
+        Bernie Keany <bernie.keany@intel.com>,
+        Aaron Durbin <adurbin@google.com>,
+        Diego Rivas <diegorivas@google.com>,
+        Duncan Laurie <dlaurie@google.com>,
+        Furquan Shaikh <furquan@google.com>,
+        Jesse Barnes <jsbarnes@google.com>,
+        Christian Kellner <christian@kellner.me>,
+        Alex Williamson <alex.williamson@redhat.com>, oohall@gmail.com,
+        Saravana Kannan <saravanak@google.com>,
+        Suzuki K Poulose <suzuki.poulose@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v2 2/7] PCI: Set "untrusted" flag for truly external
+ devices only
+Message-ID: <20200706184855.GA2335741@kroah.com>
+References: <20200630075554.GA619174@kroah.com>
+ <20200706164126.GA124329@bjorn-Precision-5520>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200706164126.GA124329@bjorn-Precision-5520>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Drivers may need to test if a fwnode is a graph endpoint. To avoid
-hand-written solutions that wouldn't work for all fwnode types, add a
-new fwnode_graph_is_endpoint() function for this purpose. We don't need
-to wire it up to different backends for OF and ACPI for now, as the
-implementation can simply be based on checkout the presence of a
-remote-endpoint property.
+On Mon, Jul 06, 2020 at 11:41:26AM -0500, Bjorn Helgaas wrote:
+> On Tue, Jun 30, 2020 at 09:55:54AM +0200, Greg Kroah-Hartman wrote:
+> > On Mon, Jun 29, 2020 at 09:49:38PM -0700, Rajat Jain wrote:
+> > > The "ExternalFacing" devices (root ports) are still internal devices that
+> > > sit on the internal system fabric and thus trusted. Currently they were
+> > > being marked untrusted.
+> > > 
+> > > This patch uses the platform flag to identify the external facing devices
+> > > and then use it to mark any downstream devices as "untrusted". The
+> > > external-facing devices themselves are left as "trusted". This was
+> > > discussed here: https://lkml.org/lkml/2020/6/10/1049
+> > 
+> > {sigh}
+> > 
+> > First off, please use lore.kernel.org links, we don't control lkml.org
+> > and it often times has been down.
+> > 
+> > Also, you need to put all of the information in the changelog, referring
+> > to another place isn't always the best thing, considering you will be
+> > looking this up in 20+ years to try to figure out why people came up
+> > with such a crazy design.
+> > 
+> > But, the main point is, no, we did not decide on this.  "trust" is a
+> > policy decision to make by userspace, it is independant of "location",
+> > while you are tieing it directly here, which is what I explicitly said
+> > NOT to do.
+> > 
+> > So again, no, I will NAK this patch as-is, sorry, you are mixing things
+> > together in a way that it should not do at this point in time.
+> 
+> What do you see being mixed together here?  I acknowledge that the
+> name of "pdev->untrusted" is probably a mistake.  But this patch
+> doesn't change anything there.  It only changes the treatment of the
+> edge case of the "ExternalFacing" ports.  Previously we treated them
+> as being external themselves, which does seem wrong.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- include/linux/property.h | 5 +++++
- 1 file changed, 5 insertions(+)
+I don't see the patch here, and it's been a while but I think there is a
+mixture of "location" and "trust" happening here with a single value
+when they should be separate.
 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 10d03572f52e..9f805c442819 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -389,6 +389,11 @@ struct fwnode_handle *
- fwnode_graph_get_remote_node(const struct fwnode_handle *fwnode, u32 port,
- 			     u32 endpoint);
- 
-+static inline bool fwnode_graph_is_endpoint(struct fwnode_handle *fwnode)
-+{
-+	return fwnode_property_present(fwnode, "remote-endpoint");
-+}
-+
- /*
-  * Fwnode lookup flags
-  *
--- 
-Regards,
+Hopefully the next round of this patch series will be better.
 
-Laurent Pinchart
+thanks,
 
+greg k-h
