@@ -2,102 +2,187 @@ Return-Path: <SRS0=wzlJ=AR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03079C433E2
-	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 23:57:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B820C433DF
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 23:58:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CEFA420823
-	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 23:57:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LvDFxApz"
+	by mail.kernel.org (Postfix) with ESMTP id 242F120823
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Jul 2020 23:58:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726799AbgGFX5f (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 6 Jul 2020 19:57:35 -0400
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:55040 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726805AbgGFX5e (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2020 19:57:34 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1594079853;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=5h/pRXHkSxEq61rxonlUns+UKJmDH2+YzkyLNI3P18c=;
-        b=LvDFxApzmWvOyKgwYQIy2znvnixcw2o1OiwUDvNdElewoPbTSHwygw+VBJoIMnZ/sFFwjY
-        sFnGa7uITwFjgNUCS29ENT7GCxAOGymGpX3fFBEnr5zRlq3RN+rxwMgdhMGlZXL8l2+2xF
-        6ZqRg6/2xK+0g+NpJ3u3bgYBWtxodK4=
-Received: from mail-qv1-f71.google.com (mail-qv1-f71.google.com
- [209.85.219.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-176-ybEuIc_FNNe00iPwPIjeuQ-1; Mon, 06 Jul 2020 19:57:31 -0400
-X-MC-Unique: ybEuIc_FNNe00iPwPIjeuQ-1
-Received: by mail-qv1-f71.google.com with SMTP id m8so8391268qvv.10
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Jul 2020 16:57:31 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:references:user-agent:from:to:cc:subject
-         :in-reply-to:date:message-id:mime-version;
-        bh=5h/pRXHkSxEq61rxonlUns+UKJmDH2+YzkyLNI3P18c=;
-        b=GVbgZhAcuQnmqLQVTdKMJYAES7VFLUDnEhJHPuEcXOpm+pVTf954KeMNPzLMBDrd75
-         psHH4Pjxjlhw1P4rPXhwykxI9GoQsC5TEX5TG/olGjEB3KEfOjWzJfBxa5PXbZdQLb/O
-         2+NF34gtC5dMeSYZqgL9PBRs65lJrtJabkby6U01I12PiPs35rFgpT/YZgXgflZyZesw
-         ohF4CdoAEjow2qc+3YYNVeEK546v7plYbCZ0o4ln6otiu8p6OXGOfitbbDqsePCLvjDg
-         LYjeo6N9ENpzgltPHmObw/pZ9L6F8xxvjl2xV9BqmU2K4W1/n/n4PM9s5q1sUv+Ky8kY
-         8qZw==
-X-Gm-Message-State: AOAM532lnx83d6S9anKIl0lxHAoPdEAhvgjN66xXPdYn2hJd9PhzpRIc
-        oulJ0zzNQVLYDTrdeWTY7HGBR5HZkSQFBXU9t15HCbx8kcaMe59oq/A+sDo0LZeGiYEmhDMRfdw
-        SvXIb0vz+GmNPMVF6SOc1tg==
-X-Received: by 2002:a37:a253:: with SMTP id l80mr49623333qke.197.1594079851023;
-        Mon, 06 Jul 2020 16:57:31 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJxr5SZNidI4OJoMWzUXi9Xjl/T41/3YcOx+9xtlh2k1eoNc3KkVBOU6fOs9TEw6tHZ9F9ixxA==
-X-Received: by 2002:a37:a253:: with SMTP id l80mr49623312qke.197.1594079850724;
-        Mon, 06 Jul 2020 16:57:30 -0700 (PDT)
-Received: from localhost (ip70-163-223-149.ph.ph.cox.net. [70.163.223.149])
-        by smtp.gmail.com with ESMTPSA id g41sm25799385qtb.37.2020.07.06.16.57.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jul 2020 16:57:30 -0700 (PDT)
-References: <20200706181953.3592084-1-stefanb@linux.vnet.ibm.com> <20200706181953.3592084-3-stefanb@linux.vnet.ibm.com> <20200706230914.GC20770@linux.intel.com>
-User-agent: mu4e 1.4.10; emacs 26.3
-From:   Jerry Snitselaar <jsnitsel@redhat.com>
-To:     Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc:     Stefan Berger <stefanb@linux.vnet.ibm.com>,
-        linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        Stefan Berger <stefanb@linux.ibm.com>
-Subject: Re: [PATCH v9 2/2] tpm: Add support for event log pointer found in TPM2 ACPI table
-In-reply-to: <20200706230914.GC20770@linux.intel.com>
-Date:   Mon, 06 Jul 2020 16:57:28 -0700
-Message-ID: <87mu4cjixj.fsf@redhat.com>
+        id S1727058AbgGFX6L (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 6 Jul 2020 19:58:11 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:63890 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727064AbgGFX6L (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2020 19:58:11 -0400
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 066NXb8K018437;
+        Mon, 6 Jul 2020 19:58:10 -0400
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 324bpmb4wv-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 06 Jul 2020 19:58:10 -0400
+Received: from m0098410.ppops.net (m0098410.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 066NjLuA054619;
+        Mon, 6 Jul 2020 19:58:10 -0400
+Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 324bpmb4wh-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 06 Jul 2020 19:58:10 -0400
+Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
+        by ppma01wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 066NsQut002704;
+        Mon, 6 Jul 2020 23:58:09 GMT
+Received: from b01cxnp22033.gho.pok.ibm.com (b01cxnp22033.gho.pok.ibm.com [9.57.198.23])
+        by ppma01wdc.us.ibm.com with ESMTP id 322hd8be0p-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 06 Jul 2020 23:58:09 +0000
+Received: from b01ledav006.gho.pok.ibm.com (b01ledav006.gho.pok.ibm.com [9.57.199.111])
+        by b01cxnp22033.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 066Nw88C45351226
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 6 Jul 2020 23:58:08 GMT
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 8B8D4AC05E;
+        Mon,  6 Jul 2020 23:58:08 +0000 (GMT)
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 73791AC059;
+        Mon,  6 Jul 2020 23:58:08 +0000 (GMT)
+Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
+        by b01ledav006.gho.pok.ibm.com (Postfix) with ESMTP;
+        Mon,  6 Jul 2020 23:58:08 +0000 (GMT)
+From:   Stefan Berger <stefanb@linux.vnet.ibm.com>
+To:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
+        jarkko.sakkinen@linux.intel.com, linux-acpi@vger.kernel.org,
+        linux-security-module@vger.kernel.org
+Cc:     Stefan Berger <stefanb@linux.ibm.com>,
+        Jerry Snitselaar <jsnitsel@redhat.com>,
+        Peter Huewe <peterhuewe@gmx.de>, Jason Gunthorpe <jgg@ziepe.ca>
+Subject: [RESEND,PATCH v9 2/2] tpm: Add support for event log pointer found in TPM2 ACPI table
+Date:   Mon,  6 Jul 2020 19:58:07 -0400
+Message-Id: <20200706235807.3915586-3-stefanb@linux.vnet.ibm.com>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200706235807.3915586-1-stefanb@linux.vnet.ibm.com>
+References: <20200706235807.3915586-1-stefanb@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-07-06_20:2020-07-06,2020-07-06 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 adultscore=0
+ suspectscore=0 bulkscore=0 clxscore=1015 cotscore=-2147483648 spamscore=0
+ priorityscore=1501 malwarescore=0 mlxscore=0 impostorscore=0 phishscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2004280000 definitions=main-2007060163
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+From: Stefan Berger <stefanb@linux.ibm.com>
 
-Jarkko Sakkinen @ 2020-07-06 16:09 MST:
+In case a TPM2 is attached, search for a TPM2 ACPI table when trying
+to get the event log from ACPI. If one is found, use it to get the
+start and length of the log area. This allows non-UEFI systems, such
+as SeaBIOS, to pass an event log when using a TPM2.
 
-> On Mon, Jul 06, 2020 at 02:19:53PM -0400, Stefan Berger wrote:
->> From: Stefan Berger <stefanb@linux.ibm.com>
->> 
->> In case a TPM2 is attached, search for a TPM2 ACPI table when trying
->> to get the event log from ACPI. If one is found, use it to get the
->> start and length of the log area. This allows non-UEFI systems, such
->> as SeaBIOS, to pass an event log when using a TPM2.
->> 
->> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
->
-> Do you think that QEMU with TPM 1.2 emulator turned on would be a viable
-> way to test this?
->
-> I'm anyway more worried about breaking existing TPM 1.2 functionality
-> and that requires only QEMU without extras.
->
-> /Jarkko
+Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+Reviewed-by: Jerry Snitselaar <jsnitsel@redhat.com>
+Cc: Peter Huewe <peterhuewe@gmx.de>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+---
+ drivers/char/tpm/eventlog/acpi.c | 63 +++++++++++++++++++++-----------
+ 1 file changed, 42 insertions(+), 21 deletions(-)
 
-The 1.2 bits should be functionally the same as before, right?
+diff --git a/drivers/char/tpm/eventlog/acpi.c b/drivers/char/tpm/eventlog/acpi.c
+index 63ada5e53f13..3633ed70f48f 100644
+--- a/drivers/char/tpm/eventlog/acpi.c
++++ b/drivers/char/tpm/eventlog/acpi.c
+@@ -49,9 +49,9 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
+ 	void __iomem *virt;
+ 	u64 len, start;
+ 	struct tpm_bios_log *log;
+-
+-	if (chip->flags & TPM_CHIP_FLAG_TPM2)
+-		return -ENODEV;
++	struct acpi_table_tpm2 *tbl;
++	struct acpi_tpm2_phy *tpm2_phy;
++	int format;
+ 
+ 	log = &chip->log;
+ 
+@@ -61,23 +61,44 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
+ 	if (!chip->acpi_dev_handle)
+ 		return -ENODEV;
+ 
+-	/* Find TCPA entry in RSDT (ACPI_LOGICAL_ADDRESSING) */
+-	status = acpi_get_table(ACPI_SIG_TCPA, 1,
+-				(struct acpi_table_header **)&buff);
+-
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	switch(buff->platform_class) {
+-	case BIOS_SERVER:
+-		len = buff->server.log_max_len;
+-		start = buff->server.log_start_addr;
+-		break;
+-	case BIOS_CLIENT:
+-	default:
+-		len = buff->client.log_max_len;
+-		start = buff->client.log_start_addr;
+-		break;
++	if (chip->flags & TPM_CHIP_FLAG_TPM2) {
++		status = acpi_get_table("TPM2", 1,
++					(struct acpi_table_header **)&tbl);
++		if (ACPI_FAILURE(status))
++			return -ENODEV;
++
++		if (tbl->header.length <
++				sizeof(*tbl) + sizeof(struct acpi_tpm2_phy))
++			return -ENODEV;
++
++		tpm2_phy = (void *)tbl + sizeof(*tbl);
++		len = tpm2_phy->log_area_minimum_length;
++
++		start = tpm2_phy->log_area_start_address;
++		if (!start || !len)
++			return -ENODEV;
++
++		format = EFI_TCG2_EVENT_LOG_FORMAT_TCG_2;
++	} else {
++		/* Find TCPA entry in RSDT (ACPI_LOGICAL_ADDRESSING) */
++		status = acpi_get_table(ACPI_SIG_TCPA, 1,
++					(struct acpi_table_header **)&buff);
++		if (ACPI_FAILURE(status))
++			return -ENODEV;
++
++		switch (buff->platform_class) {
++		case BIOS_SERVER:
++			len = buff->server.log_max_len;
++			start = buff->server.log_start_addr;
++			break;
++		case BIOS_CLIENT:
++		default:
++			len = buff->client.log_max_len;
++			start = buff->client.log_start_addr;
++			break;
++		}
++
++		format = EFI_TCG2_EVENT_LOG_FORMAT_TCG_1_2;
+ 	}
+ 	if (!len) {
+ 		dev_warn(&chip->dev, "%s: TCPA log area empty\n", __func__);
+@@ -98,7 +119,7 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
+ 	memcpy_fromio(log->bios_event_log, virt, len);
+ 
+ 	acpi_os_unmap_iomem(virt, len);
+-	return EFI_TCG2_EVENT_LOG_FORMAT_TCG_1_2;
++	return format;
+ 
+ err:
+ 	kfree(log->bios_event_log);
+-- 
+2.26.2
 
