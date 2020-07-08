@@ -2,163 +2,131 @@ Return-Path: <SRS0=HTVb=AT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0058C433DF
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jul 2020 11:39:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 204F0C433DF
+	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jul 2020 14:08:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5DE2204EC
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jul 2020 11:39:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03B5420720
+	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jul 2020 14:08:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728782AbgGHLjN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 8 Jul 2020 07:39:13 -0400
-Received: from lhrrgout.huawei.com ([185.176.76.210]:2441 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728757AbgGHLjN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 8 Jul 2020 07:39:13 -0400
-Received: from lhreml710-chm.china.huawei.com (unknown [172.18.7.108])
-        by Forcepoint Email with ESMTP id 62AB1B2622949C802037;
-        Wed,  8 Jul 2020 12:39:12 +0100 (IST)
-Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
- lhreml710-chm.china.huawei.com (10.201.108.61) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1913.5; Wed, 8 Jul 2020 12:39:12 +0100
-From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To:     <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-CC:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@arm.com>, <linuxarm@huawei.com>,
-        Tejun Heo <tj@kernel.org>,
-        Barry Song <song.bao.hua@hisilicon.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH] arm64: numa: rightsize the distance array
-Date:   Wed, 8 Jul 2020 19:38:25 +0800
-Message-ID: <20200708113825.1429671-1-Jonathan.Cameron@huawei.com>
-X-Mailer: git-send-email 2.19.1
+        id S1729482AbgGHOH7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 8 Jul 2020 10:07:59 -0400
+Received: from mga02.intel.com ([134.134.136.20]:29263 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728148AbgGHOH7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 8 Jul 2020 10:07:59 -0400
+IronPort-SDR: vmTDpWZTKkevxrFqlxBi71OawkZWrQcoY5aa5uOdxWccq+6D4Aln8z6653tDb3O7L6R5tNplUh
+ wGfeIyUoSg7Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9675"; a="136027091"
+X-IronPort-AV: E=Sophos;i="5.75,327,1589266800"; 
+   d="scan'208";a="136027091"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2020 07:07:58 -0700
+IronPort-SDR: /qeY/VuRKlFc+ez7PhFZz0m79tIeqkwYka6UISwhCTNiQf7Gl2A6cfELVsSKoz0gWSZGV6g9YT
+ eOPFAZnugEmA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,327,1589266800"; 
+   d="scan'208";a="283807420"
+Received: from jschirra-mobl.ger.corp.intel.com (HELO localhost) ([10.249.47.201])
+  by orsmga006.jf.intel.com with ESMTP; 08 Jul 2020 07:07:55 -0700
+Date:   Wed, 8 Jul 2020 17:07:53 +0300
+From:   Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To:     Stefan Berger <stefanb@linux.ibm.com>
+Cc:     Stefan Berger <stefanb@linux.vnet.ibm.com>,
+        linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-security-module@vger.kernel.org
+Subject: Re: [PATCH v9 2/2] tpm: Add support for event log pointer found in
+ TPM2 ACPI table
+Message-ID: <20200708140753.GC538949@linux.intel.com>
+References: <20200706181953.3592084-1-stefanb@linux.vnet.ibm.com>
+ <20200706181953.3592084-3-stefanb@linux.vnet.ibm.com>
+ <20200706230914.GC20770@linux.intel.com>
+ <78ec872f-89b3-6464-6ede-bd0a46fe5c4c@linux.ibm.com>
+ <20200707022416.GC112019@linux.intel.com>
+ <f3e0fb50-8617-da40-1456-158531a070cb@linux.ibm.com>
+ <20200707040325.GB143804@linux.intel.com>
+ <85c27199-df55-eecc-855c-dedcea64f89e@linux.ibm.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.41.22]
-X-ClientProxiedBy: lhreml720-chm.china.huawei.com (10.201.108.71) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <85c27199-df55-eecc-855c-dedcea64f89e@linux.ibm.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Unfortunately we are currently calling numa_alloc_distance well before we call
-setup_node_to_cpu_mask_map means that nr_node_ids is set to MAX_NUMNODES.
-This wastes a bit of memory and is confusing to the reader.
+On Tue, Jul 07, 2020 at 12:09:11AM -0400, Stefan Berger wrote:
+> On 7/7/20 12:03 AM, Jarkko Sakkinen wrote:
+> > On Mon, Jul 06, 2020 at 11:08:12PM -0400, Stefan Berger wrote:
+> > > On 7/6/20 10:24 PM, Jarkko Sakkinen wrote:
+> > > > On Mon, Jul 06, 2020 at 07:55:26PM -0400, Stefan Berger wrote:
+> > > > > On 7/6/20 7:09 PM, Jarkko Sakkinen wrote:
+> > > > > > On Mon, Jul 06, 2020 at 02:19:53PM -0400, Stefan Berger wrote:
+> > > > > > > From: Stefan Berger <stefanb@linux.ibm.com>
+> > > > > > > 
+> > > > > > > In case a TPM2 is attached, search for a TPM2 ACPI table when trying
+> > > > > > > to get the event log from ACPI. If one is found, use it to get the
+> > > > > > > start and length of the log area. This allows non-UEFI systems, such
+> > > > > > > as SeaBIOS, to pass an event log when using a TPM2.
+> > > > > > > 
+> > > > > > > Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> > > > > > Do you think that QEMU with TPM 1.2 emulator turned on would be a viable
+> > > > > > way to test this?
+> > > > > Yes.
+> > > > Is the emulator bundled with QEMU or does it have to be installed
+> > > > separately?
+> > > It has to be installed separately. On Fedora 31 it would just be a `sudo dnf
+> > > -y install swtpm-tools` and you should be good to go with libvirt /
+> > > virt-manager.
+> > Is there some packaging for Debian/Ubuntu available?
+> 
+> 
+> So far may not be available yet. I had *experimented* with a PPA once:
+> https://launchpad.net/~stefanberger/+archive/ubuntu/swtpm-focal
 
-Note we could just decide to hardcode it as MAX_NUMNODES but if so we should
-do so explicitly.
+There is a snap available:
 
-Looking at what x86 does, they do a walk of nodes_parsed and locally
-establish the maximum node count seen.  We can't actually do that where we
-were previously calling it in numa_init because nodes_parsed isn't set up
-either yet.  So let us take a leaf entirely out of x86's book and make
-the true assumption that nodes_parsed will definitely be set up before
-we try to put a real value in this array.  Hence just do it on demand.
+name:      swtpm-mvo
+summary:   Libtpms-based TPM emulator
+publisher: Michael Vogt (mvo)
+store-url: https://snapcraft.io/swtpm-mvo
+license:   unset
+description: |
+  Libtpms-based TPM emulator with socket, character device, and Linux
+  CUSE interface.
+commands:
+  - swtpm-mvo.swtpm
+services:
+  swtpm-mvo.swtpm-sock: simple, enabled, active
+snap-id:      HNl1TwHRBk3OtXQ8OriRB93FDZ6vman7
+tracking:     latest/edge
+refresh-date: today at 02:05 EEST
+channels:
+  latest/stable:    –                         
+  latest/candidate: –                         
+  latest/beta:      0.1.0 2019-07-26 (11) 3MB -
+  latest/edge:      0.1.0 2020-07-08 (75) 3MB -
+installed:          0.1.0            (74) 3MB -
 
-In order to avoid trying and failing to allocate the array multiple times
-we do the same thing as x86 and set numa_distance = 1. This requires a
-few small modifications elsewhere.
+This is the version information:
 
-Worth noting, that with one exception (which it appears can be removed [1])
-the x86 and arm numa distance code is now identical.  Worth factoring it
-out to some common location?
+❯ swtpm-mvo.swtpm --version
+TPM emulator version 0.4.0, Copyright (c) 2014 IBM Corp.
 
-[1] https://lkml.kernel.org/r/20170406124459.dwn5zhpr2xqg3lqm@node.shutemov.name
+However, if I try to run the first example from [*], I get:
 
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
----
-arch/arm64/mm/numa.c | 35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+❯ swtpm-mvo.swtpm socket --tpmstate dir=/tmp/mytpm1 \
+  --ctrl type=unixio,path=/tmp/mytpm1/swtpm-sock \
+  --log level=20
+swtpm: Could not open UnixIO socket: No such file or directory
 
-diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-index aafcee3e3f7e..a2f549ef0a36 100644
---- a/arch/arm64/mm/numa.c
-+++ b/arch/arm64/mm/numa.c
-@@ -255,13 +255,11 @@ void __init numa_free_distance(void)
- {
- 	size_t size;
- 
--	if (!numa_distance)
--		return;
--
- 	size = numa_distance_cnt * numa_distance_cnt *
- 		sizeof(numa_distance[0]);
--
--	memblock_free(__pa(numa_distance), size);
-+	/* numa_distance could be 1LU marking allocation failure, test cnt */
-+	if (numa_distance_cnt)
-+		memblock_free(__pa(numa_distance), size);
- 	numa_distance_cnt = 0;
- 	numa_distance = NULL;
- }
-@@ -271,20 +269,29 @@ void __init numa_free_distance(void)
-  */
- static int __init numa_alloc_distance(void)
- {
-+	nodemask_t nodes_parsed;
- 	size_t size;
-+	int i, j, cnt = 0;
- 	u64 phys;
--	int i, j;
- 
--	size = nr_node_ids * nr_node_ids * sizeof(numa_distance[0]);
-+	/* size the new table and allocate it */
-+	nodes_parsed = numa_nodes_parsed;
-+	for_each_node_mask(i, nodes_parsed)
-+		cnt = i;
-+	cnt++;
-+	size = cnt * cnt * sizeof(numa_distance[0]);
- 	phys = memblock_find_in_range(0, PFN_PHYS(max_pfn),
- 				      size, PAGE_SIZE);
--	if (WARN_ON(!phys))
-+	if (!phys) {
-+		pr_warn("Warning: can't allocate distance table!\n");
-+		/* don't retry until explicitly reset */
-+		numa_distance = (void *)1LU;
- 		return -ENOMEM;
--
-+	}
- 	memblock_reserve(phys, size);
- 
- 	numa_distance = __va(phys);
--	numa_distance_cnt = nr_node_ids;
-+	numa_distance_cnt = cnt;
- 
- 	/* fill with the default distances */
- 	for (i = 0; i < numa_distance_cnt; i++)
-@@ -311,10 +318,8 @@ static int __init numa_alloc_distance(void)
-  */
- void __init numa_set_distance(int from, int to, int distance)
- {
--	if (!numa_distance) {
--		pr_warn_once("Warning: distance table not allocated yet\n");
-+	if (!numa_distance && numa_alloc_distance() < 0)
- 		return;
--	}
- 
- 	if (from >= numa_distance_cnt || to >= numa_distance_cnt ||
- 			from < 0 || to < 0) {
-@@ -384,10 +389,6 @@ static int __init numa_init(int (*init_func)(void))
- 	nodes_clear(node_possible_map);
- 	nodes_clear(node_online_map);
- 
--	ret = numa_alloc_distance();
--	if (ret < 0)
--		return ret;
--
- 	ret = init_func();
- 	if (ret < 0)
- 		goto out_free_distance;
--- 
-2.19.1
+[*] https://www.qemu.org/docs/master/specs/tpm.html
 
+/Jarkko
