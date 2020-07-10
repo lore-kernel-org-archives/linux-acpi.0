@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F6FC433F7
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 Jul 2020 16:32:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E782C433E5
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Jul 2020 16:32:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E4922075D
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 Jul 2020 16:32:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BD1C206F4
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Jul 2020 16:32:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="YULuQgLj"
+	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="lJuT581U"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728346AbgGJQb4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 10 Jul 2020 12:31:56 -0400
+        id S1728401AbgGJQcE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 10 Jul 2020 12:32:04 -0400
 Received: from mail-eopbgr70059.outbound.protection.outlook.com ([40.107.7.59]:61635
         "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726942AbgGJQbz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 Jul 2020 12:31:55 -0400
+        id S1728317AbgGJQcD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 Jul 2020 12:32:03 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=e+xfqUJas4gvmtnF53hVf1CpfWySdcM/1EcU5iZ5tXo0yLTayA0BVj1Eqtos3d5F7l+Mu9RaBunVZuvkzwiucdYJFQtEOA5VnNWNLhr6UOxs/waHQXVHAh+/c4c3+clVtHv/b0YpiOFU2ImKWMoZ3zwBlx3in7KiTciGNFe1orbcDVrbdSaQXJ302XENxXSRVg7QdZtfddDmS4IYf84hU1np9wetpDPnKdxsmfPGoKKEcQ6Xn04rU9hHhx6mC1oUYjXMZQ8u235MZvBzRmkR3WrFWfd4dfFTQSdnb5A+90+nkaNhzydnWDvAOMUu9VYtOScJcz0zHU7VcNDH4BzIfg==
+ b=L/nog/8k+L1YQa05tzGq4k2LxhJ1lUvOF0EqlWPGLP7ZfTGidMPFkFUtdcFJIXN676ZMfFjH8sL6zFaPixevnicShFQz76cktn00+RiqHhkUmND7hZ8rJ8UQQNlpCZHCEDEBM4AhPAzSL5QT+SLTMrMlDppOBbKLyoYZO3gIaNQ/8nH2rEpdIolQjKGs0VbNQPsMn2sABmkzSfx2LDxRLFvdQj3JHn7WKMdJRTGbxt4S7wNjBuFlr/1hpj9NVtL6dgC7euj1WnpP4ea8vf4rCsPB2knjcfwCbcI/WkEqE1bneua1OSt2U2NjatYlEqS8OtPcjg3a9OCY9JL74wumOw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=swYb784uXNNedaZdomPeA3PvhwR1PJcZt5VTKLNVVq8=;
- b=N6Fk31y6BBfV0RBrcIHFMlpk6Gnij/jYv/xq6bTpjzVnp2LjTmYbsadi5RmsBqSa8x/9akjf8LYN4lIUsSg54xBugG2hIAXiqKHShp7XN1YsNRezkgCAWBW2sRFy+BkG1Pepwb0jgRZf24bstXDVriBXypfFhH5QLjcOGqrOfY7iIRK+KWWWlAr8wpBsPpsiHoMry11GCyZnR1KNGMAekdTbOzxO24HnauSA9yb0YXnQ1J1tLjYfAbPkzt/3vzG60fEAYsYVPAgPwt774y4IBQD4xZKlEXihAiT/4FHjJNQxzRuD33mF6c09GdIl1HA6QwzFOaPev9p3c7Si+K7nQw==
+ bh=KAP1FSM8UbZ7E+Yk+SxIt3zesPC4XgBjnFn4USSUQUw=;
+ b=XpdUXOFa5dVYF0OEbc0mThXBizR8fDyEu47pzNzCdrw+Rj0xlsOf9/EERTsUBW+WQvX7jtevE+ZpKbiWuXeZhv891skS0glsG/9T9dPGev5WE5locTqe/76iJ2aBqIx3CehixNv1lSh2ZLThkJNU1ni+Usb7ZPS1cSzQgSnIcU2IbxwvPmKs2vhScV3FWOmII1ZVlg7J8V6+dgbJ8bk5+jS6BTmwQHUhTH585TLk7SaVMxkCeZsjVTs2kr8jj5VtQYGt1JrmbYARR0aiCSkMQNg20sQcdBciqSOiTt8JUqLDSFV4UmhSN5/u3JdpEc492dw7HcLDlBSU/94fEF/zbA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector2-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=swYb784uXNNedaZdomPeA3PvhwR1PJcZt5VTKLNVVq8=;
- b=YULuQgLj9w2EuySJEz5GQfq73QFuYIo67IEOMe0Ea4U2BI5IapdUuC7sitYTLdMZliTiM6YfQunpI6VC6/z/e9fFwH63pL+mUa610meeNErIC5STop2/BTeyDbSYfHjknDWBMU+RsIv0v3ZjjToXgDFY4SsT8YrfxR8B06kxYMQ=
+ bh=KAP1FSM8UbZ7E+Yk+SxIt3zesPC4XgBjnFn4USSUQUw=;
+ b=lJuT581UddlrGPbvNJXbPv8IDgme2A6jhHsj9acRtXu781tinGvqkEOrAS6q3DqePbsGE/HPChJd3L22+UQwLDoMS6Qb/UHDlKSaBrNkb12DBjD8CIN+rjkDkFQnggDfuXC5TtoL3zzBEg5nXZAv0HiqB3hXKSpXbdJlStWL014=
 Authentication-Results: arm.com; dkim=none (message not signed)
  header.d=none;arm.com; dmarc=none action=none header.from=oss.nxp.com;
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com (2603:10a6:208:130::22)
  by AM0PR0402MB3908.eurprd04.prod.outlook.com (2603:10a6:208:f::28) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3174.20; Fri, 10 Jul
- 2020 16:31:51 +0000
+ 2020 16:31:58 +0000
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::7dda:a30:6b25:4d45]) by AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::7dda:a30:6b25:4d45%7]) with mapi id 15.20.3174.023; Fri, 10 Jul 2020
- 16:31:51 +0000
+ 16:31:58 +0000
 From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
 To:     Jeremy Linton <jeremy.linton@arm.com>,
         Russell King - ARM Linux admin <linux@armlinux.org.uk>,
@@ -61,9 +61,9 @@ To:     Jeremy Linton <jeremy.linton@arm.com>,
 Cc:     netdev@vger.kernel.org, linux.cj@gmail.com,
         linux-acpi@vger.kernel.org,
         Calvin Johnson <calvin.johnson@oss.nxp.com>
-Subject: [net-next PATCH v5 2/6] net: phy: introduce device_mdiobus_register()
-Date:   Fri, 10 Jul 2020 22:01:11 +0530
-Message-Id: <20200710163115.2740-3-calvin.johnson@oss.nxp.com>
+Subject: [net-next PATCH v5 4/6] net: phy: introduce phy_find_by_mdio_handle()
+Date:   Fri, 10 Jul 2020 22:01:13 +0530
+Message-Id: <20200710163115.2740-5-calvin.johnson@oss.nxp.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200710163115.2740-1-calvin.johnson@oss.nxp.com>
 References: <20200710163115.2740-1-calvin.johnson@oss.nxp.com>
@@ -73,107 +73,190 @@ X-ClientProxiedBy: SG2PR06CA0137.apcprd06.prod.outlook.com
  (2603:10a6:208:130::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR06CA0137.apcprd06.prod.outlook.com (2603:1096:1:1f::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3174.20 via Frontend Transport; Fri, 10 Jul 2020 16:31:48 +0000
+Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR06CA0137.apcprd06.prod.outlook.com (2603:1096:1:1f::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3174.20 via Frontend Transport; Fri, 10 Jul 2020 16:31:55 +0000
 X-Mailer: git-send-email 2.17.1
 X-Originating-IP: [14.142.151.118]
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 3dac5870-9951-4457-b180-08d824eebfbf
+X-MS-Office365-Filtering-Correlation-Id: c179e68f-e1ed-419f-41a4-08d824eec42b
 X-MS-TrafficTypeDiagnostic: AM0PR0402MB3908:
 X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR0402MB39080E4473E26C0924B332CFD2650@AM0PR0402MB3908.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:6790;
+X-Microsoft-Antispam-PRVS: <AM0PR0402MB39085F1E343716075E05B802D2650@AM0PR0402MB3908.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: wqrgrDoP93iuc5ADDFgJhvSoRmDO7yq+3b92TGyzf17pMdEluDttnwYQkQubW68NlvK88JqY8iyfkHnkRacYfA6mUma+F42+Ji+yJkNL/7XJHtURKwAKptKBn3Aqwr6QyR0vHZhCpDlaxJ1ELEFrhJidQ7B39+IF0oR13zxwwQF/qKCWOfaT7p4+rFhEplcxd+TGtkkoU1fZkF0zWWJi+7McHko1ma6AkH5ikekloDK5ykFsDqkH8RtEWPVhs1JbjIVKnUJ6oVaDbGhogzi+L8vTQ5VR2puZI5ENXkfyHP8vM7eQZ7zSL+sWKTu5+PaLpcYAKoXjLa1K/o3eiHuyI0Hs/Ol68pFRuHe3+KmvidYK1g70TTTKWwiojliBMBUN
+X-Microsoft-Antispam-Message-Info: asb/k2XvAtzhqZzFj0XXg/Lu+938BBDXWWS7ytAJtnokYk4Vj8RpgpXvzCqML3ZkO5cjpEgavHlcEhcNYamHz4HyKORrpt4Q8RLeOC7yieXZeLDSM87RxlvIrNMf7afbdUUXT6tcxDaoWOnA5uK+84l6i+u9GkDChgpv/TAS5sWN8JaArSG19L9B8HELd/8k3zftt10ZFVSsAetSugORFFGI1iK1YrJBoc5Au3AtEO0uYzngVm7DAL+JYic6jAAG949hbBwUaxXdJheEpWb8rlezxo4+VkxjzEbKwUBffatb8kr9YPNBinFV8AX/72VsCO+EJt3omVe37p5dyQ4rSf7G4qTFjA9D+LA6cNyk2mSoomIbY/UK/KlXHrND701h
 X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(366004)(346002)(39860400002)(136003)(376002)(396003)(4326008)(8676002)(2906002)(8936002)(86362001)(26005)(6512007)(52116002)(83380400001)(1076003)(6486002)(316002)(16526019)(110136005)(1006002)(66476007)(66556008)(6666004)(478600001)(956004)(66946007)(44832011)(5660300002)(186003)(6506007)(6636002)(55236004)(2616005)(110426005);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: j1Ki6x1fYhV+iie9TLLjX6WRD5LgPVkO5c7u0Q0G8BSVUvg0bD4EpzKrwJV4aJek8DLERwAKHi1i6CkMvs/vUaXvrJB6X0itjbbdroE9bcaEVlvaDP8pWTvV+sIrfQzP1bHUkHbGS0uxKS3bFl3n2E1yf7KkGcerBJ+22ejrl8viKUVtjkf73xaB8pV19dltFA0lyoZwyuCoXtIKC3p9rfGAY0Yipy5uKFaofaHHqt2SVijuEnDLNcuDm+DgrCjYpncrdDt4ZBJgX4oL8OTjR+rF8cLnfmOd6MIwM8FRJs8rz2wTV8fJhiR2M3Fi+7S+Z78LQVFCqiYDu8qjcUAOh7W20I4H7DdMNrtX9wZz/mFQS1fo4JCt4/PbonS9rhWn4YYsayIbnwJcQhfC83iB4soyt4lGmosLRkduGqeYc04P62WwEDNvHocFraQciebSmBnZ+hqqU+MhiSqogsRKVcwUtI2dUdKhlShhDas2vL/Y9z2yxOBVWrDPKzOi7dF3
+X-MS-Exchange-AntiSpam-MessageData: YtBi9HnxeIj6Q+sjQtdhgdmd8id6r3gp8jYJNSTCaXr1hCdPrQIffO2DiU692VnaBLsQI2/FEc3o/zS1OAGiWA5bweH/inJR1056pAqn8T3DanlVdDEzufpXRdyUdVjjDRd2F2P3K1H+LAoHw9oIj1ldpA1BXreYXbeDV/jGsrUrp97z8KfEkvGWsnlMlQ5Jx5HRHJp+wPe7AlfFfjgH+TOu8DXi/mxhUnKD3Nnoddt462izP0NLadvlfuVKclr2WkKlOvbbbVQHcg/hFt/AKYBVk2aAbVA8kx8nuAr8P7WUMq8NgCUZxxV+zi9Ss6UwidopQWDQTf2sGCiM5lpSgw+iSvLSi9hnSDtx+hN5NSQSQqb0aMxKeifzH2e1YcL18ZfsQVdQBXnEmQG34zOiCe774ipYPDAtf57hiu/9GeM3siN7y3ZDEqr3Dh/25xcYO3Nu1M2wb2VAIcAy0J8j2OD+h6Idksm7yLl5gka8T3Y3hc7MVj+/P3wROEsFUVRw
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3dac5870-9951-4457-b180-08d824eebfbf
+X-MS-Exchange-CrossTenant-Network-Message-Id: c179e68f-e1ed-419f-41a4-08d824eec42b
 X-MS-Exchange-CrossTenant-AuthSource: AM0PR04MB5636.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jul 2020 16:31:51.2441
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jul 2020 16:31:58.6669
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: F0M/ZHnFVMbwbDHoXvzrM1kBgfcZv6y9xuXBeXe3OlMruC2IhcXRHIrLJjmvMHXUjJIUmdf9CjPe/ZMAuuBlAg==
+X-MS-Exchange-CrossTenant-UserPrincipalName: tDBuPn65VUs7Dbb+i4MAmxNRIQrXJjIr7RKrpiut1whOMc8uQalejofB0XHSdwbG4z+qw17em2wKzKBvadSqVw==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0402MB3908
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Introduce device_mdiobus_register() to register mdiobus
-in cases of either DT or ACPI.
+The PHYs on an mdiobus are probed and registered using mdiobus_register().
+Later, for connecting these PHYs to MAC, the PHYs registered on the
+mdiobus have to be referenced.
+
+For each MAC node, a property "mdio-handle" is used to reference the
+MDIO bus on which the PHYs are registered. On getting hold of the MDIO
+bus, use phy_find_by_fwnode() to get the PHY connected to the MAC.
+
+Introduce fwnode_mdio_find_bus() to find the mii_bus that corresponds
+to given mii_bus fwnode.
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
 ---
 
 Changes in v5:
-- add description
-- clean up if else
+- rename phy_find_by_fwnode() to phy_find_by_mdio_handle()
+- add docment for phy_find_by_mdio_handle()
+- error out DT in phy_find_by_mdio_handle()
+- clean up err return
 
-Changes in v4: None
-Changes in v3: None
+Changes in v4:
+- release fwnode_mdio after use
+- return ERR_PTR instead of NULL
+
+Changes in v3:
+- introduce fwnode_mdio_find_bus()
+- renamed and improved phy_find_by_fwnode()
+
 Changes in v2: None
 
- drivers/net/phy/mdio_bus.c | 27 +++++++++++++++++++++++++++
- include/linux/mdio.h       |  1 +
- 2 files changed, 28 insertions(+)
+ drivers/net/phy/mdio_bus.c   | 25 ++++++++++++++++++++++
+ drivers/net/phy/phy_device.c | 40 ++++++++++++++++++++++++++++++++++++
+ include/linux/phy.h          |  2 ++
+ 3 files changed, 67 insertions(+)
 
 diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
-index 46b33701ad4b..2b6f22e64ad1 100644
+index 2b6f22e64ad1..e87da427fdcd 100644
 --- a/drivers/net/phy/mdio_bus.c
 +++ b/drivers/net/phy/mdio_bus.c
-@@ -501,6 +501,33 @@ static int mdiobus_create_device(struct mii_bus *bus,
- 	return ret;
+@@ -435,6 +435,31 @@ struct mii_bus *of_mdio_find_bus(struct device_node *mdio_bus_np)
  }
+ EXPORT_SYMBOL(of_mdio_find_bus);
  
 +/**
-+ * device_mdiobus_register - bring up all the PHYs on a given bus and
-+ * attach them to bus. This handles both DT and ACPI methods.
-+ * @bus: target mii_bus
-+ * @dev: given MDIO device
++ * fwnode_mdio_find_bus - Given an mii_bus fwnode, find the mii_bus.
++ * @mdio_bus_fwnode: fwnode of the mii_bus.
 + *
-+ * Description: Given an MDIO device and target mii bus, this function
-+ * calls of_mdiobus_register() for DT node and mdiobus_register() in
-+ * case of ACPI.
++ * Returns a reference to the mii_bus, or NULL if none found.  The
++ * embedded struct device will have its reference count incremented,
++ * and this must be put once the bus is finished with.
 + *
-+ * Returns 0 on success or negative error code on failure.
++ * Because the association of a fwnode and mii_bus is made via
++ * mdiobus_register(), the mii_bus cannot be found before it is
++ * registered with mdiobus_register().
++ *
 + */
-+int device_mdiobus_register(struct mii_bus *bus,
-+			    struct device *dev)
++struct mii_bus *fwnode_mdio_find_bus(struct fwnode_handle *mdio_bus_fwnode)
 +{
-+	struct fwnode_handle *fwnode = dev_fwnode(dev);
++	struct device *d;
++
++	if (!mdio_bus_fwnode)
++		return NULL;
++
++	d = class_find_device_by_fwnode(&mdio_bus_class, mdio_bus_fwnode);
++	return d ? to_mii_bus(d) : NULL;
++}
++EXPORT_SYMBOL(fwnode_mdio_find_bus);
++
+ /* Walk the list of subnodes of a mdio bus and look for a node that
+  * matches the mdio device's address with its 'reg' property. If
+  * found, set the of_node pointer for the mdio device. This allows
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index 7cda95330aea..00b2ade9714f 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -23,8 +23,10 @@
+ #include <linux/mm.h>
+ #include <linux/module.h>
+ #include <linux/netdevice.h>
++#include <linux/of.h>
+ #include <linux/phy.h>
+ #include <linux/phy_led_triggers.h>
++#include <linux/platform_device.h>
+ #include <linux/property.h>
+ #include <linux/sfp.h>
+ #include <linux/skbuff.h>
+@@ -964,6 +966,44 @@ struct phy_device *phy_find_first(struct mii_bus *bus)
+ }
+ EXPORT_SYMBOL(phy_find_first);
+ 
++/**
++ * phy_find_by_mdio_handle - get phy device from mdio-handle and phy-channel
++ * @fwnode: a pointer to a &struct fwnode_handle  to get mdio-handle and
++ * phy-channel
++ *
++ * Find fwnode_mdio using mdio-handle reference. Using fwnode_mdio get the
++ * mdio bus. Property phy-channel provides the phy address on the mdio bus.
++ * Pass mdio bus and phy address to mdiobus_get_phy() and get corresponding
++ * phy_device. This method is used for ACPI and not for DT.
++ *
++ * Returns pointer to the phy device on success, else ERR_PTR.
++ */
++struct phy_device *phy_find_by_mdio_handle(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *fwnode_mdio;
++	struct mii_bus *mdio;
++	int addr;
++	int err;
 +
 +	if (is_of_node(fwnode))
-+		return of_mdiobus_register(bus, to_of_node(fwnode));
-+	if (fwnode) {
-+		bus->dev.fwnode = fwnode;
-+		return mdiobus_register(bus);
-+	}
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(device_mdiobus_register);
++		return ERR_PTR(-EINVAL);
 +
- /**
-  * __mdiobus_register - bring up all the PHYs on a given bus and attach them to bus
-  * @bus: target mii_bus
-diff --git a/include/linux/mdio.h b/include/linux/mdio.h
-index 898cbf00332a..f78c6a7f8eb7 100644
---- a/include/linux/mdio.h
-+++ b/include/linux/mdio.h
-@@ -358,6 +358,7 @@ static inline int mdiobus_c45_read(struct mii_bus *bus, int prtad, int devad,
- 	return mdiobus_read(bus, prtad, mdiobus_c45_addr(devad, regnum));
++	fwnode_mdio = fwnode_find_reference(fwnode, "mdio-handle", 0);
++	mdio = fwnode_mdio_find_bus(fwnode_mdio);
++	fwnode_handle_put(fwnode_mdio);
++	if (!mdio)
++		return ERR_PTR(-ENODEV);
++
++	err = fwnode_property_read_u32(fwnode, "phy-channel", &addr);
++	if (err)
++		return ERR_PTR(err);
++	if (addr < 0 || addr >= PHY_MAX_ADDR)
++		return ERR_PTR(-EINVAL);
++
++	return mdiobus_get_phy(mdio, addr);
++}
++EXPORT_SYMBOL(phy_find_by_mdio_handle);
++
+ static void phy_link_change(struct phy_device *phydev, bool up)
+ {
+ 	struct net_device *netdev = phydev->attached_dev;
+diff --git a/include/linux/phy.h b/include/linux/phy.h
+index 0403eb799913..fd383a22eb61 100644
+--- a/include/linux/phy.h
++++ b/include/linux/phy.h
+@@ -334,6 +334,7 @@ static inline struct mii_bus *devm_mdiobus_alloc(struct device *dev)
  }
  
-+int device_mdiobus_register(struct mii_bus *bus, struct device *dev);
- int mdiobus_register_device(struct mdio_device *mdiodev);
- int mdiobus_unregister_device(struct mdio_device *mdiodev);
- bool mdiobus_is_registered_device(struct mii_bus *bus, int addr);
+ struct mii_bus *mdio_find_bus(const char *mdio_name);
++struct mii_bus *fwnode_mdio_find_bus(struct fwnode_handle *mdio_bus_fwnode);
+ struct phy_device *mdiobus_scan(struct mii_bus *bus, int addr);
+ 
+ #define PHY_INTERRUPT_DISABLED	false
+@@ -1245,6 +1246,7 @@ int phy_sfp_probe(struct phy_device *phydev,
+ struct phy_device *phy_attach(struct net_device *dev, const char *bus_id,
+ 			      phy_interface_t interface);
+ struct phy_device *phy_find_first(struct mii_bus *bus);
++struct phy_device *phy_find_by_mdio_handle(struct fwnode_handle *fwnode);
+ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
+ 		      u32 flags, phy_interface_t interface);
+ int phy_connect_direct(struct net_device *dev, struct phy_device *phydev,
 -- 
 2.17.1
 
