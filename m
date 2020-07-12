@@ -2,233 +2,108 @@ Return-Path: <SRS0=hOK0=AX=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE5AC433DF
-	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF0AC433DF
+	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9EC73206B6
-	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:42:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C78732068F
+	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:59:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="wL78Wp6P"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728859AbgGLQmX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 12 Jul 2020 12:42:23 -0400
-Received: from mga06.intel.com ([134.134.136.31]:25234 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728854AbgGLQmX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 12 Jul 2020 12:42:23 -0400
-IronPort-SDR: Z69v/ORhMbLG0E5kePfctdqTImwG7ZFvZF+tZqDFkRwyfFtPNWJvuxGyvBFTysGlJtixmt/1Yf
- Qdv4Kcw8ussw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9680"; a="210054562"
-X-IronPort-AV: E=Sophos;i="5.75,344,1589266800"; 
-   d="scan'208";a="210054562"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2020 09:42:22 -0700
-IronPort-SDR: w09DlxdoREi5sngYNiZBKWJOVTLl+CDIvtzZ/uaA4MupcVijS0R+Mlb2tQyBlcFZBMiu8NVopd
- tnqyNHuv32/A==
-X-IronPort-AV: E=Sophos;i="5.75,344,1589266800"; 
-   d="scan'208";a="317142928"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2020 09:42:21 -0700
-Subject: [PATCH v2 00/22] device-dax: Support sub-dividing soft-reserved
- ranges
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     linux-nvdimm@lists.01.org
-Cc:     David Hildenbrand <david@redhat.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        David Airlie <airlied@linux.ie>, Will Deacon <will@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        Joao Martins <joao.m.martins@oracle.com>,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Wei Yang <richardw.yang@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Pavel Tatashin <pasha.tatashin@soleen.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Jason Gunthorpe <jgg@mellanox.com>, Jia He <justin.he@arm.com>,
-        Ingo Molnar <mingo@redhat.com>,
+        id S1728864AbgGLQ7Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 12 Jul 2020 12:59:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55952 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728859AbgGLQ7Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Jul 2020 12:59:16 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A27E9C061794;
+        Sun, 12 Jul 2020 09:59:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+        :Reply-To:Content-ID:Content-Description;
+        bh=hX/qK6z4n4CL1AKJ1RSUJle5mcIh3uNxPJ30TrVC8t8=; b=wL78Wp6PagFZFP78YDF0n5Iq2U
+        cXoVGoNqXQE7zkKirLb++lczoHV7wxqEPK2RQvpkx8o6MdrHhBzCgKWwY43YKgZ3JnnNtsrn9FBXp
+        fOAnfqn4KpKOFuEJ2T4ZB0pLSXvWUcLAf8TgrOxkn8luxMBPa3dN4L0nhMdPZmxtBE90hgw57oaF5
+        0vvWsUuoe04Gz+0LJbFRNfJKTfnzb7+Qcg+WKGnKNpytyiw2AXEx7rgeE1mLZzP4Z+ZoUez9RrTG9
+        W9+R0VSeF/S02OaUHcI3Ln+O+jeyKW0QOuJsrFyZ3tFZ804Y/v4WsWbtYcsWzQjkxiS+leLv+HO8f
+        uhdHc0Nw==;
+Received: from [2601:1c0:6280:3f0:897c:6038:c71d:ecac]
+        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jufJi-00017q-VJ; Sun, 12 Jul 2020 16:59:07 +0000
+Subject: Re: [PATCH v2 02/22] x86/numa: Add 'nohmat' option
+To:     Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+Cc:     x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Dave Hansen <dave.hansen@linux.intel.com>,
-        Paul Mackerras <paulus@ozlabs.org>,
-        Brice Goglin <Brice.Goglin@inria.fr>,
-        Jeff Moyer <jmoyer@redhat.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Daniel Vetter <daniel@ffwll.ch>,
         Andy Lutomirski <luto@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>, linux-mm@kvack.org,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        "H. Peter Anvin" <hpa@zytor.com>, vishal.l.verma@intel.com,
+        ard.biesheuvel@linaro.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         hch@lst.de, joao.m.martins@oracle.com
-Date:   Sun, 12 Jul 2020 09:26:05 -0700
-Message-ID: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+References: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <159457117650.754248.15655699240005524226.stgit@dwillia2-desk3.amr.corp.intel.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <a869a6be-530f-573d-71dd-6a5b1a7ee939@infradead.org>
+Date:   Sun, 12 Jul 2020 09:58:59 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <159457117650.754248.15655699240005524226.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Changes since v1 [1]:
+On 7/12/20 9:26 AM, Dan Williams wrote:
+> Disable parsing of the HMAT for debug, to workaround broken platform
+> instances, or cases where it is otherwise not wanted.
+> 
+> Cc: x86@kernel.org
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  arch/x86/mm/numa.c       |    2 ++
+>  drivers/acpi/numa/hmat.c |    8 +++++++-
+>  include/acpi/acpi_numa.h |    8 ++++++++
+>  3 files changed, 17 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+> index ee24646dc44e..44fdf06d497e 100644
+> --- a/arch/x86/mm/numa.c
+> +++ b/arch/x86/mm/numa.c
+> @@ -41,6 +41,8 @@ static __init int numa_setup(char *opt)
+>  		return numa_emu_cmdline(opt + 5);
+>  	if (!strncmp(opt, "noacpi", 6))
+>  		disable_srat();
+> +	if (!strncmp(opt, "nohmat", 6))
+> +		disable_hmat();
+>  	return 0;
+>  }
+>  early_param("numa", numa_setup);
 
-- Combine this series with "Manual definition of Soft Reserved memory
-  devices" [2] as the pre-requisites are required to test the device-dax
-  facility, the device-dax changes are part of the justification for the
-  numa-info reworks.
+Please add that to
+Documentation/x86/x86_64/boot-options.rst.
 
-- Provide a generic version of numa data retrieval based on memblock for
-  arm64 rather than adding a new / empty phys_to_target_node() stub
-  alongside memory_add_physaddr_to_nid(). (Will)
+thanks.
+-- 
+~Randy
 
-- Fix several corner case allocation bugs and pass the unit test written
-  by Joao.
-
-- Lift the restriction that a 'seed' device must be activated before a
-  new seed can be created. This minor sanity check was to prevent userspace
-  spamming devices, but it gets in the way of some of allocation
-  scenarios like allocating a memory-range that is guaranteed to never be
-  evicted due to memory-side-cache conflicts. (Iqbal)
-
-- Add debug prints for space allocation decisions (Joao)
-
-- Rebased on v5.8-rc2 which included resolving conflicts in the kmem
-  driver and memremap_pages().
-
-[1]: http://lore.kernel.org/r/158500767138.2088294.17131646259803932461.stgit@dwillia2-desk3.amr.corp.intel.com
-[2]: http://lore.kernel.org/r/158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com/
-
----
-
-The device-dax facility allows an address range to be directly mapped
-through a chardev, or optionally hotplugged to the core kernel page
-allocator as System-RAM. It is the mechanism for converting persistent
-memory (pmem) to be used as another volatile memory pool i.e. the
-current Memory Tiering hot topic on linux-mm.
-
-In the case of pmem the nvdimm-namespace-label mechanism can sub-divide
-it, but that labeling mechanism is not available / applicable to
-soft-reserved ("EFI specific purpose") memory [3]. This series provides
-a sysfs-mechanism for the daxctl utility to enable provisioning of
-volatile-soft-reserved memory ranges.
-
-The motivations for this facility are:
-
-1/ Allow performance differentiated memory ranges to be split between
-   kernel-managed and directly-accessed use cases.
-
-2/ Allow physical memory to be provisioned along performance relevant
-   address boundaries. For example, divide a memory-side cache [4] along
-   cache-color boundaries.
-
-3/ Parcel out soft-reserved memory to VMs using device-dax as a security
-   / permissions boundary [5]. Specifically I have seen people (ab)using
-   memmap=nn!ss (mark System-RAM as Persistent Memory) just to get the
-   device-dax interface on custom address ranges. A follow-on for the VM
-   use case is to teach device-dax to dynamically allocate 'struct page' at
-   runtime to reduce the duplication of 'struct page' space in both the
-   guest and the host kernel for the same physical pages.
-
-Given the intersections of arm64, x86, and core memremap_pages() changes
-I'd like to explore taking this through the libnvdimm tree, but that is
-step 2. Any concerns with the proposed infrastructure changes
-(memblock-numainfo and multi-range-memremap-pages)?
-
-[3]: http://lore.kernel.org/r/157309097008.1579826.12818463304589384434.stgit@dwillia2-desk3.amr.corp.intel.com
-[4]: http://lore.kernel.org/r/154899811738.3165233.12325692939590944259.stgit@dwillia2-desk3.amr.corp.intel.com
-[5]: http://lore.kernel.org/r/20200110190313.17144-1-joao.m.martins@oracle.com
-
----
-
-Dan Williams (22):
-      x86/numa: Cleanup configuration dependent command-line options
-      x86/numa: Add 'nohmat' option
-      efi/fake_mem: Arrange for a resource entry per efi_fake_mem instance
-      ACPI: HMAT: Refactor hmat_register_target_device to hmem_register_device
-      resource: Report parent to walk_iomem_res_desc() callback
-      x86: Move NUMA_KEEP_MEMINFO and related definition to x86-internals
-      numa: Introduce a generic memory_add_physaddr_to_nid()
-      memblock: Introduce a generic phys_addr_to_target_node()
-      arm64: Convert to generic memblock for numa-info
-      ACPI: HMAT: Attach a device for each soft-reserved range
-      device-dax: Drop the dax_region.pfn_flags attribute
-      device-dax: Move instance creation parameters to 'struct dev_dax_data'
-      device-dax: Make pgmap optional for instance creation
-      device-dax: Kill dax_kmem_res
-      device-dax: Add an allocation interface for device-dax instances
-      device-dax: Introduce 'seed' devices
-      drivers/base: Make device_find_child_by_name() compatible with sysfs inputs
-      device-dax: Add resize support
-      mm/memremap_pages: Convert to 'struct range'
-      mm/memremap_pages: Support multiple ranges per invocation
-      device-dax: Add dis-contiguous resource support
-      device-dax: Introduce 'mapping' devices
-
- arch/arm64/Kconfig                     |    1 
- arch/arm64/mm/numa.c                   |   10 
- arch/powerpc/kvm/book3s_hv_uvmem.c     |   14 
- arch/x86/Kconfig                       |    7 
- arch/x86/include/asm/numa.h            |    8 
- arch/x86/kernel/e820.c                 |   16 +
- arch/x86/mm/numa.c                     |   12 
- arch/x86/mm/numa_emulation.c           |    3 
- arch/x86/mm/numa_internal.h            |    7 
- arch/x86/xen/enlighten_pv.c            |    2 
- drivers/acpi/numa/hmat.c               |   76 ---
- drivers/acpi/numa/srat.c               |    9 
- drivers/base/core.c                    |    2 
- drivers/dax/Kconfig                    |    6 
- drivers/dax/Makefile                   |    3 
- drivers/dax/bus.c                      |  902 ++++++++++++++++++++++++++++++--
- drivers/dax/bus.h                      |   28 +
- drivers/dax/dax-private.h              |   39 +
- drivers/dax/device.c                   |   97 ++-
- drivers/dax/hmem/Makefile              |    6 
- drivers/dax/hmem/device.c              |  100 ++++
- drivers/dax/hmem/hmem.c                |   20 -
- drivers/dax/kmem.c                     |  199 ++++---
- drivers/dax/pmem/compat.c              |    2 
- drivers/dax/pmem/core.c                |   22 +
- drivers/firmware/efi/x86_fake_mem.c    |   12 
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    4 
- drivers/nvdimm/badrange.c              |   26 -
- drivers/nvdimm/claim.c                 |   13 
- drivers/nvdimm/nd.h                    |    3 
- drivers/nvdimm/pfn_devs.c              |   13 
- drivers/nvdimm/pmem.c                  |   27 +
- drivers/nvdimm/region.c                |   21 -
- drivers/pci/p2pdma.c                   |   12 
- include/acpi/acpi_numa.h               |   14 
- include/linux/dax.h                    |    8 
- include/linux/memblock.h               |    4 
- include/linux/memremap.h               |   11 
- include/linux/mm.h                     |   13 
- include/linux/numa.h                   |    9 
- include/linux/range.h                  |    6 
- kernel/resource.c                      |   11 
- mm/Kconfig                             |    7 
- mm/memblock.c                          |   22 +
- mm/memremap.c                          |  300 ++++++-----
- mm/page_alloc.c                        |   82 +++
- tools/testing/nvdimm/dax-dev.c         |   22 +
- tools/testing/nvdimm/test/iomap.c      |    2 
- 48 files changed, 1705 insertions(+), 528 deletions(-)
- create mode 100644 drivers/dax/hmem/Makefile
- create mode 100644 drivers/dax/hmem/device.c
- rename drivers/dax/{hmem.c => hmem/hmem.c} (74%)
-
-base-commit: 48778464bb7d346b47157d21ffde2af6b2d39110
