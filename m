@@ -6,47 +6,50 @@ X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CEFCC43467
-	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:43:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B456C43469
+	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:43:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 34C8C206B6
-	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:43:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3466F206B6
+	for <linux-acpi@archiver.kernel.org>; Sun, 12 Jul 2020 16:43:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729204AbgGLQnD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 12 Jul 2020 12:43:03 -0400
-Received: from mga04.intel.com ([192.55.52.120]:7753 "EHLO mga04.intel.com"
+        id S1729247AbgGLQnV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 12 Jul 2020 12:43:21 -0400
+Received: from mga06.intel.com ([134.134.136.31]:25310 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729199AbgGLQnA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 12 Jul 2020 12:43:00 -0400
-IronPort-SDR: vkQA7bbzumS73cBCu5qTbjMk6ysD1bVNyBUK32xBdwXTsYzGGtYEjaYddK3889uGy/hzgbttUV
- WXX5bBIl3lGQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9680"; a="145998863"
+        id S1729218AbgGLQnQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 12 Jul 2020 12:43:16 -0400
+IronPort-SDR: FugLtLnQdhYYLhrGPUt8GJZLanunBzQsOywZANrtDd/KKrw3czlFXChUXkCHoj4F7hDP8W1yaG
+ a+4vUI0Hd4ag==
+X-IronPort-AV: E=McAfee;i="6000,8403,9680"; a="210054602"
 X-IronPort-AV: E=Sophos;i="5.75,344,1589266800"; 
-   d="scan'208";a="145998863"
+   d="scan'208";a="210054602"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2020 09:42:59 -0700
-IronPort-SDR: wKh/mkWpfbLzS/7XA/a+hOZMMV8DFeGdi9/Hom+z8d2kEX+RFAYAHlZYGDznOwJngG0SVv6zF8
- 30sN3xvpN09g==
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2020 09:43:15 -0700
+IronPort-SDR: IIjgyPNpskwzeAKvI/juFO2ctoUv5unwPuVTn1wgWZE170cydsmwW59Ps1lMRhWgFL55VPXx1C
+ 5/zsyHKlW9hA==
 X-IronPort-AV: E=Sophos;i="5.75,344,1589266800"; 
-   d="scan'208";a="485205254"
+   d="scan'208";a="429128404"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2020 09:42:59 -0700
-Subject: [PATCH v2 07/22] numa: Introduce a generic
- memory_add_physaddr_to_nid()
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2020 09:43:15 -0700
+Subject: [PATCH v2 10/22] ACPI: HMAT: Attach a device for each soft-reserved
+ range
 From:   Dan Williams <dan.j.williams@intel.com>
 To:     linux-nvdimm@lists.01.org
-Cc:     Mike Rapoport <rppt@linux.ibm.com>, Jia He <justin.he@arm.com>,
+Cc:     Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Brice Goglin <Brice.Goglin@inria.fr>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Jeff Moyer <jmoyer@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
-        David Hildenbrand <david@redhat.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        peterz@infradead.org, vishal.l.verma@intel.com,
-        dave.hansen@linux.intel.com, ard.biesheuvel@linaro.org,
+        Joao Martins <joao.m.martins@oracle.com>, peterz@infradead.org,
+        vishal.l.verma@intel.com, dave.hansen@linux.intel.com,
         linux-mm@kvack.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org, hch@lst.de, joao.m.martins@oracle.com
-Date:   Sun, 12 Jul 2020 09:26:43 -0700
-Message-ID: <159457120334.754248.12908401960465408733.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date:   Sun, 12 Jul 2020 09:26:59 -0700
+Message-ID: <159457121992.754248.18124727141742055701.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -58,101 +61,122 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-For architectures that opt into storing their numa data in memblock
-(only ARM64 currently), add a memblock generic way to interrogate that
-data for memory_add_physaddr_to_nid(). This requires ARCH_KEEP_MEMBLOCK
-to keep memblock text and data around after boot.
+The hmem enabling in commit 'cf8741ac57ed ("ACPI: NUMA: HMAT: Register
+"soft reserved" memory as an "hmem" device")' only registered ranges to
+the hmem driver for each soft-reservation that also appeared in the
+HMAT. While this is meant to encourage platform firmware to "do the
+right thing" and publish an HMAT, the corollary is that platforms that
+fail to publish an accurate HMAT will strand memory from Linux usage.
+Additionally, the "efi_fake_mem" kernel command line option enabling
+will strand memory by default without an HMAT.
 
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Jia He <justin.he@arm.com>
+Arrange for "soft reserved" memory that goes unclaimed by HMAT entries
+to be published as raw resource ranges for the hmem driver to consume.
+
+Include a module parameter to disable either this fallback behavior, or
+the hmat enabling from creating hmem devices. The module parameter
+requires the hmem device enabling to have unique name in the module
+namespace: "device_hmem".
+
+The driver depends on the architecture providing phys_to_target_node()
+which is only x86 via numa_meminfo() and arm64 via a generic memblock
+implementation.
+
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/mm.h |   11 +++++++++++
- mm/Kconfig         |    6 ++++++
- mm/page_alloc.c    |   23 ++++++++++++++++++++++-
+ drivers/dax/Kconfig       |    2 ++
+ drivers/dax/hmem/Makefile |    3 ++-
+ drivers/dax/hmem/device.c |   35 +++++++++++++++++++++++++++++++++++
  3 files changed, 39 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index dc7b87310c10..1e76ee5da20b 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2425,6 +2425,17 @@ unsigned long __absent_pages_in_range(int nid, unsigned long start_pfn,
- 						unsigned long end_pfn);
- extern unsigned long absent_pages_in_range(unsigned long start_pfn,
- 						unsigned long end_pfn);
-+
-+/*
-+ * Allow archs to opt-in to keeping get_pfn_range_for_nid() available
-+ * after boot.
-+ */
-+#ifdef CONFIG_ARCH_KEEP_MEMBLOCK
-+#define __init_or_memblock
-+#else
-+#define __init_or_memblock __init
-+#endif
-+
- extern void get_pfn_range_for_nid(unsigned int nid,
- 			unsigned long *start_pfn, unsigned long *end_pfn);
- extern unsigned long find_min_pfn_with_active_regions(void);
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 0051f735ad98..178ed76cae1b 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -139,6 +139,12 @@ config HAVE_FAST_GUP
- config ARCH_KEEP_MEMBLOCK
- 	bool
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index a229f45d34aa..557483ed2e9c 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -50,6 +50,8 @@ config DEV_DAX_HMEM
  
-+# If the arch populates numa data into memblock, it can use memblock
-+# apis to interrogate that data at runtime.
-+config MEMBLOCK_NUMA_INFO
-+	bool
-+	depends on ARCH_KEEP_MEMBLOCK
-+
- config MEMORY_ISOLATION
- 	bool
+ config DEV_DAX_HMEM_DEVICES
+ 	depends on DEV_DAX_HMEM
++	# requires phys_to_target_node() support
++	depends on X86_NUMA_KEEP_MEMINFO || MEMBLOCK_NUMA_INFO
+ 	def_bool y
  
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 48eb0f1410d4..df8bd169dbb4 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -6351,7 +6351,7 @@ void __init sparse_memory_present_with_active_regions(int nid)
-  * with no available memory, a warning is printed and the start and end
-  * PFNs will be 0.
-  */
--void __init get_pfn_range_for_nid(unsigned int nid,
-+void __init_or_memblock get_pfn_range_for_nid(unsigned int nid,
- 			unsigned long *start_pfn, unsigned long *end_pfn)
+ config DEV_DAX_KMEM
+diff --git a/drivers/dax/hmem/Makefile b/drivers/dax/hmem/Makefile
+index a9d353d0c9ed..57377b4c3d47 100644
+--- a/drivers/dax/hmem/Makefile
++++ b/drivers/dax/hmem/Makefile
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ obj-$(CONFIG_DEV_DAX_HMEM) += dax_hmem.o
+-obj-$(CONFIG_DEV_DAX_HMEM_DEVICES) += device.o
++obj-$(CONFIG_DEV_DAX_HMEM_DEVICES) += device_hmem.o
+ 
++device_hmem-y := device.o
+ dax_hmem-y := hmem.o
+diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
+index b9dd6b27745c..cb6401c9e9a4 100644
+--- a/drivers/dax/hmem/device.c
++++ b/drivers/dax/hmem/device.c
+@@ -5,6 +5,9 @@
+ #include <linux/dax.h>
+ #include <linux/mm.h>
+ 
++static bool nohmem;
++module_param_named(disable, nohmem, bool, 0444);
++
+ void hmem_register_device(int target_nid, struct resource *r)
  {
- 	unsigned long this_start_pfn, this_end_pfn;
-@@ -6369,6 +6369,27 @@ void __init get_pfn_range_for_nid(unsigned int nid,
- 		*start_pfn = 0;
- }
+ 	/* define a clean / non-busy resource for the platform device */
+@@ -17,6 +20,9 @@ void hmem_register_device(int target_nid, struct resource *r)
+ 	struct memregion_info info;
+ 	int rc, id;
  
-+/*
-+ * Generic implementation of memory_add_physaddr_to_nid() depends on
-+ * architecture using memblock data for numa information.
-+ */
-+#ifdef CONFIG_MEMBLOCK_NUMA_INFO
-+int __init_or_memblock memory_add_physaddr_to_nid(u64 addr)
-+{
-+	unsigned long start_pfn, end_pfn, pfn = PHYS_PFN(addr);
-+	int nid;
++	if (nohmem)
++		return;
 +
-+	for_each_online_node(nid) {
-+		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-+		if (pfn >= start_pfn && pfn <= end_pfn)
-+			return nid;
+ 	rc = region_intersects(res.start, resource_size(&res), IORESOURCE_MEM,
+ 			IORES_DESC_SOFT_RESERVED);
+ 	if (rc != REGION_INTERSECTS)
+@@ -63,3 +69,32 @@ void hmem_register_device(int target_nid, struct resource *r)
+ out_pdev:
+ 	memregion_free(id);
+ }
++
++static __init int hmem_register_one(struct resource *res, void *data)
++{
++	/*
++	 * If the resource is not a top-level resource it was already
++	 * assigned to a device by the HMAT parsing.
++	 */
++	if (res->parent != &iomem_resource) {
++		pr_info("HMEM: skip %pr, already claimed\n", res);
++		return 0;
 +	}
-+	/* Default to node0 as not all callers are prepared for this to fail */
++
++	hmem_register_device(phys_to_target_node(res->start), res);
++
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
-+#endif /* CONFIG_MEMBLOCK_NUMA_INFO */
 +
- /*
-  * This finds a zone that can be used for ZONE_MOVABLE pages. The
-  * assumption is made that zones within a node are ordered in monotonic
++static __init int hmem_init(void)
++{
++	walk_iomem_res_desc(IORES_DESC_SOFT_RESERVED,
++			IORESOURCE_MEM, 0, -1, NULL, hmem_register_one);
++	return 0;
++}
++
++/*
++ * As this is a fallback for address ranges unclaimed by the ACPI HMAT
++ * parsing it must be at an initcall level greater than hmat_init().
++ */
++late_initcall(hmem_init);
 
