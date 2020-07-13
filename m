@@ -2,140 +2,137 @@ Return-Path: <SRS0=lV+M=AY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01752C433E3
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:12:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B9BCC433E5
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:36:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4A3D2076D
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:12:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594656772;
-	bh=VlAjnpp6Rq3jEDIk5j3UJZnZRDKR7KG+uZq+CX6PEn8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=fh1Mr8z02vngpfpQhy6QNn1qad5H6uSXyJngvZ+8Ghye9FytmVJvueIT0lgfm9Rfl
-	 LPb6lPqCD8BXkpSCSR2kDfTI5nPZpk7yVYla6AicPv7HjRkjKIJ9+dpPL10iqcQgNI
-	 j8uvMt6dJw08RY+d//AaQDFfHkEj5I76h2Nr3578=
+	by mail.kernel.org (Postfix) with ESMTP id 5AE942067D
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:36:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="fNpeW/b9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730050AbgGMQMw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Jul 2020 12:12:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56536 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729027AbgGMQMv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Jul 2020 12:12:51 -0400
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1E70420738;
-        Mon, 13 Jul 2020 16:12:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594656771;
-        bh=VlAjnpp6Rq3jEDIk5j3UJZnZRDKR7KG+uZq+CX6PEn8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=C79mtxlSvr92vC6lazskxG3NC8/ahhjh74xdQnppAPRU4U2pvZQ2jhSQ2Vh/eIWHn
-         jF5G1YghWoHVa49GprTKDkdBeW+x2+bvmADLJ62J1RgDU05L6/kd1LSx8dwxJhH+/A
-         fiRYraviQQo3OkKnLKMNkK1fBrovrdrxo+BWoLi4=
-Date:   Mon, 13 Jul 2020 18:12:51 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     linux-nvdimm <linux-nvdimm@lists.01.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        Linux MM <linux-mm@kvack.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Joao Martins <joao.m.martins@oracle.com>
-Subject: Re: [PATCH v2 17/22] drivers/base: Make device_find_child_by_name()
- compatible with sysfs inputs
-Message-ID: <20200713161251.GA366826@kroah.com>
+        id S1730623AbgGMQgb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Jul 2020 12:36:31 -0400
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:6797 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730403AbgGMQga (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2020 12:36:30 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f0c8d810000>; Mon, 13 Jul 2020 09:36:17 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Mon, 13 Jul 2020 09:36:30 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Mon, 13 Jul 2020 09:36:30 -0700
+Received: from rcampbell-dev.nvidia.com (10.124.1.5) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 13 Jul
+ 2020 16:36:17 +0000
+Subject: Re: [PATCH v2 19/22] mm/memremap_pages: Convert to 'struct range'
+To:     Dan Williams <dan.j.williams@intel.com>,
+        <linux-nvdimm@lists.01.org>
+CC:     Paul Mackerras <paulus@ozlabs.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Jason Gunthorpe <jgg@mellanox.com>, <peterz@infradead.org>,
+        <dave.hansen@linux.intel.com>, <ard.biesheuvel@linaro.org>,
+        <linux-mm@kvack.org>, <linux-kernel@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>, <hch@lst.de>,
+        <joao.m.martins@oracle.com>
 References: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
- <159457125753.754248.6000936585361264069.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20200712170945.GA194499@kroah.com>
- <CAPcyv4h=7oB+PHEUa6otkoXYx+r_8GFbmuF-j_kOmHjpGB-=eg@mail.gmail.com>
- <20200713155222.GB267581@kroah.com>
- <CAPcyv4ijb3nS3WuO38Yn3epBec8uQqw+UfimqFByqRT9QXCpLw@mail.gmail.com>
+ <159457126779.754248.3575056680831729751.stgit@dwillia2-desk3.amr.corp.intel.com>
+From:   Ralph Campbell <rcampbell@nvidia.com>
+X-Nvconfidentiality: public
+Message-ID: <52e00a67-b686-8554-8b92-a172ba9f34b6@nvidia.com>
+Date:   Mon, 13 Jul 2020 09:36:16 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4ijb3nS3WuO38Yn3epBec8uQqw+UfimqFByqRT9QXCpLw@mail.gmail.com>
+In-Reply-To: <159457126779.754248.3575056680831729751.stgit@dwillia2-desk3.amr.corp.intel.com>
+X-Originating-IP: [10.124.1.5]
+X-ClientProxiedBy: HQMAIL101.nvidia.com (172.20.187.10) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1594658177; bh=pEu43f6TYC38teVwUvS5veiq+jHDv/8kh2CbYzLWE6U=;
+        h=X-PGP-Universal:Subject:To:CC:References:From:X-Nvconfidentiality:
+         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
+         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
+         Content-Transfer-Encoding;
+        b=fNpeW/b9FMcDuL8oBoNL4fjzJoqpiaHBjJ5dsdIG5lrR+4Y/gb8oxeR9pNqs5p58E
+         jg/E8fTCGVG/pvYTlGNYMJ4np0poYz626qjoxbOuxMSk67Oh9xeDZjp9Dlx+JvN/yI
+         anmR/T+xHKXScxT+q/iQrtkW+yLeCbIRALu8t1RHIL23PtB5Gt3fPRk3mkNbf55HbY
+         rurMSczEzdbFa7CP+/s/hv3jIlWgQnc/l3MXL6dU1kdaK+Pru79j771P+5fyYyqL5O
+         XSYWgz3RPaAQhvk7/olB0odRYdNQkhmC2b55QRVX3q2JPs4J6+AQSE73bzRJ26O6Q9
+         P7158pxFYmDSQ==
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jul 13, 2020 at 09:09:18AM -0700, Dan Williams wrote:
-> On Mon, Jul 13, 2020 at 8:52 AM Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> >
-> > On Mon, Jul 13, 2020 at 08:39:43AM -0700, Dan Williams wrote:
-> > > On Sun, Jul 12, 2020 at 10:09 AM Greg Kroah-Hartman
-> > > <gregkh@linuxfoundation.org> wrote:
-> > > >
-> > > > On Sun, Jul 12, 2020 at 09:27:37AM -0700, Dan Williams wrote:
-> > > > > Use sysfs_streq() in device_find_child_by_name() to allow it to use a
-> > > > > sysfs input string that might contain a trailing newline.
-> > > > >
-> > > > > The other "device by name" interfaces,
-> > > > > {bus,driver,class}_find_device_by_name(), already account for sysfs
-> > > > > strings.
-> > > > >
-> > > > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > > > ---
-> > > > >  drivers/base/core.c |    2 +-
-> > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > > >
-> > > > > diff --git a/drivers/base/core.c b/drivers/base/core.c
-> > > > > index 67d39a90b45c..5d31b962c898 100644
-> > > > > --- a/drivers/base/core.c
-> > > > > +++ b/drivers/base/core.c
-> > > > > @@ -3078,7 +3078,7 @@ struct device *device_find_child_by_name(struct device *parent,
-> > > > >
-> > > > >       klist_iter_init(&parent->p->klist_children, &i);
-> > > > >       while ((child = next_device(&i)))
-> > > > > -             if (!strcmp(dev_name(child), name) && get_device(child))
-> > > > > +             if (sysfs_streq(dev_name(child), name) && get_device(child))
-> > > >
-> > > > Who wants to call this function with a name passed from userspace?
-> > > >
-> > > > Not objecting to it, just curious...
-> > > >
-> > >
-> > > The series that incorporates this patch adds a partitioning mechanism
-> > > to "device-dax region" devices with an:
-> > >     "echo 1 > regionX/create" to create a new partition / sub-instance
-> > > of a region, and...
-> > >     "echo $devname > regionX/delete" to delete. Where $devname is
-> > > searched in the child devices of regionX to trigger device_del().
-> >
-> > Shouldn't that be done in configfs, not sysfs?
+
+On 7/12/20 9:27 AM, Dan Williams wrote:
+> The 'struct resource' in 'struct dev_pagemap' is only used for holding
+> resource span information. The other fields, 'name', 'flags', 'desc',
+> 'parent', 'sibling', and 'child' are all unused wasted space.
 > 
-> I see configfs as an awkward fit for this situation. configfs wants to
-> software define kernel objects whereas this facility wants to augment
-> existing kernel enumerated device objects. The region device is
-> created by firmware policy and is optionally partitioned, configfs
-> objects don't exist at all until created. So for this I see sysfs +
-> 'scheme to trigger child device creation' as just enough mechanism
-> that does not warrant full blown configfs.
+> This is in preparation for introducing a multi-range extension of
+> devm_memremap_pages().
 > 
-> I believe it was debates like this [1] that have led me to the camp of
-> sysfs being capable of some device creation dynamism and leave
-> configfs for purely software constructed objects.
+> The bulk of this change is unwinding all the places internal to
+> libnvdimm that used 'struct resource' unnecessarily.
 > 
-> [1]: https://lore.kernel.org/lkml/17377.42813.479466.690408@cse.unsw.edu.au/
+> P2PDMA had a minor usage of the flags field, but only to report failures
+> with "%pR". That is replaced with an open coded print of the range.
+> 
+> Cc: Paul Mackerras <paulus@ozlabs.org>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Ben Skeggs <bskeggs@redhat.com>
+> Cc: David Airlie <airlied@linux.ie>
+> Cc: Daniel Vetter <daniel@ffwll.ch>
+> Cc: Ira Weiny <ira.weiny@intel.com>
+> Cc: Jason Gunthorpe <jgg@mellanox.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>   arch/powerpc/kvm/book3s_hv_uvmem.c     |   13 +++--
+>   drivers/dax/bus.c                      |   10 ++--
+>   drivers/dax/bus.h                      |    2 -
+>   drivers/dax/dax-private.h              |    5 --
+>   drivers/dax/device.c                   |    3 -
+>   drivers/dax/hmem/hmem.c                |    5 ++
+>   drivers/dax/pmem/core.c                |   12 ++---
+>   drivers/gpu/drm/nouveau/nouveau_dmem.c |    3 +
+>   drivers/nvdimm/badrange.c              |   26 +++++------
+>   drivers/nvdimm/claim.c                 |   13 +++--
+>   drivers/nvdimm/nd.h                    |    3 +
+>   drivers/nvdimm/pfn_devs.c              |   12 ++---
+>   drivers/nvdimm/pmem.c                  |   26 ++++++-----
+>   drivers/nvdimm/region.c                |   21 +++++----
+>   drivers/pci/p2pdma.c                   |   11 ++---
+>   include/linux/memremap.h               |    5 +-
+>   include/linux/range.h                  |    6 ++
+>   mm/memremap.c                          |   77 ++++++++++++++++----------------
+>   tools/testing/nvdimm/test/iomap.c      |    2 -
+>   19 files changed, 135 insertions(+), 120 deletions(-)
 
-"some" :)
+I think you are missing a call to memremap_pages() in lib/test_hmm.c
+and a call to release_mem_region() that need to be converted too.
+Try setting CONFIG_TEST_HMM=m.
 
-And that was from 2006, ugh, how did you find that...
-
-Ok, that's fine, no objection from me for this patch:
-
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Also, what about the call to release_mem_region() in
+drivers/gpu/drm/nouveau/nouveau_dmem.c? Doesn't that need a small change too?
