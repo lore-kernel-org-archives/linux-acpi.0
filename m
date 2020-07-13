@@ -2,74 +2,79 @@ Return-Path: <SRS0=lV+M=AY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 482B3C433EA
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:36:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2772EC433E1
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:55:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25E5C20773
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:36:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F37242067D
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jul 2020 16:55:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="r/hwhToy"
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="gtc+M+tW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730496AbgGMQgb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Jul 2020 12:36:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49286 "EHLO
+        id S1729764AbgGMQzC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Jul 2020 12:55:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730747AbgGMQgZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2020 12:36:25 -0400
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4737C061755
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Jul 2020 09:36:24 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id o18so17930887eje.7
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Jul 2020 09:36:24 -0700 (PDT)
+        with ESMTP id S1729747AbgGMQzC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2020 12:55:02 -0400
+Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEC32C061794
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Jul 2020 09:55:01 -0700 (PDT)
+Received: by mail-ed1-x542.google.com with SMTP id d16so14266966edz.12
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Jul 2020 09:55:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=JZNThefDeIHtE1ePtyRHJh2smc+ji3rHASWHkarQpEA=;
-        b=r/hwhToyzhzg5/h5ygCjJ458Jk5Wh/GLR4dkOAyc3nmzc2aqTLsx+s5BGZT3ir/OKo
-         6R5Idb53R3uplzvPZRn2E+M9eXKxf5rYFtoEC7Kp9PbrU7m5nGXYM1qOjK2axYP1oLEN
-         /uwxZbEZ8DYFqpXi83o0hVwVI6GKb/UOJYS6dG1LEouBCigaLZIqRh7Cca2yae2srQ6G
-         mEDPayiqI+EOuBE0CAJvoi6oH4U+hqK/GxHt9jARP65uekKzTDprCRWAxiLvTDLVsLQC
-         ktmXIHRQjZGsB9vRUQzIB3AR2Y+L1vKF50uWQxV+zE15bZebpEJAWBQB3fmJ5nkjMpqx
-         SsGg==
+        bh=HgOXhDZaQ0Vm8QAO9SEojO+HqYa4R2CkQWkXTg5E7NY=;
+        b=gtc+M+tWYcQvh1sK797pkjo7WfNXIE8olCSzxehn9iEfDXPy4UnYyp2+rSeemkOHd9
+         3YCD1bGiwRH6cQssBiZxingdGDUwZDouqVsreN1+gJuIGG6p5wdMSWJUxTsfZgJsaSP/
+         EKUruPSgSi5imDehnJ0OoKNYarRo4grmHiicSB3YKJASTXyGDOGVaFs1Xtu7/0rRGn5l
+         W9+vrC+x0eOE026JlZDzAPRS9I7c7ZrINzB0baTS0Fv4LSjRTfPGrURIPHkOUcVtnaEy
+         84Ykd5bPtW/7cJhsDtttHYS1i4aFielTGd+j2sm60fnPvc5Fai51ccDG/VbXOrStWecV
+         ncaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=JZNThefDeIHtE1ePtyRHJh2smc+ji3rHASWHkarQpEA=;
-        b=jS/nUE4zkzkCauPf3FS0WUEFuru8g4wBWAz3q1DOnAhRmun2vXf3zGpZ9iMkQ632nF
-         +tF6Qi1nUyoOsgx3Tv37kqi1e0USMqOn6r3OgylHreTPJbcZfMRJGpwOvAPZHWjjHcnb
-         sR+ANXA+galXZ4c1ckrHA67/XSw/CWi4bX6+VJ0t0FsbUqKfV+69ME89lqAliRTIs7oG
-         Wbk4bhAkPnhKqBGxxp7UPUWfFje2mSePLGgG4stKmF2tkD1j5+ZdDbiW59JzkKC/kOgx
-         8SD7bX0RSyRJRnJfNV1GXdVnYM8pZM08zLt83Dl5Y0SHMjL9cq9ZBduSRTCAYJMKO1Jd
-         nRfQ==
-X-Gm-Message-State: AOAM53062g7FV0q5yQpCuKcg5c37BfM1ELJ++xXbqc9KSxofbZeqk+Fa
-        2v5Uy1Z/nV5rEq1YUUTlLPcGl53Oy73I59YJeDrrQg==
-X-Google-Smtp-Source: ABdhPJz7kJwN+FtUOtRMjCPxLqFf8n0GyUdgjTjIsPmDaKxiXHa/S9B+1Hu/3Wxq5ZlAvUmHgOkdeaVL/w0Di9GcUBo=
-X-Received: by 2002:a17:906:6d56:: with SMTP id a22mr588276ejt.440.1594658183401;
- Mon, 13 Jul 2020 09:36:23 -0700 (PDT)
+        bh=HgOXhDZaQ0Vm8QAO9SEojO+HqYa4R2CkQWkXTg5E7NY=;
+        b=twukl4+0cjLmvmAC0mHxPA2a1xUC6pYoDX2jGovP2JKdYq6lqzlzWKm5DT/9ryBoso
+         I0lqzGLIzmU+4oHVED2yrg5N+sdviLDdJxFliPgHlo/njuAnnZtUZ9yGXC5MeQY6Dw1j
+         M6+8mMo2RX1qd5Yojf7NhUsbz36mB6nSicn/ktvIxLGVMq1+QjnQgjrfNVSPm6kgjfY1
+         8VVsdNg9ABVxgVV9K6y44Xtwkce197zgl56PeTTn59qL0QW5W27xOTeJ18YdMv1hiqZb
+         H0J9j8GZ3MqT+kUa4IYmSkdVwVS7r+WW8tS2Wj/CR7KX54SG4g7HRMJjSZvgej0fo8t0
+         VAIw==
+X-Gm-Message-State: AOAM5318lz9PYAid48ICTWBynxXGbklc55eqYeBmO04C+SM7a/RBS7Vr
+        HQgJi4/PWnELTsHYeXIDaSd6mhAVhwxEJByyv/fO5Q==
+X-Google-Smtp-Source: ABdhPJy2i/ttAyiKjR1qbX0QvV/QhWFNtJPFDiAHrxVvIXYFYUkb5Tgr0e/mIqA9cSxtejueFDTinGXoBIyHGcdsgj8=
+X-Received: by 2002:a50:d9cb:: with SMTP id x11mr299675edj.93.1594659300586;
+ Mon, 13 Jul 2020 09:55:00 -0700 (PDT)
 MIME-Version: 1.0
 References: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
- <159457125753.754248.6000936585361264069.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20200712170945.GA194499@kroah.com> <CAPcyv4h=7oB+PHEUa6otkoXYx+r_8GFbmuF-j_kOmHjpGB-=eg@mail.gmail.com>
- <20200713155222.GB267581@kroah.com> <CAPcyv4ijb3nS3WuO38Yn3epBec8uQqw+UfimqFByqRT9QXCpLw@mail.gmail.com>
- <20200713161251.GA366826@kroah.com>
-In-Reply-To: <20200713161251.GA366826@kroah.com>
+ <159457126779.754248.3575056680831729751.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <52e00a67-b686-8554-8b92-a172ba9f34b6@nvidia.com>
+In-Reply-To: <52e00a67-b686-8554-8b92-a172ba9f34b6@nvidia.com>
 From:   Dan Williams <dan.j.williams@intel.com>
-Date:   Mon, 13 Jul 2020 09:36:12 -0700
-Message-ID: <CAPcyv4iGbNShdA_pmaL-YwMaUX1zNM9MhviiSDyXXsX9aVG+gQ@mail.gmail.com>
-Subject: Re: [PATCH v2 17/22] drivers/base: Make device_find_child_by_name()
- compatible with sysfs inputs
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date:   Mon, 13 Jul 2020 09:54:49 -0700
+Message-ID: <CAPcyv4gQpAjkQ2j9D0pU-0UrmJzf9eLqtFsmqd8v5=+kyR3ZSg@mail.gmail.com>
+Subject: Re: [PATCH v2 19/22] mm/memremap_pages: Convert to 'struct range'
+To:     Ralph Campbell <rcampbell@nvidia.com>
 Cc:     linux-nvdimm <linux-nvdimm@lists.01.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Paul Mackerras <paulus@ozlabs.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Peter Zijlstra <peterz@infradead.org>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
         Dave Hansen <dave.hansen@linux.intel.com>,
         Ard Biesheuvel <ard.biesheuvel@linaro.org>,
         Linux MM <linux-mm@kvack.org>,
@@ -83,83 +88,64 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jul 13, 2020 at 9:13 AM Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
+On Mon, Jul 13, 2020 at 9:36 AM Ralph Campbell <rcampbell@nvidia.com> wrote:
 >
-> On Mon, Jul 13, 2020 at 09:09:18AM -0700, Dan Williams wrote:
-> > On Mon, Jul 13, 2020 at 8:52 AM Greg Kroah-Hartman
-> > <gregkh@linuxfoundation.org> wrote:
-> > >
-> > > On Mon, Jul 13, 2020 at 08:39:43AM -0700, Dan Williams wrote:
-> > > > On Sun, Jul 12, 2020 at 10:09 AM Greg Kroah-Hartman
-> > > > <gregkh@linuxfoundation.org> wrote:
-> > > > >
-> > > > > On Sun, Jul 12, 2020 at 09:27:37AM -0700, Dan Williams wrote:
-> > > > > > Use sysfs_streq() in device_find_child_by_name() to allow it to use a
-> > > > > > sysfs input string that might contain a trailing newline.
-> > > > > >
-> > > > > > The other "device by name" interfaces,
-> > > > > > {bus,driver,class}_find_device_by_name(), already account for sysfs
-> > > > > > strings.
-> > > > > >
-> > > > > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > > > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > > > > ---
-> > > > > >  drivers/base/core.c |    2 +-
-> > > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > > > >
-> > > > > > diff --git a/drivers/base/core.c b/drivers/base/core.c
-> > > > > > index 67d39a90b45c..5d31b962c898 100644
-> > > > > > --- a/drivers/base/core.c
-> > > > > > +++ b/drivers/base/core.c
-> > > > > > @@ -3078,7 +3078,7 @@ struct device *device_find_child_by_name(struct device *parent,
-> > > > > >
-> > > > > >       klist_iter_init(&parent->p->klist_children, &i);
-> > > > > >       while ((child = next_device(&i)))
-> > > > > > -             if (!strcmp(dev_name(child), name) && get_device(child))
-> > > > > > +             if (sysfs_streq(dev_name(child), name) && get_device(child))
-> > > > >
-> > > > > Who wants to call this function with a name passed from userspace?
-> > > > >
-> > > > > Not objecting to it, just curious...
-> > > > >
-> > > >
-> > > > The series that incorporates this patch adds a partitioning mechanism
-> > > > to "device-dax region" devices with an:
-> > > >     "echo 1 > regionX/create" to create a new partition / sub-instance
-> > > > of a region, and...
-> > > >     "echo $devname > regionX/delete" to delete. Where $devname is
-> > > > searched in the child devices of regionX to trigger device_del().
-> > >
-> > > Shouldn't that be done in configfs, not sysfs?
-> >
-> > I see configfs as an awkward fit for this situation. configfs wants to
-> > software define kernel objects whereas this facility wants to augment
-> > existing kernel enumerated device objects. The region device is
-> > created by firmware policy and is optionally partitioned, configfs
-> > objects don't exist at all until created. So for this I see sysfs +
-> > 'scheme to trigger child device creation' as just enough mechanism
-> > that does not warrant full blown configfs.
-> >
-> > I believe it was debates like this [1] that have led me to the camp of
-> > sysfs being capable of some device creation dynamism and leave
-> > configfs for purely software constructed objects.
-> >
-> > [1]: https://lore.kernel.org/lkml/17377.42813.479466.690408@cse.unsw.edu.au/
 >
-> "some" :)
-
-Yes, lowercase and quoted: "some" :).
-
-> And that was from 2006, ugh, how did you find that...
-
-Oh, public-inbox is a wonderful thing. "I kinda sort of remember Neil
-laying out a configfs vs sysfs argument", /me searches for "f:neil
-configfs" and voila.
-
-> Ok, that's fine, no objection from me for this patch:
+> On 7/12/20 9:27 AM, Dan Williams wrote:
+> > The 'struct resource' in 'struct dev_pagemap' is only used for holding
+> > resource span information. The other fields, 'name', 'flags', 'desc',
+> > 'parent', 'sibling', and 'child' are all unused wasted space.
+> >
+> > This is in preparation for introducing a multi-range extension of
+> > devm_memremap_pages().
+> >
+> > The bulk of this change is unwinding all the places internal to
+> > libnvdimm that used 'struct resource' unnecessarily.
+> >
+> > P2PDMA had a minor usage of the flags field, but only to report failures
+> > with "%pR". That is replaced with an open coded print of the range.
+> >
+> > Cc: Paul Mackerras <paulus@ozlabs.org>
+> > Cc: Michael Ellerman <mpe@ellerman.id.au>
+> > Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Cc: Vishal Verma <vishal.l.verma@intel.com>
+> > Cc: Dave Jiang <dave.jiang@intel.com>
+> > Cc: Ben Skeggs <bskeggs@redhat.com>
+> > Cc: David Airlie <airlied@linux.ie>
+> > Cc: Daniel Vetter <daniel@ffwll.ch>
+> > Cc: Ira Weiny <ira.weiny@intel.com>
+> > Cc: Jason Gunthorpe <jgg@mellanox.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >   arch/powerpc/kvm/book3s_hv_uvmem.c     |   13 +++--
+> >   drivers/dax/bus.c                      |   10 ++--
+> >   drivers/dax/bus.h                      |    2 -
+> >   drivers/dax/dax-private.h              |    5 --
+> >   drivers/dax/device.c                   |    3 -
+> >   drivers/dax/hmem/hmem.c                |    5 ++
+> >   drivers/dax/pmem/core.c                |   12 ++---
+> >   drivers/gpu/drm/nouveau/nouveau_dmem.c |    3 +
+> >   drivers/nvdimm/badrange.c              |   26 +++++------
+> >   drivers/nvdimm/claim.c                 |   13 +++--
+> >   drivers/nvdimm/nd.h                    |    3 +
+> >   drivers/nvdimm/pfn_devs.c              |   12 ++---
+> >   drivers/nvdimm/pmem.c                  |   26 ++++++-----
+> >   drivers/nvdimm/region.c                |   21 +++++----
+> >   drivers/pci/p2pdma.c                   |   11 ++---
+> >   include/linux/memremap.h               |    5 +-
+> >   include/linux/range.h                  |    6 ++
+> >   mm/memremap.c                          |   77 ++++++++++++++++----------------
+> >   tools/testing/nvdimm/test/iomap.c      |    2 -
+> >   19 files changed, 135 insertions(+), 120 deletions(-)
 >
-> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> I think you are missing a call to memremap_pages() in lib/test_hmm.c
+> and a call to release_mem_region() that need to be converted too.
+> Try setting CONFIG_TEST_HMM=m.
 
-Thanks, Greg.
+Thanks Ralph, looks like I overlooked these changes since the rebase.
+
+> Also, what about the call to release_mem_region() in
+> drivers/gpu/drm/nouveau/nouveau_dmem.c? Doesn't that need a small change too?
+
+I'll double check my config, that one should have been flagged at build time.
