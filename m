@@ -2,198 +2,327 @@ Return-Path: <SRS0=Pczh=A2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F10A7C4345A
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jul 2020 09:05:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03EAEC433E1
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jul 2020 09:13:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C335D20657
-	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jul 2020 09:05:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="Bw4yMHXz"
+	by mail.kernel.org (Postfix) with ESMTP id DA222206F4
+	for <linux-acpi@archiver.kernel.org>; Wed, 15 Jul 2020 09:13:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730483AbgGOJEy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 15 Jul 2020 05:04:54 -0400
-Received: from mail-eopbgr60073.outbound.protection.outlook.com ([40.107.6.73]:41219
-        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730453AbgGOJEx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Jul 2020 05:04:53 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=bcv7AbcSYlFyI04m8vXKM9OW+GpQz+hjVq5zZPR/+S4POiSwfmKuJdGTwTdDffouXvR1RB7AUAqmtqbsOgWHgrmrDNdXvhiQCstW7bV4UteJndLFRvaRaMrg25+DTRB2ntFs8ZYukQl3s/hb7BrxDSPhFqOTXSR8+cf2ZaBB4xCr9kJS3cqAlOB9mXhiQGn06cMNUH7g9B9LChuTahplDcOGDey+lWCp/Q6jSV4dBIB+JeeJY3HzANNuX4JMnUtCEQ5f536XiFKaibTumzB86YrXHmVrJJbVo+WRZzOjz6LgZiCaC+OY/Akwb/sYNzpiPzHo1K9S94v5qn2gkQRDug==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9sODrw04aGrwduWestRssW7UvryYt3hnrjEEqn4hX1k=;
- b=R2STxK4hrL1C4hRtgRR2jW5wwjw4z98SDSekgVQoRWawIhRj11NL4DDwcgFc+Sr5ncduBx/0iNxMWV3eVPrByQyVxArN/c9fXu7ElzZCqshw4wqPtnnX/hvQJkyWDmUq3d4eo8TzCebtXvhsBhkg0L8Nhv07Z3B0WzIlyfn1EYPMcsGBYpnRaU9LhHXzqKV8H8goRJkvF7ZdkC2VKpfA2TxC/goMf87vqO3cN5oXiX4UkaZi/J9Z9BJuw95R9gDyfRMOVFvo7azgQfjhtowIHEnyn4EB2RdxySy5Y5JB2IIY4qYQWLAr/FMXkE+vOKRDK1dug4sXObJLc+xpQ5XOUA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
- dkim=pass header.d=oss.nxp.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
- s=selector2-NXP1-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9sODrw04aGrwduWestRssW7UvryYt3hnrjEEqn4hX1k=;
- b=Bw4yMHXzGZjWp11BHhHnYOROW6n4EqHnTHfYHcWfUDRCygKEOa4fWkX5+cycj6Tq6iZHbIVAehqu2TS/S2wVS9QvhtOm+z1EQucyyGmM1oOS8qwIBnolOYq7OO6LNsTk8VJWm4Y1KK34WJUEkpG1zp14TWsYsfBwehHRBAhFq9Q=
-Authentication-Results: arm.com; dkim=none (message not signed)
- header.d=none;arm.com; dmarc=none action=none header.from=oss.nxp.com;
-Received: from AM0PR04MB5636.eurprd04.prod.outlook.com (2603:10a6:208:130::22)
- by AM0PR0402MB3763.eurprd04.prod.outlook.com (2603:10a6:208:e::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3174.23; Wed, 15 Jul
- 2020 09:04:49 +0000
-Received: from AM0PR04MB5636.eurprd04.prod.outlook.com
- ([fe80::7dda:a30:6b25:4d45]) by AM0PR04MB5636.eurprd04.prod.outlook.com
- ([fe80::7dda:a30:6b25:4d45%7]) with mapi id 15.20.3174.026; Wed, 15 Jul 2020
- 09:04:49 +0000
-From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
-To:     Jeremy Linton <jeremy.linton@arm.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Jon <jon@solid-run.com>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>
-Cc:     netdev@vger.kernel.org, linux.cj@gmail.com,
-        linux-acpi@vger.kernel.org,
-        Calvin Johnson <calvin.johnson@oss.nxp.com>
-Subject: [net-next PATCH v7 5/6] phylink: introduce phylink_fwnode_phy_connect()
-Date:   Wed, 15 Jul 2020 14:33:59 +0530
-Message-Id: <20200715090400.4733-6-calvin.johnson@oss.nxp.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200715090400.4733-1-calvin.johnson@oss.nxp.com>
-References: <20200715090400.4733-1-calvin.johnson@oss.nxp.com>
-Content-Type: text/plain
-X-ClientProxiedBy: SG2PR02CA0070.apcprd02.prod.outlook.com
- (2603:1096:4:54::34) To AM0PR04MB5636.eurprd04.prod.outlook.com
- (2603:10a6:208:130::22)
+        id S1729199AbgGOJNf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 15 Jul 2020 05:13:35 -0400
+Received: from foss.arm.com ([217.140.110.172]:54338 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728672AbgGOJNf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Jul 2020 05:13:35 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C25971FB;
+        Wed, 15 Jul 2020 02:13:33 -0700 (PDT)
+Received: from e121166-lin.cambridge.arm.com (e121166-lin.cambridge.arm.com [10.1.196.255])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9180A3F718;
+        Wed, 15 Jul 2020 02:13:31 -0700 (PDT)
+Date:   Wed, 15 Jul 2020 10:13:26 +0100
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     linux-arm-kernel@lists.infradead.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Will Deacon <will@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        iommu@lists.linux-foundation.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-pci@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Marc Zyngier <maz@kernel.org>,
+        Makarand Pawagi <makarand.pawagi@nxp.com>,
+        Diana Craciun <diana.craciun@oss.nxp.com>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>
+Subject: Re: [PATCH v2 05/12] ACPI/IORT: Add an input ID to
+ acpi_dma_configure()
+Message-ID: <20200715091326.GA30074@e121166-lin.cambridge.arm.com>
+References: <20200521130008.8266-1-lorenzo.pieralisi@arm.com>
+ <20200619082013.13661-1-lorenzo.pieralisi@arm.com>
+ <20200619082013.13661-6-lorenzo.pieralisi@arm.com>
+ <20200709093514.GC18149@e121166-lin.cambridge.arm.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR02CA0070.apcprd02.prod.outlook.com (2603:1096:4:54::34) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3195.18 via Frontend Transport; Wed, 15 Jul 2020 09:04:45 +0000
-X-Mailer: git-send-email 2.17.1
-X-Originating-IP: [14.142.151.118]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 647c450f-9360-4950-62a4-08d8289e20ad
-X-MS-TrafficTypeDiagnostic: AM0PR0402MB3763:
-X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR0402MB37635E77FB4CA93427F4ED9AD27E0@AM0PR0402MB3763.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4502;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: juphYzqxgz7pE/h3TgAClHrc+23fEKTDtyrID7/L6F4xRYu9Z+vc1HGEdVckGHg43n09tj3L/TEzeN0T6Dy0722XFBej/Ww+Ktq1aDnX8DnlEThkVMG3U/XpMI2x1NovZnDYcK/j4zMPZenb2RyjkSm80y18Y12U8sSglAPAZicsFWZmNU5xh+sT6Si7cIE9xASnW8urGhXCByE/BDJ8tLqWAR2jjn/au8FvyyFsq7dX/3w4b5yhjPT8+LDjpoFkogEI0Evm2Kp77oK9+wvBPAcOMOnKx8TLDqJ7/wQLWBpXTLS0ymzMXFd5LAUhUViPakUWaT/nHLoocIanPIePHDTKAq6g27iAQTUyH65N1gkoh2aDoqj5NvJErrtQzGJf
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(136003)(346002)(39860400002)(376002)(366004)(396003)(5660300002)(110136005)(2906002)(6512007)(66946007)(6666004)(66476007)(86362001)(1006002)(4326008)(66556008)(52116002)(44832011)(316002)(956004)(26005)(6486002)(2616005)(6636002)(6506007)(55236004)(1076003)(186003)(16526019)(8676002)(8936002)(478600001)(110426005);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: WdU/nGdi3z5SLpK+nlDraO14MBf3sD9YxEcmE2OD7JUPNlfQIROOyKlEeB/QR5uhJYDSnYASSW3qPvgGFLZUzyZAELe0pxYjwCGtEZ7GpbUWljyf7h9SSUT7Mm5ZTf+rGUkzT7Zw8Buh5R1xevJ3OzC76H2NDocCcrWGL76dO8rNqUI/ejZYOafqbyMAuedg+AJDSXBRUVFcOXaznCT1Lfr9zMwpS/tv3VeMYKBikFQDJoMXDgDZ47ZJ6dowTvucT+dh8uS7PVJKkTQqygsG0VXFtdOXLRqLbbHzBNAOkrMNWga30hGMUuL0yUdt5kwv+FX/XAi/6DlvoLAX/jJf/DoG3OOoD7DTbLHg1yolWAHWeVMY0tZEZq4r/zgSHW58HbdlMbhahlaORgCogIqIII3pZQudPtxhT876pNzxvFEq94GuTAbVkSwT2aRl2x5u9gL5CoEoYpE2nCcEfO4DDdaxtj0zGo/soQShVjyFDZ6LclMbDAZs9lNY+67I/0IA
-X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 647c450f-9360-4950-62a4-08d8289e20ad
-X-MS-Exchange-CrossTenant-AuthSource: AM0PR04MB5636.eurprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Jul 2020 09:04:49.3861
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: wvBcksVyCXTGNGSLSXmc8mh5RB8ZgqTom9oBNXXGniPU28pUEtIEUGEVj7EAcojhHEWJ+0YmfkCm9rmvorOcOQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0402MB3763
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200709093514.GC18149@e121166-lin.cambridge.arm.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Define phylink_fwnode_phy_connect() to connect phy specified by
-a fwnode to a phylink instance.
+On Thu, Jul 09, 2020 at 10:35:14AM +0100, Lorenzo Pieralisi wrote:
+> On Fri, Jun 19, 2020 at 09:20:06AM +0100, Lorenzo Pieralisi wrote:
+> > Some HW devices are created as child devices of proprietary busses,
+> > that have a bus specific policy defining how the child devices
+> > wires representing the devices ID are translated into IOMMU and
+> > IRQ controllers device IDs.
+> > 
+> > Current IORT code provides translations for:
+> > 
+> > - PCI devices, where the device ID is well identified at bus level
+> >   as the requester ID (RID)
+> > - Platform devices that are endpoint devices where the device ID is
+> >   retrieved from the ACPI object IORT mappings (Named components single
+> >   mappings). A platform device is represented in IORT as a named
+> >   component node
+> > 
+> > For devices that are child devices of proprietary busses the IORT
+> > firmware represents the bus node as a named component node in IORT
+> > and it is up to that named component node to define in/out bus
+> > specific ID translations for the bus child devices that are
+> > allocated and created in a bus specific manner.
+> > 
+> > In order to make IORT ID translations available for proprietary
+> > bus child devices, the current ACPI (and IORT) code must be
+> > augmented to provide an additional ID parameter to acpi_dma_configure()
+> > representing the child devices input ID. This ID is bus specific
+> > and it is retrieved in bus specific code.
+> > 
+> > By adding an ID parameter to acpi_dma_configure(), the IORT
+> > code can map the child device ID to an IOMMU stream ID through
+> > the IORT named component representing the bus in/out ID mappings.
+> > 
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Cc: Will Deacon <will@kernel.org>
+> > Cc: Hanjun Guo <guohanjun@huawei.com>
+> > Cc: Sudeep Holla <sudeep.holla@arm.com>
+> > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> > Cc: Robin Murphy <robin.murphy@arm.com>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > ---
+> >  drivers/acpi/arm64/iort.c | 59 +++++++++++++++++++++++++++++----------
+> >  drivers/acpi/scan.c       |  8 ++++--
+> >  include/acpi/acpi_bus.h   |  9 ++++--
+> >  include/linux/acpi.h      |  7 +++++
+> >  include/linux/acpi_iort.h |  7 +++--
+> >  5 files changed, 67 insertions(+), 23 deletions(-)
+> 
+> Hi Rafael,
+> 
+> just to ask if the ACPI core changes in this patch are OK with you,
+> thank you very much.
 
-Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
+Hi Rafael,
 
----
+are you OK with ACPI core changes in this patch ?
 
-Changes in v7:
-- assign flags to phy_dev
+Please let me know, thanks.
 
-Changes in v6:
-- clean up phylink_fwnode_phy_connect()
+Lorenzo
 
-Changes in v5:
-- return -EINVAL for invalid fwnode
-
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
-
- drivers/net/phy/phylink.c | 32 ++++++++++++++++++++++++++++++++
- include/linux/phylink.h   |  3 +++
- 2 files changed, 35 insertions(+)
-
-diff --git a/drivers/net/phy/phylink.c b/drivers/net/phy/phylink.c
-index dae6c8b51d7f..ba40d3bfa986 100644
---- a/drivers/net/phy/phylink.c
-+++ b/drivers/net/phy/phylink.c
-@@ -5,6 +5,7 @@
-  *
-  * Copyright (C) 2015 Russell King
-  */
-+#include <linux/acpi.h>
- #include <linux/ethtool.h>
- #include <linux/export.h>
- #include <linux/gpio/consumer.h>
-@@ -1017,6 +1018,37 @@ int phylink_of_phy_connect(struct phylink *pl, struct device_node *dn,
- }
- EXPORT_SYMBOL_GPL(phylink_of_phy_connect);
- 
-+/**
-+ * phylink_fwnode_phy_connect() - connect the PHY specified in the fwnode.
-+ * @pl: a pointer to a &struct phylink returned from phylink_create()
-+ * @fwnode: a pointer to a &struct fwnode_handle.
-+ * @flags: PHY-specific flags to communicate to the PHY device driver
-+ *
-+ * Connect the phy specified @fwnode to the phylink instance specified
-+ * by @pl. Actions specified in phylink_connect_phy() will be
-+ * performed.
-+ *
-+ * Returns 0 on success or a negative errno.
-+ */
-+int phylink_fwnode_phy_connect(struct phylink *pl,
-+			       struct fwnode_handle *fwnode,
-+			       u32 flags)
-+{
-+	struct phy_device *phy_dev;
-+
-+	if (is_of_node(fwnode))
-+		return phylink_of_phy_connect(pl, to_of_node(fwnode), flags);
-+	if (is_acpi_device_node(fwnode)) {
-+		phy_dev = phy_find_by_mdio_handle(fwnode);
-+		if (!phy_dev)
-+			return -ENODEV;
-+		phy_dev->dev_flags |= flags;
-+		return phylink_connect_phy(pl, phy_dev);
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(phylink_fwnode_phy_connect);
-+
- /**
-  * phylink_disconnect_phy() - disconnect any PHY attached to the phylink
-  *   instance.
-diff --git a/include/linux/phylink.h b/include/linux/phylink.h
-index b32b8b45421b..b27eed5e49a9 100644
---- a/include/linux/phylink.h
-+++ b/include/linux/phylink.h
-@@ -368,6 +368,9 @@ void phylink_destroy(struct phylink *);
- 
- int phylink_connect_phy(struct phylink *, struct phy_device *);
- int phylink_of_phy_connect(struct phylink *, struct device_node *, u32 flags);
-+int phylink_fwnode_phy_connect(struct phylink *pl,
-+			       struct fwnode_handle *fwnode,
-+			       u32 flags);
- void phylink_disconnect_phy(struct phylink *);
- 
- void phylink_mac_change(struct phylink *, bool up);
--- 
-2.17.1
-
+> Lorenzo
+> 
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index 421c6976ab81..ec782e4a0fe4 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -978,19 +978,54 @@ static void iort_named_component_init(struct device *dev,
+> >  					   nc->node_flags);
+> >  }
+> >  
+> > +static int iort_nc_iommu_map(struct device *dev, struct acpi_iort_node *node)
+> > +{
+> > +	struct acpi_iort_node *parent;
+> > +	int err = -ENODEV, i = 0;
+> > +	u32 streamid = 0;
+> > +
+> > +	do {
+> > +
+> > +		parent = iort_node_map_platform_id(node, &streamid,
+> > +						   IORT_IOMMU_TYPE,
+> > +						   i++);
+> > +
+> > +		if (parent)
+> > +			err = iort_iommu_xlate(dev, parent, streamid);
+> > +	} while (parent && !err);
+> > +
+> > +	return err;
+> > +}
+> > +
+> > +static int iort_nc_iommu_map_id(struct device *dev,
+> > +				struct acpi_iort_node *node,
+> > +				const u32 *in_id)
+> > +{
+> > +	struct acpi_iort_node *parent;
+> > +	u32 streamid;
+> > +
+> > +	parent = iort_node_map_id(node, *in_id, &streamid, IORT_IOMMU_TYPE);
+> > +	if (parent)
+> > +		return iort_iommu_xlate(dev, parent, streamid);
+> > +
+> > +	return -ENODEV;
+> > +}
+> > +
+> > +
+> >  /**
+> > - * iort_iommu_configure - Set-up IOMMU configuration for a device.
+> > + * iort_iommu_configure_id - Set-up IOMMU configuration for a device.
+> >   *
+> >   * @dev: device to configure
+> > + * @id_in: optional input id const value pointer
+> >   *
+> >   * Returns: iommu_ops pointer on configuration success
+> >   *          NULL on configuration failure
+> >   */
+> > -const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> > +const struct iommu_ops *iort_iommu_configure_id(struct device *dev,
+> > +						const u32 *id_in)
+> >  {
+> > -	struct acpi_iort_node *node, *parent;
+> > +	struct acpi_iort_node *node;
+> >  	const struct iommu_ops *ops;
+> > -	u32 streamid = 0;
+> >  	int err = -ENODEV;
+> >  
+> >  	/*
+> > @@ -1019,21 +1054,13 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> >  		if (fwspec && iort_pci_rc_supports_ats(node))
+> >  			fwspec->flags |= IOMMU_FWSPEC_PCI_RC_ATS;
+> >  	} else {
+> > -		int i = 0;
+> > -
+> >  		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> >  				      iort_match_node_callback, dev);
+> >  		if (!node)
+> >  			return NULL;
+> >  
+> > -		do {
+> > -			parent = iort_node_map_platform_id(node, &streamid,
+> > -							   IORT_IOMMU_TYPE,
+> > -							   i++);
+> > -
+> > -			if (parent)
+> > -				err = iort_iommu_xlate(dev, parent, streamid);
+> > -		} while (parent && !err);
+> > +		err = id_in ? iort_nc_iommu_map_id(dev, node, id_in) :
+> > +			      iort_nc_iommu_map(dev, node);
+> >  
+> >  		if (!err)
+> >  			iort_named_component_init(dev, node);
+> > @@ -1058,6 +1085,7 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> >  
+> >  	return ops;
+> >  }
+> > +
+> >  #else
+> >  static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev)
+> >  { return NULL; }
+> > @@ -1066,7 +1094,8 @@ static inline int iort_add_device_replay(const struct iommu_ops *ops,
+> >  { return 0; }
+> >  int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> >  { return 0; }
+> > -const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> > +const struct iommu_ops *iort_iommu_configure_id(struct device *dev,
+> > +						const u32 *input_id)
+> >  { return NULL; }
+> >  #endif
+> >  
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index 8777faced51a..2142f1554761 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -1457,8 +1457,10 @@ int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
+> >   * acpi_dma_configure - Set-up DMA configuration for the device.
+> >   * @dev: The pointer to the device
+> >   * @attr: device dma attributes
+> > + * @input_id: input device id const value pointer
+> >   */
+> > -int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> > +int acpi_dma_configure_id(struct device *dev, enum dev_dma_attr attr,
+> > +			  const u32 *input_id)
+> >  {
+> >  	const struct iommu_ops *iommu;
+> >  	u64 dma_addr = 0, size = 0;
+> > @@ -1470,7 +1472,7 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> >  
+> >  	iort_dma_setup(dev, &dma_addr, &size);
+> >  
+> > -	iommu = iort_iommu_configure(dev);
+> > +	iommu = iort_iommu_configure_id(dev, input_id);
+> >  	if (PTR_ERR(iommu) == -EPROBE_DEFER)
+> >  		return -EPROBE_DEFER;
+> >  
+> > @@ -1479,7 +1481,7 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> >  
+> >  	return 0;
+> >  }
+> > -EXPORT_SYMBOL_GPL(acpi_dma_configure);
+> > +EXPORT_SYMBOL_GPL(acpi_dma_configure_id);
+> >  
+> >  static void acpi_init_coherency(struct acpi_device *adev)
+> >  {
+> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> > index 5afb6ceb284f..a3abcc4b7d9f 100644
+> > --- a/include/acpi/acpi_bus.h
+> > +++ b/include/acpi/acpi_bus.h
+> > @@ -588,8 +588,13 @@ bool acpi_dma_supported(struct acpi_device *adev);
+> >  enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
+> >  int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
+> >  		       u64 *size);
+> > -int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
+> > -
+> > +int acpi_dma_configure_id(struct device *dev, enum dev_dma_attr attr,
+> > +			   const u32 *input_id);
+> > +static inline int acpi_dma_configure(struct device *dev,
+> > +				     enum dev_dma_attr attr)
+> > +{
+> > +	return acpi_dma_configure_id(dev, attr, NULL);
+> > +}
+> >  struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
+> >  					   u64 address, bool check_children);
+> >  int acpi_is_root_bridge(acpi_handle);
+> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> > index d661cd0ee64d..6d2c47489d90 100644
+> > --- a/include/linux/acpi.h
+> > +++ b/include/linux/acpi.h
+> > @@ -905,6 +905,13 @@ static inline int acpi_dma_configure(struct device *dev,
+> >  	return 0;
+> >  }
+> >  
+> > +static inline int acpi_dma_configure_id(struct device *dev,
+> > +					enum dev_dma_attr attr,
+> > +					const u32 *input_id)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> >  #define ACPI_PTR(_ptr)	(NULL)
+> >  
+> >  static inline void acpi_device_set_enumerated(struct acpi_device *adev)
+> > diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> > index e51425e083da..20a32120bb88 100644
+> > --- a/include/linux/acpi_iort.h
+> > +++ b/include/linux/acpi_iort.h
+> > @@ -35,7 +35,8 @@ void acpi_configure_pmsi_domain(struct device *dev);
+> >  int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
+> >  /* IOMMU interface */
+> >  void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *size);
+> > -const struct iommu_ops *iort_iommu_configure(struct device *dev);
+> > +const struct iommu_ops *iort_iommu_configure_id(struct device *dev,
+> > +						const u32 *id_in);
+> >  int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head);
+> >  #else
+> >  static inline void acpi_iort_init(void) { }
+> > @@ -48,8 +49,8 @@ static inline void acpi_configure_pmsi_domain(struct device *dev) { }
+> >  /* IOMMU interface */
+> >  static inline void iort_dma_setup(struct device *dev, u64 *dma_addr,
+> >  				  u64 *size) { }
+> > -static inline const struct iommu_ops *iort_iommu_configure(
+> > -				      struct device *dev)
+> > +static inline const struct iommu_ops *iort_iommu_configure_id(
+> > +				      struct device *dev, const u32 *id_in)
+> >  { return NULL; }
+> >  static inline
+> >  int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> > -- 
+> > 2.26.1
+> > 
