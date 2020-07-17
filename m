@@ -7,43 +7,42 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5EFDC433F7
-	for <linux-acpi@archiver.kernel.org>; Fri, 17 Jul 2020 13:39:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3724C433E2
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Jul 2020 13:44:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1D5C20759
-	for <linux-acpi@archiver.kernel.org>; Fri, 17 Jul 2020 13:39:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BDBF620775
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Jul 2020 13:44:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MkBQ5BWS"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="i9c3q9Ls"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726635AbgGQNjW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 17 Jul 2020 09:39:22 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:54971 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726113AbgGQNjU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 17 Jul 2020 09:39:20 -0400
+        id S1726851AbgGQNom (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 17 Jul 2020 09:44:42 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:23025 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726734AbgGQNol (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jul 2020 09:44:41 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1594993159;
+        s=mimecast20190719; t=1594993480;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=0E358gUSBhGTotJA8GEwcHbmCx7Te/Sih/QfnaV6xJs=;
-        b=MkBQ5BWSMS20qoVSD5XXBW5r0xxlonY4ftZqghsMfdfTqimmkFU6q0JcL9caNhUWINg5MK
-        i9SG4cOeiJ/38jyWfcyfkwBpIfq0CiScWMNZjXxiRCXLLI886hGT5pCqQTql0pEmq/wYFj
-        RolVXTLfd93Zavpmtmc5vgrDTAxkbrk=
+        bh=wFxzn0JHmm3vfb35/XuLlaLchu4vOFUQ8XAR0bQcpag=;
+        b=i9c3q9LsdZw5+aTOG8Rd90PpTRIHPyPQYK7s2Ed4J2ujdbkSkgPREy77rcmi4FHRykyVA9
+        AeESa8Flc0TjmKYq0R4gK5mFCXNNh+dkM0Khjqxkc+luVbacjECfpbn1T0/n5aC8+fvYtC
+        7n2Xn+cDGzs3TrpyKnonyC1ZRw7uMeQ=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-412-E5p5wfHEMOWmvwGIQj0xbQ-1; Fri, 17 Jul 2020 09:39:13 -0400
-X-MC-Unique: E5p5wfHEMOWmvwGIQj0xbQ-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+ us-mta-478-dNxV-KE6MJmm3_Gfli90Ow-1; Fri, 17 Jul 2020 09:44:36 -0400
+X-MC-Unique: dNxV-KE6MJmm3_Gfli90Ow-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3259580BCCB;
-        Fri, 17 Jul 2020 13:39:00 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id EDC36106B247;
+        Fri, 17 Jul 2020 13:44:33 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-112-162.ams2.redhat.com [10.36.112.162])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 089428FA3C;
-        Fri, 17 Jul 2020 13:38:53 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 4127E10013C0;
+        Fri, 17 Jul 2020 13:44:31 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
@@ -61,79 +60,59 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
-Subject: [PATCH v5 13/16] drm/i915: panel: Add get_vbt_pwm_freq() helper
-Date:   Fri, 17 Jul 2020 15:37:50 +0200
-Message-Id: <20200717133753.127282-14-hdegoede@redhat.com>
+Subject: [PATCH v5 15/16] drm/i915: panel: Honor the VBT PWM min setting for devs with an external PWM controller
+Date:   Fri, 17 Jul 2020 15:44:29 +0200
+Message-Id: <20200717134430.127575-1-hdegoede@redhat.com>
 In-Reply-To: <20200717133753.127282-1-hdegoede@redhat.com>
 References: <20200717133753.127282-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Factor the code which checks and drm_dbg_kms-s the VBT PWM frequency
-out of get_backlight_max_vbt().
+So far for devices using an external PWM controller (devices using
+pwm_setup_backlight()), we have been hardcoding the minimum allowed
+PWM level to 0. But several of these devices specify a non 0 minimum
+setting in their VBT.
 
-This is a preparation patch for honering the VBT PWM frequency for
-devices which use an external PWM controller (devices using
-pwm_setup_backlight()).
+Change pwm_setup_backlight() to use get_backlight_min_vbt() to get
+the minimum level.
 
 Acked-by: Jani Nikula <jani.nikula@intel.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/gpu/drm/i915/display/intel_panel.c | 27 ++++++++++++++--------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/i915/display/intel_panel.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/display/intel_panel.c b/drivers/gpu/drm/i915/display/intel_panel.c
-index 3c5056dbf607..8efdd9f08a08 100644
+index 14e611c92194..cb28b9908ca4 100644
 --- a/drivers/gpu/drm/i915/display/intel_panel.c
 +++ b/drivers/gpu/drm/i915/display/intel_panel.c
-@@ -1543,18 +1543,9 @@ static u32 vlv_hz_to_pwm(struct intel_connector *connector, u32 pwm_freq_hz)
- 	return DIV_ROUND_CLOSEST(clock, pwm_freq_hz * mul);
- }
+@@ -1925,8 +1925,8 @@ static int pwm_setup_backlight(struct intel_connector *connector,
+ 	 */
+ 	pwm_apply_args(panel->backlight.pwm);
  
--static u32 get_backlight_max_vbt(struct intel_connector *connector)
-+static u16 get_vbt_pwm_freq(struct drm_i915_private *dev_priv)
- {
--	struct drm_i915_private *dev_priv = to_i915(connector->base.dev);
--	struct intel_panel *panel = &connector->panel;
- 	u16 pwm_freq_hz = dev_priv->vbt.backlight.pwm_freq_hz;
--	u32 pwm;
--
--	if (!panel->backlight.hz_to_pwm) {
--		drm_dbg_kms(&dev_priv->drm,
--			    "backlight frequency conversion not supported\n");
--		return 0;
--	}
+-	panel->backlight.min = 0; /* 0% */
+ 	panel->backlight.max = 100; /* 100% */
++	panel->backlight.min = get_backlight_min_vbt(connector);
+ 	level = intel_panel_compute_brightness(connector, 100);
+ 	ns = DIV_ROUND_UP(level * panel->backlight.pwm_period_ns, 100);
  
- 	if (pwm_freq_hz) {
- 		drm_dbg_kms(&dev_priv->drm,
-@@ -1567,6 +1558,22 @@ static u32 get_backlight_max_vbt(struct intel_connector *connector)
- 			    pwm_freq_hz);
- 	}
+@@ -1941,8 +1941,9 @@ static int pwm_setup_backlight(struct intel_connector *connector,
  
-+	return pwm_freq_hz;
-+}
-+
-+static u32 get_backlight_max_vbt(struct intel_connector *connector)
-+{
-+	struct drm_i915_private *dev_priv = to_i915(connector->base.dev);
-+	struct intel_panel *panel = &connector->panel;
-+	u16 pwm_freq_hz = get_vbt_pwm_freq(dev_priv);
-+	u32 pwm;
-+
-+	if (!panel->backlight.hz_to_pwm) {
-+		drm_dbg_kms(&dev_priv->drm,
-+			    "backlight frequency conversion not supported\n");
-+		return 0;
-+	}
-+
- 	pwm = panel->backlight.hz_to_pwm(connector, pwm_freq_hz);
- 	if (!pwm) {
- 		drm_dbg_kms(&dev_priv->drm,
+ 	level = DIV_ROUND_UP(pwm_get_duty_cycle(panel->backlight.pwm) * 100,
+ 			     panel->backlight.pwm_period_ns);
+-	panel->backlight.level =
+-		intel_panel_compute_brightness(connector, level);
++	level = intel_panel_compute_brightness(connector, level);
++	panel->backlight.level = clamp(level, panel->backlight.min,
++				       panel->backlight.max);
+ 	panel->backlight.enabled = panel->backlight.level != 0;
+ 
+ 	drm_info(&dev_priv->drm, "Using %s PWM for LCD backlight control\n",
 -- 
 2.26.2
 
