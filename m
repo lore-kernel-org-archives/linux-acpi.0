@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D828FC433E6
-	for <linux-acpi@archiver.kernel.org>; Tue, 21 Jul 2020 10:06:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00A73C433E8
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 Jul 2020 10:06:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B707020792
+	by mail.kernel.org (Postfix) with ESMTP id DE0B422BEF
 	for <linux-acpi@archiver.kernel.org>; Tue, 21 Jul 2020 10:06:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729026AbgGUKGO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1729102AbgGUKGO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Tue, 21 Jul 2020 06:06:14 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:45790 "EHLO huawei.com"
+Received: from szxga07-in.huawei.com ([45.249.212.35]:45800 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729102AbgGUKGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1729046AbgGUKGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 21 Jul 2020 06:06:12 -0400
 Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 4D56BEE2BE1EA4F59E8C;
+        by Forcepoint Email with ESMTP id 517DE65D4029162FB7BF;
         Tue, 21 Jul 2020 18:06:10 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
  DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 21 Jul 2020 18:05:59 +0800
+ 14.3.487.0; Tue, 21 Jul 2020 18:06:00 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 CC:     <linux-acpi@vger.kernel.org>, <linuxarm@huawei.com>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 1/3] ACPI: tables: Remove the duplicated checks for acpi_parse_entries_array()
-Date:   Tue, 21 Jul 2020 17:59:04 +0800
-Message-ID: <1595325546-63774-2-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 3/3] ACPI: NUMA: Remove the useless 'node >= MAX_NUMNODES' check
+Date:   Tue, 21 Jul 2020 17:59:06 +0800
+Message-ID: <1595325546-63774-4-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1595325546-63774-1-git-send-email-guohanjun@huawei.com>
 References: <1595325546-63774-1-git-send-email-guohanjun@huawei.com>
@@ -44,54 +44,28 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_disabled, pointer id and table_header are checked in
-acpi_table_parse_entries_array(), and acpi_parse_entries_array() is only
-called by acpi_table_parse_entries_array(), so those checks in
-acpi_parse_entries_array() are duplicate.
-
-Remove those duplicated check and move the table_size check to
-function acpi_table_parse_entries_array() as well.
+acpi_map_pxm_to_node() will never return numa node greater
+than MAX_NUMNODES, so 'node >= MAX_NUMNODES' is not needed,
+remove it.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/tables.c | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/acpi/numa/srat.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 0e905c3..c85e1c6 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -292,20 +292,6 @@ static int __init acpi_parse_entries_array(char *id, unsigned long table_size,
- 	int errs = 0;
- 	int i;
+diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
+index 3d430b0..15bbaab 100644
+--- a/drivers/acpi/numa/srat.c
++++ b/drivers/acpi/numa/srat.c
+@@ -230,7 +230,7 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+ 		pxm &= 0xff;
  
--	if (acpi_disabled)
--		return -ENODEV;
--
--	if (!id)
--		return -EINVAL;
--
--	if (!table_size)
--		return -EINVAL;
--
--	if (!table_header) {
--		pr_warn("%4.4s not present\n", id);
--		return -ENODEV;
--	}
--
- 	table_end = (unsigned long)table_header + table_header->length;
- 
- 	/* Parse all entries looking for a match. */
-@@ -371,6 +357,9 @@ int __init acpi_table_parse_entries_array(char *id,
- 	if (!id)
- 		return -EINVAL;
- 
-+	if (!table_size)
-+		return -EINVAL;
-+
- 	if (!strncmp(id, ACPI_SIG_MADT, 4))
- 		instance = acpi_apic_instance;
- 
+ 	node = acpi_map_pxm_to_node(pxm);
+-	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
++	if (node == NUMA_NO_NODE) {
+ 		pr_err("SRAT: Too many proximity domains.\n");
+ 		goto out_err_bad_srat;
+ 	}
 -- 
 1.7.12.4
 
