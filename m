@@ -2,270 +2,277 @@ Return-Path: <SRS0=anCl=BA=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56604C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 21 Jul 2020 00:58:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FF43C433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 Jul 2020 04:28:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23BD72080D
-	for <linux-acpi@archiver.kernel.org>; Tue, 21 Jul 2020 00:58:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1615208E4
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 Jul 2020 04:28:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="diD3DVsx"
+	dkim=pass (1024-bit key) header.d=nxp.com header.i=@nxp.com header.b="JIZ/YbX1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726618AbgGUA6Z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Jul 2020 20:58:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40230 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726390AbgGUA6Z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2020 20:58:25 -0400
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D14C3C0619D5
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2020 17:58:24 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id lx13so19961279ejb.4
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2020 17:58:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9b/dWUWcmQC3VAaa8Cg/JXLF0cqmH/Md5xiTM9HBxjQ=;
-        b=diD3DVsxMCkiIzevO0+JCae+FxhUk569wVXPS1cRfwY3pETJzf/3PLI2b9XoEyyDXw
-         Z6pIGGBxBMkmAlVBQm50HIbkZdAdYypcaSuf2iweirUt0+XxTecetCnlyXELdL4/FXQ6
-         ZtByrRngf2shBc+YkqWZXmfq/VNYmsdECRyVRYNOTFuP5ZbE7MWjafb2IOGH4lvfjWlY
-         0xwxrGDdqnFGd8YAt+vtLlH832ackygwFGBll/6y5Rd31R23/PkltkHtKhhl591wxg2I
-         mbBQ8L1UeYeUq4JBvECQc9/KD5MZQXx4FT2ZnxOf49iS7J0f2FjmwtZNPjp78WlmkSk/
-         +GCA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9b/dWUWcmQC3VAaa8Cg/JXLF0cqmH/Md5xiTM9HBxjQ=;
-        b=VEJVwg2PoIPPXLD7Mfc0Wyh7vdpKFo2SYLjjKR7UzFg8e8Gz38w9Zn5e1/vuwGSYJZ
-         gwiF/j1cq5jD6SmMqrM8lsmzOjkUpnVAf931MosBdlzcAo4taFm0optWY9fimOIRMdGc
-         u96UINv+0CPK9lHwx2zFhxYaR1tvEZQWLEYCb7lEomY0AdV1J28qqABHs/7rUrZCgAtm
-         J7+gYM2bKaeOmqm+GNi0Un64SjvF57z65Fm0+/bHtNc1PRD+E/FlwYtEr31vDkp1lj1N
-         ZoIMEkQkxoNZp3H4VaSiGRNVkzystY8TiUtIc8fPl9KEMudhNB0IgFOTdlOBo0FGLwaV
-         1/Gg==
-X-Gm-Message-State: AOAM532EG6/8KyUwWgU5vldRrMw6RSPcPCRt7ji0C09N8t5qk3YHwrR8
-        2LkiGy5reUWRvSo4M5bVmjU7es/DzKOVd3VREyML+w==
-X-Google-Smtp-Source: ABdhPJzoQSfYVuoYj/q/5PLCGBYC0RqZLxVuTJwpzD7nytQF786FNvLF+fxJvZkRGx5IT+BM217aX8JbzPPX4acm0As=
-X-Received: by 2002:a17:906:cc0e:: with SMTP id ml14mr22733669ejb.432.1595293103436;
- Mon, 20 Jul 2020 17:58:23 -0700 (PDT)
+        id S1725774AbgGUE2g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 21 Jul 2020 00:28:36 -0400
+Received: from mail-db8eur05on2069.outbound.protection.outlook.com ([40.107.20.69]:15205
+        "EHLO EUR05-DB8-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725294AbgGUE2f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 21 Jul 2020 00:28:35 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=gFQVcQyaWvsUG44XdSChW2yUXoo+b9mZbXnsvI90K6Ie/HbmdqIWWnN92qY5yuoEP71ETYMCJaeeCxiiod8A3N2Zk2MPC1ZTCeAst35p0kHz8rKGcOj6AthtFokM0voSHgRk7sr/mTp18rTsQl7gjkAKPHGt0J27irrOj/eBxqFYOvafogyfaDR+MXr1qhvuRCf4uVax8ZirRbq88FV3mnNkLUureJeIs6rOsO34KndID4fguw7TadWlLx/VPyeciN5py0lvdGDum9OXzCHxinsz2P/Hao/iOi3dvkAtoTYgg/Z9S92c178xlq9pQKhkxME/4QpgPQk+YQJtxoNwDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=HA5z3Mh8DZD1o3ypG13EfIrFK75pKfsvj81iTyYA0uE=;
+ b=IpR5Cs4A4+GgKWGu3o6MnmmsLyXCqvCwchPw0wTLzeFgcCZ5CXifclov0+1mO+Crocu/tl2QSzD2sjutbGT9QAXbBJzewoHZQtRgW9YDrD0puF6F+6dEoRhOvNDz8A2xJ1sC9+t+zIo0gQaDLsCJZ7iI6d8J8RdeBUiFHBjXA7cemeyt4/XxbLJlrEmmmlXk9O64jQbhx69JaD/eP5DSES5yA2b64mbmMRYbLdd83P1PZwcVPAh1PcyFtTBhDKagUtuSfEFgfKhlSBZ4JeFE0VCCuip4U8GKRp0VsmW43jbKiQJBexU2mrEgaxdx3jmGyVHdHC87AdqatfgdJR1YOQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nxp.com; dmarc=pass action=none header.from=nxp.com; dkim=pass
+ header.d=nxp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=HA5z3Mh8DZD1o3ypG13EfIrFK75pKfsvj81iTyYA0uE=;
+ b=JIZ/YbX11YKI7lnTVgJPwYPI5QfMs3WP+ZXCn8N/N6j6aRP3Q8P6jDTCH7/z2V/aP04tHlP8Uuao/03kOSZTXG+aaZBmxwidvq6TEerrDf3yJbORX+FHJHSjGW5Q+5lvVU1/I5RYE/togi+Gyv6Od6LiKJ4ciau9aydpIFAuSaA=
+Received: from DB7PR04MB4986.eurprd04.prod.outlook.com (2603:10a6:10:13::25)
+ by DB7PR04MB5353.eurprd04.prod.outlook.com (2603:10a6:10:84::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3195.18; Tue, 21 Jul
+ 2020 04:28:30 +0000
+Received: from DB7PR04MB4986.eurprd04.prod.outlook.com
+ ([fe80::d133:55be:7303:108e]) by DB7PR04MB4986.eurprd04.prod.outlook.com
+ ([fe80::d133:55be:7303:108e%6]) with mapi id 15.20.3195.026; Tue, 21 Jul 2020
+ 04:28:29 +0000
+From:   Makarand Pawagi <makarand.pawagi@nxp.com>
+To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        "joro@8bytes.org" <joro@8bytes.org>
+CC:     Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Marc Zyngier <maz@kernel.org>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Diana Madalina Craciun (OSS)" <diana.craciun@oss.nxp.com>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>
+Subject: RE: [EXT] Re: [PATCH v2 00/12] ACPI/OF: Upgrade MSI/IOMMU ID mapping
+ APIs
+Thread-Topic: [EXT] Re: [PATCH v2 00/12] ACPI/OF: Upgrade MSI/IOMMU ID mapping
+ APIs
+Thread-Index: AQHWXrZ8RLWPWILym0mae/lq5iihW6kRcNYw
+Date:   Tue, 21 Jul 2020 04:28:29 +0000
+Message-ID: <DB7PR04MB49868304D142BEC5044A6FCEEB780@DB7PR04MB4986.eurprd04.prod.outlook.com>
+References: <20200521130008.8266-1-lorenzo.pieralisi@arm.com>
+ <20200619082013.13661-1-lorenzo.pieralisi@arm.com>
+ <20200720165442.GA19658@e121166-lin.cambridge.arm.com>
+In-Reply-To: <20200720165442.GA19658@e121166-lin.cambridge.arm.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: arm.com; dkim=none (message not signed)
+ header.d=none;arm.com; dmarc=none action=none header.from=nxp.com;
+x-originating-ip: [122.169.237.208]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 123854ce-bdd9-4a7c-cac9-08d82d2e8539
+x-ms-traffictypediagnostic: DB7PR04MB5353:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <DB7PR04MB53538029CD6C72063DF8F0A4EB780@DB7PR04MB5353.eurprd04.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:7691;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: mkULBl8xYEDomk0nozHEbT/9MOoma0nZuYy96M37RqBosKbDSW8rpkafwoOGzBYrUlveawsci/M9CScqpCQS/ekiYcFGlXRbBAfYZtJnWQvqd493ooabEZfGMSZLhrU9J+HoCjV7+9E2T8Vf7/34+yekd7GXMO8nAnxMd3nJhEp7bwmePvSebzee+OO3tr7c1ZZpuDoNGitRHKwQ/8nkWlJ+Obix5rLo0bpsQ1aiKzzFUmenJKo2Dom0+50S0Ry8jb7BIbX2Aaqhd3/wv/jz5h6U3NeR07Ony/FTBFNhgwS27jTAP1bfd2prkBkH5+0VZQe0gtt9/gFL22jBKmikD+t3nj9Z2LPMCkEsK1I05T1IZpUT9xqqAbeZdC7NciGY/v6qvQb5sm10r7SO6ZOiMw==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB7PR04MB4986.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(136003)(376002)(396003)(39860400002)(366004)(346002)(52536014)(83080400001)(2906002)(33656002)(5660300002)(86362001)(55016002)(8936002)(316002)(9686003)(7416002)(66946007)(478600001)(45080400002)(6506007)(66476007)(66556008)(64756008)(66446008)(7696005)(76116006)(966005)(53546011)(44832011)(186003)(26005)(8676002)(110136005)(54906003)(71200400001)(4326008)(83380400001);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata: pKZvw4+u3w09yWUFv/SSjcRyMIUy0qcVnZ8sF7qrd0GmTBecc9Xsj5Trcvg846FiXx1mf4e6VWl01SvE8toCFzXK8GHpBpzdYUvxb0iT85ybJshcGB1LfjjUDO9EFEu8xB/2WkKzwu7vDByoI2buEZgavOermftozTfIEAENcrjMmkjP0eoBRi3+D9M9l7VMuaEYQ81TpXnMcvXwWgMfc3OwpUqc1YpUdC5TVFrpoNrEPbZlOpRKQ//63RrB5H6Mn8LujtQTvb5FGGIWc/8ioV4toplXZSM9s18iQgjVa1s7Nj53ZmL77d8gPtEM7rEMTvKvNfvdQbPqouQbqr5qfXNzQlz4YqVNGhV5T95UUSl56nPfgZH4fESeVPEROyTemrnk71+rlpeAWUSWBME59k3dyBPPHaMOB95lg3H2UzF4MOnUT9iyyODqTiweZI7EkpkL3EvVJqaJ3LRQl8dibUKpmNyJXI2+89N6sxO2Cl3QJnpgF8eQwSab1j6xlT18
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-References: <159528284411.993790.11733759435137949717.stgit@dwillia2-desk3.amr.corp.intel.com>
- <159528289856.993790.11787167534159675987.stgit@dwillia2-desk3.amr.corp.intel.com>
- <c825b5ee-ec03-7aa8-e380-6003f33fa113@infradead.org>
-In-Reply-To: <c825b5ee-ec03-7aa8-e380-6003f33fa113@infradead.org>
-From:   Dan Williams <dan.j.williams@intel.com>
-Date:   Mon, 20 Jul 2020 17:58:12 -0700
-Message-ID: <CAPcyv4giEEAJiX5PSUy6KJSaNgvbmt6XVALmaD-J4p_FqQBY-w@mail.gmail.com>
-Subject: Re: [PATCH v3 10/11] PM, libnvdimm: Add runtime firmware activation support
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     linux-nvdimm <linux-nvdimm@lists.01.org>,
-        Pavel Machek <pavel@ucw.cz>, Ira Weiny <ira.weiny@intel.com>,
-        Len Brown <len.brown@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+X-OriginatorOrg: nxp.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DB7PR04MB4986.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 123854ce-bdd9-4a7c-cac9-08d82d2e8539
+X-MS-Exchange-CrossTenant-originalarrivaltime: 21 Jul 2020 04:28:29.5100
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: uz4ZcIjaZ+im9vI6/52cBnomZ5tPGZgLZwKivBRBu0Ttytb4dDfAwOresDdSkBoBSqI2YuvR2BItBMR5o0CLag==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB7PR04MB5353
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jul 20, 2020 at 5:02 PM Randy Dunlap <rdunlap@infradead.org> wrote:
->
-> Hi Dan,
->
-> Documentation comments below:
->
-> On 7/20/20 3:08 PM, Dan Williams wrote:
-> > Abstract platform specific mechanics for nvdimm firmware activation
-> > behind a handful of generic ops. At the bus level ->activate_state()
-> > indicates the unified state (idle, busy, armed) of all DIMMs on the bus,
-> > and ->capability() indicates the system state expectations for activate.
-> > At the DIMM level ->activate_state() indicates the per-DIMM state,
-> > ->activate_result() indicates the outcome of the last activation
-> > attempt, and ->arm() attempts to transition the DIMM from 'idle' to
-> > 'armed'.
+
+
+> -----Original Message-----
+> From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Sent: Monday, July 20, 2020 10:25 PM
+> To: linux-arm-kernel@lists.infradead.org; Rob Herring <robh+dt@kernel.org=
+>;
+> Rafael J. Wysocki <rjw@rjwysocki.net>; Bjorn Helgaas <bhelgaas@google.com=
+>;
+> Catalin Marinas <catalin.marinas@arm.com>; Will Deacon <will@kernel.org>;
+> joro@8bytes.org
+> Cc: Hanjun Guo <guohanjun@huawei.com>; Sudeep Holla
+> <sudeep.holla@arm.com>; Robin Murphy <robin.murphy@arm.com>; Marc
+> Zyngier <maz@kernel.org>; iommu@lists.linux-foundation.org; linux-
+> acpi@vger.kernel.org; devicetree@vger.kernel.org; linux-pci@vger.kernel.o=
+rg;
+> Makarand Pawagi <makarand.pawagi@nxp.com>; Diana Madalina Craciun (OSS)
+> <diana.craciun@oss.nxp.com>; Laurentiu Tudor <laurentiu.tudor@nxp.com>
+> Subject: [EXT] Re: [PATCH v2 00/12] ACPI/OF: Upgrade MSI/IOMMU ID mapping
+> APIs
+>=20
+> Caution: EXT Email
+>=20
+> On Fri, Jun 19, 2020 at 09:20:01AM +0100, Lorenzo Pieralisi wrote:
+> > This series is a v2 of a previous posting:
 > >
-> > A new hibernate_quiet_exec() facility is added to support firmware
-> > activation in an OS defined system quiesce state. It leverages the fact
-> > that the hibernate-freeze state wants to assert that a memory
-> > hibernation snapshot can be taken. This is in contrast to a platform
-> > firmware defined quiesce state that may forcefully quiet the memory
-> > controller independent of whether an individual device-driver properly
-> > supports hibernate-freeze.
+> > v1 -> v2
 > >
-> > The libnvdimm sysfs interface is extended to support detection of a
-> > firmware activate capability. The mechanism supports enumeration and
-> > triggering of firmware activate, optionally in the
-> > hibernate_quiet_exec() context.
+> > - Removed _rid() wrappers
+> > - Fixed !CONFIG_ACPI compilation issue
+> > - Converted of_pci_iommu_init() to use of_iommu_configure_dev_id()
 > >
-> > Cc: Pavel Machek <pavel@ucw.cz>
-> > Cc: Ira Weiny <ira.weiny@intel.com>
-> > Cc: Len Brown <len.brown@intel.com>
-> > Cc: Jonathan Corbet <corbet@lwn.net>
-> > Cc: Dave Jiang <dave.jiang@intel.com>
-> > Cc: Vishal Verma <vishal.l.verma@intel.com>
-> > [rafael: hibernate_quiet_exec() proposal]
-> > Co-developed-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > ---
-> >  Documentation/ABI/testing/sysfs-bus-nvdimm         |    2
-> >  .../driver-api/nvdimm/firmware-activate.rst        |   86 ++++++++++++
-> >  drivers/nvdimm/core.c                              |  149 ++++++++++++++++++++
-> >  drivers/nvdimm/dimm_devs.c                         |  115 +++++++++++++++
-> >  drivers/nvdimm/nd-core.h                           |    1
-> >  include/linux/libnvdimm.h                          |   44 ++++++
-> >  include/linux/suspend.h                            |    6 +
-> >  kernel/power/hibernate.c                           |   97 +++++++++++++
-> >  8 files changed, 500 insertions(+)
-> >  create mode 100644 Documentation/ABI/testing/sysfs-bus-nvdimm
-> >  create mode 100644 Documentation/driver-api/nvdimm/firmware-activate.rst
->
->
-> > diff --git a/Documentation/driver-api/nvdimm/firmware-activate.rst b/Documentation/driver-api/nvdimm/firmware-activate.rst
-> > new file mode 100644
-> > index 000000000000..9eb98aa833c5
-> > --- /dev/null
-> > +++ b/Documentation/driver-api/nvdimm/firmware-activate.rst
-> > @@ -0,0 +1,86 @@
-> > +.. SPDX-License-Identifier: GPL-2.0
-> > +
-> > +==================================
-> > +NVDIMM Runtime Firmware Activation
-> > +==================================
-> > +
-> > +Some persistent memory devices run a firmware locally on the device /
->
->                                   run firmware
+> > v1:
+> > https://eur01.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Flor=
+e
+> > .kernel.org%2Flinux-arm-kernel%2F20200521130008.8266-1-lorenzo.pierali
+> >
+> si%40arm.com%2F&amp;data=3D02%7C01%7Cmakarand.pawagi%40nxp.com%7C
+> da7bade
+> >
+> c592846a1478808d82ccd9eb1%7C686ea1d3bc2b4c6fa92cd99c5c301635%7C0%
+> 7C1%7
+> >
+> C637308608924853281&amp;sdata=3DZoP3e2Q5Ijkz%2FtsGfgu9MYkmKXSHQExs5
+> J64Sb
+> > h51YA%3D&amp;reserved=3D0
+> >
+> > Original cover letter
+> > ---------------------
+> >
+> > Firmware bindings provided in the ACPI IORT table[1] and device tree
+> > bindings define rules to carry out input/output ID mappings - ie
+> > retrieving an IOMMU/MSI controller input ID for a device with a given
+> > ID.
+> >
+> > At the moment these firmware bindings are used exclusively for PCI
+> > devices and their requester ID to IOMMU/MSI id mapping but there is
+> > nothing PCI specific in the ACPI and devicetree bindings that prevent
+> > the firmware and kernel from using the firmware bindings to traslate
+> > device IDs for any bus that requires its devices to carry out
+> > input/output id translations.
+> >
+> > The Freescale FSL bus is an example whereby the input/output ID
+> > translation kernel code put in place for PCI can be reused for devices
+> > attached to the bus that are not PCI devices.
+> >
+> > This series updates the kernel code to make the MSI/IOMMU input/output
+> > ID translation PCI agnostic and apply the resulting changes to the
+> > device ID space provided by the Freescale FSL bus.
+> >
+> > [1]
+> > https://eur01.safelinks.protection.outlook.com/?url=3Dhttp%3A%2F%2Finfo=
+c
+> >
+> enter.arm.com%2Fhelp%2Ftopic%2Fcom.arm.doc.den0049d%2FDEN0049D_IO_
+> Rema
+> >
+> pping_Table.pdf&amp;data=3D02%7C01%7Cmakarand.pawagi%40nxp.com%7Cda
+> 7bade
+> >
+> c592846a1478808d82ccd9eb1%7C686ea1d3bc2b4c6fa92cd99c5c301635%7C0%
+> 7C1%7
+> >
+> C637308608924853281&amp;sdata=3DRzpIo4AfAFsi2pdEuY%2FbnPAyase5cSmFIr5
+> 2SX
+> > aOrTg%3D&amp;reserved=3D0
+> >
+> > Cc: Rob Herring <robh+dt@kernel.org>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: "Joerg Roedel <joro@8bytes.org>
+> > Cc: Hanjun Guo <guohanjun@huawei.com>
+> > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > Cc: Sudeep Holla <sudeep.holla@arm.com>
+> > Cc: Robin Murphy <robin.murphy@arm.com>
+> > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> > Cc: Will Deacon <will@kernel.org>
+> > Cc: Marc Zyngier <maz@kernel.org>
+> >
+> > Diana Craciun (2):
+> >   of/irq: make of_msi_map_get_device_domain() bus agnostic
+> >   bus/fsl-mc: Refactor the MSI domain creation in the DPRC driver
+> >
+> > Laurentiu Tudor (1):
+> >   dt-bindings: arm: fsl: Add msi-map device-tree binding for fsl-mc
+> > bus
+> >
+> > Lorenzo Pieralisi (8):
+> >   ACPI/IORT: Make iort_match_node_callback walk the ACPI namespace for
+> >     NC
+> >   ACPI/IORT: Make iort_get_device_domain IRQ domain agnostic
+> >   ACPI/IORT: Make iort_msi_map_rid() PCI agnostic
+> >   ACPI/IORT: Remove useless PCI bus walk
+> >   ACPI/IORT: Add an input ID to acpi_dma_configure()
+> >   of/iommu: Make of_map_rid() PCI agnostic
+> >   of/device: Add input id to of_dma_configure()
+> >   of/irq: Make of_msi_map_rid() PCI bus agnostic
+> >
+> > Makarand Pawagi (1):
+> >   bus: fsl-mc: Add ACPI support for fsl-mc
+> >
+> >  .../devicetree/bindings/misc/fsl,qoriq-mc.txt |  50 +++++++-
+> >  drivers/acpi/arm64/iort.c                     | 108 ++++++++++++------
+> >  drivers/acpi/scan.c                           |   8 +-
+> >  drivers/bus/fsl-mc/dprc-driver.c              |  31 ++---
+> >  drivers/bus/fsl-mc/fsl-mc-bus.c               |  79 +++++++++----
+> >  drivers/bus/fsl-mc/fsl-mc-msi.c               |  36 ++++--
+> >  drivers/bus/fsl-mc/fsl-mc-private.h           |   6 +-
+> >  drivers/iommu/of_iommu.c                      |  81 +++++++------
+> >  drivers/irqchip/irq-gic-v3-its-fsl-mc-msi.c   | 105 ++++++++++++++---
+> >  drivers/of/base.c                             |  42 +++----
+> >  drivers/of/device.c                           |   8 +-
+> >  drivers/of/irq.c                              |  34 +++---
+> >  drivers/pci/msi.c                             |   9 +-
+> >  include/acpi/acpi_bus.h                       |   9 +-
+> >  include/linux/acpi.h                          |   7 ++
+> >  include/linux/acpi_iort.h                     |  20 ++--
+> >  include/linux/of.h                            |   4 +-
+> >  include/linux/of_device.h                     |  16 ++-
+> >  include/linux/of_iommu.h                      |   6 +-
+> >  include/linux/of_irq.h                        |  13 ++-
+> >  20 files changed, 451 insertions(+), 221 deletions(-)
+>=20
+> Hi guys,
+>=20
+> I think this series is ready for upstream (there are two ACKs missing fro=
+m Rafael
+> on patch (5) and Bjorn on patch (3) - I asked for them), it touches lots =
+of
+> subsystems so I am not really sure what's the best way to pull it, more s=
+o given
+> that it is also late in the cycle (I do think it is best to merge it via =
+a single tree, it
+> does not make sense to split it up in my opinion).
+>=20
+> Please let me know.
+>=20
+Hi Lorenzo, I too find it suitable to merge it as a whole.
+Hi Rafael, Bjorn, Can you finalize your review for patch-5 and patch-3?=20
 
-That works too. I was going to say "run a firmware image", but "run
-firmware" is clearer.
 
->
-> > +"DIMM" to perform tasks like media management, capacity provisioning,
-> > +and health monitoring. The process of updating that firmware typically
-> > +involves a reboot because it has implications for in-flight memory
-> > +transactions. However, reboots are disruptive and at least the Intel
-> > +persistent memory platform implementation, described by the Intel ACPI
-> > +DSM specification [1], has added support for activating firmware at
->
-> that's an Intel spec?  just checking.
-
-Correct. It's a public specification of the ACPI methods that Intel
-platform BIOS or virtual-machine BIOS deploys to talk to NVDIMM
-devices.
-
->
-> > +runtime.
-> > +
-> > +A native sysfs interface is implemented in libnvdimm to allow platform
->
->                                                                  platforms
-
-Ack.
-
->
-> > +to advertise and control their local runtime firmware activation
-> > +capability.
-> > +
-> > +The libnvdimm bus object, ndbusX, implements an ndbusX/firmware/activate
-> > +attribute that shows the state of the firmware activation as one of 'idle',
-> > +'armed', 'overflow', and 'busy'.
->
->                         or
-
-Yup.
-
->
-> > +
-> > +- idle:
-> > +  No devices are set / armed to activate firmware
-> > +
-> > +- armed:
-> > +  At least one device is armed
-> > +
-> > +- busy:
-> > +  In the busy state armed devices are in the process of transitioning
-> > +  back to idle and completing an activation cycle.
-> > +
-> > +- overflow:
-> > +  If the platform has a concept of incremental work needed to perform
-> > +  the activation it could be the case that too many DIMMs are armed for
-> > +  activation. In that scenario the potential for firmware activation to
-> > +  timeout is indicated by the 'overflow' state.
-> > +
-> > +The 'ndbusX/firmware/activate' property can be written with a value of
-> > +either 'live', or 'quiesce'. A value of 'quiesce' triggers the kernel to
-> > +run firmware activation from within the equivalent of the hibernation
-> > +'freeze' state where drivers and applications are notified to stop their
-> > +modifications of system memory. A value of 'live' attempts
-> > +firmware-activation without this hibernation cycle. The
->
->   no hyphen^^
-
-Agree.
-
->
-> > +'ndbusX/firmware/activate' property will be elided completely if no
-> > +firmware activation capability is detected.
-> > +
-> > +Another property 'ndbusX/firmware/capability' indicates a value of
-> > +'live', or 'quiesce'. Where 'live' indicates that the firmware
->
-> no comma. no period. So this:
->
-> +'live' or 'quiesce', where
-
-Ok.
-
->
-> > +does not require or inflict any quiesce period on the system to update
-> > +firmware. A capability value of 'quiesce' indicates that firmware does
-> > +expect and injects a quiet period for the memory controller, but 'live'
-> > +may still be written to 'ndbusX/firmware/activate' as an override to
-> > +assume the risk of racing firmware update with in-flight device and
-> > +application activity. The 'ndbusX/firmware/capability' property will be
-> > +elided completely if no firmware activation capability is detected.
-> > +
-> > +The libnvdimm memory-device / DIMM object, nmemX, implements
-> > +'nmemX/firmware/activate' and 'nmemX/firmware/result' attributes to
-> > +communicate the per-device firmware activation state. Similar to the
-> > +'ndbusX/firmware/activate' attribute, the 'nmemX/firmware/activate'
-> > +attribute indicates 'idle', 'armed', or 'busy'. The state transitions
-> > +from 'armed' to 'idle' when the system is prepared to activate firmware,
-> > +firmware staged + state set to armed, and 'ndbusX/firmware/activate' is
-> > +triggered. After that activation event the nmemX/firmware/result
-> > +attribute reflects the state of the last activation as one of:
-> > +
-> > +- none:
-> > +  No runtime activation triggered since the last time the device was reset
-> > +
-> > +- success:
-> > +  The last runtime activation completed successfully.
-> > +
-> > +- fail:
-> > +  The last runtime activation failed for device-specific reasons.
-> > +
-> > +- not_staged:
-> > +  The last runtime activation failed due to a sequencing error of the
-> > +  firmware image not being staged.
-> > +
-> > +- need_reset:
-> > +  Runtime firmware activation failed, but the firmware can still be
-> > +  activated via the legacy method of power-cycling the system.
-> > +
-> > +[1]: https://docs.pmem.io/persistent-memory/
->
->
-> thanks.
-> --
-> ~Randy
-
-Thanks Randy.
+> Thanks,
+> Lorenzo
