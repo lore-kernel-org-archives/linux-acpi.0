@@ -2,108 +2,208 @@ Return-Path: <SRS0=Ooty=BC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04CBFC433DF
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 23:20:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97BEEC433DF
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 23:27:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C45C620792
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 23:20:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595546449;
-	bh=i+Ceq41gViZl1zByQdcr9xsP75TCnNB51e/Bimh3Pr0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
-	b=rZFCJ1xPymYZJYPGdW6XcqwWXvKGhCy/ADrML3ZUxJ0kyahAC2PgHrodFThGB4U59
-	 qivgYFI3Xg3URulef6btAS5vN12gk1oHm2PhH5FrWfT4nilabf48n6r2xW3Sv/LzO0
-	 JbrsmGaKyPtYeDZQiA7Cj2GluIy0r3QHOBJ6qatw=
+	by mail.kernel.org (Postfix) with ESMTP id 6BE9220825
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 23:27:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726723AbgGWXUt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Jul 2020 19:20:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34242 "EHLO mail.kernel.org"
+        id S1726697AbgGWX1A (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Jul 2020 19:27:00 -0400
+Received: from foss.arm.com ([217.140.110.172]:53008 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726657AbgGWXUt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 23 Jul 2020 19:20:49 -0400
-Received: from localhost (mobile-166-175-191-139.mycingular.net [166.175.191.139])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4A13F206E3;
-        Thu, 23 Jul 2020 23:20:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595546448;
-        bh=i+Ceq41gViZl1zByQdcr9xsP75TCnNB51e/Bimh3Pr0=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=EUcPK8R06MB++pnG74f+WhK4FLoWCqF2rEiQLgNYL6JcGZD/G19DSnX331wUy8Qt6
-         N9OBWObPxdpH6xfO/UyAsdwJwaERNeXFdian/Vl7i5UotFzUK6JbN1kYjXmpRD7NIP
-         1OxYe9M0ym7P3o3cjtxrd8hEvHPW6wIJK3byTYqU=
-Date:   Thu, 23 Jul 2020 18:20:46 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Shiju Jose <shiju.jose@huawei.com>
-Cc:     linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-kernel@vger.kernel.org, rjw@rjwysocki.net, bp@alien8.de,
-        james.morse@arm.com, lenb@kernel.org, tony.luck@intel.com,
-        dan.carpenter@oracle.com, zhangliguang@linux.alibaba.com,
-        andriy.shevchenko@linux.intel.com, wangkefeng.wang@huawei.com,
-        jroedel@suse.de, linuxarm@huawei.com, yangyicong@hisilicon.com,
-        jonathan.cameron@huawei.com, tanxiaofei@huawei.com
-Subject: Re: [PATCH v13 1/2] ACPI / APEI: Add a notifier chain for unknown
- (vendor) CPER records
-Message-ID: <20200723232046.GA1468652@bjorn-Precision-5520>
+        id S1726657AbgGWX07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Jul 2020 19:26:59 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C619830E;
+        Thu, 23 Jul 2020 16:26:58 -0700 (PDT)
+Received: from [192.168.122.166] (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5B7223F718;
+        Thu, 23 Jul 2020 16:26:58 -0700 (PDT)
+Subject: Re: [net-next PATCH v7 1/6] Documentation: ACPI: DSD: Document MDIO
+ PHY
+To:     Calvin Johnson <calvin.johnson@oss.nxp.com>,
+        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
+        Jon <jon@solid-run.com>,
+        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
+        Ioana Ciornei <ioana.ciornei@nxp.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Madalin Bucur <madalin.bucur@oss.nxp.com>
+Cc:     netdev@vger.kernel.org, linux.cj@gmail.com,
+        linux-acpi@vger.kernel.org
+References: <20200715090400.4733-1-calvin.johnson@oss.nxp.com>
+ <20200715090400.4733-2-calvin.johnson@oss.nxp.com>
+From:   Jeremy Linton <jeremy.linton@arm.com>
+Message-ID: <1a031e62-1e87-fdc1-b672-e3ccf3530fda@arm.com>
+Date:   Thu, 23 Jul 2020 18:26:57 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200722103952.1009-2-shiju.jose@huawei.com>
+In-Reply-To: <20200715090400.4733-2-calvin.johnson@oss.nxp.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jul 22, 2020 at 11:39:51AM +0100, Shiju Jose wrote:
-> CPER records describing a firmware-first error are identified by GUID.
-> The ghes driver currently logs, but ignores any unknown CPER records.
-> This prevents describing errors that can't be represented by a standard
-> entry, that would otherwise allow a driver to recover from an error.
-> The UEFI spec calls these 'Non-standard Section Body' (N.2.3 of
-> version 2.8).
+Hi,
 
-> +#ifdef CONFIG_ACPI_APEI_GHES
-> +/**
-> + * ghes_register_vendor_record_notifier - register a notifier for vendor
-> + * records that the kernel would otherwise ignore.
-> + * @nb: pointer to the notifier_block structure of the event handler.
-> + *
-> + * return 0 : SUCCESS, non-zero : FAIL
-> + */
-> +int ghes_register_vendor_record_notifier(struct notifier_block *nb);
-> +
-> +/**
-> + * ghes_unregister_vendor_record_notifier - unregister the previously
-> + * registered vendor record notifier.
-> + * @nb: pointer to the notifier_block structure of the vendor record handler.
-> + */
-> +void ghes_unregister_vendor_record_notifier(struct notifier_block *nb);
-> +#else
-> +static inline int ghes_register_vendor_record_notifier(struct notifier_block *nb)
-> +{
-> +	return -ENODEV;
-> +}
-> +
-> +static inline void ghes_unregister_vendor_record_notifier(struct notifier_block *nb)
-> +{
-> +}
-
-If you made CONFIG_PCIE_HISI_ERR depend on CONFIG_ACPI_APEI_GHES,
-you'd be able to get rid of these stubs, wouldn't you?  It doesn't
-look like there's any point in building pcie-hisi-error.c at all
-unless CONFIG_ACPI_APEI_GHES is enabled.
-
-> +#endif
-> +
->  int ghes_estatus_pool_init(int num_ghes);
->  
->  /* From drivers/edac/ghes_edac.c */
-> -- 
-> 2.17.1
+On 7/15/20 4:03 AM, Calvin Johnson wrote:
+> Introduce ACPI mechanism to get PHYs registered on a MDIO bus and
+> provide them to be connected to MAC.
 > 
+> An ACPI node property "mdio-handle" is introduced to reference the
+> MDIO bus on which PHYs are registered with autoprobing method used
+> by mdiobus_register().
 > 
+> Describe properties "phy-channel" and "phy-mode"
+> 
+> Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
+> 
+> ---
+> 
+> Changes in v7: None
+> Changes in v6: None
+> Changes in v5: None
+> Changes in v4: None
+> Changes in v3:
+> - cleanup based on v2 comments
+> - Added description for more properties
+> - Added MDIO node DSDT entry
+> 
+> Changes in v2: None
+> 
+>   Documentation/firmware-guide/acpi/dsd/phy.rst | 90 +++++++++++++++++++
+>   1 file changed, 90 insertions(+)
+>   create mode 100644 Documentation/firmware-guide/acpi/dsd/phy.rst
+> 
+> diff --git a/Documentation/firmware-guide/acpi/dsd/phy.rst b/Documentation/firmware-guide/acpi/dsd/phy.rst
+> new file mode 100644
+> index 000000000000..0132fee10b45
+> --- /dev/null
+> +++ b/Documentation/firmware-guide/acpi/dsd/phy.rst
+> @@ -0,0 +1,90 @@
+> +.. SPDX-License-Identifier: GPL-2.0
+> +
+> +=========================
+> +MDIO bus and PHYs in ACPI
+> +=========================
+> +
+> +The PHYs on an mdiobus are probed and registered using mdiobus_register().
+> +Later, for connecting these PHYs to MAC, the PHYs registered on the
+> +mdiobus have to be referenced.
+
+First, this is all perfectly compatible with my literal interpretation 
+and understanding of the ACPI spec. The use of _DSD is there to provide 
+a way to "extend" if you will the specification for device specific edge 
+cases that aren't directly covered by the spec.
+
+OTOH, it may be my lack of knowledge here, but IMHO this is a bit of a 
+difficult pill for all arm/sbsa systems though. Primary because I don't 
+see how one is expected to use the generic ACPI power states on the 
+parent device here. I also have some questions about how one might 
+import such a device into a VM. Further AFAIK arm's current 
+recommendations for SBSA/ACPI systems point in the direction of RCiEP's.
+
+IMHO what should be clarified in this document is something to the 
+effect that the "mdio-handle" is used for systems which have multiple 
+nic/mac's sharing a single MDIO bus. Otherwise the MDIO bus and its phy 
+should be a child of the nic/mac using it, with standardized 
+behaviors/etc left up to the OSPM when it comes to MDIO bus 
+enumeration/etc.
+
+Thanks,
+
+
+> +
+> +mdio-handle
+> +-----------
+> +For each MAC node, a property "mdio-handle" is used to reference the
+> +MDIO bus on which the PHYs are registered. On getting hold of the MDIO
+> +bus, use find_phy_device() to get the PHY connected to the MAC.
+> +
+> +phy-channel
+> +-----------
+> +Property "phy-channel" defines the address of the PHY on the mdiobus.
+> +
+> +phy-mode
+> +--------
+> +Property "phy-mode" defines the type of PHY interface.
+> +
+> +An example of this is shown below::
+> +
+> +DSDT entry for MAC where MDIO node is referenced
+> +------------------------------------------------
+> +	Scope(\_SB.MCE0.PR17) // 1G
+> +	{
+> +	  Name (_DSD, Package () {
+> +	     ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> +		 Package () {
+> +		     Package () {"phy-channel", 1},
+> +		     Package () {"phy-mode", "rgmii-id"},
+> +		     Package () {"mdio-handle", Package (){\_SB.MDI0}}
+> +	      }
+> +	   })
+> +	}
+> +
+> +	Scope(\_SB.MCE0.PR18) // 1G
+> +	{
+> +	  Name (_DSD, Package () {
+> +	    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> +		Package () {
+> +		    Package () {"phy-channel", 2},
+> +		    Package () {"phy-mode", "rgmii-id"},
+> +		    Package () {"mdio-handle", Package (){\_SB.MDI0}}
+> +	    }
+> +	  })
+> +	}
+> +
+> +DSDT entry for MDIO node
+> +------------------------
+> +a) Silicon Component
+> +--------------------
+> +	Scope(_SB)
+> +	{
+> +	  Device(MDI0) {
+> +	    Name(_HID, "NXP0006")
+> +	    Name(_CCA, 1)
+> +	    Name(_UID, 0)
+> +	    Name(_CRS, ResourceTemplate() {
+> +	      Memory32Fixed(ReadWrite, MDI0_BASE, MDI_LEN)
+> +	      Interrupt(ResourceConsumer, Level, ActiveHigh, Shared)
+> +	       {
+> +		 MDI0_IT
+> +	       }
+> +	    }) // end of _CRS for MDI0
+> +	    Name (_DSD, Package () {
+> +	      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> +	      Package () {
+> +		 Package () {"little-endian", 1},
+> +	      }
+> +	    })
+> +	  } // end of MDI0
+> +	}
+> +
+> +b) Platform Component
+> +---------------------
+> +	Scope(\_SB.MDI0)
+> +	{
+> +	  Device(PHY1) {
+> +	    Name (_ADR, 0x1)
+> +	  } // end of PHY1
+> +
+> +	  Device(PHY2) {
+> +	    Name (_ADR, 0x2)
+> +	  } // end of PHY2
+> +	}
+> 
+
