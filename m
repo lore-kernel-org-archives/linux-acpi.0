@@ -2,175 +2,94 @@ Return-Path: <SRS0=Ooty=BC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C434C433EB
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 19:07:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD05BC433E5
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2A59B206F4
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 19:07:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="uJ/LXXd4"
+	by mail.kernel.org (Postfix) with ESMTP id ACD6020825
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1595546584;
+	bh=LpBa7WC+PmUuvju8pxnLc0G1tsZpO642XLjDjk2e2t4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
+	b=Hwgwrh1KRxWbFMG8eZzTbuUOUyruOXXPEHjAeQi/HjBDmb+hPA0nlRlYoKuWbJUfJ
+	 7e5OnpcrxvQeUi9Q+rUPwAEJS5XelcTeSmk5Vsqh4d1knf8Ese+KGzONHrjPJ1znGw
+	 WUHPvSKIQAo1zNJt0RDpvK7GoEcOTJ0cVYMSUJ14=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728017AbgGWTHd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Jul 2020 15:07:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36030 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728010AbgGWTHd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jul 2020 15:07:33 -0400
-Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com [IPv6:2607:f8b0:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C81BAC0619E4
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Jul 2020 12:07:32 -0700 (PDT)
-Received: by mail-pl1-x643.google.com with SMTP id x9so3004868plr.2
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Jul 2020 12:07:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=fmy4tO1tW/yB2p+/DBGuPfpuvcNIPQV/6jKnfwUymaM=;
-        b=uJ/LXXd4WW3t/V9uP1pvh2+w7xCfmHmmU2q2MX994uvmdMhyUpnBd6wtTkFWVeSiVn
-         fni2Skynmv78aJ9rstIyOgTssb4uBzBQL6YPmxb5SzQaGZtm2sB0Ln7Qk9r6vt5a/SEE
-         gYzQRW0K8FC5lX9W9+bz+gbIOgybElEHRuMxxBvv7T+TJKJnGfXHkIe/b2UFhfrjNnt8
-         hmvs/pCT8mt2wp6eGsvntxKg2m7zjG9IalAT3RXT7FCW3qu0zRZl84tHISI7JSF/JPwL
-         M06pYkfoNbZamtdmUh5GU20hgxfU9YBtWQ50on6QDjz/h882N3ikL5uKYSp6UNdyl0GU
-         5IDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=fmy4tO1tW/yB2p+/DBGuPfpuvcNIPQV/6jKnfwUymaM=;
-        b=ndJue7Tot/jdLJIir3AqDE3exinHJQ2IOQYeBAriPUieyF/n/RW0Wc2rerUawqtjja
-         bgRvlms7fUAr9OmE/623G+8ce8h0Qf7W++0skZMWqkrt7hzwNJCg3fWM32KXlginBJ53
-         q38IHpkl7+FsgbHB80O9peEQIQ18BZsfPKe2UW30lxuzZjRZDCLtgZ3pWYR1wATvzysF
-         Jh79aQGO+pyBHOuCb+TZg8keW4kt7neWxQ/2ycqWV4fHLpUa5aa7LdmSntflYeEIHCRN
-         Dei6oOyOt/OeKd2cmWqNAbEZ/fxKbUp1Ohm5xzG0uhMZ2px5yQhdJN3uV0CMNtaKXMKD
-         vv0A==
-X-Gm-Message-State: AOAM5329dZhNeeHjE8l4SyGAgNkHP7PoT4tUXhVJFbD7hR1qA5WluvAO
-        SAYb6RJjdESGBL8pP5SvtqHZNQ==
-X-Google-Smtp-Source: ABdhPJyFY8SK2yrpGMIJYPZOm/XbUPFW09vVIwr7j2Oue2l2cEXybEXOCRDyJvKCGSvI32jjRGApEQ==
-X-Received: by 2002:a17:902:22:: with SMTP id 31mr4590106pla.120.1595531251889;
-        Thu, 23 Jul 2020 12:07:31 -0700 (PDT)
-Received: from google.com ([2620:15c:201:2:f693:9fff:fef4:1b6d])
-        by smtp.gmail.com with ESMTPSA id h6sm3716298pfo.123.2020.07.23.12.07.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jul 2020 12:07:31 -0700 (PDT)
-Date:   Thu, 23 Jul 2020 12:07:24 -0700
-From:   Sami Tolvanen <samitolvanen@google.com>
-To:     Neal Liu <neal.liu@mediatek.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Jacob Pan <jacob.jun.pan@linux.intel.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        linux-tegra <linux-tegra@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "moderated list:ARM/Mediatek SoC..." 
-        <linux-mediatek@lists.infradead.org>,
-        lkml <linux-kernel@vger.kernel.org>,
-        wsd_upstream <wsd_upstream@mediatek.com>
-Subject: Re: [PATCH v2] cpuidle: change enter_s2idle() prototype
-Message-ID: <20200723190724.GA1339461@google.com>
-References: <1594005196-16327-1-git-send-email-neal.liu@mediatek.com>
- <1594005196-16327-2-git-send-email-neal.liu@mediatek.com>
- <CAJZ5v0ihB5AJwSRpjaOnXAmciregzxARL5xfudu1h+=_LXaE_w@mail.gmail.com>
- <1594350535.4670.13.camel@mtkswgap22>
- <1595233294.8055.0.camel@mtkswgap22>
+        id S1726735AbgGWXXE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Jul 2020 19:23:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35016 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726723AbgGWXXE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Jul 2020 19:23:04 -0400
+Received: from localhost (mobile-166-175-191-139.mycingular.net [166.175.191.139])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 11DDF2080D;
+        Thu, 23 Jul 2020 23:23:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1595546583;
+        bh=LpBa7WC+PmUuvju8pxnLc0G1tsZpO642XLjDjk2e2t4=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=X6o9ceMGv+6QFquvn2TvPUVx/zu/mVWGEEU5pf4oh4Wgllo8B2E5tlVVO7LTPHkUY
+         vz0BD9uuKTVDQ5v9CUpFPDMx+YAboz9sTAgKqWl9xkpr6EbsU/q4IJqYAvqDYb1TQX
+         CRixz1EWv7+K81kyoOJtGumwMEuGHYTp0h0tF/YU=
+Date:   Thu, 23 Jul 2020 18:23:01 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Shiju Jose <shiju.jose@huawei.com>
+Cc:     linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org, rjw@rjwysocki.net, bp@alien8.de,
+        james.morse@arm.com, lenb@kernel.org, tony.luck@intel.com,
+        dan.carpenter@oracle.com, zhangliguang@linux.alibaba.com,
+        andriy.shevchenko@linux.intel.com, wangkefeng.wang@huawei.com,
+        jroedel@suse.de, linuxarm@huawei.com, yangyicong@hisilicon.com,
+        jonathan.cameron@huawei.com, tanxiaofei@huawei.com
+Subject: Re: [PATCH v13 0/2] ACPI / APEI: Add support to notify the vendor
+ specific HW errors
+Message-ID: <20200723232301.GA1468407@bjorn-Precision-5520>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1595233294.8055.0.camel@mtkswgap22>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200722104245.1060-1-shiju.jose@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jul 20, 2020 at 04:21:34PM +0800, Neal Liu wrote:
-> Gentle ping on this patch.
+On Wed, Jul 22, 2020 at 11:42:43AM +0100, Shiju Jose wrote:
+> CPER records describing a firmware-first error are identified by GUID.
+> The ghes driver currently logs, but ignores any unknown CPER records.
+> This prevents describing errors that can't be represented by a standard
+> entry, that would otherwise allow a driver to recover from an error.
+> The UEFI spec calls these 'Non-standard Section Body' (N.2.3 of
+> version 2.8).
 > 
+> patch set
+> 1. add a notifier chain for these non-standard/vendor-records
+>    in the ghes driver.
 > 
-> On Fri, 2020-07-10 at 11:08 +0800, Neal Liu wrote:
-> > On Thu, 2020-07-09 at 14:18 +0200, Rafael J. Wysocki wrote:
-> > > On Mon, Jul 6, 2020 at 5:13 AM Neal Liu <neal.liu@mediatek.com> wrote:
-> > > >
-> > > > Control Flow Integrity(CFI) is a security mechanism that disallows
-> > > > changes to the original control flow graph of a compiled binary,
-> > > > making it significantly harder to perform such attacks.
-> > > >
-> > > > init_state_node() assign same function callback to different
-> > > > function pointer declarations.
-> > > >
-> > > > static int init_state_node(struct cpuidle_state *idle_state,
-> > > >                            const struct of_device_id *matches,
-> > > >                            struct device_node *state_node) { ...
-> > > >         idle_state->enter = match_id->data; ...
-> > > >         idle_state->enter_s2idle = match_id->data; }
-> > > >
-> > > > Function declarations:
-> > > >
-> > > > struct cpuidle_state { ...
-> > > >         int (*enter) (struct cpuidle_device *dev,
-> > > >                       struct cpuidle_driver *drv,
-> > > >                       int index);
-> > > >
-> > > >         void (*enter_s2idle) (struct cpuidle_device *dev,
-> > > >                               struct cpuidle_driver *drv,
-> > > >                               int index); };
-> > > >
-> > > > In this case, either enter() or enter_s2idle() would cause CFI check
-> > > > failed since they use same callee.
-> > > 
-> > > Can you please explain this in a bit more detail?
-> > > 
-> > > As it stands, I don't understand the problem statement enough to apply
-> > > the patch.
-> > > 
-> > 
-> > Okay, Let's me try to explain more details.
-> > Control Flow Integrity(CFI) is a security mechanism that disallows
-> > changes to the original control flow graph of a compiled binary, making
-> > it significantly harder to perform such attacks.
-> > 
-> > There are multiple control flow instructions that could be manipulated
-> > by the attacker and subvert control flow. The target instructions that
-> > use data to determine the actual destination.
-> > - indirect jump
-> > - indirect call
-> > - return
-> > 
-> > In this case, function prototype between caller and callee are mismatch.
-> > Caller: (type A)funcA
-> > Callee: (type A)funcB
-> > Callee: (type C)funcC
-> > 
-> > funcA calls funcB -> no problem
-> > funcA calls funcC -> CFI check failed
-> > 
-> > That's why we try to align function prototype.
-> > Please feel free to feedback if you have any questions.
+> 2. add a driver to handle HiSilicon HIP PCIe controller's errors.
+>    
+> Changes:
+> 
+> V13:
+> 1. Following changes in the HIP PCIe error handling driver.
+> 1.1 Add Bjorn's acked-by.
+> 1.2. Address the comments and macros order Bjorn mentioned.
+>      Fix the words in the commit.
 
-I think you should include a better explanation in the commit message.
-Perhaps something like this?
+This series is ill-formed:
 
-  init_state_node assigns the same callback function to both enter and
-  enter_s2idle despite mismatching function types, which trips indirect
-  call checking with Control-Flow Integrity (CFI).
+  - Jul 22  5:39 Shiju Jose      [PATCH v13 0/2] ACPI / APEI: Add support to not
+  - Jul 22  5:39 Shiju Jose      └─>[PATCH v13 1/2] ACPI / APEI: Add a notifier
+  - Jul 22  5:42 Shiju Jose      [PATCH v13 0/2] ACPI / APEI: Add support to not
+  - Jul 22  5:42 Shiju Jose      └─>[PATCH v13 2/2] PCI: hip: Add handling of Hi
 
-> > > > Align function prototype of enter() since it needs return value for
-> > > > some use cases. The return value of enter_s2idle() is no
-> > > > need currently.
-> > > 
-> > > So last time I requested you to document why ->enter_s2idle needs to
-> > > return an int in the code, which has not been done.  Please do that.
+Patches 1/2 and 2/2 never appear in the same thread.  Both should be
+replies to 0/2.  And should be only *one* v13 0/2, not two :)
 
-Rafael, are you happy with the commit message documenting the reason,
-or would you prefer to also add a comment before enter_s2idle?
-
-Sami
+Bjorn
