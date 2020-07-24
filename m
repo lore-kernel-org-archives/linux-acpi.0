@@ -8,67 +8,67 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D0EFC433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jul 2020 16:11:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59A59C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jul 2020 16:21:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74AB0206EB
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jul 2020 16:11:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3324B206EB
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jul 2020 16:21:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PN8Hgtab"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="riM6pJY0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726782AbgGXQLm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Jul 2020 12:11:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35016 "EHLO
+        id S1726674AbgGXQVX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Jul 2020 12:21:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726719AbgGXQLm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2020 12:11:42 -0400
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6253C0619D3;
-        Fri, 24 Jul 2020 09:11:41 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id h28so7415422edz.0;
-        Fri, 24 Jul 2020 09:11:41 -0700 (PDT)
+        with ESMTP id S1726326AbgGXQVX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2020 12:21:23 -0400
+Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A54AC0619D3;
+        Fri, 24 Jul 2020 09:21:23 -0700 (PDT)
+Received: by mail-ed1-x542.google.com with SMTP id by13so7403384edb.11;
+        Fri, 24 Jul 2020 09:21:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
         bh=EnLeEgl0OdbAaR19fupjakxQIYn8oNSSFUXoArUSDD4=;
-        b=PN8HgtabTcx8Yv5Vl7TKKt8ilN+h6fZzRO8BOYeie6UsHnNMPhGtI6jI2RZcV332fl
-         ZwiZ4RRPewvKjCzpoTM63CA49uSI+cZrPk+LLB2OyZEO/gtUY7epFvlzFr1YzaluKOIg
-         oUM1IeP+ghat581Gv1LxCh/njLteaWIDy7NqGIk7D2c3R+tzYbLvWwH6Q84InQt+FZKM
-         k+CXuquSda3r1i1u99perBQNK643NhYKIITvKcdIlEb/KcI+hDYsxSSd+IzQYgfrbxAZ
-         dcYOq9CQ8IR6op3m2IIzMD58qVKtEEodAF37nk2ZFESkbrnTugnAP/JdvHE6PS/1wfjr
-         TYRQ==
+        b=riM6pJY00CChmUUWclO6o4dA0hIz8JHEYu/bXyGnhI3YvRYfOZE4HpeeZEVwzpYL0P
+         +BRPu5Xbeh/jqKjZtJytBVadwHwMQab4Hsd9MR5V1PBIgR0yFdwphZWPB2UldwNHyH+4
+         a2GzMzhg4AqkjTwTzEF5Pda2m9HSmO0T6utJ5QnXMPmUAqtcu46CMS/+ZiwXP2TMC8Dq
+         L6TGtFnbp/WE0qV+K8oG7cXHBKsMS2b7gJsdldLEdlpkGaZib9GUocqEOqJg8Z50oDZJ
+         UWvDeChf/aCJNLKjDA6tdULxFHJ5OrLONxainfK6r1vCRJ3tAQYtRF59sKV0llQQ6JCI
+         tUVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
         bh=EnLeEgl0OdbAaR19fupjakxQIYn8oNSSFUXoArUSDD4=;
-        b=hzf+2B8qVLiTx44umtIde4k3imbMEiiHcCmj5pPEzbqwSNOVuDpFLywZeJO+WrKp8J
-         17qVXXCEy1pw9hsQFf1IIUWF/aqK6a6pZPWb4guV9nU8m/fvMEH4SjeMzC5yW5lXLl8k
-         DwKWFyX7V9HrizmRp/yxz7BOWpvoaqtm7tf6OahQ9ceUhrQ8g4mAnBNrle/VMTvKkNJC
-         tlkebNsCZK+c9StmRP1D9ZUWalH69/vGSXc9V4hSEMqXg7/90IaxnbmY9Xee5skOPdTK
-         WhVkBl2dXeDqfg54hJQcg0dpY9JMRpHh0BMba/pG5VCj9bCY1nl/KnpTv/QmwkKJCyR9
-         eZ3Q==
-X-Gm-Message-State: AOAM530a0UJiagiIaIvrEIkN0n9XESgapsd+j0RMz1WpycbJBDs3lCAa
-        XmW0yEo2s3R3q8B3SilXbMk=
-X-Google-Smtp-Source: ABdhPJyJKkO0tTDk55i9eurpxdEQmbiMx2WkErvdPGFCYKFBhnRmu/IH4uJxFSFeQppvydJQAndGgg==
-X-Received: by 2002:aa7:da90:: with SMTP id q16mr9339146eds.44.1595607100348;
-        Fri, 24 Jul 2020 09:11:40 -0700 (PDT)
+        b=DYNUYWurD51GjPNuSs6j7tOofaB9WVYG9v6a1WDiKdsLtjZiHkE6t+KKElwYCInd/I
+         SZ4J/kC9x8RYeuXvN1Y/L6Ys7Zl26qiMc6TvJLPF83s4W3WEijufqebglMf0MyUnv579
+         xsgyiCloS6A1Gaaexw5PbjpR5rA3hg2qU4uW+k72yhfadu7vvTNCWfuWU8vIPEMojkSz
+         3udf7a3BTnrNKFVTqjW1wx6crFDy/rUm0ps5haSr4BFz6AfhGSnOmVfOtCg9kudIkn+6
+         SFnoKn7dtkf1u0jIltuu7HndXarv7jtD1nIy7ibu36Aml7ZSsIEEILNIHYVrc2xiJTk/
+         gWwQ==
+X-Gm-Message-State: AOAM5339c2kREvd6+zbzlKze5sZ8xiGVYaGnPfu1Gp7TkK9I+xtVSYWf
+        nTNKA0igM19gFCvPPu/OF/M=
+X-Google-Smtp-Source: ABdhPJz0aRYFiwE7s+lJSzQ8OxbkpX38V8gtjz1U8eFteEkd327Q/20KGY+yhKDzSzMDed3LKpLr2g==
+X-Received: by 2002:aa7:d7cf:: with SMTP id e15mr9834501eds.236.1595607681680;
+        Fri, 24 Jul 2020 09:21:21 -0700 (PDT)
 Received: from garrit-VirtualBox.fritz.box ([94.31.102.44])
-        by smtp.gmail.com with ESMTPSA id yj16sm971148ejb.122.2020.07.24.09.11.39
+        by smtp.gmail.com with ESMTPSA id o20sm937069ejr.64.2020.07.24.09.21.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jul 2020 09:11:39 -0700 (PDT)
-From:   garritfra <garritfranke@gmail.com>
+        Fri, 24 Jul 2020 09:21:21 -0700 (PDT)
+From:   Garrit Franke <garritfranke@gmail.com>
 To:     robert.moore@intel.com, rafael.j.wysocki@intel.com,
         lenb@kernel.org, trivial@kernel.org, linux-acpi@vger.kernel.org,
         devel@acpica.org, kernel-janitors@vger.kernel.org
-Cc:     garritfra <garritfranke@gmail.com>
-Subject: [PATCH v2] trivial: acpi: replace some bitshifts with BIT macro
-Date:   Fri, 24 Jul 2020 18:11:12 +0200
-Message-Id: <20200724161111.17531-1-garritfranke@gmail.com>
+Cc:     Garrit Franke <garritfranke@gmail.com>
+Subject: [PATCH] trivial: acpi: replace some bitshifts with BIT macro
+Date:   Fri, 24 Jul 2020 18:20:52 +0200
+Message-Id: <20200724162050.18077-2-garritfranke@gmail.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <alpine.DEB.2.21.2007241806070.2834@hadrien>
-References: <alpine.DEB.2.21.2007241806070.2834@hadrien>
+In-Reply-To: <alpine.DEB.2.21.2007241814450.2834@hadrien>
+References: <alpine.DEB.2.21.2007241814450.2834@hadrien>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
