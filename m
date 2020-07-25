@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8853DC433F8
-	for <linux-acpi@archiver.kernel.org>; Sat, 25 Jul 2020 14:25:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26C5DC433ED
+	for <linux-acpi@archiver.kernel.org>; Sat, 25 Jul 2020 14:25:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6263C206C1
-	for <linux-acpi@archiver.kernel.org>; Sat, 25 Jul 2020 14:25:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF4FF206F6
+	for <linux-acpi@archiver.kernel.org>; Sat, 25 Jul 2020 14:25:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="ESXs7kC1"
+	dkim=pass (1024-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="VZUYIm1k"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727896AbgGYOZG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 25 Jul 2020 10:25:06 -0400
-Received: from mail-eopbgr30079.outbound.protection.outlook.com ([40.107.3.79]:2415
+        id S1726745AbgGYOZQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 25 Jul 2020 10:25:16 -0400
+Received: from mail-eopbgr30083.outbound.protection.outlook.com ([40.107.3.83]:25203
         "EHLO EUR03-AM5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726944AbgGYOZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 25 Jul 2020 10:25:05 -0400
+        id S1726944AbgGYOZQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 25 Jul 2020 10:25:16 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ROKMZEBuS4KRRL4sLJE5VN1VL3o4vJgYmt0/4N6hsktFzDZBLwUiYmu98vIVftXc9Q5MCaMjRzHRrIX4RQh/fn+n66L6Py/kwMsa183dAWMksUL+yKSZmm21eZ6+fLJxpA6ShwmZY0IhfezP24YzVQFlK537qTSJfxtDs52qp9/Jd9PorI31imIP/w9lG3EmNwI0jn37wRzWwoyKdkf5oiZgrssgwdCajd6b4p6gESJDgI8e9xD8c9tEEno2veVKI4TYve2rH5WVsksxoh/RB9MjmyA2n8ZKT7jHTnrm7bKfEnRXPobcYIP7k/BoPExl7mFtSI13W3eLbx3ygs/+1Q==
+ b=etfvRWs5bBueYGhAOEKL0xoXzZejNEuNfnccDmvzCN72Q8VSHPrYp4/poeUpoK7I02j5MsIIp0FsjkeijR/4uSO06Y2Scy0wkW9027c5aQht6gJn9kJwnpPRfahPq2kgO1CaPSHicrRanu7tz/qIXE2WmEW60HbtFFz5OijCTHxObIbxjv25MDYxd879b18WA13a7JoUSoBXqR95r4CF6bkwuFpEDCYiT3SN5trm4PSMBuNVJV18zZXWRdhzWX8edA9bFq/tiPmyp8jL0D7ZnhQE5CO4SE8JONmy38BRK8vOr9pKBdQ6dTR/QeIclE9re4mLAfUdKcc1k4vg154vBg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f1viDoyHHBQierD0TQySliftKgcLbKdXUmBXhtUvd9o=;
- b=eXsNniSShyH4V/ozMifaOWWrwrRswn7EdLXPe2Q3Nl78U7CER3/rUw/cXu1OKAsplBtDxlg1sc0qG8w+5oomEA6j9vP5l85VG1lu/85hA7rokVED8w4bdoMQ7esmPBHeoUShEFRPkr1SYGnitNMLRiWwYRgMlT9B2WnjWe40/Jf7j4v8l9xJF7suFUiYy1mn0scDAbsQeGD/FfmhVzBuikY1Gxw7wPT4lkMqMmSaoY3BkG7101U8K8adcnRVczeFqGKy+SFJYweDu0XXoP2RjsjNrusbnbfeHst2uXggzTyxPiigfs9y+pHGPz8D72MEueFEimHyUdGsmmrJm99P3Q==
+ bh=Ziarr/rvHphiexDqWgSBb5gjR25RlLjD89AgsUPmyAc=;
+ b=I8lBy9ZETRTvbKl5cG5KIicrYELeZEiRAnJtEvRl3hQmVn18cs2x8TfFJcIo1a1NdqntX4PynZiKhYRWjrPoJ3MemIZA/W5bbDeuyKl/0TGUNGbWtRMifAOucYROAn6Uu5ify5urNdgLdP0HQEpOGTf7WwIDgjUmDiwmUx7dnSuay7kAa4XF2GWNvKs8XM6Kr3P4UKSMqzQmsRXc8mBc3GpsUpp619LunNS2D2ew/uYa6ofSYXeb7pIS63TeFU6I9lRiNH+win1tVkPubkfsYea2Z4xjeGjYarWgat2eCW2Y0jHHBqE+0BQlgJi3jRc3MlLyVmydp/l5xMpKR1JApw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector2-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f1viDoyHHBQierD0TQySliftKgcLbKdXUmBXhtUvd9o=;
- b=ESXs7kC1blyPPwksuBsnMETG4LvVp4ukmr2wctrGkiCnEWGimsez/1Z82hKsrRstTHT7ySJ+9aucAZrAEmardm8p4y7SdmLnE+M2axzNuygdYkvr+vkNookNSrFqf4Uulq1ZxSGDkwd5xDvgPidRhmv0Hlu5fQUGuYnYEshMKs4=
+ bh=Ziarr/rvHphiexDqWgSBb5gjR25RlLjD89AgsUPmyAc=;
+ b=VZUYIm1kvUXiv/6OrhyIjEp+VeZKnKYv63rS9fzbuwBJJyPWB9XdMu3hecnVK0rL4DdsrVdgn7Qi0dLz/wfnERZC2y05TmzBXzzN7X/7+gMi4qOk7TIY0aWV23nhIDWSJptxyFNsnnnPgZGy8Ca2L9PQKmWpKycLISHnqttQeSI=
 Authentication-Results: kernel.org; dkim=none (message not signed)
  header.d=none;kernel.org; dmarc=none action=none header.from=oss.nxp.com;
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com (2603:10a6:208:130::22)
  by AM0PR04MB4931.eurprd04.prod.outlook.com (2603:10a6:208:c1::14) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3216.22; Sat, 25 Jul
- 2020 14:25:02 +0000
+ 2020 14:25:12 +0000
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::b1ae:d2cd:6170:bf76]) by AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::b1ae:d2cd:6170:bf76%7]) with mapi id 15.20.3216.027; Sat, 25 Jul 2020
- 14:25:02 +0000
+ 14:25:12 +0000
 From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
@@ -67,9 +67,9 @@ To:     "Rafael J . Wysocki" <rafael@kernel.org>,
 Cc:     linux-acpi@vger.kernel.org, netdev@vger.kernel.org,
         linux.cj@gmail.com, Paul Yang <Paul.Yang@arm.com>,
         Calvin Johnson <calvin.johnson@oss.nxp.com>
-Subject: [net-next PATCH v7 3/6] net/fsl: use device_mdiobus_register()
-Date:   Sat, 25 Jul 2020 19:54:01 +0530
-Message-Id: <20200725142404.30634-4-calvin.johnson@oss.nxp.com>
+Subject: [net-next PATCH v7 5/6] phylink: introduce phylink_fwnode_phy_connect()
+Date:   Sat, 25 Jul 2020 19:54:03 +0530
+Message-Id: <20200725142404.30634-6-calvin.johnson@oss.nxp.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200725142404.30634-1-calvin.johnson@oss.nxp.com>
 References: <20200725142404.30634-1-calvin.johnson@oss.nxp.com>
@@ -79,80 +79,127 @@ X-ClientProxiedBy: SG2PR0302CA0018.apcprd03.prod.outlook.com
  (2603:10a6:208:130::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR0302CA0018.apcprd03.prod.outlook.com (2603:1096:3:2::28) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.9 via Frontend Transport; Sat, 25 Jul 2020 14:24:57 +0000
+Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR0302CA0018.apcprd03.prod.outlook.com (2603:1096:3:2::28) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.9 via Frontend Transport; Sat, 25 Jul 2020 14:25:07 +0000
 X-Mailer: git-send-email 2.17.1
 X-Originating-IP: [14.142.151.118]
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 59290318-d538-4254-e2f4-08d830a6849f
+X-MS-Office365-Filtering-Correlation-Id: 030abf9d-da60-4c75-951a-08d830a68a74
 X-MS-TrafficTypeDiagnostic: AM0PR04MB4931:
 X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR04MB4931CA68A16C7CDD1F5084B1D2740@AM0PR04MB4931.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2089;
+X-Microsoft-Antispam-PRVS: <AM0PR04MB493197066AA06EFB4A41F2E0D2740@AM0PR04MB4931.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4502;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: obOAs9Omm/laDZ/TRxBtVYPG8TCOZyUwKGPJBzvP4pUdvN7vpvzkXgQl9FaISOnZKPRch4+aOARGspqeLzLhSPTs6f6YhJaS0oXM/uBpcvCClck+3/GgMl43m6KKVmENODr8SEGgpvSV+BDHncze3cLqYZka7UXjgz1St0bEILYjTkMLfvFfpWNThau29zDY5eecpI8QqKDmQ6rGcfrXHTBKQeYZYCo8WVGzRSioeRAygq6+b0yI+9Q/DRGJSS68tv1DHxO8devoG4UhsUGEgXGdjGoY49Zp/iSLstLE+EdBVA0avmYXFIUkaUGwvFTMqVRcbRisbtSe2BvFqlkeRs7lijq2DkFQ7RD+ia8DkEAa2x4Hbss6b/5cjmy1InZthbnU3cRAurUAbuwV5qhToA==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(39860400002)(366004)(346002)(396003)(376002)(136003)(66946007)(66476007)(5660300002)(6506007)(6512007)(86362001)(55236004)(52116002)(478600001)(44832011)(110136005)(8676002)(316002)(54906003)(1076003)(66556008)(4326008)(16526019)(956004)(2616005)(26005)(8936002)(6636002)(186003)(83380400001)(2906002)(6486002)(6666004)(1006002)(7416002)(110426005)(921003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: HIblcTaqhe+jwUcbvkEfuffpbA88BgxlZ0Q7J2Y4fL/FtMYKryleiLkRIPSyj17ZFbY49fOuYKPE+i4OvAg0u1YjMvKaBUaK9Zr1znm76ZuwYxEJLVT0r7JwsgbTiXHvEYHW1wk223UEJrtBrVGVxr4QO4dw6PoAP9a3XsrUeptR+5XEKh2F3g6vo4hSqdZkwUNa9KW+W/DUpjxW8NIkfHwc5rs7DvsUvRc+BDTVoc+dvs8I6h+EWRNNiRitwXB2HO236FIbE2mUqqopozlv01wvLQaClejXdB2OQD9qq0r8hDAZ+NXBIE8X9HVNfiAmTWFUGK2lPBukyW56b4VrVUK8Wyu3vbCXYp282+4LqFdOCj+PyOeCxdGij2hmkAf80+obRSo9SQtPGKxu+K2j8iZ90c64X6f9k2An9Sk2sGMPfYuRG7ZcG02YSK0fBntbv0nZXGyJ58yxIkqE0vaOmKGxjjCslSelBO0DckxPDGs=
+X-Microsoft-Antispam-Message-Info: DOyhYUEMen80TjLBAeViQd32oW6Yjgs0LnNMnhksxxyO52renYgXBPKK9T3Cnv8S8svDuoVdoVxZlnLDvDppnAl+fgwdSNtAsmLM3vygb8HHu8RpKnuBYyRt1nogyAEwHFZI0FJ5DAT22XXt+Nj/80nSRNwfxzWPFCKmajAyRBtQlVD7AUpAKSZDRfW3tifZT/2fXLHKCK1I+KufOupa9ZAczaV67L/MmAMQ6TyrmA+LqzSk4+/WxuymrhcHvdoCY/LmZnpQh8Jg+SNjM78SnDg0v26F0kDiW6ZUazP+f6AuB5+rRWk2+Ht40P2hu6RBOk2IMTmeMI/wFJyfs1izPmDQP/uesdwc+TGw5oFYOyZKythLBYkeRo6U5itwMrM92Jzrmwa1mFBkDG0OujrJMg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(39860400002)(366004)(346002)(396003)(376002)(136003)(66946007)(66476007)(5660300002)(6506007)(6512007)(86362001)(55236004)(52116002)(478600001)(44832011)(110136005)(8676002)(316002)(54906003)(1076003)(66556008)(4326008)(16526019)(956004)(2616005)(26005)(8936002)(6636002)(186003)(2906002)(6486002)(6666004)(1006002)(7416002)(110426005)(921003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: HXRPFCuW3H8Vlu5Alg80OWdt5CtL8Zyh0QlvsQB8KjczW0CUaeXCmh3k2J0KGqDNhdNA00/l47Wq+rYAvac1T9pZwO1Crlgogz6A6OWFJV6BjMuDKZYUmeYiLyI7EeyIDflJh3sbdH3wosr2/dJ1P2X7Zt/19PckxLZF9HZlbtZ2bDp3kpH1V0WsHilDRiHF3tzRDwR+lmi9cT7EpovjzsOozA1iW/TUJFkF0Iq/j38u51jel22GIQs0rVuwSoqZWeumNk1zFPjiv4B0QCBgvyO72IQY+cYRWPG0Dis6ZdItBCbMTFGPNFRJcGFY8LYAj1HX84JZl2CbtmYCmkI35Chx9doXvNfixYDVSeKh0V5wNUnVtY4sB4J4PfGBnbnimLw1sjWrsC4jLuaqU2bG8JMS1tM178f/qc3b9dxrQhd2VvWpHuTS0izJpYr8bI3WncZJ8PQ2taP4fj9mGI9MRZHcnI8OcZvBVCh7BKEfSy8=
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 59290318-d538-4254-e2f4-08d830a6849f
+X-MS-Exchange-CrossTenant-Network-Message-Id: 030abf9d-da60-4c75-951a-08d830a68a74
 X-MS-Exchange-CrossTenant-AuthSource: AM0PR04MB5636.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jul 2020 14:25:02.2339
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jul 2020 14:25:12.0004
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: RkO2E91LUNxDtmsBFO5FL1oO6dg9qLeADUqehqMm4cfvbMtBIPTSL9ItT58b1PzvymNZ1SnyBKixuv5QvIC/+w==
+X-MS-Exchange-CrossTenant-UserPrincipalName: uUeLfwVL6Dzx9OIl9MuEFHN3883qnR+E3mjSn3WDgL8YGE09vSMrpktDSCvZEHybFei8I89yJj3v3yRMlJZ8Hw==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR04MB4931
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Replace of_mdiobus_register() with device_mdiobus_register()
-to take care of both DT and ACPI mdiobus_register.
-
-Remove unused device_node pointer.
+Define phylink_fwnode_phy_connect() to connect phy specified by
+a fwnode to a phylink instance.
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
+Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
 
 ---
 
-Changes in v7: None
-Changes in v6:
-- change device_mdiobus_register() parameter position
+Changes in v7:
+- assign flags to phy_dev
 
-Changes in v5: None
+Changes in v6:
+- clean up phylink_fwnode_phy_connect()
+
+Changes in v5:
+- return -EINVAL for invalid fwnode
+
 Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/net/ethernet/freescale/xgmac_mdio.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/phy/phylink.c | 32 ++++++++++++++++++++++++++++++++
+ include/linux/phylink.h   |  3 +++
+ 2 files changed, 35 insertions(+)
 
-diff --git a/drivers/net/ethernet/freescale/xgmac_mdio.c b/drivers/net/ethernet/freescale/xgmac_mdio.c
-index 98be51d8b08c..704f2b166d0a 100644
---- a/drivers/net/ethernet/freescale/xgmac_mdio.c
-+++ b/drivers/net/ethernet/freescale/xgmac_mdio.c
-@@ -243,7 +243,6 @@ static int xgmac_mdio_read(struct mii_bus *bus, int phy_id, int regnum)
+diff --git a/drivers/net/phy/phylink.c b/drivers/net/phy/phylink.c
+index 32b4bd6a5b55..c35ae42d9318 100644
+--- a/drivers/net/phy/phylink.c
++++ b/drivers/net/phy/phylink.c
+@@ -5,6 +5,7 @@
+  *
+  * Copyright (C) 2015 Russell King
+  */
++#include <linux/acpi.h>
+ #include <linux/ethtool.h>
+ #include <linux/export.h>
+ #include <linux/gpio/consumer.h>
+@@ -1118,6 +1119,37 @@ int phylink_of_phy_connect(struct phylink *pl, struct device_node *dn,
+ }
+ EXPORT_SYMBOL_GPL(phylink_of_phy_connect);
  
- static int xgmac_mdio_probe(struct platform_device *pdev)
- {
--	struct device_node *np = pdev->dev.of_node;
- 	struct mii_bus *bus;
- 	struct resource *res;
- 	struct mdio_fsl_priv *priv;
-@@ -285,7 +284,7 @@ static int xgmac_mdio_probe(struct platform_device *pdev)
- 	priv->has_a011043 = device_property_read_bool(&pdev->dev,
- 						      "fsl,erratum-a011043");
++/**
++ * phylink_fwnode_phy_connect() - connect the PHY specified in the fwnode.
++ * @pl: a pointer to a &struct phylink returned from phylink_create()
++ * @fwnode: a pointer to a &struct fwnode_handle.
++ * @flags: PHY-specific flags to communicate to the PHY device driver
++ *
++ * Connect the phy specified @fwnode to the phylink instance specified
++ * by @pl. Actions specified in phylink_connect_phy() will be
++ * performed.
++ *
++ * Returns 0 on success or a negative errno.
++ */
++int phylink_fwnode_phy_connect(struct phylink *pl,
++			       struct fwnode_handle *fwnode,
++			       u32 flags)
++{
++	struct phy_device *phy_dev;
++
++	if (is_of_node(fwnode))
++		return phylink_of_phy_connect(pl, to_of_node(fwnode), flags);
++	if (is_acpi_device_node(fwnode)) {
++		phy_dev = phy_find_by_mdio_handle(fwnode);
++		if (!phy_dev)
++			return -ENODEV;
++		phy_dev->dev_flags |= flags;
++		return phylink_connect_phy(pl, phy_dev);
++	}
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(phylink_fwnode_phy_connect);
++
+ /**
+  * phylink_disconnect_phy() - disconnect any PHY attached to the phylink
+  *   instance.
+diff --git a/include/linux/phylink.h b/include/linux/phylink.h
+index 1aad2aea4610..ba23b5a1548f 100644
+--- a/include/linux/phylink.h
++++ b/include/linux/phylink.h
+@@ -434,6 +434,9 @@ void phylink_destroy(struct phylink *);
  
--	ret = of_mdiobus_register(bus, np);
-+	ret = device_mdiobus_register(&pdev->dev, bus);
- 	if (ret) {
- 		dev_err(&pdev->dev, "cannot register MDIO bus\n");
- 		goto err_registration;
+ int phylink_connect_phy(struct phylink *, struct phy_device *);
+ int phylink_of_phy_connect(struct phylink *, struct device_node *, u32 flags);
++int phylink_fwnode_phy_connect(struct phylink *pl,
++			       struct fwnode_handle *fwnode,
++			       u32 flags);
+ void phylink_disconnect_phy(struct phylink *);
+ 
+ void phylink_mac_change(struct phylink *, bool up);
 -- 
 2.17.1
 
