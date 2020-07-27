@@ -2,87 +2,88 @@ Return-Path: <SRS0=21jG=BG=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61FD5C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jul 2020 12:50:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82D5CC433E1
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jul 2020 12:57:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B9A82074F
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jul 2020 12:50:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="MNcYdYf3"
+	by mail.kernel.org (Postfix) with ESMTP id 545B1206E7
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jul 2020 12:57:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1595854624;
+	bh=KSJJx5Mr3TOamI5Mt+wJ42iYo++f+1dEJDs40l3fZpE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=O4Hsh4tQMZEXCv8OD16SyiRSbS1TsIJdlnuUJo5oN3b4AirfO/yLfBwlHkhFFCixv
+	 DzTNmXji8r1mOoXIt8Rmo6+L0bUGQqNwTi5dhQIGHJQx3eaD6+eYBu/glNwXZJrSkJ
+	 xNMEsqRnhz5JpoD8LQjN+u58Wnz4AAow82/bbBlk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728421AbgG0Mu4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Jul 2020 08:50:56 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:40264 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728128AbgG0Mu4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2020 08:50:56 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06RCfY28076525;
-        Mon, 27 Jul 2020 12:50:52 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=Q5F30uW4IQ0ZgkPtFoSw0X2abrC47hDOq4jrQqiRNkk=;
- b=MNcYdYf3+AXI9uyHhVuAH5IO6qJgdhOa/djzWnCFm+u452d2HnokpzwtKjFl07HvL2Bh
- jwNaSP0LLHy6hg+nbypeOtLAc9Vt8k91Dl2GI9UAdVO1Q1kHHlpA83b5qTGvdfSvCV1y
- fQWsDipOaLD+c33iMimaUzu+KNvyawymBI8lQfgxuXK9m7ctmN9A2JGM7tiGqeyIr5/P
- e2clQ21cgwKCwszGWPkIXl4xITysNC88GP45YXGvfhNbbirEla9TD5vksBR34cI/jz/+
- Z+peXV/Z9yy/P9mBQsgZL34xhL1Ea+UoO8TYdtuoimSnPIIhhFocSbBnW8kvFu4aY81f vw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2120.oracle.com with ESMTP id 32hu1j9af2-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 27 Jul 2020 12:50:51 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06RCiU29028786;
-        Mon, 27 Jul 2020 12:48:51 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by userp3020.oracle.com with ESMTP id 32hu5qtv1p-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 27 Jul 2020 12:48:51 +0000
-Received: from abhmp0012.oracle.com (abhmp0012.oracle.com [141.146.116.18])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 06RCmoLf025014;
-        Mon, 27 Jul 2020 12:48:50 GMT
-Received: from kadam (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Mon, 27 Jul 2020 05:48:49 -0700
-Date:   Mon, 27 Jul 2020 15:48:42 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     garritfra <garritfranke@gmail.com>
-Cc:     robert.moore@intel.com, rafael.j.wysocki@intel.com,
-        lenb@kernel.org, trivial@kernel.org, linux-acpi@vger.kernel.org,
-        devel@acpica.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH v2] trivial: acpi: replace some bitshifts with BIT macro
-Message-ID: <20200727124842.GC1913@kadam>
-References: <alpine.DEB.2.21.2007241806070.2834@hadrien>
- <20200724161111.17531-1-garritfranke@gmail.com>
+        id S1728358AbgG0M5D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Jul 2020 08:57:03 -0400
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:33069 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728286AbgG0M5D (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2020 08:57:03 -0400
+Received: by mail-oi1-f194.google.com with SMTP id k22so14248140oib.0
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2020 05:57:03 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=H/uAt4HVD1TQLpx3z28VL2xEnYilQN3ch/DWNQ4uJSk=;
+        b=BQQxOEMm7TcL8jW2IRbEtdFlJnnjhWLUH+JmQJlfV6gC8CLchgjHWMqosDhN6GpeGW
+         Z4tKdSWScFYmtT/m0TOGDnbpBvwRHy6Z2FysWqTVer0w/C7TZg7icpE3t+OeBvTyUsO5
+         RQb7cKr2p/SVFMVkLqXy40FFm0Ze/VCq22ZWN8f35OjLVuM7P1vJHYL6Ty6cjaCwaR0T
+         Njr5edQCoO/17H6mFjw+vE4M+fu/dUxlDxmBd74jhQAQ0brRFgyxbnZW24feVkpLZWG5
+         FaSIzYsaBx8C54btX5cVpdaEpCw1PC+pIlzfUa5pTsV2pOxjGpVYPydHEWAvCAIPV9Ii
+         TMRQ==
+X-Gm-Message-State: AOAM53160aIHc4NSwQAp2G11lQNZUjDfr+yy2JA45vx6rHCJD8EeWoJx
+        BVdgugXsLvmkml2wBOfSE6axQe03pVs35n6qLw8=
+X-Google-Smtp-Source: ABdhPJw9hiBVTn/Gla3skWJbPALNkgozLUpcWA5jpkQemdcIw+0Edp0y0xdC2CLjl7x1gpxQu0Nh1TCBFJisJs62DZw=
+X-Received: by 2002:a05:6808:34e:: with SMTP id j14mr18651041oie.110.1595854623148;
+ Mon, 27 Jul 2020 05:57:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200724161111.17531-1-garritfranke@gmail.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9694 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 phishscore=0 bulkscore=0
- malwarescore=0 suspectscore=0 spamscore=0 mlxlogscore=862 mlxscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2007270094
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9694 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1015 mlxlogscore=872
- malwarescore=0 impostorscore=0 priorityscore=1501 spamscore=0 phishscore=0
- suspectscore=0 bulkscore=0 mlxscore=0 lowpriorityscore=0 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2007270094
+References: <20200720173121.2580755-1-erik.kaneda@intel.com>
+In-Reply-To: <20200720173121.2580755-1-erik.kaneda@intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 27 Jul 2020 14:56:52 +0200
+Message-ID: <CAJZ5v0h2h6r5GW-+uT+HP6LZQpFtxjwhnSLAc=utQwF_FpU4AQ@mail.gmail.com>
+Subject: Re: [PATCH 0/3] ACPICA release 20200717
+To:     Erik Kaneda <erik.kaneda@intel.com>
+Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is buggy.  See my comments to v1.
+On Mon, Jul 20, 2020 at 7:55 PM Erik Kaneda <erik.kaneda@intel.com> wrote:
+>
+> This series contains patches relevant to linux kernel from ACPICA's
+> 20200717 release. This ACPICA release contains a change in the ACPI
+> object reference counting mechanism to allow firmware to declare a
+> large amount of OperationRegion field units without overflowing the
+> reference count.
+>
+> Bob Moore (1):
+>   ACPICA: Update version to 20200717 Version 20200717.
+>
+> Erik Kaneda (1):
+>   ACPICA: Do not increment operation_region reference counts for field
+>     units
+>
+> Gustavo A. R. Silva (1):
+>   ACPICA: Replace one-element array with flexible-array
+>
+>  drivers/acpi/acpica/exprep.c   | 4 ----
+>  drivers/acpi/acpica/utdelete.c | 6 +-----
+>  drivers/acpi/acpica/utids.c    | 3 +--
+>  include/acpi/acpixf.h          | 2 +-
+>  include/acpi/actypes.h         | 2 +-
+>  5 files changed, 4 insertions(+), 13 deletions(-)
+>
+> --
 
-regards,
-dan carpenter
-
+All three patches applied as 5.9 material, thanks!
