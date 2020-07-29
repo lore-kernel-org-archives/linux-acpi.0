@@ -2,44 +2,45 @@ Return-Path: <SRS0=SLuT=BI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55022C433E1
-	for <linux-acpi@archiver.kernel.org>; Wed, 29 Jul 2020 20:13:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D329C433DF
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 Jul 2020 23:55:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2FDAB20809
-	for <linux-acpi@archiver.kernel.org>; Wed, 29 Jul 2020 20:13:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64EDB206C0
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 Jul 2020 23:55:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596053583;
-	bh=RgPRubHtzRvlbRg9ogdDSG4+2iJx8zGLpUFQwbaUPYE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kVmLzvtkH+j4rxGqGs/XWq8FvQeU4cGV68aVutzKg5POHVkNbwRtfFWg/DrnxAGnf
-	 2hhSkavXqEx+FZXUPxOYZbsOYLxQiBaUXsKeSuZraAMGH6rJlyo2LOMwHV5EvvlxqV
-	 obLCWM1y9W0x2dpW1m7NS0KW5Y/sxgBrtij5OGWI=
+	s=default; t=1596066933;
+	bh=2qQU4K0e6W1DjVLwg3WLwYj6OxB4s7i2Sd31hVUu5eM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
+	b=ZO2Fd2v4mRoKTACxpTp3ENThvpDwJRKGeRvafNxFVOSk5VBjgt1A/jOWOiMye4Qfg
+	 KCUPndaJ9NGZjaDvy7xgo+62joHA3+Vw3lMpZzq9IhWFcgQrUCJCEIjhnEsKQZ7nzQ
+	 h4Xy/SVx455AKBRBJIBZsa0EUB+9xS+4m/Oo/dhs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726946AbgG2UMs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 29 Jul 2020 16:12:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49760 "EHLO mail.kernel.org"
+        id S1727995AbgG2Xzc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 29 Jul 2020 19:55:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726941AbgG2UMq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Jul 2020 16:12:46 -0400
-Received: from kozik-lap.mshome.net (unknown [194.230.155.213])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        id S1727072AbgG2Xzb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Jul 2020 19:55:31 -0400
+Received: from localhost (mobile-166-175-62-240.mycingular.net [166.175.62.240])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EDDB822B47;
-        Wed, 29 Jul 2020 20:12:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BD7A82053B;
+        Wed, 29 Jul 2020 23:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596053565;
-        bh=RgPRubHtzRvlbRg9ogdDSG4+2iJx8zGLpUFQwbaUPYE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=XlWlQYXwB1vt7QspClm+mgF2fA6BZhV1oCWREAYW34EumXXV59Ww5QMIpGxWS1Cbz
-         bjbtOpMmieydnLd+qeH3iYZVmXm5c1AyEb6IsJ3eOMZTA/5IecDp9SwUX5LWYefYXC
-         s0ybHz2GmQa/CNao4gvnVKEx+2rtfl5mJqe1teng=
-From:   Krzysztof Kozlowski <krzk@kernel.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
+        s=default; t=1596066931;
+        bh=2qQU4K0e6W1DjVLwg3WLwYj6OxB4s7i2Sd31hVUu5eM=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=S2DX0SCmU+RLfcr2hkR9YySOo/Xullv+roovdeaql6qa9XySXHetZRaUhKmjfx9p1
+         KEX5mkuXB8aMrOsJxcrWqyBmVNmoTiNkj4nsUzSpvJAPQYBEPanlz7lV3XJtE7KSrw
+         qsYu5YcLZEGlacvt2NiwsAi5K0Eo1gB04ye2biL8=
+Date:   Wed, 29 Jul 2020 18:55:28 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Krzysztof Kozlowski <krzk@kernel.org>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Jingoo Han <jingoohan1@gmail.com>,
         Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
@@ -52,65 +53,59 @@ To:     Bjorn Helgaas <bhelgaas@google.com>,
         Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc:     Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v3 3/6] PCI: hotplug: Fix kerneldoc
-Date:   Wed, 29 Jul 2020 22:12:21 +0200
-Message-Id: <20200729201224.26799-4-krzk@kernel.org>
-X-Mailer: git-send-email 2.17.1
+Subject: Re: [PATCH v3 0/6] PCI: Minor kerneldoc warning fixes
+Message-ID: <20200729235528.GA1981103@bjorn-Precision-5520>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <20200729201224.26799-1-krzk@kernel.org>
-References: <20200729201224.26799-1-krzk@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fix W=1 compile warnings (invalid kerneldoc):
+On Wed, Jul 29, 2020 at 10:12:18PM +0200, Krzysztof Kozlowski wrote:
+> Hi,
+> 
+> Changes since v2:
+> 1. Fix almost all warnings, except:
+>    drivers/pci/controller/pci-hyperv.c:2534: warning: Function parameter or member 'version' not described in 'hv_pci_protocol_negotiation'
+>    drivers/pci/controller/pci-hyperv.c:2534: warning: Function parameter or member 'num_version' not described in 'hv_pci_protocol_negotiation'
+>    Not sure what are these.
+> 
+> 2. New patches, split per driver or subdirectory
+> 
+> Best regards,
+> Krzysztof
+> 
+> Krzysztof Kozlowski (6):
+>   PCI: Fix kerneldoc
+>   PCI: endpoint: Fix kerneldoc
+>   PCI: hotplug: Fix kerneldoc
+>   PCI: dwc: Fix kerneldoc
+>   PCI: rockchip: Fix kerneldoc
+>   PCI: xilinx: Fix kerneldoc
+> 
+>  drivers/pci/ats.c                               | 3 ++-
+>  drivers/pci/controller/dwc/pcie-designware-ep.c | 2 +-
+>  drivers/pci/controller/pcie-rockchip-ep.c       | 1 +
+>  drivers/pci/controller/pcie-xilinx-cpm.c        | 1 +
+>  drivers/pci/endpoint/functions/pci-epf-test.c   | 2 +-
+>  drivers/pci/endpoint/pci-ep-cfs.c               | 2 +-
+>  drivers/pci/endpoint/pci-epc-core.c             | 2 +-
+>  drivers/pci/endpoint/pci-epc-mem.c              | 2 +-
+>  drivers/pci/endpoint/pci-epf-core.c             | 4 +++-
+>  drivers/pci/hotplug/acpi_pcihp.c                | 4 ++--
+>  drivers/pci/hotplug/pciehp_core.c               | 1 +
+>  drivers/pci/of.c                                | 2 ++
+>  drivers/pci/pci-pf-stub.c                       | 2 +-
+>  drivers/pci/setup-bus.c                         | 1 +
+>  drivers/pci/vc.c                                | 1 -
+>  15 files changed, 19 insertions(+), 11 deletions(-)
 
-    drivers/pci/hotplug/acpi_pcihp.c:69: warning: Function parameter or member 'pdev' not described in 'acpi_get_hp_hw_control_from_firmware'
-    drivers/pci/hotplug/acpi_pcihp.c:69: warning: Excess function parameter 'dev' description in 'acpi_get_hp_hw_control_from_firmware'
-    drivers/pci/hotplug/acpi_pcihp.c:199: warning: Function parameter or member 'handle' not described in 'acpi_pci_detect_ejectable'
-    drivers/pci/hotplug/pciehp_core.c:165: warning: Function parameter or member 'ctrl' not described in 'pciehp_check_presence'
+Thanks, I squashed these all together and applied them on pci/doc for
+v5.9.
 
-Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
----
- drivers/pci/hotplug/acpi_pcihp.c  | 4 ++--
- drivers/pci/hotplug/pciehp_core.c | 1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
-index 6b7c1ed58e7e..2750a64cecd3 100644
---- a/drivers/pci/hotplug/acpi_pcihp.c
-+++ b/drivers/pci/hotplug/acpi_pcihp.c
-@@ -61,7 +61,7 @@ static acpi_status acpi_run_oshp(acpi_handle handle)
- 
- /**
-  * acpi_get_hp_hw_control_from_firmware
-- * @dev: the pci_dev of the bridge that has a hotplug controller
-+ * @pdev: the pci_dev of the bridge that has a hotplug controller
-  *
-  * Attempt to take hotplug control from firmware.
-  */
-@@ -191,7 +191,7 @@ check_hotplug(acpi_handle handle, u32 lvl, void *context, void **rv)
- 
- /**
-  * acpi_pci_detect_ejectable - check if the PCI bus has ejectable slots
-- * @handle - handle of the PCI bus to scan
-+ * @handle: handle of the PCI bus to scan
-  *
-  * Returns 1 if the PCI bus has ACPI based ejectable slots, 0 otherwise.
-  */
-diff --git a/drivers/pci/hotplug/pciehp_core.c b/drivers/pci/hotplug/pciehp_core.c
-index bf779f291f15..ad3393930ecb 100644
---- a/drivers/pci/hotplug/pciehp_core.c
-+++ b/drivers/pci/hotplug/pciehp_core.c
-@@ -153,6 +153,7 @@ static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
- 
- /**
-  * pciehp_check_presence() - synthesize event if presence has changed
-+ * @ctrl: controller to check
-  *
-  * On probe and resume, an explicit presence check is necessary to bring up an
-  * occupied slot or bring down an unoccupied slot.  This can't be triggered by
--- 
-2.17.1
-
+This was a tiny bit messy because pcie-xilinx-cpm.c is new this cycle
+and ideally we would have squashed that fix into the original commit,
+but we don't need to bother with that.
