@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C98BC433FC
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Aug 2020 05:20:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B13BC433E1
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Aug 2020 05:20:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12DF4206DA
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Aug 2020 05:20:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E93B206DA
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Aug 2020 05:20:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728261AbgHCFUn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 3 Aug 2020 01:20:43 -0400
-Received: from mga05.intel.com ([192.55.52.43]:45109 "EHLO mga05.intel.com"
+        id S1727962AbgHCFUt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 3 Aug 2020 01:20:49 -0400
+Received: from mga01.intel.com ([192.55.52.88]:44020 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728192AbgHCFUm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 3 Aug 2020 01:20:42 -0400
-IronPort-SDR: tEbtXz0Q6wj+/vi/lcsWAr4G3VvAks8ELWYloHEjLR7k5sZ+CPYOSioO/JRTkDrHhkIsAlivWA
- b/ZrF6vbUk9g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9701"; a="236912324"
+        id S1726993AbgHCFUs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 3 Aug 2020 01:20:48 -0400
+IronPort-SDR: K3mMivGNA52ss0IBKjFiqITXZi9YjMwhvfyu9hR4nnpMImH+SNSpkT2lQwSqTZlnPMzxNkK9ol
+ 4ZuiHnaNjgbQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9701"; a="170149776"
 X-IronPort-AV: E=Sophos;i="5.75,429,1589266800"; 
-   d="scan'208";a="236912324"
+   d="scan'208";a="170149776"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:20:27 -0700
-IronPort-SDR: OW/hfNQQmkuv1890hUzQP7RPQRDXZ1qCXuopl9uGnI5vPSk71ZEaa72jZtoNFZwGWTRmrgQoWa
- 1ECrJ/yCK/Mg==
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:20:48 -0700
+IronPort-SDR: RpV/TarlfZtpGTxcGFV/YB86O42UoKDQBjZi2zZhGZ/aMAH3qwe80fGLnen8feyash85FU7j2F
+ Dae5w7PzminA==
 X-IronPort-AV: E=Sophos;i="5.75,429,1589266800"; 
-   d="scan'208";a="491698264"
+   d="scan'208";a="273823070"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:20:26 -0700
-Subject: [PATCH v4 19/23] device-dax: Introduce 'mapping' devices
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:20:48 -0700
+Subject: [PATCH v4 23/23] device-dax: Add a range mapping allocation
+ attribute
 From:   Dan Williams <dan.j.williams@intel.com>
 To:     akpm@linux-foundation.org
-Cc:     Vishal Verma <vishal.l.verma@intel.com>, peterz@infradead.org,
-        dave.hansen@linux.intel.com, ard.biesheuvel@linaro.org,
-        vishal.l.verma@intel.com, linux-mm@kvack.org,
-        linux-nvdimm@lists.01.org, joao.m.martins@oracle.com,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Date:   Sun, 02 Aug 2020 22:04:08 -0700
-Message-ID: <159643104819.4062302.13691281391423291589.stgit@dwillia2-desk3.amr.corp.intel.com>
+Cc:     Joao Martins <joao.m.martins@oracle.com>, peterz@infradead.org,
+        vishal.l.verma@intel.com, dave.hansen@linux.intel.com,
+        ard.biesheuvel@linaro.org, vishal.l.verma@intel.com,
+        linux-mm@kvack.org, linux-nvdimm@lists.01.org,
+        joao.m.martins@oracle.com, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
+Date:   Sun, 02 Aug 2020 22:04:29 -0700
+Message-ID: <159643106970.4062302.10402616567780784722.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -56,311 +56,121 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In support of interrogating the physical address layout of a device with
-dis-contiguous ranges, introduce a sysfs directory with 'start', 'end',
-and 'page_offset' attributes. The alternative is trying to parse
-/proc/iomem, and that file will not reflect the extent layout until the
-device is enabled.
+From: Joao Martins <joao.m.martins@oracle.com>
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+Add a sysfs attribute which denotes a range from the dax region
+to be allocated. It's an write only @mapping sysfs attribute in
+the format of '<start>-<end>' to allocate a range. @start and
+@end use hexadecimal values and the @pgoff is implicitly ordered
+wrt to previous writes to @mapping sysfs e.g. a write of a range
+of length 1G the pgoff is 0..1G(-4K), a second write will use
+@pgoff for 1G+4K..<size>.
+
+This range mapping interface is useful for:
+
+ 1) Application which want to implement its own allocation logic,
+ and thus pick the desired ranges from dax_region.
+
+ 2) For use cases like VMM fast restart[0] where after kexec we
+ want to the same gpa<->phys mappings (as originally created
+ before kexec).
+
+[0] https://static.sched.com/hosted_files/kvmforum2019/66/VMM-fast-restart_kvmforum2019.pdf
+
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Link: https://lore.kernel.org/r/20200716172913.19658-5-joao.m.martins@oracle.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/bus.c         |  191 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/dax/dax-private.h |   14 +++
- 2 files changed, 203 insertions(+), 2 deletions(-)
+ drivers/dax/bus.c |   64 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
 diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 8dd82ea9d53d..2779c65dc7c0 100644
+index b984213c315f..092112bba6ed 100644
 --- a/drivers/dax/bus.c
 +++ b/drivers/dax/bus.c
-@@ -579,6 +579,167 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+@@ -1040,6 +1040,67 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
  }
- EXPORT_SYMBOL_GPL(alloc_dax_region);
+ static DEVICE_ATTR_RW(size);
  
-+static void dax_mapping_release(struct device *dev)
++static ssize_t range_parse(const char *opt, size_t len, struct range *range)
 +{
-+	struct dax_mapping *mapping = to_dax_mapping(dev);
-+	struct dev_dax *dev_dax = to_dev_dax(dev->parent);
++	unsigned long long addr = 0;
++	char *start, *end, *str;
++	ssize_t rc = EINVAL;
 +
-+	ida_free(&dev_dax->ida, mapping->id);
-+	kfree(mapping);
-+}
-+
-+static void unregister_dax_mapping(void *data)
-+{
-+	struct device *dev = data;
-+	struct dax_mapping *mapping = to_dax_mapping(dev);
-+	struct dev_dax *dev_dax = to_dev_dax(dev->parent);
-+	struct dax_region *dax_region = dev_dax->region;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	device_lock_assert(dax_region->dev);
-+
-+	dev_dax->ranges[mapping->range_id].mapping = NULL;
-+	mapping->range_id = -1;
-+
-+	device_del(dev);
-+	put_device(dev);
-+}
-+
-+static struct dev_dax_range *get_dax_range(struct device *dev)
-+{
-+	struct dax_mapping *mapping = to_dax_mapping(dev);
-+	struct dev_dax *dev_dax = to_dev_dax(dev->parent);
-+	struct dax_region *dax_region = dev_dax->region;
-+
-+	device_lock(dax_region->dev);
-+	if (mapping->range_id < 0) {
-+		device_unlock(dax_region->dev);
-+		return NULL;
-+	}
-+
-+	return &dev_dax->ranges[mapping->range_id];
-+}
-+
-+static void put_dax_range(struct dev_dax_range *dax_range)
-+{
-+	struct dax_mapping *mapping = dax_range->mapping;
-+	struct dev_dax *dev_dax = to_dev_dax(mapping->dev.parent);
-+	struct dax_region *dax_region = dev_dax->region;
-+
-+	device_unlock(dax_region->dev);
-+}
-+
-+static ssize_t start_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax_range *dax_range;
-+	ssize_t rc;
-+
-+	dax_range = get_dax_range(dev);
-+	if (!dax_range)
-+		return -ENXIO;
-+	rc = sprintf(buf, "%#llx\n", dax_range->range.start);
-+	put_dax_range(dax_range);
-+
-+	return rc;
-+}
-+static DEVICE_ATTR(start, 0400, start_show, NULL);
-+
-+static ssize_t end_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax_range *dax_range;
-+	ssize_t rc;
-+
-+	dax_range = get_dax_range(dev);
-+	if (!dax_range)
-+		return -ENXIO;
-+	rc = sprintf(buf, "%#llx\n", dax_range->range.end);
-+	put_dax_range(dax_range);
-+
-+	return rc;
-+}
-+static DEVICE_ATTR(end, 0400, end_show, NULL);
-+
-+static ssize_t pgoff_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax_range *dax_range;
-+	ssize_t rc;
-+
-+	dax_range = get_dax_range(dev);
-+	if (!dax_range)
-+		return -ENXIO;
-+	rc = sprintf(buf, "%#lx\n", dax_range->pgoff);
-+	put_dax_range(dax_range);
-+
-+	return rc;
-+}
-+static DEVICE_ATTR(page_offset, 0400, pgoff_show, NULL);
-+
-+static struct attribute *dax_mapping_attributes[] = {
-+	&dev_attr_start.attr,
-+	&dev_attr_end.attr,
-+	&dev_attr_page_offset.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group dax_mapping_attribute_group = {
-+	.attrs = dax_mapping_attributes,
-+};
-+
-+static const struct attribute_group *dax_mapping_attribute_groups[] = {
-+	&dax_mapping_attribute_group,
-+	NULL,
-+};
-+
-+static struct device_type dax_mapping_type = {
-+	.release = dax_mapping_release,
-+	.groups = dax_mapping_attribute_groups,
-+};
-+
-+static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
-+{
-+	struct dax_region *dax_region = dev_dax->region;
-+	struct dax_mapping *mapping;
-+	struct device *dev;
-+	int rc;
-+
-+	device_lock_assert(dax_region->dev);
-+
-+	if (dev_WARN_ONCE(&dev_dax->dev, !dax_region->dev->driver,
-+				"region disabled\n"))
-+		return -ENXIO;
-+
-+	mapping = kzalloc(sizeof(*mapping), GFP_KERNEL);
-+	if (!mapping)
-+		return -ENOMEM;
-+	mapping->range_id = range_id;
-+	mapping->id = ida_alloc(&dev_dax->ida, GFP_KERNEL);
-+	if (mapping->id < 0) {
-+		kfree(mapping);
-+		return -ENOMEM;
-+	}
-+	dev_dax->ranges[range_id].mapping = mapping;
-+	dev = &mapping->dev;
-+	device_initialize(dev);
-+	dev->parent = &dev_dax->dev;
-+	dev->type = &dax_mapping_type;
-+	dev_set_name(dev, "mapping%d", mapping->id);
-+	rc = device_add(dev);
-+	if (rc) {
-+		put_device(dev);
++	str = kstrdup(opt, GFP_KERNEL);
++	if (!str)
 +		return rc;
-+	}
 +
-+	rc = devm_add_action_or_reset(dax_region->dev, unregister_dax_mapping,
-+			dev);
++	end = str;
++	start = strsep(&end, "-");
++	if (!start || !end)
++		goto err;
++
++	rc = kstrtoull(start, 16, &addr);
++	if (rc)
++		goto err;
++	range->start = addr;
++
++	rc = kstrtoull(end, 16, &addr);
++	if (rc)
++		goto err;
++	range->end = addr;
++
++err:
++	kfree(str);
++	return rc;
++}
++
++static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t len)
++{
++	struct dev_dax *dev_dax = to_dev_dax(dev);
++	struct dax_region *dax_region = dev_dax->region;
++	size_t to_alloc;
++	struct range r;
++	ssize_t rc;
++
++	rc = range_parse(buf, len, &r);
 +	if (rc)
 +		return rc;
-+	return 0;
-+}
 +
- static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
- 		resource_size_t size)
- {
-@@ -588,7 +749,7 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
- 	struct dev_dax_range *ranges;
- 	unsigned long pgoff = 0;
- 	struct resource *alloc;
--	int i;
-+	int i, rc;
- 
- 	device_lock_assert(dax_region->dev);
- 
-@@ -630,6 +791,22 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
- 
- 	dev_dbg(dev, "alloc range[%d]: %pa:%pa\n", dev_dax->nr_range - 1,
- 			&alloc->start, &alloc->end);
-+	/*
-+	 * A dev_dax instance must be registered before mapping device
-+	 * children can be added. Defer to devm_create_dev_dax() to add
-+	 * the initial mapping device.
-+	 */
-+	if (!device_is_registered(&dev_dax->dev))
-+		return 0;
-+
-+	rc = devm_register_dax_mapping(dev_dax, dev_dax->nr_range - 1);
-+	if (rc) {
-+		dev_dbg(dev, "delete range[%d]: %pa:%pa\n", dev_dax->nr_range - 1,
-+				&alloc->start, &alloc->end);
-+		dev_dax->nr_range--;
-+		__release_region(res, alloc->start, resource_size(alloc));
++	rc = -ENXIO;
++	device_lock(dax_region->dev);
++	if (!dax_region->dev->driver) {
++		device_unlock(dax_region->dev);
 +		return rc;
 +	}
- 
- 	return 0;
- }
-@@ -698,11 +875,14 @@ static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
- 
- 	for (i = dev_dax->nr_range - 1; i >= 0; i--) {
- 		struct range *range = &dev_dax->ranges[i].range;
-+		struct dax_mapping *mapping = dev_dax->ranges[i].mapping;
- 		struct resource *adjust = NULL, *res;
- 		resource_size_t shrink;
- 
- 		shrink = min_t(u64, to_shrink, range_len(range));
- 		if (shrink >= range_len(range)) {
-+			devm_release_action(dax_region->dev,
-+					unregister_dax_mapping, &mapping->dev);
- 			__release_region(&dax_region->res, range->start,
- 					range_len(range));
- 			dev_dax->nr_range--;
-@@ -1033,9 +1213,9 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
- 	/* a device_dax instance is dead while the driver is not attached */
- 	kill_dax(dax_dev);
- 
--	/* from here on we're committed to teardown via dev_dax_release() */
- 	dev_dax->dax_dev = dax_dev;
- 	dev_dax->target_node = dax_region->target_node;
-+	ida_init(&dev_dax->ida);
- 	kref_get(&dax_region->kref);
- 
- 	inode = dax_inode(dax_dev);
-@@ -1058,6 +1238,13 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
- 	if (rc)
- 		return ERR_PTR(rc);
- 
-+	/* register mapping device for the initial allocation range */
-+	if (dev_dax->nr_range && range_len(&dev_dax->ranges[0].range)) {
-+		rc = devm_register_dax_mapping(dev_dax, 0);
-+		if (rc)
-+			return ERR_PTR(rc);
-+	}
++	device_lock(dev);
 +
- 	return dev_dax;
- 
- err_alloc_dax:
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index f863287107fd..13780f62b95e 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -40,6 +40,12 @@ struct dax_region {
- 	struct device *youngest;
- };
- 
-+struct dax_mapping {
-+	struct device dev;
-+	int range_id;
-+	int id;
-+};
++	to_alloc = range_len(&r);
++	if (alloc_is_aligned(dev_dax, to_alloc))
++		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
++	device_unlock(dev);
++	device_unlock(dax_region->dev);
 +
- /**
-  * struct dev_dax - instance data for a subdivision of a dax region, and
-  * data while the device is activated in the driver.
-@@ -47,6 +53,7 @@ struct dax_region {
-  * @dax_dev - core dax functionality
-  * @target_node: effective numa node if dev_dax memory range is onlined
-  * @id: ida allocated id
-+ * @ida: mapping id allocator
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @nr_range: size of @ranges
-@@ -57,12 +64,14 @@ struct dev_dax {
- 	struct dax_device *dax_dev;
- 	int target_node;
- 	int id;
-+	struct ida ida;
- 	struct device dev;
- 	struct dev_pagemap *pgmap;
- 	int nr_range;
- 	struct dev_dax_range {
- 		unsigned long pgoff;
- 		struct range range;
-+		struct dax_mapping *mapping;
- 	} *ranges;
- };
- 
-@@ -70,4 +79,9 @@ static inline struct dev_dax *to_dev_dax(struct device *dev)
- {
- 	return container_of(dev, struct dev_dax, dev);
- }
-+
-+static inline struct dax_mapping *to_dax_mapping(struct device *dev)
-+{
-+	return container_of(dev, struct dax_mapping, dev);
++	return rc == 0 ? len : rc;
 +}
- #endif
++static DEVICE_ATTR_WO(mapping);
++
+ static ssize_t align_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -1172,6 +1233,8 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
+ 		return 0;
+ 	if (a == &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
+ 		return 0;
++	if (a == &dev_attr_mapping.attr && is_static(dax_region))
++		return 0;
+ 	if ((a == &dev_attr_align.attr ||
+ 	     a == &dev_attr_size.attr) && is_static(dax_region))
+ 		return 0444;
+@@ -1181,6 +1244,7 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
+ static struct attribute *dev_dax_attributes[] = {
+ 	&dev_attr_modalias.attr,
+ 	&dev_attr_size.attr,
++	&dev_attr_mapping.attr,
+ 	&dev_attr_target_node.attr,
+ 	&dev_attr_align.attr,
+ 	&dev_attr_resource.attr,
 
