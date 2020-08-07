@@ -2,95 +2,187 @@ Return-Path: <SRS0=21WC=BR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 557CEC433DF
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Aug 2020 09:37:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 840C0C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 Aug 2020 18:06:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35F8C221E5
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 Aug 2020 09:37:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B8152075D
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 Aug 2020 18:06:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1596823574;
+	bh=033dCiOSCBbKXRdnlBmNn9vLWTZHjeFfX/v0b5509bc=;
+	h=From:Date:Subject:To:Cc:List-ID:From;
+	b=IH59P52e5YisU2aAu5hkQB7ZxGKE+MqJrUSFvpnBRkKIeGq6sN5r60SnCeyJ6WDXZ
+	 FdbqTGr39VrllYF4LzK1cIpimynKzQn0mMmX7toUWVtsGdfW7eHLU30eYZz/m5PmWA
+	 VhhFXOYfmeUd/8p82W9a9N7AEzd+ln+DnoQlCJS8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727017AbgHGJhW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 7 Aug 2020 05:37:22 -0400
-Received: from spam01.hygon.cn ([110.188.70.11]:21346 "EHLO spam2.hygon.cn"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726382AbgHGJhW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Aug 2020 05:37:22 -0400
-Received: from MK-DB.hygon.cn ([172.23.18.60])
-        by spam2.hygon.cn with ESMTP id 0779b7L1041093;
-        Fri, 7 Aug 2020 17:37:07 +0800 (GMT-8)
-        (envelope-from puwen@hygon.cn)
-Received: from cncheex01.Hygon.cn ([172.23.18.10])
-        by MK-DB.hygon.cn with ESMTP id 0779b09i079166;
-        Fri, 7 Aug 2020 17:37:00 +0800 (GMT-8)
-        (envelope-from puwen@hygon.cn)
-Received: from ubuntu1604-2.higon.com (172.23.18.44) by cncheex01.Hygon.cn
- (172.23.18.10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1466.3; Fri, 7 Aug 2020
- 17:36:45 +0800
-From:   Pu Wen <puwen@hygon.cn>
-To:     <rjw@rjwysocki.net>, <lenb@kernel.org>,
-        <jarkko.nikula@linux.intel.com>,
-        <andriy.shevchenko@linux.intel.com>,
-        <mika.westerberg@linux.intel.com>, <wsa@kernel.org>
-CC:     <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linux-i2c@vger.kernel.org>, Pu Wen <puwen@hygon.cn>
-Subject: [PATCH RESEND] i2c: designware: Add device HID for Hygon I2C controller
-Date:   Fri, 7 Aug 2020 17:35:29 +0800
-Message-ID: <20200807093529.5343-1-puwen@hygon.cn>
-X-Mailer: git-send-email 2.23.0
+        id S1726067AbgHGSGN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 7 Aug 2020 14:06:13 -0400
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:47050 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726038AbgHGSGN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Aug 2020 14:06:13 -0400
+Received: by mail-ot1-f66.google.com with SMTP id v6so2248996ota.13;
+        Fri, 07 Aug 2020 11:06:12 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=kNG/5GBmZ3pEAK3JxkSjLVsub+uSoAzlaHdTA+pv5gI=;
+        b=iKc1cBaxZawM5HtuCaxehymhUnvmag9kClS/8vAHXcba2veFXeLV8c0N4QEmvvbKF/
+         mSW41ToWYK1aBap8iQ2fI3GQ/sFLS+Rkv2gjQ6cNXdPfbvIYmUzgCvcwv0CoX4u0iKNg
+         h+pApaEia15DDmC1Ki7/XrdDcfHbHhn6AE5ZS4EyJ3xc4rXWwOigL7jGzwyJ6vP/BKCS
+         TmN65f2JrNpsJnxfgC3z+0736pDk0bPN1/J2bmlSckMMoVog6koBd3IEW8l8ePlCUGzW
+         BbXtexr2Spm1nQZ3ZlYiTCJMvgd4cLAlc1coA6eI3VyAb/dhA3y1F+eSq7utdvdfP7AV
+         65bA==
+X-Gm-Message-State: AOAM532TJp+KvwPYBlws1EuI3a3X86vTUV3J/h8XNcxt3KXHayp9vCV4
+        EY8TiHaWkvz0+ltnbVaTFkIY6QnD2vQbKs7+fDU=
+X-Google-Smtp-Source: ABdhPJw62lTIxLZLH/C6sbNZE/oV3wS6xDPdh6tBo7gstFSw91g7CJinPRnzC7EcJQlARGphxfUlcO2VCA/sm9wy85s=
+X-Received: by 2002:a05:6830:1c74:: with SMTP id s20mr12237581otg.167.1596823572067;
+ Fri, 07 Aug 2020 11:06:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [172.23.18.44]
-X-ClientProxiedBy: cncheex01.Hygon.cn (172.23.18.10) To cncheex01.Hygon.cn
- (172.23.18.10)
-X-MAIL: spam2.hygon.cn 0779b7L1041093
-X-DNSRBL: 
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 7 Aug 2020 20:06:01 +0200
+Message-ID: <CAJZ5v0hQS_aVFJpqJ2uPxpomKpyb3iM0fVUTg5oP-5AG=qwGsA@mail.gmail.com>
+Subject: [GIT PULL] More power management updates for v5.9-rc1
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add device HID HYGO0010 to match the Hygon ACPI Vendor ID (HYGO) that
-was registered in http://www.uefi.org/acpi_id_list, and the I2C
-controller on Hygon paltform will use the HID.
+Hi Linus,
 
-Signed-off-by: Pu Wen <puwen@hygon.cn>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Wolfram Sang <wsa@kernel.org>
----
- drivers/acpi/acpi_apd.c                     | 1 +
- drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
- 2 files changed, 2 insertions(+)
+Please pull from the tag
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index ba2612e9a0eb..f24f6d3f1fa5 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -240,6 +240,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- 	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMD0030", },
- 	{ "AMD0040", APD_ADDR(st_misc_desc)},
-+	{ "HYGO0010", APD_ADDR(wt_i2c_desc) },
- #endif
- #ifdef CONFIG_ARM64
- 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index a71bc58fc03c..0dfeb2d11603 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -55,6 +55,7 @@ static const struct acpi_device_id dw_i2c_acpi_match[] = {
- 	{ "HISI02A1", 0 },
- 	{ "HISI02A2", 0 },
- 	{ "HISI02A3", 0 },
-+	{ "HYGO0010", ACCESS_INTR_MASK },
- 	{ }
- };
- MODULE_DEVICE_TABLE(acpi, dw_i2c_acpi_match);
--- 
-2.23.0
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-5.9-rc1-2
 
+with top-most commit 0873ad923a05751a29a92229739ce2737c29d348
+
+ Merge branch 'pm-core'
+
+on top of commit 04084978003c1a1810a0b1fea581078106394a32
+
+ Merge tag 'pm-5.9-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive more power management updates for 5.9-rc1.
+
+These are mostly ARM cpufreq driver updates plus a cpufreq core
+cleanup, an ARM-wide change to make schedutil the default scaling
+governor, an intel_pstate driver fix and some runtime PM changes
+regarding kerneldoc comments.
+
+Specifics:
+
+ - Add adaptive voltage scaling (AVS) support to the brcmstb cpufreq
+   driver and clean it up (Florian Fainelli, Markus Mayer).
+
+ - Add a new Tegra cpufreq driver and clean up the existing one (Jon
+   Hunter, Sumit Gupta).
+
+ - Add bandwidth level support to the Qcom cpufreq driver along with
+   OPP changes (Sibi Sankar).
+
+ - Clean up the sti, cpufreq-dt, ap806, CPPC cpufreq drivers (Viresh
+   Kumar, Lee Jones, Ivan Kokshaysky, Sven Auhagen, Xin Hao).
+
+ - Make schedutil the default governor for ARM (Valentin Schneider).
+
+ - Fix dependency issues for the imx cpufreq driver (Walter Lozano).
+
+ - Clean up cached_resolved_idx handlihng in the cpufreq core (Viresh
+   Kumar).
+
+ - Fix the intel_pstate driver to use the correct maximum frequency
+   value when MSR_TURBO_RATIO_LIMIT is 0 (Srinivas Pandruvada).
+
+ - Provide kenrneldoc comments for multiple runtime PM helpers and
+   improve the pm_runtime_get_if_active() kerneldoc (Rafael Wysocki).
+
+Thanks!
+
+
+---------------
+
+Florian Fainelli (1):
+      cpufreq: brcmstb-avs-cpufreq: Support polling AVS firmware
+
+Ivan Kokshaysky (1):
+      cpufreq: dt: fix oops on armada37xx
+
+Jon Hunter (1):
+      cpufreq: tegra186: Simplify probe return path
+
+Lee Jones (1):
+      cpufreq: sti-cpufreq: Fix some formatting and misspelling issues
+
+Markus Mayer (2):
+      cpufreq: brcmstb-avs-cpufreq: more flexible interface for
+__issue_avs_command()
+      cpufreq: brcmstb-avs-cpufreq: send S2_ENTER / S2_EXIT commands to AVS
+
+Rafael J. Wysocki (2):
+      PM: runtime: Add kerneldoc comments to multiple helpers
+      PM: runtime: Improve kerneldoc of pm_runtime_get_if_active()
+
+Sibi Sankar (5):
+      cpufreq: blacklist SDM845 in cpufreq-dt-platdev
+      cpufreq: blacklist SC7180 in cpufreq-dt-platdev
+      OPP: Add and export helper to set bandwidth
+      cpufreq: qcom: Update the bandwidth levels on frequency change
+      cpufreq: qcom: Disable fast switch when scaling DDR/L3
+
+Srinivas Pandruvada (1):
+      cpufreq: intel_pstate: Fix cpuinfo_max_freq when
+MSR_TURBO_RATIO_LIMIT is 0
+
+Sumit Gupta (2):
+      dt-bindings: arm: Add NVIDIA Tegra194 CPU Complex binding
+      cpufreq: Add Tegra194 cpufreq driver
+
+Sven Auhagen (1):
+      cpufreq: ap806: fix cpufreq driver needs ap cpu clk
+
+Valentin Schneider (1):
+      cpufreq: make schedutil the default for arm and arm64
+
+Viresh Kumar (2):
+      cpufreq: cppc: Reorder code and remove apply_hisi_workaround variable
+      cpufreq: cached_resolved_idx can not be negative
+
+Walter Lozano (1):
+      cpufreq: imx: Select NVMEM_IMX_OCOTP
+
+Xin Hao (1):
+      cpufreq: CPPC: Reuse caps variable in few routines
+
+---------------
+
+ .../bindings/arm/nvidia,tegra194-ccplex.yaml       |  69 ++++
+ drivers/base/power/runtime.c                       |  26 +-
+ drivers/cpufreq/Kconfig                            |   2 +-
+ drivers/cpufreq/Kconfig.arm                        |   9 +
+ drivers/cpufreq/Makefile                           |   1 +
+ drivers/cpufreq/armada-37xx-cpufreq.c              |   1 +
+ drivers/cpufreq/brcmstb-avs-cpufreq.c              |  89 +++--
+ drivers/cpufreq/cppc_cpufreq.c                     |  95 +++--
+ drivers/cpufreq/cpufreq-dt-platdev.c               |   2 +
+ drivers/cpufreq/cpufreq.c                          |   2 +-
+ drivers/cpufreq/intel_pstate.c                     |   1 +
+ drivers/cpufreq/qcom-cpufreq-hw.c                  |  91 ++++-
+ drivers/cpufreq/sti-cpufreq.c                      |   8 +-
+ drivers/cpufreq/tegra186-cpufreq.c                 |   6 -
+ drivers/cpufreq/tegra194-cpufreq.c                 | 390 +++++++++++++++++++++
+ drivers/opp/core.c                                 |  31 ++
+ include/linux/cpufreq.h                            |   2 +-
+ include/linux/pm_opp.h                             |   6 +
+ include/linux/pm_runtime.h                         | 246 +++++++++++++
+ 19 files changed, 963 insertions(+), 114 deletions(-)
