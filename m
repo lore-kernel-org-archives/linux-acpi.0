@@ -5,39 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9E7DC433E1
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:13:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAC79C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:14:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84CFE21775
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:13:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C35522C9E
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:14:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597086782;
-	bh=Xm7k/rfsVU4aoUK+qtA/nGXD2T8CnXqPvO0bzlr/AQQ=;
+	s=default; t=1597086859;
+	bh=pxd0E58xEB4rCRxoOo1iwUKlzaG7Rk6Psxh5cGCreKg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=WoEzX6XxIXID2JmPg2ByRdGmgRyrjmWHv1a7p5tj2mWF1bowynx58q3ZzTxUzzrgd
-	 GR+9Lh4sdrgWmhUmhIU4mbAcCVVA9kd0x6HtVKYbHgl4RyEnJP966Vhd9gsSUWaR9K
-	 p3WqYpuUq/Oy0JZK73P4IU9Br9pDSmlg+voY7fnU=
+	b=lTejg9KqsQu4pef8qxGh+inQAZpi8UkKAioLKv6LGFY+jqVbIihphccD48sDIgL4s
+	 652vjQshzCR2aNFuJAo3qvSj7fqhwYxluyZ0R+Xq9u6mgsAXWOPap/6bxFzlUv7jJB
+	 xxJL7DLdSr7/KqmPmSTRu9m47OjQ5sml/KYpCeC0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729669AbgHJTM6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 10 Aug 2020 15:12:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43266 "EHLO mail.kernel.org"
+        id S1729983AbgHJTOS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 10 Aug 2020 15:14:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46262 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729665AbgHJTM5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Aug 2020 15:12:57 -0400
+        id S1729264AbgHJTOR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Aug 2020 15:14:17 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 296C3207FF;
-        Mon, 10 Aug 2020 19:12:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BF0B922CA1;
+        Mon, 10 Aug 2020 19:14:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597086776;
-        bh=Xm7k/rfsVU4aoUK+qtA/nGXD2T8CnXqPvO0bzlr/AQQ=;
+        s=default; t=1597086856;
+        bh=pxd0E58xEB4rCRxoOo1iwUKlzaG7Rk6Psxh5cGCreKg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=olITgM3NP0aPyrC7RSkLGVRazNpml4HtTklgIpEDiCVshL0Q+PDlJmy9JXxixEOe1
-         Aavf4W/KjAoRmik08tFdfFaYrfDxuHVnyep6XGlm376YBUDwk1RQEwha2T6SqJDmaq
-         siINOQ48nzpr235EKADhdqlCZuDsGg+j+VnX9+mI=
+        b=hPJSNyD+of/cqeZdhgTSC7/t3y8I7HNYJDOW5Skt1HJxqQnGhRJoWN3OhYLhBhZwL
+         1IJ2p9L+8ZsG4Eh/HZCn87iGgXEG4yg7Whq8wwFDHHvMPGUzzCTypubYc2dP0xqTpG
+         HseUkMogPmwihQrR+IFGcJY8cQqO3EPyJbc3164s=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Erik Kaneda <erik.kaneda@intel.com>,
@@ -45,12 +45,12 @@ Cc:     Erik Kaneda <erik.kaneda@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         devel@acpica.org
-Subject: [PATCH AUTOSEL 5.4 44/45] ACPICA: Do not increment operation_region reference counts for field units
-Date:   Mon, 10 Aug 2020 15:11:52 -0400
-Message-Id: <20200810191153.3794446-44-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 22/22] ACPICA: Do not increment operation_region reference counts for field units
+Date:   Mon, 10 Aug 2020 15:13:44 -0400
+Message-Id: <20200810191345.3795166-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200810191153.3794446-1-sashal@kernel.org>
-References: <20200810191153.3794446-1-sashal@kernel.org>
+In-Reply-To: <20200810191345.3795166-1-sashal@kernel.org>
+References: <20200810191345.3795166-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -94,10 +94,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 1 insertion(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
-index 728d752f7adcd..85f799c9c25c4 100644
+index 8de060664204e..e23f3d54bb31c 100644
 --- a/drivers/acpi/acpica/exprep.c
 +++ b/drivers/acpi/acpica/exprep.c
-@@ -473,10 +473,6 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
+@@ -507,10 +507,6 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
  				    (u8)access_byte_width;
  			}
  		}
@@ -109,10 +109,10 @@ index 728d752f7adcd..85f799c9c25c4 100644
  				  "RegionField: BitOff %X, Off %X, Gran %X, Region %p\n",
  				  obj_desc->field.start_field_bit_offset,
 diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
-index c365faf4e6cd4..4c0d4e4341961 100644
+index c6eb9fae70f9a..61a979d0fbc5a 100644
 --- a/drivers/acpi/acpica/utdelete.c
 +++ b/drivers/acpi/acpica/utdelete.c
-@@ -568,11 +568,6 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+@@ -593,11 +593,6 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
  			next_object = object->buffer_field.buffer_obj;
  			break;
  
@@ -124,7 +124,7 @@ index c365faf4e6cd4..4c0d4e4341961 100644
  		case ACPI_TYPE_LOCAL_BANK_FIELD:
  
  			next_object = object->bank_field.bank_obj;
-@@ -613,6 +608,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+@@ -638,6 +633,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
  			}
  			break;
  
