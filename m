@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-18.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8082BC433DF
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:20:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04781C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:26:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FA3C22D03
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:20:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF2FD2080C
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 Aug 2020 19:26:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597087245;
-	bh=45VWdcIbF/o2v52taxnXd8WBDS6fFL77M2ekQL3Ub8U=;
+	s=default; t=1597087597;
+	bh=g+Wy7iCnNpmyB5BLU7r9saNvxQus1BUEvV7pAy8bNcg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=WAP21mzNLNPahE7YBkEHfz6bVZwnro/5qF3v7dUA/v2JMSeqNRh7yU2aydDZRWjwm
-	 CQ7ZenttLaIDJ27RgJcztsr7TuzxDRrauVJRxSwukgIqwqe2KMfJhA9yYd4qD9Zj4i
-	 PIi5sRPpOjtekJjCEvguS3oBN1g4lvPjq4vTbNfM=
+	b=znuzcZSP0B3I5AtPB3223r8tmLIe6lOpSgzIkZYfUjH6k93LvcM2z5LgvXnt1wnVB
+	 rJ72q6rOgdzo5Frmu0g4UjbCKrqVmctfCaxcPrvIufxCW3YhYZfh0wFfmIDNwx41iI
+	 wxGluuIe1ekFbX1mhpovuCDM8P4ejs+bmuVKowmA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729834AbgHJTNn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 10 Aug 2020 15:13:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44984 "EHLO mail.kernel.org"
+        id S1729659AbgHJT03 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 10 Aug 2020 15:26:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729826AbgHJTNn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Aug 2020 15:13:43 -0400
+        id S1729398AbgHJTLr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Aug 2020 15:11:47 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B0D442224D;
-        Mon, 10 Aug 2020 19:13:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3053F2078D;
+        Mon, 10 Aug 2020 19:11:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597086822;
-        bh=45VWdcIbF/o2v52taxnXd8WBDS6fFL77M2ekQL3Ub8U=;
+        s=default; t=1597086706;
+        bh=g+Wy7iCnNpmyB5BLU7r9saNvxQus1BUEvV7pAy8bNcg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=iTs0bkox31Jo1+rr0s9L/C8bOo3dQSg5sjzG+8k16pA1q6bztYrxzGfYpgKUgLYU7
-         F1FdTepueP9ZXFhWlZmB8FnJELi/D825qDhwlsFAJ20i148x/J4MZ7Rfjnq0JYNckj
-         ovLxaQfsVZtuXZP2nlp83uDFq9mwf1jYGo63YCaQ=
+        b=gTwovJ3XtEUAvrFZ/kAPuMPKGOcHlCy5nPn3bH2MU0F9wd8J9Y8poAVJnhVUQbgI9
+         pXJ0VvmTHo4/Gf25oBdQkNItDzRSxEN187LJ/qeC8uxbl4RytFKZiHuSx8uHacviWI
+         eSZ/gwi5Xnf3cxkL3/2WVlNjGI/9XDb69fhGdHvs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Erik Kaneda <erik.kaneda@intel.com>,
@@ -45,12 +45,12 @@ Cc:     Erik Kaneda <erik.kaneda@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         devel@acpica.org
-Subject: [PATCH AUTOSEL 4.19 30/31] ACPICA: Do not increment operation_region reference counts for field units
-Date:   Mon, 10 Aug 2020 15:12:58 -0400
-Message-Id: <20200810191259.3794858-30-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.7 56/60] ACPICA: Do not increment operation_region reference counts for field units
+Date:   Mon, 10 Aug 2020 15:10:24 -0400
+Message-Id: <20200810191028.3793884-56-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200810191259.3794858-1-sashal@kernel.org>
-References: <20200810191259.3794858-1-sashal@kernel.org>
+In-Reply-To: <20200810191028.3793884-1-sashal@kernel.org>
+References: <20200810191028.3793884-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -94,7 +94,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 1 insertion(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
-index 738f3c732363a..228feeea555f1 100644
+index a4e306690a21b..4a0f03157e082 100644
 --- a/drivers/acpi/acpica/exprep.c
 +++ b/drivers/acpi/acpica/exprep.c
 @@ -473,10 +473,6 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
@@ -109,10 +109,10 @@ index 738f3c732363a..228feeea555f1 100644
  				  "RegionField: BitOff %X, Off %X, Gran %X, Region %p\n",
  				  obj_desc->field.start_field_bit_offset,
 diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
-index 8cc4392c61f33..0dc8dea815823 100644
+index c365faf4e6cd4..4c0d4e4341961 100644
 --- a/drivers/acpi/acpica/utdelete.c
 +++ b/drivers/acpi/acpica/utdelete.c
-@@ -563,11 +563,6 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+@@ -568,11 +568,6 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
  			next_object = object->buffer_field.buffer_obj;
  			break;
  
@@ -124,7 +124,7 @@ index 8cc4392c61f33..0dc8dea815823 100644
  		case ACPI_TYPE_LOCAL_BANK_FIELD:
  
  			next_object = object->bank_field.bank_obj;
-@@ -608,6 +603,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+@@ -613,6 +608,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
  			}
  			break;
  
