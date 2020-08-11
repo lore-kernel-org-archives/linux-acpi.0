@@ -2,231 +2,120 @@ Return-Path: <SRS0=n4Uq=BV=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88FCCC433DF
-	for <linux-acpi@archiver.kernel.org>; Tue, 11 Aug 2020 16:51:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B78ABC433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 11 Aug 2020 18:49:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 628C12076B
-	for <linux-acpi@archiver.kernel.org>; Tue, 11 Aug 2020 16:51:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 930AC2076B
+	for <linux-acpi@archiver.kernel.org>; Tue, 11 Aug 2020 18:49:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="PsJbheuL";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="OgiItwsr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729011AbgHKQvb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 11 Aug 2020 12:51:31 -0400
-Received: from mga11.intel.com ([192.55.52.93]:54235 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728962AbgHKQva (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 11 Aug 2020 12:51:30 -0400
-IronPort-SDR: 2+6WQHTXySeqijjDrbHzXeeSAOFyJwfGwi/M1Q9E/4/Qyo+p/KwOT8QEK7o2TW7iY6qUAgmp/p
- DeKvsSXN8m9g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9710"; a="151446640"
-X-IronPort-AV: E=Sophos;i="5.76,301,1592895600"; 
-   d="scan'208";a="151446640"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2020 09:51:29 -0700
-IronPort-SDR: sSHW3Eq/BHVFJ+7cxph0GpWMj0gKFKXPkzmQ6B0JDvsZ4nkmgUye4ep/F+kuN7RxGrN+KZYQ4n
- Tz64AgARr3AA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,301,1592895600"; 
-   d="scan'208";a="469503894"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 11 Aug 2020 09:51:27 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id E24B115C; Tue, 11 Aug 2020 19:51:26 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 1/2] ACPI / PMIC: Split out Kconfig and Makefile specific for ACPI PMIC
-Date:   Tue, 11 Aug 2020 19:51:25 +0300
-Message-Id: <20200811165126.45307-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.28.0
+        id S1725987AbgHKStH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 11 Aug 2020 14:49:07 -0400
+Received: from Galois.linutronix.de ([193.142.43.55]:60896 "EHLO
+        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725889AbgHKStG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Aug 2020 14:49:06 -0400
+Date:   Tue, 11 Aug 2020 20:49:02 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1597171744;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=RwCD0bfL2AO9ImN2u7oI41Ra7cPPPpKJOGgaL2jx1Hs=;
+        b=PsJbheuLB+TB0qz3bco9sz/QmSvo6EAMMxbttJ/tIDnUitgm9vn4EI3XyivAKL0Tv4lM2E
+        M+sVD2rs5XINF7tFbA0a4Q9IJnBWUiVxa+lpKtathfONCaqGnFGyl5dHDRZJi75MMrQkOT
+        FNklLUkIdCij6W1B7jxgUx+ammke8172oRcgv8AZ18lx7SMpspxvoV3KxDrGSX7q6AAHA3
+        K2HfO5TiZJMOFlNdt+iimniyGfhIvkvyHhh6lWQKyfID9QSYY90Q2l/5u4AA4wqR3FjMm4
+        9Fzz27sfQA4fE1mwQUlXy1BzMt8lOdhpOISXK5rYMETXzw7JXPsF8/kWn3GQ7Q==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1597171744;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=RwCD0bfL2AO9ImN2u7oI41Ra7cPPPpKJOGgaL2jx1Hs=;
+        b=OgiItwsr/YUIAS8bO43cL5thnZ1bNYRQRZpkt0u7i6JfF7f4dyeXuHcB2BXS8ok+oPUo7h
+        I4rXhsWeULTTVpDQ==
+From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To:     Stephen Berman <stephen.berman@gmx.net>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
+Subject: Re: power-off delay/hang due to commit 6d25be57 (mainline)
+Message-ID: <20200811184902.2fm4eyprmpkfon2j@linutronix.de>
+References: <87ftak2kxr.fsf@rub.de>
+ <20200714134410.3odqfvjq6rndjjf6@linutronix.de>
+ <CAJZ5v0hZSUkEMCszDADGWk-v0xNEiDE45B3CHLi05BX6rPfm6g@mail.gmail.com>
+ <20200714141135.47adndrsdgpiqfy4@linutronix.de>
+ <87blkbx1gt.fsf@gmx.net>
+ <87imdp5r80.fsf@rub.de>
+ <20200811132955.wbt55ns7bu5mxouq@linutronix.de>
+ <CAJZ5v0h+n9VCz5=VixVbe_b=ZbTU3D=46stGhE9z7Y7yaUMJzw@mail.gmail.com>
+ <20200811152551.dmfw46urecbmeklr@linutronix.de>
+ <87ft8tayic.fsf@gmx.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <87ft8tayic.fsf@gmx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-It's a bit better to maintain and allows to avoid mistakes in the future
-with PMIC OpRegion drivers, if we split out Kconfig and Makefile
-for ACPI PMIC to its own folder.
+On 2020-08-11 19:22:19 [+0200], Stephen Berman wrote:
+> Attached.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/Kconfig       | 51 ++------------------------------------
- drivers/acpi/Makefile      |  9 +------
- drivers/acpi/pmic/Kconfig  | 49 ++++++++++++++++++++++++++++++++++++
- drivers/acpi/pmic/Makefile |  8 ++++++
- 4 files changed, 60 insertions(+), 57 deletions(-)
- create mode 100644 drivers/acpi/pmic/Kconfig
- create mode 100644 drivers/acpi/pmic/Makefile
+ssdt6.dsl:
+|  ThermalZone (TZ10)
+|  {
+=E2=80=A6
+|      Method (_TSP, 0, Serialized)  // _TSP: Thermal Sampling Period
+|      {
+|          Return (0x0A)
+|      }
+|
+|      Method (_TZP, 0, Serialized)  // _TZP: Thermal Zone Polling
+|      {
+|          Return (0x0A)
+|      }
+|
+|      Method (_TMP, 0, Serialized)  // _TMP: Temperature
+|      {
+|          \GSA1.ZRC3 ()
+|          Sleep (0x03E8)
+|          Notify (\_TZ.TZ10, 0x81) // Thermal Trip Point Change
+|          Return (0x0B54)
+|      }
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 7540a5179a47..6fb9453396dc 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -504,55 +504,6 @@ config ACPI_EXTLOG
- config ACPI_ADXL
- 	bool
- 
--menuconfig PMIC_OPREGION
--	bool "PMIC (Power Management Integrated Circuit) operation region support"
--	help
--	  Select this option to enable support for ACPI operation
--	  region of the PMIC chip. The operation region can be used
--	  to control power rails and sensor reading/writing on the
--	  PMIC chip.
--
--if PMIC_OPREGION
--config BYTCRC_PMIC_OPREGION
--	bool "ACPI operation region support for Bay Trail Crystal Cove PMIC"
--	depends on INTEL_SOC_PMIC
--	help
--	  This config adds ACPI operation region support for the Bay Trail
--	  version of the Crystal Cove PMIC.
--
--config CHTCRC_PMIC_OPREGION
--	bool "ACPI operation region support for Cherry Trail Crystal Cove PMIC"
--	depends on INTEL_SOC_PMIC
--	help
--	  This config adds ACPI operation region support for the Cherry Trail
--	  version of the Crystal Cove PMIC.
--
--config XPOWER_PMIC_OPREGION
--	bool "ACPI operation region support for XPower AXP288 PMIC"
--	depends on MFD_AXP20X_I2C && IOSF_MBI=y
--	help
--	  This config adds ACPI operation region support for XPower AXP288 PMIC.
--
--config BXT_WC_PMIC_OPREGION
--	bool "ACPI operation region support for BXT WhiskeyCove PMIC"
--	depends on INTEL_SOC_PMIC_BXTWC
--	help
--	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
--
--config CHT_WC_PMIC_OPREGION
--	bool "ACPI operation region support for CHT Whiskey Cove PMIC"
--	depends on INTEL_SOC_PMIC_CHTWC
--	help
--	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
--
--config CHT_DC_TI_PMIC_OPREGION
--	bool "ACPI operation region support for Dollar Cove TI PMIC"
--	depends on INTEL_SOC_PMIC_CHTDC_TI
--	help
--	  This config adds ACPI operation region support for Dollar Cove TI PMIC.
--
--endif
--
- config ACPI_CONFIGFS
- 	tristate "ACPI configfs support"
- 	select CONFIGFS_FS
-@@ -568,6 +519,8 @@ config ACPI_PPTT
- 	bool
- endif
- 
-+source "drivers/acpi/pmic/Kconfig"
-+
- config TPS68470_PMIC_OPREGION
- 	bool "ACPI operation region support for TPS68470 PMIC"
- 	depends on MFD_TPS68470
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 9a957544e357..44929d248bfa 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -107,16 +107,9 @@ obj-$(CONFIG_ACPI_APEI)		+= apei/
- 
- obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
- 
--obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
--obj-$(CONFIG_BYTCRC_PMIC_OPREGION) += pmic/intel_pmic_bytcrc.o
--obj-$(CONFIG_CHTCRC_PMIC_OPREGION) += pmic/intel_pmic_chtcrc.o
--obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
--obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
--obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
--obj-$(CONFIG_CHT_DC_TI_PMIC_OPREGION) += pmic/intel_pmic_chtdc_ti.o
--
- obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
- 
-+obj-y				+= pmic/
- obj-$(CONFIG_TPS68470_PMIC_OPREGION)	+= pmic/tps68470_pmic.o
- 
- video-objs			+= acpi_video.o video_detect.o
-diff --git a/drivers/acpi/pmic/Kconfig b/drivers/acpi/pmic/Kconfig
-new file mode 100644
-index 000000000000..fbf52271d6cb
---- /dev/null
-+++ b/drivers/acpi/pmic/Kconfig
-@@ -0,0 +1,49 @@
-+menuconfig PMIC_OPREGION
-+	bool "PMIC (Power Management Integrated Circuit) operation region support"
-+	help
-+	  Select this option to enable support for ACPI operation
-+	  region of the PMIC chip. The operation region can be used
-+	  to control power rails and sensor reading/writing on the
-+	  PMIC chip.
-+
-+if PMIC_OPREGION
-+
-+config BYTCRC_PMIC_OPREGION
-+	bool "ACPI operation region support for Bay Trail Crystal Cove PMIC"
-+	depends on INTEL_SOC_PMIC
-+	help
-+	  This config adds ACPI operation region support for the Bay Trail
-+	  version of the Crystal Cove PMIC.
-+
-+config CHTCRC_PMIC_OPREGION
-+	bool "ACPI operation region support for Cherry Trail Crystal Cove PMIC"
-+	depends on INTEL_SOC_PMIC
-+	help
-+	  This config adds ACPI operation region support for the Cherry Trail
-+	  version of the Crystal Cove PMIC.
-+
-+config XPOWER_PMIC_OPREGION
-+	bool "ACPI operation region support for XPower AXP288 PMIC"
-+	depends on MFD_AXP20X_I2C && IOSF_MBI=y
-+	help
-+	  This config adds ACPI operation region support for XPower AXP288 PMIC.
-+
-+config BXT_WC_PMIC_OPREGION
-+	bool "ACPI operation region support for BXT WhiskeyCove PMIC"
-+	depends on INTEL_SOC_PMIC_BXTWC
-+	help
-+	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
-+
-+config CHT_WC_PMIC_OPREGION
-+	bool "ACPI operation region support for CHT Whiskey Cove PMIC"
-+	depends on INTEL_SOC_PMIC_CHTWC
-+	help
-+	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
-+
-+config CHT_DC_TI_PMIC_OPREGION
-+	bool "ACPI operation region support for Dollar Cove TI PMIC"
-+	depends on INTEL_SOC_PMIC_CHTDC_TI
-+	help
-+	  This config adds ACPI operation region support for Dollar Cove TI PMIC.
-+
-+endif	# PMIC_OPREGION
-diff --git a/drivers/acpi/pmic/Makefile b/drivers/acpi/pmic/Makefile
-new file mode 100644
-index 000000000000..1433f2befca6
---- /dev/null
-+++ b/drivers/acpi/pmic/Makefile
-@@ -0,0 +1,8 @@
-+
-+obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
-+obj-$(CONFIG_BYTCRC_PMIC_OPREGION)	+= pmic/intel_pmic_bytcrc.o
-+obj-$(CONFIG_CHTCRC_PMIC_OPREGION)	+= pmic/intel_pmic_chtcrc.o
-+obj-$(CONFIG_XPOWER_PMIC_OPREGION)	+= pmic/intel_pmic_xpower.o
-+obj-$(CONFIG_BXT_WC_PMIC_OPREGION)	+= pmic/intel_pmic_bxtwc.o
-+obj-$(CONFIG_CHT_WC_PMIC_OPREGION)	+= pmic/intel_pmic_chtwc.o
-+obj-$(CONFIG_CHT_DC_TI_PMIC_OPREGION)	+= pmic/intel_pmic_chtdc_ti.o
--- 
-2.28.0
+So if I read this correctly then TZ10 should be polled every second
+(check) and the temperature function contains a `sleep(1 second)' (which
+explains the mysteries delay) followed by the Notify() (which schedules
+the worker).
 
+Now I'm curious if Windows has the same ACPI tables and if so how they
+behave here. And what the actual plan here was. And where is the border
+when one is actual allowed to make fun of someone. So many questions.=20
+
+> Done as Bug 208877.
+
+Thank you.
+
+> Steve Berman
+
+Sebastian
