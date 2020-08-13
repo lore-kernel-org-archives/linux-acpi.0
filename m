@@ -7,43 +7,44 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF7EAC433E4
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85E37C433DF
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D361420866
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 639162078D
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726167AbgHMR5e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 13 Aug 2020 13:57:34 -0400
-Received: from mga03.intel.com ([134.134.136.65]:39968 "EHLO mga03.intel.com"
+        id S1726419AbgHMR5g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 13 Aug 2020 13:57:36 -0400
+Received: from mga12.intel.com ([192.55.52.136]:7942 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726174AbgHMR5d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 13 Aug 2020 13:57:33 -0400
-IronPort-SDR: TqGGyF+naqm5Vn+QdiDAXeyZsd3K4wZv8NCjzdDufYpx/Ln9UnuW4F20wzyMMaq6Eyjzoyltkt
- lBtg+8x0Sjew==
-X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="154257234"
+        id S1726174AbgHMR5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 13 Aug 2020 13:57:34 -0400
+IronPort-SDR: RPfRPBNX0PC5UkwRcmbLLvimjPDwnDD5Elystl3N/JbYUWm9o4gE6shoXJ+GHKYhQB/1l/mJYH
+ lLOjnMh/aqsg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="133815483"
 X-IronPort-AV: E=Sophos;i="5.76,309,1592895600"; 
-   d="scan'208";a="154257234"
+   d="scan'208";a="133815483"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2020 10:57:32 -0700
-IronPort-SDR: YMKk51Vgro667vDwnJ9Krrmqfc2347QxKDJgtaP0PVMR1NFDXL03nm7sxWlbPduZuNTaNty487
- C4GJNm2Cxc9w==
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2020 10:57:34 -0700
+IronPort-SDR: xoa7E9yiKkM7cB256GgJK+Ha8N8dc2ik5Djyjpt3WFPQODOuUDAaA1MXqWy2+kKe4WKBLe6cVI
+ v+WUo0Q4iw6Q==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,309,1592895600"; 
-   d="scan'208";a="495943934"
+   d="scan'208";a="495474442"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga005.fm.intel.com with ESMTP; 13 Aug 2020 10:57:31 -0700
+  by fmsmga006.fm.intel.com with ESMTP; 13 Aug 2020 10:57:33 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 55815163; Thu, 13 Aug 2020 20:57:30 +0300 (EEST)
+        id 83DFE411; Thu, 13 Aug 2020 20:57:30 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 2/7] resource: Group resource_overlaps() with other inline helpers
-Date:   Thu, 13 Aug 2020 20:57:24 +0300
-Message-Id: <20200813175729.15088-2-andriy.shevchenko@linux.intel.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v1 7/7] ACPI: watchdog: Replace open coded variant of resource_union()
+Date:   Thu, 13 Aug 2020 20:57:29 +0300
+Message-Id: <20200813175729.15088-7-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
 References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
@@ -54,42 +55,31 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-For better maintenance group resource_overlaps() with other inline helpers.
+Since we have resource_union() helper, let's utilize it here.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- include/linux/ioport.h | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/acpi/acpi_watchdog.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 6c2b06fe8beb..0193987b9968 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -226,6 +226,11 @@ static inline bool resource_contains(struct resource *r1, struct resource *r2)
- 	return r1->start <= r2->start && r1->end >= r2->end;
- }
- 
-+/* True if any part of r1 overlaps r2 */
-+static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
-+{
-+       return (r1->start <= r2->end && r1->end >= r2->start);
-+}
- 
- /* Convenience shorthand with allocation */
- #define request_region(start,n,name)		__request_region(&ioport_resource, (start), (n), (name), 0)
-@@ -291,12 +296,6 @@ extern int
- walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
- 		    void *arg, int (*func)(struct resource *, void *));
- 
--/* True if any part of r1 overlaps r2 */
--static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
--{
--       return (r1->start <= r2->end && r1->end >= r2->start);
--}
--
- struct resource *devm_request_free_mem_region(struct device *dev,
- 		struct resource *base, unsigned long size);
- struct resource *request_free_mem_region(struct resource *base,
+diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
+index 5c1e9ea43123..ca28183f4d13 100644
+--- a/drivers/acpi/acpi_watchdog.c
++++ b/drivers/acpi/acpi_watchdog.c
+@@ -151,11 +151,7 @@ void __init acpi_watchdog_init(void)
+ 		found = false;
+ 		resource_list_for_each_entry(rentry, &resource_list) {
+ 			if (rentry->res->flags == res.flags &&
+-			    resource_overlaps(rentry->res, &res)) {
+-				if (res.start < rentry->res->start)
+-					rentry->res->start = res.start;
+-				if (res.end > rentry->res->end)
+-					rentry->res->end = res.end;
++			    resource_union(rentry->res, &res, rentry->res)) {
+ 				found = true;
+ 				break;
+ 			}
 -- 
 2.28.0
 
