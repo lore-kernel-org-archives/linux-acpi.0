@@ -4,47 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85E37C433DF
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4767EC433E1
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 639162078D
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33BCE2078D
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726419AbgHMR5g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1726499AbgHMR5g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Thu, 13 Aug 2020 13:57:36 -0400
-Received: from mga12.intel.com ([192.55.52.136]:7942 "EHLO mga12.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:1402 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726174AbgHMR5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 13 Aug 2020 13:57:34 -0400
-IronPort-SDR: RPfRPBNX0PC5UkwRcmbLLvimjPDwnDD5Elystl3N/JbYUWm9o4gE6shoXJ+GHKYhQB/1l/mJYH
- lLOjnMh/aqsg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="133815483"
+        id S1726384AbgHMR5g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 13 Aug 2020 13:57:36 -0400
+IronPort-SDR: qiK9AznEIyJbFTHmf2Wr7tauM96GUGkevC/20QaLtykLUr0MntlCgCC+YJiV5u4/Nw5W2/dwyt
+ Mj0ItwOiuhrQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="218626203"
 X-IronPort-AV: E=Sophos;i="5.76,309,1592895600"; 
-   d="scan'208";a="133815483"
+   d="scan'208";a="218626203"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2020 10:57:34 -0700
-IronPort-SDR: xoa7E9yiKkM7cB256GgJK+Ha8N8dc2ik5Djyjpt3WFPQODOuUDAaA1MXqWy2+kKe4WKBLe6cVI
- v+WUo0Q4iw6Q==
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2020 10:57:33 -0700
+IronPort-SDR: zVhLbiZLkjhAVad+77Sb2uU6sXPPgozGcXziqIxeesSRpm+feFgpTH3fbiixC0Tiaell1MOLK8
+ O+O5C9X4v2wQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,309,1592895600"; 
-   d="scan'208";a="495474442"
+   d="scan'208";a="295510386"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga006.fm.intel.com with ESMTP; 13 Aug 2020 10:57:33 -0700
+  by orsmga006.jf.intel.com with ESMTP; 13 Aug 2020 10:57:31 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 83DFE411; Thu, 13 Aug 2020 20:57:30 +0300 (EEST)
+        id 74D633D7; Thu, 13 Aug 2020 20:57:30 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v1 7/7] ACPI: watchdog: Replace open coded variant of resource_union()
-Date:   Thu, 13 Aug 2020 20:57:29 +0300
-Message-Id: <20200813175729.15088-7-andriy.shevchenko@linux.intel.com>
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+Subject: [PATCH v1 5/7] PCI/ACPI: Replace open coded variant of resource_union()
+Date:   Thu, 13 Aug 2020 20:57:27 +0300
+Message-Id: <20200813175729.15088-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
 References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
@@ -58,28 +60,28 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 Since we have resource_union() helper, let's utilize it here.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org
 ---
- drivers/acpi/acpi_watchdog.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/acpi/pci_root.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
-index 5c1e9ea43123..ca28183f4d13 100644
---- a/drivers/acpi/acpi_watchdog.c
-+++ b/drivers/acpi/acpi_watchdog.c
-@@ -151,11 +151,7 @@ void __init acpi_watchdog_init(void)
- 		found = false;
- 		resource_list_for_each_entry(rentry, &resource_list) {
- 			if (rentry->res->flags == res.flags &&
--			    resource_overlaps(rentry->res, &res)) {
--				if (res.start < rentry->res->start)
--					rentry->res->start = res.start;
--				if (res.end > rentry->res->end)
--					rentry->res->end = res.end;
-+			    resource_union(rentry->res, &res, rentry->res)) {
- 				found = true;
- 				break;
- 			}
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index f90e841c59f5..2a6a741896de 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -724,9 +724,7 @@ static void acpi_pci_root_validate_resources(struct device *dev,
+ 			 * our resources no longer match the ACPI _CRS, but
+ 			 * the kernel resource tree doesn't allow overlaps.
+ 			 */
+-			if (resource_overlaps(res1, res2)) {
+-				res2->start = min(res1->start, res2->start);
+-				res2->end = max(res1->end, res2->end);
++			if (resource_union(res1, res2, res2)) {
+ 				dev_info(dev, "host bridge window expanded to %pR; %pR ignored\n",
+ 					 res2, res1);
+ 				free = true;
 -- 
 2.28.0
 
