@@ -4,61 +4,57 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 929CDC433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:12:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F6F0C433E1
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:17:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6951420768
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:12:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FEA4207DA
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:17:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597417928;
-	bh=6h9QRWok0FdiWLYFQgakFBA30v1xuSq40jWAG5hXGaM=;
+	s=default; t=1597418255;
+	bh=g3EMgMRl+jdpH60Qpiy97Zeb5fgWlnDAWDSvdxD+O0U=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=pcMNB/0Ane0nk0Je12yIEYm0xAF1N4dyBN2E8/XnHTlbZ4wJlhSNMHtbR4rv5EgmB
-	 RQ2jtJFlXUt35lgj4R9wEtKVD38Y0M61coftXSgtK3sXXbpOg2pWvbT8jXFhn3sRw/
-	 D5UzXAiKgC8yp+97MIn2zK4h7TuLa+/JWTy1GdeE=
+	b=hhsmWm/rr3PW9c6G2d62fEzuNsnq9WUMsiSnqwgaGpgOShseftcsBa1kgiung7ZX6
+	 nfkow3P/PeROB0K2UGPMD/sUSfjnJb+tr74I0kgXmBCHtg3QHFBBCsM6Q39W5f2pPP
+	 tWWNyypY3iHbnDNBTeSnZmMW2n5ohnZOb4GJ5jZ0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726311AbgHNPMH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Aug 2020 11:12:07 -0400
-Received: from mail-oo1-f65.google.com ([209.85.161.65]:42518 "EHLO
-        mail-oo1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726196AbgHNPMH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2020 11:12:07 -0400
-Received: by mail-oo1-f65.google.com with SMTP id a6so1981558oog.9;
-        Fri, 14 Aug 2020 08:12:06 -0700 (PDT)
+        id S1726320AbgHNPRe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Aug 2020 11:17:34 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:41830 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726212AbgHNPRd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2020 11:17:33 -0400
+Received: by mail-oi1-f196.google.com with SMTP id b22so8403500oic.8
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2020 08:17:33 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=7xPEAyT242zCqpQsFiRlqT2H2KPu1pwTh4cJkknKvJo=;
-        b=TDfPqN6VEp41+6LRMTYu0gsknxFNgfWTO1u4d+DDNYPOinGgi1GqLCX5mShe/WKLC2
-         yODzDC1uVp/8jXTq3HpIoplvFDma9L+JlKrDod+/KHOKlXvDP1l5rCd8e17WMC9UKUza
-         XBImU/xN7NKdpkDl18LaLRB91BTvHYLSNZqYgwP3JQ5XVfhOmc5RtKlrQS/FhUxZxkhd
-         8MhWxT1pwT7Ql/pETP4QEt1wZQMgr6+ledd018GzwdZE+No7qA/5hxEfqG1BAK50/h+3
-         kcnt2ii4Tp3mhbezyQUfAmoAcKJzoQ6JlZPv3YpOVThcKvu63Nolf7Fsn1EkfZFDA7Pd
-         Wwzw==
-X-Gm-Message-State: AOAM530lXmUAMXtD5LffmuljeMCnx7VAdXs5+3Sn2CG+L3h1uucjobja
-        d1N+SrxqTQHAWTt4ixrwxeZBkxOqnDf23OHwLvSnZCe8
-X-Google-Smtp-Source: ABdhPJzUnUyMUuc78wHJRnppNRf7GRRhxiD8yRQWkcXfslxn48kqwUjq4RU5a8Hmj0iwneqjfluc9gw7xGk4gUKHlQk=
-X-Received: by 2002:a4a:4201:: with SMTP id h1mr2020303ooj.1.1597417926225;
- Fri, 14 Aug 2020 08:12:06 -0700 (PDT)
+        bh=F5QSUsn7AHtqsHxJkSa8oIGs23Urh8IXLhVGhEvPcIw=;
+        b=XyvNLxEoa+DYEpC1zY+38oEwS8yk2NwccKzB2Q/xiIMQ5nhwjtwUHOo68lK40OPZG8
+         XfLlfAB7K4pA+mhbBbUvoaBLvkEbT4Ejjk67/y/5FmgfSsT5Az7XHArYgTji7sBzq72W
+         HDTyHSQ6bz3tK76Bx1LPQNddF/iEQ4dL8jTmEXtR8hcOK/QlJ0uf3Gh6r0p/of20r5n4
+         AhCwGjGhi64XdgmufAaQe1O36uXc6k4h+6xVi97j4p0Dz1XKq8C41CMql+n1Kl0ckf8D
+         XzmZybYv8HG3yZkpWXNyzT6w4tWt2E4dPcOoW6iHbznGZYyBStyhmLd8pb8TNLaYcPGH
+         YxBg==
+X-Gm-Message-State: AOAM530DxosSB+18VjCuxSHAW+jjpdfcZA+79erlZYjcSYjaGNbQW8W5
+        JYLrbKqqmB4UssgikgbadGATnziJn3bfz/KOKbw=
+X-Google-Smtp-Source: ABdhPJypDWjXczz3E+fot8wqoLJVWSlDBEJKpOZVvEYwAgtAx2rwgQSuIoPRueOkb+4varwoalV9cMjWvauAOrPIoZI=
+X-Received: by 2002:aca:a88e:: with SMTP id r136mr1910309oie.110.1597418252901;
+ Fri, 14 Aug 2020 08:17:32 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com> <20200813175729.15088-6-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20200813175729.15088-6-andriy.shevchenko@linux.intel.com>
+References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 14 Aug 2020 17:11:55 +0200
-Message-ID: <CAJZ5v0jquT7TLLO4yJqyxgfJJ77hLQ+RtmLXVj6JATWXJxqkUQ@mail.gmail.com>
-Subject: Re: [PATCH v1 6/7] PCI/ACPI: Fix description of @handle for acpi_is_root_bridge()
+Date:   Fri, 14 Aug 2020 17:17:22 +0200
+Message-ID: <CAJZ5v0hF7CJYQJsvGbPCr+1Rfi_QqeMkT4z3MrGfmB00CdQvyA@mail.gmail.com>
+Subject: Re: [PATCH v1 1/7] resource: Simplify region_intersects() by reducing conditionals
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Linux PCI <linux-pci@vger.kernel.org>
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
@@ -68,38 +64,53 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 On Thu, Aug 13, 2020 at 7:57 PM Andy Shevchenko
 <andriy.shevchenko@linux.intel.com> wrote:
 >
-> Fix description of handle parameter in documentation of acpi_is_root_bridge().
-> Otherwise we get the following warning:
+> Now we have for 'other' and 'type' variables
 >
->   CHECK   drivers/acpi/pci_root.c
->   drivers/acpi/pci_root.c:71: warning: Function parameter or member 'handle' not described in 'acpi_is_root_bridge'
-
-I'm not sure why this patch doesn't go by itself.  It appears to be
-immediately applicable.
-
-I'll apply it next week if Bjorn doesn't object.
-
+> other   type    return
+>   0       0     REGION_DISJOINT
+>   0       x     REGION_INTERSECTS
+>   x       0     REGION_DISJOINT
+>   x       x     REGION_MIXED
+>
+> Obviously it's easier to check 'type' for 0 first instead of
+> currently checked 'other'.
+>
 > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: linux-pci@vger.kernel.org
 > ---
->  drivers/acpi/pci_root.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  kernel/resource.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
 >
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 2a6a741896de..f723679954d7 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -62,7 +62,7 @@ static DEFINE_MUTEX(osc_lock);
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index 841737bbda9e..70575a61bf20 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -554,13 +554,10 @@ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
+>         }
+>         read_unlock(&resource_lock);
 >
->  /**
->   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
-> - * @handle - the ACPI CA node in question.
-> + * @handle: the ACPI CA node in question.
->   *
->   * Note: we could make this API take a struct acpi_device * instead, but
->   * for now, it's more convenient to operate on an acpi_handle.
+> -       if (other == 0)
+> -               return type ? REGION_INTERSECTS : REGION_DISJOINT;
+> +       if (type == 0)
+> +               return REGION_DISJOINT;
+>
+> -       if (type)
+> -               return REGION_MIXED;
+> -
+> -       return REGION_DISJOINT;
+> +       return (other == 0) ? REGION_INTERSECTS : REGION_MIXED;
+
+The parens are not needed here.
+
+Also I would do
+
+if (other == 0)
+       REGION_INTERSECTS;
+
+return REGION_MIXED;
+
+>  }
+>  EXPORT_SYMBOL_GPL(region_intersects);
+>
 > --
 > 2.28.0
 >
