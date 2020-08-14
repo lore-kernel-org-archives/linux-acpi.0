@@ -2,82 +2,108 @@ Return-Path: <SRS0=+ZpL=BY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79952C433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:42:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 717F1C433E1
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 16:10:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EE4F20829
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:42:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D9062078D
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 16:10:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1597421408;
+	bh=4bYG6BvGSJTpCXxOGsMDEuKkaVVkXDxpe60UCwaN5GY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=pCkXrZFVX5vepJoDRwdp+B8M27vgoSdV72zTW/Mlpw//ZOUNn+a+fgbANpBUlYiN9
+	 VWeuuXfrzjuYhnWxGefExRceIV4vhFM5FRc/CLlv1U8o5F4GT9ocQJcsme29WLS2qm
+	 P5Tdt97B6F5avxpzZjVeajVP59isn8lHUiqeZTc4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727849AbgHNPmr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Aug 2020 11:42:47 -0400
-Received: from mga12.intel.com ([192.55.52.136]:62661 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726360AbgHNPmr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Aug 2020 11:42:47 -0400
-IronPort-SDR: CkIuaDTc8vCl4p2sAr0kQSpN+7g8v0/UTmCJDJJEqmTY5jzNU6ZYFgByEX+LXOBLb7P1oKPjQ2
- yxEA0Zai6oeA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9713"; a="133952730"
-X-IronPort-AV: E=Sophos;i="5.76,312,1592895600"; 
-   d="scan'208";a="133952730"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2020 08:42:46 -0700
-IronPort-SDR: VnepUbwuixTAJmfpyXvMo9sFE2tFpZYGXLOcLCGEXAnvE01nBiAwWO3fSt7E03hLtUz6HDr1Lz
- 06UePNNwDklQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,312,1592895600"; 
-   d="scan'208";a="325755829"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 14 Aug 2020 08:42:45 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1k6bmh-008g7c-H2; Fri, 14 Aug 2020 18:38:23 +0300
-Date:   Fri, 14 Aug 2020 18:38:23 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH v1 4/7] resource: Introduce resource_intersection() for
- overlapping resources
-Message-ID: <20200814153823.GS1891694@smile.fi.intel.com>
-References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
- <20200813175729.15088-4-andriy.shevchenko@linux.intel.com>
- <CAJZ5v0iw7_APT0LmcBpGj_Yz9g1hCOw9yeaMtvOffE_n2-ApaA@mail.gmail.com>
+        id S1726658AbgHNQKH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Aug 2020 12:10:07 -0400
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:40847 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726742AbgHNQKF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2020 12:10:05 -0400
+Received: by mail-oi1-f195.google.com with SMTP id u24so7440144oic.7;
+        Fri, 14 Aug 2020 09:10:04 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=qdCjDq31doyX8Aqxb7SZq+w4kNLQ/3yNp483eCCGJy8=;
+        b=TkJaL1YG8SOv4kPCUvi/TXnjRPR4xrJcxHFIAvLzUrzNXH15jDZHsHU88syLpy6jF5
+         kojy9VnazFz8Od+S4UqWyuSHqYuOoFXDgr/NZaYW+FJ1weD2Qzo2RM5DO49I9Fljk1bK
+         M7Q5GrJTSoStR1Kb1l7FjCOujA//rrUGxkbptuGUJihtSdKF4s+VEf0qFAM5t0DQpbbU
+         KzX3AJJfajapxxpANTmD2tzQqRBHon9XXjrPrp1YVedJH/nfi7STRj/tVHoQ2jsVkB96
+         Ng0cM0L+X5iXxFPzJ+QRsXATIkiAdqmHX6kk0BbWy+TcdGghT8KcXM3qws+xOkqqXxyo
+         r0zA==
+X-Gm-Message-State: AOAM533PUzIAGtFQ6WH3+Ie2aTwZsOreSMziNZ/+hMoKHIWGJxGYUTKl
+        DMOXMNjoLUPd2DVhWC7a1Qj4ETG9waUYWerKLLw=
+X-Google-Smtp-Source: ABdhPJzGeRZu+mWNvY91Mw0h5ixZ8437r1IyFtBDccXPPUwaGbuo29Q/XMmOFLTRL9xBxrO6wrcyQkY6Ow82hszy16I=
+X-Received: by 2002:aca:110a:: with SMTP id 10mr1942710oir.68.1597421404150;
+ Fri, 14 Aug 2020 09:10:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iw7_APT0LmcBpGj_Yz9g1hCOw9yeaMtvOffE_n2-ApaA@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
+ <20200813175729.15088-3-andriy.shevchenko@linux.intel.com>
+ <CAJZ5v0iDZ6UZK_WW6pvWCqsrUH3uqfjRXSoMDTsAcbXoBuMYqw@mail.gmail.com> <20200814153730.GQ1891694@smile.fi.intel.com>
+In-Reply-To: <20200814153730.GQ1891694@smile.fi.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 14 Aug 2020 18:09:53 +0200
+Message-ID: <CAJZ5v0jOA30iL6AQq3BEY=N3xQdvpC0BJEcLzz2Frv+CByKhPQ@mail.gmail.com>
+Subject: Re: [PATCH v1 3/7] resource: Introduce resource_union() for
+ overlapping resources
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Aug 14, 2020 at 05:24:36PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Aug 13, 2020 at 7:57 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
+On Fri, Aug 14, 2020 at 5:37 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Fri, Aug 14, 2020 at 05:23:07PM +0200, Rafael J. Wysocki wrote:
+> > On Thu, Aug 13, 2020 at 7:57 PM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > >
+> > > Some already present users may utilize resource_union() helper.
+> > > Provide it for them and for wider use in the future.
+> > >
+> > > Deliberately avoid min()/max() macro as they are still parts of
+> > > kernel.h which is quite a burden to be included here in order
+> > > to avoid circular dependencies.
+>
+> ...
+>
+> > > +       if (!resource_overlaps(r1, r2))
+> > > +               return false;
 > >
-> > There will be at least one user that can utilize new helper.
-> > Provide the helper for future user and for wider use.
+> > I tend to add empty lines after return statements like this to make
+> > them more clearly visible.
+>
+> Okay!
+>
+> > > +       r->start = r2->start < r1->start ? r2->start : r1->start;
+> > > +       r->end = r2->end > r1->end ? r2->end : r1->end;
 > >
-> > Deliberately avoid min()/max() macro as they are still parts of
-> > kernel.h which is quite a burden to be included here in order
-> > to avoid circular dependencies.
+> > Well, what about using min() and max() here?
+>
+> I devoted one paragraph in the commit message to answer this. The kernel.h
+> (which I'm planning to split at some point) is a monster which brings more pain
+> than solves here. Note, this is a header file and it's quite clean from
+> dependencies perspective.
 
-...
+But this is code duplication (even if really small) and it is not
+entirely clean too.
 
-> I have the same comments as for patch [3/7].
-
-Same answers as there :-)
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Maybe move the definitions of min() and max() to a separate header file?
