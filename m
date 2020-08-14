@@ -2,159 +2,145 @@ Return-Path: <SRS0=+ZpL=BY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D00C5C433E3
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 13:18:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 255EBC433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 13:27:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADF5F20866
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 13:18:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="lcPg0MJN"
+	by mail.kernel.org (Postfix) with ESMTP id 0158620866
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 13:27:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728253AbgHNNSO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Aug 2020 09:18:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54926 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726688AbgHNNSN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2020 09:18:13 -0400
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A02D4C061384
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2020 06:18:13 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id kq25so9895869ejb.3
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2020 06:18:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=PJVMgjHP6gnp0mjaxlRSS4/pgm74X7VzDgM85iATqFQ=;
-        b=lcPg0MJN52u2w8bKn3vXx5YumuLzvS88Y8QDNdQmUluO/C6RRpq77tK1Xdjlr8sO4g
-         U0MrYKPh3k1/kYr2wvIjvtqhmwNBrYYYjIxqwMpeB9viturwBe70V7hgWfv6B1zU0ogo
-         l8it6e5ob+p2mAFjdDFkDTofZXSN5iBvshjsU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=PJVMgjHP6gnp0mjaxlRSS4/pgm74X7VzDgM85iATqFQ=;
-        b=FHrnww0P5Ohb5g79chFY+v7UrAdUwvj7kM7nC/F3NfKX+QPNVpCbdsPKsJMhhtP4Kk
-         vwcQnB27bupCWI1IeE7bIJLc1IzY3y/N8kj+f/NLWv0mpgvwSVfmAFyAddlOCsVapPDa
-         pyG0vPB8Og3Tuj6lzG+zUn2PzJpGh+tk1PEG3eDK5kGKuUeQRspFT/bsHqRYMR2CHeIw
-         HLMmRpTVzH/CMQFrB4m3rDCuLP3WudcJuTmeuRLIAMji47O07H7q1jgKMND25zhyEdwM
-         9w6UiOYzg7JXCWBbDP7sonqkKhg/4Yf2w87IP5lc+Y+AbFbv5VLNJVl6RUMP/TOwG4tc
-         Uocw==
-X-Gm-Message-State: AOAM531GZP5s7NMRDKQ0yflFv52X79qMhFZhdMdyeq3i6+ZjpqMK8GGs
-        XzYIcR9TXEr6Vx/K8NyuJO2setMxA3T74w==
-X-Google-Smtp-Source: ABdhPJyJiNuqqInDh5SMLkPeid7FwQrDQsgGevI8D9dG612dZSiLUHadgtSRCaBOHe2qV6IK+KxTLQ==
-X-Received: by 2002:a17:906:ce59:: with SMTP id se25mr2471595ejb.359.1597411091963;
-        Fri, 14 Aug 2020 06:18:11 -0700 (PDT)
-Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com. [209.85.221.53])
-        by smtp.gmail.com with ESMTPSA id v23sm1293860ejh.84.2020.08.14.06.18.09
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 14 Aug 2020 06:18:10 -0700 (PDT)
-Received: by mail-wr1-f53.google.com with SMTP id a14so8333408wra.5
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2020 06:18:09 -0700 (PDT)
-X-Received: by 2002:a5d:6744:: with SMTP id l4mr2915962wrw.105.1597411089399;
- Fri, 14 Aug 2020 06:18:09 -0700 (PDT)
+        id S1726139AbgHNN1a (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Aug 2020 09:27:30 -0400
+Received: from mga12.intel.com ([192.55.52.136]:48463 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726283AbgHNN13 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Aug 2020 09:27:29 -0400
+IronPort-SDR: cA3qU9E7CK31GJ37OLrTJ1QdFDeggwc+Dvua59sM843efa/XzIy/iF+E206OsqUIid+6FvS15v
+ pNptsRbaCVeA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="133924934"
+X-IronPort-AV: E=Sophos;i="5.76,312,1592895600"; 
+   d="scan'208";a="133924934"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2020 06:27:29 -0700
+IronPort-SDR: mEpv10o4cexyjZe5ePrOG9t4u0xglepB8A7iqVwDYAs9LlmYR0M9xgTgmavGyeVhG/3rBbpO64
+ JniSXImCAqsA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,312,1592895600"; 
+   d="scan'208";a="278396428"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga008.fm.intel.com with ESMTP; 14 Aug 2020 06:27:28 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 3D0E015D; Fri, 14 Aug 2020 16:27:27 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 2/2] ACPI / PMIC: Move TPS68470 OpRegion driver to drivers/acpi/pmic/
+Date:   Fri, 14 Aug 2020 16:27:26 +0300
+Message-Id: <20200814132726.11456-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200814132726.11456-1-andriy.shevchenko@linux.intel.com>
+References: <20200814132726.11456-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-References: <20200810142747.12400-1-sakari.ailus@linux.intel.com> <5353041e-850f-05ad-3b20-35e91fc9501e@linux.intel.com>
-In-Reply-To: <5353041e-850f-05ad-3b20-35e91fc9501e@linux.intel.com>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Fri, 14 Aug 2020 15:17:58 +0200
-X-Gmail-Original-Message-ID: <CAAFQd5DbMMsxkJAkLm4kQ+cQ0ePG4ME492MxM3vwXws3H_bsTQ@mail.gmail.com>
-Message-ID: <CAAFQd5DbMMsxkJAkLm4kQ+cQ0ePG4ME492MxM3vwXws3H_bsTQ@mail.gmail.com>
-Subject: Re: [PATCH v5 0/6] Support running driver's probe for a device
- powered off
-To:     Bingbu Cao <bingbu.cao@linux.intel.com>
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-i2c <linux-i2c@vger.kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, Bingbu Cao <bingbu.cao@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Aug 14, 2020 at 6:12 AM Bingbu Cao <bingbu.cao@linux.intel.com> wro=
-te:
->
->
->
-> On 8/10/20 10:27 PM, Sakari Ailus wrote:
-> > Hi all,
-> >
-> ...snip...
-> >
-> > The use case is such that there is a privacy LED next to an integrated
-> > user-facing laptop camera, and this LED is there to signal the user tha=
-t
-> > the camera is recording a video or capturing images. That LED also happ=
-ens
-> > to be wired to one of the power supplies of the camera, so whenever you
-> > power on the camera, the LED will be lit, whether images are captured f=
-rom
-> > the camera --- or not. There's no way to implement this differently
-> > without additional software control (allowing of which is itself a
-> > hardware design decision) on most CSI-2-connected camera sensors as the=
-y
-> > simply have no pin to signal the camera streaming state.
-> >
-> > This is also what happens during driver probe: the camera will be power=
-ed
-> > on by the I=C2=B2C subsystem calling dev_pm_domain_attach() and the dev=
-ice is
-> > already powered on when the driver's own probe function is called. To t=
-he
-> > user this visible during the boot process as a blink of the privacy LED=
-,
-> > suggesting that the camera is recording without the user having used an
-> > application to do that. From the end user's point of view the behaviour=
- is
-> > not expected and for someone unfamiliar with internal workings of a
-> > computer surely seems quite suspicious --- even if images are not being
-> > actually captured.
-> >
-> > I've tested these on linux-next master. They also apply to Wolfram's
-> > i2c/for-next branch, there's a patch that affects the I=C2=B2C core cha=
-nges
-> > here (see below). The patches apart from that apply to Bartosz's
-> > at24/for-next as well as Mauro's linux-media master branch.
->
-> Sakari, we meet one issue - once the vcm sub-device registered, the user =
-space
-> will try to open the VCM (I have not figure out who did that), it will al=
-so
-> trigger the acpi pm resume/suspend, as the VCM always shares same power r=
-ail
-> with camera sensor, so the privacy LED still has a blink.
+It is revealed now that TPS68470 OpRegion driver has been added
+in slightly different scope. Let's move it to the drivers/acpi/pmic/
+folder for sake of the unification.
 
-It's not always the case, as on some designs there are multiple power
-rails to the sensor and one drives the LED, while the other drives the
-VCM. That said, it would be still good to solve it in either case.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v2: fixed build error (lkp@intel.com)
 
-Perhaps we need some more general discussion on the side effects of
-simply opening and querying a device. Most of V4L2 drivers these days
-are designed to avoid powering up the hardware until it's absolutely
-needed to do so. However, for non-streaming subdevs that are directly
-controlled by the userspace, like VCM, it's a common practice to power
-up on open and down on release. This is because they don't have a
-"streaming" state, so the driver has no way to determine when the
-power is needed. I wonder if there is a way to improve this.
+ drivers/acpi/Kconfig       | 16 ----------------
+ drivers/acpi/Makefile      |  1 -
+ drivers/acpi/pmic/Kconfig  | 16 ++++++++++++++++
+ drivers/acpi/pmic/Makefile |  1 +
+ 4 files changed, 17 insertions(+), 17 deletions(-)
 
-Best regards,
-Tomasz
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 6fb9453396dc..edf1558c1105 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -521,22 +521,6 @@ endif
+ 
+ source "drivers/acpi/pmic/Kconfig"
+ 
+-config TPS68470_PMIC_OPREGION
+-	bool "ACPI operation region support for TPS68470 PMIC"
+-	depends on MFD_TPS68470
+-	help
+-	  This config adds ACPI operation region support for TI TPS68470 PMIC.
+-	  TPS68470 device is an advanced power management unit that powers
+-	  a Compact Camera Module (CCM), generates clocks for image sensors,
+-	  drives a dual LED for flash and incorporates two LED drivers for
+-	  general purpose indicators.
+-	  This driver enables ACPI operation region support control voltage
+-	  regulators and clocks.
+-
+-	  This option is a bool as it provides an ACPI operation
+-	  region, which must be available before any of the devices
+-	  using this, are probed.
+-
+ endif	# ACPI
+ 
+ config X86_PM_TIMER
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 44929d248bfa..44e412506317 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -110,7 +110,6 @@ obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
+ obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
+ 
+ obj-y				+= pmic/
+-obj-$(CONFIG_TPS68470_PMIC_OPREGION)	+= pmic/tps68470_pmic.o
+ 
+ video-objs			+= acpi_video.o video_detect.o
+ obj-y				+= dptf/
+diff --git a/drivers/acpi/pmic/Kconfig b/drivers/acpi/pmic/Kconfig
+index 357d1a846e68..56bbcb2ce61b 100644
+--- a/drivers/acpi/pmic/Kconfig
++++ b/drivers/acpi/pmic/Kconfig
+@@ -49,3 +49,19 @@ config CHT_DC_TI_PMIC_OPREGION
+ 	  This config adds ACPI operation region support for Dollar Cove TI PMIC.
+ 
+ endif	# PMIC_OPREGION
++
++config TPS68470_PMIC_OPREGION
++	bool "ACPI operation region support for TPS68470 PMIC"
++	depends on MFD_TPS68470
++	help
++	  This config adds ACPI operation region support for TI TPS68470 PMIC.
++	  TPS68470 device is an advanced power management unit that powers
++	  a Compact Camera Module (CCM), generates clocks for image sensors,
++	  drives a dual LED for flash and incorporates two LED drivers for
++	  general purpose indicators.
++	  This driver enables ACPI operation region support control voltage
++	  regulators and clocks.
++
++	  This option is a bool as it provides an ACPI operation
++	  region, which must be available before any of the devices
++	  using this, are probed.
+diff --git a/drivers/acpi/pmic/Makefile b/drivers/acpi/pmic/Makefile
+index 773c267420bc..cd072c64920c 100644
+--- a/drivers/acpi/pmic/Makefile
++++ b/drivers/acpi/pmic/Makefile
+@@ -7,3 +7,4 @@ obj-$(CONFIG_XPOWER_PMIC_OPREGION)	+= intel_pmic_xpower.o
+ obj-$(CONFIG_BXT_WC_PMIC_OPREGION)	+= intel_pmic_bxtwc.o
+ obj-$(CONFIG_CHT_WC_PMIC_OPREGION)	+= intel_pmic_chtwc.o
+ obj-$(CONFIG_CHT_DC_TI_PMIC_OPREGION)	+= intel_pmic_chtdc_ti.o
++obj-$(CONFIG_TPS68470_PMIC_OPREGION)	+= tps68470_pmic.o
+-- 
+2.28.0
+
