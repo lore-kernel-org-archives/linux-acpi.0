@@ -2,62 +2,45 @@ Return-Path: <SRS0=+ZpL=BY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4756C433DF
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 17:17:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0469C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 17:43:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8323620838
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 17:17:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597425451;
-	bh=JEPjRYh8Kl+9n+Lri8/V1w42KNmPNTQpqIrD1QsRHsE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=vzTkkUdXsdnU1O/+h5WAP4CJlzSa1ek2FXiUMqjlx2Ss4ASz4Yb+DTF+u7PKBB2c/
-	 oaz4iRDq/N5oJG8EONEr+RzpIR18mzAfasFTECoLgJgChZ9Dl06MceoU8AweHMY6Lp
-	 Dq4b6KkiS3IFQ2Ekj8PNLwD6RHr66dDHIooDH+C0=
+	by mail.kernel.org (Postfix) with ESMTP id AFEC820768
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 17:43:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728140AbgHNRRb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Aug 2020 13:17:31 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:35337 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727894AbgHNRRa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2020 13:17:30 -0400
-Received: by mail-oi1-f196.google.com with SMTP id k4so8756348oik.2;
-        Fri, 14 Aug 2020 10:17:30 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JEPjRYh8Kl+9n+Lri8/V1w42KNmPNTQpqIrD1QsRHsE=;
-        b=XOa1A/Qaw2sdmn2/GvRfkhKfGCEdkBLrQ81zGuEjhwuyLhnAXw8GuAH0R2TYd5UHbS
-         qzVG/OChRFlt0fjuIJPTW8jKdtWjEm6MybiENIlEEl5dBktgnmOi/+EhHrCAMfePGTLD
-         w8zGla3saeXIHucTqnLPzLi4+Ii9Urhx+1vmMHDAK7sa6pXeiseny5hq1LBKX7D1haj4
-         q9MWZ0lKynl4LRBBHLYUrOtZAUiZhlbDeWNtoQltBCZBKWJdYju3Kme8QZW+7QCf5Miy
-         IEd5kgris4uPMKrz/kaYkET1lXqFF4rqWYvW1U3NsnMFDCzhqfD/h1O+6thbD39kfncq
-         mpqQ==
-X-Gm-Message-State: AOAM5311JWYonjJA52Cth05JoSO32Dr7Vo94911Hs9SruCgY65CFkjaw
-        vw8zWCkHnL/UbCaxm/oGlvTyPn9W+gdO5jFvjjI=
-X-Google-Smtp-Source: ABdhPJwpzS3w68ReJWWFC7mK5Vs3vGN0qfG81GoUZLL9J1Ybrb7+dHqt4NrILMWR4JcG4c0exXNETFSEvu9wSRf/X+k=
-X-Received: by 2002:aca:a88e:: with SMTP id r136mr2253582oie.110.1597425449673;
- Fri, 14 Aug 2020 10:17:29 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
- <20200813175729.15088-3-andriy.shevchenko@linux.intel.com>
- <CAJZ5v0iDZ6UZK_WW6pvWCqsrUH3uqfjRXSoMDTsAcbXoBuMYqw@mail.gmail.com>
- <20200814153730.GQ1891694@smile.fi.intel.com> <CAJZ5v0jOA30iL6AQq3BEY=N3xQdvpC0BJEcLzz2Frv+CByKhPQ@mail.gmail.com>
- <20200814162105.GX1891694@smile.fi.intel.com>
-In-Reply-To: <20200814162105.GX1891694@smile.fi.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 14 Aug 2020 19:17:18 +0200
-Message-ID: <CAJZ5v0j_tSuGrEmFb-WYLpjS+AviwQ2zJmHmN-u_MzVAkf7HrA@mail.gmail.com>
-Subject: Re: [PATCH v1 3/7] resource: Introduce resource_union() for
- overlapping resources
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        id S1726641AbgHNRnz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Aug 2020 13:43:55 -0400
+Received: from mga12.intel.com ([192.55.52.136]:9833 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726229AbgHNRny (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Aug 2020 13:43:54 -0400
+IronPort-SDR: vGAXPZy8F/jTSBpYO21dEezlUmvM7E0rv+upMSLVgFF2ZX+eYQw0qgT1B7rFo3HedZON8+JgLQ
+ 8IKP/B8aiPZw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9713"; a="133981859"
+X-IronPort-AV: E=Sophos;i="5.76,313,1592895600"; 
+   d="scan'208";a="133981859"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2020 10:43:54 -0700
+IronPort-SDR: 56GZK3HCJ5S+NgciwhUxgyqs/MOQyUO14k8ZdUcbzmojtfxGJeDQuqsyeFFVvHEdkJiMjC7D9a
+ cdgnbODvF9hg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,313,1592895600"; 
+   d="scan'208";a="325784697"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 14 Aug 2020 10:43:52 -0700
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1k6dk7-008hvQ-83; Fri, 14 Aug 2020 20:43:51 +0300
+Date:   Fri, 14 Aug 2020 20:43:51 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
@@ -65,39 +48,61 @@ Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         <sathyanarayanan.kuppuswamy@linux.intel.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Linux PCI <linux-pci@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v1 3/7] resource: Introduce resource_union() for
+ overlapping resources
+Message-ID: <20200814174351.GD1891694@smile.fi.intel.com>
+References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
+ <20200813175729.15088-3-andriy.shevchenko@linux.intel.com>
+ <CAJZ5v0iDZ6UZK_WW6pvWCqsrUH3uqfjRXSoMDTsAcbXoBuMYqw@mail.gmail.com>
+ <20200814153730.GQ1891694@smile.fi.intel.com>
+ <CAJZ5v0jOA30iL6AQq3BEY=N3xQdvpC0BJEcLzz2Frv+CByKhPQ@mail.gmail.com>
+ <20200814162105.GX1891694@smile.fi.intel.com>
+ <CAJZ5v0j_tSuGrEmFb-WYLpjS+AviwQ2zJmHmN-u_MzVAkf7HrA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0j_tSuGrEmFb-WYLpjS+AviwQ2zJmHmN-u_MzVAkf7HrA@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Aug 14, 2020 at 6:23 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Fri, Aug 14, 2020 at 06:09:53PM +0200, Rafael J. Wysocki wrote:
-> > On Fri, Aug 14, 2020 at 5:37 PM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
-> > > On Fri, Aug 14, 2020 at 05:23:07PM +0200, Rafael J. Wysocki wrote:
-> > > > On Thu, Aug 13, 2020 at 7:57 PM Andy Shevchenko
-> > > > <andriy.shevchenko@linux.intel.com> wrote:
->
-> ...
->
-> > > > Well, what about using min() and max() here?
+On Fri, Aug 14, 2020 at 07:17:18PM +0200, Rafael J. Wysocki wrote:
+> On Fri, Aug 14, 2020 at 6:23 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Fri, Aug 14, 2020 at 06:09:53PM +0200, Rafael J. Wysocki wrote:
+> > > On Fri, Aug 14, 2020 at 5:37 PM Andy Shevchenko
+> > > <andriy.shevchenko@linux.intel.com> wrote:
+> > > > On Fri, Aug 14, 2020 at 05:23:07PM +0200, Rafael J. Wysocki wrote:
+> > > > > On Thu, Aug 13, 2020 at 7:57 PM Andy Shevchenko
+> > > > > <andriy.shevchenko@linux.intel.com> wrote:
+> >
+> > ...
+> >
+> > > > > Well, what about using min() and max() here?
+> > > >
+> > > > I devoted one paragraph in the commit message to answer this. The kernel.h
+> > > > (which I'm planning to split at some point) is a monster which brings more pain
+> > > > than solves here. Note, this is a header file and it's quite clean from
+> > > > dependencies perspective.
 > > >
-> > > I devoted one paragraph in the commit message to answer this. The kernel.h
-> > > (which I'm planning to split at some point) is a monster which brings more pain
-> > > than solves here. Note, this is a header file and it's quite clean from
-> > > dependencies perspective.
+> > > But this is code duplication (even if really small) and it is not
+> > > entirely clean too.
+> > >
+> > > Maybe move the definitions of min() and max() to a separate header file?
 > >
-> > But this is code duplication (even if really small) and it is not
-> > entirely clean too.
-> >
-> > Maybe move the definitions of min() and max() to a separate header file?
->
-> That is the plan in the kernel.h splitting project. But do you want me to do it
-> here? I can try to bring that patch into this series.
+> > That is the plan in the kernel.h splitting project. But do you want me to do it
+> > here? I can try to bring that patch into this series.
+> 
+> Well, ostensibly the purpose of this series is to reduce code
+> duplication, but if it adds code duplication, that kind of defeats the
+> purpose IMO.
 
-Well, ostensibly the purpose of this series is to reduce code
-duplication, but if it adds code duplication, that kind of defeats the
-purpose IMO.
+Okay, I will append minmax.h split in v2.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
