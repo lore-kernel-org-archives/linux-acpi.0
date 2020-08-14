@@ -2,235 +2,104 @@ Return-Path: <SRS0=+ZpL=BY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 541C2C433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 13:27:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 929CDC433E1
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:12:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AB9820B1F
-	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 13:27:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6951420768
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 15:12:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1597417928;
+	bh=6h9QRWok0FdiWLYFQgakFBA30v1xuSq40jWAG5hXGaM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=pcMNB/0Ane0nk0Je12yIEYm0xAF1N4dyBN2E8/XnHTlbZ4wJlhSNMHtbR4rv5EgmB
+	 RQ2jtJFlXUt35lgj4R9wEtKVD38Y0M61coftXSgtK3sXXbpOg2pWvbT8jXFhn3sRw/
+	 D5UzXAiKgC8yp+97MIn2zK4h7TuLa+/JWTy1GdeE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726283AbgHNN1a (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 14 Aug 2020 09:27:30 -0400
-Received: from mga09.intel.com ([134.134.136.24]:52380 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726596AbgHNN1a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Aug 2020 09:27:30 -0400
-IronPort-SDR: hyliyXcjhVy0myK25VXG5/imfhRTlTAOe3DArue5aSpJRkE89PgL7GclLldPaDbGknxK4Pgc2m
- ZfStHMFfJPbA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="155508523"
-X-IronPort-AV: E=Sophos;i="5.76,312,1592895600"; 
-   d="scan'208";a="155508523"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2020 06:27:29 -0700
-IronPort-SDR: +icVMSf6RlHWc3M34U854sgttJdn5utgIrepnfHLBtLdFyeWAbMK0g/YMjIxTgilQoBVRDa9RE
- aIiukyp1u5jQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,312,1592895600"; 
-   d="scan'208";a="327883168"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga002.fm.intel.com with ESMTP; 14 Aug 2020 06:27:28 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 34618163; Fri, 14 Aug 2020 16:27:27 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 1/2] ACPI / PMIC: Split out Kconfig and Makefile specific for ACPI PMIC
-Date:   Fri, 14 Aug 2020 16:27:25 +0300
-Message-Id: <20200814132726.11456-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.28.0
+        id S1726311AbgHNPMH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Aug 2020 11:12:07 -0400
+Received: from mail-oo1-f65.google.com ([209.85.161.65]:42518 "EHLO
+        mail-oo1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726196AbgHNPMH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2020 11:12:07 -0400
+Received: by mail-oo1-f65.google.com with SMTP id a6so1981558oog.9;
+        Fri, 14 Aug 2020 08:12:06 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=7xPEAyT242zCqpQsFiRlqT2H2KPu1pwTh4cJkknKvJo=;
+        b=TDfPqN6VEp41+6LRMTYu0gsknxFNgfWTO1u4d+DDNYPOinGgi1GqLCX5mShe/WKLC2
+         yODzDC1uVp/8jXTq3HpIoplvFDma9L+JlKrDod+/KHOKlXvDP1l5rCd8e17WMC9UKUza
+         XBImU/xN7NKdpkDl18LaLRB91BTvHYLSNZqYgwP3JQ5XVfhOmc5RtKlrQS/FhUxZxkhd
+         8MhWxT1pwT7Ql/pETP4QEt1wZQMgr6+ledd018GzwdZE+No7qA/5hxEfqG1BAK50/h+3
+         kcnt2ii4Tp3mhbezyQUfAmoAcKJzoQ6JlZPv3YpOVThcKvu63Nolf7Fsn1EkfZFDA7Pd
+         Wwzw==
+X-Gm-Message-State: AOAM530lXmUAMXtD5LffmuljeMCnx7VAdXs5+3Sn2CG+L3h1uucjobja
+        d1N+SrxqTQHAWTt4ixrwxeZBkxOqnDf23OHwLvSnZCe8
+X-Google-Smtp-Source: ABdhPJzUnUyMUuc78wHJRnppNRf7GRRhxiD8yRQWkcXfslxn48kqwUjq4RU5a8Hmj0iwneqjfluc9gw7xGk4gUKHlQk=
+X-Received: by 2002:a4a:4201:: with SMTP id h1mr2020303ooj.1.1597417926225;
+ Fri, 14 Aug 2020 08:12:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com> <20200813175729.15088-6-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20200813175729.15088-6-andriy.shevchenko@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 14 Aug 2020 17:11:55 +0200
+Message-ID: <CAJZ5v0jquT7TLLO4yJqyxgfJJ77hLQ+RtmLXVj6JATWXJxqkUQ@mail.gmail.com>
+Subject: Re: [PATCH v1 6/7] PCI/ACPI: Fix description of @handle for acpi_is_root_bridge()
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-It's a bit better to maintain and allows to avoid mistakes in the future
-with PMIC OpRegion drivers, if we split out Kconfig and Makefile
-for ACPI PMIC to its own folder.
+On Thu, Aug 13, 2020 at 7:57 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> Fix description of handle parameter in documentation of acpi_is_root_bridge().
+> Otherwise we get the following warning:
+>
+>   CHECK   drivers/acpi/pci_root.c
+>   drivers/acpi/pci_root.c:71: warning: Function parameter or member 'handle' not described in 'acpi_is_root_bridge'
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v2: fixed build error (lkp@intel.com)
- drivers/acpi/Kconfig       | 51 ++------------------------------------
- drivers/acpi/Makefile      |  9 +------
- drivers/acpi/pmic/Kconfig  | 51 ++++++++++++++++++++++++++++++++++++++
- drivers/acpi/pmic/Makefile |  9 +++++++
- 4 files changed, 63 insertions(+), 57 deletions(-)
- create mode 100644 drivers/acpi/pmic/Kconfig
- create mode 100644 drivers/acpi/pmic/Makefile
+I'm not sure why this patch doesn't go by itself.  It appears to be
+immediately applicable.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 7540a5179a47..6fb9453396dc 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -504,55 +504,6 @@ config ACPI_EXTLOG
- config ACPI_ADXL
- 	bool
- 
--menuconfig PMIC_OPREGION
--	bool "PMIC (Power Management Integrated Circuit) operation region support"
--	help
--	  Select this option to enable support for ACPI operation
--	  region of the PMIC chip. The operation region can be used
--	  to control power rails and sensor reading/writing on the
--	  PMIC chip.
--
--if PMIC_OPREGION
--config BYTCRC_PMIC_OPREGION
--	bool "ACPI operation region support for Bay Trail Crystal Cove PMIC"
--	depends on INTEL_SOC_PMIC
--	help
--	  This config adds ACPI operation region support for the Bay Trail
--	  version of the Crystal Cove PMIC.
--
--config CHTCRC_PMIC_OPREGION
--	bool "ACPI operation region support for Cherry Trail Crystal Cove PMIC"
--	depends on INTEL_SOC_PMIC
--	help
--	  This config adds ACPI operation region support for the Cherry Trail
--	  version of the Crystal Cove PMIC.
--
--config XPOWER_PMIC_OPREGION
--	bool "ACPI operation region support for XPower AXP288 PMIC"
--	depends on MFD_AXP20X_I2C && IOSF_MBI=y
--	help
--	  This config adds ACPI operation region support for XPower AXP288 PMIC.
--
--config BXT_WC_PMIC_OPREGION
--	bool "ACPI operation region support for BXT WhiskeyCove PMIC"
--	depends on INTEL_SOC_PMIC_BXTWC
--	help
--	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
--
--config CHT_WC_PMIC_OPREGION
--	bool "ACPI operation region support for CHT Whiskey Cove PMIC"
--	depends on INTEL_SOC_PMIC_CHTWC
--	help
--	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
--
--config CHT_DC_TI_PMIC_OPREGION
--	bool "ACPI operation region support for Dollar Cove TI PMIC"
--	depends on INTEL_SOC_PMIC_CHTDC_TI
--	help
--	  This config adds ACPI operation region support for Dollar Cove TI PMIC.
--
--endif
--
- config ACPI_CONFIGFS
- 	tristate "ACPI configfs support"
- 	select CONFIGFS_FS
-@@ -568,6 +519,8 @@ config ACPI_PPTT
- 	bool
- endif
- 
-+source "drivers/acpi/pmic/Kconfig"
-+
- config TPS68470_PMIC_OPREGION
- 	bool "ACPI operation region support for TPS68470 PMIC"
- 	depends on MFD_TPS68470
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 9a957544e357..44929d248bfa 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -107,16 +107,9 @@ obj-$(CONFIG_ACPI_APEI)		+= apei/
- 
- obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
- 
--obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
--obj-$(CONFIG_BYTCRC_PMIC_OPREGION) += pmic/intel_pmic_bytcrc.o
--obj-$(CONFIG_CHTCRC_PMIC_OPREGION) += pmic/intel_pmic_chtcrc.o
--obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
--obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
--obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
--obj-$(CONFIG_CHT_DC_TI_PMIC_OPREGION) += pmic/intel_pmic_chtdc_ti.o
--
- obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
- 
-+obj-y				+= pmic/
- obj-$(CONFIG_TPS68470_PMIC_OPREGION)	+= pmic/tps68470_pmic.o
- 
- video-objs			+= acpi_video.o video_detect.o
-diff --git a/drivers/acpi/pmic/Kconfig b/drivers/acpi/pmic/Kconfig
-new file mode 100644
-index 000000000000..357d1a846e68
---- /dev/null
-+++ b/drivers/acpi/pmic/Kconfig
-@@ -0,0 +1,51 @@
-+# SPDX-License-Identifier: GPL-2.0
-+
-+menuconfig PMIC_OPREGION
-+	bool "PMIC (Power Management Integrated Circuit) operation region support"
-+	help
-+	  Select this option to enable support for ACPI operation
-+	  region of the PMIC chip. The operation region can be used
-+	  to control power rails and sensor reading/writing on the
-+	  PMIC chip.
-+
-+if PMIC_OPREGION
-+
-+config BYTCRC_PMIC_OPREGION
-+	bool "ACPI operation region support for Bay Trail Crystal Cove PMIC"
-+	depends on INTEL_SOC_PMIC
-+	help
-+	  This config adds ACPI operation region support for the Bay Trail
-+	  version of the Crystal Cove PMIC.
-+
-+config CHTCRC_PMIC_OPREGION
-+	bool "ACPI operation region support for Cherry Trail Crystal Cove PMIC"
-+	depends on INTEL_SOC_PMIC
-+	help
-+	  This config adds ACPI operation region support for the Cherry Trail
-+	  version of the Crystal Cove PMIC.
-+
-+config XPOWER_PMIC_OPREGION
-+	bool "ACPI operation region support for XPower AXP288 PMIC"
-+	depends on MFD_AXP20X_I2C && IOSF_MBI=y
-+	help
-+	  This config adds ACPI operation region support for XPower AXP288 PMIC.
-+
-+config BXT_WC_PMIC_OPREGION
-+	bool "ACPI operation region support for BXT WhiskeyCove PMIC"
-+	depends on INTEL_SOC_PMIC_BXTWC
-+	help
-+	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
-+
-+config CHT_WC_PMIC_OPREGION
-+	bool "ACPI operation region support for CHT Whiskey Cove PMIC"
-+	depends on INTEL_SOC_PMIC_CHTWC
-+	help
-+	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
-+
-+config CHT_DC_TI_PMIC_OPREGION
-+	bool "ACPI operation region support for Dollar Cove TI PMIC"
-+	depends on INTEL_SOC_PMIC_CHTDC_TI
-+	help
-+	  This config adds ACPI operation region support for Dollar Cove TI PMIC.
-+
-+endif	# PMIC_OPREGION
-diff --git a/drivers/acpi/pmic/Makefile b/drivers/acpi/pmic/Makefile
-new file mode 100644
-index 000000000000..773c267420bc
---- /dev/null
-+++ b/drivers/acpi/pmic/Makefile
-@@ -0,0 +1,9 @@
-+# SPDX-License-Identifier: GPL-2.0
-+
-+obj-$(CONFIG_PMIC_OPREGION)		+= intel_pmic.o
-+obj-$(CONFIG_BYTCRC_PMIC_OPREGION)	+= intel_pmic_bytcrc.o
-+obj-$(CONFIG_CHTCRC_PMIC_OPREGION)	+= intel_pmic_chtcrc.o
-+obj-$(CONFIG_XPOWER_PMIC_OPREGION)	+= intel_pmic_xpower.o
-+obj-$(CONFIG_BXT_WC_PMIC_OPREGION)	+= intel_pmic_bxtwc.o
-+obj-$(CONFIG_CHT_WC_PMIC_OPREGION)	+= intel_pmic_chtwc.o
-+obj-$(CONFIG_CHT_DC_TI_PMIC_OPREGION)	+= intel_pmic_chtdc_ti.o
--- 
-2.28.0
+I'll apply it next week if Bjorn doesn't object.
 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: linux-pci@vger.kernel.org
+> ---
+>  drivers/acpi/pci_root.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 2a6a741896de..f723679954d7 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -62,7 +62,7 @@ static DEFINE_MUTEX(osc_lock);
+>
+>  /**
+>   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
+> - * @handle - the ACPI CA node in question.
+> + * @handle: the ACPI CA node in question.
+>   *
+>   * Note: we could make this API take a struct acpi_device * instead, but
+>   * for now, it's more convenient to operate on an acpi_handle.
+> --
+> 2.28.0
+>
