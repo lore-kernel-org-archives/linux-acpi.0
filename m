@@ -1,94 +1,109 @@
-Return-Path: <SRS0=5fVi=BX=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=+ZpL=BY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CB5CC433DF
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED051C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 04:12:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6967520829
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Aug 2020 17:57:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF56420838
+	for <linux-acpi@archiver.kernel.org>; Fri, 14 Aug 2020 04:12:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726522AbgHMR5j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 13 Aug 2020 13:57:39 -0400
-Received: from mga01.intel.com ([192.55.52.88]:59185 "EHLO mga01.intel.com"
+        id S1726006AbgHNEMy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 14 Aug 2020 00:12:54 -0400
+Received: from mga05.intel.com ([192.55.52.43]:5357 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726174AbgHMR5h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 13 Aug 2020 13:57:37 -0400
-IronPort-SDR: UkzOc6y4E1e8l5s2gQYx8odCpcP50qwtNHvGEkD3iaa6Jva7VmQGYaQf0okeR7dq3UBWdlzWtX
- Gyy4Uy8omxbA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="172337144"
-X-IronPort-AV: E=Sophos;i="5.76,309,1592895600"; 
-   d="scan'208";a="172337144"
+        id S1725989AbgHNEMx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Aug 2020 00:12:53 -0400
+IronPort-SDR: IRW1bLfrj70Um1n/PfwYBPHwNketQy8NiPSEwm9Yo6L0p5Wz7AmlyVkn6hXY856qH31c/LLhW7
+ e1X7PuKc7E7Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9712"; a="239187274"
+X-IronPort-AV: E=Sophos;i="5.76,310,1592895600"; 
+   d="scan'208";a="239187274"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2020 10:57:33 -0700
-IronPort-SDR: 2uxO2NsFaBBl8UnqRQ3frtd2J8wYnbcBIczkZXRbjyHLznc7M/vxd4Snc6Lnzd1s4ccsKmhLsa
- aMbgVL9Qfb7g==
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2020 21:12:51 -0700
+IronPort-SDR: j4WTcdDJiAbV6JLYG0YDoKEtwkNNygEDyanQWK+d3YFITCeCaszJ1q0Tls2xxKo5z55O5Yv4B1
+ UkUBJAGLU0XA==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,309,1592895600"; 
-   d="scan'208";a="278195282"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP; 13 Aug 2020 10:57:31 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 49CF2190; Thu, 13 Aug 2020 20:57:30 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 1/7] resource: Simplify region_intersects() by reducing conditionals
-Date:   Thu, 13 Aug 2020 20:57:23 +0300
-Message-Id: <20200813175729.15088-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.28.0
+X-IronPort-AV: E=Sophos;i="5.76,310,1592895600"; 
+   d="scan'208";a="318760365"
+Received: from ipu5-build.bj.intel.com (HELO [10.238.232.196]) ([10.238.232.196])
+  by fmsmga004.fm.intel.com with ESMTP; 13 Aug 2020 21:12:47 -0700
+Subject: Re: [PATCH v5 0/6] Support running driver's probe for a device
+ powered off
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-i2c@vger.kernel.org
+Cc:     Wolfram Sang <wsa@the-dreams.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-acpi@vger.kernel.org, Bingbu Cao <bingbu.cao@intel.com>,
+        linux-media@vger.kernel.org,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        Hyungwoo Yang <hyungwoo.yang@intel.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+References: <20200810142747.12400-1-sakari.ailus@linux.intel.com>
+From:   Bingbu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <5353041e-850f-05ad-3b20-35e91fc9501e@linux.intel.com>
+Date:   Fri, 14 Aug 2020 12:11:40 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
+In-Reply-To: <20200810142747.12400-1-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Now we have for 'other' and 'type' variables
 
-other	type	return
-  0	  0	REGION_DISJOINT
-  0	  x	REGION_INTERSECTS
-  x	  0	REGION_DISJOINT
-  x	  x	REGION_MIXED
 
-Obviously it's easier to check 'type' for 0 first instead of
-currently checked 'other'.
+On 8/10/20 10:27 PM, Sakari Ailus wrote:
+> Hi all,
+> 
+...snip...
+> 
+> The use case is such that there is a privacy LED next to an integrated
+> user-facing laptop camera, and this LED is there to signal the user that
+> the camera is recording a video or capturing images. That LED also happens
+> to be wired to one of the power supplies of the camera, so whenever you
+> power on the camera, the LED will be lit, whether images are captured from
+> the camera --- or not. There's no way to implement this differently
+> without additional software control (allowing of which is itself a
+> hardware design decision) on most CSI-2-connected camera sensors as they
+> simply have no pin to signal the camera streaming state.
+> 
+> This is also what happens during driver probe: the camera will be powered
+> on by the I²C subsystem calling dev_pm_domain_attach() and the device is
+> already powered on when the driver's own probe function is called. To the
+> user this visible during the boot process as a blink of the privacy LED,
+> suggesting that the camera is recording without the user having used an
+> application to do that. From the end user's point of view the behaviour is
+> not expected and for someone unfamiliar with internal workings of a
+> computer surely seems quite suspicious --- even if images are not being
+> actually captured.
+> 
+> I've tested these on linux-next master. They also apply to Wolfram's
+> i2c/for-next branch, there's a patch that affects the I²C core changes
+> here (see below). The patches apart from that apply to Bartosz's
+> at24/for-next as well as Mauro's linux-media master branch.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- kernel/resource.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+Sakari, we meet one issue - once the vcm sub-device registered, the user space
+will try to open the VCM (I have not figure out who did that), it will also
+trigger the acpi pm resume/suspend, as the VCM always shares same power rail
+with camera sensor, so the privacy LED still has a blink.
 
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 841737bbda9e..70575a61bf20 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -554,13 +554,10 @@ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
- 	}
- 	read_unlock(&resource_lock);
- 
--	if (other == 0)
--		return type ? REGION_INTERSECTS : REGION_DISJOINT;
-+	if (type == 0)
-+		return REGION_DISJOINT;
- 
--	if (type)
--		return REGION_MIXED;
--
--	return REGION_DISJOINT;
-+	return (other == 0) ? REGION_INTERSECTS : REGION_MIXED;
- }
- EXPORT_SYMBOL_GPL(region_intersects);
- 
+> 
+...snip...
 -- 
-2.28.0
-
+Best regards,
+Bingbu Cao
