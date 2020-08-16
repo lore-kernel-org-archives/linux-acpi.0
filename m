@@ -1,69 +1,151 @@
-Return-Path: <SRS0=W9yu=BZ=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=LIeF=B2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.6 required=3.0 tests=BAYES_00,DATE_IN_PAST_06_12,
-	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14865C433DF
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Aug 2020 22:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25BCFC433DF
+	for <linux-acpi@archiver.kernel.org>; Sun, 16 Aug 2020 15:12:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6B6C205CB
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 Aug 2020 22:06:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597529162;
-	bh=qB0xXx971nEleFvxsOUVtbgMJHnqqf3l5odXYLbJync=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=TA+/wJ4fw2JoNK5x/RtktYIZ8TWvAenkW4tFdE8SAD4Sad4rAcen9/EmGDqUsVd+g
-	 TTNYbhXvyvhvHJ4vmCffMuSVyUQh4y3W/l1Ec4z2C1EYhb4g9LkMQv98W/q3x9S9I4
-	 hRIrgkoCAoS/KbR+fkqdD+dVzAbMuGWs3Eftdokk=
+	by mail.kernel.org (Postfix) with ESMTP id F2FC120735
+	for <linux-acpi@archiver.kernel.org>; Sun, 16 Aug 2020 15:12:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729483AbgHOWGC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 15 Aug 2020 18:06:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39104 "EHLO mail.kernel.org"
+        id S1728137AbgHPPMP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 16 Aug 2020 11:12:15 -0400
+Received: from mga03.intel.com ([134.134.136.65]:4504 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729970AbgHOWFd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 15 Aug 2020 18:05:33 -0400
-Subject: Re: [GIT PULL] More ACPI updates for v5.9-rc1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597504961;
-        bh=qB0xXx971nEleFvxsOUVtbgMJHnqqf3l5odXYLbJync=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=xCS7GB8pV/jvBiio12ZiKCbaY9Yohuxl5LeEYz2sLMb7puMkmijeaT9iFfuVJWiQP
-         iNXfUio8VI8BKrHbyZHgzT5cz47vKQ+AhiB33UIYLd/zcDZFuJ7MCBZV68DHNxlFK0
-         YOjBQV3OdtFH8Aq+tEv9W9GdvILtu2/bp/Hl+klY=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0iA_PSMf9gpXsmymS8t2ctMeyJ3FJE_v1LqbFu+fF_R6g@mail.gmail.com>
-References: <CAJZ5v0iA_PSMf9gpXsmymS8t2ctMeyJ3FJE_v1LqbFu+fF_R6g@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0iA_PSMf9gpXsmymS8t2ctMeyJ3FJE_v1LqbFu+fF_R6g@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.9-rc1-2
-X-PR-Tracked-Commit-Id: 19fe87fd854a92c746ac73cb91a0bebac07a4618
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 341323fa0eed1b201130b7af84d40fa04725c832
-Message-Id: <159750496123.10263.2199274626689102962.pr-tracker-bot@kernel.org>
-Date:   Sat, 15 Aug 2020 15:22:41 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S1727973AbgHPPMN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 16 Aug 2020 11:12:13 -0400
+IronPort-SDR: tg36YUYzgBH+xqhuZDER4EoP1t21UA8E7bxrP+vZ652nJKYRDVsxWXfS5SvTo8dvfbSNQptFMr
+ sqhgWcPrvxeA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9715"; a="154567680"
+X-IronPort-AV: E=Sophos;i="5.76,320,1592895600"; 
+   d="scan'208";a="154567680"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2020 08:12:12 -0700
+IronPort-SDR: Qyf5OJZh0AtfKvWuMk/nfhWJPKdM+cAv6sM///0y9mNYCl4z31e26uF3xnWfhYhj40TC2jCLyt
+ 08+oNtPPZreQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,320,1592895600"; 
+   d="scan'208";a="296235914"
+Received: from chenyu-office.sh.intel.com ([10.239.158.173])
+  by orsmga006.jf.intel.com with ESMTP; 16 Aug 2020 08:12:10 -0700
+From:   Chen Yu <yu.c.chen@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Cc:     linux-acpi@vger.kernel.org, rui.zhang@intel.com,
+        linux-kernel@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>
+Subject: [PATCH][RFC] ACPI: processor: Print more information when acpi_processor_evaluate_cst() failed
+Date:   Sun, 16 Aug 2020 23:12:30 +0800
+Message-Id: <20200816151230.14524-1-yu.c.chen@intel.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 14 Aug 2020 20:09:40 +0200:
+Some platforms have bogus _CST which might cause expectd behavior
+in the cpu idle driver. Some bogus _CST might be unable to be
+disassembled by acpica-tools due to broken format.
+Print extra log if the _CST extraction/verification failed.
+This can be used to help the user narrow down why the cpu
+idle driver fails to behave as expected.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.9-rc1-2
+Suggested-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+---
+ drivers/acpi/acpi_processor.c | 34 ++++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/341323fa0eed1b201130b7af84d40fa04725c832
-
-Thank you!
-
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index b51ddf3bb616..c1d34c448edb 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -798,22 +798,34 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
+ 		memset(&cx, 0, sizeof(cx));
+ 
+ 		element = &cst->package.elements[i];
+-		if (element->type != ACPI_TYPE_PACKAGE)
++		if (element->type != ACPI_TYPE_PACKAGE) {
++			acpi_handle_warn(handle, "_CST C%d type(%x) is not package, skip...\n",
++					 i, element->type);
+ 			continue;
++		}
+ 
+-		if (element->package.count != 4)
++		if (element->package.count != 4) {
++			acpi_handle_warn(handle, "_CST C%d package count(%d) is not 4, skip...\n",
++					 i, element->package.count);
+ 			continue;
++		}
+ 
+ 		obj = &element->package.elements[0];
+ 
+-		if (obj->type != ACPI_TYPE_BUFFER)
++		if (obj->type != ACPI_TYPE_BUFFER) {
++			acpi_handle_warn(handle, "_CST C%d package element[0] type(%x) is not buffer, skip...\n",
++					 i, obj->type);
+ 			continue;
++		}
+ 
+ 		reg = (struct acpi_power_register *)obj->buffer.pointer;
+ 
+ 		obj = &element->package.elements[1];
+-		if (obj->type != ACPI_TYPE_INTEGER)
++		if (obj->type != ACPI_TYPE_INTEGER) {
++			acpi_handle_warn(handle, "_CST C[%d] package element[1] type(%x) is not integer, skip...\n",
++					 i, obj->type);
+ 			continue;
++		}
+ 
+ 		cx.type = obj->integer.value;
+ 		/*
+@@ -850,6 +862,8 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
+ 				cx.entry_method = ACPI_CSTATE_HALT;
+ 				snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI HLT");
+ 			} else {
++				acpi_handle_warn(handle, "_CST C%d declares FIXED_HARDWARE C-state but not supported in hardware, skip...\n",
++						 i);
+ 				continue;
+ 			}
+ 		} else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+@@ -857,6 +871,8 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
+ 			snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI IOPORT 0x%x",
+ 				 cx.address);
+ 		} else {
++			acpi_handle_warn(handle, "_CST C%d space_id(%x) neither FIXED_HARDWARE nor SYSTEM_IO, skip...\n",
++					 i, reg->space_id);
+ 			continue;
+ 		}
+ 
+@@ -864,14 +880,20 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
+ 			cx.valid = 1;
+ 
+ 		obj = &element->package.elements[2];
+-		if (obj->type != ACPI_TYPE_INTEGER)
++		if (obj->type != ACPI_TYPE_INTEGER) {
++			acpi_handle_warn(handle, "_CST C%d package element[2] type(%x) not integer, skip...\n",
++					 i, obj->type);
+ 			continue;
++		}
+ 
+ 		cx.latency = obj->integer.value;
+ 
+ 		obj = &element->package.elements[3];
+-		if (obj->type != ACPI_TYPE_INTEGER)
++		if (obj->type != ACPI_TYPE_INTEGER) {
++			acpi_handle_warn(handle, "_CST C%d package element[3] type(%x) not integer, skip...\n",
++					 i, obj->type);
+ 			continue;
++		}
+ 
+ 		memcpy(&info->states[++last_index], &cx, sizeof(cx));
+ 	}
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.17.1
+
