@@ -2,194 +2,63 @@ Return-Path: <SRS0=UsKU=B3=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D83C2C433DF
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 Aug 2020 02:49:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63A38C433E1
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Aug 2020 10:35:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B538920658
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 Aug 2020 02:49:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44ECB20758
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Aug 2020 10:35:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726718AbgHQCtq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 16 Aug 2020 22:49:46 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:53446 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726697AbgHQCto (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 16 Aug 2020 22:49:44 -0400
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 2D5E051C329AE0683AE9;
-        Mon, 17 Aug 2020 10:49:40 +0800 (CST)
-Received: from [127.0.0.1] (10.74.185.4) by DGGEMS412-HUB.china.huawei.com
- (10.3.19.212) with Microsoft SMTP Server id 14.3.487.0; Mon, 17 Aug 2020
- 10:49:30 +0800
-Subject: Re: [PATCH v2] ACPI / APEI: do memory failure on the physical address
- reported by ARM processor error section
-To:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <rjw@rjwysocki.net>, <lenb@kernel.org>, <james.morse@arm.com>,
-        <tony.luck@intel.com>, <bp@alien8.de>
-References: <1596618731-37623-1-git-send-email-tanxiaofei@huawei.com>
-CC:     <linuxarm@huawei.com>, <shiju.jose@huawei.com>,
-        <jonathan.cameron@huawei.com>
-From:   Xiaofei Tan <tanxiaofei@huawei.com>
-Message-ID: <5F39F039.4060201@huawei.com>
-Date:   Mon, 17 Aug 2020 10:49:29 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101
- Thunderbird/38.5.1
+        id S1726458AbgHQKfD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Aug 2020 06:35:03 -0400
+Received: from mga07.intel.com ([134.134.136.100]:53308 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726151AbgHQKfC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Aug 2020 06:35:02 -0400
+IronPort-SDR: qZixnyjZeG0hixiY1pzR0E71U/nWdv3hPE+rnhcM6fgg3OqmiUlOAoQ3feEBWiYeSZul1VLEKX
+ +6Oi2600G6jw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9715"; a="218998889"
+X-IronPort-AV: E=Sophos;i="5.76,322,1592895600"; 
+   d="scan'208";a="218998889"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Aug 2020 03:35:01 -0700
+IronPort-SDR: WhfZU8M9eMLr+F3CkctRSAX6svfNLnCaYjdMvj3qjC91uq1os+rULAACxJaXHrtKpy3gLzVz6p
+ LLkSUT5JJ4mA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,322,1592895600"; 
+   d="scan'208";a="400152985"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
+  by fmsmga001.fm.intel.com with SMTP; 17 Aug 2020 03:34:58 -0700
+Received: by lahna (sSMTP sendmail emulation); Mon, 17 Aug 2020 13:34:58 +0300
+Date:   Mon, 17 Aug 2020 13:34:58 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] ACPI / PMIC: Split out Kconfig and Makefile
+ specific for ACPI PMIC
+Message-ID: <20200817103458.GC1375436@lahna.fi.intel.com>
+References: <20200814132726.11456-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1596618731-37623-1-git-send-email-tanxiaofei@huawei.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.74.185.4]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200814132726.11456-1-andriy.shevchenko@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-@James, Could you help to check if i have fixed your review comments? thanks.
+On Fri, Aug 14, 2020 at 04:27:25PM +0300, Andy Shevchenko wrote:
+> It's a bit better to maintain and allows to avoid mistakes in the future
+> with PMIC OpRegion drivers, if we split out Kconfig and Makefile
+> for ACPI PMIC to its own folder.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On 2020/8/5 17:12, Xiaofei Tan wrote:
-> After the commit 8fcc4ae6faf8 ("arm64: acpi: Make apei_claim_sea()
-> synchronise with APEI's irq work") applied, user-mode SEA is
-> preferentially processed by APEI. Do memory failure to recover.
-> 
-> But there are some problems:
-> 1) The function apei_claim_sea() has processed an CPER, does not
-> mean that memory failure handling has done. Because the firmware-first
-> RAS error is reported by both producer and consumer. Mostly SEA uses
-> ARM processor error section to report as a consumer. (The producer could
-> be DDRC and cache, and use memory error section and other error section
-> to report). But memory failure handling for ARM processor error section
-> has not been supported. This patch will add it.
-> 
-> 2) Some hardware platforms can't record physical address each time. But
-> they could always have reported a firmware-first RAS error using ARM
-> processor error section. Such platform should update firmware. Don't
-> report the RAS error in SEA processing flow when physical address is
-> not recorded.
-> 
-> Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
-> ---
->  drivers/acpi/apei/ghes.c | 70 ++++++++++++++++++++++++++++++++++++------------
->  1 file changed, 53 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 81bf71b..aee7787 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -429,28 +429,35 @@ static void ghes_kick_task_work(struct callback_head *head)
->  	gen_pool_free(ghes_estatus_pool, (unsigned long)estatus_node, node_len);
->  }
->  
-> -static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
-> -				       int sev)
-> +static bool ghes_do_memory_failure(u64 physical_addr, int flags)
->  {
->  	unsigned long pfn;
-> -	int flags = -1;
-> -	int sec_sev = ghes_severity(gdata->error_severity);
-> -	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
->  
->  	if (!IS_ENABLED(CONFIG_ACPI_APEI_MEMORY_FAILURE))
->  		return false;
->  
-> -	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
-> -		return false;
-> -
-> -	pfn = mem_err->physical_addr >> PAGE_SHIFT;
-> +	pfn = PHYS_PFN(physical_addr);
->  	if (!pfn_valid(pfn)) {
->  		pr_warn_ratelimited(FW_WARN GHES_PFX
->  		"Invalid address in generic error data: %#llx\n",
-> -		mem_err->physical_addr);
-> +		physical_addr);
->  		return false;
->  	}
->  
-> +	memory_failure_queue(pfn, flags);
-> +	return true;
-> +}
-> +
-> +static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
-> +				       int sev)
-> +{
-> +	int flags = -1;
-> +	int sec_sev = ghes_severity(gdata->error_severity);
-> +	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
-> +
-> +	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
-> +		return false;
-> +
->  	/* iff following two events can be handled properly by now */
->  	if (sec_sev == GHES_SEV_CORRECTED &&
->  	    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED))
-> @@ -458,14 +465,45 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
->  	if (sev == GHES_SEV_RECOVERABLE && sec_sev == GHES_SEV_RECOVERABLE)
->  		flags = 0;
->  
-> -	if (flags != -1) {
-> -		memory_failure_queue(pfn, flags);
-> -		return true;
-> -	}
-> +	if (flags != -1)
-> +		return ghes_do_memory_failure(mem_err->physical_addr, flags);
->  
->  	return false;
->  }
->  
-> +static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata, int sev)
-> +{
-> +	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
-> +	struct cper_arm_err_info *err_info;
-> +	bool queued = false;
-> +	int sec_sev, i;
-> +
-> +	log_arm_hw_error(err);
-> +
-> +	sec_sev = ghes_severity(gdata->error_severity);
-> +	if (sev != GHES_SEV_RECOVERABLE || sec_sev != GHES_SEV_RECOVERABLE)
-> +		return false;
-> +
-> +	err_info = (struct cper_arm_err_info *) (err + 1);
-> +	for (i = 0; i < err->err_info_num; i++, err_info++) {
-> +		if (!(err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR))
-> +			continue;
-> +
-> +		if (err_info->type != CPER_ARM_CACHE_ERROR) {
-> +			pr_warn_ratelimited(FW_WARN GHES_PFX
-> +			"Physical address should be invalid for %s\n",
-> +			err_info->type < ARRAY_SIZE(cper_proc_error_type_strs) ?
-> +			cper_proc_error_type_strs[err_info->type] : "unknown error type");
-> +			continue;
-> +		}
-> +
-> +		if (ghes_do_memory_failure(err_info->physical_fault_addr, 0))
-> +			queued = true;
-> +	}
-> +
-> +	return queued;
-> +}
-> +
->  /*
->   * PCIe AER errors need to be sent to the AER driver for reporting and
->   * recovery. The GHES severities map to the following AER severities and
-> @@ -543,9 +581,7 @@ static bool ghes_do_proc(struct ghes *ghes,
->  			ghes_handle_aer(gdata);
->  		}
->  		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
-> -			struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
-> -
-> -			log_arm_hw_error(err);
-> +			queued = ghes_handle_arm_hw_error(gdata, sev);
->  		} else {
->  			void *err = acpi_hest_get_payload(gdata);
->  
-> 
-
--- 
- thanks
-tanxiaofei
-
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
