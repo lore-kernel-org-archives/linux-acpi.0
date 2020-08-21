@@ -2,94 +2,95 @@ Return-Path: <SRS0=PoW9=B7=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9720C433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 17:43:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C43F2C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:28:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B680B20738
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 17:43:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9BC2D22EBF
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:28:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1598034539;
+	bh=gWkydbRYuoGO994AK4VaGbYiR8+uV6Wu+cGWVFVlMTg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=FfKDxTi9NXHgHK7cmwmUK0kuC379Ql4aPoUsOH3EeM9q6OdbmMjUhkT9/6zUM4Gnv
+	 bBdzoij8rYMmR3Kk6hHXnNmWs6ki0hYgi3PJDiDbiA+In7iaGXiUkMuW1vD57hEUYI
+	 z/iVvLGrt9nLyjy3YzmmRh3vi1K2OftKsACIghPQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725820AbgHURnA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Aug 2020 13:43:00 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:48108 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726870AbgHURm7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2020 13:42:59 -0400
-Received: from 89-64-88-37.dynamic.chello.pl (89.64.88.37) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.459)
- id ca2fab7cdb976c2f; Fri, 21 Aug 2020 19:42:56 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>,
-        "Kenneth R. Crudup" <kenny@panix.com>
-Subject: [PATCH] ACPI: OSL: Prevent acpi_release_memory() from returning too early
-Date:   Fri, 21 Aug 2020 19:42:55 +0200
-Message-ID: <6142241.0H6QnnlUA7@kreacher>
+        id S1726794AbgHUS2y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 21 Aug 2020 14:28:54 -0400
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:45979 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726638AbgHUS2x (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2020 14:28:53 -0400
+Received: by mail-oi1-f195.google.com with SMTP id o21so2298607oie.12;
+        Fri, 21 Aug 2020 11:28:52 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/zXZIgCAakjsdNMqDTQ9OdhUqc8aoLFT/Ev7IhMzMsk=;
+        b=CqNS/nixEAmTficKp/RL0Ks0o5uUl3ztZ6hnmvp4yxJUGCef9wr/LLJ7OcJdfZe9C0
+         nJUKLbK7oyHhM2RhLbQIuFPgpQDwKD23fvZ7anngUeV4NpbbMTq6I5mhpYUWWkqCOI7u
+         i5NKsp4CostSKgSmwqV0jaypGEaRtJmq3a4Er15ESYf5DFGP9EjRr4VQroPjF8XU9ro3
+         X42r/Yi4NhOE3i0T7XE3DD+o9jWKxcP1vHw6ndW5mEM0yo87O1Q8PEMMotqUosK0VxG8
+         F98WiHAKCUY2rruvcmJylcICBVWxUpG0j+jUcYImUyDSjo/jO6bZepi4iVgOEn9Mvqbu
+         +jBA==
+X-Gm-Message-State: AOAM530YgAUvem2Y55E0VASeDYYjGfd0q32GWGsRqFqSEe+T9+cl63a+
+        aMpmvQZqoVV23mcDpCLyX1esX3ixSmf953o0vGk=
+X-Google-Smtp-Source: ABdhPJwo4v+bahA41e9ZWtLtpBPogqz1x0/57tZqP3kKMwFe5aYH3e0vzQOOukfdhIBJZscikxIZrUISkTbm5IZp4AQ=
+X-Received: by 2002:aca:a88e:: with SMTP id r136mr2692389oie.110.1598034532187;
+ Fri, 21 Aug 2020 11:28:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+References: <20200819171656.2650926-1-furquan@google.com>
+In-Reply-To: <20200819171656.2650926-1-furquan@google.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 21 Aug 2020 20:28:41 +0200
+Message-ID: <CAJZ5v0h3vFLyY9AXYFvcJD3agYk7RFCyzkWefDk_9bvCE09RNg@mail.gmail.com>
+Subject: Re: [PATCH] drivers: acpi: apd: Check return value of acpi_dev_get_property
+To:     Furquan Shaikh <furquan@google.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Aaron Durbin <adurbin@google.com>,
+        "Agrawal, Akshu" <akshu.agrawal@amd.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wed, Aug 19, 2020 at 7:17 PM Furquan Shaikh <furquan@google.com> wrote:
+>
+> `fch_misc_setup()` uses `acpi_dev_get_property()` to read the value of
+> "is-rv" passed in by BIOS in ACPI tables. However, not all BIOSes
+> might pass in this property and hence it is important to first check
+> the return value of `acpi_dev_get_property()` before referencing the
+> object filled by it.
+>
+> Signed-off-by: Furquan Shaikh <furquan@google.com>
+> ---
+>  drivers/acpi/acpi_apd.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> index 4c348377a39d..806b8ce05624 100644
+> --- a/drivers/acpi/acpi_apd.c
+> +++ b/drivers/acpi/acpi_apd.c
+> @@ -99,8 +99,8 @@ static int fch_misc_setup(struct apd_private_data *pdata)
+>         if (ret < 0)
+>                 return -ENOENT;
+>
+> -       acpi_dev_get_property(adev, "is-rv", ACPI_TYPE_INTEGER, &obj);
+> -       clk_data->is_rv = obj->integer.value;
+> +       if (!acpi_dev_get_property(adev, "is-rv", ACPI_TYPE_INTEGER, &obj))
+> +               clk_data->is_rv = obj->integer.value;
+>
+>         list_for_each_entry(rentry, &resource_list, node) {
+>                 clk_data->base = devm_ioremap(&adev->dev, rentry->res->start,
+> --
 
-After commit 1757659d022b ("ACPI: OSL: Implement deferred unmapping
-of ACPI memory") in some cases acpi_release_memory() may return
-before the target memory mappings actually go away, because they
-are released asynchronously now.
-
-Prevent it from returning prematurely by making it wait for the next
-RCU grace period to elapse, for all of the RCU callbacks to complete
-and for all of the scheduled work items to be flushed before
-returning.
-
-Fixes: 1757659d022b ("ACPI: OSL: Implement deferred unmapping of ACPI memory")
-Reported-by: Kenneth R. Crudup <kenny@panix.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/osl.c |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
-
-Index: linux-pm/drivers/acpi/osl.c
-===================================================================
---- linux-pm.orig/drivers/acpi/osl.c
-+++ linux-pm/drivers/acpi/osl.c
-@@ -1575,11 +1575,26 @@ static acpi_status acpi_deactivate_mem_r
- acpi_status acpi_release_memory(acpi_handle handle, struct resource *res,
- 				u32 level)
- {
-+	acpi_status status;
-+
- 	if (!(res->flags & IORESOURCE_MEM))
- 		return AE_TYPE;
- 
--	return acpi_walk_namespace(ACPI_TYPE_REGION, handle, level,
--				   acpi_deactivate_mem_region, NULL, res, NULL);
-+	status = acpi_walk_namespace(ACPI_TYPE_REGION, handle, level,
-+				     acpi_deactivate_mem_region, NULL,
-+				     res, NULL);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	/*
-+	 * Wait for all of the mappings queued up for removal by
-+	 * acpi_deactivate_mem_region() to actually go away.
-+	 */
-+	synchronize_rcu();
-+	rcu_barrier();
-+	flush_scheduled_work();
-+
-+	return AE_OK;
- }
- EXPORT_SYMBOL_GPL(acpi_release_memory);
- 
-
-
-
+Applied (with minor subject edits) as 5.9-rc material, thanks!
