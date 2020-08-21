@@ -7,115 +7,125 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1113C433E4
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:29:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A7C1C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:30:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B79EA230FF
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:29:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DD9E2054F
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:30:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598034558;
-	bh=HOHHz0PmMC/0usXpRWP7QHXVoJhp8m+suGgb+z/V6vE=;
+	s=default; t=1598034645;
+	bh=XkLgpNngw+AOqP4Ucpf8GtAEnpNH8wR5FYTcW11I6+k=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=v4X6kV89qo6aEN2eUYLbwrgZ/QejvN+7oDfnNFV6hwX+XaztGOpWWuTyJZyFKoGkL
-	 9bYiaAI7BSASBBqsIaxYY3lrYLGqSDKg6WWwZ5r0aBIK7rXfzMHkIKwa1+I68LGuAA
-	 QR72/B2Uyhhjumso3jw5pM23fl9kxz14JfoATzmQ=
+	b=Wk5tMOFNsRWqXylzCit6A0WENhUbmw8wQWbAaohUb8FjMqkuWxGSIPN19yJCR3B6j
+	 UARJKH1HGzCeBV4Ldt+GpYOLFM9Cov4RuJbZfifKLV612vWm0dIwx4lgKJhf792MPS
+	 NJe4JYkwm+eBpgaWle3LBikp1VkVYZmsCZX2S7a4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726483AbgHUS3R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Aug 2020 14:29:17 -0400
-Received: from mail-oi1-f193.google.com ([209.85.167.193]:47008 "EHLO
-        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726461AbgHUS2T (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2020 14:28:19 -0400
-Received: by mail-oi1-f193.google.com with SMTP id v13so2292587oiv.13;
-        Fri, 21 Aug 2020 11:28:18 -0700 (PDT)
+        id S1726897AbgHUSai (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 21 Aug 2020 14:30:38 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:46102 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726759AbgHUSad (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2020 14:30:33 -0400
+Received: by mail-ot1-f65.google.com with SMTP id v6so2292641ota.13
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2020 11:30:32 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=rrbEBmcM/knK8k8TI6aBXuX0Dz97eQ0LcBffz+HMJ5Y=;
-        b=QxJy92uRKnoR/QeQ+PhCUcynn3LCSvCGe7q9SUBwrnJ9UwtPHRYuXXIKa0b5ev+D1E
-         jUXihwl1j8PEPEXcN20INlkH7XskfW7Lcic4kWxjyJ/EcK6A/pTDdXGU5RT2EiWt+6Zu
-         Pq2txkGWzH3BN3uNJLl9KnU4ek362EKPD1y7d0vtDU/o66T9nM+0DcSmNhl4rp63vWo3
-         QqO1eZhXVqHCbO7/NIZd8lW4DYJMp8mZgOtSg5Em9fViEYY/cN7uD+gyWDNoWYb7tutf
-         m0squv7GhGenvazqC8qx1BT+SxThCEuD0T1vltXiQnM1qwMJw16Z1efhs/ih8xEZCXvJ
-         3mow==
-X-Gm-Message-State: AOAM532moCVDWBg4aPTMjGuvaXK7gTIw3lXaFnl0qhDB+Nzo+0xXw2Cl
-        D9Z30ESbX/BmEI8wReNJTaPQ8J6hk3abFsm7r6ccvULV
-X-Google-Smtp-Source: ABdhPJzNKD2ZAZ7mB6yq80T33UhaP85YEULyCQSgdRa/syBBH5JoPLZWFZe6IQ1DSoqX3Pw9f423tkgsOSvAQ2udgVQ=
-X-Received: by 2002:a54:4f14:: with SMTP id e20mr2701389oiy.103.1598034498198;
- Fri, 21 Aug 2020 11:28:18 -0700 (PDT)
+        bh=K1MxKkpVnvU7d5UWkGrBlz8uQLORh5UJqQAND9p37pU=;
+        b=jdXqenQHo0gN4kagYzuWFiwVSqjVYmayLh8uT9Ifiq9pa0IEeAu4Pe2c0PG/eJ5x6Z
+         GEgAqqitEphKyyjsYw4nN6KEpa2tZcfNVvSs2iflEXfLrvVVl5pUB+Phk5pBg0XzmopJ
+         x5XTuTSNCrIGi5MC7fkWg7UyXf9ScbhLE82Vxx1btfwsA9D2ft8TttArUSLUE9EWJRmF
+         tG42ucmyYul5fkrtNbm81pyUg2BaF4JOAVAMJy4gNvyUbKrIqgWUj0SYTzV593wx60u4
+         1e6/+h/KU8MEJ5SeDpPh4o+C/5ux64yXnbnJ2PP8nShIr9xWs4DXf5CKKW3fyuQo+Gmi
+         Ve0A==
+X-Gm-Message-State: AOAM532QbB60icXUCiYQcRHC5iLh/Ow3lcMAa2iYO4enl487GSPQ8aAK
+        RCmyPn6daBOqa7dennx3eZN/gbWYG9Mwv6bpj/E=
+X-Google-Smtp-Source: ABdhPJyMsaGoi2Sui5e/8V7fSM1j1I/QJXf475TP+CksiyYjMsM5SKWUWZNEk8JREAa+sg9kjBcbpG/MvNWVgvdA1uA=
+X-Received: by 2002:a9d:5c06:: with SMTP id o6mr2877167otk.262.1598034632409;
+ Fri, 21 Aug 2020 11:30:32 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200821105342.32368-1-heikki.krogerus@linux.intel.com>
-In-Reply-To: <20200821105342.32368-1-heikki.krogerus@linux.intel.com>
+References: <20200818091353.20097-1-ardb@kernel.org>
+In-Reply-To: <20200818091353.20097-1-ardb@kernel.org>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 21 Aug 2020 20:28:07 +0200
-Message-ID: <CAJZ5v0gfX4hqa7RREQX0+=CNCs=pt7bq1AZEMZwRAAzZfGbVsA@mail.gmail.com>
-Subject: Re: [PATCH] device property: Fix the secondary firmware node handling
- in set_primary_fwnode()
-To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Stable <stable@vger.kernel.org>
+Date:   Fri, 21 Aug 2020 20:30:21 +0200
+Message-ID: <CAJZ5v0i2+9thbzNTzWA2cUCSvm1JQRtV9XB8fGKQk34ybBfYdQ@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: ioremap: avoid redundant rounding to OS page size
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Aug 21, 2020 at 12:53 PM Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
+On Tue, Aug 18, 2020 at 11:14 AM Ard Biesheuvel <ardb@kernel.org> wrote:
 >
-> When the primary firmware node pointer is removed from a
-> device (set to NULL) the secondary firmware node pointer,
-> when it exists, is made the primary node for the device.
-> However, the secondary firmware node pointer of the original
-> primary firmware node is never cleared (set to NULL).
+> The arm64 implementation of acpi_os_ioremap() was recently updated to
+> tighten the checks around which parts of memory are permitted to be
+> mapped by ACPI code, which generally only needs access to memory regions
+> that are statically described by firmware, and any attempts to access
+> memory that is in active use by the OS is generally a bug or a hacking
+> attempt. This tightening is based on the EFI memory map, which describes
+> all memory in the system.
 >
-> To avoid situation where the secondary firmware node pointer
-> is pointing to a non-existing object, clearing it properly
-> when the primary node is removed from a device in
-> set_primary_fwnode().
+> The AArch64 architecture permits page sizes of 16k and 64k in addition
+> to the EFI default, which is 4k, which means that the EFI memory map may
+> describe regions that cannot be mapped seamlessly if the OS page size is
+> greater than 4k. This is usually not a problem, given that the EFI spec
+> does not permit memory regions requiring different memory attributes to
+> share a 64k page frame, and so the usual rounding to page size performed
+> by ioremap() is sufficient to deal with this. However, this rounding does
+> complicate our EFI memory map permission check, due to the loss of
+> information that occurs when several small regions share a single 64k
+> page frame (where rounding each of them will result in the same 64k
+> single page region).
 >
-> Fixes: 97badf873ab6 ("device property: Make it possible to use secondary firmware nodes")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> However, due to the fact that the region check occurs *before* the call
+> to ioremap() where the necessary rounding is performed, we can deal
+> with this issue simply by removing the redundant rounding performed by
+> acpi_os_map_iomem(), as it appears to be the only place where the
+> arguments to a call to acpi_os_ioremap() are rounded up. So omit the
+> rounding in the call, and instead, apply the necessary masking when
+> assigning the map->virt member.
+>
+> Fixes: 1583052d111f ("arm64/acpi: disallow AML memory opregions to access kernel memory")
+> Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
 > ---
->  drivers/base/core.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
+> v2: return the correct virtual address for hits in the cached mappings array
 >
-> diff --git a/drivers/base/core.c b/drivers/base/core.c
-> index ac1046a382bc0..f6f620aa94086 100644
-> --- a/drivers/base/core.c
-> +++ b/drivers/base/core.c
-> @@ -4264,9 +4264,9 @@ static inline bool fwnode_is_primary(struct fwnode_handle *fwnode)
->   */
->  void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode)
->  {
-> -       if (fwnode) {
-> -               struct fwnode_handle *fn = dev->fwnode;
-> +       struct fwnode_handle *fn = dev->fwnode;
+>  drivers/acpi/osl.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> +       if (fwnode) {
->                 if (fwnode_is_primary(fn))
->                         fn = fn->secondary;
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 6ad8cb05f672..acf6abc693a0 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -350,7 +350,7 @@ void __iomem __ref
 >
-> @@ -4276,8 +4276,12 @@ void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode)
->                 }
->                 dev->fwnode = fwnode;
->         } else {
-> -               dev->fwnode = fwnode_is_primary(dev->fwnode) ?
-> -                       dev->fwnode->secondary : NULL;
-> +               if (fwnode_is_primary(fn)) {
-> +                       dev->fwnode = fn->secondary;
-> +                       fn->secondary = NULL;
-> +               } else {
-> +                       dev->fwnode = NULL;
-> +               }
+>         pg_off = round_down(phys, PAGE_SIZE);
+>         pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
+> -       virt = acpi_map(pg_off, pg_sz);
+> +       virt = acpi_map(phys, size);
+>         if (!virt) {
+>                 mutex_unlock(&acpi_ioremap_lock);
+>                 kfree(map);
+> @@ -358,7 +358,7 @@ void __iomem __ref
 >         }
->  }
->  EXPORT_SYMBOL_GPL(set_primary_fwnode);
+>
+>         INIT_LIST_HEAD(&map->list);
+> -       map->virt = virt;
+> +       map->virt = (void __iomem __force *)((unsigned long)virt & PAGE_MASK);
+>         map->phys = pg_off;
+>         map->size = pg_sz;
+>         map->track.refcount = 1;
 > --
 
 Applied as 5.9-rc material, thanks!
