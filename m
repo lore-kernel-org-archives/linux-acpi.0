@@ -4,120 +4,130 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F84FC433E1
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:45:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67100C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 19:34:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F9F620735
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 18:45:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4779B20714
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Aug 2020 19:34:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726598AbgHUSpK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Aug 2020 14:45:10 -0400
-Received: from l2mail1.panix.com ([166.84.1.75]:56142 "EHLO l2mail1.panix.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725906AbgHUSpJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Aug 2020 14:45:09 -0400
-X-Greylist: delayed 970 seconds by postgrey-1.27 at vger.kernel.org; Fri, 21 Aug 2020 14:45:09 EDT
-Received: from mailbackend.panix.com (mailbackend.panix.com [166.84.1.89])
-        by l2mail1.panix.com (Postfix) with ESMTPS id 4BY95W0HJszDdc;
-        Fri, 21 Aug 2020 14:29:02 -0400 (EDT)
-Received: from xps-7390 (cpe-23-242-39-94.socal.res.rr.com [23.242.39.94])
-        by mailbackend.panix.com (Postfix) with ESMTPSA id 4BY95Q1Z1Lz1XCR;
-        Fri, 21 Aug 2020 14:28:58 -0400 (EDT)
-Date:   Fri, 21 Aug 2020 11:28:57 -0700 (PDT)
-From:   "Kenneth R. Crudup" <kenny@panix.com>
-Reply-To: "Kenneth R. Crudup" <kenny@panix.com>
+        id S1726215AbgHUTeo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 21 Aug 2020 15:34:44 -0400
+Received: from netrider.rowland.org ([192.131.102.5]:37845 "HELO
+        netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1725992AbgHUTeo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2020 15:34:44 -0400
+Received: (qmail 266418 invoked by uid 1000); 21 Aug 2020 15:34:42 -0400
+Date:   Fri, 21 Aug 2020 15:34:42 -0400
+From:   Alan Stern <stern@rowland.harvard.edu>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH] ACPI: OSL: Prevent acpi_release_memory() from returning
- too early
-In-Reply-To: <6142241.0H6QnnlUA7@kreacher>
-Message-ID: <alpine.DEB.2.23.453.2008211126550.3596@xps-7390>
-References: <6142241.0H6QnnlUA7@kreacher>
-User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] PM: sleep: core: Fix the handling of pending runtime
+ resume requests
+Message-ID: <20200821193442.GA264863@rowland.harvard.edu>
+References: <7969920.MVx1BpXlEM@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7969920.MVx1BpXlEM@kreacher>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-
-Works here for me:
-
-----
-$ l /sys/class/typec
-total 0
-10012 0 drwxr-xr-x  2 root root 0 Aug 21 11:25 ./
-   10 0 drwxr-xr-x 67 root root 0 Aug 21 11:25 ../
-27771 0 lrwxrwxrwx  1 root root 0 Aug 21 11:25 port0 -> ../../devices/platform/USBC000:00/typec/port0/
-35601 0 lrwxrwxrwx  1 root root 0 Aug 21 11:25 port0-partner -> ../../devices/platform/USBC000:00/typec/port0/port0-partner/
-36686 0 lrwxrwxrwx  1 root root 0 Aug 21 11:25 port1 -> ../../devices/platform/USBC000:00/typec/port1/
-$
-----
-
-On Fri, 21 Aug 2020, Rafael J. Wysocki wrote:
-
+On Fri, Aug 21, 2020 at 07:41:02PM +0200, Rafael J. Wysocki wrote:
 > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> After commit 1757659d022b ("ACPI: OSL: Implement deferred unmapping
-> of ACPI memory") in some cases acpi_release_memory() may return
-> before the target memory mappings actually go away, because they
-> are released asynchronously now.
->
-> Prevent it from returning prematurely by making it wait for the next
-> RCU grace period to elapse, for all of the RCU callbacks to complete
-> and for all of the scheduled work items to be flushed before
-> returning.
->
-> Fixes: 1757659d022b ("ACPI: OSL: Implement deferred unmapping of ACPI memory")
-> Reported-by: Kenneth R. Crudup <kenny@panix.com>
+> 
+> It has been reported that system-wide suspend may be aborted in the
+> absence of any wakeup events due to unforseen interactions of it with
+> the runtume PM framework.
+> 
+> One failing scenario is when there are multiple devices sharing an
+> ACPI power resource and runtime-resume needs to be carried out for
+> one of them during system-wide suspend (for example, because it needs
+> to be reconfigured before the whole system goes to sleep).  In that
+> case, the runtime-resume of that device involves turning the ACPI
+> power resource "on" which in turn causes runtime resume requests
+> to be queued up for all of the other devices sharing it.  Those
+> requests go to the runtime PM workqueue which is frozen during
+> system-wide suspend, so they are not actually taken care of until
+> the resume of the whole system, but the pm_runtime_barrier()
+> call in __device_suspend() sees them and triggers system wakeup
+> events for them which then cause the system-wide suspend to be
+> aborted if wakeup source objects are in active use.
+> 
+> Of course, the logic that leads to triggering those wakeup events is
+> questionable in the first place, because clearly there are cases in
+> which a pending runtime resume request for a device is not connected
+> to any real wakeup events in any way (like the one above).  Moreover,
+> if there is a pending runtime resume request for a device while
+> __device_suspend() is running for it, the physical state of the
+> device may not be in agreement with the "suspended" runtime PM status
+> of it (which may be the very reason for queuing up the runtime resume
+> request for it).
+> 
+> For these reasons, rework __device_suspend() to carry out synchronous
+> runtime-resume for devices with pending runtime resume requests before
+> attempting to invoke system-wide suspend callbacks for them with the
+> expectation that their drivers will trigger system-wide wakeup events
+> in the process of handling the runtime resume, if necessary.
+> 
+> Fixes: 1e2ef05bb8cf8 ("PM: Limit race conditions between runtime PM and system sleep (v2)")
+> Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/osl.c |   19 +++++++++++++++++--
->  1 file changed, 17 insertions(+), 2 deletions(-)
->
-> Index: linux-pm/drivers/acpi/osl.c
+>  drivers/base/power/main.c |   12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> Index: linux-pm/drivers/base/power/main.c
 > ===================================================================
-> --- linux-pm.orig/drivers/acpi/osl.c
-> +++ linux-pm/drivers/acpi/osl.c
-> @@ -1575,11 +1575,26 @@ static acpi_status acpi_deactivate_mem_r
->  acpi_status acpi_release_memory(acpi_handle handle, struct resource *res,
->  				u32 level)
->  {
-> +	acpi_status status;
-> +
->  	if (!(res->flags & IORESOURCE_MEM))
->  		return AE_TYPE;
->
-> -	return acpi_walk_namespace(ACPI_TYPE_REGION, handle, level,
-> -				   acpi_deactivate_mem_region, NULL, res, NULL);
-> +	status = acpi_walk_namespace(ACPI_TYPE_REGION, handle, level,
-> +				     acpi_deactivate_mem_region, NULL,
-> +				     res, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	/*
-> +	 * Wait for all of the mappings queued up for removal by
-> +	 * acpi_deactivate_mem_region() to actually go away.
-> +	 */
-> +	synchronize_rcu();
-> +	rcu_barrier();
-> +	flush_scheduled_work();
-> +
-> +	return AE_OK;
->  }
->  EXPORT_SYMBOL_GPL(acpi_release_memory);
->
->
->
->
->
+> --- linux-pm.orig/drivers/base/power/main.c
+> +++ linux-pm/drivers/base/power/main.c
+> @@ -1606,13 +1606,13 @@ static int __device_suspend(struct devic
+>  	}
+>  
+>  	/*
+> -	 * If a device configured to wake up the system from sleep states
+> -	 * has been suspended at run time and there's a resume request pending
+> -	 * for it, this is equivalent to the device signaling wakeup, so the
+> -	 * system suspend operation should be aborted.
+> +	 * If there's a runtime resume request pending for the device, resume
+> +	 * it before proceeding with invoking the system-wide suspend callbacks
+> +	 * for it, because the physical state of the device may not reflect the
+> +	 * "suspended" runtime PM status already in that case.
+>  	 */
+> -	if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
+> -		pm_wakeup_event(dev, 0);
+> +	if (pm_runtime_barrier(dev))
+> +		pm_runtime_resume(dev);
 
--- 
-Kenneth R. Crudup  Sr. SW Engineer, Scott County Consulting, Orange County CA
+Is this really right?  Note that whenever pm_runtime_barrier() returns a 
+nonzero value, it already calls rpm_resume(dev, 0).  So the 
+pm_runtime_resume() call added here is redundant.
+
+Furthermore, by the logic used in this patch, the call to 
+pm_wakeup_event() in the original code is also redundant: Any required 
+wakeup event should have been generated when the runtime resume inside 
+pm_runtime_barrer() was carried out.  Removing a redundant function call 
+can't fix a bug!
+
+This means that the code could be simplified to just:
+
+	pm_runtime_barrier(dev);
+
+Will this fix the reported bug?  It seems likely to me that the actual 
+problem with the failure scenario in the patch description was that 
+turning on an ACPI power resource causes runtime-resume requests to be 
+queued for all devices sharing that resource.  Wouldn't it make more 
+sense to resume only the device that requested it and leave the others 
+in runtime suspend?
+
+Alan Stern
