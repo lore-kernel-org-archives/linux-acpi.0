@@ -2,86 +2,125 @@ Return-Path: <SRS0=A7Ge=CD=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,RCVD_ILLEGAL_IP,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF8FAC433E1
-	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:34:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 346BFC433DF
+	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:47:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95F1F20786
-	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:34:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0784D2075F
+	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:47:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amdcloud.onmicrosoft.com header.i=@amdcloud.onmicrosoft.com header.b="ekq2o5ZI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726541AbgHYOeC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 25 Aug 2020 10:34:02 -0400
-Received: from mga07.intel.com ([134.134.136.100]:48069 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbgHYOd7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Aug 2020 10:33:59 -0400
-IronPort-SDR: rY/5/ZBrnqsTNyf3HA16dSVV1buAL3eI58we/ZKYnmTqnI+DyrsIO6lcZrnMUm8m5ELc7uob8U
- BHbEU7XMEHvQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9723"; a="220379820"
-X-IronPort-AV: E=Sophos;i="5.76,352,1592895600"; 
-   d="scan'208";a="220379820"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2020 07:33:57 -0700
-IronPort-SDR: dzmeqHoIyTXJ+o+g7Y8O9WxJ1M4qlPGVCY4Rp7vvQQFDRLvAXeYKDd3/dQ9lCaBWtakJIiZusD
- 4GhiA4F4SMXQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,352,1592895600"; 
-   d="scan'208";a="328880141"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 25 Aug 2020 07:33:55 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kAa1J-00BLPk-Mi; Tue, 25 Aug 2020 17:33:53 +0300
-Date:   Tue, 25 Aug 2020 17:33:53 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Felipe Balbi <balbi@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 2/3] software node: Introduce device_add_software_node()
-Message-ID: <20200825143353.GL1891694@smile.fi.intel.com>
-References: <20200825135951.53340-1-heikki.krogerus@linux.intel.com>
- <20200825135951.53340-3-heikki.krogerus@linux.intel.com>
- <20200825143228.GK1891694@smile.fi.intel.com>
+        id S1726551AbgHYOrj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 25 Aug 2020 10:47:39 -0400
+Received: from mail-bn8nam12on2048.outbound.protection.outlook.com ([40.107.237.48]:42881
+        "EHLO NAM12-BN8-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726218AbgHYOrg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Aug 2020 10:47:36 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=XvZM5BEz3rJLod78Ms/HgDmgfNMUVDcVWMu9LfQO7y5Kh+V+R/ybACNoAZQT+EgPaxIW1z1kRIHdmFF01MJYeO+AOq3xHtMjaOA9jJHDAF7azh/cDMrlTMFEWFPeqZCZVDrByoK0dTwoacRDjAsc09qymoXuH58bKCaZq9bubDvsJkfGkuJ+EntOXTMYUz3+S0Im5Dd0JqnakUWwBQi0bHS9HuOPUimR9M8xWH6yrJg4lQWXA9YfUW6+6VkcEPkbj0ha9c+Ga6EwXK4YFn96sKZLgh/yv+xUKkEXCzRqTOKN63YohKPN4VhQx13etAwfdB+jd0jO3wgKh+MUv/11GA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fjVYfu4fzEC2Ra6AUbUWtzHLChPWFu1quA9YBDh9SvE=;
+ b=bUDOzU2lGXF15uex6FWPyP/IRXriOnmgIFdtiGZ2XvXSbkErmtjlyl3WcLHObPlM4yHYM6qFEopw+aSmYfiB6M7g/vwStycvlhekFvoNuCi4AT3z2FnQ1seWlDzEN9iVg7/Sl6XnoE11Jw1avQDPsq30SmwP1SbObWbJ3rtrkfumuhqRcAg0hDwO+QsdJmU67x7gnMj4rSvwblE6vNXcTlMNbkhAZVJf+boOfSzJoam/9XbcDLAWcHoogsoZL+gYXeKlalMoxBMCGCvidHUcFYhTUB8sP/JJWCCNFe5XZ2WvuCkbfytxh3rdpzFTeLwRtTVPlN/Q1wlYHAm8KjS7yQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=amdcloud.onmicrosoft.com; s=selector2-amdcloud-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fjVYfu4fzEC2Ra6AUbUWtzHLChPWFu1quA9YBDh9SvE=;
+ b=ekq2o5ZIPZhIfNE/ywFE8dETbPpjdxIh3ibWsiv5v+IO2KDKnk/IjoWNDH7IEIbVyBwJPJQbytFC/S2f2z3lGknsDxxzoUPwk7ZLtDSTfu5YClamr5IrwHhRviujWhiJ/eUXyIsNds5ZA0sAYK4xsnd3gWwy+6rR9mzxOSYEiQM=
+Authentication-Results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=amd.com;
+Received: from SN6PR12MB2685.namprd12.prod.outlook.com (2603:10b6:805:67::33)
+ by SN6PR12MB2767.namprd12.prod.outlook.com (2603:10b6:805:75::23) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3305.26; Tue, 25 Aug
+ 2020 14:47:30 +0000
+Received: from SN6PR12MB2685.namprd12.prod.outlook.com
+ ([fe80::48e9:c9c:7cd7:de86]) by SN6PR12MB2685.namprd12.prod.outlook.com
+ ([fe80::48e9:c9c:7cd7:de86%5]) with mapi id 15.20.3305.025; Tue, 25 Aug 2020
+ 14:47:30 +0000
+From:   Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+To:     x86@kernel.org, linux-kernel@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-edac@vger.kernel.org,
+        linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devel@acpica.org
+Cc:     Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <len.brown@intel.com>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Yazen Ghannam <yazen.ghannam@amd.com>,
+        Smita.KoralahalliChannabasappa@amd.com
+Subject: [PATCH 0/2] Decode raw MSR values of MCA registers in BERT
+Date:   Tue, 25 Aug 2020 09:47:08 -0500
+Message-Id: <20200825144710.23584-1-Smita.KoralahalliChannabasappa@amd.com>
+X-Mailer: git-send-email 2.17.1
+Content-Type: text/plain
+X-ClientProxiedBy: SA0PR11CA0070.namprd11.prod.outlook.com
+ (2603:10b6:806:d2::15) To SN6PR12MB2685.namprd12.prod.outlook.com
+ (2603:10b6:805:67::33)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200825143228.GK1891694@smile.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from 255.255.255.255 (255.255.255.255) by SA0PR11CA0070.namprd11.prod.outlook.com (2603:10b6:806:d2::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3305.24 via Frontend Transport; Tue, 25 Aug 2020 14:47:29 +0000
+X-Mailer: git-send-email 2.17.1
+X-Originating-IP: [165.204.78.1]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 3d1b1bc1-6fb3-47db-7e2d-08d84905cb02
+X-MS-TrafficTypeDiagnostic: SN6PR12MB2767:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <SN6PR12MB276718111D5A4F9DAAA170A790570@SN6PR12MB2767.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:5797;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Slz/1ZeJ2TzakOTQaBlGRe0wfEq4BYrInBDZSTTJmchPvygPjZkcfg5E2g6cQ3vlOTZ1pbd8cmQ7V8DQqIwvPBYXV4mrU/7ct/GTK4yiJQwv56I1lqf90Oh3a604vlV3ov0GQy7jka0QHbruwpYlGLeabIKjeHcWIoYVoEzfLudGl9OJ5acok41HjiOYUpIeK8iL5djHAjJS51MhRoKaJ+4yR8fwOIb4JwnG2KdEpwQaaHTtcsQUYJk+J+kvLSa9LBnBMWpOAXySY3QSkvBuZ6tZ2/a3oK2b6RjOMicnhH2V2s69V0RZiFMYCPG0TrEItgx3FE/Q+sZPr6FTLL1z4w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN6PR12MB2685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(39860400002)(376002)(136003)(366004)(396003)(346002)(5660300002)(956004)(186003)(6486002)(2906002)(52116002)(8936002)(26005)(4326008)(8676002)(2616005)(1076003)(66946007)(7416002)(83380400001)(6666004)(16576012)(316002)(86362001)(4744005)(66476007)(36756003)(478600001)(66556008)(54906003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: Mdyk7Sc13BhWpM2Bc77qu58uViwsUV5PWjDmd+B+IwmltI07Szw9NPPWuiFf4hnZjRxLb2sZCVNHGW71x+XcnFcqPOivY5JtTr1r/+3CFMBmT8IuOFH66MEfoKspZefelvHyoJU4RIzquqPDW0qIwgLJ1I0BS0D3SNmE8Gigq28SB3c5BXw9zjvigttyEKPHIXS2gwcxlK9EH4eCc56taTBtYJNRs5Nw0Gc/wsOIX6zxRBt3nN2j88lR7mN/Wn3T2y02D0Nw85tmPgxC36pOduUJWTF9xRM1Wqowjffyi6hbtHm9bZR15/eG1IwPpE++vlRvl/InSh4EGL/4Q1+mtEBnHIR5dxx01Ox864u59ugMihu62NtacwP7CePckDdk4WMEakXX+5JRtEPBEVGH5EdMRrTNMgxPC9Fvpyatq2uSAgdRaWXaSoDaEfQ6TK46GfFj+5+0qan7Ko5a95ntMg+eTLcMiCigAjXmZHBk/LUaFuY4vnIVsWSVGF57H/D8awCW0owBkIV/PGaDnbMjhdSIv1yaHbVhEmHgJyLOH39H1p3RYFLljJYo/L8Kb77uLTWry2n4KHtGP6dozlwnlpXkDKhTodPWTJi7LXabbDdpda+dr1bRcrlr31zxxpFkX79UqBd1znTzSU78FGsZNg==
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3d1b1bc1-6fb3-47db-7e2d-08d84905cb02
+X-MS-Exchange-CrossTenant-AuthSource: SN6PR12MB2685.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Aug 2020 14:47:30.4176
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: UXDl8vkOvgkDEkaDFsMKK7+H3BWWByQKwEpHenwaQYdkJBCzQFUodLN1FwosShCw0A6NLyNFlINx4RWk4mJpow==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR12MB2767
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Aug 25, 2020 at 05:32:28PM +0300, Andy Shevchenko wrote:
-> On Tue, Aug 25, 2020 at 04:59:50PM +0300, Heikki Krogerus wrote:
-> > This helper will register a software node and then assign
-> > it to device at the same time. The function will also make
-> > sure that the device can't have more than one software node.
-> 
-> > +	/* Only one software node per device. */
-> > +	if (dev_to_swnode(dev))
-> > +		return -EBUSY;
-> 
-> > +	swnode = dev_to_swnode(dev);
-> > +	if (!swnode)
-> > +		return;
-> 
-> Hmm... I didn't find implementation of dev_to_swnode().
-> What did I miss?
+This series provides better decoding for SMCA specific raw MSR values in
+BERT reported using x86 Processor Error Common Platform Error Record
+(CPER) format.
 
-Now found, I was looking into header, but it's defined in the c-file in
-previous patch.
+Patch 1 extracts the raw MSR values of MCA registers in BERT and passes
+it through the MCA handling chain.
+
+Patch 2 provides a fix of missing error logs as observed in Patch 1.
+
+Smita Koralahalli (2):
+  cper, apei, mce: Pass x86 CPER through the MCA handling chain
+  x86/mce/dev-mcelog: Fix updating kflags in AMD systems
+
+ arch/x86/include/asm/mce.h           |  5 ++++
+ arch/x86/kernel/acpi/apei.c          | 10 ++++++++
+ arch/x86/kernel/cpu/mce/apei.c       | 38 ++++++++++++++++++++++++++++
+ arch/x86/kernel/cpu/mce/dev-mcelog.c |  4 ++-
+ drivers/firmware/efi/cper-x86.c      | 10 +++++---
+ include/acpi/apei.h                  |  2 ++
+ 6 files changed, 64 insertions(+), 5 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.17.1
 
