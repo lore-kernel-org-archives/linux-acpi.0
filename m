@@ -2,77 +2,81 @@ Return-Path: <SRS0=A7Ge=CD=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20F9AC433E8
-	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:04:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6CA5C433DF
+	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:32:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05DEA20665
-	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:04:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6DB320786
+	for <linux-acpi@archiver.kernel.org>; Tue, 25 Aug 2020 14:32:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726413AbgHYODc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 25 Aug 2020 10:03:32 -0400
-Received: from mga06.intel.com ([134.134.136.31]:59244 "EHLO mga06.intel.com"
+        id S1726119AbgHYOcg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 25 Aug 2020 10:32:36 -0400
+Received: from mga11.intel.com ([192.55.52.93]:22174 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726222AbgHYN74 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Aug 2020 09:59:56 -0400
-IronPort-SDR: BDxlDaRmHKGz4tx5aLvCkE3ForFS1ygc1frhDvW/bWCeac1jFrMrqnztBjDDuGDEa+LSscXpJW
- wtRpSO4m4pDA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9723"; a="217659379"
+        id S1726015AbgHYOcd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Aug 2020 10:32:33 -0400
+IronPort-SDR: noZL9phiXY3oO1TsfQkD3IUsj1iCdx60v5PaYUuDVerhDvC22eoN9100GQNzyRvFS5KknlGZcu
+ /cDgS7zgPanw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9723"; a="153688720"
 X-IronPort-AV: E=Sophos;i="5.76,352,1592895600"; 
-   d="scan'208";a="217659379"
+   d="scan'208";a="153688720"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2020 06:59:54 -0700
-IronPort-SDR: hIX9GWXNsuutTILIgAn9Fwym76hrvk2/jJ0pmD/1uXZwPpFRLlF7KBUEHRORwv3S3XMjh5sVak
- wUSSnTSChd/w==
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2020 07:32:32 -0700
+IronPort-SDR: GfgR888EqII5XdJD72waaKiFsEn1snYO90FUG+SVICdI1oCgSRKBb9sB/6cjbL8Yl/r/ZvMS5J
+ RvvI4tgPoEfg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,352,1592895600"; 
-   d="scan'208";a="402725549"
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 25 Aug 2020 06:59:52 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Felipe Balbi <balbi@kernel.org>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+   d="scan'208";a="328879737"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 25 Aug 2020 07:32:30 -0700
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1kAZzw-00BLOn-VM; Tue, 25 Aug 2020 17:32:28 +0300
+Date:   Tue, 25 Aug 2020 17:32:28 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Felipe Balbi <balbi@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 0/3] PM operations for software nodes
-Date:   Tue, 25 Aug 2020 16:59:48 +0300
-Message-Id: <20200825135951.53340-1-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.28.0
+Subject: Re: [PATCH 2/3] software node: Introduce device_add_software_node()
+Message-ID: <20200825143228.GK1891694@smile.fi.intel.com>
+References: <20200825135951.53340-1-heikki.krogerus@linux.intel.com>
+ <20200825135951.53340-3-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200825135951.53340-3-heikki.krogerus@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi guys,
+On Tue, Aug 25, 2020 at 04:59:50PM +0300, Heikki Krogerus wrote:
+> This helper will register a software node and then assign
+> it to device at the same time. The function will also make
+> sure that the device can't have more than one software node.
 
-Unfortunately the last patch depends on this:
-https://lore.kernel.org/linux-usb/20200821131101.81915-1-heikki.krogerus@linux.intel.com/
+> +	/* Only one software node per device. */
+> +	if (dev_to_swnode(dev))
+> +		return -EBUSY;
 
-Would it be easiest that Felipe took care of these (assuming they are
-acceptable)?
+> +	swnode = dev_to_swnode(dev);
+> +	if (!swnode)
+> +		return;
 
-thanks,
-
-Heikki Krogerus (3):
-  software node: Power management operations for software nodes
-  software node: Introduce device_add_software_node()
-  usb: dwc3: pci: Register a software node for the dwc3 platform device
-
- drivers/base/power/common.c |   8 +-
- drivers/base/swnode.c       | 569 +++++++++++++++++++++++++++++++++++-
- drivers/usb/dwc3/dwc3-pci.c | 175 ++++++-----
- include/linux/property.h    |  13 +
- 4 files changed, 666 insertions(+), 99 deletions(-)
+Hmm... I didn't find implementation of dev_to_swnode().
+What did I miss?
 
 -- 
-2.28.0
+With Best Regards,
+Andy Shevchenko
+
 
