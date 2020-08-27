@@ -2,77 +2,116 @@ Return-Path: <SRS0=4yd/=CF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F04FC433E1
-	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 15:10:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87F18C433E3
+	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 15:21:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 68FE022B40
-	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 15:10:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E9872087D
+	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 15:21:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1598541719;
+	bh=5EXplaVXNI+IHFzq1tVAP2yAGUXR9mfdt5BaX3Eq9FI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=WVLyebtgGslKVLjs+ZDEXElPhWjEVXVpG9eJHFh1ZlV9k4bUFeq2sxmbSl294NG1c
+	 XEdxASYaIHtvpQlTIdQwkiCp/WKG0oLt0HBETXLjNAH9IrThADdFh+JegkO0F1RWSR
+	 QPuMrwICMKqWa7twB4nhq3KrcFLj6IZZQCxBmuYA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726084AbgH0PK6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 27 Aug 2020 11:10:58 -0400
-Received: from mga03.intel.com ([134.134.136.65]:63437 "EHLO mga03.intel.com"
+        id S1728104AbgH0PVZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 27 Aug 2020 11:21:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728876AbgH0LqE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Aug 2020 07:46:04 -0400
-IronPort-SDR: PXO21OzUWi4J0WHCto5Gs3eeOtyknVu7ccMKnCZGqGPFMpbUX4BsZyBPXlarbEvO5/nc4qQKRh
- ZFXOjvGWRflA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9725"; a="156468838"
-X-IronPort-AV: E=Sophos;i="5.76,359,1592895600"; 
-   d="scan'208";a="156468838"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2020 04:45:56 -0700
-IronPort-SDR: /2UVt3hVsUNgpfzeY4s8zl95PQk/KqISyqzbMfXg7P3H35vDcCqU5chpt/N+8MVpzZq4x2zXSi
- 3ww9xkYwo4rg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,359,1592895600"; 
-   d="scan'208";a="329570112"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 27 Aug 2020 04:45:54 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kBGLo-00BoFo-QP; Thu, 27 Aug 2020 14:45:52 +0300
-Date:   Thu, 27 Aug 2020 14:45:52 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] ACPI / PMIC: Move TPS68470 OpRegion driver to
- drivers/acpi/pmic/
-Message-ID: <20200827114552.GD1891694@smile.fi.intel.com>
-References: <20200814132726.11456-1-andriy.shevchenko@linux.intel.com>
- <20200814132726.11456-2-andriy.shevchenko@linux.intel.com>
- <20200817103525.GD1375436@lahna.fi.intel.com>
+        id S1728681AbgH0LdA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Aug 2020 07:33:00 -0400
+Received: from localhost (fw-tnat.cambridge.arm.com [217.140.96.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id AACF322B40;
+        Thu, 27 Aug 2020 11:32:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1598527973;
+        bh=5EXplaVXNI+IHFzq1tVAP2yAGUXR9mfdt5BaX3Eq9FI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=VnqH2UurJYyKagUdSIUZIvaKa853kKWzU5p1R3C1/o7PeWY8DoJNwn6QOtYWMSaQM
+         erpjZu5+pVs3JEgFBnQPJP8j1BXy33UA7ep3ic6p9Mg1ZzE04CcFHZzZjX1jNMM5Jh
+         gQPeRG8AxN0/5DHRwXhMZOWi9nwmQalyZlPq2Ano=
+Date:   Thu, 27 Aug 2020 12:32:16 +0100
+From:   Mark Brown <broonie@kernel.org>
+To:     Vladimir Oltean <olteanv@gmail.com>
+Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        kuldip dwivedi <kuldip.dwivedi@puresoftware.com>,
+        linux-spi <linux-spi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Qiang Zhao <qiang.zhao@nxp.com>,
+        Pankaj Bansal <pankaj.bansal@nxp.com>,
+        Varun Sethi <V.Sethi@nxp.com>,
+        tanveer <tanveer.alam@puresoftware.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH] spi: spi-fsl-dspi: Add ACPI support
+Message-ID: <20200827113216.GA4674@sirena.org.uk>
+References: <20200821131029.11440-1-kuldip.dwivedi@puresoftware.com>
+ <20200822183342.6sdhp6yq6i7yvdia@skbuf>
+ <CAHp75VeNXy1jWNWMuZc0bfXruKc3=0H4ezwpE8jbj6GLYk5QBA@mail.gmail.com>
+ <20200826204108.reuy7ieqabutwuwo@skbuf>
+ <20200826204547.GU4965@sirena.org.uk>
+ <20200826210657.z526xjhhkq6vkxgr@skbuf>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
 Content-Disposition: inline
-In-Reply-To: <20200817103525.GD1375436@lahna.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20200826210657.z526xjhhkq6vkxgr@skbuf>
+X-Cookie: Causes moderate eye irritation.
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Aug 17, 2020 at 01:35:25PM +0300, Mika Westerberg wrote:
-> On Fri, Aug 14, 2020 at 04:27:26PM +0300, Andy Shevchenko wrote:
-> > It is revealed now that TPS68470 OpRegion driver has been added
-> > in slightly different scope. Let's move it to the drivers/acpi/pmic/
-> > folder for sake of the unification.
-> > 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Thanks!
-Rafael, can we apply these?
+--gBBFr7Ir9EOA20Yy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-With Best Regards,
-Andy Shevchenko
+On Thu, Aug 27, 2020 at 12:06:57AM +0300, Vladimir Oltean wrote:
+> On Wed, Aug 26, 2020 at 09:45:47PM +0100, Mark Brown wrote:
+> > On Wed, Aug 26, 2020 at 11:41:08PM +0300, Vladimir Oltean wrote:
 
+> > > Something doesn't look right about PRP0001, what's the catch?
 
+> > Microsoft decided not to implement support for it in Windows, it's
+> > essentially there for embedded style x86 platforms running Linux so they
+> > don't need to reimplement so many wheels and can just reuse existing DT
+> > bindings but it causes problems if you want to run Windows (and possibly
+> > some of the enterprise Linux distros, I can't remember if any of them
+> > had concerns about it) on the platform.
+
+> So if a silicon vendor doesn't care about Windows, what incentive does
+> it have to even register an official ACPI/PNP ID for its devices?
+
+Not that there's any registration process or anything, there's some
+namespacing but that's it, but the main thing would just be keeping the
+ACPI bindings and DT bindings separate.  ACPI has some strong opinions
+on how systems are built and described so while you can use the PRP0001
+stuff to parse DT bindings on an ACPI system it doesn't alway fit well,
+and there are some things where you just plain shouldn't use PRP0001
+since the ACPI and DT models for that sort of device diverge so strongly.
+
+--gBBFr7Ir9EOA20Yy
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAl9Hmb8ACgkQJNaLcl1U
+h9B/KAf/TZJSBmxaYq4h8SUowHGREwHtVaLdaCnflawd6gDO2QF8RPV57eClAnLS
+G7UDFlscVt90VKQ+6DDiYMyEROOQEyOPSXF9do7/uAlnYpwiiW34cbCHCJ7aZZh9
+LTBOxhKioz1sxuFrwUIPSWS2HFdFayu8xSl6op0MWjABI+R6pwILHPsx+ks5jkSN
+jCDn5IZTxFqgP9pB/xtUl2/njhQ8wwVTYg3Outr5+gl2gMgPC+mAhwsrYv53mzUu
+XtPDZ9AvJc/hXRoN1+2LsE+w8dhmWkofhLavT55sS5ncKlqf2DzOXmRV0UUqR+Io
+Bxgrb3GnGd503w/KsxUmXzusS3x+tg==
+=b08t
+-----END PGP SIGNATURE-----
+
+--gBBFr7Ir9EOA20Yy--
