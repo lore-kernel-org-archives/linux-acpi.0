@@ -2,125 +2,77 @@ Return-Path: <SRS0=4yd/=CF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63137C433E1
-	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 13:39:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F04FC433E1
+	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 15:10:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 48B8322CB2
-	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 13:39:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68FE022B40
+	for <linux-acpi@archiver.kernel.org>; Thu, 27 Aug 2020 15:10:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728209AbgH0N3p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 27 Aug 2020 09:29:45 -0400
-Received: from mga09.intel.com ([134.134.136.24]:25597 "EHLO mga09.intel.com"
+        id S1726084AbgH0PK6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 27 Aug 2020 11:10:58 -0400
+Received: from mga03.intel.com ([134.134.136.65]:63437 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728035AbgH0N22 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Aug 2020 09:28:28 -0400
-IronPort-SDR: zA+9aKbt4jHDA2Gj7+B6a7P9oPa3Y3I5+2nlIuGa/BIjYnX4khduS2wUBX8Q4KWpsOKR0V9McP
- xadUjzfQNhMA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9725"; a="157503047"
+        id S1728876AbgH0LqE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Aug 2020 07:46:04 -0400
+IronPort-SDR: PXO21OzUWi4J0WHCto5Gs3eeOtyknVu7ccMKnCZGqGPFMpbUX4BsZyBPXlarbEvO5/nc4qQKRh
+ ZFXOjvGWRflA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9725"; a="156468838"
 X-IronPort-AV: E=Sophos;i="5.76,359,1592895600"; 
-   d="scan'208";a="157503047"
+   d="scan'208";a="156468838"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2020 06:28:28 -0700
-IronPort-SDR: ROXbn60uGAEfxQlLWOlgDCyR5qTaP+nvWHDUAHFNKYScuFTf6y15VebIoX9/cDXydcihspvv+D
- 5o1jDewAc/sg==
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2020 04:45:56 -0700
+IronPort-SDR: /2UVt3hVsUNgpfzeY4s8zl95PQk/KqISyqzbMfXg7P3H35vDcCqU5chpt/N+8MVpzZq4x2zXSi
+ 3ww9xkYwo4rg==
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,359,1592895600"; 
-   d="scan'208";a="295723842"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2020 06:28:24 -0700
-Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id 3DD3B20722; Thu, 27 Aug 2020 16:28:22 +0300 (EEST)
-Date:   Thu, 27 Aug 2020 16:28:22 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, Bingbu Cao <bingbu.cao@intel.com>,
-        linux-media@vger.kernel.org,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Subject: Re: [PATCH v6 6/6] Documentation: ACPI: Document
- allow-low-power-probe _DSD property
-Message-ID: <20200827132822.GI24582@paasikivi.fi.intel.com>
-References: <20200826115432.6103-1-sakari.ailus@linux.intel.com>
- <20200826115432.6103-7-sakari.ailus@linux.intel.com>
- <ac5a7cb9-7fd1-fb73-b872-d5a58846d99f@infradead.org>
+   d="scan'208";a="329570112"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 27 Aug 2020 04:45:54 -0700
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1kBGLo-00BoFo-QP; Thu, 27 Aug 2020 14:45:52 +0300
+Date:   Thu, 27 Aug 2020 14:45:52 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] ACPI / PMIC: Move TPS68470 OpRegion driver to
+ drivers/acpi/pmic/
+Message-ID: <20200827114552.GD1891694@smile.fi.intel.com>
+References: <20200814132726.11456-1-andriy.shevchenko@linux.intel.com>
+ <20200814132726.11456-2-andriy.shevchenko@linux.intel.com>
+ <20200817103525.GD1375436@lahna.fi.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ac5a7cb9-7fd1-fb73-b872-d5a58846d99f@infradead.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20200817103525.GD1375436@lahna.fi.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Aug 26, 2020 at 11:06:22AM -0700, Randy Dunlap wrote:
-> On 8/26/20 4:54 AM, Sakari Ailus wrote:
-> > Document the probe-low-power _DSD property and how it is used with I²C
-> > drivers.
+On Mon, Aug 17, 2020 at 01:35:25PM +0300, Mika Westerberg wrote:
+> On Fri, Aug 14, 2020 at 04:27:26PM +0300, Andy Shevchenko wrote:
+> > It is revealed now that TPS68470 OpRegion driver has been added
+> > in slightly different scope. Let's move it to the drivers/acpi/pmic/
+> > folder for sake of the unification.
 > > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  .../acpi/dsd/allow-low-power-probe.rst        | 28 +++++++++++++++++++
-> >  Documentation/firmware-guide/acpi/index.rst   |  1 +
-> >  2 files changed, 29 insertions(+)
-> >  create mode 100644 Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst
-> > 
-> > diff --git a/Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst b/Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst
-> > new file mode 100644
-> > index 0000000000000..6fcc89162b898
-> > --- /dev/null
-> > +++ b/Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst
-> > @@ -0,0 +1,28 @@
-> > +.. SPDX-License-Identifier: GPL-2.0
-> > +
-> > +======================================
-> > +Probing I²C devices in low power state
-> > +======================================
-> > +
-> > +Introduction
-> > +============
-> > +
-> > +In some cases it may be preferred to leave certain devices powered off for the
-> > +entire system bootup if powering on these devices has adverse side effects,
-> > +beyond just powering on the said device. Linux recognizes the _DSD property
-> > +"allow-low-power-probe" that can be used for this purpose.
-> > +
-> > +How it works
-> > +============
-> > +
-> > +The property "allow-low-power-probe" boolean property may be used to tell Linux
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > 
-> Drop the first "property".
-> 
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Thanks, will fix for v7.
-
-> > +that the I²C framework should instruct the kernel ACPI framework to leave the
-> > +device in the low power state. If the driver indicates its support for this by
-> > +setting the I2C_DRV_FL_ALLOW_LOW_POWER_PROBE flag in struct i2c_driver.flags
-
-This is leftover from v5 actually, I'll change the documentation to mention
-the allow_low_power_probe as well.
-
-> > +field and the "allow-low-power-probe" property is present, the device will not
-> > +be powered on for probe.
-> 
+Thanks!
+Rafael, can we apply these?
 
 -- 
-Kind regards,
+With Best Regards,
+Andy Shevchenko
 
-Sakari Ailus
+
