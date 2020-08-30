@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21955C433E2
-	for <linux-acpi@archiver.kernel.org>; Sun, 30 Aug 2020 12:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB0DDC433E2
+	for <linux-acpi@archiver.kernel.org>; Sun, 30 Aug 2020 12:59:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE5382087D
-	for <linux-acpi@archiver.kernel.org>; Sun, 30 Aug 2020 12:59:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C98CE2087D
+	for <linux-acpi@archiver.kernel.org>; Sun, 30 Aug 2020 12:59:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VHUkyzbm"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JAXJAUwG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728844AbgH3M7K (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 30 Aug 2020 08:59:10 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:34585 "EHLO
+        id S1728887AbgH3M7R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 30 Aug 2020 08:59:17 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:25592 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728889AbgH3M6Z (ORCPT
+        by vger.kernel.org with ESMTP id S1728893AbgH3M63 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 30 Aug 2020 08:58:25 -0400
+        Sun, 30 Aug 2020 08:58:29 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1598792303;
+        s=mimecast20190719; t=1598792308;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=y9AuNYLGu06i5bj0iiRfB2Pq9KBPBvi3vak13kj5YjA=;
-        b=VHUkyzbm7yISzEYVol2JeypSsS1WYbE0hf0ZT2e04OtbHTIJN99RKlwt4HYdr4MnPEq/wE
-        SN+iy9wcLDxeRWHepmBvW13GAaaeViP6oYsyR9msUVbq9ytPAATCFUvBPm7mVX22Q6LsWh
-        ZvKEsLAIvvPXlLkmnwPxoDzOo7w7uYQ=
+        bh=cYWhKTISh/u3aMewN0hIMxxIUF++N0gpcMl9YN4NWk8=;
+        b=JAXJAUwG6d9FmY237M/k4lBqgdcIQISBE6CAr/DjEYvuSt1u4RhVZT7vFCEqUuw7FNnkFL
+        EVq4Ld68tGSFzv+68Aav1ATD07H8nXocqkKPQ4pz6QbXO01MANFvP7xf1g5UMBHCAnbRKH
+        tnEcQaegQKlSTwI+NrBqYlYM6kzn4o8=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-155-EUpFBF6-N0yV6g1tv4BKVQ-1; Sun, 30 Aug 2020 08:58:19 -0400
-X-MC-Unique: EUpFBF6-N0yV6g1tv4BKVQ-1
+ us-mta-451-FIJRd5iBPn6lR5YznDhDSg-1; Sun, 30 Aug 2020 08:58:25 -0400
+X-MC-Unique: FIJRd5iBPn6lR5YznDhDSg-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E9A9BADC86;
-        Sun, 30 Aug 2020 12:58:17 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B27691005E60;
+        Sun, 30 Aug 2020 12:58:23 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-112-77.ams2.redhat.com [10.36.112.77])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 596E2171C6;
-        Sun, 30 Aug 2020 12:58:15 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 21FF2171C6;
+        Sun, 30 Aug 2020 12:58:20 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
@@ -61,9 +61,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v8 06/17] pwm: lpss: Use pwm_lpss_restore() when restoring state on resume
-Date:   Sun, 30 Aug 2020 14:57:42 +0200
-Message-Id: <20200830125753.230420-7-hdegoede@redhat.com>
+Subject: [PATCH v8 08/17] pwm: crc: Fix period / duty_cycle times being off by a factor of 256
+Date:   Sun, 30 Aug 2020 14:57:44 +0200
+Message-Id: <20200830125753.230420-9-hdegoede@redhat.com>
 In-Reply-To: <20200830125753.230420-1-hdegoede@redhat.com>
 References: <20200830125753.230420-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -74,129 +74,72 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Before this commit a suspend + resume of the LPSS PWM controller
-would result in the controller being reset to its defaults of
-output-freq = clock/256, duty-cycle=100%, until someone changes
-to the output-freq and/or duty-cycle are made.
+While looking into adding atomic-pwm support to the pwm-crc driver I
+noticed something odd, there is a PWM_BASE_CLK define of 6 MHz and
+there is a clock-divider which divides this with a value between 1-128,
+and there are 256 duty-cycle steps.
 
-This problem has been masked so far because the main consumer
-(the i915 driver) was always making duty-cycle changes on resume.
-With the conversion of the i915 driver to the atomic PWM API the
-driver now only disables/enables the PWM on suspend/resume leaving
-the output-freq and duty as is, triggering this problem.
+The pwm-crc code before this commit assumed that a clock-divider
+setting of 1 means that the PWM output is running at 6 MHZ, if that
+is true, where do these 256 duty-cycle steps come from?
 
-The LPSS PWM controller has a mechanism where the ctrl register value
-and the actual base-unit and on-time-div values used are latched. When
-software sets the SW_UPDATE bit then at the end of the current PWM cycle,
-the new values from the ctrl-register will be latched into the actual
-registers, and the SW_UPDATE bit will be cleared.
+This would require an internal frequency of 256 * 6 MHz = 1.5 GHz, that
+seems unlikely for a PMIC which is using a silicon process optimized for
+power-switching transistors. It is way more likely that there is an 8
+bit counter for the duty cycle which acts as an extra fixed divider
+wrt the PWM output frequency.
 
-The problem is that before this commit our suspend/resume handling
-consisted of simply saving the PWM ctrl register on suspend and
-restoring it on resume, without setting the PWM_SW_UPDATE bit.
-When the controller has lost its state over a suspend/resume and thus
-has been reset to the defaults, just restoring the register is not
-enough. We must also set the SW_UPDATE bit to tell the controller to
-latch the restored values into the actual registers.
+The main user of the pwm-crc driver is the i915 GPU driver which uses it
+for backlight control. Lets compare the PWM register values set by the
+video-BIOS (the GOP), assuming the extra fixed divider is present versus
+the PWM frequency specified in the Video-BIOS-Tables:
 
-Fixing this problem is not as simple as just or-ing in the value which
-is being restored with SW_UPDATE. If the PWM was enabled before we must
-write the new settings + PWM_SW_UPDATE before setting PWM_ENABLE.
-We must also wait for PWM_SW_UPDATE to become 0 again and depending on the
-model we must do this either before or after the setting of PWM_ENABLE.
+Device:		PWM Hz set by BIOS	PWM Hz specified in VBT
+Asus T100TA 	200			200
+Asus T100HA 	200			200
+Lenovo Miix 2 8	23437			20000
+Toshiba WT8-A	23437			20000
 
-All the necessary logic for doing this is already present inside
-pwm_lpss_apply(), so instead of duplicating this inside the resume
-handler, this commit adds a new pwm_lpss_restore() helper which mirrors
-pwm_lpss_apply() minus the runtime-pm reference handling (which we should
-not change on resume).
+So as we can see if we assume the extra division by 256 then the register
+values set by the GOP are an exact match for the VBT values, where as
+otherwise the values would be of by a factor of 256.
 
-This fixes the output-freq and duty-cycle being reset to their defaults
-on resume.
+This commit fixes the period / duty_cycle calculations to take the
+extra division by 256 into account.
 
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Changes in v8:
-- Drop optimization to skip restore if current ctrl reg is the same as our saved
-  ctrl reg value (because this causes issues on some devices)
-- Simplify pwm_lpss_restore_state() to not rely on the current state
-- Modify commit message to mention the new pwm_lpss_restore_state() helper
-
-Changes in v6:
-- Add a pwm_lpss_restore_state() helper for re-applying the PWM state on resume
-
-Changes in v5:
-- The changes to pwm_lpss_apply() are much cleaner now thanks to the new
-  pwm_lpss_prepare_enable() helper.
-
 Changes in v3:
-- This replaces the "pwm: lpss: Set SW_UPDATE bit when enabling the PWM"
-  patch from previous versions of this patch-set, which really was a hack
-  working around the resume issue which this patch fixes properly.
+- Use NSEC_PER_USEC instead of adding a new (non-sensical) NSEC_PER_MHZ define
 ---
- drivers/pwm/pwm-lpss.c | 40 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 37 insertions(+), 3 deletions(-)
+ drivers/pwm/pwm-crc.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pwm/pwm-lpss.c b/drivers/pwm/pwm-lpss.c
-index 8a136ba2a583..9a7400c6fb6e 100644
---- a/drivers/pwm/pwm-lpss.c
-+++ b/drivers/pwm/pwm-lpss.c
-@@ -166,6 +166,25 @@ static int pwm_lpss_apply(struct pwm_chip *chip, struct pwm_device *pwm,
- 	return ret;
- }
+diff --git a/drivers/pwm/pwm-crc.c b/drivers/pwm/pwm-crc.c
+index 272eeb071147..c056eb9b858c 100644
+--- a/drivers/pwm/pwm-crc.c
++++ b/drivers/pwm/pwm-crc.c
+@@ -21,8 +21,8 @@
  
-+/*
-+ * This is a mirror of pwm_lpss_apply() without relying on the current state
-+ * (no pwm_is_enabled() calls) and without pm_runtime reference handling,
-+ * for restoring the PWM state on resume.
-+ */
-+static int pwm_lpss_restore_state(struct pwm_lpss_chip *lpwm,
-+				  struct pwm_device *pwm,
-+				  const struct pwm_state *state)
-+{
-+	int ret = 0;
-+
-+	if (state->enabled)
-+		ret = pwm_lpss_prepare_enable(lpwm, pwm, state, true);
-+	else
-+		pwm_lpss_write(pwm, pwm_lpss_read(pwm) & ~PWM_ENABLE);
-+
-+	return ret;
-+}
-+
- static void pwm_lpss_get_state(struct pwm_chip *chip, struct pwm_device *pwm,
- 			       struct pwm_state *state)
- {
-@@ -278,10 +297,25 @@ EXPORT_SYMBOL_GPL(pwm_lpss_suspend);
- int pwm_lpss_resume(struct device *dev)
- {
- 	struct pwm_lpss_chip *lpwm = dev_get_drvdata(dev);
--	int i;
-+	struct pwm_device *pwm;
-+	int i, ret;
+ #define PWM_MAX_LEVEL		0xFF
  
--	for (i = 0; i < lpwm->info->npwm; i++)
--		writel(lpwm->saved_ctrl[i], lpwm->regs + i * PWM_SIZE + PWM);
-+	for (i = 0; i < lpwm->info->npwm; i++) {
-+		pwm = &lpwm->chip.pwms[i];
-+
-+		/*
-+		 * We cannot just blindly restore the old value here. Since we
-+		 * are changing the settings we must set SW_UPDATE and if the
-+		 * PWM was enabled before we must write the new settings +
-+		 * PWM_SW_UPDATE before setting PWM_ENABLE. We must also wait
-+		 * for PWM_SW_UPDATE to become 0 again and depending on the
-+		 * model we must do this either before or after the setting of
-+		 * PWM_ENABLE.
-+		 */
-+		ret = pwm_lpss_restore_state(lpwm, pwm, &pwm->state);
-+		if (ret)
-+			dev_err(dev, "Error restoring state on resume\n");
-+	}
+-#define PWM_BASE_CLK		6000000  /* 6 MHz */
+-#define PWM_MAX_PERIOD_NS	21333    /* 46.875KHz */
++#define PWM_BASE_CLK_MHZ	6	/* 6 MHz */
++#define PWM_MAX_PERIOD_NS	5461333	/* 183 Hz */
  
- 	return 0;
- }
+ /**
+  * struct crystalcove_pwm - Crystal Cove PWM controller
+@@ -72,7 +72,7 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
+ 
+ 		/* changing the clk divisor, need to disable fisrt */
+ 		crc_pwm_disable(c, pwm);
+-		clk_div = PWM_BASE_CLK * period_ns / NSEC_PER_SEC;
++		clk_div = PWM_BASE_CLK_MHZ * period_ns / (256 * NSEC_PER_USEC);
+ 
+ 		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
+ 					clk_div | PWM_OUTPUT_ENABLE);
 -- 
 2.28.0
 
