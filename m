@@ -2,63 +2,62 @@ Return-Path: <SRS0=Uq4h=CJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB607C43461
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 11:24:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C8BFC433E6
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 11:26:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C72E22073A
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 11:24:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CD80208CA
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 11:26:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="q2WuEbVx"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RHtLyhrB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727061AbgHaLYY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 31 Aug 2020 07:24:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44336 "EHLO
+        id S1727105AbgHaLZz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 31 Aug 2020 07:25:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727833AbgHaLWv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2020 07:22:51 -0400
-Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C349C09B047;
-        Mon, 31 Aug 2020 04:18:11 -0700 (PDT)
-Received: by mail-ej1-x642.google.com with SMTP id e23so2463214eja.3;
-        Mon, 31 Aug 2020 04:18:11 -0700 (PDT)
+        with ESMTP id S1726839AbgHaLXt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2020 07:23:49 -0400
+Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD6CBC0619CA;
+        Mon, 31 Aug 2020 04:13:37 -0700 (PDT)
+Received: by mail-ej1-x644.google.com with SMTP id d11so7871165ejt.13;
+        Mon, 31 Aug 2020 04:13:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=2UbH7nyi0AzxoN4/HtEDtyeYbzdgvbboDc5iNNOozuA=;
-        b=q2WuEbVxohARvB4Qoi9K1TlmUo3Tgr9p15PC50hyeczvRXO0i5nkPqtcDrhXfLq/hB
-         GT/EhUKQXWE1iyuvndV1Cp0YwAETUznP2jnQHFDVLTQQcMknNVnQtYkTiRpaigMaBUH/
-         rr9hfbpUgmW1xhaC1oP9L0Drb9fHj77gtwdL+zjK1uGxpplGsbqU4k+ykftDR97vYCoS
-         YaSYswZO5dYYfBI7mcWglU/g6YWbRoO+OXdlBtb9e7F33dnqMG4QK1ZswNVT3FFVX/ZV
-         C6J+P8WHY7YnaAc2d/JPES+3QSdz4yD28Eg1OyTzFAbZOux3v8ttPPBwDx+0UI1xoZ3p
-         CNSw==
+        bh=uiq1cUbeSmf2nROOprhl6mdhCamogzxlqoFdXIf/qZc=;
+        b=RHtLyhrBolt+TqeMaC05hisXL+7NqI+w+tPDmltM/9ec6jphOiFza+z7K0gIL6yaE3
+         0TveumY7Dam8sD+gksH0BTTvluilSvEsvFcdrGEyJ0MCYIWeb2/D4eDHILXHeBSQeb0E
+         Mx5Cme7LUSDXCwmNFXq3mExTd3LYHLVjc5joIz1oJz0DyaPosdVj+Ibg/mQna0Mj9q0j
+         FYNK/G8X/XlcLssTORZlw9ii31FZ8fzcKx/XtKDsY4c4/1HOLJum4LbOYVa8EOXIAy0M
+         lqqv99GcvoDCNw2cQDEfLvuKEs0r7EWZ40iu89PrSRZywO/4YfaF9yCz7JG//icpcbnA
+         csYw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=2UbH7nyi0AzxoN4/HtEDtyeYbzdgvbboDc5iNNOozuA=;
-        b=XGsE0yhWRzUYy0lh3VpF/ZFNAJoVJASGe3YAlkRSdoLOIfZB1mMhwfBlsJO9iOQqyp
-         9SpoGMW94RIzXE4A4PqSHdaBJ8I7Qh7mYMj2nUbCPNrcruFpoF4vVQbTka91sj/cfmh8
-         /DZTacoe80PuEthVemnvdm2OlRaMqtvEk3kwdUjAMGEjxyv8WcmjuFcENqGft6gx6vNq
-         LgVnkviqv0k9gOv/0yRix3a0cLiwKB6IjP7DbWnTk8E7ouVPd/yd1fG/5Po2QhdZbf8c
-         KtVlmXTZvpLjdfcVCLWlkCEHm/qnq3PM6MH1+Lx9CahvnveR/4Mn/EV2XUEsfNL+U+5O
-         vcRw==
-X-Gm-Message-State: AOAM530axSMw79HGOHWPK+m4+Js4TQDbK9eKW35kP+ZJSBYb6FdwwWqf
-        Qs6AOlLsMN/R3Yu7SC0lq+U=
-X-Google-Smtp-Source: ABdhPJybJO3HGYkWU9kdY1Mxc+UjAiVH4EAhTo9VGUWfQXMQrFBgj/2Mff1SFpVi3mp1OVhiDj++cQ==
-X-Received: by 2002:a17:906:7856:: with SMTP id p22mr643614ejm.262.1598872689810;
-        Mon, 31 Aug 2020 04:18:09 -0700 (PDT)
+        bh=uiq1cUbeSmf2nROOprhl6mdhCamogzxlqoFdXIf/qZc=;
+        b=T6WUmatFwXZC3sI9Gr/U24JBzQA8Egs76zDq9OIewW8DoYg2xx0BUKTHZC4GvGT1nR
+         Jp/t7CczpDPXYaPQ8V5KQQWzxtpDWq4Ph+ICyyaGvx0dCQO+Zflvr/GI9DbtfLO9Dkar
+         lw7NmmTsVS660rT9zlcPbNzhAH7ZVP9jJmLUFi8rYc9rF5koxHjx5+XcuJprJmCVENNy
+         ZnJx6629Ir4iEfSsldn0HQJ9XADfG0jVAjMdMWaRq/tDoFherpdsiSfEkEvX/yp8p6jN
+         rFiJe2R6qagyAAF8wsYv/1oj2PxJzL2VWB1BYgaPx+2I5AFHh2M4mp9n1/HM1lQfY7Lk
+         Oagw==
+X-Gm-Message-State: AOAM5330iDO+w75sr9o7Kb5ee/+SdStKkhgoifP60JlI0wLDOlDNooyl
+        OHQ40FBfQiSPs2/iBdTz71w=
+X-Google-Smtp-Source: ABdhPJyAruYaY1SfCiv4fAG8Io2yH/p+frp4A4m4mXAV4OCTvuDbkVMW0zkXM9YEDu4/QZMqfL8glA==
+X-Received: by 2002:a17:906:3993:: with SMTP id h19mr663058eje.111.1598872416458;
+        Mon, 31 Aug 2020 04:13:36 -0700 (PDT)
 Received: from localhost ([62.96.65.119])
-        by smtp.gmail.com with ESMTPSA id nh1sm3984880ejb.21.2020.08.31.04.18.08
+        by smtp.gmail.com with ESMTPSA id q13sm1747540edr.27.2020.08.31.04.13.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Aug 2020 04:18:08 -0700 (PDT)
-Date:   Mon, 31 Aug 2020 13:18:07 +0200
+        Mon, 31 Aug 2020 04:13:35 -0700 (PDT)
+Date:   Mon, 31 Aug 2020 13:13:34 +0200
 From:   Thierry Reding <thierry.reding@gmail.com>
 To:     Hans de Goede <hdegoede@redhat.com>
 Cc:     Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
@@ -74,15 +73,16 @@ Cc:     Uwe =?utf-8?Q?Kleine-K=C3=B6nig?=
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v8 13/17] pwm: crc: Implement get_state() method
-Message-ID: <20200831111807.GL1688464@ulmo>
+Subject: Re: [PATCH v8 07/17] pwm: lpss: Always update state and set update
+ bit
+Message-ID: <20200831111334.GE1688464@ulmo>
 References: <20200830125753.230420-1-hdegoede@redhat.com>
- <20200830125753.230420-14-hdegoede@redhat.com>
+ <20200830125753.230420-8-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="CgTrtGVSVGoxAIFj"
+        protocol="application/pgp-signature"; boundary="84ND8YJRMFlzkrP4"
 Content-Disposition: inline
-In-Reply-To: <20200830125753.230420-14-hdegoede@redhat.com>
+In-Reply-To: <20200830125753.230420-8-hdegoede@redhat.com>
 User-Agent: Mutt/1.14.6 (2020-07-11)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
@@ -90,59 +90,92 @@ List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 
---CgTrtGVSVGoxAIFj
-Content-Type: text/plain; charset=utf-8
+--84ND8YJRMFlzkrP4
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Aug 30, 2020 at 02:57:49PM +0200, Hans de Goede wrote:
-> Implement the pwm_ops.get_state() method to complete the support for the
-> new atomic PWM API.
+On Sun, Aug 30, 2020 at 02:57:43PM +0200, Hans de Goede wrote:
+> This commit removes a check where we would skip writing the ctrl register
+> and then setting the update bit in case the ctrl register already contains
+> the correct values.
 >=20
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v6:
-> - Rebase on 5.9-rc1
-> - Use DIV_ROUND_UP_ULL because pwm_state.period and .duty_cycle are now u=
-64
+> In a perfect world skipping the update should be fine in these cases, but
+> on Cherry Trail devices the AML code in the GFX0 devices' PS0 and PS3
+> methods messes with the PWM controller.
 >=20
-> Changes in v5:
-> - Fix an indentation issue
+> The "ACPI / LPSS: Resume Cherry Trail PWM controller in no-irq phase" pat=
+ch
+> earlier in this series stops the GFX0._PS0 method from messing with the P=
+WM
+> controller and on the DSDT-s inspected sofar the _PS3 method only reads
+> from the PWM controller (and turns it off before we get a change to do so=
+):
 >=20
-> Changes in v4:
-> - Use DIV_ROUND_UP when calculating the period and duty_cycle from the
->   controller's register values
+>     {
+>         PWMB =3D PWMC /* \_SB_.PCI0.GFX0.PWMC */
+>         PSAT |=3D 0x03
+>         Local0 =3D PSAT /* \_SB_.PCI0.GFX0.PSAT */
+>     }
 >=20
-> Changes in v3:
-> - Add Andy's Reviewed-by tag
-> - Remove extra whitespace to align some code after assignments (requested=
- by
->   Uwe Kleine-K=C3=B6nig)
-> ---
->  drivers/pwm/pwm-crc.c | 31 +++++++++++++++++++++++++++++++
->  1 file changed, 31 insertions(+)
+> The PWM controller getting turning off before we do this ourselves is
+> a bit annoying but not really an issue.
+>=20
+> The problem this patch fixes comes from a new variant of the GFX0._PS3 co=
+de
+> messing with the PWM controller found on the Acer One 10 S1003 (1):
+>=20
+>     {
+>         PWMB =3D PWMC /* \_SB_.PCI0.GFX0.PWMC */
+>         PWMT =3D PWMC /* \_SB_.PCI0.GFX0.PWMC */
+>         PWMT &=3D 0xFF0000FF
+>         PWMT |=3D 0xC0000000
+>         PWMC =3D PWMT /* \_SB_.PCI0.GFX0.PWMT */
+>         PWMT =3D PWMC /* \_SB_.PCI0.GFX0.PWMC */
+>         Sleep (0x64)
+>         PWMB &=3D 0x3FFFFFFF
+>         PWMC =3D PWMB /* \_SB_.PCI0.GFX0.PWMB */
+>         PSAT |=3D 0x03
+>         Local0 =3D PSAT /* \_SB_.PCI0.GFX0.PSAT */
+>     }
+>=20
+> This "beautiful" piece of code clears the base-unit part of the ctrl-reg,
+> which effectively disables the controller, and it sets the update flag
+> to apply this change. Then after this it restores the original ctrl-reg
+> value, so we do not see it has mucked with the controller.
+>=20
+> *But* it does not set the update flag when restoring the original value.
+> So the check to see if we can skip writing the ctrl register succeeds
+> but since the update flag was not set, the old base-unit value of 0 is
+> still in use and the PWM controller is effectively disabled.
+>=20
+> IOW this PWM controller poking means that we cannot trust the base-unit /
+> on-time-div value we read back from the PWM controller since it may not
+> have been applied/committed. Thus we must always update the ctrl-register
+> and set the update bit.
 
-Acked-by: Thierry Reding <thierry.reding@gmail.com>
+Doesn't this now make patch 6/17 obsolete?
 
---CgTrtGVSVGoxAIFj
+Thierry
+
+--84ND8YJRMFlzkrP4
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAl9M3G8ACgkQ3SOs138+
-s6E/+BAAocda+M6anWstR2+VY/j/fIRJqp9Uutp3/NB5Evzr7HJoJNH5vvaX0CRu
-XqzhdH7nr5WJwWuAXjWc9HLsWYOlVxD7cjQZp4mb/jDtO4p/JKjmY2x2lPoajMm7
-CzjyPXwOg+WBW0xcaJmgfxJE8acB7wRWK9HeJ/yfUNiaya0/gR0iNcZfAfr+9SlZ
-aXglvu1KK14kNRYZRgu+hZWooP1aPa330ldfzrh2nfV8lALUdpV0dbu4WhGrSudW
-wevvN4Ss9tynApqlWTY0o8HikNnwttIbMGx7XZnkrOyTvFLrSuXHi1YHGMMUIycl
-6rdsp0cdK9nrnxAFPZiYISgZAWEQPiDR//xTlSMCxbasYNAG+saK6EWM1chAW1vS
-BLQPfD0aOxD9wngV8SV7AedZcUoRy224s5ko/NQWy/EYYgWg73ta24hNkX1GqUp/
-2l66DbLyaFhGg3xTiUCk3E7yrFxbjgOrtpUhN6t9i6cPzDhJI8akbf2gS419EUjo
-uKJvEUa4YJERUbWp2KQgoZnOyTFpv/7xIblyHsujcFJ/t7hxLLVV14yHs1iBu2k5
-ZPmChGQaUO1eXAbCHThintTquvR+IvY+SeXceX1kCIe44JJYjm4nupX1gW33lLrl
-nIQCrgA5W5YtASdRZIQ2hwCInbabfpv0TVSjdQKLvHasrC2MPqE=
-=YZ0E
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAl9M214ACgkQ3SOs138+
+s6HyQA//Zwteh6ZasvMpgdOFoCOqkNNdUxkzeajsfMOU4r10Pct+JMdgrO00IMHU
+kA/i5QzOtv4OC6h2t9U3OgDtgmY0CogC2nPDaoXv8KJu2zLja14rC5q1W7UDc3pX
+aoBmVcpV+YdKBUvVVRBDNpPsUK4UkXNgECs2k3RUfr5lFLeNtklzoItLh/cgYD10
+bt9+p5NnXGxwFWL1uSQef1dcGq/4MM6p7V+fS/xX+rMNoCEQMWfGhCJTX8N4172v
+h7G5rdAGLzhRPthHpA/yRiWjM/+lLNmjKzlu1O0Iso9K2CYxzE5MDFkuinaTUMiY
+kS6h53tjittvDFDdDPuXWHDFqO0oBjVSGjnl+OjZyAeWBPND0fr86e2xtPcJIDA4
+DGoiuo0egkl0aaAZCZR1+h6k0Wt0ZPzfj1vUrShq13wbqG8ecdPcR3nlMaOCISXp
+pr/NjfRvgtefjMES3FnKWFHZJBJFMMC/t+/ZNqOfbqVputSpd5KplEepoQuRjaSA
+6BkGixZ2jQckDfOX1ic8q7BxuExoPOMpOZj/XDP7z1jnaYlZyEVB/5dA1daf7Wwj
+05YImBmCuutqfQY8Qe5B31KYSmynXkaU2CQIQyjlc9qW+L0AFvY9jXQhLEiLpX9v
+Ty0yRAYBGU/6X6MKLBw+ZoMG2eWxz3BoOrOXEuua1JBBj9sXBx0=
+=qh5h
 -----END PGP SIGNATURE-----
 
---CgTrtGVSVGoxAIFj--
+--84ND8YJRMFlzkrP4--
