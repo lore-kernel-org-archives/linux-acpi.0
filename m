@@ -2,83 +2,140 @@ Return-Path: <SRS0=Uq4h=CJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 776F6C433E6
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 10:00:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3893BC433E7
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 11:21:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5707020693
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 10:00:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19CE020866
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 Aug 2020 11:21:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fNIzhqpT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726224AbgHaKA2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 31 Aug 2020 06:00:28 -0400
-Received: from sauhun.de ([88.99.104.3]:32800 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726081AbgHaKA1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Aug 2020 06:00:27 -0400
-Received: from localhost (p5486cebe.dip0.t-ipconnect.de [84.134.206.190])
-        by pokefinder.org (Postfix) with ESMTPSA id 8149E2C0537;
-        Mon, 31 Aug 2020 12:00:23 +0200 (CEST)
-Date:   Mon, 31 Aug 2020 12:00:23 +0200
-From:   Wolfram Sang <wsa@the-dreams.de>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-i2c@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, Bingbu Cao <bingbu.cao@intel.com>,
-        linux-media@vger.kernel.org,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Subject: Re: [PATCH v6 1/6] i2c: Allow an ACPI driver to manage the device's
- power state during probe
-Message-ID: <20200831100022.GB1070@ninjato>
-References: <20200826115432.6103-1-sakari.ailus@linux.intel.com>
- <20200826115432.6103-2-sakari.ailus@linux.intel.com>
+        id S1726468AbgHaLVU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 31 Aug 2020 07:21:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43786 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726756AbgHaLR6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2020 07:17:58 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CB37C061A02;
+        Mon, 31 Aug 2020 04:16:30 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id b17so7924342ejq.8;
+        Mon, 31 Aug 2020 04:16:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=ZTtymY1waFOvQOwsLNqggU5bT+3mUvNOZsCRMAvPRas=;
+        b=fNIzhqpTsOH1zDgcqrkm6eT2FxZM5JptN/pSFYkSuN7E7tL762Y9OWPlfV59vPRMnN
+         KJWWbHqEbAvyD960uzowyBKQLXlYIrafYvajZ1RNHsRz5rLjpRI0C/6zIZZPil/UnVGz
+         +BHqFkr7QZKX+Ad2/qSOHU2MtWgpLmSx5fVGtCHQky6fpebjhkMQY1UXDVYUTiUB3hKt
+         XETdY7aZJlnM3eUVCw7/AgXzr45SBSgorQH4dqzWfkfNvn/2TTnN/JlIJFYZQSJqvCpc
+         TtzcTWxiiZa4x1x3gftJRZ5+pALECacgRqnPXi51vT20JwpQgpdWG4TgQQ4BRNDEWTL1
+         1fQA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=ZTtymY1waFOvQOwsLNqggU5bT+3mUvNOZsCRMAvPRas=;
+        b=bGe4V+avMEFNADkmurUhteb6cVNMAz4pCYiPI0UTCmm5GKwswQNypPfixkBaPzKxVq
+         FmD3ad7L6X41wBrA4Y3JRKWsa7lxz94vXGLFPLeOaIdhI8hkc22cXPk7Imkyrg3hACLC
+         b1GjsqbcrGLd/vNePVg4dDqC8gg14JaMGPWm7sbSHM8olc+mIVy4xKqmP5XPTOYGsfYj
+         pXgy9b9j2nEE3v88e6yu0irfmhmWTOFzhW88o2cxtAfprQ1LiiMArzgelAtvYdBJ9kpC
+         J6ez9pRddbvt8ZRR/Af6P1KD3XD6nUyHQxZJWmsZhDtPmpaXjdY0cXYN2Xs2/nsqrYpL
+         meOg==
+X-Gm-Message-State: AOAM530greRk3W+Lwba8XLnqZhSydUHdstTEaVv+LeCeG/34J/w0OPn4
+        h/YhxqARGucWX7s6kvow5vs=
+X-Google-Smtp-Source: ABdhPJzotGlbD5NfItBcSRE3Z5cStQ3EuAjruXFrODvQJL9yNrHxXDF3A5ZTYht4Ids6e3qv76Arqg==
+X-Received: by 2002:a17:906:f957:: with SMTP id ld23mr621987ejb.187.1598872589352;
+        Mon, 31 Aug 2020 04:16:29 -0700 (PDT)
+Received: from localhost ([62.96.65.119])
+        by smtp.gmail.com with ESMTPSA id a26sm7956389eje.78.2020.08.31.04.16.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 31 Aug 2020 04:16:28 -0700 (PDT)
+Date:   Mon, 31 Aug 2020 13:16:27 +0200
+From:   Thierry Reding <thierry.reding@gmail.com>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Ville =?utf-8?B?U3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-pwm@vger.kernel.org,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        dri-devel@lists.freedesktop.org,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v8 11/17] pwm: crc: Enable/disable PWM output on
+ enable/disable
+Message-ID: <20200831111627.GJ1688464@ulmo>
+References: <20200830125753.230420-1-hdegoede@redhat.com>
+ <20200830125753.230420-12-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="bCsyhTFzCvuiizWE"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="GlnCQLZWzqLRJED8"
 Content-Disposition: inline
-In-Reply-To: <20200826115432.6103-2-sakari.ailus@linux.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20200830125753.230420-12-hdegoede@redhat.com>
+User-Agent: Mutt/1.14.6 (2020-07-11)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 
---bCsyhTFzCvuiizWE
-Content-Type: text/plain; charset=us-ascii
+--GlnCQLZWzqLRJED8
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Sun, Aug 30, 2020 at 02:57:47PM +0200, Hans de Goede wrote:
+> The pwm-crc code is using 2 different enable bits:
+> 1. bit 7 of the PWM0_CLK_DIV (PWM_OUTPUT_ENABLE)
+> 2. bit 0 of the BACKLIGHT_EN register
+>=20
+> So far we've kept the PWM_OUTPUT_ENABLE bit set when disabling the PWM,
+> this commit makes crc_pwm_disable() clear it on disable and makes
+> crc_pwm_enable() set it again on re-enable.
+>=20
+> Acked-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> Changes in v3:
+> - Remove paragraph about tri-stating the output from the commit message,
+>   we don't have a datasheet so this was just an unfounded guess
+> ---
+>  drivers/pwm/pwm-crc.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 
-> +	unsigned int flags;
+Acked-by: Thierry Reding <thierry.reding@gmail.com>
 
-u32?
-
-
---bCsyhTFzCvuiizWE
+--GlnCQLZWzqLRJED8
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAl9MyjYACgkQFA3kzBSg
-KbYsfw//UgYn/PzkMeyk6d+Otmk/8HU9JGUA7pWj0FokOdh0mJkaa1DEFXAzLM01
-HUyJhdQiW7lTW0eaDT2SNwq+FubadRMjoCpmQRrRo3+LPEaxGtpYv/2bdZncvIx2
-unefFvMjag2MSW/cacSa3Q6HvzlwCxAQ63gK8tdosSDvOkhQOVek05kSE3FG+5GF
-Qxc7YLCASq23/MPeRiT622hSUbsNZOW60VU3TGeYmmO2SduKJiXuni9vsPLoIhOo
-Q8hrviC3rn7Ai0UnsKNQs0g0vMT8gm6oLiKe1pKp5s0xlqUSmHmKyhYSJkNIQHwd
-W78v1Dwp5k733YXQ8QH2i4Y0cCIstTqx68tgZhfbH6C14gNJgB8xSAQDjEuPqPcQ
-GJJDh4hCuF2F1hUN/4zwranxM16B7J9PmF2hN6li3YJKPKVlmltPGx0MDvKHBnBY
-32WfDVw4iEOIvN6zMoYmaKBeW4+Tcfndb9JuQD9Qy120VXDoCqLXTcNO16O7Z++e
-9RhGEFVAtDauB55rnEkZ1J5+ueyxo7BpNi+E1oyYacsVbuOCrUA8GKwQgqR06WFf
-WGJ9aO+IElSgiwBksTlVYJ3hnG0nrM8auo+hFle5g4Pk/XHgS5m4zJYNgSkn8uPL
-V4drgFiV93hgYgYb1DHPyaZRRXmkHJV2kWp+as1qOQMa4pXORoM=
-=gT6D
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAl9M3AoACgkQ3SOs138+
+s6EUhxAAqOyFk4YOHZ0q1M0s3MiWg2o5JRPl597Q/FuVMDlLNPSHqYQGo8XNsauY
+eTT7GKVu6y1mXSkc75KJi4FpBqnCepoCqtBEWqABNvjNGYsS/88m70kVmf73ZQBp
+/4W1yIxIpIli3s8YRyZweaFXrEA54qhokh2m7LNcxuqro6FaFjszUJ6CTqwdXf8m
+v6v3onrRov+vdt1vgBumJORDpfd/H02hUWcSL3V0aD6y2BeRAtrEj72QFqLbr2jo
+2pJpEa+gdFdLfgcOLnmzXciBDAtjB+foU7LcQTwMUfvPWnuUi2ltgNPWt000X21x
+hyCkjSWIxGQ9YdGryKgHETe3DVsJL0WCi04uI49H6sevupB1NEzp7/vj5gCfI38s
+c8aIH0B03Rn3K+pW4YfuQFGYDVjZV3Pt9Xtv/XMC+tWdv37hQyd055hBpi/bpPuD
+49usRQxckKeJ/pBplg3RT5EP8tQrjP0cOXFgnr25s2HaRlIUFHvtlVaZRtOs9n6J
+44e3XPWbRvDbXco341AkiffDUDvi7EYPRM5kxaX9TuSWB3idlGPKZPHohD+ENb/Q
+RW8o4qHRS4cfRyXchuq6WWoyXGrj9588+Dl3ueqAgE7YCq9j/aRVu+18q0H+VRVB
+JKavgjXYLZQBlFWDg3Fa+MXibEYCVnAaI5I5K7KPxZ3PP0NxyIQ=
+=fUlj
 -----END PGP SIGNATURE-----
 
---bCsyhTFzCvuiizWE--
+--GlnCQLZWzqLRJED8--
