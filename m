@@ -2,81 +2,157 @@ Return-Path: <SRS0=kwyu=CL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0598C433E7
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Sep 2020 11:56:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83481C43461
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Sep 2020 15:57:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FE0A20758
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Sep 2020 11:56:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F0ED207EA
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Sep 2020 15:57:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599062246;
+	bh=di7oB6z89bc0JJQJfIcyG++9jmlU3N16jB15jFiLFGA=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=Qw5VBkRV+TmWAdfY8MBz33gRo6VgCzOaLI715ZeXxLnpt9gUpXlfpuSMNXYD0M7dZ
+	 cZUJp1uBdtKXq+GFzBSj1BcoCvdjipj9eP8uChHuLHI7Net5o7CB9it5/sI6vOmEl0
+	 26WBgMHo2J7QAgGoI/gCOSfRE4xy0rLmmLHniTy8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726124AbgIBL4F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Sep 2020 07:56:05 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:10797 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726140AbgIBL4B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 2 Sep 2020 07:56:01 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 62FD375B707AA335712F;
-        Wed,  2 Sep 2020 19:55:57 +0800 (CST)
-Received: from [127.0.0.1] (10.174.179.33) by DGGEMS410-HUB.china.huawei.com
- (10.3.19.210) with Microsoft SMTP Server id 14.3.487.0; Wed, 2 Sep 2020
- 19:55:49 +0800
-Subject: Re: [PATCH v2 0/2] ACPI/IORT: Code cleanups
-To:     Will Deacon <will@kernel.org>
-CC:     Zenghui Yu <yuzenghui@huawei.com>, <lorenzo.pieralisi@arm.com>,
-        <sudeep.holla@arm.com>, <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <wanghaibin.wang@huawei.com>
-References: <3142b38e-fef0-a7cf-319e-96c5da04967c@huawei.com>
- <20200902094806.GA5567@willie-the-truck>
-From:   Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <bcbc099d-8a50-95c1-ad72-709368e326b2@huawei.com>
-Date:   Wed, 2 Sep 2020 19:55:48 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+        id S1726618AbgIBP5P convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Sep 2020 11:57:15 -0400
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:41209 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726380AbgIBP5N (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Sep 2020 11:57:13 -0400
+Received: by mail-oi1-f195.google.com with SMTP id 2so4817882ois.8;
+        Wed, 02 Sep 2020 08:57:12 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=9DEmVUjPTyBKjnvLO+wWE+XjYNvSuVDxJTujI+Ajagc=;
+        b=tah/q2vZSU9oxJGcPFUN5fLabRgqZl8zP6NJUTySpXfPW61JTp4ilmA/aAM56B5vxh
+         Zhgl2mqe0Nh8Zo624Y6D0/AIm40SJMW7XWwFItqlJ3EELZj56utzFsG3X53Jt8TGdjh1
+         fuW3QYQVTPhYTw+WcKn/tOobIeFzXT/xU1J/L1U1ecISDz6eJm4aNkkYrHGqWUMKCq+M
+         yohjfgZdh/TadwE2MGUuyJ0E9rO13yzd6H+yF0ltZL2xo1/L/itpSGW0R4dV48/eh/yL
+         hc3gvcyE6QAWx5IFnqvK8KOTWqTo1bxgQkyo1Oyc4OYx5961g9z/5heeHPuJ+pqWoMdo
+         ISsw==
+X-Gm-Message-State: AOAM532ISOINb0De+lNwJwIA7zCoPND6PQvYQnvybKEtVNDQWcCYKubZ
+        UbD1FSOTz+a+LfOyTokVtasF+v4rDeLv2K0RzXE=
+X-Google-Smtp-Source: ABdhPJxISKaKeJir20XopYsr2P5EemHb8bMmTSWmdl+aDQipaSVLQOc5ztTEce5sBNaV5tILpcudk3dJ78Xf43NpMbg=
+X-Received: by 2002:aca:fd95:: with SMTP id b143mr2357844oii.68.1599062232602;
+ Wed, 02 Sep 2020 08:57:12 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20200902094806.GA5567@willie-the-truck>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.179.33]
-X-CFilter-Loop: Reflected
+References: <20200901210333.8462-1-sakari.ailus@linux.intel.com> <20200901210333.8462-7-sakari.ailus@linux.intel.com>
+In-Reply-To: <20200901210333.8462-7-sakari.ailus@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 2 Sep 2020 17:57:01 +0200
+Message-ID: <CAJZ5v0jFceTFRTD55cz3ZHRZpuNRK_z9=_DxWexc8ArsGU3cog@mail.gmail.com>
+Subject: Re: [PATCH v7 6/6] Documentation: ACPI: Document allow-low-power-probe
+ _DSD property
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     linux-i2c <linux-i2c@vger.kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        Hyungwoo Yang <hyungwoo.yang@intel.com>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2020/9/2 17:48, Will Deacon wrote:
-> On Wed, Sep 02, 2020 at 05:17:43PM +0800, Hanjun Guo wrote:
->> +Cc Will
->>
->> On 2020/8/18 17:16, Hanjun Guo wrote:
->>> On 2020/8/18 14:36, Zenghui Yu wrote:
->>>> * From v1 [1]:
->>>>     - As pointed out by Hanjun, remove two now unused inline functions.
->>>>       Compile tested with CONFIG_IOMMU_API is not selected.
->>>>
->>>> [1] https://lore.kernel.org/r/20200817105946.1511-1-yuzenghui@huawei.com
->>>>
->>>> Zenghui Yu (2):
->>>>     ACPI/IORT: Drop the unused @ops of iort_add_device_replay()
->>>>     ACPI/IORT: Remove the unused inline functions
->>>>
->>>>    drivers/acpi/arm64/iort.c | 10 ++--------
->>>>    1 file changed, 2 insertions(+), 8 deletions(-)
->>>
->>> Nice cleanup.
->>>
->>> Acked-by: Hanjun Guo <guohanjun@huawei.com>
->>
->> Will, would you mind taking this patch set via ARM64 tree?
-> 
-> Sure, no problem. I'll queue this for 5.10 later this week.
+On Tue, Sep 1, 2020 at 11:03 PM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> Document the probe-low-power _DSD property and how it is used with I²C
+> drivers.
 
-Thanks!
+I would reorder the series to make this go right after the [1/6] or
+maybe even fold it into that patch.
 
-Hanjun
+The point is that the changes in [1/6] clearly depend on the property
+defined here.
 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  .../acpi/dsd/allow-low-power-probe.rst        | 28 +++++++++++++++++++
+>  Documentation/firmware-guide/acpi/index.rst   |  1 +
+>  2 files changed, 29 insertions(+)
+>  create mode 100644 Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst
+>
+> diff --git a/Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst b/Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst
+> new file mode 100644
+> index 0000000000000..6fcc89162b898
+> --- /dev/null
+> +++ b/Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst
+> @@ -0,0 +1,28 @@
+> +.. SPDX-License-Identifier: GPL-2.0
+> +
+> +======================================
+> +Probing I²C devices in low power state
+> +======================================
+> +
+> +Introduction
+> +============
+> +
+> +In some cases it may be preferred to leave certain devices powered off for the
+> +entire system bootup if powering on these devices has adverse side effects,
+> +beyond just powering on the said device. Linux recognizes the _DSD property
+> +"allow-low-power-probe" that can be used for this purpose.
+
+It would be good to refer to the document defining the generic _DSD
+properties mechanism and the GUID used for that from here.
+
+The meaning of  "_DSD property" may not be entirely clear to the
+reader as it stands.
+
+And maybe call the property "i2c-allow-low-power-probe" or similar, to
+indicate that it is specific to i2c.
+
+> +
+> +How it works
+> +============
+> +
+> +The property "allow-low-power-probe" boolean property may be used to tell Linux
+
+"boolean device property" ?
+
+> +that the I²C framework should instruct the kernel ACPI framework to leave the
+> +device in the low power state. If the driver indicates its support for this by
+> +setting the I2C_DRV_FL_ALLOW_LOW_POWER_PROBE flag in struct i2c_driver.flags
+> +field and the "allow-low-power-probe" property is present, the device will not
+> +be powered on for probe.
+> +
+> +The downside is that as the device is not powered on, even if there's a problem
+> +with the device, the driver likely probes just fine but the first user will
+> +find out the device doesn't work, instead of a failure at probe time. This
+> +feature should thus be used sparingly.
+
+It would be good to give an ASL example with this property provided.
+
+> diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+> index ad3b5afdae77e..0070fcde9e669 100644
+> --- a/Documentation/firmware-guide/acpi/index.rst
+> +++ b/Documentation/firmware-guide/acpi/index.rst
+> @@ -11,6 +11,7 @@ ACPI Support
+>     dsd/graph
+>     dsd/data-node-references
+>     dsd/leds
+> +   dsd/allow-low-power-probe
+>     enumeration
+>     osi
+>     method-customizing
+> --
