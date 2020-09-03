@@ -2,238 +2,109 @@ Return-Path: <SRS0=jFhf=CM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65BE1C433E7
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 08:17:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F7CBC433E2
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 09:15:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4796F2145D
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 08:17:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E284A206C0
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 09:15:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726268AbgICIRA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Sep 2020 04:17:00 -0400
-Received: from mga01.intel.com ([192.55.52.88]:25400 "EHLO mga01.intel.com"
+        id S1726368AbgICJPe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Sep 2020 05:15:34 -0400
+Received: from mga06.intel.com ([134.134.136.31]:11928 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728813AbgICIPw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Sep 2020 04:15:52 -0400
-IronPort-SDR: a2DFt1QwAuboI8062TBAWpSCANPy/5Z201bSdy6dtLpR+Io6lSD/V+sMJcZD1QYWtHbiqGAZ7O
- 2P4eGnsIvJ+g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9732"; a="175590024"
-X-IronPort-AV: E=Sophos;i="5.76,385,1592895600"; 
-   d="scan'208";a="175590024"
+        id S1726448AbgICJPa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Sep 2020 05:15:30 -0400
+IronPort-SDR: ukH17gRd9vHc2+VsGS3TohXhgXyQl4VeTgeztOH6druTKRQI+EBvs7FIC81FEVpr6Kd9R+EXvp
+ JbRMzW73/N5Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9732"; a="219097810"
+X-IronPort-AV: E=Sophos;i="5.76,386,1592895600"; 
+   d="scan'208";a="219097810"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2020 01:15:43 -0700
-IronPort-SDR: iMCzDARkOVmIsx5TZoFXvkYXPh3SIzSXRh2cVkiDZ7I2B0M4MQsOL84NQi5SF4O0GZrRU0eNJ0
- VERnZNFBbvvg==
-X-IronPort-AV: E=Sophos;i="5.76,385,1592895600"; 
-   d="scan'208";a="341703334"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2020 01:15:40 -0700
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 6C9092034D;
-        Thu,  3 Sep 2020 11:15:38 +0300 (EEST)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1kDkPO-0001bK-Fv; Thu, 03 Sep 2020 11:15:50 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     linux-i2c@vger.kernel.org
-Cc:     Wolfram Sang <wsa@the-dreams.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2020 02:15:28 -0700
+IronPort-SDR: rFW+jbc8gBsn7equBPvkpsioGXQfvYEYdufcAcQMn/FHRK+C9m3/X4A0niB0QwR3JCSmFy2edj
+ 0AD4XprqLVWA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,386,1592895600"; 
+   d="scan'208";a="405426988"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
+  by fmsmga001.fm.intel.com with SMTP; 03 Sep 2020 02:15:23 -0700
+Received: by lahna (sSMTP sendmail emulation); Thu, 03 Sep 2020 12:15:22 +0300
+Date:   Thu, 3 Sep 2020 12:15:22 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     linux-usb@vger.kernel.org
+Cc:     Michael Jamet <michael.jamet@intel.com>,
+        Yehezkel Bernat <YehezkelShB@gmail.com>,
+        Andreas Noever <andreas.noever@gmail.com>,
+        Rajmohan Mani <rajmohan.mani@intel.com>,
+        Dana Alkattan <dana.alkattan@intel.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Len Brown <lenb@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v8 0/6] Support running driver's probe for a device powered off
-Date:   Thu,  3 Sep 2020 11:15:44 +0300
-Message-Id: <20200903081550.6012-1-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.20.1
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Subject: Re: [PATCH 00/19] thunderbolt: Power Management improvements
+Message-ID: <20200903091522.GD1375436@lahna.fi.intel.com>
+References: <20200819115905.59834-1-mika.westerberg@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200819115905.59834-1-mika.westerberg@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Wed, Aug 19, 2020 at 02:58:46PM +0300, Mika Westerberg wrote:
+> Hi all,
+> 
+> This series improves power management in the Thunderbolt driver. We already
+> have a quite complete power management on systems where Firmware based
+> Connection Manager is used (this is pretty much all non-Apple systems out
+> there) so this series adds a couple of optimizations to make certain power
+> transitions slightly faster, hopefully improving user experience.
+> 
+> Rest of the patches improve power management in the Software Connection
+> manager side of the driver. USB4 spec covers power management for USB4
+> hosts and devices, and also TBT3 compatible devices so these patches
+> implement that. We also switch to use device links instead of PCI quirk to
+> make sure the Thunderbolt/USB4 host controller is resumed before tunneled
+> PCIe and USB 3.x ports (so that it gets the chance to restore the tunnels
+> properly before). Tiger Lake systems with Software Connection Manager
+> enabled describe these relationships using a new ACPI _DSD property that we
+> parse in the driver and populate device links accordingly.
+> 
+> Mika Westerberg (17):
+>   thunderbolt: Software CM only should set force power in Tiger Lake
+>   thunderbolt: Use bit 31 to check if Firmware CM is running in Tiger Lake
+>   thunderbolt: Do not program NFC buffers for USB4 router protocol adapters
+>   thunderbolt: No need to log an error if tb_switch_lane_bonding_enable() fails
+>   thunderbolt: Send reset only to first generation routers
+>   thunderbolt: Tear down DP tunnels when suspending
+>   thunderbolt: Initialize TMU again on resume
+>   thunderbolt: Do not change default USB4 router notification timeout
+>   thunderbolt: Configure link after lane bonding is enabled
+>   thunderbolt: Set port configured for both ends of the link
+>   thunderbolt: Configure port for XDomain
+>   thunderbolt: Disable lane 1 for XDomain connection
+>   thunderbolt: Enable wakes from system suspend
+>   PCI / thunderbolt: Switch to use device links instead of PCI quirk
+>   ACPI: Export acpi_get_first_physical_node() to modules
+>   thunderbolt: Create device links from ACPI description
+>   thunderbolt: Add runtime PM for Software CM
+> 
+> Rajmohan Mani (2):
+>   thunderbolt: Optimize Force Power logic
+>   thunderbolt: Optimize NHI LC mailbox command processing
 
-Hi all,
+All applied to thunderbolt.git/next.
 
-These patches enable calling (and finishing) a driver's probe function
-without powering on the respective device on busses where the practice is
-to power on the device for probe. While it generally is a driver's job to
-check the that the device is there, there are cases where it might be
-undesirable. (In this case it stems from a combination of hardware design
-and user expectations; see below.) The downside with this change is that
-if there is something wrong with the device, it will only be found at the
-time the device is used. In this case (the camera sensors + EEPROM in a
-sensor) I don't see any tangible harm from that though.
-
-An indication both from the driver and the firmware is required to allow
-the device's power state to remain off during probe (see the first patch).
-
-
-The use case is such that there is a privacy LED next to an integrated
-user-facing laptop camera, and this LED is there to signal the user that
-the camera is recording a video or capturing images. That LED also happens
-to be wired to one of the power supplies of the camera, so whenever you
-power on the camera, the LED will be lit, whether images are captured from
-the camera --- or not. There's no way to implement this differently
-without additional software control (allowing of which is itself a
-hardware design decision) on most CSI-2-connected camera sensors as they
-simply have no pin to signal the camera streaming state.
-
-This is also what happens during driver probe: the camera will be powered
-on by the I²C subsystem calling dev_pm_domain_attach() and the device is
-already powered on when the driver's own probe function is called. To the
-user this visible during the boot process as a blink of the privacy LED,
-suggesting that the camera is recording without the user having used an
-application to do that. From the end user's point of view the behaviour is
-not expected and for someone unfamiliar with internal workings of a
-computer surely seems quite suspicious --- even if images are not being
-actually captured.
-
-I've tested these on linux-next master. They also apply to Wolfram's
-i2c/for-next branch, there's a patch that affects the I²C core changes
-here (see below). The patches apart from that apply to Bartosz's
-at24/for-next as well as Mauro's linux-media master branch.
-
-since v7 <URL:https://lore.kernel.org/linux-acpi/20200901210333.8462-1-sakari.ailus@linux.intel.com/>:
-
-- Reorder documentation patch right after the implemenation in the I²C
-  framework.
-
-- Rename allow-low-power-probe property as i2c-allow-low-power-probe.
-
-- Remove extra "property" from the description of the
-  i2c-allow-low-power-probe property and mention it's a device property.
-
-- Add an example to the documentation and refer to the _DSD property spec.
-
-since v6 <URL:https://lore.kernel.org/linux-acpi/20200826115432.6103-1-sakari.ailus@linux.intel.com/>:
-
-- Use u32 for the flags field in struct i2c_driver.
-
-- Use acpi_dev_get_property to read the allow-low-power-probe property.
-
-since v5 <URL:https://lore.kernel.org/linux-acpi/20200810142747.12400-1-sakari.ailus@linux.intel.com/>:
-
-- Identify sensors when they're first powered on. In previous versions, if
-  this wasn't in probe, it was not done at all.
-
-- Return allow_low_power_probe() only for ACPI devices, i.e. OF systems
-  are not affected by these changes.
-
-- Document that I2C_DRV_FL_ALLOW_LOW_POWER_PROBE flag only applies to ACPI
-  drivers.
-
-- Fix extra regulator_disable in at24 driver's remove function when the
-  device was already in low power state.
-
-since v4 <URL:https://lore.kernel.org/linux-acpi/20200121134157.20396-1-sakari.ailus@linux.intel.com/>:
-
-- Rename "probe-low-power" property as "allow-low-power-probe". This is
-  taken into account in function and file naming, too.
-
-- Turn probe_low_power field in struct i2c_driver into flags field.
-
-- Rebase on Wolfram's i2c/for-next branch that contains the removal of the
-  support for disabling I²C core IRQ mappings (commit
-  0c2a34937f7e4c4776bb261114c475392da2355c).
-
-- Change wording for "allow-low-power-probe" property in ACPI
-  documentation.
-
-since v3 <URL:https://lore.kernel.org/linux-acpi/20200109154529.19484-1-sakari.ailus@linux.intel.com/T/#t>:
-
-- Rework the 2nd patch based on Rafael's comments
-
-	- Rework description of the ACPI low power state helper function,
-	  according to Rafael's text.
-
-	- Rename and rework the same function as
-	  acpi_dev_state_low_power().
-
-	- Reflect the changes in commit message as well.
-
-- Added a patch to document the probe-low-power _DSD property.
-
-since v2 <URL:https://patchwork.kernel.org/cover/11114255/>:
-
-- Remove extra CONFIG_PM ifdefs; these are not needed.
-
-- Move the checks for power state hints from drivers/base/dd.c to
-  drivers/i2c/i2c-base-core.c; these are I²C devices anyway.
-
-- Move the probe_low_power field from struct device_driver to struct
-  i2c_driver.
-
-since v1:
-
-- Rename probe_powered_off struct device field as probe_low_power and
-  reflect the similar naming to the patches overall.
-
-- Work with CONFIG_PM disabled, too.
-
-Rajmohan Mani (1):
-  media: i2c: imx319: Support probe while the device is off
-
-Sakari Ailus (5):
-  i2c: Allow an ACPI driver to manage the device's power state during
-    probe
-  ACPI: Add a convenience function to tell a device is in low power
-    state
-  ov5670: Support probe whilst the device is in a low power state
-  at24: Support probing while off
-  Documentation: ACPI: Document allow-low-power-probe _DSD property
-
- .../acpi/dsd/allow-low-power-probe.rst        | 28 +++++++
- Documentation/firmware-guide/acpi/index.rst   |  1 +
- drivers/acpi/device_pm.c                      | 31 ++++++++
- drivers/i2c/i2c-core-base.c                   | 19 ++++-
- drivers/media/i2c/imx319.c                    | 74 +++++++++++-------
- drivers/media/i2c/ov5670.c                    | 76 +++++++++++--------
- drivers/misc/eeprom/at24.c                    | 43 ++++++-----
- include/linux/acpi.h                          |  5 ++
- include/linux/i2c.h                           | 14 ++++
- 9 files changed, 212 insertions(+), 79 deletions(-)
- create mode 100644 Documentation/firmware-guide/acpi/dsd/allow-low-power-probe.rst
-
--- 
-2.20.1
-
-
-Rajmohan Mani (1):
-  media: i2c: imx319: Support probe while the device is off
-
-Sakari Ailus (5):
-  i2c: Allow an ACPI driver to manage the device's power state during
-    probe
-  Documentation: ACPI: Document i2c-allow-low-power-probe _DSD property
-  ACPI: Add a convenience function to tell a device is in low power
-    state
-  ov5670: Support probe whilst the device is in a low power state
-  at24: Support probing while off
-
- .../acpi/dsd/i2c-allow-low-power-probe.rst    | 60 +++++++++++++++
- Documentation/firmware-guide/acpi/index.rst   |  1 +
- drivers/acpi/device_pm.c                      | 31 ++++++++
- drivers/i2c/i2c-core-base.c                   | 19 ++++-
- drivers/media/i2c/imx319.c                    | 74 +++++++++++-------
- drivers/media/i2c/ov5670.c                    | 76 +++++++++++--------
- drivers/misc/eeprom/at24.c                    | 43 ++++++-----
- include/linux/acpi.h                          |  5 ++
- include/linux/i2c.h                           | 14 ++++
- 9 files changed, 244 insertions(+), 79 deletions(-)
- create mode 100644 Documentation/firmware-guide/acpi/dsd/i2c-allow-low-power-probe.rst
-
--- 
-2.20.1
-
+@Rafael, I added your Acked-by to patches 17 and 18 as we discussed
+offline.
