@@ -4,45 +4,45 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1477BC433E9
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 10:52:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CECBFC433E9
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 10:52:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA58820897
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 10:52:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95EF2207EA
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 10:52:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bStq2pGt"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gsw9799j"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726025AbgICKwb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Sep 2020 06:52:31 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:37965 "EHLO
+        id S1728354AbgICKwc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Sep 2020 06:52:32 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:58851 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728355AbgICKv5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Sep 2020 06:51:57 -0400
+        by vger.kernel.org with ESMTP id S1728331AbgICKv4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Sep 2020 06:51:56 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1599130317;
+        s=mimecast20190719; t=1599130304;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ssNgCUXpAKBFoEiowMJpHnd/L+IbBFe8IIgVfV3vAFg=;
-        b=bStq2pGtXA83ABlBpZc9xnT8LtalrZUhD26/lVOdz+9HnXTRcRRjbQvK4C46+2QZIoR1hc
-        dQD3tJ67ziqVeBgYFPY22C0hijUeFpqP71LA7o9Ta6Z/oENAFFcJ6UiNBj8UzbZMeRPZ4z
-        Vn5PpmS2UF/kw/OOi2R+CznrQTUdHG0=
+        bh=hVk4/afJyWb9pRR5r2+53kQrVqN8NW1p5YVuK1f/Xj0=;
+        b=gsw9799jYx3RRNmwN7fMHLspS91uJ250sSRrjQ0cQ4bbKqp1a8arxoc2TTNSIfZcfstU8f
+        FqF/tviK6Ga5pDwQJW3Q5mDCapImtzUrAK+zOnUdp5tFiz2FwFnNhRNc6R7HS8H0v0nI5q
+        K1SA0bpIRwD+GlKS56irELPONTeQDUI=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-132-KuBBOrc5PXu97RstcILEaA-1; Thu, 03 Sep 2020 06:51:53 -0400
-X-MC-Unique: KuBBOrc5PXu97RstcILEaA-1
+ us-mta-488-2Rz00j7dMPaimYbtNsUGlw-1; Thu, 03 Sep 2020 06:51:41 -0400
+X-MC-Unique: 2Rz00j7dMPaimYbtNsUGlw-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 63FEA1019625;
-        Thu,  3 Sep 2020 10:51:51 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3B9301091062;
+        Thu,  3 Sep 2020 10:51:39 +0000 (UTC)
 Received: from x1.localdomain.com (ovpn-115-4.ams2.redhat.com [10.36.115.4])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B4AE2784A8;
-        Thu,  3 Sep 2020 10:51:48 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 858D6784A8;
+        Thu,  3 Sep 2020 10:51:36 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
@@ -60,9 +60,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v9 10/17] pwm: crc: Fix period changes not having any effect
-Date:   Thu,  3 Sep 2020 12:51:07 +0200
-Message-Id: <20200903105114.9969-11-hdegoede@redhat.com>
+Subject: [PATCH v9 06/17] pwm: lpss: Make pwm_lpss_apply() not rely on existing hardware state
+Date:   Thu,  3 Sep 2020 12:51:03 +0200
+Message-Id: <20200903105114.9969-7-hdegoede@redhat.com>
 In-Reply-To: <20200903105114.9969-1-hdegoede@redhat.com>
 References: <20200903105114.9969-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -73,63 +73,118 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pwm-crc code is using 2 different enable bits:
-1. bit 7 of the PWM0_CLK_DIV (PWM_OUTPUT_ENABLE)
-2. bit 0 of the BACKLIGHT_EN register
+Before this commit pwm_lpss_apply() was making 2 assuming
+2 pre-conditions were met by the existing hardware state:
 
-The BACKLIGHT_EN register at address 0x51 really controls a separate
-output-only GPIO which is earmarked to be used as output connected to the
-backlight-enable pin for LCD panels, this GPO is part of the PMIC's
-"Display Panel Control Block." . This pin should probably be moved over
-to a GPIO provider driver (and consumers modified accordingly), but that
-is something for an(other) patch.
+1. That the base-unit and on-time-div read back from the
+control register are those actually in use, so that it
+can skip setting the update bit if the read-back value
+matches the desired values.
 
-Enabling / disabling the actual PWM output is controlled by the
-PWM_OUTPUT_ENABLE bit of the PWM0_CLK_DIV register.
+2. That the controller is enabled when the cached
+pwm_state.enabled says that the controller is enabled.
 
-As the comment in the old code already indicates we must disable the PWM
-before we can change the clock divider. But the crc_pwm_disable() and
-crc_pwm_enable() calls the old code make for this only change the
-BACKLIGHT_EN register; and the value of that register does not matter for
-changing the period / the divider. What does matter is that the
-PWM_OUTPUT_ENABLE bit must be cleared before a new value can be written.
+As the long history of fixes for subtle (often suspend/resume)
+lpss-pwm issues shows, this assumptions are not necessary
+always true.
 
-This commit modifies crc_pwm_config() to clear PWM_OUTPUT_ENABLE instead
-when changing the period, so that period changes actually work.
+1. Specifically is not true on some (*) Cherry Trail devices
+with a nasty GFX0._PS3 method which: a. saves the ctrl reg value.
+b. sets the base-unit to 0 and writes the update bit to apply/commit
+c. restores the original ctrl value without setting the update bit,
+so that the 0 base-unit value is still in use.
 
-Note this fix will cause a significant behavior change on some devices
-using the CRC PWM output to drive their backlight. Before the PWM would
-always run with the output frequency configured by the BIOS at boot, now
-the period time specified by the i915 driver will actually be honored.
+2. Assumption 2. currently is true, but only because of the code which
+saves/restores the state on suspend/resume. By convention restoring the
+PWM state should be done by the PWM consumer and the presence of this
+code in the pmw-lpss driver is a bug. Therefor the save/restore code will
+be dropped in the next patch in this series, after which this assumption
+also is no longer true.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Thierry Reding <thierry.reding@gmail.com>
+This commit changes the pwm_lpss_apply() to make any assumptions about the
+state the hardware is in. Instead it makes pwm_lpss_apply() always fully
+program the PWM controller, making it much less fragile.
+
+*) Seen on the Acer One 10 S1003, Lenovo Ideapad Miix 310 and 320 models
+and various Medion models.
+
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/pwm/pwm-crc.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/pwm/pwm-lpss.c | 21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/pwm/pwm-crc.c b/drivers/pwm/pwm-crc.c
-index 44ec7d5b63e1..81232da0c767 100644
---- a/drivers/pwm/pwm-crc.c
-+++ b/drivers/pwm/pwm-crc.c
-@@ -82,14 +82,11 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
- 	if (pwm_get_period(pwm) != period_ns) {
- 		int clk_div = crc_pwm_calc_clk_div(period_ns);
+diff --git a/drivers/pwm/pwm-lpss.c b/drivers/pwm/pwm-lpss.c
+index 8a136ba2a583..9c5c7217c9b6 100644
+--- a/drivers/pwm/pwm-lpss.c
++++ b/drivers/pwm/pwm-lpss.c
+@@ -85,7 +85,7 @@ static void pwm_lpss_prepare(struct pwm_lpss_chip *lpwm, struct pwm_device *pwm,
+ 	unsigned long long on_time_div;
+ 	unsigned long c = lpwm->info->clk_rate, base_unit_range;
+ 	unsigned long long base_unit, freq = NSEC_PER_SEC;
+-	u32 orig_ctrl, ctrl;
++	u32 ctrl;
  
--		/* changing the clk divisor, need to disable fisrt */
--		crc_pwm_disable(c, pwm);
-+		/* changing the clk divisor, clear PWM_OUTPUT_ENABLE first */
-+		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV, 0);
+ 	do_div(freq, period_ns);
  
- 		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
- 					clk_div | PWM_OUTPUT_ENABLE);
--
--		/* enable back */
--		crc_pwm_enable(c, pwm);
- 	}
+@@ -104,16 +104,14 @@ static void pwm_lpss_prepare(struct pwm_lpss_chip *lpwm, struct pwm_device *pwm,
+ 	do_div(on_time_div, period_ns);
+ 	on_time_div = 255ULL - on_time_div;
  
- 	/* change the pwm duty cycle */
+-	orig_ctrl = ctrl = pwm_lpss_read(pwm);
++	ctrl = pwm_lpss_read(pwm);
+ 	ctrl &= ~PWM_ON_TIME_DIV_MASK;
+ 	ctrl &= ~((base_unit_range - 1) << PWM_BASE_UNIT_SHIFT);
+ 	ctrl |= (u32) base_unit << PWM_BASE_UNIT_SHIFT;
+ 	ctrl |= on_time_div;
+ 
+-	if (orig_ctrl != ctrl) {
+-		pwm_lpss_write(pwm, ctrl);
+-		pwm_lpss_write(pwm, ctrl | PWM_SW_UPDATE);
+-	}
++	pwm_lpss_write(pwm, ctrl);
++	pwm_lpss_write(pwm, ctrl | PWM_SW_UPDATE);
+ }
+ 
+ static inline void pwm_lpss_cond_enable(struct pwm_device *pwm, bool cond)
+@@ -124,8 +122,7 @@ static inline void pwm_lpss_cond_enable(struct pwm_device *pwm, bool cond)
+ 
+ static int pwm_lpss_prepare_enable(struct pwm_lpss_chip *lpwm,
+ 				   struct pwm_device *pwm,
+-				   const struct pwm_state *state,
+-				   bool enable)
++				   const struct pwm_state *state)
+ {
+ 	int ret;
+ 
+@@ -134,12 +131,12 @@ static int pwm_lpss_prepare_enable(struct pwm_lpss_chip *lpwm,
+ 		return ret;
+ 
+ 	pwm_lpss_prepare(lpwm, pwm, state->duty_cycle, state->period);
+-	pwm_lpss_cond_enable(pwm, enable && lpwm->info->bypass == false);
++	pwm_lpss_cond_enable(pwm, lpwm->info->bypass == false);
+ 	ret = pwm_lpss_wait_for_update(pwm);
+ 	if (ret)
+ 		return ret;
+ 
+-	pwm_lpss_cond_enable(pwm, enable && lpwm->info->bypass == true);
++	pwm_lpss_cond_enable(pwm, lpwm->info->bypass == true);
+ 	return 0;
+ }
+ 
+@@ -152,11 +149,11 @@ static int pwm_lpss_apply(struct pwm_chip *chip, struct pwm_device *pwm,
+ 	if (state->enabled) {
+ 		if (!pwm_is_enabled(pwm)) {
+ 			pm_runtime_get_sync(chip->dev);
+-			ret = pwm_lpss_prepare_enable(lpwm, pwm, state, true);
++			ret = pwm_lpss_prepare_enable(lpwm, pwm, state);
+ 			if (ret)
+ 				pm_runtime_put(chip->dev);
+ 		} else {
+-			ret = pwm_lpss_prepare_enable(lpwm, pwm, state, false);
++			ret = pwm_lpss_prepare_enable(lpwm, pwm, state);
+ 		}
+ 	} else if (pwm_is_enabled(pwm)) {
+ 		pwm_lpss_write(pwm, pwm_lpss_read(pwm) & ~PWM_ENABLE);
 -- 
 2.28.0
 
