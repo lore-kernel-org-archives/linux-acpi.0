@@ -2,151 +2,158 @@ Return-Path: <SRS0=jFhf=CM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9BE4C433E2
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 06:34:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F15BC433E7
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 08:15:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9ED1D206EB
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 06:34:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DD082145D
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 08:15:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726263AbgICGeW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Sep 2020 02:34:22 -0400
-Received: from mo-csw1114.securemx.jp ([210.130.202.156]:52200 "EHLO
-        mo-csw.securemx.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725986AbgICGeW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Sep 2020 02:34:22 -0400
-Received: by mo-csw.securemx.jp (mx-mo-csw1114) id 0836XqkV026096; Thu, 3 Sep 2020 15:33:52 +0900
-X-Iguazu-Qid: 2wGqimZzpdodzp3qKb
-X-Iguazu-QSIG: v=2; s=0; t=1599114831; q=2wGqimZzpdodzp3qKb; m=3lD5yTuNA9UipE4IT4HqtHJpMosJZhyi/NRwtDEowSQ=
-Received: from imx12.toshiba.co.jp (imx12.toshiba.co.jp [61.202.160.132])
-        by relay.securemx.jp (mx-mr1111) id 0836Xnhn027327;
-        Thu, 3 Sep 2020 15:33:49 +0900
-Received: from enc02.toshiba.co.jp ([61.202.160.51])
-        by imx12.toshiba.co.jp  with ESMTP id 0836XnKm019408;
-        Thu, 3 Sep 2020 15:33:49 +0900 (JST)
-Received: from hop101.toshiba.co.jp ([133.199.85.107])
-        by enc02.toshiba.co.jp  with ESMTP id 0836XmiJ027896;
-        Thu, 3 Sep 2020 15:33:48 +0900
-From:   Punit Agrawal <punit1.agrawal@toshiba.co.jp>
-To:     Smita Koralahalli Channabasappa <skoralah@amd.com>
-Cc:     <x86@kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-pm@vger.kernel.org>, <linux-edac@vger.kernel.org>,
-        <linux-efi@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <devel@acpica.org>, Borislav Petkov <bp@alien8.de>,
-        Tony Luck <tony.luck@intel.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <len.brown@intel.com>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Yazen Ghannam <yazen.ghannam@amd.com>
-Subject: Re: [PATCH v2 1/2] cper, apei, mce: Pass x86 CPER through the MCA handling chain
-References: <20200828203332.11129-1-Smita.KoralahalliChannabasappa@amd.com>
-        <20200828203332.11129-2-Smita.KoralahalliChannabasappa@amd.com>
-        <878sdvv20h.fsf@kokedama.swc.toshiba.co.jp>
-        <102d0c75-d642-8f8b-68c7-792499c2a62a@amd.com>
-Date:   Thu, 03 Sep 2020 15:33:47 +0900
-In-Reply-To: <102d0c75-d642-8f8b-68c7-792499c2a62a@amd.com> (Smita Koralahalli
-        Channabasappa's message of "Wed, 2 Sep 2020 14:29:28 -0500")
-X-TSB-HOP: ON
-Message-ID: <87a6y7qshg.fsf@kokedama.swc.toshiba.co.jp>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.3 (gnu/linux)
+        id S1728442AbgICIPy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Sep 2020 04:15:54 -0400
+Received: from mga04.intel.com ([192.55.52.120]:11134 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728807AbgICIPo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Sep 2020 04:15:44 -0400
+IronPort-SDR: 8aasJwJ8OdVhdK3q6ewGNN2YoXr/Dii7kTgbnPljM2Elw8Im+GYEWN/wYb9bzN2n+CkO6Vx2+Y
+ FsGTc2yhYnDA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9732"; a="154939220"
+X-IronPort-AV: E=Sophos;i="5.76,385,1592895600"; 
+   d="scan'208";a="154939220"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2020 01:15:43 -0700
+IronPort-SDR: EAXJbZnsEs/BQyZ5dVBgJOC2gV6IhKzVeGK0MVe2vovYcr93xjn8kWkFFVu84U62kXLFXI5bgB
+ J+Edj+OLZDhw==
+X-IronPort-AV: E=Sophos;i="5.76,385,1592895600"; 
+   d="scan'208";a="331719609"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2020 01:15:40 -0700
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 78D092098B;
+        Thu,  3 Sep 2020 11:15:38 +0300 (EEST)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1kDkPO-0001cC-J5; Thu, 03 Sep 2020 11:15:50 +0300
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-i2c@vger.kernel.org
+Cc:     Wolfram Sang <wsa@the-dreams.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        Hyungwoo Yang <hyungwoo.yang@intel.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v8 2/6] Documentation: ACPI: Document i2c-allow-low-power-probe _DSD property
+Date:   Thu,  3 Sep 2020 11:15:46 +0300
+Message-Id: <20200903081550.6012-3-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200903081550.6012-1-sakari.ailus@linux.intel.com>
+References: <20200903081550.6012-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Smita,
+Document the probe-low-power _DSD property and how it is used with I²C
+drivers.
 
-Smita Koralahalli Channabasappa <skoralah@amd.com> writes:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../acpi/dsd/i2c-allow-low-power-probe.rst    | 60 +++++++++++++++++++
+ Documentation/firmware-guide/acpi/index.rst   |  1 +
+ 2 files changed, 61 insertions(+)
+ create mode 100644 Documentation/firmware-guide/acpi/dsd/i2c-allow-low-power-probe.rst
 
-> On 8/31/20 12:05 AM, Punit Agrawal wrote:
->
->> Hi Smita,
->>
->> A couple of comments below -
->>
->> Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> writes:
->>
->> [...]
->>
->>
->>> diff --git a/drivers/firmware/efi/cper-x86.c b/drivers/firmware/efi/cper-x86.c
->>> index 2531de49f56c..374b8e18552a 100644
->>> --- a/drivers/firmware/efi/cper-x86.c
->>> +++ b/drivers/firmware/efi/cper-x86.c
->>> @@ -1,7 +1,7 @@
->>>   // SPDX-License-Identifier: GPL-2.0
->>>   // Copyright (C) 2018, Advanced Micro Devices, Inc.
->>>   -#include <linux/cper.h>
->> Why is the include dropped? AFAICT, the definitions from there are still
->> being used after this patch.
->
-> Dropped because <acpi/apei.h> already includes <linux/cper.h>
+diff --git a/Documentation/firmware-guide/acpi/dsd/i2c-allow-low-power-probe.rst b/Documentation/firmware-guide/acpi/dsd/i2c-allow-low-power-probe.rst
+new file mode 100644
+index 0000000000000..7e7ed3ad3ac69
+--- /dev/null
++++ b/Documentation/firmware-guide/acpi/dsd/i2c-allow-low-power-probe.rst
+@@ -0,0 +1,60 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++======================================
++Probing I²C devices in low power state
++======================================
++
++Introduction
++============
++
++In some cases it may be preferred to leave certain devices powered off for the
++entire system bootup if powering on these devices has adverse side effects,
++beyond just powering on the said device. Linux recognizes the _DSD property [1]
++"i2c-allow-low-power-probe" that can be used for this purpose.
++
++How it works
++============
++
++The boolean device property "i2c-allow-low-power-probe" may be used to tell
++Linux that the I²C framework should instruct the kernel ACPI framework to leave
++the device in the low power state. If the driver indicates its support for this
++by setting the I2C_DRV_FL_ALLOW_LOW_POWER_PROBE flag in struct i2c_driver.flags
++field and the "i2c-allow-low-power-probe" property is present, the device will
++not be powered on for probe.
++
++The downside is that as the device is not powered on, even if there's a problem
++with the device, the driver likely probes just fine but the first user will
++find out the device doesn't work, instead of a failure at probe time. This
++feature should thus be used sparingly.
++
++Example
++=======
++
++An ASL example describing an ACPI device using this property looks like
++this. Some objects not relevant from the example point of view have been
++omitted.
++
++	Device (CAM0)
++        {
++		Name (_HID, "SONY319A")
++		Name (_UID, Zero)
++		Name (_CRS, ResourceTemplate ()
++		{
++			I2cSerialBus(0x0020, ControllerInitiated, 0x00061A80,
++				     AddressingMode7Bit, "\\_SB.PCI0.I2C0",
++				     0x00, ResourceConsumer)
++		})
++		Name (PRT4, Package() {
++			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++			Package () {
++				Package () { "i2c-allow-low-power-probe", 1 },
++			}
++                })
++	}
++
++References
++==========
++
++[1] Device Properties UUID For _DSD.
++    https://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf,
++    referenced 2020-09-02.
+diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+index ad3b5afdae77e..1f87b7072d1e6 100644
+--- a/Documentation/firmware-guide/acpi/index.rst
++++ b/Documentation/firmware-guide/acpi/index.rst
+@@ -11,6 +11,7 @@ ACPI Support
+    dsd/graph
+    dsd/data-node-references
+    dsd/leds
++   dsd/i2c-allow-low-power-probe
+    enumeration
+    osi
+    method-customizing
+-- 
+2.20.1
 
-Generally, you want to follow the rule that if a declaration from a
-header file is being used, it should show up in the includes. The same
-applies to both source as well as header files.
-
-It doesn't matter if another include in the source file in turn ends up
-including the same header again; the #ifdef guards are there to prevent
-duplicate declarations.
-
-The rationale is that if future changes remove the usage of
-<acpi/apei.h>, the C file can still be compiled after dropping the
-include; there should be no need to then re-introduce <linux/cper.h> at
-that point.
-
-Hope that makes sense.
-
-Thanks,
-Punit
-
->>> +#include <acpi/apei.h>
->
-> [...]
->
->>> diff --git a/include/acpi/apei.h b/include/acpi/apei.h
->>> index 680f80960c3d..44d4d08acce0 100644
->>> --- a/include/acpi/apei.h
->>> +++ b/include/acpi/apei.h
->>> @@ -33,8 +33,15 @@ extern bool ghes_disable;
->>>     #ifdef CONFIG_ACPI_APEI
->>>   void __init acpi_hest_init(void);
->>> +int arch_apei_report_x86_error(struct cper_ia_proc_ctx *ctx_info,
->>> +			       u64 lapic_id);
->>>   #else
->>>   static inline void acpi_hest_init(void) { return; }
->>> +static inline int arch_apei_report_x86_error(struct cper_ia_proc_ctx *ctx_info,
->>> +					     u64 lapic_id)
->>> +{
->>> +	return -EINVAL;
->>> +}
->>>   #endif
->> Adding the declaration to this include violates the separation of
->> generic and architecture specific code.
->>
->> Can this be moved to the appropriate architecture specific header?
->> Perhaps arch/x86/include/asm/apei.h.
->
-> Yes, I have fixed this and moved into arch/x86/include/asm/acpi.h.
->
->>>   typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *data);
->>> @@ -51,6 +58,8 @@ int erst_clear(u64 record_id);
->>>     int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr,
->>> void *data);
->>>   void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
->>> +int arch_apei_report_x86_error(struct cper_ia_proc_ctx *ctx_info,
->>> +			       u64 lapic_id);
->>
->> Why is the additional declaration needed?
->
-> Will fix in the next revision.
->
-> Thanks,
-> Smita
->
-> [...]
