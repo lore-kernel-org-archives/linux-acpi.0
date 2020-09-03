@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1943CC433E9
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 15:21:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5135C433E9
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 15:21:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF37E20786
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 15:21:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE90F208B3
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Sep 2020 15:21:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EOAzVj6h"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bdGBE9IV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728484AbgICPVi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Sep 2020 11:21:38 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:24434 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728490AbgICLYX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Sep 2020 07:24:23 -0400
+        id S1728468AbgICPVo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Sep 2020 11:21:44 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:33256 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728472AbgICLYW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Sep 2020 07:24:22 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1599132256;
+        s=mimecast20190719; t=1599132242;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=i4LjoFZKzNRx0QYdGkEhCDj0MPbafDuhon7vtbsVDBA=;
-        b=EOAzVj6hLqhvf1aHQ5SH2leE6YKFw8hxffN4b5qgLVS+ckPg+gYT7zctPeYHWrLgSEzGya
-        4aw1INXmb/EC3x8/yaa+bQ4DFid7mlhX7q/dTURfeSlCt1JQrokhcyqc8QHzD9rU4c71Jz
-        eADM3YMSkQFhTwY9AxUWlEGM2CCGNnw=
+        bh=oeojNYihj1/4GnBYNf4T6ofPGFiKE3ZSQ6kb3lrJ21A=;
+        b=bdGBE9IVxYD0nrHks7bi3l+ij1iiGM0+iQOvgY51ezrfst1lkCN9HaSfKgvxqazXeUv5+X
+        AVo/HWA+51ZbWNIat78i/x911Pv3I/MmWl+JuI7RBIVg7qSxMBTsXdUxGCAUs4UgsxwIUE
+        jOgbVzkFb4CyeBqwyowaIXIO7HsoT/Y=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-437-B0vmSOdDOKOmHE0IMh7tmQ-1; Thu, 03 Sep 2020 07:24:14 -0400
-X-MC-Unique: B0vmSOdDOKOmHE0IMh7tmQ-1
+ us-mta-286-7d56g-MINIe_IRrt3oiCgQ-1; Thu, 03 Sep 2020 07:24:00 -0400
+X-MC-Unique: 7d56g-MINIe_IRrt3oiCgQ-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 69478801AB3;
-        Thu,  3 Sep 2020 11:24:12 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9A9FD1008552;
+        Thu,  3 Sep 2020 11:23:58 +0000 (UTC)
 Received: from x1.localdomain (ovpn-113-3.ams2.redhat.com [10.36.113.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A12915C1C2;
-        Thu,  3 Sep 2020 11:24:06 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id F202A5C1C2;
+        Thu,  3 Sep 2020 11:23:54 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
@@ -60,9 +60,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-pwm@vger.kernel.org,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v10 08/17] pwm: crc: Fix period / duty_cycle times being off by a factor of 256
-Date:   Thu,  3 Sep 2020 13:23:28 +0200
-Message-Id: <20200903112337.4113-9-hdegoede@redhat.com>
+Subject: [PATCH v10 05/17] pwm: lpss: Add pwm_lpss_prepare_enable() helper
+Date:   Thu,  3 Sep 2020 13:23:25 +0200
+Message-Id: <20200903112337.4113-6-hdegoede@redhat.com>
 In-Reply-To: <20200903112337.4113-1-hdegoede@redhat.com>
 References: <20200903112337.4113-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -73,73 +73,101 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-While looking into adding atomic-pwm support to the pwm-crc driver I
-noticed something odd, there is a PWM_BASE_CLK define of 6 MHz and
-there is a clock-divider which divides this with a value between 1-128,
-and there are 256 duty-cycle steps.
+In the not-enabled -> enabled path pwm_lpss_apply() needs to get a
+runtime-pm reference; and then on any errors it needs to release it
+again.
 
-The pwm-crc code before this commit assumed that a clock-divider
-setting of 1 means that the PWM output is running at 6 MHZ, if that
-is true, where do these 256 duty-cycle steps come from?
+This leads to somewhat hard to read code. This commit introduces a new
+pwm_lpss_prepare_enable() helper and moves all the steps necessary for
+the not-enabled -> enabled transition there, so that we can error check
+the entire transition in a single place and only have one pm_runtime_put()
+on failure call site.
 
-This would require an internal frequency of 256 * 6 MHz = 1.5 GHz, that
-seems unlikely for a PMIC which is using a silicon process optimized for
-power-switching transistors. It is way more likely that there is an 8
-bit counter for the duty cycle which acts as an extra fixed divider
-wrt the PWM output frequency.
+While working on this I noticed that the enabled -> enabled (update
+settings) path was quite similar, so I've added an enable parameter to
+the new pwm_lpss_prepare_enable() helper, which allows using it in that
+path too.
 
-The main user of the pwm-crc driver is the i915 GPU driver which uses it
-for backlight control. Lets compare the PWM register values set by the
-video-BIOS (the GOP), assuming the extra fixed divider is present versus
-the PWM frequency specified in the Video-BIOS-Tables:
-
-Device:		PWM Hz set by BIOS	PWM Hz specified in VBT
-Asus T100TA 	200			200
-Asus T100HA 	200			200
-Lenovo Miix 2 8	23437			20000
-Toshiba WT8-A	23437			20000
-
-So as we can see if we assume the extra division by 256 then the register
-values set by the GOP are an exact match for the VBT values, where as
-otherwise the values would be of by a factor of 256.
-
-This commit fixes the period / duty_cycle calculations to take the
-extra division by 256 into account.
-
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Acked-by: Thierry Reding <thierry.reding@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Changes in v3:
-- Use NSEC_PER_USEC instead of adding a new (non-sensical) NSEC_PER_MHZ define
----
- drivers/pwm/pwm-crc.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pwm/pwm-lpss.c | 45 ++++++++++++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/pwm/pwm-crc.c b/drivers/pwm/pwm-crc.c
-index 272eeb071147..c056eb9b858c 100644
---- a/drivers/pwm/pwm-crc.c
-+++ b/drivers/pwm/pwm-crc.c
-@@ -21,8 +21,8 @@
+diff --git a/drivers/pwm/pwm-lpss.c b/drivers/pwm/pwm-lpss.c
+index da9bc3d10104..8a136ba2a583 100644
+--- a/drivers/pwm/pwm-lpss.c
++++ b/drivers/pwm/pwm-lpss.c
+@@ -122,41 +122,48 @@ static inline void pwm_lpss_cond_enable(struct pwm_device *pwm, bool cond)
+ 		pwm_lpss_write(pwm, pwm_lpss_read(pwm) | PWM_ENABLE);
+ }
  
- #define PWM_MAX_LEVEL		0xFF
++static int pwm_lpss_prepare_enable(struct pwm_lpss_chip *lpwm,
++				   struct pwm_device *pwm,
++				   const struct pwm_state *state,
++				   bool enable)
++{
++	int ret;
++
++	ret = pwm_lpss_is_updating(pwm);
++	if (ret)
++		return ret;
++
++	pwm_lpss_prepare(lpwm, pwm, state->duty_cycle, state->period);
++	pwm_lpss_cond_enable(pwm, enable && lpwm->info->bypass == false);
++	ret = pwm_lpss_wait_for_update(pwm);
++	if (ret)
++		return ret;
++
++	pwm_lpss_cond_enable(pwm, enable && lpwm->info->bypass == true);
++	return 0;
++}
++
+ static int pwm_lpss_apply(struct pwm_chip *chip, struct pwm_device *pwm,
+ 			  const struct pwm_state *state)
+ {
+ 	struct pwm_lpss_chip *lpwm = to_lpwm(chip);
+-	int ret;
++	int ret = 0;
  
--#define PWM_BASE_CLK		6000000  /* 6 MHz */
--#define PWM_MAX_PERIOD_NS	21333    /* 46.875KHz */
-+#define PWM_BASE_CLK_MHZ	6	/* 6 MHz */
-+#define PWM_MAX_PERIOD_NS	5461333	/* 183 Hz */
+ 	if (state->enabled) {
+ 		if (!pwm_is_enabled(pwm)) {
+ 			pm_runtime_get_sync(chip->dev);
+-			ret = pwm_lpss_is_updating(pwm);
+-			if (ret) {
+-				pm_runtime_put(chip->dev);
+-				return ret;
+-			}
+-			pwm_lpss_prepare(lpwm, pwm, state->duty_cycle, state->period);
+-			pwm_lpss_cond_enable(pwm, lpwm->info->bypass == false);
+-			ret = pwm_lpss_wait_for_update(pwm);
+-			if (ret) {
++			ret = pwm_lpss_prepare_enable(lpwm, pwm, state, true);
++			if (ret)
+ 				pm_runtime_put(chip->dev);
+-				return ret;
+-			}
+-			pwm_lpss_cond_enable(pwm, lpwm->info->bypass == true);
+ 		} else {
+-			ret = pwm_lpss_is_updating(pwm);
+-			if (ret)
+-				return ret;
+-			pwm_lpss_prepare(lpwm, pwm, state->duty_cycle, state->period);
+-			return pwm_lpss_wait_for_update(pwm);
++			ret = pwm_lpss_prepare_enable(lpwm, pwm, state, false);
+ 		}
+ 	} else if (pwm_is_enabled(pwm)) {
+ 		pwm_lpss_write(pwm, pwm_lpss_read(pwm) & ~PWM_ENABLE);
+ 		pm_runtime_put(chip->dev);
+ 	}
  
- /**
-  * struct crystalcove_pwm - Crystal Cove PWM controller
-@@ -72,7 +72,7 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
+-	return 0;
++	return ret;
+ }
  
- 		/* changing the clk divisor, need to disable fisrt */
- 		crc_pwm_disable(c, pwm);
--		clk_div = PWM_BASE_CLK * period_ns / NSEC_PER_SEC;
-+		clk_div = PWM_BASE_CLK_MHZ * period_ns / (256 * NSEC_PER_USEC);
- 
- 		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
- 					clk_div | PWM_OUTPUT_ENABLE);
+ static void pwm_lpss_get_state(struct pwm_chip *chip, struct pwm_device *pwm,
 -- 
 2.28.0
 
