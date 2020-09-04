@@ -2,43 +2,43 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AD9AC43461
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:49:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75F59C43461
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:57:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FA9020795
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:49:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5756920797
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:57:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726871AbgIDQtX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 12:49:23 -0400
-Received: from mga11.intel.com ([192.55.52.93]:23851 "EHLO mga11.intel.com"
+        id S1726304AbgIDQ44 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 12:56:56 -0400
+Received: from mga01.intel.com ([192.55.52.88]:34166 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726063AbgIDQtX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Sep 2020 12:49:23 -0400
-IronPort-SDR: 2aJQAxuZF+nQ0kD/8DqziKMwXakc6B+csttTSYTwUjhvvhZ4uF7tTN5vbDWvCCsRRiKjdRa2m2
- r2H8vHID8hIw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="155290168"
+        id S1726135AbgIDQ4z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Sep 2020 12:56:55 -0400
+IronPort-SDR: 2AagIkCnSbOK5Tdv3VfXd6Lszu3/vNl79QDIPIiric7y1kxePY9S93IBC7ODFOHGbUG4BcPHvX
+ 1fJPOzVD+elA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="175837419"
 X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="155290168"
+   d="scan'208";a="175837419"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 09:49:22 -0700
-IronPort-SDR: 6NMaScHpBzrAv4GHHTNx0/JStaZi28jYqd4g8bgcibCmLyhCGJAt4Jv/kUJ31YqA4ewxpIHzq8
- Oxv/AJskggkg==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 09:56:55 -0700
+IronPort-SDR: wzfTkJJH7WgbznP3nXUT+8ZzS767uuL/6fZ/c/HbOW5vSVI4ua10j2CU72+gUFLfKXDgGLJAlm
+ wEIaxM4xeQAA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="332218742"
+   d="scan'208";a="332220931"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 09:49:20 -0700
+  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 09:56:52 -0700
 Received: from andy by smile with local (Exim 4.94)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kEEtp-00EKRq-I2; Fri, 04 Sep 2020 19:49:17 +0300
-Date:   Fri, 4 Sep 2020 19:49:17 +0300
+        id 1kEF17-00EKW1-NW; Fri, 04 Sep 2020 19:56:49 +0300
+Date:   Fri, 4 Sep 2020 19:56:49 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Bartosz Golaszewski <brgl@bgdev.pl>
 Cc:     Linus Walleij <linus.walleij@linaro.org>,
@@ -48,99 +48,129 @@ Cc:     Linus Walleij <linus.walleij@linaro.org>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: Re: [PATCH 15/23] gpio: mockup: use dynamic device IDs
-Message-ID: <20200904164917.GC1891694@smile.fi.intel.com>
+Subject: Re: [PATCH 21/23] gpio: mockup: provide a way to delete dummy chips
+Message-ID: <20200904165649.GE1891694@smile.fi.intel.com>
 References: <20200904154547.3836-1-brgl@bgdev.pl>
- <20200904154547.3836-16-brgl@bgdev.pl>
+ <20200904154547.3836-22-brgl@bgdev.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200904154547.3836-16-brgl@bgdev.pl>
+In-Reply-To: <20200904154547.3836-22-brgl@bgdev.pl>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 04, 2020 at 05:45:39PM +0200, Bartosz Golaszewski wrote:
+On Fri, Sep 04, 2020 at 05:45:45PM +0200, Bartosz Golaszewski wrote:
 > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > 
-> We're currently creating chips at module init time only so using a
-> static index for dummy devices is fine. We want to support dynamically
-> created chips however so we need to switch to dynamic device IDs.
-
-It misses ida_destroy().
-
-What about XArray API?
-
+> Add a new debugfs attribute 'delete_device' to which the chip label can
+> be written to dynamically remove the associated dummy device.
+> 
 > Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > ---
->  drivers/gpio/gpio-mockup.c | 17 ++++++++++++++++-
->  1 file changed, 16 insertions(+), 1 deletion(-)
+>  drivers/gpio/gpio-mockup.c | 70 +++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 69 insertions(+), 1 deletion(-)
 > 
 > diff --git a/drivers/gpio/gpio-mockup.c b/drivers/gpio/gpio-mockup.c
-> index 96976ba66598..995e37fef9c5 100644
+> index 1353239dc315..9d2de78a45c2 100644
 > --- a/drivers/gpio/gpio-mockup.c
 > +++ b/drivers/gpio/gpio-mockup.c
-> @@ -9,6 +9,7 @@
+> @@ -19,6 +19,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/property.h>
+>  #include <linux/slab.h>
+> +#include <linux/string.h>
+>  #include <linux/string_helpers.h>
+>  #include <linux/uaccess.h>
 >  
->  #include <linux/debugfs.h>
->  #include <linux/gpio/driver.h>
-> +#include <linux/idr.h>
->  #include <linux/interrupt.h>
->  #include <linux/irq.h>
->  #include <linux/irq_sim.h>
-> @@ -70,6 +71,8 @@ module_param_named(gpio_mockup_named_lines,
->  
->  static struct dentry *gpio_mockup_dbg_dir;
->  
-> +static DEFINE_IDA(gpio_mockup_ida);
-> +
->  static int gpio_mockup_range_base(unsigned int index)
->  {
->  	return gpio_mockup_ranges[index * 2];
-> @@ -480,8 +483,12 @@ static LIST_HEAD(gpio_mockup_devices);
->  
->  static void gpio_mockup_unregister_one_device(struct gpio_mockup_device *dev)
->  {
-> +	int id;
-> +
->  	list_del(&dev->list);
-> +	id = dev->pdev->id;
->  	platform_device_unregister(dev->pdev);
-> +	ida_free(&gpio_mockup_ida, id);
->  	kfree(dev);
+> @@ -668,14 +669,81 @@ static int __init gpio_mockup_register_chips_from_params(void)
+>  	return 0;
 >  }
 >  
-> @@ -587,12 +594,19 @@ static int __init gpio_mockup_init(void)
->  		}
+> -static int __init gpio_mockup_init(void)
+> +static ssize_t gpio_mockup_debugfs_delete_device_write(struct file *file,
+> +						const char __user *usr_buf,
+> +						size_t size, loff_t *ppos)
+>  {
+> +	struct gpio_mockup_device *mockup_dev;
+> +	char label[GPIO_MOCKUP_LABEL_SIZE];
+> +	struct list_head *curr;
+> +	struct device *dev;
+> +	const char *prop;
+>  	int ret;
 >  
->  		pdevinfo.name = "gpio-mockup";
-> -		pdevinfo.id = i;
->  		pdevinfo.properties = properties;
->  
-> +		pdevinfo.id = ida_alloc(&gpio_mockup_ida, GFP_KERNEL);
-> +		if (pdevinfo.id < 0) {
-> +			kfree_strarray(line_names, ngpio);
-> +			err = pdevinfo.id;
-> +			goto err_out;
+> +	if (*ppos != 0)
+> +		return -EINVAL;
+> +
+> +	ret = getline_from_user(label, sizeof(label), usr_buf, size);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	mutex_lock(&gpio_mockup_devices_lock);
+> +
+> +	list_for_each(curr, &gpio_mockup_devices) {
+> +		mockup_dev = list_entry(curr, struct gpio_mockup_device, list);
+
+Why not list_for_each_entry()?
+
+> +		dev = &mockup_dev->pdev->dev;
+> +
+> +		ret = device_property_read_string(dev, "chip-label", &prop);
+> +		if (ret) {
+> +			mutex_unlock(&gpio_mockup_devices_lock);
+> +			return ret;
 > +		}
 > +
->  		mockup_dev = kzalloc(sizeof(*mockup_dev), GFP_KERNEL);
->  		if (!mockup_dev) {
->  			kfree_strarray(line_names, ngpio);
-> +			ida_free(&gpio_mockup_ida, pdevinfo.id);
->  			err = -ENOMEM;
->  			goto err_out;
->  		}
-> @@ -601,6 +615,7 @@ static int __init gpio_mockup_init(void)
->  		kfree_strarray(line_names, ngpio);
->  		if (IS_ERR(mockup_dev->pdev)) {
->  			pr_err("error registering device");
-> +			ida_free(&gpio_mockup_ida, pdevinfo.id);
->  			kfree(mockup_dev);
->  			err = PTR_ERR(mockup_dev->pdev);
->  			goto err_out;
+> +		if (sysfs_streq(label, prop)) {
+> +			gpio_mockup_unregister_one_device(mockup_dev);
+> +			mutex_unlock(&gpio_mockup_devices_lock);
+> +			return size;
+> +		}
+> +	}
+> +
+> +	mutex_unlock(&gpio_mockup_devices_lock);
+> +	return -ENODEV;
+> +}
+> +
+> +static const struct file_operations gpio_mockup_debugfs_delete_device_ops = {
+> +	.owner = THIS_MODULE,
+> +	.open = gpio_mockup_debugfs_open,
+> +	.write = gpio_mockup_debugfs_delete_device_write,
+> +	.llseek = no_llseek,
+> +	.release = single_release,
+> +};
+> +
+> +static int __init gpio_mockup_debugfs_init(void)
+> +{
+> +	struct dentry *entry;
+> +
+>  	gpio_mockup_dbg_dir = debugfs_create_dir("gpio-mockup", NULL);
+>  	if (IS_ERR(gpio_mockup_dbg_dir))
+>  		return PTR_ERR(gpio_mockup_dbg_dir);
+>  
+> +	entry = debugfs_create_file("delete_device", 0200, gpio_mockup_dbg_dir,
+> +				NULL, &gpio_mockup_debugfs_delete_device_ops);
+> +	if (IS_ERR(entry)) {
+> +		debugfs_remove_recursive(gpio_mockup_dbg_dir);
+> +		return PTR_ERR(entry);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init gpio_mockup_init(void)
+> +{
+> +	int ret;
+> +
+> +	ret = gpio_mockup_debugfs_init();
+> +	if (ret)
+> +		return ret;
+> +
+>  	ret = platform_driver_register(&gpio_mockup_driver);
+>  	if (ret) {
+>  		pr_err("error registering platform driver\n");
 > -- 
 > 2.26.1
 > 
