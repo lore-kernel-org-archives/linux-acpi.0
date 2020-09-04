@@ -2,74 +2,145 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C1CDC35273
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F47DC35294
 	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F9C7248C5
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:03:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3565252E7
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:04:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726658AbgIDRIq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 13:08:46 -0400
-Received: from foss.arm.com ([217.140.110.172]:54094 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725966AbgIDRIp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Sep 2020 13:08:45 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CCB621045;
-        Fri,  4 Sep 2020 10:08:44 -0700 (PDT)
-Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.28.62])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id B9D393F66F;
-        Fri,  4 Sep 2020 10:08:44 -0700 (PDT)
-From:   Jeremy Linton <jeremy.linton@arm.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     tn@semihalf.com, bhelgaas@google.com, lorenzo.pieralisi@arm.com,
-        steven.price@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        sudeep.holla@arm.com, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH] PCI/ACPI: Suppress missing MCFG message
-Date:   Fri,  4 Sep 2020 12:08:29 -0500
-Message-Id: <20200904170829.431900-1-jeremy.linton@arm.com>
-X-Mailer: git-send-email 2.25.4
+        id S1727855AbgIDR0X (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 13:26:23 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:65168 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727769AbgIDR0S (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 13:26:18 -0400
+Received: from 89-64-89-131.dynamic.chello.pl (89.64.89.131) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.468)
+ id 83bc72f43659210a; Fri, 4 Sep 2020 19:26:16 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 1/6] ACPICA: Validate GPE blocks at init time
+Date:   Fri, 04 Sep 2020 19:21:17 +0200
+Message-ID: <22545488.GHJRr5m80a@kreacher>
+In-Reply-To: <1748021.N9i9sLPJ40@kreacher>
+References: <1748021.N9i9sLPJ40@kreacher>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-MCFG is an optional ACPI table. Given there are machines
-without PCI(e) (or it is hidden) we have been receiving
-queries/complaints about what this message means given
-its being presented as an error.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Lets only print an error if something is wrong with the
-the given table/etc. The ACPI table list printed at boot
-will continue to provide a way to detect when the table
-is missing.
+Some of the checks done by acpi_hw_read() and acpi_hw_write(),
+which are used for accessing GPE registers, are redundant in the
+specific case of GPE registers and the ones that are not redundant
+can be done upfront at the initialization time so as to fail the
+initialization if they are not passed instead of failing every
+access to the affected GPE registers going forward (including
+accesses from the SCI interrupt handler).
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Modify the GPE blocks initialization code accordingly.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/pci_mcfg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/achware.h  |  2 ++
+ drivers/acpi/acpica/evgpeblk.c | 17 +++++++++++++++++
+ drivers/acpi/acpica/hwvalid.c  | 30 ++++++++++++++++++++++++++++++
+ 3 files changed, 49 insertions(+)
 
-diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index 54b36b7ad47d..0bc8c012f157 100644
---- a/drivers/acpi/pci_mcfg.c
-+++ b/drivers/acpi/pci_mcfg.c
-@@ -279,6 +279,6 @@ static __init int pci_mcfg_parse(struct acpi_table_header *header)
- void __init pci_mmcfg_late_init(void)
- {
- 	int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
--	if (err)
-+	if (err && err != -ENODEV)
- 		pr_err("Failed to parse MCFG (%d)\n", err);
+diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
+index ebf6453d0e21..f1f644b58b15 100644
+--- a/drivers/acpi/acpica/achware.h
++++ b/drivers/acpi/acpica/achware.h
+@@ -73,6 +73,8 @@ acpi_status acpi_hw_read_port(acpi_io_address address, u32 *value, u32 width);
+ 
+ acpi_status acpi_hw_write_port(acpi_io_address address, u32 value, u32 width);
+ 
++acpi_status acpi_hw_validate_io_block(u64 address, u32 bit_width, u32 count);
++
+ /*
+  * hwgpe - GPE support
+  */
+diff --git a/drivers/acpi/acpica/evgpeblk.c b/drivers/acpi/acpica/evgpeblk.c
+index 132adff1e131..eb5d98757fdc 100644
+--- a/drivers/acpi/acpica/evgpeblk.c
++++ b/drivers/acpi/acpica/evgpeblk.c
+@@ -317,6 +317,23 @@ acpi_ev_create_gpe_block(struct acpi_namespace_node *gpe_device,
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
+ 
++	/* Validate the space_ID */
++
++	if ((space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) &&
++	    (space_id != ACPI_ADR_SPACE_SYSTEM_IO)) {
++		ACPI_ERROR((AE_INFO,
++			    "Unsupported address space: 0x%X", space_id));
++		return_ACPI_STATUS(AE_SUPPORT);
++	}
++
++	if (space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
++		status = acpi_hw_validate_io_block(address,
++						   ACPI_GPE_REGISTER_WIDTH,
++						   register_count);
++		if (ACPI_FAILURE(status))
++			return_ACPI_STATUS(status);
++	}
++
+ 	/* Allocate a new GPE block */
+ 
+ 	gpe_block = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_gpe_block_info));
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index 4d94861e6093..b2ca7dfd3fc9 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -292,3 +292,33 @@ acpi_status acpi_hw_write_port(acpi_io_address address, u32 value, u32 width)
+ 
+ 	return (AE_OK);
  }
++
++/******************************************************************************
++ *
++ * FUNCTION:    acpi_hw_validate_io_block
++ *
++ * PARAMETERS:  Address             Address of I/O port/register blobk
++ *              bit_width           Number of bits (8,16,32) in each register
++ *              count               Number of registers in the block
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Validates a block of I/O ports/registers.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_hw_validate_io_block(u64 address, u32 bit_width, u32 count)
++{
++	acpi_status status;
++
++	while (count--) {
++		status = acpi_hw_validate_io_request((acpi_io_address)address,
++						     bit_width);
++		if (ACPI_FAILURE(status))
++			return_ACPI_STATUS(status);
++
++		address += ACPI_DIV_8(bit_width);
++	}
++
++	return_ACPI_STATUS(AE_OK);
++}
 -- 
-2.25.4
+2.26.2
+
+
+
 
