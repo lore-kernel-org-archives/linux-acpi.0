@@ -2,49 +2,76 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB2DDC433E2
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 12:51:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8294FC43461
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:46:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7FDB52073B
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 12:51:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AF312074D
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:46:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="cvyMcRXD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730304AbgIDMvr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 08:51:47 -0400
-Received: from mga07.intel.com ([134.134.136.100]:65322 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730249AbgIDMva (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Sep 2020 08:51:30 -0400
-IronPort-SDR: wEbqVZ8eufwrvzEBhRGC45PeflJRM0Ey/PPWJXoRBbH5z2BPMSYVjTepBEQDScniqGsz9UvqvJ
- hgz3T3ZnZo9Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9733"; a="221944956"
-X-IronPort-AV: E=Sophos;i="5.76,389,1592895600"; 
-   d="scan'208";a="221944956"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 05:51:29 -0700
-IronPort-SDR: itmLEUQGXFFs1O8DJSVvLTtjYjRie5A0pPdImpIQfVTtSStr5EsZJUrjIMd5QeYKWIIyWudv4R
- nbT70B5iCtwg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,389,1592895600"; 
-   d="scan'208";a="405834945"
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 04 Sep 2020 05:51:28 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [PATCH 2/4] device connection: Remove device_connection_add()
-Date:   Fri,  4 Sep 2020 15:51:21 +0300
-Message-Id: <20200904125123.83725-3-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20200904125123.83725-1-heikki.krogerus@linux.intel.com>
-References: <20200904125123.83725-1-heikki.krogerus@linux.intel.com>
+        id S1726154AbgIDPqv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 11:46:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43982 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726667AbgIDPqo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 11:46:44 -0400
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48263C061232
+        for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2020 08:46:37 -0700 (PDT)
+Received: by mail-wr1-x444.google.com with SMTP id z4so7213350wrr.4
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2020 08:46:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=Cb3cnGs7j5WS2IcngwK5TKfzy31yqveiACoeOQ6PNok=;
+        b=cvyMcRXDXhXJQxnzLheQiagZqk91Hq3/DSe9O6FVYKHP/1Z0rIZBkBb06Hc1ZOsmKC
+         BJLw9+MREkwONtKQHHVg0Zm+VK+NwCmqrAtyqndwca00OEQJzmAH691WJ4BwomrC/lDi
+         ueqFD5Xez3f5fWi8k6HnlpPnQcWdfbvIob4B7zrpeCwjM2jgfOb1nzFyOwbfHBV3uEok
+         utKIZVZ1tu4QhZRdeHawOCIhgmXIbtxZfbIEhf8Sm9mHmscVLOsTww4QkVJrZeT8woTV
+         AAn0VAiAYSyj/MEGJzBQvAE/pU/teeVk9dprJLAhzo9hik115rydBc26fBE5iuQHznMt
+         WpSg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=Cb3cnGs7j5WS2IcngwK5TKfzy31yqveiACoeOQ6PNok=;
+        b=d4Hkr1S4uXjjiAj6C5GxrQ4BrQyxj+BPZqMYB0SGmx2QlOwnam72CJul4heWYkJVlM
+         NzvlrLSjV7H65NVnaKkNhxQi5BHvVunV0NKACC8steC0IhXOLyHFH/5U3uNBbi3kPV4Z
+         CmRwGC6jb+4AiFhMhJBcd3cSn5GQvNNtmabjDFAIAFb1c3Io78G175N8Bc58lrsUJKLg
+         z4YjH036dNqGRFoInR8bqwjUzEgG1hsI51BxuJLlk/0Lq6oO/IpuzXlHLvR3+Zzpaxo4
+         w3bMJrseKVsUBtrkvO4r3oEbngi074TCZglhsc+7VaICEZGKo11fzg9qRImEqNqh8rT2
+         0eFA==
+X-Gm-Message-State: AOAM533vPGTmTsbjoI/2affIoIVatOq2V2ALS5KScUuXYr5MT6ZUtQcq
+        6sX/ZCwS/OzXZN7JUKZcVkyFAg==
+X-Google-Smtp-Source: ABdhPJyCwJJId2FBp9EzeFlUcmTzo35MIF3b1AJLQnqt3x7RSOA5HXIN8vSfohQcUDDXbopw85qnBw==
+X-Received: by 2002:adf:fc43:: with SMTP id e3mr7909391wrs.28.1599234395939;
+        Fri, 04 Sep 2020 08:46:35 -0700 (PDT)
+Received: from debian-brgl.home (lfbn-nic-1-68-20.w2-15.abo.wanadoo.fr. [2.15.159.20])
+        by smtp.gmail.com with ESMTPSA id q4sm11983375wru.65.2020.09.04.08.46.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Sep 2020 08:46:35 -0700 (PDT)
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+To:     Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Kent Gibson <warthog618@gmail.com>
+Cc:     linux-gpio@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH 04/23] gpiolib: generalize devprop_gpiochip_set_names() for device properties
+Date:   Fri,  4 Sep 2020 17:45:28 +0200
+Message-Id: <20200904154547.3836-5-brgl@bgdev.pl>
+X-Mailer: git-send-email 2.26.1
+In-Reply-To: <20200904154547.3836-1-brgl@bgdev.pl>
+References: <20200904154547.3836-1-brgl@bgdev.pl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -52,145 +79,156 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-All the users of that API have now been converted to use
-software fwnodes instead.
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+devprop_gpiochip_set_names() is overly complicated with taking the
+fwnode argument (which requires using dev_fwnode() & of_fwnode_handle()
+in ACPI and OF GPIO code respectively). Let's just switch to using the
+generic device properties.
+
+This allows us to pull the code setting line names directly into
+gpiochip_add_data_with_key() instead of handling it separately for
+ACPI and OF.
+
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/base/devcon.c  | 59 +-----------------------------------------
- include/linux/device.h | 29 ---------------------
- 2 files changed, 1 insertion(+), 87 deletions(-)
+ drivers/gpio/gpiolib-acpi.c    |  3 ---
+ drivers/gpio/gpiolib-devprop.c | 19 ++++++++++---------
+ drivers/gpio/gpiolib-of.c      |  5 -----
+ drivers/gpio/gpiolib.c         |  8 ++++----
+ include/linux/gpio/driver.h    |  3 +--
+ 5 files changed, 15 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/base/devcon.c b/drivers/base/devcon.c
-index 51ad546303ddb..94ab22a451ce3 100644
---- a/drivers/base/devcon.c
-+++ b/drivers/base/devcon.c
-@@ -9,9 +9,6 @@
- #include <linux/device.h>
- #include <linux/property.h>
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 54ca3c18b291..834a12f3219e 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -1221,9 +1221,6 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
+ 		return;
+ 	}
  
--static DEFINE_MUTEX(devcon_lock);
--static LIST_HEAD(devcon_list);
+-	if (!chip->names)
+-		devprop_gpiochip_set_names(chip, dev_fwnode(chip->parent));
 -
- static void *
- fwnode_graph_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
- 			  void *data, devcon_match_fn_t match)
-@@ -99,60 +96,6 @@ EXPORT_SYMBOL_GPL(fwnode_connection_find_match);
- void *device_connection_find_match(struct device *dev, const char *con_id,
- 				   void *data, devcon_match_fn_t match)
- {
--	struct fwnode_handle *fwnode = dev_fwnode(dev);
--	const char *devname = dev_name(dev);
--	struct device_connection *con;
--	void *ret = NULL;
--	int ep;
--
--	if (!match)
--		return NULL;
--
--	ret = fwnode_connection_find_match(fwnode, con_id, data, match);
--	if (ret)
--		return ret;
--
--	mutex_lock(&devcon_lock);
--
--	list_for_each_entry(con, &devcon_list, list) {
--		ep = match_string(con->endpoint, 2, devname);
--		if (ep < 0)
--			continue;
--
--		if (con_id && strcmp(con->id, con_id))
--			continue;
--
--		ret = match(con, !ep, data);
--		if (ret)
--			break;
--	}
--
--	mutex_unlock(&devcon_lock);
--
--	return ret;
-+	return fwnode_connection_find_match(dev_fwnode(dev), con_id, data, match);
- }
- EXPORT_SYMBOL_GPL(device_connection_find_match);
--
--/**
-- * device_connection_add - Register a connection description
-- * @con: The connection description to be registered
-- */
--void device_connection_add(struct device_connection *con)
--{
--	mutex_lock(&devcon_lock);
--	list_add_tail(&con->list, &devcon_list);
--	mutex_unlock(&devcon_lock);
--}
--EXPORT_SYMBOL_GPL(device_connection_add);
--
--/**
-- * device_connections_remove - Unregister connection description
-- * @con: The connection description to be unregistered
-- */
--void device_connection_remove(struct device_connection *con)
--{
--	mutex_lock(&devcon_lock);
--	list_del(&con->list);
--	mutex_unlock(&devcon_lock);
--}
--EXPORT_SYMBOL_GPL(device_connection_remove);
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 4a98cd2d442c7..43569297c6cc1 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -297,7 +297,6 @@ struct device_dma_parameters {
-  * @fwnode: The device node of the connected device
-  * @endpoint: The names of the two devices connected together
-  * @id: Unique identifier for the connection
-- * @list: List head, private, for internal use only
-  *
-  * NOTE: @fwnode is not used together with @endpoint. @fwnode is used when
-  * platform firmware defines the connection. When the connection is registered
-@@ -307,7 +306,6 @@ struct device_connection {
- 	struct fwnode_handle	*fwnode;
- 	const char		*endpoint[2];
- 	const char		*id;
--	struct list_head	list;
- };
- 
- typedef void *(*devcon_match_fn_t)(struct device_connection *con, int ep,
-@@ -319,33 +317,6 @@ void *fwnode_connection_find_match(struct fwnode_handle *fwnode,
- void *device_connection_find_match(struct device *dev, const char *con_id,
- 				   void *data, devcon_match_fn_t match);
- 
--void device_connection_add(struct device_connection *con);
--void device_connection_remove(struct device_connection *con);
--
--/**
-- * device_connections_add - Add multiple device connections at once
-- * @cons: Zero terminated array of device connection descriptors
-- */
--static inline void device_connections_add(struct device_connection *cons)
--{
--	struct device_connection *c;
--
--	for (c = cons; c->endpoint[0]; c++)
--		device_connection_add(c);
--}
--
--/**
-- * device_connections_remove - Remove multiple device connections at once
-- * @cons: Zero terminated array of device connection descriptors
-- */
--static inline void device_connections_remove(struct device_connection *cons)
--{
--	struct device_connection *c;
--
--	for (c = cons; c->endpoint[0]; c++)
--		device_connection_remove(c);
--}
--
+ 	acpi_gpiochip_request_regions(acpi_gpio);
+ 	acpi_gpiochip_scan_gpios(acpi_gpio);
+ 	acpi_walk_dep_device_list(handle);
+diff --git a/drivers/gpio/gpiolib-devprop.c b/drivers/gpio/gpiolib-devprop.c
+index 26741032fa9e..a28659b4f9c9 100644
+--- a/drivers/gpio/gpiolib-devprop.c
++++ b/drivers/gpio/gpiolib-devprop.c
+@@ -17,25 +17,24 @@
  /**
-  * enum device_link_state - Device link states.
-  * @DL_STATE_NONE: The presence of the drivers is not being tracked.
+  * devprop_gpiochip_set_names - Set GPIO line names using device properties
+  * @chip: GPIO chip whose lines should be named, if possible
+- * @fwnode: Property Node containing the gpio-line-names property
+  *
+  * Looks for device property "gpio-line-names" and if it exists assigns
+  * GPIO line names for the chip. The memory allocated for the assigned
+- * names belong to the underlying firmware node and should not be released
++ * names belong to the underlying software node and should not be released
+  * by the caller.
+  */
+-void devprop_gpiochip_set_names(struct gpio_chip *chip,
+-				const struct fwnode_handle *fwnode)
++int devprop_gpiochip_set_names(struct gpio_chip *chip)
+ {
+ 	struct gpio_device *gdev = chip->gpiodev;
++	struct device *dev = chip->parent;
+ 	const char **names;
+ 	int ret, i;
+ 	int count;
+ 
+-	count = fwnode_property_read_string_array(fwnode, "gpio-line-names",
++	count = device_property_read_string_array(dev, "gpio-line-names",
+ 						  NULL, 0);
+ 	if (count < 0)
+-		return;
++		return 0;
+ 
+ 	if (count > gdev->ngpio) {
+ 		dev_warn(&gdev->dev, "gpio-line-names is length %d but should be at most length %d",
+@@ -45,19 +44,21 @@ void devprop_gpiochip_set_names(struct gpio_chip *chip,
+ 
+ 	names = kcalloc(count, sizeof(*names), GFP_KERNEL);
+ 	if (!names)
+-		return;
++		return -ENOMEM;
+ 
+-	ret = fwnode_property_read_string_array(fwnode, "gpio-line-names",
++	ret = device_property_read_string_array(dev, "gpio-line-names",
+ 						names, count);
+ 	if (ret < 0) {
+ 		dev_warn(&gdev->dev, "failed to read GPIO line names\n");
+ 		kfree(names);
+-		return;
++		return ret;
+ 	}
+ 
+ 	for (i = 0; i < count; i++)
+ 		gdev->descs[i].name = names[i];
+ 
+ 	kfree(names);
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(devprop_gpiochip_set_names);
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index bd31dd3b6a75..2f895a2b8411 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -1026,11 +1026,6 @@ int of_gpiochip_add(struct gpio_chip *chip)
+ 	if (ret)
+ 		return ret;
+ 
+-	/* If the chip defines names itself, these take precedence */
+-	if (!chip->names)
+-		devprop_gpiochip_set_names(chip,
+-					   of_fwnode_handle(chip->of_node));
+-
+ 	of_node_get(chip->of_node);
+ 
+ 	ret = of_gpiochip_scan_gpios(chip);
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 80137c1b3cdc..0d390f0ec32c 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -340,9 +340,6 @@ static int gpiochip_set_desc_names(struct gpio_chip *gc)
+ 	struct gpio_device *gdev = gc->gpiodev;
+ 	int i;
+ 
+-	if (!gc->names)
+-		return 0;
+-
+ 	/* First check all names if they are unique */
+ 	for (i = 0; i != gc->ngpio; ++i) {
+ 		struct gpio_desc *gpio;
+@@ -621,7 +618,10 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+ 	INIT_LIST_HEAD(&gdev->pin_ranges);
+ #endif
+ 
+-	ret = gpiochip_set_desc_names(gc);
++	if (gc->names)
++		ret = gpiochip_set_desc_names(gc);
++	else
++		ret = devprop_gpiochip_set_names(gc);
+ 	if (ret)
+ 		goto err_remove_from_list;
+ 
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index d1cef5c2715c..56485a040b82 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -756,8 +756,7 @@ struct gpio_desc *gpiochip_request_own_desc(struct gpio_chip *gc,
+ 					    enum gpiod_flags dflags);
+ void gpiochip_free_own_desc(struct gpio_desc *desc);
+ 
+-void devprop_gpiochip_set_names(struct gpio_chip *gc,
+-				const struct fwnode_handle *fwnode);
++int devprop_gpiochip_set_names(struct gpio_chip *gc);
+ 
+ #ifdef CONFIG_GPIOLIB
+ 
 -- 
-2.28.0
+2.26.1
 
