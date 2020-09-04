@@ -5,58 +5,58 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8294FC43461
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:46:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE6D3C433E2
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:47:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AF312074D
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:46:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9000C20829
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:47:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="cvyMcRXD"
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="Pph0ChKq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726154AbgIDPqv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 11:46:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43982 "EHLO
+        id S1727794AbgIDPri (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 11:47:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726667AbgIDPqo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 11:46:44 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48263C061232
-        for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2020 08:46:37 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id z4so7213350wrr.4
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2020 08:46:37 -0700 (PDT)
+        with ESMTP id S1727019AbgIDPrR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 11:47:17 -0400
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3E7FC0619D1
+        for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2020 08:46:54 -0700 (PDT)
+Received: by mail-wr1-x443.google.com with SMTP id c18so7184205wrm.9
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2020 08:46:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Cb3cnGs7j5WS2IcngwK5TKfzy31yqveiACoeOQ6PNok=;
-        b=cvyMcRXDXhXJQxnzLheQiagZqk91Hq3/DSe9O6FVYKHP/1Z0rIZBkBb06Hc1ZOsmKC
-         BJLw9+MREkwONtKQHHVg0Zm+VK+NwCmqrAtyqndwca00OEQJzmAH691WJ4BwomrC/lDi
-         ueqFD5Xez3f5fWi8k6HnlpPnQcWdfbvIob4B7zrpeCwjM2jgfOb1nzFyOwbfHBV3uEok
-         utKIZVZ1tu4QhZRdeHawOCIhgmXIbtxZfbIEhf8Sm9mHmscVLOsTww4QkVJrZeT8woTV
-         AAn0VAiAYSyj/MEGJzBQvAE/pU/teeVk9dprJLAhzo9hik115rydBc26fBE5iuQHznMt
-         WpSg==
+        bh=RT9K0p4g9wsam9mtLvU8jWCbdg1QlHE5npCSk6GRJVM=;
+        b=Pph0ChKqHgqs9PaK7532rJDYq8CCuzL49IHbUNNh8wkzPBANz7SFZRVpe8XZ6089Dv
+         w6hesKYtcpQT4Xn0LXDDkAAwnHY8SkZfl97hmrjQg1ejNa/IDYgWLvxD72t0bCCu1ihU
+         Kia91DKj1cbhCQ054PEtqNZgjWU4xEvuzZbzThXH6fhadPW3xJHoOT4GOeXDsdpt4B6Q
+         w8yhwq243s79jSf7dIZgRnGMtn09vLqHQF/2Gw1s+Xxbhg4FS7Q6bC3r5oFPgFrePT8H
+         Rkc0q0bYUHSe+Yf2WE7b+liCRpH0L24hIZ43cjEjsbBKorpi1qb4JDcLyq2SkhHPkXug
+         aKKg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Cb3cnGs7j5WS2IcngwK5TKfzy31yqveiACoeOQ6PNok=;
-        b=d4Hkr1S4uXjjiAj6C5GxrQ4BrQyxj+BPZqMYB0SGmx2QlOwnam72CJul4heWYkJVlM
-         NzvlrLSjV7H65NVnaKkNhxQi5BHvVunV0NKACC8steC0IhXOLyHFH/5U3uNBbi3kPV4Z
-         CmRwGC6jb+4AiFhMhJBcd3cSn5GQvNNtmabjDFAIAFb1c3Io78G175N8Bc58lrsUJKLg
-         z4YjH036dNqGRFoInR8bqwjUzEgG1hsI51BxuJLlk/0Lq6oO/IpuzXlHLvR3+Zzpaxo4
-         w3bMJrseKVsUBtrkvO4r3oEbngi074TCZglhsc+7VaICEZGKo11fzg9qRImEqNqh8rT2
-         0eFA==
-X-Gm-Message-State: AOAM533vPGTmTsbjoI/2affIoIVatOq2V2ALS5KScUuXYr5MT6ZUtQcq
-        6sX/ZCwS/OzXZN7JUKZcVkyFAg==
-X-Google-Smtp-Source: ABdhPJyCwJJId2FBp9EzeFlUcmTzo35MIF3b1AJLQnqt3x7RSOA5HXIN8vSfohQcUDDXbopw85qnBw==
-X-Received: by 2002:adf:fc43:: with SMTP id e3mr7909391wrs.28.1599234395939;
-        Fri, 04 Sep 2020 08:46:35 -0700 (PDT)
+        bh=RT9K0p4g9wsam9mtLvU8jWCbdg1QlHE5npCSk6GRJVM=;
+        b=sZfiVD8XlqhEG+Kl3Iv/9BpZc3cafx3wkGZClRTF76rO6MlONYcpWy4DLMuPPEfb53
+         eptaZLLyokbgztqzAq4EIsqSh/bc4pfJSsqocKK2DTiw19rwuUrWJ+BPZ1xXd48cuUKF
+         gEf2aom7E4KYATc9+nJDkZZFeAd4Os6se8FPYv3u3GQtZPaI1cUN4YnyL2gclxf3ZvIO
+         tL9s0d+Bw04BhVW94yh3kO21/PuUXXdG41Sxr5E22jjRPjZ8VokjRFyG1NihQse1CRXi
+         cs3VBgBErUSCRKAAAmG99S7BFNDzi4ibZSGcYAFqOB+hOcqS1e8Q20f444MIoXkEcT2u
+         I/jg==
+X-Gm-Message-State: AOAM532teenSjfeyLIrU08tzDh1TDQX6THW5u2N3jycvsRrmfPPz9kJ9
+        dG6ZM0Q/aj0nsf2MqqUjF9qJ5A==
+X-Google-Smtp-Source: ABdhPJzwm1LPWjidY+W2eWt031GEhqfqEZ4XCSVhfjqUt9KC+wqwPvwzW1Xvz1lIpyZuwTS8CeLJLw==
+X-Received: by 2002:adf:9d44:: with SMTP id o4mr8315397wre.361.1599234413434;
+        Fri, 04 Sep 2020 08:46:53 -0700 (PDT)
 Received: from debian-brgl.home (lfbn-nic-1-68-20.w2-15.abo.wanadoo.fr. [2.15.159.20])
-        by smtp.gmail.com with ESMTPSA id q4sm11983375wru.65.2020.09.04.08.46.35
+        by smtp.gmail.com with ESMTPSA id q4sm11983375wru.65.2020.09.04.08.46.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Sep 2020 08:46:35 -0700 (PDT)
+        Fri, 04 Sep 2020 08:46:52 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Linus Walleij <linus.walleij@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
@@ -66,9 +66,9 @@ To:     Linus Walleij <linus.walleij@linaro.org>,
 Cc:     linux-gpio@vger.kernel.org, linux-doc@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH 04/23] gpiolib: generalize devprop_gpiochip_set_names() for device properties
-Date:   Fri,  4 Sep 2020 17:45:28 +0200
-Message-Id: <20200904154547.3836-5-brgl@bgdev.pl>
+Subject: [PATCH 19/23] gpio: mockup: add a symlink for the per-chip debugfs directory
+Date:   Fri,  4 Sep 2020 17:45:43 +0200
+Message-Id: <20200904154547.3836-20-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.26.1
 In-Reply-To: <20200904154547.3836-1-brgl@bgdev.pl>
 References: <20200904154547.3836-1-brgl@bgdev.pl>
@@ -81,154 +81,74 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-devprop_gpiochip_set_names() is overly complicated with taking the
-fwnode argument (which requires using dev_fwnode() & of_fwnode_handle()
-in ACPI and OF GPIO code respectively). Let's just switch to using the
-generic device properties.
+We used to have a symlink named after the chip's label linking to the
+per-chip directory named after the chip's name. This was removed by
+commit d51ee07a8de7 ("gpio: mockup: don't create the debugfs link named
+after the label") because there were no users of it.
 
-This allows us to pull the code setting line names directly into
-gpiochip_add_data_with_key() instead of handling it separately for
-ACPI and OF.
+This changeset proposes to reintroduce debugfs symlinks but inverted:
+the link named after the device name points to the directory named after
+the label. This way user-space can dynamically create a chip (once that
+functionality is available), detect its creation over uevent and match
+the device name to the label by resolving the link.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/gpio/gpiolib-acpi.c    |  3 ---
- drivers/gpio/gpiolib-devprop.c | 19 ++++++++++---------
- drivers/gpio/gpiolib-of.c      |  5 -----
- drivers/gpio/gpiolib.c         |  8 ++++----
- include/linux/gpio/driver.h    |  3 +--
- 5 files changed, 15 insertions(+), 23 deletions(-)
+ drivers/gpio/gpio-mockup.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 54ca3c18b291..834a12f3219e 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -1221,9 +1221,6 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
- 		return;
- 	}
+diff --git a/drivers/gpio/gpio-mockup.c b/drivers/gpio/gpio-mockup.c
+index 7df990662c17..bc4609e047ef 100644
+--- a/drivers/gpio/gpio-mockup.c
++++ b/drivers/gpio/gpio-mockup.c
+@@ -52,6 +52,7 @@ struct gpio_mockup_chip {
+ 	struct gpio_mockup_line_status *lines;
+ 	struct irq_domain *irq_sim_domain;
+ 	struct dentry *dbg_dir;
++	struct dentry *dbg_link;
+ 	struct mutex lock;
+ };
  
--	if (!chip->names)
--		devprop_gpiochip_set_names(chip, dev_fwnode(chip->parent));
--
- 	acpi_gpiochip_request_regions(acpi_gpio);
- 	acpi_gpiochip_scan_gpios(acpi_gpio);
- 	acpi_walk_dep_device_list(handle);
-diff --git a/drivers/gpio/gpiolib-devprop.c b/drivers/gpio/gpiolib-devprop.c
-index 26741032fa9e..a28659b4f9c9 100644
---- a/drivers/gpio/gpiolib-devprop.c
-+++ b/drivers/gpio/gpiolib-devprop.c
-@@ -17,25 +17,24 @@
- /**
-  * devprop_gpiochip_set_names - Set GPIO line names using device properties
-  * @chip: GPIO chip whose lines should be named, if possible
-- * @fwnode: Property Node containing the gpio-line-names property
-  *
-  * Looks for device property "gpio-line-names" and if it exists assigns
-  * GPIO line names for the chip. The memory allocated for the assigned
-- * names belong to the underlying firmware node and should not be released
-+ * names belong to the underlying software node and should not be released
-  * by the caller.
-  */
--void devprop_gpiochip_set_names(struct gpio_chip *chip,
--				const struct fwnode_handle *fwnode)
-+int devprop_gpiochip_set_names(struct gpio_chip *chip)
- {
- 	struct gpio_device *gdev = chip->gpiodev;
-+	struct device *dev = chip->parent;
- 	const char **names;
- 	int ret, i;
- 	int count;
- 
--	count = fwnode_property_read_string_array(fwnode, "gpio-line-names",
-+	count = device_property_read_string_array(dev, "gpio-line-names",
- 						  NULL, 0);
- 	if (count < 0)
--		return;
-+		return 0;
- 
- 	if (count > gdev->ngpio) {
- 		dev_warn(&gdev->dev, "gpio-line-names is length %d but should be at most length %d",
-@@ -45,19 +44,21 @@ void devprop_gpiochip_set_names(struct gpio_chip *chip,
- 
- 	names = kcalloc(count, sizeof(*names), GFP_KERNEL);
- 	if (!names)
--		return;
-+		return -ENOMEM;
- 
--	ret = fwnode_property_read_string_array(fwnode, "gpio-line-names",
-+	ret = device_property_read_string_array(dev, "gpio-line-names",
- 						names, count);
- 	if (ret < 0) {
- 		dev_warn(&gdev->dev, "failed to read GPIO line names\n");
- 		kfree(names);
--		return;
-+		return ret;
- 	}
- 
- 	for (i = 0; i < count; i++)
- 		gdev->descs[i].name = names[i];
- 
- 	kfree(names);
-+
-+	return 0;
+@@ -355,6 +356,13 @@ static void gpio_mockup_remove_chip_debugfs_entry(void *data)
+ 	debugfs_remove_recursive(entry);
  }
- EXPORT_SYMBOL_GPL(devprop_gpiochip_set_names);
-diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index bd31dd3b6a75..2f895a2b8411 100644
---- a/drivers/gpio/gpiolib-of.c
-+++ b/drivers/gpio/gpiolib-of.c
-@@ -1026,11 +1026,6 @@ int of_gpiochip_add(struct gpio_chip *chip)
+ 
++static void gpio_mockup_remove_chip_debugfs_link(void *data)
++{
++	struct dentry *link = data;
++
++	debugfs_remove(link);
++}
++
+ static int gpio_mockup_debugfs_setup(struct device *dev,
+ 				     struct gpio_mockup_chip *chip)
+ {
+@@ -368,7 +376,7 @@ static int gpio_mockup_debugfs_setup(struct device *dev,
+ 	gc = &chip->gc;
+ 	devname = dev_name(&gc->gpiodev->dev);
+ 
+-	chip->dbg_dir = debugfs_create_dir(devname, gpio_mockup_dbg_dir);
++	chip->dbg_dir = debugfs_create_dir(gc->label, gpio_mockup_dbg_dir);
+ 	if (IS_ERR(chip->dbg_dir))
+ 		return PTR_ERR(chip->dbg_dir);
+ 
+@@ -377,6 +385,16 @@ static int gpio_mockup_debugfs_setup(struct device *dev,
  	if (ret)
  		return ret;
  
--	/* If the chip defines names itself, these take precedence */
--	if (!chip->names)
--		devprop_gpiochip_set_names(chip,
--					   of_fwnode_handle(chip->of_node));
--
- 	of_node_get(chip->of_node);
- 
- 	ret = of_gpiochip_scan_gpios(chip);
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 80137c1b3cdc..0d390f0ec32c 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -340,9 +340,6 @@ static int gpiochip_set_desc_names(struct gpio_chip *gc)
- 	struct gpio_device *gdev = gc->gpiodev;
- 	int i;
- 
--	if (!gc->names)
--		return 0;
--
- 	/* First check all names if they are unique */
- 	for (i = 0; i != gc->ngpio; ++i) {
- 		struct gpio_desc *gpio;
-@@ -621,7 +618,10 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
- 	INIT_LIST_HEAD(&gdev->pin_ranges);
- #endif
- 
--	ret = gpiochip_set_desc_names(gc);
-+	if (gc->names)
-+		ret = gpiochip_set_desc_names(gc);
-+	else
-+		ret = devprop_gpiochip_set_names(gc);
- 	if (ret)
- 		goto err_remove_from_list;
- 
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index d1cef5c2715c..56485a040b82 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -756,8 +756,7 @@ struct gpio_desc *gpiochip_request_own_desc(struct gpio_chip *gc,
- 					    enum gpiod_flags dflags);
- void gpiochip_free_own_desc(struct gpio_desc *desc);
- 
--void devprop_gpiochip_set_names(struct gpio_chip *gc,
--				const struct fwnode_handle *fwnode);
-+int devprop_gpiochip_set_names(struct gpio_chip *gc);
- 
- #ifdef CONFIG_GPIOLIB
- 
++	chip->dbg_link = debugfs_create_symlink(devname, gpio_mockup_dbg_dir,
++						gc->label);
++	if (IS_ERR(chip->dbg_link))
++		return PTR_ERR(chip->dbg_link);
++
++	ret = devm_add_action_or_reset(dev,
++			gpio_mockup_remove_chip_debugfs_link, chip->dbg_link);
++	if (ret)
++		return ret;
++
+ 	for (i = 0; i < gc->ngpio; i++) {
+ 		name = devm_kasprintf(dev, GFP_KERNEL, "%d", i);
+ 		if (!name)
 -- 
 2.26.1
 
