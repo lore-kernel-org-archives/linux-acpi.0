@@ -2,87 +2,74 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BA27C4742B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C1CDC35273
 	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C4BD22229
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:01:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F9C7248C5
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:03:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726407AbgIDR4N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 13:56:13 -0400
-Received: from mga18.intel.com ([134.134.136.126]:7732 "EHLO mga18.intel.com"
+        id S1726658AbgIDRIq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 13:08:46 -0400
+Received: from foss.arm.com ([217.140.110.172]:54094 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726047AbgIDR4N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Sep 2020 13:56:13 -0400
-IronPort-SDR: 0R5/vDIc+loxW0JoXbha8F1M8iin57Es8T9Kq6718iJTFEGqEe8cs9UVwxn+YmmLwORPe3XjLq
- edbrJ+1ZZLTw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="145500132"
-X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="145500132"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 10:56:11 -0700
-IronPort-SDR: X30q14WV6IiszTYXdlEL2B+2CJNuk7HDoRwup93FUbqFlsqd/TtTKhgL8bTYbn5bIYF9Qj7G+8
- DC4F5RfmCCkA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="332245475"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 10:56:10 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kEFwV-00EL5y-Oh; Fri, 04 Sep 2020 20:56:07 +0300
-Date:   Fri, 4 Sep 2020 20:56:07 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] pinctrl: cherryview: Preserve
- CHV_PADCTRL1_INVRXTX_TXDATA flag on GPIOs
-Message-ID: <20200904175607.GK1891694@smile.fi.intel.com>
-References: <20200904172141.180363-1-hdegoede@redhat.com>
- <20200904174456.GI1891694@smile.fi.intel.com>
- <20200904175014.GJ1891694@smile.fi.intel.com>
+        id S1725966AbgIDRIp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Sep 2020 13:08:45 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CCB621045;
+        Fri,  4 Sep 2020 10:08:44 -0700 (PDT)
+Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.28.62])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id B9D393F66F;
+        Fri,  4 Sep 2020 10:08:44 -0700 (PDT)
+From:   Jeremy Linton <jeremy.linton@arm.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     tn@semihalf.com, bhelgaas@google.com, lorenzo.pieralisi@arm.com,
+        steven.price@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
+        sudeep.holla@arm.com, linux-pci@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH] PCI/ACPI: Suppress missing MCFG message
+Date:   Fri,  4 Sep 2020 12:08:29 -0500
+Message-Id: <20200904170829.431900-1-jeremy.linton@arm.com>
+X-Mailer: git-send-email 2.25.4
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200904175014.GJ1891694@smile.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 04, 2020 at 08:50:14PM +0300, Andy Shevchenko wrote:
-> On Fri, Sep 04, 2020 at 08:44:56PM +0300, Andy Shevchenko wrote:
-> > On Fri, Sep 04, 2020 at 07:21:41PM +0200, Hans de Goede wrote:
-> 
-> ...
-> 
-> > > Note that chv_pinmux_set_mux() does still unconditionally clear the
-> > > flag, so this only affects GPIO usage.
-> > 
-> > Makes sense!
-> > I'll wait for Mika tag, while pushing to my review and testing queue, thanks!
-> 
-> Hmm... JFYI:
-> Applying: pinctrl: cherryview: Preserve CHV_PADCTRL1_INVRXTX_TXDATA flag on GPIOs
-> Context reduced to (2/2) to apply fragment at 770
-> 
-> I applied it with -C1 because of above.
+MCFG is an optional ACPI table. Given there are machines
+without PCI(e) (or it is hidden) we have been receiving
+queries/complaints about what this message means given
+its being presented as an error.
 
-Okay, it's because of 
-3ea2e2cabd2d pinctrl: cherryview: Switch to use struct intel_pinctrl
+Lets only print an error if something is wrong with the
+the given table/etc. The ACPI table list printed at boot
+will continue to provide a way to detect when the table
+is missing.
 
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ drivers/acpi/pci_mcfg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+index 54b36b7ad47d..0bc8c012f157 100644
+--- a/drivers/acpi/pci_mcfg.c
++++ b/drivers/acpi/pci_mcfg.c
+@@ -279,6 +279,6 @@ static __init int pci_mcfg_parse(struct acpi_table_header *header)
+ void __init pci_mmcfg_late_init(void)
+ {
+ 	int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
+-	if (err)
++	if (err && err != -ENODEV)
+ 		pr_err("Failed to parse MCFG (%d)\n", err);
+ }
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.25.4
 
