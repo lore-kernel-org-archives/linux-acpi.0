@@ -4,148 +4,142 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C40E7C3CFC1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC003C3CFC2
 	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CE1B22208
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:01:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F05C2252BF
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:04:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727921AbgIDRpF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 13:45:05 -0400
-Received: from mga07.intel.com ([134.134.136.100]:26728 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727889AbgIDRpF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Sep 2020 13:45:05 -0400
-IronPort-SDR: sGvuGOpV3iziVlrZDoCheFqfq7nH8KqvwnLryIns66ZI5dqGgfDPzr8UIPWI0+bdvdTfcDD7B1
- MidYygI5vboQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="222004049"
-X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="222004049"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 10:45:00 -0700
-IronPort-SDR: fQ8FlLcY7ZqkmjMxM0Sq87baOWYfgiehH2GUJm0GkdPXlPeW3R4kt+MWtC1PC7j5WL9ZwNuij5
- 3YXy0PFnDTIg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="332242185"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 10:44:58 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kEFlg-00EKz8-Is; Fri, 04 Sep 2020 20:44:56 +0300
-Date:   Fri, 4 Sep 2020 20:44:56 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] pinctrl: cherryview: Preserve
- CHV_PADCTRL1_INVRXTX_TXDATA flag on GPIOs
-Message-ID: <20200904174456.GI1891694@smile.fi.intel.com>
-References: <20200904172141.180363-1-hdegoede@redhat.com>
+        id S1727776AbgIDR0R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 13:26:17 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:58200 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726208AbgIDR0O (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 13:26:14 -0400
+Received: from 89-64-89-131.dynamic.chello.pl (89.64.89.131) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.468)
+ id cdf42de74af96259; Fri, 4 Sep 2020 19:26:11 +0200
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 5/6] ACPI: OSL: Change the type of acpi_os_map_generic_address() return value
+Date:   Fri, 04 Sep 2020 19:24:51 +0200
+Message-ID: <9772445.uTLouIlUSL@kreacher>
+In-Reply-To: <1748021.N9i9sLPJ40@kreacher>
+References: <1748021.N9i9sLPJ40@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200904172141.180363-1-hdegoede@redhat.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 04, 2020 at 07:21:41PM +0200, Hans de Goede wrote:
-> One some devices the GPIO should output the inverted value from what
-> device-drivers / ACPI code expects. The reason for this is unknown,
-> perhaps these systems use an external buffer chip on the GPIO which
-> inverts the signal. The BIOS makes this work by setting the
-> CHV_PADCTRL1_INVRXTX_TXDATA flag.
-> 
-> Before this commit we would unconditionally clear all INVRXTX flags,
-> including the CHV_PADCTRL1_INVRXTX_TXDATA flag when a GPIO is requested
-> by a driver (from chv_gpio_request_enable()).
-> 
-> This breaks systems using this setup. Specifically it is causing
-> problems for systems with a goodix touchscreen, where the BIOS sets the
-> INVRXTX_TXDATA flag on the GPIO used for the touchscreen's reset pin.
-> 
-> The goodix touchscreen driver by defaults configures this pin as input
-> (relying on the pull-up to keep it high), but the clearing of the
-> INVRXTX_TXDATA flag done by chv_gpio_request_enable() causes it to be
-> driven low for a brief time before the GPIO gets set to input mode.
-> 
-> This causes the touchscreen controller to get reset. On most CHT devs
-> with this touchscreen this leads to:
-> 
-> [   31.596534] Goodix-TS i2c-GDIX1001:00: i2c test failed attempt 1: -121
-> 
-> The driver retries this though and then everything is fine. But during
-> reset the touchscreen uses its interrupt pin as bootstrap to determine
-> which i2c address to use and on the Acer One S1003 the spurious reset
-> caused by the clearing of the INVRXTX_TXDATA flag causes the controller
-> to come back up again on the wrong i2c address, breaking things.
-> 
-> This commit fixes both the -121 errors, as well as the total breakage
-> on the Acer One S1003, by making chv_gpio_clear_triggering() not clear
-> the INVRXTX_TXDATA flag if the pin is already configured as a GPIO.
-> 
-> Note that chv_pinmux_set_mux() does still unconditionally clear the
-> flag, so this only affects GPIO usage.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Makes sense!
-I'll wait for Mika tag, while pushing to my review and testing queue, thanks!
+Modify acpi_os_map_generic_address() to return the pointer returned
+by acpi_os_map_iomem() which represents the logical address
+corresponding to the struct acpi_generic_address argument passed to
+it or NULL if that address cannot be obtained (for example, the
+argument does not represent an address in system memory or it could
+not be mapped by the OS).
 
-> Fixes: a7d4b171660c ("Input: goodix - add support for getting IRQ + reset GPIOs on Cherry Trail devices")
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/pinctrl/intel/pinctrl-cherryview.c | 14 +++++++++++++-
->  1 file changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/pinctrl/intel/pinctrl-cherryview.c b/drivers/pinctrl/intel/pinctrl-cherryview.c
-> index 33862bb1e0e2..41ee77bf893e 100644
-> --- a/drivers/pinctrl/intel/pinctrl-cherryview.c
-> +++ b/drivers/pinctrl/intel/pinctrl-cherryview.c
-> @@ -64,6 +64,7 @@
->  #define CHV_PADCTRL1_CFGLOCK		BIT(31)
->  #define CHV_PADCTRL1_INVRXTX_SHIFT	4
->  #define CHV_PADCTRL1_INVRXTX_MASK	GENMASK(7, 4)
-> +#define CHV_PADCTRL1_INVRXTX_TXDATA	BIT(7)
->  #define CHV_PADCTRL1_INVRXTX_RXDATA	BIT(6)
->  #define CHV_PADCTRL1_INVRXTX_TXENABLE	BIT(5)
->  #define CHV_PADCTRL1_ODEN		BIT(3)
-> @@ -798,11 +799,22 @@ static int chv_pinmux_set_mux(struct pinctrl_dev *pctldev,
->  static void chv_gpio_clear_triggering(struct chv_pinctrl *pctrl,
->  				      unsigned int offset)
->  {
-> +	u32 invrxtx_mask = CHV_PADCTRL1_INVRXTX_MASK;
->  	u32 value;
->  
-> +	/*
-> +	 * One some devices the GPIO should output the inverted value from what
-> +	 * device-drivers / ACPI code expects (inverted external buffer?). The
-> +	 * BIOS makes this work by setting the CHV_PADCTRL1_INVRXTX_TXDATA flag,
-> +	 * preserve this flag if the pin is already setup as GPIO.
-> +	 */
-> +	value = chv_readl(pctrl, offset, CHV_PADCTRL0);
-> +	if (value & CHV_PADCTRL0_GPIOEN)
-> +		invrxtx_mask &= ~CHV_PADCTRL1_INVRXTX_TXDATA;
-> +
->  	value = chv_readl(pctrl, offset, CHV_PADCTRL1);
->  	value &= ~CHV_PADCTRL1_INTWAKECFG_MASK;
-> -	value &= ~CHV_PADCTRL1_INVRXTX_MASK;
-> +	value &= ~invrxtx_mask;
->  	chv_writel(pctrl, offset, CHV_PADCTRL1, value);
->  }
->  
-> -- 
-> 2.28.0
-> 
+Among other things, that will allow the ACPI OS layer to pass the
+logical addresses of the FADT GPE blocks 0 and 1 to ACPICA going
+forward.
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/apei/apei-base.c |  6 +++++-
+ drivers/acpi/osl.c            | 18 +++++++-----------
+ include/acpi/acpi_io.h        |  2 +-
+ 3 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index e358d0046494..552fd9ffaca4 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -632,7 +632,11 @@ int apei_map_generic_address(struct acpi_generic_address *reg)
+ 	rc = apei_check_gar(reg, &address, &access_bit_width);
+ 	if (rc)
+ 		return rc;
+-	return acpi_os_map_generic_address(reg);
++
++	if (!acpi_os_map_generic_address(reg))
++		return -ENXIO;
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(apei_map_generic_address);
+ 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 4a0b07792233..3a50d8fa310b 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -447,24 +447,19 @@ void __ref acpi_os_unmap_memory(void *virt, acpi_size size)
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+ 
+-int acpi_os_map_generic_address(struct acpi_generic_address *gas)
++void __iomem *acpi_os_map_generic_address(struct acpi_generic_address *gas)
+ {
+ 	u64 addr;
+-	void __iomem *virt;
+ 
+ 	if (gas->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-		return 0;
++		return NULL;
+ 
+ 	/* Handle possible alignment issues */
+ 	memcpy(&addr, &gas->address, sizeof(addr));
+ 	if (!addr || !gas->bit_width)
+-		return -EINVAL;
+-
+-	virt = acpi_os_map_iomem(addr, gas->bit_width / 8);
+-	if (!virt)
+-		return -EIO;
++		return NULL;
+ 
+-	return 0;
++	return acpi_os_map_iomem(addr, gas->bit_width / 8);
+ }
+ EXPORT_SYMBOL(acpi_os_map_generic_address);
+ 
+@@ -1756,10 +1751,11 @@ acpi_status __init acpi_os_initialize(void)
+ 		 * Use acpi_os_map_generic_address to pre-map the reset
+ 		 * register if it's in system memory.
+ 		 */
+-		int rv;
++		void *rv;
+ 
+ 		rv = acpi_os_map_generic_address(&acpi_gbl_FADT.reset_register);
+-		pr_debug(PREFIX "%s: map reset_reg status %d\n", __func__, rv);
++		pr_debug(PREFIX "%s: map reset_reg %s\n", __func__,
++			 rv ? "successful" : "failed");
+ 	}
+ 	acpi_os_initialized = true;
+ 
+diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
+index 12d8bd333fe7..027faa8883aa 100644
+--- a/include/acpi/acpi_io.h
++++ b/include/acpi/acpi_io.h
+@@ -21,7 +21,7 @@ void __iomem __ref
+ void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size);
+ void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
+ 
+-int acpi_os_map_generic_address(struct acpi_generic_address *addr);
++void __iomem *acpi_os_map_generic_address(struct acpi_generic_address *addr);
+ void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
+ 
+ #endif
 -- 
-With Best Regards,
-Andy Shevchenko
+2.26.2
+
+
 
 
