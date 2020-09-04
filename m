@@ -2,141 +2,147 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B91AC433E2
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:51:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FB8C2BB84
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:35:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5071B20797
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 15:51:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="imCUNYky"
+	by mail.kernel.org (Postfix) with ESMTP id A81FE2064E
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:35:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727847AbgIDPu4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 11:50:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43924 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726320AbgIDPqd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 11:46:33 -0400
-Received: from mail-wm1-x32f.google.com (mail-wm1-x32f.google.com [IPv6:2a00:1450:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1210C061245
-        for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2020 08:46:32 -0700 (PDT)
-Received: by mail-wm1-x32f.google.com with SMTP id l9so6512409wme.3
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2020 08:46:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=fmK93ghUCK4Bfkn87SsfLV7Lx2ToEIVDjZGF81gdV3I=;
-        b=imCUNYkyVYERELDx5z17ROl3W0tPoyG6+NCLtcyQUclp/DLiloNkPtJzWEXXyubLAC
-         h+4HuoA1iGdskeY62BZFfE8AGzR5LltiwgSovvfligA3ru6g1Mmthw69qbjeE8RUaLbr
-         +PYf8q+AFYdKipDE8+Zu2jWHu/amtYYNu75E5ZpsiGP5ZSbomoCQJvvem6mLfv2k5zcE
-         q+85l1xCKNUc1gRTlgOnGV0Pxl+3e3dSGIWChjVkrpEFZEAkzoHawJpmtHzYjQn2NAo+
-         w64MAdJTEpnavglHJzxNT5kWPO4SUSfdi1zyQVm17Ta9V26Z8XWz3AYA+5gYgPFhE50B
-         RpBw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=fmK93ghUCK4Bfkn87SsfLV7Lx2ToEIVDjZGF81gdV3I=;
-        b=uJ//AQHg+uthWHqmk32dcsvTP7eGHYs/ZuNH4rVb2jsXB0FAFBBBt7+6fhOklucX+/
-         0vjeLHg3F4ZSDXhBufg2G3AIWj6G3uLOm7KOpocyzop9tt/J9VaHT+4Pi6Fikfw9BJPd
-         06hgTA06DCn6DaJo9HqUutzSIAq6bW7ZckTcUVj8gOZTn9XzckiDKheciCDi0Ok4YnLZ
-         vXasA+FTpx++Xnxb7Viqmd0RHQKydFZDPuj8SaJyzh6CyJPlhFeobA+yeicZeYZ/RM44
-         oCUzQYo2HAdio9AWSs1YfQlqUubcWwbXs0J6jL3s5sMMjfiMgGqzFfmEa1k9KdLghAVE
-         WJiQ==
-X-Gm-Message-State: AOAM533b60POJTntzFr2zfeXMgiEGty5QKSzizF5Sz9UXMWwvOGZoJlQ
-        3d2aSkvENzH36VSrbWYdoYbiFw==
-X-Google-Smtp-Source: ABdhPJwT14PBgDJkOeHgwMzyq3LJMTMmetylVFwoCbarhMQNwhP0okhbv0nlb/abXQmSIiMpOSdJqA==
-X-Received: by 2002:a1c:9a48:: with SMTP id c69mr7940657wme.43.1599234390539;
-        Fri, 04 Sep 2020 08:46:30 -0700 (PDT)
-Received: from debian-brgl.home (lfbn-nic-1-68-20.w2-15.abo.wanadoo.fr. [2.15.159.20])
-        by smtp.gmail.com with ESMTPSA id q4sm11983375wru.65.2020.09.04.08.46.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Sep 2020 08:46:29 -0700 (PDT)
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-To:     Linus Walleij <linus.walleij@linaro.org>,
+        id S1726092AbgIDQf1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 12:35:27 -0400
+Received: from mga12.intel.com ([192.55.52.136]:22282 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726047AbgIDQfZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Sep 2020 12:35:25 -0400
+IronPort-SDR: N7G1NMA1vwgQZOyxy79IzchW1pPfH7PkEXNqYvcXOf+4iQvVX/gX2IOO38Od/e6Sd2bhLHM/BU
+ afh1yvK+7vCQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="137300774"
+X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
+   d="scan'208";a="137300774"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 09:35:22 -0700
+IronPort-SDR: /dqQJqsIa/VFbqalbeB6jnnHq/h+KBnDMOXQYnSozk9jvYwAZbYayzsGNojeOYVl2FHGANE9zP
+ QJyMI8K2AIJQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
+   d="scan'208";a="332215807"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 09:35:19 -0700
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1kEEgH-00EKJ1-4s; Fri, 04 Sep 2020 19:35:17 +0300
+Date:   Fri, 4 Sep 2020 19:35:17 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Kent Gibson <warthog618@gmail.com>
-Cc:     linux-gpio@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Kent Gibson <warthog618@gmail.com>, linux-gpio@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH 00/23] gpio: mockup: support dynamically created and removed chips
-Date:   Fri,  4 Sep 2020 17:45:24 +0200
-Message-Id: <20200904154547.3836-1-brgl@bgdev.pl>
-X-Mailer: git-send-email 2.26.1
+Subject: Re: [PATCH 03/23] lib: uaccess: provide getline_from_user()
+Message-ID: <20200904163517.GW1891694@smile.fi.intel.com>
+References: <20200904154547.3836-1-brgl@bgdev.pl>
+ <20200904154547.3836-4-brgl@bgdev.pl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200904154547.3836-4-brgl@bgdev.pl>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+On Fri, Sep 04, 2020 at 05:45:27PM +0200, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> 
+> Provide a uaccess helper that allows callers to copy a single line from
+> user memory. This is useful for debugfs write callbacks.
 
-We're about to merge w V2 user API for GPIO. In user-space we're using the
-gpio-mockup driver for testing but it's quite cumbersome (needs unloading
-and reloading to change chip configuration) and not very extensible (config
-is passed over module params).
+Doesn't mm/util.c provides us something like this?
+strndup_user()?
 
-This series proposes to extend the debugfs interface to support dynamic
-creation and removal of dummy chips, with extensible options.
-
-First 3 patches add some lib functionality we'll use later on. Next 3 contain
-general gpiolib refactoring and can be picked up independently.
-
-Next we refactor gpio-mockup and finally add the delete_device and new_device
-attributes. Last patch adds documentation for gpio-mockup so I'm not going into
-detail on how the new interface works - the doc describes it pretty well.
-
-Bartosz Golaszewski (23):
-  lib: cmdline: export next_arg()
-  lib: string_helpers: provide kfree_strarray()
-  lib: uaccess: provide getline_from_user()
-  gpiolib: generalize devprop_gpiochip_set_names() for device properties
-  gpiolib: unexport devprop_gpiochip_set_names()
-  gpiolib: switch to simpler IDA interface
-  gpio: mockup: drop unneeded includes
-  gpio: mockup: use pr_fmt()
-  gpio: mockup: use KBUILD_MODNAME
-  gpio: mockup: fix resource leak in error path
-  gpio: mockup: remove the limit on number of dummy chips
-  gpio: mockup: define a constant for chip label size
-  gpio: mockup: pass the chip label as device property
-  gpio: mockup: use the generic 'gpio-line-names' property
-  gpio: mockup: use dynamic device IDs
-  gpio: mockup: refactor the module init function
-  gpio: mockup: rename and move around debugfs callbacks
-  gpio: mockup: require debugfs to build
-  gpio: mockup: add a symlink for the per-chip debugfs directory
-  gpio: mockup: add a lock for dummy device list
-  gpio: mockup: provide a way to delete dummy chips
-  gpio: mockup: provide a way to create new dummy chips
-  Documentation: gpio: add documentation for gpio-mockup
-
- .../admin-guide/gpio/gpio-mockup.rst          |  87 +++
- drivers/gpio/Kconfig                          |   1 +
- drivers/gpio/Makefile                         |   1 -
- drivers/gpio/gpio-mockup.c                    | 614 ++++++++++++++----
- drivers/gpio/gpiolib-acpi.c                   |   3 -
- drivers/gpio/gpiolib-devprop.c                |  63 --
- drivers/gpio/gpiolib-of.c                     |   5 -
- drivers/gpio/gpiolib.c                        |  62 +-
- include/linux/gpio/driver.h                   |   3 -
- include/linux/string_helpers.h                |   2 +
- include/linux/uaccess.h                       |   3 +
- lib/cmdline.c                                 |   1 +
- lib/string_helpers.c                          |  22 +
- lib/usercopy.c                                |  37 ++
- 14 files changed, 705 insertions(+), 199 deletions(-)
- create mode 100644 Documentation/admin-guide/gpio/gpio-mockup.rst
- delete mode 100644 drivers/gpio/gpiolib-devprop.c
+> 
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> ---
+>  include/linux/uaccess.h |  3 +++
+>  lib/usercopy.c          | 37 +++++++++++++++++++++++++++++++++++++
+>  2 files changed, 40 insertions(+)
+> 
+> diff --git a/include/linux/uaccess.h b/include/linux/uaccess.h
+> index 94b285411659..5aedd8ac5c31 100644
+> --- a/include/linux/uaccess.h
+> +++ b/include/linux/uaccess.h
+> @@ -333,6 +333,9 @@ long strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
+>  		long count);
+>  long strnlen_user_nofault(const void __user *unsafe_addr, long count);
+>  
+> +ssize_t getline_from_user(char *dst, size_t dst_size,
+> +			  const char __user *src, size_t src_size);
+> +
+>  /**
+>   * get_kernel_nofault(): safely attempt to read from a location
+>   * @val: read into this variable
+> diff --git a/lib/usercopy.c b/lib/usercopy.c
+> index b26509f112f9..55aaaf93d847 100644
+> --- a/lib/usercopy.c
+> +++ b/lib/usercopy.c
+> @@ -87,3 +87,40 @@ int check_zeroed_user(const void __user *from, size_t size)
+>  	return -EFAULT;
+>  }
+>  EXPORT_SYMBOL(check_zeroed_user);
+> +
+> +/**
+> + * getline_from_user - Copy a single line from user
+> + * @dst: Where to copy the line to
+> + * @dst_size: Size of the destination buffer
+> + * @src: Where to copy the line from
+> + * @src_size: Size of the source user buffer
+> + *
+> + * Copies a number of characters from given user buffer into the dst buffer.
+> + * The number of bytes is limited to the lesser of the sizes of both buffers.
+> + * If the copied string contains a newline, its first occurrence is replaced
+> + * by a NULL byte in the destination buffer. Otherwise the function ensures
+> + * the copied string is NULL-terminated.
+> + *
+> + * Returns the number of copied bytes or a negative error number on failure.
+> + */
+> +
+> +ssize_t getline_from_user(char *dst, size_t dst_size,
+> +			  const char __user *src, size_t src_size)
+> +{
+> +	size_t size = min_t(size_t, dst_size, src_size);
+> +	char *c;
+> +	int ret;
+> +
+> +	ret = copy_from_user(dst, src, size);
+> +	if (ret)
+> +		return -EFAULT;
+> +
+> +	dst[size - 1] = '\0';
+> +
+> +	c = strchrnul(dst, '\n');
+> +	if (*c)
+> +		*c = '\0';
+> +
+> +	return c - dst;
+> +}
+> +EXPORT_SYMBOL(getline_from_user);
+> -- 
+> 2.26.1
+> 
 
 -- 
-2.26.1
+With Best Regards,
+Andy Shevchenko
+
 
