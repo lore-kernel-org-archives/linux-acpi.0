@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D04F6C2BB84
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:41:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F82DC43461
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:41:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 985302064E
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:41:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AFDA2074D
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 16:41:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726733AbgIDQlg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 12:41:36 -0400
+        id S1726407AbgIDQle (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 12:41:34 -0400
 Received: from mga03.intel.com ([134.134.136.65]:57038 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725966AbgIDQlf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Sep 2020 12:41:35 -0400
-IronPort-SDR: dkVhQnmRYwxcctqI9frPbjqxGXJKQ+FOv0xYFA2lzRr471a7DOj7aKVpSqaZmdgrO2NBb5U0jD
- 5TdX6uPNG0Ng==
-X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="157789072"
+        id S1725966AbgIDQle (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Sep 2020 12:41:34 -0400
+IronPort-SDR: 0Uv+5BFSaBLVs9QSJi/RDfiPJopuWWiKPJXHfDz1Nl9lbNoW6U0RbRsOKueWgHJMjXYRbA2Jy1
+ DU+glLjXTjeQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="157789071"
 X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="157789072"
+   d="scan'208";a="157789071"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 09:41:34 -0700
-IronPort-SDR: jOnaDEq7/s6HtzL0/sF8gBkc6FFxhv5V0ORsq9GD1cg0wncpNhhz5vjbuVYXX1hvBDQXBEGHjV
- KGpPnI57Y17A==
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 09:41:33 -0700
+IronPort-SDR: J+a8HPv+zl+rkbGgEhumMoGYktnR2HCWMbhCrcqoP0mPKDecJ6pjxwkhoTZgVIyy7Fj5EuX16w
+ C/ZzPbOvsFEQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
-   d="scan'208";a="332217046"
+   d="scan'208";a="332217042"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 09:41:32 -0700
+  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 09:41:31 -0700
 Received: from andy by smile with local (Exim 4.94)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kEEbj-00EKGC-Cn; Fri, 04 Sep 2020 19:30:35 +0300
-Date:   Fri, 4 Sep 2020 19:30:35 +0300
+        id 1kEEmG-00EKMC-JN; Fri, 04 Sep 2020 19:41:28 +0300
+Date:   Fri, 4 Sep 2020 19:41:28 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Bartosz Golaszewski <brgl@bgdev.pl>
 Cc:     Linus Walleij <linus.walleij@linaro.org>,
@@ -48,68 +48,69 @@ Cc:     Linus Walleij <linus.walleij@linaro.org>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: Re: [PATCH 09/23] gpio: mockup: use KBUILD_MODNAME
-Message-ID: <20200904163035.GU1891694@smile.fi.intel.com>
+Subject: Re: [PATCH 06/23] gpiolib: switch to simpler IDA interface
+Message-ID: <20200904164128.GZ1891694@smile.fi.intel.com>
 References: <20200904154547.3836-1-brgl@bgdev.pl>
- <20200904154547.3836-10-brgl@bgdev.pl>
+ <20200904154547.3836-7-brgl@bgdev.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200904154547.3836-10-brgl@bgdev.pl>
+In-Reply-To: <20200904154547.3836-7-brgl@bgdev.pl>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 04, 2020 at 05:45:33PM +0200, Bartosz Golaszewski wrote:
+On Fri, Sep 04, 2020 at 05:45:30PM +0200, Bartosz Golaszewski wrote:
 > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > 
-> Drop the definition for the driver name. Let's use KBUILD_MODNAME for
-> the log format and use the "gpio-mockup" value directly in the only
-> place where it's relevant: in the name of the device.
+> We don't need to specify any ranges when allocating IDs so we can switch
+> to ida_alloc() and ida_free() instead of the ida_simple_ counterparts.
 > 
+> ida_simple_get(ida, 0, 0, gfp) is equivalent to
+> ida_alloc_range(ida, 0, UINT_MAX, gfp) which is equivalent to
+> ida_alloc(ida, gfp). Note: IDR will never actually allocate an ID
+> larger than INT_MAX.
+
+Have you considered switching to XArray API?
+
 > Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > ---
->  drivers/gpio/gpio-mockup.c | 7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
+>  drivers/gpio/gpiolib.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/gpio/gpio-mockup.c b/drivers/gpio/gpio-mockup.c
-> index 73cd51459c2a..78c97f7b6893 100644
-> --- a/drivers/gpio/gpio-mockup.c
-> +++ b/drivers/gpio/gpio-mockup.c
-> @@ -22,9 +22,8 @@
->  #include "gpiolib.h"
-
->  #undef pr_fmt
-> -#define pr_fmt(fmt)		GPIO_MOCKUP_NAME ": " fmt
-> +#define pr_fmt(fmt)		KBUILD_MODNAME ": " fmt
-
-This should be part of previous patch with something like "this is equivalent
-right now".
-
-> -#define GPIO_MOCKUP_NAME	"gpio-mockup"
->  #define GPIO_MOCKUP_MAX_GC	10
->  /*
->   * We're storing two values per chip: the GPIO base and the number
-> @@ -501,7 +500,7 @@ static int gpio_mockup_probe(struct platform_device *pdev)
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index 15c99cf560ee..591777bc2285 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -471,7 +471,7 @@ static void gpiodevice_release(struct device *dev)
+>  	struct gpio_device *gdev = dev_get_drvdata(dev);
 >  
->  static struct platform_driver gpio_mockup_driver = {
->  	.driver = {
-> -		.name = GPIO_MOCKUP_NAME,
-> +		.name = "gpio-mockup",
->  	},
->  	.probe = gpio_mockup_probe,
->  };
-> @@ -572,7 +571,7 @@ static int __init gpio_mockup_init(void)
->  			properties[prop++] = PROPERTY_ENTRY_BOOL(
->  						"named-gpio-lines");
+>  	list_del(&gdev->list);
+> -	ida_simple_remove(&gpio_ida, gdev->id);
+> +	ida_free(&gpio_ida, gdev->id);
+>  	kfree_const(gdev->label);
+>  	kfree(gdev->descs);
+>  	kfree(gdev);
+> @@ -582,7 +582,7 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+>  		gc->of_node = gdev->dev.of_node;
+>  #endif
 >  
-> -		pdevinfo.name = GPIO_MOCKUP_NAME;
-> +		pdevinfo.name = "gpio-mockup";
->  		pdevinfo.id = i;
->  		pdevinfo.properties = properties;
->  
+> -	gdev->id = ida_simple_get(&gpio_ida, 0, 0, GFP_KERNEL);
+> +	gdev->id = ida_alloc(&gpio_ida, GFP_KERNEL);
+>  	if (gdev->id < 0) {
+>  		ret = gdev->id;
+>  		goto err_free_gdev;
+> @@ -753,7 +753,7 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+>  err_free_descs:
+>  	kfree(gdev->descs);
+>  err_free_ida:
+> -	ida_simple_remove(&gpio_ida, gdev->id);
+> +	ida_free(&gpio_ida, gdev->id);
+>  err_free_gdev:
+>  	/* failures here can mean systems won't boot... */
+>  	pr_err("%s: GPIOs %d..%d (%s) failed to register, %d\n", __func__,
 > -- 
 > 2.26.1
 > 
