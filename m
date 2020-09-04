@@ -2,36 +2,33 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC003C3CFC2
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D3EFC4CC72
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F05C2252BF
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:04:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DFD52532D
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:04:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727776AbgIDR0R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 13:26:17 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:58200 "EHLO
+        id S1727769AbgIDR0j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 13:26:39 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:53176 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726208AbgIDR0O (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 13:26:14 -0400
+        with ESMTP id S1727797AbgIDR0U (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 13:26:20 -0400
 Received: from 89-64-89-131.dynamic.chello.pl (89.64.89.131) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.468)
- id cdf42de74af96259; Fri, 4 Sep 2020 19:26:11 +0200
+ id fdcf7f96b97809a9; Fri, 4 Sep 2020 19:26:17 +0200
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Erik Kaneda <erik.kaneda@intel.com>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 5/6] ACPI: OSL: Change the type of acpi_os_map_generic_address() return value
-Date:   Fri, 04 Sep 2020 19:24:51 +0200
-Message-ID: <9772445.uTLouIlUSL@kreacher>
-In-Reply-To: <1748021.N9i9sLPJ40@kreacher>
-References: <1748021.N9i9sLPJ40@kreacher>
+Subject: [PATCH 0/6] ACPICA / ACPI: OSL: Rework GPE registers access code
+Date:   Fri, 04 Sep 2020 19:19:26 +0200
+Message-ID: <1748021.N9i9sLPJ40@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -40,106 +37,41 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-Modify acpi_os_map_generic_address() to return the pointer returned
-by acpi_os_map_iomem() which represents the logical address
-corresponding to the struct acpi_generic_address argument passed to
-it or NULL if that address cannot be obtained (for example, the
-argument does not represent an address in system memory or it could
-not be mapped by the OS).
+The underlying issue here is that in Linux calling
+acpi_os_read_memory() or acpi_os_write_memory() from an interrupt
+handler is generally invalid, because these functions may attempt
+to map memory on the fly.  It is only valid to call them from an
+interrupt handler if it is known that there is a memory mapping
+covering the physical address passed as the argument.
 
-Among other things, that will allow the ACPI OS layer to pass the
-logical addresses of the FADT GPE blocks 0 and 1 to ACPICA going
-forward.
+However, in that case using acpi_os_read_memory() or
+acpi_os_write_memory() for accessing memory is inefficient, because
+they need to look up the mapping in question every time in a global
+list, and it would be much more straightforward to use the (known
+already) logical address of the target memory region.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/apei/apei-base.c |  6 +++++-
- drivers/acpi/osl.c            | 18 +++++++-----------
- include/acpi/acpi_io.h        |  2 +-
- 3 files changed, 13 insertions(+), 13 deletions(-)
+In ACPICA this problem affects GPE registers that are accessed
+with the help of acpi_hw_read() and acpi_hw_write() which is
+inefficient not just because they end up calling
+acpi_os_read_memory() or acpi_os_write_memory() if the GPE
+registers are located in system memory, but also because these
+functions check things that need not be checked for GPE registers
+in particular and they do that on every access.
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index e358d0046494..552fd9ffaca4 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -632,7 +632,11 @@ int apei_map_generic_address(struct acpi_generic_address *reg)
- 	rc = apei_check_gar(reg, &address, &access_bit_width);
- 	if (rc)
- 		return rc;
--	return acpi_os_map_generic_address(reg);
-+
-+	if (!acpi_os_map_generic_address(reg))
-+		return -ENXIO;
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(apei_map_generic_address);
- 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 4a0b07792233..3a50d8fa310b 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -447,24 +447,19 @@ void __ref acpi_os_unmap_memory(void *virt, acpi_size size)
- }
- EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
- 
--int acpi_os_map_generic_address(struct acpi_generic_address *gas)
-+void __iomem *acpi_os_map_generic_address(struct acpi_generic_address *gas)
- {
- 	u64 addr;
--	void __iomem *virt;
- 
- 	if (gas->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
--		return 0;
-+		return NULL;
- 
- 	/* Handle possible alignment issues */
- 	memcpy(&addr, &gas->address, sizeof(addr));
- 	if (!addr || !gas->bit_width)
--		return -EINVAL;
--
--	virt = acpi_os_map_iomem(addr, gas->bit_width / 8);
--	if (!virt)
--		return -EIO;
-+		return NULL;
- 
--	return 0;
-+	return acpi_os_map_iomem(addr, gas->bit_width / 8);
- }
- EXPORT_SYMBOL(acpi_os_map_generic_address);
- 
-@@ -1756,10 +1751,11 @@ acpi_status __init acpi_os_initialize(void)
- 		 * Use acpi_os_map_generic_address to pre-map the reset
- 		 * register if it's in system memory.
- 		 */
--		int rv;
-+		void *rv;
- 
- 		rv = acpi_os_map_generic_address(&acpi_gbl_FADT.reset_register);
--		pr_debug(PREFIX "%s: map reset_reg status %d\n", __func__, rv);
-+		pr_debug(PREFIX "%s: map reset_reg %s\n", __func__,
-+			 rv ? "successful" : "failed");
- 	}
- 	acpi_os_initialized = true;
- 
-diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-index 12d8bd333fe7..027faa8883aa 100644
---- a/include/acpi/acpi_io.h
-+++ b/include/acpi/acpi_io.h
-@@ -21,7 +21,7 @@ void __iomem __ref
- void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size);
- void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
- 
--int acpi_os_map_generic_address(struct acpi_generic_address *addr);
-+void __iomem *acpi_os_map_generic_address(struct acpi_generic_address *addr);
- void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
- 
- #endif
--- 
-2.26.2
+This series of patches reworks the GPE register accesses in ACPICA
+to be more efficient by omitting the unnecessary checks and making it
+possible to use logical addresses directly if these registers are
+located in system memory.
 
+The first four patches modify ACPICA and the last two add the
+requisite OS support to Linux on top of that.
+
+Please refer to the changelogs of the patches for details.
+
+Thanks,
+Rafael
 
 
 
