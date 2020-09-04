@@ -2,33 +2,36 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D3EFC4CC72
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B86F7C52D67
 	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DFD52532D
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:04:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0421252B5
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:04:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727769AbgIDR0j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 13:26:39 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:53176 "EHLO
+        id S1726828AbgIDR0N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 13:26:13 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:57984 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727797AbgIDR0U (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 13:26:20 -0400
+        with ESMTP id S1725984AbgIDR0N (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 13:26:13 -0400
 Received: from 89-64-89-131.dynamic.chello.pl (89.64.89.131) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.468)
- id fdcf7f96b97809a9; Fri, 4 Sep 2020 19:26:17 +0200
+ id ca0f1db468709f69; Fri, 4 Sep 2020 19:26:10 +0200
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Erik Kaneda <erik.kaneda@intel.com>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 0/6] ACPICA / ACPI: OSL: Rework GPE registers access code
-Date:   Fri, 04 Sep 2020 19:19:26 +0200
-Message-ID: <1748021.N9i9sLPJ40@kreacher>
+Subject: [PATCH 6/6] ACPI: OSL: Make ACPICA use logical addresses of GPE blocks
+Date:   Fri, 04 Sep 2020 19:25:29 +0200
+Message-ID: <8097951.ATsSJIO6Si@kreacher>
+In-Reply-To: <1748021.N9i9sLPJ40@kreacher>
+References: <1748021.N9i9sLPJ40@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -37,41 +40,73 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The underlying issue here is that in Linux calling
-acpi_os_read_memory() or acpi_os_write_memory() from an interrupt
-handler is generally invalid, because these functions may attempt
-to map memory on the fly.  It is only valid to call them from an
-interrupt handler if it is known that there is a memory mapping
-covering the physical address passed as the argument.
+Define ACPI_GPE_USE_LOGICAL_ADDRESSES in aclinux.h and modify
+acpi_os_initialize() to store the logical addresses of the FADT GPE
+blocks 0 and 1 in acpi_gbl_xgpe0_block_logical_address and
+acpi_gbl_xgpe1_block_logical_address, respectively, so as to allow
+ACPICA to use them for accessing GPE registers in system memory,
+instead of using their physical addresses and looking up the
+corresponding logical addresses on every access attempt, which is
+inefficient.
 
-However, in that case using acpi_os_read_memory() or
-acpi_os_write_memory() for accessing memory is inefficient, because
-they need to look up the mapping in question every time in a global
-list, and it would be much more straightforward to use the (known
-already) logical address of the target memory region.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/osl.c              | 12 ++++++++++--
+ include/acpi/platform/aclinux.h |  4 ++++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-In ACPICA this problem affects GPE registers that are accessed
-with the help of acpi_hw_read() and acpi_hw_write() which is
-inefficient not just because they end up calling
-acpi_os_read_memory() or acpi_os_write_memory() if the GPE
-registers are located in system memory, but also because these
-functions check things that need not be checked for GPE registers
-in particular and they do that on every access.
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 3a50d8fa310b..0002973fbcde 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1744,8 +1744,12 @@ acpi_status __init acpi_os_initialize(void)
+ {
+ 	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+ 	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+-	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
+-	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
++
++	acpi_gbl_xgpe0_block_logical_address =
++		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
++	acpi_gbl_xgpe1_block_logical_address =
++		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
++
+ 	if (acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) {
+ 		/*
+ 		 * Use acpi_os_map_generic_address to pre-map the reset
+@@ -1783,8 +1787,12 @@ acpi_status acpi_os_terminate(void)
+ 
+ 	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+ 	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
++	acpi_gbl_xgpe0_block_logical_address = NULL;
++	acpi_gbl_xgpe1_block_logical_address = NULL;
++
+ 	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+ 	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
++
+ 	if (acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER)
+ 		acpi_os_unmap_generic_address(&acpi_gbl_FADT.reset_register);
+ 
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 987e2af7c335..4151c76141fa 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -118,6 +118,10 @@
+ 
+ #define USE_NATIVE_ALLOCATE_ZEROED
+ 
++/* Use logical addresses for accessing GPE registers in system memory */
++
++#define ACPI_GPE_USE_LOGICAL_ADDRESSES
++
+ /*
+  * Overrides for in-kernel ACPICA
+  */
+-- 
+2.26.2
 
-This series of patches reworks the GPE register accesses in ACPICA
-to be more efficient by omitting the unnecessary checks and making it
-possible to use logical addresses directly if these registers are
-located in system memory.
-
-The first four patches modify ACPICA and the last two add the
-requisite OS support to Linux on top of that.
-
-Please refer to the changelogs of the patches for details.
-
-Thanks,
-Rafael
 
 
 
