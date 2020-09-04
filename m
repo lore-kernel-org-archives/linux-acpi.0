@@ -2,163 +2,81 @@ Return-Path: <SRS0=ptZn=CN=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37C28C5479F
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75F35C2D0E1
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDFE725328
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:04:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DC0822224
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Sep 2020 18:01:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727923AbgIDR0j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Sep 2020 13:26:39 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:51326 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727114AbgIDR0R (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2020 13:26:17 -0400
-Received: from 89-64-89-131.dynamic.chello.pl (89.64.89.131) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.468)
- id d8ffa229734c6c46; Fri, 4 Sep 2020 19:26:14 +0200
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 3/6] ACPICA: Introduce special struct type for GPE register addresses
-Date:   Fri, 04 Sep 2020 19:23:04 +0200
-Message-ID: <17404025.GhfappsbzY@kreacher>
-In-Reply-To: <1748021.N9i9sLPJ40@kreacher>
-References: <1748021.N9i9sLPJ40@kreacher>
+        id S1726352AbgIDRuU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Sep 2020 13:50:20 -0400
+Received: from mga09.intel.com ([134.134.136.24]:41087 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726133AbgIDRuT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Sep 2020 13:50:19 -0400
+IronPort-SDR: g2vacdf31DB5acntTP6bOrOu35EcANSuBLaa5iwSv4E22vCFqrEQ+zY/QO/T14X7/XHRs59I37
+ N7WwibWRG+pA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9734"; a="158783300"
+X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
+   d="scan'208";a="158783300"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2020 10:50:18 -0700
+IronPort-SDR: hcXSRX41dWUGTxs8i5As2mr+dBKKUomX86v2vQ9Dn/9kpE4dyXHpxsf29txWTcSM+0lHp2qYIx
+ yc0EwN5Vk/bg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,390,1592895600"; 
+   d="scan'208";a="332243811"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 04 Sep 2020 10:50:16 -0700
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1kEFqo-00EL2k-2J; Fri, 04 Sep 2020 20:50:14 +0300
+Date:   Fri, 4 Sep 2020 20:50:14 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] pinctrl: cherryview: Preserve
+ CHV_PADCTRL1_INVRXTX_TXDATA flag on GPIOs
+Message-ID: <20200904175014.GJ1891694@smile.fi.intel.com>
+References: <20200904172141.180363-1-hdegoede@redhat.com>
+ <20200904174456.GI1891694@smile.fi.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200904174456.GI1891694@smile.fi.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Fri, Sep 04, 2020 at 08:44:56PM +0300, Andy Shevchenko wrote:
+> On Fri, Sep 04, 2020 at 07:21:41PM +0200, Hans de Goede wrote:
 
-Notice that the bit_width, bit_offset and access_width fields in
-struct acpi_generic_address are not used during GPE register
-accesses any more, so introduce a simplified address structure
-type, struct acpi_gpe_address, to represent addresses of GPE
-registers and use it instead of struct acpi_generic_address in
-struct acpi_gpe_register_info.
+...
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/achware.h  |  4 ++--
- drivers/acpi/acpica/aclocal.h  | 11 +++++++++--
- drivers/acpi/acpica/evgpeblk.c |  6 ------
- drivers/acpi/acpica/hwgpe.c    |  8 ++++----
- 4 files changed, 15 insertions(+), 14 deletions(-)
+> > Note that chv_pinmux_set_mux() does still unconditionally clear the
+> > flag, so this only affects GPIO usage.
+> 
+> Makes sense!
+> I'll wait for Mika tag, while pushing to my review and testing queue, thanks!
 
-diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
-index 4dba7229f9c1..6ab92e28330d 100644
---- a/drivers/acpi/acpica/achware.h
-+++ b/drivers/acpi/acpica/achware.h
-@@ -78,9 +78,9 @@ acpi_status acpi_hw_validate_io_block(u64 address, u32 bit_width, u32 count);
- /*
-  * hwgpe - GPE support
-  */
--acpi_status acpi_hw_gpe_read(u64 *value, struct acpi_generic_address *reg);
-+acpi_status acpi_hw_gpe_read(u64 *value, struct acpi_gpe_address *reg);
- 
--acpi_status acpi_hw_gpe_write(u64 value, struct acpi_generic_address *reg);
-+acpi_status acpi_hw_gpe_write(u64 value, struct acpi_gpe_address *reg);
- 
- u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info);
- 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index af58cd2dc9d3..f83b98fa13ac 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -454,11 +454,18 @@ struct acpi_gpe_event_info {
- 	u8 disable_for_dispatch;	/* Masked during dispatching */
- };
- 
-+/* GPE register address */
-+
-+struct acpi_gpe_address {
-+	u8 space_id;	/* Address space where the register exists */
-+	u64 address;	/* 64-bit address of the register */
-+};
-+
- /* Information about a GPE register pair, one per each status/enable pair in an array */
- 
- struct acpi_gpe_register_info {
--	struct acpi_generic_address status_address;	/* Address of status reg */
--	struct acpi_generic_address enable_address;	/* Address of enable reg */
-+	struct acpi_gpe_address status_address;	/* Address of status reg */
-+	struct acpi_gpe_address enable_address;	/* Address of enable reg */
- 	u16 base_gpe_number;	/* Base GPE number for this register */
- 	u8 enable_for_wake;	/* GPEs to keep enabled when sleeping */
- 	u8 enable_for_run;	/* GPEs to keep enabled when running */
-diff --git a/drivers/acpi/acpica/evgpeblk.c b/drivers/acpi/acpica/evgpeblk.c
-index 150c916dca5e..f5298be4273a 100644
---- a/drivers/acpi/acpica/evgpeblk.c
-+++ b/drivers/acpi/acpica/evgpeblk.c
-@@ -233,12 +233,6 @@ acpi_ev_create_gpe_info_blocks(struct acpi_gpe_block_info *gpe_block)
- 
- 		this_register->status_address.space_id = gpe_block->space_id;
- 		this_register->enable_address.space_id = gpe_block->space_id;
--		this_register->status_address.bit_width =
--		    ACPI_GPE_REGISTER_WIDTH;
--		this_register->enable_address.bit_width =
--		    ACPI_GPE_REGISTER_WIDTH;
--		this_register->status_address.bit_offset = 0;
--		this_register->enable_address.bit_offset = 0;
- 
- 		/* Init the event_info for each GPE within this register */
- 
-diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
-index 6cc88524839d..a0e71f34c77a 100644
---- a/drivers/acpi/acpica/hwgpe.c
-+++ b/drivers/acpi/acpica/hwgpe.c
-@@ -29,7 +29,7 @@ acpi_hw_gpe_enable_write(u8 enable_mask,
-  * FUNCTION:    acpi_hw_gpe_read
-  *
-  * PARAMETERS:  value               - Where the value is returned
-- *              reg                 - GAS register structure
-+ *              reg                 - GPE register structure
-  *
-  * RETURN:      Status
-  *
-@@ -40,7 +40,7 @@ acpi_hw_gpe_enable_write(u8 enable_mask,
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_hw_gpe_read(u64 *value, struct acpi_generic_address *reg)
-+acpi_status acpi_hw_gpe_read(u64 *value, struct acpi_gpe_address *reg)
- {
- 	acpi_status status;
- 	u32 value32;
-@@ -65,7 +65,7 @@ acpi_status acpi_hw_gpe_read(u64 *value, struct acpi_generic_address *reg)
-  * FUNCTION:    acpi_hw_gpe_write
-  *
-  * PARAMETERS:  value               - Value to be written
-- *              reg                 - GAS register structure
-+ *              reg                 - GPE register structure
-  *
-  * RETURN:      Status
-  *
-@@ -73,7 +73,7 @@ acpi_status acpi_hw_gpe_read(u64 *value, struct acpi_generic_address *reg)
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_hw_gpe_write(u64 value, struct acpi_generic_address *reg)
-+acpi_status acpi_hw_gpe_write(u64 value, struct acpi_gpe_address *reg)
- {
- 	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
- 		return acpi_os_write_memory((acpi_physical_address)reg->address,
+Hmm... JFYI:
+Applying: pinctrl: cherryview: Preserve CHV_PADCTRL1_INVRXTX_TXDATA flag on GPIOs
+Context reduced to (2/2) to apply fragment at 770
+
+I applied it with -C1 because of above.
+
 -- 
-2.26.2
-
-
-
+With Best Regards,
+Andy Shevchenko
 
 
