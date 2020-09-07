@@ -4,124 +4,96 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2709C2D0A8
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:15:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 203B4C433E2
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81F15208C7
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:15:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE274206B8
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730639AbgIGRPj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 13:15:39 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:59240 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729763AbgIGOFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 10:05:46 -0400
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 1646D9B65E56938C9A4D;
-        Mon,  7 Sep 2020 22:05:38 +0800 (CST)
-Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
- DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 7 Sep 2020 22:05:28 +0800
-From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <x86@kernel.org>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        <rafael@kernel.org>, Ingo Molnar <mingo@redhat.com>
-CC:     Bjorn Helgaas <bhelgaas@google.com>,
-        <linux-kernel@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>, <linuxarm@huawei.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Brice Goglin <Brice.Goglin@inria.fr>,
-        "Sean V Kelley" <sean.v.kelley@linux.intel.com>,
-        <linux-api@vger.kernel.org>, "Hanjun Guo" <guohanjun@huawei.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v10 2/6] x86: Support Generic Initiator only proximity domains
-Date:   Mon, 7 Sep 2020 22:03:03 +0800
-Message-ID: <20200907140307.571932-3-Jonathan.Cameron@huawei.com>
-X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20200907140307.571932-1-Jonathan.Cameron@huawei.com>
-References: <20200907140307.571932-1-Jonathan.Cameron@huawei.com>
+        id S1729767AbgIGRSj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 13:18:39 -0400
+Received: from mga17.intel.com ([192.55.52.151]:17437 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729736AbgIGN6x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 09:58:53 -0400
+IronPort-SDR: yKDVgZSQ5Mi2OXVP+nsKubKLuJ2PafMtpFNbOdlYzZyQIkNAZL239S0lC49L6hg7WOp9Ps5RJ4
+ OOXmOP0kfY3g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="138056019"
+X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
+   d="scan'208";a="138056019"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 06:57:44 -0700
+IronPort-SDR: Vxl1sf/oBwGQL8BqMI64ABtxtx1JwBB7wQmSHNiTy1jIwzIzrYlGIZLDfP+FDdoxVOj5ZxY9AF
+ +sSAz5oFtdkA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
+   d="scan'208";a="406845161"
+Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
+  by fmsmga001.fm.intel.com with ESMTP; 07 Sep 2020 06:57:42 -0700
+From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        linux-acpi@vger.kernel.org,
+        Utkarsh Patel <utkarsh.h.patel@intel.com>,
+        stable@vger.kernel.org
+Subject: [PATCH 1/2] usb: typec: intel_pmc_mux: Do not configure Altmode HPD High
+Date:   Mon,  7 Sep 2020 16:57:39 +0300
+Message-Id: <20200907135740.19941-2-heikki.krogerus@linux.intel.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
+References: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.41.22]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In common with memoryless domains we only register GI domains
-if the proximity node is not online. If a domain is already
-a memory containing domain, or a memoryless domain there is
-nothing to do just because it also contains a Generic Initiator.
+From: Utkarsh Patel <utkarsh.h.patel@intel.com>
 
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+According to the PMC Type C Subsystem (TCSS) Mux programming guide rev
+0.7, bit 14 is reserved in Alternate mode.
+In DP Alternate Mode state, if the HPD_STATE (bit 7) field in the
+status update command VDO is set to HPD_HIGH, HPD is configured via
+separate HPD mode request after configuring DP Alternate mode request.
+Configuring reserved bit may show unexpected behaviour.
+So do not configure them while issuing the Alternate Mode request.
+
+Fixes: 7990be48ef4d ("usb: typec: mux: intel: Handle alt mode HPD_HIGH")
+Cc: stable@vger.kernel.org
+Signed-off-by: Utkarsh Patel <utkarsh.h.patel@intel.com>
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- arch/x86/include/asm/numa.h |  2 ++
- arch/x86/kernel/setup.c     |  1 +
- arch/x86/mm/numa.c          | 14 ++++++++++++++
- 3 files changed, 17 insertions(+)
+ drivers/usb/typec/mux/intel_pmc_mux.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/arch/x86/include/asm/numa.h b/arch/x86/include/asm/numa.h
-index bbfde3d2662f..f631467272a3 100644
---- a/arch/x86/include/asm/numa.h
-+++ b/arch/x86/include/asm/numa.h
-@@ -62,12 +62,14 @@ extern void numa_clear_node(int cpu);
- extern void __init init_cpu_to_node(void);
- extern void numa_add_cpu(int cpu);
- extern void numa_remove_cpu(int cpu);
-+extern void init_gi_nodes(void);
- #else	/* CONFIG_NUMA */
- static inline void numa_set_node(int cpu, int node)	{ }
- static inline void numa_clear_node(int cpu)		{ }
- static inline void init_cpu_to_node(void)		{ }
- static inline void numa_add_cpu(int cpu)		{ }
- static inline void numa_remove_cpu(int cpu)		{ }
-+static inline void init_gi_nodes(void)			{ }
- #endif	/* CONFIG_NUMA */
+diff --git a/drivers/usb/typec/mux/intel_pmc_mux.c b/drivers/usb/typec/mux/intel_pmc_mux.c
+index e4021e13af40a..802d443b367c6 100644
+--- a/drivers/usb/typec/mux/intel_pmc_mux.c
++++ b/drivers/usb/typec/mux/intel_pmc_mux.c
+@@ -68,7 +68,6 @@ enum {
+ #define PMC_USB_ALTMODE_DP_MODE_SHIFT	8
  
- #ifdef CONFIG_DEBUG_PER_CPU_MAPS
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 3511736fbc74..9062c146f03a 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -1218,6 +1218,7 @@ void __init setup_arch(char **cmdline_p)
- 	prefill_possible_map();
+ /* TBT specific Mode Data bits */
+-#define PMC_USB_ALTMODE_HPD_HIGH	BIT(14)
+ #define PMC_USB_ALTMODE_TBT_TYPE	BIT(17)
+ #define PMC_USB_ALTMODE_CABLE_TYPE	BIT(18)
+ #define PMC_USB_ALTMODE_ACTIVE_LINK	BIT(20)
+@@ -185,9 +184,6 @@ pmc_usb_mux_dp(struct pmc_usb_port *port, struct typec_mux_state *state)
+ 	req.mode_data |= (state->mode - TYPEC_STATE_MODAL) <<
+ 			 PMC_USB_ALTMODE_DP_MODE_SHIFT;
  
- 	init_cpu_to_node();
-+	init_gi_nodes();
- 
- 	io_apic_init_mappings();
- 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index aa76ec2d359b..fc630dc6764e 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -747,6 +747,20 @@ static void __init init_memory_less_node(int nid)
- 	 */
- }
- 
-+/*
-+ * Generic Initiator Nodes may have neither CPU nor Memory.
-+ * At this stage if either of the others were present we would
-+ * already be online.
-+ */
-+void __init init_gi_nodes(void)
-+{
-+	int nid;
-+
-+	for_each_node_state(nid, N_GENERIC_INITIATOR)
-+		if (!node_online(nid))
-+			init_memory_less_node(nid);
-+}
-+
- /*
-  * Setup early cpu_to_node.
-  *
+-	if (data->status & DP_STATUS_HPD_STATE)
+-		req.mode_data |= PMC_USB_ALTMODE_HPD_HIGH;
+-
+ 	ret = pmc_usb_command(port, (void *)&req, sizeof(req));
+ 	if (ret)
+ 		return ret;
 -- 
-2.19.1
+2.28.0
 
