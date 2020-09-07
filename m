@@ -2,51 +2,47 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 203B4C433E2
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FB8BC2BB84
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE274206B8
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8974208C7
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729767AbgIGRSj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 13:18:39 -0400
-Received: from mga17.intel.com ([192.55.52.151]:17437 "EHLO mga17.intel.com"
+        id S1729696AbgIGRT2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 13:19:28 -0400
+Received: from mga17.intel.com ([192.55.52.151]:17429 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729736AbgIGN6x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 09:58:53 -0400
-IronPort-SDR: yKDVgZSQ5Mi2OXVP+nsKubKLuJ2PafMtpFNbOdlYzZyQIkNAZL239S0lC49L6hg7WOp9Ps5RJ4
- OOXmOP0kfY3g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="138056019"
+        id S1729735AbgIGN6j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 09:58:39 -0400
+IronPort-SDR: T5jIJvD8d7SYuAnPYse8o7B5dt6F7wuNA8F/GrFIJytbZGWifzv/+Kv/hs3kwvukS1loqIY6Kl
+ GLKlNzR3gpOA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="138056014"
 X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="138056019"
+   d="scan'208";a="138056014"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 06:57:44 -0700
-IronPort-SDR: Vxl1sf/oBwGQL8BqMI64ABtxtx1JwBB7wQmSHNiTy1jIwzIzrYlGIZLDfP+FDdoxVOj5ZxY9AF
- +sSAz5oFtdkA==
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 06:57:42 -0700
+IronPort-SDR: gPr5Ny3IQXuYQvwgibYGaWlmUn3YAb4BlYyoTJ5tC+1YzrC3jP+yF69NxRXjYUYCLMMFv/gRoh
+ TborBRmkt1yA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="406845161"
+   d="scan'208";a="406845155"
 Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 07 Sep 2020 06:57:42 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 07 Sep 2020 06:57:40 -0700
 From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
         linux-acpi@vger.kernel.org,
-        Utkarsh Patel <utkarsh.h.patel@intel.com>,
-        stable@vger.kernel.org
-Subject: [PATCH 1/2] usb: typec: intel_pmc_mux: Do not configure Altmode HPD High
-Date:   Mon,  7 Sep 2020 16:57:39 +0300
-Message-Id: <20200907135740.19941-2-heikki.krogerus@linux.intel.com>
+        Utkarsh Patel <utkarsh.h.patel@intel.com>
+Subject: [PATCH 0/2] Fixes for the Intel PMC mux driver
+Date:   Mon,  7 Sep 2020 16:57:38 +0300
+Message-Id: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
-References: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
@@ -54,46 +50,21 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Utkarsh Patel <utkarsh.h.patel@intel.com>
+Hi,
 
-According to the PMC Type C Subsystem (TCSS) Mux programming guide rev
-0.7, bit 14 is reserved in Alternate mode.
-In DP Alternate Mode state, if the HPD_STATE (bit 7) field in the
-status update command VDO is set to HPD_HIGH, HPD is configured via
-separate HPD mode request after configuring DP Alternate mode request.
-Configuring reserved bit may show unexpected behaviour.
-So do not configure them while issuing the Alternate Mode request.
+Here are two of fixes from Utkarsh. Both deal with alternate mode
+issues. Let me know if you want anything to be changed.
 
-Fixes: 7990be48ef4d ("usb: typec: mux: intel: Handle alt mode HPD_HIGH")
-Cc: stable@vger.kernel.org
-Signed-off-by: Utkarsh Patel <utkarsh.h.patel@intel.com>
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/usb/typec/mux/intel_pmc_mux.c | 4 ----
- 1 file changed, 4 deletions(-)
+thanks,
 
-diff --git a/drivers/usb/typec/mux/intel_pmc_mux.c b/drivers/usb/typec/mux/intel_pmc_mux.c
-index e4021e13af40a..802d443b367c6 100644
---- a/drivers/usb/typec/mux/intel_pmc_mux.c
-+++ b/drivers/usb/typec/mux/intel_pmc_mux.c
-@@ -68,7 +68,6 @@ enum {
- #define PMC_USB_ALTMODE_DP_MODE_SHIFT	8
- 
- /* TBT specific Mode Data bits */
--#define PMC_USB_ALTMODE_HPD_HIGH	BIT(14)
- #define PMC_USB_ALTMODE_TBT_TYPE	BIT(17)
- #define PMC_USB_ALTMODE_CABLE_TYPE	BIT(18)
- #define PMC_USB_ALTMODE_ACTIVE_LINK	BIT(20)
-@@ -185,9 +184,6 @@ pmc_usb_mux_dp(struct pmc_usb_port *port, struct typec_mux_state *state)
- 	req.mode_data |= (state->mode - TYPEC_STATE_MODAL) <<
- 			 PMC_USB_ALTMODE_DP_MODE_SHIFT;
- 
--	if (data->status & DP_STATUS_HPD_STATE)
--		req.mode_data |= PMC_USB_ALTMODE_HPD_HIGH;
--
- 	ret = pmc_usb_command(port, (void *)&req, sizeof(req));
- 	if (ret)
- 		return ret;
+Utkarsh Patel (2):
+  usb: typec: intel_pmc_mux: Do not configure Altmode HPD High
+  usb: typec: intel_pmc_mux: Do not configure SBU and HSL Orientation in
+    Alternate modes
+
+ drivers/usb/typec/mux/intel_pmc_mux.c | 12 ------------
+ 1 file changed, 12 deletions(-)
+
 -- 
 2.28.0
 
