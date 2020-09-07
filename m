@@ -2,98 +2,84 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB6DAC43461
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 08:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED74C43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:04:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 994052168B
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 08:42:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3405F21582
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:04:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599469441;
+	bh=f1uUoeNbcaOfXVuh+SW48DF/4Z4rFxM2dlEuehFZa0o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=qsYhLqtrhgN+aRcx1W2dcWHcpHLmrmAJWy+a40bDHGquXfcdVIyYtGhkst7fv4wQ5
+	 iCnrXHRbh53uv/KnRpI+PGXJM8VQilEkkNhEvli3XvHNbzHbQxzAqyZbfeqg2Mxkxi
+	 WAxzWYeLUYSQm3FWelDDZwGTGyxTeLlLN2mNZztY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727983AbgIGImJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 04:42:09 -0400
-Received: from mga11.intel.com ([192.55.52.93]:61125 "EHLO mga11.intel.com"
+        id S1728079AbgIGJEA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 05:04:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727897AbgIGImJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 04:42:09 -0400
-IronPort-SDR: Pf0lB/XQLqaHBxTrC5HPJf4jlKkPQCW4uztrd78Bf/Zmh+cOUZpGxkfaisn45e/w2CENB8lqeB
- 92GWxOF7DGJw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="155472812"
-X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="155472812"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 01:42:09 -0700
-IronPort-SDR: xKOMvHVE5fGnkLBEAdi2IYA8yI+ONaIVJ8f1JFKRLklgL6KtQyb/+ViLf7HBGLvQC1N8OCZmm6
- T5pcB56bnylw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="406773702"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
-  by fmsmga001.fm.intel.com with SMTP; 07 Sep 2020 01:42:06 -0700
-Received: by lahna (sSMTP sendmail emulation); Mon, 07 Sep 2020 11:42:06 +0300
-Date:   Mon, 7 Sep 2020 11:42:06 +0300
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] pinctrl: cherryview: Preserve
- CHV_PADCTRL1_INVRXTX_TXDATA flag on GPIOs
-Message-ID: <20200907084206.GY2495@lahna.fi.intel.com>
-References: <20200904172141.180363-1-hdegoede@redhat.com>
+        id S1727122AbgIGJEA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 05:04:00 -0400
+Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3BC192145D;
+        Mon,  7 Sep 2020 09:03:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599469439;
+        bh=f1uUoeNbcaOfXVuh+SW48DF/4Z4rFxM2dlEuehFZa0o=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=g50ZtzjMAJhZc2Fq0skJGkDNsjbOuP66ScGVUdr/kg1veXbOszUNfzklgleSOd4Vp
+         esz8BTAjcrXra4sk82/Lk69ZErBUfXq995x+4D0osZwSccThyrXUB1QKBOjLZq/jOn
+         7FUxG7ZsJwF2ghs9M5rdR85PCiAst1WHnE70ilkQ=
+Date:   Mon, 7 Sep 2020 11:04:14 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 4/4] device property: Move fwnode_connection_find_match()
+ under drivers/base/property.c
+Message-ID: <20200907090414.GE1101646@kroah.com>
+References: <20200904125123.83725-1-heikki.krogerus@linux.intel.com>
+ <20200904125123.83725-5-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200904172141.180363-1-hdegoede@redhat.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20200904125123.83725-5-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 04, 2020 at 07:21:41PM +0200, Hans de Goede wrote:
-> One some devices the GPIO should output the inverted value from what
-> device-drivers / ACPI code expects. The reason for this is unknown,
-> perhaps these systems use an external buffer chip on the GPIO which
-> inverts the signal. The BIOS makes this work by setting the
-> CHV_PADCTRL1_INVRXTX_TXDATA flag.
+On Fri, Sep 04, 2020 at 03:51:23PM +0300, Heikki Krogerus wrote:
+> The function is now only a helper that searches the
+> connection from device graph and then by checking if the
+> supplied connection identifier matches a property that
+> contains reference.
 > 
-> Before this commit we would unconditionally clear all INVRXTX flags,
-> including the CHV_PADCTRL1_INVRXTX_TXDATA flag when a GPIO is requested
-> by a driver (from chv_gpio_request_enable()).
-> 
-> This breaks systems using this setup. Specifically it is causing
-> problems for systems with a goodix touchscreen, where the BIOS sets the
-> INVRXTX_TXDATA flag on the GPIO used for the touchscreen's reset pin.
-> 
-> The goodix touchscreen driver by defaults configures this pin as input
-> (relying on the pull-up to keep it high), but the clearing of the
-> INVRXTX_TXDATA flag done by chv_gpio_request_enable() causes it to be
-> driven low for a brief time before the GPIO gets set to input mode.
-> 
-> This causes the touchscreen controller to get reset. On most CHT devs
-> with this touchscreen this leads to:
-> 
-> [   31.596534] Goodix-TS i2c-GDIX1001:00: i2c test failed attempt 1: -121
-> 
-> The driver retries this though and then everything is fine. But during
-> reset the touchscreen uses its interrupt pin as bootstrap to determine
-> which i2c address to use and on the Acer One S1003 the spurious reset
-> caused by the clearing of the INVRXTX_TXDATA flag causes the controller
-> to come back up again on the wrong i2c address, breaking things.
-> 
-> This commit fixes both the -121 errors, as well as the total breakage
-> on the Acer One S1003, by making chv_gpio_clear_triggering() not clear
-> the INVRXTX_TXDATA flag if the pin is already configured as a GPIO.
-> 
-> Note that chv_pinmux_set_mux() does still unconditionally clear the
-> flag, so this only affects GPIO usage.
-> 
-> Fixes: a7d4b171660c ("Input: goodix - add support for getting IRQ + reset GPIOs on Cherry Trail devices")
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  .../driver-api/device_connection.rst          |  43 --------
+>  drivers/base/Makefile                         |   2 +-
+>  drivers/base/devcon.c                         | 101 ------------------
+>  drivers/base/property.c                       |  73 +++++++++++++
+>  include/linux/device.h                        |   9 --
+>  include/linux/property.h                      |  14 +++
+>  6 files changed, 88 insertions(+), 154 deletions(-)
+>  delete mode 100644 Documentation/driver-api/device_connection.rst
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+You also removed the documentation in this patch, which would have been
+fine if you had mentioned it in the changelog text :(
+
+I'll go queue up the first 3 patches of this series, can you split this
+up into two?
+
+thanks,
+
+greg k-h
