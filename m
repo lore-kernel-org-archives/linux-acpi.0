@@ -3,98 +3,75 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA352C43461
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:13:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 958D1C43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:14:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6CF021481
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:13:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6774F20714
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:14:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729591AbgIGOM4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 10:12:56 -0400
-Received: from mga01.intel.com ([192.55.52.88]:29586 "EHLO mga01.intel.com"
+        id S1729729AbgIGONt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 10:13:49 -0400
+Received: from mga07.intel.com ([134.134.136.100]:27183 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729791AbgIGOI5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 10:08:57 -0400
-IronPort-SDR: qtwwns37usp1CEb0AcIjSgOVgTTY1EAgXlXpHSpw5GXK9yZVdMyOcS/IIkmEpxQ1ib0brF5mlA
- a5SePSPxMXkw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="176061444"
+        id S1729589AbgIGONO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 10:13:14 -0400
+IronPort-SDR: vbThgL9trhFKBS9ucnfEDLf3cNJOZ+dm75fxZ/vj/aoTQ7IA7Ht1w0MHdB/DR4gpU2sh7tExcd
+ tK8PrOCI7/jA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="222216930"
 X-IronPort-AV: E=Sophos;i="5.76,402,1592895600"; 
-   d="scan'208";a="176061444"
+   d="scan'208";a="222216930"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 07:08:35 -0700
-IronPort-SDR: IyIJpGb7PSXbGv9nFa3L9iLxdTpINyOkMblbQ1eaJEL8yCHiEA1yOEq+JfOtmTBVxynSnAZUDe
- vS/OhuaQ/YPg==
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 07:12:52 -0700
+IronPort-SDR: Y8ga9bAqC9who7nQKisU4aQ3ovnCNTZHcXKpaeG8SCpE9/Ho17vrDh38/UNja6fHrpem4LXRY0
+ 7lGLIdNincsg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,402,1592895600"; 
-   d="scan'208";a="333173796"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 07 Sep 2020 07:08:32 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kFHor-00Ey3d-4e; Mon, 07 Sep 2020 17:08:29 +0300
-Date:   Mon, 7 Sep 2020 17:08:29 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Kent Gibson <warthog618@gmail.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-gpio <linux-gpio@vger.kernel.org>,
-        linux-doc <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH 23/23] Documentation: gpio: add documentation for
- gpio-mockup
-Message-ID: <20200907140829.GL1891694@smile.fi.intel.com>
-References: <20200904154547.3836-1-brgl@bgdev.pl>
- <20200904154547.3836-24-brgl@bgdev.pl>
- <26ea1683-da8f-30e7-f004-3616e96d56b3@infradead.org>
- <20200907095932.GU1891694@smile.fi.intel.com>
- <CAMpxmJXvhYOVkZY7LLf=v+o8E2xKTh1RYhLrdVsS9nN1XZ5QJQ@mail.gmail.com>
- <20200907115310.GA1891694@smile.fi.intel.com>
- <CAMpxmJUfNkko4Rrb4N5CF_rdwRAWGhVr9DSOHfhYyTxYSH7dsQ@mail.gmail.com>
- <20200907122238.GA1849893@kroah.com>
- <CAMpxmJXM=8oGoPSGg8G8XJ4HXJFrAQ2-_EXrz3rf3+ZmCSWB7g@mail.gmail.com>
+   d="scan'208";a="406848879"
+Received: from kuha.fi.intel.com ([10.237.72.162])
+  by fmsmga001.fm.intel.com with SMTP; 07 Sep 2020 07:12:47 -0700
+Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Mon, 07 Sep 2020 17:12:46 +0300
+Date:   Mon, 7 Sep 2020 17:12:46 +0300
+From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        linux-acpi@vger.kernel.org,
+        Utkarsh Patel <utkarsh.h.patel@intel.com>
+Subject: Re: [PATCH 0/2] Fixes for the Intel PMC mux driver
+Message-ID: <20200907141246.GB3101050@kuha.fi.intel.com>
+References: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAMpxmJXM=8oGoPSGg8G8XJ4HXJFrAQ2-_EXrz3rf3+ZmCSWB7g@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 07, 2020 at 03:49:23PM +0200, Bartosz Golaszewski wrote:
-> On Mon, Sep 7, 2020 at 2:22 PM Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> > On Mon, Sep 07, 2020 at 02:06:15PM +0200, Bartosz Golaszewski wrote:
-
-...
-
-> > Yes it is.  Or at least until you fix all existing users so that if you
-> > do change it, no one notices it happening :)
-> >
+On Mon, Sep 07, 2020 at 04:57:38PM +0300, Heikki Krogerus wrote:
+> Hi,
 > 
-> Then another question is: do we really want to commit to a stable ABI
-> for a module we only use for testing purposes and which doesn't
-> interact with any real hardware.
+> Here are two of fixes from Utkarsh. Both deal with alternate mode
+> issues. Let me know if you want anything to be changed.
 > 
-> Rewriting this module without any legacy cruft is tempting though. :)
+> thanks,
+> 
+> Utkarsh Patel (2):
+>   usb: typec: intel_pmc_mux: Do not configure Altmode HPD High
+>   usb: typec: intel_pmc_mux: Do not configure SBU and HSL Orientation in
+>     Alternate modes
+> 
+>  drivers/usb/typec/mux/intel_pmc_mux.c | 12 ------------
+>  1 file changed, 12 deletions(-)
 
-Another thought spoken loudly: maybe it can be unified with GPIO aggregator
-code? In that case it makes sense.
+Wrong mailing list :-/
+
+I'll resend these to the correct usb mailing list.
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+heikki
