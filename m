@@ -2,157 +2,77 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D22DC433E2
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:11:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4189C43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:19:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF7EF217A0
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:11:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="UdJojwKS"
+	by mail.kernel.org (Postfix) with ESMTP id A04D92166E
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:19:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599477586;
+	bh=1ynu4cRH0mrmI1AHQ2qFgUodO9DAHgmnCBSCmgnIJHo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=oe/RUFvqyBiZiWRUpYMrh7+1vrAD1pucEEYo+722S0mjpf1GHLz5YwhFfjSHh+msI
+	 0+Td0+j0rXJ1PMIviAwJlDcQVgxjX1Ulk08X3hmiXI8TUk/1JOhBtQDSrKMKJRpPBn
+	 58QrS8Uzk16wY1KwiztA6RPyQNZo7xQk7oK4K+g8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728657AbgIGLK7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 07:10:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38488 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729006AbgIGK4c (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2020 06:56:32 -0400
-Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8E3FC061575
-        for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2020 03:56:30 -0700 (PDT)
-Received: by mail-il1-x144.google.com with SMTP id x2so12156342ilm.0
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2020 03:56:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=5RpqzXli+XwCeMDV3owXAXqs2l8fk/xVY+BAwh0ak7Y=;
-        b=UdJojwKSlBl1Tz+n0b1d7FQshL4EUtEIMahQ4fGtI2Y2E4fryVcKbeE0sXH9qI7yPm
-         ht/QXwE8hxsAbPH1+Lle01u/vcrJm1XxLztsetw7WKfv6RKaZk0+VtY3wrXz/taGbnhi
-         BUpskNdAvj8qCP98GPh4jgZSDszAfYsVkJNZNmuS97HqgwWBDAC9G4xgYiMaE9Ll4IW2
-         dv89Z5sjugBIhI33dMFvXroe7cuI/54CVfFHkOupSnM7ORAguKkXoN2aeXvuRT87mqm4
-         IzSdxnCuu6913KmUrirpZd9GKBd9MuFYho3sTMT3c5mJai5KCZBDm/WE5pzGlS0VsfgI
-         FDSg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=5RpqzXli+XwCeMDV3owXAXqs2l8fk/xVY+BAwh0ak7Y=;
-        b=jF6bSRdOWprbusetF2jYmD1MrY1XiMmvaG+k4P//aJ+QkWBhQPSaRbpeDfhRUj4eyQ
-         yPzLuGabzJIan3Fy+qd0Qkdlpr/ID8+qct67uCuUVRFqQMjNyF5nJXIKp/FS7GHBSfBJ
-         V1drTDsiHiAbPHM+G+3gJuGX2pgrLx9wfp0M7eOd1cayabXzD+iYKTh2TmsK40KTbCoM
-         kWayoWdRht2RgKtjTCc2dOgidW34fcDZsV0N+9yV7W9yLHtWOPHGVfjwhtUvTzyQQgVW
-         AJOmNCS68I8RBQGvFJOR0pggUGK1nuzJT8X5dajes52/QZjXfTJIouRMCyR1sxMHbehr
-         NaCQ==
-X-Gm-Message-State: AOAM5325Vy5IDjVqwfmJDj8fzE4KqJtM4mH5IPl1k7ItX5Wpnnz6MSP1
-        d1h3qvxtanScgsuijdNIRNuZVzdKJ2BsZLGTXpAGHg==
-X-Google-Smtp-Source: ABdhPJzrrBWKvS/0CytuqACgZ2NZ/VYj5Aa6yYN+qHpPMg92bY9CYtJjq/jiXt/5mZGa37+9U5ia18jssb2wZ1ZnqRM=
-X-Received: by 2002:a92:1b0b:: with SMTP id b11mr18787396ilb.287.1599476189880;
- Mon, 07 Sep 2020 03:56:29 -0700 (PDT)
+        id S1728548AbgIGLSg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 07:18:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46112 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728525AbgIGLRz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 07:17:55 -0400
+Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0FF1C216C4;
+        Mon,  7 Sep 2020 11:17:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599477464;
+        bh=1ynu4cRH0mrmI1AHQ2qFgUodO9DAHgmnCBSCmgnIJHo=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=eT+dWR69llGSaQO2YnAk68qy8gi+V0r1GW0uSxcpAOmG4rVVPeldLZJQoOP906/dQ
+         NpOlk+J3HKU+9UrW0JUq1VYst6yxkCwduoq3+4tK3MbHseYrodUpKkfkLNhA0pzHrE
+         jSC9yeSb/Y3RKVKmhdJjoPnYLa3H/G2QEpCBTrig=
+Date:   Mon, 7 Sep 2020 13:17:40 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 2/2] Documentation: Remove device connection documentation
+Message-ID: <20200907111740.GB299300@kroah.com>
+References: <20200907103750.9093-1-heikki.krogerus@linux.intel.com>
+ <20200907103750.9093-3-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
-References: <20200904154547.3836-1-brgl@bgdev.pl> <20200904154547.3836-5-brgl@bgdev.pl>
- <20200904163820.GX1891694@smile.fi.intel.com>
-In-Reply-To: <20200904163820.GX1891694@smile.fi.intel.com>
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-Date:   Mon, 7 Sep 2020 12:56:19 +0200
-Message-ID: <CAMRc=Mc2mhsNo10RDVLGNPCADivYNco21+QZfehAgMRzZW3Sfg@mail.gmail.com>
-Subject: Re: [PATCH 04/23] gpiolib: generalize devprop_gpiochip_set_names()
- for device properties
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Kent Gibson <warthog618@gmail.com>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        linux-doc <linux-doc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-acpi@vger.kernel.org,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200907103750.9093-3-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 4, 2020 at 6:44 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Fri, Sep 04, 2020 at 05:45:28PM +0200, Bartosz Golaszewski wrote:
-> > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> >
-> > devprop_gpiochip_set_names() is overly complicated with taking the
-> > fwnode argument (which requires using dev_fwnode() & of_fwnode_handle()
-> > in ACPI and OF GPIO code respectively). Let's just switch to using the
-> > generic device properties.
-> >
-> > This allows us to pull the code setting line names directly into
-> > gpiochip_add_data_with_key() instead of handling it separately for
-> > ACPI and OF.
-> >
-> > Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> > ---
-> >  drivers/gpio/gpiolib-acpi.c    |  3 ---
-> >  drivers/gpio/gpiolib-devprop.c | 19 ++++++++++---------
-> >  drivers/gpio/gpiolib-of.c      |  5 -----
-> >  drivers/gpio/gpiolib.c         |  8 ++++----
-> >  include/linux/gpio/driver.h    |  3 +--
-> >  5 files changed, 15 insertions(+), 23 deletions(-)
-> >
-> > diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> > index 54ca3c18b291..834a12f3219e 100644
-> > --- a/drivers/gpio/gpiolib-acpi.c
-> > +++ b/drivers/gpio/gpiolib-acpi.c
-> > @@ -1221,9 +1221,6 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
-> >               return;
-> >       }
-> >
-> > -     if (!chip->names)
-> > -             devprop_gpiochip_set_names(chip, dev_fwnode(chip->parent));
-> > -
-> >       acpi_gpiochip_request_regions(acpi_gpio);
-> >       acpi_gpiochip_scan_gpios(acpi_gpio);
-> >       acpi_walk_dep_device_list(handle);
-> > diff --git a/drivers/gpio/gpiolib-devprop.c b/drivers/gpio/gpiolib-devprop.c
-> > index 26741032fa9e..a28659b4f9c9 100644
-> > --- a/drivers/gpio/gpiolib-devprop.c
-> > +++ b/drivers/gpio/gpiolib-devprop.c
-> > @@ -17,25 +17,24 @@
-> >  /**
-> >   * devprop_gpiochip_set_names - Set GPIO line names using device properties
-> >   * @chip: GPIO chip whose lines should be named, if possible
-> > - * @fwnode: Property Node containing the gpio-line-names property
-> >   *
-> >   * Looks for device property "gpio-line-names" and if it exists assigns
-> >   * GPIO line names for the chip. The memory allocated for the assigned
-> > - * names belong to the underlying firmware node and should not be released
-> > + * names belong to the underlying software node and should not be released
-> >   * by the caller.
-> >   */
-> > -void devprop_gpiochip_set_names(struct gpio_chip *chip,
-> > -                             const struct fwnode_handle *fwnode)
-> > +int devprop_gpiochip_set_names(struct gpio_chip *chip)
-> >  {
-> >       struct gpio_device *gdev = chip->gpiodev;
-> > +     struct device *dev = chip->parent;
-> >       const char **names;
-> >       int ret, i;
-> >       int count;
-> >
-> > -     count = fwnode_property_read_string_array(fwnode, "gpio-line-names",
-> > +     count = device_property_read_string_array(dev, "gpio-line-names",
-> >                                                 NULL, 0);
-> >       if (count < 0)
-> > -             return;
-> > +             return 0;
->
-> Can we introduce a followup to 33ee09cd59ce ("device property: Add helpers to
-> count items in an array") for strings?
->
+On Mon, Sep 07, 2020 at 01:37:50PM +0300, Heikki Krogerus wrote:
+> The API that allowed device connection descriptions to
+> be added is now removed, so removing also the documentation
+> for it.
+> 
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  .../driver-api/device_connection.rst          | 43 -------------------
+>  1 file changed, 43 deletions(-)
+>  delete mode 100644 Documentation/driver-api/device_connection.rst
 
-Sure, I'll do this in v2.
+Oops, you forgot to remove this file from the list in
+Documentation/driver-api/index.rst, which I think will now break the
+documentation build, right?
 
-Bart
+Can you redo this one with that fix?
+
+thanks,
+
+greg k-h
