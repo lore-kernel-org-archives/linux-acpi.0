@@ -2,78 +2,87 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D86B0C43461
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 12:23:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC228C433E2
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 12:30:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A120A21481
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 12:23:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599481411;
-	bh=W4V9kVZfecfE8xIBo6XS9gugVAs/6HAok3326/9CEcI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=B8P6lRbgD4TcIzY/tvDd7yOjxt94M051XEYMzNe14OuL2h+TL++vTaRBDc3IZ6+9R
-	 pCCeSBAiIbSFZ/uj206NaJ0+A/sJJJDDQhCbv7HWqMd9NJljzdcLQX/oyBId0HumWK
-	 EXeOqBs7+6c8wpaHjdmhfbwamn+qBFHPmUh3MquU=
+	by mail.kernel.org (Postfix) with ESMTP id BD193206E6
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 12:30:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728792AbgIGMXU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 08:23:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41854 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729304AbgIGMXR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 08:23:17 -0400
-Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E39FB2137B;
-        Mon,  7 Sep 2020 12:23:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599481397;
-        bh=W4V9kVZfecfE8xIBo6XS9gugVAs/6HAok3326/9CEcI=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=mBctklgWtGVWv4ELibkECQtm0Z21EkvcN4Gem+PNpj6TKQDFqI1E2BLx0TnramhvA
-         MHD42DzigNYdFsbnfNCurcLW4nA3hxvvOpx5jWWgreRGPJRuUeSIdQx9C+jDE120BO
-         mM+jbBwF5nWgon0RrDDQCS8tPt37DIbKd/8nxAEw=
-Date:   Mon, 7 Sep 2020 14:23:31 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] Move fwnode_connection_find_match() under
- drivers/base/property.c
-Message-ID: <20200907122331.GA2029056@kroah.com>
-References: <20200907120532.37611-1-heikki.krogerus@linux.intel.com>
+        id S1729097AbgIGM36 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 08:29:58 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11224 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728948AbgIGM3j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 08:29:39 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id B5D8BEF9D15FFFD160BB;
+        Mon,  7 Sep 2020 20:29:20 +0800 (CST)
+Received: from [127.0.0.1] (10.174.179.33) by DGGEMS403-HUB.china.huawei.com
+ (10.3.19.203) with Microsoft SMTP Server id 14.3.487.0; Mon, 7 Sep 2020
+ 20:29:16 +0800
+Subject: Re: [PATCH 5/5] ACPI / APD: Head file including cleanups
+To:     kernel test robot <lkp@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC:     <kbuild-all@lists.01.org>, <linux-acpi@vger.kernel.org>,
+        Ken Xue <Ken.Xue@amd.com>
+References: <1599468981-17301-6-git-send-email-guohanjun@huawei.com>
+ <202009071956.VISM8Axu%lkp@intel.com>
+From:   Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <d4dfac0b-f843-0905-0ef5-8079633cf435@huawei.com>
+Date:   Mon, 7 Sep 2020 20:29:15 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200907120532.37611-1-heikki.krogerus@linux.intel.com>
+In-Reply-To: <202009071956.VISM8Axu%lkp@intel.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.179.33]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 07, 2020 at 03:05:30PM +0300, Heikki Krogerus wrote:
-> This is second version of this series. I forgot to remove the file
-> from Documentation/driver-api/index.rst. Hopefully these are now OK.
+On 2020/9/7 19:19, kernel test robot wrote:
+> Hi Hanjun,
 > 
-> The original cover letter:
+> I love your patch! Perhaps something to improve:
 > 
-> Hi,
+> [auto build test WARNING on pm/linux-next]
+> [also build test WARNING on v5.9-rc4 next-20200903]
+> [If your patch is applied to the wrong git tree, kindly drop us a note.
+> And when submitting patch, we suggest to use '--base' as documented in
+> https://git-scm.com/docs/git-format-patch]
 > 
-> This was the last patch in my series that removed struct
-> device_connection [1]. It's now split into two separate patches.
+> url:    https://github.com/0day-ci/linux/commits/Hanjun-Guo/Cleanups-for-ACPI-APD-driver/20200907-170548
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+> config: x86_64-randconfig-s022-20200907 (attached as .config)
+> compiler: gcc-9 (Debian 9.3.0-15) 9.3.0
+> reproduce:
+>          # apt-get install sparse
+>          # sparse version: v0.6.2-191-g10164920-dirty
+>          # save the attached .config to linux build tree
+>          make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' ARCH=x86_64
 > 
-> [1] https://lore.kernel.org/lkml/20200904125123.83725-1-heikki.krogerus@linux.intel.com/
+> If you fix the issue, kindly add following tag as appropriate
+> Reported-by: kernel test robot <lkp@intel.com>
 > 
-> thanks,
+> All warnings (new ones prefixed by >>):
 > 
-> *** BLURB HERE ***
+>>> drivers/acpi/acpi_apd.c:250:13: warning: no previous prototype for 'acpi_apd_init' [-Wmissing-prototypes]
+>       250 | void __init acpi_apd_init(void)
+>           |             ^~~~~~~~~~~~~
 
-But you do have a blurb!  :)
+Hmm, I didn't get this locally, I think it's because acpi_apd_init()
+is added in the head file internal.h, but I removed the internal.h 
+inclusion for head file, I will add it back.
 
-Anyway, thanks for the update, both now applied.
+Thanks
+Hanjun
 
-greg k-h
