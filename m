@@ -2,64 +2,65 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2AB7C433E2
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 10:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20A1CC43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:10:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 536B22166E
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 10:54:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF173206D4
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:10:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="SKDKiay1"
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="u6wEcfF4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728886AbgIGKyS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 06:54:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38102 "EHLO
+        id S1728588AbgIGLK3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 07:10:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728985AbgIGKyJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2020 06:54:09 -0400
-Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AFE0C061755
-        for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2020 03:54:02 -0700 (PDT)
-Received: by mail-il1-x144.google.com with SMTP id a8so6411886ilk.1
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2020 03:54:02 -0700 (PDT)
+        with ESMTP id S1729015AbgIGK6R (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2020 06:58:17 -0400
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 856C2C061755
+        for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2020 03:58:16 -0700 (PDT)
+Received: by mail-il1-x143.google.com with SMTP id t13so12112001ile.9
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2020 03:58:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=F9or7F3N4uGJ5u794zyeeQfJsXAWR+DFA8Gx8lvKsws=;
-        b=SKDKiay1D03pgiV+UpJzmTyefaJ/beR1td+hpIw98akjdM8VTUCwuMVeLlb3osZuE9
-         /KX4TukEYGI1vwQo8XNn0elPXGJ/94SDE7VmsuDbdAeXPNF3Tr21rzW8zr8TqLTlTyYE
-         1dLxcfZcjsxI15aCI4Bwujp8aEg7SyTQlu/1Xvz9KT5p1Roko10bQo9WqMrLhKId6ZUG
-         FHXGNWLYNCX+8Pnw/3+wyi60zjyrVtjbyqfaUxlJn8FQFVZoLyaV6pWJb9wRwJ88PnnS
-         2no0sLak8d1PFbnic9JnssKk8fw3Qyp486n1lAo5X7xgmIkEPmiHVQNl6UdfGL4qDc5+
-         +BDQ==
+        bh=Ka86XCBq/V19GD6GyrylhsG/kDUnrrNEHVjokRO/B1o=;
+        b=u6wEcfF4clytfMFn0Q3+4RSrEe5oYy0Eg72vGdNb06r0CxO4wt0j8j6zbN7uNszbq5
+         Zn1mzZjmbyJWkWk147E4JJzTuQAOUsccp7NG1VL5akR8xQBzQAXxU8ArfuOEWHRPpPly
+         vQKJYOvlUrR2krVgQkYEEGKF6HBwJd1Y+aZX1wd/PoPmFFZytSJ0q8qFxASTfQKd0Ehz
+         cGCEdD/ubMHct2jM1yn1B2nk0oLr4QKAXxaoSM7WXgrJwTg8Zgk+2EOfhXxe5uvUZm4U
+         RfouBH+2KAsHGY/oCUtPdF9eJr8xDUvPFrWwIqF3HQ1+vu7TrSHnicyx5B6ultfUmDeD
+         qDZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=F9or7F3N4uGJ5u794zyeeQfJsXAWR+DFA8Gx8lvKsws=;
-        b=YVd7uo+HplWrUdvu/L/FTX6ngTgXEU3rafT8oBp7cwDwUwP+Wlun+szSm1ODwWNui1
-         J9iZlJcCNnnNU/rI32fJo2vo2EulOMMQsu4R2YdQNoLDQStWRzzYg6tUFuqc5McVqgwp
-         5EWeIkr030kyAKHvoU1ShmXoNw22WHRuK15nAPTpXO4YkU0UWgBAG+RiJOg92e7MpuZM
-         o9WYKoipQcvz/hxUE1vsYGjmVwooqqYCcZv0Au7PZu+nxvGJzbvBFh/aE91q7Y+abpPF
-         C7rh0SWDF20AMPOEXxcryA9TdIgg/M1S4/puHpnBBuvtkmMmO5ZchedM9diu9xnKRS8i
-         jRSg==
-X-Gm-Message-State: AOAM530yOHcvIX2jHslvEdChDfCm4sl3TaXn/CGVK5coCs0jEobV1Gge
-        8kn3nuZjKHxiwrFBE3Dd4goSdTk53vlkXDKVLEApxQ==
-X-Google-Smtp-Source: ABdhPJxBpaWjVX3fkFg/bcWAsiU5ccj4QQBFPEMsNaOmvDrtar3fGAFBHYqxEdQBwc585SSw+vfckGQqg3PvOdHAs0M=
-X-Received: by 2002:a92:1b0b:: with SMTP id b11mr18780714ilb.287.1599476041805;
- Mon, 07 Sep 2020 03:54:01 -0700 (PDT)
+        bh=Ka86XCBq/V19GD6GyrylhsG/kDUnrrNEHVjokRO/B1o=;
+        b=tHcF4pnZTMIgu3vXXuXrHqNvzSQ6uaiZwHA+akMXwCvaLHw3qgMqw+pi73Qttc2y89
+         E6Xs81D1VoY6KUIHsEJ2st4AqPMbppnanIFqFhRybIQuJ9b3j9Xh/iRRuzDb2nSTfin5
+         FBNeiifFGR5lKaGt2xKemrSFAtegXnVfgq6cqQSc2yqkunjEsa09gYTc60IsV/LwcS9A
+         joW7OdXQ6E2OLXCOp7+SDDadU8QkTACFTTqJiJsIjnI68ch3Nezufe5F/7U31882cB6R
+         9R6oiWVxpju0MaDC9A9p83T2z6oWS8VkgeUGn28y14lorj2O2XS6wk0uydatwEgxVZzS
+         mQwg==
+X-Gm-Message-State: AOAM532i617irWMX2phGiaB0Embbwv/ZJdKdfOUqzEp2nss/nU1MS8Fm
+        V4nlYv/E+/4q+aQQ0ISWzSjC3QwEy6d6Tuxu5Z+cPg==
+X-Google-Smtp-Source: ABdhPJyNcXQHYQOHmSkHGrSedNl1b2pAVW8V+P3eGn98BQdjrgtp0HrsHhorKZbx6MoDWMtUhO8X6plpcOqKOMQaQiI=
+X-Received: by 2002:a92:9604:: with SMTP id g4mr619710ilh.6.1599476295553;
+ Mon, 07 Sep 2020 03:58:15 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200904154547.3836-1-brgl@bgdev.pl> <20200904154547.3836-6-brgl@bgdev.pl>
- <20200904164015.GY1891694@smile.fi.intel.com>
-In-Reply-To: <20200904164015.GY1891694@smile.fi.intel.com>
+References: <20200904154547.3836-1-brgl@bgdev.pl> <20200904154547.3836-15-brgl@bgdev.pl>
+ <20200904164624.GA1891694@smile.fi.intel.com>
+In-Reply-To: <20200904164624.GA1891694@smile.fi.intel.com>
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
-Date:   Mon, 7 Sep 2020 12:53:51 +0200
-Message-ID: <CAMRc=MdprNhsRZm=kxkEHFbpftwgMB0a-SR4HjLgiG0tjfWM=Q@mail.gmail.com>
-Subject: Re: [PATCH 05/23] gpiolib: unexport devprop_gpiochip_set_names()
+Date:   Mon, 7 Sep 2020 12:58:04 +0200
+Message-ID: <CAMRc=MdDPQGtDVjwdVCuNESTqguXDUGZzo_eT-OHwnNJtnmCWQ@mail.gmail.com>
+Subject: Re: [PATCH 14/23] gpio: mockup: use the generic 'gpio-line-names' property
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
@@ -76,25 +77,146 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 4, 2020 at 6:42 PM Andy Shevchenko
+On Fri, Sep 4, 2020 at 6:46 PM Andy Shevchenko
 <andriy.shevchenko@linux.intel.com> wrote:
 >
-> On Fri, Sep 04, 2020 at 05:45:29PM +0200, Bartosz Golaszewski wrote:
+> On Fri, Sep 04, 2020 at 05:45:38PM +0200, Bartosz Golaszewski wrote:
 > > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > >
-> > Now that devprop_gpiochip_set_names() is only used in a single place
-> > inside drivers/gpio/gpiolib.c, there's no need anymore for it to be
-> > exported or to even live in its own source file. Pull this function into
-> > the core source file for gpiolib.
+> > GPIO line names are currently created by the driver from the chip label.
+> > We'll want to support custom formats for line names (for instance: to
+> > name all lines the same) for user-space tests so create them in the
+> > module init function and pass them to the driver using the standard
+> > 'gpio-line-names' property.
+> >
+> > Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> > ---
+> >  drivers/gpio/gpio-mockup.c | 70 +++++++++++++++++++++-----------------
+> >  1 file changed, 38 insertions(+), 32 deletions(-)
+> >
+> > diff --git a/drivers/gpio/gpio-mockup.c b/drivers/gpio/gpio-mockup.c
+> > index ce83f1df1933..96976ba66598 100644
+> > --- a/drivers/gpio/gpio-mockup.c
+> > +++ b/drivers/gpio/gpio-mockup.c
+> > @@ -18,6 +18,7 @@
+> >  #include <linux/platform_device.h>
+> >  #include <linux/property.h>
+> >  #include <linux/slab.h>
+> > +#include <linux/string_helpers.h>
+> >  #include <linux/uaccess.h>
+> >
+> >  #include "gpiolib.h"
+> > @@ -378,29 +379,6 @@ static void gpio_mockup_debugfs_setup(struct device *dev,
+> >       return;
+> >  }
+> >
+> > -static int gpio_mockup_name_lines(struct device *dev,
+> > -                               struct gpio_mockup_chip *chip)
+> > -{
+> > -     struct gpio_chip *gc = &chip->gc;
+> > -     char **names;
+> > -     int i;
+> > -
+> > -     names = devm_kcalloc(dev, gc->ngpio, sizeof(char *), GFP_KERNEL);
+> > -     if (!names)
+> > -             return -ENOMEM;
+> > -
+> > -     for (i = 0; i < gc->ngpio; i++) {
+> > -             names[i] = devm_kasprintf(dev, GFP_KERNEL,
+> > -                                       "%s-%d", gc->label, i);
+> > -             if (!names[i])
+> > -                     return -ENOMEM;
+> > -     }
+> > -
+> > -     gc->names = (const char *const *)names;
+> > -
+> > -     return 0;
+> > -}
+> > -
+> >  static void gpio_mockup_dispose_mappings(void *data)
+> >  {
+> >       struct gpio_mockup_chip *chip = data;
+> > @@ -468,12 +446,6 @@ static int gpio_mockup_probe(struct platform_device *pdev)
+> >       for (i = 0; i < gc->ngpio; i++)
+> >               chip->lines[i].dir = GPIO_LINE_DIRECTION_IN;
+> >
+> > -     if (device_property_read_bool(dev, "named-gpio-lines")) {
+> > -             rv = gpio_mockup_name_lines(dev, chip);
+> > -             if (rv)
+> > -                     return rv;
+> > -     }
+> > -
+> >       chip->irq_sim_domain = devm_irq_domain_create_sim(dev, NULL,
+> >                                                         gc->ngpio);
+> >       if (IS_ERR(chip->irq_sim_domain))
+> > @@ -524,6 +496,27 @@ static void gpio_mockup_unregister_devices(void)
+> >       }
+> >  }
+> >
+> > +static __init char **gpio_mockup_make_line_names(const char *label,
+> > +                                              unsigned int num_lines)
+> > +{
+> > +     unsigned int i;
+> > +     char **names;
+> > +
+> > +     names = kcalloc(num_lines + 1, sizeof(char *), GFP_KERNEL);
+> > +     if (!names)
+> > +             return NULL;
+> > +
+> > +     for (i = 0; i < num_lines; i++) {
+> > +             names[i] = kasprintf(GFP_KERNEL, "%s-%u", label, i);
+> > +             if (!names[i]) {
+> > +                     kfree_strarray(names, i);
+> > +                     return NULL;
+> > +             }
+> > +     }
+> > +
+> > +     return names;
+> > +}
+> > +
+> >  static int __init gpio_mockup_init(void)
+> >  {
+> >       struct property_entry properties[GPIO_MOCKUP_MAX_PROP];
+> > @@ -531,6 +524,7 @@ static int __init gpio_mockup_init(void)
+> >       struct gpio_mockup_device *mockup_dev;
+> >       int i, prop, num_chips, err = 0, base;
+> >       struct platform_device_info pdevinfo;
+> > +     char **line_names;
+> >       u16 ngpio;
+> >
+> >       if ((gpio_mockup_num_ranges < 2) ||
+> > @@ -563,6 +557,7 @@ static int __init gpio_mockup_init(void)
+> >               memset(properties, 0, sizeof(properties));
+> >               memset(&pdevinfo, 0, sizeof(pdevinfo));
+> >               prop = 0;
+> > +             line_names = NULL;
+> >
+> >               snprintf(chip_label, sizeof(chip_label),
+> >                        "gpio-mockup-%c", i + 'A');
+> > @@ -578,9 +573,18 @@ static int __init gpio_mockup_init(void)
+> >                                : gpio_mockup_range_ngpio(i) - base;
+> >               properties[prop++] = PROPERTY_ENTRY_U16("nr-gpios", ngpio);
+> >
+> > -             if (gpio_mockup_named_lines)
+> > -                     properties[prop++] = PROPERTY_ENTRY_BOOL(
+> > -                                             "named-gpio-lines");
+> > +             if (gpio_mockup_named_lines) {
+> > +                     line_names = gpio_mockup_make_line_names(chip_label,
+> > +                                                              ngpio);
+> > +                     if (!line_names) {
+> > +                             err = -ENOMEM;
+> > +                             goto err_out;
+> > +                     }
+> > +
+> > +                     properties[prop++] = PROPERTY_ENTRY_STRING_ARRAY_LEN(
+> > +                                             "gpio-line-names",
+> > +                                             line_names, ngpio);
+> > +             }
 >
-> I have mixed feelings about this. We may simply unexport and attach object file
-> to gpiolib.o. Would it be expected to see more functions in this file in the
-> future?
+> Indentation here looks quite deep. Maybe introduce a helper in between where
+> you assign properties?
 >
 
-This file was created for this function alone over 4 years ago and
-never saw any new routines. Personally I think there's no reason to
-keep a single helper in its own file. We usually only split big chunks
-of code out of gpiolib.c.
+No need for that - this gets flattened later on in the series.
 
 Bart
