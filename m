@@ -2,157 +2,148 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08D6EC43461
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1BAAC43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:46:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D373E206B8
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:20:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6F252080A
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:46:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="A0Stn/cy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729701AbgIGRT5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 13:19:57 -0400
-Received: from mga18.intel.com ([134.134.136.126]:40312 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729565AbgIGNxU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 09:53:20 -0400
-IronPort-SDR: FRYaLof1Stayp3r3/A32d5+SC8+T5VqW7lqR0RbEAO/jzyH5EFlBK9vI/KoWBMSiCe7k3u8MIU
- 3BNpHFBBnQWQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="145714274"
-X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="145714274"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 06:53:04 -0700
-IronPort-SDR: ZpD+nR3zD5cFp9j3Cc3dwR1QwVccLWIgbyDzO5RuQx1ta5A3XEWYaZZ2XACE5B4yL8bRHhiDEr
- hX9xYuaV/5pA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="333169481"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 07 Sep 2020 06:53:01 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kFHZq-00ExvU-05; Mon, 07 Sep 2020 16:52:58 +0300
-Date:   Mon, 7 Sep 2020 16:52:57 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Kent Gibson <warthog618@gmail.com>,
-        linux-gpio <linux-gpio@vger.kernel.org>,
-        linux-doc <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 23/23] Documentation: gpio: add documentation for
- gpio-mockup
-Message-ID: <20200907135257.GJ1891694@smile.fi.intel.com>
-References: <20200904154547.3836-1-brgl@bgdev.pl>
- <20200904154547.3836-24-brgl@bgdev.pl>
- <26ea1683-da8f-30e7-f004-3616e96d56b3@infradead.org>
- <20200907095932.GU1891694@smile.fi.intel.com>
- <CAMpxmJXvhYOVkZY7LLf=v+o8E2xKTh1RYhLrdVsS9nN1XZ5QJQ@mail.gmail.com>
- <20200907115310.GA1891694@smile.fi.intel.com>
- <CAMpxmJUfNkko4Rrb4N5CF_rdwRAWGhVr9DSOHfhYyTxYSH7dsQ@mail.gmail.com>
- <20200907123837.GG1891694@smile.fi.intel.com>
- <CAMpxmJXNYZb66SPuzR_3CEVwD=PQ6z6Ew3ia7ZL=wSU0QGhjEA@mail.gmail.com>
+        id S1729649AbgIGRp6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 13:45:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45178 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730020AbgIGRoF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2020 13:44:05 -0400
+Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2F3CC061575
+        for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2020 10:44:03 -0700 (PDT)
+Received: by mail-wm1-x341.google.com with SMTP id a65so15028818wme.5
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2020 10:44:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=TtLg9Y4dgEBmAcytToxU0LrQsMgfNF7OgoEHJZ2Q+vw=;
+        b=A0Stn/cyvojbDX7w3lzbvMIO7gTwe43sZAGbFpuAEdS5sHSClH8/IZ2AifZ+YY+VOX
+         UVwM/aA+6tWtgJSEoCDO1PW617SUSIQB8k6b0bPqqeB7dxfGKJQUxNBeFtcQo9e3Ascw
+         6zhcNnrpuccjT086HR4puL61ghnrcI3EOoQm8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=TtLg9Y4dgEBmAcytToxU0LrQsMgfNF7OgoEHJZ2Q+vw=;
+        b=FBb5IKegYTFJ9Lcje/uvoJL2xcKGlLMB/kxDkDq4q7sHhsi9zWQlTKe9Zhwic2aJQC
+         LTzZ4SgLjnHmlK4bMEDdXnOTFX9vNEb47My0eOMTkgus95OSH8yOFg8Ni1rGHV799pCj
+         ulVOGYc03dSe5o/J/ItRLfGpE5x6N+Kh+gZSQtO32RjJ2U+hc2YqJqKrct/SYfVz8Xmp
+         Yuan1wWAOK5SUiSbMjH4fitEaJgXSgjKfLjF0pr9NY+BsQHG0v5a6jS4Mu412JHYRd+4
+         G50g4qj1Zv/KZNfHc7EtlVDfI1DhhgpTbrSuH61xXKt6sIBIwRDpIgvq94d1yoGqwXn+
+         vq2Q==
+X-Gm-Message-State: AOAM53278GWWstQHrC9YoI+Xxd2NykCZhEVnOT00qPxXdGID8uz4CDvp
+        2zIV+T2SFQBlvhwlJyGReYEbqJZnMlLKnYRrTiauAA==
+X-Google-Smtp-Source: ABdhPJyNQsBm1Y3/ieHSfjO664M9CBhnY/ZnuJjayy1tYR+ob0ku/Wpd26F5nf8H2/xl9/84D4TcAGvzrj4IPjrxwfU=
+X-Received: by 2002:a1c:bad5:: with SMTP id k204mr408820wmf.111.1599500642170;
+ Mon, 07 Sep 2020 10:44:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMpxmJXNYZb66SPuzR_3CEVwD=PQ6z6Ew3ia7ZL=wSU0QGhjEA@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20200824193036.6033-1-james.quinlan@broadcom.com>
+ <b19bc982-a0c4-c6ff-d8f5-650f2b3a83c8@gmail.com> <20200827063517.GA4637@lst.de>
+ <CA+-6iNy3U9pO0Bykzgvb9n9fcsBi6FiatLdpA1s0HgQNWZ49mg@mail.gmail.com> <20200907091649.GA6428@e121166-lin.cambridge.arm.com>
+In-Reply-To: <20200907091649.GA6428@e121166-lin.cambridge.arm.com>
+From:   Jim Quinlan <james.quinlan@broadcom.com>
+Date:   Mon, 7 Sep 2020 13:43:23 -0400
+Message-ID: <CA+-6iNzoz3pM2pJksXogeuou6wB9W-59rN-amCLERFLuY5zLMg@mail.gmail.com>
+Subject: Re: [PATCH v11 00/11] PCI: brcmstb: enable PCIe for STB chips
+To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc:     Christoph Hellwig <hch@lst.de>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        "open list:PCI NATIVE HOST BRIDGE AND ENDPOINT DRIVERS" 
+        <linux-pci@vger.kernel.org>,
+        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
+        Robin Murphy <robin.murphy@arm.com>,
+        "maintainer:BROADCOM BCM7XXX ARM ARCHITECTURE" 
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE" 
+        <devicetree@vger.kernel.org>,
+        "open list:DRM DRIVERS FOR ALLWINNER A10" 
+        <dri-devel@lists.freedesktop.org>, Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+        Joerg Roedel <jroedel@suse.de>,
+        Julien Grall <julien.grall@arm.com>,
+        "open list:ACPI FOR ARM64 (ACPI/arm64)" <linux-acpi@vger.kernel.org>,
+        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:ALLWINNER A10 CSI DRIVER" <linux-media@vger.kernel.org>,
+        "open list:REMOTE PROCESSOR (REMOTEPROC) SUBSYSTEM" 
+        <linux-remoteproc@vger.kernel.org>,
+        "moderated list:BROADCOM BCM2711/BCM2835 ARM ARCHITECTURE" 
+        <linux-rpi-kernel@lists.infradead.org>,
+        "open list:SUPERH" <linux-sh@vger.kernel.org>,
+        "open list:USB SUBSYSTEM" <linux-usb@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Saravana Kannan <saravanak@google.com>,
+        Stefano Stabellini <sstabellini@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 07, 2020 at 02:57:29PM +0200, Bartosz Golaszewski wrote:
-> On Mon, Sep 7, 2020 at 2:38 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > On Mon, Sep 07, 2020 at 02:06:15PM +0200, Bartosz Golaszewski wrote:
-> > > On Mon, Sep 7, 2020 at 1:53 PM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Mon, Sep 07, 2020 at 12:26:34PM +0200, Bartosz Golaszewski wrote:
-> > > > > On Mon, Sep 7, 2020 at 11:59 AM Andy Shevchenko
-> > > > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > > > On Fri, Sep 04, 2020 at 08:15:59PM -0700, Randy Dunlap wrote:
-> > > > > > > On 9/4/20 8:45 AM, Bartosz Golaszewski wrote:
-> >
-> > ...
-> >
-> > > > > > > > +GPIO Testing Driver
-> > > > > > > > +===================
-> > > > > > > > +
-> > > > > > > > +The GPIO Testing Driver (gpio-mockup) provides a way to create simulated GPIO
-> > > > > > > > +chips for testing purposes. There are two ways of configuring the chips exposed
-> > > > > > > > +by the module. The lines can be accessed using the standard GPIO character
-> > > > > > > > +device interface as well as manipulated using the dedicated debugfs directory
-> > > > > > > > +structure.
-> > > > > > >
-> > > > > > > Could configfs be used for this instead of debugfs?
-> > > > > > > debugfs is ad hoc.
-> > > > > >
-> > > > > > Actually sounds like a good idea.
-> > > > > >
-> > > > >
-> > > > > Well, then we can go on and write an entirely new mockup driver
-> > > > > (ditching module params and dropping any backwards compatibility)
-> > > > > because we're already using debugfs for line values.
-> > > > >
-> > > > > How would we pass the device properties to configfs created GPIO chips
-> > > > > anyway? Devices seem to only be created using mkdir. Am I missing
-> > > > > something?
-> > > >
-> > > > Same way how USB composite works, no?
-> > > >
+On Mon, Sep 7, 2020 at 5:16 AM Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+>
+> On Thu, Aug 27, 2020 at 09:29:59AM -0400, Jim Quinlan wrote:
+> > On Thu, Aug 27, 2020 at 2:35 AM Christoph Hellwig <hch@lst.de> wrote:
 > > >
-> > > OK, so create a new chip directory in configfs, configure it using
-> > > some defined configfs attributes and then finally instantiate it from
-> > > sysfs?
+> > > On Tue, Aug 25, 2020 at 10:40:27AM -0700, Florian Fainelli wrote:
+> > > > Hi,
+> > > >
+> > > > On 8/24/2020 12:30 PM, Jim Quinlan wrote:
+> > > >>
+> > > >> Patchset Summary:
+> > > >>    Enhance a PCIe host controller driver.  Because of its unusual design
+> > > >>    we are foced to change dev->dma_pfn_offset into a more general role
+> > > >>    allowing multiple offsets.  See the 'v1' notes below for more info.
+> > > >
+> > > > We are version 11 and counting, and it is not clear to me whether there is
+> > > > any chance of getting these patches reviewed and hopefully merged for the
+> > > > 5.10 merge window.
+> > > >
+> > > > There are a lot of different files being touched, so what would be the
+> > > > ideal way of routing those changes towards inclusion?
 > > >
-> > > Makes sense and is probably the right way to go. Now the question is:
-> > > is it fine to just entirely remove the previous gpio-mockup?
-> >
-> > Since, for example, I never saw device property bindings for that driver I
-> > assume that it was never considered as an ABI, so feel free to hack it in
-> > either direction.
-> >
-> > > Should we
-> > > keep some backwards compatibility?
-> >
-> > I wouldn't probably spend time on this.
-> >
-> > > Should we introduce an entirely new
-> > > module and have a transition period before removing previous
-> > > gpio-mockup?
-> >
-> > Neither transition period.
-> >
-> 
-> I wouldn't rush this actually. gpio-mockup is used a lot by libgpiod
-> and probably by Kent's Go library. My main goal with this series is to
-> extend it to allow for more advanced testing like simulating spurious
-> irqs to test the software debouncer or custom line name formats to
-> test name lookups.
+> > > FYI, I offered to take the dma-mapping bits through the dma-mapping tree.
+> > > I have a bit of a backlog, but plan to review and if Jim is ok with that
+> > > apply the current version.
+> > Sounds good to me.
+>
+> Hi Jim,
+>
+> is the dependency now solved ? Should we review/take this series as
+> is for v5.10 through the PCI tree ?
+Hello Lorenzo,
 
-When I wrote above I didn't mean this should be done in a hurry. Just during
-one release to make all parties ready for the change.
+We are still working out a regression with the DMA offset commit on
+the RaspberryPi.  Nicolas has found the root cause and we are now
+devising a solution.
 
-> I need to think about it some more. An entirely new configfs interface
-> would take time too.
+Thanks,
+Jim Quinlan
+Broadcom STB
 
-Sure!
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+>
+> Thanks,
+> Lorenzo
