@@ -2,69 +2,86 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC81EC2D0E2
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:04:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA38FC43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:13:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3E7A2145D
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:04:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3B4F2078E
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:13:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728173AbgIGJEi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 05:04:38 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:33378 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728186AbgIGJEg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 05:04:36 -0400
-Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 8282B88F0C772872483C;
-        Mon,  7 Sep 2020 17:04:34 +0800 (CST)
-Received: from linux-ibm.site (10.175.102.37) by
- DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 7 Sep 2020 17:04:15 +0800
-From:   Hanjun Guo <guohanjun@huawei.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC:     <linux-acpi@vger.kernel.org>, Ken Xue <Ken.Xue@amd.com>,
-        Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 3/5] ACPI / APD: Remove ACPI_MODULE_NAME()
-Date:   Mon, 7 Sep 2020 16:56:19 +0800
-Message-ID: <1599468981-17301-4-git-send-email-guohanjun@huawei.com>
-X-Mailer: git-send-email 1.7.12.4
-In-Reply-To: <1599468981-17301-1-git-send-email-guohanjun@huawei.com>
-References: <1599468981-17301-1-git-send-email-guohanjun@huawei.com>
+        id S1728079AbgIGJNM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 05:13:12 -0400
+Received: from mga14.intel.com ([192.55.52.115]:40067 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727953AbgIGJNL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 05:13:11 -0400
+IronPort-SDR: VWpXt9nXXaR3NWac2WCA3HFMB9X99PxSN+K9Br223HBz6lmf4U/i4ldK9Vowa5wbod0mlAVBBV
+ 6chxCEyXwAaA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="157239934"
+X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
+   d="scan'208";a="157239934"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 02:13:10 -0700
+IronPort-SDR: /eFKzWvQQ1MC7nTjKRmxR7AVgtHmA2+47L/kVt40vQWLOIC66fd2mu/ulOkEPgesu/YEf7AobO
+ aCTXYAiB712Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
+   d="scan'208";a="406780353"
+Received: from kuha.fi.intel.com ([10.237.72.162])
+  by fmsmga001.fm.intel.com with SMTP; 07 Sep 2020 02:13:08 -0700
+Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Mon, 07 Sep 2020 12:13:07 +0300
+Date:   Mon, 7 Sep 2020 12:13:07 +0300
+From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 4/4] device property: Move fwnode_connection_find_match()
+ under drivers/base/property.c
+Message-ID: <20200907091307.GA3042948@kuha.fi.intel.com>
+References: <20200904125123.83725-1-heikki.krogerus@linux.intel.com>
+ <20200904125123.83725-5-heikki.krogerus@linux.intel.com>
+ <20200907090414.GE1101646@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.102.37]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200907090414.GE1101646@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI_MODULE_NAME() is used for ACPI debug output when using
-ACPI debug print functions, but ACPI debug print functions are
-not used in acpi_apd.c, remove the ACPI_MODULE_NAME().
+On Mon, Sep 07, 2020 at 11:04:14AM +0200, Greg Kroah-Hartman wrote:
+> On Fri, Sep 04, 2020 at 03:51:23PM +0300, Heikki Krogerus wrote:
+> > The function is now only a helper that searches the
+> > connection from device graph and then by checking if the
+> > supplied connection identifier matches a property that
+> > contains reference.
+> > 
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > ---
+> >  .../driver-api/device_connection.rst          |  43 --------
+> >  drivers/base/Makefile                         |   2 +-
+> >  drivers/base/devcon.c                         | 101 ------------------
+> >  drivers/base/property.c                       |  73 +++++++++++++
+> >  include/linux/device.h                        |   9 --
+> >  include/linux/property.h                      |  14 +++
+> >  6 files changed, 88 insertions(+), 154 deletions(-)
+> >  delete mode 100644 Documentation/driver-api/device_connection.rst
+> 
+> You also removed the documentation in this patch, which would have been
+> fine if you had mentioned it in the changelog text :(
+> 
+> I'll go queue up the first 3 patches of this series, can you split this
+> up into two?
 
-Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
----
- drivers/acpi/acpi_apd.c | 1 -
- 1 file changed, 1 deletion(-)
+Sure. I'll do that.
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index c4bc4ab..4dbf85b 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -19,7 +19,6 @@
- 
- #include "internal.h"
- 
--ACPI_MODULE_NAME("acpi_apd");
- struct apd_private_data;
- 
- /**
+thanks,
+
 -- 
-1.7.12.4
-
+heikki
