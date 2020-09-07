@@ -2,93 +2,82 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C49C43461
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:08:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D143BC43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:11:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E398221473
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:08:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9061B2064B
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 14:11:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599487899;
+	bh=e1NrzKX/AI7LNPipSNQp264/D1Za/ZcFt4pINAUa0do=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=dEsPNOtE4B1CPPO43vYOvVDSNizr27OQDPEUIqpC6i7WZVYM44uMyqulB6ndAzsfX
+	 58l7Sw4i+7lilZwfNUrzcVqTFNlLEG8T0OD0DDh8ymykzrd+fCx9kFTlFLf7Hon5vm
+	 DXHlTrhDbSHAxtjOGakfMCPw1z2Iygp9oi1Dx7DI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729786AbgIGOHw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 10:07:52 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:60372 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729778AbgIGOGt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 10:06:49 -0400
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id EA383C92ADD5C0558545;
-        Mon,  7 Sep 2020 22:06:46 +0800 (CST)
-Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
- DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 7 Sep 2020 22:06:39 +0800
-From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <x86@kernel.org>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        <rafael@kernel.org>, Ingo Molnar <mingo@redhat.com>
-CC:     Bjorn Helgaas <bhelgaas@google.com>,
-        <linux-kernel@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>, <linuxarm@huawei.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Brice Goglin <Brice.Goglin@inria.fr>,
-        "Sean V Kelley" <sean.v.kelley@linux.intel.com>,
-        <linux-api@vger.kernel.org>, "Hanjun Guo" <guohanjun@huawei.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v10 4/6] ACPI: HMAT: Fix handling of changes from ACPI 6.2 to ACPI 6.3
-Date:   Mon, 7 Sep 2020 22:03:05 +0800
-Message-ID: <20200907140307.571932-5-Jonathan.Cameron@huawei.com>
-X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20200907140307.571932-1-Jonathan.Cameron@huawei.com>
-References: <20200907140307.571932-1-Jonathan.Cameron@huawei.com>
+        id S1729690AbgIGOLB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 10:11:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47874 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729779AbgIGOKt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 10:10:49 -0400
+Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5636E2064B;
+        Mon,  7 Sep 2020 14:10:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599487843;
+        bh=e1NrzKX/AI7LNPipSNQp264/D1Za/ZcFt4pINAUa0do=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Udt4MW4UsgJoY7imOEBnwxqYY0gF8VODhcPuSlcjDtAISEexshh/MiVm+5sK3yWdv
+         jNBX6T92ly1GE+eE4yxx1zTZJUW+/oCs8DRD0o58iu2LKbxP6cL2re0vqLcMLlWUAd
+         ghoJdeB1o3mpNRqhdAt30vdbMKoKMRdbJ62s3dFk=
+Date:   Mon, 7 Sep 2020 16:10:58 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        linux-acpi@vger.kernel.org,
+        Utkarsh Patel <utkarsh.h.patel@intel.com>
+Subject: Re: [PATCH 2/2] usb: typec: intel_pmc_mux: Do not configure SBU and
+ HSL Orientation in Alternate modes
+Message-ID: <20200907141058.GA3720524@kroah.com>
+References: <20200907135740.19941-1-heikki.krogerus@linux.intel.com>
+ <20200907135740.19941-3-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.41.22]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200907135740.19941-3-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In ACPI 6.3, the Memory Proximity Domain Attributes Structure
-changed substantially.  One of those changes was that the flag
-for "Memory Proximity Domain field is valid" was deprecated.
+On Mon, Sep 07, 2020 at 04:57:40PM +0300, Heikki Krogerus wrote:
+> From: Utkarsh Patel <utkarsh.h.patel@intel.com>
+> 
+> According to the PMC Type C Subsystem (TCSS) Mux programming guide rev
+> 0.7, bits 4 and 5 are reserved in Alternate modes.
+> SBU Orientation and HSL Orientation needs to be configured only during
+> initial cable detection in USB connect flow based on device property of
+> "sbu-orientation" and "hsl-orientation".
+> Configuring these reserved bits in the Alternate modes may result in delay
+> in display link training or some unexpected behaviour.
+> So do not configure them while issuing Alternate Mode requests.
+> 
+> Fixes: ff4a30d5e243 ("usb: typec: mux: intel_pmc_mux: Support for static SBU/HSL orientation")
+> Signed-off-by: Utkarsh Patel <utkarsh.h.patel@intel.com>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-This was because the field "Proximity Domain for the Memory"
-became a required field and hence having a validity flag makes
-no sense.
+Shouldn't this also need a cc:stable?
 
-So the correct logic is to always assume the field is there.
-Current code assumes it never is.
+And why not cc: the linux-usb list on these patches?
 
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
----
-Changes for v10:
- * Reorder the checks so we confirm the version first before taking the
-  ACPI_HMAT_MEMORY_PD_VALID into account.
-  (Bjorn Helgaas)
+thanks,
 
- drivers/acpi/numa/hmat.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-index 2c32cfb72370..6a91a55229ae 100644
---- a/drivers/acpi/numa/hmat.c
-+++ b/drivers/acpi/numa/hmat.c
-@@ -424,7 +424,8 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
- 		pr_info("HMAT: Memory Flags:%04x Processor Domain:%u Memory Domain:%u\n",
- 			p->flags, p->processor_PD, p->memory_PD);
- 
--	if (p->flags & ACPI_HMAT_MEMORY_PD_VALID && hmat_revision == 1) {
-+	if ((hmat_revision == 1 && p->flags & ACPI_HMAT_MEMORY_PD_VALID) ||
-+	    hmat_revision > 1) {
- 		target = find_mem_target(p->memory_PD);
- 		if (!target) {
- 			pr_debug("HMAT: Memory Domain missing from SRAT\n");
--- 
-2.19.1
-
+greg k-h
