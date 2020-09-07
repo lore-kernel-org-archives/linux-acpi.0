@@ -2,82 +2,92 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 908FDC43461
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:49:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA52CC43461
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:52:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42AE920C09
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:49:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACA6421481
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:52:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729018AbgIGLtC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 07:49:02 -0400
-Received: from mga17.intel.com ([192.55.52.151]:7590 "EHLO mga17.intel.com"
+        id S1729175AbgIGLwS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 07:52:18 -0400
+Received: from mga18.intel.com ([134.134.136.126]:31253 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729149AbgIGLs1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 07:48:27 -0400
-IronPort-SDR: C/Vtw7APVNgUqUMsk6UPaFFnPDJRKmZaFAz6gil/2LdtAZlz4tPASQIFWkJVPp+Va3MB9WJxe5
- EO6hd/7Uvefg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="138041466"
+        id S1729160AbgIGLwJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 07:52:09 -0400
+IronPort-SDR: hQr39yb3q66Yek1DAlVR9FPRCNPx9kP3gP7DFahOrT8xkjm40+JjVsUngxgYagt0+gZVRFo5SQ
+ dRVLbQhCPbqA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="145701516"
 X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="138041466"
+   d="scan'208";a="145701516"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 04:48:27 -0700
-IronPort-SDR: T4HI9PyGhK7P9pE2TkBU7ruqJLVreQXOnGHdopLXmcDo32cQ8doYIkyJKA3P9AwQdTlgZ7lcRz
- qeHBct+6mwtQ==
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 04:52:06 -0700
+IronPort-SDR: uvr2VwyZ4SxhVRvEAjJl/5Qfroyr0fgq08DkGSizqWWalIL1aBVCwym291h/o+Ug99zXiM+Hvb
+ BA0rZVPHxRMg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="406814486"
-Received: from kuha.fi.intel.com ([10.237.72.162])
-  by fmsmga001.fm.intel.com with SMTP; 07 Sep 2020 04:48:25 -0700
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Mon, 07 Sep 2020 14:48:24 +0300
-Date:   Mon, 7 Sep 2020 14:48:24 +0300
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 2/2] Documentation: Remove device connection documentation
-Message-ID: <20200907114824.GA3101050@kuha.fi.intel.com>
-References: <20200907103750.9093-1-heikki.krogerus@linux.intel.com>
- <20200907103750.9093-3-heikki.krogerus@linux.intel.com>
- <20200907111740.GB299300@kroah.com>
+   d="scan'208";a="333142853"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga008.jf.intel.com with ESMTP; 07 Sep 2020 04:52:02 -0700
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1kFFgl-00EwLw-NM; Mon, 07 Sep 2020 14:51:59 +0300
+Date:   Mon, 7 Sep 2020 14:51:59 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Kent Gibson <warthog618@gmail.com>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        linux-doc <linux-doc@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-acpi@vger.kernel.org,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: Re: [PATCH 16/23] gpio: mockup: refactor the module init function
+Message-ID: <20200907115159.GZ1891694@smile.fi.intel.com>
+References: <20200904154547.3836-1-brgl@bgdev.pl>
+ <20200904154547.3836-17-brgl@bgdev.pl>
+ <20200904165029.GD1891694@smile.fi.intel.com>
+ <CAMRc=MfrYJrkX2RfjXkCLtyzkM8MemTuUgEu_n-E+2mngk9mbA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200907111740.GB299300@kroah.com>
+In-Reply-To: <CAMRc=MfrYJrkX2RfjXkCLtyzkM8MemTuUgEu_n-E+2mngk9mbA@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 07, 2020 at 01:17:40PM +0200, Greg Kroah-Hartman wrote:
-> On Mon, Sep 07, 2020 at 01:37:50PM +0300, Heikki Krogerus wrote:
-> > The API that allowed device connection descriptions to
-> > be added is now removed, so removing also the documentation
-> > for it.
-> > 
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > ---
-> >  .../driver-api/device_connection.rst          | 43 -------------------
-> >  1 file changed, 43 deletions(-)
-> >  delete mode 100644 Documentation/driver-api/device_connection.rst
-> 
-> Oops, you forgot to remove this file from the list in
-> Documentation/driver-api/index.rst, which I think will now break the
-> documentation build, right?
-> 
-> Can you redo this one with that fix?
+On Mon, Sep 07, 2020 at 01:05:54PM +0200, Bartosz Golaszewski wrote:
+> On Fri, Sep 4, 2020 at 6:57 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Fri, Sep 04, 2020 at 05:45:40PM +0200, Bartosz Golaszewski wrote:
+> > > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> > >
+> > > This is in preparation for dynamically created chips.
+> > >
+> > > Let's split out the code that can be reused when creating chips at
+> > > run-time. Let's also move the code preparing the device properties into
+> > > a separate routine. This has the advantage of simplifying the error
+> > > handling.
+> >
+> > Almost all contents of this patch should go to proposed helper as I mentioned
+> > before. Will make this patch quite small and understandable.
 
-Argh! It does not actually break the documentation build. It did
-generate a warning though, and that I missed. Apologies.
+> Sorry, I'm not sure what you're referring to.
 
-I'll fix this.
-
-thanks,
+I meant if you move changes done here to the patch where I complained about
+indentation you might have better series. Have you considered that?
 
 -- 
-heikki
+With Best Regards,
+Andy Shevchenko
+
+
