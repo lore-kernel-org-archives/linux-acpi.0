@@ -2,36 +2,39 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72016C43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94D36C433E2
 	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:04:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 264EF2145D
+	by mail.kernel.org (Postfix) with ESMTP id 4F34D21556
 	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 09:04:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728199AbgIGJEh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 05:04:37 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:33376 "EHLO huawei.com"
+        id S1728217AbgIGJEg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 05:04:36 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:33370 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728180AbgIGJEf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1728199AbgIGJEf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 7 Sep 2020 05:04:35 -0400
 Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 7EC0FECBFBD84D1A1059;
+        by Forcepoint Email with ESMTP id 77464C13801C0C18BFF1;
         Mon,  7 Sep 2020 17:04:34 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 7 Sep 2020 17:04:14 +0800
+ 14.3.487.0; Mon, 7 Sep 2020 17:04:16 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 CC:     <linux-acpi@vger.kernel.org>, Ken Xue <Ken.Xue@amd.com>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 0/5] Cleanups for ACPI APD driver
-Date:   Mon, 7 Sep 2020 16:56:16 +0800
-Message-ID: <1599468981-17301-1-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 4/5] ACPI / APD: Remove the unneeded APD_ADDR(desc) macro define
+Date:   Mon, 7 Sep 2020 16:56:20 +0800
+Message-ID: <1599468981-17301-5-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
+In-Reply-To: <1599468981-17301-1-git-send-email-guohanjun@huawei.com>
+References: <1599468981-17301-1-git-send-email-guohanjun@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.175.102.37]
@@ -41,22 +44,54 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI APD driver has some unused code and some mis-behaved
-kernel doc, make a cleanup for this driver.
+Since APD_ADDR(desc) is only used when CONFIG_X86_AMD_PLATFORM_DEVICE or
+CONFIG_ARM64 is set, no need for the redundant
+'#define APD_ADDR(desc) (0UL)', remove it.
 
-Tested on Hisilicon ARM64, and compile tested on Intel x86.
+Also update the comments for #endif.
 
-Hanjun Guo (5):
-  ACPI / APD: Add kernel doc for the properties in struct
-    apd_device_desc
-  ACPI / APD: Remove the flags in struct apd_device_desc
-  ACPI / APD: Remove ACPI_MODULE_NAME()
-  ACPI / APD: Remove the unneeded APD_ADDR(desc) macro define
-  ACPI / APD: Head file including cleanups
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+---
+ drivers/acpi/acpi_apd.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
- drivers/acpi/acpi_apd.c | 34 ++++++++--------------------------
- 1 file changed, 8 insertions(+), 26 deletions(-)
-
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 4dbf85b..561d9ba 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -62,7 +62,6 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
+ }
+ 
+ #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+-
+ static int misc_check_res(struct acpi_resource *ares, void *data)
+ {
+ 	struct resource res;
+@@ -133,7 +132,7 @@ static int fch_misc_setup(struct apd_private_data *pdata)
+ static const struct apd_device_desc fch_misc_desc = {
+ 	.setup = fch_misc_setup,
+ };
+-#endif
++#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
+ 
+ #ifdef CONFIG_ARM64
+ static const struct apd_device_desc xgene_i2c_desc = {
+@@ -175,13 +174,9 @@ static int fch_misc_setup(struct apd_private_data *pdata)
+ 	.setup = acpi_apd_setup,
+ 	.fixed_clk_rate = 250000000,
+ };
+-#endif
++#endif /* CONFIG_ARM64 */
+ 
+-#else
+-
+-#define APD_ADDR(desc) (0UL)
+-
+-#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
++#endif
+ 
+ /**
+ * Create platform device during acpi scan attach handle.
 -- 
 1.7.12.4
 
