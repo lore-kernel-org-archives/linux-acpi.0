@@ -2,105 +2,93 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95423C433E2
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 16:12:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3B89C433E2
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6009E206E6
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 16:12:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B95BD2080A
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 17:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729943AbgIGQMP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 12:12:15 -0400
-Received: from foss.arm.com ([217.140.110.172]:39900 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729821AbgIGQMO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 12:12:14 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 905AC31B;
-        Mon,  7 Sep 2020 09:12:13 -0700 (PDT)
-Received: from [192.168.122.166] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 367A53F68F;
-        Mon,  7 Sep 2020 09:12:13 -0700 (PDT)
-Subject: Re: [PATCH] PCI/ACPI: Suppress missing MCFG message
-To:     Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org
-Cc:     tn@semihalf.com, bhelgaas@google.com, lorenzo.pieralisi@arm.com,
-        steven.price@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        sudeep.holla@arm.com, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-References: <20200904170829.431900-1-jeremy.linton@arm.com>
- <f0c815a0-91f0-aaa6-0f1c-843400a83fd8@huawei.com>
-From:   Jeremy Linton <jeremy.linton@arm.com>
-Message-ID: <9e1cb29d-cd27-9a7b-58f8-79b2b3bff4d0@arm.com>
-Date:   Mon, 7 Sep 2020 11:11:55 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1729794AbgIGOIj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 10:08:39 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11248 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729727AbgIGOIA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 10:08:00 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 20EE5185D0A4C595AE8E;
+        Mon,  7 Sep 2020 22:07:58 +0800 (CST)
+Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
+ DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 7 Sep 2020 22:07:51 +0800
+From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, <x86@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        <rafael@kernel.org>, Ingo Molnar <mingo@redhat.com>
+CC:     Bjorn Helgaas <bhelgaas@google.com>,
+        <linux-kernel@vger.kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>, <linuxarm@huawei.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Brice Goglin <Brice.Goglin@inria.fr>,
+        "Sean V Kelley" <sean.v.kelley@linux.intel.com>,
+        <linux-api@vger.kernel.org>, "Hanjun Guo" <guohanjun@huawei.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH v10 6/6] docs: mm: numaperf.rst Add brief description for access class 1.
+Date:   Mon, 7 Sep 2020 22:03:07 +0800
+Message-ID: <20200907140307.571932-7-Jonathan.Cameron@huawei.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20200907140307.571932-1-Jonathan.Cameron@huawei.com>
+References: <20200907140307.571932-1-Jonathan.Cameron@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <f0c815a0-91f0-aaa6-0f1c-843400a83fd8@huawei.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.123.41.22]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+Try to make minimal changes to the document which already describes
+access class 0 in a generic fashion (including IO initiatiors that
+are not CPUs).
 
-On 9/6/20 10:30 PM, Hanjun Guo wrote:
-> Hi Jeremy,
-> 
-> On 2020/9/5 1:08, Jeremy Linton wrote:
->> MCFG is an optional ACPI table. Given there are machines
->> without PCI(e) (or it is hidden) we have been receiving
->> queries/complaints about what this message means given
->> its being presented as an error.
->>
->> Lets only print an error if something is wrong with the
->> the given table/etc. The ACPI table list printed at boot
->> will continue to provide a way to detect when the table
->> is missing.
->>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   drivers/acpi/pci_mcfg.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->> index 54b36b7ad47d..0bc8c012f157 100644
->> --- a/drivers/acpi/pci_mcfg.c
->> +++ b/drivers/acpi/pci_mcfg.c
->> @@ -279,6 +279,6 @@ static __init int pci_mcfg_parse(struct 
->> acpi_table_header *header)
->>   void __init pci_mmcfg_late_init(void)
->>   {
->>       int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
-> 
-> acpi_table_parse() will return errno -ENODEV and -EINVAL, and only
-> returns -EINVAL if the table id or the handler is NULL, which is
-> impossible here.
+Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ Documentation/admin-guide/mm/numaperf.rst | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Right because it doesn't actually return the handler failures.
-  >
->> -    if (err)
->> +    if (err && err != -ENODEV)
-> 
-> So the error message below will never be printed, I would
-> prefer update the pr_err() to pr_dbg() for optional ACPI
-> table.
-
-Sure, that is a fine plan too.
-
-
-
-> 
->>           pr_err("Failed to parse MCFG (%d)\n", err);
->>   }
-> 
-> Thanks
-> Hanjun
-> 
+diff --git a/Documentation/admin-guide/mm/numaperf.rst b/Documentation/admin-guide/mm/numaperf.rst
+index 4d69ef1de830..b89bb85eac75 100644
+--- a/Documentation/admin-guide/mm/numaperf.rst
++++ b/Documentation/admin-guide/mm/numaperf.rst
+@@ -56,6 +56,11 @@ nodes' access characteristics share the same performance relative to other
+ linked initiator nodes. Each target within an initiator's access class,
+ though, do not necessarily perform the same as each other.
+ 
++The access class "1" is used to allow differentiation between initiators
++that are CPUs and hence suitable for generic task scheduling, and
++IO initiators such as GPUs and NICs.  Unlike access class 0, only
++nodes containing CPUs are considered.
++
+ ================
+ NUMA Performance
+ ================
+@@ -88,6 +93,9 @@ The latency attributes are provided in nanoseconds.
+ The values reported here correspond to the rated latency and bandwidth
+ for the platform.
+ 
++Access class 1, takes the same form, but only includes values for CPU to
++memory activity.
++
+ ==========
+ NUMA Cache
+ ==========
+-- 
+2.19.1
 
