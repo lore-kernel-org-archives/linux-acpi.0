@@ -2,107 +2,105 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96909C2BB84
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:56:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3C10C433E2
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 12:01:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63B1D207C3
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 11:56:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 827EE2137B
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 12:01:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=baylibre-com.20150623.gappssmtp.com header.i=@baylibre-com.20150623.gappssmtp.com header.b="sdlgVprv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729124AbgIGLrr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 07:47:47 -0400
-Received: from mga01.intel.com ([192.55.52.88]:18497 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729109AbgIGLq3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Sep 2020 07:46:29 -0400
-IronPort-SDR: u4KohBcvYcG9RbkmPJ3ozmpfiYzDMsjWNloDyxd9KR012bFb7MH/gw1Y3NYSAU8MddCr0BTx8J
- BVlYhcWaDl4A==
-X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="176046003"
-X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="176046003"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 04:45:57 -0700
-IronPort-SDR: 2c5/thtWfGsvF/VAAo2KUZsh1d3mpudhrE42tnry+4xfAzgIgzUSc25JQ7BeBaa6gPcu27O6tp
- kRAMhOH3CdHA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
-   d="scan'208";a="333141071"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga008.jf.intel.com with ESMTP; 07 Sep 2020 04:45:54 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andy.shevchenko@gmail.com>)
-        id 1kFFap-00EwG6-Fz; Mon, 07 Sep 2020 14:45:51 +0300
-Date:   Mon, 7 Sep 2020 14:45:51 +0300
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-To:     Bartosz Golaszewski <bgolaszewski@baylibre.com>
+        id S1729191AbgIGMAg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 08:00:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48324 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729149AbgIGL7s (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2020 07:59:48 -0400
+Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99B2C061575
+        for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2020 04:59:47 -0700 (PDT)
+Received: by mail-ed1-x541.google.com with SMTP id q21so12564754edv.1
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2020 04:59:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=bR2mzR5z4Fp1s//vb7R8PemzbT1nIPea5CxsPeQGbCo=;
+        b=sdlgVprv5Ml6FcGFfq4SFwKLBdhqpgt1/tD2prJUf3yezMMf+zk3OqmlSCmjl90GHA
+         9J+0bfsuL2zGyEMQv67lgp7Uh5bekpJZkJHE6RCa3MxRx2asJEH0Rqd9mlGTMD/4z6Ur
+         rlj+DdN2WEqADLINNVdSYBEhSR/vahUY1tKDlmtHNxKtIAaiKOIlwVeS9MfAxEMbdzNI
+         veqHk6YVwBCiYL+JFMHTSCZgP67iVXGNuh01a9SlxoSynu7DM83hrYh4tzt5UwLCwkk9
+         giM2ryBZgwbxSSOdWZIXQxuIHht3JyKr6Uv/HaVrENAUpyjSEsHY1RcTVtVySWPD86y2
+         ro2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=bR2mzR5z4Fp1s//vb7R8PemzbT1nIPea5CxsPeQGbCo=;
+        b=Xvb4xbZV4acj4F5xSZJPBJ/N9A3KFlcpBiArimk8BFHFxC9Y33VZyC8PQj520G6Bp+
+         z9IaaY1emkdm3N482v2yR+/diI+fnV4hyX9GOwr1L30860ygSN72YwaNII0OLdeEu9Sf
+         /aF5NXbxC3kR+v/jJOTiAKAtuKOJP76+9+cacc16BnjLN0swOyb/6DhhFEU++wZLiNoi
+         czikHMZTovk6zqXi3UYNRKehZJSWScNyTV3XvH1EAB21XICMwgoQUMGbQxdSwG7tV7d/
+         fSA7h7SgDqYNMh4jg88QU+GG4qPEYht0evETvNkMF9X9nem3q6aUaDsvHoyTwnftoBhi
+         mPWg==
+X-Gm-Message-State: AOAM530Cw7vHQIJ9XDkC32vVotoDGkstZml/3wTUfHrbYcWaMisv2boe
+        sJUMhca2QOG9hMiKgBN2bykbdA3fEJ3MJVqrZx8uJA==
+X-Google-Smtp-Source: ABdhPJyvgUJP0ylxO5qehk4m0jdhpk8hsO0Sw1TL7vejIAJ+s0I1Q151uttBgmbE3hq97WmzbCF8SLXZr4mDtGwGZag=
+X-Received: by 2002:a50:f687:: with SMTP id d7mr22155378edn.353.1599479986024;
+ Mon, 07 Sep 2020 04:59:46 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200904154547.3836-1-brgl@bgdev.pl> <20200904154547.3836-16-brgl@bgdev.pl>
+ <20200904164917.GC1891694@smile.fi.intel.com> <CAMRc=MeG8xuB0GNbMLi6+QZTphSN==77Hsw1fjVNU_+Z=Ky2qQ@mail.gmail.com>
+ <20200907115051.GY1891694@smile.fi.intel.com>
+In-Reply-To: <20200907115051.GY1891694@smile.fi.intel.com>
+From:   Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date:   Mon, 7 Sep 2020 13:59:35 +0200
+Message-ID: <CAMpxmJWM265uk39mddEwVUYJdnM+1Stx3Ds8O9-ucYvMnV7hRw@mail.gmail.com>
+Subject: Re: [PATCH 15/23] gpio: mockup: use dynamic device IDs
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     Bartosz Golaszewski <brgl@bgdev.pl>,
         Linus Walleij <linus.walleij@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Kent Gibson <warthog618@gmail.com>,
-        linux-gpio <linux-gpio@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
         linux-doc <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH 03/23] lib: uaccess: provide getline_from_user()
-Message-ID: <20200907114551.GV1891694@smile.fi.intel.com>
-References: <20200904154547.3836-1-brgl@bgdev.pl>
- <20200904154547.3836-4-brgl@bgdev.pl>
- <20200904163517.GW1891694@smile.fi.intel.com>
- <CAMpxmJWQsgV5WZrdPW3UUOVTEy1L6Y_rb7ThQK1QTRinmHSqWA@mail.gmail.com>
- <CAHp75VdOWdwT-e5ufsZ8MEH=YtdBgm1=TDKn3f8fJxXY4YKh9A@mail.gmail.com>
- <CAMpxmJXmY8oBpPue5v0wBvmjHkFGaUmzHScHoV-1pNEQ59am4w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMpxmJXmY8oBpPue5v0wBvmjHkFGaUmzHScHoV-1pNEQ59am4w@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 07, 2020 at 12:28:05PM +0200, Bartosz Golaszewski wrote:
-> On Mon, Sep 7, 2020 at 12:19 PM Andy Shevchenko
-> <andy.shevchenko@gmail.com> wrote:
-> >
-> > On Mon, Sep 7, 2020 at 1:05 PM Bartosz Golaszewski
-> > <bgolaszewski@baylibre.com> wrote:
-> > > On Fri, Sep 4, 2020 at 6:35 PM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Fri, Sep 04, 2020 at 05:45:27PM +0200, Bartosz Golaszewski wrote:
-> > > > > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> >
-> > > > Doesn't mm/util.c provides us something like this?
-> > > > strndup_user()?
+On Mon, Sep 7, 2020 at 1:50 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Mon, Sep 07, 2020 at 01:04:29PM +0200, Bartosz Golaszewski wrote:
+> > On Fri, Sep 4, 2020 at 6:49 PM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > > On Fri, Sep 04, 2020 at 05:45:39PM +0200, Bartosz Golaszewski wrote:
+> > > > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > > > >
+> > > > We're currently creating chips at module init time only so using a
+> > > > static index for dummy devices is fine. We want to support dynamically
+> > > > created chips however so we need to switch to dynamic device IDs.
 > > >
-> > > Yes, there's both strndup_user() as well as strncpy_from_user(). The
-> > > problem is that they rely on the strings being NULL-terminated. This
-> > > is not guaranteed for debugfs file_operations write callbacks. We need
-> > > some helper that takes the minimum of bytes provided by userspace and
-> > > the buffer size and figure out how many bytes to actually copy IMO.
+> > > It misses ida_destroy().
 > >
-> > Wouldn't this [1] approach work?
-> >
-> > [1]: https://elixir.bootlin.com/linux/v5.9-rc3/source/arch/x86/kernel/cpu/mtrr/if.c#L93
-> >
-> 
-> Sure, but this is pretty much what I do in getline_from_user(). If
-> anything we should port mtrr_write() to using getline_from_user() once
-> it's available upstream, no?
+> > No, we always call ida_free() for separate IDs when removing devices
+> > and we remove all devices at module exit so no need to call
+> > ida_destroy().
+>
+> Perhaps couple of words about this in the commit message?
+>
 
-But you may provide getline_from_user() as inline in the same header where
-strncpy_from_user() is declared. It will be like 3 LOCs?
+But ida_destroy() and ida_free() are already well documented. It's
+clear that we remove all devices at exit and that every device removes
+its ID, there's really no point in mentioning it again.
 
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Bart
