@@ -2,109 +2,317 @@ Return-Path: <SRS0=PXo4=CQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D35CCC433E2
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 10:30:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBB76C433E2
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 10:38:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85AF92067C
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 10:30:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20150623.gappssmtp.com header.i=@baylibre-com.20150623.gappssmtp.com header.b="YKpxYuJt"
+	by mail.kernel.org (Postfix) with ESMTP id 9C94220738
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Sep 2020 10:38:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728841AbgIGK3h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Sep 2020 06:29:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34134 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728950AbgIGK2T (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2020 06:28:19 -0400
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AD64C0613ED
-        for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2020 03:28:17 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id o8so4359034ejb.10
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2020 03:28:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=E+6kvSO+kGtFqzwSOsHYLQdHmE8ihK39UIVQKLTGAlE=;
-        b=YKpxYuJtNjDEcMyhlLGRj0HX0hQkUXEqPjKuUoBXv/e3UDUS4Hln7rKvyvdJTkScwl
-         k1rXYkIZAbO2UsMaPTxTaUrbbBWUu4R8sdHC0L1BG0mGaX4xk380OjSevy0ECUxykK/F
-         W0r2qxkPzqjPoDdZ8gzABSBUnDIUQFXvKxYS4mab97WFlQCFfhbvkd4IVjnPhoWyKel2
-         XD9I7vu5rWTXsRIKY4qpSRmj1lEfs+bqL5eIbLSlZkr5OCsU1EbDHMwj00krDCJyqj4O
-         gmJBrn/Lyg7t/40d/iHFqrkkALM3z3AbVL2yVDPRt/STFncNY1w/mvM9VKLyly28uSNr
-         Y8vQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=E+6kvSO+kGtFqzwSOsHYLQdHmE8ihK39UIVQKLTGAlE=;
-        b=rEa4CTHUHlC0yZXCBtfqk3DBRM96laQ0iM6M5gbFx5nM9T7a81hPNk7hQmAHQ/GNMY
-         vIrxQN86SDYaWMTLjsniRMi/0yljNWtRGmxupDWTh7SnFqNSkAEU3Qhvtd62apcTo8W+
-         9jaUTvXZ7eetoDT3q5zATf7SVEk0G22+rqDBmd1YrQz0+u7l9FQjxNvuHytFntOH4yTu
-         070vRRkJkP1TZIHPpcxvBawvVBTB7kRfx+Ys+VNucTBMylVWCc5rGExhNPthI5LiuBVi
-         Z03PvqLvI0Jkatzvum7HOGW84uj7X0GYfUWE3gwVYUhakYC4tuZuRUPHEQyAhLle+7L7
-         AHkg==
-X-Gm-Message-State: AOAM533O4kUxQmkeVmuKOrQPseKXCo8lHArzDhZj3eY9BcW67wzOYVd5
-        Losg3MbArq2XQBSVhqYJ7LZi8omtkh6DPCjX5W4veQ==
-X-Google-Smtp-Source: ABdhPJwP4J3kM7zvzHGchdWRMUs1XHCPsNoozGebnZDrc/LmkHpUC8eNrTX90FFgDqlq6JBHy5dgtK4984ghibSDrvg=
-X-Received: by 2002:a17:906:941a:: with SMTP id q26mr20103973ejx.496.1599474496010;
- Mon, 07 Sep 2020 03:28:16 -0700 (PDT)
+        id S1728575AbgIGKh7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Sep 2020 06:37:59 -0400
+Received: from mga06.intel.com ([134.134.136.31]:32890 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728453AbgIGKhz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Sep 2020 06:37:55 -0400
+IronPort-SDR: 8QznInhQvHdheVgqd8D7wzdtoSU/JKENITwmylQ49HAfi0PptRm+UM5IgW7UR3zl0ppZL8dgQ4
+ ne4ElyEgmcIw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9736"; a="219541982"
+X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
+   d="scan'208";a="219541982"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2020 03:37:55 -0700
+IronPort-SDR: HZbfChcUMXAjtNiVK/ZLfi9KxYd8hCSRGFQqJEHAZ9lz5ps1ueiPx6BrDUwVI7WlEu4K5JX+K4
+ KFw9sTWBcrhQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,401,1592895600"; 
+   d="scan'208";a="406801321"
+Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
+  by fmsmga001.fm.intel.com with ESMTP; 07 Sep 2020 03:37:53 -0700
+From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: [PATCH 1/2] device property: Move fwnode_connection_find_match() under drivers/base/property.c
+Date:   Mon,  7 Sep 2020 13:37:49 +0300
+Message-Id: <20200907103750.9093-2-heikki.krogerus@linux.intel.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200907103750.9093-1-heikki.krogerus@linux.intel.com>
+References: <20200907103750.9093-1-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
-References: <20200904154547.3836-1-brgl@bgdev.pl> <20200904154547.3836-4-brgl@bgdev.pl>
- <20200904163517.GW1891694@smile.fi.intel.com> <CAMpxmJWQsgV5WZrdPW3UUOVTEy1L6Y_rb7ThQK1QTRinmHSqWA@mail.gmail.com>
- <CAHp75VdOWdwT-e5ufsZ8MEH=YtdBgm1=TDKn3f8fJxXY4YKh9A@mail.gmail.com>
-In-Reply-To: <CAHp75VdOWdwT-e5ufsZ8MEH=YtdBgm1=TDKn3f8fJxXY4YKh9A@mail.gmail.com>
-From:   Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date:   Mon, 7 Sep 2020 12:28:05 +0200
-Message-ID: <CAMpxmJXmY8oBpPue5v0wBvmjHkFGaUmzHScHoV-1pNEQ59am4w@mail.gmail.com>
-Subject: Re: [PATCH 03/23] lib: uaccess: provide getline_from_user()
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Kent Gibson <warthog618@gmail.com>,
-        linux-gpio <linux-gpio@vger.kernel.org>,
-        linux-doc <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 7, 2020 at 12:19 PM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Mon, Sep 7, 2020 at 1:05 PM Bartosz Golaszewski
-> <bgolaszewski@baylibre.com> wrote:
-> > On Fri, Sep 4, 2020 at 6:35 PM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
-> > > On Fri, Sep 04, 2020 at 05:45:27PM +0200, Bartosz Golaszewski wrote:
-> > > > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->
-> > > Doesn't mm/util.c provides us something like this?
-> > > strndup_user()?
-> > >
-> >
-> > Yes, there's both strndup_user() as well as strncpy_from_user(). The
-> > problem is that they rely on the strings being NULL-terminated. This
-> > is not guaranteed for debugfs file_operations write callbacks. We need
-> > some helper that takes the minimum of bytes provided by userspace and
-> > the buffer size and figure out how many bytes to actually copy IMO.
->
-> Wouldn't this [1] approach work?
->
-> [1]: https://elixir.bootlin.com/linux/v5.9-rc3/source/arch/x86/kernel/cpu/mtrr/if.c#L93
->
+The function is now only a helper that searches the
+connection from device graph and then by checking if the
+supplied connection identifier matches a property that
+contains reference.
 
-Sure, but this is pretty much what I do in getline_from_user(). If
-anything we should port mtrr_write() to using getline_from_user() once
-it's available upstream, no?
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ drivers/base/Makefile    |   2 +-
+ drivers/base/devcon.c    | 101 ---------------------------------------
+ drivers/base/property.c  |  73 ++++++++++++++++++++++++++++
+ include/linux/device.h   |   9 ----
+ include/linux/property.h |  14 ++++++
+ 5 files changed, 88 insertions(+), 111 deletions(-)
+ delete mode 100644 drivers/base/devcon.c
 
-Bart
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 157452080f3d7..41369fc7004fd 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -6,7 +6,7 @@ obj-y			:= component.o core.o bus.o dd.o syscore.o \
+ 			   cpu.o firmware.o init.o map.o devres.o \
+ 			   attribute_container.o transport_class.o \
+ 			   topology.o container.o property.o cacheinfo.o \
+-			   devcon.o swnode.o
++			   swnode.o
+ obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
+ obj-y			+= power/
+ obj-$(CONFIG_ISA_BUS_API)	+= isa.o
+diff --git a/drivers/base/devcon.c b/drivers/base/devcon.c
+deleted file mode 100644
+index 1790e84dbe7c2..0000000000000
+--- a/drivers/base/devcon.c
++++ /dev/null
+@@ -1,101 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/**
+- * Device connections
+- *
+- * Copyright (C) 2018 Intel Corporation
+- * Author: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+- */
+-
+-#include <linux/device.h>
+-#include <linux/property.h>
+-
+-static void *
+-fwnode_graph_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
+-			  void *data, devcon_match_fn_t match)
+-{
+-	struct fwnode_handle *node;
+-	struct fwnode_handle *ep;
+-	void *ret;
+-
+-	fwnode_graph_for_each_endpoint(fwnode, ep) {
+-		node = fwnode_graph_get_remote_port_parent(ep);
+-		if (!fwnode_device_is_available(node))
+-			continue;
+-
+-		ret = match(node, con_id, data);
+-		fwnode_handle_put(node);
+-		if (ret) {
+-			fwnode_handle_put(ep);
+-			return ret;
+-		}
+-	}
+-	return NULL;
+-}
+-
+-static void *
+-fwnode_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
+-		    void *data, devcon_match_fn_t match)
+-{
+-	struct fwnode_handle *node;
+-	void *ret;
+-	int i;
+-
+-	for (i = 0; ; i++) {
+-		node = fwnode_find_reference(fwnode, con_id, i);
+-		if (IS_ERR(node))
+-			break;
+-
+-		ret = match(node, NULL, data);
+-		fwnode_handle_put(node);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	return NULL;
+-}
+-
+-/**
+- * fwnode_connection_find_match - Find connection from a device node
+- * @fwnode: Device node with the connection
+- * @con_id: Identifier for the connection
+- * @data: Data for the match function
+- * @match: Function to check and convert the connection description
+- *
+- * Find a connection with unique identifier @con_id between @fwnode and another
+- * device node. @match will be used to convert the connection description to
+- * data the caller is expecting to be returned.
+- */
+-void *fwnode_connection_find_match(struct fwnode_handle *fwnode,
+-				   const char *con_id, void *data,
+-				   devcon_match_fn_t match)
+-{
+-	void *ret;
+-
+-	if (!fwnode || !match)
+-		return NULL;
+-
+-	ret = fwnode_graph_devcon_match(fwnode, con_id, data, match);
+-	if (ret)
+-		return ret;
+-
+-	return fwnode_devcon_match(fwnode, con_id, data, match);
+-}
+-EXPORT_SYMBOL_GPL(fwnode_connection_find_match);
+-
+-/**
+- * device_connection_find_match - Find physical connection to a device
+- * @dev: Device with the connection
+- * @con_id: Identifier for the connection
+- * @data: Data for the match function
+- * @match: Function to check and convert the connection description
+- *
+- * Find a connection with unique identifier @con_id between @dev and another
+- * device. @match will be used to convert the connection description to data the
+- * caller is expecting to be returned.
+- */
+-void *device_connection_find_match(struct device *dev, const char *con_id,
+-				   void *data, devcon_match_fn_t match)
+-{
+-	return fwnode_connection_find_match(dev_fwnode(dev), con_id, data, match);
+-}
+-EXPORT_SYMBOL_GPL(device_connection_find_match);
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index d58aa98fe9645..4c43d30145c6b 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1184,3 +1184,76 @@ const void *device_get_match_data(struct device *dev)
+ 	return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data, dev);
+ }
+ EXPORT_SYMBOL_GPL(device_get_match_data);
++
++static void *
++fwnode_graph_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
++			  void *data, devcon_match_fn_t match)
++{
++	struct fwnode_handle *node;
++	struct fwnode_handle *ep;
++	void *ret;
++
++	fwnode_graph_for_each_endpoint(fwnode, ep) {
++		node = fwnode_graph_get_remote_port_parent(ep);
++		if (!fwnode_device_is_available(node))
++			continue;
++
++		ret = match(node, con_id, data);
++		fwnode_handle_put(node);
++		if (ret) {
++			fwnode_handle_put(ep);
++			return ret;
++		}
++	}
++	return NULL;
++}
++
++static void *
++fwnode_devcon_match(struct fwnode_handle *fwnode, const char *con_id,
++		    void *data, devcon_match_fn_t match)
++{
++	struct fwnode_handle *node;
++	void *ret;
++	int i;
++
++	for (i = 0; ; i++) {
++		node = fwnode_find_reference(fwnode, con_id, i);
++		if (IS_ERR(node))
++			break;
++
++		ret = match(node, NULL, data);
++		fwnode_handle_put(node);
++		if (ret)
++			return ret;
++	}
++
++	return NULL;
++}
++
++/**
++ * fwnode_connection_find_match - Find connection from a device node
++ * @fwnode: Device node with the connection
++ * @con_id: Identifier for the connection
++ * @data: Data for the match function
++ * @match: Function to check and convert the connection description
++ *
++ * Find a connection with unique identifier @con_id between @fwnode and another
++ * device node. @match will be used to convert the connection description to
++ * data the caller is expecting to be returned.
++ */
++void *fwnode_connection_find_match(struct fwnode_handle *fwnode,
++				   const char *con_id, void *data,
++				   devcon_match_fn_t match)
++{
++	void *ret;
++
++	if (!fwnode || !match)
++		return NULL;
++
++	ret = fwnode_graph_devcon_match(fwnode, con_id, data, match);
++	if (ret)
++		return ret;
++
++	return fwnode_devcon_match(fwnode, con_id, data, match);
++}
++EXPORT_SYMBOL_GPL(fwnode_connection_find_match);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index c3ced17d91ee6..6f76c1f38e116 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -292,15 +292,6 @@ struct device_dma_parameters {
+ 	unsigned long segment_boundary_mask;
+ };
+ 
+-typedef void *(*devcon_match_fn_t)(struct fwnode_handle *fwnode, const char *id,
+-				   void *data);
+-
+-void *fwnode_connection_find_match(struct fwnode_handle *fwnode,
+-				   const char *con_id, void *data,
+-				   devcon_match_fn_t match);
+-void *device_connection_find_match(struct device *dev, const char *con_id,
+-				   void *data, devcon_match_fn_t match);
+-
+ /**
+  * enum device_link_state - Device link states.
+  * @DL_STATE_NONE: The presence of the drivers is not being tracked.
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 9f805c4428195..aedae94dcf41d 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -418,6 +418,20 @@ fwnode_graph_get_endpoint_by_id(const struct fwnode_handle *fwnode,
+ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 				struct fwnode_endpoint *endpoint);
+ 
++typedef void *(*devcon_match_fn_t)(struct fwnode_handle *fwnode, const char *id,
++				   void *data);
++
++void *fwnode_connection_find_match(struct fwnode_handle *fwnode,
++				   const char *con_id, void *data,
++				   devcon_match_fn_t match);
++
++static inline void *device_connection_find_match(struct device *dev,
++						 const char *con_id, void *data,
++						 devcon_match_fn_t match)
++{
++	return fwnode_connection_find_match(dev_fwnode(dev), con_id, data, match);
++}
++
+ /* -------------------------------------------------------------------------- */
+ /* Software fwnode support - when HW description is incomplete or missing */
+ 
+-- 
+2.28.0
+
