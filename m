@@ -2,261 +2,167 @@ Return-Path: <SRS0=q5NA=CR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9799C2D0A7
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:12:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86F27C43461
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:19:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B122A2145D
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:12:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 564532145D
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:19:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ya3IKFBp"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k3xGDY6x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730734AbgIHULE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Sep 2020 16:11:04 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:39117 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731087AbgIHUKr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2020 16:10:47 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1599595839;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=0L/VNlFzuDB/95oeV+NVSs6BIkKkE+sXG0xqekszlyk=;
-        b=Ya3IKFBp6jBXrCzk0IjdHX+5msWtqI0/qpZadidgVoM1auwkK+0FqitIbRQhAxoB1z7zhF
-        amdxkTOUDxHo/RDUi+MHmDfPBcz4iQNkrFuW+Lr8Wsgt27KH/5Merq4/5GkoFHP9VjF/gZ
-        fKhpIUVJlkjwaUP8erA0IPMP0KC6qZU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-16-yZ_soSYAPYGW_0mzx33S1Q-1; Tue, 08 Sep 2020 16:10:37 -0400
-X-MC-Unique: yZ_soSYAPYGW_0mzx33S1Q-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0FBF01007465;
-        Tue,  8 Sep 2020 20:10:35 +0000 (UTC)
-Received: from t480s.redhat.com (ovpn-115-46.ams2.redhat.com [10.36.115.46])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 4E53D5D9EF;
-        Tue,  8 Sep 2020 20:10:29 +0000 (UTC)
-From:   David Hildenbrand <david@redhat.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
-        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-s390@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        David Hildenbrand <david@redhat.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Kees Cook <keescook@chromium.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-        Baoquan He <bhe@redhat.com>,
-        Wei Yang <richardw.yang@linux.intel.com>
-Subject: [PATCH v2 1/7] kernel/resource: make release_mem_region_adjustable() never fail
-Date:   Tue,  8 Sep 2020 22:10:06 +0200
-Message-Id: <20200908201012.44168-2-david@redhat.com>
-In-Reply-To: <20200908201012.44168-1-david@redhat.com>
-References: <20200908201012.44168-1-david@redhat.com>
+        id S1729455AbgIHUTc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Sep 2020 16:19:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39572 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729305AbgIHUTb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2020 16:19:31 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37EA1C061573;
+        Tue,  8 Sep 2020 13:19:31 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id u21so264252eja.2;
+        Tue, 08 Sep 2020 13:19:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:subject:to:cc:references:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=AjIPp6Eyls79nuZJqGgOMonyVj5blXaXyZkArJ7OmMI=;
+        b=k3xGDY6xo2owK5AkMpWvsnO3hcN771NeaL5eGo5K7dFhQMEejE3AR31sOcgdJhXyjx
+         6xPTDW6YsTt554gSRhqoP3vIQwQ6uwdL18IxQzFojUEAM0GDgsnptbxFBMmCHh2gA/SX
+         jVMzW19yly/C5z/Hq5evRAumGSaxo7XWMqjume3rwOi2IPl3o9gureJ3GUV/WAgJt8Gx
+         dD4EoY+ndMIbPVZUi2+BVaD0Nck3t6o71HG7hwVz9o41BMqZNV2Ax2qvgfnnd9Sc/Tpq
+         y71e28R5lgY2yVzMN2Yz1O6MHwwodPOz2ryfVlc7YZr0iGFMD8YVml8qJyLLT4GVg7T4
+         mb/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:subject:to:cc:references:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=AjIPp6Eyls79nuZJqGgOMonyVj5blXaXyZkArJ7OmMI=;
+        b=pqVwjO8SahmQel43K7W9s9W9ASqvB1dy1zBVG6a2ku2CEDXjkwucynJwm47wMmoqvI
+         vOrk1Sd+kQt13ayUeSQujEhJ/OJJU3pDAV8TTMpGaHRgl5gEKt+NMEuYxjearxah685b
+         /mItXgYmsu7iqkd7ZWZSBo2igZGNLNpA+cr+LhtMmpWMIaYxjQ1iWh3egXtv8uMXjbxN
+         fO6jvxaA6bRarGMs0FEZiVa6GIAbGCNI6COXNz9nvUodSKZCBCgpOcLmfsR1D73J7BwW
+         iLvoOEYldhIsNF5zMeaM2FKExGs+pWzz9j54aKLXuWo85HZUK8w3JRzlOQ+/A0P+ulth
+         TViA==
+X-Gm-Message-State: AOAM531W1RMRqcm+ezJ4zIFwm6QxAKu1BwS1k+Thq6d+YICoy2aDaq6j
+        G8Iqu8Uoy8tkvCq+rWZekQBXV8xC0nU=
+X-Google-Smtp-Source: ABdhPJz5hML8XQIhRFBwbylroe6NBneVR57ta9d1HSXVfjAYlds1OuSG3jAAuAzY5e4wjchfC3BR5A==
+X-Received: by 2002:a17:906:2818:: with SMTP id r24mr233628ejc.100.1599596369435;
+        Tue, 08 Sep 2020 13:19:29 -0700 (PDT)
+Received: from [192.168.2.202] (p5487bef6.dip0.t-ipconnect.de. [84.135.190.246])
+        by smtp.gmail.com with ESMTPSA id lg22sm199449ejb.48.2020.09.08.13.19.28
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Sep 2020 13:19:28 -0700 (PDT)
+From:   Maximilian Luz <luzmaximilian@gmail.com>
+Subject: Re: [PATCH] platform/x86: Add Driver to set up lid GPEs on MS Surface
+ device
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc:     Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Gayatri Kammela <gayatri.kammela@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <20200908171934.1661509-1-luzmaximilian@gmail.com>
+ <CAHp75VevrwKaba_FsZj-nPqJGR9fkmFPzvdCew0wCqF_L6QLbA@mail.gmail.com>
+Message-ID: <d1d3b1bb-1d7b-ae8d-fbe4-23f995df47fb@gmail.com>
+Date:   Tue, 8 Sep 2020 22:19:27 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+In-Reply-To: <CAHp75VevrwKaba_FsZj-nPqJGR9fkmFPzvdCew0wCqF_L6QLbA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Let's make sure splitting a resource on memory hotunplug will never fail.
-This will become more relevant once we merge selected System RAM
-resources - then, we'll trigger that case more often on memory hotunplug.
+On 9/8/20 8:40 PM, Andy Shevchenko wrote:
+> On Tue, Sep 8, 2020 at 8:20 PM Maximilian Luz <luzmaximilian@gmail.com> wrote:
 
-In general, this function is already unlikely to fail. When we remove
-memory, we free up quite a lot of metadata (memmap, page tables, memory
-block device, etc.). The only reason it could really fail would be when
-injecting allocation errors.
+...
 
-All other error cases inside release_mem_region_adjustable() seem to be
-sanity checks if the function would be abused in different context -
-let's add WARN_ON_ONCE() in these cases so we can catch them.
+>> +       .gpe_number = 0x17,
+>> +       .gpe_number = 0x4D,
+>> +       .gpe_number = 0x4F,
+>> +       .gpe_number = 0x57,
+> 
+>  From where these numbers come from? Can we get them from firmware (ACPI)?
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Wei Yang <richardw.yang@linux.intel.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- include/linux/ioport.h |  4 ++--
- kernel/resource.c      | 49 ++++++++++++++++++++++++------------------
- mm/memory_hotplug.c    | 22 +------------------
- 3 files changed, 31 insertions(+), 44 deletions(-)
+Yes, they are obtained from ACPI/the DSDT. Specifically from the name of
+the GPE handler notifying the lid device. See [1] for a repo full of
+Surface ACPI dumps (source for this). I'll add a comment pointing this out
+in v2.
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 6c2b06fe8beb7..52a91f5fa1a36 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -248,8 +248,8 @@ extern struct resource * __request_region(struct resource *,
- extern void __release_region(struct resource *, resource_size_t,
- 				resource_size_t);
- #ifdef CONFIG_MEMORY_HOTREMOVE
--extern int release_mem_region_adjustable(struct resource *, resource_size_t,
--				resource_size_t);
-+extern void release_mem_region_adjustable(struct resource *, resource_size_t,
-+					  resource_size_t);
- #endif
- 
- /* Wrappers for managed devices */
-diff --git a/kernel/resource.c b/kernel/resource.c
-index f1175ce93a1d5..36b3552210120 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1258,21 +1258,28 @@ EXPORT_SYMBOL(__release_region);
-  *   assumes that all children remain in the lower address entry for
-  *   simplicity.  Enhance this logic when necessary.
-  */
--int release_mem_region_adjustable(struct resource *parent,
--				  resource_size_t start, resource_size_t size)
-+void release_mem_region_adjustable(struct resource *parent,
-+				   resource_size_t start, resource_size_t size)
- {
-+	struct resource *new_res = NULL;
-+	bool alloc_nofail = false;
- 	struct resource **p;
- 	struct resource *res;
--	struct resource *new_res;
- 	resource_size_t end;
--	int ret = -EINVAL;
- 
- 	end = start + size - 1;
--	if ((start < parent->start) || (end > parent->end))
--		return ret;
-+	if (WARN_ON_ONCE((start < parent->start) || (end > parent->end)))
-+		return;
- 
--	/* The alloc_resource() result gets checked later */
--	new_res = alloc_resource(GFP_KERNEL);
-+	/*
-+	 * We free up quite a lot of memory on memory hotunplug (esp., memap),
-+	 * just before releasing the region. This is highly unlikely to
-+	 * fail - let's play save and make it never fail as the caller cannot
-+	 * perform any error handling (e.g., trying to re-add memory will fail
-+	 * similarly).
-+	 */
-+retry:
-+	new_res = alloc_resource(GFP_KERNEL | alloc_nofail ? __GFP_NOFAIL : 0);
- 
- 	p = &parent->child;
- 	write_lock(&resource_lock);
-@@ -1298,7 +1305,6 @@ int release_mem_region_adjustable(struct resource *parent,
- 		 * so if we are dealing with them, let us just back off here.
- 		 */
- 		if (!(res->flags & IORESOURCE_SYSRAM)) {
--			ret = 0;
- 			break;
- 		}
- 
-@@ -1315,20 +1321,23 @@ int release_mem_region_adjustable(struct resource *parent,
- 			/* free the whole entry */
- 			*p = res->sibling;
- 			free_resource(res);
--			ret = 0;
- 		} else if (res->start == start && res->end != end) {
- 			/* adjust the start */
--			ret = __adjust_resource(res, end + 1,
--						res->end - end);
-+			WARN_ON_ONCE(__adjust_resource(res, end + 1,
-+						       res->end - end));
- 		} else if (res->start != start && res->end == end) {
- 			/* adjust the end */
--			ret = __adjust_resource(res, res->start,
--						start - res->start);
-+			WARN_ON_ONCE(__adjust_resource(res, res->start,
-+						       start - res->start));
- 		} else {
--			/* split into two entries */
-+			/* split into two entries - we need a new resource */
- 			if (!new_res) {
--				ret = -ENOMEM;
--				break;
-+				new_res = alloc_resource(GFP_ATOMIC);
-+				if (!new_res) {
-+					alloc_nofail = true;
-+					write_unlock(&resource_lock);
-+					goto retry;
-+				}
- 			}
- 			new_res->name = res->name;
- 			new_res->start = end + 1;
-@@ -1339,9 +1348,8 @@ int release_mem_region_adjustable(struct resource *parent,
- 			new_res->sibling = res->sibling;
- 			new_res->child = NULL;
- 
--			ret = __adjust_resource(res, res->start,
--						start - res->start);
--			if (ret)
-+			if (WARN_ON_ONCE(__adjust_resource(res, res->start,
-+							   start - res->start)))
- 				break;
- 			res->sibling = new_res;
- 			new_res = NULL;
-@@ -1352,7 +1360,6 @@ int release_mem_region_adjustable(struct resource *parent,
- 
- 	write_unlock(&resource_lock);
- 	free_resource(new_res);
--	return ret;
- }
- #endif	/* CONFIG_MEMORY_HOTREMOVE */
- 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index baded53b9ff92..4c47b68a9f4b5 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1724,26 +1724,6 @@ void try_offline_node(int nid)
- }
- EXPORT_SYMBOL(try_offline_node);
- 
--static void __release_memory_resource(resource_size_t start,
--				      resource_size_t size)
--{
--	int ret;
--
--	/*
--	 * When removing memory in the same granularity as it was added,
--	 * this function never fails. It might only fail if resources
--	 * have to be adjusted or split. We'll ignore the error, as
--	 * removing of memory cannot fail.
--	 */
--	ret = release_mem_region_adjustable(&iomem_resource, start, size);
--	if (ret) {
--		resource_size_t endres = start + size - 1;
--
--		pr_warn("Unable to release resource <%pa-%pa> (%d)\n",
--			&start, &endres, ret);
--	}
--}
--
- static int __ref try_remove_memory(int nid, u64 start, u64 size)
- {
- 	int rc = 0;
-@@ -1777,7 +1757,7 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
- 		memblock_remove(start, size);
- 	}
- 
--	__release_memory_resource(start, size);
-+	release_mem_region_adjustable(&iomem_resource, start, size);
- 
- 	try_offline_node(nid);
- 
--- 
-2.26.2
+[1]: https://github.com/linux-surface/acpidumps
 
+...
+
+>> +static int surface_gpe_probe(struct platform_device *pdev)
+>> +{
+>> +       const struct surface_lid_device *lid;
+>> +       int status;
+>> +
+> 
+>> +       lid = dev_get_platdata(&pdev->dev);
+>> +       if (!lid)
+>> +               return -ENODEV;
+> 
+> Can we use software nodes?
+
+As far as I can tell this would work via fwnode_create_software_node /
+fwnode_remove_software_node and device properties? I don't seem to find
+much documentation on this (there doesn't seem to be an entry for
+software nodes in the official docs?), but I think I should be able to
+make this work.
+
+>> +       status = acpi_mark_gpe_for_wake(NULL, lid->gpe_number);
+>> +       if (status) {
+>> +               dev_err(&pdev->dev, "failed to mark GPE for wake: %d\n", status);
+>> +               return -EINVAL;
+>> +       }
+>> +
+> 
+>> +       status = acpi_enable_gpe(NULL, lid->gpe_number);
+> 
+> Did I miss anything or all calls of enable / disable GPE are using
+> NULL as a first parameter? What the point in such case?
+
+As far as I can tell, some of the more generic uses have a non-NULL
+gpe_device parameter (acpi/device_pm.c, acpi/wakeup.c) and NULL just
+means index-0/main device? Not an expert on that though, so probably
+just ignore me here and let the ACPI guys answer this.
+
+...
+
+>> +MODULE_ALIAS("dmi:*:svnMicrosoftCorporation:pnSurfacePro:*");
+>> +MODULE_ALIAS("dmi:*:svnMicrosoftCorporation:pnSurfacePro4:*");
+> 
+> Can simply
+> 
+> MODULE_ALIAS("dmi:*:svnMicrosoftCorporation:pnSurface*:*");
+> 
+> work?
+
+Depends on your preference, really. That would also auto-load the module
+on Surface Pro 3 and earlier devices (just won't do anything on those).
+So it's a trade-off between unnecessary loading of the module and
+maintainability/readability. Let me know what you prefer and I'll switch
+to that.
+
+Style and other issues are noted, I'll fix them for v2.
+
+Regards,
+Max
