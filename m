@@ -2,129 +2,166 @@ Return-Path: <SRS0=q5NA=CR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F28F0C43461
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:06:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 011AFC433E2
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:11:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADDE62080A
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:06:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BED8321741
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 20:11:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="yJoNljIa"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bYskYPYt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730211AbgIHUGh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Sep 2020 16:06:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48190 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730348AbgIHPVk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2020 11:21:40 -0400
-Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCDBFC0612F5
-        for <linux-acpi@vger.kernel.org>; Tue,  8 Sep 2020 05:58:27 -0700 (PDT)
-Received: by mail-wm1-x344.google.com with SMTP id e17so17212581wme.0
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Sep 2020 05:58:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=nLn7MBojIPZBX1Cc0fte6bJy2zYPGF+0OvSOSKZTZQk=;
-        b=yJoNljIa9qlqXWuxKL1etUoPBbX1rvf2LnGB7dKBJ9r9JaiDrabh6nGL1BJ3LsQvqH
-         30ELXTFAi7IW9qjR3oYAyzwHxFMURLTJuY/bsyInF9Ja3sIV9hQ98k2ul+IyUVYV9AcB
-         hriqDEUIZxfsCVQXzh8HYZENCU+u3nykO1L232HxS6MQVmeG4jnL6BsnJNuW95FEI9+W
-         VnNzWEwTQSp82wWUt+DvVzP0H9mCix905ZS7D4JffHFa0McetsJrX2l4WnM5ty4GFFgR
-         tzhL8qo+FMnFFqBOCK8nJieJK7CyM2FzaO96jnHFpKPdNS28pxgac4yq8+FlXv4mY9lG
-         NvVw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=nLn7MBojIPZBX1Cc0fte6bJy2zYPGF+0OvSOSKZTZQk=;
-        b=sAW9/xGXGQMwwtpiew5cb8xuQkJGtbXhNYMUp407rh2TIDBHOLnKuFeClALgcJEfTY
-         dR+5ExQgvPTTvRLHVwYLkDTfMCfPq7ZmXuR4PhT17wluIwpQ1am9Fx9D+CmFV5Ee396/
-         rknnTDXsytUAhqCem9/U+K/mUeFo5NIS4O3upgV9fW+hQPT3hw3abN1fruWcQjIwbEgq
-         Gm4n/clUN2+ZBi7g0gOYDOxinc5v5Gy9ethRWq2NDUdULJJ9H/6W8AXkzX+vfiGgrLex
-         aksiV9OJiITqrA8jXU98NlkCdtHYAbVAYfxDVLJGgeZxYHFDsJgiudT+uVhPWxLvObnh
-         V28w==
-X-Gm-Message-State: AOAM531hGolWuJ9WbAO4iqCTwV7TFWE8dTPIlw9sRiqfMZJ/BCldggBm
-        8WalYEvc1mLDcaV6lGt4DvdFRg==
-X-Google-Smtp-Source: ABdhPJw2UX4DwJ8uomQdKlEKGp4dWXgNPdYavMGcv8xNO/e3jRahH6Mfzl+E80OqSzYNL6Ct55Zkqw==
-X-Received: by 2002:a1c:7d0c:: with SMTP id y12mr4360474wmc.103.1599569906573;
-        Tue, 08 Sep 2020 05:58:26 -0700 (PDT)
-Received: from debian-brgl.home (lfbn-nic-1-68-20.w2-15.abo.wanadoo.fr. [2.15.159.20])
-        by smtp.gmail.com with ESMTPSA id y207sm34817875wmc.17.2020.09.08.05.58.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Sep 2020 05:58:26 -0700 (PDT)
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-To:     Linus Walleij <linus.walleij@linaro.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Kent Gibson <warthog618@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH 1/3] device: property: add helpers to count items in string arrays
-Date:   Tue,  8 Sep 2020 14:58:11 +0200
-Message-Id: <20200908125813.8809-2-brgl@bgdev.pl>
-X-Mailer: git-send-email 2.26.1
-In-Reply-To: <20200908125813.8809-1-brgl@bgdev.pl>
-References: <20200908125813.8809-1-brgl@bgdev.pl>
+        id S1730415AbgIHULD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Sep 2020 16:11:03 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:50195 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1731733AbgIHUKu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2020 16:10:50 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1599595849;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=zFptVInSDSbB2nDLyh5K9NKtnygiDyhn7CU7AXmV4mo=;
+        b=bYskYPYt9aiVUJ6gIgN0+JVAwt4I7PDsfCXfZjeLMWEZ3eEpZT2ul/+FD5mW0eCFK5xAue
+        ++rAKM+zs6bqILol8FufMBmK3GZX0OY5fG1u46O2Cpmb3qIg8rvcNDmcPe1vh4wmzjY7x3
+        ROEgzp4sZ4rxFsWpypNTt7Xvx5+NjhE=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-530-LvQ5oUMCNbaDKH3Y7EmEEA-1; Tue, 08 Sep 2020 16:10:47 -0400
+X-MC-Unique: LvQ5oUMCNbaDKH3Y7EmEEA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 409D9839A48;
+        Tue,  8 Sep 2020 20:10:42 +0000 (UTC)
+Received: from t480s.redhat.com (ovpn-115-46.ams2.redhat.com [10.36.115.46])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 6279B5D9E8;
+        Tue,  8 Sep 2020 20:10:35 +0000 (UTC)
+From:   David Hildenbrand <david@redhat.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
+        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
+        linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-s390@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        David Hildenbrand <david@redhat.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Kees Cook <keescook@chromium.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+        Baoquan He <bhe@redhat.com>,
+        Wei Yang <richardw.yang@linux.intel.com>,
+        Eric Biederman <ebiederm@xmission.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        kexec@lists.infradead.org
+Subject: [PATCH v2 2/7] kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED
+Date:   Tue,  8 Sep 2020 22:10:07 +0200
+Message-Id: <20200908201012.44168-3-david@redhat.com>
+In-Reply-To: <20200908201012.44168-1-david@redhat.com>
+References: <20200908201012.44168-1-david@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+IORESOURCE_MEM_DRIVER_MANAGED currently uses an unused PnP bit, which is
+always set to 0 by hardware. This is far from beautiful (and confusing),
+and the bit only applies to SYSRAM. So let's move it out of the
+bus-specific (PnP) defined bits.
 
-Instead of doing the following:
+We'll add another SYSRAM specific bit soon. If we ever need more bits for
+other purposes, we can steal some from "desc", or reshuffle/regroup what we
+have.
 
-    count = device_property_read_string_array(dev, propname, NULL, 0);
-
-Let's provide inline helpers with hardcoded arguments for counting
-strings in property arrays.
-
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: kexec@lists.infradead.org
+Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- include/linux/property.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/linux/ioport.h | 4 +++-
+ kernel/kexec_file.c    | 2 +-
+ mm/memory_hotplug.c    | 4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 9f805c442819..1fa5e250a8ea 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -170,6 +170,12 @@ static inline int device_property_count_u64(struct device *dev, const char *prop
- 	return device_property_read_u64_array(dev, propname, NULL, 0);
- }
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 52a91f5fa1a36..d7620d7c941a0 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -58,6 +58,9 @@ struct resource {
+ #define IORESOURCE_EXT_TYPE_BITS 0x01000000	/* Resource extended types */
+ #define IORESOURCE_SYSRAM	0x01000000	/* System RAM (modifier) */
  
-+static inline int device_property_count_strings(struct device *dev,
-+						const char *propname)
-+{
-+	return device_property_read_string_array(dev, propname, NULL, 0);
-+}
++/* IORESOURCE_SYSRAM specific bits. */
++#define IORESOURCE_SYSRAM_DRIVER_MANAGED	0x02000000 /* Always detected via a driver. */
 +
- static inline bool fwnode_property_read_bool(const struct fwnode_handle *fwnode,
- 					     const char *propname)
- {
-@@ -224,6 +230,13 @@ static inline int fwnode_property_count_u64(const struct fwnode_handle *fwnode,
- 	return fwnode_property_read_u64_array(fwnode, propname, NULL, 0);
- }
+ #define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resource */
  
-+static inline int
-+fwnode_property_count_strings(const struct fwnode_handle *fwnode,
-+			      const char *propname)
-+{
-+	return fwnode_property_read_string_array(fwnode, propname, NULL, 0);
-+}
-+
- struct software_node;
+ #define IORESOURCE_DISABLED	0x10000000
+@@ -103,7 +106,6 @@ struct resource {
+ #define IORESOURCE_MEM_32BIT		(3<<3)
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+-#define IORESOURCE_MEM_DRIVER_MANAGED	(1<<7)
  
- /**
+ /* PnP I/O specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
+index ca40bef75a616..dfeeed1aed084 100644
+--- a/kernel/kexec_file.c
++++ b/kernel/kexec_file.c
+@@ -520,7 +520,7 @@ static int locate_mem_hole_callback(struct resource *res, void *arg)
+ 	/* Returning 0 will take to next memory range */
+ 
+ 	/* Don't use memory that will be detected and handled by a driver. */
+-	if (res->flags & IORESOURCE_MEM_DRIVER_MANAGED)
++	if (res->flags & IORESOURCE_SYSRAM_DRIVER_MANAGED)
+ 		return 0;
+ 
+ 	if (sz < kbuf->memsz)
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 4c47b68a9f4b5..8e1cd18b5cf14 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -105,7 +105,7 @@ static struct resource *register_memory_resource(u64 start, u64 size,
+ 	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+ 
+ 	if (strcmp(resource_name, "System RAM"))
+-		flags |= IORESOURCE_MEM_DRIVER_MANAGED;
++		flags |= IORESOURCE_SYSRAM_DRIVER_MANAGED;
+ 
+ 	/*
+ 	 * Make sure value parsed from 'mem=' only restricts memory adding
+@@ -1160,7 +1160,7 @@ EXPORT_SYMBOL_GPL(add_memory);
+  *
+  * For this memory, no entries in /sys/firmware/memmap ("raw firmware-provided
+  * memory map") are created. Also, the created memory resource is flagged
+- * with IORESOURCE_MEM_DRIVER_MANAGED, so in-kernel users can special-case
++ * with IORESOURCE_SYSRAM_DRIVER_MANAGED, so in-kernel users can special-case
+  * this memory as well (esp., not place kexec images onto it).
+  *
+  * The resource_name (visible via /proc/iomem) has to have the format
 -- 
-2.26.1
+2.26.2
 
