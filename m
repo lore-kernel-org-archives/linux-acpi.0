@@ -2,225 +2,247 @@ Return-Path: <SRS0=q5NA=CR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35879C43461
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 18:41:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B79BFC43461
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 19:56:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA7BD208FE
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 18:41:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78F57207DE
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 19:56:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="u6QZQvi0"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="SVXTsDpS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731211AbgIHSkz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Sep 2020 14:40:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51606 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731545AbgIHSkq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2020 14:40:46 -0400
-Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FEC1C061573;
-        Tue,  8 Sep 2020 11:40:46 -0700 (PDT)
-Received: by mail-pg1-x543.google.com with SMTP id j34so170803pgi.7;
-        Tue, 08 Sep 2020 11:40:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ncubfhN3Rgh8bRdqASDrtWtN1Ij2GRQGx0YQSulIwdg=;
-        b=u6QZQvi0lnx12bnpjbpbuCLvlmoAabUDpBpjlFY8mgWEy/EtCrDG52lGX5V+CGcoWq
-         wP5kZaMcdxLmTuL3hyxKhgRP/QH2i8ozfRJHD27QUCIfOEGF9/Y0XG/7uVfXzna8q96C
-         dv+Vd7GzgKpyCtJlkp0/qAV9XzgAbtaySfHpdsWdD0mMPvlbY6Dgx/m/I9ZNEn40yRe8
-         n4bHkeWIHH3J+hrHct3ddar7m7Q+xOfrF5eTqkUEK/zqFLbmDaFlUQf8lzcopSWZTtxn
-         O1MYQHDVjO/1Ey+p7dhRBFH3tQrtLj+9/+O0evhvP/D1FkT35wtY2MNi4oSj2Q+0//x7
-         ZyIg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ncubfhN3Rgh8bRdqASDrtWtN1Ij2GRQGx0YQSulIwdg=;
-        b=pD8HL5R75NEJien2m3n2eUECMEgaSsgb7VokM7UO8nCEjftnZGJEJxm/hCS+dNrh74
-         cYSsvCju5DNsEZUjPOhb+KuMgJ57UUPwHwvbR9Se1IVefqtCekR8SK3Ij2wfd+2k+T0N
-         iZVgkqrnNXH/siaGm0RRN3cBMmKeNmyb13Q+7Syukctr/0vD06DIoO0kYROAgONDwE98
-         Qda4yQxy+bU5hYmLJIghTX1i7od9J9Fj9JT7dIYkLB4t6KTTbSUZOEa/93SR0WwwEIgO
-         E2igjHpBnPPikETRSsfH3O7p55+SY8eUg/drU1jNqmoVQnD/1yj7NAct8CI12UmDFIU9
-         P/KQ==
-X-Gm-Message-State: AOAM530Fdnfnj+3PI0VdIOq4OfmNoc7gFiEwa8FuIuyoRxoMr/8C+JR8
-        tEVSduF90uH5RxgSa633f5HWyBKC47H6a7n5MRo=
-X-Google-Smtp-Source: ABdhPJzY65qjbadQFRobtds2jaaACl/9kmkC9wPQqUtQ2kQgshvPRbqr6vV6keiz30dJy2nV9wgnZOMWApPPJtXzMEA=
-X-Received: by 2002:a05:6a00:22c5:: with SMTP id f5mr83596pfj.163.1599590445545;
- Tue, 08 Sep 2020 11:40:45 -0700 (PDT)
+        id S1730576AbgIHT4h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Sep 2020 15:56:37 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:60750 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730560AbgIHPgp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2020 11:36:45 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 088FYRJn136537;
+        Tue, 8 Sep 2020 15:35:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=15pWPW/Ca41cmRWLeuMPyWbmipPwtweDunpubNIoPPI=;
+ b=SVXTsDpSFwpPl2YQu4pQGURdmipzP4knX+vFsNr4Xf+nYLSlX4XYR3f5uayYcU6bwbQh
+ rcWTxvH+qvnR5sfSliFIEg2QsTwDOZNTnXCp34PVu8bDs8lF5qFuQHDBAgxTtE3hUiFm
+ EWHwEyXn4VAidUm5YyZA6h8Lnix8nXCgpJXSLuEMSUsz36PEPYCLv3TjVZDvzUt+/v8R
+ uK1J8X+kMM8nCHSLIkuXWdDSsCkesnZ0a3wwnjae04wdh9PSq3WECNNilly14CPKB0pA
+ zasqVOZyIhdi6ZesycNYUEZ7FmfAFl+ZwoK+c/Cv7TIn9f9n0wpdei+xbWpluqBLeeDC Mw== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by aserp2120.oracle.com with ESMTP id 33c2mkvaj2-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 08 Sep 2020 15:35:32 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 088FTXks100262;
+        Tue, 8 Sep 2020 15:33:32 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by aserp3030.oracle.com with ESMTP id 33dacj1nk1-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 08 Sep 2020 15:33:32 +0000
+Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 088FXTdr008498;
+        Tue, 8 Sep 2020 15:33:30 GMT
+Received: from [10.175.177.246] (/10.175.177.246)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Tue, 08 Sep 2020 08:33:29 -0700
+Subject: Re: [PATCH v4 11/23] device-dax: Kill dax_kmem_res
+To:     David Hildenbrand <david@redhat.com>,
+        Dan Williams <dan.j.williams@intel.com>
+Cc:     akpm@linux-foundation.org, Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Pavel Tatashin <pasha.tatashin@soleen.com>,
+        peterz@infradead.org, ard.biesheuvel@linaro.org,
+        linux-mm@kvack.org, linux-nvdimm@lists.01.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+References: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <159643100485.4062302.976628339798536960.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <a3ad70a2-77a8-d50e-f372-731a8e27c03b@redhat.com>
+From:   Joao Martins <joao.m.martins@oracle.com>
+Message-ID: <17686fcc-202e-0982-d0de-54d5349cfb5d@oracle.com>
+Date:   Tue, 8 Sep 2020 16:33:25 +0100
 MIME-Version: 1.0
-References: <20200908171934.1661509-1-luzmaximilian@gmail.com>
-In-Reply-To: <20200908171934.1661509-1-luzmaximilian@gmail.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Tue, 8 Sep 2020 21:40:28 +0300
-Message-ID: <CAHp75VevrwKaba_FsZj-nPqJGR9fkmFPzvdCew0wCqF_L6QLbA@mail.gmail.com>
-Subject: Re: [PATCH] platform/x86: Add Driver to set up lid GPEs on MS Surface device
-To:     Maximilian Luz <luzmaximilian@gmail.com>
-Cc:     Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Gayatri Kammela <gayatri.kammela@intel.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <a3ad70a2-77a8-d50e-f372-731a8e27c03b@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9738 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
+ bulkscore=0 phishscore=0 adultscore=0 suspectscore=1 spamscore=0
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2009080148
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9738 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 priorityscore=1501
+ phishscore=0 adultscore=0 bulkscore=0 clxscore=1011 mlxlogscore=999
+ malwarescore=0 suspectscore=1 lowpriorityscore=0 spamscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2009080148
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 8, 2020 at 8:20 PM Maximilian Luz <luzmaximilian@gmail.com> wrote:
->
-> Conventionally, wake-up events for a specific device, in our case the
-> lid device, are managed via the ACPI _PRW field. While this does not
-> seem strictly necessary based on ACPI spec, the kernel disables GPE
-> wakeups to avoid non-wakeup interrupts preventing suspend by default and
-> only enables GPEs associated via the _PRW field with a wake-up capable
-> device. This behavior has been introduced in commit f941d3e41da7 ("ACPI:
-> EC / PM: Disable non-wakeup GPEs for suspend-to-idle") and is described
-> in more detail in its commit message.
->
-> Unfortunately, on MS Surface devices, there is no _PRW field present on
-> the lid device, thus no GPE is associated with it, and therefore the GPE
-> responsible for sending the status-change notification to the lid gets
-> disabled during suspend, making it impossible to wake the device via the
-> lid.
->
-> This patch introduces a pseudo-device and respective driver which, based
-> on some DMI matching, marks the corresponding GPE of the lid device for
-> wake and enables it during suspend. The behavior of this driver models
-> the behavior of the ACPI/PM core for normal wakeup GPEs, properly
-> declared via the _PRW field.
+[Sorry for the late response]
 
-...
+On 8/21/20 11:06 AM, David Hildenbrand wrote:
+> On 03.08.20 07:03, Dan Williams wrote:
+>> @@ -37,109 +45,94 @@ int dev_dax_kmem_probe(struct device *dev)
+>>  	 * could be mixed in a node with faster memory, causing
+>>  	 * unavoidable performance issues.
+>>  	 */
+>> -	numa_node = dev_dax->target_node;
+>>  	if (numa_node < 0) {
+>>  		dev_warn(dev, "rejecting DAX region with invalid node: %d\n",
+>>  				numa_node);
+>>  		return -EINVAL;
+>>  	}
+>>  
+>> -	/* Hotplug starting at the beginning of the next block: */
+>> -	kmem_start = ALIGN(range->start, memory_block_size_bytes());
+>> -
+>> -	kmem_size = range_len(range);
+>> -	/* Adjust the size down to compensate for moving up kmem_start: */
+>> -	kmem_size -= kmem_start - range->start;
+>> -	/* Align the size down to cover only complete blocks: */
+>> -	kmem_size &= ~(memory_block_size_bytes() - 1);
+>> -	kmem_end = kmem_start + kmem_size;
+>> -
+>> -	new_res_name = kstrdup(dev_name(dev), GFP_KERNEL);
+>> -	if (!new_res_name)
+>> +	res_name = kstrdup(dev_name(dev), GFP_KERNEL);
+>> +	if (!res_name)
+>>  		return -ENOMEM;
+>>  
+>> -	/* Region is permanently reserved if hotremove fails. */
+>> -	new_res = request_mem_region(kmem_start, kmem_size, new_res_name);
+>> -	if (!new_res) {
+>> -		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
+>> -			 &kmem_start, &kmem_end);
+>> -		kfree(new_res_name);
+>> +	res = request_mem_region(range.start, range_len(&range), res_name);
+> 
+> I think our range could be empty after aligning. I assume
+> request_mem_region() would check that, but maybe we could report a
+> better error/warning in that case.
+> 
+dax_kmem_range() already returns a memory-block-aligned @range but
+IIUC request_mem_region() isn't checking for that. Having said that
+the returned @res wouldn't be different from the passed range.start.
 
-> +#include <linux/platform_device.h>
-> +
-> +
+>>  	/*
+>>  	 * Ensure that future kexec'd kernels will not treat this as RAM
+>>  	 * automatically.
+>>  	 */
+>> -	rc = add_memory_driver_managed(numa_node, new_res->start,
+>> -				       resource_size(new_res), kmem_name);
+>> +	rc = add_memory_driver_managed(numa_node, res->start,
+>> +				       resource_size(res), kmem_name);
+>> +
+>> +	res->flags |= IORESOURCE_BUSY;
+> 
+> Hm, I don't think that's correct. Any specific reason why to mark the
+> not-added, unaligned parts BUSY? E.g., walk_system_ram_range() could
+> suddenly stumble over it - and e.g., similarly kexec code when trying to
+> find memory for placing kexec images. I think we should leave this
+> !BUSY, just as it is right now.
+> 
+Agreed.
 
-One blank line is enough.
+>>  	if (rc) {
+>> -		release_resource(new_res);
+>> -		kfree(new_res);
+>> -		kfree(new_res_name);
+>> +		release_mem_region(range.start, range_len(&range));
+>> +		kfree(res_name);
+>>  		return rc;
+>>  	}
+>> -	dev_dax->dax_kmem_res = new_res;
+>> +
+>> +	dev_set_drvdata(dev, res_name);
+>>  
+>>  	return 0;
+>>  }
+>>  
+>>  #ifdef CONFIG_MEMORY_HOTREMOVE
+>> -static int dev_dax_kmem_remove(struct device *dev)
+>> +static void dax_kmem_release(struct dev_dax *dev_dax)
+>>  {
+>> -	struct dev_dax *dev_dax = to_dev_dax(dev);
+>> -	struct resource *res = dev_dax->dax_kmem_res;
+>> -	resource_size_t kmem_start = res->start;
+>> -	resource_size_t kmem_size = resource_size(res);
+>> -	const char *res_name = res->name;
+>>  	int rc;
+>> +	struct device *dev = &dev_dax->dev;
+>> +	const char *res_name = dev_get_drvdata(dev);
+>> +	struct range range = dax_kmem_range(dev_dax);
+>>  
+>>  	/*
+>>  	 * We have one shot for removing memory, if some memory blocks were not
+>>  	 * offline prior to calling this function remove_memory() will fail, and
+>>  	 * there is no way to hotremove this memory until reboot because device
+>> -	 * unbind will succeed even if we return failure.
+>> +	 * unbind will proceed regardless of the remove_memory result.
+>>  	 */
+>> -	rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
+>> -	if (rc) {
+>> -		any_hotremove_failed = true;
+>> -		dev_err(dev,
+>> -			"DAX region %pR cannot be hotremoved until the next reboot\n",
+>> -			res);
+>> -		return rc;
+>> +	rc = remove_memory(dev_dax->target_node, range.start, range_len(&range));
+>> +	if (rc == 0) {
+> 
+> if (!rc) ?
+> 
+Better off would be to keep the old order:
 
-...
+	if (rc) {
+		any_hotremove_failed = true;
+		dev_err(dev, "%#llx-%#llx cannot be hotremoved until the next reboot\n",
+				range.start, range.end);
+	        return;
+	}
 
-> +       .gpe_number = 0x17,
-> +       .gpe_number = 0x4D,
-> +       .gpe_number = 0x4F,
-> +       .gpe_number = 0x57,
+	release_mem_region(range.start, range_len(&range));
+	dev_set_drvdata(dev, NULL);
+	kfree(res_name);
+	return;
 
-From where these numbers come from? Can we get them from firmware (ACPI)?
 
-...
+>> +		release_mem_region(range.start, range_len(&range));
+> 
+> remove_memory() does a release_mem_region_adjustable(). Don't you
+> actually want to release the *unaligned* region you requested?
+> 
+Isn't it what we're doing here?
+(The release_mem_region_adjustable() is using the same
+dax_kmem-aligned range and there's no split/adjust)
 
-> +       { }
-> +};
-> +
-> +
+Meaning right now (+ parent marked as !BUSY), and if I am understanding
+this correctly:
 
-One is enough. Same for other places.
+request_mem_region(range.start, range_len)
+   __request_region(iomem_res, range.start, range_len) -> alloc @parent
+add_memory_driver_managed(parent.start, resource_size(parent))
+   __request_region(parent.start, resource_size(parent)) -> alloc @child
 
-...
+[...]
 
-> +static int surface_gpe_suspend(struct device *dev)
-> +{
-> +       const struct surface_lid_device *lid;
-> +
-> +       lid = dev_get_platdata(dev);
+remove_memory(range.start, range_len)
+ request_mem_region_adjustable(range.start, range_len)
+  __release_region(range.start, range_len) -> remove @child
 
-There is enough room to put this assignment directly into definition.
+release_mem_region(range.start, range_len)
+  __release_region(range.start, range_len) -> doesn't remove @parent because !BUSY?
 
-> +       return surface_lid_enable_wakeup(dev, lid, true);
-> +}
-> +
-> +static int surface_gpe_resume(struct device *dev)
-> +{
-> +       const struct surface_lid_device *lid;
-> +
-> +       lid = dev_get_platdata(dev);
+The add/removal of this relies on !BUSY. But now I am wondering if the parent remaining
+unreleased is deliberate even on CONFIG_MEMORY_HOTREMOVE=y.
 
-Ditto.
-
-> +       return surface_lid_enable_wakeup(dev, lid, false);
-> +}
-
-...
-
-> +static int surface_gpe_probe(struct platform_device *pdev)
-> +{
-> +       const struct surface_lid_device *lid;
-> +       int status;
-> +
-
-> +       lid = dev_get_platdata(&pdev->dev);
-> +       if (!lid)
-> +               return -ENODEV;
-
-Can we use software nodes?
-
-> +       status = acpi_mark_gpe_for_wake(NULL, lid->gpe_number);
-> +       if (status) {
-> +               dev_err(&pdev->dev, "failed to mark GPE for wake: %d\n", status);
-> +               return -EINVAL;
-> +       }
-> +
-
-> +       status = acpi_enable_gpe(NULL, lid->gpe_number);
-
-Did I miss anything or all calls of enable / disable GPE are using
-NULL as a first parameter? What the point in such case?
-
-> +       if (status) {
-> +               dev_err(&pdev->dev, "failed to enable GPE: %d\n", status);
-> +               return -EINVAL;
-> +       }
-> +
-> +       status = surface_lid_enable_wakeup(&pdev->dev, lid, false);
-> +       if (status) {
-> +               acpi_disable_gpe(NULL, lid->gpe_number);
-> +               return status;
-> +       }
-> +
-> +       return 0;
-> +}
-
-...
-
-> +static void __exit surface_gpe_exit(void)
-> +{
-
-> +       if (!surface_gpe_device)
-> +               return;
-
-This is redundant check.
-
-> +       platform_device_unregister(surface_gpe_device);
-> +       platform_driver_unregister(&surface_gpe_driver);
-> +}
-> +
-
-> +module_init(surface_gpe_init);
-> +module_exit(surface_gpe_exit);
-
-Attach each to the corresponding method w/o blank line in between.
-
-...
-
-> +MODULE_ALIAS("dmi:*:svnMicrosoftCorporation:pnSurfacePro:*");
-> +MODULE_ALIAS("dmi:*:svnMicrosoftCorporation:pnSurfacePro4:*");
-
-Can simply
-
-MODULE_ALIAS("dmi:*:svnMicrosoftCorporation:pnSurface*:*");
-
-work?
-
--- 
-With Best Regards,
-Andy Shevchenko
+	Joao
