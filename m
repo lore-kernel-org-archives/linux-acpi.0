@@ -1,73 +1,94 @@
-Return-Path: <SRS0=q5NA=CR=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=mbeM=CS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.9 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FFE3C43461
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 21:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CF5BC43461
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 00:54:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECDE02137B
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Sep 2020 21:04:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CADC8218AC
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 00:54:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728617AbgIHVEW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Sep 2020 17:04:22 -0400
-Received: from foss.arm.com ([217.140.110.172]:35344 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728390AbgIHVEW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 8 Sep 2020 17:04:22 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8DED031B;
-        Tue,  8 Sep 2020 14:04:21 -0700 (PDT)
-Received: from mammon-tx2.austin.arm.com (mammon-tx2.austin.arm.com [10.118.28.62])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 776D13F68F;
-        Tue,  8 Sep 2020 14:04:21 -0700 (PDT)
-From:   Jeremy Linton <jeremy.linton@arm.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     tn@semihalf.com, bhelgaas@google.com, lorenzo.pieralisi@arm.com,
-        steven.price@arm.com, rjw@rjwysocki.net, lenb@kernel.org,
-        sudeep.holla@arm.com, guohanjun@huawei.com,
-        linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v2] PCI/ACPI: Suppress missing MCFG message
-Date:   Tue,  8 Sep 2020 16:03:59 -0500
-Message-Id: <20200908210359.569294-1-jeremy.linton@arm.com>
-X-Mailer: git-send-email 2.25.4
+        id S1726642AbgIIAyJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Sep 2020 20:54:09 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:10850 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726591AbgIIAyG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 8 Sep 2020 20:54:06 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 812B345815EFE1327BCC;
+        Wed,  9 Sep 2020 08:54:02 +0800 (CST)
+Received: from [127.0.0.1] (10.174.179.33) by DGGEMS401-HUB.china.huawei.com
+ (10.3.19.201) with Microsoft SMTP Server id 14.3.487.0; Wed, 9 Sep 2020
+ 08:54:01 +0800
+Subject: Re: [PATCH 5/5] ACPI / APD: Head file including cleanups
+To:     kernel test robot <lkp@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC:     <kbuild-all@lists.01.org>, <clang-built-linux@googlegroups.com>,
+        <linux-acpi@vger.kernel.org>, Ken Xue <Ken.Xue@amd.com>
+References: <1599468981-17301-6-git-send-email-guohanjun@huawei.com>
+ <202009072027.mQVQ8Jey%lkp@intel.com>
+From:   Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <68c45cf3-6d61-3a82-3c24-77ab86283049@huawei.com>
+Date:   Wed, 9 Sep 2020 08:54:00 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <202009072027.mQVQ8Jey%lkp@intel.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.179.33]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-MCFG is an optional ACPI table. Given there are machines
-without PCI(e) (or it is hidden) we have been receiving
-queries/complaints about what this message means given
-its being presented as an error.
+On 2020/9/7 21:07, kernel test robot wrote:
+> Hi Hanjun,
+> 
+> I love your patch! Perhaps something to improve:
+> 
+> [auto build test WARNING on pm/linux-next]
+> [also build test WARNING on v5.9-rc4 next-20200903]
+> [If your patch is applied to the wrong git tree, kindly drop us a note.
+> And when submitting patch, we suggest to use '--base' as documented in
+> https://git-scm.com/docs/git-format-patch]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Hanjun-Guo/Cleanups-for-ACPI-APD-driver/20200907-170548
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+> config: x86_64-randconfig-r021-20200907 (attached as .config)
+> compiler: clang version 12.0.0 (https://github.com/llvm/llvm-project ab68517e6b7e51b84c4b0e813a30258ec1ce5da5)
+> reproduce (this is a W=1 build):
+>          wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>          chmod +x ~/bin/make.cross
+>          # install x86_64 cross compiling tool for clang build
+>          # apt-get install binutils-x86-64-linux-gnu
+>          # save the attached .config to linux build tree
+>          COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross ARCH=x86_64
+> 
+> If you fix the issue, kindly add following tag as appropriate
+> Reported-by: kernel test robot <lkp@intel.com>
+> 
+> All warnings (new ones prefixed by >>):
+> 
+>>> drivers/acpi/acpi_apd.c:250:13: warning: no previous prototype for function 'acpi_apd_init' [-Wmissing-prototypes]
+>     void __init acpi_apd_init(void)
+>                 ^
+>     drivers/acpi/acpi_apd.c:250:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+>     void __init acpi_apd_init(void)
+>     ^
+>     static
+>     1 warning generated.
 
-Lets reduce the severity, the ACPI table list printed at
-boot will continue to provide another way to detect when
-the table is missing.
+I think this was fixed in v2.
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- drivers/acpi/pci_mcfg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for the report!
 
-diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index 54b36b7ad47d..c8ef3bb5aa00 100644
---- a/drivers/acpi/pci_mcfg.c
-+++ b/drivers/acpi/pci_mcfg.c
-@@ -280,5 +280,5 @@ void __init pci_mmcfg_late_init(void)
- {
- 	int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
- 	if (err)
--		pr_err("Failed to parse MCFG (%d)\n", err);
-+		pr_debug("Failed to parse MCFG (%d)\n", err);
- }
--- 
-2.25.4
+Hanjun
 
