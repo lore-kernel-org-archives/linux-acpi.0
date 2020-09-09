@@ -2,128 +2,79 @@ Return-Path: <SRS0=mbeM=CS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44FD0C43461
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 08:55:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AB9EC43461
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 09:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0784921D82
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 08:55:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="1hogus41"
+	by mail.kernel.org (Postfix) with ESMTP id 1309721973
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 09:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729908AbgIIIzW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 9 Sep 2020 04:55:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42574 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726426AbgIIIyf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2020 04:54:35 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2A35C061757
-        for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2020 01:54:34 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id k15so2007150wrn.10
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2020 01:54:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=yjs3H1T57/OsvxujNGQGLBWexjTmuttV9nlq5vhVwiw=;
-        b=1hogus410UbSTewZULq8XN8hOyyBaL3K5B6EOLPEBYnY2sGYGPLbPW3ExsJq4pq4+H
-         GICD3jVw0enYx6Gprar6A5TRJmmt56br+sRooWOV1CwuhcTx+bsn//Px3L+pkoJCOh+m
-         fYwbhRd6W8qaWAXI2rTd6jScVykNjvgR7bNmSjXEZ7TDiBxHT09dlxpG5Ezja1cg/s8A
-         FOAyOQuANxMt5ChTXpvKigtNMY0VAmWUmnKt7iiXAycAGWMUovJrodozixh0MtVmJxen
-         gXRZ4DATBIzKNBdBoi/e96MQ3hAxtrVB9feV6GsGHB4jQ8BKl5oVyhuQNjPFJ0zTIu28
-         J8Vg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=yjs3H1T57/OsvxujNGQGLBWexjTmuttV9nlq5vhVwiw=;
-        b=uWf9Pv9Y9mi1lI1uXl1yVFFmQC/bibtAZGI37S0nVNJjdV7ghG9cNNwhSk8pig2bGY
-         bDYSQPVjba7MYPc7nuJ7w7dgGHweReEM4nD08TTIPcABX0jvnDwKBDbLND8Ia+9mYLmI
-         QZgvsW7c8Fi6ws4mVRHoeyecHkNalDa2F8/It3qmR4NRQBGdaujy40nNFQ5nPwSZshH8
-         RXUwS08b1KTzptiBaVyiNZ7sBOOogpMHlmiPzoySyURqjs3HeAYrM8ZrwLKA/7THdS4U
-         rnz3/M5PGleq0JLWpmVB0iT4CrlQjxWgYST+FZWcNqhKSFSkZgawr7BChBuKLVvWZ8MB
-         fyxw==
-X-Gm-Message-State: AOAM533s8hrM7GAHXmGhyNhwMaCWOZfAwz8iNAvoVFdfkFg8QztZvqDZ
-        5CE2y96BH0DiqOcuD1dUEXylfQ==
-X-Google-Smtp-Source: ABdhPJyfX1lAkYRdf3f086UINT2xngPSrOgIgkfFzYyUgZA0LaGJG7CLOAi3E9XKsLi6Ob8wB4E1zg==
-X-Received: by 2002:a5d:46cd:: with SMTP id g13mr2988799wrs.153.1599641673479;
-        Wed, 09 Sep 2020 01:54:33 -0700 (PDT)
-Received: from localhost.localdomain (amontpellier-657-1-17-60.w109-210.abo.wanadoo.fr. [109.210.64.60])
-        by smtp.gmail.com with ESMTPSA id n17sm3418812wrw.0.2020.09.09.01.54.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Sep 2020 01:54:32 -0700 (PDT)
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-To:     Linus Walleij <linus.walleij@linaro.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        id S1726605AbgIIJDh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 9 Sep 2020 05:03:37 -0400
+Received: from mga11.intel.com ([192.55.52.93]:39217 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726169AbgIIJDh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Sep 2020 05:03:37 -0400
+IronPort-SDR: 4H6APNKFa5jSPQ0m6EGOFNjIB2xuyYKsRi2hVbg1h3OXu4MxSOyY13c3f5lOkWicXdDw1wGgOg
+ Gok4UPyPOljQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9738"; a="155772991"
+X-IronPort-AV: E=Sophos;i="5.76,409,1592895600"; 
+   d="scan'208";a="155772991"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2020 02:03:37 -0700
+IronPort-SDR: AOfyUaHLr1O2qBJmTNelHYciWWPTM5B1h9YceWqrhR6+GLQMpVoQtduygzljnKaONgwIfXqeTD
+ Bdts65VciNzg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,409,1592895600"; 
+   d="scan'208";a="407393247"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
+  by fmsmga001.fm.intel.com with SMTP; 09 Sep 2020 02:03:34 -0700
+Received: by lahna (sSMTP sendmail emulation); Wed, 09 Sep 2020 12:03:33 +0300
+Date:   Wed, 9 Sep 2020 12:03:33 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Kent Gibson <warthog618@gmail.com>
-Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
+        Kent Gibson <warthog618@gmail.com>, linux-gpio@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH v2 1/3] device: property: add helpers to count items in string arrays
-Date:   Wed,  9 Sep 2020 10:54:24 +0200
-Message-Id: <20200909085426.19862-2-brgl@bgdev.pl>
-X-Mailer: git-send-email 2.26.1
-In-Reply-To: <20200909085426.19862-1-brgl@bgdev.pl>
+Subject: Re: [PATCH v2 0/3] gpiolib: generalize GPIO line names property
+Message-ID: <20200909090333.GK2495@lahna.fi.intel.com>
 References: <20200909085426.19862-1-brgl@bgdev.pl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200909085426.19862-1-brgl@bgdev.pl>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+On Wed, Sep 09, 2020 at 10:54:23AM +0200, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> 
+> I initially sent this as part of the gpio-mockup overhaul but since
+> these patches are indepentent and the work on gpio-mockup may become
+> more complicated - I'm sending these separately.
+> 
+> The only change is adding additional property helpers to count strings
+> in array.
+> 
+> v1 -> v2:
+> - actually remove the previous devprop source file in patch 3
+> - rename the string counting functions to something more explicit
+> 
+> Bartosz Golaszewski (3):
+>   device: property: add helpers to count items in string arrays
+>   gpiolib: generalize devprop_gpiochip_set_names() for device properties
+>   gpiolib: unexport devprop_gpiochip_set_names()
 
-Instead of doing the following:
+The series looks good to me,
 
-    count = device_property_read_string_array(dev, propname, NULL, 0);
-
-Let's provide inline helpers with hardcoded arguments for counting
-strings in property arrays.
-
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- include/linux/property.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 9f805c442819..75c178055bc9 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -170,6 +170,12 @@ static inline int device_property_count_u64(struct device *dev, const char *prop
- 	return device_property_read_u64_array(dev, propname, NULL, 0);
- }
- 
-+static inline int device_property_string_array_count(struct device *dev,
-+						     const char *propname)
-+{
-+	return device_property_read_string_array(dev, propname, NULL, 0);
-+}
-+
- static inline bool fwnode_property_read_bool(const struct fwnode_handle *fwnode,
- 					     const char *propname)
- {
-@@ -224,6 +230,13 @@ static inline int fwnode_property_count_u64(const struct fwnode_handle *fwnode,
- 	return fwnode_property_read_u64_array(fwnode, propname, NULL, 0);
- }
- 
-+static inline int
-+fwnode_property_string_array_count(const struct fwnode_handle *fwnode,
-+				   const char *propname)
-+{
-+	return fwnode_property_read_string_array(fwnode, propname, NULL, 0);
-+}
-+
- struct software_node;
- 
- /**
--- 
-2.26.1
-
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
