@@ -2,120 +2,89 @@ Return-Path: <SRS0=mbeM=CS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D571C43461
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 15:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE76AC43461
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 16:05:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE2F621D81
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 15:21:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b="SmXDZKzA"
+	by mail.kernel.org (Postfix) with ESMTP id 7865720732
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 16:05:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599667557;
+	bh=7K2eO9jPx1PtH/qWBKEyBPB9rN9mQMh2Ofq/ElKKAOs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
+	b=xqFTVqNuk13c+QVndruflpwP6kuAUY7WGPhuK1jxCGKw6n6yZkDsxtAQT1Z3UMhn0
+	 F/8kqyIGxROVKpyJIrdQr1UU0XeCEJKIAmgIiDn9HB3SRFRyWdtZALPyPid0ioZLi4
+	 BUWFoyuj/ryyHeuugnnOR/Dch9sBnYOV4ipjFDK8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726683AbgIIL3O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 9 Sep 2020 07:29:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38098 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726415AbgIIL2a (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2020 07:28:30 -0400
-Received: from ozlabs.org (bilbo.ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27536C061796;
-        Wed,  9 Sep 2020 04:28:20 -0700 (PDT)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        id S1730336AbgIIQFx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 9 Sep 2020 12:05:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33620 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730495AbgIIQFb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Sep 2020 12:05:31 -0400
+Received: from localhost (52.sub-72-107-123.myvzw.com [72.107.123.52])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4BmfmN3SGmz9sTd;
-        Wed,  9 Sep 2020 21:24:04 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ellerman.id.au;
-        s=201909; t=1599650649;
-        bh=McxY0vGyvNVlrIIx6KzYtU4PcHnFzd9G9dek0Ykf36c=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=SmXDZKzAAkIskfZPfi7qrbi2STOAaRgkLgLUwpRIri563PnPrs5blw/OlSwl2MX5i
-         69HKj9JHLONl1Qz3CbYvZy/4cbddpiJHmROqXSbmg8WJh+BTuQXH9dKNRHILZpAo1t
-         hze5cgR0ZcFpNy/5f5QSzsCR/ywLKY3MFV1MB2evwZ2HPd+YxWui6TnWbMXUjz3bFE
-         Dflejkj7ciOj6dUGOWs0UizA/kfuOX43D8JH9M1T139ttlnt9G8+OPWPLzwt3iVOxx
-         uuXIzjXH4T67FDy3bvc2QCqjoeC0dD5axnVjQL4imxfeD2KhwwbuLyb1WJFKSm2qYS
-         /CHKbJLh3kYdA==
-From:   Michael Ellerman <mpe@ellerman.id.au>
-To:     David Hildenbrand <david@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     linux-kernel@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
-        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-s390@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Wei Liu <wei.liu@kernel.org>, Michal Hocko <mhocko@suse.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-        Baoquan He <bhe@redhat.com>,
-        Wei Yang <richardw.yang@linux.intel.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Jason Wang <jasowang@redhat.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Oliver O'Halloran <oohall@gmail.com>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Nathan Lynch <nathanl@linux.ibm.com>,
-        Libor Pechacek <lpechacek@suse.cz>,
-        Anton Blanchard <anton@ozlabs.org>,
-        Leonardo Bras <leobras.c@gmail.com>,
-        linuxppc-dev@lists.ozlabs.org
-Subject: Re: [PATCH v2 3/7] mm/memory_hotplug: prepare passing flags to add_memory() and friends
-In-Reply-To: <3bc5b464-3229-d442-714a-ec33b5728ac6@redhat.com>
-References: <20200908201012.44168-1-david@redhat.com> <20200908201012.44168-4-david@redhat.com> <20200909071759.GD435421@kroah.com> <3bc5b464-3229-d442-714a-ec33b5728ac6@redhat.com>
-Date:   Wed, 09 Sep 2020 21:24:02 +1000
-Message-ID: <87eenbry5p.fsf@mpe.ellerman.id.au>
+        by mail.kernel.org (Postfix) with ESMTPSA id 7F890221F0;
+        Wed,  9 Sep 2020 14:42:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599662522;
+        bh=7K2eO9jPx1PtH/qWBKEyBPB9rN9mQMh2Ofq/ElKKAOs=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=iIVQ29xVqxgNUylRVXX0xccX137OyWmME3383P325tQavNGASGciGVho0t1XPdtJo
+         F3U1v953CNGmcmuLZy2xC37aogH7jCYuqLBfTIjO8UGWI1VNEa2hU+2ZPoxPb42ON2
+         NnzsYWhFMTlGDgN67nXKSh5BcioInPjSaomOrcc0=
+Date:   Wed, 9 Sep 2020 09:42:01 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Jeremy Linton <jeremy.linton@arm.com>
+Cc:     linux-acpi@vger.kernel.org, tn@semihalf.com, bhelgaas@google.com,
+        lorenzo.pieralisi@arm.com, steven.price@arm.com, rjw@rjwysocki.net,
+        lenb@kernel.org, sudeep.holla@arm.com, guohanjun@huawei.com,
+        linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] PCI/ACPI: Suppress missing MCFG message
+Message-ID: <20200909144201.GA705392@bjorn-Precision-5520>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200908210359.569294-1-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-David Hildenbrand <david@redhat.com> writes:
-> On 09.09.20 09:17, Greg Kroah-Hartman wrote:
->> On Tue, Sep 08, 2020 at 10:10:08PM +0200, David Hildenbrand wrote:
->>> We soon want to pass flags, e.g., to mark added System RAM resources.
->>> mergeable. Prepare for that.
->> 
->> What are these random "flags", and how do we know what should be passed
->> to them?
->> 
->> Why not make this an enumerated type so that we know it all works
->> properly, like the GPF_* flags are?  Passing around a random unsigned
->> long feels very odd/broken...
->
-> Agreed, an enum (mhp_flags) seems to give a better hint what can
-> actually be passed. Thanks!
+On Tue, Sep 08, 2020 at 04:03:59PM -0500, Jeremy Linton wrote:
+> MCFG is an optional ACPI table. Given there are machines
+> without PCI(e) (or it is hidden) we have been receiving
+> queries/complaints about what this message means given
+> its being presented as an error.
+> 
+> Lets reduce the severity, the ACPI table list printed at
+> boot will continue to provide another way to detect when
+> the table is missing.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 
-You probably know this but ...
+Applied to pci/enumeration with Hanjun's reviewed-by, thanks!
 
-Just using a C enum doesn't get you any type safety.
-
-You can get some checking via sparse by using __bitwise, which is what
-gfp_t does. You don't actually have to use an enum for that, it works
-with #defines also.
-
-Or you can wrap the flag in a struct, the way atomic_t does, and then
-the compiler will prevent passing plain integers in place of your custom
-type.
-
-cheers
+> ---
+>  drivers/acpi/pci_mcfg.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index 54b36b7ad47d..c8ef3bb5aa00 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -280,5 +280,5 @@ void __init pci_mmcfg_late_init(void)
+>  {
+>  	int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
+>  	if (err)
+> -		pr_err("Failed to parse MCFG (%d)\n", err);
+> +		pr_debug("Failed to parse MCFG (%d)\n", err);
+>  }
+> -- 
+> 2.25.4
+> 
