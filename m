@@ -2,167 +2,250 @@ Return-Path: <SRS0=mbeM=CS=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A938C433E2
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 07:29:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D2AC43461
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 08:54:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DAA0521919
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 07:29:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9ADC821973
+	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 08:54:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZuL53MFf"
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="p4MUG4M2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729529AbgIIH3U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 9 Sep 2020 03:29:20 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:27144 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725922AbgIIH3T (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2020 03:29:19 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1599636557;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-        bh=beBy83xvdgGqw2410AVi6O0FaFwPJmePl3FfCXvsyA4=;
-        b=ZuL53MFfZotZ/M5oBvi7Y7S0W9YEvLieJOjj+WXnkOBzMyCjuhsY465Sw+p+ChGIAUO/WY
-        +2B8aXsDPQD6nsV7pxjdM33MlSxvtP+/It5PH7UwEybV7IxMLp1DHObmOe4jF1vHAFBZbs
-        6W7vkcNFyd1e1WTPUmTgbHRsocEuk4U=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-294-tiFs_KPBN7SjhzpsHthbFg-1; Wed, 09 Sep 2020 03:29:15 -0400
-X-MC-Unique: tiFs_KPBN7SjhzpsHthbFg-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 16C2E873113;
-        Wed,  9 Sep 2020 07:29:11 +0000 (UTC)
-Received: from [10.36.113.90] (ovpn-113-90.ams2.redhat.com [10.36.113.90])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 2232A83564;
-        Wed,  9 Sep 2020 07:28:55 +0000 (UTC)
-Subject: Re: [PATCH v2 3/7] mm/memory_hotplug: prepare passing flags to
- add_memory() and friends
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     linux-kernel@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
-        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-s390@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Wei Liu <wei.liu@kernel.org>, Michal Hocko <mhocko@suse.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-        Baoquan He <bhe@redhat.com>,
-        Wei Yang <richardw.yang@linux.intel.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Jason Wang <jasowang@redhat.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Oliver O'Halloran <oohall@gmail.com>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Nathan Lynch <nathanl@linux.ibm.com>,
-        Libor Pechacek <lpechacek@suse.cz>,
-        Anton Blanchard <anton@ozlabs.org>,
-        Leonardo Bras <leobras.c@gmail.com>,
-        linuxppc-dev@lists.ozlabs.org
-References: <20200908201012.44168-1-david@redhat.com>
- <20200908201012.44168-4-david@redhat.com> <20200909071759.GD435421@kroah.com>
-From:   David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; prefer-encrypt=mutual; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat GmbH
-Message-ID: <3bc5b464-3229-d442-714a-ec33b5728ac6@redhat.com>
-Date:   Wed, 9 Sep 2020 09:28:55 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.11.0
+        id S1727900AbgIIIyz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 9 Sep 2020 04:54:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42594 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726738AbgIIIyi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2020 04:54:38 -0400
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 371E8C061796
+        for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2020 01:54:37 -0700 (PDT)
+Received: by mail-wr1-x442.google.com with SMTP id j2so2033831wrx.7
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2020 01:54:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=apIbSsxgZ3NvYShmhAM+VYa5iL4D093LfOrEXyfUml0=;
+        b=p4MUG4M2XdBlzabakblhZUYnvPy0A6xxOG3JsXgWOADWrqUClY8fmjeIrCUCprQ7GG
+         bb3EE+6VAi6L9wF+wroA1J8ovJqHafMlCeqlZGtrsYq5+EIRYSoJkXVUfO2I8X4C/wRC
+         4Ki5zMK30W/x8pZLWVYBcRDU0j03j50BNuPYiM6arniagLqofm42K+jj1POFFJs2A5LW
+         pGZ+4trgD3jAY7hxZnqsrEvndw9VT47fBzUs+mtjINjb8WRppjGiOMrShDavUCf49alo
+         yfgiOa/QO+Up4wHeAVj9j8fSbcnwS2Qc9aSSzlt7rknW5WV6e8GzJ6cpKWUKYmbD2OY6
+         t2IA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=apIbSsxgZ3NvYShmhAM+VYa5iL4D093LfOrEXyfUml0=;
+        b=B9p2c62kVWbF1fnX30GcWwe396n1gdalHNCH7pIqxLb7s9mcn0s2/pjvO2fmOSbSD7
+         PpPpneXWjAb5b6IxJhPFFsyX8K1MOtU3Q7wKvIvBsPmF9WZdhtDSFM1W2FVUdC6xWZ8R
+         8HM3xWqqbHVWncmNLgqRl7r1to8JZpBVa5ysMwgOerpJ3XxoCiO8wZUitODTRt4zKix4
+         eSdwN/LxGxJVKgPAncjhgl4xWZ3ER6EUmllQdVyDdlbQ5WyaeaFLj8CLtL5G7IcVw9PU
+         cwcIVInDoxKrbgWZi2dqAH6ue9b1u0+DgRyZZC0u5XcaA4JtqdCfMkvRz/wLY1owzFjm
+         kWzg==
+X-Gm-Message-State: AOAM530nKWDbxC3La5ugwMO4B2QPLtiuZEaxaKOyZZXcLncr2IDn21tL
+        DqlEu9W43inSlGaczOslvHV9RA==
+X-Google-Smtp-Source: ABdhPJw8r23Zd9WJ0lZ/NbQON8+zBEaKodj2Fba4mT+MKk3C/AH7xF2QEYr1fuoGXOWvIDUohTQ8Og==
+X-Received: by 2002:adf:e6c8:: with SMTP id y8mr2926512wrm.229.1599641675594;
+        Wed, 09 Sep 2020 01:54:35 -0700 (PDT)
+Received: from localhost.localdomain (amontpellier-657-1-17-60.w109-210.abo.wanadoo.fr. [109.210.64.60])
+        by smtp.gmail.com with ESMTPSA id n17sm3418812wrw.0.2020.09.09.01.54.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 09 Sep 2020 01:54:35 -0700 (PDT)
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+To:     Linus Walleij <linus.walleij@linaro.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Kent Gibson <warthog618@gmail.com>
+Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH v2 3/3] gpiolib: unexport devprop_gpiochip_set_names()
+Date:   Wed,  9 Sep 2020 10:54:26 +0200
+Message-Id: <20200909085426.19862-4-brgl@bgdev.pl>
+X-Mailer: git-send-email 2.26.1
+In-Reply-To: <20200909085426.19862-1-brgl@bgdev.pl>
+References: <20200909085426.19862-1-brgl@bgdev.pl>
 MIME-Version: 1.0
-In-Reply-To: <20200909071759.GD435421@kroah.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+Content-Transfer-Encoding: 8bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 09.09.20 09:17, Greg Kroah-Hartman wrote:
-> On Tue, Sep 08, 2020 at 10:10:08PM +0200, David Hildenbrand wrote:
->> We soon want to pass flags, e.g., to mark added System RAM resources.
->> mergeable. Prepare for that.
-> 
-> What are these random "flags", and how do we know what should be passed
-> to them?
-> 
-> Why not make this an enumerated type so that we know it all works
-> properly, like the GPF_* flags are?  Passing around a random unsigned
-> long feels very odd/broken...
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Agreed, an enum (mhp_flags) seems to give a better hint what can
-actually be passed. Thanks!
+Now that devprop_gpiochip_set_names() is only used in a single place
+inside drivers/gpio/gpiolib.c, there's no need anymore for it to be
+exported or to even live in its own source file. Pull this function into
+the core source file for gpiolib.
 
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/gpio/Makefile          |  1 -
+ drivers/gpio/gpiolib-devprop.c | 63 ----------------------------------
+ drivers/gpio/gpiolib.c         | 47 +++++++++++++++++++++++++
+ include/linux/gpio/driver.h    |  2 --
+ 4 files changed, 47 insertions(+), 66 deletions(-)
+ delete mode 100644 drivers/gpio/gpiolib-devprop.c
+
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 4f9abff4f2dc..639275eb4e4d 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -6,7 +6,6 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib.o
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib-devres.o
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib-legacy.o
+-obj-$(CONFIG_GPIOLIB)		+= gpiolib-devprop.o
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib-cdev.o
+ obj-$(CONFIG_OF_GPIO)		+= gpiolib-of.o
+ obj-$(CONFIG_GPIO_SYSFS)	+= gpiolib-sysfs.o
+diff --git a/drivers/gpio/gpiolib-devprop.c b/drivers/gpio/gpiolib-devprop.c
+deleted file mode 100644
+index 31599d89a85d..000000000000
+--- a/drivers/gpio/gpiolib-devprop.c
++++ /dev/null
+@@ -1,63 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * Device property helpers for GPIO chips.
+- *
+- * Copyright (C) 2016, Intel Corporation
+- * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
+- */
+-
+-#include <linux/property.h>
+-#include <linux/slab.h>
+-#include <linux/gpio/consumer.h>
+-#include <linux/gpio/driver.h>
+-#include <linux/export.h>
+-
+-#include "gpiolib.h"
+-
+-/**
+- * devprop_gpiochip_set_names - Set GPIO line names using device properties
+- * @chip: GPIO chip whose lines should be named, if possible
+- *
+- * Looks for device property "gpio-line-names" and if it exists assigns
+- * GPIO line names for the chip. The memory allocated for the assigned
+- * names belong to the underlying software node and should not be released
+- * by the caller.
+- */
+-int devprop_gpiochip_set_names(struct gpio_chip *chip)
+-{
+-	struct gpio_device *gdev = chip->gpiodev;
+-	struct device *dev = chip->parent;
+-	const char **names;
+-	int ret, i;
+-	int count;
+-
+-	count = device_property_string_array_count(dev, "gpio-line-names");
+-	if (count < 0)
+-		return 0;
+-
+-	if (count > gdev->ngpio) {
+-		dev_warn(&gdev->dev, "gpio-line-names is length %d but should be at most length %d",
+-			 count, gdev->ngpio);
+-		count = gdev->ngpio;
+-	}
+-
+-	names = kcalloc(count, sizeof(*names), GFP_KERNEL);
+-	if (!names)
+-		return -ENOMEM;
+-
+-	ret = device_property_read_string_array(dev, "gpio-line-names",
+-						names, count);
+-	if (ret < 0) {
+-		dev_warn(&gdev->dev, "failed to read GPIO line names\n");
+-		kfree(names);
+-		return ret;
+-	}
+-
+-	for (i = 0; i < count; i++)
+-		gdev->descs[i].name = names[i];
+-
+-	kfree(names);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(devprop_gpiochip_set_names);
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 0d390f0ec32c..943a2de340d8 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -358,6 +358,53 @@ static int gpiochip_set_desc_names(struct gpio_chip *gc)
+ 	return 0;
+ }
+ 
++/*
++ * devprop_gpiochip_set_names - Set GPIO line names using device properties
++ * @chip: GPIO chip whose lines should be named, if possible
++ *
++ * Looks for device property "gpio-line-names" and if it exists assigns
++ * GPIO line names for the chip. The memory allocated for the assigned
++ * names belong to the underlying software node and should not be released
++ * by the caller.
++ */
++static int devprop_gpiochip_set_names(struct gpio_chip *chip)
++{
++	struct gpio_device *gdev = chip->gpiodev;
++	struct device *dev = chip->parent;
++	const char **names;
++	int ret, i;
++	int count;
++
++	count = device_property_string_array_count(dev, "gpio-line-names");
++	if (count < 0)
++		return 0;
++
++	if (count > gdev->ngpio) {
++		dev_warn(&gdev->dev, "gpio-line-names is length %d but should be at most length %d",
++			 count, gdev->ngpio);
++		count = gdev->ngpio;
++	}
++
++	names = kcalloc(count, sizeof(*names), GFP_KERNEL);
++	if (!names)
++		return -ENOMEM;
++
++	ret = device_property_read_string_array(dev, "gpio-line-names",
++						names, count);
++	if (ret < 0) {
++		dev_warn(&gdev->dev, "failed to read GPIO line names\n");
++		kfree(names);
++		return ret;
++	}
++
++	for (i = 0; i < count; i++)
++		gdev->descs[i].name = names[i];
++
++	kfree(names);
++
++	return 0;
++}
++
+ static unsigned long *gpiochip_allocate_mask(struct gpio_chip *gc)
+ {
+ 	unsigned long *p;
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index 56485a040b82..4a7e295c3640 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -756,8 +756,6 @@ struct gpio_desc *gpiochip_request_own_desc(struct gpio_chip *gc,
+ 					    enum gpiod_flags dflags);
+ void gpiochip_free_own_desc(struct gpio_desc *desc);
+ 
+-int devprop_gpiochip_set_names(struct gpio_chip *gc);
+-
+ #ifdef CONFIG_GPIOLIB
+ 
+ /* lock/unlock as IRQ */
 -- 
-Thanks,
-
-David / dhildenb
+2.26.1
 
