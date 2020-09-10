@@ -1,97 +1,112 @@
-Return-Path: <SRS0=mbeM=CS=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=uSgB=CT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AF6DC43461
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 16:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6B95C433E2
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Sep 2020 05:41:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 362F921919
-	for <linux-acpi@archiver.kernel.org>; Wed,  9 Sep 2020 16:56:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93FA2207EA
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Sep 2020 05:41:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20150623.gappssmtp.com header.i=@baylibre-com.20150623.gappssmtp.com header.b="HBjuZLWT"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="kah51+Sh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731074AbgIIQzm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 9 Sep 2020 12:55:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50722 "EHLO
+        id S1726057AbgIJFlC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Sep 2020 01:41:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730554AbgIIPwa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2020 11:52:30 -0400
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3490AC061799
-        for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2020 04:56:46 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id j11so3158341ejk.0
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2020 04:56:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ogwkQhFvnI4MZlMSYD/QWVKe2D0wYcRnW9BslwF6Qd0=;
-        b=HBjuZLWTbosii7ivJ9Ywlo8ZE/yi+uOqSm+jpG3K3CaNg5EhfDmRwyHOQ+LkqQN5bt
-         r8E9HZ0CmCpqg/EgdrmGDCLKPOyUAc9ZeexJq+vO0q3W1nwuh1hLu9isrW2iuMQ2Z5Mp
-         wpUEZdWa955qmiMBbYZA+9GD7k/1thaZllOGhbKDLuva5LrgIEOuqFPXBjMmPe8vc3vK
-         XsQKnEd31lZOKsyuLRftddoIyY6046V39zwwVyj5TbmwMijQthaBFY4YgPRywh8WzAff
-         1ODAm8vxmT1yWtxFBnD0boY5J+gj+4ot/eICHddgbieS3nKkEl7LgwIjJLFpnV7AI9no
-         Scyg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ogwkQhFvnI4MZlMSYD/QWVKe2D0wYcRnW9BslwF6Qd0=;
-        b=P0rt/mFTbXUkcZJos7mb6ZhSBn0yxp1z7006SSjGYY/XNFnIaTgsY8Jea9zi4aubUq
-         ShvhU6P8TqG5HwgF2PU4DhbK06Wn7x2HgPwVy/eIbQhFnVpem2lU4HhyQ2QX2tX08pXx
-         W2gW5YFJlwrbCXBDqFNGvw6BcqSb8Q9TMFcyG/GCV8VaRvucei4BCMWvO9kzUQBzWK8D
-         VLHwVmarOUYyfzoOKO1yH4TwUb8w/oYFoQT0cJ26aSgnRo8ZdXtnsaEqkRAdAfI4q953
-         cIqPH0zvW/WZCGtNZeNVVDuo2i0d/65WGGfYoAhHjBsJhkBcrtDfXbgmwsh/Ma5qKpUo
-         hURw==
-X-Gm-Message-State: AOAM530MnFaRmEIm3yiOzstMz2/757E9+nx+RrhI7cqqKoctNbjnnQEn
-        zTAsz21RHMtqZrtV5eMykpUOP34oeL3iRz6hDpWykA==
-X-Google-Smtp-Source: ABdhPJxwxVcYxxRPx0hopbc/8wKbrEuh526OTa/mrDYz3ssckdGebxt8RtgFJRB+3GTtZQfvkNw7vv+GO+mnfJZRYag=
-X-Received: by 2002:a17:906:3e90:: with SMTP id a16mr3019456ejj.363.1599652604922;
- Wed, 09 Sep 2020 04:56:44 -0700 (PDT)
+        with ESMTP id S1725855AbgIJFkx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2020 01:40:53 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4389C061756;
+        Wed,  9 Sep 2020 22:40:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+        Content-Type:Content-ID:Content-Description;
+        bh=jUBa0iu1eX5jIcAMx7CVSwzh+xe4DajZ3p568CeYFVQ=; b=kah51+ShOTTV+Jr+aRlgd0UmMs
+        NcPtLrFn4E7MudK1Si/fT7/TqxK5SWVfKBVWRLJ8+JXu/KdY+ku4LFycLe+BAZegN1VB+rAFo76U3
+        S177eVeSuDFVbkgbXgW0Sqyz3T3mkIm7NOn80nM5T/BGthD1RASCpvExnNdOBjrnYuw6+AB/Sa2Q+
+        ckdaHE+5oXGeq3oExrsn4dz+C7/TGleVTseKtHQJPCdiCPjhMrCwXAfn7da2bLCiIDf0F7/L+sWzn
+        +4HLw8QEwdsFmUsWlbEg59eM7RHmgcuGNXffoy8tU/lFefCjWvyaTfcdBvtznJphl6AMvKHV8R+WY
+        hRZEQN4w==;
+Received: from [2001:4bb8:184:af1:d8d0:3027:a666:4c4e] (helo=localhost)
+        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kGFK5-0001tZ-IQ; Thu, 10 Sep 2020 05:40:42 +0000
+From:   Christoph Hellwig <hch@lst.de>
+To:     iommu@lists.linux-foundation.org,
+        Russell King <linux@armlinux.org.uk>,
+        Santosh Shilimkar <ssantosh@kernel.org>
+Cc:     Jim Quinlan <james.quinlan@broadcom.com>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Subject: [PATCH 2/3] ARM/keystone: move the DMA offset handling under ifdef CONFIG_ARM_LPAE
+Date:   Thu, 10 Sep 2020 07:40:37 +0200
+Message-Id: <20200910054038.324517-3-hch@lst.de>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200910054038.324517-1-hch@lst.de>
+References: <20200910054038.324517-1-hch@lst.de>
 MIME-Version: 1.0
-References: <20200903081550.6012-1-sakari.ailus@linux.intel.com>
- <20200903081550.6012-7-sakari.ailus@linux.intel.com> <CAMpxmJX40=iYYxL9Uvs1Pjj9c3NvZBGJ9Mh9-87T0c==FKEXRw@mail.gmail.com>
- <20200909111121.GJ2272@ninjato>
-In-Reply-To: <20200909111121.GJ2272@ninjato>
-From:   Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date:   Wed, 9 Sep 2020 13:56:34 +0200
-Message-ID: <CAMpxmJXDrL92QH_Vb+P4LoQ-WGBMM42GvzXjquW2Lzotm5wggA@mail.gmail.com>
-Subject: Re: [PATCH v8 6/6] at24: Support probing while off
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-i2c <linux-i2c@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rajmohan Mani <rajmohan.mani@intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Sep 9, 2020 at 1:11 PM Wolfram Sang <wsa@the-dreams.de> wrote:
->
->
-> > This currently conflicts with the fix I queued for at24 for v5.9.
-> > Which tree is going to take this series?
->
-> I recall we agreed on I2C.
->
+The DMA offset notifier can only be used if PHYS_OFFSET is at least
+KEYSTONE_HIGH_PHYS_START, which can't be represented by a 32-bit
+phys_addr_t.  Currently the code compiles fine despite that, a pending
+change to the DMA offset handling would create a compiler warning for
+this case.  Add an ifdef to not compile the code except for LPAE
+configs.
 
-Sakari,
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/arm/mach-keystone/keystone.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-can you rebase the at24 driver patch on top of Wolfram's tree as soon
-as he merges my PR with at24 fixes?
+diff --git a/arch/arm/mach-keystone/keystone.c b/arch/arm/mach-keystone/keystone.c
+index 638808c4e12247..dcd031ba84c2e0 100644
+--- a/arch/arm/mach-keystone/keystone.c
++++ b/arch/arm/mach-keystone/keystone.c
+@@ -24,6 +24,7 @@
+ 
+ #include "keystone.h"
+ 
++#ifdef CONFIG_ARM_LPAE
+ static unsigned long keystone_dma_pfn_offset __read_mostly;
+ 
+ static int keystone_platform_notifier(struct notifier_block *nb,
+@@ -48,14 +49,17 @@ static int keystone_platform_notifier(struct notifier_block *nb,
+ static struct notifier_block platform_nb = {
+ 	.notifier_call = keystone_platform_notifier,
+ };
++#endif /* CONFIG_ARM_LPAE */
+ 
+ static void __init keystone_init(void)
+ {
++#ifdef CONFIG_ARM_LPAE
+ 	if (PHYS_OFFSET >= KEYSTONE_HIGH_PHYS_START) {
+ 		keystone_dma_pfn_offset = PFN_DOWN(KEYSTONE_HIGH_PHYS_START -
+ 						   KEYSTONE_LOW_PHYS_START);
+ 		bus_register_notifier(&platform_bus_type, &platform_nb);
+ 	}
++#endif
+ 	keystone_pm_runtime_init();
+ }
+ 
+-- 
+2.28.0
 
-Bartosz
