@@ -2,150 +2,166 @@ Return-Path: <SRS0=uSgB=CT=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A68E0C433E2
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Sep 2020 09:15:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 984E1C43461
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Sep 2020 09:15:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5AFD821D40
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Sep 2020 09:15:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38ACF20809
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Sep 2020 09:15:33 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZK+Bvk7m"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730248AbgIJJOp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Sep 2020 05:14:45 -0400
-Received: from verein.lst.de ([213.95.11.211]:60117 "EHLO verein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727090AbgIJJOC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 10 Sep 2020 05:14:02 -0400
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id 7F59E6736F; Thu, 10 Sep 2020 11:13:51 +0200 (CEST)
-Date:   Thu, 10 Sep 2020 11:13:51 +0200
-From:   Christoph Hellwig <hch@lst.de>
-To:     Greg KH <greg@kroah.com>
-Cc:     Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org,
-        Russell King <linux@armlinux.org.uk>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Jim Quinlan <james.quinlan@broadcom.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Subject: Re: [PATCH 3/3] dma-mapping: introduce DMA range map, supplanting
- dma_pfn_offset
-Message-ID: <20200910091351.GA25883@lst.de>
-References: <20200910054038.324517-1-hch@lst.de> <20200910054038.324517-4-hch@lst.de> <20200910075351.GA1092435@kroah.com>
+        id S1730127AbgIJJPb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Sep 2020 05:15:31 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:42959 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1730193AbgIJJOW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2020 05:14:22 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1599729260;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=zFptVInSDSbB2nDLyh5K9NKtnygiDyhn7CU7AXmV4mo=;
+        b=ZK+Bvk7m7basu/rtGK9lRajkhlHLta5kNFKE4iol6Z4Oq4JiS9XnJPs0C063kJIwaMOhVJ
+        TlVZN2Y16oa/LvPNdZczJ2ZHO5We2ioKdh0Avw28SveSk8ekzz4y7ogV+WN8IGaFo64c+I
+        4cLkYo1uZr0+L8vLciN5NEZO+dbJ+D0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-444-O9Y06Jz4OkiDaTZaHIbCkg-1; Thu, 10 Sep 2020 05:14:16 -0400
+X-MC-Unique: O9Y06Jz4OkiDaTZaHIbCkg-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0280418B9F00;
+        Thu, 10 Sep 2020 09:14:14 +0000 (UTC)
+Received: from t480s.redhat.com (ovpn-113-88.ams2.redhat.com [10.36.113.88])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D920727CCC;
+        Thu, 10 Sep 2020 09:14:08 +0000 (UTC)
+From:   David Hildenbrand <david@redhat.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
+        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
+        linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-s390@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        David Hildenbrand <david@redhat.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Kees Cook <keescook@chromium.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+        Baoquan He <bhe@redhat.com>,
+        Wei Yang <richardw.yang@linux.intel.com>,
+        Eric Biederman <ebiederm@xmission.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        kexec@lists.infradead.org
+Subject: [PATCH v3 2/7] kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED
+Date:   Thu, 10 Sep 2020 11:13:35 +0200
+Message-Id: <20200910091340.8654-3-david@redhat.com>
+In-Reply-To: <20200910091340.8654-1-david@redhat.com>
+References: <20200910091340.8654-1-david@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200910075351.GA1092435@kroah.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Sep 10, 2020 at 09:53:51AM +0200, Greg KH wrote:
-> >  		/*
-> >  		 * Please refer to usb_alloc_dev() to see why we set
-> > -		 * dma_mask and dma_pfn_offset.
-> > +		 * dma_mask and dma_range_map.
-> >  		 */
-> >  		intf->dev.dma_mask = dev->dev.dma_mask;
-> > -		intf->dev.dma_pfn_offset = dev->dev.dma_pfn_offset;
-> > +		if (dma_direct_copy_range_map(&intf->dev, &dev->dev))
-> > +			dev_err(&dev->dev, "failed to copy DMA map\n");
-> 
-> We tell the user, but then just keep on running?  Is there anything that
-> we can do here?
-> 
-> If not, why not have dma_direct_copy_range_map() print out the error?
+IORESOURCE_MEM_DRIVER_MANAGED currently uses an unused PnP bit, which is
+always set to 0 by hardware. This is far from beautiful (and confusing),
+and the bit only applies to SYSRAM. So let's move it out of the
+bus-specific (PnP) defined bits.
 
-At least for USB I'm pretty sure this isn't required at all.  I've been
-running with the patch below on my desktop for two days now trying all
-the usb toys I have (in addition to grepping for obvious abuses in
-the drivers).  remoteproc is a different story, but the DMA handling
-seems there is sketchy to start with..
+We'll add another SYSRAM specific bit soon. If we ever need more bits for
+other purposes, we can steal some from "desc", or reshuffle/regroup what we
+have.
 
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: kexec@lists.infradead.org
+Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
-From 8bae3e6833f2ca431dcfcbc8f9cced7d5e972a01 Mon Sep 17 00:00:00 2001
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 9 Sep 2020 08:28:59 +0200
-Subject: usb: don't inherity DMA properties for USB devices
+ include/linux/ioport.h | 4 +++-
+ kernel/kexec_file.c    | 2 +-
+ mm/memory_hotplug.c    | 4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-As the comment in usb_alloc_dev correctly states, drivers can't use
-the DMA API on usb device, and at least calling dma_set_mask on them
-is highly dangerous.  Unlike what the comment states upper level drivers
-also can't really use the presence of a dma mask to check for DMA
-support, as the dma_mask is set by default for most busses.
-
-Remove the copying over of DMA information, and remove the now unused
-dma_direct_copy_range_map export.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/usb/core/message.c |  7 -------
- drivers/usb/core/usb.c     | 13 -------------
- kernel/dma/direct.c        |  1 -
- 3 files changed, 21 deletions(-)
-
-diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
-index 935ee98e049f65..9e45732dc1d1d1 100644
---- a/drivers/usb/core/message.c
-+++ b/drivers/usb/core/message.c
-@@ -1954,13 +1954,6 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
- 		intf->dev.bus = &usb_bus_type;
- 		intf->dev.type = &usb_if_device_type;
- 		intf->dev.groups = usb_interface_groups;
--		/*
--		 * Please refer to usb_alloc_dev() to see why we set
--		 * dma_mask and dma_range_map.
--		 */
--		intf->dev.dma_mask = dev->dev.dma_mask;
--		if (dma_direct_copy_range_map(&intf->dev, &dev->dev))
--			dev_err(&dev->dev, "failed to copy DMA map\n");
- 		INIT_WORK(&intf->reset_ws, __usb_queue_reset_device);
- 		intf->minor = -1;
- 		device_initialize(&intf->dev);
-diff --git a/drivers/usb/core/usb.c b/drivers/usb/core/usb.c
-index 23d451f6894d70..9b4ac4415f1a47 100644
---- a/drivers/usb/core/usb.c
-+++ b/drivers/usb/core/usb.c
-@@ -599,19 +599,6 @@ struct usb_device *usb_alloc_dev(struct usb_device *parent,
- 	dev->dev.bus = &usb_bus_type;
- 	dev->dev.type = &usb_device_type;
- 	dev->dev.groups = usb_device_groups;
--	/*
--	 * Fake a dma_mask/offset for the USB device:
--	 * We cannot really use the dma-mapping API (dma_alloc_* and
--	 * dma_map_*) for USB devices but instead need to use
--	 * usb_alloc_coherent and pass data in 'urb's, but some subsystems
--	 * manually look into the mask/offset pair to determine whether
--	 * they need bounce buffers.
--	 * Note: calling dma_set_mask() on a USB device would set the
--	 * mask for the entire HCD, so don't do that.
--	 */
--	dev->dev.dma_mask = bus->sysdev->dma_mask;
--	if (dma_direct_copy_range_map(&dev->dev, bus->sysdev))
--		dev_err(&dev->dev, "failed to copy DMA map\n");
- 	set_dev_node(&dev->dev, dev_to_node(bus->sysdev));
- 	dev->state = USB_STATE_ATTACHED;
- 	dev->lpm_disable_count = 1;
-diff --git a/kernel/dma/direct.c b/kernel/dma/direct.c
-index fc815f7375e282..3af257571a3b42 100644
---- a/kernel/dma/direct.c
-+++ b/kernel/dma/direct.c
-@@ -552,4 +552,3 @@ int dma_direct_copy_range_map(struct device *to, struct device *from)
- 	to->dma_range_map = new_map;
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(dma_direct_copy_range_map);
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 52a91f5fa1a36..d7620d7c941a0 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -58,6 +58,9 @@ struct resource {
+ #define IORESOURCE_EXT_TYPE_BITS 0x01000000	/* Resource extended types */
+ #define IORESOURCE_SYSRAM	0x01000000	/* System RAM (modifier) */
+ 
++/* IORESOURCE_SYSRAM specific bits. */
++#define IORESOURCE_SYSRAM_DRIVER_MANAGED	0x02000000 /* Always detected via a driver. */
++
+ #define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resource */
+ 
+ #define IORESOURCE_DISABLED	0x10000000
+@@ -103,7 +106,6 @@ struct resource {
+ #define IORESOURCE_MEM_32BIT		(3<<3)
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+-#define IORESOURCE_MEM_DRIVER_MANAGED	(1<<7)
+ 
+ /* PnP I/O specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
+index ca40bef75a616..dfeeed1aed084 100644
+--- a/kernel/kexec_file.c
++++ b/kernel/kexec_file.c
+@@ -520,7 +520,7 @@ static int locate_mem_hole_callback(struct resource *res, void *arg)
+ 	/* Returning 0 will take to next memory range */
+ 
+ 	/* Don't use memory that will be detected and handled by a driver. */
+-	if (res->flags & IORESOURCE_MEM_DRIVER_MANAGED)
++	if (res->flags & IORESOURCE_SYSRAM_DRIVER_MANAGED)
+ 		return 0;
+ 
+ 	if (sz < kbuf->memsz)
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 4c47b68a9f4b5..8e1cd18b5cf14 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -105,7 +105,7 @@ static struct resource *register_memory_resource(u64 start, u64 size,
+ 	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+ 
+ 	if (strcmp(resource_name, "System RAM"))
+-		flags |= IORESOURCE_MEM_DRIVER_MANAGED;
++		flags |= IORESOURCE_SYSRAM_DRIVER_MANAGED;
+ 
+ 	/*
+ 	 * Make sure value parsed from 'mem=' only restricts memory adding
+@@ -1160,7 +1160,7 @@ EXPORT_SYMBOL_GPL(add_memory);
+  *
+  * For this memory, no entries in /sys/firmware/memmap ("raw firmware-provided
+  * memory map") are created. Also, the created memory resource is flagged
+- * with IORESOURCE_MEM_DRIVER_MANAGED, so in-kernel users can special-case
++ * with IORESOURCE_SYSRAM_DRIVER_MANAGED, so in-kernel users can special-case
+  * this memory as well (esp., not place kexec images onto it).
+  *
+  * The resource_name (visible via /proc/iomem) has to have the format
 -- 
-2.28.0
+2.26.2
 
