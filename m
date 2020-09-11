@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 830AAC433E2
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Sep 2020 10:37:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 066D2C433E2
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Sep 2020 10:38:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3614922204
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Sep 2020 10:37:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BBD45208FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Sep 2020 10:38:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MUTGkoJk"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="asuo1MA5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725989AbgIKKhJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Sep 2020 06:37:09 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:50461 "EHLO
+        id S1725768AbgIKKfs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Sep 2020 06:35:48 -0400
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:59823 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725964AbgIKKgE (ORCPT
+        by vger.kernel.org with ESMTP id S1725866AbgIKKfk (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 11 Sep 2020 06:36:04 -0400
+        Fri, 11 Sep 2020 06:35:40 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1599820562;
+        s=mimecast20190719; t=1599820538;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Ilu5qA/4MOIRMjHNcFmuyfPNfVkDyJXmY7w9sBJwUqM=;
-        b=MUTGkoJk4z1k2jVLeR5HsxCTq8mRv0S1ojeIJ73lqw8N18HzkjjQ+61imkdV73M8RdT4jP
-        MDUuOP8ese0AUwV/l9gpmd1zbpVSeL6WcONLgH0yyKK2g/aPT7cuXP0dBdVMl1mT3FYFMG
-        4F3iiz8JihldBzarvgKAvxL3lognaSg=
+        bh=zFptVInSDSbB2nDLyh5K9NKtnygiDyhn7CU7AXmV4mo=;
+        b=asuo1MA5FuLcple8Oc9A7gH3OuCn0OsgAIVHgGJ5wMxOHwRjUvpIWjAbitzxmBarjGeK22
+        K/lJvvMZ53CBC8TYsJ12hqWcokBO8poKRwd9p3/o82JOQ4iAJaIWNZnR7X1EFwECgCFQiF
+        Ty8iHL4PqOgtvNNuVFE6Vj5htoBTyPg=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-475-i_fYLb3wO1GbagxD_riIhw-1; Fri, 11 Sep 2020 06:35:59 -0400
-X-MC-Unique: i_fYLb3wO1GbagxD_riIhw-1
+ us-mta-463-v3vJhF-RMM68yrzofPOmHw-1; Fri, 11 Sep 2020 06:35:34 -0400
+X-MC-Unique: v3vJhF-RMM68yrzofPOmHw-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F1481873084;
-        Fri, 11 Sep 2020 10:35:56 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 67DAB107464E;
+        Fri, 11 Sep 2020 10:35:31 +0000 (UTC)
 Received: from t480s.redhat.com (ovpn-113-186.ams2.redhat.com [10.36.113.186])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D526C81C44;
-        Fri, 11 Sep 2020 10:35:53 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1E95281C44;
+        Fri, 11 Sep 2020 10:35:23 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
@@ -52,15 +52,21 @@ Cc:     virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
         linux-s390@vger.kernel.org,
         Andrew Morton <akpm@linux-foundation.org>,
         David Hildenbrand <david@redhat.com>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
         Michal Hocko <mhocko@suse.com>,
         Dan Williams <dan.j.williams@intel.com>,
-        "Michael S . Tsirkin" <mst@redhat.com>,
-        Jason Wang <jasowang@redhat.com>, Baoquan He <bhe@redhat.com>,
-        Wei Yang <richardw.yang@linux.intel.com>
-Subject: [PATCH v4 6/8] virtio-mem: try to merge system ram resources
-Date:   Fri, 11 Sep 2020 12:34:57 +0200
-Message-Id: <20200911103459.10306-7-david@redhat.com>
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Kees Cook <keescook@chromium.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+        Baoquan He <bhe@redhat.com>,
+        Wei Yang <richardw.yang@linux.intel.com>,
+        Eric Biederman <ebiederm@xmission.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        kexec@lists.infradead.org
+Subject: [PATCH v4 2/8] kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED
+Date:   Fri, 11 Sep 2020 12:34:53 +0200
+Message-Id: <20200911103459.10306-3-david@redhat.com>
 In-Reply-To: <20200911103459.10306-1-david@redhat.com>
 References: <20200911103459.10306-1-david@redhat.com>
 MIME-Version: 1.0
@@ -71,78 +77,92 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-virtio-mem adds memory in memory block granularity, to be able to
-remove it in the same granularity again later, and to grow slowly on
-demand. This, however, results in quite a lot of resources when
-adding a lot of memory. Resources are effectively stored in a list-based
-tree. Having a lot of resources not only wastes memory, it also makes
-traversing that tree more expensive, and makes /proc/iomem explode in
-size (e.g., requiring kexec-tools to manually merge resources later
-when e.g., trying to create a kdump header).
+IORESOURCE_MEM_DRIVER_MANAGED currently uses an unused PnP bit, which is
+always set to 0 by hardware. This is far from beautiful (and confusing),
+and the bit only applies to SYSRAM. So let's move it out of the
+bus-specific (PnP) defined bits.
 
-Before this patch, we get (/proc/iomem) when hotplugging 2G via virtio-mem
-on x86-64:
-        [...]
-        100000000-13fffffff : System RAM
-        140000000-33fffffff : virtio0
-          140000000-147ffffff : System RAM (virtio_mem)
-          148000000-14fffffff : System RAM (virtio_mem)
-          150000000-157ffffff : System RAM (virtio_mem)
-          158000000-15fffffff : System RAM (virtio_mem)
-          160000000-167ffffff : System RAM (virtio_mem)
-          168000000-16fffffff : System RAM (virtio_mem)
-          170000000-177ffffff : System RAM (virtio_mem)
-          178000000-17fffffff : System RAM (virtio_mem)
-          180000000-187ffffff : System RAM (virtio_mem)
-          188000000-18fffffff : System RAM (virtio_mem)
-          190000000-197ffffff : System RAM (virtio_mem)
-          198000000-19fffffff : System RAM (virtio_mem)
-          1a0000000-1a7ffffff : System RAM (virtio_mem)
-          1a8000000-1afffffff : System RAM (virtio_mem)
-          1b0000000-1b7ffffff : System RAM (virtio_mem)
-          1b8000000-1bfffffff : System RAM (virtio_mem)
-        3280000000-32ffffffff : PCI Bus 0000:00
+We'll add another SYSRAM specific bit soon. If we ever need more bits for
+other purposes, we can steal some from "desc", or reshuffle/regroup what we
+have.
 
-With this patch, we get (/proc/iomem):
-        [...]
-        fffc0000-ffffffff : Reserved
-        100000000-13fffffff : System RAM
-        140000000-33fffffff : virtio0
-          140000000-1bfffffff : System RAM (virtio_mem)
-        3280000000-32ffffffff : PCI Bus 0000:00
-
-Of course, with more hotplugged memory, it gets worse. When unplugging
-memory blocks again, try_remove_memory() (via
-offline_and_remove_memory()) will properly split the resource up again.
-
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: kexec@lists.infradead.org
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/virtio/virtio_mem.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/ioport.h | 4 +++-
+ kernel/kexec_file.c    | 2 +-
+ mm/memory_hotplug.c    | 4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/virtio/virtio_mem.c b/drivers/virtio/virtio_mem.c
-index ed99e43354010..ba4de598f6636 100644
---- a/drivers/virtio/virtio_mem.c
-+++ b/drivers/virtio/virtio_mem.c
-@@ -424,7 +424,8 @@ static int virtio_mem_mb_add(struct virtio_mem *vm, unsigned long mb_id)
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 52a91f5fa1a36..d7620d7c941a0 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -58,6 +58,9 @@ struct resource {
+ #define IORESOURCE_EXT_TYPE_BITS 0x01000000	/* Resource extended types */
+ #define IORESOURCE_SYSRAM	0x01000000	/* System RAM (modifier) */
  
- 	dev_dbg(&vm->vdev->dev, "adding memory block: %lu\n", mb_id);
- 	return add_memory_driver_managed(nid, addr, memory_block_size_bytes(),
--					 vm->resource_name, MHP_NONE);
-+					 vm->resource_name,
-+					 MEMHP_MERGE_RESOURCE);
- }
++/* IORESOURCE_SYSRAM specific bits. */
++#define IORESOURCE_SYSRAM_DRIVER_MANAGED	0x02000000 /* Always detected via a driver. */
++
+ #define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resource */
  
- /*
+ #define IORESOURCE_DISABLED	0x10000000
+@@ -103,7 +106,6 @@ struct resource {
+ #define IORESOURCE_MEM_32BIT		(3<<3)
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+-#define IORESOURCE_MEM_DRIVER_MANAGED	(1<<7)
+ 
+ /* PnP I/O specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
+index ca40bef75a616..dfeeed1aed084 100644
+--- a/kernel/kexec_file.c
++++ b/kernel/kexec_file.c
+@@ -520,7 +520,7 @@ static int locate_mem_hole_callback(struct resource *res, void *arg)
+ 	/* Returning 0 will take to next memory range */
+ 
+ 	/* Don't use memory that will be detected and handled by a driver. */
+-	if (res->flags & IORESOURCE_MEM_DRIVER_MANAGED)
++	if (res->flags & IORESOURCE_SYSRAM_DRIVER_MANAGED)
+ 		return 0;
+ 
+ 	if (sz < kbuf->memsz)
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 4c47b68a9f4b5..8e1cd18b5cf14 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -105,7 +105,7 @@ static struct resource *register_memory_resource(u64 start, u64 size,
+ 	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+ 
+ 	if (strcmp(resource_name, "System RAM"))
+-		flags |= IORESOURCE_MEM_DRIVER_MANAGED;
++		flags |= IORESOURCE_SYSRAM_DRIVER_MANAGED;
+ 
+ 	/*
+ 	 * Make sure value parsed from 'mem=' only restricts memory adding
+@@ -1160,7 +1160,7 @@ EXPORT_SYMBOL_GPL(add_memory);
+  *
+  * For this memory, no entries in /sys/firmware/memmap ("raw firmware-provided
+  * memory map") are created. Also, the created memory resource is flagged
+- * with IORESOURCE_MEM_DRIVER_MANAGED, so in-kernel users can special-case
++ * with IORESOURCE_SYSRAM_DRIVER_MANAGED, so in-kernel users can special-case
+  * this memory as well (esp., not place kexec images onto it).
+  *
+  * The resource_name (visible via /proc/iomem) has to have the format
 -- 
 2.26.2
 
