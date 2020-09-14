@@ -2,136 +2,136 @@ Return-Path: <SRS0=0XZn=CX=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8161FC43461
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Sep 2020 07:45:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01AEEC43461
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Sep 2020 07:47:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A7FB217BA
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Sep 2020 07:45:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD91C20EDD
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Sep 2020 07:47:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ewBb2tcJ"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="iYglZJwL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725968AbgINHpK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Sep 2020 03:45:10 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:53839 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725997AbgINHpJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 14 Sep 2020 03:45:09 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1600069508;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=vx80H7te5gIB49yR3z5p+8Lj/f1I2wyUY1AR+ocRP2k=;
-        b=ewBb2tcJoY6HIu8W1tMgxr3sVhk13xdTLJOSkneWSqlAUJl8+LA0W/Pk/GQsFvy6Ra0dnx
-        2UhIyiXli/D1pv1JO6j2YbZ2s6sEiqlSfiPvf8Ea++zE6FE/iFDGN6B3FHBlxq+/a3u0bv
-        sh4QiHjMnHwypmaVYk+18ZGBdpn9mGI=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-277-8xlDVtOyMUa3_d6u6G3JMw-1; Mon, 14 Sep 2020 03:45:05 -0400
-X-MC-Unique: 8xlDVtOyMUa3_d6u6G3JMw-1
-Received: by mail-ej1-f70.google.com with SMTP id jz22so7733110ejb.4
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Sep 2020 00:45:05 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=vx80H7te5gIB49yR3z5p+8Lj/f1I2wyUY1AR+ocRP2k=;
-        b=iaVP9gksblPc6oPFsZ05DmQpkFSNj6FyB3B7dH9QsvfvkjkEasKJy3BoNvT3scoD4c
-         qo5SQGxv44NxHTTPBGR4uZIaFaFMDm4P74e9zotWZZfLPCEspzkCgtLxFiOh+rOjC3v5
-         chzIzSccaBLuCV1SXySeKKjpmqYtzUhzbTga5N8ixX7iq7AOkobhhEsnfcxAa6zSU0Wk
-         QSwipcHg5ZbKurOQhQwuddZff/c/lJ3nMzoE8nUoUurk52LB5HDf1TvhdvHN8aFPxFu9
-         22vrB8TBo3/buEHZtFL7I2jY9HfyBEnJ3KjNdrXXPXUY7CZvQ1eVhMR3/zFkNrNShipZ
-         2BUg==
-X-Gm-Message-State: AOAM533ctg7P4mV8+zICsOToVfeGbJPMxB5NMsRLfSYiOMfcjIb+oF7I
-        p4F62h/rYRq4wNAolDuq8eCdl/g9Svb5jkkxctGej+xquW1HmQxQ/xa9MD6Kh4HQkpCLnPQpOg7
-        Dek7CO99obo+0ctvwNlUx/A==
-X-Received: by 2002:a17:906:5611:: with SMTP id f17mr14139617ejq.427.1600069503981;
-        Mon, 14 Sep 2020 00:45:03 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJwGKcq8+llfZMODL92knPx6qXu/rkmoC6YLK9WMi9CO8WaTj5e/GBzZiGpN6aZ/Fw7oKeVmPw==
-X-Received: by 2002:a17:906:5611:: with SMTP id f17mr14139602ejq.427.1600069503811;
-        Mon, 14 Sep 2020 00:45:03 -0700 (PDT)
-Received: from x1.localdomain ([78.108.130.193])
-        by smtp.gmail.com with ESMTPSA id w10sm7128920ejv.44.2020.09.14.00.45.02
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 14 Sep 2020 00:45:03 -0700 (PDT)
-Subject: Re: [PATCH 0/1] Input: soc_button_array - Work around DSDTs which
- modify the irqflags
-To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-input@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-References: <20200906122016.4628-1-hdegoede@redhat.com>
- <20200914061246.GO1665100@dtor-ws>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <61dfb476-2d55-116c-21d6-bf5972929cd3@redhat.com>
-Date:   Mon, 14 Sep 2020 09:45:02 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1726112AbgINHro (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Sep 2020 03:47:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60172 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726133AbgINHq4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2020 03:46:56 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01C39C06174A;
+        Mon, 14 Sep 2020 00:46:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+        Content-Type:Content-ID:Content-Description;
+        bh=cPqBYq5povPLhzEYOyx5GvOLRCGW66TTAZJ+daEl52w=; b=iYglZJwLzk6QChePoSrmhAvdyb
+        l78kJNSRO4PN+2+9URpPa8neGWWEj7PxXZ/bHrsB+MsIqClcOch1s/2XUgxIGUtH5LvyKkrFwDUEP
+        +0sFvvHDKcLTp5piUcWx6pOtDO23awiYO28M27zgm9fpp5ooxb6sqXJQ0YpXVMfu23lBBXBDLZSzz
+        mdGXvTHW146h81v/e/y2f0jZ3u2B6l2Kkvwni1Ib51JpQuUL5o4ERZ1jFtaF6HPLhhVnR7bbySC2K
+        3Ach0o1ngE2FF91LbR/lApduf2NtE5av39CaFEMyb0KdHTNoL6OYRuQq0zSxAv3N5oVDl2sMf+pxq
+        GVApXDgg==;
+Received: from 089144214092.atnat0023.highway.a1.net ([89.144.214.92] helo=localhost)
+        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kHjCL-0000c0-Hb; Mon, 14 Sep 2020 07:46:49 +0000
+From:   Christoph Hellwig <hch@lst.de>
+To:     iommu@lists.linux-foundation.org,
+        Russell King <linux@armlinux.org.uk>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Jim Quinlan <james.quinlan@broadcom.com>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        linux-remoteproc@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 5/6] usb: don't inherity DMA properties for USB devices
+Date:   Mon, 14 Sep 2020 09:33:42 +0200
+Message-Id: <20200914073343.1579578-6-hch@lst.de>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200914073343.1579578-1-hch@lst.de>
+References: <20200914073343.1579578-1-hch@lst.de>
 MIME-Version: 1.0
-In-Reply-To: <20200914061246.GO1665100@dtor-ws>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+As the comment in usb_alloc_dev correctly states, drivers can't use
+the DMA API on usb device, and at least calling dma_set_mask on them
+is highly dangerous.  Unlike what the comment states upper level drivers
+also can't really use the presence of a dma mask to check for DMA
+support, as the dma_mask is set by default for most busses.
 
-On 9/14/20 8:12 AM, Dmitry Torokhov wrote:
-> Hi Hans,
-> 
-> On Sun, Sep 06, 2020 at 02:20:15PM +0200, Hans de Goede wrote:
->> Hi Dmitry,
->>
->> This patch is a bit of a kludge, but the problem it fixes has been
->> encountered on 2 different models now, so it seems that we really
->> need a workaround for this.
->>
->> This patch applies on top of these 2 patches:
->>
->> "Input: soc_button_array - Add active_low setting to soc_button_info"
->> "Input: soc_button_array - Add support for INT33D3 tablet-mode switch devices"
->>
->> Which I have posted multiple times upstream already (they are from May!),
->> but these have not been getting any attention.
-> 
-> Sorry about that, I merged them just now.
+Setting the dma_mask comes from "[PATCH] usbcore dma updates (and doc)"
+in BitKeeper times, as it seems like it was primarily for setting the
+NETIF_F_HIGHDMA flag in USB drivers, something that has long been
+fixed up since.
 
-No problem, and thank you.
+Setting the dma_pfn_offset comes from commit b44bbc46a8bb
+("usb: core: setup dma_pfn_offset for USB devices and, interfaces"),
+which worked around the fact that the scsi_calculate_bounce_limits
+functions wasn't going through the proper driver interface to query
+DMA information, but that function was removed in commit 21e07dba9fb1
+("scsi: reduce use of block bounce buffers") years ago.
 
->> The soc_button_array code really is x86 specific glue code to translate
->> various incarnations of gpio-keys in ACPI tables to gpio_keys_platform_data.
->> As such I wonder if it would not be better to move this driver to
->> drivers/platform/x86?
->>
->> I seem to be doing most if not all of the recent work on soc_button_array,
->> and soon I will be a co-maintainer of drivers/platform/x86. So having it
->> there and adding me in MAINTAINERS as maintaining it seems to be best?
->>
->> If you want I can do a patch moving soc_button_array to drivers/platform/x86
->> and then add the other 3 patches on top and then we can merge all of this
->> through drivers/platform/x86?
-> 
-> Sorry, misread this first time through, so already merged the 3 patches,
-> but I to not mind at all moving the driver to platform tree. If you send
-> me such a patch I will apply it.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/usb/core/message.c |  6 ------
+ drivers/usb/core/usb.c     | 12 ------------
+ 2 files changed, 18 deletions(-)
 
-Ok.
-
-Andy are you ok with moving the driver to the pdx86 tree too?
-
-Regards,
-
-Hans
+diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
+index 6197938dcc2d8f..9e45732dc1d1d1 100644
+--- a/drivers/usb/core/message.c
++++ b/drivers/usb/core/message.c
+@@ -1954,12 +1954,6 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
+ 		intf->dev.bus = &usb_bus_type;
+ 		intf->dev.type = &usb_if_device_type;
+ 		intf->dev.groups = usb_interface_groups;
+-		/*
+-		 * Please refer to usb_alloc_dev() to see why we set
+-		 * dma_mask and dma_pfn_offset.
+-		 */
+-		intf->dev.dma_mask = dev->dev.dma_mask;
+-		intf->dev.dma_pfn_offset = dev->dev.dma_pfn_offset;
+ 		INIT_WORK(&intf->reset_ws, __usb_queue_reset_device);
+ 		intf->minor = -1;
+ 		device_initialize(&intf->dev);
+diff --git a/drivers/usb/core/usb.c b/drivers/usb/core/usb.c
+index bafc113f2b3ef3..9b4ac4415f1a47 100644
+--- a/drivers/usb/core/usb.c
++++ b/drivers/usb/core/usb.c
+@@ -599,18 +599,6 @@ struct usb_device *usb_alloc_dev(struct usb_device *parent,
+ 	dev->dev.bus = &usb_bus_type;
+ 	dev->dev.type = &usb_device_type;
+ 	dev->dev.groups = usb_device_groups;
+-	/*
+-	 * Fake a dma_mask/offset for the USB device:
+-	 * We cannot really use the dma-mapping API (dma_alloc_* and
+-	 * dma_map_*) for USB devices but instead need to use
+-	 * usb_alloc_coherent and pass data in 'urb's, but some subsystems
+-	 * manually look into the mask/offset pair to determine whether
+-	 * they need bounce buffers.
+-	 * Note: calling dma_set_mask() on a USB device would set the
+-	 * mask for the entire HCD, so don't do that.
+-	 */
+-	dev->dev.dma_mask = bus->sysdev->dma_mask;
+-	dev->dev.dma_pfn_offset = bus->sysdev->dma_pfn_offset;
+ 	set_dev_node(&dev->dev, dev_to_node(bus->sysdev));
+ 	dev->state = USB_STATE_ATTACHED;
+ 	dev->lpm_disable_count = 1;
+-- 
+2.28.0
 
