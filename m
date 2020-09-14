@@ -1,79 +1,67 @@
-Return-Path: <SRS0=GXbn=CW=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=0XZn=CX=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5127FC43461
-	for <linux-acpi@archiver.kernel.org>; Sun, 13 Sep 2020 22:34:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90C76C43461
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Sep 2020 00:47:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 28B8E22229
-	for <linux-acpi@archiver.kernel.org>; Sun, 13 Sep 2020 22:34:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6296621D1A
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Sep 2020 00:47:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725950AbgIMWeJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 13 Sep 2020 18:34:09 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:41355 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725940AbgIMWeI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Sep 2020 18:34:08 -0400
-Received: from 2.general.alexhung.us.vpn ([10.172.65.255] helo=canonical.com)
-        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <alex.hung@canonical.com>)
-        id 1kHaZR-0000EM-IG; Sun, 13 Sep 2020 22:34:06 +0000
-From:   Alex Hung <alex.hung@canonical.com>
-To:     rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org,
-        alex.hung@canonical.com
-Cc:     stable@vger.kernel.org
-Subject: [PATCH][V2] ACPI: video: use ACPI backlight for HP 635 Notebook
-Date:   Sun, 13 Sep 2020 16:34:03 -0600
-Message-Id: <20200913223403.59175-1-alex.hung@canonical.com>
-X-Mailer: git-send-email 2.25.1
+        id S1725975AbgINArY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 13 Sep 2020 20:47:24 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:12243 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725962AbgINArY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 13 Sep 2020 20:47:24 -0400
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 4C60D1802ACFD753FA8B
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Sep 2020 08:47:21 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.56) by
+ DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 14 Sep 2020 08:47:10 +0800
+From:   Tian Tao <tiantao6@hisilicon.com>
+To:     <rafael.j.wysocki@intel.com>, <linux-acpi@vger.kernel.org>
+CC:     <linuxarm@huawei.com>
+Subject: [PATCH] PNP: Fix duplicate included pci.h
+Date:   Mon, 14 Sep 2020 08:44:50 +0800
+Message-ID: <1600044290-12475-1-git-send-email-tiantao6@hisilicon.com>
+X-Mailer: git-send-email 2.7.4
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.56]
+X-CFilter-Loop: Reflected
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Default backlight interface is AMD's radeon_bl0 which does not work on
-this system. As a result, let's for ACPI backlight interface for this
-system.
+linux/pci.h is included more than once, Remove the one that isn't
+necessary.
 
-BugLink: https://bugs.launchpad.net/bugs/1894667
-
-Cc: stable@vger.kernel.org
-Signed-off-by: Alex Hung <alex.hung@canonical.com>
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
 ---
+ drivers/pnp/quirks.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-V2: correct Cc to stable
-
- drivers/acpi/video_detect.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 2499d7e..05047a3 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -282,6 +282,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "530U4E/540U4E"),
- 		},
- 	},
-+	/* https://bugs.launchpad.net/bugs/1894667 */
-+	{
-+	 .callback = video_detect_force_video,
-+	 .ident = "HP 635 Notebook",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP 635 Notebook PC"),
-+		},
-+	},
+diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+index de99f37..ac98b99 100644
+--- a/drivers/pnp/quirks.c
++++ b/drivers/pnp/quirks.c
+@@ -226,8 +226,6 @@ static void quirk_ad1815_mpu_resources(struct pnp_dev *dev)
+ 	dev_info(&dev->dev, "made independent IRQ optional\n");
+ }
  
- 	/* Non win8 machines which need native backlight nevertheless */
- 	{
+-#include <linux/pci.h>
+-
+ static void quirk_system_pci_resources(struct pnp_dev *dev)
+ {
+ 	struct pci_dev *pdev = NULL;
 -- 
 2.7.4
 
