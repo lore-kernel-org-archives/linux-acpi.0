@@ -2,91 +2,116 @@ Return-Path: <SRS0=mdGK=CY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7719C2D0E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 12:51:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C21C43461
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 13:19:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47CDB208E4
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 12:51:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90D9321655
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 13:19:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="n4aeYGRw"
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20150623.gappssmtp.com header.i=@bgdev-pl.20150623.gappssmtp.com header.b="Ao6JMC6M"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726490AbgIOMvM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 15 Sep 2020 08:51:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46956 "EHLO
+        id S1726429AbgIONTe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Sep 2020 09:19:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726462AbgIOMum (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2020 08:50:42 -0400
-Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1135C06178B
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 05:50:13 -0700 (PDT)
-Received: from zn.tnic (p200300ec2f0e42005feaf7d7c7b8ac70.dip0.t-ipconnect.de [IPv6:2003:ec:2f0e:4200:5fea:f7d7:c7b8:ac70])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 6A9781EC0268;
-        Tue, 15 Sep 2020 14:50:12 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1600174212;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=apY9uagXcKYIhWCC1PSmk/9uoKShxkutga8Rag01Bac=;
-        b=n4aeYGRweyXbQq+5qg/38VrcEXY/bIPJNFZZGoER+rxgxhh4juwlJB5fxi+0TrJegf9JXQ
-        yaq7x09dzX26QpTh7+JHp7AQgbd4Ch/M4JkQPiopgxmG3GpvrZzbMVIJkN3LoKFOZ5G1dK
-        MopBagtwx+iGMKVB3PxivPpPSkFAMqU=
-Date:   Tue, 15 Sep 2020 14:50:03 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     Jason Yan <yanaijie@huawei.com>
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, james.morse@arm.com,
-        tony.luck@intel.com, wangkefeng.wang@huawei.com,
-        linux-acpi@vger.kernel.org, Hulk Robot <hulkci@huawei.com>
-Subject: Re: [PATCH] ACPI, APEI: make apei_resources_all static
-Message-ID: <20200915125003.GH14436@zn.tnic>
-References: <20200912033851.143311-1-yanaijie@huawei.com>
+        with ESMTP id S1726612AbgIONRd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2020 09:17:33 -0400
+Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A49D5C06178A
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 06:16:55 -0700 (PDT)
+Received: by mail-il1-x141.google.com with SMTP id t13so2918032ile.9
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 06:16:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=v/HlO2pz67e4hxYirmZqk4ySGJecTpWx3uH4onJVbvU=;
+        b=Ao6JMC6MHz4vIH5oPcx8XvXMXNBpuT6aZgdgvKvyHV/hNMlBoELCsvdTJFmmq14gbE
+         wpEde/KfyVyFa+9WwWJkJYfVu6a0Q3aJcrFAORKIbcdpmNJ2v9vG5QLHqNVDqT2mL71e
+         0YXAHgkC4RSoeJ2fQ0H4LNQ5DhFhFDiAX6dY7pFYVOS7ENh31SSkeYZhK+Y+PZ8GXtni
+         it5g8WftJxlJ6qHd3exqCyuQIyIaqVW0k8SqqAOp7WiqgFAbXPp2vkFA7GJeDXi7QWuN
+         4Y0cLMfUJtcUKC9g6CzlkkBxSrMKYD2mmLINKs5X/rS/b0CeqJhOTjO/+4aMQTc3iy6N
+         nSow==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=v/HlO2pz67e4hxYirmZqk4ySGJecTpWx3uH4onJVbvU=;
+        b=PgKE8P15L+Hydfx2GLkOOEBFNwKmPIiIegqTW1/IaS3Jc1MLEniWYirhTyjUzKj01n
+         DRmXHqcArheg9M7xdmbamE3RF4mKUYjPPGz7KD/a+u5s5IF3hJo7vQpcfuu5vMOcfwM0
+         G9r6V0vTZccNeSS3b3A5Inry8jnWZ7Ew+44gcMPzXLawWPWSKaU8gglZYsdEe/y1qVje
+         OwKOLU6xZCuUITOCCT5fVb7IuynVeGgIuDhiblNJWdMSzPfMu1NTHGTJkmCLcLWyn8FL
+         og87kPFV1DmfAvIgs/BaENVg4FL17vwcHy0J5CBHkGjbisxvnGxG27bXH3EUQKW6E7yy
+         Gj7w==
+X-Gm-Message-State: AOAM532Pths4LVy3N0NCYDN+o/LUEqUKjAfIhFF7BZbmrS6cui6io4X/
+        d/6o2AnG+on6M+zKSeQxL31v6djvAzgAknxkW398cZE3guQ=
+X-Google-Smtp-Source: ABdhPJzSPncGLKmwONqIrR5yKoPLvcW5c4OXIAKLZmbI58H8i0gsT7/X+baLgsqUByC1c10NX7cSCvumNCkKi81cKhE=
+X-Received: by 2002:a92:c8c4:: with SMTP id c4mr16457759ilq.287.1600175813496;
+ Tue, 15 Sep 2020 06:16:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20200912033851.143311-1-yanaijie@huawei.com>
+References: <20200908125813.8809-1-brgl@bgdev.pl> <CADYN=9+3kHG0CexzZiMQoXdF2piN2ZhOTObhY=7VCKrnFVN0Kw@mail.gmail.com>
+ <20200915131228.GX3956970@smile.fi.intel.com>
+In-Reply-To: <20200915131228.GX3956970@smile.fi.intel.com>
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+Date:   Tue, 15 Sep 2020 15:16:42 +0200
+Message-ID: <CAMRc=MdGwkEp4sL=oBuk-x4cd7BWga76X0Rvq8PN-P+vjvp=Fg@mail.gmail.com>
+Subject: Re: [PATCH 0/3] gpiolib: generalize GPIO line names property
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Anders Roxell <anders.roxell@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Kent Gibson <warthog618@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        lkft-triage@lists.linaro.org,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Sep 12, 2020 at 11:38:51AM +0800, Jason Yan wrote:
-> This eliminates the following sparse warning:
-> 
-> drivers/acpi/apei/apei-base.c:290:23: warning: symbol
-> 'apei_resources_all' was not declared. Should it be static?
-> 
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: Jason Yan <yanaijie@huawei.com>
-> ---
->  drivers/acpi/apei/apei-base.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-> index e358d0046494..d3fbac58d91a 100644
-> --- a/drivers/acpi/apei/apei-base.c
-> +++ b/drivers/acpi/apei/apei-base.c
-> @@ -287,7 +287,7 @@ struct apei_res {
->  };
->  
->  /* Collect all resources requested, to avoid conflict */
-> -struct apei_resources apei_resources_all = {
-> +static struct apei_resources apei_resources_all = {
->  	.iomem = LIST_HEAD_INIT(apei_resources_all.iomem),
->  	.ioport = LIST_HEAD_INIT(apei_resources_all.ioport),
->  };
-> -- 
+On Tue, Sep 15, 2020 at 3:12 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Tue, Sep 15, 2020 at 02:01:56PM +0200, Anders Roxell wrote:
+> > On Tue, 8 Sep 2020 at 18:40, Bartosz Golaszewski <brgl@bgdev.pl> wrote:
+> > >
+> > > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> > >
+> > > I initially sent this as part of the gpio-mockup overhaul but since
+> > > these patches are indepentent and the work on gpio-mockup may become
+> > > more complicated - I'm sending these separately.
+> > >
+> > > The only change is adding additional property helpers to count strings
+> > > in array.
+> > >
+> > > Bartosz Golaszewski (3):
+> > >   device: property: add helpers to count items in string arrays
+> > >   gpiolib: generalize devprop_gpiochip_set_names() for device properties
+> > >   gpiolib: unexport devprop_gpiochip_set_names()
+>
+> Ha-ha, OF unittest is of_node centric. definitely there is no backed device.
+>
+> Bart, it seems we are stuck with fwnode interface.
+>
 
-Reviewed-by: Borislav Petkov <bp@suse.de>
+Wait what?! This means the implementation is wrong - the whole concept
+of device properties is to be generic and to hide the underlying
+fwnode or OF properties. If anything we should fix
+device/base/property.c to fall back to OF.
 
--- 
-Regards/Gruss,
-    Boris.
+What is happening exactly? If all fwnode code compiled out?
 
-https://people.kernel.org/tglx/notes-about-netiquette
+I'll try to give it a spin and see what can be done but I don't like
+that device_property_* functions fail if you have OF but not fwnode.
+
+Bart
