@@ -2,117 +2,194 @@ Return-Path: <SRS0=mdGK=CY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.4 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BFE8C433E2
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 22:20:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A2E0C433E2
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 23:02:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECB432067C
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 22:20:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52703208E4
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 23:02:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20150623.gappssmtp.com header.i=@baylibre-com.20150623.gappssmtp.com header.b="hYng2VdX"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ZVyYyQFG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727720AbgIOWUu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 15 Sep 2020 18:20:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52852 "EHLO
+        id S1727330AbgIOXCi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Sep 2020 19:02:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727695AbgIOQ3P (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2020 12:29:15 -0400
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B90A7C061223
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 09:03:18 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id o8so5816666ejb.10
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 09:03:18 -0700 (PDT)
+        with ESMTP id S1727368AbgIOXCY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2020 19:02:24 -0400
+Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE370C061788
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 16:02:23 -0700 (PDT)
+Received: by mail-lj1-x244.google.com with SMTP id k25so4241329ljg.9
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 16:02:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
+        d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=c1lfPyfpR3MIdTzczk3F37y8kFkSG7QNcKC/F+53Umo=;
-        b=hYng2VdXUMalsQlpbxvEaolvVrPXjjO1dg1IBNOJpR5POkg+h+5dS3w6ALmjl43QBv
-         2kG3eFGBMkUjnyQkOgDNuJN6KiCSm2Xz+1UBa8swFgxPuWy5j8g7p8aPFbbzCNJUVgTi
-         XTq9x3K52I7ybf36Z2pMDOaEp0SObYccGT0njIzOFGqscUVXUzET+d+qdoa70XNgeuIq
-         ychiRQy9UO2BSe1I3ZkArwzDgmWXvpkEs/amhQ+IIrqVJ+u+TGU6vHxuH2Ocno64YMWW
-         lWGLtShJwmSH8u00qJQXoTlVRtckLrfdDBCybJTNP4Ck/xv44l9uzkdhrjP9gzNWDaBx
-         aRhQ==
+        bh=/9scBHPNix+y6Pwr8cQyVX+xDYS3UrPPXINpHzBknN4=;
+        b=ZVyYyQFG1iBiLFuKDDQuAPmiBZLpB11LhmJ8YIOtjnryLAEf3A4zUrMoifNnYRWJlf
+         8GcDcZvPM6I43fh/hfWt5Ij4L0sml+BEcbwcrw9YG7Yv4MCF4a3iTKVN2+zx/6t1Ok/U
+         EztiiWABfLBG0/pmN5Vl7Cj2fE6WIAdiGdue7cOiCXYCIRSnnNjhvCG039/GlTc80TRj
+         aqwQ3MOyvtANK7SvVzqwtpY0bPLrbyc56t1ojaXcJdWtPVCALRtamlRtUIQUeZZ3HY8z
+         BDvzFgB0IjGoamrNzKeAtkR8T1BKPA8B09P9hDpTiuNjtQyYdb12iJHIbtSbTSRWvjFY
+         sX3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=c1lfPyfpR3MIdTzczk3F37y8kFkSG7QNcKC/F+53Umo=;
-        b=H+Q18DfIZahrMwr1Oue0gVGVRnoQYwaXHTijIMcr09JN6P3IPA92OXSqUvsoyaNcxv
-         eeeBJKJ171v2Y0DTDTXLIS+A7T78oAC41d51YMK/63R13kST0WJEi2r6SCYWigS4oM12
-         Xc2JQLVFngFfSGitHepWiYHlSjaKXYBz+9AZvS+6iKgQ1dsy7+3nFl1Q/aQZEKkWbk2H
-         GiRzbE139T1qtVfdOyWP4CDbTfYYKQF4rkHIfnsPHSe3cxctfSmrnen8pbgBqgAH6vre
-         ClUsRdueqUfs2/4jMkwOp1l84H2SCJWX/5BDXABSSgYCFgACq1t+LaR7uJcvbA9IR2eP
-         UQIA==
-X-Gm-Message-State: AOAM531QFwHQoVv83SG2qdzrVNVxi0uj9LaGjtha3kZxEJXqbL00w8kU
-        okbYf7h8wXL0RhzsoAensnJzOTg5SxtSgYhpDztc4g==
-X-Google-Smtp-Source: ABdhPJxYCowJHvOnUFmc3bdVZqbBgmz4hRM4SON4OjzOoHFhBUb9Zqenf9cirxMo9cDeB/QVoD9ttHN6GESWUQ8YGig=
-X-Received: by 2002:a17:906:6007:: with SMTP id o7mr21824842ejj.550.1600185797421;
- Tue, 15 Sep 2020 09:03:17 -0700 (PDT)
+        bh=/9scBHPNix+y6Pwr8cQyVX+xDYS3UrPPXINpHzBknN4=;
+        b=V0WNdUOhufoiYoJGYZCJuih0TJGqp4Pyo+H6HEOt3x2i6rYPpAqMJ5J6no0NSuQIwR
+         5iOfi0cKRb2hJtEF+LcaH0LYDmKNL0GLY+NUHlqt1Eqm9dxEQtAH0+3ehe0SEdvWA5Qz
+         DO3Tg8JLHoikBVd4gIT/lOi8bAAWjtqxh2Pe5b6hLyTfPS5/KL9qEV4OdDFHCw17JyCt
+         nb1Urior46JmtlF1iwCxzlbG/LyDZEh/RlRxA7DofU3B6eMNgs4v5fXdC9LQ0787oGBU
+         KQ+JePZqE23008uG7MCJsQ5DgaSvVwf859zuuwmw+F6B3yjPb9xHl+rBRYohyMnl/RPF
+         IgLg==
+X-Gm-Message-State: AOAM532ODpowsWj3mL3aBCGGBGyXuGS5PETZPtsQcROa4MVJ/Oy788gS
+        6WWhrcMBWEirWCbA8qJTpU6Ld7oP7sVbun34v2v1UQ==
+X-Google-Smtp-Source: ABdhPJysOqFs8iJIdAa5maQ13XMna1CrI/NRUUz9V4/qRiA3nA6/D4LifyuPbfI1VmRc64fhlM/srS8bqKradXWp+OM=
+X-Received: by 2002:a2e:9992:: with SMTP id w18mr7963973lji.301.1600210941914;
+ Tue, 15 Sep 2020 16:02:21 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200908125813.8809-1-brgl@bgdev.pl> <CADYN=9+3kHG0CexzZiMQoXdF2piN2ZhOTObhY=7VCKrnFVN0Kw@mail.gmail.com>
- <20200915131228.GX3956970@smile.fi.intel.com> <20200915131648.GY3956970@smile.fi.intel.com>
-In-Reply-To: <20200915131648.GY3956970@smile.fi.intel.com>
-From:   Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date:   Tue, 15 Sep 2020 18:03:06 +0200
-Message-ID: <CAMpxmJUOhFjmFFq3sKZSh3QTjgZSGLhRRFt=iSzYAmXzNzupaw@mail.gmail.com>
-Subject: Re: [PATCH 0/3] gpiolib: generalize GPIO line names property
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Anders Roxell <anders.roxell@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Kent Gibson <warthog618@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+References: <CACK8Z6F-8OZNJU8wqWuZq=moCaOi+3W=CzBeppfO31VZnkqBrg@mail.gmail.com>
+ <20200711195346.GA132330@bjorn-Precision-5520> <CACK8Z6HP1VHs4P=U6-+D_D8HrQ5D1P679P_=saNqUMXE-bNUjg@mail.gmail.com>
+In-Reply-To: <CACK8Z6HP1VHs4P=U6-+D_D8HrQ5D1P679P_=saNqUMXE-bNUjg@mail.gmail.com>
+From:   Rajat Jain <rajatja@google.com>
+Date:   Tue, 15 Sep 2020 16:01:45 -0700
+Message-ID: <CACK8Z6FgCZR+PrW88myVsy=ZEq-rCD=s7xV5tDGOM437=1apMA@mail.gmail.com>
+Subject: Re: [PATCH v4 4/4] PCI/ACS: Enable PCI_ACS_TB for untrusted/external-facing
+ devices
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     "Raj, Ashok" <ashok.raj@intel.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        Joerg Roedel <joro@8bytes.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-pci <linux-pci@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        lkft-triage@lists.linaro.org,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>
+        "Krishnakumar, Lalithambika" <lalithambika.krishnakumar@intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Prashant Malani <pmalani@google.com>,
+        Benson Leung <bleung@google.com>,
+        Todd Broch <tbroch@google.com>,
+        Alex Levin <levinale@google.com>,
+        Mattias Nissler <mnissler@google.com>,
+        Rajat Jain <rajatxjain@gmail.com>,
+        Bernie Keany <bernie.keany@intel.com>,
+        Aaron Durbin <adurbin@google.com>,
+        Diego Rivas <diegorivas@google.com>,
+        Duncan Laurie <dlaurie@google.com>,
+        Furquan Shaikh <furquan@google.com>,
+        Jesse Barnes <jsbarnes@google.com>,
+        Christian Kellner <christian@kellner.me>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Oliver O'Halloran" <oohall@gmail.com>,
+        Saravana Kannan <saravanak@google.com>,
+        Suzuki K Poulose <suzuki.poulose@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 15, 2020 at 3:16 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Tue, Sep 15, 2020 at 04:12:28PM +0300, Andy Shevchenko wrote:
-> > On Tue, Sep 15, 2020 at 02:01:56PM +0200, Anders Roxell wrote:
-> > > On Tue, 8 Sep 2020 at 18:40, Bartosz Golaszewski <brgl@bgdev.pl> wrote:
-> > > >
-> > > > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> > > >
-> > > > I initially sent this as part of the gpio-mockup overhaul but since
-> > > > these patches are indepentent and the work on gpio-mockup may become
-> > > > more complicated - I'm sending these separately.
-> > > >
-> > > > The only change is adding additional property helpers to count strings
-> > > > in array.
-> > > >
-> > > > Bartosz Golaszewski (3):
-> > > >   device: property: add helpers to count items in string arrays
-> > > >   gpiolib: generalize devprop_gpiochip_set_names() for device properties
-> > > >   gpiolib: unexport devprop_gpiochip_set_names()
-> >
-> > Ha-ha, OF unittest is of_node centric. definitely there is no backed device.
-> >
-> > Bart, it seems we are stuck with fwnode interface.
->
-> Hmm... There is a platform device. So, it means that it fails along these
-> lines:
->   return IS_ENABLED(CONFIG_OF) && dev->of_node ? &dev->of_node->fwnode : dev->fwnode;
-> so, who should set fwnode for of_node?
->
+Hello Bjorn,
 
-It's strange because the device for this unittest is registered
-similarly to how we do it in gpio-mockup where this function works.
-I've not investigated the internals but somewhere someone sets the
-fwnode for these platform devices.
 
-Bartosz
+On Tue, Jul 14, 2020 at 1:19 PM Rajat Jain <rajatja@google.com> wrote:
+>
+> On Sat, Jul 11, 2020 at 12:53 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> >
+> > On Fri, Jul 10, 2020 at 03:53:59PM -0700, Rajat Jain wrote:
+> > > On Fri, Jul 10, 2020 at 2:29 PM Raj, Ashok <ashok.raj@intel.com> wrote:
+> > > > On Fri, Jul 10, 2020 at 03:29:22PM -0500, Bjorn Helgaas wrote:
+> > > > > On Tue, Jul 07, 2020 at 03:46:04PM -0700, Rajat Jain wrote:
+> > > > > > When enabling ACS, enable translation blocking for external facing ports
+> > > > > > and untrusted devices.
+> > > > > >
+> > > > > > Signed-off-by: Rajat Jain <rajatja@google.com>
+> > > > > > ---
+> > > > > > v4: Add braces to avoid warning from kernel robot
+> > > > > >     print warning for only external-facing devices.
+> > > > > > v3: print warning if ACS_TB not supported on external-facing/untrusted ports.
+> > > > > >     Minor code comments fixes.
+> > > > > > v2: Commit log change
+> > > > > >
+> > > > > >  drivers/pci/pci.c    |  8 ++++++++
+> > > > > >  drivers/pci/quirks.c | 15 +++++++++++++++
+> > > > > >  2 files changed, 23 insertions(+)
+> > > > > >
+> > > > > > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> > > > > > index 73a8627822140..a5a6bea7af7ce 100644
+> > > > > > --- a/drivers/pci/pci.c
+> > > > > > +++ b/drivers/pci/pci.c
+> > > > > > @@ -876,6 +876,14 @@ static void pci_std_enable_acs(struct pci_dev *dev)
+> > > > > >     /* Upstream Forwarding */
+> > > > > >     ctrl |= (cap & PCI_ACS_UF);
+> > > > > >
+> > > > > > +   /* Enable Translation Blocking for external devices */
+> > > > > > +   if (dev->external_facing || dev->untrusted) {
+> > > > > > +           if (cap & PCI_ACS_TB)
+> > > > > > +                   ctrl |= PCI_ACS_TB;
+> > > > > > +           else if (dev->external_facing)
+> > > > > > +                   pci_warn(dev, "ACS: No Translation Blocking on external-facing dev\n");
+> > > > > > +   }
+> > > > >
+> > > > > IIUC, this means that external devices can *never* use ATS and
+> > > > > can never cache translations.
+> > >
+> > > Yes, but it already exists today (and this patch doesn't change that):
+> > > 521376741b2c2 "PCI/ATS: Only enable ATS for trusted devices"
+> > >
+> > > IMHO any external device trying to send ATS traffic despite having ATS
+> > > disabled should count as a bad intent. And this patch is trying to
+> > > plug that loophole, by blocking the AT traffic from devices that we do
+> > > not expect to see AT from anyway.
+> >
+> > Thinking about this some more, I wonder if Linux should:
+> >
+> >   - Explicitly disable ATS for every device at enumeration-time, e.g.,
+> >     in pci_init_capabilities(),
+> >
+> >   - Enable PCI_ACS_TB for every device (not just external-facing or
+> >     untrusted ones),
+> >
+> >   - Disable PCI_ACS_TB for the relevant devices along the path only
+> >     when enabling ATS.
+> >
+> > One nice thing about doing that is that the "untrusted" test would be
+> > only in pci_enable_ats(), and we wouldn't need one in
+> > pci_std_enable_acs().
+>
+> Sent out v5 with this approach here:
+> https://patchwork.kernel.org/patch/11663515/
+
+Any feedback on the patch above? It has been waiting for feedback....
+
+Thanks & Best Regards,,
+
+Rajat
+
+
+>
+> Thanks,
+>
+> Rajat
+>
+> >
+> >
+> > It's possible BIOS gives us devices with ATS enabled, and this might
+> > break them, but that seems like something we'd want to find out about.
+> >
+> > Bjorn
