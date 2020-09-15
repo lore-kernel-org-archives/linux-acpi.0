@@ -2,89 +2,66 @@ Return-Path: <SRS0=mdGK=CY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6D70C2D0E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 18:29:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BE06C43461
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 18:32:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8EA5206DB
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 18:29:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600194594;
-	bh=SOf5GPk0ofBAZic38qIw0rzSxyoNY+paZdgL59LQdS4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
-	b=n0dezupwHnjfw2tJmz4lSmNT9ZbOYyxMvG2AGJcZNz8Vvf2cnGrxzYgTPjBKf3rU6
-	 HR7BTZFAyEQn80IZ5w/mzP1+ZwyZSfKq09cfIHUCmq2PoBETjEWdnKpqge6U48HvsC
-	 WWiKy23QebnlxI2cBPHtzyQMvxayDq1Q8kgFsFCk=
+	by mail.kernel.org (Postfix) with ESMTP id DBA9D21655
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 18:32:03 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="q1iyu72u"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727551AbgIOSSu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 15 Sep 2020 14:18:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41642 "EHLO mail.kernel.org"
+        id S1727864AbgIOSb7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Sep 2020 14:31:59 -0400
+Received: from mail.skyhub.de ([5.9.137.197]:54364 "EHLO mail.skyhub.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727955AbgIOSRz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 15 Sep 2020 14:17:55 -0400
-Received: from localhost (52.sub-72-107-123.myvzw.com [72.107.123.52])
+        id S1727895AbgIOSb4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Sep 2020 14:31:56 -0400
+Received: from zn.tnic (p200300ec2f0e42009474dca2b756bdd4.dip0.t-ipconnect.de [IPv6:2003:ec:2f0e:4200:9474:dca2:b756:bdd4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A464D206A4;
-        Tue, 15 Sep 2020 18:17:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600193873;
-        bh=SOf5GPk0ofBAZic38qIw0rzSxyoNY+paZdgL59LQdS4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=2dyWR6CL2IFk0fQVtX4jPy+tyazQgO0d/tZUT6oV24BvEPHvfH2I6t0UcvVcV+hKI
-         gw1UxbFwNGdOkjv9licKDUny6aw9JB5BA5ec0yp52bdoi6R0SR/i3ZL3iSSzLZapNP
-         FCctIhZrz2oS6TNlZqc2fODXjjkn76NzZA4/N92k=
-Date:   Tue, 15 Sep 2020 13:17:51 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc:     Shiju Jose <shiju.jose@huawei.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "bp@alien8.de" <bp@alien8.de>,
-        "james.morse@arm.com" <james.morse@arm.com>,
-        "robh@kernel.org" <robh@kernel.org>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "tony.luck@intel.com" <tony.luck@intel.com>,
-        "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>,
-        "andriy.shevchenko@linux.intel.com" 
-        <andriy.shevchenko@linux.intel.com>, Linuxarm <linuxarm@huawei.com>
-Subject: Re: [PATCH v15 0/2] ACPI / APEI: Add support to notify the vendor
- specific HW errors
-Message-ID: <20200915181751.GA1408867@bjorn-Precision-5520>
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 7BE5F1EC0246;
+        Tue, 15 Sep 2020 20:31:51 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1600194711;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=x77o73At3Ov0p8rWibLOd93HG8JfU43QR0fdkYUjAlY=;
+        b=q1iyu72uhDBKtmTnRKZLZ0RxP6EayFjaqvzZFSqc1a7rEg3nUZNcp6RIGiT8W26l9gsh5M
+        TL3P9C5n0R2m3S3qbl1KPEI6+Ub9HKNvehduAfh+QyFWmBaD/+LoDnMq8Ke/8CVq8WL0hL
+        SPd5zN0s0XnSt1AzL6zkya810QZzvko=
+Date:   Tue, 15 Sep 2020 20:31:50 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     rjw@rjwysocki.net, x86@kernel.org, tony.luck@intel.com,
+        lenb@kernel.org, daniel.lezcano@linaro.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, ulf.hansson@linaro.org,
+        paulmck@kernel.org, tglx@linutronix.de, naresh.kamboju@linaro.org
+Subject: Re: [RFC][PATCH 0/4] Fix up ACPI processor idle vs RCU
+Message-ID: <20200915183150.GX14436@zn.tnic>
+References: <20200915103157.345404192@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0goduHVhXdOjDu6WBnD8eBYzRWAD1PO8KjabpyiHuJ1qw@mail.gmail.com>
+In-Reply-To: <20200915103157.345404192@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 15, 2020 at 07:31:50PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Sep 14, 2020 at 2:34 PM Shiju Jose <shiju.jose@huawei.com> wrote:
-> >
-> > Hello,
-> >
-> > Can you help to merge this series?
-> 
-> Do you want this series to go in through the ACPI tree?
+On Tue, Sep 15, 2020 at 12:31:57PM +0200, Peter Zijlstra wrote:
+> Boris tested an earlier version of these patches and they worked for his
+> 32bit Atom board that was triggering complaints.
 
-It crosses ACPI and vendor-specific PCI, but the bulk of the changes
-are in PCI.  I gave some comments on the design and acked the PCI part
-from my point of view.  I envisioned Lorenzo merging it since he takes
-care of drivers/pci/controller/*, but either that (given your ack for
-the ACPI part) or ACPI would be OK with me.
+Want me to test them again?
 
-> > > drivers/acpi/apei/ghes.c                 |  63 +++++
-> > > drivers/pci/controller/Kconfig           |   7 +
-> > > drivers/pci/controller/Makefile          |   1 +
-> > > drivers/pci/controller/pcie-hisi-error.c | 327 +++++++++++++++++++++++
-> > > include/acpi/ghes.h                      |  18 ++
-> > > 5 files changed, 416 insertions(+)
-> > > create mode 100644 drivers/pci/controller/pcie-hisi-error.c
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
