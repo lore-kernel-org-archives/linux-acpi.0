@@ -2,107 +2,132 @@ Return-Path: <SRS0=mdGK=CY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6E34C43461
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 09:33:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50B08C43461
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 10:44:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A08E2080C
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 09:33:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AA61221E2
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 10:44:30 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="wZb27JSi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726366AbgIOJdx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 15 Sep 2020 05:33:53 -0400
-Received: from out30-45.freemail.mail.aliyun.com ([115.124.30.45]:40910 "EHLO
-        out30-45.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726208AbgIOJdt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 15 Sep 2020 05:33:49 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R811e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=richard.weiyang@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0U90t1fN_1600162424;
-Received: from localhost(mailfrom:richard.weiyang@linux.alibaba.com fp:SMTPD_---0U90t1fN_1600162424)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 15 Sep 2020 17:33:45 +0800
-Date:   Tue, 15 Sep 2020 17:33:44 +0800
-From:   Wei Yang <richard.weiyang@linux.alibaba.com>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Wei Yang <richard.weiyang@linux.alibaba.com>,
-        linux-kernel@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
-        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-s390@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Kees Cook <keescook@chromium.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-        Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH v2 1/7] kernel/resource: make
- release_mem_region_adjustable() never fail
-Message-ID: <20200915093344.GA7324@L-31X9LVDL-1304.local>
-Reply-To: Wei Yang <richard.weiyang@linux.alibaba.com>
-References: <20200908201012.44168-1-david@redhat.com>
- <20200908201012.44168-2-david@redhat.com>
- <20200915021012.GC2007@L-31X9LVDL-1304.local>
- <927904b1-1909-f11f-483e-8012bda8ad0c@redhat.com>
- <20200915090612.GA6936@L-31X9LVDL-1304.local>
- <bc324c26-3638-ffa6-ee01-68a659183adf@redhat.com>
+        id S1726299AbgIOKo0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Sep 2020 06:44:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55680 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726145AbgIOKoG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2020 06:44:06 -0400
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCA91C06178B;
+        Tue, 15 Sep 2020 03:44:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Type:MIME-Version:References:
+        Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To;
+        bh=k8OJ3LBTy7ZYlXue2CjZpOH2bHs7RL6MvRpNpTjIcbE=; b=wZb27JSiyu5tgLC8O7nVMw8HLw
+        l4iBFnzeCisEHqyRBlc3fsbYf4gTe+bBIPAOtAD2lfoTevdEAIEKU6TmeAgMSHyfDZhQJ8xBn796w
+        LxaimyshQMlMgIOUMAZCE8pPMC9nIUwtvYnw53r55n3hofLvFNeZUb4gK4tAo2aplsNXrm528X22/
+        fd1qGF5yG/m4TLA9jCGFxgoPjp/ntni+9sOItFF9U1OCpi4KJwJcNTRTQ8Ktb7bayLjt0uSxn6hDA
+        9CyJIBDfTBYdpiDc9MXjyK5eOE+Z7C6SlLHHf6ENkhTu8DHLuO55ce6y3CsUkqZTO+Hj4gp1KkXst
+        z75EGaPw==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kI8R6-0007mK-MV; Tue, 15 Sep 2020 10:43:45 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id B36CA3060F2;
+        Tue, 15 Sep 2020 12:43:40 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
+        id 97E1B214EDD4F; Tue, 15 Sep 2020 12:43:40 +0200 (CEST)
+Message-ID: <20200915103806.411374792@infradead.org>
+User-Agent: quilt/0.66
+Date:   Tue, 15 Sep 2020 12:32:00 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     rjw@rjwysocki.net, bp@alien8.de
+Cc:     x86@kernel.org, tony.luck@intel.com, lenb@kernel.org,
+        daniel.lezcano@linaro.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
+        ulf.hansson@linaro.org, paulmck@kernel.org, tglx@linutronix.de,
+        naresh.kamboju@linaro.org, peterz@infradead.org
+Subject: [RFC][PATCH 3/4] cpuidle: Allow cpuidle drivers to take over RCU-idle
+References: <20200915103157.345404192@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bc324c26-3638-ffa6-ee01-68a659183adf@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 15, 2020 at 11:15:53AM +0200, David Hildenbrand wrote:
->On 15.09.20 11:06, Wei Yang wrote:
->> On Tue, Sep 15, 2020 at 09:35:30AM +0200, David Hildenbrand wrote:
->>>
->>>>> static int __ref try_remove_memory(int nid, u64 start, u64 size)
->>>>> {
->>>>> 	int rc = 0;
->>>>> @@ -1777,7 +1757,7 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
->>>>> 		memblock_remove(start, size);
->>>>> 	}
->>>>>
->>>>> -	__release_memory_resource(start, size);
->>>>> +	release_mem_region_adjustable(&iomem_resource, start, size);
->>>>>
->>>>
->>>> Seems the only user of release_mem_region_adjustable() is here, can we move
->>>> iomem_resource into the function body? Actually, we don't iterate the resource
->>>> tree from any level. We always start from the root.
->>>
->>> You mean, making iomem_resource implicit? I can spot that something
->>> similar was done for
->>>
->>> #define devm_release_mem_region(dev, start, n) \
->>> 	__devm_release_region(dev, &iomem_resource, (start), (n))
->>>
->> 
->> What I prefer is remove iomem_resource from the parameter list. Just use is in
->> the function body.
->> 
->> For the example you listed, __release_region() would have varies of *parent*,
->> which looks reasonable to keep it here.
->
->Yeah I got that ("making iomem_resource implicit"), as I said:
->
+Some drivers have to do significant work, some of which relies on RCU
+still being active. Instead of using RCU_NONIDLE in the drivers and
+flipping RCU back on, allow drivers to take over RCU-idle duty.
 
-Thanks
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ drivers/cpuidle/cpuidle.c |   15 ++++++++++-----
+ include/linux/cpuidle.h   |    1 +
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
->>> I'll send an addon patch for that, ok? - thanks.
->
->-- 
->Thanks,
->
->David / dhildenb
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -138,6 +138,7 @@ static void enter_s2idle_proper(struct c
+ 				struct cpuidle_device *dev, int index)
+ {
+ 	ktime_t time_start, time_end;
++	struct cpuidle_state *target_state = &drv->states[index];
+ 
+ 	time_start = ns_to_ktime(local_clock());
+ 
+@@ -153,8 +154,9 @@ static void enter_s2idle_proper(struct c
+ 	 * suspended is generally unsafe.
+ 	 */
+ 	stop_critical_timings();
+-	rcu_idle_enter();
+-	drv->states[index].enter_s2idle(dev, drv, index);
++	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
++		rcu_idle_enter();
++	target_state->enter_s2idle(dev, drv, index);
+ 	if (WARN_ON_ONCE(!irqs_disabled()))
+ 		local_irq_disable();
+ 	/*
+@@ -162,7 +164,8 @@ static void enter_s2idle_proper(struct c
+ 	 * first CPU executing it calls functions containing RCU read-side
+ 	 * critical sections, so tell RCU about that.
+ 	 */
+-	rcu_idle_exit();
++	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
++		rcu_idle_exit();
+ 	tick_unfreeze();
+ 	start_critical_timings();
+ 
+@@ -239,9 +242,11 @@ int cpuidle_enter_state(struct cpuidle_d
+ 	time_start = ns_to_ktime(local_clock());
+ 
+ 	stop_critical_timings();
+-	rcu_idle_enter();
++	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
++		rcu_idle_enter();
+ 	entered_state = target_state->enter(dev, drv, index);
+-	rcu_idle_exit();
++	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
++		rcu_idle_exit();
+ 	start_critical_timings();
+ 
+ 	sched_clock_idle_wakeup_event();
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -82,6 +82,7 @@ struct cpuidle_state {
+ #define CPUIDLE_FLAG_UNUSABLE		BIT(3) /* avoid using this state */
+ #define CPUIDLE_FLAG_OFF		BIT(4) /* disable this state by default */
+ #define CPUIDLE_FLAG_TLB_FLUSHED	BIT(5) /* idle-state flushes TLBs */
++#define CPUIDLE_FLAG_RCU_IDLE		BIT(6) /* idle-state takes care of RCU */
+ 
+ struct cpuidle_device_kobj;
+ struct cpuidle_state_kobj;
 
--- 
-Wei Yang
-Help you, Help me
+
