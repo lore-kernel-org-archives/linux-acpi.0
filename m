@@ -1,155 +1,269 @@
-Return-Path: <SRS0=mdGK=CY=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=WNZT=CZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36E1AC433E2
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 23:24:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5141C2D0F6
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 00:04:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 012EE21973
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Sep 2020 23:24:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 388FF20756
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 00:04:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="kWSUr2pv"
+	dkim=pass (1024-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="TNMS9MWj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727378AbgIOXYk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 15 Sep 2020 19:24:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35622 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727184AbgIOOiA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2020 10:38:00 -0400
-Received: from mail-ua1-x943.google.com (mail-ua1-x943.google.com [IPv6:2607:f8b0:4864:20::943])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23469C06178C
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 06:21:10 -0700 (PDT)
-Received: by mail-ua1-x943.google.com with SMTP id j12so1011047ual.7
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 06:21:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=w/kdF94weVvZODB/AUs9f/NpmbxAQ75av/THK7S+FHo=;
-        b=kWSUr2pvfEBqdC0GJbcTw32LfLwQVJZ4Jurp7+Fl5teucDdSALr+lDkQJlg3AWmuxH
-         UHZRqZXxupGczvxbeJNyUoGu4lv3BgI0hU42Nqa9idhTcSYHE7EF9CsCouvsOGLyAWbJ
-         8BEwsRb9CjVil+Tzxz4mUya2EKWBH83lNdynQTFEvCtP94fOHwP552sMh89jskhaLXjV
-         A4xlOKV9VcFOi4aGbgHfqXeQOpDVRm4xZQfOWpOrLcgdtwpLBMXkKWIECKruXWFQiu7j
-         InN/xHzez2Q6xUALABBVn/FSLk5/6FtEy2Gje8nnPGCsdyff3do/3J8CBALMPbtLzdaG
-         WXTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=w/kdF94weVvZODB/AUs9f/NpmbxAQ75av/THK7S+FHo=;
-        b=qoMqrQ/i1wnkiQgooMDKXIBw3hbCPaSIJ4zsGbvC2SPHeyBVIGyB7y/sFhXN42JEzQ
-         30DsGTCAwR6J39YpHUAJh09Bw5NRtigLsxTqGsFAYURGDV2YVo/I526Uhr7XX9RF6nat
-         YpqI1HMn//tn1/c3bJFoOAZ2BBP2xSTm5J9bESqmdaHy5BBMTXOmjW6gaAvWEsN5e2CO
-         a65wq0wq8U82KL9jHeRt5+mOgGlUuuV8fnKboT8/l6CTlCpdPx8VsN7wAhiKbqmG/Ty8
-         h33KSeFADKJiB1jSreHfSyvqA9Pq1Qha+BSjSNYq8ONIZ+jYM6qJ63NKhy0a9Dl8rMXZ
-         LIYQ==
-X-Gm-Message-State: AOAM531BXIB0KfuX5INXAIq71Y4IZSRgb/HOMgkIPae6jw3VHV0y2veA
-        331qG2Wlq//dHZp2n6YHoN5SUawISuRSBGWEAOn+hQ==
-X-Google-Smtp-Source: ABdhPJw2tkkqzsTAYQBMAkSwdJ4a+/HWDG22i9K7BnBMNlT8KvEg3SRWxdng0aXuWW9caPvNIEDB06eAO3j9mhggOfk=
-X-Received: by 2002:ab0:130a:: with SMTP id g10mr10012968uae.100.1600176064842;
- Tue, 15 Sep 2020 06:21:04 -0700 (PDT)
+        id S1726979AbgIPAES (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Sep 2020 20:04:18 -0400
+Received: from mail-41104.protonmail.ch ([185.70.41.104]:21498 "EHLO
+        mail-41104.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727007AbgIPAES (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2020 20:04:18 -0400
+X-Greylist: delayed 333 seconds by postgrey-1.27 at vger.kernel.org; Tue, 15 Sep 2020 20:04:16 EDT
+Received: from mail-03.mail-europe.com (mail-03.mail-europe.com [91.134.188.129])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits))
+        (No client certificate requested)
+        by mail-41104.protonmail.ch (Postfix) with ESMTPS id 779A820007FF
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2020 23:58:42 +0000 (UTC)
+Authentication-Results: mail-41104.protonmail.ch;
+        dkim=pass (1024-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="TNMS9MWj"
+Date:   Tue, 15 Sep 2020 23:58:20 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+        s=protonmail; t=1600214310;
+        bh=pmmxd0OZrU7i19ricDTg0JAz6YI/Zw97KeB6gyb8Wyc=;
+        h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:From;
+        b=TNMS9MWj6NfaDxPbSyD5M+6AanhUv3wdizNckBI6UioYRPAyeo5mYA6+csErDeaW5
+         lJkJ1z3uS9eYts5coEFvQSP6iIxUvzviG5YhkqlzPSsKy7OfXb4HQ2M3kg/hVDhHtb
+         FET0PwobMD2HMTldPMjc554BxHi9dUpi+RmEo/5Y=
+To:     Maximilian Luz <luzmaximilian@gmail.com>
+From:   =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
+Cc:     Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Gayatri Kammela <gayatri.kammela@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        "platform-driver-x86@vger.kernel.org" 
+        <platform-driver-x86@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Reply-To: =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
+Subject: Re: [PATCH v2] platform/x86: Add Driver to set up lid GPEs on MS Surface device
+Message-ID: <EMZQgUl1xLN4o0hV9ZkCD563O85SuOYB5kNFZ5_hlxLQXbJCXpQfrM2afyFIr28h31tXMxD1mxE4DkA5Wy60A0Z2mDnstwF17tEdnX4IRas=@protonmail.com>
+In-Reply-To: <20200910211520.1490626-1-luzmaximilian@gmail.com>
+References: <20200910211520.1490626-1-luzmaximilian@gmail.com>
 MIME-Version: 1.0
-References: <20200915103157.345404192@infradead.org> <20200915103806.411374792@infradead.org>
-In-Reply-To: <20200915103806.411374792@infradead.org>
-From:   Ulf Hansson <ulf.hansson@linaro.org>
-Date:   Tue, 15 Sep 2020 15:20:27 +0200
-Message-ID: <CAPDyKFpku8oybzyDpSBU0JEkdaEFkadA9P=QLcB-RkQtVhTe8A@mail.gmail.com>
-Subject: Re: [RFC][PATCH 3/4] cpuidle: Allow cpuidle drivers to take over RCU-idle
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Borislav Petkov <bp@alien8.de>, x86@kernel.org,
-        Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Naresh Kamboju <naresh.kamboju@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 15 Sep 2020 at 12:44, Peter Zijlstra <peterz@infradead.org> wrote:
->
-> Some drivers have to do significant work, some of which relies on RCU
-> still being active. Instead of using RCU_NONIDLE in the drivers and
-> flipping RCU back on, allow drivers to take over RCU-idle duty.
->
-> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Hi
 
-Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-Kind regards
-Uffe
+> [...]
+> +static int surface_lid_enable_wakeup(struct device *dev, bool enable)
+> +{
+> +=09const struct surface_lid_device *lid =3D dev_get_drvdata(dev);
+> +=09int action =3D enable ? ACPI_GPE_ENABLE : ACPI_GPE_DISABLE;
+> +=09acpi_status status;
+> +
+> +=09status =3D acpi_set_gpe_wake_mask(NULL, lid->gpe_number, action);
+> +=09if (status) {
 
-> ---
->  drivers/cpuidle/cpuidle.c |   15 ++++++++++-----
->  include/linux/cpuidle.h   |    1 +
->  2 files changed, 11 insertions(+), 5 deletions(-)
->
-> --- a/drivers/cpuidle/cpuidle.c
-> +++ b/drivers/cpuidle/cpuidle.c
-> @@ -138,6 +138,7 @@ static void enter_s2idle_proper(struct c
->                                 struct cpuidle_device *dev, int index)
->  {
->         ktime_t time_start, time_end;
-> +       struct cpuidle_state *target_state = &drv->states[index];
->
->         time_start = ns_to_ktime(local_clock());
->
-> @@ -153,8 +154,9 @@ static void enter_s2idle_proper(struct c
->          * suspended is generally unsafe.
->          */
->         stop_critical_timings();
-> -       rcu_idle_enter();
-> -       drv->states[index].enter_s2idle(dev, drv, index);
-> +       if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
-> +               rcu_idle_enter();
-> +       target_state->enter_s2idle(dev, drv, index);
->         if (WARN_ON_ONCE(!irqs_disabled()))
->                 local_irq_disable();
->         /*
-> @@ -162,7 +164,8 @@ static void enter_s2idle_proper(struct c
->          * first CPU executing it calls functions containing RCU read-side
->          * critical sections, so tell RCU about that.
->          */
-> -       rcu_idle_exit();
-> +       if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
-> +               rcu_idle_exit();
->         tick_unfreeze();
->         start_critical_timings();
->
-> @@ -239,9 +242,11 @@ int cpuidle_enter_state(struct cpuidle_d
->         time_start = ns_to_ktime(local_clock());
->
->         stop_critical_timings();
-> -       rcu_idle_enter();
-> +       if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
-> +               rcu_idle_enter();
->         entered_state = target_state->enter(dev, drv, index);
-> -       rcu_idle_exit();
-> +       if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
-> +               rcu_idle_exit();
->         start_critical_timings();
->
->         sched_clock_idle_wakeup_event();
-> --- a/include/linux/cpuidle.h
-> +++ b/include/linux/cpuidle.h
-> @@ -82,6 +82,7 @@ struct cpuidle_state {
->  #define CPUIDLE_FLAG_UNUSABLE          BIT(3) /* avoid using this state */
->  #define CPUIDLE_FLAG_OFF               BIT(4) /* disable this state by default */
->  #define CPUIDLE_FLAG_TLB_FLUSHED       BIT(5) /* idle-state flushes TLBs */
-> +#define CPUIDLE_FLAG_RCU_IDLE          BIT(6) /* idle-state takes care of RCU */
->
->  struct cpuidle_device_kobj;
->  struct cpuidle_state_kobj;
->
->
+I think 'if (ACPI_FAILURE(status))' would be better.
+
+
+> +=09=09dev_err(dev, "failed to set GPE wake mask: %d\n", status);
+
+I'm not sure if it's technically safe to print acpi_status with the %d form=
+at
+specifier since 'acpi_status' is defined as 'u32' at the moment.
+ func("%lu", (unsigned long) status)
+would be safer. You could also use 'acpi_format_exception()', which is poss=
+ibly
+the most correct approach since it assumes nothing about what 'acpi_status'
+actually is.
+
+
+> +=09=09return -EINVAL;
+
+I'm not sure if -EINVAL is the best error to return here.
+
+
+> +=09}
+> +
+> +=09return 0;
+> +}
+> [...]
+> +static int surface_gpe_probe(struct platform_device *pdev)
+> +{
+> +=09struct surface_lid_device *lid;
+> +=09u32 gpe_number;
+> +=09int status;
+> +
+> +=09status =3D device_property_read_u32(&pdev->dev, "gpe", &gpe_number);
+> +=09if (status)
+> +=09=09return -ENODEV;
+
+'device_property_read_u32()' returns an error code, you could simply return=
+ that
+instead of hiding it.
+
+
+> +
+> +=09status =3D acpi_mark_gpe_for_wake(NULL, gpe_number);
+> +=09if (status) {
+> +=09=09dev_err(&pdev->dev, "failed to mark GPE for wake: %d\n", status);
+> +=09=09return -EINVAL;
+> +=09}
+> +
+> +=09status =3D acpi_enable_gpe(NULL, gpe_number);
+> +=09if (status) {
+> +=09=09dev_err(&pdev->dev, "failed to enable GPE: %d\n", status);
+> +=09=09return -EINVAL;
+> +=09}
+
+My previous comments about ACPI and the returned value apply here as well.
+Furthermore, 'acpi_mark_gpe_for_wake()' and 'acpi_enable_gpe()' both return
+a value of type 'acpi_status', not 'int'.
+
+
+> +
+> +=09lid =3D devm_kzalloc(&pdev->dev, sizeof(struct surface_lid_device),
+> +=09=09=09   GFP_KERNEL);
+
+ lid =3D devm_kzalloc(..., sizeof(*lid), ...)
+is preferred.
+
+
+> +=09if (!lid)
+> +=09=09return -ENOMEM;
+
+Isn't that problematic that the side effects of the previous two ACPI calls=
+ are
+not undone when returning here with -ENOMEM? Allocating this struct right a=
+fter
+querying 'gpe_number' could prevent it.
+
+
+> +
+> +=09lid->gpe_number =3D gpe_number;
+> +=09platform_set_drvdata(pdev, lid);
+> +
+> +=09status =3D surface_lid_enable_wakeup(&pdev->dev, false);
+> +=09if (status) {
+> +=09=09acpi_disable_gpe(NULL, gpe_number);
+> +=09=09platform_set_drvdata(pdev, NULL);
+
+Why is 'platform_set_drvdata(pdev, NULL)' needed?
+
+
+> +=09=09return status;
+> +=09}
+> +
+> +=09return 0;
+> +}
+> +
+> +static int surface_gpe_remove(struct platform_device *pdev)
+> +{
+> +=09struct surface_lid_device *lid =3D dev_get_drvdata(&pdev->dev);
+> +
+> +=09/* restore default behavior without this module */
+> +=09surface_lid_enable_wakeup(&pdev->dev, false);
+> +=09acpi_disable_gpe(NULL, lid->gpe_number);
+> +
+> +=09platform_set_drvdata(pdev, NULL);
+
+I'm wondering why this is needed?
+
+
+> +=09return 0;
+> +}
+> [...]
+> +static int __init surface_gpe_init(void)
+> +{
+> +=09const struct dmi_system_id *match;
+> +=09const struct property_entry *props;
+> +=09struct platform_device *pdev;
+> +=09struct fwnode_handle *fwnode;
+> +=09int status;
+> +
+> +=09match =3D dmi_first_match(dmi_lid_device_table);
+> +=09if (!match) {
+> +=09=09pr_info(KBUILD_MODNAME": no device detected, exiting\n");
+
+If you put
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+before including any headers, you can simply write 'pr_info("no device...")=
+' and it'll
+be prefixed by the module name. This is the "usual" way of achieving what y=
+ou want.
+
+
+> +=09=09return 0;
+
+Shouldn't it return -ENODEV?
+
+
+> +=09}
+> +
+> +=09props =3D match->driver_data;
+> +
+> +=09status =3D platform_driver_register(&surface_gpe_driver);
+> +=09if (status)
+> +=09=09return status;
+> +
+> +=09pdev =3D platform_device_alloc("surface_gpe", PLATFORM_DEVID_NONE);
+> +=09if (!pdev) {
+> +=09=09platform_driver_unregister(&surface_gpe_driver);
+> +=09=09return -ENOMEM;
+> +=09}
+> +
+> +=09fwnode =3D fwnode_create_software_node(props, NULL);
+> +=09if (IS_ERR(fwnode)) {
+> +=09=09platform_device_put(pdev);
+> +=09=09platform_driver_unregister(&surface_gpe_driver);
+> +=09=09return PTR_ERR(fwnode);
+> +=09}
+> +
+> +=09pdev->dev.fwnode =3D fwnode;
+> +
+> +=09status =3D platform_device_add(pdev);
+> +=09if (status) {
+> +=09=09platform_device_put(pdev);
+> +=09=09platform_driver_unregister(&surface_gpe_driver);
+> +=09=09return status;
+> +=09}
+> +
+
+It may be a matter of preference, but I think the 'if (err) goto X' pattern=
+ would
+be better in this function (at least for the last 3 or so error paths).
+
+
+> +=09surface_gpe_device =3D pdev;
+> +=09return 0;
+> +}
+> +module_init(surface_gpe_init);
+> +
+> +static void __exit surface_gpe_exit(void)
+> +{
+> +=09if (!surface_gpe_device)
+> +=09=09return;
+
+If you returned -ENODEV in init when no DMI match is found,
+then this check would be redundant.
+
+
+> [...]
+
+
+Regards,
+Barnab=C3=A1s P=C5=91cze
