@@ -2,105 +2,166 @@ Return-Path: <SRS0=WNZT=CZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9D0FC43461
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 19:15:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00D82C43461
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 19:34:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62D6B20715
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 19:15:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E9B420838
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 19:34:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="YglrM89F"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q2TAjVK1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727270AbgIPTPq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 16 Sep 2020 15:15:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34072 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727269AbgIPRiM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2020 13:38:12 -0400
-Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3DEDC0698E3;
-        Wed, 16 Sep 2020 09:04:48 -0700 (PDT)
-Received: from zn.tnic (p200300ec2f0c3e006cd2bace0261b86c.dip0.t-ipconnect.de [IPv6:2003:ec:2f0c:3e00:6cd2:bace:261:b86c])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 23A1C1EC032C;
-        Wed, 16 Sep 2020 18:01:09 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1600272069;
+        id S1727283AbgIPTd5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 16 Sep 2020 15:33:57 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:31783 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727589AbgIPTcF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2020 15:32:05 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1600284687;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=xHyjNCg9lyL8r3f8F9ATmWfKCsYChSlI1Pfif6iFPgA=;
-        b=YglrM89FW96ZdscfcpIc7PJUAzHf8KLJeLwFasyY7mR4eGsWBg3AmwbPaylIK784zyrGoP
-        VDbi7LE51V41yu/JeCNR+Bv24K6u3MQI4HvlJhzVgdHagO4N7dUXtpxAd+kWgb4gI1ITU8
-        A2o1oRRyWy5DXd7ZWWzctwFx7uS43OU=
-Date:   Wed, 16 Sep 2020 18:01:03 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     peterz@infradead.org
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Naresh Kamboju <naresh.kamboju@linaro.org>
-Subject: Re: [RFC][PATCH 1/4] acpi: Use CPUIDLE_FLAG_TIMER_STOP
-Message-ID: <20200916160103.GL2643@zn.tnic>
-References: <20200915103157.345404192@infradead.org>
- <20200915103806.280265587@infradead.org>
- <CAJZ5v0jD-Lv5WAKHd9KN8sPozN4DeA-sQ4pXZTHNSZ4XS=as3A@mail.gmail.com>
- <20200916154212.GE1362448@hirez.programming.kicks-ass.net>
-MIME-Version: 1.0
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=H30dbXoNbzsTkPGiKpd2XjhJWXqjtA7dGp0dwpbyBQA=;
+        b=Q2TAjVK1i1o+4f4DqEWRYey6mLyFuPShulyNtZBkiUUbfOiZk63wvoOdeg11Iya2uQTrWc
+        d01hMvqoYOv8UiSuqQeR1EMd2EGC/9x1ZmySJymGhJ8fRmlWrWPmyRS3doUjSsdUFU1xAr
+        DSMxEW/wKHFSRjEQ7WSm//CKRM/zYSo=
+Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
+ [209.85.218.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-211-XF5SWKofOaKkx9rXMrO9cQ-1; Wed, 16 Sep 2020 15:31:25 -0400
+X-MC-Unique: XF5SWKofOaKkx9rXMrO9cQ-1
+Received: by mail-ej1-f71.google.com with SMTP id r14so3370001ejb.3
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2020 12:31:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:content-transfer-encoding:from:mime-version
+         :subject:date:message-id:references:cc:in-reply-to:to;
+        bh=H30dbXoNbzsTkPGiKpd2XjhJWXqjtA7dGp0dwpbyBQA=;
+        b=Tv81tIdAOg4BplxRS0B3JUmAe0XRq7ZcV1VRzGfQZrsAXfwhYDx45nZEEgd3oWwjPc
+         pw6iUR7CsU/klI7eik58+P+AKzU4Yw4C72MgVnUUItyoGxs9QNZmyjr+LPs5tSDgrGzQ
+         DMLYL5ij9mC8Dc1SnfObxOQhzbEBZPzziQegN0VPW4cpOoBRmK915UmeFoxGnZGfWf6p
+         tp6LzyVcPuAmKETwIrxoncg1lQOOPtSHsAuCEvewsybsnphhoCEdLrLTEMrGe7Ours5c
+         dQ/kkwDyJKo+lUlvD2YNLn+oGIsh+qA7r4yK2hh+sZ4+P7ruE3c4Lr0xmSia1ka1LWZb
+         pYYg==
+X-Gm-Message-State: AOAM5323vnJLHKU+Vgjt2YvsOWd8j5zIMiq7iW4P6MGijyqbTC2YqeKP
+        daQdfS8mDgIe7P9iQyjeePOPpfEM8Gh0Do+a6bKHqBSbW7C9gZtlOhVro24sFDhRepLIf61S2vS
+        c3WDCnAcwUcDxDogj/S9acg==
+X-Received: by 2002:aa7:c7c2:: with SMTP id o2mr30417833eds.366.1600284684124;
+        Wed, 16 Sep 2020 12:31:24 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwNf5C6IgWA4C90hz+1DV+boU+avbJN14GYmBM3jetRxVAOiNjdDaQK6JfCvz8qKCYsfBo/YA==
+X-Received: by 2002:aa7:c7c2:: with SMTP id o2mr30417797eds.366.1600284683833;
+        Wed, 16 Sep 2020 12:31:23 -0700 (PDT)
+Received: from [192.168.3.122] (p4ff23c30.dip0.t-ipconnect.de. [79.242.60.48])
+        by smtp.gmail.com with ESMTPSA id k25sm13202917ejk.3.2020.09.16.12.31.22
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Sep 2020 12:31:23 -0700 (PDT)
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20200916154212.GE1362448@hirez.programming.kicks-ass.net>
+Content-Transfer-Encoding: quoted-printable
+From:   David Hildenbrand <david@redhat.com>
+Mime-Version: 1.0 (1.0)
+Subject: Re: [PATCH RFC 0/4] mm: place pages to the freelist tail when onling and undoing isolation
+Date:   Wed, 16 Sep 2020 21:31:21 +0200
+Message-Id: <DAC9E747-BDDF-41B6-A89B-604880DD7543@redhat.com>
+References: <5c0910c2cd0d9d351e509392a45552fb@suse.de>
+Cc:     David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-hyperv@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Duyck <alexander.h.duyck@linux.intel.com>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Hocko <mhocko@kernel.org>,
+        Mike Rapoport <rppt@kernel.org>,
+        Scott Cheloha <cheloha@linux.ibm.com>,
+        Stephen Hemminger <sthemmin@microsoft.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Wei Liu <wei.liu@kernel.org>,
+        Wei Yang <richard.weiyang@linux.alibaba.com>
+In-Reply-To: <5c0910c2cd0d9d351e509392a45552fb@suse.de>
+To:     osalvador@suse.de
+X-Mailer: iPhone Mail (17H35)
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Sep 16, 2020 at 05:42:12PM +0200, peterz@infradead.org wrote:
-> On Tue, Sep 15, 2020 at 06:26:52PM +0200, Rafael J. Wysocki wrote:
-> > On Tue, Sep 15, 2020 at 12:44 PM Peter Zijlstra <peterz@infradead.org> wrote:
-> > >
-> > > Make acpi_processor_idle use the common broadcast code, there's no
-> > > reason not to. This also removes some RCU usage after
-> > > rcu_idle_enter().
-> > >
-> > > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> > 
-> > The whole series looks good to me, so please feel free to add
-> > 
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > to all of the four patches.
-> > 
-> > Alternatively, please let me know if you want me to take the patches.
-> 
-> Feel free to take them. All the prerequisite borkage is in linus' tree
-> already.
 
-You can add:
 
-Reported-by: Borislav Petkov <bp@suse.de>
+> Am 16.09.2020 um 20:50 schrieb osalvador@suse.de:
+>=20
+> =EF=BB=BFOn 2020-09-16 20:34, David Hildenbrand wrote:
+>> When adding separate memory blocks via add_memory*() and onlining them
+>> immediately, the metadata (especially the memmap) of the next block will b=
+e
+>> placed onto one of the just added+onlined block. This creates a chain
+>> of unmovable allocations: If the last memory block cannot get
+>> offlined+removed() so will all dependant ones. We directly have unmovable=
 
-for this one and for this whole series:
+>> allocations all over the place.
+>> This can be observed quite easily using virtio-mem, however, it can also
+>> be observed when using DIMMs. The freshly onlined pages will usually be
+>> placed to the head of the freelists, meaning they will be allocated next,=
 
-Tested-by: Borislav Petkov <bp@suse.de>
+>> turning the just-added memory usually immediately un-removable. The
+>> fresh pages are cold, prefering to allocate others (that might be hot)
+>> also feels to be the natural thing to do.
+>> It also applies to the hyper-v balloon xen-balloon, and ppc64 dlpar: when=
 
-Thx.
+>> adding separate, successive memory blocks, each memory block will have
+>> unmovable allocations on them - for example gigantic pages will fail to
+>> allocate.
+>> While the ZONE_NORMAL doesn't provide any guarantees that memory can get
+>> offlined+removed again (any kind of fragmentation with unmovable
+>> allocations is possible), there are many scenarios (hotplugging a lot of
+>> memory, running workload, hotunplug some memory/as much as possible) wher=
+e
+>> we can offline+remove quite a lot with this patchset.
+>=20
+> Hi David,
+>=20
 
--- 
-Regards/Gruss,
-    Boris.
+Hi Oscar.
 
-https://people.kernel.org/tglx/notes-about-netiquette
+> I did not read through the patchset yet, so sorry if the question is nonse=
+nse, but is this not trying to fix the same issue the vmemmap patches did? [=
+1]
+
+Not nonesense at all. It only helps to some degree, though. It solves the de=
+pendencies due to the memmap. However, it=E2=80=98s not completely ideal, es=
+pecially for single memory blocks.
+
+With single memory blocks (virtio-mem, xen-balloon, hv balloon, ppc dlpar) y=
+ou still have unmovable (vmemmap chunks) all over the physical address space=
+. Consider the gigantic page example after hotplug. You directly fragmented a=
+ll hotplugged memory.
+
+Of course, there might be (less extreme) dependencies due page tables for th=
+e identity mapping, extended struct pages and similar.
+
+Having that said, there are other benefits when preferring other memory over=
+ just hotplugged memory. Think about adding+onlining memory during boot (dim=
+ms under QEMU, virtio-mem), once the system is up you will have most (all) o=
+f that memory completely untouched.
+
+So while vmemmap on hotplugged memory would tackle some part of the issue, t=
+here are cases where this approach is better, and there are even benefits wh=
+en combining both.
+
+Thanks!
+
+David
+
+>=20
+> I was about to give it a new respin now that thw hwpoison stuff has been s=
+ettled.
+>=20
+> [1] https://patchwork.kernel.org/cover/11059175/
+>=20
+
