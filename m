@@ -2,106 +2,137 @@ Return-Path: <SRS0=WNZT=CZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF82C433E2
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 20:25:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2FDCC43461
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 20:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90BE120715
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 20:25:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95ED621D24
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 20:43:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mO3hFUu0"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WSkmRC45"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728286AbgIPUZS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 16 Sep 2020 16:25:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60552 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727066AbgIPR1i (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2020 13:27:38 -0400
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC803C061A31;
-        Wed, 16 Sep 2020 10:27:15 -0700 (PDT)
-Received: by mail-pf1-x442.google.com with SMTP id w7so4391897pfi.4;
-        Wed, 16 Sep 2020 10:27:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=bO4fdTifCbsbsP2IhleoA3vXtN6f7O4IH+1Jq/pjP2k=;
-        b=mO3hFUu0GImd1goVrECVXRGIa0A8Nm7b9YstEMyUy8lPWHap5IhmPgzQdgHDmKtbN+
-         QHsTFedtEIZGDZjqTUgKubnI1I2KfPECFPWoaEMQNE/lbDf2AMyaEbqmTeUS6i0Z/6sX
-         oq0KJ5zBXXuKr4u7PE48vB+5DyAvA6MExJuy5wZgqzFpvIeP9K5iRUM+Frq8ThmToIpq
-         eD1pYVlgnptoaIslvMaWfGHaLUDvVokcjwvyGUBJoOBWeJHbHRNblVXVmRLkcEf4ZRrf
-         qqZ9fuRkK6kRhglgrUp9jB0BZ0p0lm/mhSl8JWxGW9sDlJwJktME3bKWZQfVW+ZQBLhQ
-         fbqg==
+        id S1728370AbgIPUnA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 16 Sep 2020 16:43:00 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:48589 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726594AbgIPRD2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Sep 2020 13:03:28 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1600275805;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=KWuNiHJM+3srt9mGCXZA/purfg1IvgYJY5TmJukU+/g=;
+        b=WSkmRC45RpIsaSNIJI8Bmqeeywlq2A1d0QiYcA3MUvhpiR0k4yOIZd6V1vobmKyX6rQK3w
+        dFbwpDPuf4tXAWIMjavqhHtbSjqs5SmFxJr4oEB3bjxk2im049n5HWmp4nFz8qnKXFqevd
+        yeiYJkWwp/gx4PUoNw01DaQ4+OS6IVg=
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
+ [209.85.208.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-539-myQ6hTmuOUarvXhRa0gIvQ-1; Wed, 16 Sep 2020 11:56:58 -0400
+X-MC-Unique: myQ6hTmuOUarvXhRa0gIvQ-1
+Received: by mail-ed1-f70.google.com with SMTP id x23so2665029eds.5
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2020 08:56:57 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=bO4fdTifCbsbsP2IhleoA3vXtN6f7O4IH+1Jq/pjP2k=;
-        b=ZHQN1q6cGrxRCllzwweBFQt2x09SfaiPODivx/EBdzczwue9tRgGs3k7/gz/QIeeck
-         nAA8pj6z0j2Gh7DuEqaGrYTYADV/nvD/+j/ioRFJol/X5UMRUGZTvS4Ei7m1dRnsrRhq
-         bghbYfC+APCUX0YTDhPtETaUKoyV7UrvapwNHpS8cq8760FPR3PxyOt5SqrfgsANOxlX
-         ynNLH3LtMK4RFxWh62EDP2AQQBAQEIs0KMcH+nuaEG6hr55EQ+JTYeX0sZDjAe4EpKzi
-         nFozUnln0h73/sXW+v+075RtIEnV9FEqP6PvqsPkz0W463OV81UJfB1eTK784DfMcWUE
-         WqEQ==
-X-Gm-Message-State: AOAM5321uTAKKy/uAJ5So0nx9pdcMDPJXi/8UvaFtfkoitfUmlgmy9Hx
-        c9r+LGMHiX+KR393HlNmoXLWE8BKA21oL9H6AKs=
-X-Google-Smtp-Source: ABdhPJyTOQigECECSyGp9bnw5Ai8y2TsU/ceVs5PMCCP/LIJ3wf9n8JCo7zbCa78DwkerSAMOsFtSmCXxvdlMB0zy74=
-X-Received: by 2002:a63:ec4c:: with SMTP id r12mr18735528pgj.74.1600277235025;
- Wed, 16 Sep 2020 10:27:15 -0700 (PDT)
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=KWuNiHJM+3srt9mGCXZA/purfg1IvgYJY5TmJukU+/g=;
+        b=beUvHvctnnE/mozZqg7ZT7h9Oyi7ixpKxPG5tvldukQRKROepUYjfq8GGLnaGzTK59
+         Ly1HSbXNs2eiO7rx/LV/k+cWWu1eNQR6wQIPuZK4PFH90grZBNCozlfQsvMDqbuKfB2C
+         BwO5PkL+COOJzAeI766zMILW6+dQQ8Rm64Mizmo3KQIp22CE+IvEjWdXFWfjbqKC4FXV
+         x6jzDv7NHpmgriYD+TkTNcmnsARMH6uYYICtMbOki0Bw2p+b4C7wJ8TyJAXnWbDzQ1SQ
+         PVhNmm/wrtj21grZ12LL55IPIntTNBGWXF4OCHsdSG9jl4mDACWVvSG6yFvpdB21XGFP
+         kq0g==
+X-Gm-Message-State: AOAM532yONJ7RKOlRcwaVA28fBbuZXaoIEiBWOP1+4FYb13lGEh2KSJm
+        2qch+hVUyCDz7EBCS5ufv0uGyzFdhhKdupKV0VHxSaaAAFj9OnnOXBks05grSYHcJdkWrYiXvXQ
+        lhK/1RSYJXX0/xJqcirqPNw==
+X-Received: by 2002:a50:ab1d:: with SMTP id s29mr29425952edc.246.1600271816053;
+        Wed, 16 Sep 2020 08:56:56 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJyx7YenjX1uGYvGmnY0vIA9GEywN5m3HHb4c1OGgPPWq1JNUBtOjo032cN6g7JB4pvYOjG8FQ==
+X-Received: by 2002:a50:ab1d:: with SMTP id s29mr29425938edc.246.1600271815838;
+        Wed, 16 Sep 2020 08:56:55 -0700 (PDT)
+Received: from x1.localdomain (2001-1c00-0c0c-fe00-d2ea-f29d-118b-24dc.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:d2ea:f29d:118b:24dc])
+        by smtp.gmail.com with ESMTPSA id nm7sm12974795ejb.70.2020.09.16.08.56.54
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Sep 2020 08:56:54 -0700 (PDT)
+Subject: Re: [PATCH] i2c: core: Call i2c_acpi_install_space_handler() before
+ i2c_acpi_register_devices()
+To:     Wolfram Sang <wsa@the-dreams.de>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Kai Heng Feng <kai.heng.feng@canonical.com>,
+        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+References: <20200909103233.58287-1-hdegoede@redhat.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <b1c0b39f-8115-5c27-614f-a31a2731111f@redhat.com>
+Date:   Wed, 16 Sep 2020 17:56:54 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-References: <20200910211520.1490626-1-luzmaximilian@gmail.com> <EMZQgUl1xLN4o0hV9ZkCD563O85SuOYB5kNFZ5_hlxLQXbJCXpQfrM2afyFIr28h31tXMxD1mxE4DkA5Wy60A0Z2mDnstwF17tEdnX4IRas=@protonmail.com>
-In-Reply-To: <EMZQgUl1xLN4o0hV9ZkCD563O85SuOYB5kNFZ5_hlxLQXbJCXpQfrM2afyFIr28h31tXMxD1mxE4DkA5Wy60A0Z2mDnstwF17tEdnX4IRas=@protonmail.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Wed, 16 Sep 2020 20:26:56 +0300
-Message-ID: <CAHp75Ve8jaYsecsQjuojrihyoVsYr7G011drmXN7q9yzt_tMnQ@mail.gmail.com>
-Subject: Re: [PATCH v2] platform/x86: Add Driver to set up lid GPEs on MS
- Surface device
-To:     =?UTF-8?B?QmFybmFiw6FzIFDFkWN6ZQ==?= <pobrn@protonmail.com>
-Cc:     Maximilian Luz <luzmaximilian@gmail.com>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Gayatri Kammela <gayatri.kammela@intel.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20200909103233.58287-1-hdegoede@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Sep 16, 2020 at 2:58 AM Barnab=C3=A1s P=C5=91cze <pobrn@protonmail.=
-com> wrote:
+Hi,
 
-...
+On 9/9/20 12:32 PM, Hans de Goede wrote:
+> Some ACPI i2c-devices _STA method (which is used to detect if the device
+> is present) use autodetection code which probes which device is present
+> over i2c. This requires the I2C ACPI OpRegion handler to be registered
+> before we enumerate i2c-clients under the i2c-adapter.
+> 
+> This fixes the i2c touchpad on the Lenovo ThinkBook 14-IIL and
+> ThinkBook 15 IIL not getting an i2c-client instantiated and thus not
+> working.
+> 
+> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1842039
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-> > +             dev_err(dev, "failed to set GPE wake mask: %d\n", status)=
-;
->
-> I'm not sure if it's technically safe to print acpi_status with the %d fo=
-rmat
-> specifier since 'acpi_status' is defined as 'u32' at the moment.
->  func("%lu", (unsigned long) status)
-> would be safer.
+Ping? This fixes a serious problem (non working touchpad on various
+laptop models) and is a pretty straight-forward fix.
 
-Please, no explicit castings for printf(). In 99% cases it means that
-something is not being used correctly.
+Arguably it should even go to stable, but I'm not 100% sure about that
+because these sorta ACPI enumeration problems can sometimes by
+tricky. With that said in this case the fix does seem to be
+very straight forward and obviously correct.
+
+Mika, since this deals with the ACPI bits of the i2c-core can
+you review this one please?
+
+Regards,
+
+Hans
 
 
+> ---
+>   drivers/i2c/i2c-core-base.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+> index 5ec082e2039d..573b5da145d1 100644
+> --- a/drivers/i2c/i2c-core-base.c
+> +++ b/drivers/i2c/i2c-core-base.c
+> @@ -1464,8 +1464,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
+>   
+>   	/* create pre-declared device nodes */
+>   	of_i2c_register_devices(adap);
+> -	i2c_acpi_register_devices(adap);
+>   	i2c_acpi_install_space_handler(adap);
+> +	i2c_acpi_register_devices(adap);
+>   
+>   	if (adap->nr < __i2c_first_dynamic_bus_num)
+>   		i2c_scan_static_board_info(adap);
+> 
 
-
-
---=20
-With Best Regards,
-Andy Shevchenko
