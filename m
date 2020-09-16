@@ -2,232 +2,222 @@ Return-Path: <SRS0=WNZT=CZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56089C433E2
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 17:56:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 747B3C433E2
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 18:35:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 094802080C
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 17:56:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D853221EC
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 18:35:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MdWmtSxZ"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UEIQBRiB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727502AbgIPRzX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 16 Sep 2020 13:55:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36736 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727676AbgIPRy3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2020 13:54:29 -0400
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49216C0612F2;
-        Wed, 16 Sep 2020 10:54:17 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id i1so7238433edv.2;
-        Wed, 16 Sep 2020 10:54:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=n6mrIADyrBQbnLtXXBKUK1oHgyD2rX/EbKv+Og9Z66w=;
-        b=MdWmtSxZ+/68Ef3OJpum0X3G5xJJrhYtIiumYYkzc+XTHdRp/DkXrsl3PvSQehD5pb
-         N1eMlGDqFrgXueip3v4h8gw+AnGOw6G27Z47a3AshPiEOWiLphhTX2DqrSRTuBHD7thd
-         1q9ZVSETqbF63QHQiFkjPiVKziaZF6pN9W3Xov4LtKt8xKa2z2mIOJDqobST5N/k6jDC
-         kubpg/9lhrVzCWBhlAP5QenZ6Ob2D/3efN7HFsbIlU+JdjtrsSuzSUyAiSNhhHv92Q+o
-         G3dY/aVazEzUZJh1XUkMhguw3XwrOFB6ikhTQ1KGwHfDMRifWW0qoeZcp967xj6HeOsb
-         WvWA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=n6mrIADyrBQbnLtXXBKUK1oHgyD2rX/EbKv+Og9Z66w=;
-        b=psE2VmH+yK2oxmgRP4RjzwFYwJ76fD+FrjYfWGmdoPXFvCB/aYRzymzIa4NnSVzro5
-         FaULukMq2P7b8w427wg4jIiupGdKh3mUM4ix+oaOPe9RJmeTR3ha8l78y4Q7oDy5YFNO
-         LFhjBF4G0TETTCeWXAsN/VImY3Hvbm/ZuqPr9RQMBvzMPRfJQxCN7kkbqfgg9Vr/os27
-         cyc1Z+Zn+qSZtxnpAi2/clx6j4gH1xFeuO/iXEJYmQmu0IVM4hSyVJCakqoexveKBSAG
-         /6bEWduna0a7/0GoBk5anGO3xvjdLdEFsmioJrNhtC8KiVuob+EAgM3r4aVnG5zt0Gi3
-         T6gw==
-X-Gm-Message-State: AOAM5319H0zcBxf5jzXfbVzv5eyq8pkbqIzjUQdniqSZsUgEBRTJRKNO
-        RQ+iV1mQY//3G82Ma2OtSF2mYEZ5+yc=
-X-Google-Smtp-Source: ABdhPJz6K38IuTDuacte2yOGDB9aBjUsB2njf/w905tVCZsdCiBTMF524UByyDaDyC5CQtoHej56uA==
-X-Received: by 2002:aa7:cb44:: with SMTP id w4mr29216973edt.139.1600278855258;
-        Wed, 16 Sep 2020 10:54:15 -0700 (PDT)
-Received: from [192.168.2.202] (pd9e5a4ba.dip0.t-ipconnect.de. [217.229.164.186])
-        by smtp.gmail.com with ESMTPSA id si28sm13083691ejb.95.2020.09.16.10.54.13
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 16 Sep 2020 10:54:14 -0700 (PDT)
-Subject: Re: [PATCH v2] platform/x86: Add Driver to set up lid GPEs on MS
- Surface device
-To:     =?UTF-8?Q?Barnab=c3=a1s_P=c5=91cze?= <pobrn@protonmail.com>
-Cc:     Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Gayatri Kammela <gayatri.kammela@intel.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <20200910211520.1490626-1-luzmaximilian@gmail.com>
- <EMZQgUl1xLN4o0hV9ZkCD563O85SuOYB5kNFZ5_hlxLQXbJCXpQfrM2afyFIr28h31tXMxD1mxE4DkA5Wy60A0Z2mDnstwF17tEdnX4IRas=@protonmail.com>
- <355dae14-2508-706b-53f8-48b78f84e7cc@gmail.com>
- <ID5eml6LsB6tCDrZwhbfin228LE3cor6ZEYbAHj6C3SZ9y0AcL40SWweP-iAjmEpCeEV5NZHJLKBpUo5qw1VR0Q7xOXAVSH7epRjTRkj64Y=@protonmail.com>
-From:   Maximilian Luz <luzmaximilian@gmail.com>
-Message-ID: <5fe41f91-068e-9da8-8308-d71061d378bd@gmail.com>
-Date:   Wed, 16 Sep 2020 19:54:13 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+        id S1727989AbgIPSfG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 16 Sep 2020 14:35:06 -0400
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:50333 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728183AbgIPSeu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Sep 2020 14:34:50 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1600281288;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=K36Yi+Yui5jwLqHmtqjUnD4ieo4W1F/4OXFgJRadTHo=;
+        b=UEIQBRiBslD5esuuXS7ImLJ/Fnl9fbg45R1uAYXwAN5tRt2dx3b+lm20gxf/4qD3Oni/C/
+        LVmfeWBtAaomten0ZinrcZttJOtEaBULZU2EMVuy3WLx916oKZaSmp8CqKWwDKqL9/I4v1
+        SLvSBIbVRNsT8gvjC5+rXJOeauGcDws=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-163-yOMc6tw1N0S2tGGPouOSjQ-1; Wed, 16 Sep 2020 14:34:44 -0400
+X-MC-Unique: yOMc6tw1N0S2tGGPouOSjQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5453E801AC4;
+        Wed, 16 Sep 2020 18:34:41 +0000 (UTC)
+Received: from t480s.redhat.com (ovpn-113-190.ams2.redhat.com [10.36.113.190])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id C9EA419D61;
+        Wed, 16 Sep 2020 18:34:31 +0000 (UTC)
+From:   David Hildenbrand <david@redhat.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     linux-mm@kvack.org, linux-hyperv@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        David Hildenbrand <david@redhat.com>,
+        Alexander Duyck <alexander.h.duyck@linux.intel.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Michal Hocko <mhocko@kernel.org>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Wei Yang <richard.weiyang@linux.alibaba.com>,
+        Oscar Salvador <osalvador@suse.de>,
+        Mike Rapoport <rppt@kernel.org>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Stephen Hemminger <sthemmin@microsoft.com>,
+        Wei Liu <wei.liu@kernel.org>
+Subject: [PATCH RFC 4/4] mm/page_alloc: place pages to tail in __free_pages_core()
+Date:   Wed, 16 Sep 2020 20:34:11 +0200
+Message-Id: <20200916183411.64756-5-david@redhat.com>
+In-Reply-To: <20200916183411.64756-1-david@redhat.com>
+References: <20200916183411.64756-1-david@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <ID5eml6LsB6tCDrZwhbfin228LE3cor6ZEYbAHj6C3SZ9y0AcL40SWweP-iAjmEpCeEV5NZHJLKBpUo5qw1VR0Q7xOXAVSH7epRjTRkj64Y=@protonmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 9/16/20 7:13 PM, Barnabás Pőcze wrote:
-...
->>>> +	}s
->>>> +
->>>> +	return 0;
->>>> +}
->>>> [...]
->>>> +static int surface_gpe_probe(struct platform_device *pdev)
->>>> +{
->>>> +	struct surface_lid_device *lid;
->>>> +	u32 gpe_number;
->>>> +	int status;
->>>> +
->>>> +	status = device_property_read_u32(&pdev->dev, "gpe", &gpe_number);
->>>> +	if (status)
->>>> +		return -ENODEV;
->>>
->>> 'device_property_read_u32()' returns an error code, you could simply return that
->>> instead of hiding it.
->>
->> My thought there was that if the "gpe" property isn't present or of a
->> different type, this is not a device that we want to/can handle. Thus
->> the -ENODEV. Although I think a debug print statement may be useful
->> here.
->>
-> 
-> I see, I just wanted to bring to your attention that 'device_property_read_u32()'
-> returns various standard error codes and you could simply return those.
+__free_pages_core() is used when exposing fresh memory to the buddy
+during system boot and when onlining memory in generic_online_page().
 
-I think one could also argue that module-loading should have taken care
-of filtering out devices that we don't load on, so -ENODEV would be
-redundant here. At least if one neglects that a user could try to
-manually bind the driver to a device. Following that thought, I guess it
-makes more sense to return the actual value here.
+generic_online_page() is used in two cases:
 
->> [...]
->>>> +
->>>> +	lid->gpe_number = gpe_number;
->>>> +	platform_set_drvdata(pdev, lid);
->>>> +
->>>> +	status = surface_lid_enable_wakeup(&pdev->dev, false);
->>>> +	if (status) {
->>>> +		acpi_disable_gpe(NULL, gpe_number);
->>>> +		platform_set_drvdata(pdev, NULL);
->>>
->>> Why is 'platform_set_drvdata(pdev, NULL)' needed?
->>
->> Is this not required for clean-up once the driver data has been set? Or
->> does the driver-base take care of that for us when the driver is
->> removed/fails to probe? My reasoning was that I don't want to leave
->> stuff around for any other driver to trip on (and rather have that
->> driver oops on a NULL-pointer). If the driver-core already takes care of
->> NULL-ing that, that line is not needed. Unfortunately that behavior
->> doesn't seem to be explained in the documentation.
->>
-> 
-> I'm not aware that it would be required. As a matter of fact, only two x86
-> platform drivers (intel_pmc_core, ideapad-laptop) do any cleanup of driver data.
-> There are much more hits (536) for "set_drvdata(.* NULL" when scanning all drivers.
-> There are 4864 hits for "set_drvdata(.*" that have no 'NULL' in them.
-> 
-> There is drivers/base/dd.c:really_probe(), which seems to be the place where driver
-> probes are actually called. And it calls 'dev_set_drvdata(dev, NULL)' if the probe
-> fails. And it also sets the driver data to NULL in '__device_release_driver()',
-> so I'm pretty sure the driver core takes care of it.
+1. Direct memory onlining in online_pages().
+2. Deferred memory onlining in memory-ballooning-like mechanisms (HyperV
+   balloon and virtio-mem), when parts of a section are kept
+   fake-offline to be fake-onlined later on.
 
-I see, thanks! Would make sense that the core takes care of that.
+In 1, we already place pages to the tail of the freelist. Pages will be
+freed to MIGRATE_ISOLATE lists first and moved to the tail of the freelists
+via undo_isolate_page_range().
 
->>>> +		return status;
->>>> +	}
->>>> +
->>>> +	return 0;
->>>> +}
->> [...]
->>>> +static int __init surface_gpe_init(void)
->>>> +{
->>>> +	const struct dmi_system_id *match;
->>>> +	const struct property_entry *props;
->>>> +	struct platform_device *pdev;
->>>> +	struct fwnode_handle *fwnode;
->>>> +	int status;
->>>> +
->>>> +	match = dmi_first_match(dmi_lid_device_table);
->>>> +	if (!match) {
->>>> +		pr_info(KBUILD_MODNAME": no device detected, exiting\n");
->>>
->>> If you put
->>>    #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->>> before including any headers, you can simply write 'pr_info("no device...")' and it'll
->>> be prefixed by the module name. This is the "usual" way of achieving what you want.
->>
->> Right, thanks!
->>
->>>> +		return 0;
->>>
->>> Shouldn't it return -ENODEV?
->>
->> How does module auto-loading behave with a -ENODEV return value in init?
->> I know that in the driver's probe callback it signals that the driver
->> isn't intended for the device. Is this the same for modules or would a
->> user get an error message in the kernel log? As I couldn't find any
->> documentation on this, I assumed it didn't behave the same and would
->> emit an error message.
->>
->> The reason I don't want to emit an error message here is that the module
->> can be loaded for devices that it's not intended (and that's not
->> something we can fix with a better MODULE_ALIAS as Microsoft cleverly
->> named their 5th generation Surface Pro "Surface Pro", without any
->> version number). Mainly, I don't want users to get a random error
->> message that doesn't indicate an actual error.
->>
-> 
-> I wasn't sure, so I tested it. It prints the "no device" message, but that's it,
-> no more indication of the -ENODEV error in the kernel log during automatic
-> module loading at boot.
-> 
-> You could print "no compatible Microsoft Surface device found, exitig" (or something
-> similar). I think this provides enough information for any user to decide if
-> they should be concerned or not.
+In 2, we currently don't implement a proper rule. In case of virtio-mem,
+where we currently always online MAX_ORDER - 1 pages, the pages will be
+placed to the HEAD of the freelist - undesireable. While the hyper-v
+balloon calls generic_online_page() with single pages, usually it will
+call it on successive single pages in a larger block.
 
-I ran the same test (with same results) earlier today and also did some
-digging: From what I can tell, udev is responsible for auto-loading and
-the code doing that can be found at [1]. This code seems to, by default,
-log any errors as debug output. Only in verbose mode it logs them as
-error, with the exception of -ENODEV, which then is specifically logged
-only as notice.
+The pages are fresh, so place them to the tail of the freelists and avoid
+the PCP.
 
-It also seems to be used by a couple of other modules this way. So I
-guess that's the expected use-case for -ENODEV in module-init and pretty
-much guarantees the behavior I've wanted.
+Note: If we detect that the new behavior is undesireable for
+__free_pages_core() during boot, we can let the caller specify the
+behavior.
 
-[1]: https://github.com/systemd/systemd/blob/6d95e7d9b263c94e94704e3125cb790840b76ca2/src/shared/module-util.c#L58-L64
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+---
+ mm/page_alloc.c | 32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-Thanks again. If there are no other comments, I'll likely submit a v3
-addressing the issues tomorrow.
-
-Regards,
-Max
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 75b0f49b4022..50746e6dc21b 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -264,7 +264,8 @@ bool pm_suspended_storage(void)
+ unsigned int pageblock_order __read_mostly;
+ #endif
+ 
+-static void __free_pages_ok(struct page *page, unsigned int order);
++static void __free_pages_ok(struct page *page, unsigned int order,
++			    fop_t fop_flags);
+ 
+ /*
+  * results with 256, 32 in the lowmem_reserve sysctl:
+@@ -676,7 +677,7 @@ static void bad_page(struct page *page, const char *reason)
+ void free_compound_page(struct page *page)
+ {
+ 	mem_cgroup_uncharge(page);
+-	__free_pages_ok(page, compound_order(page));
++	__free_pages_ok(page, compound_order(page), FOP_NONE);
+ }
+ 
+ void prep_compound_page(struct page *page, unsigned int order)
+@@ -1402,17 +1403,15 @@ static void free_pcppages_bulk(struct zone *zone, int count,
+ 	spin_unlock(&zone->lock);
+ }
+ 
+-static void free_one_page(struct zone *zone,
+-				struct page *page, unsigned long pfn,
+-				unsigned int order,
+-				int migratetype)
++static void free_one_page(struct zone *zone, struct page *page, unsigned long pfn,
++			  unsigned int order, int migratetype, fop_t fop_flags)
+ {
+ 	spin_lock(&zone->lock);
+ 	if (unlikely(has_isolate_pageblock(zone) ||
+ 		is_migrate_isolate(migratetype))) {
+ 		migratetype = get_pfnblock_migratetype(page, pfn);
+ 	}
+-	__free_one_page(page, pfn, zone, order, migratetype, FOP_NONE);
++	__free_one_page(page, pfn, zone, order, migratetype, fop_flags);
+ 	spin_unlock(&zone->lock);
+ }
+ 
+@@ -1490,7 +1489,8 @@ void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
+ 	}
+ }
+ 
+-static void __free_pages_ok(struct page *page, unsigned int order)
++static void __free_pages_ok(struct page *page, unsigned int order,
++			    fop_t fop_flags)
+ {
+ 	unsigned long flags;
+ 	int migratetype;
+@@ -1502,7 +1502,8 @@ static void __free_pages_ok(struct page *page, unsigned int order)
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+ 	local_irq_save(flags);
+ 	__count_vm_events(PGFREE, 1 << order);
+-	free_one_page(page_zone(page), page, pfn, order, migratetype);
++	free_one_page(page_zone(page), page, pfn, order, migratetype,
++		      fop_flags);
+ 	local_irq_restore(flags);
+ }
+ 
+@@ -1523,7 +1524,13 @@ void __free_pages_core(struct page *page, unsigned int order)
+ 
+ 	atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
+ 	set_page_refcounted(page);
+-	__free_pages(page, order);
++
++	/*
++	 * Bypass PCP and place fresh pages right to the tail, primarily
++	 * relevant for memory onlining.
++	 */
++	page_ref_dec(page);
++	__free_pages_ok(page, order, FOP_TO_TAIL);
+ }
+ 
+ #ifdef CONFIG_NEED_MULTIPLE_NODES
+@@ -3167,7 +3174,8 @@ static void free_unref_page_commit(struct page *page, unsigned long pfn)
+ 	 */
+ 	if (migratetype >= MIGRATE_PCPTYPES) {
+ 		if (unlikely(is_migrate_isolate(migratetype))) {
+-			free_one_page(zone, page, pfn, 0, migratetype);
++			free_one_page(zone, page, pfn, 0, migratetype,
++				      FOP_NONE);
+ 			return;
+ 		}
+ 		migratetype = MIGRATE_MOVABLE;
+@@ -4984,7 +4992,7 @@ static inline void free_the_page(struct page *page, unsigned int order)
+ 	if (order == 0)		/* Via pcp? */
+ 		free_unref_page(page);
+ 	else
+-		__free_pages_ok(page, order);
++		__free_pages_ok(page, order, FOP_NONE);
+ }
+ 
+ void __free_pages(struct page *page, unsigned int order)
+-- 
+2.26.2
 
