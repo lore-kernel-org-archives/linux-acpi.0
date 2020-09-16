@@ -2,86 +2,164 @@ Return-Path: <SRS0=WNZT=CZ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E06EEC2D0E3
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 21:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73826C433E2
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 22:05:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84562206BE
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 21:05:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1161B206CA
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Sep 2020 22:05:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1600293934;
+	bh=8YExeebFYjGD6iWEtSRHpDG9C6se09q+jMParqrrJs0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
+	b=QFx2TTYvYwgUDZDNEcZDGa9EiyihJw1yIktO70/VSDRWh7PAlhs58YdpbYF7C4Er/
+	 Ln4QWnSlGetDRxr29v6iOSCTvj00yiKn6X/SO7qVl754IXH46k26APGLIGfGMn3OZ0
+	 uYLfN6oRgz3nOTVbUo7sobKxBxSbpbNQCgpCsc2c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728570AbgIPVFL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 16 Sep 2020 17:05:11 -0400
-Received: from mga04.intel.com ([192.55.52.120]:8872 "EHLO mga04.intel.com"
+        id S1726205AbgIPWFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 16 Sep 2020 18:05:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726381AbgIPQPB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Sep 2020 12:15:01 -0400
-IronPort-SDR: Nxaf18JWAD1ByTJyVNm9jDeywPHSRVNEOfhBN8kgAR8sZO3ecSdWjEA1HHSV6tsQ3Qo57OO6hB
- QHqtaodyW+oQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9745"; a="156847936"
-X-IronPort-AV: E=Sophos;i="5.76,432,1592895600"; 
-   d="scan'208";a="156847936"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2020 06:27:39 -0700
-IronPort-SDR: SD7152pPPAgw2JkHU2xNe/XZCzOPQBL0yRS/KHuGoTxQAXaw1xkwJ7EGEIAKH+/xpKZ6yA/eMT
- taVI80n7V9iA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,432,1592895600"; 
-   d="scan'208";a="409556841"
-Received: from kuha.fi.intel.com ([10.237.72.162])
-  by fmsmga001.fm.intel.com with SMTP; 16 Sep 2020 06:27:35 -0700
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Wed, 16 Sep 2020 16:27:35 +0300
-Date:   Wed, 16 Sep 2020 16:27:35 +0300
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Felipe Balbi <balbi@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 0/3] PM operations for software nodes
-Message-ID: <20200916132735.GF1358028@kuha.fi.intel.com>
-References: <20200825135951.53340-1-heikki.krogerus@linux.intel.com>
+        id S1725267AbgIPWFb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Sep 2020 18:05:31 -0400
+Received: from localhost (52.sub-72-107-123.myvzw.com [72.107.123.52])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id CBF7A21941;
+        Wed, 16 Sep 2020 21:46:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1600292797;
+        bh=8YExeebFYjGD6iWEtSRHpDG9C6se09q+jMParqrrJs0=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=FGlZ2APPc29PMaSjdWXxmhHR6wy7u+vpeNqYZVstAkzzvUGDCctx58RLy1mBGrjHV
+         Xeqmdo6DTNYOrM1j7nIe0dcmh+hibme00WoKWuuwGBBP+E90PpyVBZyxf5FUxSk2cI
+         fNWWIK2oCJdaIGnM8r/hxCC3max/XJjpg7/ieWJo=
+Date:   Wed, 16 Sep 2020 16:46:35 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Rajat Jain <rajatja@google.com>
+Cc:     David Woodhouse <dwmw2@infradead.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        Joerg Roedel <joro@8bytes.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, iommu@lists.linux-foundation.org,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, Raj Ashok <ashok.raj@intel.com>,
+        lalithambika.krishnakumar@intel.com,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Prashant Malani <pmalani@google.com>,
+        Benson Leung <bleung@google.com>,
+        Todd Broch <tbroch@google.com>,
+        Alex Levin <levinale@google.com>,
+        Mattias Nissler <mnissler@google.com>,
+        Rajat Jain <rajatxjain@gmail.com>,
+        Bernie Keany <bernie.keany@intel.com>,
+        Aaron Durbin <adurbin@google.com>,
+        Diego Rivas <diegorivas@google.com>,
+        Duncan Laurie <dlaurie@google.com>,
+        Furquan Shaikh <furquan@google.com>,
+        Jesse Barnes <jsbarnes@google.com>,
+        Christian Kellner <christian@kellner.me>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        oohall@gmail.com, Saravana Kannan <saravanak@google.com>,
+        Suzuki K Poulose <suzuki.poulose@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v4 4/4] PCI/ACS: Enable PCI_ACS_TB for
+ untrusted/external-facing devices
+Message-ID: <20200916214635.GA1586835@bjorn-Precision-5520>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200825135951.53340-1-heikki.krogerus@linux.intel.com>
+In-Reply-To: <20200707224604.3737893-4-rajatja@google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-+Sakari
+On Tue, Jul 07, 2020 at 03:46:04PM -0700, Rajat Jain wrote:
+> When enabling ACS, enable translation blocking for external facing ports
+> and untrusted devices.
+> 
+> Signed-off-by: Rajat Jain <rajatja@google.com>
 
-On Tue, Aug 25, 2020 at 04:59:48PM +0300, Heikki Krogerus wrote:
-> Hi guys,
+Applied (slightly modified) to pci/acs for v5.10, thanks!
+
+I think the warning is superfluous because every external_facing
+device is a Root Port or Switch Downstream Port, and if those support
+ACS at all, they are required to support Translation Blocking.  So we
+should only see the warning if the device is defective, and I don't
+think we need to go out of our way to look for those.
+
+> ---
+> v4: Add braces to avoid warning from kernel robot
+>     print warning for only external-facing devices.
+> v3: print warning if ACS_TB not supported on external-facing/untrusted ports.
+>     Minor code comments fixes.
+> v2: Commit log change
 > 
-> Unfortunately the last patch depends on this:
-> https://lore.kernel.org/linux-usb/20200821131101.81915-1-heikki.krogerus@linux.intel.com/
+>  drivers/pci/pci.c    |  8 ++++++++
+>  drivers/pci/quirks.c | 15 +++++++++++++++
+>  2 files changed, 23 insertions(+)
 > 
-> Would it be easiest that Felipe took care of these (assuming they are
-> acceptable)?
-> 
-> thanks,
-> 
-> Heikki Krogerus (3):
->   software node: Power management operations for software nodes
->   software node: Introduce device_add_software_node()
->   usb: dwc3: pci: Register a software node for the dwc3 platform device
-> 
->  drivers/base/power/common.c |   8 +-
->  drivers/base/swnode.c       | 569 +++++++++++++++++++++++++++++++++++-
->  drivers/usb/dwc3/dwc3-pci.c | 175 ++++++-----
->  include/linux/property.h    |  13 +
->  4 files changed, 666 insertions(+), 99 deletions(-)
-> 
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 73a8627822140..a5a6bea7af7ce 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -876,6 +876,14 @@ static void pci_std_enable_acs(struct pci_dev *dev)
+>  	/* Upstream Forwarding */
+>  	ctrl |= (cap & PCI_ACS_UF);
+>  
+> +	/* Enable Translation Blocking for external devices */
+> +	if (dev->external_facing || dev->untrusted) {
+> +		if (cap & PCI_ACS_TB)
+> +			ctrl |= PCI_ACS_TB;
+> +		else if (dev->external_facing)
+> +			pci_warn(dev, "ACS: No Translation Blocking on external-facing dev\n");
+> +	}
+> +
+>  	pci_write_config_word(dev, pos + PCI_ACS_CTRL, ctrl);
+>  }
+>  
+> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+> index b341628e47527..bb22b46c1d719 100644
+> --- a/drivers/pci/quirks.c
+> +++ b/drivers/pci/quirks.c
+> @@ -4934,6 +4934,13 @@ static void pci_quirk_enable_intel_rp_mpc_acs(struct pci_dev *dev)
+>  	}
+>  }
+>  
+> +/*
+> + * Currently this quirk does the equivalent of
+> + * PCI_ACS_SV | PCI_ACS_RR | PCI_ACS_CR | PCI_ACS_UF
+> + *
+> + * TODO: This quirk also needs to do equivalent of PCI_ACS_TB,
+> + * if dev->external_facing || dev->untrusted
+> + */
+>  static int pci_quirk_enable_intel_pch_acs(struct pci_dev *dev)
+>  {
+>  	if (!pci_quirk_intel_pch_acs_match(dev))
+> @@ -4973,6 +4980,14 @@ static int pci_quirk_enable_intel_spt_pch_acs(struct pci_dev *dev)
+>  	ctrl |= (cap & PCI_ACS_CR);
+>  	ctrl |= (cap & PCI_ACS_UF);
+>  
+> +	/* Enable Translation Blocking for external devices */
+> +	if (dev->external_facing || dev->untrusted) {
+> +		if (cap & PCI_ACS_TB)
+> +			ctrl |= PCI_ACS_TB;
+> +		else if (dev->external_facing)
+> +			pci_warn(dev, "ACS: No Translation Blocking on external-facing dev\n");
+> +	}
+> +
+>  	pci_write_config_dword(dev, pos + INTEL_SPT_ACS_CTRL, ctrl);
+>  
+>  	pci_info(dev, "Intel SPT PCH root port ACS workaround enabled\n");
 > -- 
-> 2.28.0
-
--- 
-heikki
+> 2.27.0.212.ge8ba1cc988-goog
+> 
