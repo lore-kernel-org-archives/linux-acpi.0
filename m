@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BE57C43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C2EDC433E2
 	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 08:11:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4E0421D90
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 08:11:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E3C821D90
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 08:11:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726153AbgIQILc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Sep 2020 04:11:32 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:57636 "EHLO huawei.com"
+        id S1726185AbgIQILd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Sep 2020 04:11:33 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:57632 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726202AbgIQIFB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Sep 2020 04:05:01 -0400
+        id S1726381AbgIQIEz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Sep 2020 04:04:55 -0400
 Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 928412D0CD91B75915FA;
+        by Forcepoint Email with ESMTP id 7792259F09CA9F5AFFD1;
         Thu, 17 Sep 2020 15:46:55 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 17 Sep 2020 15:46:45 +0800
+ 14.3.487.0; Thu, 17 Sep 2020 15:46:48 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     <linux-acpi@vger.kernel.org>
 CC:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 05/25] ACPI: LPSS: Remove the ACPI_MODULE_NAME()
-Date:   Thu, 17 Sep 2020 15:38:45 +0800
-Message-ID: <1600328345-27627-6-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 11/25] ACPI: debugfs: Remove the ACPICA debug code
+Date:   Thu, 17 Sep 2020 15:38:51 +0800
+Message-ID: <1600328345-27627-12-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1600328345-27627-1-git-send-email-guohanjun@huawei.com>
 References: <1600328345-27627-1-git-send-email-guohanjun@huawei.com>
@@ -43,28 +43,27 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI_MODULE_NAME() is only needed for ACPICA debug functionality
-such as ACPI_DEBUG_PRINT() which is not used in acpi_lpss.c,
-remove it.
+The ACPICA code is not used, remove it.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/acpi_lpss.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/acpi/debugfs.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 5e2bfbc..46e307e 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -26,8 +26,6 @@
+diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
+index d5ecea3..074eb98d 100644
+--- a/drivers/acpi/debugfs.c
++++ b/drivers/acpi/debugfs.c
+@@ -10,9 +10,6 @@
  
  #include "internal.h"
  
--ACPI_MODULE_NAME("acpi_lpss");
+-#define _COMPONENT		ACPI_SYSTEM_COMPONENT
+-ACPI_MODULE_NAME("debugfs");
 -
- #ifdef CONFIG_X86_INTEL_LPSS
+ struct dentry *acpi_debugfs_dir;
+ EXPORT_SYMBOL_GPL(acpi_debugfs_dir);
  
- #include <asm/cpu_device_id.h>
 -- 
 1.7.12.4
 
