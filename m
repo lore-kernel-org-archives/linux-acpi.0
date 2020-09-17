@@ -2,80 +2,90 @@ Return-Path: <SRS0=xM78=C2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF9C4C433E2
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 18:54:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74114C43463
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 21:26:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E2942087D
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 18:54:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600368877;
-	bh=M2gFxqmtjjAWg/oGRYKTsRTZLNarF0mdV6aFeWm3RZ0=;
-	h=Date:From:To:To:To:Cc:Cc:Cc:Subject:In-Reply-To:References:
-	 List-ID:From;
-	b=V/+dA4bKJ301AJ6et8c3SckHS54TxSHM8eT8wpA5PdlO2WLnzBOK3kYYUSSDazMeM
-	 j21Jk3NiW/kOgUNh+iIWjIepWXgJTqQk4xDX5Btg+lxWbOh5OfkdS8Rui618Yv+E2q
-	 MHUQd5XG+EclMpFEToVadZp1qsQPuFz8030/XFq4=
+	by mail.kernel.org (Postfix) with ESMTP id 4762420870
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 21:26:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726441AbgIQSy3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Sep 2020 14:54:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37040 "EHLO mail.kernel.org"
+        id S1726104AbgIQV0y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Sep 2020 17:26:54 -0400
+Received: from sauhun.de ([88.99.104.3]:37178 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728426AbgIQQU3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Sep 2020 12:20:29 -0400
-Received: from localhost (unknown [70.37.104.77])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7968020708;
-        Thu, 17 Sep 2020 15:53:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600358008;
-        bh=M2gFxqmtjjAWg/oGRYKTsRTZLNarF0mdV6aFeWm3RZ0=;
-        h=Date:From:To:To:To:Cc:Cc:Cc:Subject:In-Reply-To:References:From;
-        b=TEY4P/Z3V+4nyTHT7QFM+b9jJ808FfgkCUxfwlUjqmEkEUhNGePV4gKg62ZHv3pxI
-         ZKZebu2xtPd0qiW/5vzX39rvcBt9Uk4rv0A80HTwJ18DdzthDRzD6lWD7IHXI9l7vd
-         fn6nCdxi5LxPQ0prWjyyln4mK0fcMX3OyrNZ1Ndw=
-Date:   Thu, 17 Sep 2020 15:53:27 +0000
-From:   Sasha Levin <sashal@kernel.org>
-To:     Sasha Levin <sashal@kernel.org>
-To:     Alex Hung <alex.hung@canonical.com>
-To:     rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc:     stable@vger.kernel.org
-Cc:     stable@vger.kernel.org
-Cc:     stable@vger.kernel.org
-Subject: Re: [PATCH][V2] ACPI: video: use ACPI backlight for HP 635 Notebook
-In-Reply-To: <20200913223403.59175-1-alex.hung@canonical.com>
-References: <20200913223403.59175-1-alex.hung@canonical.com>
-Message-Id: <20200917155328.7968020708@mail.kernel.org>
+        id S1725900AbgIQV0y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Sep 2020 17:26:54 -0400
+X-Greylist: delayed 515 seconds by postgrey-1.27 at vger.kernel.org; Thu, 17 Sep 2020 17:26:53 EDT
+Received: from localhost (router.4pisysteme.de [80.79.225.122])
+        by pokefinder.org (Postfix) with ESMTPSA id D88CE2C1682;
+        Thu, 17 Sep 2020 23:18:16 +0200 (CEST)
+Date:   Thu, 17 Sep 2020 23:18:16 +0200
+From:   Wolfram Sang <wsa@the-dreams.de>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Kai Heng Feng <kai.heng.feng@canonical.com>,
+        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] i2c: core: Call i2c_acpi_install_space_handler() before
+ i2c_acpi_register_devices()
+Message-ID: <20200917211816.GB18027@kunai>
+Mail-Followup-To: Wolfram Sang <wsa@the-dreams.de>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Kai Heng Feng <kai.heng.feng@canonical.com>,
+        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+References: <20200909103233.58287-1-hdegoede@redhat.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="oLBj+sq0vYjzfsbl"
+Content-Disposition: inline
+In-Reply-To: <20200909103233.58287-1-hdegoede@redhat.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi
 
-[This is an automated email]
+--oLBj+sq0vYjzfsbl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This commit has been processed because it contains a -stable tag.
-The stable tag indicates that it's relevant for the following trees: all
+On Wed, Sep 09, 2020 at 12:32:33PM +0200, Hans de Goede wrote:
+> Some ACPI i2c-devices _STA method (which is used to detect if the device
+> is present) use autodetection code which probes which device is present
+> over i2c. This requires the I2C ACPI OpRegion handler to be registered
+> before we enumerate i2c-clients under the i2c-adapter.
+>=20
+> This fixes the i2c touchpad on the Lenovo ThinkBook 14-IIL and
+> ThinkBook 15 IIL not getting an i2c-client instantiated and thus not
+> working.
+>=20
+> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=3D1842039
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-The bot has tested the following trees: v5.8.9, v5.4.65, v4.19.145, v4.14.198, v4.9.236, v4.4.236.
-
-v5.8.9: Build OK!
-v5.4.65: Build OK!
-v4.19.145: Build OK!
-v4.14.198: Build OK!
-v4.9.236: Build OK!
-v4.4.236: Failed to apply! Possible dependencies:
-    49eb5208220a ("ACPI / video: Add a quirk to force acpi-video backlight on SAMSUNG 530U4E/540U4E")
+Applied to for-current, thanks!
 
 
-NOTE: The patch will not be queued to stable trees until it is upstream.
+--oLBj+sq0vYjzfsbl
+Content-Type: application/pgp-signature; name="signature.asc"
 
-How should we proceed with this patch?
+-----BEGIN PGP SIGNATURE-----
 
--- 
-Thanks
-Sasha
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAl9j0pgACgkQFA3kzBSg
+KbYbRRAAoZnbHvoTYtpvtr5x9jGLKLGyf7IQqzT4GPWcCWvvYZtVfyQKQ/YmEYXF
+MihlYFywPdL7pYGmWZgp8HqGx/+jw8/qNk4U0q6W0Rxfm72XlDpe3W6fqfRl6fbx
+eR4uVrsvA4JjkUQAWyWVmREH9oficE7BzjxXtJnSRc23rcwjLVVJxmKGXw75PRZN
+OZMwJYL7YnUlCnjMwqxAtmJL7ZE0fgMMDEHNN2XtYwZq/KEmcMQkA0s1yjc1B6yZ
+pV0LXGyGC6Xf9t/bvgx4dJYClh5pIiPJtPecHJiXa+qo/1fVE1ps3QgObwmaI8Ju
+4ybN9diejSuDc23Pmpiq6z/m2hLpPnNZWhoheECFWZnIRxo162cPdegaCLqKk/rs
+uUUYZ2mAIkF4Th15pbBvdXNoAgi13oX2XSWel2OMW9h6g/8KUSHWjc7lbqfvfrhU
+/mupr8O6VGmONTAGzYSu/3KmvmPwPCO7TbGQMaVSOwgIMV0BeN9LADJsAwmN+367
+NOjCTASyIaP5JKSBAsG8U/GX3z8rLHrhBXacX23I50xdb6Wdjkh0HXLNMLIbJw0F
+JaRS8QS8mrW7yN2VNSjerB7q7g3iO7EZHUfzN7B8WzhyE8ma+1mrxEt58tU7raaM
+VS0+QQCXs7NNVujEUU7fOTtMCuNNgnW1BCF5SYGTXpx8QqgDKZY=
+=u60B
+-----END PGP SIGNATURE-----
+
+--oLBj+sq0vYjzfsbl--
