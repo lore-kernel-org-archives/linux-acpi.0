@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4B5BC433E2
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 08:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38621C43461
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 08:34:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BFC52083B
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 08:34:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E73CE21974
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Sep 2020 08:34:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726106AbgIQIe3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Sep 2020 04:34:29 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:13225 "EHLO huawei.com"
+        id S1726200AbgIQIeb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Sep 2020 04:34:31 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:13227 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726200AbgIQIe1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Sep 2020 04:34:27 -0400
+        id S1726244AbgIQIe2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Sep 2020 04:34:28 -0400
 Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 839B47BE261694C59664;
+        by Forcepoint Email with ESMTP id 5EFD2128068082E7C6C1;
         Thu, 17 Sep 2020 15:46:50 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 17 Sep 2020 15:46:43 +0800
+ 14.3.487.0; Thu, 17 Sep 2020 15:46:44 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     <linux-acpi@vger.kernel.org>
 CC:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 01/25] ACPI: cmos_rtc: Remove the ACPI_MODULE_NAME()
-Date:   Thu, 17 Sep 2020 15:38:41 +0800
-Message-ID: <1600328345-27627-2-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 03/25] ACPI: configfs: Add the missing config_item_put()
+Date:   Thu, 17 Sep 2020 15:38:43 +0800
+Message-ID: <1600328345-27627-4-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1600328345-27627-1-git-send-email-guohanjun@huawei.com>
 References: <1600328345-27627-1-git-send-email-guohanjun@huawei.com>
@@ -43,28 +43,26 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI_MODULE_NAME() is only needed for ACPICA debug functionality
-such as ACPI_DEBUG_PRINT() which is not used in acpi_cmos_rtc.c,
-remove it.
+config_item_put() should be called to decrement refcount for item
+in the drop_item callback.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/acpi_cmos_rtc.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/acpi/acpi_configfs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
-index 33ac6cb..67f1d33 100644
---- a/drivers/acpi/acpi_cmos_rtc.c
-+++ b/drivers/acpi/acpi_cmos_rtc.c
-@@ -15,8 +15,6 @@
+diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
+index 21160a3..4473611 100644
+--- a/drivers/acpi/acpi_configfs.c
++++ b/drivers/acpi/acpi_configfs.c
+@@ -225,6 +225,7 @@ static void acpi_table_drop_item(struct config_group *group,
  
- #include "internal.h"
+ 	pr_info("Host-directed Dynamic ACPI Table Unload\n");
+ 	acpi_unload_table(table->index);
++	config_item_put(cfg);
+ }
  
--ACPI_MODULE_NAME("cmos rtc");
--
- static const struct acpi_device_id acpi_cmos_rtc_ids[] = {
- 	{ "PNP0B00" },
- 	{ "PNP0B01" },
+ static struct configfs_group_operations acpi_table_group_ops = {
 -- 
 1.7.12.4
 
