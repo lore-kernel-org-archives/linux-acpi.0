@@ -2,130 +2,156 @@ Return-Path: <SRS0=5qVQ=C3=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 502A2C43464
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Sep 2020 01:55:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 363B9C43466
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Sep 2020 02:22:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EF612087D
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Sep 2020 01:55:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BABF22211
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Sep 2020 02:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726093AbgIRBzT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Sep 2020 21:55:19 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:36078 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726065AbgIRBzT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Sep 2020 21:55:19 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 1EE50BC3277EFEE3589E;
-        Fri, 18 Sep 2020 09:55:18 +0800 (CST)
-Received: from [10.174.179.33] (10.174.179.33) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 18 Sep 2020 09:55:15 +0800
-Subject: Re: [PATCH 00/25] ACPI: First step to decouple ACPICA debug
- functionality from ACPI driver
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-CC:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-References: <1600328345-27627-1-git-send-email-guohanjun@huawei.com>
- <CAJZ5v0hukTBCyNO0Tj=FyOzh4uM=f8bLTToOT4zG3Tn_1KjO0g@mail.gmail.com>
-From:   Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <28154b60-b07b-24e7-748f-88359d5343cb@huawei.com>
-Date:   Fri, 18 Sep 2020 09:55:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+        id S1729489AbgIRCRD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Sep 2020 22:17:03 -0400
+Received: from out30-54.freemail.mail.aliyun.com ([115.124.30.54]:45774 "EHLO
+        out30-54.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729470AbgIRCRA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Sep 2020 22:17:00 -0400
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R271e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=richard.weiyang@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0U9GXwrg_1600395414;
+Received: from localhost(mailfrom:richard.weiyang@linux.alibaba.com fp:SMTPD_---0U9GXwrg_1600395414)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Fri, 18 Sep 2020 10:16:55 +0800
+Date:   Fri, 18 Sep 2020 10:16:54 +0800
+From:   Wei Yang <richard.weiyang@linux.alibaba.com>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
+        linux-acpi@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Duyck <alexander.h.duyck@linux.intel.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Michal Hocko <mhocko@kernel.org>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Wei Yang <richard.weiyang@linux.alibaba.com>,
+        Oscar Salvador <osalvador@suse.de>,
+        Mike Rapoport <rppt@kernel.org>,
+        Scott Cheloha <cheloha@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>
+Subject: Re: [PATCH RFC 2/4] mm/page_alloc: place pages to tail in
+ __putback_isolated_page()
+Message-ID: <20200918021654.GC54754@L-31X9LVDL-1304.local>
+Reply-To: Wei Yang <richard.weiyang@linux.alibaba.com>
+References: <20200916183411.64756-1-david@redhat.com>
+ <20200916183411.64756-3-david@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJZ5v0hukTBCyNO0Tj=FyOzh4uM=f8bLTToOT4zG3Tn_1KjO0g@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.179.33]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200916183411.64756-3-david@redhat.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Wed, Sep 16, 2020 at 08:34:09PM +0200, David Hildenbrand wrote:
+>__putback_isolated_page() already documents that pages will be placed to
+>the tail of the freelist - this is, however, not the case for
+>"order >= MAX_ORDER - 2" (see buddy_merge_likely()) - which should be
+>the case for all existing users.
+>
+>This change affects two users:
+>- free page reporting
+>- page isolation, when undoing the isolation.
+>
+>This behavior is desireable for pages that haven't really been touched
+>lately, so exactly the two users that don't actually read/write page
+>content, but rather move untouched pages.
+>
+>The new behavior is especially desirable for memory onlining, where we
+>allow allocation of newly onlined pages via undo_isolate_page_range()
+>in online_pages(). Right now, we always place them to the head of the
+>free list, resulting in undesireable behavior: Assume we add
+>individual memory chunks via add_memory() and online them right away to
+>the NORMAL zone. We create a dependency chain of unmovable allocations
+>e.g., via the memmap. The memmap of the next chunk will be placed onto
+>previous chunks - if the last block cannot get offlined+removed, all
+>dependent ones cannot get offlined+removed. While this can already be
+>observed with individual DIMMs, it's more of an issue for virtio-mem
+>(and I suspect also ppc DLPAR).
+>
+>Note: If we observe a degradation due to the changed page isolation
+>behavior (which I doubt), we can always make this configurable by the
+>instance triggering undo of isolation (e.g., alloc_contig_range(),
+>memory onlining, memory offlining).
+>
+>Cc: Andrew Morton <akpm@linux-foundation.org>
+>Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+>Cc: Mel Gorman <mgorman@techsingularity.net>
+>Cc: Michal Hocko <mhocko@kernel.org>
+>Cc: Dave Hansen <dave.hansen@intel.com>
+>Cc: Vlastimil Babka <vbabka@suse.cz>
+>Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+>Cc: Oscar Salvador <osalvador@suse.de>
+>Cc: Mike Rapoport <rppt@kernel.org>
+>Cc: Scott Cheloha <cheloha@linux.ibm.com>
+>Cc: Michael Ellerman <mpe@ellerman.id.au>
+>Signed-off-by: David Hildenbrand <david@redhat.com>
+>---
+> mm/page_alloc.c | 10 +++++++++-
+> 1 file changed, 9 insertions(+), 1 deletion(-)
+>
+>diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+>index 91cefb8157dd..bba9a0f60c70 100644
+>--- a/mm/page_alloc.c
+>+++ b/mm/page_alloc.c
+>@@ -89,6 +89,12 @@ typedef int __bitwise fop_t;
+>  */
+> #define FOP_SKIP_REPORT_NOTIFY	((__force fop_t)BIT(0))
+> 
+>+/*
+>+ * Place the freed page to the tail of the freelist after buddy merging. Will
+>+ * get ignored with page shuffling enabled.
+>+ */
+>+#define FOP_TO_TAIL		((__force fop_t)BIT(1))
+>+
+> /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
+> static DEFINE_MUTEX(pcp_batch_high_lock);
+> #define MIN_PERCPU_PAGELIST_FRACTION	(8)
+>@@ -1040,6 +1046,8 @@ static inline void __free_one_page(struct page *page, unsigned long pfn,
+> 
+> 	if (is_shuffle_order(order))
+> 		to_tail = shuffle_pick_tail();
+>+	else if (fop_flags & FOP_TO_TAIL)
+>+		to_tail = true;
 
-On 2020/9/17 23:08, Rafael J. Wysocki wrote:
-> Hi Hanjun,
-> 
-> On Thu, Sep 17, 2020 at 10:34 AM Hanjun Guo <guohanjun@huawei.com> wrote:
->>
->> For now, ACPI driver debug functionality is mixed of pr_* functions and
->> ACPI_DEBUG_PRINT() which is provided ACPICA core directly, ACPICA debug
->> functions are not friendly for users and also make ACPICA core deeply
->> coupled with ACPI drivers.
->>
->> With the evolution of the ACPI driver code, lots of the ACPICA debug
->> functions used in ACPI drivers were removed away, this makes the ACPICA
->> debug in ACPI driver to be fragile, for example, some of the COMPONENT
->> such as ACPI_CONTAINER_COMPONENT and ACPI_MEMORY_DEVICE_COMPONENT are not
->> used anymore, they leaved as dead code.
->>
->>  From another aspert, removing the ACPICA debug functions didn't raise
->> concerns in the past, so I believe the ACPICA debug in ACPI driver can be
->> removed and replace with equivalent pr_* debug functions, then decouple
->> ACPICA debug functionality from ACPI driver.
-> 
-> This is a worthy goal, but the patch series appears to be a mixed bag
-> of changes some of which are not directly related to this goal.
+Take another look into this part. Maybe we can move this check at top?
 
-Sorry for that, I sent this patch set in a hurry, I will update
-as you suggested.
+For online_page case, currently we have following call flow:
 
-> 
->> In order to decouple ACPICA debug functionality from ACPI driver, I do it
->> in two steps:
->>   - Remove the dead ACPICA functionality code, and remove the not used
->>     COMPONENT;
->>   - Remove all the ACPICA debug code from ACPI drivers.
->>
->> This patch set is the first step to decouple ACPICA debug functionality
->> from ACPI driver, just remove the dead ACPICA functionality code and
->> some cleanups for ACPI drivers, should no functional change if you don't
->> apply the last two patches.
->>
->> Patch 1/25 ~ patch 23/25 are removing the dead code and cleanups;
->> Patch 24/25 ~ patch 25/25 are the actual ABI change.
->>
->> If the ABI change is making sense, I will go further to remove the
->> ACPICA debug functionality from ACPI driver, just keep it inside
->> the ACPICA core.
->>
->> Hanjun Guo (25):
->>    ACPI: cmos_rtc: Remove the ACPI_MODULE_NAME()
-> 
-> This, for example, should be a separate cleanup patch.
+    online_page
+        online_pages_range
+	shuffle_zone
 
-ACPI_MODULE_NAME() and _COMPONENT are both used for ACPICA
-debug functionality, so I will put them in the decouple
-patch set.
+This means we would always shuffle the newly added pages. Maybe we don't need
+to do the shuffle when adding them to the free_list?
 
+> 	else
+> 		to_tail = buddy_merge_likely(pfn, buddy_pfn, page, order);
 > 
->>    ACPI: configfs: Decouple with ACPICA
->>    ACPI: configfs: Add the missing config_item_put()
+>@@ -3289,7 +3297,7 @@ void __putback_isolated_page(struct page *page, unsigned int order, int mt)
 > 
-> This appears to be a fix that should go in separate from the rest of the series.
+> 	/* Return isolated page to tail of freelist. */
+> 	__free_one_page(page, page_to_pfn(page), zone, order, mt,
+>-			FOP_SKIP_REPORT_NOTIFY);
+>+			FOP_SKIP_REPORT_NOTIFY | FOP_TO_TAIL);
+> }
+> 
+> /*
+>-- 
+>2.26.2
 
-Will send a fix first!
-
-> 
->>    ACPI: debug: Remove the not used function
-> 
-> Another separate cleanup.
-> 
->>    ACPI: LPSS: Remove the ACPI_MODULE_NAME()
-> 
-> Yet another one.
-> 
-> So can you please split up the patch set into several smaller and more
-> manageable ones?
-
-Will do, thanks for your comments!
-
-Thanks
-Hanjun
+-- 
+Wei Yang
+Help you, Help me
