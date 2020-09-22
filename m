@@ -1,173 +1,68 @@
-Return-Path: <SRS0=8jUM=C6=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=Q+ya=C7=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 170C2C43468
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Sep 2020 16:27:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58601C4346E
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Sep 2020 02:13:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C680E2396F
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Sep 2020 16:27:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600705625;
-	bh=aMB+5uJ29GJc58tqQhj8ysInd6CMZQrErwr+M/YNRxk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=psccq5PEat/udx38VANaue1uiRPYNStZIvNS+FRCTlwduJkymYyOaWkdgVshcgsJ9
-	 00QGLTFU8M8jxNke9QBr8OnBpsdm284J7ol9LaHQ/f5ZDFT8RSSe9urRbnqfO9e9yr
-	 e3f0kM9XnxNYQjJcn3leEZX4EaUx/1ISTwRMIXkE=
+	by mail.kernel.org (Postfix) with ESMTP id 2676B23A75
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Sep 2020 02:13:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728456AbgIUQ0z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Sep 2020 12:26:55 -0400
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:46056 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726795AbgIUQ0z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2020 12:26:55 -0400
-Received: by mail-ot1-f66.google.com with SMTP id g96so12866236otb.12;
-        Mon, 21 Sep 2020 09:26:54 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=nu/T3dRokG6v9UdeBN/mIDs6/1yz4SWfuT57Z4RCFXw=;
-        b=Ekw/2QWy2R/zC9/zQz/yuGtXTfZmcVmVGp0SY9Ek++kP0B1VHfk4XmjBSJhhpv6ODH
-         aG1zG3T2PmQdvByVv+VKvAtRkE4CN/h/LDlqcFfT16IY/UY5MZmsmoILJhP9M1V34vlh
-         RQXikCidurWLjHumCxK39+j7UjfKfcZsayRgKGSMZRcqq4tCvBiNaQaZBLTFe4m5JM6a
-         vJHMpstakD1dVZevp/acNVQD0HoibnTTR1Aya/UxlKtEYHPAckeQKMxInDa7/NobefSK
-         M1adcgASSwyd0E+835I/WcBZV+DteaWpYZmNFkweC0E823qfMPZCo4XP0yaH9b+NgDYH
-         ZH+w==
-X-Gm-Message-State: AOAM530PThLhVpvCrLbfTuZeNeXucDN2jQpywZ0hLfgO2u3Q8BsGbIFb
-        M6Q7kDXU2K9GL8zxIBJi5nugy0rEERkui03RPNs=
-X-Google-Smtp-Source: ABdhPJzyuRRf/FRG+njPPDjZBWIsxlQn47JyRZo0W/NF5Uh5m/uDkwfDJrwgLdmTIvf6nsDqFGyvnjw6YLRWP4OBmWI=
-X-Received: by 2002:a9d:6010:: with SMTP id h16mr213255otj.262.1600705614432;
- Mon, 21 Sep 2020 09:26:54 -0700 (PDT)
+        id S1729483AbgIVCNq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Sep 2020 22:13:46 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:14205 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729477AbgIVCNq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Sep 2020 22:13:46 -0400
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 5DFE421A43550D47DCCD;
+        Tue, 22 Sep 2020 10:13:44 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.56) by
+ DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
+ 14.3.487.0; Tue, 22 Sep 2020 10:13:40 +0800
+From:   Tian Tao <tiantao6@hisilicon.com>
+To:     <rjw@rjwysocki.net>, <lenb@kernel.org>,
+        <linux-acpi@vger.kernel.org>
+Subject: [PATCH] ACPI / PNP: Fix missing-prototypes in acpi_pnp.c
+Date:   Tue, 22 Sep 2020 10:11:14 +0800
+Message-ID: <1600740674-43727-1-git-send-email-tiantao6@hisilicon.com>
+X-Mailer: git-send-email 2.7.4
 MIME-Version: 1.0
-References: <20200819032354.30234-1-yu.c.chen@intel.com>
-In-Reply-To: <20200819032354.30234-1-yu.c.chen@intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 21 Sep 2020 18:26:43 +0200
-Message-ID: <CAJZ5v0hoP6BnHbU_grcAUmZty9iVaKoFFgXx1P0q4NZgXfxasA@mail.gmail.com>
-Subject: Re: [PATCH][v2] ACPI: processor: Print more information when
- acpi_processor_evaluate_cst() failed
-To:     Chen Yu <yu.c.chen@intel.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.69.192.56]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Aug 19, 2020 at 5:22 AM Chen Yu <yu.c.chen@intel.com> wrote:
->
-> Some platforms have bogus _CST which might cause expectd behavior
-> in the cpu idle driver. Some bogus _CST might be unable to be
-> disassembled by acpica-tools due to broken format.
-> Print extra log if the _CST extraction/verification failed.
-> This can be used to help the user narrow down why the cpu
-> idle driver fails to behave as expected.
->
-> Suggested-by: Zhang Rui <rui.zhang@intel.com>
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> ---
-> v2: According to Rafael's suggestion, change the log level
->     from "warn" to "info"
+Fix the following warnings.
+drivers/acpi/acpi_pnp.c:382:13: warning: no previous prototype
+for ‘acpi_pnp_init’ [-Wmissing-prototypes].
 
-Applied as 5.10 material with some edits in the subject and changelog, thanks!
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+---
+ drivers/acpi/acpi_pnp.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> ---
->  drivers/acpi/acpi_processor.c | 34 ++++++++++++++++++++++++++++------
->  1 file changed, 28 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> index b51ddf3bb616..412a9725cc1e 100644
-> --- a/drivers/acpi/acpi_processor.c
-> +++ b/drivers/acpi/acpi_processor.c
-> @@ -798,22 +798,34 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
->                 memset(&cx, 0, sizeof(cx));
->
->                 element = &cst->package.elements[i];
-> -               if (element->type != ACPI_TYPE_PACKAGE)
-> +               if (element->type != ACPI_TYPE_PACKAGE) {
-> +                       acpi_handle_info(handle, "_CST C%d type(%x) is not package, skip...\n",
-> +                                        i, element->type);
->                         continue;
-> +               }
->
-> -               if (element->package.count != 4)
-> +               if (element->package.count != 4) {
-> +                       acpi_handle_info(handle, "_CST C%d package count(%d) is not 4, skip...\n",
-> +                                        i, element->package.count);
->                         continue;
-> +               }
->
->                 obj = &element->package.elements[0];
->
-> -               if (obj->type != ACPI_TYPE_BUFFER)
-> +               if (obj->type != ACPI_TYPE_BUFFER) {
-> +                       acpi_handle_info(handle, "_CST C%d package element[0] type(%x) is not buffer, skip...\n",
-> +                                        i, obj->type);
->                         continue;
-> +               }
->
->                 reg = (struct acpi_power_register *)obj->buffer.pointer;
->
->                 obj = &element->package.elements[1];
-> -               if (obj->type != ACPI_TYPE_INTEGER)
-> +               if (obj->type != ACPI_TYPE_INTEGER) {
-> +                       acpi_handle_info(handle, "_CST C[%d] package element[1] type(%x) is not integer, skip...\n",
-> +                                        i, obj->type);
->                         continue;
-> +               }
->
->                 cx.type = obj->integer.value;
->                 /*
-> @@ -850,6 +862,8 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
->                                 cx.entry_method = ACPI_CSTATE_HALT;
->                                 snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI HLT");
->                         } else {
-> +                               acpi_handle_info(handle, "_CST C%d declares FIXED_HARDWARE C-state but not supported in hardware, skip...\n",
-> +                                                i);
->                                 continue;
->                         }
->                 } else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-> @@ -857,6 +871,8 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
->                         snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI IOPORT 0x%x",
->                                  cx.address);
->                 } else {
-> +                       acpi_handle_info(handle, "_CST C%d space_id(%x) neither FIXED_HARDWARE nor SYSTEM_IO, skip...\n",
-> +                                        i, reg->space_id);
->                         continue;
->                 }
->
-> @@ -864,14 +880,20 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
->                         cx.valid = 1;
->
->                 obj = &element->package.elements[2];
-> -               if (obj->type != ACPI_TYPE_INTEGER)
-> +               if (obj->type != ACPI_TYPE_INTEGER) {
-> +                       acpi_handle_info(handle, "_CST C%d package element[2] type(%x) not integer, skip...\n",
-> +                                        i, obj->type);
->                         continue;
-> +               }
->
->                 cx.latency = obj->integer.value;
->
->                 obj = &element->package.elements[3];
-> -               if (obj->type != ACPI_TYPE_INTEGER)
-> +               if (obj->type != ACPI_TYPE_INTEGER) {
-> +                       acpi_handle_info(handle, "_CST C%d package element[3] type(%x) not integer, skip...\n",
-> +                                        i, obj->type);
->                         continue;
-> +               }
->
->                 memcpy(&info->states[++last_index], &cx, sizeof(cx));
->         }
-> --
-> 2.17.1
->
+diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+index f3039b9..4ed755a 100644
+--- a/drivers/acpi/acpi_pnp.c
++++ b/drivers/acpi/acpi_pnp.c
+@@ -11,6 +11,8 @@
+ #include <linux/module.h>
+ #include <linux/ctype.h>
+ 
++#include "internal.h"
++
+ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+ 	/* pata_isapnp */
+ 	{"PNP0600"},		/* Generic ESDI/IDE/ATA compatible hard disk controller */
+-- 
+2.7.4
+
