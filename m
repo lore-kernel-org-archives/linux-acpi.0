@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D117C4727F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 380F0C4727D
 	for <linux-acpi@archiver.kernel.org>; Thu, 24 Sep 2020 03:05:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5140238A1
+	by mail.kernel.org (Postfix) with ESMTP id F34E023977
 	for <linux-acpi@archiver.kernel.org>; Thu, 24 Sep 2020 03:05:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726485AbgIXDFZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1726487AbgIXDFZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 23 Sep 2020 23:05:25 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:46244 "EHLO huawei.com"
+Received: from szxga07-in.huawei.com ([45.249.212.35]:46228 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726487AbgIXDFW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1726460AbgIXDFW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 23 Sep 2020 23:05:22 -0400
 Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id B7E28E407D2BEB987834;
+        by Forcepoint Email with ESMTP id AFC992FADA9FDEA35560;
         Thu, 24 Sep 2020 11:05:20 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
  DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 24 Sep 2020 11:05:11 +0800
+ 14.3.487.0; Thu, 24 Sep 2020 11:05:10 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     <linux-acpi@vger.kernel.org>
 CC:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v2 15/15] ACPI: wakeup: Remove the dead ACPICA debug code
-Date:   Thu, 24 Sep 2020 10:57:07 +0800
-Message-ID: <1600916227-21805-16-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v2 14/15] ACPI: video: Remove the leftover ACPICA debug code
+Date:   Thu, 24 Sep 2020 10:57:06 +0800
+Message-ID: <1600916227-21805-15-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1600916227-21805-1-git-send-email-guohanjun@huawei.com>
 References: <1600916227-21805-1-git-send-email-guohanjun@huawei.com>
@@ -43,27 +43,29 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The ACPICA debug code of ACPI_SYSTEM_COMPONENT and ACPI_MODULE_NAME()
-are not used in wakeup.c, remove it.
+After commit (87521e16a7ab "acpi-video-detect: Rewrite backlight interface
+selection logic"), ACPI_DEBUG_PRINT() was remove, so ACPI_MODULE_NAME()
+and _COMPONENT are not used anymore, remove them.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/wakeup.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/acpi/video_detect.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-index 0b2e425..f89dd9a 100644
---- a/drivers/acpi/wakeup.c
-+++ b/drivers/acpi/wakeup.c
-@@ -26,8 +26,6 @@ struct acpi_wakeup_handler {
-  * suspend/resume and isn't really required as this is called in S-state. At
-  * that time, there is no device hotplug
-  **/
--#define _COMPONENT		ACPI_SYSTEM_COMPONENT
--ACPI_MODULE_NAME("wakeup_devices")
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 2499d7e..d2981f7 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -35,9 +35,6 @@
+ #include <linux/workqueue.h>
+ #include <acpi/video.h>
  
- /**
-  * acpi_enable_wakeup_devices - Enable wake-up device GPEs.
+-ACPI_MODULE_NAME("video");
+-#define _COMPONENT		ACPI_VIDEO_COMPONENT
+-
+ void acpi_video_unregister_backlight(void);
+ 
+ static bool backlight_notifier_registered;
 -- 
 1.7.12.4
 
