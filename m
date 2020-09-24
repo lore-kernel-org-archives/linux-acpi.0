@@ -2,205 +2,212 @@ Return-Path: <SRS0=CdCY=DB=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5349EC2D0E2
-	for <linux-acpi@archiver.kernel.org>; Thu, 24 Sep 2020 11:03:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 953F3C4363D
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Sep 2020 11:13:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC0F7239EC
-	for <linux-acpi@archiver.kernel.org>; Thu, 24 Sep 2020 11:03:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600945430;
-	bh=5PKuBxuNqKyruttQBGLnaa3NlkdUn3W71nscpvf1BDk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=tWCoy3SyYENsNOFuZmobE3rbCxZA/HSZ2L+3Y0CPO9E3c2kVwdqCv2v6e34kPuZHu
-	 LYX1Vho44bvsHw83ioouMswOro18AJqOLlXv5OMD5DDvGujKPEVvHb6qkWRkSb0ysW
-	 hA58MkfIdAp49+8Dd62tMNZsSApLMVlGgPTK7YYU=
+	by mail.kernel.org (Postfix) with ESMTP id 43BA9239D4
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Sep 2020 11:13:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726648AbgIXLDu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 24 Sep 2020 07:03:50 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:37266 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726303AbgIXLDt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Sep 2020 07:03:49 -0400
-Received: by mail-oi1-f196.google.com with SMTP id a3so3234671oib.4;
-        Thu, 24 Sep 2020 04:03:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=pn+i27Dx8fEtrGXxMazmn/X4tGbmkIv7rNYd8W3GRss=;
-        b=ZQksqPbsOH5r5tthy8DtuUBuyGjBlwdntxObW9ZoDTW5IyrOf1lLyF65tMQOCiwo++
-         dE8CJeRrH2e3RfXn9kMAi6v4s/cKBGaSj0mh01+LsWY9zwxtxmJwr+34LbTVJQtWw5pj
-         2Lx0ht1UsRnSUw1cfUh6dXk4DOm4TyTtW7PtSXXT3wBlMAulMU48NaVocr6MYSyi2c76
-         nx0J7UzFPk96FmxvZ336w0jZA0Kw89C1wGT5R2h6+9ufy4HwF3jFsNpuGO7GATRU4Bty
-         8bTLRctseXcDj2XdHP8wC93TWb7/+QZqnD1YJYQBCZt6XcH7xdhswuBQsC0g4+J99qB4
-         57+Q==
-X-Gm-Message-State: AOAM533jbZW/VelROv/obcar38pD3AoIbOK/5KBwNylZfQ0kZPsDaDq/
-        9m6H1638WVUUfl2CW356Ys5sIvqokDeHEBZN2hI=
-X-Google-Smtp-Source: ABdhPJzDlpEJUA+Oq7l4adHVs9utovmT1K6AS39uuXbGtk7ZnfPxF0dnzHWkg5WoiVh0kzqj9RfrHNDZVceiVU+YuOc=
-X-Received: by 2002:aca:df84:: with SMTP id w126mr2207061oig.103.1600945428210;
- Thu, 24 Sep 2020 04:03:48 -0700 (PDT)
+        id S1726729AbgIXLNc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 24 Sep 2020 07:13:32 -0400
+Received: from mx2.suse.de ([195.135.220.15]:53392 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726415AbgIXLNb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 24 Sep 2020 07:13:31 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 4A408AC85;
+        Thu, 24 Sep 2020 11:13:30 +0000 (UTC)
+Subject: Re: [PATCH RFC 3/4] mm/page_alloc: always move pages to the tail of
+ the freelist in unset_migratetype_isolate()
+To:     David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org
+Cc:     linux-mm@kvack.org, linux-hyperv@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Duyck <alexander.h.duyck@linux.intel.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Michal Hocko <mhocko@kernel.org>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Wei Yang <richard.weiyang@linux.alibaba.com>,
+        Oscar Salvador <osalvador@suse.de>,
+        Mike Rapoport <rppt@kernel.org>,
+        Scott Cheloha <cheloha@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>
+References: <20200916183411.64756-1-david@redhat.com>
+ <20200916183411.64756-4-david@redhat.com>
+From:   Vlastimil Babka <vbabka@suse.cz>
+Message-ID: <9c6cc094-b02a-ac6c-e1ca-370ce7257881@suse.cz>
+Date:   Thu, 24 Sep 2020 13:13:29 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-References: <20200818142430.1156547-1-Jonathan.Cameron@huawei.com>
- <20200903133318.000017f5@Huawei.com> <20200918131427.0000080f@Huawei.com>
-In-Reply-To: <20200918131427.0000080f@Huawei.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 24 Sep 2020 13:03:37 +0200
-Message-ID: <CAJZ5v0h_X-zhTJ-9d9cTLTe6yaneqLV7FsLv90NA5UL8eg1ovw@mail.gmail.com>
-Subject: Re: [PATCH v3 0/6] ACPI: Only create NUMA nodes from entries in SRAT
- or SRAT emulation.
-To:     Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc:     Linux Memory Management List <linux-mm@kvack.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Fenghua Yu <fenghua.yu@intel.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        linux-ia64@vger.kernel.org, Tony Luck <tony.luck@intel.com>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>, Ingo Molnar <mingo@redhat.com>,
-        martin@geanix.com, Bjorn Helgaas <bhelgaas@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20200916183411.64756-4-david@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 18, 2020 at 2:16 PM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> On Thu, 3 Sep 2020 13:33:18 +0100
-> Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
->
-> > On Tue, 18 Aug 2020 22:24:24 +0800
-> > Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
-> >
-> > > This is a trivial rebase and resend of V2 now the merge window has closed.
-> > >
-> > > Here, I will use the term Proximity Domains for the ACPI description and
-> > > NUMA Nodes for the in kernel representation.
-> > >
-> > > ACPI 6.3 included a clarification that only Static Resource Allocation
-> > > Structures in SRAT may define the existence of proximity domains
-> > > (sec 5.2.16). This clarification closed a possible interpretation that
-> > > other parts of ACPI (e.g. DSDT _PXM, NFIT etc) could define new proximity
-> > > domains that were not also mentioned in SRAT structures.
-> > >
-> > > In practice the kernel has never allowed this alternative interpretation as
-> > > such nodes are only partially initialized. This is architecture specific
-> > > but to take an example, on x86 alloc_node_data has not been called.
-> > > Any use of them for node specific allocation, will result in a crash as the
-> > > infrastructure to fallback to a node with memory is not setup.
-> > >
-> > > We ran into a problem when enabling _PXM handling for PCI devices and found
-> > > there were boards out there advertising devices in proximity domains that
-> > > didn't exist [2].
-> > >
-> > > The fix suggested in this series is to replace instances that should not
-> > > 'create' new nodes with pxm_to_node.  This function needs a some additional
-> > > hardening against invalid inputs to make sure it is safe for use in these
-> > > new callers.
-> > >
-> > > Patch 1 Hardens pxm_to_node() against numa_off, and pxm entry being too large.
-> > >
-> > > Patch 2-4 change the various callers not related to SRAT entries so that they
-> > > set this parameter to false, so do not attempt to initialize a new NUMA node
-> > > if the relevant one does not already exist.
-> > >
-> > > Patch 5 is a function rename to reflect change in functionality of
-> > > acpi_map_pxm_to_online_node() as it no longer creates a new map, but just does a
-> > > lookup of existing maps.
-> > >
-> > > Patch 6 covers the one place we do not allow the full flexibility defined
-> > > in the ACPI spec.  For SRAT GIC Interrupt Translation Service (ITS) Affinity
-> > > Structures, on ARM64, the driver currently makes an additional pass of SRAT
-> > > later in the boot than the one used to identify NUMA domains.
-> > > Note, this currently means that an ITS placed in a proximity domain that is
-> > > not defined by another SRAT structure will result in the a crash.
-> > >
-> > > To avoid this crash with minimal changes we do not create new NUMA nodes based
-> > > on this particular entry type.  Any current platform trying to do this will not
-> > > boot, so this is an improvement, if perhaps not a perfect solution.
-> > >
-> > > [1] Note in ACPI Specification 6.3 5.2.16 System Resource Affinity Table (SRAT)
-> > > [2] https://patchwork.kernel.org/patch/10597777/
-> >
-> > Looking for input from ARM (Lorenzo?), X86(not sure) and ACPI(Rafael?) people
-> > on this set. As it also touches NFIT handling perhaps someone who focuses on
-> > that as well. Please feel free to CC additional people who might be interested.
-> >
-> > I'm fairly confident that it should be uncontroversial (famous last words)
-> > and it closes down a problem that lead to issues with seemingly obvious
-> > changes in the past. (The whole PCI _PXM issue on some threadripper platforms).
-> >
-> > Thanks to Bjorn, Hanjun and Barry for feedback on earlier revisions.
-> >
->
-> Hi All,
->
-> Still after reviews on this set. If anyone one would like me to resend please
-> let me know.  Also any corrections to my suggested set of people to review would
-> be welcome.
->
-> +CC Rafael who I've managed to drop from this version which won't have helped.
+On 9/16/20 8:34 PM, David Hildenbrand wrote:
+> Page isolation doesn't actually touch the pages, it simply isolates
+> pageblocks and moves all free pages to the MIGRATE_ISOLATE freelist.
+> 
+> We already place pages to the tail of the freelists when undoing
+> isolation via __putback_isolated_page(), let's do it in any case
+> (e.g., if order == pageblock_order) and document the behavior.
+> 
+> This change results in all pages getting onlined via online_pages() to
+> be placed to the tail of the freelist.
+> 
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+> Cc: Mel Gorman <mgorman@techsingularity.net>
+> Cc: Michal Hocko <mhocko@kernel.org>
+> Cc: Dave Hansen <dave.hansen@intel.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Scott Cheloha <cheloha@linux.ibm.com>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
+>  include/linux/page-isolation.h |  2 ++
+>  mm/page_alloc.c                | 36 +++++++++++++++++++++++++++++-----
+>  mm/page_isolation.c            |  8 ++++++--
+>  3 files changed, 39 insertions(+), 7 deletions(-)
+> 
+> diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+> index 572458016331..a36be2cf4dbb 100644
+> --- a/include/linux/page-isolation.h
+> +++ b/include/linux/page-isolation.h
+> @@ -38,6 +38,8 @@ struct page *has_unmovable_pages(struct zone *zone, struct page *page,
+>  void set_pageblock_migratetype(struct page *page, int migratetype);
+>  int move_freepages_block(struct zone *zone, struct page *page,
+>  				int migratetype, int *num_movable);
+> +int move_freepages_block_tail(struct zone *zone, struct page *page,
+> +			      int migratetype);
+>  
+>  /*
+>   * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index bba9a0f60c70..75b0f49b4022 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -899,6 +899,15 @@ static inline void move_to_free_list(struct page *page, struct zone *zone,
+>  	list_move(&page->lru, &area->free_list[migratetype]);
+>  }
+>  
+> +/* Used for pages which are on another list */
+> +static inline void move_to_free_list_tail(struct page *page, struct zone *zone,
+> +					  unsigned int order, int migratetype)
+> +{
+> +	struct free_area *area = &zone->free_area[order];
+> +
+> +	list_move_tail(&page->lru, &area->free_list[migratetype]);
+> +}
 
-Thanks!
+There are just 3 callers of move_to_free_list() before this patch, I would just
+add the to_tail parameter there instead of new wrapper. For callers with
+constant parameter, the inline will eliminate it anyway.
 
-I've just applied the series for 5.10 (with some minor edits in patch
-changelogs and subjects), so if anyone has any reservations regarding
-it, please let me know ASAP.
+>  static inline void del_page_from_free_list(struct page *page, struct zone *zone,
+>  					   unsigned int order)
+>  {
+> @@ -2323,7 +2332,7 @@ static inline struct page *__rmqueue_cma_fallback(struct zone *zone,
+>   */
+>  static int move_freepages(struct zone *zone,
+>  			  struct page *start_page, struct page *end_page,
+> -			  int migratetype, int *num_movable)
+> +			  int migratetype, int *num_movable, bool to_tail)
+>  {
+>  	struct page *page;
+>  	unsigned int order;
+> @@ -2354,7 +2363,10 @@ static int move_freepages(struct zone *zone,
+>  		VM_BUG_ON_PAGE(page_zone(page) != zone, page);
+>  
+>  		order = page_order(page);
+> -		move_to_free_list(page, zone, order, migratetype);
+> +		if (to_tail)
+> +			move_to_free_list_tail(page, zone, order, migratetype);
+> +		else
+> +			move_to_free_list(page, zone, order, migratetype);
+>  		page += 1 << order;
+>  		pages_moved += 1 << order;
+>  	}
+> @@ -2362,8 +2374,9 @@ static int move_freepages(struct zone *zone,
+>  	return pages_moved;
+>  }
+>  
+> -int move_freepages_block(struct zone *zone, struct page *page,
+> -				int migratetype, int *num_movable)
+> +static int __move_freepages_block(struct zone *zone, struct page *page,
+> +				  int migratetype, int *num_movable,
+> +				  bool to_tail)
+>  {
+>  	unsigned long start_pfn, end_pfn;
+>  	struct page *start_page, *end_page;
+> @@ -2384,7 +2397,20 @@ int move_freepages_block(struct zone *zone, struct page *page,
+>  		return 0;
+>  
+>  	return move_freepages(zone, start_page, end_page, migratetype,
+> -								num_movable);
+> +			      num_movable, to_tail);
+> +}
+> +
+> +int move_freepages_block(struct zone *zone, struct page *page,
+> +			 int migratetype, int *num_movable)
+> +{
+> +	return __move_freepages_block(zone, page, migratetype, num_movable,
+> +				      false);
+> +}
+> +
+> +int move_freepages_block_tail(struct zone *zone, struct page *page,
+> +			      int migratetype)
+> +{
+> +	return __move_freepages_block(zone, page, migratetype, NULL, true);
+>  }
 
-In particular, I took the Hanjun's R-by on the last patch to be
-sufficient from the ARM64 perspective.
+Likewise, just 5 callers of move_freepages_block(), all in the files you're
+already changing, so no need for this wrappers IMHO.
 
-Cheers!
+Thanks,
+Vlastimil
 
+>  static void change_pageblock_range(struct page *pageblock_page,
+> diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+> index abfe26ad59fd..84aa1d14751d 100644
+> --- a/mm/page_isolation.c
+> +++ b/mm/page_isolation.c
+> @@ -83,7 +83,7 @@ static void unset_migratetype_isolate(struct page *page, unsigned migratetype)
+>  	 * Because freepage with more than pageblock_order on isolated
+>  	 * pageblock is restricted to merge due to freepage counting problem,
+>  	 * it is possible that there is free buddy page.
+> -	 * move_freepages_block() doesn't care of merge so we need other
+> +	 * move_freepages_block*() don't care about merging, so we need another
+>  	 * approach in order to merge them. Isolation and free will make
+>  	 * these pages to be merged.
+>  	 */
+> @@ -106,9 +106,13 @@ static void unset_migratetype_isolate(struct page *page, unsigned migratetype)
+>  	 * If we isolate freepage with more than pageblock_order, there
+>  	 * should be no freepage in the range, so we could avoid costly
+>  	 * pageblock scanning for freepage moving.
+> +	 *
+> +	 * We didn't actually touch any of the isolated pages, so place them
+> +	 * to the tail of the freelists. This is especially relevant during
+> +	 * memory onlining.
+>  	 */
+>  	if (!isolated_page) {
+> -		nr_pages = move_freepages_block(zone, page, migratetype, NULL);
+> +		nr_pages = move_freepages_block_tail(zone, page, migratetype);
+>  		__mod_zone_freepage_state(zone, nr_pages, migratetype);
+>  	}
+>  	set_pageblock_migratetype(page, migratetype);
+> 
 
-> > > Thanks to Bjorn Helgaas for review of v1 and Barry Song for internal reviews that
-> > > lead to a slightly different approach for this v2.
-> > >
-> > > Changes since v2.
-> > > * Trivial rebase to v5.9-rc1
-> > > * Collect up tags.
-> > >
-> > > Changes since v1.
-> > > * Use pxm_to_node for what was previously the path using acpi_map_pxm_to_node
-> > >   with create==false. (Barry)
-> > > * Broke patch up into an initial noop stage followed by patches (Bjorn)
-> > >   to update each type of case in which partial creation of NUMA nodes is prevented.
-> > > * Added patch 5 to rename function to reflect change of functionality.
-> > > * Updated descriptions (now mostly in individual patches) inline with Bjorn's comments.
-> > >
-> > > Jonathan Cameron (6):
-> > >   ACPI: Add out of bounds and numa_off protections to pxm_to_node
-> > >   ACPI: Do not create new NUMA domains from ACPI static tables that are
-> > >     not SRAT
-> > >   ACPI: Remove side effect of partly creating a node in
-> > >     acpi_map_pxm_to_online_node
-> > >   ACPI: Rename acpi_map_pxm_to_online_node to pxm_to_online_node
-> > >   ACPI: Remove side effect of partly creating a node in acpi_get_node
-> > >   irq-chip/gic-v3-its: Fix crash if ITS is in a proximity domain without
-> > >     processor or memory
-> > >
-> > >  drivers/acpi/arm64/iort.c        |  2 +-
-> > >  drivers/acpi/nfit/core.c         |  6 ++----
-> > >  drivers/acpi/numa/hmat.c         |  4 ++--
-> > >  drivers/acpi/numa/srat.c         |  4 ++--
-> > >  drivers/iommu/intel/dmar.c       |  2 +-
-> > >  drivers/irqchip/irq-gic-v3-its.c |  7 ++++++-
-> > >  include/linux/acpi.h             | 15 +++++++--------
-> > >  7 files changed, 21 insertions(+), 19 deletions(-)
-> > >
-> >
-> >
-> > _______________________________________________
-> > Linuxarm mailing list
-> > Linuxarm@huawei.com
-> > http://hulk.huawei.com/mailman/listinfo/linuxarm
->
->
