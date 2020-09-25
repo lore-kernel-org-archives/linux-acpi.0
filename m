@@ -5,68 +5,69 @@ X-Spam-Level:
 X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43B79C4727E
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 23:47:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3B9DC4727E
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 23:48:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A70B21775
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 23:47:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D4E32086A
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 23:48:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601077667;
-	bh=rO0qHhfuSdPnj4h7/4W0NP2VOvkOhn+q3O7/z/reW1A=;
+	s=default; t=1601077706;
+	bh=B3x94dsXVOqsT+3axVKjOKPvzCiGKhCggwUfqfp1z0M=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TRDvynYGUC+OufYkn9yEf2IJG4xnc4+4vsTwy1ZB5oqvADaOtmm5gjoeb2shMZXIV
-	 kj8ilvAfC8H9lVjnkRHkkaLnKGQA3m/aIMUVBiDH2JY8TwIVMFpkrthrFL1cFymStB
-	 WyJJmrXIeEckEz6M5K6AuipFWPryqsXbCVTs6UMg=
+	b=Qd/zgBhnEgRA59BwxWTmfv71isfH3Xp/eewjQuq0HY0x8XJzbSuBH09wX+F/GCQ92
+	 vWHuXhgba6Hca/fkdjwQGHagcEx17WVt+Ga57AszRWOGn6VGnqdmY6deIXH3Z6kFLr
+	 wFgTlak4l9C4R01AsZPQjRJ15uTHJAVdgJA2gQG0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729616AbgIYXrq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1729623AbgIYXrq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 25 Sep 2020 19:47:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56052 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729593AbgIYXrk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2020 19:47:40 -0400
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE886C0613D6
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2020 16:47:40 -0700 (PDT)
-Received: by mail-ot1-x341.google.com with SMTP id 95so3887260ota.13
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2020 16:47:40 -0700 (PDT)
+        with ESMTP id S1729469AbgIYXrj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2020 19:47:39 -0400
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1491CC0613D4
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2020 16:47:39 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id 60so3952240otw.3
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2020 16:47:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linuxfoundation.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=TH11kEvm9iFU4edsTXh7gIDGSk88lSWe2otA52wUs9w=;
-        b=UNNLjr39gbouxZCpSiFmcY9V1u0ktwIu7LfYV86klf1keKuS9PkQjb6Vl4/wm2tfsB
-         G+xB4lPkRm3p+eIzjRXwpJ1X3XOUWMEm6GNbDW+NGx47YtNIeYp0awbq6fwQjMjThrtL
-         y9b5rXVmtqJJiyUIpLg6dFL3iNVsbuKheOEPk=
+        bh=gfv5DwnuqxUK2/JI31FCljoAr6aY+o7ASwHVzd1SBv8=;
+        b=PJwBEwXoDlmaOihq4USR91LUuIlycye+cnBxlxnV1BLnSK3jVHTq1ObnjeK00HjbYj
+         fmQ2zYF0nxqhpSD4c7K2zriVY2/thFbvtpJATf9R80neccigNL8uIfa2XWuqWN102MO/
+         K9jTVJ9Hnm5kfYfWddAdxkp5M+bwFLUTSt/a4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=TH11kEvm9iFU4edsTXh7gIDGSk88lSWe2otA52wUs9w=;
-        b=jU/nl/k5a4uB21Fk8Qtw+fCIod4exqoMdzwc+voDvtIp+Tx7IikxQ/Bwvv/kGup+Sz
-         BzXnuWuVhB/EDT49kIsI1DamY45tuheGkKz+KoXOyeTOCQB2kGZaVad9h/IODbvgRn7D
-         uyhmUAfltPZTtNCT0oX6gqBBLgRz90hjyvJ8pvLBvNNepq1Aklx5z2XuU6KytCvJ5bmB
-         nx3sZiU5uE7MFVjMpVJOSVwcNxPZdjFjknXtfXXozriidreagliA07klmNGqH5iplO3B
-         TMow3NDLxdFYAnmk+Z8bRuu4rm0NDiL6pQVAwuwi20Ymwf4/Klj/0l39E5BklBpWdKgK
-         vwWA==
-X-Gm-Message-State: AOAM532GL9h3pg6kq50FVrIQmm6/ffr00wt5wHOot0ciNfqKLfrMNqs+
-        DwnGODf8e9dQmDvoGPZUcHi2eg==
-X-Google-Smtp-Source: ABdhPJz/N5qHYeVtWPNLZSMPG+q+JbGjAeoRPiaG78bk13SSNfuduPKklEESh2O7y0hCpBwnUyersA==
-X-Received: by 2002:a05:6830:10ca:: with SMTP id z10mr1960036oto.208.1601077660111;
-        Fri, 25 Sep 2020 16:47:40 -0700 (PDT)
+        bh=gfv5DwnuqxUK2/JI31FCljoAr6aY+o7ASwHVzd1SBv8=;
+        b=eBOp0/8chUsZJxqr1DPE0n4KjT4o6AV4rnfJfCnTeLeJzaZFbD3J8No2RP/zyKotNt
+         de5mo1QI8Vo+oplX2pEd6N3dg7m22WJfbRhvAw4cqdfRI7Lz7cBfdPzYaEdYPYUP4SZm
+         CMN89Ly46YCts+qnJCuqaZmqCt/wEDwK+SIR64PPVPNse07z2NxwVGPIoEg3grpPvBEM
+         b3H5KUvpx3BUR4bq6jh9Jt7H8B0p1LRxiO2CgOjmBZFFqWlYjeHgjx+G3tF0ouOKQb3/
+         A8lDH26l+ZbuYKvLboPyi74oTlFhOaTTKf2LEJUjmp20RMkEYOXNp6obSU3LOIbltwuv
+         s6Aw==
+X-Gm-Message-State: AOAM532rxqgPgVRN99TQdOEBeTWVzmg3DuYlQEnmQR07oMYiRJjXGS9v
+        r4Y1DBT7p2wt1/1k6ye9lqgceQ==
+X-Google-Smtp-Source: ABdhPJx6aGdjiInXsFRrlUQ2fnBxI8gTzveq1ANiRP2KZz1+XLj0ZD4Upsgn70drDJZRXMvfhXeOWw==
+X-Received: by 2002:a9d:6b0d:: with SMTP id g13mr1975643otp.129.1601077658485;
+        Fri, 25 Sep 2020 16:47:38 -0700 (PDT)
 Received: from shuah-t480s.internal (c-24-9-64-241.hsd1.co.comcast.net. [24.9.64.241])
-        by smtp.gmail.com with ESMTPSA id k3sm196219oof.6.2020.09.25.16.47.39
+        by smtp.gmail.com with ESMTPSA id k3sm196219oof.6.2020.09.25.16.47.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 25 Sep 2020 16:47:39 -0700 (PDT)
+        Fri, 25 Sep 2020 16:47:37 -0700 (PDT)
 From:   Shuah Khan <skhan@linuxfoundation.org>
-To:     rafael@kernel.org, james.morse@arm.com, tony.luck@intel.com,
-        bp@alien8.de, gregkh@linuxfoundation.org, keescook@chromium.org
+To:     rafael@kernel.org, lenb@kernel.org, gregkh@linuxfoundation.org,
+        keescook@chromium.org
 Cc:     Shuah Khan <skhan@linuxfoundation.org>, linux-acpi@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 06/11] drivers/acpi/apei: convert seqno counter_atomic32
-Date:   Fri, 25 Sep 2020 17:47:20 -0600
-Message-Id: <c05e3d040fcaa51e275065f6d6f0b0588fdfebcd.1601073127.git.skhan@linuxfoundation.org>
+Subject: [PATCH 05/11] drivers/acpi: convert seqno counter_atomic32
+Date:   Fri, 25 Sep 2020 17:47:19 -0600
+Message-Id: <c70c2be728d8b8552ef4de6f0536c3e8395ec456.1601073127.git.skhan@linuxfoundation.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1601073127.git.skhan@linuxfoundation.org>
 References: <cover.1601073127.git.skhan@linuxfoundation.org>
@@ -96,39 +97,39 @@ This conversion doesn't change the overflow wrap around behavior.
 Acked-by: Rafael J. Wysocki <rafael@kernel.org>
 Signed-off-by: Shuah Khan <skhan@linuxfoundation.org>
 ---
- drivers/acpi/apei/ghes.c | 5 +++--
+ drivers/acpi/acpi_extlog.c | 5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 81bf71b10d44..92169436be18 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -41,6 +41,7 @@
- #include <linux/uuid.h>
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index f138e12b7b82..d1e733f15cf5 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -12,6 +12,7 @@
+ #include <linux/ratelimit.h>
+ #include <linux/edac.h>
  #include <linux/ras.h>
- #include <linux/task_work.h>
 +#include <linux/counters.h>
+ #include <asm/cpu.h>
+ #include <asm/mce.h>
  
- #include <acpi/actbl1.h>
- #include <acpi/ghes.h>
-@@ -562,7 +563,7 @@ static void __ghes_print_estatus(const char *pfx,
- 				 const struct acpi_hest_generic *generic,
- 				 const struct acpi_hest_generic_status *estatus)
+@@ -93,7 +94,7 @@ static struct acpi_hest_generic_status *extlog_elog_entry_check(int cpu, int ban
+ static void __print_extlog_rcd(const char *pfx,
+ 			       struct acpi_hest_generic_status *estatus, int cpu)
  {
 -	static atomic_t seqno;
-+	static struct counter_atomic32 seqno = COUNTER_ATOMIC_INIT(0);
++	static struct counter_atomic32 seqno;
  	unsigned int curr_seqno;
  	char pfx_seq[64];
  
-@@ -573,7 +574,7 @@ static void __ghes_print_estatus(const char *pfx,
+@@ -103,7 +104,7 @@ static void __print_extlog_rcd(const char *pfx,
  		else
  			pfx = KERN_ERR;
  	}
 -	curr_seqno = atomic_inc_return(&seqno);
 +	curr_seqno = counter_atomic32_inc_return(&seqno);
- 	snprintf(pfx_seq, sizeof(pfx_seq), "%s{%u}" HW_ERR, pfx, curr_seqno);
- 	printk("%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
- 	       pfx_seq, generic->header.source_id);
+ 	snprintf(pfx_seq, sizeof(pfx_seq), "%s{%u}", pfx, curr_seqno);
+ 	printk("%s""Hardware error detected on CPU%d\n", pfx_seq, cpu);
+ 	cper_estatus_print(pfx_seq, estatus);
 -- 
 2.25.1
 
