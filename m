@@ -2,90 +2,124 @@ Return-Path: <SRS0=EjMF=DC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ED56C4363D
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 16:33:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8450FC4363D
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 16:53:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A44B22311D
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 16:33:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3456220936
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 16:53:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601051594;
-	bh=HDUYSpjbrL8ONQAfc8CRbNovkz8WcNnIECL7KM+gy+8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=j4MLcqY2zsBLnusIBbVCbAKVg/ZbzQEmLwInUReLSvVugDZNbdETwYeTqPkTPtTI/
-	 ME91vKIKXPun7Dj1vha/bzYJWv7bIqCLOuxZid7yaBIkSihcNj9FBZ+ersdNesYP1q
-	 Zn8UQhJ7b8ooO7lPC7d8qD0r62bf2jciqAgJIWL8=
+	s=default; t=1601052806;
+	bh=OVnUvw7oHYL8Y0HSm8Sp+fWZKMd8UOXQsYBKpnXOoE0=;
+	h=From:Date:Subject:To:Cc:List-ID:From;
+	b=Qlyr89TbCbENfGxF+PL1SlnbUl8xGM383sGDkhROZtNHtoUN45t0aVJ6dC1hhoYFk
+	 R3/WkVTMuA6gNFi/EzakR5zPMUPZSjFiB22HBanbAqpo98v1IfO4LQ9DoL79Wuh4VT
+	 6rSIOYhAmSVhc/ueB38pf2+DRUvuX88aduCm0Zmo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728524AbgIYQdO convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Sep 2020 12:33:14 -0400
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:42481 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729286AbgIYQdN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2020 12:33:13 -0400
-Received: by mail-ot1-f68.google.com with SMTP id m13so2841966otl.9
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2020 09:33:13 -0700 (PDT)
+        id S1729009AbgIYQxZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 25 Sep 2020 12:53:25 -0400
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:39412 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728069AbgIYQxZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2020 12:53:25 -0400
+Received: by mail-ot1-f66.google.com with SMTP id u25so2935059otq.6;
+        Fri, 25 Sep 2020 09:53:24 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=bs7mnlP4b/URIswvZTOnALYLTix0lxWqIN7c5PmfLao=;
-        b=r0CCAuoUSqm2DzHjCr9MSUr4CwK3208mO/7rPzPduiKJxf3x2jbCAqNKUprINZoFBi
-         ScanmU9VRolzLXXF1yDdjP3H7kIrhcXVaPv5LYyqTLB2XcuLicilJvtBA1NPR1Voc0tB
-         hJlWySTF52LzrxzGzWzioBM5Dj5+fD5jBGFLiopHvGoftOsfh+2nbu+7UgoXvRQSTUY/
-         6+PFDrAuPGwn5enuxTthwwhgW6umn3XeMtAsOWrampjGPBUoUlt3PB2DHsPGVve29FLX
-         TjrWLeEDbs88mqGm74YOMKdg4Tlg6KwWwkOiPQGdltxZY6lQrnH8etdnBuje657fs2Rl
-         c1eQ==
-X-Gm-Message-State: AOAM533u3GQP68AbbTTX0/NBRHmHnmgKyPK2ko+0GN5hCjfWOT5DbQV2
-        LH3YPT32tP4ePKMnYmOPUMAfhxViZ6WElxZ86aw=
-X-Google-Smtp-Source: ABdhPJxiTXXKmigHXv6twbVL+TRTl5DZuTLpCmEKbXrEcf2kILgUbHpjCd2QWyxUfJuvtNUpGo6YNpgIVVDDbb99O2U=
-X-Received: by 2002:a05:6830:150a:: with SMTP id k10mr827066otp.167.1601051592857;
- Fri, 25 Sep 2020 09:33:12 -0700 (PDT)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=fJTtSUwyASxVJzC78M9UtgW3Gnkvqlxlm8ZCb8ZlYrQ=;
+        b=Gfa6Z5UTTcusw1Y1AO3oyc2uu1QF1UsFFLf6AuQ09Bj43vJRKoUF4//rkAS95h1MHg
+         vWxVlg1oCQXL29SGiR4DCaUmkbn8Ib7f0cUK7eL43Dhrj7dmlKB2g5i13A/cU4JGIfkK
+         wSqjOcSYWnfJ87KqWH2ys3toDSZ+PNlBb/yaAGn4Vw7HnubMxDN5bmoyspMHhILQZS+2
+         GeozcVgV8vRnJMzCjcTcrNkatdRuXHbkp+xrtwXm84XMmjdWv+XWcvvTSfk7tgEDriN/
+         ATqucAIgZRErOqSH4w8SX8sroqm8IlvbHYLgOPX84aI6Zoqc21jEIPXa9kY6tHnFQ0tk
+         HCBg==
+X-Gm-Message-State: AOAM53026ECN9PazzYOA3OiuF6l6L9gVua/cpWLtCDb9Y8O0KzZDLAup
+        CHDfqYOZAWnrt32jv+J+BcIQi7iY0KFH1d7sbu0KmSvvtLs=
+X-Google-Smtp-Source: ABdhPJyCMzxKnePEtgfIIqf3VsWpaEy+Dj/SyVMNOBWnK0BRT9ZAEQ0cnv1NvGTC6GggQuuaHUilrmN426XTwMAuTrs=
+X-Received: by 2002:a05:6830:150a:: with SMTP id k10mr879687otp.167.1601052804474;
+ Fri, 25 Sep 2020 09:53:24 -0700 (PDT)
 MIME-Version: 1.0
-References: <6_vrlQfVYcRdLYK5BlS8E-_nRAXwCcIc-A2BAszjnowG_e4C-wMy6rdjbZZ0DzCJOMzHZfYUnhaHZfRIXFNE9Vp-23q9R2j305D26c3-EMA=@protonmail.com>
-In-Reply-To: <6_vrlQfVYcRdLYK5BlS8E-_nRAXwCcIc-A2BAszjnowG_e4C-wMy6rdjbZZ0DzCJOMzHZfYUnhaHZfRIXFNE9Vp-23q9R2j305D26c3-EMA=@protonmail.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 25 Sep 2020 18:33:02 +0200
-Message-ID: <CAJZ5v0hgiLWp00ThMTfugxv_RJcGjt3VULbaCL9rXWFtuj-nbw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: battery.h: include linux/power_supply.h
-To:     =?UTF-8?B?QmFybmFiw6FzIFDFkWN6ZQ==?= <pobrn@protonmail.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Date:   Fri, 25 Sep 2020 18:53:13 +0200
+Message-ID: <CAJZ5v0hyx0Jh7Cc2ZpHTM0V+QzFrQtwsXbMjcBRp3TRFgY9vUQ@mail.gmail.com>
+Subject: [GIT PULL] Power management fixes for v5.9-rc7
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 25, 2020 at 11:38 AM Barnabás Pőcze <pobrn@protonmail.com> wrote:
->
-> acpi/battery.h uses 'struct power_supply *', but fails to
-> include/create any declaration of the type. Include linux/
-> power_supply.h to fix that.
->
-> Signed-off-by: Barnabás Pőcze <pobrn@protonmail.com>
-> ---
->  include/acpi/battery.h | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/include/acpi/battery.h b/include/acpi/battery.h
-> index 5d8f5d910c82..b8d56b702c7a 100644
-> --- a/include/acpi/battery.h
-> +++ b/include/acpi/battery.h
-> @@ -2,6 +2,8 @@
->  #ifndef __ACPI_BATTERY_H
->  #define __ACPI_BATTERY_H
->
-> +#include <linux/power_supply.h>
-> +
->  #define ACPI_BATTERY_CLASS "battery"
->
->  #define ACPI_BATTERY_NOTIFY_STATUS     0x80
-> --
+Hi Linus,
 
-Applied as 5.10 material with minor subject edit, thanks!
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-5.9-rc7
+
+with top-most commit 6040723009060ed356dc93dd9a27e80b2206e59b
+
+ Merge branch 'pm-cpuidle'
+
+on top of commit ba4f184e126b751d1bffad5897f263108befc780
+
+ Linux 5.9-rc6
+
+to receive power management fixes for 5.9-rc7.
+
+These fix more fallout of recent RCU-lockdep changes in CPU idle
+code and two devfreq issues.
+
+Specifics:
+
+ - Export rcu_idle_{enter,exit} to modules to fix build issues
+   introduced by recent RCU-lockdep fixes (Borislav Petkov).
+
+ - Add missing return statement to a stub function in the ACPI
+   processor driver to fix a build issue introduced by recent
+   RCU-lockdep fixes (Rafael Wysocki).
+
+ - Fix recently introduced suspicious RCU usage warnings in the PSCI
+   cpuidle driver and drop stale comments regarding RCU_NONIDLE()
+   usage from enter_s2idle_proper() (Ulf Hansson).
+
+ - Fix error code path in the tegra30 devfreq driver (Dan Carpenter).
+
+ - Add missing information to devfreq_summary debugfs (Chanwoo Choi).
+
+Thanks!
+
+
+---------------
+
+Borislav Petkov (1):
+      rcu/tree: Export rcu_idle_{enter,exit} to modules
+
+Chanwoo Choi (1):
+      PM / devfreq: Add timer type to devfreq_summary debugfs
+
+Dan Carpenter (1):
+      PM / devfreq: tegra30: Disable clock on error in probe
+
+Rafael J. Wysocki (1):
+      ACPI: processor: Fix build for ARCH_APICTIMER_STOPS_ON_C3 unset
+
+Ulf Hansson (2):
+      cpuidle: psci: Fix suspicious RCU usage
+      cpuidle: Drop misleading comments about RCU usage
+
+---------------
+
+ drivers/acpi/processor_idle.c     |  1 +
+ drivers/cpuidle/cpuidle-psci.c    |  4 ++--
+ drivers/cpuidle/cpuidle.c         | 10 ----------
+ drivers/devfreq/devfreq.c         | 11 ++++++++---
+ drivers/devfreq/tegra30-devfreq.c |  4 +++-
+ kernel/rcu/tree.c                 |  2 ++
+ 6 files changed, 16 insertions(+), 16 deletions(-)
