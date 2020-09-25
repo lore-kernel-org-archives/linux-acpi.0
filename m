@@ -2,106 +2,79 @@ Return-Path: <SRS0=EjMF=DC=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 429C8C4363D
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 10:37:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6681C4363D
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 10:51:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DAD0F21D91
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 10:37:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 969CC221EB
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Sep 2020 10:51:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601030276;
-	bh=w55us4awCCkarzLaraSZ8K/9HNPlL7MGZqK2K1cWxf0=;
+	s=default; t=1601031081;
+	bh=WqKIKp1fZGykreOugPIXzFj0k+sBgqGevsSfIAszxN4=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=qMdaSv76QvMfrFvXz8PrcIg0qpFOkCIr2sL/BMQQi3iDq7azVHaAvmcSiC6yL+p3e
-	 pWVqk1agk+FYKGg4X1TrCfXRdiz6iv8fBLre7zphrikxy7yc4Sep0XxiWBcw77KdXk
-	 WkjT9kx0Q5qrtMWGrumaXD/ayXlUm2AJX1pmc57g=
+	b=a81KGmCufI8lM8c5u07/wnoOt9TstHIwoT19PREUqcAljs2jmmmwAwYZyORHS3YKr
+	 PFAtv0dWgx703RQkqxMQVy8a0OwHqMvZVkAUnGlEk9iLWQYA/Z7ZmYKN8yCfhqQz0k
+	 qRJ4s8pQUzj/HSnC6QauQhM0F6R+p6c4F85WM4b0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727402AbgIYKh4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Sep 2020 06:37:56 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:39352 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727044AbgIYKh4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2020 06:37:56 -0400
-Received: by mail-oi1-f196.google.com with SMTP id c13so2296406oiy.6;
-        Fri, 25 Sep 2020 03:37:55 -0700 (PDT)
+        id S1727679AbgIYKvU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 25 Sep 2020 06:51:20 -0400
+Received: from mail-oo1-f65.google.com ([209.85.161.65]:42131 "EHLO
+        mail-oo1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727201AbgIYKvU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2020 06:51:20 -0400
+Received: by mail-oo1-f65.google.com with SMTP id g26so629678ooa.9
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2020 03:51:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=OVoxEx1EbqL4xt1KK0Ah1vPumlmjzmQY5kdS/wGJ/Ak=;
-        b=MkenEJnFsQfuuo8ueB/4kwNRGlli50BOC3pg7l1wY3sNkx1BVZ2VeMItyCY0bhUm0l
-         KbKxREYBx99ipxRd3ntgrX8sjv6VhCHDm/IbDaCnQu3F8JJazcxvMPInEEpo/FEVAdnT
-         Mf5tEft5vZ16THLUhHdaJe2lwzloEhMxPFWgMsE082hvp9GHs6Q2MGl0hRWeiXOxxp5y
-         kgfoIOWevf8AS75tiiXUUQ29oIUQWJrVzYkSBJO41IgnL85LdUq651ei50i7Y/d+mayj
-         7C2ivpALfYiJq8Nhu7e+OhihTPfSgDIdFpCHU7cntZLJYT8O5oTbG5pcVi5CMXPwqVkq
-         2JKw==
-X-Gm-Message-State: AOAM533kkICMUAiBdi0OG+8vQP4CRsVXVxHGs7Er4D9JJc6UKem71hkk
-        /N+OqSiqcB8HLNBmA2awL1B2sqR6xW6bVTQfO/Y=
-X-Google-Smtp-Source: ABdhPJzoywEJnt0LASaB7YzzT9iowIuEHe3U2mgnxB4MRDxUJxOkNw085o1XQ1itDrMQHaiSg9OsuF4Qcl3jYm0Fjo8=
-X-Received: by 2002:aca:5b09:: with SMTP id p9mr1097334oib.68.1601030275389;
- Fri, 25 Sep 2020 03:37:55 -0700 (PDT)
+        bh=adACVDPHRu/Yg38C0a5zyi7dpcpUGCaMsMqCMseDBuU=;
+        b=sHtCLLJ6LriQlLYNdPveaoxsV05MQiSwUHNqV1eQJX7+Hpei3YFY1Lntlk2E1gnztO
+         THKzgx9QtFoBMxRaA1LSsjILjRASEEmPmBtnqDlbJa9zOYMBu1+R//rs+uINRRPAFizr
+         G/v4bZ8EWlQ/Y2OrK+FE8otiYIX0bD0ZlYQKazCTHgF5jRarV3UevsOHMip56M69gEY/
+         93yMdyTkFwS1L89/QYrB+q73LpA4mUjFaFyxiW9oHXj+7kb1WRXYxS7dG4oPRnACqYb1
+         UpxS/MoQo7thbFbOab+PnXzJPU7tuTu+dw/5AN1dr1v+C14vXDO/k3Ltkndsu4juQmrm
+         L8Wg==
+X-Gm-Message-State: AOAM530fuaMLQvBouJ4fTLZlTxRQrlSw8M7nvmd5axyb2akrdPhfTXP2
+        H5fyPfGVEpqzPq0JkKaLh41fDG4tIzZZn5KI0n4=
+X-Google-Smtp-Source: ABdhPJw9jGI5MYE1z0V59xGpD0ocJo+6BSyso6T03h1u8cag9xlaHc+oKfzwz3U0V3mPgoBMox0Ojz7hEHYuLJx9E0A=
+X-Received: by 2002:a4a:e946:: with SMTP id v6mr380823ood.38.1601031080113;
+ Fri, 25 Sep 2020 03:51:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200901064716.2444-1-yuehaibing@huawei.com>
-In-Reply-To: <20200901064716.2444-1-yuehaibing@huawei.com>
+References: <1599483453-26635-1-git-send-email-guohanjun@huawei.com>
+In-Reply-To: <1599483453-26635-1-git-send-email-guohanjun@huawei.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 25 Sep 2020 12:37:44 +0200
-Message-ID: <CAJZ5v0gtKCjPHKdK3bogM=suoU+bVk3RKHGeM-JWESma5dXUQA@mail.gmail.com>
-Subject: Re: [PATCH -next] ACPI: Remove unused inline functions
-To:     YueHaibing <yuehaibing@huawei.com>
+Date:   Fri, 25 Sep 2020 12:51:09 +0200
+Message-ID: <CAJZ5v0iivuJYz3S-eGbRJM9EAJLSjn24XvjM12UY-N4QDgV7tA@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] Cleanups for ACPI APD driver
+To:     Hanjun Guo <guohanjun@huawei.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        kbuild test robot <lkp@intel.com>, Ken Xue <Ken.Xue@amd.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 1, 2020 at 8:47 AM YueHaibing <yuehaibing@huawei.com> wrote:
+On Mon, Sep 7, 2020 at 7:46 PM Hanjun Guo <guohanjun@huawei.com> wrote:
 >
-> There is no callers in tree.
+> ACPI APD driver has some unused code and some mis-behaved
+> kernel doc, make a cleanup for this driver.
 >
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> Tested on Hisilicon ARM64, and compile tested on Intel x86.
+>
+> v1->v2:
+>  - Fix the compile warning reported by kernel test robot.
+>
+> Hanjun Guo (5):
+>   ACPI / APD: Add kernel doc for the properties in struct
+>     apd_device_desc
+>   ACPI / APD: Remove the flags in struct apd_device_desc
+>   ACPI / APD: Remove ACPI_MODULE_NAME()
+>   ACPI / APD: Remove the unneeded APD_ADDR(desc) macro define
+>   ACPI / APD: Head file including cleanups
 
-Applied as 5.10 material with a minor edit in the subject, thanks!
-
-> ---
->  include/linux/acpi.h | 9 ---------
->  1 file changed, 9 deletions(-)
->
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 17e80e182802..dd9b961628eb 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -979,8 +979,6 @@ int acpi_subsys_runtime_suspend(struct device *dev);
->  int acpi_subsys_runtime_resume(struct device *dev);
->  int acpi_dev_pm_attach(struct device *dev, bool power_on);
->  #else
-> -static inline int acpi_dev_runtime_suspend(struct device *dev) { return 0; }
-> -static inline int acpi_dev_runtime_resume(struct device *dev) { return 0; }
->  static inline int acpi_subsys_runtime_suspend(struct device *dev) { return 0; }
->  static inline int acpi_subsys_runtime_resume(struct device *dev) { return 0; }
->  static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
-> @@ -1218,13 +1216,6 @@ static inline int acpi_node_prop_get(const struct fwnode_handle *fwnode,
->         return -ENXIO;
->  }
->
-> -static inline int acpi_dev_prop_get(const struct acpi_device *adev,
-> -                                   const char *propname,
-> -                                   void **valptr)
-> -{
-> -       return -ENXIO;
-> -}
-> -
->  static inline int acpi_dev_prop_read_single(const struct acpi_device *adev,
->                                             const char *propname,
->                                             enum dev_prop_type proptype,
-> --
-> 2.17.1
->
->
+All applied as 5.10 material with edited subjects and changelogs, thanks!
