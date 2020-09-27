@@ -2,71 +2,102 @@ Return-Path: <SRS0=0CsL=DE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAE7EC2D0A8
-	for <linux-acpi@archiver.kernel.org>; Sun, 27 Sep 2020 01:17:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7FE3C4346E
+	for <linux-acpi@archiver.kernel.org>; Sun, 27 Sep 2020 10:03:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DCF0238E6
-	for <linux-acpi@archiver.kernel.org>; Sun, 27 Sep 2020 01:17:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6898823977
+	for <linux-acpi@archiver.kernel.org>; Sun, 27 Sep 2020 10:03:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726840AbgI0BRF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 26 Sep 2020 21:17:05 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:14283 "EHLO huawei.com"
+        id S1726185AbgI0KDt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 27 Sep 2020 06:03:49 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:59532 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726311AbgI0BRF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 26 Sep 2020 21:17:05 -0400
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id B7AAEA30A48EDC055628;
-        Sun, 27 Sep 2020 09:17:02 +0800 (CST)
-Received: from localhost.localdomain (10.69.192.56) by
- DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.487.0; Sun, 27 Sep 2020 09:16:57 +0800
-From:   Tian Tao <tiantao6@hisilicon.com>
-To:     <rjw@rjwysocki.net>, <lenb@kernel.org>,
-        <linux-acpi@vger.kernel.org>
-Subject: [PATCH v2] ACPI: scan: Use pr_debug replace ACPI_DEBUG_PRINT()
-Date:   Sun, 27 Sep 2020 09:14:28 +0800
-Message-ID: <1601169268-12062-1-git-send-email-tiantao6@hisilicon.com>
-X-Mailer: git-send-email 2.7.4
+        id S1726149AbgI0KDs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 27 Sep 2020 06:03:48 -0400
+Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id B860BEED604F6DFDFB84;
+        Sun, 27 Sep 2020 18:03:46 +0800 (CST)
+Received: from linux-ibm.site (10.175.102.37) by
+ DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
+ 14.3.487.0; Sun, 27 Sep 2020 18:03:37 +0800
+From:   Hanjun Guo <guohanjun@huawei.com>
+To:     <linux-acpi@vger.kernel.org>
+CC:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Hanjun Guo <guohanjun@huawei.com>
+Subject: [PATCH v2] ACPI: memhotplug: Remove the 'state' from struct acpi_memory_device
+Date:   Sun, 27 Sep 2020 17:55:49 +0800
+Message-ID: <1601200549-8518-1-git-send-email-guohanjun@huawei.com>
+X-Mailer: git-send-email 1.7.12.4
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.69.192.56]
+Content-Type: text/plain
+X-Originating-IP: [10.175.102.37]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fixes the following W=1 kernel build warning(s):
-drivers/acpi/scan.c: In function ‘acpi_bus_get_wakeup_device_flags’:
-drivers/acpi/scan.c:902:43: warning: suggest braces around empty body in
-an ‘if’ statement [-Wempty-body]
+After commit 315bbae9c5cb ("ACPI / memhotplug: deal with eject request
+in hotplug queue"), the memory device state which is defined in struct
+acpi_memory_device is not actually useful, so remove it along with
+symbols related to it.
 
-Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
-v2:rewrite the patch and change the patch name.
----
- drivers/acpi/scan.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+v1->v2:
+- Make it as a sparate cleanup patch.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 2142f15..684c726 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -898,8 +898,7 @@ static void acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
- 	 */
- 	err = acpi_device_sleep_wake(device, 0, 0, 0);
- 	if (err)
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				"error in _DSW or _PSW evaluation\n"));
-+		pr_debug("error in _DSW or _PSW evaluation\n");
- }
+ drivers/acpi/acpi_memhotplug.c | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
+
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index e294f44..468ebb7 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -36,11 +36,6 @@
  
- static void acpi_bus_init_power_state(struct acpi_device *device, int state)
+ #ifdef CONFIG_ACPI_HOTPLUG_MEMORY
+ 
+-/* Memory Device States */
+-#define MEMORY_INVALID_STATE	0
+-#define MEMORY_POWER_ON_STATE	1
+-#define MEMORY_POWER_OFF_STATE	2
+-
+ static int acpi_memory_device_add(struct acpi_device *device,
+ 				  const struct acpi_device_id *not_used);
+ static void acpi_memory_device_remove(struct acpi_device *device);
+@@ -64,8 +59,7 @@ struct acpi_memory_info {
+ };
+ 
+ struct acpi_memory_device {
+-	struct acpi_device * device;
+-	unsigned int state;	/* State of the memory device */
++	struct acpi_device *device;
+ 	struct list_head res_list;
+ };
+ 
+@@ -233,7 +227,6 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 	}
+ 	if (!num_enabled) {
+ 		dev_err(&mem_device->device->dev, "add_memory failed\n");
+-		mem_device->state = MEMORY_INVALID_STATE;
+ 		return -EINVAL;
+ 	}
+ 	/*
+@@ -304,9 +297,6 @@ static int acpi_memory_device_add(struct acpi_device *device,
+ 		return result;
+ 	}
+ 
+-	/* Set the device state */
+-	mem_device->state = MEMORY_POWER_ON_STATE;
+-
+ 	result = acpi_memory_check_device(mem_device);
+ 	if (result) {
+ 		acpi_memory_device_free(mem_device);
 -- 
-2.7.4
+1.7.12.4
 
