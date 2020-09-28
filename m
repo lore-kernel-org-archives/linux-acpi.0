@@ -2,90 +2,210 @@ Return-Path: <SRS0=sVPO=DF=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D4DC2D0A8
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Sep 2020 12:53:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 285BCC4741F
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Sep 2020 12:54:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FCFD21D95
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Sep 2020 12:53:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED56421974
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Sep 2020 12:54:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726694AbgI1Mx4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Sep 2020 08:53:56 -0400
-Received: from mx2.suse.de ([195.135.220.15]:60790 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726466AbgI1Mx4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 28 Sep 2020 08:53:56 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 12751AC24;
-        Mon, 28 Sep 2020 12:53:55 +0000 (UTC)
-Date:   Mon, 28 Sep 2020 14:53:51 +0200
-From:   Oscar Salvador <osalvador@suse.de>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux-acpi@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Alexander Duyck <alexander.h.duyck@linux.intel.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Michal Hocko <mhocko@kernel.org>,
-        Dave Hansen <dave.hansen@intel.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Wei Yang <richard.weiyang@linux.alibaba.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Wei Liu <wei.liu@kernel.org>
-Subject: Re: [PATCH RFC 4/4] mm/page_alloc: place pages to tail in
- __free_pages_core()
-Message-ID: <20200928125346.GA7703@linux>
-References: <20200916183411.64756-1-david@redhat.com>
- <20200916183411.64756-5-david@redhat.com>
- <20200928075820.GA4082@linux>
- <a18327c0-b86a-df00-e984-27c26468caf7@redhat.com>
+        id S1726380AbgI1MyS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Sep 2020 08:54:18 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:14312 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726328AbgI1MyS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 28 Sep 2020 08:54:18 -0400
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 80ABAA965C981C98CB52;
+        Mon, 28 Sep 2020 20:54:14 +0800 (CST)
+Received: from lhrphicprd00229.huawei.com (10.123.41.22) by
+ DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 28 Sep 2020 20:54:07 +0800
+From:   Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To:     <linux-mm@kvack.org>, <linux-acpi@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, <x86@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        <rafael@kernel.org>, Ingo Molnar <mingo@redhat.com>
+CC:     Bjorn Helgaas <bhelgaas@google.com>,
+        <linux-kernel@vger.kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>, <linuxarm@huawei.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Brice Goglin <Brice.Goglin@inria.fr>,
+        "Sean V Kelley" <sean.v.kelley@linux.intel.com>,
+        <linux-api@vger.kernel.org>, "Borislav Petkov" <bp@alien8.de>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH v11 1/6] ACPI: Support Generic Initiator only domains
+Date:   Mon, 28 Sep 2020 20:52:30 +0800
+Message-ID: <20200928125235.446188-2-Jonathan.Cameron@huawei.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20200928125235.446188-1-Jonathan.Cameron@huawei.com>
+References: <20200928125235.446188-1-Jonathan.Cameron@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a18327c0-b86a-df00-e984-27c26468caf7@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.123.41.22]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 28, 2020 at 10:36:00AM +0200, David Hildenbrand wrote:
-> Hi Oscar!
+Generic Initiators are a new ACPI concept that allows for the
+description of proximity domains that contain a device which
+performs memory access (such as a network card) but neither
+host CPU nor Memory.
 
-Hi David :-)
+This patch has the parsing code and provides the infrastructure
+for an architecture to associate these new domains with their
+nearest memory processing node.
 
-> 
-> Old code:
-> 
-> set_page_refcounted(): sets the refcount to 1.
-> __free_pages()
->   -> put_page_testzero(): sets it to 0
->   -> free_the_page()->__free_pages_ok()
-> 
-> New code:
-> 
-> set_page_refcounted(): sets the refcount to 1.
-> page_ref_dec(page): sets it to 0
-> __free_pages_ok():
+Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+v11: No change
 
-bleh, I misread the patch, somehow I managed to not see that you replaced
-__free_pages with __free_pages_ok.
+ drivers/acpi/numa/srat.c | 69 +++++++++++++++++++++++++++++++++++++++-
+ drivers/base/node.c      |  3 ++
+ include/linux/nodemask.h |  1 +
+ 3 files changed, 72 insertions(+), 1 deletion(-)
 
-To be honest, now that we do not need the page's refcount to be 1 for the
-put_page_testzero to trigger (and since you are decrementing it anyways),
-I think it would be much clear for those two to be gone.
-
-But not strong, so:
-
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-
+diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
+index 15bbaab8500b..d27e8585132d 100644
+--- a/drivers/acpi/numa/srat.c
++++ b/drivers/acpi/numa/srat.c
+@@ -130,6 +130,36 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ 		}
+ 		break;
+ 
++	case ACPI_SRAT_TYPE_GENERIC_AFFINITY:
++	{
++		struct acpi_srat_generic_affinity *p =
++			(struct acpi_srat_generic_affinity *)header;
++
++		if (p->device_handle_type == 0) {
++			/*
++			 * For pci devices this may be the only place they
++			 * are assigned a proximity domain
++			 */
++			pr_debug("SRAT Generic Initiator(Seg:%u BDF:%u) in proximity domain %d %s\n",
++				 *(u16 *)(&p->device_handle[0]),
++				 *(u16 *)(&p->device_handle[2]),
++				 p->proximity_domain,
++				 (p->flags & ACPI_SRAT_GENERIC_AFFINITY_ENABLED) ?
++				"enabled" : "disabled");
++		} else {
++			/*
++			 * In this case we can rely on the device having a
++			 * proximity domain reference
++			 */
++			pr_debug("SRAT Generic Initiator(HID=%.8s UID=%.4s) in proximity domain %d %s\n",
++				(char *)(&p->device_handle[0]),
++				(char *)(&p->device_handle[8]),
++				p->proximity_domain,
++				(p->flags & ACPI_SRAT_GENERIC_AFFINITY_ENABLED) ?
++				"enabled" : "disabled");
++		}
++	}
++	break;
+ 	default:
+ 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
+ 			header->type);
+@@ -332,6 +362,41 @@ acpi_parse_gicc_affinity(union acpi_subtable_headers *header,
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_X86) || defined(CONFIG_ARM64)
++static int __init
++acpi_parse_gi_affinity(union acpi_subtable_headers *header,
++		       const unsigned long end)
++{
++	struct acpi_srat_generic_affinity *gi_affinity;
++	int node;
++
++	gi_affinity = (struct acpi_srat_generic_affinity *)header;
++	if (!gi_affinity)
++		return -EINVAL;
++	acpi_table_print_srat_entry(&header->common);
++
++	if (!(gi_affinity->flags & ACPI_SRAT_GENERIC_AFFINITY_ENABLED))
++		return -EINVAL;
++
++	node = acpi_map_pxm_to_node(gi_affinity->proximity_domain);
++	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
++		pr_err("SRAT: Too many proximity domains.\n");
++		return -EINVAL;
++	}
++	node_set(node, numa_nodes_parsed);
++	node_set_state(node, N_GENERIC_INITIATOR);
++
++	return 0;
++}
++#else
++static int __init
++acpi_parse_gi_affinity(union acpi_subtable_headers *header,
++		       const unsigned long end)
++{
++	return 0;
++}
++#endif /* defined(CONFIG_X86) || defined (CONFIG_ARM64) */
++
+ static int __initdata parsed_numa_memblks;
+ 
+ static int __init
+@@ -385,7 +450,7 @@ int __init acpi_numa_init(void)
+ 
+ 	/* SRAT: System Resource Affinity Table */
+ 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
+-		struct acpi_subtable_proc srat_proc[3];
++		struct acpi_subtable_proc srat_proc[4];
+ 
+ 		memset(srat_proc, 0, sizeof(srat_proc));
+ 		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
+@@ -394,6 +459,8 @@ int __init acpi_numa_init(void)
+ 		srat_proc[1].handler = acpi_parse_x2apic_affinity;
+ 		srat_proc[2].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
+ 		srat_proc[2].handler = acpi_parse_gicc_affinity;
++		srat_proc[3].id = ACPI_SRAT_TYPE_GENERIC_AFFINITY;
++		srat_proc[3].handler = acpi_parse_gi_affinity;
+ 
+ 		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
+ 					sizeof(struct acpi_table_srat),
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index 508b80f6329b..53383f1f683c 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -980,6 +980,8 @@ static struct node_attr node_state_attr[] = {
+ #endif
+ 	[N_MEMORY] = _NODE_ATTR(has_memory, N_MEMORY),
+ 	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
++	[N_GENERIC_INITIATOR] = _NODE_ATTR(has_generic_initiator,
++					   N_GENERIC_INITIATOR),
+ };
+ 
+ static struct attribute *node_state_attrs[] = {
+@@ -991,6 +993,7 @@ static struct attribute *node_state_attrs[] = {
+ #endif
+ 	&node_state_attr[N_MEMORY].attr.attr,
+ 	&node_state_attr[N_CPU].attr.attr,
++	&node_state_attr[N_GENERIC_INITIATOR].attr.attr,
+ 	NULL
+ };
+ 
+diff --git a/include/linux/nodemask.h b/include/linux/nodemask.h
+index 27e7fa36f707..3334ce056335 100644
+--- a/include/linux/nodemask.h
++++ b/include/linux/nodemask.h
+@@ -399,6 +399,7 @@ enum node_states {
+ #endif
+ 	N_MEMORY,		/* The node has memory(regular, high, movable) */
+ 	N_CPU,		/* The node has one or more cpus */
++	N_GENERIC_INITIATOR,	/* The node has one or more Generic Initiators */
+ 	NR_NODE_STATES
+ };
+ 
 -- 
-Oscar Salvador
-SUSE L3
+2.19.1
+
