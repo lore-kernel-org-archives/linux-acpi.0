@@ -1,151 +1,98 @@
-Return-Path: <SRS0=sVPO=DF=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=BwYj=DG=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 014F3C4727F
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Sep 2020 23:29:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51E87C2D0A8
+	for <linux-acpi@archiver.kernel.org>; Tue, 29 Sep 2020 00:45:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C39842076B
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Sep 2020 23:29:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601335742;
-	bh=nnRug9dteeonRq+YEloKfaI1QyjcctRZlNrTT+QWteU=;
-	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
-	b=ym6IfKMjgkLc4bBZgjqroMnAOso8eSVHZe+9ABg+41242nz0QKl8SOBbdLdV9ivVe
-	 gaU7SOVb67RU+nwGUmsJPQ7PheEAVxkyGr0XfSImq8YKLmBDh15DF5gZwn8ZEaopTQ
-	 bvpcBLcTFrMcEbv9eWGzvIGvet+l8T8iU8vIpiZc=
+	by mail.kernel.org (Postfix) with ESMTP id 149192064B
+	for <linux-acpi@archiver.kernel.org>; Tue, 29 Sep 2020 00:45:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726977AbgI1X2n (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Sep 2020 19:28:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38896 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726924AbgI1X2n (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2020 19:28:43 -0400
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D45FC0610CF
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Sep 2020 15:52:44 -0700 (PDT)
-Received: by mail-ot1-x341.google.com with SMTP id y5so2643660otg.5
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Sep 2020 15:52:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=/zjWGaKaB98mjjh0ZLrJCSXNEtOUo09qmy6NjayUDvk=;
-        b=SE0OYfnZMo5uyZPc6mgIG21MkoqGNIbmK0jm0vy2aZv5VKA6ku7jwSWs6b1NGUoty/
-         wn4UKOoXxTXy903PvYRPnkC+er2m5Wrf3iavraHJxa+QAxqpaiJN2b04VaT2qF2SzrVa
-         Hk27i3iLwkmTdLboVB3hrjT8YMf/YNUT+GaDk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=/zjWGaKaB98mjjh0ZLrJCSXNEtOUo09qmy6NjayUDvk=;
-        b=Im3pBM/3V4lP5qOi5cvjLL5JnM4QxA/A2+fmuMYiF/XrnO5Uf9eauA0QY/ikD0uGuR
-         qI2aj042m/dPpWAj1DKwzstxFgiPoKiYNZycecNMCXBvrCMfu0tbZGhCyLdAXWEFzdK8
-         iD2jcylGGEuMklx/BYfXq2X7KzZa+vGCEGuSvrLbIUjDjM4k5z+YZDQ3E7s8FwSPq5GG
-         LSwQfWthr0qsT/SylGDG+/NBK1J3Sck9NdoVM46SYKQUe3pb468V/njLVWe+0V3X0BJC
-         TutAgVG5PIA3lIvEAjFvjMeXvWWN1WQs/V2meTbw7aQ6pNC2QMmQnndiLU+pVBNTLny7
-         XK5g==
-X-Gm-Message-State: AOAM532tyJHmxC6aCWGgyi1W+hLnuS2MDdz3dGkw9JMLkjSO6wcdXK1l
-        xOY3+1QPqZQUJDr+uzZook4DWw==
-X-Google-Smtp-Source: ABdhPJxIHmX1phtewwAqu5CcHxH1zl2JXO7LDJyED8CkXQgctT2koxk9D4O4EqsfNA/ONHttUfK08A==
-X-Received: by 2002:a05:6830:1e56:: with SMTP id e22mr785307otj.303.1601333563685;
-        Mon, 28 Sep 2020 15:52:43 -0700 (PDT)
-Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net. [24.9.64.241])
-        by smtp.gmail.com with ESMTPSA id g23sm2586552ooh.45.2020.09.28.15.52.42
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 28 Sep 2020 15:52:43 -0700 (PDT)
-Subject: Re: [PATCH 00/11] Introduce Simple atomic and non-atomic counters
-To:     Kees Cook <keescook@chromium.org>
-Cc:     corbet@lwn.net, gregkh@linuxfoundation.org, shuah@kernel.org,
-        rafael@kernel.org, johannes@sipsolutions.net, lenb@kernel.org,
-        james.morse@arm.com, tony.luck@intel.com, bp@alien8.de,
-        arve@android.com, tkjos@android.com, maco@android.com,
-        joel@joelfernandes.org, christian@brauner.io, hridya@google.com,
-        surenb@google.com, minyard@acm.org, arnd@arndb.de,
-        mchehab@kernel.org, rric@kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@driverdev.osuosl.org,
+        id S1727039AbgI2Apa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Sep 2020 20:45:30 -0400
+Received: from smtprelay0076.hostedemail.com ([216.40.44.76]:56402 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726698AbgI2Apa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 28 Sep 2020 20:45:30 -0400
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay01.hostedemail.com (Postfix) with ESMTP id 780A9100E7B40;
+        Tue, 29 Sep 2020 00:45:28 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: self77_011759527186
+X-Filterd-Recvd-Size: 2723
+Received: from XPS-9350.home (unknown [47.151.133.149])
+        (Authenticated sender: joe@perches.com)
+        by omf03.hostedemail.com (Postfix) with ESMTPA;
+        Tue, 29 Sep 2020 00:45:25 +0000 (UTC)
+Message-ID: <b1174f9be2ce65f6b5ebefcba0b48e792926abbc.camel@perches.com>
+Subject: Re: [PATCH 00/18] use semicolons rather than commas to separate
+ statements
+From:   Joe Perches <joe@perches.com>
+To:     Mark Brown <broonie@kernel.org>, linux-iio@vger.kernel.org,
+        Julia Lawall <Julia.Lawall@inria.fr>
+Cc:     linux-stm32@st-md-mailman.stormreply.com,
+        linux-crypto@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        linux-acpi@vger.kernel.org, David Lechner <david@lechnology.com>,
+        Valdis =?UTF-8?Q?Kl=C4=93tnieks?= <valdis.kletnieks@vt.edu>,
+        kernel-janitors@vger.kernel.org, drbd-dev@lists.linbit.com,
         openipmi-developer@lists.sourceforge.net,
-        linux-edac@vger.kernel.org, Shuah Khan <skhan@linuxfoundation.org>
-References: <cover.1601073127.git.skhan@linuxfoundation.org>
- <202009251650.193E2AD@keescook>
- <7d8f86ab-4333-afa1-6523-e42ae5c7d9b2@linuxfoundation.org>
- <202009260930.9252966D@keescook>
-From:   Shuah Khan <skhan@linuxfoundation.org>
-Message-ID: <31f28240-a3f1-e730-0b10-024125b1d2ab@linuxfoundation.org>
-Date:   Mon, 28 Sep 2020 16:52:41 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        linux-ide@vger.kernel.org, linux-amlogic@lists.infradead.org,
+        linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Thomas Gleixner <tglx@linutronix.de>,
+        linux-wireless@vger.kernel.org,
+        Neil Armstrong <narmstrong@baylibre.com>
+Date:   Mon, 28 Sep 2020 17:45:24 -0700
+In-Reply-To: <160132172369.55460.9237357219623604216.b4-ty@kernel.org>
+References: <1601233948-11629-1-git-send-email-Julia.Lawall@inria.fr>
+         <160132172369.55460.9237357219623604216.b4-ty@kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.36.4-0ubuntu1 
 MIME-Version: 1.0
-In-Reply-To: <202009260930.9252966D@keescook>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 9/26/20 10:33 AM, Kees Cook wrote:
-> On Fri, Sep 25, 2020 at 06:13:37PM -0600, Shuah Khan wrote:
->> On 9/25/20 5:52 PM, Kees Cook wrote:
->>> On Fri, Sep 25, 2020 at 05:47:14PM -0600, Shuah Khan wrote:
->>>> -- Addressed Kees's comments:
->>>>      1. Non-atomic counters renamed to counter_simple32 and counter_simple64
->>>>         to clearly indicate size.
->>>>      2. Added warning for counter_simple* usage and it should be used only
->>>>         when there is no need for atomicity.
->>>>      3. Renamed counter_atomic to counter_atomic32 to clearly indicate size.
->>>>      4. Renamed counter_atomic_long to counter_atomic64 and it now uses
->>>>         atomic64_t ops and indicates size.
->>>>      5. Test updated for the API renames.
->>>>      6. Added helper functions for test results printing
->>>>      7. Verified that the test module compiles in kunit env. and test
->>>>         module can be loaded to run the test.
->>>
->>> Thanks for all of this!
->>>
->>>>      8. Updated Documentation to reflect the intent to make the API
->>>>         restricted so it can never be used to guard object lifetimes
->>>>         and state management. I left _return ops for now, inc_return
->>>>         is necessary for now as per the discussion we had on this topic.
->>>
->>> I still *really* do not want dec_return() to exist. That is asking for
->>> trouble. I'd prefer inc_return() not exist either, but I can live with
->>> it. ;)
->>>
->>
-
-I didn't read this correctly the first time around.
-
->> Thanks. I am equally concerned about adding anything that can be used to
->> guard object lifetimes. So I will make sure this set won't expand and
->> plan to remove dec_return() if we don't find any usages.
+On Mon, 2020-09-28 at 20:35 +0100, Mark Brown wrote:
+> On Sun, 27 Sep 2020 21:12:10 +0200, Julia Lawall wrote:
+> > These patches replace commas by semicolons.  This was done using the
+> > Coccinelle semantic patch (http://coccinelle.lip6.fr/) shown below.
+> > 
+> > This semantic patch ensures that commas inside for loop headers will not be
+> > transformed.  It also doesn't touch macro definitions.
+> > 
+> > Coccinelle ensures that braces are added as needed when a single-statement
+> > branch turns into a multi-statement one.
+> > 
+> > [...]
 > 
-> I would like it much stronger than "if". dec_return() needs to be just
-> dec() and read(). It will not be less efficient (since they're both
-> inlines), but it _will_ create a case where the atomicity cannot be used
-> for ref counting. My point is that anything that _requires_ dec_return()
-> (or, frankly, inc_return()) is _not_ "just" a statistical counter. It
-> may not be a refcounter, but it relies on the inc/dec atomicity for some
-> reason beyond counting in once place and reporting it in another.
+> Applied to
 > 
+>    https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regmap.git for-next
+> 
+> Thanks!
+> 
+> [1/1] regmap: debugfs: use semicolons rather than commas to separate statements
+>       commit: 7f4a122d0b50b40c64d24a5cf7aafe26dd9487ee
 
-I am not thinking about efficiency rather two calls instead of one if
-an decrement needs to followed by return. In any case, I agree with you
-that there is no need to add dec_return now without any use-cases.
+Hi Mark.
 
-I will update the patch series to remove it.
+Rather than replying to the 0/n cover letter to a patch
+series, can you reply to each of the specific patches in
+the patch series you are applying?
 
-thanks,
--- Shuah
+Otherwise, it's a bit difficult to figure out which patches
+you are applying.
 
-
-
-
+thanks
 
