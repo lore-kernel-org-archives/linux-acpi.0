@@ -2,83 +2,100 @@ Return-Path: <SRS0=bNam=DJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 409B2C47426
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:23:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D7DCC47423
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:26:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3F1B206DB
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:23:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1445D221ED
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:26:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387947AbgJBMXO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Oct 2020 08:23:14 -0400
-Received: from lhrrgout.huawei.com ([185.176.76.210]:2941 "EHLO huawei.com"
+        id S2387765AbgJBM0y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Oct 2020 08:26:54 -0400
+Received: from lhrrgout.huawei.com ([185.176.76.210]:2942 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387945AbgJBMXL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Oct 2020 08:23:11 -0400
+        id S1726010AbgJBM0y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Oct 2020 08:26:54 -0400
 Received: from lhreml715-chm.china.huawei.com (unknown [172.18.7.108])
-        by Forcepoint Email with ESMTP id 337293E6E24ECF53ACB4;
-        Fri,  2 Oct 2020 13:23:09 +0100 (IST)
-Received: from lhreml715-chm.china.huawei.com (10.201.108.66) by
+        by Forcepoint Email with ESMTP id D7B1D99435002D5B9B38;
+        Fri,  2 Oct 2020 13:26:52 +0100 (IST)
+Received: from DESKTOP-6T4S3DQ.china.huawei.com (10.47.84.119) by
  lhreml715-chm.china.huawei.com (10.201.108.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1913.5; Fri, 2 Oct 2020 13:23:08 +0100
-Received: from lhreml715-chm.china.huawei.com ([10.201.108.66]) by
- lhreml715-chm.china.huawei.com ([10.201.108.66]) with mapi id 15.01.1913.007;
- Fri, 2 Oct 2020 13:23:08 +0100
+ 15.1.1913.5; Fri, 2 Oct 2020 13:26:51 +0100
 From:   Shiju Jose <shiju.jose@huawei.com>
-To:     Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>
-CC:     "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "tony.luck@intel.com" <tony.luck@intel.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>, Linuxarm <linuxarm@huawei.com>
-Subject: RE: [PATCH 1/1] RAS: Add CPU Correctable Error Collector to isolate
- an erroneous CPU core
-Thread-Topic: [PATCH 1/1] RAS: Add CPU Correctable Error Collector to isolate
- an erroneous CPU core
-Thread-Index: AQHWgG1JK3/pxs0Hy0WMoA7NPJGN4qlT2awAgAxWxYCAAaMi4IAKtz4AgBaQpYCAAAQkAIABOIsA
-Date:   Fri, 2 Oct 2020 12:23:08 +0000
-Message-ID: <c18db7e0738d4895a4893ded1e6cd99a@huawei.com>
-References: <20200901140140.1772-1-shiju.jose@huawei.com>
- <20200901143539.GC8392@zn.tnic> <512b7b8e6cb846aabaf5a2191cd9b5d4@huawei.com>
- <20200909120203.GB12237@zn.tnic>
- <50714e083d55491a8ccf5ad847682d1e@huawei.com>
- <20200917084038.GE31960@zn.tnic>
- <91e71fe9-b002-0f1f-3237-62cea49e083a@arm.com>
- <20201001173052.GH17683@zn.tnic>
-In-Reply-To: <20201001173052.GH17683@zn.tnic>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.47.84.119]
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <bp@alien8.de>,
+        <tony.luck@intel.com>, <rjw@rjwysocki.net>, <james.morse@arm.com>,
+        <lenb@kernel.org>
+CC:     <linuxarm@huawei.com>, <shiju.jose@huawei.com>
+Subject: [RFC PATCH 0/7] RAS/CEC: Extend CEC for errors count check on short time period
+Date:   Fri, 2 Oct 2020 13:22:28 +0100
+Message-ID: <20201002122235.1280-1-shiju.jose@huawei.com>
+X-Mailer: git-send-email 2.26.0.windows.1
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.47.84.119]
+X-ClientProxiedBy: lhreml720-chm.china.huawei.com (10.201.108.71) To
+ lhreml715-chm.china.huawei.com (10.201.108.66)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-SGkgQm9yaXMsIEhpIEphbWVzLA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9t
-OiBCb3Jpc2xhdiBQZXRrb3YgW21haWx0bzpicEBhbGllbjguZGVdDQo+U2VudDogMDEgT2N0b2Jl
-ciAyMDIwIDE4OjMxDQo+VG86IEphbWVzIE1vcnNlIDxqYW1lcy5tb3JzZUBhcm0uY29tPg0KPkNj
-OiBTaGlqdSBKb3NlIDxzaGlqdS5qb3NlQGh1YXdlaS5jb20+OyBsaW51eC1lZGFjQHZnZXIua2Vy
-bmVsLm9yZzsgbGludXgtDQo+YWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2Vy
-Lmtlcm5lbC5vcmc7IHRvbnkubHVja0BpbnRlbC5jb207DQo+cmp3QHJqd3lzb2NraS5uZXQ7IGxl
-bmJAa2VybmVsLm9yZzsgTGludXhhcm0gPGxpbnV4YXJtQGh1YXdlaS5jb20+DQo+U3ViamVjdDog
-UmU6IFtQQVRDSCAxLzFdIFJBUzogQWRkIENQVSBDb3JyZWN0YWJsZSBFcnJvciBDb2xsZWN0b3Ig
-dG8gaXNvbGF0ZQ0KPmFuIGVycm9uZW91cyBDUFUgY29yZQ0KPg0KPk9uIFRodSwgT2N0IDAxLCAy
-MDIwIGF0IDA2OjE2OjAzUE0gKzAxMDAsIEphbWVzIE1vcnNlIHdyb3RlOg0KPj4gSWYgdGhlIGNv
-cnJlY3RlZC1jb3VudCBpcyBhdmFpbGFibGUgc29tZXdoZXJlLCBjYW4ndCB0aGlzIHBvbGljeSBi
-ZQ0KPj4gbWFkZSBpbiB1c2VyLXNwYWNlPw0KPg0KPllvdSBtZWFuIHJhc2RhZW1vbiBnb2VzIGFu
-ZCBvZmZsaW5lcyBDUFVzIHdoZW4gY2VydGFpbiB0aHJlc2hvbGRzIGFyZQ0KPnJlYWNoZWQ/IFN1
-cmUuIEl0IHdvdWxkIGJlIG11Y2ggbW9yZSBmbGV4aWJsZSB0b28uDQoNCkkgd2lsbCBzZW5kIHRo
-ZSBrZXJuZWwgY2hhbmdlcyBmb3IgZXhpc3RpbmcgQ0VDIHRvIHN1cHBvcnQgdGhlIENQVSBDRSBl
-cnJvcnMuIA0KQ2FuIHlvdSBwbGVhc2UgaGF2ZSBhIGxvb2s/DQoNClRoYW5rcywNClNoaWp1DQoN
-Cj4NCj4tLQ0KPlJlZ2FyZHMvR3J1c3MsDQo+ICAgIEJvcmlzLg0KPg0KPmh0dHBzOi8vcGVvcGxl
-Lmtlcm5lbC5vcmcvdGdseC9ub3Rlcy1hYm91dC1uZXRpcXVldHRlDQo=
+In ARM64 hardware platforms, for example our Kunpeng platforms, CPU L1/L2
+cache corrected errors are reported in the ARM processor error section.
+The situations the CPU CE errors are reported too often is not unlikely
+and may need to isolate that CPU core to prevent leading to more 
+serious faults. This is important for the early fault prediction.
+
+Extend the existing RAS CEC to support the errors count check on short
+time period with the threshold. The decay interval is divided into a
+number of time slots for these elements. The CEC calculates the average
+error count for each element at the end of each decay interval. Then the
+average count would be subtracted from the total count in each of the
+following time slots within the decay interval. The work function for
+the decay interval would be set for a reduced time period = decay
+interval/ number of time slots. When the new CE count for a CPU is added,
+the element would try to offline when the sum of the most recent CEs
+counts exceeded the CEs threshold value. More implementation details is
+added in the file.
+
+Add collection of CPU correctable errors, for example ARM64 L1/L2 cache
+errors and isolation of the CPU core when the errors count in the short
+time interval exceed the threshold value.
+
+Open Questions based on the feedback from Boris,
+1. ARM processor error types are cache/TLB/bus errors.
+   [Reference N2.4.4.1 ARM Processor Error Information UEFI Spec v2.8]
+Any of the above error types should not be consider for the
+error collection and CPU core isolation?
+
+2.If disabling entire CPU core is not acceptable,
+please suggest method to disable L1 and L2 cache on ARM64 core?
+
+Shiju Jose (7):
+  RAS/CEC: Replace the macro PFN with ELEM_NO
+  RAS/CEC: Replace pfns_poisoned with elems_poisoned
+  RAS/CEC: Move X86 MCE specific code under CONFIG_X86_MCE
+  RAS/CEC: Modify cec_mod_work() for common use
+  RAS/CEC: Add support for errors count check on short time period
+  RAS/CEC: Add CPU Correctable Error Collector to isolate an erroneous
+    CPU core
+  ACPI / APEI: Add reporting ARM64 CPU correctable errors to the CEC
+
+ arch/arm64/ras/Kconfig   |  17 ++
+ drivers/acpi/apei/ghes.c |  36 +++-
+ drivers/ras/Kconfig      |   1 +
+ drivers/ras/cec.c        | 399 +++++++++++++++++++++++++++++++++++----
+ include/linux/ras.h      |   9 +
+ 5 files changed, 418 insertions(+), 44 deletions(-)
+ create mode 100644 arch/arm64/ras/Kconfig
+
+-- 
+2.17.1
+
+
