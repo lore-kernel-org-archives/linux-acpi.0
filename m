@@ -2,91 +2,93 @@ Return-Path: <SRS0=bNam=DJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64032C4363D
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 18:02:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D954C4363D
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 21:43:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9AA920795
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 18:02:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8027206E3
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 21:43:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="B/mvmiIi"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n1wb1zCu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388198AbgJBSC2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Oct 2020 14:02:28 -0400
-Received: from mail.skyhub.de ([5.9.137.197]:47390 "EHLO mail.skyhub.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726017AbgJBSC2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Oct 2020 14:02:28 -0400
-Received: from zn.tnic (p200300ec2f0d630076c6316353094260.dip0.t-ipconnect.de [IPv6:2003:ec:2f0d:6300:76c6:3163:5309:4260])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id A500E1EC046E;
-        Fri,  2 Oct 2020 20:02:26 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1601661746;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=pfeUMFmdB3fOIoL+4yEs3nJFfmZU0aNu3XTvE6X8GXU=;
-        b=B/mvmiIii64QTSUarSBZJugjzMpddCWKGsxAcph0YxkkuhKpWaYYDY/DsL6UewQPOxa1wl
-        aLSdcrDW28mmwHgArBmsgGP71pNh44vPvN/d6RID81lJF1Qa0xpVe6TG2mc9u/gFtU3lbB
-        1XimJqU1CkH3cG26rooRW7vkRyLnVJQ=
-Date:   Fri, 2 Oct 2020 20:02:18 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     Shiju Jose <shiju.jose@huawei.com>
-Cc:     James Morse <james.morse@arm.com>,
-        "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "tony.luck@intel.com" <tony.luck@intel.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>, Linuxarm <linuxarm@huawei.com>
-Subject: Re: [RFC PATCH 0/7] RAS/CEC: Extend CEC for errors count check on
- short time period
-Message-ID: <20201002180125.GD17436@zn.tnic>
-References: <20201002122235.1280-1-shiju.jose@huawei.com>
- <20201002124352.GC17436@zn.tnic>
- <19a8cc62b11c49e9b584857a6a6664e5@huawei.com>
- <59950d44-906b-684f-c876-e09c76e5f827@arm.com>
+        id S1725763AbgJBVnh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Oct 2020 17:43:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37324 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725283AbgJBVnh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Oct 2020 17:43:37 -0400
+Received: from mail-qk1-x729.google.com (mail-qk1-x729.google.com [IPv6:2607:f8b0:4864:20::729])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00E8EC0613D0
+        for <linux-acpi@vger.kernel.org>; Fri,  2 Oct 2020 14:43:37 -0700 (PDT)
+Received: by mail-qk1-x729.google.com with SMTP id g72so4002504qke.8
+        for <linux-acpi@vger.kernel.org>; Fri, 02 Oct 2020 14:43:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:subject:to:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=eG6HESFLPWn8glvX0A6+C501emaqPJYVDqCfVaG7yDw=;
+        b=n1wb1zCunGsc0oI/6bMmPIIwYAQlOLNVhxr6dXH69cnVnxAfIkyJJTwG6jnSUv3MXU
+         b9ryAnxnsQTrh/tQfejZeuZ8vLTVWTIDjODrxGtn+pgaV15Op6AfNs7E1BeVYgUKc+w9
+         tkF1QtqvExTtb5Zifc2wjcnfyaTOHr1uGE2hKQ7o4pcBYn9dI7slVzTO5e817UDoHT3Z
+         lVEMHSgA/rx5wJwYVE/jKCChowkT13pZD0CDnaW5xg9Zm5tmMZPCy2pRHsECjzKY+/Nz
+         5Sjy1J1sllQ1l9n5wJRRie/78NyaUuQJr5eFWG6XIhCARbFQOHj6y+Pviuc164RT4x+n
+         6VYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:subject:to:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=eG6HESFLPWn8glvX0A6+C501emaqPJYVDqCfVaG7yDw=;
+        b=L0eeb+kfEln9ofFTW1uEyvQdX3WP4fev858aYfS8gYt6Rv0eqRwT1ATC7JKFbtpYi9
+         RoSDnF9OGrt3V7CNgug/impFZRD7PBrgp+7ZBI4gtegXMYxfbifaLPGnGpvP80JzmoqI
+         eIgSZj0jlIiN6eEGJDwQwKW0TUaWRbs8bzD2j6gIqW9UEmm45+IcYtEq0uPNOvoS/fLV
+         r/2wYDHxNGNxYT3uxxwZHEPgBFZoE1orhiFzvorhmlft+61hLD96IFulx+5TMW/ay/Es
+         DhI+7ibd5hEW5XgicfGZ+c2qs97QGtmlTOGwX26iolTNtKFP3TJC6U3rZtwDXOoKCT+m
+         m/DA==
+X-Gm-Message-State: AOAM5336JQFRH37R9vxQZPuyoqCiOyJyFIOhI5ykR/X5Bz8qs0iJqVjO
+        GrYjJVQsJqdcXmU/t+k1eM/XqqJJIQ==
+X-Google-Smtp-Source: ABdhPJxb0Im6OIL2JMyffnXmvolIGJxw2N8suiR/vS7MGfxXCuNX5rYG370IWs9wphx+fOx0HLanNA==
+X-Received: by 2002:a05:620a:103c:: with SMTP id a28mr4114158qkk.376.1601675015958;
+        Fri, 02 Oct 2020 14:43:35 -0700 (PDT)
+Received: from [192.168.1.25] (209-6-122-159.s2973.c3-0.arl-cbr1.sbo-arl.ma.cable.rcncustomer.com. [209.6.122.159])
+        by smtp.gmail.com with ESMTPSA id l5sm2101400qtc.28.2020.10.02.14.43.35
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 02 Oct 2020 14:43:35 -0700 (PDT)
+From:   Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: overriding-dsdt doc: kernel parameter description to override the
+ SSDT.
+To:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Message-ID: <79dc749a-d55e-a5ae-668e-0e9993261a29@gmail.com>
+Date:   Fri, 2 Oct 2020 17:43:34 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <59950d44-906b-684f-c876-e09c76e5f827@arm.com>
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Oct 02, 2020 at 06:33:17PM +0100, James Morse wrote:
-> > I think adding the CPU error collection to the kernel
-> > has the following advantages,
-> >     1. The CPU error collection and isolation would not be active if the
-> >          rasdaemon stopped running or not running on a machine.
+Hello,
 
-Wasn't there this thing called systemd which promised that it would
-restart daemons when they fail? And even if it is not there, you can
-always do your own cronjob which checks rasdaemon presence and restarts
-it if it has died and sends a mail to the admin to check why it had
-died.
+https://01.org/linux-acpi/documentation/overriding-dsdt shows how to
+override SSDT and it says that we need to set 'acpi_no_auto_ssdt' kernel
+parameter. However, the kernel parameter name was changed by a94e88cdd805
+("ACPICA: Tables: Avoid SSDT installation with acpi_gbl_disable_ssdt_table_load.")
 
-Everything else I've trimmed but James has put it a lot more eloquently
-than me and I cannot agree more with what he says. Doing this in
-userspace is better in every aspect you can think of.
+Could you fix the description? Like as follows:
 
-The current CEC thing runs in the kernel because it has a completely
-different purpose - to limit corrected error reports which turn into
-very expensive support calls for errors which were corrected but people
-simply don't get that they were corrected. Instead, they throw hands in
-the air and go "OMG, my hardware is failing".
+===
+If you need to modify the code present in an SSDT, then combine all of the SSDTs into a DSDT override, modify it as necessary, and boot with a kernel parameter (*) to prevent Linux from automatically loading the SSDTs listed in the RSDT/XSDT.
 
-Where those are, as James says:
+(*) Linux-3.15 and before: acpi_no_auto_ssdt
+    Linux-3.16 and after:  acpi_no_static_ssdt
+===
 
-> These are corrected errors. Nothing has gone wrong.
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+Thanks,
+Masa
