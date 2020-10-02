@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5804C47425
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5811C47423
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:31:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80A94207EA
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:30:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 781BA206DB
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Oct 2020 12:31:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387789AbgJBMa2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Oct 2020 08:30:28 -0400
-Received: from lhrrgout.huawei.com ([185.176.76.210]:2947 "EHLO huawei.com"
+        id S2387856AbgJBMbW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Oct 2020 08:31:22 -0400
+Received: from lhrrgout.huawei.com ([185.176.76.210]:2948 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726090AbgJBMa2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Oct 2020 08:30:28 -0400
+        id S1726090AbgJBMbV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Oct 2020 08:31:21 -0400
 Received: from lhreml715-chm.china.huawei.com (unknown [172.18.7.106])
-        by Forcepoint Email with ESMTP id B99506BA6F7C194C561B;
-        Fri,  2 Oct 2020 13:30:26 +0100 (IST)
+        by Forcepoint Email with ESMTP id 4821A485866C963EC62F;
+        Fri,  2 Oct 2020 13:31:20 +0100 (IST)
 Received: from DESKTOP-6T4S3DQ.china.huawei.com (10.47.84.119) by
  lhreml715-chm.china.huawei.com (10.201.108.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1913.5; Fri, 2 Oct 2020 13:30:26 +0100
+ 15.1.1913.5; Fri, 2 Oct 2020 13:31:19 +0100
 From:   Shiju Jose <shiju.jose@huawei.com>
 To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <bp@alien8.de>,
         <tony.luck@intel.com>, <rjw@rjwysocki.net>, <james.morse@arm.com>,
         <lenb@kernel.org>
 CC:     <linuxarm@huawei.com>, <shiju.jose@huawei.com>
-Subject: [RFC PATCH 5/7] RAS/CEC: Add support for errors count check on short time period
-Date:   Fri, 2 Oct 2020 13:22:33 +0100
-Message-ID: <20201002122235.1280-6-shiju.jose@huawei.com>
+Subject: [RFC PATCH 6/7] RAS/CEC: Add CPU Correctable Error Collector to isolate an erroneous CPU core
+Date:   Fri, 2 Oct 2020 13:22:34 +0100
+Message-ID: <20201002122235.1280-7-shiju.jose@huawei.com>
 X-Mailer: git-send-email 2.26.0.windows.1
 In-Reply-To: <20201002122235.1280-1-shiju.jose@huawei.com>
 References: <20201002122235.1280-1-shiju.jose@huawei.com>
@@ -49,228 +49,401 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some types of elements, for example CPU core, should be isolated
-when the corrected errors reported too often. This is used for the
-early fault prediction and would help to prevent serious faults
-by taking corrective actions.
-Modify CEC to support for the errors count check on short
-time period. Implementation details is added in the file.
+When the CPU correctable errors, for example L1/L2 cache errors,
+reported on an ARM64 CPU core too often, it should be isolated.
+Add the CPU correctable error collector to store the CPU correctable
+error count.
+
+When the correctable error count for a CPU exceed the threshold
+value in a short time period, it will try to isolate the CPU core.
+
+If disabling entire CPU core is not acceptable, Please suggest
+method to disable L1 and L2 cache on ARM64 core?
 
 Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
 ---
- drivers/ras/cec.c | 125 ++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 109 insertions(+), 16 deletions(-)
+ arch/arm64/ras/Kconfig |  17 +++
+ drivers/ras/Kconfig    |   1 +
+ drivers/ras/cec.c      | 231 +++++++++++++++++++++++++++++++++++++++--
+ include/linux/ras.h    |   9 ++
+ 4 files changed, 247 insertions(+), 11 deletions(-)
+ create mode 100644 arch/arm64/ras/Kconfig
 
+diff --git a/arch/arm64/ras/Kconfig b/arch/arm64/ras/Kconfig
+new file mode 100644
+index 000000000000..bfa14157cd2e
+--- /dev/null
++++ b/arch/arm64/ras/Kconfig
+@@ -0,0 +1,17 @@
++# SPDX-License-Identifier: GPL-2.0
++config RAS_CEC
++        bool "Correctable Errors Collector"
++        depends on ARM64 && HOTPLUG_CPU && DEBUG_FS
++        help
++          This is a small cache which collects correctable CPU errors and
++          counts their repeated occurrence. Once the counter for a CPU
++          overflows in a short time period, we try to offline that CPU
++          as we take it to mean that it has reached a relatively high error
++          count and would probably be best if we don't use it anymore.
++
++          Presently CPU error correction enabld for ARM64 platform only.
++
++config RAS_CEC_DEBUG
++        bool "CEC debugging machinery"
++        default n
++        depends on RAS_CEC
+diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
+index c2a236f2e846..d2f877e5f7ad 100644
+--- a/drivers/ras/Kconfig
++++ b/drivers/ras/Kconfig
+@@ -32,5 +32,6 @@ menuconfig RAS
+ if RAS
+ 
+ source "arch/x86/ras/Kconfig"
++source "arch/arm64/ras/Kconfig"
+ 
+ endif
 diff --git a/drivers/ras/cec.c b/drivers/ras/cec.c
-index f869e7a270b8..ca52917d514c 100644
+index ca52917d514c..408bf2ac2461 100644
 --- a/drivers/ras/cec.c
 +++ b/drivers/ras/cec.c
-@@ -119,6 +119,23 @@ static struct ce_array {
- 					 * shift for element id.
- 					 */
+@@ -7,6 +7,8 @@
+ #include <linux/ras.h>
+ #include <linux/kernel.h>
+ #include <linux/workqueue.h>
++#include <linux/cpu.h>
++#include <linux/slab.h>
  
-+	struct delayed_work work;	/*
-+					 * delayed work.
-+					 */
-+
-+	bool short_period;		/* Indicates threshold check for the error count
-+					 * over short time period.
-+					 */
-+
-+	u8 time_slot;			/*
-+					 * time slot's number within the decay interval.
-+					 */
-+
-+	union {
-+		struct mutex	mutex;
-+		spinlock_t	spin_lock;
-+	};
-+
- 	union {
- 		struct {
- 			__u32	disabled : 1,	/* cmdline disabled */
-@@ -128,7 +145,6 @@ static struct ce_array {
+ #if defined(CONFIG_X86_MCE)
+ #include <asm/mce.h>
+@@ -143,7 +145,7 @@ static struct ce_array {
+ 		};
+ 		__u32 flags;
  	};
- } ce_arr;
+-} ce_arr;
++} ce_arr, cpu_ce_arr;
  
--static DEFINE_MUTEX(ce_mutex);
  static u64 dfs_pfn;
  
- /* Amount of errors after which we offline */
-@@ -138,9 +154,35 @@ static u64 action_threshold = COUNT_MASK;
- #define CEC_DECAY_DEFAULT_INTERVAL	24 * 60 * 60	/* 24 hrs */
- #define CEC_DECAY_MIN_INTERVAL		 1 * 60 * 60	/* 1h */
+@@ -156,6 +158,8 @@ static u64 action_threshold = COUNT_MASK;
  #define CEC_DECAY_MAX_INTERVAL	   30 *	24 * 60 * 60	/* one month */
--static struct delayed_work cec_work;
  static u64 decay_interval = CEC_DECAY_DEFAULT_INTERVAL;
  
-+/* Definitions for elements (for example CPU) for which
-+ * error count on shrot time period is checked with threshold.
-+ *
-+ * An element such as a CPU core may need to isolate when large number of
-+ * correctable errors are reported on that element too often. When the
-+ * CEs count is exceeded the threshold value in a short time period.
-+ *
-+ * The decay interval is divided into a number of time slots. The CE collector
-+ * calculates the average error count at the end of each decay interval. Then
-+ * the average count would be subtracted from the total count in each following
-+ * time slots. The work function for the decay interval would be set  for the
-+ * reduced time period = decay interval/ number of time slots. When the new
-+ * CE count for a cpu is added, the element would be offlined when the sum of
-+ * the most recent CEs counts exceeded the CE threshold value.
-+ */
++static const char * const bins[] = { "00", "01", "10", "11" };
 +
-+/*
-+ * u64: [ 63 ELEM ID 23 | ELEM_STATUS_BIT 22 | 21 AVG_COUNT_BITS 12 | 11 DECAY_BITS 10 | 9 COUNT_BITS 0]
-+ */
-+
-+/* Number of time slots in the decay interval */
-+#define RAS_CEC_NUM_TIME_SLOTS	10
-+
-+#define AVG_COUNT_SHIFT	(DECAY_BITS + COUNT_BITS)
-+#define ELEM_STATUS_BIT	BIT(22)	/* Indicates an element offlined by CEC */
-+#define ELEM_ID_SHIFT	(1 + AVG_COUNT_SHIFT + COUNT_BITS)
-+
- /*
-  * Decrement decay value. We're using DECAY_BITS bits to denote decay of an
-  * element in the array. On insertion and any access, it gets reset to max.
-@@ -177,11 +219,62 @@ static void cec_mod_work(struct delayed_work *dwork, unsigned long interval)
- 
- static void cec_work_fn(struct work_struct *work)
- {
--	mutex_lock(&ce_mutex);
--	do_spring_cleaning(&ce_arr);
--	mutex_unlock(&ce_mutex);
-+	struct ce_array *ca;
-+	unsigned long flags;
-+	u64 avg_count;
-+	int i, time_slots = 1;
-+	struct delayed_work *d_work = container_of(work, struct delayed_work, work);
-+
-+	if (!d_work)
-+		return;
-+
-+	ca = container_of(d_work, struct ce_array, work);
-+	if (!ca->array || ca->disabled)
-+		return;
- 
--	cec_mod_work(&cec_work, decay_interval);
-+	if (!ca->short_period) {
-+		mutex_lock(&ca->mutex);
-+		do_spring_cleaning(ca);
-+		mutex_unlock(&ca->mutex);
-+	} else {
-+		time_slots = RAS_CEC_NUM_TIME_SLOTS;
-+		spin_lock_irqsave(&ca->spin_lock, flags);
-+		ca->time_slot = (ca->time_slot + 1) % RAS_CEC_NUM_TIME_SLOTS;
-+
-+		for (i = 0; i < ca->n; i++) {
-+			if (ca->array[i] & ELEM_STATUS_BIT)
-+				continue;
-+
-+			/* clear old errors count approximately by subtracting the avg count
-+			 * from the total errors count.
-+			 */
-+			avg_count = (ca->array[i] >> AVG_COUNT_SHIFT) & COUNT_MASK;
-+			ca->array[i] -= avg_count;
-+		}
-+
-+		if (ca->time_slot) {
-+			spin_unlock_irqrestore(&ca->spin_lock, flags);
-+			goto exit;
-+		}
-+
-+		for (i = 0; i < ca->n; i++) {
-+			if (ca->array[i] & ELEM_STATUS_BIT)
-+				continue;
-+
-+			/* calculate average error count for the completed time period */
-+			avg_count = COUNT(ca->array[i]) / RAS_CEC_NUM_TIME_SLOTS;
-+			ca->array[i] -= (COUNT(ca->array[i]) % RAS_CEC_NUM_TIME_SLOTS);
-+			/* store average error count */
-+			ca->array[i] &= ~(COUNT_MASK << AVG_COUNT_SHIFT);
-+			ca->array[i] |= (avg_count << AVG_COUNT_SHIFT);
-+		}
-+
-+		do_spring_cleaning(ca);
-+		spin_unlock_irqrestore(&ca->spin_lock, flags);
-+	}
-+
-+exit:
-+	cec_mod_work(&ca->work, decay_interval/time_slots);
- }
- 
- /*
-@@ -279,9 +372,9 @@ static u64 __maybe_unused del_lru_elem(void)
- 	if (!ca->n)
- 		return 0;
- 
--	mutex_lock(&ce_mutex);
-+	mutex_lock(&ca->mutex);
- 	pfn = del_lru_elem_unlocked(ca);
--	mutex_unlock(&ce_mutex);
-+	mutex_unlock(&ca->mutex);
- 
- 	return pfn;
- }
-@@ -328,7 +421,7 @@ static int cec_add_elem(u64 pfn)
- 	if (!ce_arr.array || ce_arr.disabled)
- 		return -ENODEV;
- 
--	mutex_lock(&ce_mutex);
-+	mutex_lock(&ca->mutex);
- 
- 	ca->ces_entered++;
- 
-@@ -386,7 +479,7 @@ static int cec_add_elem(u64 pfn)
- 	WARN_ON_ONCE(sanity_check(ca));
- 
- unlock:
--	mutex_unlock(&ce_mutex);
-+	mutex_unlock(&ca->mutex);
- 
+ /* Definitions for elements (for example CPU) for which
+  * error count on shrot time period is checked with threshold.
+  *
+@@ -484,6 +488,172 @@ static int cec_add_elem(u64 pfn)
  	return ret;
  }
-@@ -420,7 +513,7 @@ static int decay_interval_set(void *data, u64 val)
- 	*(u64 *)data   = val;
+ 
++struct cec_elem_offline {
++	struct work_struct work;
++	struct ce_array *ca;
++	int array_index;
++	int elem_id;
++};
++
++/*
++ * Work function to offline a cpu because the offlining to be done
++ * in the process context.
++ */
++static void cec_cpu_offline_work_fn(struct work_struct *work)
++{
++	int rc, cpu;
++	struct cec_elem_offline *elem;
++	struct ce_array *ca;
++
++	elem = container_of(work, struct cec_elem_offline, work);
++
++	cpu = elem->elem_id;
++	if (!cpu_online(cpu))
++		return;
++
++	rc = remove_cpu(cpu);
++	if (rc) {
++		pr_warn("Failed to offline CPU%d, error %d\n", cpu, rc);
++	} else {
++		ca = elem->ca;
++		ca->array[elem->array_index] |= ELEM_STATUS_BIT;
++	}
++
++	kfree(elem);
++}
++
++int cec_cpu_add_elem(int cpu, u64 ce_count)
++{
++	struct ce_array *ca = &cpu_ce_arr;
++	unsigned int to = 0;
++	int count, ret = 0;
++	unsigned long flags;
++	struct cec_elem_offline *elem;
++
++	/*
++	 * We can be called very early on the identify_cpu() path where we are
++	 * not initialized yet. We ignore the error for simplicity.
++	 */
++	if (!ca->array || ca->disabled || !cpu_online(cpu))
++		return -ENODEV;
++
++	spin_lock_irqsave(&ca->spin_lock, flags);
++
++	ca->ces_entered++;
++
++	ret = find_elem(ca, cpu, &to);
++	if (ret < 0) {
++		/*
++		 * Shift range [to-end] to make room for one more element.
++		 */
++		memmove((void *)&ca->array[to + 1],
++			(void *)&ca->array[to],
++			(ca->n - to) * sizeof(u64));
++
++		ca->array[to] = cpu << ca->id_shift;
++		ca->n++;
++	}
++
++	/* Error received for a previously CEC offlined CPU, which later online elsewhere.
++	 * reset array.
++	 */
++	if (ca->array[to] & ELEM_STATUS_BIT) {
++		ca->array[to] &= ~(ELEM_STATUS_BIT);
++		ca->array[to] &= ~(COUNT_MASK);
++	}
++
++	/* Add/refresh element generation and increment count */
++	ca->array[to] |= DECAY_MASK << COUNT_BITS;
++	ca->array[to] += ce_count;
++
++	/* Check action threshold and offline, if reached. */
++	count = COUNT(ca->array[to]);
++	if (count >= action_threshold) {
++		if (!cpu_online(cpu)) {
++			pr_warn("CEC: Invalid cpu: %d\n", cpu);
++		} else {
++			/* We have reached max count for this cpu, offline it. */
++			ca->elems_poisoned++;
++			/* schedule work function to offline the cpu */
++			elem = kmalloc(sizeof(*elem), GFP_NOWAIT);
++			if (elem) {
++				pr_info("CEC: offlining cpu: %d\n", cpu);
++				elem->ca = ca;
++				elem->array_index = to;
++				elem->elem_id = cpu;
++				INIT_WORK(&elem->work, cec_cpu_offline_work_fn);
++				schedule_work(&elem->work);
++			} else
++				pr_warn("CEC: offlining cpu: out of memory %d\n", cpu);
++		}
++
++		/*
++		 * Return a >0 value to callers, to denote that we've reached
++		 * the offlining threshold.
++		 */
++		ret = 1;
++
++		goto unlock;
++	}
++
++	ca->decay_count++;
++
++	/* Do we need to call spring cleaning for the modules(eg CPU) with
++	 * small number of elements?
++	 */
++	if (ca->decay_count >= (num_present_cpus() >> DECAY_BITS))
++		do_spring_cleaning(ca);
++
++	WARN_ON_ONCE(sanity_check(ca));
++
++unlock:
++	spin_unlock_irqrestore(&ca->spin_lock, flags);
++
++	return ret;
++}
++
++static int cec_cpu_stats_show(struct seq_file *seq, void *v)
++{
++	struct ce_array *ca = &cpu_ce_arr;
++	unsigned long flags;
++	int i;
++
++	spin_lock_irqsave(&cpu_ce_arr.spin_lock, flags);
++	seq_puts(seq, "CEC CPU Stats:\n");
++
++	seq_printf(seq, "{ n: %d\n", ca->n);
++	for (i = 0; i < ca->n; i++) {
++		int cpu = ELEM_NO(ca->array[i], ca->id_shift);
++
++	seq_printf(seq, "cpu=%d: %03llx\n",
++		   cpu, ca->array[i]);
++
++	seq_printf(seq, " %3d: [%d|%s|%03lld|%s]\n",
++		   i, cpu, bins[DECAY(ca->array[i])],
++		   COUNT(ca->array[i]),
++		   cpu_online(cpu) ? "online" :
++		   (ca->array[i] & ELEM_STATUS_BIT) ?
++		   "offlined-by-cec" : "offline");
++	}
++
++	seq_printf(seq, "}\n");
++
++	seq_printf(seq, "Stats:\nCEs: %llu\nofflined CPUs: %llu\n",
++		   ca->ces_entered, ca->elems_poisoned);
++
++	seq_printf(seq, "Flags: 0x%x\n", ca->flags);
++
++	seq_printf(seq, "Decay interval: %lld seconds\n", decay_interval);
++	seq_printf(seq, "Decays: %lld\n", ca->decays_done);
++
++	seq_printf(seq, "Action threshold: %lld\n", action_threshold);
++
++	spin_unlock_irqrestore(&cpu_ce_arr.spin_lock, flags);
++
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(cec_cpu_stats);
++
+ static int u64_get(void *data, u64 *val)
+ {
+ 	*val = *(u64 *)data;
+@@ -514,6 +684,7 @@ static int decay_interval_set(void *data, u64 val)
  	decay_interval = val;
  
--	cec_mod_work(&cec_work, decay_interval);
-+	cec_mod_work(&ce_arr.work, decay_interval);
+ 	cec_mod_work(&ce_arr.work, decay_interval);
++	cec_mod_work(&cpu_ce_arr.work, decay_interval/RAS_CEC_NUM_TIME_SLOTS);
  
  	return 0;
  }
-@@ -446,7 +539,7 @@ static int array_dump(struct seq_file *m, void *v)
+@@ -532,8 +703,6 @@ static int action_threshold_set(void *data, u64 val)
+ }
+ DEFINE_DEBUGFS_ATTRIBUTE(action_threshold_ops, u64_get, action_threshold_set, "%lld\n");
+ 
+-static const char * const bins[] = { "00", "01", "10", "11" };
+-
+ static int array_dump(struct seq_file *m, void *v)
+ {
  	struct ce_array *ca = &ce_arr;
- 	int i;
+@@ -620,6 +789,14 @@ static int __init create_debugfs_nodes(void)
+ 	}
+ #endif
  
--	mutex_lock(&ce_mutex);
-+	mutex_lock(&ca->mutex);
- 
- 	seq_printf(m, "{ n: %d\n", ca->n);
- 	for (i = 0; i < ca->n; i++) {
-@@ -468,7 +561,7 @@ static int array_dump(struct seq_file *m, void *v)
- 
- 	seq_printf(m, "Action threshold: %lld\n", action_threshold);
- 
--	mutex_unlock(&ce_mutex);
-+	mutex_unlock(&ca->mutex);
- 
++#if defined(CONFIG_ARM64)
++	array = debugfs_create_file("cpu_stats", 0400, d, NULL, &cec_cpu_stats_fops);
++	if (!array) {
++		pr_warn("Error creating cpu_stats debugfs node!\n");
++		goto err;
++	}
++#endif
++
  	return 0;
- }
-@@ -583,9 +676,9 @@ static void __init cec_init(void)
+ 
+ err:
+@@ -658,21 +835,26 @@ static struct notifier_block cec_nb = {
+ 
+ static void __init cec_init(void)
+ {
+-	if (ce_arr.disabled)
++	if (ce_arr.disabled && cpu_ce_arr.disabled)
+ 		return;
+ 
+ #if defined(CONFIG_X86_MCE)
+ 	ce_arr.array = (void *)get_zeroed_page(GFP_KERNEL);
+ 	if (!ce_arr.array) {
+ 		pr_err("Error allocating CE array page!\n");
+-		return;
++		goto error;
+ 	}
+ #endif
+ 
+-	if (create_debugfs_nodes()) {
+-		free_page((unsigned long)ce_arr.array);
+-		return;
+-	}
++#if defined(CONFIG_ARM64)
++	cpu_ce_arr.array = kcalloc(num_present_cpus(), sizeof(*(cpu_ce_arr.array)),
++				   GFP_KERNEL);
++	if (!cpu_ce_arr.array)
++		goto error;
++#endif
++
++	if (create_debugfs_nodes())
++		goto error;
  
  #if defined(CONFIG_X86_MCE)
  	ce_arr.id_shift = PAGE_SHIFT;
--	INIT_DELAYED_WORK(&cec_work, cec_work_fn);
--	schedule_delayed_work(&cec_work, CEC_DECAY_DEFAULT_INTERVAL);
--
-+	mutex_init(&ce_arr.mutex);
-+	INIT_DELAYED_WORK(&ce_arr.work, cec_work_fn);
-+	schedule_delayed_work(&ce_arr.work, CEC_DECAY_DEFAULT_INTERVAL);
+@@ -682,22 +864,49 @@ static void __init cec_init(void)
  	mce_register_decode_chain(&cec_nb);
  #endif
  
++#if defined(CONFIG_ARM64)
++	cpu_ce_arr.short_period = true;
++	cpu_ce_arr.id_shift = ELEM_ID_SHIFT;
++	spin_lock_init(&cpu_ce_arr.spin_lock);
++	INIT_DELAYED_WORK(&cpu_ce_arr.work, cec_work_fn);
++	schedule_delayed_work(&cpu_ce_arr.work, CEC_DECAY_DEFAULT_INTERVAL/RAS_CEC_NUM_TIME_SLOTS);
++#endif
++
+ 	pr_info("Correctable Errors collector initialized.\n");
++	return;
++error:
++#if defined(CONFIG_ARM64)
++	kfree(cpu_ce_arr.array);
++#endif
++	if (ce_arr.array)
++		free_page((unsigned long)ce_arr.array);
++
+ }
+ late_initcall(cec_init);
+ 
+ int __init parse_cec_param(char *str)
+ {
++	bool match = false;
++
+ 	if (!str)
+ 		return 0;
+ 
+ 	if (*str == '=')
+ 		str++;
+ 
+-	if (!strcmp(str, "cec_disable"))
++	if (!strcmp(str, "cec_disable")) {
+ 		ce_arr.disabled = 1;
++		match = true;
++	}
++
++	if (!strcmp(str, "cec_cpu_disable")) {
++		cpu_ce_arr.disabled = 1;
++		match = true;
++	}
++
++	if (match)
++		return 1;
+ 	else
+ 		return 0;
+ 
+-	return 1;
+ }
+diff --git a/include/linux/ras.h b/include/linux/ras.h
+index 1f4048bf2674..43d91298f1e3 100644
+--- a/include/linux/ras.h
++++ b/include/linux/ras.h
+@@ -18,6 +18,15 @@ static inline int ras_add_daemon_trace(void) { return 0; }
+ 
+ #ifdef CONFIG_RAS_CEC
+ int __init parse_cec_param(char *str);
++/**
++ * cec_cpu_add_elem - add the count of CPU correctable errors to the
++ * CEC(correctable errors collector).
++ * @cpu: CPU index.
++ * @ce_count: CPU correctable errors count.
++ */
++int cec_cpu_add_elem(int cpu, u64 ce_count);
++#else
++static inline int cec_cpu_add_elem(int cpu, u64 ce_count) { return -ENODEV; }
+ #endif
+ 
+ #ifdef CONFIG_RAS
 -- 
 2.17.1
 
