@@ -2,113 +2,148 @@ Return-Path: <SRS0=PsxT=DO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD609C4727E
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 16:18:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A747C47095
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 16:43:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7817920789
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 16:18:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E11CB206FC
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 16:43:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727422AbgJGQST (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Oct 2020 12:18:19 -0400
-Received: from mga12.intel.com ([192.55.52.136]:60617 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727645AbgJGQSN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Oct 2020 12:18:13 -0400
-IronPort-SDR: IXoxLzbKuwPKyBX01ZrQqeuxDJDVDXRGNOQ9tm7DbEsRtCsHbmrTKCr8DSIYHm58b3PYdpBMma
- daz58R+3LXjg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9767"; a="144390652"
-X-IronPort-AV: E=Sophos;i="5.77,347,1596524400"; 
-   d="scan'208";a="144390652"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2020 09:18:09 -0700
-IronPort-SDR: CPbeOcxXqJOW+DucWkloH/7RCdkTYebRQnWrHY/dw+r2kJTvfvRDc5hZLISSfFQMKzVQyujhen
- XA21YPwo/MWA==
-X-IronPort-AV: E=Sophos;i="5.77,347,1596524400"; 
-   d="scan'208";a="528032448"
-Received: from rjwysock-mobl1.ger.corp.intel.com (HELO [10.249.145.6]) ([10.249.145.6])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2020 09:18:05 -0700
-Subject: Re: power-off delay/hang due to commit 6d25be57 (mainline)
-To:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Stephen Berman <stephen.berman@gmx.net>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Len Brown <lenb@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
-References: <20200714134410.3odqfvjq6rndjjf6@linutronix.de>
- <CAJZ5v0hZSUkEMCszDADGWk-v0xNEiDE45B3CHLi05BX6rPfm6g@mail.gmail.com>
- <20200714141135.47adndrsdgpiqfy4@linutronix.de> <87blkbx1gt.fsf@gmx.net>
- <87imdp5r80.fsf@rub.de> <20200811132955.wbt55ns7bu5mxouq@linutronix.de>
- <CAJZ5v0h+n9VCz5=VixVbe_b=ZbTU3D=46stGhE9z7Y7yaUMJzw@mail.gmail.com>
- <20200811152551.dmfw46urecbmeklr@linutronix.de> <87ft8tayic.fsf@gmx.net>
- <20200811184902.2fm4eyprmpkfon2j@linutronix.de>
- <20201006214927.4nsqtfji4fdv3oed@linutronix.de>
-From:   "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Organization: Intel Technology Poland Sp. z o. o., KRS 101882, ul. Slowackiego
- 173, 80-298 Gdansk
-Message-ID: <3fc9074b-c153-8446-0289-1e4dfab395eb@intel.com>
-Date:   Wed, 7 Oct 2020 18:18:03 +0200
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.1
+        id S1726388AbgJGQnK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Oct 2020 12:43:10 -0400
+Received: from mslow2.mail.gandi.net ([217.70.178.242]:57892 "EHLO
+        mslow2.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726105AbgJGQnK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Oct 2020 12:43:10 -0400
+Received: from relay1-d.mail.gandi.net (unknown [217.70.183.193])
+        by mslow2.mail.gandi.net (Postfix) with ESMTP id E1EF73AF61E;
+        Wed,  7 Oct 2020 16:35:28 +0000 (UTC)
+X-Originating-IP: 82.255.60.242
+Received: from [192.168.0.28] (lns-bzn-39-82-255-60-242.adsl.proxad.net [82.255.60.242])
+        (Authenticated sender: hadess@hadess.net)
+        by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id 7D1DB240011;
+        Wed,  7 Oct 2020 16:34:56 +0000 (UTC)
+Message-ID: <c73ffad8fd6bff8ff20d91930b097bff82be1c8f.camel@hadess.net>
+Subject: Re: [RFC] Documentation: Add documentation for new
+ performance_profile sysfs class
+From:   Bastien Nocera <hadess@hadess.net>
+To:     "Limonciello, Mario" <Mario.Limonciello@dell.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Mark Gross <mgross@linux.intel.com>
+Cc:     Mark Pearson <mpearson@lenovo.com>,
+        Elia Devito <eliadevito@gmail.com>,
+        Benjamin Berg <bberg@redhat.com>,
+        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "platform-driver-x86@vger.kernel.org" 
+        <platform-driver-x86@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Mark Pearson <markpearson@lenovo.com>
+Date:   Wed, 07 Oct 2020 18:34:55 +0200
+In-Reply-To: <DM6PR19MB26364E6AA2F51981F592CE58FA0A0@DM6PR19MB2636.namprd19.prod.outlook.com>
+References: <20201003131938.9426-1-hdegoede@redhat.com>
+         <20201003131938.9426-2-hdegoede@redhat.com>
+         <DM6PR19MB263669227D122BB7699951E6FA0C0@DM6PR19MB2636.namprd19.prod.outlook.com>
+         <85a36eb58cb9774f1907582dfc75295ed847200c.camel@hadess.net>
+         <DM6PR19MB26364E6AA2F51981F592CE58FA0A0@DM6PR19MB2636.namprd19.prod.outlook.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.38.0 (3.38.0-1.fc33) 
 MIME-Version: 1.0
-In-Reply-To: <20201006214927.4nsqtfji4fdv3oed@linutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 10/6/2020 11:49 PM, Sebastian Andrzej Siewior wrote:
-> On 2020-08-11 20:49:05 [+0200], To Stephen Berman wrote:
->> On 2020-08-11 19:22:19 [+0200], Stephen Berman wrote:
->>> Attached.
->> ssdt6.dsl:
->> |  ThermalZone (TZ10)
->> |  {
->> …
->> |      Method (_TSP, 0, Serialized)  // _TSP: Thermal Sampling Period
->> |      {
->> |          Return (0x0A)
->> |      }
->> |
->> |      Method (_TZP, 0, Serialized)  // _TZP: Thermal Zone Polling
->> |      {
->> |          Return (0x0A)
->> |      }
->> |
->> |      Method (_TMP, 0, Serialized)  // _TMP: Temperature
->> |      {
->> |          \GSA1.ZRC3 ()
->> |          Sleep (0x03E8)
->> |          Notify (\_TZ.TZ10, 0x81) // Thermal Trip Point Change
->> |          Return (0x0B54)
->> |      }
->>
->> So if I read this correctly then TZ10 should be polled every second
->> (check) and the temperature function contains a `sleep(1 second)' (which
->> explains the mysteries delay) followed by the Notify() (which schedules
->> the worker).
->>
->>> Done as Bug 208877.
-> Rafael, do you have any suggestions?
->   
+On Wed, 2020-10-07 at 15:58 +0000, Limonciello, Mario wrote:
+>  
+> > On Mon, 2020-10-05 at 12:58 +0000, Limonciello, Mario wrote:
+> > > > On modern systems CPU/GPU/... performance is often dynamically
+> > > > configurable
+> > > > in the form of e.g. variable clock-speeds and TPD. The
+> > > > performance
+> > > > is often
+> > > > automatically adjusted to the load by some automatic-mechanism
+> > > > (which may
+> > > > very well live outside the kernel).
+> > > > 
+> > > > These auto performance-adjustment mechanisms often can be
+> > > > configured with
+> > > > one of several performance-profiles, with either a bias towards
+> > > > low-power
+> > > > consumption (and cool and quiet) or towards performance (and
+> > > > higher
+> > > > power
+> > > > consumption and thermals).
+> > > > 
+> > > > Introduce a new performance_profile class/sysfs API which
+> > > > offers a
+> > > > generic
+> > > > API for selecting the performance-profile of these automatic-
+> > > > mechanisms.
+> > > > 
+> > > 
+> > > If introducing an API for this - let me ask the question, why
+> > > even let each
+> > > driver offer a class interface and userspace need to change
+> > > "each" driver's
+> > > performance setting?
+> > > 
+> > > I would think that you could just offer something kernel-wide
+> > > like
+> > > /sys/power/performance-profile
+> > > 
+> > > Userspace can read and write to a single file.  All drivers can
+> > > get notified
+> > > on this sysfs file changing.
+> > > 
+> > > The systems that react in firmware (such as the two that prompted
+> > > this discussion) can change at that time.  It leaves the
+> > > possibility for a
+> > > more open kernel implementation that can do the same thing though
+> > > too by
+> > > directly modifying device registers instead of ACPI devices.
+> > 
+> > The problem, as I've mentioned in previous discussions we had about
+> > this, is that, as you've seen in replies to this mail, this would
+> > suddenly be making the kernel apply policy.
+> > 
+> > There's going to be pushback as soon as policy is enacted in the
+> > kernel, and you take away the different knobs for individual
+> > components
+> > (or you can control them centrally as well as individually). As
+> > much as
+> > I hate the quantity of knobs[1], I don't think that trying to
+> > reduce
+> > the number of knobs in the kernel is a good use of our time, and
+> > easier
+> > to enact, coordinated with design targets, in user-space.
+> > 
+> > Unless you can think of a way to implement this kernel wide setting
+> > without adding one more exponent on the number of possibilities for
+> > the
+> > testing matrix, I'll +1 Hans' original API.
+> > 
+> Actually I offered two proposals in my reply.  So are you NAKing
+> both?
 
-I've lost track of this sorry.
+No, this is only about the first portion of the email, which I quoted.
+And I'm not NAK'ing it, but I don't see how it can work without being
+antithetical to what kernel "users" expect, or what the folks consuming
+those interfaces (presumably us both) would expect to be able to test
+and maintain.
 
-I have ideas, let me get back to this next week.
+> The other one suggested to use the same firmware attributes class
+> being
+> introduced by the new Dell driver ( 
+> https://patchwork.kernel.org/patch/11818343/)
+> since this is actually a knob to a specific firmware setting.
 
-Cheers!
-
+This seemed to me like an implementation detail (eg. the same metadata
+is being exported, but in a different way), and I don't feel strongly
+about it either way.
 
