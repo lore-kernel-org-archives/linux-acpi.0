@@ -2,171 +2,114 @@ Return-Path: <SRS0=PsxT=DO=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E13CC4363D
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 01:12:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E348C4363C
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 11:58:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B24820882
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 01:12:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BZ5McIJk"
+	by mail.kernel.org (Postfix) with ESMTP id B506420789
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Oct 2020 11:58:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726805AbgJGBMz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Oct 2020 21:12:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50074 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725996AbgJGBMy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Oct 2020 21:12:54 -0400
-Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF8F2C061755;
-        Tue,  6 Oct 2020 18:12:54 -0700 (PDT)
-Received: by mail-pj1-x1041.google.com with SMTP id ds1so213522pjb.5;
-        Tue, 06 Oct 2020 18:12:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=mhoMukFtXUDnoxYBeSc1gCnHDJjh2RBWkCrpacxBvgc=;
-        b=BZ5McIJk7M9QpLpb5KoCQkdxJYiPrNQhgs5cl4vLLWytK5VF9kyh4DJe1g7PqgOdHJ
-         vi9SNcnbS6RVeKxhRm1gfXYW/1MobIU3emLb+keannjof0F62HLir3wvH+3R+JnKfDDw
-         hUuIq3r2W7hYuJwomu2PHIw9cHJh2bCarSSmPf2vcxlwhVYPy1B59pQCZh88VJfxM+SH
-         P3U1OKhTrqq3QQBPtMpZx/3RzdSMWOBjkBQktmI99bmH+2SMTqoB4KKC16f0DxyVah5V
-         LrrH+r9brZLGlfmZ2vd2w1S9l0EWtUIDgohzA1Ws4rcazlyeai7Bzg+4oBQf9+qgFD1f
-         D10A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=mhoMukFtXUDnoxYBeSc1gCnHDJjh2RBWkCrpacxBvgc=;
-        b=tS0Ml+Y0Dw5j/SRwEKUylvVONA0aagIP22QfpHoSXqFa8exJjA/tqhzLKB8yU9wct1
-         uYocjmb0NrgxGzIt5B6ymksQzt9M2YT22LUJ6MzZK8tUzE4xexOiWtDKgoHbgs/ImV2c
-         cuLiB0qoM/e6mLec82qEARigL5Q/t8om6XLMgYdSd79Uho4bKKt4GPgivgY01YypHxHq
-         20W3bNbKPla4VKtYgu3D1MYMFG50Ktg5G9aHRPCaX015QBvwdGFA0RMftu0ldlkTIrTU
-         sGh2imjbHZL5r0TwHXglLQGqWc2001aPQuMamSb0ZeF4c/YVtXb6n8KQj1BQPKjsGpsb
-         BsBQ==
-X-Gm-Message-State: AOAM533lTQL+SB9+qiMJ8Rlk6VQ2zDJElYD9jHKylAvSU3yedmxTbAjP
-        8oKY4HvzTy7UsrJ9vtOxzek=
-X-Google-Smtp-Source: ABdhPJy4dLisQACUERV0GxDAYvpdj82oBH4eI0zaGWCX8W7avrgYWVStQLex6A0apJQoB8lnZYPvuA==
-X-Received: by 2002:a17:90a:1a02:: with SMTP id 2mr708050pjk.201.1602033174099;
-        Tue, 06 Oct 2020 18:12:54 -0700 (PDT)
-Received: from dtor-ws ([2620:15c:202:201:a6ae:11ff:fe11:fcc3])
-        by smtp.gmail.com with ESMTPSA id f17sm412371pgd.86.2020.10.06.18.12.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Oct 2020 18:12:53 -0700 (PDT)
-Date:   Tue, 6 Oct 2020 18:12:49 -0700
-From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To:     Andrzej Pietrasiewicz <andrzej.p@collabora.com>
-Cc:     linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-tegra@vger.kernel.org, patches@opensource.cirrus.com,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Sylvain Lemieux <slemieux.tyco@gmail.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Barry Song <baohua@kernel.org>,
-        Michael Hennerich <michael.hennerich@analog.com>,
-        Nick Dyer <nick@shmanahar.org>,
+        id S1727932AbgJGL6Z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Oct 2020 07:58:25 -0400
+Received: from mslow2.mail.gandi.net ([217.70.178.242]:35804 "EHLO
+        mslow2.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726219AbgJGL6Z (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Oct 2020 07:58:25 -0400
+Received: from relay11.mail.gandi.net (unknown [217.70.178.231])
+        by mslow2.mail.gandi.net (Postfix) with ESMTP id BF1DF3B64F5;
+        Wed,  7 Oct 2020 11:52:15 +0000 (UTC)
+Received: from [192.168.0.28] (lns-bzn-39-82-255-60-242.adsl.proxad.net [82.255.60.242])
+        (Authenticated sender: hadess@hadess.net)
+        by relay11.mail.gandi.net (Postfix) with ESMTPSA id 3A8A3100012;
+        Wed,  7 Oct 2020 11:51:47 +0000 (UTC)
+Message-ID: <85a36eb58cb9774f1907582dfc75295ed847200c.camel@hadess.net>
+Subject: Re: [RFC] Documentation: Add documentation for new
+ performance_profile sysfs class
+From:   Bastien Nocera <hadess@hadess.net>
+To:     "Limonciello, Mario" <Mario.Limonciello@dell.com>,
         Hans de Goede <hdegoede@redhat.com>,
-        Ferruh Yigit <fery@cypress.com>,
-        Sangwon Jee <jeesw@melfas.com>,
-        Peter Hutterer <peter.hutterer@redhat.com>,
-        Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>,
-        kernel@collabora.com, Patrik Fimml <patrikf@chromium.org>
-Subject: Re: [PATCH v4 7/7] Input: Add "inhibited" property
-Message-ID: <20201007011249.GS1009802@dtor-ws>
-References: <2336e15d-ff4b-bbb6-c701-dbf3aa110fcd@redhat.com>
- <20200608112211.12125-1-andrzej.p@collabora.com>
- <20200608112211.12125-8-andrzej.p@collabora.com>
- <20201005181014.GL1009802@dtor-ws>
- <ac4eeab7-8333-b96b-707b-eb2d6d0d8139@collabora.com>
- <20201007011102.GR1009802@dtor-ws>
+        Darren Hart <dvhart@infradead.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Mark Gross <mgross@linux.intel.com>
+Cc:     Mark Pearson <mpearson@lenovo.com>,
+        Elia Devito <eliadevito@gmail.com>,
+        Benjamin Berg <bberg@redhat.com>,
+        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "platform-driver-x86@vger.kernel.org" 
+        <platform-driver-x86@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Mark Pearson <markpearson@lenovo.com>
+Date:   Wed, 07 Oct 2020 13:51:47 +0200
+In-Reply-To: <DM6PR19MB263669227D122BB7699951E6FA0C0@DM6PR19MB2636.namprd19.prod.outlook.com>
+References: <20201003131938.9426-1-hdegoede@redhat.com>
+         <20201003131938.9426-2-hdegoede@redhat.com>
+         <DM6PR19MB263669227D122BB7699951E6FA0C0@DM6PR19MB2636.namprd19.prod.outlook.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.38.0 (3.38.0-1.fc33) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20201007011102.GR1009802@dtor-ws>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Oct 06, 2020 at 06:11:02PM -0700, Dmitry Torokhov wrote:
-> On Tue, Oct 06, 2020 at 03:04:28PM +0200, Andrzej Pietrasiewicz wrote:
-> > Hi Dmitry,
+On Mon, 2020-10-05 at 12:58 +0000, Limonciello, Mario wrote:
+> > On modern systems CPU/GPU/... performance is often dynamically
+> > configurable
+> > in the form of e.g. variable clock-speeds and TPD. The performance
+> > is often
+> > automatically adjusted to the load by some automatic-mechanism
+> > (which may
+> > very well live outside the kernel).
 > > 
-> > W dniu 05.10.2020 o�20:10, Dmitry Torokhov pisze:
-> > > Hi Andrzej,
-> > > 
-> > > On Mon, Jun 08, 2020 at 01:22:11PM +0200, Andrzej Pietrasiewicz wrote:
-> > > > @@ -284,8 +284,11 @@ static int input_get_disposition(struct input_dev *dev,
-> > > >   	case EV_KEY:
-> > > >   		if (is_event_supported(code, dev->keybit, KEY_MAX)) {
-> > > > -			/* auto-repeat bypasses state updates */
-> > > > -			if (value == 2) {
-> > > > +			/*
-> > > > +			 * auto-repeat bypasses state updates but repeat
-> > > > +			 * events are ignored if the key is not pressed
-> > > > +			 */
-> > > > +			if (value == 2 && test_bit(code, dev->key)) {
-> > > >   				disposition = INPUT_PASS_TO_HANDLERS;
-> > > >   				break;
-> > > >   			}
-> > > 
-> > > Is this chunk really part of inhibit support? I'd think we cancel
-> > > autorepeat timer when we are releasing a key, no?
-> > > 
+> > These auto performance-adjustment mechanisms often can be
+> > configured with
+> > one of several performance-profiles, with either a bias towards
+> > low-power
+> > consumption (and cool and quiet) or towards performance (and higher
+> > power
+> > consumption and thermals).
 > > 
-> > When I look at it now it seems to me the chunk might be redundant.
-> > But let me explain what I had in mind when adding it.
+> > Introduce a new performance_profile class/sysfs API which offers a
+> > generic
+> > API for selecting the performance-profile of these automatic-
+> > mechanisms.
 > > 
-> > It is a matter of what we do with input events generated while a
-> > device is inhibited. If ->open()/->close() are not provided by the
-> > driver then inhibiting amounts to merely ignoring input events from
-> > a device while it remains active. What else can you do if the driver
-> > does not provide a method to prepare the device for generating events/
-> > to stop generating events?
-> > 
-> > In this special case a user might trigger a repeated event while the
-> > device is inhibited, then the user keeps holding the key down and the
-> > device is uninhibited. Do we pass anything to handlers then?
-> > 
-> > In my opinion we should not. Such an event is "illegal" in a sense that it
-> > was generated at a time when nobody wanted any events from the device.
-> > Hence the test to let only those auto-repeat events through for which
-> > a key is actually pressed.
-> > 
-> > However, what I see now is that if a device is inhibited, no key
-> > will ever reach neither the "1" nor "2" state because of the "if"
-> > in the very beginning of input_handle_event().
 > 
-> OK, then let's drop it for now. We can revisit if we see that a problem.
+> If introducing an API for this - let me ask the question, why even let each
+> driver offer a class interface and userspace need to change "each" driver's
+> performance setting?
+> 
+> I would think that you could just offer something kernel-wide like
+> /sys/power/performance-profile
+> 
+> Userspace can read and write to a single file.  All drivers can get notified
+> on this sysfs file changing.
+> 
+> The systems that react in firmware (such as the two that prompted
+> this discussion) can change at that time.  It leaves the possibility for a
+> more open kernel implementation that can do the same thing though too by
+> directly modifying device registers instead of ACPI devices.
 
-And by that I mean that I will drop it myself, no need to resend. I will
-be applying this shortly.
+The problem, as I've mentioned in previous discussions we had about
+this, is that, as you've seen in replies to this mail, this would
+suddenly be making the kernel apply policy.
 
-Thanks.
+There's going to be pushback as soon as policy is enacted in the
+kernel, and you take away the different knobs for individual components
+(or you can control them centrally as well as individually). As much as
+I hate the quantity of knobs[1], I don't think that trying to reduce
+the number of knobs in the kernel is a good use of our time, and easier
+to enact, coordinated with design targets, in user-space.
 
--- 
-Dmitry
+Unless you can think of a way to implement this kernel wide setting
+without adding one more exponent on the number of possibilities for the
+testing matrix, I'll +1 Hans' original API.
+
+Cheers
+
+[1]: https://ometer.com/preferences.html
+
