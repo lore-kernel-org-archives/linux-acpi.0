@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-17.8 required=3.0 tests=BAYES_00,
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A28AFC433E7
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Oct 2020 03:22:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BB05C4727E
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Oct 2020 03:22:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5125321924
+	by mail.kernel.org (Postfix) with ESMTP id BEB3C21D20
 	for <linux-acpi@archiver.kernel.org>; Thu,  8 Oct 2020 03:22:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727449AbgJHDWC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Oct 2020 23:22:02 -0400
+        id S1728209AbgJHDWD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Oct 2020 23:22:03 -0400
 Received: from mga04.intel.com ([192.55.52.120]:29860 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728188AbgJHDWB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Oct 2020 23:22:01 -0400
-IronPort-SDR: Agb//3F/jhy1sXS+ibjDXUFVc2HYFyPul60a+KAU3kDvrd01LalZLOjGWLPMI3S4odEdEscsi8
- A1585uSpZHRg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9767"; a="162613642"
+        id S1728216AbgJHDWC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Oct 2020 23:22:02 -0400
+IronPort-SDR: R7LT2grrkTdHG66lgvu8TMluSlJPjV4AvHtEtOGi+E3isLhaf+8lcvJIOUH6vykfzg0KNpWGUh
+ G/pWnVr18uGw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9767"; a="162613649"
 X-IronPort-AV: E=Sophos;i="5.77,349,1596524400"; 
-   d="scan'208";a="162613642"
+   d="scan'208";a="162613649"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2020 20:22:00 -0700
-IronPort-SDR: adcyEbOrSP0r2aUwDEaRDR5pPHUzkCUYlkCdoiMo0tCOQCyuj4pVFmiTidsNg6SJ7S36FSX2wv
- 5sdJTS3RMelA==
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2020 20:22:02 -0700
+IronPort-SDR: QmOYT7Ytyc12/ljelaAZgSUUHW68UVkuf7shxsAefiN+9dSfZ6HF1GweurbFaDoYkvnP2QDoJ4
+ RMC7+svIw0pA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,349,1596524400"; 
-   d="scan'208";a="355229339"
+   d="scan'208";a="355229347"
 Received: from sibelius.jf.intel.com ([10.54.75.172])
-  by orsmga007.jf.intel.com with ESMTP; 07 Oct 2020 20:22:00 -0700
+  by orsmga007.jf.intel.com with ESMTP; 07 Oct 2020 20:22:02 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 4/9] ACPICA: Add predefined names found in the SMBus sepcification
-Date:   Wed,  7 Oct 2020 19:53:58 -0700
-Message-Id: <20201008025403.2401736-5-erik.kaneda@intel.com>
+Subject: [PATCH 6/9] ACPICA: iASL: Return exceptions for string-to-integer conversions
+Date:   Wed,  7 Oct 2020 19:54:00 -0700
+Message-Id: <20201008025403.2401736-7-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201008025403.2401736-1-erik.kaneda@intel.com>
 References: <20201008025403.2401736-1-erik.kaneda@intel.com>
@@ -54,138 +54,100 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-Affects run-time (kernel) ACPICA, iASL, and acpi_help. The "SMBus
-Control Method Interface Specification, Version 1.0, December 10,
-1999" containes predefined names: _SBA _SBI _SBR _SBT _SBW. This was
-done outside of the ACPI specification. This commit adds support for
-ACPICA to recognize these named objects as predefined named objects.
+This allows iASL to generate errors by passing exceptions that may be
+encountered during string-to-integer conversions. The exceptions
+point out invalid hex, decimal, and octal integers.
 
-ACPICA commit 2fe13bd7ba9f97d3bf25488bf1bb1b2329427093
+ACPICA commit e98b8c0a3d96fdabb167c0ef18a809b32ade3228
 
-Link: https://github.com/acpica/acpica/commit/2fe13bd7
+Link: https://github.com/acpica/acpica/commit/e98b8c0a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- drivers/acpi/acpica/acpredef.h    | 33 ++++++++++++++++++++++++++++++-
- drivers/acpi/acpica/nsarguments.c |  4 +++-
- drivers/acpi/acpica/psparse.c     |  4 ++--
- drivers/acpi/acpica/utpredef.c    |  5 ++---
- 4 files changed, 39 insertions(+), 7 deletions(-)
+ drivers/acpi/acpica/utstrsuppt.c | 33 +++++++++++++++++++++++---------
+ include/acpi/acexcep.h           |  4 ++--
+ 2 files changed, 26 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index 2cbb56652f1c..57ea2276790f 100644
---- a/drivers/acpi/acpica/acpredef.h
-+++ b/drivers/acpi/acpica/acpredef.h
-@@ -101,7 +101,7 @@ enum acpi_return_package_types {
+diff --git a/drivers/acpi/acpica/utstrsuppt.c b/drivers/acpi/acpica/utstrsuppt.c
+index 05ff20049b87..2d91003fcf26 100644
+--- a/drivers/acpi/acpica/utstrsuppt.c
++++ b/drivers/acpi/acpica/utstrsuppt.c
+@@ -45,10 +45,15 @@ acpi_status acpi_ut_convert_octal_string(char *string, u64 *return_value_ptr)
+ 	/* Convert each ASCII byte in the input string */
  
- /* Support macros for users of the predefined info table */
+ 	while (*string) {
+-
+-		/* Character must be ASCII 0-7, otherwise terminate with no error */
+-
++		/*
++		 * Character must be ASCII 0-7, otherwise:
++		 * 1) Runtime: terminate with no error, per the ACPI spec
++		 * 2) Compiler: return an error
++		 */
+ 		if (!(ACPI_IS_OCTAL_DIGIT(*string))) {
++#ifdef ACPI_ASL_COMPILER
++			status = AE_BAD_OCTAL_CONSTANT;
++#endif
+ 			break;
+ 		}
  
--#define METHOD_PREDEF_ARGS_MAX          4
-+#define METHOD_PREDEF_ARGS_MAX          5
- #define METHOD_ARG_BIT_WIDTH            3
- #define METHOD_ARG_MASK                 0x0007
- #define ARG_COUNT_IS_MINIMUM            0x8000
-@@ -117,6 +117,7 @@ enum acpi_return_package_types {
- #define METHOD_2ARGS(a1,a2)             (2 | (a1 << 3) | (a2 << 6))
- #define METHOD_3ARGS(a1,a2,a3)          (3 | (a1 << 3) | (a2 << 6) | (a3 << 9))
- #define METHOD_4ARGS(a1,a2,a3,a4)       (4 | (a1 << 3) | (a2 << 6) | (a3 << 9) | (a4 << 12))
-+#define METHOD_5ARGS(a1,a2,a3,a4,a5)    (5 | (a1 << 3) | (a2 << 6) | (a3 << 9) | (a4 << 12) | (a5 << 15))
+@@ -94,10 +99,15 @@ acpi_status acpi_ut_convert_decimal_string(char *string, u64 *return_value_ptr)
+ 	/* Convert each ASCII byte in the input string */
  
- #define METHOD_RETURNS(type)            (type)
- #define METHOD_NO_RETURN_VALUE          0
-@@ -902,9 +903,39 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	{{"_S4W", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
+ 	while (*string) {
+-
+-		/* Character must be ASCII 0-9, otherwise terminate with no error */
+-
++		/*
++		 * Character must be ASCII 0-9, otherwise:
++		 * 1) Runtime: terminate with no error, per the ACPI spec
++		 * 2) Compiler: return an error
++		 */
+ 		if (!isdigit(*string)) {
++#ifdef ACPI_ASL_COMPILER
++			status = AE_BAD_DECIMAL_CONSTANT;
++#endif
+ 			break;
+ 		}
  
-+	{{"_SBA", METHOD_0ARGS,
-+	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (4 Int) */
-+	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 4, 0, 0, 0),
-+
-+	{{"_SBI", METHOD_0ARGS,
-+	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (1 Int, 1 Buf) */
-+	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 1,
-+		     ACPI_RTYPE_BUFFER, 1, 0),
-+
-+	{{"_SBR",
-+	  METHOD_3ARGS(ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER,
-+			ACPI_TYPE_INTEGER),
-+	   METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (2 Int) */
-+	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 2,
-+		     ACPI_RTYPE_BUFFER | ACPI_RTYPE_INTEGER, 1, 0),
-+
- 	{{"_SBS", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
+@@ -143,10 +153,15 @@ acpi_status acpi_ut_convert_hex_string(char *string, u64 *return_value_ptr)
+ 	/* Convert each ASCII byte in the input string */
  
-+	{{"_SBT",
-+	  METHOD_4ARGS(ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER,
-+			ACPI_TYPE_ANY),
-+	   METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (2 Int, 1 Buf | Int) */
-+	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 2,
-+		     ACPI_RTYPE_BUFFER | ACPI_RTYPE_INTEGER, 1, 0),
-+
-+	{{"_SBW",
-+	  METHOD_5ARGS(ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER,
-+			ACPI_TYPE_INTEGER, ACPI_TYPE_ANY),
-+	   METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},
-+	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_BUFFER | ACPI_RTYPE_INTEGER,
-+		     1, 0, 0, 0),
-+
- 	{{"_SCP", METHOD_1ARGS(ACPI_TYPE_INTEGER) | ARG_COUNT_IS_MINIMUM,
- 	  METHOD_NO_RETURN_VALUE}},	/* Acpi 1.0 allowed 1 integer arg. Acpi 3.0 expanded to 3 args. Allow both. */
+ 	while (*string) {
+-
+-		/* Must be ASCII A-F, a-f, or 0-9, otherwise terminate with no error */
+-
++		/*
++		 * Character must be ASCII A-F, a-f, or 0-9, otherwise:
++		 * 1) Runtime: terminate with no error, per the ACPI spec
++		 * 2) Compiler: return an error
++		 */
+ 		if (!isxdigit(*string)) {
++#ifdef ACPI_ASL_COMPILER
++			status = AE_BAD_HEX_CONSTANT;
++#endif
+ 			break;
+ 		}
  
-diff --git a/drivers/acpi/acpica/nsarguments.c b/drivers/acpi/acpica/nsarguments.c
-index d5e8405e9d8f..6bbc7d350a16 100644
---- a/drivers/acpi/acpica/nsarguments.c
-+++ b/drivers/acpi/acpica/nsarguments.c
-@@ -55,7 +55,9 @@ void acpi_ns_check_argument_types(struct acpi_evaluate_info *info)
- 		arg_type = METHOD_GET_NEXT_TYPE(arg_type_list);
- 		user_arg_type = info->parameters[i]->common.type;
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 436cd1411c3a..2fc624a61769 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -40,12 +40,12 @@
+ struct acpi_exception_info {
+ 	char *name;
  
--		if (user_arg_type != arg_type) {
-+		/* No typechecking for ACPI_TYPE_ANY */
-+
-+		if ((user_arg_type != arg_type) && (arg_type != ACPI_TYPE_ANY)) {
- 			ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
- 					      ACPI_WARN_ALWAYS,
- 					      "Argument #%u type mismatch - "
-diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
-index c780046bf294..bd3caf735be3 100644
---- a/drivers/acpi/acpica/psparse.c
-+++ b/drivers/acpi/acpica/psparse.c
-@@ -508,8 +508,8 @@ acpi_status acpi_ps_parse_aml(struct acpi_walk_state *walk_state)
- 			}
+-#ifdef ACPI_HELP_APP
++#if defined (ACPI_HELP_APP) || defined (ACPI_ASL_COMPILER)
+ 	char *description;
+ #endif
+ };
  
- 			/*
--			 * If the transfer to the new method method call worked
--			 *, a new walk state was created -- get it
-+			 * If the transfer to the new method method call worked,
-+			 * a new walk state was created -- get it
- 			 */
- 			walk_state = acpi_ds_get_current_walk_state(thread);
- 			continue;
-diff --git a/drivers/acpi/acpica/utpredef.c b/drivers/acpi/acpica/utpredef.c
-index 05fe3470fb93..dd277f7e9f10 100644
---- a/drivers/acpi/acpica/utpredef.c
-+++ b/drivers/acpi/acpica/utpredef.c
-@@ -151,7 +151,7 @@ static u32 acpi_ut_get_argument_types(char *buffer, u16 argument_types);
- 
- static const char *ut_external_type_names[] =	/* Indexed by ACPI_TYPE_* */
- {
--	", UNSUPPORTED-TYPE",
-+	", Type_ANY",
- 	", Integer",
- 	", String",
- 	", Buffer",
-@@ -311,8 +311,7 @@ static u32 acpi_ut_get_argument_types(char *buffer, u16 argument_types)
- 	for (i = 0; i < arg_count; i++) {
- 		this_argument_type = METHOD_GET_NEXT_TYPE(argument_types);
- 
--		if (!this_argument_type
--		    || (this_argument_type > METHOD_MAX_ARG_TYPE)) {
-+		if (this_argument_type > METHOD_MAX_ARG_TYPE) {
- 			printf("**** Invalid argument type (%u) "
- 			       "in predefined info structure\n",
- 			       this_argument_type);
+-#ifdef ACPI_HELP_APP
++#if defined (ACPI_HELP_APP) || defined (ACPI_ASL_COMPILER)
+ #define EXCEP_TXT(name,description)     {name, description}
+ #else
+ #define EXCEP_TXT(name,description)     {name}
 -- 
 2.25.1
 
