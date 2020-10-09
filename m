@@ -2,136 +2,92 @@ Return-Path: <SRS0=PPfP=DQ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D232C433E7
-	for <linux-acpi@archiver.kernel.org>; Fri,  9 Oct 2020 15:56:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00322C433DF
+	for <linux-acpi@archiver.kernel.org>; Fri,  9 Oct 2020 18:03:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 311BB22261
-	for <linux-acpi@archiver.kernel.org>; Fri,  9 Oct 2020 15:56:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602259000;
-	bh=xrj/rdbqDnIrotHIzTU7kZhn04yZMTt84v6W5yHA8s4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Kr/9wF8hGEVYAGlc8GVgKN7PCLo1dhLkjbfoZQWyranlaD+tTEOy0RZeIMz2WkTI6
-	 Wtl4tKbWwbSq5Wr/xcHvZn7RuqiSOQX8r1fYXWaLB/wKFx6ACmzrakSv241mgPMYuV
-	 lLcXT/164Yfx8twOMRWZqHJdUz8znmFnNO9R8Dwo=
+	by mail.kernel.org (Postfix) with ESMTP id AA7ED22284
+	for <linux-acpi@archiver.kernel.org>; Fri,  9 Oct 2020 18:03:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="iiTNuyzu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389496AbgJIP4V (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 9 Oct 2020 11:56:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38694 "EHLO
+        id S2388003AbgJISDr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 9 Oct 2020 14:03:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389510AbgJIP4V (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2020 11:56:21 -0400
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37AADC0613DE
-        for <linux-acpi@vger.kernel.org>; Fri,  9 Oct 2020 08:56:18 -0700 (PDT)
-Received: by mail-ot1-x344.google.com with SMTP id o8so9435822otl.4
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Oct 2020 08:56:18 -0700 (PDT)
+        with ESMTP id S1732013AbgJISDr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2020 14:03:47 -0400
+Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0D82C0613D6
+        for <linux-acpi@vger.kernel.org>; Fri,  9 Oct 2020 11:03:46 -0700 (PDT)
+Received: by mail-pf1-x443.google.com with SMTP id q123so7528982pfb.0
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Oct 2020 11:03:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=nxGBD0NCi/MzhF6RzJGO1Op3qiNabAYCN4C/VOLMVMg=;
-        b=Pv8X98rQrxmQmC3AYgeqGl/3Wk9jEr2z3r1AsjjBWItQarSnLt+hACI/K+54PmcGqB
-         a6eccMthV+9Z0NohOHwemKNP3iAKtcfB871irTEsCjdu6VJjkKtzuC0TCZ+38LgwYXqy
-         22DWwqfvNOxEp+4/pcAGi+dbraAvqO0gRaIDs=
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=gAAMCepqobw6tAv0NKnu0DRBRmHRA3EpSxx1Y4BJ/ao=;
+        b=iiTNuyzuEmUSEE/Hru+Y3B6KbrrOPsp8fAtOvbJ8mesODX2DzYvlOxWG0bMEGSA3ao
+         YcgG/aEDxmOxo1Agatg0s3CfdWn6fgaz30eymOcckXmvkDOG8T/5pnArNF8z9q7q1ch8
+         T7c+WYhFXX6wq88srZeVbX0XazKryeUuBjlrc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=nxGBD0NCi/MzhF6RzJGO1Op3qiNabAYCN4C/VOLMVMg=;
-        b=sbPdzKM598WVTFf/3JUJBjq6GKgTLStlM+kJOxRVZmezSIqKqgUyLd5yQRXzEcWzMa
-         KJcDWEZ5xL0STIt8fPs3vbt7vODap4xFlNW9Bx2P7507X4uuPC0R2v0CWwuDfjNjVYss
-         PQPgsf+ceMnIjiqTBq/xrX0lNjFNaLpean+NjBl0ogSwMYekIP4V6jtfrg6jxLsYrNc7
-         R9qYGW1t9dyOy26HU6YoPHLdjiGPNmzCojd8RM7d5AF+KDmtEJ1ipBqcGSXGtNqv1Vq6
-         9Pg0zB7Cy4poaASkW+RB62bqEsFFvQXcSQZ806Fhym81znQdHgUHistMmmItjxS2miMp
-         eK8A==
-X-Gm-Message-State: AOAM533/d55u2RuvI4BKykPCfX5Z0STW/x3oWz6vCrHvrULTbUI0Vn4V
-        7bwQZTxDI1GH3XCw3fyA89C9mA==
-X-Google-Smtp-Source: ABdhPJwbBZCHnPwAt1monb6rS8Y1Exeh2/LVfsjInRAkUPpEXOu1zrSNDvtpFRcJNjRoSW4w4ceTAQ==
-X-Received: by 2002:a9d:224b:: with SMTP id o69mr8748064ota.358.1602258977631;
-        Fri, 09 Oct 2020 08:56:17 -0700 (PDT)
-Received: from shuah-t480s.internal (c-24-9-64-241.hsd1.co.comcast.net. [24.9.64.241])
-        by smtp.gmail.com with ESMTPSA id e7sm7347246oia.9.2020.10.09.08.56.16
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=gAAMCepqobw6tAv0NKnu0DRBRmHRA3EpSxx1Y4BJ/ao=;
+        b=HlVhPYPye5JoWJaBHom2Wauk2CRR9S/p2nYfHTgX7v9DNSHjjY4jbqlCx4PUvQXkjt
+         EC27kCOqtsAVUui/yrxg6i/j6W+Lvk/v0WduYgbHAFQLXYZ+7OPMoUBObd8ykh9U16Jg
+         gZuqHKDfzaNL6y3NtNoWa4b6Lo3eKTwPXKjB5Q9pI1R/E6DdcGyCZLS0hxsIvFoDzTxU
+         MAtr6wVNHBKa9gw7oiswXi7U3gatVU+ugX1N2u0cBRdoZnwkINeWpM44QRsTFslYVVDe
+         RQJ/pPUZZMgfB7vu4+1h9Vo7/Ft46IUr4dCW0cN0uCf38t7yS0gxUuAISFvXeHaf/Lxu
+         wVqw==
+X-Gm-Message-State: AOAM531fPpGefVbChNfZrJbLahZez7zaAm+Tqf3N7uk2r/5F+lxKPC0M
+        VLw8oGYfKEuI6tWLp2wIvhi7RQ==
+X-Google-Smtp-Source: ABdhPJysT12No1lDoGSMw/H2+Oq/8cLgq6b3+eY2EubBXnsEpPWixk4MotSHSqGPQyU35R7/5GB0Cg==
+X-Received: by 2002:a17:90a:7f8b:: with SMTP id m11mr5894826pjl.121.1602266626529;
+        Fri, 09 Oct 2020 11:03:46 -0700 (PDT)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id d128sm11815809pfd.94.2020.10.09.11.03.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 09 Oct 2020 08:56:17 -0700 (PDT)
-From:   Shuah Khan <skhan@linuxfoundation.org>
-To:     rafael@kernel.org, james.morse@arm.com, tony.luck@intel.com,
-        bp@alien8.de, gregkh@linuxfoundation.org, keescook@chromium.org
-Cc:     Shuah Khan <skhan@linuxfoundation.org>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Borislav Petkov <bp@suse.de>
-Subject: [PATCH v3 06/11] drivers/acpi/apei: convert seqno counter_atomic32
-Date:   Fri,  9 Oct 2020 09:56:01 -0600
-Message-Id: <2f39e13e92b587ac48b7c11a17854b6426cfb745.1602209970.git.skhan@linuxfoundation.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1602209970.git.skhan@linuxfoundation.org>
+        Fri, 09 Oct 2020 11:03:45 -0700 (PDT)
+Date:   Fri, 9 Oct 2020 11:03:44 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Shuah Khan <skhan@linuxfoundation.org>
+Cc:     corbet@lwn.net, gregkh@linuxfoundation.org, shuah@kernel.org,
+        rafael@kernel.org, johannes@sipsolutions.net, lenb@kernel.org,
+        james.morse@arm.com, tony.luck@intel.com, bp@alien8.de,
+        arve@android.com, tkjos@android.com, maco@android.com,
+        joel@joelfernandes.org, christian@brauner.io, hridya@google.com,
+        surenb@google.com, minyard@acm.org, arnd@arndb.de,
+        mchehab@kernel.org, rric@kernel.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devel@driverdev.osuosl.org,
+        openipmi-developer@lists.sourceforge.net,
+        linux-edac@vger.kernel.org
+Subject: Re: [PATCH v3 00/11] Introduce Simple atomic counters
+Message-ID: <202010091103.5E435B42@keescook>
 References: <cover.1602209970.git.skhan@linuxfoundation.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1602209970.git.skhan@linuxfoundation.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-counter_atomic* is introduced to be used when a variable is used as
-a simple counter and doesn't guard object lifetimes. This clearly
-differentiates atomic_t usages that guard object lifetimes.
+On Fri, Oct 09, 2020 at 09:55:55AM -0600, Shuah Khan wrote:
+> Note: Would like to get this into Linux 5.10-rc1 so we can continue
+> updating drivers that can be updated to use this API. If this all looks
+> good, Kees, would you like to take this through your tree or would you
+> like to take this through mine.
 
-counter_atomic* variables wrap around to INT_MIN when it overflows
-and should not be used to guard resource lifetimes, device usage and
-open counts that control state changes, and pm states.
+I'd mentioned this in the v2, but yes, please take via your trees. :)
 
-seqno is a sequence number counter for logging. This counter gets
-incremented. Unsure if there is a chance of this overflowing. It
-doesn't look like overflowing causes any problems since it is used
-to tag the log messages and nothing more.
+I'm glad to see this landing!
 
-Convert it to use counter_atomic32.
-
-This conversion doesn't change the overflow wrap around behavior.
-
-Acked-by: Rafael J. Wysocki <rafael@kernel.org>
-Acked-by: Borislav Petkov <bp@suse.de>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: Shuah Khan <skhan@linuxfoundation.org>
----
- drivers/acpi/apei/ghes.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 81bf71b10d44..92169436be18 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -41,6 +41,7 @@
- #include <linux/uuid.h>
- #include <linux/ras.h>
- #include <linux/task_work.h>
-+#include <linux/counters.h>
- 
- #include <acpi/actbl1.h>
- #include <acpi/ghes.h>
-@@ -562,7 +563,7 @@ static void __ghes_print_estatus(const char *pfx,
- 				 const struct acpi_hest_generic *generic,
- 				 const struct acpi_hest_generic_status *estatus)
- {
--	static atomic_t seqno;
-+	static struct counter_atomic32 seqno = COUNTER_ATOMIC_INIT(0);
- 	unsigned int curr_seqno;
- 	char pfx_seq[64];
- 
-@@ -573,7 +574,7 @@ static void __ghes_print_estatus(const char *pfx,
- 		else
- 			pfx = KERN_ERR;
- 	}
--	curr_seqno = atomic_inc_return(&seqno);
-+	curr_seqno = counter_atomic32_inc_return(&seqno);
- 	snprintf(pfx_seq, sizeof(pfx_seq), "%s{%u}" HW_ERR, pfx, curr_seqno);
- 	printk("%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
- 	       pfx_seq, generic->header.source_id);
 -- 
-2.25.1
-
+Kees Cook
