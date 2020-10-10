@@ -2,103 +2,208 @@ Return-Path: <SRS0=mejJ=DR=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65062C2D0A4
-	for <linux-acpi@archiver.kernel.org>; Sat, 10 Oct 2020 23:08:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0680FC2BD0C
+	for <linux-acpi@archiver.kernel.org>; Sat, 10 Oct 2020 23:08:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D54720760
-	for <linux-acpi@archiver.kernel.org>; Sat, 10 Oct 2020 23:08:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCAD52075E
+	for <linux-acpi@archiver.kernel.org>; Sat, 10 Oct 2020 23:08:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1602371332;
+	bh=DUFG9J5AcMUp5irs8D9SHdYwSl2ByabA6T3c+hN4CVY=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=SQFageJoHM4EIyT+TIkBhG2QlZTbAWTcqSjaL3nNnv2e5VdAdmu6ifuk5PFqYOKcN
+	 R9CbYgdrkk+o4/LnXn0nBoadJvt0/W8/Ld3a2DpPR7qj5tTv1YdqT/ATuBTH8DGOc9
+	 e1Zs948du7X2Fw1FM1k6Z4D4PGBP4ln7P08KUlsM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390356AbgJJW5F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 10 Oct 2020 18:57:05 -0400
-Received: from mx3.molgen.mpg.de ([141.14.17.11]:36489 "EHLO mx1.molgen.mpg.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387905AbgJJUm0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Oct 2020 16:42:26 -0400
-X-Greylist: delayed 587 seconds by postgrey-1.27 at vger.kernel.org; Sat, 10 Oct 2020 16:42:25 EDT
-Received: from [192.168.1.11] (dynamic-089-014-081-185.89.14.pool.telefonica.de [89.14.81.185])
+        id S2390348AbgJJW5E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 10 Oct 2020 18:57:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57034 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732640AbgJJTyo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Oct 2020 15:54:44 -0400
+Received: from e123331-lin.nice.arm.com (lfbn-nic-1-188-42.w2-15.abo.wanadoo.fr [2.15.37.42])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: pmenzel)
-        by mx.molgen.mpg.de (Postfix) with ESMTPSA id 079D720645E93;
-        Sat, 10 Oct 2020 22:32:11 +0200 (CEST)
-Subject: Re: i8042_init: PS/2 mouse not detected with ACPIPnP/PnPBIOS
-To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>
-Cc:     linux-input@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-References: <1a69c5bc-ccc4-68db-7871-af05a70052c9@molgen.mpg.de>
- <20201007221628.GW1009802@dtor-ws>
-From:   Paul Menzel <pmenzel@molgen.mpg.de>
-Message-ID: <bbb70981-1242-0aea-01c9-f9507f8eae3b@molgen.mpg.de>
-Date:   Sat, 10 Oct 2020 22:32:10 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.1
-MIME-Version: 1.0
-In-Reply-To: <20201007221628.GW1009802@dtor-ws>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        by mail.kernel.org (Postfix) with ESMTPSA id A3131207E8;
+        Sat, 10 Oct 2020 09:32:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1602322342;
+        bh=DUFG9J5AcMUp5irs8D9SHdYwSl2ByabA6T3c+hN4CVY=;
+        h=From:To:Cc:Subject:Date:From;
+        b=GJ5OYii0BaygS11g+Z6ee8RaWcjnixsYYvsUJKQGUxO/BdpQOw4G09yOMHY5HoCRA
+         M65wYXKWIo/riUMFq7QaRXd08nGtjbbhUGmLJr5C6SPlQwWgrHq6ER8UiKpNCu+pSP
+         M8lC6kbn1BJSczr7AD8BI0BIXlA8DHWAv09gT2dg=
+From:   Ard Biesheuvel <ardb@kernel.org>
+To:     linux-arm-kernel@lists.infradead.org
+Cc:     linux-acpi@vger.kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+        Jeremy Linton <jeremy.linton@arm.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: [PATCH] arm64: mm: set ZONE_DMA size based on early IORT scan
+Date:   Sat, 10 Oct 2020 11:31:53 +0200
+Message-Id: <20201010093153.30177-1-ardb@kernel.org>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dear Dmitry, dear Rafael, dear Len,
+We recently introduced a 1 GB sized ZONE_DMA to cater for platforms
+incorporating masters that can address less than 32 bits of DMA, in
+particular the Raspberry Pi 4, which has 4 or 8 GB of DRAM, but has
+peripherals that can only address up to 1 GB (and its PCIe host
+bridge can only access the bottom 3 GB)
 
+Instructing the DMA layer about these limitations is straight-forward,
+even though we had to fix some issues regarding memory limits set in
+the IORT for named components, and regarding the handling of ACPI _DMA
+methods. However, the DMA layer also needs to be able to allocate
+memory that is guaranteed to meet those DMA constraints, for bounce
+buffering as well as allocating the backing for consistent mappings.
 
-Am 08.10.20 um 00:16 schrieb Dmitry Torokhov:
+This is why the 1 GB ZONE_DMA was introduced recently. Unfortunately,
+it turns out the having a 1 GB ZONE_DMA as well as a ZONE_DMA32 causes
+problems with kdump, and potentially in other places where allocations
+cannot cross zone boundaries. Therefore, we should avoid having two
+separate DMA zones when possible.
 
-> On Wed, Oct 07, 2020 at 11:18:41PM +0200, Paul Menzel wrote:
+So let's do an early scan of the IORT, and only create the ZONE_DMA
+if we encounter any devices that need it. This puts the burden on
+the firmware to describe such limitations in the IORT, which may be
+redundant (and less precise) if _DMA methods are also being provided.
+However, it should be noted that this situation is highly unusual for
+arm64 ACPI machines. Also, the DMA subsystem still gives precedence to
+the _DMA method if implemented, and so we will not lose the ability to
+perform streaming DMA outside the ZONE_DMA if the _DMA method permits
+it.
 
->> On the Asus F2A85-M PRO Linux 5.9-rc8 (and previous versions) does not
->> recognize a plugged in PS/2 mouse using the Plug & Play method. The PS/2
->> keyboard is detected fine, and using `i8042.nopnp`, the PS/2 mouse also
->> works.
->>
->>> [    1.035915] calling  i8042_init+0x0/0x42d @ 1
->>> [    1.035947] i8042: PNP: PS/2 Controller [PNP0303:PS2K] at 0x60,0x64 irq 1
->>> [    1.035948] i8042: PNP: PS/2 appears to have AUX port disabled, if this is incorrect please boot with i8042.nopnp
->>> [    1.036589] serio: i8042 KBD port at 0x60,0x64 irq 1
->>> [    1.036621] initcall i8042_init+0x0/0x42d returned 0 after 687 usecs
->>
->> But, the DSDT includes the “mouse device”. From
->>
->>      acpidump > dump.bin; acpixtract dump.bin; iasl -d *dat; more dsdt.dsl
->>
->> we get
->>
->>                  Device (PS2M)
->>                  {
->>                      Name (_HID, EisaId ("PNP0F03") /* Microsoft PS/2-style Mouse */)  // _HID: Hardware ID
->>                      Name (_CID, EisaId ("PNP0F13") /* PS/2 Mouse */) // _CID: Compatible ID
->>                      Method (_STA, 0, NotSerialized)  // _STA: Status
->>                      {
->>                          If ((IOST & 0x4000))
->>                          {
->>                              Return (0x0F)
->>                          }
->>                          Else
->>                          {
->>                              Return (Zero)
->>                          }
->>                      }
->>
->> and the identifiers PNP0F03 and PNP0F13 are both listed in the array
->> `pnp_aux_devids[]`. But adding print statements to `i8042_pnp_aux_probe()`,
->> I do not see them, so the function does not seem to be called.
-> 
-> My guess is that _STA returns 0 indicating that the device is not
-> present. I would try tracking where IOST is being set and figuring out
-> why it does not have mouse bit enabled.
+Cc: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
+---
+This is related to the discussion in 
 
-Does the ACPI subsystem allow to track, how ACPI variables(?) like IOST 
-are read and set?
+https://lore.kernel.org/linux-arm-kernel/20201001161740.29064-2-nsaenzjulienne@suse.de/
 
+ Documentation/arm64/arm-acpi.rst |  7 +++
+ arch/arm64/mm/init.c             |  8 +++
+ drivers/acpi/arm64/iort.c        | 51 ++++++++++++++++++++
+ 3 files changed, 66 insertions(+)
 
-Kind regards,
+diff --git a/Documentation/arm64/arm-acpi.rst b/Documentation/arm64/arm-acpi.rst
+index 47ecb9930dde..947f5b5c45ef 100644
+--- a/Documentation/arm64/arm-acpi.rst
++++ b/Documentation/arm64/arm-acpi.rst
+@@ -205,6 +205,13 @@ devices available.  This list of tables is not meant to be all inclusive;
+ in some environments other tables may be needed (e.g., any of the APEI
+ tables from section 18) to support specific functionality.
+ 
++It is assumed that all DMA capable devices in the system are able to
++access the lowest 4 GB of system memory. If this is not the case, an
++IORT describing those limitations is mandatory, even if an IORT is not
++otherwise necessary to describe the I/O topology, and regardless of
++whether _DMA methods are used to describe the DMA limitations more
++precisely. Once the system has booted, _DMA methods will take precedence
++over DMA addressing limits described in the IORT.
+ 
+ ACPI Detection
+ --------------
+diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
+index f0599ae73b8d..829fa63c3d72 100644
+--- a/arch/arm64/mm/init.c
++++ b/arch/arm64/mm/init.c
+@@ -191,6 +191,14 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
+ 	unsigned long max_zone_pfns[MAX_NR_ZONES]  = {0};
+ 
+ #ifdef CONFIG_ZONE_DMA
++	if (IS_ENABLED(CONFIG_ACPI)) {
++		extern unsigned int acpi_iort_get_zone_dma_size(void);
++
++		zone_dma_bits = min(zone_dma_bits,
++				    acpi_iort_get_zone_dma_size());
++		arm64_dma_phys_limit = max_zone_phys(zone_dma_bits);
++	}
++
+ 	max_zone_pfns[ZONE_DMA] = PFN_DOWN(arm64_dma_phys_limit);
+ #endif
+ #ifdef CONFIG_ZONE_DMA32
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index ec782e4a0fe4..c3db44896e49 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1722,3 +1722,54 @@ void __init acpi_iort_init(void)
+ 
+ 	iort_init_platform_devices();
+ }
++
++#ifdef CONFIG_ZONE_DMA
++/*
++ * Check the IORT whether any devices exist whose DMA mask is < 32 bits.
++ * If so, return the smallest value encountered, or 32 otherwise.
++ */
++unsigned int __init acpi_iort_get_zone_dma_size(void)
++{
++	struct acpi_table_iort *iort;
++	struct acpi_iort_node *node, *end;
++	acpi_status status;
++	u8 limit = 32;
++	int i;
++
++	if (acpi_disabled)
++		return limit;
++
++	status = acpi_get_table(ACPI_SIG_IORT, 0,
++				(struct acpi_table_header **)&iort);
++	if (ACPI_FAILURE(status))
++		return limit;
++
++	node = ACPI_ADD_PTR(struct acpi_iort_node, iort, iort->node_offset);
++	end = ACPI_ADD_PTR(struct acpi_iort_node, iort, iort->header.length);
++
++	for (i = 0; i < iort->node_count; i++) {
++		if (node >= end)
++			break;
++
++		switch (node->type) {
++			struct acpi_iort_named_component *ncomp;
++			struct acpi_iort_root_complex *rc;
++
++		case ACPI_IORT_NODE_NAMED_COMPONENT:
++			ncomp = (struct acpi_iort_named_component *)node->node_data;
++			if (ncomp->memory_address_limit)
++				limit = min(limit, ncomp->memory_address_limit);
++			break;
++
++		case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
++			rc = (struct acpi_iort_root_complex *)node->node_data;
++			if (rc->memory_address_limit);
++				limit = min(limit, rc->memory_address_limit);
++			break;
++		}
++		node = ACPI_ADD_PTR(struct acpi_iort_node, node, node->length);
++	}
++	acpi_put_table(&iort->header);
++	return limit;
++}
++#endif
+-- 
+2.17.1
 
-Paul
