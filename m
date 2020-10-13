@@ -2,71 +2,220 @@ Return-Path: <SRS0=FYmK=DU=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=BAYES_40,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4725BC433E7
-	for <linux-acpi@archiver.kernel.org>; Tue, 13 Oct 2020 08:25:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B5E0C433E7
+	for <linux-acpi@archiver.kernel.org>; Tue, 13 Oct 2020 11:09:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE95B20BED
-	for <linux-acpi@archiver.kernel.org>; Tue, 13 Oct 2020 08:25:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=fastestway24.com header.i=@fastestway24.com header.b="IkCdKwdU"
+	by mail.kernel.org (Postfix) with ESMTP id D87E020E65
+	for <linux-acpi@archiver.kernel.org>; Tue, 13 Oct 2020 11:09:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391423AbgJMIZf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 13 Oct 2020 04:25:35 -0400
-Received: from mail.fastestway24.com ([5.249.159.217]:36282 "EHLO
-        mail.fastestway24.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390032AbgJMIZf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Oct 2020 04:25:35 -0400
-X-Greylist: delayed 511 seconds by postgrey-1.27 at vger.kernel.org; Tue, 13 Oct 2020 04:25:34 EDT
-Received: by mail.fastestway24.com (Postfix, from userid 1001)
-        id F40B5A2F17; Tue, 13 Oct 2020 09:16:40 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fastestway24.com;
-        s=mail; t=1602577022;
-        bh=YGOlxoddnI3PXnh41XMWUfU0z9xsorZLZcAPNbcZr/c=;
-        h=Date:From:To:Subject:From;
-        b=IkCdKwdUOEQ+fFBOk6/B+WtXxpDNK+70uwWHney2X5PT4q/FRPi1mzXTkKhyKrXdR
-         KtNLS4/uFd0vNeX2Ld6ODF2+cF18/T3UqUoQqBO2VfjRkrgk4rZqjq9jL8NQUETKBx
-         Nmc+0YLt0OMavOXdlyHgflb6KOIkPH64kPJR5JdNuz215vEK+7hS/7qPYGI9f7juKv
-         YMUufHNPjamfSNiGycxdP51xBd1sKC/futQ9bZxW0whlMdgBboIO+P6YOjGLpzLpFj
-         /dQPCp+1ig1B4oH42GIAOS1oluzqWmFr3qvKQdfHNQu25CF0R7oRgSPqSFcdIHcanT
-         e34zEhoMsI/8A==
-Received: by mail.fastestway24.com for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2020 08:16:22 GMT
-Message-ID: <20201013074502-0.1.4d.9llo.0.17k5ov96f6@fastestway24.com>
-Date:   Tue, 13 Oct 2020 08:16:22 GMT
-From:   "William Jones" <william.jones@fastestway24.com>
-To:     <linux-acpi@vger.kernel.org>
-Subject: Disinfectant
-X-Mailer: mail.fastestway24.com
+        id S1730761AbgJMLJe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 13 Oct 2020 07:09:34 -0400
+Received: from foss.arm.com ([217.140.110.172]:55714 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730454AbgJMLJe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Oct 2020 07:09:34 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 65E6D1FB;
+        Tue, 13 Oct 2020 04:09:33 -0700 (PDT)
+Received: from e121166-lin.cambridge.arm.com (e121166-lin.cambridge.arm.com [10.1.196.255])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B5FA23F719;
+        Tue, 13 Oct 2020 04:09:31 -0700 (PDT)
+Date:   Tue, 13 Oct 2020 12:09:29 +0100
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        catalin.marinas@arm.com, will@kernel.org,
+        Jeremy Linton <jeremy.linton@arm.com>,
+        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH] arm64: mm: set ZONE_DMA size based on early IORT scan
+Message-ID: <20201013110929.GB20319@e121166-lin.cambridge.arm.com>
+References: <20201010093153.30177-1-ardb@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201010093153.30177-1-ardb@kernel.org>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Good morning,
+On Sat, Oct 10, 2020 at 11:31:53AM +0200, Ard Biesheuvel wrote:
+> We recently introduced a 1 GB sized ZONE_DMA to cater for platforms
+> incorporating masters that can address less than 32 bits of DMA, in
+> particular the Raspberry Pi 4, which has 4 or 8 GB of DRAM, but has
+> peripherals that can only address up to 1 GB (and its PCIe host
+> bridge can only access the bottom 3 GB)
+> 
+> Instructing the DMA layer about these limitations is straight-forward,
+> even though we had to fix some issues regarding memory limits set in
+> the IORT for named components, and regarding the handling of ACPI _DMA
+> methods. However, the DMA layer also needs to be able to allocate
+> memory that is guaranteed to meet those DMA constraints, for bounce
+> buffering as well as allocating the backing for consistent mappings.
+> 
+> This is why the 1 GB ZONE_DMA was introduced recently. Unfortunately,
+> it turns out the having a 1 GB ZONE_DMA as well as a ZONE_DMA32 causes
+> problems with kdump, and potentially in other places where allocations
+> cannot cross zone boundaries. Therefore, we should avoid having two
+> separate DMA zones when possible.
+> 
+> So let's do an early scan of the IORT, and only create the ZONE_DMA
+> if we encounter any devices that need it. This puts the burden on
+> the firmware to describe such limitations in the IORT, which may be
+> redundant (and less precise) if _DMA methods are also being provided.
+> However, it should be noted that this situation is highly unusual for
+> arm64 ACPI machines. Also, the DMA subsystem still gives precedence to
+> the _DMA method if implemented, and so we will not lose the ability to
+> perform streaming DMA outside the ZONE_DMA if the _DMA method permits
+> it.
+> 
+> Cc: Jeremy Linton <jeremy.linton@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Hanjun Guo <guohanjun@huawei.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+> Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
+> ---
+> This is related to the discussion in 
+> 
+> https://lore.kernel.org/linux-arm-kernel/20201001161740.29064-2-nsaenzjulienne@suse.de/
+> 
+>  Documentation/arm64/arm-acpi.rst |  7 +++
+>  arch/arm64/mm/init.c             |  8 +++
+>  drivers/acpi/arm64/iort.c        | 51 ++++++++++++++++++++
+>  3 files changed, 66 insertions(+)
 
-looking for companies interested in raising additional capital by diversi=
-fying their offer in soaps, liquids and gels for hand disinfection and co=
-smetics for body and hair care.
+Thanks for putting it together so promptly.
 
-The distribution of innovative products corresponding to the current pref=
-erences of customers in the field of hygiene and preventive healthcare al=
-lows our partners to gain new markets and achieve better economic results=
-=2E
+> diff --git a/Documentation/arm64/arm-acpi.rst b/Documentation/arm64/arm-acpi.rst
+> index 47ecb9930dde..947f5b5c45ef 100644
+> --- a/Documentation/arm64/arm-acpi.rst
+> +++ b/Documentation/arm64/arm-acpi.rst
+> @@ -205,6 +205,13 @@ devices available.  This list of tables is not meant to be all inclusive;
+>  in some environments other tables may be needed (e.g., any of the APEI
+>  tables from section 18) to support specific functionality.
+>  
+> +It is assumed that all DMA capable devices in the system are able to
+> +access the lowest 4 GB of system memory. If this is not the case, an
+> +IORT describing those limitations is mandatory, even if an IORT is not
+> +otherwise necessary to describe the I/O topology, and regardless of
+> +whether _DMA methods are used to describe the DMA limitations more
+> +precisely. Once the system has booted, _DMA methods will take precedence
+> +over DMA addressing limits described in the IORT.
 
-In addition to products with bactericidal action, our range includes show=
-er gels, shampoos and hair conditioners, as well as efficient, concentrat=
-ed detergents.
+If this is a boot requirement it must be in ARM's official documentation,
+first, not the kernel one.
 
-The versatility (suitable for all skin types) combined with an affordable=
- price means that customers make an informed choice of a product among ot=
-hers available on the market.
+I understand this is an urgent (well - no comments on why bootstrapping
+ACPI on Raspberry PI4 is causing all this fuss, honestly) fix but that's
+not a reason to rush through these guidelines.
 
-Are you interested in cooperation?
+I would not add this paragraph to arm-acpi.rst, yet.
 
+>  ACPI Detection
+>  --------------
+> diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
+> index f0599ae73b8d..829fa63c3d72 100644
+> --- a/arch/arm64/mm/init.c
+> +++ b/arch/arm64/mm/init.c
+> @@ -191,6 +191,14 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
+>  	unsigned long max_zone_pfns[MAX_NR_ZONES]  = {0};
+>  
+>  #ifdef CONFIG_ZONE_DMA
+> +	if (IS_ENABLED(CONFIG_ACPI)) {
+> +		extern unsigned int acpi_iort_get_zone_dma_size(void);
 
-William Jones
+Yes as Catalin asked please add a declaration in IORT headers.
+
+> +		zone_dma_bits = min(zone_dma_bits,
+> +				    acpi_iort_get_zone_dma_size());
+> +		arm64_dma_phys_limit = max_zone_phys(zone_dma_bits);
+> +	}
+> +
+>  	max_zone_pfns[ZONE_DMA] = PFN_DOWN(arm64_dma_phys_limit);
+>  #endif
+>  #ifdef CONFIG_ZONE_DMA32
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index ec782e4a0fe4..c3db44896e49 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1722,3 +1722,54 @@ void __init acpi_iort_init(void)
+>  
+>  	iort_init_platform_devices();
+>  }
+> +
+> +#ifdef CONFIG_ZONE_DMA
+> +/*
+> + * Check the IORT whether any devices exist whose DMA mask is < 32 bits.
+> + * If so, return the smallest value encountered, or 32 otherwise.
+> + */
+> +unsigned int __init acpi_iort_get_zone_dma_size(void)
+> +{
+> +	struct acpi_table_iort *iort;
+> +	struct acpi_iort_node *node, *end;
+> +	acpi_status status;
+> +	u8 limit = 32;
+> +	int i;
+> +
+> +	if (acpi_disabled)
+> +		return limit;
+> +
+> +	status = acpi_get_table(ACPI_SIG_IORT, 0,
+> +				(struct acpi_table_header **)&iort);
+> +	if (ACPI_FAILURE(status))
+> +		return limit;
+> +
+> +	node = ACPI_ADD_PTR(struct acpi_iort_node, iort, iort->node_offset);
+> +	end = ACPI_ADD_PTR(struct acpi_iort_node, iort, iort->header.length);
+> +
+> +	for (i = 0; i < iort->node_count; i++) {
+> +		if (node >= end)
+> +			break;
+> +
+> +		switch (node->type) {
+> +			struct acpi_iort_named_component *ncomp;
+> +			struct acpi_iort_root_complex *rc;
+> +
+> +		case ACPI_IORT_NODE_NAMED_COMPONENT:
+> +			ncomp = (struct acpi_iort_named_component *)node->node_data;
+> +			if (ncomp->memory_address_limit)
+> +				limit = min(limit, ncomp->memory_address_limit);
+> +			break;
+> +
+> +		case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
+> +			rc = (struct acpi_iort_root_complex *)node->node_data;
+> +			if (rc->memory_address_limit);
+
+You need a node->revision check here otherwise we may end up
+dereferencing junk. AKA ACPI versioning in all its glory.
+
+Thanks,
+Lorenzo
+
+> +				limit = min(limit, rc->memory_address_limit);
+> +			break;
+> +		}
+> +		node = ACPI_ADD_PTR(struct acpi_iort_node, node, node->length);
+> +	}
+> +	acpi_put_table(&iort->header);
+> +	return limit;
+> +}
+> +#endif
+> -- 
+> 2.17.1
+> 
