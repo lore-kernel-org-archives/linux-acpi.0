@@ -1,121 +1,120 @@
-Return-Path: <SRS0=NXye=DX=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=96fI=DY=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A6CCC43457
-	for <linux-acpi@archiver.kernel.org>; Fri, 16 Oct 2020 22:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA4AC433DF
+	for <linux-acpi@archiver.kernel.org>; Sat, 17 Oct 2020 06:43:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F18392222B
-	for <linux-acpi@archiver.kernel.org>; Fri, 16 Oct 2020 22:51:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="CF4LqkGI"
+	by mail.kernel.org (Postfix) with ESMTP id 754E020760
+	for <linux-acpi@archiver.kernel.org>; Sat, 17 Oct 2020 06:43:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1602917038;
+	bh=a6zcUKlSgSys512jNLN6WswG7+wX08wIvpptFrELGwc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=NBGsuqA9dB8IYr0RlN7043e/e9RtdjKlTLaanHd5RfMFO32J1FU17TQjgHn9/zB11
+	 VwfiGsHCzi6W0sNr7a4GMIm4hgSRMTM0Jqw71MG3B/XXX0Ed3wXN0JaOEW1KST9aOC
+	 gq/p1wexITQdr9bhCQb/6OjZGgCfN6CkFmeOQI40=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391983AbgJPWv2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 16 Oct 2020 18:51:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47466 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391866AbgJPWv1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Oct 2020 18:51:27 -0400
-Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com [IPv6:2607:f8b0:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A1A9C0613D6
-        for <linux-acpi@vger.kernel.org>; Fri, 16 Oct 2020 15:51:27 -0700 (PDT)
-Received: by mail-pl1-x643.google.com with SMTP id c6so2025225plr.9
-        for <linux-acpi@vger.kernel.org>; Fri, 16 Oct 2020 15:51:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=+A3qb7wSddKoudeH8qefVLLKBMGX/mQTDOB4rUkAdCY=;
-        b=CF4LqkGIH6KRSjEVRXkMwMTHn6F2e/bCzAoitFYNW9uJm8WKLqpR6NIZ7gFV3aCNBZ
-         DnHu4YGPXjOHok3RikNWoHjwks9Jp7YV3Q7GQeWMLNl6w2qqUkU+xnGlTV41kuQanWlw
-         5I3SXWgj8ziKK8QievcHzQEAYEVifzBDPBh1M=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=+A3qb7wSddKoudeH8qefVLLKBMGX/mQTDOB4rUkAdCY=;
-        b=UsNEjquaMoCPqOayptXmtNYNLlbIQHpuf3fZAS3Ow4N4t3536oloMlYEHXeOuUOgaN
-         tkv6HVQeoWWaqTlzeSnQENDqbTCT5KIn7jHvLGJzF8zNxhd81fiul+VC842d9M76IZna
-         nyBCAKoaDybbJrZyojPrszhKGC83xxpLTNy966lAFgCwczVciSdWbcr4sUrH6Lo2MSQJ
-         Bc5MBR05zeK3EPHZfWxQ/iyggst19LJ6P58iX+X65IwFz2Xxa0DtMmskT1QiaVL8sMK2
-         lfCVexQATcGcM544d2oXjxJlDYuGpt8BW24+VXLXAMzll8XT8n1dbnWc2gsdEO/NTIce
-         4pxw==
-X-Gm-Message-State: AOAM531dmaG32s2QwQzbnSxEIkP8gfPBPqnf6C8/CMINIAO0UVFbOg1g
-        8O7SxRLDAHxFkjjo+9k+1B6taA==
-X-Google-Smtp-Source: ABdhPJydepy1YplrdnyBgmFc/3tQ/e/3eMYUwqhlQUodPHed8wA582z7vboWjRhYh9ZEXf+nz1NAJw==
-X-Received: by 2002:a17:90a:aa90:: with SMTP id l16mr6212058pjq.0.1602888686891;
-        Fri, 16 Oct 2020 15:51:26 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id c17sm4044276pfj.220.2020.10.16.15.51.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2020 15:51:25 -0700 (PDT)
-Date:   Fri, 16 Oct 2020 15:51:25 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     Shuah Khan <skhan@linuxfoundation.org>, corbet@lwn.net,
-        gregkh@linuxfoundation.org, shuah@kernel.org, rafael@kernel.org,
-        johannes@sipsolutions.net, lenb@kernel.org, james.morse@arm.com,
-        tony.luck@intel.com, bp@alien8.de, arve@android.com,
-        tkjos@android.com, maco@android.com, joel@joelfernandes.org,
-        christian@brauner.io, hridya@google.com, surenb@google.com,
-        minyard@acm.org, arnd@arndb.de, mchehab@kernel.org,
-        rric@kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@driverdev.osuosl.org,
-        openipmi-developer@lists.sourceforge.net,
-        linux-edac@vger.kernel.org, Will Deacon <will@kernel.org>
-Subject: Re: [PATCH v3 00/11] Introduce Simple atomic counters
-Message-ID: <202010161541.6DD2D1E@keescook>
-References: <cover.1602209970.git.skhan@linuxfoundation.org>
- <20201009193746.GA1073957@hirez.programming.kicks-ass.net>
- <202010091255.246395A6@keescook>
- <20201010110920.GQ2628@hirez.programming.kicks-ass.net>
- <6e1dd408-653e-817e-b659-23649259a929@linuxfoundation.org>
- <20201014091720.GC2628@hirez.programming.kicks-ass.net>
- <202010141611.70B7A38@keescook>
- <20201016105313.GJ2611@hirez.programming.kicks-ass.net>
+        id S2437168AbgJQGn6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 17 Oct 2020 02:43:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38656 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2437167AbgJQGn5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 17 Oct 2020 02:43:57 -0400
+Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 594302074A;
+        Sat, 17 Oct 2020 06:43:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1602917036;
+        bh=a6zcUKlSgSys512jNLN6WswG7+wX08wIvpptFrELGwc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=URdAqCglk8hMKDvBnAqd72tRBYV5G+VJ++lmRLx1WQjkFLIdXI6Yo/3kpuZqpR92w
+         4hOaFHhAjy7ygCldVjCv8LQ4ikTjN0lPhXi23x9a8CjahLJgyuAvaHQyWBdlSJZ+Xr
+         rRZuRSL6WxH7tuIhgihS7Y/kNz5O4KF++SGSK6cw=
+Date:   Sat, 17 Oct 2020 08:44:25 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc:     linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, x86@kernel.org,
+        Len Brown <len.brown@intel.com>,
+        Sudeep Holla <sudeep.holla@arm.com>, guohanjun@huawei.com,
+        Will Deacon <will@kernel.org>, linuxarm@huawei.com,
+        Brice Goglin <Brice.Goglin@inria.fr>
+Subject: Re: [RFC PATCH] topology: Represent clusters of CPUs within a die.
+Message-ID: <20201017064425.GB1883987@kroah.com>
+References: <20201016152702.1513592-1-Jonathan.Cameron@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201016105313.GJ2611@hirez.programming.kicks-ass.net>
+In-Reply-To: <20201016152702.1513592-1-Jonathan.Cameron@huawei.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Oct 16, 2020 at 12:53:13PM +0200, Peter Zijlstra wrote:
-> That's like saying: "I'm too lazy to track what I've looked at already".
-> You're basically proposing to graffiti "Kees was here -- 16/10/2020" all
-> over the kernel. Just so you can see where you still need to go.
+On Fri, Oct 16, 2020 at 11:27:02PM +0800, Jonathan Cameron wrote:
+> Both ACPI and DT provide the ability to describe additional layers of
+> topology between that of individual cores and higher level constructs
+> such as the level at which the last level cache is shared.
+> In ACPI this can be represented in PPTT as a Processor Hierarchy
+> Node Structure [1] that is the parent of the CPU cores and in turn
+> has a parent Processor Hierarchy Nodes Structure representing
+> a higher level of topology.
 > 
-> It says the code was (assuming your audit was correct) good at that
-> date, but has no guarantees for any moment after that.
+> For example Kunpeng 920 has clusters of 4 CPUs.  These do not share
+> any cache resources, but the interconnect topology is such that
+> the cost to transfer ownership of a cacheline between CPUs within
+> a cluster is lower than between CPUs in different clusters on the same
+> die.   Hence, it can make sense to deliberately schedule threads
+> sharing data to a single cluster.
+> 
+> This patch simply exposes this information to userspace libraries
+> like hwloc by providing cluster_cpus and related sysfs attributes.
+> PoC of HWLOC support at [2].
+> 
+> Note this patch only handle the ACPI case.
+> 
+> Special consideration is needed for SMT processors, where it is
+> necessary to move 2 levels up the hierarchy from the leaf nodes
+> (thus skipping the processor core level).
+> 
+> Currently the ID provided is the offset of the Processor
+> Hierarchy Nodes Structure within PPTT.  Whilst this is unique
+> it is not terribly elegant so alternative suggestions welcome.
+> 
+> Note that arm64 / ACPI does not provide any means of identifying
+> a die level in the topology but that may be unrelate to the cluster
+> level.
+> 
+> RFC questions:
+> 1) Naming
+> 2) Related to naming, do we want to represent all potential levels,
+>    or this enough?  On Kunpeng920, the next level up from cluster happens
+>    to be covered by llc cache sharing, but in theory more than one
+>    level of cluster description might be needed by some future system.
+> 3) Do we need DT code in place? I'm not sure any DT based ARM64
+>    systems would have enough complexity for this to be useful.
+> 4) Other architectures?  Is this useful on x86 for example?
+> 
+> [1] ACPI Specification 6.3 - section 5.2.29.1 processor hierarchy node
+>     structure (Type 0)
+> [2] https://github.com/hisilicon/hwloc/tree/linux-cluster
+> 
+> Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> ---
+> 
+>  Documentation/admin-guide/cputopology.rst | 26 ++++++++--
 
-That kind of bit-rot marking is exactly what I would like to avoid: just
-putting a comment in is pointless. Making the expectations of the usage
-become _enforced_ is the goal. And having it enforced by the _compiler_
-is key. Just adding a meaningless attribute that a static checker
-will notice some time and hope people fix them doesn't scale either
-(just look at how many sparse warnings there are). So with C's limits,
-the API and type enforcement become the principle way to get this done.
+You are adding new sysfs files here, but not adding Documentation/ABI/
+entries as well?  This cputopology document is nice, but no one knows to
+look there for sysfs stuff :)
 
-So, if there are behavioral patterns we CAN carve away from atomic_t
-cleanly (and I think there are), those are the ones I want to work
-towards. The "corner case" uses of atomic_t are much less common than
-the "big" code patterns like lifetime management (now delegated to and
-enforced by refcount_t). My estimation was that _statistics_ (and not
-"serial identifiers") was the next biggest code pattern using atomic_t
-that could benefit from having its usage isolated. It is not itself a
-dangerous code pattern, but it can mask finding them.
+thanks,
 
-Then, at the end of the day, only the corner cases remain, and those can
-be seen clearly as they change over time. Since we can never have a
-one-time audit be anything other than advisory, we need to make it EASY
-to do those kinds of audits so they can be done regularly.
-
--- 
-Kees Cook
+greg k-h
