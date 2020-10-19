@@ -2,133 +2,139 @@ Return-Path: <SRS0=1jWJ=D2=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A19BC433DF
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Oct 2020 08:10:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A218CC433E7
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Oct 2020 10:01:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 156B92225F
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Oct 2020 08:10:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 617E822263
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Oct 2020 10:01:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728559AbgJSIKx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Oct 2020 04:10:53 -0400
-Received: from lhrrgout.huawei.com ([185.176.76.210]:2984 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728142AbgJSIKw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Oct 2020 04:10:52 -0400
-Received: from lhreml710-chm.china.huawei.com (unknown [172.18.7.108])
-        by Forcepoint Email with ESMTP id B68E437F098303526F95;
-        Mon, 19 Oct 2020 09:10:50 +0100 (IST)
-Received: from localhost (10.52.126.130) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1913.5; Mon, 19 Oct
- 2020 09:10:50 +0100
-Date:   Mon, 19 Oct 2020 09:08:54 +0100
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC:     <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <x86@kernel.org>,
+        id S1728212AbgJSKBg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Oct 2020 06:01:36 -0400
+Received: from foss.arm.com ([217.140.110.172]:53888 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727192AbgJSKBg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 19 Oct 2020 06:01:36 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2BCF030E;
+        Mon, 19 Oct 2020 03:01:36 -0700 (PDT)
+Received: from bogus (unknown [10.57.13.246])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 412C33F66E;
+        Mon, 19 Oct 2020 03:01:34 -0700 (PDT)
+Date:   Mon, 19 Oct 2020 11:01:00 +0100
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc:     linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, x86@kernel.org,
         Len Brown <len.brown@intel.com>,
-        Sudeep Holla <sudeep.holla@arm.com>, <guohanjun@huawei.com>,
-        Will Deacon <will@kernel.org>, <linuxarm@huawei.com>,
-        Brice Goglin <Brice.Goglin@inria.fr>
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Morten Rasmussen <morten.rasmussen@arm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        guohanjun@huawei.com, Will Deacon <will@kernel.org>,
+        linuxarm@huawei.com, Brice Goglin <Brice.Goglin@inria.fr>
 Subject: Re: [RFC PATCH] topology: Represent clusters of CPUs within a die.
-Message-ID: <20201019080854.00001a9f@Huawei.com>
-In-Reply-To: <20201017064425.GB1883987@kroah.com>
+Message-ID: <20201019100100.GA12908@bogus>
 References: <20201016152702.1513592-1-Jonathan.Cameron@huawei.com>
-        <20201017064425.GB1883987@kroah.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.52.126.130]
-X-ClientProxiedBy: lhreml711-chm.china.huawei.com (10.201.108.62) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20201016152702.1513592-1-Jonathan.Cameron@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, 17 Oct 2020 08:44:25 +0200
-Greg Kroah-Hartman <gregkh@linuxfoundation.org> wrote:
++Morten
 
-> On Fri, Oct 16, 2020 at 11:27:02PM +0800, Jonathan Cameron wrote:
-> > Both ACPI and DT provide the ability to describe additional layers of
-> > topology between that of individual cores and higher level constructs
-> > such as the level at which the last level cache is shared.
-> > In ACPI this can be represented in PPTT as a Processor Hierarchy
-> > Node Structure [1] that is the parent of the CPU cores and in turn
-> > has a parent Processor Hierarchy Nodes Structure representing
-> > a higher level of topology.
-> > 
-> > For example Kunpeng 920 has clusters of 4 CPUs.  These do not share
-> > any cache resources, but the interconnect topology is such that
-> > the cost to transfer ownership of a cacheline between CPUs within
-> > a cluster is lower than between CPUs in different clusters on the same
-> > die.   Hence, it can make sense to deliberately schedule threads
-> > sharing data to a single cluster.
-> > 
-> > This patch simply exposes this information to userspace libraries
-> > like hwloc by providing cluster_cpus and related sysfs attributes.
-> > PoC of HWLOC support at [2].
-> > 
-> > Note this patch only handle the ACPI case.
-> > 
-> > Special consideration is needed for SMT processors, where it is
-> > necessary to move 2 levels up the hierarchy from the leaf nodes
-> > (thus skipping the processor core level).
-> > 
-> > Currently the ID provided is the offset of the Processor
-> > Hierarchy Nodes Structure within PPTT.  Whilst this is unique
-> > it is not terribly elegant so alternative suggestions welcome.
-> > 
-> > Note that arm64 / ACPI does not provide any means of identifying
-> > a die level in the topology but that may be unrelate to the cluster
-> > level.
-> > 
-> > RFC questions:
-> > 1) Naming
-> > 2) Related to naming, do we want to represent all potential levels,
-> >    or this enough?  On Kunpeng920, the next level up from cluster happens
-> >    to be covered by llc cache sharing, but in theory more than one
-> >    level of cluster description might be needed by some future system.
-> > 3) Do we need DT code in place? I'm not sure any DT based ARM64
-> >    systems would have enough complexity for this to be useful.
-> > 4) Other architectures?  Is this useful on x86 for example?
-> > 
-> > [1] ACPI Specification 6.3 - section 5.2.29.1 processor hierarchy node
-> >     structure (Type 0)
-> > [2] https://github.com/hisilicon/hwloc/tree/linux-cluster
-> > 
-> > Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> > ---
-> > 
-> >  Documentation/admin-guide/cputopology.rst | 26 ++++++++--  
-> 
-> You are adding new sysfs files here, but not adding Documentation/ABI/
-> entries as well?  This cputopology document is nice, but no one knows to
-> look there for sysfs stuff :)
-Hi Greg,
+On Fri, Oct 16, 2020 at 11:27:02PM +0800, Jonathan Cameron wrote:
+> Both ACPI and DT provide the ability to describe additional layers of
+> topology between that of individual cores and higher level constructs
+> such as the level at which the last level cache is shared.
+> In ACPI this can be represented in PPTT as a Processor Hierarchy
+> Node Structure [1] that is the parent of the CPU cores and in turn
+> has a parent Processor Hierarchy Nodes Structure representing
+> a higher level of topology.
+>
+> For example Kunpeng 920 has clusters of 4 CPUs.  These do not share
+> any cache resources, but the interconnect topology is such that
+> the cost to transfer ownership of a cacheline between CPUs within
+> a cluster is lower than between CPUs in different clusters on the same
+> die.   Hence, it can make sense to deliberately schedule threads
+> sharing data to a single cluster.
+>
 
-Ah.  I'd assumed there wasn't a current doc as the patch adding
-die description didn't touch it.   Turns out it was just missing from
-that patch. (Documentation/ABI/testing/sysfs-devices-system-cpu)
-Seems those docs are missing quite a bit of more recent stuff such as
-die and more package related parts.  I'll bring it up to date as a
-precursor to v2 of this series.
+This is very SoC specific and hard to generalise, hence LLC is chosen
+as one of the main factor to decide.
 
-Thanks,
+Are there any scheduler topology related changes to achieve the same ?
+If so, we need their opinion on that.
 
-Jonathan
+> This patch simply exposes this information to userspace libraries
+> like hwloc by providing cluster_cpus and related sysfs attributes.
+> PoC of HWLOC support at [2].
+>
 
-> 
-> thanks,
-> 
-> greg k-h
+OK, cluster is too Arm specific with no definition for it whatsoever.
+How do you plan to support clusters of clusters or higher level of
+hierarchy present in PPTT.
 
+> Note this patch only handle the ACPI case.
+>
 
+If we decide to add this to sysfs, I prefer to keep DT implementation
+also in sync. The bindings are in sync, just matter of implementation.
+
+> Special consideration is needed for SMT processors, where it is
+> necessary to move 2 levels up the hierarchy from the leaf nodes
+> (thus skipping the processor core level).
+>
+> Currently the ID provided is the offset of the Processor
+> Hierarchy Nodes Structure within PPTT.  Whilst this is unique
+> it is not terribly elegant so alternative suggestions welcome.
+>
+
+That is firmware choice. May be your firmware just fills in mandatory
+fields and doesn't care about anything and everything optional. We do
+check for valid UID fields and if that is not set, offset is used as
+unique ID in kernel implementation. So if you enhance the firmware, the
+kernel sysfs will become elegant as you expect 😉 
+
+> Note that arm64 / ACPI does not provide any means of identifying
+> a die level in the topology but that may be unrelate to the cluster
+> level.
+>
+
+Indeed. It can be cluster of clusters on some platform. If we need that
+info, we should add it. My assumption was that generally each die forms
+a NUMA node and hence the information is available there. I may be wrong.
+
+> RFC questions:
+> 1) Naming
+> 2) Related to naming, do we want to represent all potential levels,
+>    or this enough?  On Kunpeng920, the next level up from cluster happens
+>    to be covered by llc cache sharing, but in theory more than one
+>    level of cluster description might be needed by some future system.
+
+That is my question above. Can't recall the terminology used in ACPI
+PPTT, but IIRC "cluster" is not used to keep it generic. May be we need
+to do the same here as the term "cluster" is ill-defined on Arm and I
+would avoid using it if possible.
+
+> 3) Do we need DT code in place? I'm not sure any DT based ARM64
+>    systems would have enough complexity for this to be useful.
+
+I prefer to keep the implementation in sync
+
+> 4) Other architectures?  Is this useful on x86 for example?
+>
+
+AMD had multi-die within socket IIRC. IIUC, cpuid will provide the info
+and nothing more is needed from ACPI ? I may be wrong, just guessing/asking.
+
+--
+Regards,
+Sudeep
