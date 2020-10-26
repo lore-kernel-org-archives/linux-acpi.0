@@ -5,52 +5,51 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50886C63697
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:26:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F85CC61DD8
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:34:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14C7C20780
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:26:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2CBE221F8
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:34:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603758408;
-	bh=SRYkNN8HXkCNdHshA/b9nKmA2O2Pol1AIomkmghGlPI=;
+	s=default; t=1603758868;
+	bh=VZVHPvdGvoauXFvYUP0vUslj5DObR0FlXbYEGzh0Xo4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=cHYbSUmGTiQZIj+eXuvnutleDfeaG4sl1XXqCdHnmMewN1sCXbBuipMf5J3RvvK9w
-	 ypnaahOqWJ+eRpJ/FohDhQOuEQXAoYUT8fss0AXc3zjn4NTynh9Yr9olq5xv2fb7UF
-	 6wy6MM6gpi26zvLUZ0Kx3yhUv47vP8VGTUWVV1+E=
+	b=j1u8RAtegOrYnOcLDe9MiUqEbKfVzGdPtT/8e6C8zGCBxEdpR0vZIh+OWhw+KjQJ8
+	 RTv6lDfu0EmyJOn8GNhM22Z3Ps4MFBJJMPRkSt7NJSwxeAERspnnFh2xAM5d0CE+Qx
+	 W8rdMGn2EWL8PTNHqxEts+0Sl5lRah71/Xrk8vzA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2442496AbgJ0A0q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Oct 2020 20:26:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58464 "EHLO mail.kernel.org"
+        id S2443547AbgJ0AbM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Oct 2020 20:31:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2410161AbgJZXxm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 26 Oct 2020 19:53:42 -0400
+        id S2409378AbgJZXvU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Oct 2020 19:51:20 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 549BB2151B;
-        Mon, 26 Oct 2020 23:53:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4706520878;
+        Mon, 26 Oct 2020 23:51:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603756422;
-        bh=SRYkNN8HXkCNdHshA/b9nKmA2O2Pol1AIomkmghGlPI=;
+        s=default; t=1603756280;
+        bh=VZVHPvdGvoauXFvYUP0vUslj5DObR0FlXbYEGzh0Xo4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EEafZmAaVc+5vAin2ShsKsXhxz2POvvi4d00EoI8O2wEBq4wk0ORpE/ZtfvsOL+e3
-         ZOtVE+dKE1JTPP6UlQmrb4Gr+e3mzuLyOJwmc6Jt5FMYUoV0sYdLDKLyRd5OLRrLkf
-         HqjcYbbYPYfmfL/0BhmZgw2TKP/hBbxNA7pVdfHk=
+        b=jHjHO6cMCMnxQC4D9t6Z6d6xhv6ZnrIRyoCWqhdbObgbIigRAYT+Qx0qDXU+ToP/p
+         kAuBuvp8VEJViVWMHdOV4Zp965hp5rofOfRJfMLoMsy7nx/3Wpf+Sv7FEX0WohR8Lk
+         3L3fqjYiRYGryUdutVplU/02AMegYUrwCjYPlK98=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Barry Song <song.bao.hua@hisilicon.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.8 078/132] ACPI: Add out of bounds and numa_off protections to pxm_to_node()
-Date:   Mon, 26 Oct 2020 19:51:10 -0400
-Message-Id: <20201026235205.1023962-78-sashal@kernel.org>
+Cc:     Tuan Phan <tuanphan@os.amperecomputing.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Sasha Levin <sashal@kernel.org>, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.9 110/147] PCI/ACPI: Add Ampere Altra SOC MCFG quirk
+Date:   Mon, 26 Oct 2020 19:48:28 -0400
+Message-Id: <20201026234905.1022767-110-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201026235205.1023962-1-sashal@kernel.org>
-References: <20201026235205.1023962-1-sashal@kernel.org>
+In-Reply-To: <20201026234905.1022767-1-sashal@kernel.org>
+References: <20201026234905.1022767-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,40 +58,85 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+From: Tuan Phan <tuanphan@os.amperecomputing.com>
 
-[ Upstream commit 8a3decac087aa897df5af04358c2089e52e70ac4 ]
+[ Upstream commit 877c1a5f79c6984bbe3f2924234c08e2f4f1acd5 ]
 
-The function should check the validity of the pxm value before using
-it to index the pxm_to_node_map[] array.
+Ampere Altra SOC supports only 32-bit ECAM reads.  Add an MCFG quirk for
+the platform.
 
-Whilst hardening this code may be good in general, the main intent
-here is to enable following patches that use this function to replace
-acpi_map_pxm_to_node() for non SRAT usecases which should return
-NO_NUMA_NODE for PXM entries not matching with those in SRAT.
-
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: Barry Song <song.bao.hua@hisilicon.com>
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Link: https://lore.kernel.org/r/1596751055-12316-1-git-send-email-tuanphan@os.amperecomputing.com
+Signed-off-by: Tuan Phan <tuanphan@os.amperecomputing.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/numa/srat.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/pci_mcfg.c  | 20 ++++++++++++++++++++
+ drivers/pci/ecam.c       | 10 ++++++++++
+ include/linux/pci-ecam.h |  1 +
+ 3 files changed, 31 insertions(+)
 
-diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-index 5be5a977da1bf..8ef44ee0d76bd 100644
---- a/drivers/acpi/numa/srat.c
-+++ b/drivers/acpi/numa/srat.c
-@@ -31,7 +31,7 @@ int acpi_numa __initdata;
+diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+index 54b36b7ad47d9..e526571e0ebdb 100644
+--- a/drivers/acpi/pci_mcfg.c
++++ b/drivers/acpi/pci_mcfg.c
+@@ -142,6 +142,26 @@ static struct mcfg_fixup mcfg_quirks[] = {
+ 	XGENE_V2_ECAM_MCFG(4, 0),
+ 	XGENE_V2_ECAM_MCFG(4, 1),
+ 	XGENE_V2_ECAM_MCFG(4, 2),
++
++#define ALTRA_ECAM_QUIRK(rev, seg) \
++	{ "Ampere", "Altra   ", rev, seg, MCFG_BUS_ANY, &pci_32b_read_ops }
++
++	ALTRA_ECAM_QUIRK(1, 0),
++	ALTRA_ECAM_QUIRK(1, 1),
++	ALTRA_ECAM_QUIRK(1, 2),
++	ALTRA_ECAM_QUIRK(1, 3),
++	ALTRA_ECAM_QUIRK(1, 4),
++	ALTRA_ECAM_QUIRK(1, 5),
++	ALTRA_ECAM_QUIRK(1, 6),
++	ALTRA_ECAM_QUIRK(1, 7),
++	ALTRA_ECAM_QUIRK(1, 8),
++	ALTRA_ECAM_QUIRK(1, 9),
++	ALTRA_ECAM_QUIRK(1, 10),
++	ALTRA_ECAM_QUIRK(1, 11),
++	ALTRA_ECAM_QUIRK(1, 12),
++	ALTRA_ECAM_QUIRK(1, 13),
++	ALTRA_ECAM_QUIRK(1, 14),
++	ALTRA_ECAM_QUIRK(1, 15),
+ };
  
- int pxm_to_node(int pxm)
- {
--	if (pxm < 0)
-+	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS || numa_off)
- 		return NUMA_NO_NODE;
- 	return pxm_to_node_map[pxm];
- }
+ static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
+diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+index 8f065a42fc1a2..b54d32a316693 100644
+--- a/drivers/pci/ecam.c
++++ b/drivers/pci/ecam.c
+@@ -168,4 +168,14 @@ const struct pci_ecam_ops pci_32b_ops = {
+ 		.write		= pci_generic_config_write32,
+ 	}
+ };
++
++/* ECAM ops for 32-bit read only (non-compliant) */
++const struct pci_ecam_ops pci_32b_read_ops = {
++	.bus_shift	= 20,
++	.pci_ops	= {
++		.map_bus	= pci_ecam_map_bus,
++		.read		= pci_generic_config_read32,
++		.write		= pci_generic_config_write,
++	}
++};
+ #endif
+diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
+index 1af5cb02ef7f9..033ce74f02e81 100644
+--- a/include/linux/pci-ecam.h
++++ b/include/linux/pci-ecam.h
+@@ -51,6 +51,7 @@ extern const struct pci_ecam_ops pci_generic_ecam_ops;
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_PCI_QUIRKS)
+ extern const struct pci_ecam_ops pci_32b_ops;	/* 32-bit accesses only */
++extern const struct pci_ecam_ops pci_32b_read_ops; /* 32-bit read only */
+ extern const struct pci_ecam_ops hisi_pcie_ops;	/* HiSilicon */
+ extern const struct pci_ecam_ops thunder_pem_ecam_ops; /* Cavium ThunderX 1.x & 2.x */
+ extern const struct pci_ecam_ops pci_thunder_ecam_ops; /* Cavium ThunderX 1.x */
 -- 
 2.25.1
 
