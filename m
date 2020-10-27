@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C395C4363A
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:02:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 079A9C56202
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:05:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B45E20882
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:02:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC5E220882
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Oct 2020 00:05:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603756974;
-	bh=mlv3sstlxvv/A+9qqtzkJ4Tyr6KpKttPUzMEqjjuJRU=;
+	s=default; t=1603757152;
+	bh=enY7JVLpF4ILTIjaBugz5o/RjfpPcWGkpgiAfoxAgw8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=e3sk4sPpfjNl/rOeABXl5Waouse5VdpQrNMq297OeTVFAzT09v9Yv8SSBpIoJGZDx
-	 EFQDDNN2tUMzIw5lUrETgmb1awPc6L7fWnA7z9+AIy1mTtnj+a5C+TVBbtnXeA0Cr0
-	 onDx8eQ6IafE8GkZyJ2z2EODmDB41hLbTVCZaeu8=
+	b=a5SE4JSebXfF/liJWTQNkVVR71WMeTTu5pNqLddVXv8ar/WwMp5eMwDrklS6OLisV
+	 2xsmiKxqf1ZaFS95ERlNTeSVHB/KWtj5ua4WZJB19uWpf4yiDFfRK05u0cBm/nQq4n
+	 nYyraNEVCG1Raldjh+RG8JfsYZ2vAgQ+zKUKR0Vk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437469AbgJ0ACw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Oct 2020 20:02:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35522 "EHLO mail.kernel.org"
+        id S1728561AbgJ0AFt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Oct 2020 20:05:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2411058AbgJZX4N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 26 Oct 2020 19:56:13 -0400
+        id S2438009AbgJ0AE6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Oct 2020 20:04:58 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B758B221FA;
-        Mon, 26 Oct 2020 23:56:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 11FEF217A0;
+        Tue, 27 Oct 2020 00:04:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603756572;
-        bh=mlv3sstlxvv/A+9qqtzkJ4Tyr6KpKttPUzMEqjjuJRU=;
+        s=default; t=1603757097;
+        bh=enY7JVLpF4ILTIjaBugz5o/RjfpPcWGkpgiAfoxAgw8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ot8sWUFZhLBh5Rokb55Q1g5NsTB3/XhIOkLT+PCrPlKpy+MwdsMrztg20G9oW9mIV
-         pUDIFpKIUUVY6ySO+hs6q46lYhYZIOGklF48w071rolIDkY72L1z7+ekh3ZSTvjX4l
-         quirCTPbemwGZiLGyQst3jb/bCUxuTdsU7107Ewo=
+        b=TrnRy7NnH8f4ajDhztlh20Ma1Hh1QgtIsille8xI/uBQOpCb89jVBc/+8s2MjWrg6
+         FrCCu3xiULC4Pt7CzjipM+iRHlmbiYUlqedUbMFtP08lG5U7Kr72hxow43sfw2EkpD
+         a1oPExGWO+clgRrcy7qYzO6Mexl6tke3rnx1IMpg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jonathan Cameron <Jonathan.Cameron@huawei.com>,
@@ -45,12 +45,12 @@ Cc:     Jonathan Cameron <Jonathan.Cameron@huawei.com>,
         Hanjun Guo <guohanjun@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 46/80] ACPI: Add out of bounds and numa_off protections to pxm_to_node()
-Date:   Mon, 26 Oct 2020 19:54:42 -0400
-Message-Id: <20201026235516.1025100-46-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 35/60] ACPI: Add out of bounds and numa_off protections to pxm_to_node()
+Date:   Mon, 26 Oct 2020 20:03:50 -0400
+Message-Id: <20201027000415.1026364-35-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201026235516.1025100-1-sashal@kernel.org>
-References: <20201026235516.1025100-1-sashal@kernel.org>
+In-Reply-To: <20201027000415.1026364-1-sashal@kernel.org>
+References: <20201027000415.1026364-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -81,10 +81,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index eadbf90e65d14..85e01752fbe47 100644
+index 0da58f0bf7e59..a28ff3cfbc296 100644
 --- a/drivers/acpi/numa.c
 +++ b/drivers/acpi/numa.c
-@@ -31,7 +31,7 @@ int acpi_numa __initdata;
+@@ -46,7 +46,7 @@ int acpi_numa __initdata;
  
  int pxm_to_node(int pxm)
  {
