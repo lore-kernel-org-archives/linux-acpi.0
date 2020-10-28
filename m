@@ -2,287 +2,187 @@ Return-Path: <SRS0=+0Ii=ED=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53EFCC4363A
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:25:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CE64C56201
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:27:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF5BF20709
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:25:18 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QJMfoN4o"
+	by mail.kernel.org (Postfix) with ESMTP id 4BEF020719
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:27:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732806AbgJ1WZI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:25:08 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:47113 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732787AbgJ1WZG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:25:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1603923903;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=sq1B8u8NLUEB8OJpFZ9ZPM/0L4/ZYp1FVYQZCWkCea0=;
-        b=QJMfoN4oYHNnQCMpewagHKJbpwrphefKQ/4+CPvqMsnYceFMPgxNivIkuhjt1p1AYxLyfz
-        y5Az/LxE7nNQIBdyvip6zZlyeKvxatq+Hf5B3uS2Hn35/ha8L+C2SSy3mMhH1SrrOC+6Tn
-        F1BmyrQAoY2w332xVa7ix5BnRZDVSfU=
-Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
- [209.85.208.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-308-qR7hfgGQPJ-vvdv23BYIBw-1; Wed, 28 Oct 2020 13:23:16 -0400
-X-MC-Unique: qR7hfgGQPJ-vvdv23BYIBw-1
-Received: by mail-ed1-f70.google.com with SMTP id dc23so59487edb.13
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2020 10:23:16 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=sq1B8u8NLUEB8OJpFZ9ZPM/0L4/ZYp1FVYQZCWkCea0=;
-        b=BHeGQUbfmhZI+SJk20/gKrFfXDOCYrmJuuaOeLXslzeuT/D8iYzNxNDKyj8EIpfB+7
-         n8Ga598+yU9dDY6HbgE94gna5ckzY+u4442w7RipSn8Y+9dGQZlzM17IZ/TBLaDUwx/i
-         Gk+YPRuLqFByXXSy4BqvXvbd5IbU6HAdS4NJ4SjWv1abkySXNnP97kw3e2CxT4PfSuO7
-         RvblJb8alPI2tCnuv7CxH8I2+6oqff9SqpkUogRMGDe0nRIZPUq/2Ag5JNrMh/oWUZJf
-         cIURO2CzhfKT6O1pcCwp3L4m4OsRxF23GxVolEOBOjx8L+tI9sj+fr2YvmzHiTs2UdVg
-         R5Rg==
-X-Gm-Message-State: AOAM531d3LGjkfs2Erm0zAZF5zEuuRqdcl5LLZfeUDFCCEESHYZu3XFE
-        Re/mcNULmK44HOqryKEZ7hQdN6edfGmOwx7s/gEJNdOQ7SRxGsZeiSU06triHml2lPqBeOhcFnO
-        BC05hJGOejadC24uWvYqoJA==
-X-Received: by 2002:a17:906:6453:: with SMTP id l19mr125870ejn.366.1603905794984;
-        Wed, 28 Oct 2020 10:23:14 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJzREE5X9JMuMW0uT+945/sNIo/Jw2GIPaYjye6jFS3w2G6zpJDNsvl2GTmVFhYI71fL0HiW4A==
-X-Received: by 2002:a17:906:6453:: with SMTP id l19mr125853ejn.366.1603905794640;
-        Wed, 28 Oct 2020 10:23:14 -0700 (PDT)
-Received: from x1.localdomain (2001-1c00-0c0c-fe00-6c10-fbf3-14c4-884c.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:6c10:fbf3:14c4:884c])
-        by smtp.gmail.com with ESMTPSA id l17sm112230eji.14.2020.10.28.10.23.13
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 28 Oct 2020 10:23:13 -0700 (PDT)
-Subject: Re: [PATCH] Documentation: Add documentation for new platform_profile
- sysfs attribute
-To:     Bastien Nocera <hadess@hadess.net>,
-        Mark Pearson <markpearson@lenovo.com>
-Cc:     dvhart@infradead.org, mgross@linux.intel.com,
-        mario.limonciello@dell.com, eliadevito@gmail.com, bberg@redhat.com,
-        linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <markpearson@lenovo.com>
- <20201027164219.868839-1-markpearson@lenovo.com>
- <5ca1ae238b23a611b8a490c244fd93cdcc36ef79.camel@hadess.net>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <d5f0bcba-5366-87da-d199-a85d59ba6c1c@redhat.com>
-Date:   Wed, 28 Oct 2020 18:23:13 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.1
-MIME-Version: 1.0
-In-Reply-To: <5ca1ae238b23a611b8a490c244fd93cdcc36ef79.camel@hadess.net>
-Content-Type: text/plain; charset=utf-8
+        id S1733133AbgJ1W0z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:26:55 -0400
+Received: from lhrrgout.huawei.com ([185.176.76.210]:3013 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1733111AbgJ1W0y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:26:54 -0400
+Received: from lhreml721-chm.china.huawei.com (unknown [172.18.7.107])
+        by Forcepoint Email with ESMTP id 81CF89497963A380C9A9;
+        Wed, 28 Oct 2020 18:40:34 +0000 (GMT)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ lhreml721-chm.china.huawei.com (10.201.108.72) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1913.5; Wed, 28 Oct 2020 18:40:34 +0000
+Received: from lhreml710-chm.china.huawei.com ([169.254.81.184]) by
+ lhreml710-chm.china.huawei.com ([169.254.81.184]) with mapi id
+ 15.01.1913.007; Wed, 28 Oct 2020 18:40:34 +0000
+From:   Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+To:     "Kaneda, Erik" <erik.kaneda@intel.com>,
+        "Moore, Robert" <robert.moore@intel.com>,
+        "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
+CC:     "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        "devel@acpica.org" <devel@acpica.org>,
+        Jonathan Cameron <jonathan.cameron@huawei.com>,
+        Linuxarm <linuxarm@huawei.com>,
+        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        wanghuiqiang <wanghuiqiang@huawei.com>,
+        "joro@8bytes.org" <joro@8bytes.org>
+Subject: RE: [Devel] [RFC PATCH 1/4] ACPICA: IORT: Update for revision E
+Thread-Topic: [Devel] [RFC PATCH 1/4] ACPICA: IORT: Update for revision E
+Thread-Index: AQHWrFRpYmjWzlgvCkWX8PhkbYIcjqmr/GWAgACrRfCAAK2ZAIAAAX1Q
+Date:   Wed, 28 Oct 2020 18:40:33 +0000
+Message-ID: <ad260ac88bb84f9d850f95f05454e140@huawei.com>
+References: <20201027112646.44680-1-shameerali.kolothum.thodi@huawei.com>
+ <20201027112646.44680-2-shameerali.kolothum.thodi@huawei.com>
+ <BYAPR11MB3256AFF743B4FCC400F4181C87160@BYAPR11MB3256.namprd11.prod.outlook.com>
+ <610c14ef56d64fe087ca52aede07d811@huawei.com>
+ <MWHPR11MB1599988D7C857E3AFFA4A48AF0170@MWHPR11MB1599.namprd11.prod.outlook.com>
+In-Reply-To: <MWHPR11MB1599988D7C857E3AFFA4A48AF0170@MWHPR11MB1599.namprd11.prod.outlook.com>
+Accept-Language: en-GB, en-US
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.47.88.37]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 10/28/20 2:45 PM, Bastien Nocera wrote:
-> Hey Hans, Mark,
-> 
-> On Tue, 2020-10-27 at 12:42 -0400, Mark Pearson wrote:
->> From: Hans de Goede <hdegoede@redhat.com>
->>
->> On modern systems the platform performance, temperature, fan and
->> other
->> hardware related characteristics are often dynamically configurable.
->> The
->> profile is often automatically adjusted to the load by somei
->> automatic-mechanism (which may very well live outside the kernel).
->>
->> These auto platform-adjustment mechanisms often can be configured
->> with
->> one of several 'platform-profiles', with either a bias towards low-
->> power
-> 
-> Can you please make sure to quote 'platform-profile' and 'profile-name'
-> this way all through the document? They're not existing words, and
-> quoting them shows that they're attribute names, rather than English.
-> 
->> consumption or towards performance (and higher power consumption and
->> thermals).
-> 
-> s/thermal/temperature/
-> 
-> "A thermal" is something else (it's seasonal underwear for me ;)
-> 
->> Introduce a new platform_profile sysfs API which offers a generic API
->> for
->> selecting the performance-profile of these automatic-mechanisms.
->>
->> Co-developed-by: Mark Pearson <markpearson@lenovo.com>
->> Signed-off-by: Mark Pearson <markpearson@lenovo.com>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->> Changes in V1:
->>  - Moved from RFC to proposed patch
->>  - Added cool profile as requested
->>  - removed extra-profiles as no longer relevant
->>
->>  .../ABI/testing/sysfs-platform_profile        | 66
->> +++++++++++++++++++
->>  1 file changed, 66 insertions(+)
->>  create mode 100644 Documentation/ABI/testing/sysfs-platform_profile
->>
->> diff --git a/Documentation/ABI/testing/sysfs-platform_profile
->> b/Documentation/ABI/testing/sysfs-platform_profile
->> new file mode 100644
->> index 000000000000..240bd3d7532b
->> --- /dev/null
->> +++ b/Documentation/ABI/testing/sysfs-platform_profile
->> @@ -0,0 +1,66 @@
->> +Platform-profile selection (e.g.
->> /sys/firmware/acpi/platform_profile)
->> +
->> +On modern systems the platform performance, temperature, fan and
->> other
->> +hardware related characteristics are often dynamically configurable.
->> The
->> +profile is often automatically adjusted to the load by some
->> +automatic-mechanism (which may very well live outside the kernel).
->> +
->> +These auto platform-adjustment mechanisms often can be configured
->> with
->> +one of several 'platform-profiles', with either a bias towards low-
->> power
->> +consumption or towards performance (and higher power consumption and
->> +thermals).
->> +
->> +The purpose of the platform_profile attribute is to offer a generic
->> sysfs
->> +API for selecting the platform-profile of these automatic-
->> mechanisms.
->> +
->> +Note that this API is only for selecting the platform-profile, it is
->> +NOT a goal of this API to allow monitoring the resulting performance
->> +characteristics. Monitoring performance is best done with
->> device/vendor
->> +specific tools such as e.g. turbostat.
->> +
->> +Specifically when selecting a high-performance profile the actual
->> achieved
->> +performance may be limited by various factors such as: the heat
->> generated
->> +by other components, room temperature, free air flow at the bottom
->> of a
->> +laptop, etc. It is explicitly NOT a goal of this API to let
->> userspace know
->> +about any sub-optimal conditions which are impeding reaching the
->> requested
->> +performance level.
->> +
->> +Since numbers are a rather meaningless way to describe platform-
->> profiles
-> 
-> It's not meaningless, but rather ambiguous. For a range of 1 to 5, is 1
-> high performance, and 5 low power, or vice-versa?
-
-It is meaningless because the space we are trying to describe with the
-profile-names is not 1 dimensional. E.g. as discussed before cool and
-low-power are not necessarily the same thing. If you have a better way
-to word this I'm definitely in favor of improving the text here.
-
-> 
->> +this API uses strings to describe the various profiles. To make sure
->> that
->> +userspace gets a consistent experience when using this API this API
-> 
-> you can remove "when using this API".
-> 
->> +document defines a fixed set of profile-names. Drivers *must* map
->> their
->> +internal profile representation/names onto this fixed set.
->> +
->> +If for some reason there is no good match when mapping then a new
->> profile-name
->> +may be added.
-> 
-> "for some reason" can be removed.
-> 
->>  Drivers which wish to introduce new profile-names must:
->> +1. Have very good reasons to do so.
-> 
-> "1. Explain why the existing 'profile-names' cannot be used"
-> 
->> +2. Add the new profile-name to this document, so that future drivers
->> which also
->> +   have a similar problem can use the same name.
-> 
-> "2. Add the new 'profile-name' to the documentation so that other
-> drivers can use it, as well as user-space knowing clearly what
-> behaviour the 'profile-name' corresponds to"
-> 
->> +
->> +What:          /sys/firmware/acpi/platform_profile_choices
->> +Date:          October 2020
->> +Contact:       Hans de Goede <hdegoede@redhat.com>
->> +Description:
->> +               Reading this file gives a space separated list of
->> profiles
->> +               supported for this device.
-> 
-> "This file contains a space-separated list of profiles..."
-> 
->> +
->> +               Drivers must use the following standard profile-
->> names:
->> +
->> +               low-power:              Emphasises low power
->> consumption
->> +               cool:                   Emphasises cooler operation
->> +               quiet:                  Emphasises quieter operation
->> +               balanced:               Balance between low power
->> consumption
->> +                                       and performance
->> +               performance:            Emphasises performance (and
->> may lead to
->> +                                       higher temperatures and fan
->> speeds)
-> 
-> I'd replace "Emphasises" with either "Focus on" or the US English
-> spelling of "Emphasizes".
-> 
->> +               Userspace may expect drivers to offer at least
->> several of these
->> +               standard profile-names.
-> 
-> Replce "at least several" with "more than one".
-> 
->> +
->> +What:          /sys/firmware/acpi/platform_profile
->> +Date:          October 2020
->> +Contact:       Hans de Goede <hdegoede@redhat.com>
->> +Description:
->> +               Reading this file gives the current selected profile
->> for this
->> +               device. Writing this file with one of the strings
->> from
->> +               available_profiles changes the profile to the new
->> value.
-> 
-> Is there another file which explains whether those sysfs value will
-> contain a trailing linefeed?
-
-sysfs APIs are typically created so that they can be used from the shell,
-so on read a newline will be added. On write a newline at the end
-typically is allowed, but ignored. There are even special helper functions
-to deal with properly ignoring the newline on write.
-
-Regards,
-
-Hans
-
-
+SGkgRXJpaywNCg0KW0FkZGluZyBiYWNrIHRoZSBvcmlnaW5hbCBNTHMgKyBDQyBsaXN0XQ0KDQo+
+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEthbmVkYSwgRXJpayBbbWFpbHRv
+OmVyaWsua2FuZWRhQGludGVsLmNvbV0NCj4gU2VudDogMjggT2N0b2JlciAyMDIwIDE4OjIwDQo+
+IFRvOiBTaGFtZWVyYWxpIEtvbG90aHVtIFRob2RpIDxzaGFtZWVyYWxpLmtvbG90aHVtLnRob2Rp
+QGh1YXdlaS5jb20+Ow0KPiBNb29yZSwgUm9iZXJ0IDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPjsg
+V3lzb2NraSwgUmFmYWVsIEoNCj4gPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPg0KPiBTdWJq
+ZWN0OiBSRTogW0RldmVsXSBbUkZDIFBBVENIIDEvNF0gQUNQSUNBOiBJT1JUOiBVcGRhdGUgZm9y
+IHJldmlzaW9uIEUNCj4gDQo+IA0KPiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
+PiA+IEZyb206IFNoYW1lZXJhbGkgS29sb3RodW0gVGhvZGkNCj4gPiA8c2hhbWVlcmFsaS5rb2xv
+dGh1bS50aG9kaUBodWF3ZWkuY29tPg0KPiA+IFNlbnQ6IFdlZG5lc2RheSwgT2N0b2JlciAyOCwg
+MjAyMCAxOjE1IEFNDQo+ID4gVG86IE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5j
+b20+DQo+ID4gQ2M6IEthbmVkYSwgRXJpayA8ZXJpay5rYW5lZGFAaW50ZWwuY29tPg0KPiA+IFN1
+YmplY3Q6IFJFOiBbRGV2ZWxdIFtSRkMgUEFUQ0ggMS80XSBBQ1BJQ0E6IElPUlQ6IFVwZGF0ZSBm
+b3IgcmV2aXNpb24NCj4gPiBFDQo+ID4NCj4gPiBIaSwNCj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5h
+bCBNZXNzYWdlLS0tLS0NCj4gPiA+IEZyb206IE1vb3JlLCBSb2JlcnQgW21haWx0bzpyb2JlcnQu
+bW9vcmVAaW50ZWwuY29tXQ0KPiA+ID4gU2VudDogMjcgT2N0b2JlciAyMDIwIDIxOjQ2DQo+ID4g
+PiBUbzogU2hhbWVlcmFsaSBLb2xvdGh1bSBUaG9kaQ0KPiA+IDxzaGFtZWVyYWxpLmtvbG90aHVt
+LnRob2RpQGh1YXdlaS5jb20+DQo+ID4gPiBDYzogS2FuZWRhLCBFcmlrIDxlcmlrLmthbmVkYUBp
+bnRlbC5jb20+DQo+ID4gPiBTdWJqZWN0OiBSRTogW0RldmVsXSBbUkZDIFBBVENIIDEvNF0gQUNQ
+SUNBOiBJT1JUOiBVcGRhdGUgZm9yDQo+ID4gPiByZXZpc2lvbiBFDQo+ID4gPg0KPiA+ID4gVGhp
+cyBwYXRjaCB3aWxsIG5lZWQgdG8gYmUgcG9ydGVkIHRvIHRoZSBuYXRpdmUgQUNQSUNBIGZvcm1h
+dC4NCj4gPg0KPiA+IFRoYW5rcyBmb3IgeW91ciBmZWVkYmFjay4gU29ycnkgdGhhdCwgSSBhbSBu
+b3QgZmFtaWxpYXIgd2l0aCB0aGUgcHJvY2VzcyBoZXJlLg0KPiA+IEFzIG1lbnRpb25lZA0KPiA+
+IGJlbG93LCBJIHRob3VnaHQgYSBwdWxsIHJlcXVlc3QgdmlhIGFjcGljYSBnaXQgaXMgZW5vdWdo
+LCB3aGljaCB5b3UNCj4gPiBjYW4gZmluZCBoZXJlLA0KPiA+DQo+ID4gaHR0cHM6Ly9naXRodWIu
+Y29tL2FjcGljYS9hY3BpY2EvcHVsbC82MzgNCj4gPg0KPiA+IFRoZSBhYm92ZSBwdWxsIGluY2x1
+ZGVzIHRoaXMgaGVhZGVyIGZpbGUgY2hhbmdlICsgb3RoZXIgY2hhbmdlcw0KPiA+IHJlbGF0ZWQg
+dG8gUk1SIGZvciB0b29scy4NCj4gPg0KPiA+IFBsZWFzZSBsZXQgbWUga25vdyB3aGF0IGVsc2Ug
+bmVlZHMgdG8gYmUgZG9uZSB3aGVuIHlvdSBzYXkgIm5hdGl2ZQ0KPiA+IGZvcm1hdCIuDQo+IA0K
+PiBPaCBvaywgdGhhbmtzIGZvciB0aGUgcHVsbCByZXF1ZXN0LiBZb3UncmUgc3VibWl0dGluZyB0
+aGlzIGFzIGFuIFJGQyBmb3IgbGludXguIERvDQo+IHlvdSBleHBlY3QgdGhlIElPUlQgZGVmaW5p
+dGlvbiB0byBjaGFuZ2UgdGhyb3VnaG91dCBsaW51eCdzIFJGQyBwZXJpb2Q/IElmIHlvdQ0KPiBk
+b24ndCBwbGFuIG9uIGNoYW5naW5nIHRoZSBJT1JUIGRlZmluaXRpb24sIHdlIGNhbiBsb29rIGF0
+IHRoZSBwdWxsIHJlcXVlc3QuDQoNClRoZSBJT1JUIHJldmlzaW9uIEUgZG9jdW1lbnQgaXMgcHVi
+bGlzaGVkIGhlcmUsDQpodHRwczovL2RldmVsb3Blci5hcm0uY29tL2RvY3VtZW50YXRpb24vZGVu
+MDA0OS9sYXRlc3QvDQphbmQgSSBkb27igJl0IHRoaW5rIGl0IHdpbGwgY2hhbmdlIG5vdyAoQnV0
+IEFSTSBmb2xrcyBjYW4gY29uZmlybSB0aGlzKS4NCg0KSSBzdWJtaXR0ZWQgdGhpcyBhcyBhbiBS
+RkMsIGJlY2F1c2Ugb2YgdGhlIHZlcnkgZGVwZW5kZW5jeSBvbiB0aGlzIGFjdGJsMi5oDQpoZWFk
+ZXIgdXBkYXRlcyBhbmQgdGhpcyBiZWluZyBub3QgYXZhaWxhYmxlIGluIGtlcm5lbC4gDQoNCj4g
+T25jZSB3ZSBtZXJnZSBpdCwgSSdsbCBzdWJtaXQgdGhlIEFDUElDQSBwYXRjaGVzIHRvIFJhZmFl
+bCBhZnRlciB3ZSBkbyBhDQo+IHJlbGVhc2UuDQoNCk9rLiBUaGFua3MgZm9yIHRoZSBkZXRhaWxz
+LiBMb29raW5nIGZvcndhcmQgdG8gZ2V0dGluZyB0aGlzIG1lcmdlZCB0byBrZXJuZWwgc29vbiA6
+KQ0KDQpUaGFua3MsDQpTaGFtZWVyDQogDQo+IEVyaWsNCj4gPg0KPiA+IFRoYW5rcywNCj4gPiBT
+aGFtZWVyDQo+ID4NCj4gPg0KPiA+ID4NCj4gPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3Nh
+Z2UtLS0tLQ0KPiA+ID4gRnJvbTogU2hhbWVlciBLb2xvdGh1bSA8c2hhbWVlcmFsaS5rb2xvdGh1
+bS50aG9kaUBodWF3ZWkuY29tPg0KPiA+ID4gU2VudDogVHVlc2RheSwgT2N0b2JlciAyNywgMjAy
+MCA0OjI3IEFNDQo+ID4gPiBUbzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn
+Ow0KPiA+ID4gbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGlvbW11QGxpc3RzLmxpbnV4LWZv
+dW5kYXRpb24ub3JnOw0KPiA+ID4gZGV2ZWxAYWNwaWNhLm9yZw0KPiA+ID4gQ2M6IGxpbnV4YXJt
+QGh1YXdlaS5jb207IGxvcmVuem8ucGllcmFsaXNpQGFybS5jb207IGpvcm9AOGJ5dGVzLm9yZzsN
+Cj4gPiA+IHJvYmluLm11cnBoeUBhcm0uY29tOyB3YW5naHVpcWlhbmdAaHVhd2VpLmNvbTsNCj4g
+PiA+IGpvbmF0aGFuLmNhbWVyb25AaHVhd2VpLmNvbQ0KPiA+ID4gU3ViamVjdDogW0RldmVsXSBb
+UkZDIFBBVENIIDEvNF0gQUNQSUNBOiBJT1JUOiBVcGRhdGUgZm9yIHJldmlzaW9uIEUNCj4gPiA+
+DQo+ID4gPiBJT1JUIHJldmlzaW9uIEUgY29udGFpbnMgYSBmZXcgYWRkaXRpb25zIGxpa2UsDQo+
+ID4gPiDCoCDCoCAtQWRkZWQgYW4gaWRlbnRpZmllciBmaWVsZCBpbiB0aGUgbm9kZSBkZXNjcmlw
+dG9ycyB0byBhaWQgdGFibGUNCj4gPiA+IMKgIMKgIMKgY3Jvc3MtcmVmZXJlbmNpbmcuDQo+ID4g
+PiDCoCDCoCAtSW50cm9kdWNlZCB0aGUgUmVzZXJ2ZWQgTWVtb3J5IFJhbmdlKFJNUikgbm9kZS4g
+VGhpcyBpcyB1c2VkDQo+ID4gPiAgwqAgwqAgdG8gZGVzY3JpYmUgbWVtb3J5IHJhbmdlcyB0aGF0
+IGFyZSB1c2VkIGJ5IGVuZHBvaW50cyBhbmQNCj4gPiA+IHJlcXVpcmVzDQo+ID4gPiAgwqAgwqAg
+YSB1bml0eSBtYXBwaW5nIGluIFNNTVUuDQo+ID4gPiAgICAgLUludHJvZHVjZWQgYSBmbGFnIGlu
+IHRoZSBSQyBub2RlIHRvIGV4cHJlc3Mgc3VwcG9ydCBmb3IgUFJJLg0KPiA+ID4NCj4gPiA+IFNp
+Z25lZC1vZmYtYnk6IFNoYW1lZXIgS29sb3RodW0NCj4gPiA8c2hhbWVlcmFsaS5rb2xvdGh1bS50
+aG9kaUBodWF3ZWkuY29tPg0KPiA+ID4gLS0tDQo+ID4gPiAgLVRoaXMgc2hvdWxkIGJlIHVwZGF0
+ZWQgdGhyb3VnaCBhY3BpY2EgZ2l0LiBJIGhhdmUgc2VudCBvdXQgYSBwdWxsDQo+ID4gPiAgIHJl
+cXVlc3QgZm9yIHRoZSBzYW1lIGhlcmUsDQo+ID4gPiAgIGh0dHBzOi8vZ2l0aHViLmNvbS9hY3Bp
+Y2EvYWNwaWNhL3B1bGwvNjM4DQo+ID4gPg0KPiA+ID4gUGxlYXNlIGhlbHAgdG8gcmV2aWV3Lg0K
+PiA+ID4gLS0tDQo+ID4gPiAgaW5jbHVkZS9hY3BpL2FjdGJsMi5oIHwgMjUgKysrKysrKysrKysr
+KysrKysrKy0tLS0tLQ0KPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxOSBpbnNlcnRpb25zKCspLCA2
+IGRlbGV0aW9ucygtKQ0KPiA+ID4NCj4gPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWN0
+YmwyLmggYi9pbmNsdWRlL2FjcGkvYWN0YmwyLmggaW5kZXgNCj4gPiA+IGVjNjY3NzljYjE5My4u
+Mjc0ZmNlN2I1YzAxIDEwMDY0NA0KPiA+ID4gLS0tIGEvaW5jbHVkZS9hY3BpL2FjdGJsMi5oDQo+
+ID4gPiArKysgYi9pbmNsdWRlL2FjcGkvYWN0YmwyLmgNCj4gPiA+IEBAIC02OCw3ICs2OCw3IEBA
+DQo+ID4gPiAgICogSU9SVCAtIElPIFJlbWFwcGluZyBUYWJsZQ0KPiA+ID4gICAqDQo+ID4gPiAg
+ICogQ29uZm9ybXMgdG8gIklPIFJlbWFwcGluZyBUYWJsZSBTeXN0ZW0gU29mdHdhcmUgb24gQVJN
+DQo+ID4gPiBQbGF0Zm9ybXMiLA0KPiA+ID4gLSAqIERvY3VtZW50IG51bWJlcjogQVJNIERFTiAw
+MDQ5RCwgTWFyY2ggMjAxOA0KPiA+ID4gKyAqIERvY3VtZW50IG51bWJlcjogQVJNIERFTiAwMDQ5
+RSwgSnVuZSAyMDIwDQo+ID4gPiAgICoNCj4gPiA+DQo+ID4gPg0KPiA+ICoqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gPiAqKioqKioN
+Cj4gPiA+ICoqKioqKioqKioqKioqLw0KPiA+ID4NCj4gPiA+IEBAIC04Niw3ICs4Niw4IEBAIHN0
+cnVjdCBhY3BpX2lvcnRfbm9kZSB7DQo+ID4gPiAgCXU4IHR5cGU7DQo+ID4gPiAgCXUxNiBsZW5n
+dGg7DQo+ID4gPiAgCXU4IHJldmlzaW9uOw0KPiA+ID4gLQl1MzIgcmVzZXJ2ZWQ7DQo+ID4gPiAr
+CXUxNiByZXNlcnZlZDsNCj4gPiA+ICsJdTE2IGlkZW50aWZpZXI7DQo+ID4gPiAgCXUzMiBtYXBw
+aW5nX2NvdW50Ow0KPiA+ID4gIAl1MzIgbWFwcGluZ19vZmZzZXQ7DQo+ID4gPiAgCWNoYXIgbm9k
+ZV9kYXRhWzFdOw0KPiA+ID4gQEAgLTEwMCw3ICsxMDEsOCBAQCBlbnVtIGFjcGlfaW9ydF9ub2Rl
+X3R5cGUgew0KPiA+ID4gIAlBQ1BJX0lPUlRfTk9ERV9QQ0lfUk9PVF9DT01QTEVYID0gMHgwMiwN
+Cj4gPiA+ICAJQUNQSV9JT1JUX05PREVfU01NVSA9IDB4MDMsDQo+ID4gPiAgCUFDUElfSU9SVF9O
+T0RFX1NNTVVfVjMgPSAweDA0LA0KPiA+ID4gLQlBQ1BJX0lPUlRfTk9ERV9QTUNHID0gMHgwNQ0K
+PiA+ID4gKwlBQ1BJX0lPUlRfTk9ERV9QTUNHID0gMHgwNSwNCj4gPiA+ICsJQUNQSV9JT1JUX05P
+REVfUk1SID0gMHgwNiwNCj4gPiA+ICB9Ow0KPiA+ID4NCj4gPiA+ICBzdHJ1Y3QgYWNwaV9pb3J0
+X2lkX21hcHBpbmcgew0KPiA+ID4gQEAgLTE2NywxMCArMTY5LDEwIEBAIHN0cnVjdCBhY3BpX2lv
+cnRfcm9vdF9jb21wbGV4IHsNCj4gPiA+ICAJdTggcmVzZXJ2ZWRbM107CQkvKiBSZXNlcnZlZCwg
+bXVzdCBiZSB6ZXJvICovDQo+ID4gPiAgfTsNCj4gPiA+DQo+ID4gPiAtLyogVmFsdWVzIGZvciBh
+dHNfYXR0cmlidXRlIGZpZWxkIGFib3ZlICovDQo+ID4gPiArLyogTWFza3MgZm9yIGF0c19hdHRy
+aWJ1dGUgZmllbGQgYWJvdmUgKi8NCj4gPiA+DQo+ID4gPiAtI2RlZmluZSBBQ1BJX0lPUlRfQVRT
+X1NVUFBPUlRFRCAgICAgICAgIDB4MDAwMDAwMDEJLyogVGhlDQo+IHJvb3QNCj4gPiA+IGNvbXBs
+ZXggc3VwcG9ydHMgQVRTICovDQo+ID4gPiAtI2RlZmluZSBBQ1BJX0lPUlRfQVRTX1VOU1VQUE9S
+VEVEICAgICAgIDB4MDAwMDAwMDAJLyogVGhlDQo+IHJvb3QNCj4gPiA+IGNvbXBsZXggZG9lc24n
+dCBzdXBwb3J0IEFUUyAqLw0KPiA+ID4gKyNkZWZpbmUgQUNQSV9JT1JUX0FUU19TVVBQT1JURUQg
+ICAgICAgICAoMSkJLyogVGhlIHJvb3QgY29tcGxleA0KPiA+ID4gc3VwcG9ydHMgQVRTICovDQo+
+ID4gPiArI2RlZmluZSBBQ1BJX0lPUlRfUFJJX1NVUFBPUlRFRCAgICAgICAgICgxPDwxKQkvKiBU
+aGUgcm9vdA0KPiBjb21wbGV4DQo+ID4gPiBzdXBwb3J0cyBQUkkgKi8NCj4gPiA+DQo+ID4gPiAg
+c3RydWN0IGFjcGlfaW9ydF9zbW11IHsNCj4gPiA+ICAJdTY0IGJhc2VfYWRkcmVzczsJLyogU01N
+VSBiYXNlIGFkZHJlc3MgKi8NCj4gPiA+IEBAIC0yNDEsNiArMjQzLDE3IEBAIHN0cnVjdCBhY3Bp
+X2lvcnRfcG1jZyB7DQo+ID4gPiAgCXU2NCBwYWdlMV9iYXNlX2FkZHJlc3M7DQo+ID4gPiAgfTsN
+Cj4gPiA+DQo+ID4gPiArc3RydWN0IGFjcGlfaW9ydF9ybXIgew0KPiA+ID4gKwl1MzIgcm1yX2Nv
+dW50Ow0KPiA+ID4gKwl1MzIgcm1yX29mZnNldDsNCj4gPiA+ICt9Ow0KPiA+ID4gKw0KPiA+ID4g
+K3N0cnVjdCBhY3BpX2lvcnRfcm1yX2Rlc2Mgew0KPiA+ID4gKwl1NjQgYmFzZV9hZGRyZXNzOw0K
+PiA+ID4gKwl1NjQgbGVuZ3RoOw0KPiA+ID4gKwl1MzIgcmVzZXJ2ZWQ7DQo+ID4gPiArfTsNCj4g
+PiA+ICsNCj4gPiA+DQo+ID4gPg0KPiA+IC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqDQo+ID4gKioqKioNCj4gPiA+ICoqKioqKioqKioq
+KioqKioNCj4gPiA+ICAgKg0KPiA+ID4gICAqIElWUlMgLSBJL08gVmlydHVhbGl6YXRpb24gUmVw
+b3J0aW5nIFN0cnVjdHVyZQ0KPiA+ID4gLS0NCj4gPiA+IDIuMTcuMQ0KPiA+ID4gX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCj4gPiA+IERldmVsIG1haWxp
+bmcgbGlzdCAtLSBkZXZlbEBhY3BpY2Eub3JnIFRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwN
+Cj4gPiA+IHRvDQo+ID4gPiBkZXZlbC0NCj4gPiBsZWF2ZUBhY3BpY2Eub3JnICUod2ViX3BhZ2Vf
+dXJsKXNsaXN0aW5mbyUoY2dpZXh0KXMvJShfaW50ZXJuYWxfbmFtZQ0KPiA+ID4gKXMNCg==
