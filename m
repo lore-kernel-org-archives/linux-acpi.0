@@ -2,132 +2,114 @@ Return-Path: <SRS0=+0Ii=ED=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 985E3C4363A
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 21:37:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA854C388F7
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 21:46:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A53C24680
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 21:37:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="nvCl8sKw"
+	by mail.kernel.org (Postfix) with ESMTP id 950C724724
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 21:46:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727042AbgJ1Vhu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Oct 2020 17:37:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46520 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727011AbgJ1Vhl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2020 17:37:41 -0400
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com [IPv6:2607:f8b0:4864:20::242])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23490C0613D1
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2020 14:37:40 -0700 (PDT)
-Received: by mail-oi1-x242.google.com with SMTP id c72so1088365oig.9
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2020 14:37:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=khsXwY2FOIak2E0IL9IWqYVg7gg6o/TiC9wESQ4lpvE=;
-        b=nvCl8sKwfy5MaflP71vCYy5uZwYIEw6hBOTPLMirYPIM9coKxLjYxUttQyjPrhGAW3
-         wIYGldGZNGcC8gHmdV+ZWm/IqohhKrnRpZPcrTxQRcVfK0TKBfDHIMVWxU6FFW1n+y4V
-         jYFhtScOr2Uz8IHzxFnLUdzAeKgHTM5DbPgfw=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=khsXwY2FOIak2E0IL9IWqYVg7gg6o/TiC9wESQ4lpvE=;
-        b=ISZCJezm78NHg2cFDjr/bEIJwts14PhWhRVk3GsRuTIuCrjmyIkXtqqbUzqG2/PfiU
-         zLsAMp6bRBGDcadUMlzfvGLeLTh1u82ORaZWr8ac/Hy7cO/ZOc9d55BavAKxRtXWyKh0
-         ycvLVQB2IBwTVd76Uqpy7wKV0piUFMzwlRzZulTWCqspQLcRvBx9Fe4K6ET+KAuL6wj0
-         /TXfOIitWVcRhv7F11q00dh3za4TywKwJienfvxigQF15mNejnIW1nT7OGGGgAX+L9Lm
-         QY03r4mvnHy6+vxiRpj8dQunVDBS0pWMLRimb/TqXkgD0pBKEOtf2kgP2b/+wUDsj7mA
-         uRYw==
-X-Gm-Message-State: AOAM5329WYizkChDq64PulPkyY5Uv/oiHAy2lvL9niPBAxevyr8sDwbL
-        rAY3PR8ppcjRz20Vz9FBmgzumL89mMOehWlM5PI=
-X-Google-Smtp-Source: ABdhPJz84vGRzdsJvW6wA4/9B5sIOjrlmy6UIlNR4rU/QNAuYRFqmd8eIpxB8hDU2JNLqHTWiC3HOA==
-X-Received: by 2002:aca:d54c:: with SMTP id m73mr660598oig.94.1603919454988;
-        Wed, 28 Oct 2020 14:10:54 -0700 (PDT)
-Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com. [209.85.167.169])
-        by smtp.gmail.com with ESMTPSA id h135sm178574oib.23.2020.10.28.14.10.54
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 28 Oct 2020 14:10:54 -0700 (PDT)
-Received: by mail-oi1-f169.google.com with SMTP id y186so1051217oia.3
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2020 14:10:54 -0700 (PDT)
-X-Received: by 2002:a05:6808:602:: with SMTP id y2mr686737oih.11.1603919453681;
- Wed, 28 Oct 2020 14:10:53 -0700 (PDT)
+        id S1727398AbgJ1VqI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Oct 2020 17:46:08 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:6919 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727379AbgJ1VqI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2020 17:46:08 -0400
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CLm6P095sz6yKv;
+        Wed, 28 Oct 2020 19:09:01 +0800 (CST)
+Received: from [10.174.179.182] (10.174.179.182) by
+ DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
+ 14.3.487.0; Wed, 28 Oct 2020 19:08:54 +0800
+Subject: Re: [PATCH v4 6/7] arm64: mm: Set ZONE_DMA size based on early IORT
+ scan
+To:     Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
+        <robh+dt@kernel.org>, <catalin.marinas@arm.com>, <hch@lst.de>,
+        <ardb@kernel.org>, <linux-kernel@vger.kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>
+CC:     <robin.murphy@arm.com>, <linux-arm-kernel@lists.infradead.org>,
+        <linux-rpi-kernel@lists.infradead.org>, <jeremy.linton@arm.com>,
+        <iommu@lists.linux-foundation.org>, <devicetree@vger.kernel.org>,
+        <will@kernel.org>, Anshuman Khandual <anshuman.khandual@arm.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, <linux-acpi@vger.kernel.org>
+References: <20201021123437.21538-1-nsaenzjulienne@suse.de>
+ <20201021123437.21538-7-nsaenzjulienne@suse.de>
+From:   Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <3a1480f7-7fd6-247c-73a2-f761f9ce3362@huawei.com>
+Date:   Wed, 28 Oct 2020 19:08:53 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-References: <20201028205101.47583-1-andriy.shevchenko@linux.intel.com> <20201028205101.47583-2-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20201028205101.47583-2-andriy.shevchenko@linux.intel.com>
-From:   Ricardo Ribalda <ribalda@chromium.org>
-Date:   Wed, 28 Oct 2020 22:10:42 +0100
-X-Gmail-Original-Message-ID: <CANiDSCtRDwfFo9HE84iujjFe6h9aS6b3B8wkz5Rt0aO8=XMsNg@mail.gmail.com>
-Message-ID: <CANiDSCtRDwfFo9HE84iujjFe6h9aS6b3B8wkz5Rt0aO8=XMsNg@mail.gmail.com>
-Subject: Re: [PATCH v1 2/3] Documentation: firmware-guide: gpio-properties:
- active_low only for GpioIo()
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-acpi@vger.kernel.org,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20201021123437.21538-7-nsaenzjulienne@suse.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.179.182]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Andy
-
-Thanks for your patch and super fast response.
-
-I think there are two different concepts here:
-
-1) when the pin has a low value, it is  0 or a 1? =>active_low
-
-2) when do I get an irq, low->high or high->low => irq polarity
-
-When I read the acpi spec for GpioInt()
-https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf page
-934, it has the same problem as for GpioIo(), it does not express the
-active_low and this is where the _DSD field comes handy.
-
-Without using the active_low, how can we describe  a pin that is
-active low and has to trigger an irq on both edges?
-
-Thanks again
-
-
-On Wed, Oct 28, 2020 at 9:51 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> It appears that people may misinterpret active_low field in _DSD
-> for GpioInt() resource. Add a paragraph to clarify this.
->
-> Reported-by: Ricardo Ribalda <ribalda@chromium.org>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On 2020/10/21 20:34, Nicolas Saenz Julienne wrote:
+> From: Ard Biesheuvel <ardb@kernel.org>
+> 
+> We recently introduced a 1 GB sized ZONE_DMA to cater for platforms
+> incorporating masters that can address less than 32 bits of DMA, in
+> particular the Raspberry Pi 4, which has 4 or 8 GB of DRAM, but has
+> peripherals that can only address up to 1 GB (and its PCIe host
+> bridge can only access the bottom 3 GB)
+> 
+> Instructing the DMA layer about these limitations is straight-forward,
+> even though we had to fix some issues regarding memory limits set in
+> the IORT for named components, and regarding the handling of ACPI _DMA
+> methods. However, the DMA layer also needs to be able to allocate
+> memory that is guaranteed to meet those DMA constraints, for bounce
+> buffering as well as allocating the backing for consistent mappings.
+> 
+> This is why the 1 GB ZONE_DMA was introduced recently. Unfortunately,
+> it turns out the having a 1 GB ZONE_DMA as well as a ZONE_DMA32 causes
+> problems with kdump, and potentially in other places where allocations
+> cannot cross zone boundaries. Therefore, we should avoid having two
+> separate DMA zones when possible.
+> 
+> So let's do an early scan of the IORT, and only create the ZONE_DMA
+> if we encounter any devices that need it. This puts the burden on
+> the firmware to describe such limitations in the IORT, which may be
+> redundant (and less precise) if _DMA methods are also being provided.
+> However, it should be noted that this situation is highly unusual for
+> arm64 ACPI machines. Also, the DMA subsystem still gives precedence to
+> the _DMA method if implemented, and so we will not lose the ability to
+> perform streaming DMA outside the ZONE_DMA if the _DMA method permits
+> it.
+> 
+> Cc: Jeremy Linton <jeremy.linton@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Hanjun Guo <guohanjun@huawei.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+> Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
+> [nsaenz: Rebased, removed documentation change and add declaration in acpi_iort.h]
+> Signed-off-by: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+> 
 > ---
->  Documentation/firmware-guide/acpi/gpio-properties.rst | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/Documentation/firmware-guide/acpi/gpio-properties.rst b/Documentation/firmware-guide/acpi/gpio-properties.rst
-> index e6e65ceb2ca1..370fe46c6af9 100644
-> --- a/Documentation/firmware-guide/acpi/gpio-properties.rst
-> +++ b/Documentation/firmware-guide/acpi/gpio-properties.rst
-> @@ -55,6 +55,9 @@ Since ACPI GpioIo() resource does not have a field saying whether it is
->  active low or high, the "active_low" argument can be used here.  Setting
->  it to 1 marks the GPIO as active low.
->
-> +Note, active_low in _DSD does not make sense for GpioInt() resource and
-> +must be 0. GpioInt() resource has its own means of defining it.
-> +
->  In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
->  resource, second pin in that resource with the GPIO number of 31.
->
-> --
-> 2.28.0
->
+> 
+> Changes since v3:
+>   - Use min_not_zero()
+>   - Check ACPI revision
+>   - Remove unnecessary #ifdef in zone_sizes_init()
+> 
+>   arch/arm64/mm/init.c      |  3 ++-
+>   drivers/acpi/arm64/iort.c | 52 +++++++++++++++++++++++++++++++++++++++
+>   include/linux/acpi_iort.h |  4 +++
 
-
--- 
-Ricardo Ribalda
+Acked-by: Hanjun Guo <guohanjun@huawei.com>
