@@ -1,176 +1,113 @@
-Return-Path: <SRS0=+0Ii=ED=vger.kernel.org=linux-acpi-owner@kernel.org>
+Return-Path: <SRS0=W+nf=EE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C1D5C388F7
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:44:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37083C55179
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 00:22:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 402CD2072E
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:44:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0E43206DC
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 00:22:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Uv8TJqqZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389199AbgJ1Woo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:44:44 -0400
-Received: from foss.arm.com ([217.140.110.172]:40608 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730754AbgJ1WmP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:42:15 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2557E1A32;
-        Wed, 28 Oct 2020 09:43:51 -0700 (PDT)
-Received: from [192.168.1.179] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5F7D93F66E;
-        Wed, 28 Oct 2020 09:43:49 -0700 (PDT)
-Subject: Re: [RFC PATCH 0/4] ACPI/IORT: Support for IORT RMR node
-To:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
-        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        iommu@lists.linux-foundation.org, devel@acpica.org
-Cc:     lorenzo.pieralisi@arm.com, joro@8bytes.org,
-        jonathan.cameron@huawei.com, linuxarm@huawei.com,
-        guohanjun@huawei.com, robin.murphy@arm.com,
-        wanghuiqiang@huawei.com, Sami Mujawar <Sami.Mujawar@arm.com>
-References: <20201027112646.44680-1-shameerali.kolothum.thodi@huawei.com>
-From:   Steven Price <steven.price@arm.com>
-Message-ID: <f389e864-3d7a-3c96-8f51-c04f92759df1@arm.com>
-Date:   Wed, 28 Oct 2020 16:43:48 +0000
+        id S2388926AbgJ2AWd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Oct 2020 20:22:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57062 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388923AbgJ1WiD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2020 18:38:03 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C32F3C0613CF;
+        Wed, 28 Oct 2020 15:38:01 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id w27so1205019ejb.3;
+        Wed, 28 Oct 2020 15:38:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:cc:references:from:message-id:date:user-agent:mime-version
+         :in-reply-to:content-language:content-transfer-encoding;
+        bh=s/GAYx7ZPx5cYyrJpIiN2TWEaOxiqi1GSB3L4+92Y2c=;
+        b=Uv8TJqqZ8sNRjgWSCSuYWFsDZgmVzYOFXrASP3oE9Ka4DpUCAZf26XFlpHKPV4wPzm
+         1hTs0h4i2zVlFe7hi1nf4Gc+ilS3NA7c8LS+hOWDQ9KmBdk0zYj4QQPtqlY9GUNAo+al
+         Y3alnowM1S+oTkOr7Wvu43bHjPo/7S4eHatuUxNghefi+GNYptku2n4md7lvJHSRwI47
+         Bt+5pZXvHu8M95SljAXilBFBlL/AZha7En9I3wvwNam5wAcioDY7YPjxoCkhJqIeQNM9
+         nB0cVo7pEvpW3x/RjQprr4tQyyHq9YpF+tTvo5EwUcIq8UAoIHAwm5W324mnm2ilz7qj
+         zpkA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=s/GAYx7ZPx5cYyrJpIiN2TWEaOxiqi1GSB3L4+92Y2c=;
+        b=Ex4pLo40bDq+1SqsF2LKqm1BNuAUyShcQiJgGPdqIJF4AnjI6/yXduhOB0Ib5S1IOq
+         n42s4hUmz8CBdbslzz7f2eE6yc+V6+j6RglHkpDzElXZFXkIBRTRB3qimSE19Bxi1MEn
+         OHzJxE4qsHPgL9tE5q1t0ovxuF8UAuqDRX6gfN9mUBHexST4FC3ASaB+rAukEswSy0Zf
+         idommq6JbZ4xqbjH/hFRr+yk1TmMlgsxEGaKT+Uc485Te+Z9LhvZQXSc3sFcqdwzYwzy
+         EShDfxOtGCniy6nShU/tSFXtLhckzrkF1Gked7nxYPpe0mRQzXvvYVfmEC+ztI9aXYLk
+         SC4Q==
+X-Gm-Message-State: AOAM5314Fka/fIMbZQIqHxK1O/UidPm0DIgwfttd6H5fi2LgJTKFQmK9
+        RTGwu+OhShbeJnuFD62jNBDDs6eoPTA=
+X-Google-Smtp-Source: ABdhPJzA1yToYKpCKuK4NAqE6UeeWarnejBXdNhdxv86i3dO+xwNlFDh0dmkO2He/v5J73RT3owQSg==
+X-Received: by 2002:a05:6402:141:: with SMTP id s1mr4129789edu.87.1603881678274;
+        Wed, 28 Oct 2020 03:41:18 -0700 (PDT)
+Received: from [192.168.2.202] (pd9e5a52a.dip0.t-ipconnect.de. [217.229.165.42])
+        by smtp.gmail.com with ESMTPSA id 64sm561440eda.63.2020.10.28.03.41.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 28 Oct 2020 03:41:17 -0700 (PDT)
+Subject: Re: [PATCH v4] platform/surface: Add Driver to set up lid GPEs on MS
+ Surface device
+Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Darren Hart <dvhart@infradead.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <mgross@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Gayatri Kammela <gayatri.kammela@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        =?UTF-8?Q?Barnab=c3=a1s_P=c5=91cze?= <pobrn@protonmail.com>,
+        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20201023140802.1916057-1-luzmaximilian@gmail.com>
+From:   Maximilian Luz <luzmaximilian@gmail.com>
+Message-ID: <44362c2a-14f4-bda0-0539-58543c6329a0@gmail.com>
+Date:   Wed, 28 Oct 2020 11:41:16 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-In-Reply-To: <20201027112646.44680-1-shameerali.kolothum.thodi@huawei.com>
+In-Reply-To: <20201023140802.1916057-1-luzmaximilian@gmail.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 27/10/2020 11:26, Shameer Kolothum wrote:
-> The series adds support to IORT RMR nodes specified in IORT
-> Revision E -ARM DEN 0049E[0]. RMR nodes are used to describe memory
-> ranges that are used by endpoints and require a unity mapping
-> in SMMU.
+On 10/23/20 4:08 PM, Maximilian Luz wrote:
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 8ff126ced757..31271180dae3 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -11532,6 +11532,12 @@ F:	drivers/scsi/smartpqi/smartpqi*.[ch]
+>   F:	include/linux/cciss*.h
+>   F:	include/uapi/linux/cciss*.h
+>   
+> +MICROSOFT SURFACE GPE LID SUPPORT DRIVER
+> +M:	Maximilian Luz <luzmaximilian@gmail.com>
+> +L:	platform-driver-x86@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/platform/x86/surface_gpe.c
 
-Hi Shameer,
+This should of course read
 
-I've also been taking a look at RMR, and Sami is helping me get set up 
-so that I can do some testing. We're hoping to be able to test an EFI 
-framebuffer or splash screen - which has the added complication of the 
-unity mapping becoming redundant if a native display driver takes over 
-the display controller.
+     F: drivers/platform/surface/surface_gpe.c
 
-I've looked through your series and the code looks correct to me. 
-Hopefully I'll be able to give it some testing soon.
+Sorry for that rookie mistake. Will fix asap.
 
-Thanks,
-
-Steve
-
-> We have faced issues with 3408iMR RAID controller cards which
-> fail to boot when SMMU is enabled. This is because these controllers
-> make use of host memory for various caching related purposes and when
-> SMMU is enabled the iMR firmware fails to access these memory regions
-> as there is no mapping for them. IORT RMR provides a way for UEFI to
-> describe and report these memory regions so that the kernel can make
-> a unity mapping for these in SMMU.
-> 
-> RFC because, Patch #1 is to update the actbl2.h and should be done
-> through acpica update. I have send out a pull request[1] for that.
-> 
-> Tests:
-> 
-> With a UEFI, that reports the RMR for the dev,
-> ....
-> [16F0h 5872   1]                         Type : 06
-> [16F1h 5873   2]                       Length : 007C
-> [16F3h 5875   1]                     Revision : 00
-> [1038h 0056   2]                     Reserved : 00000000
-> [1038h 0056   2]                   Identifier : 00000000
-> [16F8h 5880   4]                Mapping Count : 00000001
-> [16FCh 5884   4]               Mapping Offset : 00000040
-> 
-> [1700h 5888   4]    Number of RMR Descriptors : 00000002
-> [1704h 5892   4]        RMR Descriptor Offset : 00000018
-> 
-> [1708h 5896   8]          Base Address of RMR : 0000E6400000
-> [1710h 5904   8]                Length of RMR : 000000100000
-> [1718h 5912   4]                     Reserved : 00000000
-> 
-> [171Ch 5916   8]          Base Address of RMR : 0000000027B00000
-> [1724h 5924   8]                Length of RMR : 0000000000C00000
-> [172Ch 5932   4]                     Reserved : 00000000
-> 
-> [1730h 5936   4]                   Input base : 00000000
-> [1734h 5940   4]                     ID Count : 00000001
-> [1738h 5944   4]                  Output Base : 00000003
-> [173Ch 5948   4]             Output Reference : 00000064
-> [1740h 5952   4]        Flags (decoded below) : 00000001
->                                 Single Mapping : 1
-> ...
-> 
-> Without the series the RAID controller initilization fails as
-> below,
-> 
-> ...
-> [   12.631117] megaraid_sas 0000:03:00.0: FW supports sync cache        : Yes
-> [   12.637360] megaraid_sas 0000:03:00.0: megasas_disable_intr_fusion is called outbound_intr_mask:0x40000009
-> [   18.776377] megaraid_sas 0000:03:00.0: Init cmd return status FAILED for SCSI host 0
-> [   23.019383] megaraid_sas 0000:03:00.0: Waiting for FW to come to ready state
-> [  106.684281] megaraid_sas 0000:03:00.0: FW in FAULT state, Fault code:0x10000 subcode:0x0 func:megasas_transition_to_ready
-> [  106.695186] megaraid_sas 0000:03:00.0: System Register set:
-> [  106.889787] megaraid_sas 0000:03:00.0: Failed to transition controller to ready for scsi0.
-> [  106.910475] megaraid_sas 0000:03:00.0: Failed from megasas_init_fw 6407
-> estuary:/$
-> 
-> With the series, now the kernel has direct mapping for the dev as
-> below,
-> 
-> estuary:/$ cat /sys/kernel/iommu_groups/0/reserved_regions
-> 0x0000000008000000 0x00000000080fffff msi
-> 0x0000000027b00000 0x00000000286fffff direct
-> 0x00000000e6400000 0x00000000e64fffff direct
-> estuary:/$
-> 
-> ....
-> [   12.254318] megaraid_sas 0000:03:00.0: megasas_disable_intr_fusion is called outbound_intr_mask:0x40000009
-> [   12.739089] megaraid_sas 0000:03:00.0: FW provided supportMaxExtLDs: 0      max_lds: 32
-> [   12.746628] megaraid_sas 0000:03:00.0: controller type       : iMR(0MB)
-> [   12.752694] megaraid_sas 0000:03:00.0: Online Controller Reset(OCR)  : Enabled
-> [   12.759798] megaraid_sas 0000:03:00.0: Secure JBOD support   : Yes
-> [   12.765778] megaraid_sas 0000:03:00.0: NVMe passthru support : Yes
-> [   12.771931] megaraid_sas 0000:03:00.0: FW provided TM TaskAbort/Reset timeou: 6 secs/60 secs
-> [   12.780503] megaraid_sas 0000:03:00.0: JBOD sequence map support     : Yes
-> [   12.787000] megaraid_sas 0000:03:00.0: PCI Lane Margining support    : No
-> [   12.819179] megaraid_sas 0000:03:00.0: NVME page size        : (4096)
-> [   12.825672] megaraid_sas 0000:03:00.0: megasas_enable_intr_fusion is called outbound_intr_mask:0x40000000
-> [   12.835199] megaraid_sas 0000:03:00.0: INIT adapter done
-> [   12.873932] megaraid_sas 0000:03:00.0: pci id                : (0x1000)/(0x0017)/(0x19e5)/(0xd213)
-> [   12.881644] megaraid_sas 0000:03:00.0: unevenspan support    : no
-> [   12.887451] megaraid_sas 0000:03:00.0: firmware crash dump   : no
-> [   12.893344] megaraid_sas 0000:03:00.0: JBOD sequence map     : enabled
-> 
-> RAID controller init is now success and can detect the drives
-> attached as well.
-> 
-> Thanks,
-> Shameer
-> 
-> [0]. https://developer.arm.com/documentation/den0049/latest/
-> [1]. https://github.com/acpica/acpica/pull/638
-> 
-> Shameer Kolothum (4):
->    ACPICA: IORT: Update for revision E
->    ACPI/IORT: Add support for RMR node parsing
->    ACPI/IORT: Add RMR memory regions reservation helper
->    iommu/dma: Reserve any RMR regions associated with a dev
-> 
->   drivers/acpi/arm64/iort.c | 175 +++++++++++++++++++++++++++++++++++++-
->   drivers/iommu/dma-iommu.c |  12 ++-
->   include/acpi/actbl2.h     |  25 ++++--
->   include/linux/acpi_iort.h |   4 +
->   4 files changed, 205 insertions(+), 11 deletions(-)
-> 
-
+Regards,
+Max
