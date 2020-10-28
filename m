@@ -2,514 +2,177 @@ Return-Path: <SRS0=+0Ii=ED=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,
-	DKIM_ADSP_CUSTOM_MED,DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FC85C55179
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:04:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5787EC388F7
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:05:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1692B247F8
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:04:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBDD92470E
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Oct 2020 22:05:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WmU1FpEy"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="InpLHLru"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729926AbgJ1WEg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:04:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51210 "EHLO
+        id S1729966AbgJ1WFQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:05:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729351AbgJ1WEd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2020 18:04:33 -0400
-Received: from mail-lj1-x243.google.com (mail-lj1-x243.google.com [IPv6:2a00:1450:4864:20::243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD7A3C0613CF;
-        Wed, 28 Oct 2020 15:04:32 -0700 (PDT)
-Received: by mail-lj1-x243.google.com with SMTP id d24so872143ljg.10;
-        Wed, 28 Oct 2020 15:04:32 -0700 (PDT)
+        with ESMTP id S1729971AbgJ1WFO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2020 18:05:14 -0400
+Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35499C0613D1;
+        Wed, 28 Oct 2020 15:05:14 -0700 (PDT)
+Received: by mail-pf1-x443.google.com with SMTP id b3so615204pfo.2;
+        Wed, 28 Oct 2020 15:05:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=akECrq7o9HUEnJdCiI8zEh/8bSiP+m63+FBfjf6s0F8=;
-        b=WmU1FpEy7SQataM0NhkZnYY0FpjhTCmMRqecukjtK0B1KZCa7sOilIQauinQrcMIX9
-         2rBt2N0Dbg4A7iYD8JDUZda7fK1n5iQz3mrfGHIQ9HElTO5Mk1AItjGdR/O1sdnw1m5S
-         JtXoZIMEx4HwjuAzykZic6MjVCvlLVyLjl2BzhnsrByR7H91Y8lTr0koyn1hKaRQ0Soy
-         zHywpeJTa6RPuqk+cqOi39dLCWCyx2HTFrrVf0xVXuzaiTa3JEEbri+rCGqPfgVimhOa
-         uIlPuAZOSXV9lbS6dtYRaRc4zm2K6L+dukgyYr1fdnm74XvoCmd7mb+z+t6FhqS2wDJq
-         qkNw==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=GeMX+k14VhxeG76k1/qSlgb4+cXieu72K4e08pwdt1o=;
+        b=InpLHLruF700Q395/JUSDPFi5ct3Q0NFGhIrDU/UmIhGdDThKH8GKD+cw6T2N6QNcD
+         PUvF0K87ShFDKaAjJCfvpeMCAaEiJ8eHb269GNLlCVUSVFBQarvkQDFEeK2v65rPe7+J
+         tC/1aFfwnYWg9j8u/6Ud/Yyen1uhouxurM0nLvzz3MYFdzPpthJUWusVU6lftQoy21uA
+         qiW9X1ZTMFe3cniRtPQ+TCgotIme378DGRcyAXvYYZgBHvV1ur7fGjNBhSILa0vbkqSM
+         tRUkeNha3rVBlOMkNme6QRGiAF7X/US6S2FlZ9tPWrsV95ioL0sZyvBU99MP8xfC1Ema
+         woPg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=akECrq7o9HUEnJdCiI8zEh/8bSiP+m63+FBfjf6s0F8=;
-        b=Wwjc6LeDamfjLvLXdN5ePmZKXXoa65NgGjxDp4jSJr3QdgdbTTZ7K/pnPELA+83Qrs
-         oZazLUzkTLdyV+Owanx9LeNRzualrkjbKrN2zQRGfHOyZhimL3F5i3vHio0WtGwX4H2r
-         iELwhV1eHrPypL+tVzkv4t6ow5igDJqOGKhvrk/wQASznhk73+ufXyxWytUwN3xmHY5g
-         ovruftNX+hEhJlbfXtZzBKHoeAx2DbR7SrCvl9hsHRLPjf9X/pNIqZ2Cdgd1GFEaYJjN
-         xkE1yD67QvqXoetiNV2FJHGlYBe89kLxQOvFOA6/syeRLC5rkQiOCDTmWaV6rc115d0S
-         Rgdw==
-X-Gm-Message-State: AOAM531rkIAcKEKjdUD/P/XEpa3wboBnzMw6gOef0lo2Y7+z6P3BiHqj
-        b9O3GJV+mR7RLq478Eoi+9JYPOoCGTs=
-X-Google-Smtp-Source: ABdhPJwu2hqgHtN6pGncrLaNaGjwhlVyTNaQbT7aV/cSdYee1XA+pqKC9SelNk5EpVWMOMge+7yzjA==
-X-Received: by 2002:a17:906:c1ce:: with SMTP id bw14mr6854441ejb.302.1603882475915;
-        Wed, 28 Oct 2020 03:54:35 -0700 (PDT)
-Received: from xws.fritz.box (pd9e5a52a.dip0.t-ipconnect.de. [217.229.165.42])
-        by smtp.gmail.com with ESMTPSA id ks17sm2709156ejb.41.2020.10.28.03.54.34
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=GeMX+k14VhxeG76k1/qSlgb4+cXieu72K4e08pwdt1o=;
+        b=lzAqOSVmhU6VbRxYBDriHSDMrHey6KVNiVhpaRvSGsyBJZ6oe/lNxa6Kgo9ZeKm7jw
+         72626PUiA4Wzw92EBR2nnt08hZrqLAqQ/pEukMRqcjE9Gy67ZGvTfqHa330OVmqqvsl1
+         dmDUdms+/w5hAwlsY/+6dXLjqapVltPxry1/ThdulwOK6VxdYhdGIuoABnR/xiKn3syz
+         6NuYhb62FMA8Mrng0Lyv3BurqQCXo4F7Wcc/xOFuCz7PhwcnIYVS42WjxIdX66ew7qKd
+         VbLx+X3wuk4lLZooWloUYYTmUrskVoEoAwmKYhTeSUbSaiJIqBT3cdekqIxXywQ+mOlM
+         UbFg==
+X-Gm-Message-State: AOAM533RQkowhIxbHb2inKGnNmAVletJsLE743O6uN+WKsPGXEmBLzY0
+        M12JzlevK7J8lG5GABHnLbBduYkTX45V4g==
+X-Google-Smtp-Source: ABdhPJw+P7PZ1ANDYILo79Hsg7TsK8M0hrdd6+wFNAfXxYnBAlE0Wr2vQTH+qAkmHlbh1+XaD9f7GA==
+X-Received: by 2002:a63:78c3:: with SMTP id t186mr490857pgc.12.1603907075050;
+        Wed, 28 Oct 2020 10:44:35 -0700 (PDT)
+Received: from hoboy.vegasvil.org (c-73-241-114-122.hsd1.ca.comcast.net. [73.241.114.122])
+        by smtp.gmail.com with ESMTPSA id d26sm224049pfo.82.2020.10.28.10.44.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2020 03:54:35 -0700 (PDT)
-From:   Maximilian Luz <luzmaximilian@gmail.com>
-Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Darren Hart <dvhart@infradead.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <mgross@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Gayatri Kammela <gayatri.kammela@intel.com>,
+        Wed, 28 Oct 2020 10:44:34 -0700 (PDT)
+Date:   Wed, 28 Oct 2020 10:44:27 -0700
+From:   Richard Cochran <richardcochran@gmail.com>
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        "Gautham R. Shenoy" <ego@linux.vnet.ibm.com>,
+        "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Javier =?iso-8859-1?Q?Gonz=E1lez?= <javier@javigon.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Andrew Donnellan <ajd@linux.ibm.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Baolin Wang <baolin.wang7@gmail.com>,
+        Benson Leung <bleung@chromium.org>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Bruno Meneguele <bmeneg@redhat.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Dan Murphy <dmurphy@ti.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Enric Balletbo i Serra <enric.balletbo@collabora.com>,
+        Fabrice Gasnier <fabrice.gasnier@st.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Frederic Barrat <fbarrat@linux.ibm.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Johannes Thumshirn <johannes.thumshirn@wdc.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Juergen Gross <jgross@suse.com>,
+        Konstantin Khlebnikov <koct9i@gmail.com>,
+        Kranthi Kuntala <kranthi.kuntala@intel.com>,
+        Lakshmi Ramasubramanian <nramas@linux.microsoft.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
         Len Brown <lenb@kernel.org>,
-        =?UTF-8?q?Barnab=C3=A1s=20P=C5=91cze?= <pobrn@protonmail.com>,
-        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Maximilian Luz <luzmaximilian@gmail.com>
-Subject: [PATCH v5] platform/surface: Add Driver to set up lid GPEs on MS Surface device
-Date:   Wed, 28 Oct 2020 11:54:27 +0100
-Message-Id: <20201028105427.1593764-1-luzmaximilian@gmail.com>
-X-Mailer: git-send-email 2.29.1
+        Leonid Maksymchuk <leonmaxx@gmail.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Mario Limonciello <mario.limonciello@dell.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mimi Zohar <zohar@linux.ibm.com>,
+        Nayna Jain <nayna@linux.ibm.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Niklas Cassel <niklas.cassel@wdc.com>,
+        Oleh Kravchenko <oleg@kaa.org.ua>,
+        Orson Zhai <orsonzhai@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+        Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Peter Rosin <peda@axentia.se>, Petr Mladek <pmladek@suse.com>,
+        Philippe Bergheaud <felix@linux.ibm.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vineela Tummalapalli <vineela.tummalapalli@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-pm@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-usb@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, xen-devel@lists.xenproject.org
+Subject: Re: [PATCH 20/33] docs: ABI: testing: make the files compatible with
+ ReST output
+Message-ID: <20201028174427.GE9364@hoboy.vegasvil.org>
+References: <cover.1603893146.git.mchehab+huawei@kernel.org>
+ <4ebaaa0320101479e392ce2db4b62e24fdf15ef1.1603893146.git.mchehab+huawei@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4ebaaa0320101479e392ce2db4b62e24fdf15ef1.1603893146.git.mchehab+huawei@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Conventionally, wake-up events for a specific device, in our case the
-lid device, are managed via the ACPI _PRW field. While this does not
-seem strictly necessary based on ACPI spec, the kernel disables GPE
-wakeups to avoid non-wakeup interrupts preventing suspend by default and
-only enables GPEs associated via the _PRW field with a wake-up capable
-device. This behavior has been introduced in commit f941d3e41da7 ("ACPI:
-EC / PM: Disable non-wakeup GPEs for suspend-to-idle") and is described
-in more detail in its commit message.
+On Wed, Oct 28, 2020 at 03:23:18PM +0100, Mauro Carvalho Chehab wrote:
 
-Unfortunately, on MS Surface devices, there is no _PRW field present on
-the lid device, thus no GPE is associated with it, and therefore the GPE
-responsible for sending the status-change notification to the lid gets
-disabled during suspend, making it impossible to wake the device via the
-lid.
+> diff --git a/Documentation/ABI/testing/sysfs-uevent b/Documentation/ABI/testing/sysfs-uevent
+> index aa39f8d7bcdf..d0893dad3f38 100644
+> --- a/Documentation/ABI/testing/sysfs-uevent
+> +++ b/Documentation/ABI/testing/sysfs-uevent
+> @@ -19,7 +19,8 @@ Description:
+>                  a transaction identifier so it's possible to use the same UUID
+>                  value for one or more synthetic uevents in which case we
+>                  logically group these uevents together for any userspace
+> -                listeners. The UUID value appears in uevent as
+> +                listeners. The UUID value appears in uevent as:
 
-This patch introduces a pseudo-device and respective driver which, based
-on some DMI matching, marks the corresponding GPE of the lid device for
-wake and enables it during suspend. The behavior of this driver models
-the behavior of the ACPI/PM core for normal wakeup GPEs, properly
-declared via the _PRW field.
+I know almost nothing about Sphinx, but why have one colon here ^^^ and ...
 
-Signed-off-by: Maximilian Luz <luzmaximilian@gmail.com>
----
+> +
+>                  "SYNTH_UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" environment
+>                  variable.
+>  
+> @@ -30,18 +31,19 @@ Description:
+>                  It's possible to define zero or more pairs - each pair is then
+>                  delimited by a space character ' '. Each pair appears in
+>                  synthetic uevent as "SYNTH_ARG_KEY=VALUE". That means the KEY
+> -                name gains "SYNTH_ARG_" prefix to avoid possible collisions
+> +                name gains `SYNTH_ARG_` prefix to avoid possible collisions
+>                  with existing variables.
+>  
+> -                Example of valid sequence written to the uevent file:
+> +                Example of valid sequence written to the uevent file::
 
-Note: This patch depends and is based on
+... two here?
 
-  [PATCH v4] platform/surface: Create a platform subdirectory for
-             Microsoft Surface devices
-
-which can be found at
-
-  https://lore.kernel.org/platform-driver-x86/20201009141128.683254-1-luzmaximilian@gmail.com/
-
-and is currently in platform-drivers-x86/for-next.
-
-Changes in v2:
- - Use software nodes and device properties instead of platform data.
- - Simplify module alias.
- - Add comment regarding origin of GPE numbers.
- - Fix style issues.
-
-Changes in v3:
- - Rebase onto v5.9-rc5
- - Fix and restructure error handling and module cleanup.
- - Remove unnecessary platform_set_drvdata(..., NULL) calls.
- - Add pr_fmt definition
- - Return -ENODEV if no compatible device is found in module init.
-
-Changes in v4:
- - Rebase onto platform/surface patch-set
- - Add copyright line
- - Fix typo in comment
-
-Changes in v5:
- - Rebase onto current platform-drivers-x86/for-next
- - Fix MAINTAINERS entry
-
----
- MAINTAINERS                            |   6 +
- drivers/platform/surface/Kconfig       |  10 +
- drivers/platform/surface/Makefile      |   1 +
- drivers/platform/surface/surface_gpe.c | 309 +++++++++++++++++++++++++
- 4 files changed, 326 insertions(+)
- create mode 100644 drivers/platform/surface/surface_gpe.c
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 38b70bd41d96..17e51a309a3a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11658,6 +11658,12 @@ F:	drivers/scsi/smartpqi/smartpqi*.[ch]
- F:	include/linux/cciss*.h
- F:	include/uapi/linux/cciss*.h
- 
-+MICROSOFT SURFACE GPE LID SUPPORT DRIVER
-+M:	Maximilian Luz <luzmaximilian@gmail.com>
-+L:	platform-driver-x86@vger.kernel.org
-+S:	Maintained
-+F:	drivers/platform/surface/surface_gpe.c
-+
- MICROSOFT SURFACE HARDWARE PLATFORM SUPPORT
- M:	Hans de Goede <hdegoede@redhat.com>
- M:	Mark Gross <mgross@linux.intel.com>
-diff --git a/drivers/platform/surface/Kconfig b/drivers/platform/surface/Kconfig
-index 10902ea43861..33040b0b3b79 100644
---- a/drivers/platform/surface/Kconfig
-+++ b/drivers/platform/surface/Kconfig
-@@ -40,6 +40,16 @@ config SURFACE_3_POWER_OPREGION
- 	  This driver provides support for ACPI operation
- 	  region of the Surface 3 battery platform driver.
- 
-+config SURFACE_GPE
-+	tristate "Surface GPE/Lid Support Driver"
-+	depends on ACPI
-+	depends on DMI
-+	help
-+	  This driver marks the GPEs related to the ACPI lid device found on
-+	  Microsoft Surface devices as wakeup sources and prepares them
-+	  accordingly. It is required on those devices to allow wake-ups from
-+	  suspend by opening the lid.
-+
- config SURFACE_PRO3_BUTTON
- 	tristate "Power/home/volume buttons driver for Microsoft Surface Pro 3/4 tablet"
- 	depends on ACPI && INPUT
-diff --git a/drivers/platform/surface/Makefile b/drivers/platform/surface/Makefile
-index dcb1df06d57a..cedfb027ded1 100644
---- a/drivers/platform/surface/Makefile
-+++ b/drivers/platform/surface/Makefile
-@@ -7,4 +7,5 @@
- obj-$(CONFIG_SURFACE3_WMI)		+= surface3-wmi.o
- obj-$(CONFIG_SURFACE_3_BUTTON)		+= surface3_button.o
- obj-$(CONFIG_SURFACE_3_POWER_OPREGION)	+= surface3_power.o
-+obj-$(CONFIG_SURFACE_GPE)		+= surface_gpe.o
- obj-$(CONFIG_SURFACE_PRO3_BUTTON)	+= surfacepro3_button.o
-diff --git a/drivers/platform/surface/surface_gpe.c b/drivers/platform/surface/surface_gpe.c
-new file mode 100644
-index 000000000000..0f44a52d3a9b
---- /dev/null
-+++ b/drivers/platform/surface/surface_gpe.c
-@@ -0,0 +1,309 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * Surface GPE/Lid driver to enable wakeup from suspend via the lid by
-+ * properly configuring the respective GPEs. Required for wakeup via lid on
-+ * newer Intel-based Microsoft Surface devices.
-+ *
-+ * Copyright (C) 2020 Maximilian Luz <luzmaximilian@gmail.com>
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/acpi.h>
-+#include <linux/dmi.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+
-+/*
-+ * Note: The GPE numbers for the lid devices found below have been obtained
-+ *       from ACPI/the DSDT table, specifically from the GPE handler for the
-+ *       lid.
-+ */
-+
-+static const struct property_entry lid_device_props_l17[] = {
-+	PROPERTY_ENTRY_U32("gpe", 0x17),
-+	{},
-+};
-+
-+static const struct property_entry lid_device_props_l4D[] = {
-+	PROPERTY_ENTRY_U32("gpe", 0x4D),
-+	{},
-+};
-+
-+static const struct property_entry lid_device_props_l4F[] = {
-+	PROPERTY_ENTRY_U32("gpe", 0x4F),
-+	{},
-+};
-+
-+static const struct property_entry lid_device_props_l57[] = {
-+	PROPERTY_ENTRY_U32("gpe", 0x57),
-+	{},
-+};
-+
-+/*
-+ * Note: When changing this, don't forget to check that the MODULE_ALIAS below
-+ *       still fits.
-+ */
-+static const struct dmi_system_id dmi_lid_device_table[] = {
-+	{
-+		.ident = "Surface Pro 4",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Pro 4"),
-+		},
-+		.driver_data = (void *)lid_device_props_l17,
-+	},
-+	{
-+		.ident = "Surface Pro 5",
-+		.matches = {
-+			/*
-+			 * We match for SKU here due to generic product name
-+			 * "Surface Pro".
-+			 */
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_SKU, "Surface_Pro_1796"),
-+		},
-+		.driver_data = (void *)lid_device_props_l4F,
-+	},
-+	{
-+		.ident = "Surface Pro 5 (LTE)",
-+		.matches = {
-+			/*
-+			 * We match for SKU here due to generic product name
-+			 * "Surface Pro"
-+			 */
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_SKU, "Surface_Pro_1807"),
-+		},
-+		.driver_data = (void *)lid_device_props_l4F,
-+	},
-+	{
-+		.ident = "Surface Pro 6",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Pro 6"),
-+		},
-+		.driver_data = (void *)lid_device_props_l4F,
-+	},
-+	{
-+		.ident = "Surface Pro 7",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Pro 7"),
-+		},
-+		.driver_data = (void *)lid_device_props_l4D,
-+	},
-+	{
-+		.ident = "Surface Book 1",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Book"),
-+		},
-+		.driver_data = (void *)lid_device_props_l17,
-+	},
-+	{
-+		.ident = "Surface Book 2",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Book 2"),
-+		},
-+		.driver_data = (void *)lid_device_props_l17,
-+	},
-+	{
-+		.ident = "Surface Book 3",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Book 3"),
-+		},
-+		.driver_data = (void *)lid_device_props_l4D,
-+	},
-+	{
-+		.ident = "Surface Laptop 1",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Laptop"),
-+		},
-+		.driver_data = (void *)lid_device_props_l57,
-+	},
-+	{
-+		.ident = "Surface Laptop 2",
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Surface Laptop 2"),
-+		},
-+		.driver_data = (void *)lid_device_props_l57,
-+	},
-+	{
-+		.ident = "Surface Laptop 3 (Intel 13\")",
-+		.matches = {
-+			/*
-+			 * We match for SKU here due to different variants: The
-+			 * AMD (15") version does not rely on GPEs.
-+			 */
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_SKU, "Surface_Laptop_3_1867:1868"),
-+		},
-+		.driver_data = (void *)lid_device_props_l4D,
-+	},
-+	{ }
-+};
-+
-+struct surface_lid_device {
-+	u32 gpe_number;
-+};
-+
-+static int surface_lid_enable_wakeup(struct device *dev, bool enable)
-+{
-+	const struct surface_lid_device *lid = dev_get_drvdata(dev);
-+	int action = enable ? ACPI_GPE_ENABLE : ACPI_GPE_DISABLE;
-+	acpi_status status;
-+
-+	status = acpi_set_gpe_wake_mask(NULL, lid->gpe_number, action);
-+	if (ACPI_FAILURE(status)) {
-+		dev_err(dev, "failed to set GPE wake mask: %s\n",
-+			acpi_format_exception(status));
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int surface_gpe_suspend(struct device *dev)
-+{
-+	return surface_lid_enable_wakeup(dev, true);
-+}
-+
-+static int surface_gpe_resume(struct device *dev)
-+{
-+	return surface_lid_enable_wakeup(dev, false);
-+}
-+
-+static SIMPLE_DEV_PM_OPS(surface_gpe_pm, surface_gpe_suspend, surface_gpe_resume);
-+
-+static int surface_gpe_probe(struct platform_device *pdev)
-+{
-+	struct surface_lid_device *lid;
-+	u32 gpe_number;
-+	acpi_status status;
-+	int ret;
-+
-+	ret = device_property_read_u32(&pdev->dev, "gpe", &gpe_number);
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to read 'gpe' property: %d\n", ret);
-+		return ret;
-+	}
-+
-+	lid = devm_kzalloc(&pdev->dev, sizeof(*lid), GFP_KERNEL);
-+	if (!lid)
-+		return -ENOMEM;
-+
-+	lid->gpe_number = gpe_number;
-+	platform_set_drvdata(pdev, lid);
-+
-+	status = acpi_mark_gpe_for_wake(NULL, gpe_number);
-+	if (ACPI_FAILURE(status)) {
-+		dev_err(&pdev->dev, "failed to mark GPE for wake: %s\n",
-+			acpi_format_exception(status));
-+		return -EINVAL;
-+	}
-+
-+	status = acpi_enable_gpe(NULL, gpe_number);
-+	if (ACPI_FAILURE(status)) {
-+		dev_err(&pdev->dev, "failed to enable GPE: %s\n",
-+			acpi_format_exception(status));
-+		return -EINVAL;
-+	}
-+
-+	ret = surface_lid_enable_wakeup(&pdev->dev, false);
-+	if (ret)
-+		acpi_disable_gpe(NULL, gpe_number);
-+
-+	return ret;
-+}
-+
-+static int surface_gpe_remove(struct platform_device *pdev)
-+{
-+	struct surface_lid_device *lid = dev_get_drvdata(&pdev->dev);
-+
-+	/* restore default behavior without this module */
-+	surface_lid_enable_wakeup(&pdev->dev, false);
-+	acpi_disable_gpe(NULL, lid->gpe_number);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver surface_gpe_driver = {
-+	.probe = surface_gpe_probe,
-+	.remove = surface_gpe_remove,
-+	.driver = {
-+		.name = "surface_gpe",
-+		.pm = &surface_gpe_pm,
-+		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
-+	},
-+};
-+
-+static struct platform_device *surface_gpe_device;
-+
-+static int __init surface_gpe_init(void)
-+{
-+	const struct dmi_system_id *match;
-+	struct platform_device *pdev;
-+	struct fwnode_handle *fwnode;
-+	int status;
-+
-+	match = dmi_first_match(dmi_lid_device_table);
-+	if (!match) {
-+		pr_info("no compatible Microsoft Surface device found, exiting\n");
-+		return -ENODEV;
-+	}
-+
-+	status = platform_driver_register(&surface_gpe_driver);
-+	if (status)
-+		return status;
-+
-+	fwnode = fwnode_create_software_node(match->driver_data, NULL);
-+	if (IS_ERR(fwnode)) {
-+		status = PTR_ERR(fwnode);
-+		goto err_node;
-+	}
-+
-+	pdev = platform_device_alloc("surface_gpe", PLATFORM_DEVID_NONE);
-+	if (!pdev) {
-+		status = -ENOMEM;
-+		goto err_alloc;
-+	}
-+
-+	pdev->dev.fwnode = fwnode;
-+
-+	status = platform_device_add(pdev);
-+	if (status)
-+		goto err_add;
-+
-+	surface_gpe_device = pdev;
-+	return 0;
-+
-+err_add:
-+	platform_device_put(pdev);
-+err_alloc:
-+	fwnode_remove_software_node(fwnode);
-+err_node:
-+	platform_driver_unregister(&surface_gpe_driver);
-+	return status;
-+}
-+module_init(surface_gpe_init);
-+
-+static void __exit surface_gpe_exit(void)
-+{
-+	struct fwnode_handle *fwnode = surface_gpe_device->dev.fwnode;
-+
-+	platform_device_unregister(surface_gpe_device);
-+	platform_driver_unregister(&surface_gpe_driver);
-+	fwnode_remove_software_node(fwnode);
-+}
-+module_exit(surface_gpe_exit);
-+
-+MODULE_AUTHOR("Maximilian Luz <luzmaximilian@gmail.com>");
-+MODULE_DESCRIPTION("Surface GPE/Lid Driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("dmi:*:svnMicrosoftCorporation:pnSurface*:*");
--- 
-2.29.1
-
+Thanks,
+Richard
