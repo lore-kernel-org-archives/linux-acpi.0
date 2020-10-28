@@ -2,208 +2,98 @@ Return-Path: <SRS0=W+nf=EE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46553C388F7
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 01:53:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD35C55179
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 02:02:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E458C206E9
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 01:53:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="IlxD5Zvq"
+	by mail.kernel.org (Postfix) with ESMTP id DFA6E20704
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 02:02:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728343AbgJ2Bxq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Oct 2020 21:53:46 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:22823 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728691AbgJ1V5Y (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Oct 2020 17:57:24 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1603922242;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=7H6fn0sflmDKqkVqjVyUYl4il+uaeJMTU2fENiZAfKY=;
-        b=IlxD5ZvqfCZoDxG9JOCWsutMIdqX+kmawcmefVRWlopzX12/hJ78op/prNT3vZY5pIyX+5
-        tky7C/SbEdEBuUy3MbTcdqdV7+voJK3eetmSEPHfvAAbpRlPr2dJm9JXJNKUVL6eprbkdb
-        DnrzHXDpTOVCc/qk0sEQcvU10y8QHcc=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-161-W-niQg97NiyFMV1veTnNyg-1; Wed, 28 Oct 2020 07:54:44 -0400
-X-MC-Unique: W-niQg97NiyFMV1veTnNyg-1
-Received: by mail-ej1-f70.google.com with SMTP id lf18so2057760ejb.13
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2020 04:54:44 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=7H6fn0sflmDKqkVqjVyUYl4il+uaeJMTU2fENiZAfKY=;
-        b=pFAdGKa/HUiw1RQpx24H2fPPQ73Q2qSaNYP/qtONR37pFu6hYI4X7bOCIN2VB1yDgY
-         YD+ieKjECRXMDr41kLaPo+GidapvEKVkkqy1RlyD7UuTZD6RojpzBbSPfuDda57V48i6
-         GIOf1kBV9QuZO1PqtbD20brxyxDrLYCxr8P9eEKER75HvYK58Vhdz1jjQ7Pk8cxuB+lh
-         Uc7oUiTOwCIsaXg9Z8W8xVFoXreJ321DHFBe0gWwca0yDbOmi+qn6J72rXx4YpVTjJEF
-         I0lyGhxHwZvMcgpTU6/jm5RtgoU5HaCJALM8oxxl2XvMTdQ1Xrj8C5TwjLtkdROiZxo+
-         FAbA==
-X-Gm-Message-State: AOAM5319B2JXt4el8ffNc589m7TuOIQmaQ/EVJ6juuwC/iqYYYYaOMlL
-        Hw/4qsIlNdO5NEOekt4tAly5yy0gFFUTx0fVQWIkCjD5jNlGshYppE7W+TmIkpGVZrX3dAPA/Ib
-        G/ZAXo+my73B4qMws1dIqSw==
-X-Received: by 2002:a17:906:3290:: with SMTP id 16mr7055816ejw.308.1603886082961;
-        Wed, 28 Oct 2020 04:54:42 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyki7zPz1WgRhVvswcqc8DYrUa2nHa46FuIilVQLasUTTavgZEBiFJ8BDY2RERDV8wGBbiebg==
-X-Received: by 2002:a17:906:3290:: with SMTP id 16mr7055799ejw.308.1603886082717;
-        Wed, 28 Oct 2020 04:54:42 -0700 (PDT)
-Received: from x1.localdomain (2001-1c00-0c0c-fe00-6c10-fbf3-14c4-884c.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:6c10:fbf3:14c4:884c])
-        by smtp.gmail.com with ESMTPSA id r3sm2768715edw.42.2020.10.28.04.54.41
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 28 Oct 2020 04:54:42 -0700 (PDT)
-Subject: Re: [PATCH] Documentation: Add documentation for new platform_profile
- sysfs attribute
-To:     Mark Pearson <markpearson@lenovo.com>
-Cc:     dvhart@infradead.org, mgross@linux.intel.com,
-        mario.limonciello@dell.com, eliadevito@gmail.com,
-        hadess@hadess.net, bberg@redhat.com, linux-pm@vger.kernel.org,
-        linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <markpearson@lenovo.com>
- <20201027164219.868839-1-markpearson@lenovo.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <8749d17c-4d0b-5c29-a8c9-4a6704b422d6@redhat.com>
-Date:   Wed, 28 Oct 2020 12:54:41 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.1
+        id S1727042AbgJ1Vsv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Oct 2020 17:48:51 -0400
+Received: from foss.arm.com ([217.140.110.172]:38348 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727658AbgJ1VrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 28 Oct 2020 17:47:16 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7ACC515EC;
+        Wed, 28 Oct 2020 12:19:32 -0700 (PDT)
+Received: from [172.16.1.113] (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 2E2803F68F;
+        Wed, 28 Oct 2020 12:19:31 -0700 (PDT)
+Subject: Re: [PATCH] Fix incorrect return value of pre_map_gar_callback
+To:     yaoaili126@163.com
+Cc:     rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com,
+        bp@alien8.de, linux-acpi@vger.kernel.org, yangfeng1@kingsoft.com,
+        yaoaili@kingsoft.com
+References: <20201026061509.48212-1-yaoaili126@163.com>
+From:   James Morse <james.morse@arm.com>
+Message-ID: <6b71b5b3-b423-6768-15f4-44f7aa7dc12d@arm.com>
+Date:   Wed, 28 Oct 2020 19:19:28 +0000
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-In-Reply-To: <20201027164219.868839-1-markpearson@lenovo.com>
+In-Reply-To: <20201026061509.48212-1-yaoaili126@163.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-A few minor nitpicks below, mostly stuff which I missed before, sorry.
-
-I suggest you make v2 part of the series where you actually add the
-drivers/acpi/... and the thinkpad_acpi.c bits to implement this.
-
-On 10/27/20 5:42 PM, Mark Pearson wrote:
-> From: Hans de Goede <hdegoede@redhat.com>
+On 26/10/2020 06:15, yaoaili126@163.com wrote:
+> From: Aili Yao <yaoaili@kingsoft.com>
 > 
-> On modern systems the platform performance, temperature, fan and other
-> hardware related characteristics are often dynamically configurable. The
-> profile is often automatically adjusted to the load by somei
+> From commit 6915564dc5a8 ("ACPI: OSL: Change the type of
+> acpi_os_map_generic_address() return value"),acpi_os_map_generic_address
+> will return logical address or NULL for error, but pre_map_gar_callback,for
+> ACPI_ADR_SPACE_SYSTEM_IO case, it should
 
-s/somei/some/
+'it should' refers to pre_map_gar_callback(), not acpi_os_map_generic_address()?
 
-> automatic-mechanism (which may very well live outside the kernel).
-> 
-> These auto platform-adjustment mechanisms often can be configured with
-> one of several 'platform-profiles', with either a bias towards low-power
-> consumption or towards performance (and higher power consumption and
-> thermals).
 
-I think it is better to also drop the " (and higher power consumption and
-thermals)" bit here (and below) like you did for the cool and quiet parts.
+> be also return 0,as it's a
+> normal case, but now it will return -ENXIO. so check it out for such case
+> to avoid einj module initialization fail.
 
-Regards,
+apei_map_generic_address() calls acpi_os_map_generic_address() which returns NULL for any
+address space that isn't ACPI_ADR_SPACE_SYSTEM_MEMORY.
+That commit now maps this to an error code, where-as before: this code was getting away
+with it.
 
-Hans
+The bug is it tries to map a GAR that doesn't need mapping.
 
-> Introduce a new platform_profile sysfs API which offers a generic API for
-> selecting the performance-profile of these automatic-mechanisms.
-> 
-> Co-developed-by: Mark Pearson <markpearson@lenovo.com>
-> Signed-off-by: Mark Pearson <markpearson@lenovo.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in V1:
->  - Moved from RFC to proposed patch
->  - Added cool profile as requested
->  - removed extra-profiles as no longer relevant
-> 
->  .../ABI/testing/sysfs-platform_profile        | 66 +++++++++++++++++++
->  1 file changed, 66 insertions(+)
->  create mode 100644 Documentation/ABI/testing/sysfs-platform_profile
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-platform_profile b/Documentation/ABI/testing/sysfs-platform_profile
-> new file mode 100644
-> index 000000000000..240bd3d7532b
-> --- /dev/null
-> +++ b/Documentation/ABI/testing/sysfs-platform_profile
-> @@ -0,0 +1,66 @@
-> +Platform-profile selection (e.g. /sys/firmware/acpi/platform_profile)
-> +
-> +On modern systems the platform performance, temperature, fan and other
-> +hardware related characteristics are often dynamically configurable. The
-> +profile is often automatically adjusted to the load by some
-> +automatic-mechanism (which may very well live outside the kernel).
-> +
-> +These auto platform-adjustment mechanisms often can be configured with
-> +one of several 'platform-profiles', with either a bias towards low-power
-> +consumption or towards performance (and higher power consumption and
-> +thermals).
-> +
-> +The purpose of the platform_profile attribute is to offer a generic sysfs
-> +API for selecting the platform-profile of these automatic-mechanisms.
-> +
-> +Note that this API is only for selecting the platform-profile, it is
-> +NOT a goal of this API to allow monitoring the resulting performance
-> +characteristics. Monitoring performance is best done with device/vendor
-> +specific tools such as e.g. turbostat.
-> +
-> +Specifically when selecting a high-performance profile the actual achieved
-> +performance may be limited by various factors such as: the heat generated
-> +by other components, room temperature, free air flow at the bottom of a
-> +laptop, etc. It is explicitly NOT a goal of this API to let userspace know
-> +about any sub-optimal conditions which are impeding reaching the requested
-> +performance level.
-> +
-> +Since numbers are a rather meaningless way to describe platform-profiles
-> +this API uses strings to describe the various profiles. To make sure that
-> +userspace gets a consistent experience when using this API this API
-> +document defines a fixed set of profile-names. Drivers *must* map their
-> +internal profile representation/names onto this fixed set.
-> +
-> +If for some reason there is no good match when mapping then a new profile-name
-> +may be added. Drivers which wish to introduce new profile-names must:
-> +1. Have very good reasons to do so.
-> +2. Add the new profile-name to this document, so that future drivers which also
-> +   have a similar problem can use the same name.
-> +
-> +What:		/sys/firmware/acpi/platform_profile_choices
-> +Date:		October 2020
-> +Contact:	Hans de Goede <hdegoede@redhat.com>
-> +Description:
-> +		Reading this file gives a space separated list of profiles
-> +		supported for this device.
-> +
-> +		Drivers must use the following standard profile-names:
-> +
-> +		low-power:		Emphasises low power consumption
-> +		cool:			Emphasises cooler operation
-> +		quiet:			Emphasises quieter operation
-> +		balanced:		Balance between low power consumption
-> +					and performance
-> +		performance:		Emphasises performance (and may lead to
-> +					higher temperatures and fan speeds)
-> +
-> +		Userspace may expect drivers to offer at least several of these
-> +		standard profile-names.
-> +
-> +What:		/sys/firmware/acpi/platform_profile
-> +Date:		October 2020
-> +Contact:	Hans de Goede <hdegoede@redhat.com>
-> +Description:
-> +		Reading this file gives the current selected profile for this
-> +		device. Writing this file with one of the strings from
-> +		available_profiles changes the profile to the new value.
-> 
+
+Could we avoid this problem more clearly by returning 0 from apei_map_generic_address()
+for address spaces that don't need mapping? (e.g. IO)
+
+This would also fix any other callers lurking in apei.
+
+
+Thanks,
+
+James
+
+
+> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+> index 552fd9ffaca4..042d2dbdb855 100644
+> --- a/drivers/acpi/apei/apei-base.c
+> +++ b/drivers/acpi/apei/apei-base.c
+> @@ -230,7 +230,8 @@ static int pre_map_gar_callback(struct apei_exec_context *ctx,
+>  {
+>  	u8 ins = entry->instruction;
+>  
+> -	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER)
+> +	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER &&
+> +	 entry->register_region.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+>  		return apei_map_generic_address(&entry->register_region);
+>  
+>  	return 0;
+
 
