@@ -2,60 +2,164 @@ Return-Path: <SRS0=W+nf=EE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43282C55179
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 08:13:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B16C0C2D0A3
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 08:14:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 02BD620780
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 08:13:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CB642076E
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 08:14:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728839AbgJ2INb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 29 Oct 2020 04:13:31 -0400
-Received: from mga09.intel.com ([134.134.136.24]:35280 "EHLO mga09.intel.com"
+        id S1726938AbgJ2IOs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 29 Oct 2020 04:14:48 -0400
+Received: from mga14.intel.com ([192.55.52.115]:15863 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728373AbgJ2INV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Oct 2020 04:13:21 -0400
-IronPort-SDR: K+zLlOxd/NKQEhBf+WzmxCunRKu9bSLGUzmTVFqn1BgurXddLr6dUH8YAbPm3Z4VCXol+Cn2GN
- JDp++QCBlkRA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9788"; a="168526448"
+        id S1727214AbgJ2IOs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Oct 2020 04:14:48 -0400
+IronPort-SDR: ZtWtvBIzo/AtA6LkFtqhqCBJ2LztGhfEZoIqRRQbRm3mIFxpLwayR0dUKd+L8qbaAxSrovO+YC
+ u2+O/baseihQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9788"; a="167599621"
 X-IronPort-AV: E=Sophos;i="5.77,429,1596524400"; 
-   d="scan'208";a="168526448"
+   d="scan'208";a="167599621"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2020 01:13:20 -0700
-IronPort-SDR: agDYh3Fb7s9+0dDfbbGN4GFsUviUp9DQ1XzenGH3rHdWkxr7KLFcaURn5CPekjjz3j3J7iOHEn
- rYfa/O5nLhrA==
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Oct 2020 22:10:50 -0700
+IronPort-SDR: SYBoUfZdu/ewHjqWPlPi92xJwDnFwZBCIciHjHJ828PqiulpsWnHNyeT6uuWW0//ExUQTEt6wF
+ Ybumm3XPVNNg==
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,429,1596524400"; 
-   d="scan'208";a="469046957"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2020 01:13:18 -0700
-Received: by lahna (sSMTP sendmail emulation); Thu, 29 Oct 2020 10:13:15 +0200
-Date:   Thu, 29 Oct 2020 10:13:15 +0200
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v1 1/3] Documentation: firmware-guide: gpio-properties:
- Fix factual mistakes
-Message-ID: <20201029081315.GO2495@lahna.fi.intel.com>
-References: <20201028205101.47583-1-andriy.shevchenko@linux.intel.com>
+   d="scan'208";a="304464084"
+Received: from lkp-server02.sh.intel.com (HELO 72b1a4bebef6) ([10.239.97.151])
+  by fmsmga007.fm.intel.com with ESMTP; 28 Oct 2020 22:10:49 -0700
+Received: from kbuild by 72b1a4bebef6 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1kY0D1-00005F-LG; Thu, 29 Oct 2020 05:10:47 +0000
+Date:   Thu, 29 Oct 2020 13:10:46 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [pm:bleeding-edge] BUILD SUCCESS
+ 38d3e7dd7c4204c5d26188fe6edded709cfde97c
+Message-ID: <5f9a4ed6.YWfw4vprz0r9j6gs%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201028205101.47583-1-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Oct 28, 2020 at 10:50:59PM +0200, Andy Shevchenko wrote:
-> Fix factual mistakes and style issues in GPIO properties document.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git  bleeding-edge
+branch HEAD: 38d3e7dd7c4204c5d26188fe6edded709cfde97c  Merge branch 'pm-cpufreq' into bleeding-edge
 
-Can you clarify here what factual mistakes this fixes :)
+elapsed time: 725m
 
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+configs tested: 91
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+powerpc                    socrates_defconfig
+arm                         nhk8815_defconfig
+arm                         shannon_defconfig
+sh                            titan_defconfig
+sh                        sh7785lcr_defconfig
+mips                 decstation_r4k_defconfig
+arm                      jornada720_defconfig
+powerpc64                           defconfig
+mips                       capcella_defconfig
+arm                           tegra_defconfig
+xtensa                  nommu_kc705_defconfig
+powerpc                    sam440ep_defconfig
+sh                          urquell_defconfig
+powerpc                      walnut_defconfig
+sh                          sdk7780_defconfig
+powerpc                     pseries_defconfig
+sh                              ul2_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a002-20201028
+i386                 randconfig-a005-20201028
+i386                 randconfig-a003-20201028
+i386                 randconfig-a001-20201028
+i386                 randconfig-a004-20201028
+i386                 randconfig-a006-20201028
+x86_64               randconfig-a011-20201028
+x86_64               randconfig-a013-20201028
+x86_64               randconfig-a016-20201028
+x86_64               randconfig-a015-20201028
+x86_64               randconfig-a012-20201028
+x86_64               randconfig-a014-20201028
+i386                 randconfig-a016-20201028
+i386                 randconfig-a014-20201028
+i386                 randconfig-a015-20201028
+i386                 randconfig-a013-20201028
+i386                 randconfig-a012-20201028
+i386                 randconfig-a011-20201028
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a001-20201028
+x86_64               randconfig-a002-20201028
+x86_64               randconfig-a003-20201028
+x86_64               randconfig-a006-20201028
+x86_64               randconfig-a005-20201028
+x86_64               randconfig-a004-20201028
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
