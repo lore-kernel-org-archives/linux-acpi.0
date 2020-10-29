@@ -2,259 +2,60 @@ Return-Path: <SRS0=W+nf=EE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9323CC63777
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 07:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43282C55179
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 08:13:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47DE520735
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 07:23:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603956185;
-	bh=ydKKLjnIGAQnlNnBFT/eI5WDiCpUdvgjw4RkqNPBoTs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=oRelxO7HTNLpFiI2aDA0Q0c6nVCOWp/iemqnA9F4v9z4zg15ZBMomVtTjQM5VRH6L
-	 Uk8u0MJUepKQZ9Sko8vIQ08SLtttRslK6VWjITpK4hN7c5fZywJqridV8vuudbH679
-	 dIpa6D7CXzb7p/+iQup4VIk92VPbdj4zYSqUFyUE=
+	by mail.kernel.org (Postfix) with ESMTP id 02BD620780
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 08:13:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726564AbgJ2HWW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 29 Oct 2020 03:22:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42034 "EHLO mail.kernel.org"
+        id S1728839AbgJ2INb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 29 Oct 2020 04:13:31 -0400
+Received: from mga09.intel.com ([134.134.136.24]:35280 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726151AbgJ2HV0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Oct 2020 03:21:26 -0400
-Received: from coco.lan (ip5f5ad5de.dynamic.kabel-deutschland.de [95.90.213.222])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1D568206A1;
-        Thu, 29 Oct 2020 07:21:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603956079;
-        bh=ydKKLjnIGAQnlNnBFT/eI5WDiCpUdvgjw4RkqNPBoTs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=AXef/AhAlPh1hi9YsdIj4o1ixVYaGEAZM4H9T1mWHDD5hcqq9AHBGqQYLJm4zvkzm
-         vDRNtmfz4vMaZ1nCDFiLdWyz0Wl7IBqlNL9mj+lYOyRgbN8ZBRkoI4V/HMDyMBFkDS
-         A+Vrm0psmwUp0NppXp1qjXj8jB9uy8mTt+24KpoY=
-Date:   Thu, 29 Oct 2020 08:21:00 +0100
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To:     Richard Cochran <richardcochran@gmail.com>
-Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        "Gautham R. Shenoy" <ego@linux.vnet.ibm.com>,
-        "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        Javier =?UTF-8?B?R29uesOhbGV6?= <javier@javigon.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Andrew Donnellan <ajd@linux.ibm.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Baolin Wang <baolin.wang7@gmail.com>,
-        Benson Leung <bleung@chromium.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Bruno Meneguele <bmeneg@redhat.com>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Dan Murphy <dmurphy@ti.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Enric Balletbo i Serra <enric.balletbo@collabora.com>,
-        Fabrice Gasnier <fabrice.gasnier@st.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Frederic Barrat <fbarrat@linux.ibm.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Johannes Thumshirn <johannes.thumshirn@wdc.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Juergen Gross <jgross@suse.com>,
-        Konstantin Khlebnikov <koct9i@gmail.com>,
-        Kranthi Kuntala <kranthi.kuntala@intel.com>,
-        Lakshmi Ramasubramanian <nramas@linux.microsoft.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Len Brown <lenb@kernel.org>,
-        Leonid Maksymchuk <leonmaxx@gmail.com>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Mario Limonciello <mario.limonciello@dell.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Nayna Jain <nayna@linux.ibm.com>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Niklas Cassel <niklas.cassel@wdc.com>,
-        Oleh Kravchenko <oleg@kaa.org.ua>,
-        Orson Zhai <orsonzhai@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-        Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Peter Rosin <peda@axentia.se>, Petr Mladek <pmladek@suse.com>,
-        Philippe Bergheaud <felix@linux.ibm.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Vineela Tummalapalli <vineela.tummalapalli@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-pm@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-usb@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, xen-devel@lists.xenproject.org
-Subject: Re: [PATCH 20/33] docs: ABI: testing: make the files compatible
- with ReST output
-Message-ID: <20201029082100.4820072c@coco.lan>
-In-Reply-To: <20201028174427.GE9364@hoboy.vegasvil.org>
-References: <cover.1603893146.git.mchehab+huawei@kernel.org>
-        <4ebaaa0320101479e392ce2db4b62e24fdf15ef1.1603893146.git.mchehab+huawei@kernel.org>
-        <20201028174427.GE9364@hoboy.vegasvil.org>
-X-Mailer: Claws Mail 3.17.7 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        id S1728373AbgJ2INV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Oct 2020 04:13:21 -0400
+IronPort-SDR: K+zLlOxd/NKQEhBf+WzmxCunRKu9bSLGUzmTVFqn1BgurXddLr6dUH8YAbPm3Z4VCXol+Cn2GN
+ JDp++QCBlkRA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9788"; a="168526448"
+X-IronPort-AV: E=Sophos;i="5.77,429,1596524400"; 
+   d="scan'208";a="168526448"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2020 01:13:20 -0700
+IronPort-SDR: agDYh3Fb7s9+0dDfbbGN4GFsUviUp9DQ1XzenGH3rHdWkxr7KLFcaURn5CPekjjz3j3J7iOHEn
+ rYfa/O5nLhrA==
+X-IronPort-AV: E=Sophos;i="5.77,429,1596524400"; 
+   d="scan'208";a="469046957"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2020 01:13:18 -0700
+Received: by lahna (sSMTP sendmail emulation); Thu, 29 Oct 2020 10:13:15 +0200
+Date:   Thu, 29 Oct 2020 10:13:15 +0200
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     linux-acpi@vger.kernel.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v1 1/3] Documentation: firmware-guide: gpio-properties:
+ Fix factual mistakes
+Message-ID: <20201029081315.GO2495@lahna.fi.intel.com>
+References: <20201028205101.47583-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201028205101.47583-1-andriy.shevchenko@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Richard,
+On Wed, Oct 28, 2020 at 10:50:59PM +0200, Andy Shevchenko wrote:
+> Fix factual mistakes and style issues in GPIO properties document.
 
-Em Wed, 28 Oct 2020 10:44:27 -0700
-Richard Cochran <richardcochran@gmail.com> escreveu:
-
-> On Wed, Oct 28, 2020 at 03:23:18PM +0100, Mauro Carvalho Chehab wrote:
-> 
-> > diff --git a/Documentation/ABI/testing/sysfs-uevent b/Documentation/ABI/testing/sysfs-uevent
-> > index aa39f8d7bcdf..d0893dad3f38 100644
-> > --- a/Documentation/ABI/testing/sysfs-uevent
-> > +++ b/Documentation/ABI/testing/sysfs-uevent
-> > @@ -19,7 +19,8 @@ Description:
-> >                  a transaction identifier so it's possible to use the same UUID
-> >                  value for one or more synthetic uevents in which case we
-> >                  logically group these uevents together for any userspace
-> > -                listeners. The UUID value appears in uevent as
-> > +                listeners. The UUID value appears in uevent as:  
-> 
-> I know almost nothing about Sphinx, but why have one colon here ^^^ and ...
-
-Good point. After re-reading the text, this ":" doesn't belong here.
+Can you clarify here what factual mistakes this fixes :)
 
 > 
-> > +
-> >                  "SYNTH_UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" environment
-> >                  variable.
-> >  
-> > @@ -30,18 +31,19 @@ Description:
-> >                  It's possible to define zero or more pairs - each pair is then
-> >                  delimited by a space character ' '. Each pair appears in
-> >                  synthetic uevent as "SYNTH_ARG_KEY=VALUE". That means the KEY
-> > -                name gains "SYNTH_ARG_" prefix to avoid possible collisions
-> > +                name gains `SYNTH_ARG_` prefix to avoid possible collisions
-> >                  with existing variables.
-> >  
-> > -                Example of valid sequence written to the uevent file:
-> > +                Example of valid sequence written to the uevent file::  
-> 
-> ... two here?
-
-The main issue that this patch wants to solve is here:
-
-                This generates synthetic uevent including these variables::
-
-                    ACTION=add
-                    SYNTH_ARG_A=1
-                    SYNTH_ARG_B=abc
-                    SYNTH_UUID=fe4d7c9d-b8c6-4a70-9ef1-3d8a58d18eed
-
-On Sphinx, consecutive lines with the same indent belongs to the same
-paragraph. So, without "::", the above will be displayed on a single line,
-which is undesired.
-
-using "::" tells Sphinx to display as-is. It will also place it into a a 
-box (colored for html output) and using a monospaced font.
-
-The change at the "uevent file:" line was done just for coherency
-purposes.
-
-Yet, after re-reading the text, there are other things that are not
-coherent. So, I guess the enclosed patch will work better for sys-uevent.
-
-Thanks,
-Mauro
-
-docs: ABI: sysfs-uevent: make it compatible with ReST output
-
-- Replace " by ``, in order to use monospaced fonts;
-- mark literal blocks as such.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-
-diff --git a/Documentation/ABI/testing/sysfs-uevent b/Documentation/ABI/testing/sysfs-uevent
-index aa39f8d7bcdf..0b6227706b35 100644
---- a/Documentation/ABI/testing/sysfs-uevent
-+++ b/Documentation/ABI/testing/sysfs-uevent
-@@ -6,42 +6,46 @@ Description:
-                 Enable passing additional variables for synthetic uevents that
-                 are generated by writing /sys/.../uevent file.
- 
--                Recognized extended format is ACTION [UUID [KEY=VALUE ...].
-+                Recognized extended format is::
- 
--                The ACTION is compulsory - it is the name of the uevent action
--                ("add", "change", "remove"). There is no change compared to
--                previous functionality here. The rest of the extended format
--                is optional.
-+			ACTION [UUID [KEY=VALUE ...]
-+
-+                The ACTION is compulsory - it is the name of the uevent
-+                action (``add``, ``change``, ``remove``). There is no change
-+                compared to previous functionality here. The rest of the
-+                extended format is optional.
- 
-                 You need to pass UUID first before any KEY=VALUE pairs.
--                The UUID must be in "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-+                The UUID must be in ``xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx``
-                 format where 'x' is a hex digit. The UUID is considered to be
-                 a transaction identifier so it's possible to use the same UUID
-                 value for one or more synthetic uevents in which case we
-                 logically group these uevents together for any userspace
-                 listeners. The UUID value appears in uevent as
--                "SYNTH_UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" environment
-+                ``SYNTH_UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`` environment
-                 variable.
- 
-                 If UUID is not passed in, the generated synthetic uevent gains
--                "SYNTH_UUID=0" environment variable automatically.
-+                ``SYNTH_UUID=0`` environment variable automatically.
- 
-                 The KEY=VALUE pairs can contain alphanumeric characters only.
-+
-                 It's possible to define zero or more pairs - each pair is then
-                 delimited by a space character ' '. Each pair appears in
--                synthetic uevent as "SYNTH_ARG_KEY=VALUE". That means the KEY
--                name gains "SYNTH_ARG_" prefix to avoid possible collisions
-+                synthetic uevent as ``SYNTH_ARG_KEY=VALUE``. That means the KEY
-+                name gains ``SYNTH_ARG_`` prefix to avoid possible collisions
-                 with existing variables.
- 
--                Example of valid sequence written to the uevent file:
-+                Example of valid sequence written to the uevent file::
- 
-                     add fe4d7c9d-b8c6-4a70-9ef1-3d8a58d18eed A=1 B=abc
- 
--                This generates synthetic uevent including these variables:
-+                This generates synthetic uevent including these variables::
- 
-                     ACTION=add
-                     SYNTH_ARG_A=1
-                     SYNTH_ARG_B=abc
-                     SYNTH_UUID=fe4d7c9d-b8c6-4a70-9ef1-3d8a58d18eed
-+
- Users:
-                 udev, userspace tools generating synthetic uevents
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
