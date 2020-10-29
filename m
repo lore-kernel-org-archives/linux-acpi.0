@@ -2,93 +2,122 @@ Return-Path: <SRS0=W+nf=EE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96DACC4363A
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 17:26:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2387C55179
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 17:31:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E4B520790
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 17:26:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67C6520790
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 17:31:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ki0hrf2S"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726503AbgJ2RZ5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 29 Oct 2020 13:25:57 -0400
-Received: from mx2.suse.de ([195.135.220.15]:55930 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726037AbgJ2RZ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Oct 2020 13:25:57 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 2788DAC9A;
-        Thu, 29 Oct 2020 17:25:56 +0000 (UTC)
-From:   Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
-To:     robh+dt@kernel.org, catalin.marinas@arm.com, hch@lst.de,
-        ardb@kernel.org, linux-kernel@vger.kernel.org
-Cc:     robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org,
-        linux-rpi-kernel@lists.infradead.org, jeremy.linton@arm.com,
-        iommu@lists.linux-foundation.org, devicetree@vger.kernel.org,
-        will@kernel.org, lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
-        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
-        linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-        linux-riscv@lists.infradead.org
-Subject: [PATCH v5 0/7] arm64: Default to 32-bit wide ZONE_DMA
-Date:   Thu, 29 Oct 2020 18:25:43 +0100
-Message-Id: <20201029172550.3523-1-nsaenzjulienne@suse.de>
-X-Mailer: git-send-email 2.29.0
+        id S1726391AbgJ2Rbh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 29 Oct 2020 13:31:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37450 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725879AbgJ2Rbh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2020 13:31:37 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BCFEC0613D5;
+        Thu, 29 Oct 2020 10:31:37 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id j5so1631283plk.7;
+        Thu, 29 Oct 2020 10:31:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=L4ra82p6fZeZOXOkClmLT1gG8p31YUcgYto+ENCnODI=;
+        b=Ki0hrf2SyzbOkwT5NXRdsgkIhoZqEYhdxCEOFpsf3d2jPRG/kQ2M3eY8raixBKvnJw
+         AaDUy9/TfMKR3RzJXHwndy0jNvMDiMtgtCypZe93gHf0b+GJnqqSo0h7NSLyQxp6vwQV
+         l4/itpSKWLCeTSOsEZWtzTbODEC/riXVvhwJVOvnMt2Drfx+5Sh+/gsP+tlsi7Lri+qv
+         VFxEk2Qco3ROcxD1r49sr/z1Y6ocX33YNDydRzbJO8kVuquFlG/SJggJwfqXDwOaqUY+
+         HiEtrxdk0ib+Hf/5mr3G29xnTxLO4fr9GoPo41Z4AZBv9FswJOo0lI5ARGsJfIgsOaGm
+         wd8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=L4ra82p6fZeZOXOkClmLT1gG8p31YUcgYto+ENCnODI=;
+        b=MaiUPjOLdpBT4ZdBi2bMfaGvIDVABiTyCMchhPPdm4p1uHWANKi1MGWPJcnz0blWFz
+         kBSRGs2wVzRVlZ7Hb3D5VvLiyIdwiPzBBobi52mv5UeYYF5LST6EeFqB9/YW9Xng+ejY
+         1yI6hN4wZz3XGqEpIYU96NWGKRTG1cEiiKSWenRPRTTpu/cjw6R3joqwj0LKaz/3deHL
+         VSJP8cQVpKbTXTLnDF/+YdQ8sW549ZFRNrKVJNw4Ch75+p0pW9jmHYmywnFwD1GK/38d
+         LWa+IFzAUa5dyA68HDYSrhynwEmIQE8TjLU2+Sem3zEOdwHWIO2O77hSg/fTissMM3cc
+         N+eQ==
+X-Gm-Message-State: AOAM532FiM5f41bou3kivMMTRrls93rANamoIAn/pGbKHY4nAKYGycvn
+        l7KWlMw1oL1JbiJhlXrTTGdK2RwOmD80ZcGX0FI=
+X-Google-Smtp-Source: ABdhPJz5hdiHBHE85St8QoKVAzHkqtj6l9doedFZdK6xGF2oBkDXCdJlmjpQ7OMPTvGOT4hncie+sP8XPCYkM2AcmW0=
+X-Received: by 2002:a17:902:bc4a:b029:d6:7ef9:689c with SMTP id
+ t10-20020a170902bc4ab02900d67ef9689cmr5149016plz.21.1603992696981; Thu, 29
+ Oct 2020 10:31:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20201028171757.765866-1-ribalda@chromium.org> <20201028182744.GZ4077@smile.fi.intel.com>
+ <CANiDSCvy2dPyY8O5DVgTBwNNLmfA=kJ5HUKJqcFLnqQ8CWsJgA@mail.gmail.com>
+In-Reply-To: <CANiDSCvy2dPyY8O5DVgTBwNNLmfA=kJ5HUKJqcFLnqQ8CWsJgA@mail.gmail.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Thu, 29 Oct 2020 19:31:21 +0200
+Message-ID: <CAHp75Vc6LhqKvuAeOkVtTAniHGRMGV=7Pa71CNT7por=PRk9eQ@mail.gmail.com>
+Subject: Re: [PATCH] gpiolib: acpi: Support GpioInt with active_low polarity
+To:     Ricardo Ribalda <ribalda@google.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Using two distinct DMA zones turned out to be problematic. Here's an
-attempt go back to a saner default.
+On Thu, Oct 29, 2020 at 5:37 PM Ricardo Ribalda <ribalda@google.com> wrote:
+> On Thu, Oct 29, 2020 at 3:38 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> >
+> > On Wed, Oct 28, 2020 at 06:17:57PM +0100, Ricardo Ribalda wrote:
+> > > On the current implementation we only support active_high polarity for
+> > > GpioInt.
+> > >
+> > > There can be cases where a GPIO has active_low polarity and it is also a
+> > > IRQ source.
+> > >
+> > > De-couple the irq_polarity and active_low fields instead of re-use it.
+> > >
+> > > With this patch we support ACPI devices such as:
+> >
+> > Is it real device on the market?!
+>
+> Yes, it is a chromebook.
 
-I tested this on both a RPi4 and QEMU.
+You mean it's already on sale with this broken table?!
 
----
+> > This table is broken. _DSD GPIO active_low is only for GpioIo().
+>
+> AFAIK the format of the _DSD is not in the ACPI standard. We have
+> decided its fields. (please correct me if I am wrong here)
 
-Changes since v4:
- - Fix of_dma_get_max_cpu_address() so it returns the last addressable
-   addres, not the limit
+_DSD is a concept that is part of the spec, but each UUID and its
+application is out of scope indeed.
 
-Changes since v3:
- - Drop patch adding define in dma-mapping
- - Address small review changes
- - Update Ard's patch
- - Add new patch removing examples from mmzone.h
+GPIO application to _DSD is described in the in-kernel documentation.
+Thanks for pointing out the issues it has.
 
-Changes since v2:
- - Introduce Ard's patch
- - Improve OF dma-ranges parsing function
- - Add unit test for OF function
- - Address small changes
- - Move crashkernel reservation later in boot process
+> On the other mail I have described why we need to make use of the
+> active_low on a GpioInt()
+>
+> If there is another way of describing ActiveBoth + inverted polarity
+> please let me know and I will go that way.
 
-Changes since v1:
- - Parse dma-ranges instead of using machine compatible string
+I answered it there, please, continue this topic there.
+NAK to the proposed change.
 
-Ard Biesheuvel (1):
-  arm64: mm: Set ZONE_DMA size based on early IORT scan
-
-Nicolas Saenz Julienne (6):
-  arm64: mm: Move reserve_crashkernel() into mem_init()
-  arm64: mm: Move zone_dma_bits initialization into zone_sizes_init()
-  of/address: Introduce of_dma_get_max_cpu_address()
-  of: unittest: Add test for of_dma_get_max_cpu_address()
-  arm64: mm: Set ZONE_DMA size based on devicetree's dma-ranges
-  mm: Remove examples from enum zone_type comment
-
- arch/arm64/mm/init.c      | 16 ++++++------
- drivers/acpi/arm64/iort.c | 52 +++++++++++++++++++++++++++++++++++++++
- drivers/of/address.c      | 42 +++++++++++++++++++++++++++++++
- drivers/of/unittest.c     | 18 ++++++++++++++
- include/linux/acpi_iort.h |  4 +++
- include/linux/mmzone.h    | 20 ---------------
- include/linux/of.h        |  7 ++++++
- 7 files changed, 130 insertions(+), 29 deletions(-)
+> > If it is a ChromeBook, please fix the firmware.
 
 -- 
-2.29.0
-
+With Best Regards,
+Andy Shevchenko
