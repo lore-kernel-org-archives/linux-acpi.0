@@ -2,273 +2,180 @@ Return-Path: <SRS0=W+nf=EE=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,HK_RANDOM_FROM,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6587DC2D0A3
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 11:25:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 437F5C55179
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 11:30:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDE78207DE
-	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 11:25:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603970754;
-	bh=i2rTPf/XJd0H15T9VnL5GfPHEDr1UUaozfiv8n//lS8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=sfOwnMSpDVTolKrBCoZE8OOqU4+55/bf/iblPkfOHGOVxO0/jo1xUtg+W4uQoHoIJ
-	 dnKiK8bRRh40UrArmT2nPbvMFRYcR5rxiWMHPr4KST41ooOdmjsmJNO8o60n5mC/a+
-	 CKSDKUVy9VvbaqezVRbtYSe0V/qSn2nQH7ItDhzM=
+	by mail.kernel.org (Postfix) with ESMTP id C074820791
+	for <linux-acpi@archiver.kernel.org>; Thu, 29 Oct 2020 11:30:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Hd+VDlow"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726078AbgJ2LZu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 29 Oct 2020 07:25:50 -0400
-Received: from mail-oi1-f179.google.com ([209.85.167.179]:42719 "EHLO
-        mail-oi1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725774AbgJ2LZt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2020 07:25:49 -0400
-Received: by mail-oi1-f179.google.com with SMTP id c72so2802492oig.9;
-        Thu, 29 Oct 2020 04:25:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=QchY1rQBO8CSFd113tzUKvOK8asotum72xA9lUDpzIc=;
-        b=gNiWdrMZrCfKPlbBzNxTLTeu4oLjUy288fTNywiUgx2OzsjOHBRGYyPItpfOvnMkAv
-         kNbZw4GBEv2jfBwUNlKVoeN+75qv6Pyd+WRL1qXo1HMYiHgOcxIylSsF/zuorxzuFnXp
-         uJb9RqwSMhZ0IjYwlPzk85v4nULcDnY/xy2cRcfC35PZtGExhYZ5TrZoodIvken9KRiw
-         /AUa0Qo8RtSC3Le579QzI7zQ4LLoGOThx2msgOe1IuPn33YbcKW9vpZJr0QbisVid+pS
-         r8esAIcBJufnp3lRGgBo4fRr1CPTZ9x4kPKfq6Mo9qeoMf6yZ+84uXqghIfT1rbUZXAq
-         T7Bg==
-X-Gm-Message-State: AOAM532qnV+8YrXSZA3m7TYMHU5Q9N13+uL8B5VWe0dyXV+FriXfEo0l
-        xUSZHxZjgO2R5dC90nwB3FHZUK8VwRIAtKkct0Q=
-X-Google-Smtp-Source: ABdhPJx9CE4uF1ccjyYAqyCw3qpTvRqSxQHalV2jVP/wHFIrcYNGtma055Xz40efk5OWLEfk3yCow3a8TC21dbC/jA8=
-X-Received: by 2002:aca:4c86:: with SMTP id z128mr2634681oia.71.1603970748463;
- Thu, 29 Oct 2020 04:25:48 -0700 (PDT)
+        id S1727312AbgJ2La0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 29 Oct 2020 07:30:26 -0400
+Received: from m12-13.163.com ([220.181.12.13]:60832 "EHLO m12-13.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725805AbgJ2LaW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Oct 2020 07:30:22 -0400
+X-Greylist: delayed 5505 seconds by postgrey-1.27 at vger.kernel.org; Thu, 29 Oct 2020 07:30:20 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=AaNZ+
+        UTrfFvTmfBqxcF0huHAYMs+6mQfOeQlH2xbxjA=; b=Hd+VDlowan/+N+GuLVN8Q
+        fHY93IR+pPUi4Bac+g5KqagFOdidHXnEJbm+BngZarHENalmPqyms1oOo4i8vR/N
+        pR7HfJslaMHv5AItrxMFMIUYRlajR8sfANLh/rNMM1GdyRrr2SUycw0jsCI+VQ/V
+        UBoAljVllRXNG2vQ2oVghw=
+Received: from smtp.163.com (unknown [36.112.24.9])
+        by smtp9 (Coremail) with SMTP id DcCowAAnJoIekppfNTowNw--.42547S2;
+        Thu, 29 Oct 2020 17:57:51 +0800 (CST)
+From:   yaoaili126@163.com
+To:     james.morse@arm.com
+Cc:     rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com,
+        bp@alien8.de, linux-acpi@vger.kernel.org, YANGFENG1@kingsoft.com,
+        CHENGUOMIN@kingsoft.com, yaoaili@kingsoft.com
+Subject: Subject: Re:Re: [PATCH] Don't do panic for memory Fatal UE in ghes of x86_mce platform
+Date:   Thu, 29 Oct 2020 02:57:37 -0700
+Message-Id: <20201029095737.5165-1-yaoaili126@163.com>
+X-Mailer: git-send-email 2.18.4
+In-Reply-To: <3942f335-b905-4c8f-bf81-7bdff6c025ad () arm ! com>
+References: <3942f335-b905-4c8f-bf81-7bdff6c025ad () arm ! com>
 MIME-Version: 1.0
-References: <markpearson@lenovo.com> <20201027164219.868839-1-markpearson@lenovo.com>
- <5ca1ae238b23a611b8a490c244fd93cdcc36ef79.camel@hadess.net>
-In-Reply-To: <5ca1ae238b23a611b8a490c244fd93cdcc36ef79.camel@hadess.net>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 29 Oct 2020 12:25:37 +0100
-Message-ID: <CAJZ5v0hUzsCS0dZbT4RRQ31DgTiuCOmyCcJMji_DbU19ghaOdA@mail.gmail.com>
-Subject: Re: [PATCH] Documentation: Add documentation for new platform_profile
- sysfs attribute
-To:     Bastien Nocera <hadess@hadess.net>,
-        Mark Pearson <markpearson@lenovo.com>
-Cc:     Darren Hart <dvhart@infradead.org>,
-        Mark Gross <mgross@linux.intel.com>,
-        Mario Limonciello <mario.limonciello@dell.com>,
-        Elia Devito <eliadevito@gmail.com>,
-        Benjamin Berg <bberg@redhat.com>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: DcCowAAnJoIekppfNTowNw--.42547S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxGw13WrWrAw1fWr1ruFy7Awb_yoWrWFWDpF
+        WaqFyIkry8KFy2yF1Iqr48uFWYvan3C345G3sxt34rCas8u3W0vr42gr1aga4DGryqqry8
+        tr4vgr9rKa9YvaDanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j2ZXrUUUUU=
+X-Originating-IP: [36.112.24.9]
+X-CM-SenderInfo: 51drtxdolrjli6rwjhhfrp/1tbifAjMG1r6nJVPCQABsN
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Oct 29, 2020 at 2:53 AM Bastien Nocera <hadess@hadess.net> wrote:
->
-> Hey Hans, Mark,
->
-> On Tue, 2020-10-27 at 12:42 -0400, Mark Pearson wrote:
-> > From: Hans de Goede <hdegoede@redhat.com>
+Hi, Thanks for your comments!
+
+> -----Original Message-----
+> From: James Morse [mailto:james.morse@arm.com]
+> Sent: Thursday, October 29, 2020 3:20 AM
+> To: yaoaili126@163.com
+> Cc: rjw@rjwysocki.net; lenb@kernel.org; tony.luck@intel.com; bp@alien8.de;
+> linux-acpi@vger.kernel.org; YANGFENG1 [杨峰]
+> <YANGFENG1@kingsoft.com>; CHENGUOMIN [陈国民]
+> <CHENGUOMIN@kingsoft.com>; yaoaili [么爱利] <yaoaili@kingsoft.com>
+> Subject: Re: [PATCH] Don't do panic for memory Fatal UE in ghes of x86_mce
+> platform
+> 
+> Hi!
+> 
+> On 28/10/2020 07:35, yaoaili126@163.com wrote:
+> > From: Aili Yao <yaoaili@kingsoft.com>
 > >
-> > On modern systems the platform performance, temperature, fan and
-> > other
-> > hardware related characteristics are often dynamically configurable.
-> > The
-> > profile is often automatically adjusted to the load by somei
-> > automatic-mechanism (which may very well live outside the kernel).
+> > For x86 with mce, when BIOS get its work done for memory UE,it will
+> > raise MCE exception, In MCE, it will do panic or recovery work there.
+> > But When BIOS option WHEA memory log is enabled,
+> 
+> This is GHES_ASSIST?
+
+sorry, I am not sure, What i know is this option for x86 is only to supply
+more error information.
+
+> 
+> > BIOS also prepared one
+> > detailed error table which will be polled by ghes_notify_nmi from NMI
+> > watchdog,
+> 
+> heh, because the NMI notification chain has no idea what triggered it...
+> 
+> 
+> > ghes_notify_nmi will check the severity and do panic too, this panic
+> > action is not necessary and confusing, and may lead to unwanted
+> > results like core dump fail.
 > >
-> > These auto platform-adjustment mechanisms often can be configured
-> > with
-> > one of several 'platform-profiles', with either a bias towards low-
-> > power
+> > Downgrade CPER_SEV_FATAL to GHES_SEV_RECOVERABLE before panic is
+> > called for x86_mce
+> 
+> You can't know whether your platform (will?) also generate an MCE when
+> you build the kernel. Distros set all the Kconfig options, they aren't tuned to
+> the platform.
+> 
+> This also makes fatal memory errors recoverable, which isn't true for other
+> platforms.
+> 
 
-Strictly speaking, power is a rate, so it cannot be consumed.
+I am little confused, if any thing wrong, correct me: I know ACPI and APEI support
+x86 and ARM, is there any other Platform I don't know? if a Platform doesn't support 
+this, this code will never execute even when the config is on. And for a ARM platfrom 
+Distros, I don't think it's right to have CONFIG_X86_MCE on. 
 
-So I would say "low-power operation" here.
+> 
+> Assuming this is GHES_ASSIST, I think the simplest approach is to skip the
+> panic() for CPER records found for those GHES. APEI is only providing
+> assistance in this case, so its unfair for it to take some terminal action. The
+> machine-check handler should have the final say in in this case.
+> 
+> 
+> Section 18.7 of ACPI v6.3a says we're supposed to:
+> | consume the additional GHES_ASSIST information in the context of an
+> | error reported by hardware
+> which would be the MCE - so there is no reason for these GHES entries to be
+> poked whenever an unrelated NMI occurs.
+> 
+> Fixing this would need a separate list for the machine check handler to poke
+> to dump any data from GHES_ASSIST CPER, so its more work than just
+> skipping the register call.
+> 
 
-> Can you please make sure to quote 'platform-profile' and 'profile-name'
-> this way all through the document? They're not existing words, and
-> quoting them shows that they're attribute names, rather than English.
->
-> > consumption or towards performance (and higher power consumption and
+This is a great idea！ This way we may collect more error info and avoid the issue mentioned
+before. I do realize a prototype following your method，i will try it and test it. 
 
-And analogously here.
+> (I've no idea how x86 prioritises MCE and NMI... does one block the other?)
 
-> > thermals).
->
-> s/thermal/temperature/
+From intel sdm, it says MCE has higher priority than NMI. but the latest kernel is changing
+fast, NMI may can preemt the MCE for userspace? I am not sure. 
 
-Right.
-
-> "A thermal" is something else (it's seasonal underwear for me ;)
->
-> > Introduce a new platform_profile sysfs API which offers a generic API
-> > for
-> > selecting the performance-profile of these automatic-mechanisms.
-> >
-> > Co-developed-by: Mark Pearson <markpearson@lenovo.com>
-> > Signed-off-by: Mark Pearson <markpearson@lenovo.com>
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > ---
-> > Changes in V1:
-> >  - Moved from RFC to proposed patch
-> >  - Added cool profile as requested
-> >  - removed extra-profiles as no longer relevant
-> >
-> >  .../ABI/testing/sysfs-platform_profile        | 66
-> > +++++++++++++++++++
-> >  1 file changed, 66 insertions(+)
-> >  create mode 100644 Documentation/ABI/testing/sysfs-platform_profile
-> >
-> > diff --git a/Documentation/ABI/testing/sysfs-platform_profile
-> > b/Documentation/ABI/testing/sysfs-platform_profile
-> > new file mode 100644
-> > index 000000000000..240bd3d7532b
-> > --- /dev/null
-> > +++ b/Documentation/ABI/testing/sysfs-platform_profile
-> > @@ -0,0 +1,66 @@
-> > +Platform-profile selection (e.g.
-> > /sys/firmware/acpi/platform_profile)
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c index
+> > 81bf71b10d44..e5e8a53beb5a 100644
+> > --- a/drivers/acpi/apei/ghes.c
+> > +++ b/drivers/acpi/apei/ghes.c
+> > @@ -272,7 +272,27 @@ static inline int ghes_severity(int severity)
+> >  	case CPER_SEV_RECOVERABLE:
+> >  		return GHES_SEV_RECOVERABLE;
+> >  	case CPER_SEV_FATAL:
+> > +	{
+> > +#ifdef CONFIG_X86_MCE
+> > +		int sev, sec_sev;
+> > +		struct acpi_hest_generic_data *gdata;
+> > +		guid_t *sec_type;
 > > +
-> > +On modern systems the platform performance, temperature, fan and
-> > other
-> > +hardware related characteristics are often dynamically configurable.
-> > The
-> > +profile is often automatically adjusted to the load by some
-> > +automatic-mechanism (which may very well live outside the kernel).
+> > +		if (estatus == NULL)
+> > +			return GHES_SEV_PANIC;
 > > +
-> > +These auto platform-adjustment mechanisms often can be configured
-> > with
-> > +one of several 'platform-profiles', with either a bias towards low-
-> > power
-> > +consumption or towards performance (and higher power consumption and
-> > +thermals).
-> > +
-> > +The purpose of the platform_profile attribute is to offer a generic
-> > sysfs
-> > +API for selecting the platform-profile of these automatic-
-> > mechanisms.
-> > +
-> > +Note that this API is only for selecting the platform-profile, it is
-> > +NOT a goal of this API to allow monitoring the resulting performance
-> > +characteristics. Monitoring performance is best done with
-> > device/vendor
-> > +specific tools such as e.g. turbostat.
-> > +
-> > +Specifically when selecting a high-performance profile the actual
-> > achieved
-> > +performance may be limited by various factors such as: the heat
-> > generated
-> > +by other components, room temperature, free air flow at the bottom
-> > of a
-> > +laptop, etc. It is explicitly NOT a goal of this API to let
-> > userspace know
-> > +about any sub-optimal conditions which are impeding reaching the
-> > requested
-> > +performance level.
-> > +
-> > +Since numbers are a rather meaningless way to describe platform-
-> > profiles
->
-> It's not meaningless, but rather ambiguous. For a range of 1 to 5, is 1
-> high performance, and 5 low power, or vice-versa?
+> > +		apei_estatus_for_each_section(estatus, gdata) {
+> > +			sec_type = (guid_t *)gdata->section_type;
+> > +			sec_sev = gdata->error_severity;
+> > +			if (sec_sev == CPER_SEV_FATAL &&
+> > +			 !guid_equal(sec_type,
+> &CPER_SEC_PLATFORM_MEM))
+> > +				return GHES_SEV_PANIC;
+> > +		}
+> > +		return GHES_SEV_RECOVERABLE;
+> > +#else
+> >  		return GHES_SEV_PANIC;
+> > +#endif
+> > +	}
 
-It just is not useful. :-)
+Thanks
+Aili Yao
 
-> > +this API uses strings to describe the various profiles. To make sure
-> > that
-> > +userspace gets a consistent experience when using this API this API
->
-> you can remove "when using this API".
->
-> > +document defines a fixed set of profile-names. Drivers *must* map
-> > their
-> > +internal profile representation/names onto this fixed set.
-> > +
-> > +If for some reason there is no good match when mapping then a new
-> > profile-name
-> > +may be added.
->
-> "for some reason" can be removed.
-
-Right.
-
-> >  Drivers which wish to introduce new profile-names must:
-> > +1. Have very good reasons to do so.
->
-> "1. Explain why the existing 'profile-names' cannot be used"
->
-> > +2. Add the new profile-name to this document, so that future drivers
-> > which also
-> > +   have a similar problem can use the same name.
->
-> "2. Add the new 'profile-name' to the documentation so that other
-> drivers can use it, as well as user-space knowing clearly what
-> behaviour the 'profile-name' corresponds to"
->
-> > +
-> > +What:          /sys/firmware/acpi/platform_profile_choices
-> > +Date:          October 2020
-> > +Contact:       Hans de Goede <hdegoede@redhat.com>
-> > +Description:
-> > +               Reading this file gives a space separated list of
-> > profiles
-> > +               supported for this device.
->
-> "This file contains a space-separated list of profiles..."
->
-> > +
-> > +               Drivers must use the following standard profile-
-> > names:
-> > +
-> > +               low-power:              Emphasises low power
-> > consumption
-
-Let's be precise, so "low-power operation", please (see above for the reason).
-
-> > +               cool:                   Emphasises cooler operation
-> > +               quiet:                  Emphasises quieter operation
-> > +               balanced:               Balance between low power
-> > consumption
-
-And same here and analogously everywhere.
-
-> > +                                       and performance
-> > +               performance:            Emphasises performance (and
-> > may lead to
-> > +                                       higher temperatures and fan
-> > speeds)
->
-> I'd replace "Emphasises" with either "Focus on" or the US English
-> spelling of "Emphasizes".
->
-> > +               Userspace may expect drivers to offer at least
-> > several of these
-> > +               standard profile-names.
->
-> Replce "at least several" with "more than one".
->
-> > +
-> > +What:          /sys/firmware/acpi/platform_profile
-> > +Date:          October 2020
-> > +Contact:       Hans de Goede <hdegoede@redhat.com>
-> > +Description:
-> > +               Reading this file gives the current selected profile
-> > for this
-> > +               device. Writing this file with one of the strings
-> > from
-> > +               available_profiles changes the profile to the new
-> > value.
->
-> Is there another file which explains whether those sysfs value will
-> contain a trailing linefeed?
->
-> Cheers
->
