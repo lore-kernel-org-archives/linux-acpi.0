@@ -7,47 +7,43 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB0FBC56201
-	for <linux-acpi@archiver.kernel.org>; Fri, 30 Oct 2020 17:26:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5EB7C5517A
+	for <linux-acpi@archiver.kernel.org>; Fri, 30 Oct 2020 17:26:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75C4420936
-	for <linux-acpi@archiver.kernel.org>; Fri, 30 Oct 2020 17:26:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C6CC20936
+	for <linux-acpi@archiver.kernel.org>; Fri, 30 Oct 2020 17:26:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726704AbgJ3R0I (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 30 Oct 2020 13:26:08 -0400
+        id S1726072AbgJ3R0H (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 30 Oct 2020 13:26:07 -0400
 Received: from mga06.intel.com ([134.134.136.31]:57807 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726814AbgJ3R0H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 30 Oct 2020 13:26:07 -0400
-IronPort-SDR: ndwxYtgZMSpMB/VPiZ0p/eeYX4KBJ8xeU8Y+mOmgn0ri+b/poid6Y/+BxzglACJfGZ9U0yVsyw
- dk66R9qeaQFg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9790"; a="230276204"
+        id S1726704AbgJ3R0G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 30 Oct 2020 13:26:06 -0400
+IronPort-SDR: Ruvi4JrFEU/U9prgAZopmQ9YR12SO7alOgoXdbMQMeb88OQX/RwoPm+cj8xyy0VCQwjBwjFM5R
+ bGBZIPvjM+rg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9790"; a="230276202"
 X-IronPort-AV: E=Sophos;i="5.77,434,1596524400"; 
-   d="scan'208";a="230276204"
+   d="scan'208";a="230276202"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2020 10:26:06 -0700
-IronPort-SDR: PO9Rxe2POxWF8JKjpCzkqBGqSyYOm120Fdsm5hCO3NQFMgmgFT0/wVbXmYbf87NyIlpNH6flaA
- JduKGRCFqlgw==
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2020 10:26:05 -0700
+IronPort-SDR: KV0PcvUkEhofrq/UJzqL/EPvLT5tog6OTME0fzQNN09VTwy9GjS6UDFU1ptNJTn3J2J6u1LAWI
+ 2qA9JxZtIuyQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,434,1596524400"; 
-   d="scan'208";a="537135871"
+   d="scan'208";a="395541897"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 30 Oct 2020 10:26:04 -0700
+  by orsmga001.jf.intel.com with ESMTP; 30 Oct 2020 10:26:04 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 79A83567; Fri, 30 Oct 2020 19:26:03 +0200 (EET)
+        id 5DD975B; Fri, 30 Oct 2020 19:26:03 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
-Subject: [PATCH v3 3/6] resource: Introduce resource_union() for overlapping resources
-Date:   Fri, 30 Oct 2020 19:25:53 +0200
-Message-Id: <20201030172556.21686-4-andriy.shevchenko@linux.intel.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 1/6] resource: Simplify region_intersects() by reducing conditionals
+Date:   Fri, 30 Oct 2020 19:25:51 +0200
+Message-Id: <20201030172556.21686-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201030172556.21686-1-andriy.shevchenko@linux.intel.com>
 References: <20201030172556.21686-1-andriy.shevchenko@linux.intel.com>
@@ -57,51 +53,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some already present users may utilize resource_union() helper.
-Provide it for them and for wider use in the future.
+Now we have for 'other' and 'type' variables
+
+other	type	return
+  0	  0	REGION_DISJOINT
+  0	  x	REGION_INTERSECTS
+  x	  0	REGION_DISJOINT
+  x	  x	REGION_MIXED
+
+Obviously it's easier to check 'type' for 0 first instead of
+currently checked 'other'.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org
 ---
- include/linux/ioport.h | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ kernel/resource.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index df4581107536..40320eb5bc0e 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -10,9 +10,10 @@
- #define _LINUX_IOPORT_H
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 3ae2f56cc79d..82df80417489 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -557,13 +557,13 @@ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
+ 	}
+ 	read_unlock(&resource_lock);
  
- #ifndef __ASSEMBLY__
-+#include <linux/bits.h>
- #include <linux/compiler.h>
-+#include <linux/minmax.h>
- #include <linux/types.h>
--#include <linux/bits.h>
- /*
-  * Resources are tree-like, allowing
-  * nesting etc..
-@@ -235,6 +236,16 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
-        return r1->start <= r2->end && r1->end >= r2->start;
+-	if (other == 0)
+-		return type ? REGION_INTERSECTS : REGION_DISJOINT;
++	if (type == 0)
++		return REGION_DISJOINT;
+ 
+-	if (type)
+-		return REGION_MIXED;
++	if (other == 0)
++		return REGION_INTERSECTS;
+ 
+-	return REGION_DISJOINT;
++	return REGION_MIXED;
  }
+ EXPORT_SYMBOL_GPL(region_intersects);
  
-+static inline bool
-+resource_union(struct resource *r1, struct resource *r2, struct resource *r)
-+{
-+	if (!resource_overlaps(r1, r2))
-+		return false;
-+	r->start = min(r1->start, r2->start);
-+	r->end = max(r1->end, r2->end);
-+	return true;
-+}
-+
- /* Convenience shorthand with allocation */
- #define request_region(start,n,name)		__request_region(&ioport_resource, (start), (n), (name), 0)
- #define request_muxed_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name), IORESOURCE_MUXED)
 -- 
 2.28.0
 
