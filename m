@@ -2,99 +2,91 @@ Return-Path: <SRS0=W9bZ=EI=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDE16C388F9
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E840C00A89
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A31E720715
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 107D420715
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726525AbgKBVA2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 2 Nov 2020 16:00:28 -0500
-Received: from mga11.intel.com ([192.55.52.93]:8786 "EHLO mga11.intel.com"
+        id S1726959AbgKBVAw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 2 Nov 2020 16:00:52 -0500
+Received: from mga17.intel.com ([192.55.52.151]:16890 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725841AbgKBVA2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1725801AbgKBVA2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 2 Nov 2020 16:00:28 -0500
-IronPort-SDR: 3YqqZpIZ+t3oFqhNumVxgUNXFJTjLpSUfIjwg9FW5uxwLlI2TKZfm3rE1CMHvCylk1xL/sqBDw
- 4PP0mx19QDig==
-X-IronPort-AV: E=McAfee;i="6000,8403,9793"; a="165447778"
+IronPort-SDR: uG8cB7L4HRZ6daE6bCaA8NDIkjSFIm8Bjr6//A7ygg0byArITsaXNDHX9BxGFYTfTaBqMiLKwn
+ zIg+StRUqJMw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9793"; a="148807055"
 X-IronPort-AV: E=Sophos;i="5.77,445,1596524400"; 
-   d="scan'208";a="165447778"
+   d="scan'208";a="148807055"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2020 13:00:28 -0800
-IronPort-SDR: RcVEQDFVYqiVW2wmOOWCKjoTqK9l7zYVahdkhu52+N937NDJ7h7PVt6OsDQy1O4ejkr9JB0U7/
- rhThQBwU0Ofw==
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2020 13:00:28 -0800
+IronPort-SDR: KQ+SNPzFTT4B16KXnEVj9TbVs966y4HJPKIsychEFbktrvaujLszxuX8PDeA3RqqLWPHQv2h7i
+ yFcUIeYMS5+A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,445,1596524400"; 
-   d="scan'208";a="528149403"
+   d="scan'208";a="305572035"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga005.fm.intel.com with ESMTP; 02 Nov 2020 13:00:26 -0800
+  by fmsmga008.fm.intel.com with ESMTP; 02 Nov 2020 13:00:26 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id B3F75B1; Mon,  2 Nov 2020 23:00:25 +0200 (EET)
+        id A81DB12A; Mon,  2 Nov 2020 23:00:25 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     linux-acpi@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-kernel@vger.kernel.org
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v4 1/6] resource: Simplify region_intersects() by reducing conditionals
-Date:   Mon,  2 Nov 2020 23:00:20 +0200
-Message-Id: <20201102210025.53520-2-andriy.shevchenko@linux.intel.com>
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+Subject: [PATCH v4 0/6] resource: introduce union(), intersection() API
+Date:   Mon,  2 Nov 2020 23:00:19 +0200
+Message-Id: <20201102210025.53520-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201102210025.53520-1-andriy.shevchenko@linux.intel.com>
-References: <20201102210025.53520-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Now we have for 'other' and 'type' variables
+Some users may want to use resource library to manage their own resources,
+besides existing users that open code union() and intersection()
+implementations.
 
-other	type	return
-  0	  0	REGION_DISJOINT
-  0	  x	REGION_INTERSECTS
-  x	  0	REGION_DISJOINT
-  x	  x	REGION_MIXED
+Provide a generic API for wider use.
 
-Obviously it's easier to check 'type' for 0 first instead of
-currently checked 'other'.
+Changelog v4:
+- added Rb tag (Rafael)
+- Cc'ed to LKML and Greg (Rafael)
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- kernel/resource.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Changelog v3:
+- rebased on top of v5.10-rc1
+- dropped upstreamed dependencies
+- added Rb tag to the last patch (Mika)
 
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 3ae2f56cc79d..82df80417489 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -557,13 +557,13 @@ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
- 	}
- 	read_unlock(&resource_lock);
- 
--	if (other == 0)
--		return type ? REGION_INTERSECTS : REGION_DISJOINT;
-+	if (type == 0)
-+		return REGION_DISJOINT;
- 
--	if (type)
--		return REGION_MIXED;
-+	if (other == 0)
-+		return REGION_INTERSECTS;
- 
--	return REGION_DISJOINT;
-+	return REGION_MIXED;
- }
- EXPORT_SYMBOL_GPL(region_intersects);
- 
+Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org
+
+Andy Shevchenko (6):
+  resource: Simplify region_intersects() by reducing conditionals
+  resource: Group resource_overlaps() with other inline helpers
+  resource: Introduce resource_union() for overlapping resources
+  resource: Introduce resource_intersection() for overlapping resources
+  PCI/ACPI: Replace open coded variant of resource_union()
+  ACPI: watchdog: Replace open coded variant of resource_union()
+
+ drivers/acpi/acpi_watchdog.c |  6 +-----
+ drivers/acpi/pci_root.c      |  4 +---
+ include/linux/ioport.h       | 34 +++++++++++++++++++++++++++-------
+ kernel/resource.c            | 10 +++++-----
+ 4 files changed, 34 insertions(+), 20 deletions(-)
+
 -- 
 2.28.0
 
