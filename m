@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8435AC00A89
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 197BCC388F9
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C804206E5
-	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B136320715
+	for <linux-acpi@archiver.kernel.org>; Mon,  2 Nov 2020 21:00:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726020AbgKBVA2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 2 Nov 2020 16:00:28 -0500
+        id S1726859AbgKBVAc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 2 Nov 2020 16:00:32 -0500
 Received: from mga11.intel.com ([192.55.52.93]:8786 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725833AbgKBVA2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 2 Nov 2020 16:00:28 -0500
-IronPort-SDR: wsbWtstLOXIsb/9eK2/qbFyOW4dMBISPZmP1Z1wCCPLCMFWihMltnj/UcxWBlhf2uErGuC480e
- BjElN+l495kg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9793"; a="165447779"
+        id S1726820AbgKBVAa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 2 Nov 2020 16:00:30 -0500
+IronPort-SDR: 251VbEkLNiBlxhFs/qKfhxxlzpTZAz4xjcMUB7C2v+9wgGQm3PMi55nrxLPR0O6Vq3AIYCY3K/
+ s+E+Xsl1hpEw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9793"; a="165447788"
 X-IronPort-AV: E=Sophos;i="5.77,445,1596524400"; 
-   d="scan'208";a="165447779"
+   d="scan'208";a="165447788"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2020 13:00:28 -0800
-IronPort-SDR: gQDYPevJNS+SGJ8mq5x5nTjbq+NHjMkijqCS9Bf8bisOr63vpCkwqIafRc2tulGA8LnDm9UhSw
- RP8CKe+y3iLg==
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2020 13:00:30 -0800
+IronPort-SDR: 8X6tn+qfasHVtIMsdwGayNv7Xn2KaWkOty6XMIvu9zawmIeBcTIk5aSJzOF7ryFjBPAJH782Si
+ bGuKL5j1/eTg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,445,1596524400"; 
-   d="scan'208";a="528149404"
+   d="scan'208";a="528149418"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga005.fm.intel.com with ESMTP; 02 Nov 2020 13:00:26 -0800
+  by fmsmga005.fm.intel.com with ESMTP; 02 Nov 2020 13:00:28 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id DC8691F5; Mon,  2 Nov 2020 23:00:25 +0200 (EET)
+        id F012435B; Mon,  2 Nov 2020 23:00:25 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     linux-acpi@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-kernel@vger.kernel.org
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v4 4/6] resource: Introduce resource_intersection() for overlapping resources
-Date:   Mon,  2 Nov 2020 23:00:23 +0200
-Message-Id: <20201102210025.53520-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 6/6] ACPI: watchdog: Replace open coded variant of resource_union()
+Date:   Mon,  2 Nov 2020 23:00:25 +0200
+Message-Id: <20201102210025.53520-7-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201102210025.53520-1-andriy.shevchenko@linux.intel.com>
 References: <20201102210025.53520-1-andriy.shevchenko@linux.intel.com>
@@ -55,36 +56,32 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There will be at least one user that can utilize new helper.
-Provide the helper for future user and for wider use.
+Since we have resource_union() helper, let's utilize it here.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/linux/ioport.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/acpi/acpi_watchdog.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 40320eb5bc0e..ece1a8db309c 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -236,6 +236,16 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
-        return r1->start <= r2->end && r1->end >= r2->start;
- }
- 
-+static inline bool
-+resource_intersection(struct resource *r1, struct resource *r2, struct resource *r)
-+{
-+	if (!resource_overlaps(r1, r2))
-+		return false;
-+	r->start = max(r1->start, r2->start);
-+	r->end = min(r1->end, r2->end);
-+	return true;
-+}
-+
- static inline bool
- resource_union(struct resource *r1, struct resource *r2, struct resource *r)
- {
+diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
+index 5c1e9ea43123..ca28183f4d13 100644
+--- a/drivers/acpi/acpi_watchdog.c
++++ b/drivers/acpi/acpi_watchdog.c
+@@ -151,11 +151,7 @@ void __init acpi_watchdog_init(void)
+ 		found = false;
+ 		resource_list_for_each_entry(rentry, &resource_list) {
+ 			if (rentry->res->flags == res.flags &&
+-			    resource_overlaps(rentry->res, &res)) {
+-				if (res.start < rentry->res->start)
+-					rentry->res->start = res.start;
+-				if (res.end > rentry->res->end)
+-					rentry->res->end = res.end;
++			    resource_union(rentry->res, &res, rentry->res)) {
+ 				found = true;
+ 				break;
+ 			}
 -- 
 2.28.0
 
