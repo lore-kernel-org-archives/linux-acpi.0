@@ -4,52 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A0AC2D0A3
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CE72C388F7
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 22:10:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8EAE522403
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:55:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 255C92080D
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 22:10:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731669AbgKCVzK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 3 Nov 2020 16:55:10 -0500
-Received: from mga14.intel.com ([192.55.52.115]:43677 "EHLO mga14.intel.com"
+        id S1729723AbgKCUhc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 3 Nov 2020 15:37:32 -0500
+Received: from mga18.intel.com ([134.134.136.126]:55780 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730973AbgKCUpN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Nov 2020 15:45:13 -0500
-IronPort-SDR: 69dTiWPgBMP0GUpSsmNilEVpBw68vH8hiscihniKkdf6fVAGkWSXvbZaPBo8wLsXCY49KyDjKy
- b86YhcPJvp6Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="168336471"
+        id S1729447AbgKCUg7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 3 Nov 2020 15:36:59 -0500
+IronPort-SDR: ai4HFeNoj4yAxv7GHJnvmrYNgl+j1xPn8G0Z/1V3drTvmLl3tmjYsP2KKn8hMBL4bRQA4RmWna
+ RcmVjBKTknYw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="156898586"
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="168336471"
+   d="scan'208";a="156898586"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:45:13 -0800
-IronPort-SDR: K1e7s1hXQuhsHjIMcZMBp0MkYi007D4ZNy/YyMnW9MFaKbbZALwiVE8mAOkyHAmBDz6JNsO87s
- uq/6tjxkBUxQ==
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:36:58 -0800
+IronPort-SDR: e5PDvl26kLk85maj16Uz1egsPA5EMIrn5wj6JkUk196w8F0tKQ7GHWiDWtf0+Ox8i7Wuwq29YJ
+ 0a3Snq+9AdNg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="357803002"
+   d="scan'208";a="352454753"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga002.fm.intel.com with ESMTP; 03 Nov 2020 12:45:11 -0800
+  by orsmga008.jf.intel.com with ESMTP; 03 Nov 2020 12:36:56 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id C50E876; Tue,  3 Nov 2020 22:45:10 +0200 (EET)
+        id E32A376; Tue,  3 Nov 2020 22:36:55 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     linux-acpi@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-kernel@vger.kernel.org
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v6 1/7] resource: Simplify region_intersects() by reducing conditionals
-Date:   Tue,  3 Nov 2020 22:45:04 +0200
-Message-Id: <20201103204510.19154-2-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v5 1/7] resource: Simplify region_intersects() by reducing conditionals
+Date:   Tue,  3 Nov 2020 22:36:49 +0200
+Message-Id: <20201103203655.17701-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201103204510.19154-1-andriy.shevchenko@linux.intel.com>
-References: <20201103204510.19154-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20201103203655.17701-1-andriy.shevchenko@linux.intel.com>
+References: <20201103203655.17701-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -68,8 +67,6 @@ Obviously it's easier to check 'type' for 0 first instead of
 currently checked 'other'.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
-Tested-by: Hanjun Guo <guohanjun@huawei.com>
 Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
  kernel/resource.c | 10 +++++-----
