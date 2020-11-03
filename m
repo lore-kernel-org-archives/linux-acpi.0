@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B969C2D0A3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5FAEC388F9
 	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:55:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAAFE22404
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:55:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6996922404
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:55:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731670AbgKCVy5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 3 Nov 2020 16:54:57 -0500
-Received: from mga09.intel.com ([134.134.136.24]:6426 "EHLO mga09.intel.com"
+        id S1731557AbgKCVy4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 3 Nov 2020 16:54:56 -0500
+Received: from mga02.intel.com ([134.134.136.20]:3847 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730977AbgKCUpO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1730978AbgKCUpO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 3 Nov 2020 15:45:14 -0500
-IronPort-SDR: 7pj/4XkEfzeWdg7KYuOVTJ4IDsZDRPuTQ0IfVNjNHKZV+a/jqMJfAtiibtGco6uC/vwVHCUT75
- VRUmC/cg56cg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="169259816"
+IronPort-SDR: wBjM/IAle7pJc8aBkjxK4hz6pseF944dSxpfqW5lZHD4w5lB+2OG4TohT32DLlrmfihIrDvowU
+ MFgwuwiNXbYw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="156110736"
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="169259816"
+   d="scan'208";a="156110736"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:45:13 -0800
-IronPort-SDR: SzOhlsCjMXhvOzb4ueUaFyBYNBQZt8i2BNuu7DBjgPm2mahRZOJvimtm5dprQy1eRiysMmOi7u
- KTQAKf2TwNeg==
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:45:13 -0800
+IronPort-SDR: Nne6t/swK0df5+2pckCVT1Tlndv1PIN1jkIH2VFhgj0d+odQPT7EWIuwU+DQhTS9Ub4gmaBpDl
+ EdxvcNgKc+DA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="363163837"
+   d="scan'208";a="426459436"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by FMSMGA003.fm.intel.com with ESMTP; 03 Nov 2020 12:45:11 -0800
+  by fmsmga001.fm.intel.com with ESMTP; 03 Nov 2020 12:45:11 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id E5BE115E; Tue,  3 Nov 2020 22:45:10 +0200 (EET)
+        id CC6FF14B; Tue,  3 Nov 2020 22:45:10 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     linux-acpi@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -44,9 +44,9 @@ To:     linux-acpi@vger.kernel.org,
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Hanjun Guo <guohanjun@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v6 4/7] resource: Introduce resource_intersection() for overlapping resources
-Date:   Tue,  3 Nov 2020 22:45:07 +0200
-Message-Id: <20201103204510.19154-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v6 2/7] resource: Group resource_overlaps() with other inline helpers
+Date:   Tue,  3 Nov 2020 22:45:05 +0200
+Message-Id: <20201103204510.19154-3-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201103204510.19154-1-andriy.shevchenko@linux.intel.com>
 References: <20201103204510.19154-1-andriy.shevchenko@linux.intel.com>
@@ -56,37 +56,46 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There will be at least one user that can utilize new helper.
-Provide the helper for future user and for wider use.
+For better maintenance group resource_overlaps() with other inline helpers.
+While at it, drop extra parentheses.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+Tested-by: Hanjun Guo <guohanjun@huawei.com>
 Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/linux/ioport.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/ioport.h | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 40320eb5bc0e..ece1a8db309c 100644
+index 5135d4b86cd6..df4581107536 100644
 --- a/include/linux/ioport.h
 +++ b/include/linux/ioport.h
-@@ -236,6 +236,16 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
-        return r1->start <= r2->end && r1->end >= r2->start;
+@@ -229,6 +229,11 @@ static inline bool resource_contains(struct resource *r1, struct resource *r2)
+ 	return r1->start <= r2->start && r1->end >= r2->end;
  }
  
-+static inline bool
-+resource_intersection(struct resource *r1, struct resource *r2, struct resource *r)
++/* True if any part of r1 overlaps r2 */
++static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
 +{
-+	if (!resource_overlaps(r1, r2))
-+		return false;
-+	r->start = max(r1->start, r2->start);
-+	r->end = min(r1->end, r2->end);
-+	return true;
++       return r1->start <= r2->end && r1->end >= r2->start;
 +}
-+
- static inline bool
- resource_union(struct resource *r1, struct resource *r2, struct resource *r)
- {
+ 
+ /* Convenience shorthand with allocation */
+ #define request_region(start,n,name)		__request_region(&ioport_resource, (start), (n), (name), 0)
+@@ -296,12 +301,6 @@ extern int
+ walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
+ 		    void *arg, int (*func)(struct resource *, void *));
+ 
+-/* True if any part of r1 overlaps r2 */
+-static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
+-{
+-       return (r1->start <= r2->end && r1->end >= r2->start);
+-}
+-
+ struct resource *devm_request_free_mem_region(struct device *dev,
+ 		struct resource *base, unsigned long size);
+ struct resource *request_free_mem_region(struct resource *base,
 -- 
 2.28.0
 
