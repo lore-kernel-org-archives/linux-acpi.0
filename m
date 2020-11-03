@@ -2,258 +2,99 @@ Return-Path: <SRS0=EmyW=EJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6159EC388F7
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 20:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EA06C388F9
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 20:37:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2579D2224E
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 20:37:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB0742224E
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 20:37:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729572AbgKCUhB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 3 Nov 2020 15:37:01 -0500
+        id S1729520AbgKCUhA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 3 Nov 2020 15:37:00 -0500
 Received: from mga18.intel.com ([134.134.136.126]:55780 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728157AbgKCUhA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Nov 2020 15:37:00 -0500
-IronPort-SDR: 86qM8s9lziwD6JfrEIcE7RpXjoM7iw8vDhJP+0g76HMsoFhXs1b1wWCx+dJhtPGKdJg2khsu9j
- iamIOA4OeMCQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="156898593"
+        id S1729502AbgKCUg7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 3 Nov 2020 15:36:59 -0500
+IronPort-SDR: bmVLRXqmEcn5igGpkQ1FL937QnwVEwI5zprSXMAK1MTv5RqrhgtjPY5bxojte0Y9A+0bEe0uMS
+ spILSwbUrfiA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="156898590"
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="156898593"
+   d="scan'208";a="156898590"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:37:00 -0800
-IronPort-SDR: bBVUxlKg63ESgzPtszszhEl/LUUYJ98jT773/7tEGqR4BQpJD8EkTe3whc4gwWhBIPm23ZqUAl
- j9AEyuWVY/+A==
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:36:58 -0800
+IronPort-SDR: 8W/pMaqCngLbMEg5q0pWuMWJn6ULD6UnHvVEUojd1NlMvJiiFG/90mzx86cW3t/kebuG132HDD
+ ieLAp4hxDPfg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="352454772"
+   d="scan'208";a="352454745"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga008.jf.intel.com with ESMTP; 03 Nov 2020 12:36:59 -0800
+  by orsmga008.jf.intel.com with ESMTP; 03 Nov 2020 12:36:56 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 11940646; Tue,  3 Nov 2020 22:36:56 +0200 (EET)
+        id D74DA12A; Tue,  3 Nov 2020 22:36:55 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     linux-acpi@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-kernel@vger.kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v5 5/7] resource: Add test cases for new resource API
-Date:   Tue,  3 Nov 2020 22:36:53 +0200
-Message-Id: <20201103203655.17701-6-andriy.shevchenko@linux.intel.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+Subject: [PATCH v5 0/7] resource: introduce union(), intersection() API
+Date:   Tue,  3 Nov 2020 22:36:48 +0200
+Message-Id: <20201103203655.17701-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201103203655.17701-1-andriy.shevchenko@linux.intel.com>
-References: <20201103203655.17701-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add test cases for newly added resource APIs.
+Some users may want to use resource library to manage their own resources,
+besides existing users that open code union() and intersection()
+implementations.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- kernel/Makefile         |   1 +
- kernel/resource_kunit.c | 150 ++++++++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug       |  11 +++
- 3 files changed, 162 insertions(+)
+Provide a generic API for wider use.
+
+Changelog v5:
+- added test cases (Greg)
+
+Changelog v4:
+- added Rb tag (Rafael)
+- Cc'ed to LKML and Greg (Rafael)
+
+Changelog v3:
+- rebased on top of v5.10-rc1
+- dropped upstreamed dependencies
+- added Rb tag to the last patch (Mika)
+
+Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org
+
+Andy Shevchenko (7):
+  resource: Simplify region_intersects() by reducing conditionals
+  resource: Group resource_overlaps() with other inline helpers
+  resource: Introduce resource_union() for overlapping resources
+  resource: Introduce resource_intersection() for overlapping resources
+  resource: Add test cases for new resource API
+  PCI/ACPI: Replace open coded variant of resource_union()
+  ACPI: watchdog: Replace open coded variant of resource_union()
+
+ drivers/acpi/acpi_watchdog.c |   6 +-
+ drivers/acpi/pci_root.c      |   4 +-
+ include/linux/ioport.h       |  34 ++++++--
+ kernel/Makefile              |   1 +
+ kernel/resource.c            |  10 +--
+ kernel/resource_kunit.c      | 150 +++++++++++++++++++++++++++++++++++
+ lib/Kconfig.debug            |  11 +++
+ 7 files changed, 196 insertions(+), 20 deletions(-)
  create mode 100644 kernel/resource_kunit.c
 
-diff --git a/kernel/Makefile b/kernel/Makefile
-index af601b9bda0e..aac15aeb9d69 100644
---- a/kernel/Makefile
-+++ b/kernel/Makefile
-@@ -123,6 +123,7 @@ obj-$(CONFIG_HAS_IOMEM) += iomem.o
- obj-$(CONFIG_RSEQ) += rseq.o
- obj-$(CONFIG_WATCH_QUEUE) += watch_queue.o
- 
-+obj-$(CONFIG_RESOURCE_KUNIT_TEST) += resource_kunit.o
- obj-$(CONFIG_SYSCTL_KUNIT_TEST) += sysctl-test.o
- 
- CFLAGS_stackleak.o += $(DISABLE_STACKLEAK_PLUGIN)
-diff --git a/kernel/resource_kunit.c b/kernel/resource_kunit.c
-new file mode 100644
-index 000000000000..9fdbca8426f1
---- /dev/null
-+++ b/kernel/resource_kunit.c
-@@ -0,0 +1,150 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Test cases for API provided by resource.c and ioport.h
-+ */
-+
-+#include <kunit/test.h>
-+#include <linux/ioport.h>
-+#include <linux/kernel.h>
-+#include <linux/string.h>
-+
-+#define R0_START	0x0000
-+#define R0_END		0xffff
-+#define R1_START	0x1234
-+#define R1_END		0x2345
-+#define R2_START	0x4567
-+#define R2_END		0x5678
-+#define R3_START	0x6789
-+#define R3_END		0x789a
-+#define R4_START	0x2000
-+#define R4_END		0x7000
-+
-+static struct resource r0 = { .start = R0_START, .end = R0_END };
-+static struct resource r1 = { .start = R1_START, .end = R1_END };
-+static struct resource r2 = { .start = R2_START, .end = R2_END };
-+static struct resource r3 = { .start = R3_START, .end = R3_END };
-+static struct resource r4 = { .start = R4_START, .end = R4_END };
-+
-+struct result {
-+	struct resource *r1;
-+	struct resource *r2;
-+	struct resource r;
-+	bool ret;
-+};
-+
-+static struct result results_for_union[] = {
-+	{
-+		.r1 = &r1, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-+	}, {
-+		.r1 = &r2, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-+	}, {
-+		.r1 = &r3, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-+	}, {
-+		.r1 = &r4, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-+	}, {
-+		.r1 = &r2, .r2 = &r1, .ret = false,
-+	}, {
-+		.r1 = &r3, .r2 = &r1, .ret = false,
-+	}, {
-+		.r1 = &r4, .r2 = &r1, .r.start = R1_START, .r.end = R4_END, .ret = true,
-+	}, {
-+		.r1 = &r2, .r2 = &r3, .ret = false,
-+	}, {
-+		.r1 = &r2, .r2 = &r4, .r.start = R4_START, .r.end = R4_END, .ret = true,
-+	}, {
-+		.r1 = &r3, .r2 = &r4, .r.start = R4_START, .r.end = R3_END, .ret = true,
-+	},
-+};
-+
-+static struct result results_for_intersection[] = {
-+	{
-+		.r1 = &r1, .r2 = &r0, .r.start = R1_START, .r.end = R1_END, .ret = true,
-+	}, {
-+		.r1 = &r2, .r2 = &r0, .r.start = R2_START, .r.end = R2_END, .ret = true,
-+	}, {
-+		.r1 = &r3, .r2 = &r0, .r.start = R3_START, .r.end = R3_END, .ret = true,
-+	}, {
-+		.r1 = &r4, .r2 = &r0, .r.start = R4_START, .r.end = R4_END, .ret = true,
-+	}, {
-+		.r1 = &r2, .r2 = &r1, .ret = false,
-+	}, {
-+		.r1 = &r3, .r2 = &r1, .ret = false,
-+	}, {
-+		.r1 = &r4, .r2 = &r1, .r.start = R4_START, .r.end = R1_END, .ret = true,
-+	}, {
-+		.r1 = &r2, .r2 = &r3, .ret = false,
-+	}, {
-+		.r1 = &r2, .r2 = &r4, .r.start = R2_START, .r.end = R2_END, .ret = true,
-+	}, {
-+		.r1 = &r3, .r2 = &r4, .r.start = R3_START, .r.end = R4_END, .ret = true,
-+	},
-+};
-+
-+static void resource_do_test(struct kunit *test, bool ret, struct resource *r,
-+			     bool exp_ret, struct resource *exp_r,
-+			     struct resource *r1, struct resource *r2)
-+{
-+	KUNIT_EXPECT_EQ_MSG(test, ret, exp_ret, "Resources %pR %pR", r1, r2);
-+	KUNIT_EXPECT_EQ_MSG(test, r->start, exp_r->start, "Start elements are not equal");
-+	KUNIT_EXPECT_EQ_MSG(test, r->end, exp_r->end, "End elements are not equal");
-+}
-+
-+static void resource_do_union_test(struct kunit *test, struct result *r)
-+{
-+	struct resource result;
-+	bool ret;
-+
-+	memset(&result, 0, sizeof(result));
-+	ret = resource_union(r->r1, r->r2, &result);
-+	resource_do_test(test, ret, &result, r->ret, &r->r, r->r1, r->r2);
-+
-+	memset(&result, 0, sizeof(result));
-+	ret = resource_union(r->r2, r->r1, &result);
-+	resource_do_test(test, ret, &result, r->ret, &r->r, r->r2, r->r1);
-+}
-+
-+static void resource_test_union(struct kunit *test)
-+{
-+	struct result *r = results_for_union;
-+	unsigned int i = 0;
-+
-+	do {
-+		resource_do_union_test(test, &r[i]);
-+	} while (++i < ARRAY_SIZE(results_for_union));
-+}
-+
-+static void resource_do_intersection_test(struct kunit *test, struct result *r)
-+{
-+	struct resource result;
-+	bool ret;
-+
-+	memset(&result, 0, sizeof(result));
-+	ret = resource_intersection(r->r1, r->r2, &result);
-+	resource_do_test(test, ret, &result, r->ret, &r->r, r->r1, r->r2);
-+
-+	memset(&result, 0, sizeof(result));
-+	ret = resource_intersection(r->r2, r->r1, &result);
-+	resource_do_test(test, ret, &result, r->ret, &r->r, r->r2, r->r1);
-+}
-+
-+static void resource_test_intersection(struct kunit *test)
-+{
-+	struct result *r = results_for_intersection;
-+	unsigned int i = 0;
-+
-+	do {
-+		resource_do_intersection_test(test, &r[i]);
-+	} while (++i < ARRAY_SIZE(results_for_intersection));
-+}
-+
-+static struct kunit_case resource_test_cases[] = {
-+	KUNIT_CASE(resource_test_union),
-+	KUNIT_CASE(resource_test_intersection),
-+	{}
-+};
-+
-+static struct kunit_suite resource_test_suite = {
-+	.name = "resource",
-+	.test_cases = resource_test_cases,
-+};
-+kunit_test_suite(resource_test_suite);
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 8596989423bf..663e7238a56e 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -2232,6 +2232,17 @@ config BITFIELD_KUNIT
- 
- 	  If unsure, say N.
- 
-+config RESOURCE_KUNIT_TEST
-+	tristate "KUnit test for resource API"
-+	depends on KUNIT
-+	help
-+	  This builds the resource API unit test.
-+	  Tests the logic of API provided by resource.c and ioport.h.
-+	  For more information on KUnit and unit tests in general please refer
-+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config SYSCTL_KUNIT_TEST
- 	tristate "KUnit test for sysctl" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
 -- 
 2.28.0
 
