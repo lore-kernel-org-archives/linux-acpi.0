@@ -2,102 +2,91 @@ Return-Path: <SRS0=EmyW=EJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71DAEC4742C
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B969C2D0A3
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:55:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3538422403
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:54:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAAFE22404
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:55:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730975AbgKCVy4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 3 Nov 2020 16:54:56 -0500
-Received: from mga04.intel.com ([192.55.52.120]:64306 "EHLO mga04.intel.com"
+        id S1731670AbgKCVy5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 3 Nov 2020 16:54:57 -0500
+Received: from mga09.intel.com ([134.134.136.24]:6426 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730976AbgKCUpO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1730977AbgKCUpO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 3 Nov 2020 15:45:14 -0500
-IronPort-SDR: lK9uwlL9GEnHYmKUKjSsHnGNLiBtTiUjvJQjB9eFJl4d0TEDTt5ViHqUPn5rTuTo7WS85iorl/
- HWEaRBjdbqJg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="166533693"
+IronPort-SDR: 7pj/4XkEfzeWdg7KYuOVTJ4IDsZDRPuTQ0IfVNjNHKZV+a/jqMJfAtiibtGco6uC/vwVHCUT75
+ VRUmC/cg56cg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="169259816"
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="166533693"
+   d="scan'208";a="169259816"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:45:13 -0800
-IronPort-SDR: Kn7pr1SjtLIO7vgNmRTf7Nx2eS+7gOaG6Wq5WPGE/3s2MLVxIWPA9WRQAf+dmRunEBuCRwTgp2
- cBCnBM6rWN6Q==
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:45:13 -0800
+IronPort-SDR: SzOhlsCjMXhvOzb4ueUaFyBYNBQZt8i2BNuu7DBjgPm2mahRZOJvimtm5dprQy1eRiysMmOi7u
+ KTQAKf2TwNeg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="527317813"
+   d="scan'208";a="363163837"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga006.fm.intel.com with ESMTP; 03 Nov 2020 12:45:11 -0800
+  by FMSMGA003.fm.intel.com with ESMTP; 03 Nov 2020 12:45:11 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id BB5A512A; Tue,  3 Nov 2020 22:45:10 +0200 (EET)
+        id E5BE115E; Tue,  3 Nov 2020 22:45:10 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     linux-acpi@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-kernel@vger.kernel.org
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
-Subject: [PATCH v6 0/7] resource: introduce union(), intersection() API
-Date:   Tue,  3 Nov 2020 22:45:03 +0200
-Message-Id: <20201103204510.19154-1-andriy.shevchenko@linux.intel.com>
+        Hanjun Guo <guohanjun@huawei.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH v6 4/7] resource: Introduce resource_intersection() for overlapping resources
+Date:   Tue,  3 Nov 2020 22:45:07 +0200
+Message-Id: <20201103204510.19154-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201103204510.19154-1-andriy.shevchenko@linux.intel.com>
+References: <20201103204510.19154-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some users may want to use resource library to manage their own resources,
-besides existing users that open code union() and intersection()
-implementations.
+There will be at least one user that can utilize new helper.
+Provide the helper for future user and for wider use.
 
-Provide a generic API for wider use.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ include/linux/ioport.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Changelog v6:
-- added missed tags
-
-Changelog v5:
-- added test cases (Greg)
-
-Changelog v4:
-- added Rb tag (Rafael)
-- Cc'ed to LKML and Greg (Rafael)
-
-Changelog v3:
-- rebased on top of v5.10-rc1
-- dropped upstreamed dependencies
-- added Rb tag to the last patch (Mika)
-
-Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org
-
-Andy Shevchenko (7):
-  resource: Simplify region_intersects() by reducing conditionals
-  resource: Group resource_overlaps() with other inline helpers
-  resource: Introduce resource_union() for overlapping resources
-  resource: Introduce resource_intersection() for overlapping resources
-  resource: Add test cases for new resource API
-  PCI/ACPI: Replace open coded variant of resource_union()
-  ACPI: watchdog: Replace open coded variant of resource_union()
-
- drivers/acpi/acpi_watchdog.c |   6 +-
- drivers/acpi/pci_root.c      |   4 +-
- include/linux/ioport.h       |  34 ++++++--
- kernel/Makefile              |   1 +
- kernel/resource.c            |  10 +--
- kernel/resource_kunit.c      | 150 +++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug            |  11 +++
- 7 files changed, 196 insertions(+), 20 deletions(-)
- create mode 100644 kernel/resource_kunit.c
-
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 40320eb5bc0e..ece1a8db309c 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -236,6 +236,16 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
+        return r1->start <= r2->end && r1->end >= r2->start;
+ }
+ 
++static inline bool
++resource_intersection(struct resource *r1, struct resource *r2, struct resource *r)
++{
++	if (!resource_overlaps(r1, r2))
++		return false;
++	r->start = max(r1->start, r2->start);
++	r->end = min(r1->end, r2->end);
++	return true;
++}
++
+ static inline bool
+ resource_union(struct resource *r1, struct resource *r2, struct resource *r)
+ {
 -- 
 2.28.0
 
