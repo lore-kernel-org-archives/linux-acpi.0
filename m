@@ -2,104 +2,75 @@ Return-Path: <SRS0=EmyW=EJ=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 720C8C388F7
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:31:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 237ADC4742C
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:53:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B7EA2236F
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:31:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AwacBScA"
+	by mail.kernel.org (Postfix) with ESMTP id D6DFF22447
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 21:53:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732775AbgKCVbC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 3 Nov 2020 16:31:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56782 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732765AbgKCVa6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Nov 2020 16:30:58 -0500
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD7ABC0613D1;
-        Tue,  3 Nov 2020 13:30:57 -0800 (PST)
-Received: by mail-ej1-x644.google.com with SMTP id i19so15524175ejx.9;
-        Tue, 03 Nov 2020 13:30:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=Sw2bhd4jcneB3g3s5IEtSjSEMGNxHMcx8ThO9lFxrJo=;
-        b=AwacBScAQqRQ+W5tRID5qqC4IItvIBe3BDXXYC+0UUKV+v2EDZOosorQjCOG2yESgY
-         07Wzl3oZgWF+gXl7UA2GFmAYxhjyJjCQ0oWv4jkupNPM19bgqjHZBykek+/HbuCc3niv
-         OzOV6BDTftBQHw+Aw4qGgaUEcTk3oWge2d+lnztIOfNjPf2ScjBi56INKEqXAGCDcAqk
-         qqwZ0BhoL1cG/gBBMP+6WcNeKORi26Lnawh03qSMQqKnC8jMKQ7osIEUbZoHTToZbQpG
-         2sy2OCbY7rBGU4it0QmOC3G40Scym8Yc5jAN8nW7U2X59VfOpw/uSK570ToNOwG9Sw4K
-         BBig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=Sw2bhd4jcneB3g3s5IEtSjSEMGNxHMcx8ThO9lFxrJo=;
-        b=XY9lk+V+SHvSbcJeVL5u1U0SgzdSfRzmkTzUAuQufJtbCnUMhRrrbYVWQPMpSyktM8
-         mPHuYC+ZW+NbJooaAG27o0BIom9fkCjNFXSKMsy72yd8bNZY5HqUF1hrdx2gjk/T/2Ku
-         HJqz69XVp+5RUqsK5mdrp2OBovzjzy7Fcy8n7o4gKDcLlvZ1h1oamXW4z4oUZDUBY/jh
-         r7TuVnxKMIRcpIfN9MdUS6S2E70RWOPpEdJVRtPsEIpdwHo21m/K+aKPqgECkrqR/fza
-         +DVulQLRUToVW5zt/5gEhnbthVeCR3F/Zqw94GDPEHR/2Tz/N5xFGj7nQTQ/qmRcxgtN
-         uVow==
-X-Gm-Message-State: AOAM532kSh17Qile+InZ7OleEdvml6yQMf7iCXJP3ZrV7Fjz3xHWvLdh
-        pWyxW4TG24YsKVQBjibbOLfOItR1htE=
-X-Google-Smtp-Source: ABdhPJyanutoQCesRoYcYVxElfnfQCZtpsToh/E2HUl14qaji0oBopAlwyhm81yB9lsiyAeZcgMCfQ==
-X-Received: by 2002:a17:906:9902:: with SMTP id zl2mr8130507ejb.510.1604439056114;
-        Tue, 03 Nov 2020 13:30:56 -0800 (PST)
-Received: from [192.168.2.202] (pd9e5a4cd.dip0.t-ipconnect.de. [217.229.164.205])
-        by smtp.gmail.com with ESMTPSA id y14sm56185edo.69.2020.11.03.13.30.54
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 03 Nov 2020 13:30:55 -0800 (PST)
-Subject: Re: [PATCH] ACPI: Remove trailing whitespace
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     linux-acpi@vger.kernel.org,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org,
+        id S1731151AbgKCVxZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 3 Nov 2020 16:53:25 -0500
+Received: from mga09.intel.com ([134.134.136.24]:6507 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731154AbgKCUqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 3 Nov 2020 15:46:12 -0500
+IronPort-SDR: AAOrHUUgNstwmZE27ithy3BEtBC3pF6mmfbtfAhtpSi17ORX3CyQfUZGZnQv35Ob6QcJxfBC0+
+ yZiEdzZOM3EA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="169259935"
+X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
+   d="scan'208";a="169259935"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:46:11 -0800
+IronPort-SDR: 4d3Mksw04uYnFdOnVqMv+heD2CrWKg0xX5kobUbQfJIfvAvk01UHTFpuajfIqZcHeHKBfijjqo
+ p9zoUleUvbQw==
+X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
+   d="scan'208";a="353481014"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 12:46:10 -0800
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1ka3Cy-003deX-DQ; Tue, 03 Nov 2020 22:47:12 +0200
+Date:   Tue, 3 Nov 2020 22:47:12 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     linux-acpi@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-kernel@vger.kernel.org
-References: <20201103211259.GA265488@bjorn-Precision-5520>
-From:   Maximilian Luz <luzmaximilian@gmail.com>
-Message-ID: <c92703e3-c964-b4a6-e3df-c4c0c28b44c1@gmail.com>
-Date:   Tue, 3 Nov 2020 22:30:53 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+Cc:     Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+Subject: Re: [PATCH v5 0/7] resource: introduce union(), intersection() API
+Message-ID: <20201103204712.GI4077@smile.fi.intel.com>
+References: <20201103203655.17701-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20201103211259.GA265488@bjorn-Precision-5520>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201103203655.17701-1-andriy.shevchenko@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 11/3/20 10:12 PM, Bjorn Helgaas wrote:
-> On Mon, Nov 02, 2020 at 02:36:41PM +0100, Maximilian Luz wrote:
->> Remove trailing whitespace and fix some whitespace inconsitencies while
->> at it.
+On Tue, Nov 03, 2020 at 10:36:48PM +0200, Andy Shevchenko wrote:
+> Some users may want to use resource library to manage their own resources,
+> besides existing users that open code union() and intersection()
+> implementations.
 > 
-> I'm OK with this as long as somebody fixes the
-> s/inconsitencies/inconsistencies/
+> Provide a generic API for wider use.
+> 
+> Changelog v5:
+> - added test cases (Greg)
 
-Sorry about that, I can resubmit if necessary.
+Sorry, just realized I forgot to add collected tags.
+Fixed in v6. Sorry for a bit of spam.
 
-> above.  I assume you've scanned all of drivers/acpi/ for similar
-> issues so they can all be fixed at once.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-Yes. I scanned drivers/acpi for trailing whitespaces after I noticed a
-couple of them. I did not explicitly scan for other stuff like spaces
-where there should be tabs, mostly because I haven't found a quick and
-reliable solution for that. I only noticed an inconsistent indentation
-when committing, so I fixed that too.
 
-> This is up to Rafael, of course.
-
-Thanks,
-Max
