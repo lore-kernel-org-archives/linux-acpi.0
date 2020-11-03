@@ -5,39 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C615C00A89
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 01:22:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DF84C00A89
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 01:23:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C988E2225E
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 01:22:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 491982225E
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Nov 2020 01:23:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604366568;
-	bh=OCysreUBOh/I7tKWLx+Ybyv5pIlteOzq4petGN+IfsA=;
+	s=default; t=1604366625;
+	bh=2EPBhjUcKwhQAiBveff2wv2l0sDCS99DGzUfWWYOiLc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=K1JSDcr9F4nVBS6t8phMNDPyrbnNHGOSpy9pyOcI+IB3+zD6OS5bLDgPxzUi+T4F6
-	 zmR1GI2qhCk+27smM67Nyw6dnjXLW3+4MFNJeIJ0Hw1hXTN8x17toei6XzjJAyX98T
-	 2uqEQoIKN6O0/BuFyY7Fi4/PgtgPXq+v2A3dtQYs=
+	b=zrIN4PtyfqeqEV9f3wRzIdxKGWw0TPNHSuOFx5uKP+5BIhmRJRhg4RpA/p+KBRvzO
+	 nAjp3tR3ceL/A/6WB5PJ4L1ncgCKvCoUOczLibuBjjrmk7sEY483cQ+BULOKn295Sw
+	 2zqTvdks4Zi1EmKFObNrizw2kVB8kKriD+UF1+4s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727243AbgKCBWr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 2 Nov 2020 20:22:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36044 "EHLO mail.kernel.org"
+        id S1728101AbgKCBUf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 2 Nov 2020 20:20:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35428 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728264AbgKCBUy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 2 Nov 2020 20:20:54 -0500
+        id S1728147AbgKCBUe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 2 Nov 2020 20:20:34 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F1CA9223EA;
-        Tue,  3 Nov 2020 01:20:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 50B0B2244C;
+        Tue,  3 Nov 2020 01:20:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604366453;
-        bh=OCysreUBOh/I7tKWLx+Ybyv5pIlteOzq4petGN+IfsA=;
+        s=default; t=1604366434;
+        bh=2EPBhjUcKwhQAiBveff2wv2l0sDCS99DGzUfWWYOiLc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rsXxWdBNMm47Eoze5SjH037QLHoiQNXKr3XsB2A49riZaIzoz94r3jIavwTipClG6
-         wz4OZxoF/qgfCYVcWajJMun49R3OffNOpMrWuzpSsETm5QbABAUZSNzptnpKD/nyB1
-         yHwG6oJxSvZ9fFRdgUmeVZBo3ZlI9EBaPC7a/TEY=
+        b=IUsH8d7hp7DC1/7EqKk8ULeybgt+VhPdU91XdTcMBJb2vDVS13mpFcE0YBVrNakYQ
+         BHRKjD+j/jAl5Eo77+6c1glG8ATOQ6tcd1JXkFnQ1bGR0rKgUBrMR/cfRnwBhvpNjc
+         4fGQ9hCv5jCK+1C9YKq3r0Cc+gPlrj4BeSqyzqNo=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Zhang Qilong <zhangqilong3@huawei.com>,
@@ -46,12 +46,12 @@ Cc:     Zhang Qilong <zhangqilong3@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 11/11] ACPI: NFIT: Fix comparison to '-ENXIO'
-Date:   Mon,  2 Nov 2020 20:20:39 -0500
-Message-Id: <20201103012039.183672-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 20/24] ACPI: NFIT: Fix comparison to '-ENXIO'
+Date:   Mon,  2 Nov 2020 20:20:03 -0500
+Message-Id: <20201103012007.183429-20-sashal@kernel.org>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20201103012039.183672-1-sashal@kernel.org>
-References: <20201103012039.183672-1-sashal@kernel.org>
+In-Reply-To: <20201103012007.183429-1-sashal@kernel.org>
+References: <20201103012007.183429-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -78,10 +78,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index dd4c7289610ec..cb88f3b43a940 100644
+index 12d980aafc5ff..9d78f29cf9967 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -1535,7 +1535,7 @@ static ssize_t format1_show(struct device *dev,
+@@ -1553,7 +1553,7 @@ static ssize_t format1_show(struct device *dev,
  					le16_to_cpu(nfit_dcr->dcr->code));
  			break;
  		}
