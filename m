@@ -8,62 +8,62 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56F7DC4741F
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:24:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD62C4741F
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:24:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD36A21734
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:24:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91E6820825
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:24:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="iVIITovv"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Dato/sGT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732844AbgKDXYP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 4 Nov 2020 18:24:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44880 "EHLO
+        id S1733039AbgKDXYZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 4 Nov 2020 18:24:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732815AbgKDXYN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2020 18:24:13 -0500
-Received: from mail-qt1-x84a.google.com (mail-qt1-x84a.google.com [IPv6:2607:f8b0:4864:20::84a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D651FC0613D2
-        for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2020 15:24:12 -0800 (PST)
-Received: by mail-qt1-x84a.google.com with SMTP id i15so74453qti.7
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2020 15:24:12 -0800 (PST)
+        with ESMTP id S1733037AbgKDXYY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2020 18:24:24 -0500
+Received: from mail-qt1-x849.google.com (mail-qt1-x849.google.com [IPv6:2607:f8b0:4864:20::849])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 427BFC0613CF
+        for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2020 15:24:23 -0800 (PST)
+Received: by mail-qt1-x849.google.com with SMTP id j5so69301qtj.11
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2020 15:24:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=sender:date:in-reply-to:message-id:mime-version:references:subject
          :from:to:cc;
-        bh=u5wayZ9AVFMGS2ijaBJPPdXKpeLHXYLicPYl2nj1shI=;
-        b=iVIITovvfmdqa7ENQHfnvmD7E7Q89Vqx621sZYGic9iXL2Yt4kyuIGXc0RlopwO7eF
-         lMDFCTi295lj6kNhA98o6Zr8zYdKlcMltOwo0dfKAi9YEyQKs+nE2yXjekyLbllbELIj
-         XOJbSndFOfrxPkQaMFyE4+3GqLIp0+PMRJ31QE2eBw4/rjyfOBCwzCNzqlxsMw+/J0Ka
-         v9tyd9lhBbSnQ1BPj2z2kKMquvyq1DnDjrwCjfogbkKy/s2KInZ/EykovZhbmuijp9HT
-         3iDehlrdMA9rygPnHkxRgqbrIjoJf/sGBxoyn/J3CjHx5DAdyBhChRxqhNcejq090UIq
-         eMoQ==
+        bh=UieoMpj8B4G4ELM6jyQkvhU8K54bvEZUN88uvzxrq1o=;
+        b=Dato/sGTwd0wDlhkRWIv3VuShqxnqXWdeJZugh8clsc95AYuGBQFJ4oBRWJDxuIVFN
+         0tOSAjhCWMQYf8C1ZF2/pxlteAnpWPjhB87e57fDlwFwDW6ui1BV/rkIPlqn4WLB5oZE
+         A++gaXeMZQuOcaIncCYHhoifNp0QV6aRdbM8JxKhbEeUq5s+94b0oUphoOHlGc7ijU3p
+         NRqWTb1tJVJxYtHpHoFBRKZrLS/x65HlXsJkbV4cc7ZondhrKpL7dDQMTdMavPSlW6gn
+         Qv+/3R2xqg4htPHMffx3SHvFbMSXZduSh1aEMxeSyQAKb5Nhtt3PSmyHvM3mYNJDQhU5
+         v9yg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=u5wayZ9AVFMGS2ijaBJPPdXKpeLHXYLicPYl2nj1shI=;
-        b=F1CBUFQk+H1U4MC4W55CahjmTOyLVycWoWNU4YdTaqoaILPxNQkKQ7/X0v26y37F4V
-         SSmGH6SNRiclqd7J1TPUvweiDSyojEdlwbgsQqkhlEyLsG2+gSqbAHi3FsmYWXXGsXxS
-         kamKHtVBpoYSe2k+tQmbHdsm0FpnCdABzt+cLmLTV6XJ3SQOmDF06PaWfRIfueg/i5/h
-         K3aGgx74FdPkgo5Hwk7jtFmvsWgrnq1SHqogwpH0XDVJ/qvNElcMEu3M4kPS+2I/UCdR
-         qbfD3NZeVT7HjBta0OZgcg9nXs9Y7RixPGohnOXcMjOq9kOEfsa0L28bHXpcDCFN8hCn
-         HFcA==
-X-Gm-Message-State: AOAM531rA19odZyCMgXzib/L3k/dBDTCGvQdAPcj7ebiUzehKwCP56Wb
-        zmwkI4dYt5cdOfa4jj63XeRkhBv979yct9Q=
-X-Google-Smtp-Source: ABdhPJwjKo0cRX9EmzXQSkYgc/ChZZniluSDDdAeEjXvu1+EPop/QjPtY/4CxN+WF6Ie5LvnM2VAnbfDX7ilMx4=
+        bh=UieoMpj8B4G4ELM6jyQkvhU8K54bvEZUN88uvzxrq1o=;
+        b=pgEb7MjQDBYek4pzSkDzrdVI3tAF/wrWjTdQHFR7D3TwInNlKJA6GOMwwFZbGe+tzC
+         ln4ceW6Sxj+n1XjEn2CkHh3QwBKBKogE1S/rnTkJ6Ib7GqSEhZvhe/l+pKoehVLtD5YU
+         L6p8jhxEr3dgza1fKz8wNAB8ihOj2t7k70+l7l9n0B2kHWZaQz4JK4dt9pEyUs2VTBlp
+         DoniPu9vAMmXWh9LJEMSz7MXDLJk0O2IkYgVjCc5NMGKURhbmn1fb4s5yAPpPFoWYNG0
+         vf12CNKPIKjj2b4GiP+OufheLmgxJNYVmbIVHbuvmJJ80pHwq5aVz31+VqecoXHWhZil
+         Kp1Q==
+X-Gm-Message-State: AOAM533DAyrtF2pErIxnyHhM2LLg+dS3hHkMXUdvNdJ3bHxnjoyyWVLz
+        vZOzwRlLDbv1l+CDWsnmBs7icvQRwOUFcIY=
+X-Google-Smtp-Source: ABdhPJw+qdvZ55bJqASFWAsEag1odtfmLwkpRgmqmYY74br1rEUeZosUa41aLDY7Lp1MdCuP/aZglGnS4TcxzEU=
 Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:7220:84ff:fe09:fedc])
- (user=saravanak job=sendgmr) by 2002:a0c:e346:: with SMTP id
- a6mr179397qvm.9.1604532252026; Wed, 04 Nov 2020 15:24:12 -0800 (PST)
-Date:   Wed,  4 Nov 2020 15:23:42 -0800
+ (user=saravanak job=sendgmr) by 2002:a0c:a105:: with SMTP id
+ d5mr249343qva.35.1604532262407; Wed, 04 Nov 2020 15:24:22 -0800 (PST)
+Date:   Wed,  4 Nov 2020 15:23:46 -0800
 In-Reply-To: <20201104232356.4038506-1-saravanak@google.com>
-Message-Id: <20201104232356.4038506-6-saravanak@google.com>
+Message-Id: <20201104232356.4038506-10-saravanak@google.com>
 Mime-Version: 1.0
 References: <20201104232356.4038506-1-saravanak@google.com>
 X-Mailer: git-send-email 2.29.1.341.ge80a0c044ae-goog
-Subject: [PATCH v1 05/18] Revert "of: platform: Batch fwnode parsing when
- adding all top level devices"
+Subject: [PATCH v1 09/18] driver core: Allow only unprobed consumers for
+ SYNC_STATE_ONLY device links
 From:   Saravana Kannan <saravanak@google.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -86,27 +86,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This reverts commit 93d2e4322aa74c1ad1e8c2160608eb9a960d69ff.
+SYNC_STATE_ONLY device links only affect the behavior of sync_state()
+callbacks. Specifically, they prevent sync_state() only callbacks from
+being called on a device if one or more of its consumers haven't probed.
+
+So, creating a SYNC_STATE_ONLY device link from an already probed
+consumer is useless. So, don't allow creating such device links.
 
 Signed-off-by: Saravana Kannan <saravanak@google.com>
 ---
- drivers/of/platform.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/base/core.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index b557a0fcd4ba..79bd5f5a1bf1 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -538,9 +538,7 @@ static int __init of_platform_default_populate_init(void)
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 1a1d9a55645c..4a0907574646 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -646,6 +646,17 @@ struct device_link *device_link_add(struct device *consumer,
+ 		goto out;
  	}
  
- 	/* Populate everything else. */
--	fw_devlink_pause();
- 	of_platform_default_populate(NULL, NULL, NULL);
--	fw_devlink_resume();
- 
- 	return 0;
- }
++	/*
++	 * SYNC_STATE_ONLY links are useless once a consumer device has probed.
++	 * So, only create it if the consumer hasn't probed yet.
++	 */
++	if (flags & DL_FLAG_SYNC_STATE_ONLY &&
++	    consumer->links.status != DL_DEV_NO_DRIVER &&
++	    consumer->links.status != DL_DEV_PROBING) {
++		link = NULL;
++		goto out;
++	}
++
+ 	/*
+ 	 * DL_FLAG_AUTOREMOVE_SUPPLIER indicates that the link will be needed
+ 	 * longer than for DL_FLAG_AUTOREMOVE_CONSUMER and setting them both
 -- 
 2.29.1.341.ge80a0c044ae-goog
 
