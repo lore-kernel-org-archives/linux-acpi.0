@@ -8,61 +8,62 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E61AAC2D0A3
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56EF9C55178
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AA4520786
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C81E20867
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="UrcXOwPS"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="noGn4lGf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732869AbgKDXYP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 4 Nov 2020 18:24:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44860 "EHLO
+        id S1732754AbgKDXZ5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 4 Nov 2020 18:25:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732768AbgKDXYK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2020 18:24:10 -0500
+        with ESMTP id S1730954AbgKDXYF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2020 18:24:05 -0500
 Received: from mail-qv1-xf49.google.com (mail-qv1-xf49.google.com [IPv6:2607:f8b0:4864:20::f49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72E98C0613CF
-        for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2020 15:24:10 -0800 (PST)
-Received: by mail-qv1-xf49.google.com with SMTP id d41so13729015qvc.23
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2020 15:24:10 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45318C0613CF
+        for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2020 15:24:05 -0800 (PST)
+Received: by mail-qv1-xf49.google.com with SMTP id dd7so7268qvb.6
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2020 15:24:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=sender:date:in-reply-to:message-id:mime-version:references:subject
          :from:to:cc;
-        bh=mDVvKrGHCP/3KBqD6Y+81Awc8s23VoJcXWEM4lmGqQk=;
-        b=UrcXOwPS8nM7/ikskpgkXlxdwbC7fRg65vxlDw6UBrphzbOZujaNWx+XnNzrdvfUG/
-         /zmaPWK7O35YUG+60QYL1UALaOrJ6CfR6nAGsV2hplG8Yf26liCR0ccZzdSHdbBupXXJ
-         rY2CqHrp20pwo/CTtzIxcuqLuKGrA14ZoXu6KCts9HWKDuYEOTfNM63I0dPMDajm9Wzp
-         jWtQomAP9PBmL8GgNtu0xnEm8BEEHQKYoQ6NMZMN7wSfQLGLJ+qokqu6ep05laZoVOK9
-         pgZxS63+uVe2nNyTrMSxZTqlRYb3DosJhQyFFGylNr7KUnAU0tLAXJQV4z2s8Hl7PYzA
-         Pi8w==
+        bh=3UiL5aZl1zoNS4ptaNbzC4VXHpr9TUoirP268mk09Uk=;
+        b=noGn4lGf4pHRhdHAbccR4qKPLxfwGlPRrH1hu6Z/S4hJJ94CVF4vZRGDvcLc8CLvLB
+         rlBLfmtIh8eySUW24t4zvdxWsgZmhcR+UfKitAfXJZ3YQCrOR4axSh+SPnFGtX4M0dh6
+         2lxZrkJ0RavehHy4vv7ndunRSLFb7sfaTAbqSJ/5vb8d51b16+AutnPyXJtujhxJJ0A6
+         3yAQ+rJQ7++qRtZR42AjQEl2xzI4IjrCQQjVdJKoOEJPN8s5AV6PGp7XTxWMjKlxIRTi
+         jOzNyUnroIQ6XF9Owf+g5wtTOKHraigvmroDmzGIJI3kgEgP28C9CuMruIWUeMYX8GOu
+         FTYQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=mDVvKrGHCP/3KBqD6Y+81Awc8s23VoJcXWEM4lmGqQk=;
-        b=DPdPYQU6Y+C/qYZjNY6Aklv1SfRsCgjNIf/7CqGLtLUKoV6eDv37bxvMsfRVw6ZRs/
-         orYjlZ9uTDmVEJcVo8i3oksUA+/9Mb+lLOm3awoVqjBwQgdbkmVVhaGcZ13syjruLNHJ
-         YKpJK/z/awEOxlEii48EKsg8SEM0tkajNhEJn9zmHImDN/6ndR+tEdlPpPh+ODa7K0b0
-         X/WuHuVVCX7lylYra7AD9rVxXr64Mz733XmG0ZxkO60T0WJYr0RgyZ687D0zn16179jn
-         1+2HepvljpnTkxKwUKtz78SQio0dxy9fo7WeSwS1TgosuyoVS3WYxTh+1wd6X6zq4mnW
-         sqWg==
-X-Gm-Message-State: AOAM532stUiksuOTGx8SPBTnnay5XIBMHrVxU93sZVyX/twYZwuHMKmY
-        n/oNhe8v4JC2S46UdABGpz2hiOrHLGMhxnQ=
-X-Google-Smtp-Source: ABdhPJznoHrAzCZtFLgjYhiJnzq1jZvYLPBro0eYGGwHHgz+egObOJnpHGOf9HuWhTEgl/sUfC0vy14swG3g6NM=
+        bh=3UiL5aZl1zoNS4ptaNbzC4VXHpr9TUoirP268mk09Uk=;
+        b=Sq+hf+lcZQxtIhCdZ/MrXbR4Af+fCuVvQtL9R6q3KzL2Zp2tkGOCBCg3cv4Qr4xFeY
+         sB0BtzUYGSIwOTlI6M6n7D5cCWM7HN3E6bnaaiJ01DmVIMUpFCrYHKUfMRlby45lhyXT
+         DPV2wEGEJJ//GpMZlNBWQncz7arHEOBOpqK10PLcHAxTTtPKbMKp/UsYtAWMB9gG6YL3
+         +eRgDCQ+2A8yI7JO55X9h7nu3owxuQNXk2NLHrxYtP42SYAIpm7OE626hR07WWhd3yM9
+         O+P2DVltOYectAtjctzi2xHNzlrfpsFCN45B6x2ZykKHA4uzDMmI7ot4MVpe/FIFbkhQ
+         qDeA==
+X-Gm-Message-State: AOAM531HLRox5R46Ay4eZq5zRhZ0s9Hh1qGsEt7Qs7CbZEjYUXAsjbyr
+        qNQIRGQJeBuFgkIiiGXJnHfel8kTcBo9ahU=
+X-Google-Smtp-Source: ABdhPJxNuGw6B1V226sbOgHc9ABVKn4kbuxcxy1UF+XJInvvR8Arcsve/X1COiNq9EfDXCMuf7LsNTsfqP5+e0A=
 Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:7220:84ff:fe09:fedc])
- (user=saravanak job=sendgmr) by 2002:ad4:4205:: with SMTP id
- k5mr310786qvp.10.1604532249490; Wed, 04 Nov 2020 15:24:09 -0800 (PST)
-Date:   Wed,  4 Nov 2020 15:23:41 -0800
+ (user=saravanak job=sendgmr) by 2002:ad4:47b0:: with SMTP id
+ a16mr287784qvz.22.1604532244395; Wed, 04 Nov 2020 15:24:04 -0800 (PST)
+Date:   Wed,  4 Nov 2020 15:23:39 -0800
 In-Reply-To: <20201104232356.4038506-1-saravanak@google.com>
-Message-Id: <20201104232356.4038506-5-saravanak@google.com>
+Message-Id: <20201104232356.4038506-3-saravanak@google.com>
 Mime-Version: 1.0
 References: <20201104232356.4038506-1-saravanak@google.com>
 X-Mailer: git-send-email 2.29.1.341.ge80a0c044ae-goog
-Subject: [PATCH v1 04/18] Revert "driver core: Remove check in driver_deferred_probe_force_trigger()"
+Subject: [PATCH v1 02/18] Revert "driver core: Rename dev_links_info.defer_sync
+ to defer_hook"
 From:   Saravana Kannan <saravanak@google.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -85,27 +86,110 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This reverts commit fefcfc968723caf93318613a08e1f3ad07a6154f.
+This reverts commit ec7bd78498f29680f536451fbdf9464e851273ed.
 
 Signed-off-by: Saravana Kannan <saravanak@google.com>
 ---
- drivers/base/dd.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/base/core.c    | 22 +++++++++++-----------
+ include/linux/device.h |  4 ++--
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 008724f8edf1..ec67b5ffa06d 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -172,6 +172,9 @@ static void driver_deferred_probe_trigger(void)
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index a56601e68a8c..2328c8951695 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -961,11 +961,11 @@ static void __device_links_queue_sync_state(struct device *dev,
+ 	 */
+ 	dev->state_synced = true;
  
- void driver_deferred_probe_force_trigger(void)
+-	if (WARN_ON(!list_empty(&dev->links.defer_hook)))
++	if (WARN_ON(!list_empty(&dev->links.defer_sync)))
+ 		return;
+ 
+ 	get_device(dev);
+-	list_add_tail(&dev->links.defer_hook, list);
++	list_add_tail(&dev->links.defer_sync, list);
+ }
+ 
+ /**
+@@ -983,8 +983,8 @@ static void device_links_flush_sync_list(struct list_head *list,
  {
-+	if (!driver_deferred_probe_enable)
-+		return;
-+
- 	/*
- 	 * A successful probe means that all the devices in the pending list
- 	 * should be triggered to be reprobed.  Move all the deferred devices
+ 	struct device *dev, *tmp;
+ 
+-	list_for_each_entry_safe(dev, tmp, list, links.defer_hook) {
+-		list_del_init(&dev->links.defer_hook);
++	list_for_each_entry_safe(dev, tmp, list, links.defer_sync) {
++		list_del_init(&dev->links.defer_sync);
+ 
+ 		if (dev != dont_lock_dev)
+ 			device_lock(dev);
+@@ -1022,12 +1022,12 @@ void device_links_supplier_sync_state_resume(void)
+ 	if (defer_sync_state_count)
+ 		goto out;
+ 
+-	list_for_each_entry_safe(dev, tmp, &deferred_sync, links.defer_hook) {
++	list_for_each_entry_safe(dev, tmp, &deferred_sync, links.defer_sync) {
+ 		/*
+ 		 * Delete from deferred_sync list before queuing it to
+-		 * sync_list because defer_hook is used for both lists.
++		 * sync_list because defer_sync is used for both lists.
+ 		 */
+-		list_del_init(&dev->links.defer_hook);
++		list_del_init(&dev->links.defer_sync);
+ 		__device_links_queue_sync_state(dev, &sync_list);
+ 	}
+ out:
+@@ -1045,8 +1045,8 @@ late_initcall(sync_state_resume_initcall);
+ 
+ static void __device_links_supplier_defer_sync(struct device *sup)
+ {
+-	if (list_empty(&sup->links.defer_hook) && dev_has_sync_state(sup))
+-		list_add_tail(&sup->links.defer_hook, &deferred_sync);
++	if (list_empty(&sup->links.defer_sync) && dev_has_sync_state(sup))
++		list_add_tail(&sup->links.defer_sync, &deferred_sync);
+ }
+ 
+ static void device_link_drop_managed(struct device_link *link)
+@@ -1276,7 +1276,7 @@ void device_links_driver_cleanup(struct device *dev)
+ 		WRITE_ONCE(link->status, DL_STATE_DORMANT);
+ 	}
+ 
+-	list_del_init(&dev->links.defer_hook);
++	list_del_init(&dev->links.defer_sync);
+ 	__device_links_no_driver(dev);
+ 
+ 	device_links_write_unlock();
+@@ -2409,7 +2409,7 @@ void device_initialize(struct device *dev)
+ 	INIT_LIST_HEAD(&dev->links.consumers);
+ 	INIT_LIST_HEAD(&dev->links.suppliers);
+ 	INIT_LIST_HEAD(&dev->links.needs_suppliers);
+-	INIT_LIST_HEAD(&dev->links.defer_hook);
++	INIT_LIST_HEAD(&dev->links.defer_sync);
+ 	dev->links.status = DL_DEV_NO_DRIVER;
+ }
+ EXPORT_SYMBOL_GPL(device_initialize);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index da00f8e449bb..1e771ea4dca6 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -352,7 +352,7 @@ enum dl_dev_state {
+  * @suppliers: List of links to supplier devices.
+  * @consumers: List of links to consumer devices.
+  * @needs_suppliers: Hook to global list of devices waiting for suppliers.
+- * @defer_hook: Hook to global list of devices that have deferred sync_state.
++ * @defer_sync: Hook to global list of devices that have deferred sync_state.
+  * @need_for_probe: If needs_suppliers is on a list, this indicates if the
+  *		    suppliers are needed for probe or not.
+  * @status: Driver status information.
+@@ -361,7 +361,7 @@ struct dev_links_info {
+ 	struct list_head suppliers;
+ 	struct list_head consumers;
+ 	struct list_head needs_suppliers;
+-	struct list_head defer_hook;
++	struct list_head defer_sync;
+ 	bool need_for_probe;
+ 	enum dl_dev_state status;
+ };
 -- 
 2.29.1.341.ge80a0c044ae-goog
 
