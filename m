@@ -8,61 +8,61 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 685D6C4741F
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ADABC2D0A3
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2231622228
-	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F296F20786
+	for <linux-acpi@archiver.kernel.org>; Wed,  4 Nov 2020 23:25:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="KPEQ4VrO"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="FQOg8vXe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732914AbgKDXZd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 4 Nov 2020 18:25:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44948 "EHLO
+        id S1733031AbgKDXYY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 4 Nov 2020 18:24:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733040AbgKDXYZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2020 18:24:25 -0500
-Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6866C0613CF
-        for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2020 15:24:25 -0800 (PST)
-Received: by mail-yb1-xb4a.google.com with SMTP id c9so405370ybs.8
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2020 15:24:25 -0800 (PST)
+        with ESMTP id S1733027AbgKDXYW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2020 18:24:22 -0500
+Received: from mail-qv1-xf4a.google.com (mail-qv1-xf4a.google.com [IPv6:2607:f8b0:4864:20::f4a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDBAAC0613D4
+        for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2020 15:24:20 -0800 (PST)
+Received: by mail-qv1-xf4a.google.com with SMTP id dd7so7566qvb.6
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2020 15:24:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=sender:date:in-reply-to:message-id:mime-version:references:subject
          :from:to:cc;
-        bh=5sRZ6jhZ+T/gutzXbCBa2cQYYZrY2SCzTIYgh1jQP+0=;
-        b=KPEQ4VrOxtoTLDuFgJFdWk6KRPwrcI/ihNJCiTdUkBKEYu92xvhA4SXzdybwWdc4ge
-         8mbUKDP9DwLAgVQ9LoAveXPNRdT77u4tYK7hgrUwH1DDg69Exao6g4YGTrFlNI7Q/w4S
-         F8eYHA6zVlAyFDxBjALghjyzMRvz5/b3Lh8CbxzbmV/WJZuXmDbovzL4rwSNauCh0lBn
-         UR471uUcXqLneNOPe1RoDFHZxIQpmAzGHUT2zgAzJHIf6ztVlw6QTzchqb6yWo3fum7e
-         8VY4oETIv6BIGaO+kuZw29D2uy/y5j6ySRsmxLo8TPojkay576ZnBosMBOA31raHLxDC
-         oTjQ==
+        bh=+Pnss2jZrmflP1wbnV6Je3ogMQfHXywiMZfR1W5P9qc=;
+        b=FQOg8vXeOgd9z8U6hdMl0s35oKDTY2o/ycG2xGfWs76vwOr0bSbCe1uWfyGtLi8FY1
+         7fp8RK8A1Gt2+rZJy+F00fB7dR6NsCuPUekPmHQwz6oRXbnAJo+2PnoiRC+50ViETk1a
+         nuIVEqhY9aWLoLDh5wUpt9Lgip56yhabhc2kFoxb4bW2At5fc8tN7uL05b/ziUWUqB9d
+         Cv9N7La+66OgQ2Jc46NSc2rER/4Ss8uopOVJdI+aAwvripdE4aHzS6TJGAbOO61YTwsA
+         ZafNxqqdKNo/VXLAXgumWAkM8SKhmDufAbXpP2Z1iAsdoldKQv3kEFRV55Fj+Jz1bh7k
+         ulPg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=5sRZ6jhZ+T/gutzXbCBa2cQYYZrY2SCzTIYgh1jQP+0=;
-        b=ntMEq/xo2G0S+JC6Rp1qt3eHLMw2QC5DWx3Way+rl5RylhbaAznjlkC/LHZC6ix6Va
-         sZtVuYlpblIb0j5j75DaLjsKiC5tbSyIwD6oIxHXlxMG+dOwVBpjR9YgjMdKxKoEDPlv
-         4IxfkoPzL2hzWzI1NCRi1Dzyz1V2olHdPLISmm/8EgCBAKT6zylgeop3WwP+m4gNvqR0
-         SvevD0gZ6jHVa5F122fca64SZ4uY+jBAa+SIHk1I/HLJHv5F1cjSuaY8A4BuEF9Ad6sA
-         loPpIL9i+ytcD0gyV2UNEXkM94C+JeMbcR+E2KcWUacAyYL49Yn6nZEFtbHfPiwD4bFq
-         bBhA==
-X-Gm-Message-State: AOAM532j/8g307b/l6Yz6Q6ULnUaOjs4OIJ5YFTpIeVcLzuyTCIwa5fn
-        4LGtqZvvbTRFnbJxQm19rxr18nF/5O5NNYA=
-X-Google-Smtp-Source: ABdhPJz+alC8yp9zBJND6Vgcoky5QjmGBoY1he5RZG8ZuTerdEihYnn+YQqUYKoT1Mk3I8zQzC9AhaaEWWckVQ4=
+        bh=+Pnss2jZrmflP1wbnV6Je3ogMQfHXywiMZfR1W5P9qc=;
+        b=BXujyUL8IOuZcfDC5d+DLvKUAW20qwrHYk/GZErT88c9JsmZ3BCKwY3YjWBwWB+pqo
+         23+iRcQ01JMbDxXTKzD+wXnvDv6SZmrNPKBgEVGM6dBmdG9l8OXZyoi+HfiY0Dd8ox/6
+         3G1fYHKfjLWfKB9vul5WFuMM0X48XI5BeP2/b/gSnQYyzoi6CMTpxeMD0n7rMzpe+gDY
+         L0qu4srary8BcsFkAmZG+RP7t8V+LiMvwlGc1PhBreeOKORQu9Xz12UATdPSgO8QWAT3
+         cHInQ/jNo7WkczguF8z2quur8xr3VtuI4ph6vpz8nXbgssN9inePblzDSJEy4XeMRmIi
+         +taA==
+X-Gm-Message-State: AOAM531tOEFfs8FNgTm3v5wT3N9hDxjtcgIHAyGkvBRo1DLKtukAT4uz
+        MJbwyDDhhawg25wHPQwWJpN7hqgWzG7Fphc=
+X-Google-Smtp-Source: ABdhPJwjwtYvM7Ivv/FR7C/GC1NY2CdbIozJW3wSd7EecAEAgIod7zxLX2aUIUJyv0xOb6b1ZAh3UM7kBIOqzf0=
 Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:7220:84ff:fe09:fedc])
- (user=saravanak job=sendgmr) by 2002:a5b:389:: with SMTP id
- k9mr265028ybp.75.1604532264967; Wed, 04 Nov 2020 15:24:24 -0800 (PST)
-Date:   Wed,  4 Nov 2020 15:23:47 -0800
+ (user=saravanak job=sendgmr) by 2002:ad4:59cf:: with SMTP id
+ el15mr268323qvb.17.1604532260064; Wed, 04 Nov 2020 15:24:20 -0800 (PST)
+Date:   Wed,  4 Nov 2020 15:23:45 -0800
 In-Reply-To: <20201104232356.4038506-1-saravanak@google.com>
-Message-Id: <20201104232356.4038506-11-saravanak@google.com>
+Message-Id: <20201104232356.4038506-9-saravanak@google.com>
 Mime-Version: 1.0
 References: <20201104232356.4038506-1-saravanak@google.com>
 X-Mailer: git-send-email 2.29.1.341.ge80a0c044ae-goog
-Subject: [PATCH v1 10/18] device property: Add fwnode_is_ancestor_of()
+Subject: [PATCH v1 08/18] driver core: Add fwnode link support
 From:   Saravana Kannan <saravanak@google.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -85,66 +85,180 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a helper function to check if a fwnode is an ancestor of another
-fwnode. This will be useful for fw_devlink feature.
+This patch adds support for creating supplier-consumer links between
+fwnode. It is intentionally kept simple and with limited APIs as it is
+meant to be used only by driver core and firmware code (Eg: device tree,
+ACPI, etc).
+
+We can expand the APIs later if there is ever a need for
+drivers/frameworks to start using them.
 
 Signed-off-by: Saravana Kannan <saravanak@google.com>
 ---
- drivers/base/property.c  | 27 +++++++++++++++++++++++++++
- include/linux/property.h |  2 ++
- 2 files changed, 29 insertions(+)
+ drivers/base/core.c    | 95 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/of/dynamic.c   |  1 +
+ include/linux/fwnode.h | 14 +++++++
+ 3 files changed, 110 insertions(+)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 4c43d30145c6..2569ebd52e6b 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -660,6 +660,33 @@ struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
- 
-+/**
-+ * fwnode_is_ancestor_of - Test if @test_ancestor is ancestor of @test_child
-+ * @test_ancestor: Firmware which is tested for being an ancestor
-+ * @test_child: Firmware which is tested for being the child
-+ *
-+ * A node is considered an ancestor of itself too.
-+ *
-+ * Returns true if @test_ancestor is an ancestor of @test_child.
-+ * Otherwise, returns false.
-+ */
-+bool fwnode_is_ancestor_of(struct fwnode_handle *test_ancestor,
-+				  struct fwnode_handle *test_child)
-+{
-+	if (!test_ancestor)
-+		return false;
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 31a76159f118..1a1d9a55645c 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -50,6 +50,101 @@ static LIST_HEAD(wait_for_suppliers);
+ static DEFINE_MUTEX(wfs_lock);
+ static LIST_HEAD(deferred_sync);
+ static unsigned int defer_sync_state_count = 1;
++static DEFINE_MUTEX(fwnode_link_lock);
 +
-+	fwnode_handle_get(test_child);
-+	while (test_child) {
-+		if (test_child == test_ancestor) {
-+			fwnode_handle_put(test_child);
-+			return true;
-+		}
-+		test_child = fwnode_get_next_parent(test_child);
++/**
++ * fwnode_link_add - Create a link between two fwnode_handles.
++ * @con: Consumer end of the link.
++ * @sup: Supplier end of the link.
++ *
++ * Creates a fwnode link between two fwnode_handles. These fwnode links are
++ * used by the driver core to automatically generate device links. Attempts to
++ * create duplicate links are simply ignored and there is no refcounting.
++ *
++ * These links are automatically deleted once they are converted to device
++ * links or when the fwnode_handles (or their corresponding devices) are
++ * deleted.
++ */
++int fwnode_link_add(struct fwnode_handle *con, struct fwnode_handle *sup)
++{
++	struct fwnode_link *link;
++	int ret = 0;
++
++	mutex_lock(&fwnode_link_lock);
++
++	/* Duplicate requests are intentionally not refcounted. */
++	list_for_each_entry(link, &sup->consumers, s_hook)
++		if (link->consumer == con)
++			goto out;
++
++	link = kzalloc(sizeof(*link), GFP_KERNEL);
++	if (!link) {
++		ret = -ENOMEM;
++		goto out;
 +	}
-+	return false;
++
++	link->supplier = sup;
++	INIT_LIST_HEAD(&link->s_hook);
++	link->consumer = con;
++	INIT_LIST_HEAD(&link->c_hook);
++
++	list_add(&link->s_hook, &sup->consumers);
++	list_add(&link->c_hook, &con->suppliers);
++out:
++	mutex_unlock(&fwnode_link_lock);
++
++	return ret;
 +}
 +
++/**
++ * fwnode_links_purge_suppliers - Delete all supplier links of fwnode_handle.
++ * @fwnode: fwnode whose supplier links needs to be deleted
++ *
++ * Deletes all supplier links connecting directly to a fwnode.
++ */
++static void fwnode_links_purge_suppliers(struct fwnode_handle *fwnode)
++{
++	struct fwnode_link *link, *tmp;
++
++	mutex_lock(&fwnode_link_lock);
++	list_for_each_entry_safe(link, tmp, &fwnode->suppliers, c_hook) {
++		list_del(&link->s_hook);
++		list_del(&link->c_hook);
++		kfree(link);
++	}
++	mutex_unlock(&fwnode_link_lock);
++}
++
++/**
++ * fwnode_links_purge_consumers - Delete all consumer links of fwnode_handle.
++ * @fwnode: fwnode whose consumer links needs to be deleted
++ *
++ * Deletes all consumer links connecting directly to a fwnode.
++ */
++static void fwnode_links_purge_consumers(struct fwnode_handle *fwnode)
++{
++	struct fwnode_link *link, *tmp;
++
++	mutex_lock(&fwnode_link_lock);
++	list_for_each_entry_safe(link, tmp, &fwnode->consumers, s_hook) {
++		list_del(&link->s_hook);
++		list_del(&link->c_hook);
++		kfree(link);
++	}
++	mutex_unlock(&fwnode_link_lock);
++}
++
++/**
++ * fwnode_links_purge - Delete all links connected to a fwnode_handle.
++ * @fwnode: fwnode whose links needs to be deleted
++ *
++ * Deletes all links connecting directly to a fwnode.
++ */
++void fwnode_links_purge(struct fwnode_handle *fwnode)
++{
++	fwnode_links_purge_suppliers(fwnode);
++	fwnode_links_purge_consumers(fwnode);
++}
+ 
+ #ifdef CONFIG_SRCU
+ static DEFINE_MUTEX(device_links_lock);
+diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
+index fe64430b438a..9a824decf61f 100644
+--- a/drivers/of/dynamic.c
++++ b/drivers/of/dynamic.c
+@@ -356,6 +356,7 @@ void of_node_release(struct kobject *kobj)
+ 
+ 	property_list_free(node->properties);
+ 	property_list_free(node->deadprops);
++	fwnode_links_purge(of_fwnode_handle(node));
+ 
+ 	kfree(node->full_name);
+ 	kfree(node->data);
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 593fb8e58f21..afde643f37a2 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -10,6 +10,7 @@
+ #define _LINUX_FWNODE_H_
+ 
+ #include <linux/types.h>
++#include <linux/list.h>
+ 
+ struct fwnode_operations;
+ struct device;
+@@ -18,6 +19,15 @@ struct fwnode_handle {
+ 	struct fwnode_handle *secondary;
+ 	const struct fwnode_operations *ops;
+ 	struct device *dev;
++	struct list_head suppliers;
++	struct list_head consumers;
++};
++
++struct fwnode_link {
++	struct fwnode_handle *supplier;
++	struct list_head s_hook;
++	struct fwnode_handle *consumer;
++	struct list_head c_hook;
+ };
+ 
  /**
-  * fwnode_get_next_child_node - Return the next child node handle for a node
-  * @fwnode: Firmware node to find the next child node for.
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 2d4542629d80..2e5eed3ddf1c 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -88,6 +88,8 @@ struct fwnode_handle *fwnode_get_next_parent(
- unsigned int fwnode_count_parents(const struct fwnode_handle *fwn);
- struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
- 					    unsigned int depth);
-+bool fwnode_is_ancestor_of(struct fwnode_handle *test_ancestor,
-+				  struct fwnode_handle *test_child);
- struct fwnode_handle *fwnode_get_next_child_node(
- 	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
- struct fwnode_handle *fwnode_get_next_available_child_node(
+@@ -173,8 +183,12 @@ static inline void fwnode_init(struct fwnode_handle *fwnode,
+ 			       const struct fwnode_operations *ops)
+ {
+ 	fwnode->ops = ops;
++	INIT_LIST_HEAD(&fwnode->consumers);
++	INIT_LIST_HEAD(&fwnode->suppliers);
+ }
+ 
+ extern u32 fw_devlink_get_flags(void);
++int fwnode_link_add(struct fwnode_handle *con, struct fwnode_handle *sup);
++void fwnode_links_purge(struct fwnode_handle *fwnode);
+ 
+ #endif
 -- 
 2.29.1.341.ge80a0c044ae-goog
 
