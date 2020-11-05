@@ -2,110 +2,130 @@ Return-Path: <SRS0=0lnD=EL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 994A6C00A89
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 12:02:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 546A5C4742C
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 14:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 480242083B
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 12:02:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04BE12074B
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 14:01:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730258AbgKEMCP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:02:15 -0500
-Received: from mga14.intel.com ([192.55.52.115]:55594 "EHLO mga14.intel.com"
+        id S1730875AbgKEOBb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Nov 2020 09:01:31 -0500
+Received: from smtp.asem.it ([151.1.184.197]:55844 "EHLO smtp.asem.it"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726777AbgKEMCO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 5 Nov 2020 07:02:14 -0500
-IronPort-SDR: Ox/FGgIK8A+lRv/6ONruegQgzakvKaQquPjgkz2zbAQyELPuhG9vAT5uRys1BvpAbnhcnae3i9
- MhCKHDWIJzCg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9795"; a="168587888"
-X-IronPort-AV: E=Sophos;i="5.77,453,1596524400"; 
-   d="scan'208";a="168587888"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 04:01:55 -0800
-IronPort-SDR: 5MOVFszxjBka2JolT4Ah9ijYX+daFcCisv5YNjrGxpSYH+ljPiInUhYTwqKia1weri5wSUEGap
- r52/eWwKeCmw==
-X-IronPort-AV: E=Sophos;i="5.77,453,1596524400"; 
-   d="scan'208";a="354256112"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 04:01:53 -0800
-Received: by lahna (sSMTP sendmail emulation); Thu, 05 Nov 2020 13:59:41 +0200
-Date:   Thu, 5 Nov 2020 13:59:41 +0200
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Flavio Suligoi <f.suligoi@asem.it>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: How to add the "gpio-line-names" property in a PCI gpio expander
-Message-ID: <20201105115941.GK2495@lahna.fi.intel.com>
+        id S1730917AbgKEOB3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Nov 2020 09:01:29 -0500
+Received: from webmail.asem.it
+        by asem.it (smtp.asem.it)
+        (SecurityGateway 6.5.2)
+        with ESMTP id SG000588650.MSG 
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2020 15:01:26 +0100S
+Received: from ASAS044.asem.intra (172.16.16.44) by ASAS044.asem.intra
+ (172.16.16.44) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
+ 2020 15:01:24 +0100
+Received: from ASAS044.asem.intra ([::1]) by ASAS044.asem.intra ([::1]) with
+ mapi id 15.01.1979.003; Thu, 5 Nov 2020 15:01:24 +0100
+From:   Flavio Suligoi <f.suligoi@asem.it>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+CC:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: RE: How to add the "gpio-line-names" property in a PCI gpio expander
+Thread-Topic: How to add the "gpio-line-names" property in a PCI gpio expander
+Thread-Index: AdazWEAUpTjocun1TNeP3lXLN/Ph2wACVbgAAABK9IAABkeZAA==
+Date:   Thu, 5 Nov 2020 14:01:24 +0000
+Message-ID: <574b86929d1247caae717ab1a2f31194@asem.it>
 References: <98acf6339a1b43d6a38f867069088530@asem.it>
  <CAJZ5v0g7POp1Lp05RcJJ8ZD1ZiaetN0_SfbAjnQg0kCw4aQukQ@mail.gmail.com>
+ <20201105115941.GK2495@lahna.fi.intel.com>
+In-Reply-To: <20201105115941.GK2495@lahna.fi.intel.com>
+Accept-Language: it-IT, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [172.16.17.208]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0g7POp1Lp05RcJJ8ZD1ZiaetN0_SfbAjnQg0kCw4aQukQ@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+X-SGHeloLookup-Result: pass smtp.helo=webmail.asem.it (ip=172.16.16.44)
+X-SGSPF-Result: none (smtp.asem.it)
+X-SGOP-RefID: str=0001.0A090215.5FA405B5.0041,ss=1,re=0.000,recu=0.000,reip=0.000,cl=1,cld=1,fgs=0 (_st=1 _vt=0 _iwf=0)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-
-On Thu, Nov 05, 2020 at 12:51:18PM +0100, Rafael J. Wysocki wrote:
-> CC Mika and Andy who should be more familiar with that problem space than I am.
-> 
-> On Thu, Nov 5, 2020 at 10:46 AM Flavio Suligoi <f.suligoi@asem.it> wrote:
-> >
-> > Hi all,
-> >
-> > I'm working to introduce the "gpio-line-names" property in the ACPI
-> > configuration of the BIOS of our x86 boards (we can customize the BIOS of our
-> > boards).
-> >
-> > All is ok for the gpiochips related to the Intel chipset and some I2C gpio
-> > expanders. I have inserted the _DSD as described in the Linux documentation.
-> >
-> > In one of our boards we have an add-on PCI board, with a PCI serial device
-> > Exar XR17V352. This device also contains 16 gpios.
-> > The exar device drivers work good, both the "8250_exar" and the "gpio_exar", and
-> > I can manage the exar's gpios correctly.
-> > The problem is how to assign the gpio-line-names property to a PCI gpio
-> > expanders like this.
-> >
-> > I tried adding a new device in my ACPI configuration, as:
-> >
-> > Device (EXAR)
-> > {
-> >     Name (_HID, "13A80352")
-
-If this is PCI device then you need to have _ADR here instead of _HID.
-
-> >     Name (_STR, Unicode ("STR - Exar GPIOs"))  // _STR: Description String
-> >
-> >     Name (_DSD, Package () {
-> >         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> >         Package () {
-> >             Package () {
-> >                 "gpio-line-names",
-> >                     Package () {
-> >                         "exar_0",
-> >                         "exar_1",
-> >                         "exar_2",
-> >                         "exar_3",
-> >                         ...
-> >                     }
-> >                 }
-> >             }
-> >     })
-> > }
-> >
-> > but I have no result.
-> > Does anyone have a suggestion?
-> >
-> > Thanks,
-> >
-> > Flavio
+SGkgTWlrYSwNCg0KPiA+ID4gSW4gb25lIG9mIG91ciBib2FyZHMgd2UgaGF2ZSBhbiBhZGQtb24g
+UENJIGJvYXJkLCB3aXRoIGEgUENJIHNlcmlhbA0KPiBkZXZpY2UNCj4gPiA+IEV4YXIgWFIxN1Yz
+NTIuIFRoaXMgZGV2aWNlIGFsc28gY29udGFpbnMgMTYgZ3Bpb3MuDQo+ID4gPiBUaGUgZXhhciBk
+ZXZpY2UgZHJpdmVycyB3b3JrIGdvb2QsIGJvdGggdGhlICI4MjUwX2V4YXIiIGFuZCB0aGUNCj4g
+ImdwaW9fZXhhciIsIGFuZA0KPiA+ID4gSSBjYW4gbWFuYWdlIHRoZSBleGFyJ3MgZ3Bpb3MgY29y
+cmVjdGx5Lg0KPiA+ID4gVGhlIHByb2JsZW0gaXMgaG93IHRvIGFzc2lnbiB0aGUgZ3Bpby1saW5l
+LW5hbWVzIHByb3BlcnR5IHRvIGEgUENJDQo+IGdwaW8NCj4gPiA+IGV4cGFuZGVycyBsaWtlIHRo
+aXMuDQo+ID4gPg0KPiA+ID4gSSB0cmllZCBhZGRpbmcgYSBuZXcgZGV2aWNlIGluIG15IEFDUEkg
+Y29uZmlndXJhdGlvbiwgYXM6DQo+ID4gPg0KPiA+ID4gRGV2aWNlIChFWEFSKQ0KPiA+ID4gew0K
+PiA+ID4gICAgIE5hbWUgKF9ISUQsICIxM0E4MDM1MiIpDQo+IA0KPiBJZiB0aGlzIGlzIFBDSSBk
+ZXZpY2UgdGhlbiB5b3UgbmVlZCB0byBoYXZlIF9BRFIgaGVyZSBpbnN0ZWFkIG9mIF9ISUQuDQoN
+CnRoZSBwcm9ibGVtIGlzIHRoYXQgdGhlIHBhcmVudCBidXMgb2YgdGhpcyBkZXZpY2UgaXMgbm90
+IGRlY2xhcmVkIGluIGFueSBBQ1BJIHRhYmxlLg0KVGhlIGV4YXIgY2hpcCBpcyBvbiB0aGUgYnVz
+IDcgOg0KDQowNzowMC4wIFNlcmlhbCBjb250cm9sbGVyOiBFeGFyIENvcnAuIFhSMTdWMzUyMSBE
+dWFsIFBDSWUgVUFSVCAocmV2IDAzKQ0KDQphbmQgaW4gdGhlIF9BRFIgb2JqZWN0IHlvdSBjYW4g
+c3BlY2lmeSBkZXZpY2UgYW5kIGZ1bmN0aW9uIG9ubHkuIA0KSG93IGNhbiBJIHNwZWNpZnkgdGhl
+IHBhcmVudCBidXM/IEl0IGlzIG5vdCBzaW1wbGUg4oCmDQpUaGUgbHNwY2kgb3V0cHV0IGlzIHRo
+ZSBmb2xsb3dpbmc6DQoNCnJvb3RAZGViaWFuOi9ldGMjIGxzcGNpDQowMDowMC4wIEhvc3QgYnJp
+ZGdlOiBJbnRlbCBDb3Jwb3JhdGlvbiBBdG9tL0NlbGVyb24vUGVudGl1bSBQcm9jZXNzb3IgTjQy
+MDAvTjMzNTAvRTM5MDAgU2VyaWVzIEhvc3QgQnJpZGdlIChyZXYgMGQpDQowMDowMi4wIFZHQSBj
+b21wYXRpYmxlIGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIERldmljZSA1YTg1IChyZXYg
+MGQpDQowMDowZS4wIEF1ZGlvIGRldmljZTogSW50ZWwgQ29ycG9yYXRpb24gQXRvbS9DZWxlcm9u
+L1BlbnRpdW0gUHJvY2Vzc29yIE40MjAwL04zMzUwL0UzOTAwIFNlcmllcyBBdWRpbyBDbHVzdGVy
+IChyZXYgMGQpDQowMDowZi4wIENvbW11bmljYXRpb24gY29udHJvbGxlcjogSW50ZWwgQ29ycG9y
+YXRpb24gQXRvbS9DZWxlcm9uL1BlbnRpdW0gUHJvY2Vzc29yIE40MjAwL04zMzUwL0UzOTAwIFNl
+cmllcyBUcnVzdGVkIEV4ZWN1dGlvbiBFbmdpbmUgKHJldiAwZCkNCjAwOjEyLjAgU0FUQSBjb250
+cm9sbGVyOiBJbnRlbCBDb3Jwb3JhdGlvbiBBdG9tL0NlbGVyb24vUGVudGl1bSBQcm9jZXNzb3Ig
+TjQyMDAvTjMzNTAvRTM5MDAgU2VyaWVzIFNBVEEgQUhDSSBDb250cm9sbGVyIChyZXYgMGQpDQow
+MDoxMy4wIFBDSSBicmlkZ2U6IEludGVsIENvcnBvcmF0aW9uIEF0b20vQ2VsZXJvbi9QZW50aXVt
+IFByb2Nlc3NvciBONDIwMC9OMzM1MC9FMzkwMCBTZXJpZXMgUENJIEV4cHJlc3MgUG9ydCBBICMx
+IChyZXYgZmQpDQowMDoxMy4xIFBDSSBicmlkZ2U6IEludGVsIENvcnBvcmF0aW9uIEF0b20vQ2Vs
+ZXJvbi9QZW50aXVtIFByb2Nlc3NvciBONDIwMC9OMzM1MC9FMzkwMCBTZXJpZXMgUENJIEV4cHJl
+c3MgUG9ydCBBICMyIChyZXYgZmQpDQowMDoxMy4yIFBDSSBicmlkZ2U6IEludGVsIENvcnBvcmF0
+aW9uIEF0b20vQ2VsZXJvbi9QZW50aXVtIFByb2Nlc3NvciBONDIwMC9OMzM1MC9FMzkwMCBTZXJp
+ZXMgUENJIEV4cHJlc3MgUG9ydCBBICMzIChyZXYgZmQpDQowMDoxNC4wIFBDSSBicmlkZ2U6IElu
+dGVsIENvcnBvcmF0aW9uIEF0b20vQ2VsZXJvbi9QZW50aXVtIFByb2Nlc3NvciBONDIwMC9OMzM1
+MC9FMzkwMCBTZXJpZXMgUENJIEV4cHJlc3MgUG9ydCBCICMxIChyZXYgZmQpDQowMDoxNC4xIFBD
+SSBicmlkZ2U6IEludGVsIENvcnBvcmF0aW9uIEF0b20vQ2VsZXJvbi9QZW50aXVtIFByb2Nlc3Nv
+ciBONDIwMC9OMzM1MC9FMzkwMCBTZXJpZXMgUENJIEV4cHJlc3MgUG9ydCBCICMyIChyZXYgZmQp
+DQowMDoxNS4wIFVTQiBjb250cm9sbGVyOiBJbnRlbCBDb3Jwb3JhdGlvbiBBdG9tL0NlbGVyb24v
+UGVudGl1bSBQcm9jZXNzb3IgTjQyMDAvTjMzNTAvRTM5MDAgU2VyaWVzIFVTQiB4SENJIChyZXYg
+MGQpDQowMDoxNi4wIFNpZ25hbCBwcm9jZXNzaW5nIGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0
+aW9uIEF0b20vQ2VsZXJvbi9QZW50aXVtIFByb2Nlc3NvciBONDIwMC9OMzM1MC9FMzkwMCBTZXJp
+ZXMgSTJDIENvbnRyb2xsZXIgIzEgKHJldiAwZCkNCjAwOjE2LjEgU2lnbmFsIHByb2Nlc3Npbmcg
+Y29udHJvbGxlcjogSW50ZWwgQ29ycG9yYXRpb24gQXRvbS9DZWxlcm9uL1BlbnRpdW0gUHJvY2Vz
+c29yIE40MjAwL04zMzUwL0UzOTAwIFNlcmllcyBJMkMgQ29udHJvbGxlciAjMiAocmV2IDBkKQ0K
+MDA6MTkuMCBTaWduYWwgcHJvY2Vzc2luZyBjb250cm9sbGVyOiBJbnRlbCBDb3Jwb3JhdGlvbiBB
+dG9tL0NlbGVyb24vUGVudGl1bSBQcm9jZXNzb3IgTjQyMDAvTjMzNTAvRTM5MDAgU2VyaWVzIFNQ
+SSBDb250cm9sbGVyICMxIChyZXYgMGQpDQowMDoxOS4xIFNpZ25hbCBwcm9jZXNzaW5nIGNvbnRy
+b2xsZXI6IEludGVsIENvcnBvcmF0aW9uIEF0b20vQ2VsZXJvbi9QZW50aXVtIFByb2Nlc3NvciBO
+NDIwMC9OMzM1MC9FMzkwMCBTZXJpZXMgU1BJIENvbnRyb2xsZXIgIzIgKHJldiAwZCkNCjAwOjE5
+LjIgU2lnbmFsIHByb2Nlc3NpbmcgY29udHJvbGxlcjogSW50ZWwgQ29ycG9yYXRpb24gQXRvbS9D
+ZWxlcm9uL1BlbnRpdW0gUHJvY2Vzc29yIE40MjAwL04zMzUwL0UzOTAwIFNlcmllcyBTUEkgQ29u
+dHJvbGxlciAjMyAocmV2IDBkKQ0KMDA6MWYuMCBJU0EgYnJpZGdlOiBJbnRlbCBDb3Jwb3JhdGlv
+biBBdG9tL0NlbGVyb24vUGVudGl1bSBQcm9jZXNzb3IgTjQyMDAvTjMzNTAvRTM5MDAgU2VyaWVz
+IExvdyBQaW4gQ291bnQgSW50ZXJmYWNlIChyZXYgMGQpDQowMDoxZi4xIFNNQnVzOiBJbnRlbCBD
+b3Jwb3JhdGlvbiBBdG9tL0NlbGVyb24vUGVudGl1bSBQcm9jZXNzb3IgTjQyMDAvTjMzNTAvRTM5
+MDAgU2VyaWVzIFNNQnVzIENvbnRyb2xsZXIgKHJldiAwZCkNCjAxOjAwLjAgRXRoZXJuZXQgY29u
+dHJvbGxlcjogSW50ZWwgQ29ycG9yYXRpb24gSTIxMCBHaWdhYml0IE5ldHdvcmsgQ29ubmVjdGlv
+biAocmV2IDAzKQ0KMDI6MDAuMCBFdGhlcm5ldCBjb250cm9sbGVyOiBJbnRlbCBDb3Jwb3JhdGlv
+biBJMjEwIEdpZ2FiaXQgTmV0d29yayBDb25uZWN0aW9uIChyZXYgMDMpDQowNDowMC4wIEV0aGVy
+bmV0IGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIEkyMTAgR2lnYWJpdCBOZXR3b3JrIENv
+bm5lY3Rpb24gKHJldiAwMykNCjA1OjAwLjAgUENJIGJyaWRnZTogUGVyaWNvbSBTZW1pY29uZHVj
+dG9yIERldmljZSAyNDA0IChyZXYgMDUpDQowNjowMS4wIFBDSSBicmlkZ2U6IFBlcmljb20gU2Vt
+aWNvbmR1Y3RvciBEZXZpY2UgMjQwNCAocmV2IDA1KQ0KMDY6MDIuMCBQQ0kgYnJpZGdlOiBQZXJp
+Y29tIFNlbWljb25kdWN0b3IgRGV2aWNlIDI0MDQgKHJldiAwNSkNCjA2OjAzLjAgUENJIGJyaWRn
+ZTogUGVyaWNvbSBTZW1pY29uZHVjdG9yIERldmljZSAyNDA0IChyZXYgMDUpDQowNzowMC4wIFNl
+cmlhbCBjb250cm9sbGVyOiBFeGFyIENvcnAuIFhSMTdWMzUyMSBEdWFsIFBDSWUgVUFSVCAocmV2
+IDAzKSAg74OfLS0tIEV4YXIgc2VyaWFsIHBvcnQNCjA4OjAwLjAgRXRoZXJuZXQgY29udHJvbGxl
+cjogSW50ZWwgQ29ycG9yYXRpb24gSTIxMCBHaWdhYml0IE5ldHdvcmsgQ29ubmVjdGlvbiAocmV2
+IDAzKQ0Kcm9vdEBkZWJpYW46L2V0YyMNClRoYW5rcywNCkZsYXZpbw0KDQo=
