@@ -6,111 +6,135 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3319DC55178
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 15:55:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36895C4741F
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 16:08:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB83B2078E
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 15:55:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D01742080D
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 16:08:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730977AbgKEPzt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Nov 2020 10:55:49 -0500
-Received: from mga06.intel.com ([134.134.136.31]:51983 "EHLO mga06.intel.com"
+        id S1726400AbgKEQI0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Nov 2020 11:08:26 -0500
+Received: from mga04.intel.com ([192.55.52.120]:17514 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730862AbgKEPzt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 5 Nov 2020 10:55:49 -0500
-IronPort-SDR: 8AdFpAZ2AyZ9mMMdphbaxTQ5OYBtRyU4sEUcgX2sUk0UaKBzCNAKXAs+cWm+TL1g0/BKMtFysI
- GJTX6EdVd03g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9795"; a="231029681"
+        id S1725998AbgKEQI0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Nov 2020 11:08:26 -0500
+IronPort-SDR: xZj1FVXCsbwiwyK8P3HnAwiDWUtR2pPVuvUCgT6j+s8y9pQ4JQbxxk+Ez7Rk7bS7zdAjdwk3wo
+ DIcX10Qv7FAA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9795"; a="166816804"
 X-IronPort-AV: E=Sophos;i="5.77,453,1596524400"; 
-   d="scan'208";a="231029681"
+   d="scan'208";a="166816804"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 07:55:38 -0800
-IronPort-SDR: 8EJwKveD0CRLeVwn2VGoK8AXFHdWOkAblbTWtxFo4B183A9w9Y6xtWkeqVDcHSLhZvHTq2Jyw2
- N/G3Cj9G2r1A==
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 08:08:25 -0800
+IronPort-SDR: mDRdZvE19QNwz3uwhN3IXoR5wQ5YjbL8DjtST8/r/vyBNp6FwPdfMABqNOoZFcTOmKDkA5cJc4
+ zniRb5B4BwcQ==
 X-IronPort-AV: E=Sophos;i="5.77,453,1596524400"; 
-   d="scan'208";a="529465984"
+   d="scan'208";a="528013115"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 07:55:36 -0800
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 08:08:23 -0800
 Received: from andy by smile with local (Exim 4.94)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kahct-00468E-Bh; Thu, 05 Nov 2020 17:56:39 +0200
-Date:   Thu, 5 Nov 2020 17:56:39 +0200
+        id 1kahpF-0046Fk-Rb; Thu, 05 Nov 2020 18:09:25 +0200
+Date:   Thu, 5 Nov 2020 18:09:25 +0200
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Flavio Suligoi <f.suligoi@asem.it>,
+To:     Flavio Suligoi <f.suligoi@asem.it>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
         "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
+        "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: How to add the "gpio-line-names" property in a PCI gpio expander
-Message-ID: <20201105155639.GV4077@smile.fi.intel.com>
+Message-ID: <20201105160925.GW4077@smile.fi.intel.com>
 References: <98acf6339a1b43d6a38f867069088530@asem.it>
  <CAJZ5v0g7POp1Lp05RcJJ8ZD1ZiaetN0_SfbAjnQg0kCw4aQukQ@mail.gmail.com>
+ <20201105115941.GK2495@lahna.fi.intel.com>
+ <574b86929d1247caae717ab1a2f31194@asem.it>
+ <20201105152020.GO2495@lahna.fi.intel.com>
+ <5fb64f9c8af64235943c29c9ba50a2df@asem.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0g7POp1Lp05RcJJ8ZD1ZiaetN0_SfbAjnQg0kCw4aQukQ@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5fb64f9c8af64235943c29c9ba50a2df@asem.it>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Nov 05, 2020 at 12:51:18PM +0100, Rafael J. Wysocki wrote:
-> CC Mika and Andy who should be more familiar with that problem space than I am.
+On Thu, Nov 05, 2020 at 03:54:32PM +0000, Flavio Suligoi wrote:
+> > > > > > In one of our boards we have an add-on PCI board, with a PCI
+> > serial
+> > > > device
+> > > > > > Exar XR17V352. This device also contains 16 gpios.
+> > > > > > The exar device drivers work good, both the "8250_exar" and the
+> > > > "gpio_exar", and
+> > > > > > I can manage the exar's gpios correctly.
+> > > > > > The problem is how to assign the gpio-line-names property to a PCI
+> > > > gpio
+> > > > > > expanders like this.
+> > > > > >
+> > > > > > I tried adding a new device in my ACPI configuration, as:
+> > > > > >
+> > > > > > Device (EXAR)
+> > > > > > {
+> > > > > >     Name (_HID, "13A80352")
+> > > >
+> > > > If this is PCI device then you need to have _ADR here instead of _HID.
+> > >
+> > > the problem is that the parent bus of this device is not declared in any
+> > ACPI table.
+> > > The exar chip is on the bus 7 :
+> > >
+> > > 07:00.0 Serial controller: Exar Corp. XR17V3521 Dual PCIe UART (rev 03)
+> > >
+> > > and in the _ADR object you can specify device and function only.
+> > > How can I specify the parent bus? It is not simple …
+> > > The lspci output is the following:
+> > 
+> > The parent is the root port the device is connected to and I'm pretty
+> > sure it exists in the namespace as this seems to be Intel hardware. If
+> > you run 'lspci -t' it shows you the root port.
+> > 
+> > The _ADR should be 0 for this one.
+> 
+> Unfortunately there is bridge in the middle:
+> 
+> root@debian:~# lspci -t
+> -[0000:00]-+-00.0
+>            +-02.0
+>            +-0e.0
+>            +-0f.0
+>            +-12.0
+>            +-13.0-[01]----00.0
+>            +-13.1-[02]----00.0
+>            +-13.2-[03]--
+>            +-14.0-[04]----00.0
+>            +-14.1-[05-09]----00.0-[06-09]--+-01.0-[07]----00.0 <-- Exar (bus 7, dev 0, funct 0)
+>            |                               +-02.0-[08]----00.0
+>            |                               \-03.0-[09]--
+>            +-15.0
+>            +-16.0
+>            +-16.1
+>            +-19.0
+>            +-19.1
+>            +-19.2
+>            +-1f.0
+>            \-1f.1
+> root@debian:~#
+> 
+> My changes in the ACPI:
+> 
+> Scope (_SB.PCI0) {
+>     Device (EXAR)
+> 		{
+> 			Name (_ADR, 0x0000)
 
-I believe I have explained this in the [1]. Perhaps it's about how to find
-proper device node / ACPI path of the devices in question?
+_ADR should represent BDF (Bus:Device.Function)
 
-[1]: https://lore.kernel.org/linux-gpio/9152bb8be33e4192a7766eb53c6ca9af@asem.it/
+Something like 0x07000000
 
-> On Thu, Nov 5, 2020 at 10:46 AM Flavio Suligoi <f.suligoi@asem.it> wrote:
-> >
-> > Hi all,
-> >
-> > I'm working to introduce the "gpio-line-names" property in the ACPI
-> > configuration of the BIOS of our x86 boards (we can customize the BIOS of our
-> > boards).
-> >
-> > All is ok for the gpiochips related to the Intel chipset and some I2C gpio
-> > expanders. I have inserted the _DSD as described in the Linux documentation.
-> >
-> > In one of our boards we have an add-on PCI board, with a PCI serial device
-> > Exar XR17V352. This device also contains 16 gpios.
-> > The exar device drivers work good, both the "8250_exar" and the "gpio_exar", and
-> > I can manage the exar's gpios correctly.
-> > The problem is how to assign the gpio-line-names property to a PCI gpio
-> > expanders like this.
-> >
-> > I tried adding a new device in my ACPI configuration, as:
-> >
-> > Device (EXAR)
-> > {
-> >     Name (_HID, "13A80352")
-> >     Name (_STR, Unicode ("STR - Exar GPIOs"))  // _STR: Description String
-> >
-> >     Name (_DSD, Package () {
-> >         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> >         Package () {
-> >             Package () {
-> >                 "gpio-line-names",
-> >                     Package () {
-> >                         "exar_0",
-> >                         "exar_1",
-> >                         "exar_2",
-> >                         "exar_3",
-> >                         ...
-> >                     }
-> >                 }
-> >             }
-> >     })
-> > }
-> >
-> > but I have no result.
-> > Does anyone have a suggestion?
-> >
-> > Thanks,
-> >
-> > Flavio
+> ....
+> 
+> but it doesn't work, because of the bridge.
 
 -- 
 With Best Regards,
