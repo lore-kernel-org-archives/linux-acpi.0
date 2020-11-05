@@ -2,43 +2,43 @@ Return-Path: <SRS0=0lnD=EL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85AF2C4741F
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 09:42:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3356AC388F7
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 09:43:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 123CD20825
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 09:42:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D047F21D7F
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 09:43:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604569355;
-	bh=rXSI1BfmjG8vLqTpJNbDhN9/kV2FABpxj9zjELdDyKk=;
+	s=default; t=1604569386;
+	bh=Pw8x6wof7/hdOOYVanQAZZ6gdVYkVA+IEc86z5O8qrc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=fi+1IVg2Z3z8bwD3ZJoo7v+50BUHRo5lfqr8PtAeuEXp604kAtd3+hccaSgeJe5xz
-	 pNJGYwgqrU3Fs7kJ+seZgrPHlCHD57kYhEhwBME/+vJjnNeCBJJ2hPhbC3PmJUztDT
-	 cge0//CsxInowBvpJDZcsBPkVlVOQdsmJCJysMWI=
+	b=fUczXuEC50JDjz5Es+bFgClbNFTxMl2cFKNl5lzana1M9ub7DlycazVSUUh+3AzRV
+	 JjxAnpYkl0RD7bKgT6XKDlNZtIzwUOr71vqhsGUFfnEbzIdhlhFYILwKCre4niiAuF
+	 KYogUj+7Un5c3b4D+33ClP1PvJT1hKYFwqC52kas=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725468AbgKEJme (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Nov 2020 04:42:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33396 "EHLO mail.kernel.org"
+        id S1726179AbgKEJnG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Nov 2020 04:43:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725308AbgKEJmd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 5 Nov 2020 04:42:33 -0500
+        id S1725308AbgKEJnC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Nov 2020 04:43:02 -0500
 Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 584552080D;
-        Thu,  5 Nov 2020 09:42:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 26DF52080D;
+        Thu,  5 Nov 2020 09:43:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604569351;
-        bh=rXSI1BfmjG8vLqTpJNbDhN9/kV2FABpxj9zjELdDyKk=;
+        s=default; t=1604569381;
+        bh=Pw8x6wof7/hdOOYVanQAZZ6gdVYkVA+IEc86z5O8qrc=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Ydsz10KeDnFwmSbiBSVmRTIRAKtvEZWCVMohOdND4AQH02rTm/8XrGunQoUx6Qvs6
-         7DomND3bOFLNeWVGkIcg+A8W+VxSkBzop0RE1wq/yfEtXaRv+HlIis9OUfp8LyJgFm
-         x/8Eo5QLx7nVA2jhSohdMNlPKmgLjgHDTbgajfLU=
-Date:   Thu, 5 Nov 2020 10:43:18 +0100
+        b=kpOlXevlFAmJCREcTFKRfD5uhjvLTSYj+Ves5DKdo86GMUD3CVRVuWr0+OSzjT6zk
+         HsgdWXClSqMcLwNu71VPnjT6eQckO9YY5I6x7/Q9LYmHFyixMBjw3WicOqLDoHzH6P
+         IjT7I/4ewgFB0wAtEIY+2k1FCdt4ggYIQEjta1+0=
+Date:   Thu, 5 Nov 2020 10:43:50 +0100
 From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To:     Saravana Kannan <saravanak@google.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
@@ -54,44 +54,40 @@ Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         kernel-team@android.com, linux-acpi@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-efi@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: Re: [PATCH v1 16/18] efi: Update implementation of add_links() to
- create fwnode links
-Message-ID: <20201105094318.GF3439341@kroah.com>
+Subject: Re: [PATCH v1 17/18] driver core: Add helper functions to convert
+ fwnode links to device links
+Message-ID: <20201105094350.GG3439341@kroah.com>
 References: <20201104232356.4038506-1-saravanak@google.com>
- <20201104232356.4038506-17-saravanak@google.com>
+ <20201104232356.4038506-18-saravanak@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201104232356.4038506-17-saravanak@google.com>
+In-Reply-To: <20201104232356.4038506-18-saravanak@google.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 04, 2020 at 03:23:53PM -0800, Saravana Kannan wrote:
-> The semantics of add_links() has changed from creating device link
-> between devices to creating fwnode links between fwnodes. So, update the
-> implementation of add_links() to match the new semantics.
+On Wed, Nov 04, 2020 at 03:23:54PM -0800, Saravana Kannan wrote:
+> Add helper functions __fw_devlink_link_to_consumers() and
+> __fw_devlink_link_to_suppliers() that convert fwnode links to device
+> links.
+> 
+> __fw_devlink_link_to_consumers() is for creating:
+> - Device links between a newly added device and all its consumer devices
+>   that have been added to driver core.
+> - Proxy SYNC_STATE_ONLY device links between the newly added device and
+>   the parent devices of all its consumers that have not been added to
+>   driver core yet.
+> 
+> __fw_devlink_link_to_suppliers() is for creating:
+> - Device links between a newly added device and all its supplier devices
+> - Proxy SYNC_STATE_ONLY device links between the newly added device and
+>   all the supplier devices of its child device nodes.
 > 
 > Signed-off-by: Saravana Kannan <saravanak@google.com>
-> ---
->  drivers/firmware/efi/efi-init.c | 23 ++---------------------
->  1 file changed, 2 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/firmware/efi/efi-init.c b/drivers/firmware/efi/efi-init.c
-> index b148f1459fb3..c0c3d4c3837a 100644
-> --- a/drivers/firmware/efi/efi-init.c
-> +++ b/drivers/firmware/efi/efi-init.c
-> @@ -316,11 +316,10 @@ static struct device_node *find_pci_overlap_node(void)
->   * resource reservation conflict on the memory window that the efifb
->   * framebuffer steals from the PCIe host bridge.
->   */
-> -static int efifb_add_links(const struct fwnode_handle *fwnode,
-> +static int efifb_add_links(struct fwnode_handle *fwnode,
->  			   struct device *dev)
 
-So you are fixing the build warning you added a few patches ago here?
-Please fix up the function signatures when you made that change, not
-here later on.
+Did you just add build warnings with these static functions that no one
+calls?
 
 thanks,
 
