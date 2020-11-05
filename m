@@ -2,103 +2,69 @@ Return-Path: <SRS0=0lnD=EL=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD264C4741F
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 08:00:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D91FC55178
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 08:30:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 838DD2071A
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 08:00:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A750A2080D
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 08:30:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dIgv5Fn+"
+	dkim=pass (2048-bit key) header.d=fullbizgoal.com header.i=@fullbizgoal.com header.b="f+iF7pD4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729490AbgKEIA3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Nov 2020 03:00:29 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:43399 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729902AbgKEIA2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Nov 2020 03:00:28 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1604563227;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=cSCL9O0sLp/tw6Tt9q5kxfE0ulUwEY7xVodcysoHvLQ=;
-        b=dIgv5Fn+1Tg2hmkvW4KD/T4jicv9eUWDXMvXyxO4n7YYCLjMxIvNsKAVA42GsVRmEDumcM
-        Wkbdw8VzEytwjn48/TUTf0V5e4sLGoZFd1mYrwdqTiy2KFywRl3p3QlINGdkln7o8GxuIG
-        GalEOxXS0Zza/Z2ulFW87vePei1vAOo=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-28-4_1wsY_CMy-4x2OLGkP7XA-1; Thu, 05 Nov 2020 03:00:24 -0500
-X-MC-Unique: 4_1wsY_CMy-4x2OLGkP7XA-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id A15486414C;
-        Thu,  5 Nov 2020 08:00:22 +0000 (UTC)
-Received: from x1.localdomain.com (ovpn-113-73.ams2.redhat.com [10.36.113.73])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 37CF75DA76;
-        Thu,  5 Nov 2020 08:00:21 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Mark Gross <mgross@linux.intel.com>,
-        Wolfram Sang <wsa@the-dreams.de>
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        Andy Shevchenko <andy@infradead.org>,
-        platform-driver-x86@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [RFC 3/4] platform/x86: i2c-multi-instantiate: Pass ACPI fwnode to instantiated I2C-clients
-Date:   Thu,  5 Nov 2020 09:00:13 +0100
-Message-Id: <20201105080014.45410-4-hdegoede@redhat.com>
-In-Reply-To: <20201105080014.45410-1-hdegoede@redhat.com>
-References: <20201105080014.45410-1-hdegoede@redhat.com>
+        id S1727114AbgKEIaX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Nov 2020 03:30:23 -0500
+Received: from mail.fullbizgoal.com ([80.211.27.207]:48528 "EHLO
+        server1.mail.fullbizgoal.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728272AbgKEIaX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Nov 2020 03:30:23 -0500
+Received: by server1.mail.fullbizgoal.com (Postfix, from userid 1001)
+        id CF106A2BB3; Thu,  5 Nov 2020 08:30:17 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fullbizgoal.com;
+        s=mail; t=1604565021;
+        bh=1A+RQztZunBjkjQlXgr2uQY18vlGaIq8j7jGOmWqiI0=;
+        h=Date:From:To:Subject:From;
+        b=f+iF7pD4yUBikWNMhBUG+dv3KYl+cHbpzapQfWbzBjUz9AM43iVEB+WXKWL6qcGRQ
+         gt4UhHywo3Sbow6PdibIY9Fj1T0ZZKD5CClExFraueOjttmCt3BO46zVTNwsxQNrX7
+         YzV7cmSfflnfyd6NlCG+qoHQ4Wrh8xiJ0bBPFDf6ZVS5LHvb7r6xOgRfwah2FzQFe0
+         AYzk99zaXxeso20iv8fFYMxpLVVv/wQxesOeg5dDbCFZuF5Awl2q+JPNBnQ31iQS7L
+         OEtCRprgmXs5didG4mrYEcW9AF8Xkhy+ooRbK5k3Zq4rrFYwfkQU+BnQ3wgORT7tzm
+         l1bwHvBXtBtTA==
+Received: by mail.fullbizgoal.com for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2020 08:30:14 GMT
+Message-ID: <20201105074501-0.1.2o.eyta.0.vgmfvpobp0@fullbizgoal.com>
+Date:   Thu,  5 Nov 2020 08:30:14 GMT
+From:   "Ethan Smith" <ethan.smith@fullbizgoal.com>
+To:     <linux-acpi@vger.kernel.org>
+Subject: Disinfectant
+X-Mailer: mail.fullbizgoal.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The ACPI fwnode may contain additional info which is useful for the
-I2C-driver. E.g. some accelerometer ACPI fwnode's contain an ACPI method
-providing rotation/mount matrix info.
+Good morning,
 
-Pass the ACPI-fwnode to the instantiated I2C-clients by setting
-i2c_board_info.fwnode, so that the I2C-drivers can access this info.
+looking for companies interested in raising additional capital by diversi=
+fying their offer in soaps, liquids and gels for hand disinfection and co=
+smetics for body and hair care.
 
-Now that we set i2c_board_info.irq to -ENOENT if there is no IRQ,
-avoiding the I2C-core assigning the first IRQ described in the ACPI
-resources to the client, this is safe to do.
+The distribution of innovative products corresponding to the current pref=
+erences of customers in the field of hygiene and preventive healthcare al=
+lows our partners to gain new markets and achieve better economic results=
+=2E
 
-Setting the fwnode also influences acpi_device_[uevent_]modalias and
-acpi_dev_pm_attach, but these both call acpi_device_is_first_physical_node
-and are a no-op if this returns false.
+In addition to products with bactericidal action, our range includes show=
+er gels, shampoos and hair conditioners, as well as efficient, concentrat=
+ed detergents.
 
-The first physical node for the ACPI fwnode is actually the ACPI core
-instantiated platform-device to which the I2C-multi-instantiate driver
-binds, so acpi_device_is_first_physical_node always returns false for
-the instantiated I2C-clients and thus we can safely pass the fwnode.
+The versatility (suitable for all skin types) combined with an affordable=
+ price means that customers make an informed choice of a product among ot=
+hers available on the market.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/platform/x86/i2c-multi-instantiate.c | 1 +
- 1 file changed, 1 insertion(+)
+Are you interested in cooperation?
 
-diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/platform/x86/i2c-multi-instantiate.c
-index cb4688bdd6b6..cbccfcbed44c 100644
---- a/drivers/platform/x86/i2c-multi-instantiate.c
-+++ b/drivers/platform/x86/i2c-multi-instantiate.c
-@@ -93,6 +93,7 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
- 		snprintf(name, sizeof(name), "%s-%s.%d", dev_name(dev),
- 			 inst_data[i].type, i);
- 		board_info.dev_name = name;
-+		board_info.fwnode = dev->fwnode;
- 		switch (inst_data[i].flags & IRQ_RESOURCE_TYPE) {
- 		case IRQ_RESOURCE_GPIO:
- 			ret = acpi_dev_gpio_irq_get(adev, inst_data[i].irq_idx);
--- 
-2.28.0
-
+Ethan Smith
