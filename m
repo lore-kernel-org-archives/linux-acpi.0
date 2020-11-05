@@ -7,30 +7,29 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1C80C5517A
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 18:01:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46B3CC4741F
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 18:01:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5CFD6206CB
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 18:01:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECA812087D
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Nov 2020 18:01:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731234AbgKESBZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Nov 2020 13:01:25 -0500
-Received: from frasgout.his.huawei.com ([185.176.79.56]:2059 "EHLO
+        id S1731808AbgKESBt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Nov 2020 13:01:49 -0500
+Received: from frasgout.his.huawei.com ([185.176.79.56]:2061 "EHLO
         frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725862AbgKESBY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Nov 2020 13:01:24 -0500
-X-Greylist: delayed 1129 seconds by postgrey-1.27 at vger.kernel.org; Thu, 05 Nov 2020 13:01:24 EST
-Received: from fraeml703-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4CRrV52Pv0z67J5h;
-        Fri,  6 Nov 2020 01:43:41 +0800 (CST)
+        with ESMTP id S1727275AbgKESBt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Nov 2020 13:01:49 -0500
+Received: from fraeml742-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4CRrS12JZbz67Dkr;
+        Fri,  6 Nov 2020 01:41:53 +0800 (CST)
 Received: from lhreml715-chm.china.huawei.com (10.201.108.66) by
- fraeml703-chm.china.huawei.com (10.206.15.52) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.1913.5; Thu, 5 Nov 2020 18:44:56 +0100
+ fraeml742-chm.china.huawei.com (10.206.15.223) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1913.5; Thu, 5 Nov 2020 18:43:28 +0100
 Received: from DESKTOP-6T4S3DQ.china.huawei.com (10.47.87.221) by
  lhreml715-chm.china.huawei.com (10.201.108.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1913.5; Thu, 5 Nov 2020 17:44:55 +0000
+ 15.1.1913.5; Thu, 5 Nov 2020 17:43:26 +0000
 From:   Shiju Jose <shiju.jose@huawei.com>
 To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <james.morse@arm.com>,
@@ -38,15 +37,15 @@ To:     <linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <lenb@kernel.org>, <rrichter@marvell.com>
 CC:     <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
         <shiju.jose@huawei.com>
-Subject: [RFC PATCH 3/4] EDAC/ghes: Add EDAC device for the CPU caches
-Date:   Thu, 5 Nov 2020 17:42:32 +0000
-Message-ID: <20201105174233.1146-4-shiju.jose@huawei.com>
+Subject: [RFC PATCH 1/4] ACPI: PPTT: Fix for a high level cache node detected in the low level
+Date:   Thu, 5 Nov 2020 17:42:30 +0000
+Message-ID: <20201105174233.1146-2-shiju.jose@huawei.com>
 X-Mailer: git-send-email 2.26.0.windows.1
 In-Reply-To: <20201105174233.1146-1-shiju.jose@huawei.com>
 References: <20201105174233.1146-1-shiju.jose@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.47.87.221]
 X-ClientProxiedBy: lhreml745-chm.china.huawei.com (10.201.108.195) To
  lhreml715-chm.china.huawei.com (10.201.108.66)
@@ -55,255 +54,131 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Find CPU caches in the ACPI PPTT and add CPU EDAC device
-and EDAC device blocks for the caches found.
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
 
-For the firmware-first error handling, add an interface in the
-ghes_edac, enable to report the CPU corrected error count for
-a CPU core to the user-space through the CPU EDAC device.
+According to the following sections of the PPTT definition in the
+ACPI specification(V6.3), a high level cache node( For example L2 cache)
+could be represented simultaneously both in the private resource
+of a CPU node and via the next_level_of_cache pointer of a low level
+cache node.
+1. Section 5.2.29.1 Processor hierarchy node structure (Type 0)
+"Each processor node includes a list of resources that are private
+to that node. Resources are described in other PPTT structures such as
+Type 1 cache structures. The processor node’s private resource list
+includes a reference to each of the structures that represent private
+resources to a given processor node. For example, an SoC level processor
+node might contain two references, one pointing to a Level 3 cache
+resource and another pointing to an ID structure."
 
-Suggested-by: James Morse <james.morse@arm.com>
+2. Section 5.2.29.2 Cache Type Structure - Type 1
+   Figure 5-26 Cache Type Structure - Type 1 Example
+
+For the use case of creating EDAC device blocks for the CPU caches,
+we need to search for cache node types in all levels using
+acpi_find_cache_node(), as a platform independent solution to
+retrieve the cache info from the ACPI PPTT. The reason is that
+cacheinfo in the drivers/base/cacheinfo.c would not be populated
+in this stage. In this case, we found acpi_find_cache_node()
+mistakenly detecting high level cache as low level cache, when
+the cache node is in the processor node’s private resource list.
+
+To fix this issue add duplication check in the acpi_find_cache_level(),
+for a cache node found in the private resource of a CPU node
+with all the next level of caches present in the other cache nodes.
+
 Signed-off-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+Co-developed-by: Shiju Jose <shiju.jose@huawei.com>
 Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
 ---
- drivers/edac/Kconfig     |  10 +++
- drivers/edac/ghes_edac.c | 135 +++++++++++++++++++++++++++++++++++++++
- include/acpi/ghes.h      |  27 ++++++++
- 3 files changed, 172 insertions(+)
+ drivers/acpi/pptt.c | 61 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 60 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
-index 7a47680d6f07..3a0d8d134dcc 100644
---- a/drivers/edac/Kconfig
-+++ b/drivers/edac/Kconfig
-@@ -74,6 +74,16 @@ config EDAC_GHES
- 
- 	  In doubt, say 'Y'.
- 
-+config EDAC_GHES_CPU_ERROR
-+	bool "EDAC device for reporting firmware-first BIOS detected CPU error count"
-+	depends on EDAC_GHES && ACPI_PPTT
-+	help
-+	  EDAC device for the firmware-first BIOS detected CPU error count reported
-+	  via ACPI APEI/GHES. By enabling this option, EDAC device for the CPU
-+	  hierarchy and EDAC device blocks for caches hierarchy would be created.
-+	  The cpu error count is shared with the userspace via the CPU EDAC
-+	  device's sysfs interface.
-+
- config EDAC_AMD64
- 	tristate "AMD64 (Opteron, Athlon64)"
- 	depends on AMD_NB && EDAC_DECODE_MCE
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index a918ca93e4f7..96619483e5f3 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -12,6 +12,9 @@
- #include <acpi/ghes.h>
- #include <linux/edac.h>
- #include <linux/dmi.h>
-+#if defined(CONFIG_EDAC_GHES_CPU_ERROR)
-+#include <linux/cacheinfo.h>
-+#endif
- #include "edac_module.h"
- #include <ras/ras_event.h>
- 
-@@ -497,6 +500,130 @@ void ghes_edac_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
- 	spin_unlock_irqrestore(&ghes_lock, flags);
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index 4ae93350b70d..de1dd605d3ad 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -132,21 +132,80 @@ static unsigned int acpi_pptt_walk_cache(struct acpi_table_header *table_hdr,
+ 	return local_level;
  }
  
-+#if defined(CONFIG_EDAC_GHES_CPU_ERROR)
-+#define MAX_NUM_CACHES	20
-+static struct ghes_edac_cpu_block {
-+	int cpu;
-+	u8 level;
-+	u8 type;
-+	int block_nr;
-+} *cpu_edac_block_list;
-+
-+static struct edac_device_ctl_info *cpu_edac_dev;
-+static int max_number_of_caches;
-+
-+void ghes_edac_report_cpu_error(struct ghes_einfo_cpu *einfo)
-+{
-+	struct ghes_edac_cpu_block *block;
-+	int i;
-+
-+	if (!einfo || !(einfo->ce_count) || !max_number_of_caches)
-+		return;
-+
-+	for (i = 0; i < max_number_of_caches; i++) {
-+		block = cpu_edac_block_list + (einfo->cpu * max_number_of_caches) + i;
-+		if ((block->level == einfo->cache_level) && (block->type == einfo->cache_type)) {
-+			edac_device_handle_ce_count(cpu_edac_dev, einfo->ce_count,
-+						    einfo->cpu, block->block_nr, "");
-+			break;
-+		}
-+	}
-+}
-+
-+static  int ghes_edac_add_cpu_device(struct device *dev)
-+{
-+	int rc;
-+
-+	cpu_edac_dev = edac_device_alloc_ctl_info(0, "cpu",  num_possible_cpus(),
-+						  "cache", max_number_of_caches, 0, NULL,
-+						  0, edac_device_alloc_index());
-+	if (!cpu_edac_dev) {
-+		pr_warn("edac_device_alloc_ctl_info for cpu_edac_dev failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	cpu_edac_dev->dev = dev;
-+	cpu_edac_dev->ctl_name = "cpu_edac_dev";
-+	cpu_edac_dev->dev_name = "ghes";
-+	cpu_edac_dev->mod_name = "ghes_edac.c";
-+	rc = edac_device_add_device(cpu_edac_dev);
-+	if (rc) {
-+		pr_warn("edac_device_add_device failed\n");
-+		edac_device_free_ctl_info(cpu_edac_dev);
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static  void ghes_edac_delete_cpu_device(void)
-+{
-+	max_number_of_caches = 0;
-+	if (cpu_edac_dev) {
-+		edac_device_del_device(cpu_edac_dev->dev);
-+		edac_device_free_ctl_info(cpu_edac_dev);
-+	}
-+	vfree(cpu_edac_block_list);
-+}
-+
-+static void ghes_edac_create_cpu_device(struct device *dev)
-+{
-+	int cpu, i;
-+	struct ghes_edac_cpu_block *block;
-+	int number_of_caches;
-+	struct acpi_cacheinfo cacheinfo[MAX_NUM_CACHES];
-+
-+	/* Find the maximum number of caches present in the cpu heirarchy among the CPUs */
-+	for_each_possible_cpu(cpu) {
-+		number_of_caches = acpi_find_cache_info(cpu, &cacheinfo[0], MAX_NUM_CACHES);
-+		if (number_of_caches <= 0)
-+			return;
-+
-+		if (max_number_of_caches < number_of_caches)
-+			max_number_of_caches = number_of_caches;
-+	}
-+	if (!max_number_of_caches)
-+		return;
-+
-+	/*
-+	 * EDAC device interface supports creating the CPU hierarchy for all the CPUs
-+	 * together. Thus need to allocate cpu_edac_block_list for the max_number_of_caches
-+	 * among all the CPU hierarchy irrespective of the number of caches per CPU might vary.
-+	 */
-+	cpu_edac_block_list = vzalloc(num_possible_cpus() * max_number_of_caches *
-+				      sizeof(*cpu_edac_block_list));
-+	if (!cpu_edac_block_list)
-+		return;
-+
-+	if (ghes_edac_add_cpu_device(dev))
-+		goto error;
-+
-+	for_each_possible_cpu(cpu) {
-+		memset(cacheinfo, 0, MAX_NUM_CACHES * sizeof(struct acpi_cacheinfo));
-+		number_of_caches = acpi_find_cache_info(cpu, &cacheinfo[0], MAX_NUM_CACHES);
-+		if (number_of_caches <= 0)
-+			goto error;
-+		/*
-+		 * The edac cpu cache device blocks entries in the sysfs should match with the cpu
-+		 * cache structure in the sysfs so that the affected cpus for a shared cache
-+		 * can be easily extracted in the userspace.
-+		 */
-+		for (i = 0; i < number_of_caches; i++) {
-+			block = cpu_edac_block_list + (cpu * max_number_of_caches) + i;
-+			block->cpu = cpu;
-+			block->level = cacheinfo[i].level;
-+			block->type = cacheinfo[i].type;
-+			block->block_nr = i;
-+		}
-+	}
-+
-+	return;
-+
-+error:
-+	ghes_edac_delete_cpu_device();
-+}
-+#endif
-+
- /*
-  * Known systems that are safe to enable this module.
-  */
-@@ -624,6 +751,10 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	ghes_pvt = pvt;
- 	spin_unlock_irqrestore(&ghes_lock, flags);
- 
-+#if defined(CONFIG_EDAC_GHES_CPU_ERROR)
-+	ghes_edac_create_cpu_device(dev);
-+#endif
-+
- 	/* only set on success */
- 	refcount_set(&ghes_refcount, 1);
- 
-@@ -654,6 +785,10 @@ void ghes_edac_unregister(struct ghes *ghes)
- 	if (!refcount_dec_and_test(&ghes_refcount))
- 		goto unlock;
- 
-+#if defined(CONFIG_EDAC_GHES_CPU_ERROR)
-+	ghes_edac_delete_cpu_device();
-+#endif
-+
- 	/*
- 	 * Wait for the irq handler being finished.
- 	 */
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 34fb3431a8f3..a9098daf53d4 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -73,6 +73,24 @@ void ghes_unregister_vendor_record_notifier(struct notifier_block *nb);
- 
- int ghes_estatus_pool_init(int num_ghes);
- 
-+/*
-+ * struct ghes_einfo_cpu  - structure to pass cpu error info to the edac
-+ * @cpu: CPU index.
-+ * @error_type: error type, cache/TLB/bus/ etc.
-+ * @cache_level: cache level.
-+ * @cache_type: ACPI cache type.
-+ * @ue_count: CPU uncorrectable error count.
-+ * @ce_count: CPU correctable error count.
++/**
++ * acpi_pptt_walk_check_duplicate() - Find the cache resource to check,
++ * is a duplication in the next_level_of_cache pointer of other cache.
++ * @table_hdr: Pointer to the head of the PPTT table
++ * @res: cache resource in the PPTT we want to walk
++ * @res_check: cache resource in the PPTT we want to check for duplication.
++ *
++ * Given both PPTT resource, verify that they are cache nodes, then walk
++ * down each level of cache @res, and check for the duplication.
++ *
++ * Return: true if duplication found, false otherwise.
 + */
-+struct ghes_einfo_cpu {
-+	int cpu;
-+	u8 error_type;
-+	u8 cache_level;
-+	u8 cache_type;
-+	u16 ue_count;
-+	u16 ce_count;
-+};
-+
- /* From drivers/edac/ghes_edac.c */
- 
- #ifdef CONFIG_EDAC_GHES
-@@ -98,6 +116,15 @@ static inline void ghes_edac_unregister(struct ghes *ghes)
- }
- #endif
- 
-+#ifdef CONFIG_EDAC_GHES_CPU_ERROR
-+void ghes_edac_report_cpu_error(struct ghes_einfo_cpu *einfo_cpu);
-+
-+#else
-+static inline void ghes_edac_report_cpu_error(struct ghes_einfo_cpu *einfo_cpu)
++static bool acpi_pptt_walk_check_duplicate(struct acpi_table_header *table_hdr,
++					   struct acpi_subtable_header *res,
++					   struct acpi_subtable_header *res_check)
 +{
-+}
-+#endif
++	struct acpi_pptt_cache *cache;
++	struct acpi_pptt_cache *check;
 +
- static inline int acpi_hest_get_version(struct acpi_hest_generic_data *gdata)
++	if (res->type != ACPI_PPTT_TYPE_CACHE ||
++	    res_check->type != ACPI_PPTT_TYPE_CACHE)
++		return false;
++
++	cache = (struct acpi_pptt_cache *)res;
++	check = (struct acpi_pptt_cache *)res_check;
++	while (cache) {
++		if (cache == check)
++			return true;
++		cache = fetch_pptt_cache(table_hdr, cache->next_level_of_cache);
++	}
++
++	return false;
++}
++
+ static struct acpi_pptt_cache *
+ acpi_find_cache_level(struct acpi_table_header *table_hdr,
+ 		      struct acpi_pptt_processor *cpu_node,
+ 		      unsigned int *starting_level, unsigned int level,
+ 		      int type)
  {
- 	return gdata->revision >> 8;
+-	struct acpi_subtable_header *res;
++	struct acpi_subtable_header *res, *res2;
+ 	unsigned int number_of_levels = *starting_level;
+ 	int resource = 0;
++	int resource2 = 0;
++	bool duplicate = false;
+ 	struct acpi_pptt_cache *ret = NULL;
+ 	unsigned int local_level;
+ 
+ 	/* walk down from processor node */
+ 	while ((res = acpi_get_pptt_resource(table_hdr, cpu_node, resource))) {
+ 		resource++;
++		/*
++		 * PPTT definition in the ACPI specification allows a high level cache
++		 * node would be represented simultaneously both in the private resource
++		 * of a CPU node and via the next_level_of_cache pointer of another cache node,
++		 * within the same CPU hierarchy. This resulting acpi_find_cache_level()
++		 * mistakenly detects a higher level cache node in the low level as well.
++		 *
++		 * Check a cache node in the private resource of the CPU node for any
++		 * duplication.
++		 */
++		resource2 = 0;
++		duplicate = false;
++		while ((res2 = acpi_get_pptt_resource(table_hdr, cpu_node, resource2))) {
++			resource2++;
++			if (res2 == res)
++				continue;
++			if (acpi_pptt_walk_check_duplicate(table_hdr, res2, res)) {
++				duplicate = true;
++				break;
++			}
++		}
++		if (duplicate)
++			continue;
+ 
+ 		local_level = acpi_pptt_walk_cache(table_hdr, *starting_level,
+ 						   res, &ret, level, type);
 -- 
 2.17.1
 
