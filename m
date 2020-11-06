@@ -2,114 +2,145 @@ Return-Path: <SRS0=YApq=EM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 262A2C4741F
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 06:45:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7075DC388F2
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 07:04:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD16C208C3
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 06:45:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604645108;
-	bh=gSrHcJPj/8i6uoEotdwklqj12Wa4bQLC0DC3nlOvvX4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=w9oQMJlE1fvCWxgcmRvg2uan1/J+NnapWukE6NkEGVzaDiWhRoFWw8Sz6tOf2vUGW
-	 T9yzPAas/Wf7dlOxT6tZiH47pZK8E3q7HIkYsVJL14kmeBJ38QNweGGTYEH9vV+5rC
-	 yVsUcY9H2xWtfFxtbAmnKcfSwXgkCkLQ9Udsa+A4=
+	by mail.kernel.org (Postfix) with ESMTP id 28B02208FE
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 07:04:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726242AbgKFGpI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Nov 2020 01:45:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38702 "EHLO mail.kernel.org"
+        id S1726414AbgKFHEh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 Nov 2020 02:04:37 -0500
+Received: from mga01.intel.com ([192.55.52.88]:57259 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725842AbgKFGpH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 6 Nov 2020 01:45:07 -0500
-Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E3532206B2;
-        Fri,  6 Nov 2020 06:45:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604645106;
-        bh=gSrHcJPj/8i6uoEotdwklqj12Wa4bQLC0DC3nlOvvX4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=fqCwGQQooVimXHzYmO7cAz4NdXlOMrQUsSVT8WS0kLlV7zYpTh5L6yALgqgkVEIir
-         wqFoj8Rwnf5YtDUNtkRONC9AeT5Q8ce1vHaVwdlmxhbEwaznloYSfrrVD2txQBfElX
-         rGYohEflm6ap2RJAX2b6h39mD4p2ez8fJ6vew7VU=
-Date:   Fri, 6 Nov 2020 07:45:03 +0100
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Saravana Kannan <saravanak@google.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Android Kernel Team <kernel-team@android.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-efi <linux-efi@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v1 16/18] efi: Update implementation of add_links() to
- create fwnode links
-Message-ID: <20201106064503.GB697514@kroah.com>
-References: <20201104232356.4038506-1-saravanak@google.com>
- <20201104232356.4038506-17-saravanak@google.com>
- <20201105094318.GF3439341@kroah.com>
- <CAGETcx_Kh32AjVoUB3uiYBRhB+24JrceTp+HxG6vK6Ks=-e26w@mail.gmail.com>
+        id S1726121AbgKFHEh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Nov 2020 02:04:37 -0500
+IronPort-SDR: QT4rEx/CW3TSoJvSjpXFACVjQkCTYRg+uxMLvUpLag/aM4JmAHdvku+rsB955MQ3kPaxGqdene
+ 5uUuk5m9/v4Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9796"; a="187431657"
+X-IronPort-AV: E=Sophos;i="5.77,455,1596524400"; 
+   d="scan'208";a="187431657"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 23:04:37 -0800
+IronPort-SDR: gmUL+TcBkOBYuAoAVbzqSniT9x0gXFuh+S/nFH2uuorJtviyhtKsy11zK5bFravs7aZZ68+1LP
+ 7YcjJxLpc2oA==
+X-IronPort-AV: E=Sophos;i="5.77,455,1596524400"; 
+   d="scan'208";a="539731201"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2020 23:04:34 -0800
+Received: by lahna (sSMTP sendmail emulation); Fri, 06 Nov 2020 09:04:32 +0200
+Date:   Fri, 6 Nov 2020 09:04:32 +0200
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Flavio Suligoi <f.suligoi@asem.it>
+Cc:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: How to add the "gpio-line-names" property in a PCI gpio expander
+Message-ID: <20201106070432.GQ2495@lahna.fi.intel.com>
+References: <98acf6339a1b43d6a38f867069088530@asem.it>
+ <CAJZ5v0g7POp1Lp05RcJJ8ZD1ZiaetN0_SfbAjnQg0kCw4aQukQ@mail.gmail.com>
+ <20201105115941.GK2495@lahna.fi.intel.com>
+ <574b86929d1247caae717ab1a2f31194@asem.it>
+ <20201105152020.GO2495@lahna.fi.intel.com>
+ <5fb64f9c8af64235943c29c9ba50a2df@asem.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAGETcx_Kh32AjVoUB3uiYBRhB+24JrceTp+HxG6vK6Ks=-e26w@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5fb64f9c8af64235943c29c9ba50a2df@asem.it>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Nov 05, 2020 at 03:27:52PM -0800, Saravana Kannan wrote:
-> On Thu, Nov 5, 2020 at 1:42 AM Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> >
-> > On Wed, Nov 04, 2020 at 03:23:53PM -0800, Saravana Kannan wrote:
-> > > The semantics of add_links() has changed from creating device link
-> > > between devices to creating fwnode links between fwnodes. So, update the
-> > > implementation of add_links() to match the new semantics.
-> > >
-> > > Signed-off-by: Saravana Kannan <saravanak@google.com>
-> > > ---
-> > >  drivers/firmware/efi/efi-init.c | 23 ++---------------------
-> > >  1 file changed, 2 insertions(+), 21 deletions(-)
-> > >
-> > > diff --git a/drivers/firmware/efi/efi-init.c b/drivers/firmware/efi/efi-init.c
-> > > index b148f1459fb3..c0c3d4c3837a 100644
-> > > --- a/drivers/firmware/efi/efi-init.c
-> > > +++ b/drivers/firmware/efi/efi-init.c
-> > > @@ -316,11 +316,10 @@ static struct device_node *find_pci_overlap_node(void)
-> > >   * resource reservation conflict on the memory window that the efifb
-> > >   * framebuffer steals from the PCIe host bridge.
-> > >   */
-> > > -static int efifb_add_links(const struct fwnode_handle *fwnode,
-> > > +static int efifb_add_links(struct fwnode_handle *fwnode,
-> > >                          struct device *dev)
-> >
-> > So you are fixing the build warning you added a few patches ago here?
-> > Please fix up the function signatures when you made that change, not
-> > here later on.
+On Thu, Nov 05, 2020 at 03:54:32PM +0000, Flavio Suligoi wrote:
+> Hi Mika,
 > 
-> I'm trying not to have a mega patcht that changes a lot of code.
+> > > > > > In one of our boards we have an add-on PCI board, with a PCI
+> > serial
+> > > > device
+> > > > > > Exar XR17V352. This device also contains 16 gpios.
+> > > > > > The exar device drivers work good, both the "8250_exar" and the
+> > > > "gpio_exar", and
+> > > > > > I can manage the exar's gpios correctly.
+> > > > > > The problem is how to assign the gpio-line-names property to a PCI
+> > > > gpio
+> > > > > > expanders like this.
+> > > > > >
+> > > > > > I tried adding a new device in my ACPI configuration, as:
+> > > > > >
+> > > > > > Device (EXAR)
+> > > > > > {
+> > > > > >     Name (_HID, "13A80352")
+> > > >
+> > > > If this is PCI device then you need to have _ADR here instead of _HID.
+> > >
+> > > the problem is that the parent bus of this device is not declared in any
+> > ACPI table.
+> > > The exar chip is on the bus 7 :
+> > >
+> > > 07:00.0 Serial controller: Exar Corp. XR17V3521 Dual PCIe UART (rev 03)
+> > >
+> > > and in the _ADR object you can specify device and function only.
+> > > How can I specify the parent bus? It is not simple …
+> > > The lspci output is the following:
+> > 
+> > The parent is the root port the device is connected to and I'm pretty
+> > sure it exists in the namespace as this seems to be Intel hardware. If
+> > you run 'lspci -t' it shows you the root port.
+> > 
+> > The _ADR should be 0 for this one.
 > 
-> I guess I can drop this "const" diff from this patch and then merge it
-> with the earlier patch that removes the const. But still leave the
-> rest of the changes in this patch as is. Does that work for you?
+> Unfortunately there is bridge in the middle:
+> 
+> root@debian:~# lspci -t
+> -[0000:00]-+-00.0
+>            +-02.0
+>            +-0e.0
+>            +-0f.0
+>            +-12.0
+>            +-13.0-[01]----00.0
+>            +-13.1-[02]----00.0
+>            +-13.2-[03]--
+>            +-14.0-[04]----00.0
+>            +-14.1-[05-09]----00.0-[06-09]--+-01.0-[07]----00.0 <-- Exar (bus 7, dev 0, funct 0)
+>            |                               +-02.0-[08]----00.0
+>            |                               \-03.0-[09]--
+>            +-15.0
+>            +-16.0
+>            +-16.1
+>            +-19.0
+>            +-19.1
+>            +-19.2
+>            +-1f.0
+>            \-1f.1
+> root@debian:~#
+> 
+> My changes in the ACPI:
+> 
+> Scope (_SB.PCI0) {
+>     Device (EXAR)
+> 		{
+> 			Name (_ADR, 0x0000)
+> ....
+> 
+> but it doesn't work, because of the bridge.
 
-Yes, that's fine, you just can't add build warnings along the way.
+OK, then add the bridge first:
 
-thanks,
+Scope (_SB.PCI0.RPX) {
+    Device (BRG) { // Bridge
+       Name (_ADR, 0)
 
-greg k-h
+       Device (EXAR) { // Expander
+           Name (_ADR, 0)
+       }
+    }
+
+Or something like that. RPX is the root port 14.1 and if I read the
+above right both the bridge and the EXAR device have device and function 0.
