@@ -2,87 +2,63 @@ Return-Path: <SRS0=YApq=EM=vger.kernel.org=linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC289C2D0A3
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 17:16:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F378C55178
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 19:33:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9542822202
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 17:16:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D76520B80
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Nov 2020 19:33:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726139AbgKFRQ1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Nov 2020 12:16:27 -0500
-Received: from mga18.intel.com ([134.134.136.126]:12710 "EHLO mga18.intel.com"
+        id S1728217AbgKFTdz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 Nov 2020 14:33:55 -0500
+Received: from foss.arm.com ([217.140.110.172]:43978 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726034AbgKFRQ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 6 Nov 2020 12:16:27 -0500
-IronPort-SDR: 764hgrVnXpeIwryWCvBXelDzWFwaYTahMOHu24llVvoGdBD7DYwNOhtGTRPEvNz9vkER+tbXx0
- xKFsXOitxbuA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9797"; a="157353309"
-X-IronPort-AV: E=Sophos;i="5.77,457,1596524400"; 
-   d="scan'208";a="157353309"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2020 09:16:26 -0800
-IronPort-SDR: Y9X1zk4eBu7ESRskCJls8VkKXxcCCKLcMjTKtM86QxR25V77hDj42jfE10h0r6foGfg0rwc6YA
- wyoUV/ED+BGw==
-X-IronPort-AV: E=Sophos;i="5.77,457,1596524400"; 
-   d="scan'208";a="529869139"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2020 09:16:24 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kb5Md-004P3w-6c; Fri, 06 Nov 2020 19:17:27 +0200
-Date:   Fri, 6 Nov 2020 19:17:27 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Flavio Suligoi <f.suligoi@asem.it>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: How to add the "gpio-line-names" property in a PCI gpio expander
-Message-ID: <20201106171727.GK4077@smile.fi.intel.com>
-References: <98acf6339a1b43d6a38f867069088530@asem.it>
- <CAJZ5v0g7POp1Lp05RcJJ8ZD1ZiaetN0_SfbAjnQg0kCw4aQukQ@mail.gmail.com>
- <20201105115941.GK2495@lahna.fi.intel.com>
- <574b86929d1247caae717ab1a2f31194@asem.it>
- <20201105152020.GO2495@lahna.fi.intel.com>
- <5fb64f9c8af64235943c29c9ba50a2df@asem.it>
- <20201106070432.GQ2495@lahna.fi.intel.com>
- <c20e82318bbf426c9d9000cac7e7734b@asem.it>
+        id S1728140AbgKFTdy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Nov 2020 14:33:54 -0500
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D42FD1509;
+        Fri,  6 Nov 2020 11:33:53 -0800 (PST)
+Received: from [172.16.1.113] (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 070BB3F802;
+        Fri,  6 Nov 2020 11:33:51 -0800 (PST)
+Subject: Re: [RFC PATCH 0/4] EDAC/ghes: Add EDAC device for recording the CPU
+ error count
+To:     Shiju Jose <shiju.jose@huawei.com>
+Cc:     linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, bp@alien8.de, tony.luck@intel.com,
+        rjw@rjwysocki.net, lenb@kernel.org, rrichter@marvell.com,
+        linuxarm@huawei.com, jonathan.cameron@huawei.com
+References: <20201105174233.1146-1-shiju.jose@huawei.com>
+From:   James Morse <james.morse@arm.com>
+Message-ID: <87b00978-8d5d-1917-b801-e6a36f704fb3@arm.com>
+Date:   Fri, 6 Nov 2020 19:33:46 +0000
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c20e82318bbf426c9d9000cac7e7734b@asem.it>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20201105174233.1146-1-shiju.jose@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Nov 06, 2020 at 04:47:35PM +0000, Flavio Suligoi wrote:
+Hi Shiju,
 
-> > Or something like that. RPX is the root port 14.1 and if I read the
-> > above right both the bridge and the EXAR device have device and function
-> > 0.
-> 
-> All ok now, I've added the bridge (I had to use the BIOS sources) and
-> not it works:
+On 05/11/2020 17:42, Shiju Jose wrote:
+> For the firmware-first error handling on ARM64 hardware platforms,
+> CPU cache corrected error count is not recorded.
+> Create an CPU EDAC device and device blocks for the CPU caches
+> for this purpose. The EDAC device blocks  are created based on the
+> CPU caches information represented in the ACPI PPTT.
 
-I suppose not -> now ;)
-
-Glad to hear this! So, maybe you can add some bits to the documentation [1]
-based on your experience?
-
-Note, I have sent a series [2] to amend it a bit, and your input welcome!
-
-[1]: Documentation/firmware-guide/acpi/gpio-properties.rst
-[2]: https://lore.kernel.org/linux-acpi/20201029193243.61546-1-andriy.shevchenko@linux.intel.com/T/#u
+Using the PPTT won't work on x86 systems. Can we use the core-code's common data to learn
+about caches: struct cpu_cacheinfo and struct cacheinfo ?
 
 
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks,
 
-
+James
