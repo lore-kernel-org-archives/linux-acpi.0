@@ -2,162 +2,241 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1354CC2D0A3
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Nov 2020 19:05:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7770DC388F7
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Nov 2020 19:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9854C206D8
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Nov 2020 19:05:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0658C2074F
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Nov 2020 19:47:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amdcloud.onmicrosoft.com header.i=@amdcloud.onmicrosoft.com header.b="fmHtbFqj"
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="UafEm/wc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730140AbgKITFZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 9 Nov 2020 14:05:25 -0500
-Received: from mail-dm6nam11on2041.outbound.protection.outlook.com ([40.107.223.41]:42625
-        "EHLO NAM11-DM6-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727303AbgKITFZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 9 Nov 2020 14:05:25 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hFFrp1vPtZShqiPX0HO9HzjNz+q4gE+bepqhx3Keuxm/rtCfJJbiYzBA0suV0mppDms8YhbmxJzw0roy2Sq6D2jgmBGgghjNMPQlMeSTEbDeGPoIM+EdzbOdPWwBOIPSPqL8z8NBEh3MX4QKhj2Jqdb61aqtllVD6pvP/M6xSCrUXb6uf26IsFFPMeeq2wFsumSWs/MdUtawbg/Ebpoz9W9TrTv+KWrjbetVPXqSGYyIn/ae1R0m2FRnoI/CaYf3yFEvnGAmH8bCTUMRJmp8kcxEwypVMmJw4WXHAPK7k5nesiEuTiYz4TbrWBH91BdnqgBTe0NFGswmAOOwxqX7gQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=WeAXrI/FXDPgaOwJCTbrr8i7cGeH6XpsCPb3Bp/W+5s=;
- b=AgPp0XSQlNszZGfu2ehQwAsXgxDKpgeHhGgiEpI4J/yrigNNcT1JmI4qNvWjEipl6akhkbQXPnwCFZ/vEQIXlnTXIG/RtMv3du3KkiFDpWAGvURPAQxy/XHR9tQi86OwpHV34LLPUeMLKZDb0orLXeuxRRCbC5NbR+/3ZLj3wUdZ0LRFCJaFg9eiy8wi1tLMyAm0s3h7EfiOQMYXFXQ6F0hlg6uxx0d6NJbssxdVREckp1RcCOvbR8bXQ5wnKBD3y6iIBVaNl4BmJblB0LGmgUgAkO/PNlD1f5hrAgRAzTrRDDvzGxJB2qsZm66G/sTycwuH7zr/SH7Lnz0gbxb8TQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=amdcloud.onmicrosoft.com; s=selector2-amdcloud-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=WeAXrI/FXDPgaOwJCTbrr8i7cGeH6XpsCPb3Bp/W+5s=;
- b=fmHtbFqjGvQPi7BZOMeLe7BGIpq/32shOsrIJTNfgY+4/hwLPapEemgr7+enfb/fU8G4RV+vf6KdQxJVVSZEAg3XZLrNsH1lxPSnsPPVyXVNQm700nic9ALvGmq797+XmmQueXFRooNMcD1XeiZElpQRQMO9A7grLNp/k3v+UlM=
-Authentication-Results: amd.com; dkim=none (message not signed)
- header.d=none;amd.com; dmarc=none action=none header.from=amd.com;
-Received: from SN6PR12MB2685.namprd12.prod.outlook.com (2603:10b6:805:67::33)
- by SN1PR12MB2415.namprd12.prod.outlook.com (2603:10b6:802:26::23) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3541.25; Mon, 9 Nov
- 2020 19:05:22 +0000
-Received: from SN6PR12MB2685.namprd12.prod.outlook.com
- ([fe80::a160:c63e:b49a:8f9a]) by SN6PR12MB2685.namprd12.prod.outlook.com
- ([fe80::a160:c63e:b49a:8f9a%3]) with mapi id 15.20.3541.024; Mon, 9 Nov 2020
- 19:05:22 +0000
-Subject: Re: [PATCH v5] cper, apei, mce: Pass x86 CPER through the MCA
- handling chain
-To:     Punit Agrawal <punit1.agrawal@toshiba.co.jp>,
-        Borislav Petkov <bp@alien8.de>
-Cc:     Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
-        x86@kernel.org, linux-kernel@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-edac@vger.kernel.org,
-        linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Tony Luck <tony.luck@intel.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <len.brown@intel.com>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Yazen Ghannam <yazen.ghannam@amd.com>
-References: <20201103164952.5126-1-Smita.KoralahalliChannabasappa@amd.com>
- <87a6vv9hch.fsf@kokedama.swc.toshiba.co.jp> <20201106120950.GC14914@zn.tnic>
- <874klz9vk9.fsf@kokedama.swc.toshiba.co.jp>
-From:   Smita Koralahalli Channabasappa <skoralah@amd.com>
-Message-ID: <982e0243-b144-f8b6-d69d-45af94ed8bb9@amd.com>
-Date:   Mon, 9 Nov 2020 13:05:20 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.2.1
-In-Reply-To: <874klz9vk9.fsf@kokedama.swc.toshiba.co.jp>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Originating-IP: [2603:8080:1807:186d:2d3f:50b3:ce8f:b4ef]
-X-ClientProxiedBy: SN2PR01CA0046.prod.exchangelabs.com (2603:10b6:800::14) To
- SN6PR12MB2685.namprd12.prod.outlook.com (2603:10b6:805:67::33)
+        id S1729884AbgKITro (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Nov 2020 14:47:44 -0500
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:50044 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729336AbgKITro (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2020 14:47:44 -0500
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20201109194731euoutp02dc2b5775f916ab58f332230eeb90914a~F7qj4e5vP2806728067euoutp02s;
+        Mon,  9 Nov 2020 19:47:31 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20201109194731euoutp02dc2b5775f916ab58f332230eeb90914a~F7qj4e5vP2806728067euoutp02s
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+        s=mail20170921; t=1604951251;
+        bh=zU3RqLMP1ZxNY2Ip2IefIVZjI5rCocFtg9gxdBe+H8c=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=UafEm/wcX6R1fg0NGP/leDOhdX6T+ZjqlXS/q6u7tl14mdUaLpQP/jDC99S2G38Rj
+         s23rbbiSRiKd9TjKz8qOkTyDwMWL3YQuq9/H05XrgRXQpatKoSrpWBm1xmuHJWWrGD
+         KNSQ+jiwOnPbFOV2cLq6X0cIwtptRtZ1xqO6Rer4=
+Received: from eusmges1new.samsung.com (unknown [203.254.199.242]) by
+        eucas1p2.samsung.com (KnoxPortal) with ESMTP id
+        20201109194726eucas1p2ed17e3d0984b72a87d7d5568b028a336~F7qeyWGw-2937229372eucas1p2o;
+        Mon,  9 Nov 2020 19:47:26 +0000 (GMT)
+Received: from eucas1p2.samsung.com ( [182.198.249.207]) by
+        eusmges1new.samsung.com (EUCPMTA) with SMTP id F2.13.06456.ECC99AF5; Mon,  9
+        Nov 2020 19:47:26 +0000 (GMT)
+Received: from eusmtrp1.samsung.com (unknown [182.198.249.138]) by
+        eucas1p2.samsung.com (KnoxPortal) with ESMTPA id
+        20201109194725eucas1p2cc9357486879a14b2ad2f6ef968ff4b2~F7qd-7ot_3079130791eucas1p2i;
+        Mon,  9 Nov 2020 19:47:25 +0000 (GMT)
+Received: from eusmgms1.samsung.com (unknown [182.198.249.179]) by
+        eusmtrp1.samsung.com (KnoxPortal) with ESMTP id
+        20201109194725eusmtrp14cee186162607b1199988f8a87c5f0d2~F7qd-PDH41249512495eusmtrp1g;
+        Mon,  9 Nov 2020 19:47:25 +0000 (GMT)
+X-AuditID: cbfec7f2-809ff70000001938-bf-5fa99cce99c2
+Received: from eusmtip2.samsung.com ( [203.254.199.222]) by
+        eusmgms1.samsung.com (EUCPMTA) with SMTP id 24.36.06314.DCC99AF5; Mon,  9
+        Nov 2020 19:47:25 +0000 (GMT)
+Received: from localhost (unknown [106.120.51.46]) by eusmtip2.samsung.com
+        (KnoxPortal) with ESMTPA id
+        20201109194725eusmtip2e2d1d1b2543253bba1a49bd7f480e1f1~F7qdz7JpX1809818098eusmtip2F;
+        Mon,  9 Nov 2020 19:47:25 +0000 (GMT)
+From:   Lukasz Stelmach <l.stelmach@samsung.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH v8 3/6] software node: implement reference properties
+Date:   Mon, 09 Nov 2020 20:47:14 +0100
+In-Reply-To: <20201109190245.GL4077@smile.fi.intel.com> (Andy Shevchenko's
+        message of "Mon, 9 Nov 2020 21:02:45 +0200")
+Message-ID: <dleftjv9eenwhp.fsf%l.stelmach@samsung.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [IPv6:2603:8080:1807:186d:2d3f:50b3:ce8f:b4ef] (2603:8080:1807:186d:2d3f:50b3:ce8f:b4ef) by SN2PR01CA0046.prod.exchangelabs.com (2603:10b6:800::14) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3541.21 via Frontend Transport; Mon, 9 Nov 2020 19:05:21 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 2a821bfc-c0d2-4c93-24e2-08d884e26839
-X-MS-TrafficTypeDiagnostic: SN1PR12MB2415:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <SN1PR12MB24157EF4AC140D28079F9AFB90EA0@SN1PR12MB2415.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: KvR4KlSmRFMytTwDqwDayHfN+LfFvafZa2Q1+ibPH3x070igjUC6r35h3Y/5RP8s2LMrvCVPFrduH8qhdcaOBb3ezsHWoYDB39f8ootV0ivR0JZbIuwV8q7Dp+b7kk9+L4+PhKUilxcRAmqwK0TPWWaIZF5Gl/76d2tkKwnE6TAtqnU9ITDHLJ1JkOXnYj1/VxHZqBsTYq5KH8aw5qFlw6wIhZFfxT2umA0TuTj1V5Lfh2uObjr0ttDcfoHsA3smQ05sACJJma2vaqHkVR9cVzXcrGIgdlu/I0iztTv9te+Maec061Iv9Nc7rvwUZtzEAG+3Z7JDbTe420SFc3BUX705LrSdvbkit+AoD+I5eMlPksnTcsIXJFIQmD44rI9y
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN6PR12MB2685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(376002)(346002)(136003)(396003)(39860400002)(16526019)(186003)(4326008)(8676002)(36756003)(66476007)(8936002)(2906002)(66556008)(66946007)(52116002)(316002)(54906003)(110136005)(2616005)(31696002)(53546011)(5660300002)(6486002)(478600001)(31686004)(7416002)(43740500002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?utf-8?B?cGNBZkFPSmNDUkUxVkp1Y1FjRjNUTjUwVWdhQlI3WUR6Ykt5blhHa3pHQ3JV?=
- =?utf-8?B?WDJVL2VTeFFWdW91R0hGMm90S3pXUVFuVGt5QTlyV2t1WmgrQ0luMkNRU05B?=
- =?utf-8?B?Rnd0My94VitHVDk0c2duTVBJUWh2SlY3N3pDQ1ptWEIwWmcwdUJpMENjeWlM?=
- =?utf-8?B?QktzdE9SbGthdVVMbTNOZXhLZEhVUzVlVDBsMDQ0TkM2MFJSdUhTeGRrZTRh?=
- =?utf-8?B?RDh4TjBPSU1sWXQzMHR4dW9UMlUzSGdNVVBDM3RWTm1OMDZaV1cvckwyL2Qw?=
- =?utf-8?B?dGRkSE5RT1lLbHdEa1hHbUowNjcwc2FYVGprZGFpY0MvKzdjOWlNbHp1dU1F?=
- =?utf-8?B?bHJ5UTNVUUtLK2tpVVFxcWVzK0o3V04rNURyL1lvRW9weWxqUDFFNmdsSXZr?=
- =?utf-8?B?MU1iSlE4UStXL28wWVppQWNjRHVPNDNmRVhkYUs2bTRZSGdJK1RvNDBlaGhq?=
- =?utf-8?B?NjU0azMvYytCVm5LdWlXcGNVWFRucCs3TFZ2ZUh4dzU3bVUvM08yQzFQbS9l?=
- =?utf-8?B?R2V0OGdtZ0s0bjBQVUR6TG1iVG94L0JMaHZ1UzZWM3U4ekRndDBFaVA3cFlT?=
- =?utf-8?B?UUQvS29FWldFV3ZEaHk1UkpLa0RHNUJFaTlQQmVFQWVTcGpUamgrOHE3TW5l?=
- =?utf-8?B?djZ2dEVFazZsd2VLWmdSVFRraC85bUY0TUEyN0ZYbzRCOHVsaHRtY01adWcv?=
- =?utf-8?B?L2xOTFhOMFYrNmRaVisyaTcxWWJFZkpSbUFGQ0tUSy84VFA4Zy9WM2J0cjZi?=
- =?utf-8?B?T09iK01vSmFZMlJIT1FESm1CZFQxbmhXSlRrRERROE4zYmMzVFgwTHovNnJY?=
- =?utf-8?B?K3hqa3BqODlKUVJod2lrQTNtNmNHQWlzRldVN2tRVE1ua21pWXk5QkhwZjls?=
- =?utf-8?B?RVdsbnk1U3BzOGtiTnRXTGN1WlZILzljaUhodlBMaFRXa1VkSDBhWUMzQWd2?=
- =?utf-8?B?bkN5WHVsRjM2bFhTYktmem16Wk04WmszQkUyVVVoc25iakc4bUMxMGltN2l0?=
- =?utf-8?B?SEU3d1F3NVBDMGsrMjlza09MbFl0eGRWQjhIRWEvbWEyNmJGSW5FWjhCV3U2?=
- =?utf-8?B?WTgySnR0Q05qbnFMU2lxbzJ4NXBVK3FKUEY1bnhVUFZwSVpzeW1hMk82eFFQ?=
- =?utf-8?B?eUhYV3VxREdEUXhpbnMvSUhiRWppOUIzWnVjQ25MaEJEYWkxSmRYVkk3NE9O?=
- =?utf-8?B?SnJXa3BXVnUyclZwVkVJZ0VxYU9maE51M1hGOWFuYXNEdU5JRmhRWnVlS2tr?=
- =?utf-8?B?VndNRThyWEJOdG9IbENwUzBkOVFLV2F1OG9ka0hFRytwZmQwZz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2a821bfc-c0d2-4c93-24e2-08d884e26839
-X-MS-Exchange-CrossTenant-AuthSource: SN6PR12MB2685.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2020 19:05:22.1024
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: oQ4DpLAI7qhlVPaDcIplV4MFp/wTkI7lbfPmqPJDqCoat86GyMu9O0UmRxWjc1vODPbn7RN2f2be78zqn1IZ8A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN1PR12MB2415
+Content-Type: multipart/signed; boundary="=-=-="; micalg="pgp-sha256";
+        protocol="application/pgp-signature"
+X-Brightmail-Tracker: H4sIAAAAAAAAA01Sa0hTYRjm2zk7m8PJ2Wb4suzCumGSJoWd6EJpl9UvKxIJyk55UMtN27y0
+        fpStEh3eb6thVmKaG1vlZVlZ6RLNrCyVssiE7KIrTVKj2ah2PAv697zP+zzPy/PxCTHpO75c
+        mKhOZTRqOklBiHB7h6tnxbOKutiV+dU+VJ7eyKP+TNxF1M3z1/nUw6oRRBkst3Gq1F3Lo2rv
+        FyCq704FQVnbBwVU6a12AWVpGcGoi1Nl2CZf5W3ToEBZb84hlG9fthDKyq5dyvxGM1JO1s+P
+        IvaJ1scxSYnpjCZ040FRQnVrGS/lwdLjrT+MKBPpFxiQjxDI1TBe0oEbkEgoJa8hOPPL4R2m
+        EFhbajBumERQeumMZxDOWu5VBXB8LQJnm9Hr+Izgk74QsSKCDAGrNYY94U+uAVtxFcFqMHIc
+        g7HeGT67kJE74Nzo6GwoTi6BmY97WNqH1EHl8AucpcUer8sVxtJzyLXQODIkYLGYlEDXhQ84
+        izFSBRd6viI2HkiXAH5UvhFw1bbAVcdXPodl4Oxs9PKB0F2Si3NdTkFJcTjnzUVgr/iJc5p1
+        8PbZDMHhzWD51c/n9H4wMCbh7vpBsd3ofRIxZGdJOfVisBW0eFPkkOe8hjishKKyz97nNCCo
+        e2zHCtFC0391TP/VMXliMTIIrt8J5ehgqLnyBePwBrDZvuGXEd+MApg0rSqe0YapmYwQLa3S
+        pqnjQw4nq+qR56d1/+783oymew85EClECl9xq7smVsqn07U6lQMt9iS9v2F5juS4OlnNKPzF
+        EU+7D0jFcbTuBKNJjtWkJTFaB5orxBUB4lVVo/ulZDydyhxlmBRG82/LE/rIM9H8yP4c/aLy
+        8KgnN8yFsnhZ+Eh0dVBWZ7TpYpFfRnbT7q1DefOctOV0snzTLiImOCF3cjg6e1nfm9e0fuBI
+        83igro5uSP3y+6xE3rtsWuKeiJDx/J3R7tSJyD1Jp2PTA+8ZiqKyRPkN29u3uefgbed2v+KJ
+        m4aefpouZ46d3PlorwLXJtBhyzGNlv4LdT+IlXEDAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFrrCIsWRmVeSWpSXmKPExsVy+t/xe7pn56yMN+j+LGzR2zSdyeL/h92M
+        FhtnrGe1OLzoBaNF1+qdLBZT/ixnsli+r5/R4vKuOWwWa4/cZbeYsv0Iu8XqPS+YLeZ+mcrs
+        wOOxc9Zddo9NqzrZPO5c28PmMe9koEffllWMHp83yQWwRenZFOWXlqQqZOQXl9gqRRtaGOkZ
+        WlroGZlY6hkam8daGZkq6dvZpKTmZJalFunbJehlLDkwlalgv1rFgW/TGRsYm+S7GDk4JARM
+        JPYuEu9i5OIQEljKKPHk6Gx2iLiUxMq56V2MnECmsMSfa11sEDVPGSU2nnrHClLDJqAnsXZt
+        BEiNiIC5xLpJi9hAbGaBB8wSDb+YQGxhAU+J1pcvmUFsIQEziSfv/jGCtLIIqEr8ehoMEuYU
+        qJSY9/giC0iYF2jMz5+GIGFRAUuJLS/us4PYvAKCEidnPmGBmJ4t8XX1c+YJjAKzkKRmIUnN
+        AprELKApsX6XPkRYW2LZwtfMELatxLp171kWMLKuYhRJLS3OTc8tNtQrTswtLs1L10vOz93E
+        CIzFbcd+bt7BeGlj8CFGAQ5GJR7eA3+WxQuxJpYVV+YeYlQBGvNow+oLjFIsefl5qUoivE5n
+        T8cJ8aYkVlalFuXHF5XmpBYfYjQF+nIis5Rocj4wfeSVxBuaGppbWBqaG5sbm1koifN2CByM
+        ERJITyxJzU5NLUgtgulj4uCUamD0zL48L/TPGuuwS2s8jY12PZwq4q60e93zvyU3XgkcfzX/
+        9pV3Jmy7/k79mL/wcXbvCn6HEyU+c4OTJP7amteH3ptX13xN8vWdH9rGKrMYu/say/f63Hr+
+        x0du/YbIDPmjE2WmrFLcv8A6XjxOUWJrzdosyySzkz5vBC/JF+4VmGPXt6/DP/S1EktxRqKh
+        FnNRcSIAXyHZZOcCAAA=
+X-CMS-MailID: 20201109194725eucas1p2cc9357486879a14b2ad2f6ef968ff4b2
+X-Msg-Generator: CA
+X-RootMTR: 20201109194725eucas1p2cc9357486879a14b2ad2f6ef968ff4b2
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20201109194725eucas1p2cc9357486879a14b2ad2f6ef968ff4b2
+References: <20201109190245.GL4077@smile.fi.intel.com>
+        <CGME20201109194725eucas1p2cc9357486879a14b2ad2f6ef968ff4b2@eucas1p2.samsung.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 11/8/20 7:18 PM, Punit Agrawal wrote:
+--=-=-=
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> Borislav Petkov <bp@alien8.de> writes:
+It was <2020-11-09 pon 21:02>, when Andy Shevchenko wrote:
+> On Mon, Nov 09, 2020 at 07:18:37PM +0100, Lukasz Stelmach wrote:
+>> It was <2020-11-09 pon 19:24>, when Andy Shevchenko wrote:
+>> > On Mon, Nov 09, 2020 at 06:02:29PM +0100, Lukasz Stelmach wrote:
+>> >> It was <2019-11-07 czw 20:22>, when Dmitry Torokhov wrote:
 >
->> On Fri, Nov 06, 2020 at 02:36:46PM +0900, Punit Agrawal wrote:
->>>> diff --git a/drivers/firmware/efi/cper-x86.c b/drivers/firmware/efi/cper-x86.c
->>>> index 2531de49f56c..438ed9eff6d0 100644
->>>> --- a/drivers/firmware/efi/cper-x86.c
->>>> +++ b/drivers/firmware/efi/cper-x86.c
->>>> @@ -2,6 +2,7 @@
->>>>   // Copyright (C) 2018, Advanced Micro Devices, Inc.
->>>>   
->>>>   #include <linux/cper.h>
->>>> +#include <linux/acpi.h>
->>> Did you mean to include <asm/acpi.h>?
->> Why?
-> Because arch_apei_report_x86_error() used in the patch is defined
-> there. The indirect include works but pulls in additional definitions
-> not needed by the patch.
+> ...
 >
-> Do you prefer the more generic include?
+>> >> I am writing a piece that needs to provide a list of gpios to a
+>> >> diriver. The above example looks like what I need.
+>> >
+>> > Nope.
+>> >
+>> > It mustn't be used for GPIOs or PWMs or whatever that either should co=
+me via
+>> > lookup tables or corresponding firmware interface.
+>>=20
+>> May I ask why? I've read commit descriptions for drivers/base/swnode.c
+>> and the discussion on lkml and I understand software nodes as a way to
+>> provide (synthesize) a description for a device that is missing a
+>> description in the firmware. Another use case seems to be to replace (in
+>> the long run) platform data. That is what I am trying to use it for.
+>
+> Yes. Both are correct. They are simply not applicable for everything
+> (it's not a silver bullet).
+>
+>> I want my device to be configured with either DT or software_nodes
+>> created at run time with configfs.
+>
+> Okay.
+>
+>> My device is going to use GPIOs
+>> described in the DT and it is going to be configured via configfs at run
+>> time.
+>
+> How is this related to swnodes?
 
-Okay.
+I thought I should mention it, because as far as I can tel mixing and
+merging information from different fwnode backends seems to be tricky if
+supported at all.
 
-I agree, it's generally a good practice to avoid pulling up additional
-definitions. I had this when I made the declaration in generic header
-file and may be I did not consider it changing initially as my build
-didn't break after moving the declaration from generic header to arch
-specific header file.
+> Create GPIO lookup table.
+>
+>> I could use platform_data to pass structures from configfs but
+>> software nodes would let me save some code in the device driver and use
+>> the same paths for both static (DT) and dynamic (configfs)
+>> configuration.
+>>=20
+>> Probably I have missed something and I will be greatful, if you tell me
+>> where I can find more information about software nodes. There are few
+>> users in the kernel and it isn't obvious for me how to use software
+>> nodes properly.
+>
+> gpiod_add_lookup_table().
+>
 
-I will take care henceforth and make the changes as required.
+Yes, that is exactly what my POC code does now. But having a lookup
+table together with the rest of the device structures has several
+advantages.
 
-Thanks,
+1) The device may be hotpluggable and there is no
+   gpiod_remove_lookup_table().
 
+2) Having the lookup table allocated and managed together with the rest
+   of the device seems like a better way to go than on gpio_lookup_list.
+
+3) As of now I've got a minor issue with device naming. I need to set
+   dev_id of the table before the device is ready and only after it is
+   ready, its name is set (in the hotpluggable use case).
+
+4) Because no other devices would use this lookup table "publishing" it
+   rather than keeping together with the device seems at least slightly
+   odd.
+
+When the lookup table is attached to the devices and can be passed
+around  the final lookup can be done with a function like
+
+static struct gpio_desc *gpiod_find_from_table(struct device *dev,
+                             const char *con_id, unsigned int idx,
+                 unsigned long *flags, struct gpiod_lookup *table)
+
+>>>> At the moment the driver gets the list from fwnode/of_node. The list
+>>>> contain references to phandles which get resolved and and the driver
+>>>> ends up with a bunch of gpio descriptors. Great.
+>>>>=20
+>>>> This example looks nice but does the code that reads the reference from
+>>>> the gpios property and returns a gpiod actually exist? If it doesn't, I
+>>>> am willing to write it.
+>>>>=20
+>>>> At first glance it makes more sense to me to pass (struct gpiod_lookup
+>>>> *) instead of (struct software_node *) and make gpiolib's gpiod_find()
+>>>> accept lookup tables as parameter instead of searching the
+>>>> gpio_lookup_list? Or do you think such temporary table should be
+>>>> assembled from the above structure and then used in gpiod_find()?
+>>>>=20
+>>>> Any other suggestions on how to get a bunch of gpios (the description
+>>>> for gpios is available in the devicetree) for a device described with a
+>>>> software nodes?
+
+=2D-=20
+=C5=81ukasz Stelmach
+Samsung R&D Institute Poland
+Samsung Electronics
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEEXpuyqjq9kGEVr9UQsK4enJilgBAFAl+pnMIACgkQsK4enJil
+gBA/CAgAgRGt51GRc/FwUYLJYpBnpz3zmRlpdawjo+dI3ADXtXLtXXc7JEBhmNi2
+NW+2KaILi/e0X/ErBqf9Q0C6I0gcOtvhmRKfZjLUvuJ3Ugn8T5Q/Y1pSRS2ynYGs
+D+xWWxdyLhMqHvywaeeufQM9uIJflil0H5nm8YJNXFmP5jl/Xrcgrw9AmGTi9Bve
+MtgcT34hTelIyUGp3A7Fqgk6VvKakoh5prSmHTkCM+z12Q3N0P/jGeVyytzU2ClW
+T2xta1r8T3YbNaGdVxIpZ3su53bzNezuDDIi8rto0wtiAyx6WPN4Irnx7/jWRMMh
+ksGTzZ+Ts5vJfwTuvE+fR2yA+UA1jw==
+=Q9Be
+-----END PGP SIGNATURE-----
+--=-=-=--
