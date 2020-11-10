@@ -2,26 +2,27 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6F03C55ABD
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 08:39:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 875B5C388F7
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 08:39:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85B9620780
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 08:39:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3ED2620897
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 08:39:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728478AbgKJIjt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Nov 2020 03:39:49 -0500
-Received: from mx2.suse.de ([195.135.220.15]:48512 "EHLO mx2.suse.de"
+        id S1729382AbgKJIjx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Nov 2020 03:39:53 -0500
+Received: from mx2.suse.de ([195.135.220.15]:48696 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727483AbgKJIjt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Nov 2020 03:39:49 -0500
+        id S1727483AbgKJIjv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Nov 2020 03:39:51 -0500
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 93DC0AE12;
-        Tue, 10 Nov 2020 08:39:47 +0000 (UTC)
+        by mx2.suse.de (Postfix) with ESMTP id E2430AEAA;
+        Tue, 10 Nov 2020 08:39:49 +0000 (UTC)
 From:   Giovanni Gherdovich <ggherdovich@suse.cz>
 To:     Borislav Petkov <bp@alien8.de>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -43,46 +44,43 @@ Cc:     Jon Grimm <Jon.Grimm@amd.com>,
         linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org,
         Giovanni Gherdovich <ggherdovich@suse.cz>
-Subject: [PATCH 0/3] Add support for frequency invariance to AMD EPYC Zen2
-Date:   Tue, 10 Nov 2020 09:39:33 +0100
-Message-Id: <20201110083936.31994-1-ggherdovich@suse.cz>
+Subject: [PATCH 3/3] x86: Print ratio freq_max/freq_base used in frequency invariance calculations
+Date:   Tue, 10 Nov 2020 09:39:36 +0100
+Message-Id: <20201110083936.31994-4-ggherdovich@suse.cz>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201110083936.31994-1-ggherdovich@suse.cz>
+References: <20201110083936.31994-1-ggherdovich@suse.cz>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This series adds support for frequency invariant accounting on AMD EPYC Zen2
-(aka "Rome"). The first patch by Nathan lays out the foundation by querying
-ACPI infrastructure for the max boost frequency of the system. Specifically,
-this value is available via the CPPC machinery; the previous EPYC generation,
-namely Zen aka "Naples", doesn't implement that and frequency invariance won't
-be supported.
+The value freq_max/freq_base is a fundamental component of frequency
+invariance calculations. It may come from a variety of sources such as MSRs
+or ACPI data, tracking it down when troubleshooting a system could be
+non-trivial. It is worth saving it in the kernel logs.
 
-The second patch sets the estimate for freq_max to be the midpoint between
-max_boost and max_P, as that works slightly better in practice.
+ # dmesg | grep 'Estimated ratio of average max'
+ [   14.024036] smpboot: Estimated ratio of average max frequency by base frequency (times 1024): 1289
 
-A side effect of this series is to provide, with the invariant schedutil
-governor, a suitable baseline to evaluate a (still work-in-progress)
-CPPC-based cpufreq driver for the AMD platform (see
-https://lore.kernel.org/lkml/cover.1562781484.git.Janakarajan.Natarajan@amd.com
-if/when it will resubmitted.
+Signed-off-by: Giovanni Gherdovich <ggherdovich@suse.cz>
+---
+ arch/x86/kernel/smpboot.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Giovanni Gherdovich (2):
-  x86, sched: Use midpoint of max_boost and max_P for frequency
-    invariance on AMD EPYC
-  x86: Print ratio freq_max/freq_base used in frequency invariance
-    calculations
-
-Nathan Fontenot (1):
-  x86, sched: Calculate frequency invariance for AMD systems
-
- arch/x86/include/asm/topology.h |  8 ++++
- arch/x86/kernel/smpboot.c       | 79 +++++++++++++++++++++++++++++----
- drivers/acpi/cppc_acpi.c        |  5 +++
- 3 files changed, 84 insertions(+), 8 deletions(-)
-
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index 1e6fed437b0c..ad0647b2d7c3 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -2110,6 +2110,7 @@ static void init_freq_invariance(bool secondary, bool cppc_ready)
+ 	if (ret) {
+ 		init_counter_refs(NULL);
+ 		static_branch_enable(&arch_scale_freq_key);
++		pr_info("Estimated ratio of average max frequency by base frequency (times 1024): %llu\n", arch_max_freq_ratio);
+ 	} else {
+ 		pr_debug("Couldn't determine max cpu frequency, necessary for scale-invariant accounting.\n");
+ 	}
 -- 
 2.26.2
 
