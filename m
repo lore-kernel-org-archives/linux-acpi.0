@@ -2,90 +2,122 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,HK_RANDOM_FROM,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3B54C55ABD
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 08:50:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26FE4C63697
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 09:51:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95214208FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 08:50:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C413B20797
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Nov 2020 09:51:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Ysuz4Kx5"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="L6ve+VJ8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726825AbgKJIuN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Nov 2020 03:50:13 -0500
-Received: from m12-13.163.com ([220.181.12.13]:45301 "EHLO m12-13.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726827AbgKJIuN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Nov 2020 03:50:13 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id; bh=RlJkEVh6ttoD9PLkdU
-        x/BFTSSqOzHRhkDw0D+7d2ZHM=; b=Ysuz4Kx57/RpOr0szKluDKC62bIJym/Z52
-        UsH7LwHqim01saJ/Vp3ucP15FE0fF82llSU+tb4UCr4WAQOvTm3gWVTVuxOKlZ35
-        bPH4gvi44LWDm5YbT6VQGXEQkJUz1KDFrplxaTsw+7qpbBH8OVcw5vklkxcJ9LYO
-        gxasKILJQ=
-Received: from smtp.163.com (unknown [36.112.24.10])
-        by smtp9 (Coremail) with SMTP id DcCowADn5YFgUKpfa7B2Pw--.531S2;
-        Tue, 10 Nov 2020 16:33:38 +0800 (CST)
-From:   yaoaili126@163.com
-To:     rjw@rjwysocki.net, lenb@kernel.org
-Cc:     james.morse@arm.com, tony.luck@intel.com, bp@alien8.de,
-        linux-acpi@vger.kernel.org, stable@vger.kernel.org,
-        yangfeng1@kingsoft.com, yaoaili@kingsoft.com
-Subject: [PATCH] ACPI, APEI, Fix error return value in apei_map_generic_address()
-Date:   Tue, 10 Nov 2020 00:33:34 -0800
-Message-Id: <20201110083334.456893-1-yaoaili126@163.com>
-X-Mailer: git-send-email 2.9.5
-X-CM-TRANSID: DcCowADn5YFgUKpfa7B2Pw--.531S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWrZr45Zr4UJw45Kr48ArW7XFb_yoW8JF45pF
-        W29ayYkr40kw48Kw4UAw1YvFy5uas3AFy2yr40kwnY9F15CF47Cryqvws093W5XF48K3yS
-        qFnrtFWYyayDAFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jaNtsUUUUU=
-X-Originating-IP: [36.112.24.10]
-X-CM-SenderInfo: 51drtxdolrjli6rwjhhfrp/1tbiKwHYG1QHWcsR6wAAsS
+        id S1731031AbgKJJur (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Nov 2020 04:50:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45290 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730986AbgKJJui (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2020 04:50:38 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9BDDC0613CF;
+        Tue, 10 Nov 2020 01:50:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=h/QuuhQzJIKNEshRV4JObUP9JnXT6hiQc+XRNbc6EKU=; b=L6ve+VJ8MIdpdfcTUjyU7ACwuQ
+        62AHj6TjM9s5JBvhkB7HNmByOGo957l2xuEsNCNY+w+dyAL4s7VNEQ13Yp03/lhD00l6L4jQXfEnk
+        927PF5PU+MA+kJwblYmD2gfpoMdUx1wev1cLvnbk0PXg+8Vg60V8LnrFruKmeF5NRZwUtSufnSh+3
+        SDljBDkqniGl56ai4fJiW1wtaZ1TKa91b9uo53PXgqB4CN2LQO2l9ER5YDTCSUs7hPEpyBh6I+qIX
+        l13DnBOwvyT2o+8641Hq0bzqt8/K7wHo7Hn+KUZgSvm7WTIlmgsjdZGZt5QDqUKW93+A5LeAJS/kf
+        pUH8Eu+Q==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kcQHr-0003KR-32; Tue, 10 Nov 2020 09:50:03 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id D47A0300238;
+        Tue, 10 Nov 2020 10:49:56 +0100 (CET)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id C13DC23268B86; Tue, 10 Nov 2020 10:49:56 +0100 (CET)
+Date:   Tue, 10 Nov 2020 10:49:56 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Giovanni Gherdovich <ggherdovich@suse.cz>
+Cc:     Borislav Petkov <bp@alien8.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Jon Grimm <Jon.Grimm@amd.com>,
+        Nathan Fontenot <Nathan.Fontenot@amd.com>,
+        Yazen Ghannam <Yazen.Ghannam@amd.com>,
+        Thomas Lendacky <Thomas.Lendacky@amd.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Pu Wen <puwen@hygon.cn>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Doug Smythies <dsmythies@telus.net>, x86@kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 1/3] x86, sched: Calculate frequency invariance for AMD
+ systems
+Message-ID: <20201110094956.GZ2594@hirez.programming.kicks-ass.net>
+References: <20201110083936.31994-1-ggherdovich@suse.cz>
+ <20201110083936.31994-2-ggherdovich@suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201110083936.31994-2-ggherdovich@suse.cz>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Aili Yao <yaoaili@kingsoft.com>
+On Tue, Nov 10, 2020 at 09:39:34AM +0100, Giovanni Gherdovich wrote:
 
-From commit 6915564dc5a8 ("ACPI: OSL: Change the type of
-acpi_os_map_generic_address() return value"),
-acpi_os_map_generic_address() will return logical address or NULL for
-error, but for ACPI_ADR_SPACE_SYSTEM_IO case, it should be also return 0
-as it's a normal case, but now it will return -ENXIO. So check it out for
-such case to avoid einj module initialization fail.
+> +#ifdef CONFIG_ACPI
+> +void init_freq_invariance_cppc(void)
+> +{
+> +	init_freq_invariance(false, true);
+> +
+> +	if (static_branch_likely(&arch_scale_freq_key))
+> +		on_each_cpu(init_counter_refs, NULL, 0);
+> +}
+> +#endif
+> +
+>  static void disable_freq_invariance_workfn(struct work_struct *work)
+>  {
+>  	static_branch_disable(&arch_scale_freq_key);
 
-Fixes: 6915564dc5a8 ("ACPI: OSL: Change the type of
-acpi_os_map_generic_address() return value")
-Cc: <stable@vger.kernel.org>
-Reviewed-by: James Morse <james.morse@arm.com>
-Tested-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
----
- drivers/acpi/apei/apei-base.c | 4 ++++
- 1 file changed, 4 insertions(+)
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 7a99b19bb893..e1969ff876ff 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -39,6 +39,7 @@
+>  #include <linux/ktime.h>
+>  #include <linux/rwsem.h>
+>  #include <linux/wait.h>
+> +#include <linux/topology.h>
+>  
+>  #include <acpi/cppc_acpi.h>
+>  
+> @@ -850,6 +851,10 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  		goto out_free;
+>  	}
+>  
+> +	/* Only needed once, so call on CPU0 */
+> +	if (pr->id == 0)
+> +		init_freq_invariance_cppc();
+> +
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 552fd9f..3294cc8 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -633,6 +633,10 @@ int apei_map_generic_address(struct acpi_generic_address *reg)
- 	if (rc)
- 		return rc;
- 
-+	/* IO space doesn't need mapping */
-+	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-+		return 0;
-+
- 	if (!acpi_os_map_generic_address(reg))
- 		return -ENXIO;
- 
--- 
-2.9.5
+This seems broken vs lovely things like booting with maxcpus= or
+physical hotplug where you add logical CPUs.
 
-
+Given the latter hunk limits it to one invocation (is phys_id 0
+guaranteed to exist? Can a BIOS monkey screw us over?) only to then call
+it on all CPUs, shouldn't this be changed to let
+acpi_cppc_processor_probe() call it for every CPU that comes online?
