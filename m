@@ -2,70 +2,238 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32E8EC56201
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 04:33:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43B7DC55ABD
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 05:44:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 847E9221FE
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 04:33:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="oDeBdofT"
+	by mail.kernel.org (Postfix) with ESMTP id 019282075A
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 05:44:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725849AbgKKEde (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Nov 2020 23:33:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51342 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725828AbgKKEde (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2020 23:33:34 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE02FC0613D1;
-        Tue, 10 Nov 2020 20:33:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=gL0OocahXZn8ZQNF8szmGW51uY79EBzlZ34GhrWeBso=; b=oDeBdofTe937SyWQ5KS04zcvqC
-        lgvZ1G91Fpn0+Q6hWzn8iz4pOCTvXSHpD6P1QhX5Qd04Kt1Qw+XpMngVvHfktQNVQ1ulA67YiL7nL
-        tA8aihrql/H2AMkAyYWzWFIN9Ce0745Pa94PaKzEiQEtKHdWkthYtwOI+SQpKIJw6ptG47vbEq7Sm
-        XbhcamxT5yKVkB0cRiWCzjhuX2LfopicPBECLbWzvfoBpL8c7A/pYE1TRlavFekqmDsyuYQ9Lmaqv
-        TacYawpzSIaJXXew8hPtbksnGSLMeAoHskMPJw9V8IhREGECwGEFySLXGWxjJ//+BgXGebA+WR5kI
-        gAImvbZw==;
-Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kchoe-0002CB-P0; Wed, 11 Nov 2020 04:33:04 +0000
-Date:   Wed, 11 Nov 2020 04:33:04 +0000
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Shuah Khan <skhan@linuxfoundation.org>
-Cc:     corbet@lwn.net, keescook@chromium.org, gregkh@linuxfoundation.org,
-        peterz@infradead.org, rafael@kernel.org, lenb@kernel.org,
-        james.morse@arm.com, tony.luck@intel.com, bp@alien8.de,
-        minyard@acm.org, arnd@arndb.de, mchehab@kernel.org,
-        rric@kernel.org, valentina.manea.m@gmail.com, shuah@kernel.org,
-        zohar@linux.ibm.com, dmitry.kasatkin@gmail.com, jmorris@namei.org,
-        serge@hallyn.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        id S1725995AbgKKFoO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 Nov 2020 00:44:14 -0500
+Received: from mga12.intel.com ([192.55.52.136]:54150 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725971AbgKKFoJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Nov 2020 00:44:09 -0500
+IronPort-SDR: ADqYCe+e3HwiGstjPmJQnksc+lfb3bxIng8BgbCHl7Hmtt2inVf2/4lATMiPTMhzf6u1YF86wb
+ iydG07ii/Sow==
+X-IronPort-AV: E=McAfee;i="6000,8403,9801"; a="149372972"
+X-IronPort-AV: E=Sophos;i="5.77,468,1596524400"; 
+   d="scan'208";a="149372972"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2020 21:44:07 -0800
+IronPort-SDR: QgH+QKJRIN6GiDhlOFMXqSzqOcrTk36d37SblSM/0pKcGZ9IreJrTGF0o8fQSwmRIwm8egE6hg
+ i3hGW2ZgXD7w==
+X-IronPort-AV: E=Sophos;i="5.77,468,1596524400"; 
+   d="scan'208";a="360414834"
+Received: from hccoutan-mobl1.amr.corp.intel.com (HELO bwidawsk-mobl5.local) ([10.252.131.159])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2020 21:44:07 -0800
+From:   Ben Widawsky <ben.widawsky@intel.com>
+To:     linux-cxl@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-acpi@vger.kernel.org,
-        openipmi-developer@lists.sourceforge.net,
-        linux-edac@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-integrity@vger.kernel.org,
-        linux-security-module@vger.kernel.org
-Subject: Re: [PATCH 00/13] Introduce seqnum_ops
-Message-ID: <20201111043304.GS17076@casper.infradead.org>
-References: <cover.1605027593.git.skhan@linuxfoundation.org>
+        Dan Williams <dan.j.williams@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Kelley, Sean V" <sean.v.kelley@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Ben Widawsky <ben.widawsky@intel.com>
+Subject: [RFC PATCH 7/9] cxl/mem: Implement polled mode mailbox
+Date:   Tue, 10 Nov 2020 21:43:54 -0800
+Message-Id: <20201111054356.793390-8-ben.widawsky@intel.com>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20201111054356.793390-1-ben.widawsky@intel.com>
+References: <20201111054356.793390-1-ben.widawsky@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1605027593.git.skhan@linuxfoundation.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 10, 2020 at 12:53:26PM -0700, Shuah Khan wrote:
-> There are a number of atomic_t usages in the kernel where atomic_t api
-> is used strictly for counting sequence numbers and other statistical
-> counters and not for managing object lifetime.
+Create a function to handle sending a command, optionally with a
+payload, to the memory device, polling on a result, and then optionally
+copying out the payload. The algorithm for doing this come straight out
+of the CXL 2.0 specification.
 
-We already have something in Linux called a sequence counter, and it's
-different from this.  ID counter?  instance number?  monotonic_t?  stat_t?
+Primary mailboxes are capable of generating an interrupt when submitting
+a command in the background. That implementation is saved for a later
+time.
+
+Secondary mailboxes aren't implemented at this time.
+
+WARNING: This is untested with actual timeouts occurring.
+
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+---
+ drivers/cxl/cxl.h |  16 +++++++
+ drivers/cxl/mem.c | 107 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 123 insertions(+)
+
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 482fc9cdc890..f49ab80f68bd 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -21,8 +21,12 @@
+ #define CXLDEV_MB_CTRL 0x04
+ #define   CXLDEV_MB_CTRL_DOORBELL BIT(0)
+ #define CXLDEV_MB_CMD 0x08
++#define   CXLDEV_MB_CMD_PAYLOAD_LENGTH_SHIFT 16
+ #define CXLDEV_MB_STATUS 0x10
++#define   CXLDEV_MB_STATUS_RET_CODE_SHIFT 32
++#define   CXLDEV_MB_STATUS_RET_CODE_MASK 0xffff
+ #define CXLDEV_MB_BG_CMD_STATUS 0x18
++#define CXLDEV_MB_PAYLOAD 0x20
+ 
+ /* Memory Device */
+ #define CXLMDEV_STATUS 0
+@@ -114,4 +118,16 @@ static inline u64 __cxl_raw_read_reg64(struct cxl_mem *cxlm, u32 reg)
+ 
+ 	return readq(reg_addr + reg);
+ }
++
++static inline void cxl_mbox_payload_fill(struct cxl_mem *cxlm, u8 *input,
++					    unsigned int length)
++{
++	memcpy_toio(cxlm->mbox.regs + CXLDEV_MB_PAYLOAD, input, length);
++}
++
++static inline void cxl_mbox_payload_drain(struct cxl_mem *cxlm,
++					     u8 *output, unsigned int length)
++{
++	memcpy_fromio(output, cxlm->mbox.regs + CXLDEV_MB_PAYLOAD, length);
++}
+ #endif /* __CXL_H__ */
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index 9fd2d1daa534..08913360d500 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -1,5 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ // Copyright(c) 2020 Intel Corporation. All rights reserved.
++#include <linux/sched/clock.h>
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/io.h>
+@@ -7,6 +8,112 @@
+ #include "pci.h"
+ #include "cxl.h"
+ 
++struct mbox_cmd {
++	u16 cmd;
++	u8 *payload;
++	size_t payload_size;
++	u16 return_code;
++};
++
++static int cxldev_wait_for_doorbell(struct cxl_mem *cxlm)
++{
++	u64 start, now;
++	int cpu, ret, timeout = 2000000000;
++
++	start = local_clock();
++	preempt_disable();
++	cpu = smp_processor_id();
++	for (;;) {
++		now = local_clock();
++		preempt_enable();
++		if ((cxl_read_mbox_reg32(cxlm, CXLDEV_MB_CTRL) &
++		     CXLDEV_MB_CTRL_DOORBELL) == 0) {
++			ret = 0;
++			break;
++		}
++
++		if (now - start >= timeout) {
++			ret = -ETIMEDOUT;
++			break;
++		}
++
++		cpu_relax();
++		preempt_disable();
++		if (unlikely(cpu != smp_processor_id())) {
++			timeout -= (now - start);
++			cpu = smp_processor_id();
++			start = local_clock();
++		}
++	}
++
++	return ret;
++}
++
++/*
++ * Returns 0 if the doorbell transaction was successful from a protocol level.
++ * Caller should check the return code in @mbox_cmd to make sure it succeeded.
++ */
++static int __maybe_unused cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm, struct mbox_cmd *mbox_cmd)
++{
++	u64 cmd, status;
++	int rc;
++
++	lockdep_assert_held(&cxlm->mbox_lock);
++
++	/*
++	 * Here are the steps from 8.2.8.4 of the CXL 2.0 spec.
++	 *   1. Caller reads MB Control Register to verify doorbell is clear
++	 *   2. Caller writes Command Register
++	 *   3. Caller writes Command Payload Registers if input payload is non-empty
++	 *   4. Caller writes MB Control Register to set doorbell
++	 *   5. Caller either polls for doorbell to be clear or waits for interrupt if configured
++	 *   6. Caller reads MB Status Register to fetch Return code
++	 *   7. If command successful, Caller reads Command Register to get Payload Length
++	 *   8. If output payload is non-empty, host reads Command Payload Registers
++	 */
++
++	cmd = mbox_cmd->cmd;
++	if (mbox_cmd->payload_size) {
++		/* #3 */
++		cmd |= mbox_cmd->payload_size
++		       << CXLDEV_MB_CMD_PAYLOAD_LENGTH_SHIFT;
++		cxl_mbox_payload_fill(cxlm, mbox_cmd->payload, mbox_cmd->payload_size);
++	}
++
++	/* #2 */
++	cxl_write_mbox_reg64(cxlm, CXLDEV_MB_CMD, cmd);
++
++	/* #4 */
++	cxl_write_mbox_reg32(cxlm, CXLDEV_MB_CTRL, CXLDEV_MB_CTRL_DOORBELL);
++
++	/* #5 */
++	rc = cxldev_wait_for_doorbell(cxlm);
++	if (rc == -ETIMEDOUT) {
++		dev_warn(&cxlm->pdev->dev, "Mailbox command timed out\n");
++		return rc;
++	}
++
++	/* #6 */
++	status = cxl_read_mbox_reg64(cxlm, CXLDEV_MB_STATUS);
++	cmd = cxl_read_mbox_reg64(cxlm, CXLDEV_MB_CMD);
++
++	mbox_cmd->return_code = (status >> CXLDEV_MB_STATUS_RET_CODE_SHIFT) &
++				CXLDEV_MB_STATUS_RET_CODE_MASK;
++
++	/* There was a problem, let the caller deal with it */
++	if (mbox_cmd->return_code != 0)
++		return 0;
++
++	/* #7 */
++	mbox_cmd->payload_size = cmd >> CXLDEV_MB_CMD_PAYLOAD_LENGTH_SHIFT;
++
++	/* #8 */
++	if (mbox_cmd->payload_size)
++		cxl_mbox_payload_drain(cxlm, mbox_cmd->payload, mbox_cmd->payload_size);
++
++	return 0;
++}
++
+ static int cxl_mem_mbox_get(struct cxl_mem *cxlm)
+ {
+ 	u64 md_status;
+-- 
+2.29.2
+
