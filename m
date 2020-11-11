@@ -2,131 +2,143 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E99CEC56201
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 10:29:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 850F6C388F9
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 13:04:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8442B2076E
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 10:29:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PA1cpF6W"
+	by mail.kernel.org (Postfix) with ESMTP id 31C232074B
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Nov 2020 13:04:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727438AbgKKK3a (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 11 Nov 2020 05:29:30 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:30585 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727391AbgKKK3a (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 11 Nov 2020 05:29:30 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605090568;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=6cWzQirp89MqvBGKD7feVetENzzO1kweGW8V2WA2ajE=;
-        b=PA1cpF6WGoaXZa/nXxMGHrtxyfKu/0jxb3SvLTWdsqZmf/5DWS0Ls1BfmuFWt8Ywtyn/dh
-        EuqerDkEGMQUmqOZPsQLMD9+AROOgCLt1yDAql6ZbiW957q5EMXOTB60C6lHr+zSrA4g7I
-        1j+FvW73J+67WKRuiaY+UOooah8OVaI=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-233-PGOXpQNSMIOC9Np3dJBGpg-1; Wed, 11 Nov 2020 05:29:26 -0500
-X-MC-Unique: PGOXpQNSMIOC9Np3dJBGpg-1
-Received: by mail-ed1-f72.google.com with SMTP id bc27so667677edb.18
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2020 02:29:26 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=6cWzQirp89MqvBGKD7feVetENzzO1kweGW8V2WA2ajE=;
-        b=mdGQ5AKa3qu//WW+82ra3B7Zta1h1p9sOzupzLi3jCJODttUYlBLvyo80SQfmKfICn
-         mNfWo7VdzmNsFIZbllkS54vgMELi+SFxCk8oDgwavVQYF3sxb+aavEEelDqK2MVcEzrU
-         JmMuXEYkMcN9WyQwgt/AfoCMLMfOwfHCYCvfMGxSIiWFVsmCgbga7uqx0hVueYFGCray
-         J+egIgh1kag5iB1OdBCY5d4vP+t+CgXlfvYeVs/KYCdK0b8LEWv5g81KEczTmxdzLnn+
-         f8rIinuGRoqSxCwnSVFejVDG/EK1BjRicJCoBws+5tmMlCASVj2P0pnWxBxrljwsdEju
-         dnrQ==
-X-Gm-Message-State: AOAM533JOOYOoovbP/DtY9L4JCvHB0b1NYEbUde2yAwpTbiLYYvPlIIs
-        T15RykJvnDCLz5QiC4XFPY5WW8f95vXD/0jvtlfxkAyLimdVpr51bxV1FEHWIlqe3ZRx8dP8OuK
-        NeExaji8x2QBSXw6w9dl9DQ==
-X-Received: by 2002:a17:906:f186:: with SMTP id gs6mr25435907ejb.171.1605090565302;
-        Wed, 11 Nov 2020 02:29:25 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJyjzxV9wekN4dOqJBwNAGPRIchMxZTQry8R7IcifjjunD6bcewyyPOkNdX01YrOA2ONYvFvxw==
-X-Received: by 2002:a17:906:f186:: with SMTP id gs6mr25435891ejb.171.1605090565051;
-        Wed, 11 Nov 2020 02:29:25 -0800 (PST)
-Received: from x1.localdomain (2001-1c00-0c0c-fe00-6c10-fbf3-14c4-884c.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:6c10:fbf3:14c4:884c])
-        by smtp.gmail.com with ESMTPSA id hp27sm670698ejc.2.2020.11.11.02.29.23
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Nov 2020 02:29:24 -0800 (PST)
-Subject: Re: [External] Re: [PATCH 2/3] ACPI: platform-profile: Add platform
- profile support
-To:     Mark Pearson <markpearson@lenovo.com>,
-        =?UTF-8?Q?Barnab=c3=a1s_P=c5=91cze?= <pobrn@protonmail.com>
-Cc:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "mgross@linux.intel.com" <mgross@linux.intel.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "mario.limonciello@dell.com" <mario.limonciello@dell.com>,
-        "eliadevito@gmail.com" <eliadevito@gmail.com>,
-        "hadess@hadess.net" <hadess@hadess.net>,
-        "bberg@redhat.com" <bberg@redhat.com>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>,
-        "dvhart@infradead.org" <dvhart@infradead.org>
-References: <markpearson@lenovo.com>
- <20201110033124.3211-1-markpearson@lenovo.com>
- <20201110033124.3211-3-markpearson@lenovo.com>
- <2gY5rkKaKLKayk0DYW0lvZ_aIAs8vSf9FOy2obdGvph_7XcpyHlkafBTpW8RHKC5nEcEz_eY-s4pJtuR2ebltW2Fu10GRssTmMxKMuS4PU8=@protonmail.com>
- <72b0fb0a-8007-d795-8b1a-68fa58231c23@lenovo.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <f4994ff1-ec00-5abe-039a-c7e8524ea054@redhat.com>
-Date:   Wed, 11 Nov 2020 11:29:23 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.1
+        id S1726485AbgKKNEo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 Nov 2020 08:04:44 -0500
+Received: from smtp.asem.it ([151.1.184.197]:53784 "EHLO smtp.asem.it"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726441AbgKKNEo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Nov 2020 08:04:44 -0500
+Received: from webmail.asem.it
+        by asem.it (smtp.asem.it)
+        (SecurityGateway 6.5.2)
+        with ESMTP id SG000600611.MSG 
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2020 14:04:40 +0100S
+Received: from ASAS044.asem.intra (172.16.16.44) by ASAS044.asem.intra
+ (172.16.16.44) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 11
+ Nov 2020 14:04:38 +0100
+Received: from flavio-x.asem.intra (172.16.17.208) by ASAS044.asem.intra
+ (172.16.16.44) with Microsoft SMTP Server id 15.1.1979.3 via Frontend
+ Transport; Wed, 11 Nov 2020 14:04:38 +0100
+From:   Flavio Suligoi <f.suligoi@asem.it>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+CC:     <linux-gpio@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, Flavio Suligoi <f.suligoi@asem.it>
+Subject: [PATCH v1] Documentation: ACPI: explain how to use gpio-line-names
+Date:   Wed, 11 Nov 2020 14:04:35 +0100
+Message-ID: <20201111130435.432982-1-f.suligoi@asem.it>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-In-Reply-To: <72b0fb0a-8007-d795-8b1a-68fa58231c23@lenovo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-SGHeloLookup-Result: pass smtp.helo=webmail.asem.it (ip=172.16.16.44)
+X-SGSPF-Result: none (smtp.asem.it)
+X-SGOP-RefID: str=0001.0A090211.5FABE166.00A7,ss=1,re=0.000,recu=0.000,reip=0.000,cl=1,cld=1,fgs=0 (_st=1 _vt=0 _iwf=0)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+The "gpio-line-names" declaration is not fully
+documented, so can be useful to add some important
+information and one more example.
 
-On 11/10/20 3:32 PM, Mark Pearson wrote:
-> Thanks Barnabas
-> 
-> On 10/11/2020 05:15, Barnabás Pőcze wrote:
->> Hi
->>
->> I've added some questions and comments inline.
->>
->>
->>
->> 2020. november 10., kedd 4:31 keltezéssel, Mark Pearson írta:
+This commit also fix a trivial syntax error.
 
-<snip>
+Signed-off-by: Flavio Suligoi <f.suligoi@asem.it>
+---
+ .../firmware-guide/acpi/gpio-properties.rst   | 58 ++++++++++++++++++-
+ 1 file changed, 56 insertions(+), 2 deletions(-)
 
->>> +    "Low-power",
->>> +    "Cool",
->>> +    "Quiet",
->>> +    "Balance",
->>> +    "Performance",
->>> +    "Unknown"
->>
->> "unknown" is not documented, yet it may be returned to userspace.
-> Ack - I'll look into if it's really needed, but it seemed sensible to have it whilst doing the implementation.
-
-
-AFAIK with the currently agreed upon version of the API we do not need this,
-please remove it. We can always add it later if necessary, but for now I would
-like to avoid drivers being tempted to use this.
-
-Regards,
-
-Hans
+diff --git a/Documentation/firmware-guide/acpi/gpio-properties.rst b/Documentation/firmware-guide/acpi/gpio-properties.rst
+index bb6d74f23ee0..a9f4dfa932cc 100644
+--- a/Documentation/firmware-guide/acpi/gpio-properties.rst
++++ b/Documentation/firmware-guide/acpi/gpio-properties.rst
+@@ -107,7 +107,61 @@ Example::
+ 
+ - gpio-line-names
+ 
+-Example::
++The "gpio-line-names" declaration is a list of strings ("names"), which
++describes each line/pin of a GPIO controller/expander.
++This list, contained in a package, must be inserted inside the GPIO controller
++declaration of an ACPI table (typically inside the DSDT).
++The gpio-line-names list must respect the following rules (see also the
++examples):
++
++  - the first name in the list corresponds with the first line/pin of the GPIO
++    controller/expander
++  - the names inside the list must be consecutive (no "holes" are permitted)
++  - the list can be incomplete and can end before the last GPIO line: in
++    other words, it is not mandatory to fill all the GPIO lines
++  - empty names are allowed (two quotation marks "" correspond to an empty name)
++
++Example of a GPIO controller of 16 lines, with an incomplete list with two
++empty names::
++
++  Package () {
++      "gpio-line-names",
++      Package () {
++          "pin_0",
++          "pin_1",
++          "",
++          "",
++          "pin_3",
++          "pin_4_push_button"
++      }
++  }
++
++At runtime, the above declaration produces the following result (using the
++"libgpiod" tools)::
++
++  root@debian:~# gpioinfo gpiochip4
++  gpiochip4 - 16 lines:
++          line   0:      "pin_0"       unused   input  active-high
++          line   1:      "pin_1"       unused   input  active-high
++          line   2:      unnamed       unused   input  active-high
++          line   3:      unnamed       unused   input  active-high
++          line   4:      "pin_3"       unused   input  active-high
++          line   5: "pin_4_push_button" unused input active-high
++          line   6:      unnamed       unused   input  active-high
++          line   7       unnamed       unused   input  active-high
++          line   8:      unnamed       unused   input  active-high
++          line   9:      unnamed       unused   input  active-high
++          line  10:      unnamed       unused   input  active-high
++          line  11:      unnamed       unused   input  active-high
++          line  12:      unnamed       unused   input  active-high
++          line  13:      unnamed       unused   input  active-high
++          line  14:      unnamed       unused   input  active-high
++          line  15:      unnamed       unused   input  active-high
++  root@debian:~# gpiofind pin_4_push_button
++  gpiochip4 5
++  root@debian:~#
++
++Another example::
+ 
+   Package () {
+       "gpio-line-names",
+@@ -191,7 +245,7 @@ The driver might expect to get the right GPIO when it does::
+ but since there is no way to know the mapping between "reset" and
+ the GpioIo() in _CRS desc will hold ERR_PTR(-ENOENT).
+ 
+-The driver author can solve this by passing the mapping explictly
++The driver author can solve this by passing the mapping explicitly
+ (the recommended way and documented in the above chapter).
+ 
+ The ACPI GPIO mapping tables should not contaminate drivers that are not
+-- 
+2.25.1
 
