@@ -5,58 +5,58 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E3DC2D0A3
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95327C63699
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4693F2224A
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3712E2224C
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="L+UnK8b6"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="QZfgK97B"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728291AbgKLND1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Nov 2020 08:03:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45748 "EHLO
+        id S1727796AbgKLNDd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Nov 2020 08:03:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728242AbgKLNDX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2020 08:03:23 -0500
-Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 039C1C0613D6
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:23 -0800 (PST)
-Received: by mail-wr1-x443.google.com with SMTP id p8so5922060wrx.5
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:22 -0800 (PST)
+        with ESMTP id S1728228AbgKLND0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2020 08:03:26 -0500
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2C7FC061A49
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:25 -0800 (PST)
+Received: by mail-wm1-x342.google.com with SMTP id a65so5457383wme.1
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=4JGD+U5wzrPrHuAbcShPgq/7SS7eVhaJGMY13GukQwc=;
-        b=L+UnK8b6jHlxkKjKLGZ2KBHb9UiCE2bYESXAd9FIJCk+MSUtGNGNYYhyKKC6RRifPQ
-         PgL5pNXsAPyMWO+HtY1Gz8tYhOV7PCazvQjyezuUbsHfk2M9AaPxMotgauVMZKLo3hiQ
-         M9zO8+yMql5b+8b9cbMFbwaUXk+eUu0753EmMvk7l1HFsWM70OEcQW79vBJFUlgt+5VM
-         KTrz/bb1p5Gfk+J3GZ0/zY9ErMbza+/lZXbPnTQ6Y0oHv+Z0tDMeL6+cldPYswOsQVrL
-         O6uN/kZ4gFKC9yygejnVCUVwrluiILl9XVtVOe0uMkP8IGro9CIcUykOaW84nVGNiLuD
-         7kaw==
+        bh=YNIotbOC7bka5Z9BLnFVmsCtOLB6kJ/rhFA9CsCNoBU=;
+        b=QZfgK97B8RvBj1vgMXgdtAlJTXGErNY2MHWaYeZJYcihAKpzxznX+f3QupErxyW+y7
+         vl5dFcj/SwiTM7AoiBl8Ekh/VI2I+MV6RRDXOcrbDCGTkeMw66SFzS1DgJvxjcaDuKjk
+         2bmfttuRd5KL3r+eSvLlVqZxie8jGCaK6VIEInNDm+bzEK1xUWxTL3t2xMOYv4Bass5p
+         gBiBnUXUjVBFvCB1BrWOR56d6TtjFa2TYTFOwxI7fDliFlDQVEIWqgTYl5sIlbDUR1ej
+         iCxbPa+0gIBZXHXjDH2ssbGlbO7TSEgUjnx9UYgYtW9ALf/I+qK3xCqik9HnPlfBcF/J
+         Vzrw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=4JGD+U5wzrPrHuAbcShPgq/7SS7eVhaJGMY13GukQwc=;
-        b=rbTx2iDdaRQLSoIL5TkLHSgyPDXbXTOMEHPFblNyaQnPKIYeB4XUCfeBMf/iTe+jzd
-         XDwmnuAqPuYybuYSqupequWHMK799+OgsNCqmVly145sFVnJBFBRsKpxkc4iAnbl5alK
-         N5Mb7SxBVJWvDSe3IZjjN2og7i5kxRcuLdE9drxeZydr7V/ZRW5Sg58ROwaLow2SYjRb
-         hj4hpTdiXwHour9ds6XJh4tz6iD9n7gW8SFWRuL0jkhPOCM7Nk2kVv20oz8XmFQbpYsr
-         +RJl+DnExN/qfTLVMa1rvKRaebDDYin3vsqyS3synOpm26GnpJMwhtyvCc8Y2E3j3EaO
-         73IA==
-X-Gm-Message-State: AOAM532iKm5F9eg2uYFPxUcVq7sEx/7/lRwInqB9G9dwybzmm4UslHfx
-        rNKPfde4t7NI5apGQRYjopKyrg==
-X-Google-Smtp-Source: ABdhPJxo3CkbVLQBJt0LU+udw0kuJH0eA8lhV+b7zpBZqVmuSk9IILiYnXCbLaDmkxe9gZqnDT5qGA==
-X-Received: by 2002:adf:9d84:: with SMTP id p4mr24594639wre.370.1605186201700;
-        Thu, 12 Nov 2020 05:03:21 -0800 (PST)
+        bh=YNIotbOC7bka5Z9BLnFVmsCtOLB6kJ/rhFA9CsCNoBU=;
+        b=LCWt2+wIzmTizZbMKjPeYDx7TZ5/GYKPgJCuRlIO1r+2S+5zsA22dH66sl1a253hY2
+         CaLGWl3/y8jbQXx6Gol7TGKdwIMfAOyixWARWWPhkr7/eaKKb/ldovnTHyLD2LJADFyu
+         CteKoY4P3oLXip+jVx+SE7qSHefSMtjYvTXRQePAo02IUymHTNJ1kyaMTRN7pzouowPk
+         OH7tTLvMspl3dz4HiBdsPUrlyPChaReVi6Iekt3Cjhw8VmYDv8qI4SJEDt1c1qaMsylG
+         xUJWmOjJz9yXTa41exEdMy9NReiPb/gKrVeBoiNWPygA2W0FQG16rBfipAEOMZLosrZ1
+         pPLA==
+X-Gm-Message-State: AOAM531ezwZjl1guBmqKeDvIjKIo5dJWR8tij0okZACMtMpc4qA6gPmp
+        E0M0UBf/0RxWmdLlUMfe86SPby+zRHsCnA==
+X-Google-Smtp-Source: ABdhPJwEuQSW7wZd81DIymTmLqqJtRteXgrSKTo8T+v6vTfsJF7cOILOIkbIrFkOfcCnh2vnSQXfbA==
+X-Received: by 2002:a1c:2586:: with SMTP id l128mr9104219wml.149.1605186204490;
+        Thu, 12 Nov 2020 05:03:24 -0800 (PST)
 Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id m22sm6877508wrb.97.2020.11.12.05.03.20
+        by smtp.gmail.com with ESMTPSA id m22sm6877508wrb.97.2020.11.12.05.03.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Nov 2020 05:03:20 -0800 (PST)
+        Thu, 12 Nov 2020 05:03:23 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     joro@8bytes.org, will@kernel.org, lorenzo.pieralisi@arm.com,
         robh+dt@kernel.org
@@ -68,10 +68,12 @@ Cc:     guohanjun@huawei.com, sudeep.holla@arm.com, rjw@rjwysocki.net,
         linux-pci@vger.kernel.org, baolu.lu@linux.intel.com,
         zhangfei.gao@linaro.org, shameerali.kolothum.thodi@huawei.com,
         vivek.gautam@arm.com,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>
-Subject: [PATCH v8 5/9] ACPI/IORT: Enable stall support for platform devices
-Date:   Thu, 12 Nov 2020 13:55:17 +0100
-Message-Id: <20201112125519.3987595-6-jean-philippe@linaro.org>
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>
+Subject: [PATCH v8 7/9] PCI/ATS: Add PRI stubs
+Date:   Thu, 12 Nov 2020 13:55:19 +0100
+Message-Id: <20201112125519.3987595-8-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.29.1
 In-Reply-To: <20201112125519.3987595-1-jean-philippe@linaro.org>
 References: <20201112125519.3987595-1-jean-philippe@linaro.org>
@@ -81,26 +83,36 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Copy the "Stall supported" bit, that tells whether a platform device
-supports stall, into the fwspec struct.
+The SMMUv3 driver, which can be built without CONFIG_PCI, will soon gain
+support for PRI.  Partially revert commit c6e9aefbf9db ("PCI/ATS: Remove
+unused PRI and PASID stubs") to re-introduce the PRI stubs, and avoid
+adding more #ifdefs to the SMMU driver.
 
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Reviewed-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- drivers/acpi/arm64/iort.c | 1 +
- 1 file changed, 1 insertion(+)
+ include/linux/pci-ats.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 70df1ecba7fe..3e39b2212388 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -968,6 +968,7 @@ static void iort_named_component_init(struct device *dev,
- 	nc = (struct acpi_iort_named_component *)node->node_data;
- 	fwspec->num_pasid_bits = FIELD_GET(ACPI_IORT_NC_PASID_BITS,
- 					   nc->node_flags);
-+	fwspec->can_stall = (nc->node_flags & ACPI_IORT_NC_STALL_SUPPORTED);
- }
- 
- static int iort_nc_iommu_map(struct device *dev, struct acpi_iort_node *node)
+diff --git a/include/linux/pci-ats.h b/include/linux/pci-ats.h
+index df54cd5b15db..ccfca09fd232 100644
+--- a/include/linux/pci-ats.h
++++ b/include/linux/pci-ats.h
+@@ -30,6 +30,13 @@ int pci_reset_pri(struct pci_dev *pdev);
+ int pci_prg_resp_pasid_required(struct pci_dev *pdev);
+ bool pci_pri_supported(struct pci_dev *pdev);
+ #else
++static inline int pci_enable_pri(struct pci_dev *pdev, u32 reqs)
++{ return -ENODEV; }
++static inline void pci_disable_pri(struct pci_dev *pdev) { }
++static inline int pci_reset_pri(struct pci_dev *pdev)
++{ return -ENODEV; }
++static inline int pci_prg_resp_pasid_required(struct pci_dev *pdev)
++{ return 0; }
+ static inline bool pci_pri_supported(struct pci_dev *pdev)
+ { return false; }
+ #endif /* CONFIG_PCI_PRI */
 -- 
 2.29.1
 
