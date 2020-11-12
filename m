@@ -2,88 +2,149 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 972DAC388F9
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 01:56:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5E5FC2D0A3
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 09:02:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E6EA206CA
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 01:56:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wy6TcWFv"
+	by mail.kernel.org (Postfix) with ESMTP id 89AFB216FD
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 09:02:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726158AbgKLBbO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 11 Nov 2020 20:31:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44200 "EHLO mail.kernel.org"
+        id S1725966AbgKLJCs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Nov 2020 04:02:48 -0500
+Received: from smtp.asem.it ([151.1.184.197]:50005 "EHLO smtp.asem.it"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726157AbgKKWnI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 11 Nov 2020 17:43:08 -0500
-Received: from localhost (230.sub-72-107-127.myvzw.com [72.107.127.230])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 14B3A208B3;
-        Wed, 11 Nov 2020 22:43:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605134587;
-        bh=ziz9AD0L9QbcwYEV2l2JNVkufhqr9h+LE7Fz/YEme5Q=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=Wy6TcWFvc+0oeRRsXdgQ7pdaOrmNpp0S9B9tyiyhRfDKo3Ys5o4pqbsF7Bzk8r7I3
-         ckMiWEQBhGkHXcZdZD61c+v9iLXT8DUSJrQLb85WgvqlT6ur0dx+PS2lATpjaMlkiQ
-         VZkJ+ZKPKwpbQOHugkPf8T5KCZjFmRCX3lRNVgPQ=
-Date:   Wed, 11 Nov 2020 16:43:05 -0600
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Ben Widawsky <ben.widawsky@intel.com>
-Cc:     linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        "Kelley, Sean V" <sean.v.kelley@intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [RFC PATCH 0/9] CXL 2.0 Support
-Message-ID: <20201111224305.GA977584@bjorn-Precision-5520>
+        id S1725902AbgKLJCs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 12 Nov 2020 04:02:48 -0500
+Received: from webmail.asem.it
+        by asem.it (smtp.asem.it)
+        (SecurityGateway 6.5.2)
+        with ESMTP id SG000602409.MSG 
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 10:02:45 +0100S
+Received: from ASAS044.asem.intra (172.16.16.44) by ASAS044.asem.intra
+ (172.16.16.44) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 12
+ Nov 2020 10:02:42 +0100
+Received: from flavio-x.asem.intra (172.16.17.208) by ASAS044.asem.intra
+ (172.16.16.44) with Microsoft SMTP Server id 15.1.1979.3 via Frontend
+ Transport; Thu, 12 Nov 2020 10:02:42 +0100
+From:   Flavio Suligoi <f.suligoi@asem.it>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+CC:     <linux-gpio@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, Flavio Suligoi <f.suligoi@asem.it>
+Subject: [PATCH v2] Documentation: ACPI: explain how to use gpio-line-names
+Date:   Thu, 12 Nov 2020 10:02:41 +0100
+Message-ID: <20201112090241.570637-1-f.suligoi@asem.it>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201111054356.793390-1-ben.widawsky@intel.com>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-SGHeloLookup-Result: pass smtp.helo=webmail.asem.it (ip=172.16.16.44)
+X-SGSPF-Result: none (smtp.asem.it)
+X-SGOP-RefID: str=0001.0A090207.5FACFA33.0003,ss=1,re=0.000,recu=0.000,reip=0.000,cl=1,cld=1,fgs=0 (_st=1 _vt=0 _iwf=0)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 10, 2020 at 09:43:47PM -0800, Ben Widawsky wrote:
-> ...
-> Ben Widawsky (5):
->   cxl/mem: Map memory device registers
->   cxl/mem: Find device capabilities
->   cxl/mem: Initialize the mailbox interface
->   cxl/mem: Implement polled mode mailbox
->   MAINTAINERS: Add maintainers of the CXL driver
-> 
-> Dan Williams (2):
->   cxl/mem: Add a driver for the type-3 mailbox
+The "gpio-line-names" declaration is not fully
+documented, so can be useful to add some important
+information and one more example.
 
-To include important words first and use "Type 3" as in spec:
+This commit also fixes a trivial spelling mistake.
 
-  cxl/mem: Add Type 3 mailbox driver
+Signed-off-by: Flavio Suligoi <f.suligoi@asem.it>
+---
 
->   cxl/mem: Register CXL memX devices
-> 
-> Vishal Verma (2):
->   cxl/acpi: Add an acpi_cxl module for the CXL interconnect
->   cxl/acpi: add OSC support
+v2: - fix commit spelling mistakes
+    - add double back quotes to gpio-line-names
+    - adjust documentation lines layout
+    - add comma at the end of Package list names in the first example
 
-For consistency:
+ .../firmware-guide/acpi/gpio-properties.rst   | 58 ++++++++++++++++++-
+ 1 file changed, 56 insertions(+), 2 deletions(-)
 
-  cxl/acpi: Add _OSC support
+diff --git a/Documentation/firmware-guide/acpi/gpio-properties.rst b/Documentation/firmware-guide/acpi/gpio-properties.rst
+index bb6d74f23ee0..ae5396a1f092 100644
+--- a/Documentation/firmware-guide/acpi/gpio-properties.rst
++++ b/Documentation/firmware-guide/acpi/gpio-properties.rst
+@@ -107,7 +107,61 @@ Example::
+ 
+ - gpio-line-names
+ 
+-Example::
++The ``gpio-line-names`` declaration is a list of strings ("names"), which
++describes each line/pin of a GPIO controller/expander. This list, contained in
++a package, must be inserted inside the GPIO controller declaration of an ACPI
++table (typically inside the DSDT). The ``gpio-line-names`` list must respect the
++following rules (see also the examples):
++
++  - the first name in the list corresponds with the first line/pin of the GPIO
++    controller/expander
++  - the names inside the list must be consecutive (no "holes" are permitted)
++  - the list can be incomplete and can end before the last GPIO line: in
++    other words, it is not mandatory to fill all the GPIO lines
++  - empty names are allowed (two quotation marks ``""`` correspond to an empty
++    name)
++
++Example of a GPIO controller of 16 lines, with an incomplete list with two
++empty names::
++
++  Package () {
++      "gpio-line-names",
++      Package () {
++          "pin_0",
++          "pin_1",
++          "",
++          "",
++          "pin_3",
++          "pin_4_push_button",
++      }
++  }
++
++At runtime, the above declaration produces the following result (using the
++"libgpiod" tools)::
++
++  root@debian:~# gpioinfo gpiochip4
++  gpiochip4 - 16 lines:
++          line   0:      "pin_0"       unused   input  active-high
++          line   1:      "pin_1"       unused   input  active-high
++          line   2:      unnamed       unused   input  active-high
++          line   3:      unnamed       unused   input  active-high
++          line   4:      "pin_3"       unused   input  active-high
++          line   5: "pin_4_push_button" unused input active-high
++          line   6:      unnamed       unused   input  active-high
++          line   7       unnamed       unused   input  active-high
++          line   8:      unnamed       unused   input  active-high
++          line   9:      unnamed       unused   input  active-high
++          line  10:      unnamed       unused   input  active-high
++          line  11:      unnamed       unused   input  active-high
++          line  12:      unnamed       unused   input  active-high
++          line  13:      unnamed       unused   input  active-high
++          line  14:      unnamed       unused   input  active-high
++          line  15:      unnamed       unused   input  active-high
++  root@debian:~# gpiofind pin_4_push_button
++  gpiochip4 5
++  root@debian:~#
++
++Another example::
+ 
+   Package () {
+       "gpio-line-names",
+@@ -191,7 +245,7 @@ The driver might expect to get the right GPIO when it does::
+ but since there is no way to know the mapping between "reset" and
+ the GpioIo() in _CRS desc will hold ERR_PTR(-ENOENT).
+ 
+-The driver author can solve this by passing the mapping explictly
++The driver author can solve this by passing the mapping explicitly
+ (the recommended way and documented in the above chapter).
+ 
+ The ACPI GPIO mapping tables should not contaminate drivers that are not
+-- 
+2.25.1
 
-It's conventional in drivers/acpi and drivers/pci to capitalize the
-"ACPI" and "PCI" initialisms except in actual C code.   Seems like
-you're mostly doing the same with "CXL", except in the subject lines
-above.  Since you're making a new directory, I guess you get to
-choose.
-
-I use "PCIe" (not "PCIE" or "PCI-E"; you have a mix) because that
-seems to be the official abbreviation.
