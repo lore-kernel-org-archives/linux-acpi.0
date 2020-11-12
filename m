@@ -5,58 +5,58 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF55C63699
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E3DC2D0A3
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B0752224A
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4693F2224A
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 13:03:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="oJG4X6CI"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="L+UnK8b6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728241AbgKLNDY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Nov 2020 08:03:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45722 "EHLO
+        id S1728291AbgKLND1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Nov 2020 08:03:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728265AbgKLNDV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2020 08:03:21 -0500
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0416DC0617A6
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:20 -0800 (PST)
-Received: by mail-wr1-x444.google.com with SMTP id b8so5942334wrn.0
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:19 -0800 (PST)
+        with ESMTP id S1728242AbgKLNDX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2020 08:03:23 -0500
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 039C1C0613D6
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:23 -0800 (PST)
+Received: by mail-wr1-x443.google.com with SMTP id p8so5922060wrx.5
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 05:03:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Tid3zbIJRKyj0Bgjxj2sf+RSwZO5YPfaeHYqLr0g5iY=;
-        b=oJG4X6CI7enblSZUp3EgWunBFmyQv6mCwtptSww+yPpxypkzQpLOkXizEPseu9wI2t
-         2uZpYfOj9eUqkc5Mc5tlt3K7jx+TWvIflBQqX1SEYsvTIjIegzyCiXcmEFzhPjxvoA47
-         6Dq4ROrha3r07LiOgqCfR01hIVv7++Ib5t5K0yXdpav8K1LR8Zat1PWjsoKfQ809OKnH
-         1k5v7fX1Ma0DDtnaTPNqdNu6iefW98IR6j56uIkzclVoD8+TGJgwKYfDHt4NXx+25cGn
-         SRyX77nEr1L/nTzdOO1Yo2Myq9+BofVGSodnPeoKBdMbtEUWw45R7NEYQRJNFh3Men13
-         MQBw==
+        bh=4JGD+U5wzrPrHuAbcShPgq/7SS7eVhaJGMY13GukQwc=;
+        b=L+UnK8b6jHlxkKjKLGZ2KBHb9UiCE2bYESXAd9FIJCk+MSUtGNGNYYhyKKC6RRifPQ
+         PgL5pNXsAPyMWO+HtY1Gz8tYhOV7PCazvQjyezuUbsHfk2M9AaPxMotgauVMZKLo3hiQ
+         M9zO8+yMql5b+8b9cbMFbwaUXk+eUu0753EmMvk7l1HFsWM70OEcQW79vBJFUlgt+5VM
+         KTrz/bb1p5Gfk+J3GZ0/zY9ErMbza+/lZXbPnTQ6Y0oHv+Z0tDMeL6+cldPYswOsQVrL
+         O6uN/kZ4gFKC9yygejnVCUVwrluiILl9XVtVOe0uMkP8IGro9CIcUykOaW84nVGNiLuD
+         7kaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Tid3zbIJRKyj0Bgjxj2sf+RSwZO5YPfaeHYqLr0g5iY=;
-        b=F4vS5+kALhforo+GvEnCOaQ4KppGDfbFehVIKLXI3Aq0RvhK4Pl4wJlbW+vZXacEcD
-         vpQaVL5/ZrTs3NIZhC4qoc9EfJBeVxj8diqTazuMOAzzzPNJPrzpgp9MRTLWgpP5URem
-         Z7/eJep7e4hbqWzRwnAR9hqy5LyOpN85DrV2oeum7r7XncpVJHVnSF0++Ct7Ll/XNQPf
-         gMzWo56nec+xcW4hvsUltm2eIMaQAt3iV8hlOeiNUHUrUz/Ck4KeAwFJ4wWMI9yDOUmy
-         HR/BxAuGMSXpPfonMMLpE+qF8kNjJf7xA4bf5oiLdaOhbWa3ae7XNSnyqC9NPPkEZs+u
-         dW6A==
-X-Gm-Message-State: AOAM533CxfepRoCKphuA9yqXNWejpwx20e+mYONb8RMFLF+bmf0h3A2n
-        VL7gK3D+SljGTp9yG1XX85dloQ==
-X-Google-Smtp-Source: ABdhPJww5aqw0Dh36h3mNuuwHJd8ZSSnPISNulq6oQQhTrIxG8XhHZa3Ym6AO5qFBMZHmbjVR9mCBw==
-X-Received: by 2002:adf:df88:: with SMTP id z8mr35234477wrl.113.1605186198680;
-        Thu, 12 Nov 2020 05:03:18 -0800 (PST)
+        bh=4JGD+U5wzrPrHuAbcShPgq/7SS7eVhaJGMY13GukQwc=;
+        b=rbTx2iDdaRQLSoIL5TkLHSgyPDXbXTOMEHPFblNyaQnPKIYeB4XUCfeBMf/iTe+jzd
+         XDwmnuAqPuYybuYSqupequWHMK799+OgsNCqmVly145sFVnJBFBRsKpxkc4iAnbl5alK
+         N5Mb7SxBVJWvDSe3IZjjN2og7i5kxRcuLdE9drxeZydr7V/ZRW5Sg58ROwaLow2SYjRb
+         hj4hpTdiXwHour9ds6XJh4tz6iD9n7gW8SFWRuL0jkhPOCM7Nk2kVv20oz8XmFQbpYsr
+         +RJl+DnExN/qfTLVMa1rvKRaebDDYin3vsqyS3synOpm26GnpJMwhtyvCc8Y2E3j3EaO
+         73IA==
+X-Gm-Message-State: AOAM532iKm5F9eg2uYFPxUcVq7sEx/7/lRwInqB9G9dwybzmm4UslHfx
+        rNKPfde4t7NI5apGQRYjopKyrg==
+X-Google-Smtp-Source: ABdhPJxo3CkbVLQBJt0LU+udw0kuJH0eA8lhV+b7zpBZqVmuSk9IILiYnXCbLaDmkxe9gZqnDT5qGA==
+X-Received: by 2002:adf:9d84:: with SMTP id p4mr24594639wre.370.1605186201700;
+        Thu, 12 Nov 2020 05:03:21 -0800 (PST)
 Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id m22sm6877508wrb.97.2020.11.12.05.03.17
+        by smtp.gmail.com with ESMTPSA id m22sm6877508wrb.97.2020.11.12.05.03.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Nov 2020 05:03:17 -0800 (PST)
+        Thu, 12 Nov 2020 05:03:20 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     joro@8bytes.org, will@kernel.org, lorenzo.pieralisi@arm.com,
         robh+dt@kernel.org
@@ -68,11 +68,10 @@ Cc:     guohanjun@huawei.com, sudeep.holla@arm.com, rjw@rjwysocki.net,
         linux-pci@vger.kernel.org, baolu.lu@linux.intel.com,
         zhangfei.gao@linaro.org, shameerali.kolothum.thodi@huawei.com,
         vivek.gautam@arm.com,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH v8 3/9] dt-bindings: document stall property for IOMMU masters
-Date:   Thu, 12 Nov 2020 13:55:15 +0100
-Message-Id: <20201112125519.3987595-4-jean-philippe@linaro.org>
+        Jean-Philippe Brucker <jean-philippe@linaro.org>
+Subject: [PATCH v8 5/9] ACPI/IORT: Enable stall support for platform devices
+Date:   Thu, 12 Nov 2020 13:55:17 +0100
+Message-Id: <20201112125519.3987595-6-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.29.1
 In-Reply-To: <20201112125519.3987595-1-jean-philippe@linaro.org>
 References: <20201112125519.3987595-1-jean-philippe@linaro.org>
@@ -82,45 +81,26 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On ARM systems, some platform devices behind an IOMMU may support stall,
-which is the ability to recover from page faults. Let the firmware tell us
-when a device supports stall.
+Copy the "Stall supported" bit, that tells whether a platform device
+supports stall, into the fwspec struct.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- .../devicetree/bindings/iommu/iommu.txt        | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/acpi/arm64/iort.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/iommu/iommu.txt b/Documentation/devicetree/bindings/iommu/iommu.txt
-index 3c36334e4f94..26ba9e530f13 100644
---- a/Documentation/devicetree/bindings/iommu/iommu.txt
-+++ b/Documentation/devicetree/bindings/iommu/iommu.txt
-@@ -92,6 +92,24 @@ Optional properties:
-   tagging DMA transactions with an address space identifier. By default,
-   this is 0, which means that the device only has one address space.
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 70df1ecba7fe..3e39b2212388 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -968,6 +968,7 @@ static void iort_named_component_init(struct device *dev,
+ 	nc = (struct acpi_iort_named_component *)node->node_data;
+ 	fwspec->num_pasid_bits = FIELD_GET(ACPI_IORT_NC_PASID_BITS,
+ 					   nc->node_flags);
++	fwspec->can_stall = (nc->node_flags & ACPI_IORT_NC_STALL_SUPPORTED);
+ }
  
-+- dma-can-stall: When present, the master can wait for a transaction to
-+  complete for an indefinite amount of time. Upon translation fault some
-+  IOMMUs, instead of aborting the translation immediately, may first
-+  notify the driver and keep the transaction in flight. This allows the OS
-+  to inspect the fault and, for example, make physical pages resident
-+  before updating the mappings and completing the transaction. Such IOMMU
-+  accepts a limited number of simultaneous stalled transactions before
-+  having to either put back-pressure on the master, or abort new faulting
-+  transactions.
-+
-+  Firmware has to opt-in stalling, because most buses and masters don't
-+  support it. In particular it isn't compatible with PCI, where
-+  transactions have to complete before a time limit. More generally it
-+  won't work in systems and masters that haven't been designed for
-+  stalling. For example the OS, in order to handle a stalled transaction,
-+  may attempt to retrieve pages from secondary storage in a stalled
-+  domain, leading to a deadlock.
-+
- 
- Notes:
- ======
+ static int iort_nc_iommu_map(struct device *dev, struct acpi_iort_node *node)
 -- 
 2.29.1
 
