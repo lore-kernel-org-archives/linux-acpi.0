@@ -2,26 +2,29 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86C2AC55ABD
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 18:26:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B73AC5519F
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 18:33:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B9802223C
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 18:26:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E52ED2223F
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 18:33:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726433AbgKLS0W (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Nov 2020 13:26:22 -0500
-Received: from mx2.suse.de ([195.135.220.15]:58878 "EHLO mx2.suse.de"
+        id S1726315AbgKLSdN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Nov 2020 13:33:13 -0500
+Received: from mx2.suse.de ([195.135.220.15]:34584 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726194AbgKLS0V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 12 Nov 2020 13:26:21 -0500
+        id S1726219AbgKLSdN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 12 Nov 2020 13:33:13 -0500
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 5FB75AB95;
-        Thu, 12 Nov 2020 18:26:20 +0000 (UTC)
+        by mx2.suse.de (Postfix) with ESMTP id B8993AFF8;
+        Thu, 12 Nov 2020 18:33:11 +0000 (UTC)
+Message-ID: <1605205990.23683.98.camel@suse.cz>
+Subject: Re: [PATCH v3 0/3] Add support for frequency invariance to AMD EPYC
+ Zen2
 From:   Giovanni Gherdovich <ggherdovich@suse.cz>
 To:     Borislav Petkov <bp@alien8.de>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -41,82 +44,35 @@ Cc:     Jon Grimm <Jon.Grimm@amd.com>,
         Dietmar Eggemann <dietmar.eggemann@arm.com>,
         Doug Smythies <dsmythies@telus.net>, x86@kernel.org,
         linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        Giovanni Gherdovich <ggherdovich@suse.cz>
-Subject: [PATCH v4 0/3] Add support for frequency invariance to AMD EPYC Zen2
-Date:   Thu, 12 Nov 2020 19:26:11 +0100
-Message-Id: <20201112182614.10700-1-ggherdovich@suse.cz>
-X-Mailer: git-send-email 2.26.2
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        linux-acpi@vger.kernel.org
+Date:   Thu, 12 Nov 2020 19:33:10 +0100
+In-Reply-To: <20201110200519.18180-1-ggherdovich@suse.cz>
+References: <20201110200519.18180-1-ggherdovich@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.26.6 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-v3 at https://lore.kernel.org/lkml/20201110200519.18180-1-ggherdovich@suse.cz/
+On Tue, 2020-11-10 at 21:05 +0100, Giovanni Gherdovich wrote:
+> v2 at https://lore.kernel.org/lkml/20201110183054.15883-1-ggherdovich@suse.cz/
+> 
+> Changes wrt v2:
+> 
+> - "code golf" on the function function init_freq_invariance_cppc().
+>   Make better use of the "secondary" argument to init_freq_invariance(),
+>   which was introduced at b56e7d45e807 ("x86, sched: Don't enable static key
+>   when starting secondary CPUs") to deal with CPU hotplug.
 
-Changes wrt v3:
+The Intel 0-day bot reported a build error due to not guarding a part
+of the patch with CONFIG_ACPI_CPPC_LIB. I've sent a v4 to fix that.
 
-- Correct the #ifdef guard for cppc_get_perf_caps() from CONFIG_ACPI to
-  CONFIG_ACPI_CPPC_LIB (reported by "kernel test robot <lkp@intel.com>")
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Cover Letter from v3:
-
-v2 at https://lore.kernel.org/lkml/20201110183054.15883-1-ggherdovich@suse.cz/
-
-Changes wrt v2:
-
-- "code golf" on the function function init_freq_invariance_cppc().
-  Make better use of the "secondary" argument to init_freq_invariance(),
-  which was introduced at b56e7d45e807 ("x86, sched: Don't enable static key
-  when starting secondary CPUs") to deal with CPU hotplug.
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Cover Letter from v2:
-
-v1 at https://lore.kernel.org/lkml/20201110083936.31994-1-ggherdovich@suse.cz/
-
-Changes wrt v1:
-
-- made initialization safe under CPU hotplug.
-  The function init_freq_invariance_cppc now lets only the first caller
-  into init_freq_invariance().
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Cover Letter from v1:
-
-This series adds support for frequency invariant accounting on AMD EPYC Zen2
-(aka "Rome"). The first patch by Nathan lays out the foundation by querying
-ACPI infrastructure for the max boost frequency of the system. Specifically,
-this value is available via the CPPC machinery; the previous EPYC generation,
-namely Zen aka "Naples", doesn't implement that and frequency invariance won't
-be supported.
-
-The second patch sets the estimate for freq_max to be the midpoint between
-max_boost and max_P, as that works slightly better in practice.
-
-A side effect of this series is to provide, with the invariant schedutil
-governor, a suitable baseline to evaluate a (still work-in-progress)
-CPPC-based cpufreq driver for the AMD platform (see
-https://lore.kernel.org/lkml/cover.1562781484.git.Janakarajan.Natarajan@amd.com
-if/when it will resubmitted.
+v4 at https://lore.kernel.org/lkml/20201112182614.10700-1-ggherdovich@suse.cz/
+is now the most up-to-date version, ignore this one.
 
 
-Giovanni Gherdovich (2):
-  x86, sched: Use midpoint of max_boost and max_P for frequency
-    invariance on AMD EPYC
-  x86: Print ratio freq_max/freq_base used in frequency invariance
-    calculations
-
-Nathan Fontenot (1):
-  x86, sched: Calculate frequency invariance for AMD systems
-
- arch/x86/include/asm/topology.h |  8 ++++
- arch/x86/kernel/smpboot.c       | 79 ++++++++++++++++++++++++++++++---
- drivers/acpi/cppc_acpi.c        |  3 ++
- 3 files changed, 85 insertions(+), 5 deletions(-)
-
--- 
-2.26.2
+Thanks,
+Giovanni
 
