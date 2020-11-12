@@ -2,140 +2,145 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21E09C56202
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 15:58:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2285EC5519F
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 16:00:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D193A22240
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 15:58:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFF5B22240
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 16:00:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728546AbgKLP6P (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Nov 2020 10:58:15 -0500
-Received: from mga18.intel.com ([134.134.136.126]:58415 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728327AbgKLP6O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 12 Nov 2020 10:58:14 -0500
-IronPort-SDR: IirpSRGGz+/NzKABwlHi2WqaUxzWoluEuQ9DAEkLCAZYgY3LYXSz4T5lg1y4h6oAAmkbbIcFyY
- Tm/kVv2Rh7Rw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9803"; a="158107989"
-X-IronPort-AV: E=Sophos;i="5.77,472,1596524400"; 
-   d="scan'208";a="158107989"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2020 07:57:57 -0800
-IronPort-SDR: Xk2KyItgmpJUADWWR/tB5g2dDzZ3jS2DFMWGtVDCbYDxTyvZkvnOnWQ2I0V1TASCDpCXKO2eYS
- 79M+BUnhNddg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.77,472,1596524400"; 
-   d="scan'208";a="366396596"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by FMSMGA003.fm.intel.com with ESMTP; 12 Nov 2020 07:57:55 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 67F5F14B; Thu, 12 Nov 2020 17:57:54 +0200 (EET)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Alessandro Zummo <a.zummo@towertech.it>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        linux-rtc@vger.kernel.org, Tin Huynh <tnhuynh@apm.com>,
-        linux-acpi@vger.kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 1/3] rtc: ds1307: Remove non-valid ACPI IDs
-Date:   Thu, 12 Nov 2020 17:57:51 +0200
-Message-Id: <20201112155753.36834-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.28.0
+        id S1728598AbgKLQAS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Nov 2020 11:00:18 -0500
+Received: from mail-ot1-f51.google.com ([209.85.210.51]:36724 "EHLO
+        mail-ot1-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728501AbgKLQAR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2020 11:00:17 -0500
+Received: by mail-ot1-f51.google.com with SMTP id n89so6043520otn.3;
+        Thu, 12 Nov 2020 08:00:16 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=uSvbXH4CyeVHmYh9u1L91dcNlQQ8ypiS3s4LMmYrlaY=;
+        b=UvwIWEVL9ZHGV0Qx92ml/3JTn+hbhJ6UyScKmbVwIBAc8V2CxQ4QSvS907+96cz98L
+         eK6mL1eokhFhA73WA6J17k/01uHJzQtvT+pI0y0fjiYNUIXMAsFXeybqAYWfsvN/e1zR
+         kilx/DH7x6mZTnfCDR03q3vRZWUPfLmHKU/osU3w9hd2vCAGE/H5C1vC4uPAo7uyCyhs
+         6q6rjLhzPxVgmFA26EVhaVSVJkzkTfR37tWE7q7F+81TrYUXYAiotb5esXZZMoyX7stm
+         EYEWmhoBjI7B5CTKU/5sJd+4AP8jGsVmQWiJDcvXlzvzmCJXuML0zn3ymiZGs7tf9MA4
+         BHmg==
+X-Gm-Message-State: AOAM531CObqQ7HAU0uOGhOFhSr3o9yLbkmcweoiJ0qW3xhhnM4E7Wq77
+        tADO2wgu2kYApBl7orOmdNjiRAUtf0VFtZeV+J0zMuc9r/s=
+X-Google-Smtp-Source: ABdhPJy20Psdcu+jBPDIbLC8rCOwltWSLfoYyZQ8GYS92dblTRH3atiBA0Fw4oDCD6xkVQ3txe2lClxmLtFiMaY0RT0=
+X-Received: by 2002:a9d:16f:: with SMTP id 102mr23123590otu.206.1605196816463;
+ Thu, 12 Nov 2020 08:00:16 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 12 Nov 2020 17:00:05 +0100
+Message-ID: <CAJZ5v0gNPL6kbg9f5JgZOvH7k-GLC8yrvvidwj_VCq09ie9NYg@mail.gmail.com>
+Subject: [GIT PULL] ACPI updates for v5.10-rc4
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The commit 9c19b8930d2c ("rtc: ds1307: Add ACPI support") added non-valid
-ACPI IDs (all of them abusing ACPI specification). Moreover there is
-no even a single evidence that vendor registered any of such device.
+Hi Linus,
 
-Remove broken ACPI IDs from the driver. For prototyping one may use PRP0001
-with device tree defined bindings. The following patches will add support
-of that to the driver.
+Please pull from the tag
 
-Link: https://uefi.org/PNP_ACPI_Registry
-Cc: Tin Huynh <tnhuynh@apm.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/rtc/rtc-ds1307.c | 36 +-----------------------------------
- 1 file changed, 1 insertion(+), 35 deletions(-)
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-5.10-rc4
 
-diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-index 9f5f54ca039d..fcb8e281abd5 100644
---- a/drivers/rtc/rtc-ds1307.c
-+++ b/drivers/rtc/rtc-ds1307.c
-@@ -8,7 +8,6 @@
-  *  Copyright (C) 2012 Bertrand Achard (nvram access fixes)
-  */
- 
--#include <linux/acpi.h>
- #include <linux/bcd.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-@@ -1169,31 +1168,6 @@ static const struct of_device_id ds1307_of_match[] = {
- MODULE_DEVICE_TABLE(of, ds1307_of_match);
- #endif
- 
--#ifdef CONFIG_ACPI
--static const struct acpi_device_id ds1307_acpi_ids[] = {
--	{ .id = "DS1307", .driver_data = ds_1307 },
--	{ .id = "DS1308", .driver_data = ds_1308 },
--	{ .id = "DS1337", .driver_data = ds_1337 },
--	{ .id = "DS1338", .driver_data = ds_1338 },
--	{ .id = "DS1339", .driver_data = ds_1339 },
--	{ .id = "DS1388", .driver_data = ds_1388 },
--	{ .id = "DS1340", .driver_data = ds_1340 },
--	{ .id = "DS1341", .driver_data = ds_1341 },
--	{ .id = "DS3231", .driver_data = ds_3231 },
--	{ .id = "M41T0", .driver_data = m41t0 },
--	{ .id = "M41T00", .driver_data = m41t00 },
--	{ .id = "M41T11", .driver_data = m41t11 },
--	{ .id = "MCP7940X", .driver_data = mcp794xx },
--	{ .id = "MCP7941X", .driver_data = mcp794xx },
--	{ .id = "PT7C4338", .driver_data = ds_1307 },
--	{ .id = "RX8025", .driver_data = rx_8025 },
--	{ .id = "ISL12057", .driver_data = ds_1337 },
--	{ .id = "RX8130", .driver_data = rx_8130 },
--	{ }
--};
--MODULE_DEVICE_TABLE(acpi, ds1307_acpi_ids);
--#endif
--
- /*
-  * The ds1337 and ds1339 both have two alarms, but we only use the first
-  * one (with a "seconds" field).  For ds1337 we expect nINTA is our alarm
-@@ -1794,14 +1768,7 @@ static int ds1307_probe(struct i2c_client *client,
- 		chip = &chips[id->driver_data];
- 		ds1307->type = id->driver_data;
- 	} else {
--		const struct acpi_device_id *acpi_id;
--
--		acpi_id = acpi_match_device(ACPI_PTR(ds1307_acpi_ids),
--					    ds1307->dev);
--		if (!acpi_id)
--			return -ENODEV;
--		chip = &chips[acpi_id->driver_data];
--		ds1307->type = acpi_id->driver_data;
-+		return -ENODEV;
- 	}
- 
- 	want_irq = client->irq > 0 && chip->alarm;
-@@ -2065,7 +2032,6 @@ static struct i2c_driver ds1307_driver = {
- 	.driver = {
- 		.name	= "rtc-ds1307",
- 		.of_match_table = of_match_ptr(ds1307_of_match),
--		.acpi_match_table = ACPI_PTR(ds1307_acpi_ids),
- 	},
- 	.probe		= ds1307_probe,
- 	.id_table	= ds1307_id,
--- 
-2.28.0
+with top-most commit 7222a8a52c9ec59affc4d6c4e2632b3e4a44cd27
 
+ Merge branches 'acpi-scan', 'acpi-misc', 'acpi-button' and 'acpi-dptf'
+
+on top of commit f8394f232b1eab649ce2df5c5f15b0e528c92091
+
+ Linux 5.10-rc3
+
+to receive ACPI updates for 5.10-rc4.
+
+These are mostly docmentation fixes and janitorial changes plus some
+new device IDs and a new quirk.
+
+Specifics:
+
+ - Fix documentation regarding GPIO properties (Andy Shevchenko).
+
+ - Fix spelling mistakes in ACPI documentation (Flavio Suligoi).
+
+ - Fix white space inconsistencies in ACPI code (Maximilian Luz).
+
+ - Fix string formatting in the ACPI Generic Event Device (GED)
+   driver (Nick Desaulniers).
+
+ - Add Intel Alder Lake device IDs to the ACPI drivers used by the
+   Dynamic Platform and Thermal Framework (Srinivas Pandruvada).
+
+ - Add lid-related DMI quirk for Medion Akoya E2228T to the ACPI
+   button driver (Hans de Goede).
+
+Thanks!
+
+
+---------------
+
+Andy Shevchenko (3):
+      Documentation: firmware-guide: gpio-properties: Fix factual mistakes
+      Documentation: firmware-guide: gpio-properties: active_low only
+for GpioIo()
+      Documentation: firmware-guide: gpio-properties: Clarify initial
+output state
+
+Flavio Suligoi (1):
+      Documentation: ACPI: fix spelling mistakes
+
+Hans de Goede (1):
+      ACPI: button: Add DMI quirk for Medion Akoya E2228T
+
+John Garry (1):
+      ACPI: scan: Fix acpi_dma_configure_id() kerneldoc name
+
+Maximilian Luz (1):
+      ACPI: Fix whitespace inconsistencies
+
+Nick Desaulniers (1):
+      ACPI: GED: fix -Wformat
+
+Srinivas Pandruvada (1):
+      ACPI: DPTF: Support Alder Lake
+
+---------------
+
+ Documentation/firmware-guide/acpi/acpi-lid.rst     |  8 ++--
+ .../firmware-guide/acpi/gpio-properties.rst        | 55 ++++++++++++++++------
+ .../firmware-guide/acpi/method-tracing.rst         |  2 +-
+ drivers/acpi/acpi_video.c                          |  6 +--
+ drivers/acpi/battery.c                             |  2 +-
+ drivers/acpi/button.c                              | 13 ++++-
+ drivers/acpi/dptf/dptf_pch_fivr.c                  |  1 +
+ drivers/acpi/dptf/dptf_power.c                     |  2 +
+ drivers/acpi/dptf/int340x_thermal.c                |  6 +++
+ drivers/acpi/event.c                               |  2 +-
+ drivers/acpi/evged.c                               |  2 +-
+ drivers/acpi/fan.c                                 |  1 +
+ drivers/acpi/internal.h                            |  2 +-
+ drivers/acpi/nfit/core.c                           | 10 ++--
+ drivers/acpi/pci_irq.c                             |  2 +-
+ drivers/acpi/pci_link.c                            | 12 ++---
+ drivers/acpi/pci_mcfg.c                            |  2 +-
+ drivers/acpi/power.c                               |  6 +--
+ drivers/acpi/processor_perflib.c                   |  6 +--
+ drivers/acpi/sbs.c                                 |  2 +-
+ drivers/acpi/sbshc.c                               |  2 +-
+ drivers/acpi/sbshc.h                               |  6 +--
+ drivers/acpi/scan.c                                |  2 +-
+ drivers/acpi/video_detect.c                        | 16 +++----
+ drivers/acpi/wakeup.c                              |  4 +-
+ 25 files changed, 110 insertions(+), 62 deletions(-)
