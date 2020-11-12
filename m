@@ -2,89 +2,273 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6314C56201
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 17:15:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DCB1C5519F
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 18:26:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7503021D40
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 17:15:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FEE02222F
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Nov 2020 18:26:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726007AbgKLRPG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Nov 2020 12:15:06 -0500
-Received: from mga06.intel.com ([134.134.136.31]:14969 "EHLO mga06.intel.com"
+        id S1726530AbgKLS0Y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Nov 2020 13:26:24 -0500
+Received: from mx2.suse.de ([195.135.220.15]:58932 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725972AbgKLRPG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 12 Nov 2020 12:15:06 -0500
-IronPort-SDR: hBFCkbwwopfbrQMyL+Vrys5kw+bIj+VgtO8U4O6bwzQhIwW+J8l6jfo23Cvdw9kiyvXML6hFlr
- klt08jnPAgLg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9803"; a="231964592"
-X-IronPort-AV: E=Sophos;i="5.77,472,1596524400"; 
-   d="scan'208";a="231964592"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2020 09:15:02 -0800
-IronPort-SDR: l+u88JxfY5do4LGUjvztuH2gtx4vuAlTHI6mZA2F1X6qP1VA63dhVnjAfaZoCVbLMw4UIaUN5N
- pAZtikZZJKyg==
-X-IronPort-AV: E=Sophos;i="5.77,472,1596524400"; 
-   d="scan'208";a="357164194"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2020 09:15:00 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kdGCX-006GSl-TV; Thu, 12 Nov 2020 19:16:01 +0200
-Date:   Thu, 12 Nov 2020 19:16:01 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc:     Alessandro Zummo <a.zummo@towertech.it>, linux-rtc@vger.kernel.org,
-        Tin Huynh <tnhuynh@apm.com>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v1 1/3] rtc: ds1307: Remove non-valid ACPI IDs
-Message-ID: <20201112171601.GL4077@smile.fi.intel.com>
-References: <20201112155753.36834-1-andriy.shevchenko@linux.intel.com>
- <20201112163617.GE4556@piout.net>
+        id S1726473AbgKLS0X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 12 Nov 2020 13:26:23 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 91A4CB038;
+        Thu, 12 Nov 2020 18:26:21 +0000 (UTC)
+From:   Giovanni Gherdovich <ggherdovich@suse.cz>
+To:     Borislav Petkov <bp@alien8.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Len Brown <lenb@kernel.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc:     Jon Grimm <Jon.Grimm@amd.com>,
+        Nathan Fontenot <Nathan.Fontenot@amd.com>,
+        Yazen Ghannam <Yazen.Ghannam@amd.com>,
+        Thomas Lendacky <Thomas.Lendacky@amd.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Pu Wen <puwen@hygon.cn>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Doug Smythies <dsmythies@telus.net>, x86@kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
+        Nathan Fontenot <nathan.fontenot@amd.com>,
+        Giovanni Gherdovich <ggherdovich@suse.cz>
+Subject: [PATCH v4 1/3] x86, sched: Calculate frequency invariance for AMD systems
+Date:   Thu, 12 Nov 2020 19:26:12 +0100
+Message-Id: <20201112182614.10700-2-ggherdovich@suse.cz>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201112182614.10700-1-ggherdovich@suse.cz>
+References: <20201112182614.10700-1-ggherdovich@suse.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201112163617.GE4556@piout.net>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Nov 12, 2020 at 05:36:17PM +0100, Alexandre Belloni wrote:
-> On 12/11/2020 17:57:51+0200, Andy Shevchenko wrote:
-> > The commit 9c19b8930d2c ("rtc: ds1307: Add ACPI support") added non-valid
-> > ACPI IDs (all of them abusing ACPI specification). Moreover there is
-> > no even a single evidence that vendor registered any of such device.
-> > 
-> > Remove broken ACPI IDs from the driver. For prototyping one may use PRP0001
-> > with device tree defined bindings. The following patches will add support
-> > of that to the driver.
-> 
-> I'm intrigued, how does PRP0001 work? Where would the device tree come
-> from?
+From: Nathan Fontenot <nathan.fontenot@amd.com>
 
-From nowhere :-)
+This is the first pass in creating the ability to calculate the
+frequency invariance on AMD systems. This approach uses the CPPC
+highest performance and nominal performance values that range from
+0 - 255 instead of a high and base frquency. This is because we do
+not have the ability on AMD to get a highest frequency value.
 
-There is no device tree. The properties are coming from _DSD ACPI Method with
-compatible string provided. ACPI glue layer provides a mechanism to parse that
-and match against OF ID table (even when CONFIG_OF=n!).
+On AMD systems the highest performance and nominal performance
+vaues do correspond to the highest and base frequencies for the system
+so using them should produce an appropriate ratio but some tweaking
+is likely necessary.
 
-More about PRP0001 is in documentation [1].
+Due to CPPC being initialized later in boot than when the frequency
+invariant calculation is currently made, I had to create a callback
+from the CPPC init code to do the calculation after we have CPPC
+data.
 
-> You probably want to have a look at:
-> https://lore.kernel.org/linux-rtc/20201112130734.331094-3-ch@denx.de/T/#u
+Special thanks to "kernel test robot <lkp@intel.com>" for reporting that
+compilation of drivers/acpi/cppc_acpi.c is conditional to
+CONFIG_ACPI_CPPC_LIB, not just CONFIG_ACPI.
 
-Thanks for heads up!
-I'll check that thread and answer there.
+Signed-off-by: Nathan Fontenot <nathan.fontenot@amd.com>
+[ ggherdovich@suse.cz: made safe under CPU hotplug, edited changelog ]
+Signed-off-by: Giovanni Gherdovich <ggherdovich@suse.cz>
+---
+ arch/x86/include/asm/topology.h |  8 ++++
+ arch/x86/kernel/smpboot.c       | 76 ++++++++++++++++++++++++++++++---
+ drivers/acpi/cppc_acpi.c        |  3 ++
+ 3 files changed, 82 insertions(+), 5 deletions(-)
 
-[1]: Documentation/firmware-guide/acpi/enumeration.rst
-
+diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
+index f4234575f3fd..f66691d34f4a 100644
+--- a/arch/x86/include/asm/topology.h
++++ b/arch/x86/include/asm/topology.h
+@@ -218,4 +218,12 @@ static inline void arch_set_max_freq_ratio(bool turbo_disabled)
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_CPPC_LIB
++void init_freq_invariance_cppc(void);
++#else
++static inline void init_freq_invariance_cppc(void)
++{
++}
++#endif
++
+ #endif /* _ASM_X86_TOPOLOGY_H */
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index de776b2e6046..a4ab5cf6aeab 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -82,6 +82,10 @@
+ #include <asm/hw_irq.h>
+ #include <asm/stackprotector.h>
+ 
++#ifdef CONFIG_ACPI_CPPC_LIB
++#include <acpi/cppc_acpi.h>
++#endif
++
+ /* representing HT siblings of each logical CPU */
+ DEFINE_PER_CPU_READ_MOSTLY(cpumask_var_t, cpu_sibling_map);
+ EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
+@@ -148,7 +152,7 @@ static inline void smpboot_restore_warm_reset_vector(void)
+ 	*((volatile u32 *)phys_to_virt(TRAMPOLINE_PHYS_LOW)) = 0;
+ }
+ 
+-static void init_freq_invariance(bool secondary);
++static void init_freq_invariance(bool secondary, bool cppc_ready);
+ 
+ /*
+  * Report back to the Boot Processor during boot time or to the caller processor
+@@ -186,7 +190,7 @@ static void smp_callin(void)
+ 	 */
+ 	set_cpu_sibling_map(raw_smp_processor_id());
+ 
+-	init_freq_invariance(true);
++	init_freq_invariance(true, false);
+ 
+ 	/*
+ 	 * Get our bogomips.
+@@ -1340,7 +1344,7 @@ void __init native_smp_prepare_cpus(unsigned int max_cpus)
+ 	set_sched_topology(x86_topology);
+ 
+ 	set_cpu_sibling_map(0);
+-	init_freq_invariance(false);
++	init_freq_invariance(false, false);
+ 	smp_sanity_check();
+ 
+ 	switch (apic_intr_mode) {
+@@ -2027,6 +2031,46 @@ static bool intel_set_max_freq_ratio(void)
+ 	return true;
+ }
+ 
++#ifdef CONFIG_ACPI_CPPC_LIB
++static bool amd_set_max_freq_ratio(void)
++{
++	struct cppc_perf_caps perf_caps;
++	u64 highest_perf, nominal_perf;
++	u64 perf_ratio;
++	int rc;
++
++	rc = cppc_get_perf_caps(0, &perf_caps);
++	if (rc) {
++		pr_debug("Could not retrieve perf counters (%d)\n", rc);
++		return false;
++	}
++
++	highest_perf = perf_caps.highest_perf;
++	nominal_perf = perf_caps.nominal_perf;
++
++	if (!highest_perf || !nominal_perf) {
++		pr_debug("Could not retrieve highest or nominal performance\n");
++		return false;
++	}
++
++	perf_ratio = div_u64(highest_perf * SCHED_CAPACITY_SCALE, nominal_perf);
++	if (!perf_ratio) {
++		pr_debug("Non-zero highest/nominal perf values led to a 0 ratio\n");
++		return false;
++	}
++
++	arch_turbo_freq_ratio = perf_ratio;
++	arch_set_max_freq_ratio(false);
++
++	return true;
++}
++#else
++static bool amd_set_max_freq_ratio(void)
++{
++	return false;
++}
++#endif
++
+ static void init_counter_refs(void)
+ {
+ 	u64 aperf, mperf;
+@@ -2038,7 +2082,7 @@ static void init_counter_refs(void)
+ 	this_cpu_write(arch_prev_mperf, mperf);
+ }
+ 
+-static void init_freq_invariance(bool secondary)
++static void init_freq_invariance(bool secondary, bool cppc_ready)
+ {
+ 	bool ret = false;
+ 
+@@ -2054,6 +2098,12 @@ static void init_freq_invariance(bool secondary)
+ 
+ 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+ 		ret = intel_set_max_freq_ratio();
++	else if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
++		if (!cppc_ready) {
++			return;
++		}
++		ret = amd_set_max_freq_ratio();
++	}
+ 
+ 	if (ret) {
+ 		init_counter_refs();
+@@ -2063,6 +2113,22 @@ static void init_freq_invariance(bool secondary)
+ 	}
+ }
+ 
++#ifdef CONFIG_ACPI_CPPC_LIB
++static DEFINE_MUTEX(freq_invariance_lock);
++
++void init_freq_invariance_cppc(void)
++{
++	static bool secondary;
++
++	mutex_lock(&freq_invariance_lock);
++
++	init_freq_invariance(secondary, true);
++	secondary = true;
++
++	mutex_unlock(&freq_invariance_lock);
++}
++#endif
++
+ static void disable_freq_invariance_workfn(struct work_struct *work)
+ {
+ 	static_branch_disable(&arch_scale_freq_key);
+@@ -2112,7 +2178,7 @@ void arch_scale_freq_tick(void)
+ 	schedule_work(&disable_freq_invariance_work);
+ }
+ #else
+-static inline void init_freq_invariance(bool secondary)
++static inline void init_freq_invariance(bool secondary, bool cppc_ready)
+ {
+ }
+ #endif /* CONFIG_X86_64 */
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 7a99b19bb893..368b13cb975d 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -39,6 +39,7 @@
+ #include <linux/ktime.h>
+ #include <linux/rwsem.h>
+ #include <linux/wait.h>
++#include <linux/topology.h>
+ 
+ #include <acpi/cppc_acpi.h>
+ 
+@@ -850,6 +851,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 		goto out_free;
+ 	}
+ 
++	init_freq_invariance_cppc();
++
+ 	kfree(output.pointer);
+ 	return 0;
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.26.2
 
