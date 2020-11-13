@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D698C2D0E4
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Nov 2020 02:28:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49700C2D0E4
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Nov 2020 02:33:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C48E221D7F
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Nov 2020 02:28:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E265C21D46
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Nov 2020 02:33:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726050AbgKMC2z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Nov 2020 21:28:55 -0500
-Received: from szxga06-in.huawei.com ([45.249.212.32]:7494 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726017AbgKMC2z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2020 21:28:55 -0500
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4CXMpj6MgBzhjVg;
-        Fri, 13 Nov 2020 10:28:45 +0800 (CST)
+        id S1726045AbgKMCdi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Nov 2020 21:33:38 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7528 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726024AbgKMCdi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2020 21:33:38 -0500
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CXMw53ZgLzhl1y;
+        Fri, 13 Nov 2020 10:33:25 +0800 (CST)
 Received: from linux-ibm.site (10.175.102.37) by
- DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 13 Nov 2020 10:28:43 +0800
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 13 Nov 2020 10:33:28 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 CC:     <linux-acpi@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH] ACPI: debug: Remove the not used function
-Date:   Fri, 13 Nov 2020 10:20:29 +0800
-Message-ID: <1605234029-26225-1-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 1/2] ACPI: SBS: Simplify the driver init code
+Date:   Fri, 13 Nov 2020 10:25:10 +0800
+Message-ID: <1605234311-29912-1-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 MIME-Version: 1.0
 Content-Type: text/plain
@@ -40,32 +40,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The inline function __acpi_aml_opened() is not used anywhere,
-remove it.
+acpi_bus_register_driver() will check acpi_disable and return
+-ENODEV, so the acpi_disable check outside the
+acpi_bus_register_driver() is duplicated, can be removed.
+
+Also we can just return from acpi_bus_register_driver() then
+we can simplify the code further.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/acpi_dbg.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/acpi/sbs.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
-index fb72903..d50261d 100644
---- a/drivers/acpi/acpi_dbg.c
-+++ b/drivers/acpi/acpi_dbg.c
-@@ -117,13 +117,6 @@ static inline bool __acpi_aml_busy(void)
- 	return false;
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index e6d9f4d..cbd1af7 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -714,16 +714,7 @@ static int acpi_sbs_resume(struct device *dev)
+ 
+ static int __init acpi_sbs_init(void)
+ {
+-	int result = 0;
+-
+-	if (acpi_disabled)
+-		return -ENODEV;
+-
+-	result = acpi_bus_register_driver(&acpi_sbs_driver);
+-	if (result < 0)
+-		return -ENODEV;
+-
+-	return 0;
++	return acpi_bus_register_driver(&acpi_sbs_driver);
  }
  
--static inline bool __acpi_aml_opened(void)
--{
--	if (acpi_aml_io.flags & ACPI_AML_OPEN)
--		return true;
--	return false;
--}
--
- static inline bool __acpi_aml_used(void)
- {
- 	return acpi_aml_io.usages ? true : false;
+ static void __exit acpi_sbs_exit(void)
 -- 
 1.7.12.4
 
