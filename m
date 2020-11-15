@@ -7,42 +7,33 @@ X-Spam-Status: No, score=0.6 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E8AEC2D0E4
-	for <linux-acpi@archiver.kernel.org>; Sun, 15 Nov 2020 13:42:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A465C63798
+	for <linux-acpi@archiver.kernel.org>; Sun, 15 Nov 2020 16:43:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0CC02244C
-	for <linux-acpi@archiver.kernel.org>; Sun, 15 Nov 2020 13:42:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12F0924170
+	for <linux-acpi@archiver.kernel.org>; Sun, 15 Nov 2020 16:43:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727100AbgKONmL convert rfc822-to-8bit (ORCPT
+        id S1727089AbgKOQna convert rfc822-to-8bit (ORCPT
         <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 15 Nov 2020 08:42:11 -0500
-Received: from tigeramira.ro ([88.158.78.30]:54160 "EHLO mail.tigeramira.ro"
-        rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-        id S1727079AbgKONmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 15 Nov 2020 08:42:11 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by mail.tigeramira.ro (Postfix) with ESMTP id 934BBC09591
-        for <linux-acpi@vger.kernel.org>; Sat, 14 Nov 2020 18:06:29 +0200 (EET)
-Received: from mail.tigeramira.ro ([127.0.0.1])
-        by localhost (mail.tigeramira.ro [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id T8-j-scBy5Qp for <linux-acpi@vger.kernel.org>;
-        Sat, 14 Nov 2020 18:06:27 +0200 (EET)
-Received: from mail.tigeramira.ro (localhost [127.0.0.1])
-        by mail.tigeramira.ro (Postfix) with ESMTP id 110607CACE6
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2020 06:54:05 +0200 (EET)
-Received: from [156.96.44.214] (unknown [192.168.12.254])
-        by mail.tigeramira.ro (Postfix) with ESMTP id 08F3ED3FA3A
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2020 17:09:07 +0200 (EET)
+        Sun, 15 Nov 2020 11:43:30 -0500
+Received: from sw73-70-41.adsl.seed.net.tw ([203.73.70.41]:60504 "EHLO
+        oa.trendtek.com.tw" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1726631AbgKOQn3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2020 11:43:29 -0500
+Received: from [156.96.44.214] ([156.96.44.214])
+        (authenticated bits=0)
+        by oa.trendtek.com.tw (8.13.8/8.13.1) with ESMTP id 0AFGhLeb030071
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2020 00:43:27 +0800
+Message-Id: <202011151643.0AFGhLeb030071@oa.trendtek.com.tw>
 Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8BIT
 Content-Description: Mail message body
-Subject: Corporate and Personal Loan/
+Subject: Corporate and Personal Loan *
 To:     linux-acpi@vger.kernel.org
 From:   "Investment  Corporate" <financialcapability6@gmail.com>
-Date:   Tue, 10 Nov 2020 06:09:36 -0800
+Date:   Sun, 15 Nov 2020 08:43:22 -0800
 Reply-To: hmurrah39@gmail.com
-Message-Id: <20201110150909.08F3ED3FA3A@mail.tigeramira.ro>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
