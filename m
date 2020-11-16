@@ -2,185 +2,126 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60DB0C61DD8
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35E2BC5519F
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:33:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 352BF205CB
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:29:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E106520706
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:33:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NI7OsINM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729799AbgKPO3E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Nov 2020 09:29:04 -0500
-Received: from mga14.intel.com ([192.55.52.115]:42691 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726426AbgKPO3E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Nov 2020 09:29:04 -0500
-IronPort-SDR: XS5HSQk1EUkihkpp2RLXRYJ1wJfW4dWLBvQAF82SsDO1sUXsFGoyoWY+t8bYvgv5BH8IC6hdWP
- t8X5Fcx/YbEQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9806"; a="169969410"
-X-IronPort-AV: E=Sophos;i="5.77,482,1596524400"; 
-   d="scan'208";a="169969410"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2020 06:29:03 -0800
-IronPort-SDR: IgLTJ36l3Tzsp3/4Ha+z8cTstKVDV0yKnyzbMJQ23VdDYTr7ZHuoG8BsEBynfnhZ//om+sP5Uv
- jbm2+OLmASKg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.77,482,1596524400"; 
-   d="scan'208";a="531865896"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga006.fm.intel.com with ESMTP; 16 Nov 2020 06:29:02 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 3C33AA7; Mon, 16 Nov 2020 16:29:01 +0200 (EET)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Alessandro Zummo <a.zummo@towertech.it>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        linux-rtc@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 2/3] rtc: ds1307: Make use of device properties
-Date:   Mon, 16 Nov 2020 16:28:58 +0200
-Message-Id: <20201116142859.31257-2-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201116142859.31257-1-andriy.shevchenko@linux.intel.com>
-References: <20201116142859.31257-1-andriy.shevchenko@linux.intel.com>
+        id S1727260AbgKPOdI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Nov 2020 09:33:08 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:20333 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729613AbgKPOdI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Nov 2020 09:33:08 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1605537187;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=pVqPTgI76T5GFIq9BCs/H6903+24L9xVPbvpVQ0trVs=;
+        b=NI7OsINMaRHgVcdFH+SU+Zte6EK65NRlsYXgXuHHXe3S7A11ywhbwYEbYykVqAlyYaxJZY
+        6h1F/6B6otTp2ChflDTaEOZnCvy1zkCxlAupaDvPq/VvbY0Nnj/J0iZ9d1E4CmwOsCAWEV
+        TcpWJMGmamlzipM75lH4YFLgOdpcPMo=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-309-eaMNcvrqOUa3tj-IBFLovg-1; Mon, 16 Nov 2020 09:33:04 -0500
+X-MC-Unique: eaMNcvrqOUa3tj-IBFLovg-1
+Received: by mail-ej1-f69.google.com with SMTP id nt22so7676584ejb.17
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2020 06:33:04 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=pVqPTgI76T5GFIq9BCs/H6903+24L9xVPbvpVQ0trVs=;
+        b=npSc8UyXqU6oNb7oavkBMboXcZ/kRr1NKQfRwJClFpyA5rMlsINK5GIXO5wwcTvhcB
+         l2FniZxflxn29sq3WWWdpsWpajRqFjDZe7v7xcS0IoQNW8ZAaiqQYTo0ZJE5d23q67yR
+         sZ8PnhYE7VaTxVbHvrmerTN4rNdNIM0iaOokA3/omDBdJ2a/9ZZ94A26e6EUwrA0XOB8
+         J80pQ9AYRB7g6aADDfu38DGcjdAHRrWhhi6qMHp/bfCrv8QrE+ra75djC0m5NNR7qnEv
+         uw92y+Lfj+qQyLfxBLkXoZQgZMzJ21ycrusE5P6c0N7JuEDXaLvcKAPq6mOoMWet8D5Y
+         APFA==
+X-Gm-Message-State: AOAM531yDG6USB0w5bRvmB3UVp9/3QBlG0viQNmjYUUBRUjyqC/1t6U5
+        ZnWkgbhbXmyMAgHs08E1fJKHyLvDMel+kU6X6MEOdkybq1iATGTopZNQMlrT2MHB9iCnP6G0/Tg
+        B4f9yUi08gtMoxrujKoVTzA==
+X-Received: by 2002:a05:6402:3105:: with SMTP id dc5mr15298198edb.38.1605537183490;
+        Mon, 16 Nov 2020 06:33:03 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJwoL+hiEtIkBgfgse/cu8U7sdEWiH/JNWpKEa8hPzaXcoIWgmEEVyUYdkjjcNHlO31gc33S3A==
+X-Received: by 2002:a05:6402:3105:: with SMTP id dc5mr15298187edb.38.1605537183335;
+        Mon, 16 Nov 2020 06:33:03 -0800 (PST)
+Received: from x1.localdomain (2001-1c00-0c0c-fe00-6c10-fbf3-14c4-884c.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:6c10:fbf3:14c4:884c])
+        by smtp.gmail.com with ESMTPSA id w16sm10655384eds.81.2020.11.16.06.33.02
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 16 Nov 2020 06:33:02 -0800 (PST)
+Subject: Re: [External] Re: [PATCH v3] ACPI: platform-profile: Add platform
+ profile support
+To:     Mark Pearson <markpearson@lenovo.com>,
+        =?UTF-8?Q?Barnab=c3=a1s_P=c5=91cze?= <pobrn@protonmail.com>
+Cc:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "mgross@linux.intel.com" <mgross@linux.intel.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "mario.limonciello@dell.com" <mario.limonciello@dell.com>,
+        "eliadevito@gmail.com" <eliadevito@gmail.com>,
+        "hadess@hadess.net" <hadess@hadess.net>,
+        "bberg@redhat.com" <bberg@redhat.com>,
+        "platform-driver-x86@vger.kernel.org" 
+        <platform-driver-x86@vger.kernel.org>,
+        "dvhart@infradead.org" <dvhart@infradead.org>
+References: <markpearson@lenovo.com>
+ <20201115004402.342838-1-markpearson@lenovo.com>
+ <qpTm5tmuwsXyXCvmpN4vhQoKis0E5jCcILd49n6_9cqzEuN_Pd9iwMEXAFRQQmGf-rCyHe-LfhjTa15-DTTu9sFQCSQaca1KVfqYggmSGts=@protonmail.com>
+ <3bdd8da6-a47a-fbc6-de0e-858f493a226e@lenovo.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <db12f029-cff8-2c38-7d92-38746bde96a9@redhat.com>
+Date:   Mon, 16 Nov 2020 15:33:01 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3bdd8da6-a47a-fbc6-de0e-858f493a226e@lenovo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Device property API allows to gather device resources from different sources,
-such as ACPI. Convert the drivers to unleash the power of device property API.
+Hi,
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v2: moved ds3231_clks_names to be global and static
- drivers/rtc/rtc-ds1307.c | 38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+On 11/16/20 12:04 AM, Mark Pearson wrote:
 
-diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-index fcb8e281abd5..49260bc260e3 100644
---- a/drivers/rtc/rtc-ds1307.c
-+++ b/drivers/rtc/rtc-ds1307.c
-@@ -12,7 +12,8 @@
- #include <linux/i2c.h>
- #include <linux/init.h>
- #include <linux/module.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/property.h>
- #include <linux/rtc/ds1307.h>
- #include <linux/rtc.h>
- #include <linux/slab.h>
-@@ -30,6 +31,7 @@
-  * That's a natural job for a factory or repair bench.
-  */
- enum ds_type {
-+	unknown_ds_type, /* always first and 0 */
- 	ds_1307,
- 	ds_1308,
- 	ds_1337,
-@@ -1600,13 +1602,16 @@ static const struct clk_ops ds3231_clk_32khz_ops = {
- 	.recalc_rate = ds3231_clk_32khz_recalc_rate,
- };
- 
-+static const char *ds3231_clks_names[] = {
-+	[DS3231_CLK_SQW] = "ds3231_clk_sqw",
-+	[DS3231_CLK_32KHZ] = "ds3231_clk_32khz",
-+};
-+
- static struct clk_init_data ds3231_clks_init[] = {
- 	[DS3231_CLK_SQW] = {
--		.name = "ds3231_clk_sqw",
- 		.ops = &ds3231_clk_sqw_ops,
- 	},
- 	[DS3231_CLK_32KHZ] = {
--		.name = "ds3231_clk_32khz",
- 		.ops = &ds3231_clk_32khz_ops,
- 	},
- };
-@@ -1627,6 +1632,11 @@ static int ds3231_clks_register(struct ds1307 *ds1307)
- 	if (!onecell->clks)
- 		return -ENOMEM;
- 
-+	/* optional override of the clockname */
-+	device_property_read_string_array(ds1307->dev, "clock-output-names",
-+					  ds3231_clks_names,
-+					  ARRAY_SIZE(ds3231_clks_names));
-+
- 	for (i = 0; i < ARRAY_SIZE(ds3231_clks_init); i++) {
- 		struct clk_init_data init = ds3231_clks_init[i];
- 
-@@ -1637,9 +1647,7 @@ static int ds3231_clks_register(struct ds1307 *ds1307)
- 		if (i == DS3231_CLK_SQW && test_bit(HAS_ALARM, &ds1307->flags))
- 			continue;
- 
--		/* optional override of the clockname */
--		of_property_read_string_index(node, "clock-output-names", i,
--					      &init.name);
-+		init.name = ds3231_clks_names[i];
- 		ds1307->clks[i].init = &init;
- 
- 		onecell->clks[i] = devm_clk_register(ds1307->dev,
-@@ -1648,10 +1656,8 @@ static int ds3231_clks_register(struct ds1307 *ds1307)
- 			return PTR_ERR(onecell->clks[i]);
- 	}
- 
--	if (!node)
--		return 0;
--
--	of_clk_add_provider(node, of_clk_src_onecell_get, onecell);
-+	if (node)
-+		of_clk_add_provider(node, of_clk_src_onecell_get, onecell);
- 
- 	return 0;
- }
-@@ -1735,6 +1741,7 @@ static int ds1307_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
- 	struct ds1307		*ds1307;
-+	const void		*match;
- 	int			err = -ENODEV;
- 	int			tmp;
- 	const struct chip_desc	*chip;
-@@ -1760,9 +1767,9 @@ static int ds1307_probe(struct i2c_client *client,
- 
- 	i2c_set_clientdata(client, ds1307);
- 
--	if (client->dev.of_node) {
--		ds1307->type = (enum ds_type)
--			of_device_get_match_data(&client->dev);
-+	match = device_get_match_data(&client->dev);
-+	if (match) {
-+		ds1307->type = (enum ds_type)match;
- 		chip = &chips[ds1307->type];
- 	} else if (id) {
- 		chip = &chips[id->driver_data];
-@@ -1786,7 +1793,6 @@ static int ds1307_probe(struct i2c_client *client,
- 			     trickle_charger_setup);
- 	}
- 
--#ifdef CONFIG_OF
- /*
-  * For devices with no IRQ directly connected to the SoC, the RTC chip
-  * can be forced as a wakeup source by stating that explicitly in
-@@ -1795,10 +1801,8 @@ static int ds1307_probe(struct i2c_client *client,
-  * This will guarantee the 'wakealarm' sysfs entry is available on the device,
-  * if supported by the RTC.
-  */
--	if (chip->alarm && of_property_read_bool(client->dev.of_node,
--						 "wakeup-source"))
-+	if (chip->alarm && device_property_read_bool(&client->dev, "wakeup-source"))
- 		ds1307_can_wakeup_device = true;
--#endif
- 
- 	switch (ds1307->type) {
- 	case ds_1337:
--- 
-2.28.0
+<snip>
+>> I believe there's no reason to remove the comma from there, and in fact,
+>> having a comma after the last entry in an array, enum, etc. seems to be
+>> the preferred.
+> OK.
+> Have to be honest - I struggle to know when comma's are needed on the last entry and when they aren't (I've had similar corrections in other cases both ways :)). I do seem to have a knack of getting it consistently wrong....
+
+Do the rule of thumb here is, if the last element is a terminating element,
+e.g. NULL or {} or foo_number_of_foo_types in an enum foo declaration then
+there should not be a comma after the last element. The reason for is is
+that in case case new entries will be added one line above the last element.
+
+If there is no terminating element (e.g. because ARRAY_SIZE is always used
+on the array). Then the last element should end with a comma. The reason for
+this is so that the unified diff of a patch adding a new element does not
+have -++ lines, as would be necessary when the comma is missing (-+ to add
+the comma, plus one more + for the new element).
+
+I hope this helps explain.
+
+I expect you will send out a v4 of the entire set addressing all current
+remarks?
+
+Regards,
+
+Hans
 
