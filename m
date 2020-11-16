@@ -2,96 +2,108 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F9CBC64E7A
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:20:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2EB8C6369E
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:29:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1169F222E8
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:20:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FB48205CB
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Nov 2020 14:29:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729510AbgKPOUB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Nov 2020 09:20:01 -0500
-Received: from mail-ot1-f67.google.com ([209.85.210.67]:45944 "EHLO
-        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729332AbgKPOUB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2020 09:20:01 -0500
-Received: by mail-ot1-f67.google.com with SMTP id k3so16106928otp.12;
-        Mon, 16 Nov 2020 06:20:00 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=iUL4X0QC5X4rwfec/D+B+5Eqb0N/KHvq33dDfdJFA/A=;
-        b=CyiObyLCeEMudZXdCqrwCd9gFRr/I2nA6yX10UHTgNt1dRSlO65og2lU6/2A3Q5Lfp
-         EKLCeO7lZVPMqzmTMmIrMafbNDARHQTSkWC2ytduPLZFXDZsYce0L9Kkxx4LgWnGJ3il
-         vbHmG6Vf3l5otIQB5iM7G4cYxRuasbtlBPzJqyZwFuBwR+G+USb0fjbrPnGIrHhBgVOF
-         SOeLPVvaR6H/JevTr7jCaPuyVlf7OcHnx7qrui0LFw90Gy+PBGy/0XTq7DEuJmXGl8xJ
-         gz+FUvHjB7ptKzkjstj8erSdJr4x+EO/MIJHrCDecgJBXztDIj4TTxoc8Wj5BzIpn/3m
-         oGmQ==
-X-Gm-Message-State: AOAM530tFX7J9+8hygcoVOkErKlJNWWVQ6hJLckgvOVJGrk7YezT6Mne
-        JhxqiP9wgll59MsL3VAWsxzfITNpiqJUyJubFsOLVW+8
-X-Google-Smtp-Source: ABdhPJx6L/QMZAEOb7KoU6nuCvoLI6S9z5PKJFtclTFZ7TM9ScZvGVR6pBLiESb+JufOkO/BWacMZm5WIgmMnRIp9Eg=
-X-Received: by 2002:a9d:16f:: with SMTP id 102mr11227592otu.206.1605536400406;
- Mon, 16 Nov 2020 06:20:00 -0800 (PST)
+        id S1726426AbgKPO3E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Nov 2020 09:29:04 -0500
+Received: from mga11.intel.com ([192.55.52.93]:2629 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729446AbgKPO3E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Nov 2020 09:29:04 -0500
+IronPort-SDR: Xx86j9uNvuUr1tyBh+6Ume0JM6+1CDB3Dyb5LGZEWLD4QaLWdys08mTsUaWwDjZqEvBr7JrVDU
+ JE+3e0hTNoUw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9806"; a="167241605"
+X-IronPort-AV: E=Sophos;i="5.77,482,1596524400"; 
+   d="scan'208";a="167241605"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2020 06:29:03 -0800
+IronPort-SDR: cJOzPQHxlyVNoAYpMnc6L/jHmRXk2oOX2XMLnjm588yVytwMFoHcsdTk/MbnPGrT5XQ7IJ61eI
+ JoduHMaMJf9w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,482,1596524400"; 
+   d="scan'208";a="340548529"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga002.jf.intel.com with ESMTP; 16 Nov 2020 06:29:02 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 4559511E; Mon, 16 Nov 2020 16:29:01 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Alessandro Zummo <a.zummo@towertech.it>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        linux-rtc@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 3/3] rtc: ds1307: Drop of_match_ptr and CONFIG_OF protections
+Date:   Mon, 16 Nov 2020 16:28:59 +0200
+Message-Id: <20201116142859.31257-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201116142859.31257-1-andriy.shevchenko@linux.intel.com>
+References: <20201116142859.31257-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-References: <20201110235201.76981-1-linux@roeck-us.net>
-In-Reply-To: <20201110235201.76981-1-linux@roeck-us.net>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 16 Nov 2020 15:19:43 +0100
-Message-ID: <CAJZ5v0j_FCn=G0tUhBnYTtcxE-GL-LDyq9fOa8Dk4WV7uXBHcg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: fan: Initialize performance state sysfs attribute
-To:     Guenter Roeck <linux@roeck-us.net>
-Cc:     Zhang Rui <rui.zhang@intel.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 11, 2020 at 12:52 AM Guenter Roeck <linux@roeck-us.net> wrote:
->
-> The following warning is reported if lock debugging is enabled.
->
-> DEBUG_LOCKS_WARN_ON(1)
-> WARNING: CPU: 1 PID: 1 at kernel/locking/lockdep.c:4617 lockdep_init_map_waits+0x141/0x222
-> ...
-> Call Trace:
->  __kernfs_create_file+0x7a/0xd8
->  sysfs_add_file_mode_ns+0x135/0x189
->  sysfs_create_file_ns+0x70/0xa0
->  acpi_fan_probe+0x547/0x621
->  platform_drv_probe+0x67/0x8b
->  ...
->
-> Dynamically allocated sysfs attributes need to be initialized to avoid
-> the warning.
->
-> Fixes: d19e470b6605 ("ACPI: fan: Expose fan performance state information")
-> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/acpi/fan.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> index 62873388b24f..9cbe58e394d0 100644
-> --- a/drivers/acpi/fan.c
-> +++ b/drivers/acpi/fan.c
-> @@ -351,6 +351,7 @@ static int acpi_fan_get_fps(struct acpi_device *device)
->                 struct acpi_fan_fps *fps = &fan->fps[i];
->
->                 snprintf(fps->name, ACPI_FPS_NAME_LEN, "state%d", i);
-> +               sysfs_attr_init(&fps->dev_attr.attr);
->                 fps->dev_attr.show = show_state;
->                 fps->dev_attr.store = NULL;
->                 fps->dev_attr.attr.name = fps->name;
-> --
+These prevent use of this driver with ACPI via PRP0001.
+Drop them to remove this restriction.
 
-Applied as 5.11 material, thanks!
+Also added mod_devicetable.h include given use of struct of_device_id.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v2: no changes
+ drivers/rtc/rtc-ds1307.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+index 49260bc260e3..fdf25db1b1b3 100644
+--- a/drivers/rtc/rtc-ds1307.c
++++ b/drivers/rtc/rtc-ds1307.c
+@@ -11,8 +11,8 @@
+ #include <linux/bcd.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/module.h>
+-#include <linux/of.h>
+ #include <linux/property.h>
+ #include <linux/rtc/ds1307.h>
+ #include <linux/rtc.h>
+@@ -1091,7 +1091,6 @@ static const struct i2c_device_id ds1307_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ds1307_id);
+ 
+-#ifdef CONFIG_OF
+ static const struct of_device_id ds1307_of_match[] = {
+ 	{
+ 		.compatible = "dallas,ds1307",
+@@ -1168,7 +1167,6 @@ static const struct of_device_id ds1307_of_match[] = {
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, ds1307_of_match);
+-#endif
+ 
+ /*
+  * The ds1337 and ds1339 both have two alarms, but we only use the first
+@@ -2035,7 +2033,7 @@ static int ds1307_probe(struct i2c_client *client,
+ static struct i2c_driver ds1307_driver = {
+ 	.driver = {
+ 		.name	= "rtc-ds1307",
+-		.of_match_table = of_match_ptr(ds1307_of_match),
++		.of_match_table = ds1307_of_match,
+ 	},
+ 	.probe		= ds1307_probe,
+ 	.id_table	= ds1307_id,
+-- 
+2.28.0
+
