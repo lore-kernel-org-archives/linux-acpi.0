@@ -2,305 +2,390 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E3B9C71155
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Nov 2020 13:43:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5E29C63697
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Nov 2020 14:33:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC75024199
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Nov 2020 13:43:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92A542223D
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Nov 2020 14:33:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387496AbgKQNm7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Nov 2020 08:42:59 -0500
-Received: from lonlinode-sdnproxy-1.icoremail.net ([139.162.193.133]:23496
-        "HELO lonlinode-sdnproxy-1.icoremail.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1732891AbgKQNm6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 17 Nov 2020 08:42:58 -0500
-X-Greylist: delayed 10544 seconds by postgrey-1.27 at vger.kernel.org; Tue, 17 Nov 2020 08:42:53 EST
-Received: from localhost (unknown [113.247.217.134])
-        by c1app6 (Coremail) with SMTP id BgINCgCHjp4807Nf9jrUAA--.49953S3;
-        Tue, 17 Nov 2020 21:42:21 +0800 (CST)
-From:   Chen Baozi <chenbaozi@phytium.com.cn>
-To:     Ard Biesheuvel <ardb@kernel.org>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>
-Cc:     linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC PATCH V2] acpi/irq: Add stacked IRQ domain support to PCI interrupt link
-Date:   Tue, 17 Nov 2020 21:42:14 +0800
-Message-Id: <20201117134214.970-1-chenbaozi@phytium.com.cn>
-X-Mailer: git-send-email 2.28.0
+        id S1731772AbgKQOci (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Nov 2020 09:32:38 -0500
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:43564 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731006AbgKQOcb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Nov 2020 09:32:31 -0500
+Received: by mail-oi1-f195.google.com with SMTP id t143so22699105oif.10;
+        Tue, 17 Nov 2020 06:32:29 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0xzVmVMNo5H9yrKMduWNe+xpelp4jIHck9Q/aKCYsek=;
+        b=OPfT+pSxqHGjW4/ReEujozycOe1c53H+N4St6WPl6HbdzhgbpYj0Zp2ibTphAG13zt
+         yg+BxUoNp0cCw9GWFopJM16AP+o9ajYkgDmRnk7VYjHnavhukvBFd5kSOoYLbQEieE+d
+         mgyRmy7ZDcmKXqFzURFyPz4f50sCBRkRcHY58jj5SC++4NswhiqjuJ35nflczCpI6Gvy
+         ZKlu8CZn0jeXZNAZpPplzaNft+GvJUyHilPMoAuCuBmwKuoTu0nwYd7Ru+yyckvV5b4n
+         RmgB300jHZHL1hdvHG4PQa2arhqzKwebPGrpkqTbVGedKFhLiI2byJBDc2W68gwzxfPQ
+         ZxpA==
+X-Gm-Message-State: AOAM531sYKA+IsUFoNvik+tdtajb00AmRzq3KadBYhWlTF4z2wqFowTK
+        8A43KNffQHqtdtHl4lFpWG/bUYVMItrc9hRWxrE9AWgoWqA=
+X-Google-Smtp-Source: ABdhPJxuiY2PL3KCvrF69XkvJyL2Db6xtdBuM0ub2Q0zsrbjKMZD+0KCsQADVrL3t5lT0cqYZllF7be5Hv3c/W9ZWyI=
+X-Received: by 2002:aca:c4c9:: with SMTP id u192mr2498947oif.69.1605623549108;
+ Tue, 17 Nov 2020 06:32:29 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: BgINCgCHjp4807Nf9jrUAA--.49953S3
-X-Coremail-Antispam: 1UD129KBjvJXoWxuw13uFyxXrW7JF47Zw18Zrb_yoWfJw4fpF
-        Wxta4UAr48Xr4UWrs8Aa1rAF9xXa4jkrWUKrW3C3sIqan0gryrtF17CFyUZ34Ykws5Gay2
-        vr1UZF48GFyDZF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDU0xBIdaVrnRJUUUk2b7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I2
-        0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
-        A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_JFI_Gr1l84ACjcxK6xII
-        jxv20xvEc7CjxVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I
-        8E87Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
-        64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8Jw
-        Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lc2xSY4AK67AK6ry8MxAIw28I
-        cxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2
-        IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI
-        42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42
-        IY6xAIw20EY4v20xvaj40_WFyUJVCq3wCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E
-        87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxUy8nYDUUUU
-X-CM-SenderInfo: hfkh0updr2xqxsk13x1xpou0fpof0/1tbiDAHfP17uHvTkkQAAsC
+References: <20201111054356.793390-1-ben.widawsky@intel.com> <20201111054356.793390-2-ben.widawsky@intel.com>
+In-Reply-To: <20201111054356.793390-2-ben.widawsky@intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 17 Nov 2020 15:32:17 +0100
+Message-ID: <CAJZ5v0i7fcoBe5o-J7q5fYW_1nUYJ-QdshWOBV5fFf85rD_sDA@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/9] cxl/acpi: Add an acpi_cxl module for the CXL interconnect
+To:     Ben Widawsky <ben.widawsky@intel.com>
+Cc:     linux-cxl@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Kelley, Sean V" <sean.v.kelley@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some PCIe designs require software to do extra acknowledgements for
-legacy INTx interrupts. If the driver is written only for device tree,
-things are simple. In that case, a new driver can be written under
-driver/pci/controller/ with a DT node of PCIe host written like:
+On Wed, Nov 11, 2020 at 6:45 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
+>
+> From: Vishal Verma <vishal.l.verma@intel.com>
+>
+> Add an acpi_cxl module to coordinate the ACPI portions of the CXL
+> (Compute eXpress Link) interconnect. This driver binds to ACPI0017
+> objects in the ACPI tree, and coordinates access to the resources
+> provided by the ACPI CEDT (CXL Early Discovery Table).
+>
+> It also coordinates operations of the root port _OSC object to notify
+> platform firmware that the OS has native support for the CXL
+> capabilities of endpoints.
+>
+> Note: the actbl1.h changes are speculative. The expectation is that they
+> will arrive through the ACPICA tree in due time.
+>
+> Cc: Ben Widawsky <ben.widawsky@intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> ---
+>  drivers/Kconfig       |   1 +
+>  drivers/Makefile      |   1 +
+>  drivers/cxl/Kconfig   |  30 +++++++++++
+>  drivers/cxl/Makefile  |   5 ++
+>  drivers/cxl/acpi.c    | 119 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/cxl/acpi.h    |  15 ++++++
+>  include/acpi/actbl1.h |  52 ++++++++++++++++++
+>  7 files changed, 223 insertions(+)
+>  create mode 100644 drivers/cxl/Kconfig
+>  create mode 100644 drivers/cxl/Makefile
+>  create mode 100644 drivers/cxl/acpi.c
+>  create mode 100644 drivers/cxl/acpi.h
+>
+> diff --git a/drivers/Kconfig b/drivers/Kconfig
+> index dcecc9f6e33f..62c753a73651 100644
+> --- a/drivers/Kconfig
+> +++ b/drivers/Kconfig
+> @@ -6,6 +6,7 @@ menu "Device Drivers"
+>  source "drivers/amba/Kconfig"
+>  source "drivers/eisa/Kconfig"
+>  source "drivers/pci/Kconfig"
+> +source "drivers/cxl/Kconfig"
+>  source "drivers/pcmcia/Kconfig"
+>  source "drivers/rapidio/Kconfig"
+>
+> diff --git a/drivers/Makefile b/drivers/Makefile
+> index c0cd1b9075e3..5dad349de73b 100644
+> --- a/drivers/Makefile
+> +++ b/drivers/Makefile
+> @@ -73,6 +73,7 @@ obj-$(CONFIG_NVM)             += lightnvm/
+>  obj-y                          += base/ block/ misc/ mfd/ nfc/
+>  obj-$(CONFIG_LIBNVDIMM)                += nvdimm/
+>  obj-$(CONFIG_DAX)              += dax/
+> +obj-$(CONFIG_CXL_BUS)          += cxl/
+>  obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf/
+>  obj-$(CONFIG_NUBUS)            += nubus/
+>  obj-y                          += macintosh/
+> diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+> new file mode 100644
+> index 000000000000..dd724bd364df
+> --- /dev/null
+> +++ b/drivers/cxl/Kconfig
+> @@ -0,0 +1,30 @@
+> +# SPDX-License-Identifier: GPL-2.0-only
+> +menuconfig CXL_BUS
+> +       tristate "CXL (Compute Express Link) Devices Support"
+> +       help
+> +         CXL is a bus that is electrically compatible with PCI-E, but layers
+> +         three protocols on that signalling (CXL.io, CXL.cache, and CXL.mem). The
+> +         CXL.cache protocol allows devices to hold cachelines locally, the
+> +         CXL.mem protocol allows devices to be fully coherent memory targets, the
+> +         CXL.io protocol is equivalent to PCI-E. Say 'y' to enable support for
+> +         the configuration and management of devices supporting these protocols.
+> +
+> +if CXL_BUS
+> +
+> +config CXL_BUS_PROVIDER
+> +       tristate
+> +
+> +config CXL_ACPI
+> +       tristate "CXL Platform Support"
+> +       depends on ACPI
+> +       default CXL_BUS
+> +       select CXL_BUS_PROVIDER
+> +       help
+> +         CXL Platform Support is a prerequisite for any CXL device driver that
+> +         wants to claim ownership of the component register space. By default
+> +         platform firmware assumes Linux is unaware of CXL capabilities and
+> +         requires explicit opt-in. This platform component also mediates
+> +         resources described by the CEDT (CXL Early Discovery Table)
+> +
+> +         Say 'y' to enable CXL (Compute Express Link) drivers.
+> +endif
+> diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
+> new file mode 100644
+> index 000000000000..d38cd34a2582
+> --- /dev/null
+> +++ b/drivers/cxl/Makefile
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +obj-$(CONFIG_CXL_ACPI) += cxl_acpi.o
+> +
+> +ccflags-y += -DDEFAULT_SYMBOL_NAMESPACE=CXL
+> +cxl_acpi-y := acpi.o
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> new file mode 100644
+> index 000000000000..26e4f73838a7
+> --- /dev/null
+> +++ b/drivers/cxl/acpi.c
+> @@ -0,0 +1,119 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +/*
+> + * Copyright(c) 2020 Intel Corporation. All rights reserved.
+> + */
+> +#include <linux/list_sort.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/sysfs.h>
+> +#include <linux/list.h>
+> +#include <linux/acpi.h>
+> +#include <linux/sort.h>
+> +#include <linux/pci.h>
+> +#include "acpi.h"
+> +
+> +static void acpi_cxl_desc_init(struct acpi_cxl_desc *acpi_desc, struct device *dev)
+> +{
+> +       dev_set_drvdata(dev, acpi_desc);
+> +       acpi_desc->dev = dev;
+> +}
+> +
+> +static void acpi_cedt_put_table(void *table)
+> +{
+> +       acpi_put_table(table);
+> +}
+> +
+> +static int acpi_cxl_add(struct acpi_device *adev)
+> +{
+> +       struct acpi_cxl_desc *acpi_desc;
+> +       struct device *dev = &adev->dev;
+> +       struct acpi_table_header *tbl;
+> +       acpi_status status = AE_OK;
+> +       acpi_size sz;
+> +       int rc = 0;
+> +
+> +       status = acpi_get_table(ACPI_SIG_CEDT, 0, &tbl);
+> +       if (ACPI_FAILURE(status)) {
+> +               dev_err(dev, "failed to find CEDT at startup\n");
+> +               return 0;
+> +       }
+> +
+> +       rc = devm_add_action_or_reset(dev, acpi_cedt_put_table, tbl);
+> +       if (rc)
+> +               return rc;
+> +       sz = tbl->length;
+> +       dev_info(dev, "found CEDT at startup: %lld bytes\n", sz);
+> +
+> +       acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
+> +       if (!acpi_desc)
+> +               return -ENOMEM;
+> +       acpi_cxl_desc_init(acpi_desc, &adev->dev);
+> +
+> +       acpi_desc->acpi_header = *tbl;
+> +
+> +       return 0;
+> +}
+> +
+> +static int acpi_cxl_remove(struct acpi_device *adev)
+> +{
+> +       return 0;
+> +}
+> +
+> +static const struct acpi_device_id acpi_cxl_ids[] = {
+> +       { "ACPI0017", 0 },
+> +       { "", 0 },
+> +};
+> +MODULE_DEVICE_TABLE(acpi, acpi_cxl_ids);
+> +
+> +static struct acpi_driver acpi_cxl_driver = {
 
-  pcie {
-    ...
-    interrupt-map = <0 0 0  1  &pcie_intc 0>,
-                    <0 0 0  2  &pcie_intc 1>,
-                    <0 0 0  3  &pcie_intc 2>,
-                    <0 0 0  4  &pcie_intc 3>;
+First of all, no new acpi_driver instances, pretty please!
 
-    pcie_intc: legacy-interrupt-controller {
-      interrupt-controller;
-      #interrupt-cells = <1>;
-      interrupt-parent = <&gic>;
-      interrupts = <0 226 4>;
-    };
-  };
+acpi_default_enumeration() should create a platform device with the
+ACPI0017 ID for you.  Can't you provide a driver for this one?
 
-Similar designs can be found on Aardvark, MediaTek Gen2 and Socionext
-UniPhier PCIe controller at the moment. Essentially, those designs are
-supported by inserting an extra interrupt controller between PCIe host
-and GIC and parse the topology in a DT-based PCI controller driver.
-As we turn to ACPI, All the PCIe hosts are described the same ID of
-"PNP0A03" and share driver/acpi/pci_root.c. It comes to be a problem
-to make this kind of PCI INTx work under ACPI.
-
-Therefore, we introduce an stacked IRQ domain support to PCI interrupt
-link for ACPI. With this support, we can populate the ResourceSource
-to refer to a device object that describes an interrupt controller.
-That would allow us to refer to a dedicated driver which implements
-the logic needed to manage the interrupt state. With this patch,
-those PCI interrupt links can be supported by describing the INTx
-in ACPI table as the following example:
-
-  Device (IXIU) {
-    ...
-  }
-
-  Device(LINKA) {
-    Name(_HID, EISAID("PNP0C0F"))
-    Name(_PRS, ResourceTemplate(){
-      Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, 0, "\\SB.IXIU")
-        { 60 }
-    })
-    ...
-  }
-
-  Device(PCI0) {
-    ...
-    Name(_PRT, Package{
-      Package{ 0x0000FFFF, 0, LINKA, 0 }
-      ...
-    })
-  }
-
-Signed-off-by: Chen Baozi <chenbaozi@phytium.com.cn>
----
- drivers/acpi/irq.c          | 22 +++++++++++++++++++++-
- drivers/acpi/pci_irq.c      |  6 ++++--
- drivers/acpi/pci_link.c     | 17 +++++++++++++++--
- include/acpi/acpi_drivers.h |  2 +-
- include/linux/acpi.h        |  4 ++++
- 5 files changed, 45 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-index e209081d644b..e78a44815c44 100644
---- a/drivers/acpi/irq.c
-+++ b/drivers/acpi/irq.c
-@@ -81,6 +81,25 @@ void acpi_unregister_gsi(u32 gsi)
- }
- EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
- 
-+int acpi_register_irq(struct device *dev, u32 irq, int trigger,
-+		      int polarity, struct fwnode_handle *domain_id)
-+{
-+	struct irq_fwspec fwspec;
-+
-+	if (WARN_ON(!domain_id)) {
-+		pr_warn("GSI: No registered irqchip, giving up\n");
-+		return -EINVAL;
-+	}
-+
-+	fwspec.fwnode = domain_id;
-+	fwspec.param[0] = irq;
-+	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
-+	fwspec.param_count = 2;
-+
-+	return irq_create_fwspec_mapping(&fwspec);
-+}
-+EXPORT_SYMBOL_GPL(acpi_register_irq);
-+
- /**
-  * acpi_get_irq_source_fwhandle() - Retrieve fwhandle from IRQ resource source.
-  * @source: acpi_resource_source to use for the lookup.
-@@ -92,7 +111,7 @@ EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-  * Return:
-  * The referenced device fwhandle or NULL on failure
-  */
--static struct fwnode_handle *
-+struct fwnode_handle *
- acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
- {
- 	struct fwnode_handle *result;
-@@ -115,6 +134,7 @@ acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
- 	acpi_bus_put_acpi_device(device);
- 	return result;
- }
-+EXPORT_SYMBOL_GPL(acpi_get_irq_source_fwhandle);
- 
- /*
-  * Context for the resource walk used to lookup IRQ resources.
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 14ee631cb7cf..19296d70c95c 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -410,6 +410,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	char *link = NULL;
- 	char link_desc[16];
- 	int rc;
-+	struct fwnode_handle *irq_domain;
- 
- 	pin = dev->pin;
- 	if (!pin) {
-@@ -438,7 +439,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 			gsi = acpi_pci_link_allocate_irq(entry->link,
- 							 entry->index,
- 							 &triggering, &polarity,
--							 &link);
-+							 &link,
-+							 &irq_domain);
- 		else
- 			gsi = entry->index;
- 	} else
-@@ -462,7 +464,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 		return 0;
- 	}
- 
--	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
-+	rc = acpi_register_irq(&dev->dev, gsi, triggering, polarity, irq_domain);
- 	if (rc < 0) {
- 		dev_warn(&dev->dev, "PCI INT %c: failed to register GSI\n",
- 			 pin_name(pin));
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index fb4c5632a232..219a644d739a 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -59,6 +59,7 @@ struct acpi_pci_link_irq {
- 	u8 resource_type;
- 	u8 possible_count;
- 	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
-+	struct acpi_resource_source resource_source;
- 	u8 initialized:1;
- 	u8 reserved:7;
- };
-@@ -120,6 +121,8 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
- 		{
- 			struct acpi_resource_extended_irq *p =
- 			    &resource->data.extended_irq;
-+			struct acpi_resource_source *rs =
-+			    &link->irq.resource_source;
- 			if (!p || !p->interrupt_count) {
- 				printk(KERN_WARNING PREFIX
- 					      "Blank _PRS EXT IRQ resource\n");
-@@ -140,6 +143,12 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
- 			link->irq.triggering = p->triggering;
- 			link->irq.polarity = p->polarity;
- 			link->irq.resource_type = ACPI_RESOURCE_TYPE_EXTENDED_IRQ;
-+			if (p->resource_source.string_length) {
-+				rs->index = p->resource_source.index;
-+				rs->string_length = p->resource_source.string_length;
-+				rs->string_ptr = kmalloc(rs->string_length, GFP_KERNEL);
-+				strcpy(rs->string_ptr, p->resource_source.string_ptr);
-+			}
- 			break;
- 		}
- 	default:
-@@ -326,7 +335,8 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
- 			resource->res.data.extended_irq.shareable = ACPI_SHARED;
- 		resource->res.data.extended_irq.interrupt_count = 1;
- 		resource->res.data.extended_irq.interrupts[0] = irq;
--		/* ignore resource_source, it's optional */
-+		resource->res.data.extended_irq.resource_source =
-+			link->irq.resource_source;
- 		break;
- 	default:
- 		printk(KERN_ERR PREFIX "Invalid Resource_type %d\n", link->irq.resource_type);
-@@ -612,7 +622,7 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
-  * failure: return -1
-  */
- int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
--			       int *polarity, char **name)
-+			       int *polarity, char **name, struct fwnode_handle **irq_domain)
- {
- 	int result;
- 	struct acpi_device *device;
-@@ -656,6 +666,9 @@ int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
- 		*polarity = link->irq.polarity;
- 	if (name)
- 		*name = acpi_device_bid(link->device);
-+	if (irq_domain)
-+		*irq_domain = acpi_get_irq_source_fwhandle(&link->irq.resource_source);
-+
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "Link %s is referenced\n",
- 			  acpi_device_bid(link->device)));
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 5eb175933a5b..6ff1ea76d476 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -68,7 +68,7 @@
- 
- int acpi_irq_penalty_init(void);
- int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
--			       int *polarity, char **name);
-+			       int *polarity, char **name, struct fwnode_handle **irq_domain);
- int acpi_pci_link_free_irq(acpi_handle handle);
- 
- /* ACPI PCI Device Binding (pci_bind.c) */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 39263c6b52e1..5f1d7d3192fb 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -324,6 +324,8 @@ extern int sbf_port;
- extern unsigned long acpi_realmode_flags;
- 
- int acpi_register_gsi (struct device *dev, u32 gsi, int triggering, int polarity);
-+int acpi_register_irq(struct device *dev, u32 gsi, int trigger,
-+		      int polarity, struct fwnode_handle *domain_id);
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
- 
-@@ -336,6 +338,8 @@ struct irq_domain *acpi_irq_create_hierarchy(unsigned int flags,
- 					     const struct irq_domain_ops *ops,
- 					     void *host_data);
- 
-+struct fwnode_handle *acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source);
-+
- #ifdef CONFIG_X86_IO_APIC
- extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
- #else
--- 
-2.28.0
-
+> +       .name = KBUILD_MODNAME,
+> +       .ids = acpi_cxl_ids,
+> +       .ops = {
+> +               .add = acpi_cxl_add,
+> +               .remove = acpi_cxl_remove,
+> +       },
+> +};
+> +
+> +/*
+> + * If/when CXL support is defined by other platform firmware the kernel
+> + * will need a mechanism to select between the platform specific version
+> + * of this routine, until then, hard-code ACPI assumptions
+> + */
+> +int cxl_bus_prepared(struct pci_dev *pdev)
+> +{
+> +       struct acpi_device *adev;
+> +       struct pci_dev *root_port;
+> +       struct device *root;
+> +
+> +       root_port = pcie_find_root_port(pdev);
+> +       if (!root_port)
+> +               return -ENXIO;
+> +
+> +       root = root_port->dev.parent;
+> +       if (!root)
+> +               return -ENXIO;
+> +
+> +       adev = ACPI_COMPANION(root);
+> +       if (!adev)
+> +               return -ENXIO;
+> +
+> +       /* TODO: OSC enabling */
+> +
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(cxl_bus_prepared);
+> +
+> +static __init int acpi_cxl_init(void)
+> +{
+> +       return acpi_bus_register_driver(&acpi_cxl_driver);
+> +}
+> +
+> +static __exit void acpi_cxl_exit(void)
+> +{
+> +       acpi_bus_unregister_driver(&acpi_cxl_driver);
+> +}
+> +
+> +module_init(acpi_cxl_init);
+> +module_exit(acpi_cxl_exit);
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_AUTHOR("Intel Corporation");
+> diff --git a/drivers/cxl/acpi.h b/drivers/cxl/acpi.h
+> new file mode 100644
+> index 000000000000..011505475cc6
+> --- /dev/null
+> +++ b/drivers/cxl/acpi.h
+> @@ -0,0 +1,15 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +// Copyright(c) 2020 Intel Corporation. All rights reserved.
+> +
+> +#ifndef __CXL_ACPI_H__
+> +#define __CXL_ACPI_H__
+> +#include <linux/acpi.h>
+> +
+> +struct acpi_cxl_desc {
+> +       struct acpi_table_header acpi_header;
+> +       struct device *dev;
+> +};
+> +
+> +int cxl_bus_prepared(struct pci_dev *pci_dev);
+> +
+> +#endif /* __CXL_ACPI_H__ */
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index 43549547ed3e..70f745f526e3 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -28,6 +28,7 @@
+>  #define ACPI_SIG_BERT           "BERT" /* Boot Error Record Table */
+>  #define ACPI_SIG_BGRT           "BGRT" /* Boot Graphics Resource Table */
+>  #define ACPI_SIG_BOOT           "BOOT" /* Simple Boot Flag Table */
+> +#define ACPI_SIG_CEDT           "CEDT" /* CXL Early Discovery Table */
+>  #define ACPI_SIG_CPEP           "CPEP" /* Corrected Platform Error Polling table */
+>  #define ACPI_SIG_CSRT           "CSRT" /* Core System Resource Table */
+>  #define ACPI_SIG_DBG2           "DBG2" /* Debug Port table type 2 */
+> @@ -1624,6 +1625,57 @@ struct acpi_ibft_target {
+>         u16 reverse_chap_secret_offset;
+>  };
+>
+> +/*******************************************************************************
+> + *
+> + * CEDT - CXL Early Discovery Table (ACPI 6.4)
+> + *        Version 1
+> + *
+> + ******************************************************************************/
+> +
+> +struct acpi_table_cedt {
+> +       struct acpi_table_header header;        /* Common ACPI table header */
+> +       u32 reserved;
+> +};
+> +
+> +/* Values for CEDT structure types */
+> +
+> +enum acpi_cedt_type {
+> +       ACPI_CEDT_TYPE_HOST_BRIDGE = 0, /* CHBS - CXL Host Bridge Structure */
+> +       ACPI_CEDT_TYPE_CFMWS = 1,       /* CFMWS - CXL Fixed Memory Window Structure */
+> +};
+> +
+> +struct acpi_cedt_structure {
+> +       u8 type;
+> +       u8 reserved;
+> +       u16 length;
+> +};
+> +
+> +/*
+> + * CEDT Structures, correspond to Type in struct acpi_cedt_structure
+> + */
+> +
+> +/* 0: CXL Host Bridge Structure */
+> +
+> +struct acpi_cedt_chbs {
+> +       struct acpi_cedt_structure header;
+> +       u32 uid;
+> +       u32 version;
+> +       u32 reserved1;
+> +       u64 base;
+> +       u32 length;
+> +       u32 reserved2;
+> +};
+> +
+> +/* Values for version field above */
+> +
+> +#define ACPI_CEDT_CHBS_VERSION_CXL11    (0)
+> +#define ACPI_CEDT_CHBS_VERSION_CXL20    (1)
+> +
+> +/* Values for length field above */
+> +
+> +#define ACPI_CEDT_CHBS_LENGTH_CXL11     (0x2000)
+> +#define ACPI_CEDT_CHBS_LENGTH_CXL20     (0x10000)
+> +
+>  /* Reset to default packing */
+>
+>  #pragma pack()
+> --
+> 2.29.2
+>
