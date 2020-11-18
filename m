@@ -2,132 +2,135 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97C57C63697
-	for <linux-acpi@archiver.kernel.org>; Wed, 18 Nov 2020 14:05:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3062DC63798
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Nov 2020 17:58:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BC8321D40
-	for <linux-acpi@archiver.kernel.org>; Wed, 18 Nov 2020 14:05:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8D5A246CF
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Nov 2020 17:58:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="tvpfEwP+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726551AbgKROFu convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 18 Nov 2020 09:05:50 -0500
-Received: from lonlinode-sdnproxy-1.icoremail.net ([139.162.193.133]:57650
-        "HELO lonlinode-sdnproxy-1.icoremail.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1726325AbgKROFu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 18 Nov 2020 09:05:50 -0500
-Received: from [192.168.0.104] (unknown [113.247.217.134])
-        by c1app7 (Coremail) with SMTP id BwINCgBXj5AqKrVfJQSyAA--.31695S2;
-        Wed, 18 Nov 2020 22:05:30 +0800 (CST)
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.120.23.2.4\))
-Subject: Re: [RFC PATCH V2] acpi/irq: Add stacked IRQ domain support to PCI
- interrupt link
-From:   Chen Baozi <chenbaozi@phytium.com.cn>
-In-Reply-To: <20201118095129.GA20571@e121166-lin.cambridge.arm.com>
-Date:   Wed, 18 Nov 2020 22:05:29 +0800
-Cc:     Marc Zyngier <maz@kernel.org>, Guohanjun <guohanjun@huawei.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        linux-arm-kernel@lists.infradead.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <17EDC3AB-FF11-4624-912E-95832DB20804@phytium.com.cn>
-References: <20201117134214.970-1-chenbaozi@phytium.com.cn>
- <20201118095129.GA20571@e121166-lin.cambridge.arm.com>
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-X-Mailer: Apple Mail (2.3608.120.23.2.4)
-X-CM-TRANSID: BwINCgBXj5AqKrVfJQSyAA--.31695S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxur13Wr4kWw45ur45JFykGrg_yoW5XF4rpF
-        WUK393AFWDCF43Ga9rX3W8JryFvanxA398G3s3A3yjv343ZF10gFyIkF4rGFy3Cwsa9w12
-        vF4jy34rWasrAaDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDU0xBIdaVrnRJUUUkIb7Iv0xC_KF4lb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I2
-        0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
-        A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xII
-        jxv20xvEc7CjxVAFwI0_Jr0_Gr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I
-        8E87Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
-        64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8Jw
-        Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lc2xSY4AK67AK6ry5MxAIw28I
-        cxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2
-        IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI
-        42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42
-        IY6xAIw20EY4v20xvaj40_Wr1j6rW3Jr1lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2
-        z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IU8fnY5UUUUU==
-X-CM-SenderInfo: hfkh0updr2xqxsk13x1xpou0fpof0/1tbiAQPgP17E3YHxogAAsI
+        id S1726300AbgKRR6Y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 18 Nov 2020 12:58:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43184 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726216AbgKRR6Y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2020 12:58:24 -0500
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2CAAC061A48
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Nov 2020 09:58:23 -0800 (PST)
+Received: by mail-ej1-x642.google.com with SMTP id y17so3983678ejh.11
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Nov 2020 09:58:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=CUfbbHmtoDuKn7TpUZ579udEm3PcirZfq0eQV5TKq9o=;
+        b=tvpfEwP+ZZMkMQ93Mh1f6j5FKNXm5M2Ak6FsBNIIN8BiaV0BTYVl+2KI363P4pPGhk
+         4XCHCy6c/5qihFsPbRNd1ryg08ayiY0WUlMRJ7tsItKKpdl+0gXny2bzA4Yc7BDDciiF
+         lm0yCD7b8wCqJOooSmMwFcwAUUnlD0g20c5tSUb4HBEO3d+SZUI228DolNZjs7b8A2Gb
+         2/lhmqWLg3vKRpt8+5DeljAmd22yWaWMCTaw2KqeGnVRMXy3rZs5tI/ni2Qe2EHepKE+
+         o1al2whOOjuL2T1TY5X7PNOayGhFCs+jfIlZ3vTJ4lgvHtGKFbdbUxJeUDrWuKJFi6l/
+         S4Gw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=CUfbbHmtoDuKn7TpUZ579udEm3PcirZfq0eQV5TKq9o=;
+        b=O6iCLcGPXsBTXlzHj+l10XlUJq3JMfBTuwsDpPRUkx0l4WUZa4UxDFBpGPbNLk1PvL
+         AV08vDdHdDZOS6RKrlKJtIu6y28QjyESUj091Sgcpp4t4oOpqCreTXo0TiiP9IHrBWRn
+         lmcY+1u83ZcuH+U9s6IKYsNXVa/m81/LstTLVW/Lj3TIOff4wtT1cR4mwzIc1zx0XR9g
+         1bvPgAEajFs6xz3w7ybxdeuiHjxwmissf6LU6lfRF8200DguanEukTNNXMon/mV/5j0e
+         IcCdS291yGr5OmLPmE5b66Mzd1AgGggfMg3NTg5dDTlAKzEP0Mu/O59ff79QP2ZW0U5E
+         L/gQ==
+X-Gm-Message-State: AOAM530kTyiFaSbyLxDhYR+wbK1UO6aZ9ikrdXQDV+xFeCWL4zyRF5cl
+        bIx7xfIFOgbgFmwYcHWe+QwZg0qYY6aAGW6beZo7jA==
+X-Google-Smtp-Source: ABdhPJzAo7X20AwJvG1rn3bcJsj4ua9pJG670rFxHdWk1YJl4d0tkmXpxpdfWZiNhtz2BTcFoV1XlqYQxL6b9QgLA2M=
+X-Received: by 2002:a17:906:ad8e:: with SMTP id la14mr21620775ejb.264.1605722302429;
+ Wed, 18 Nov 2020 09:58:22 -0800 (PST)
+MIME-Version: 1.0
+References: <20201111054356.793390-1-ben.widawsky@intel.com>
+ <20201111054356.793390-3-ben.widawsky@intel.com> <20201116175909.00007e53@Huawei.com>
+ <CAPcyv4h_kSYhcGAdZshFPFbGPgZKCvUh9q7M=jMMRaEauUPzaQ@mail.gmail.com> <CAJZ5v0ibEXVC5vsjCfougJqp_ZbENUKmbTkCjbxVTen-gsONXA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0ibEXVC5vsjCfougJqp_ZbENUKmbTkCjbxVTen-gsONXA@mail.gmail.com>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Wed, 18 Nov 2020 09:58:11 -0800
+Message-ID: <CAPcyv4ixeG9Puoob5yKRe3UDgehzJKPA32aiurZi-55-G-U17A@mail.gmail.com>
+Subject: Re: [RFC PATCH 2/9] cxl/acpi: add OSC support
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Ben Widawsky <ben.widawsky@intel.com>,
+        linux-cxl@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Kelley, Sean V" <sean.v.kelley@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
+On Wed, Nov 18, 2020 at 4:26 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Tue, Nov 17, 2020 at 12:26 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> > On Mon, Nov 16, 2020 at 10:00 AM Jonathan Cameron
+> > <Jonathan.Cameron@huawei.com> wrote:
+> > >
+> > > On Tue, 10 Nov 2020 21:43:49 -0800
+> > > Ben Widawsky <ben.widawsky@intel.com> wrote:
+> > >
+> > > > From: Vishal Verma <vishal.l.verma@intel.com>
+> > > >
+> > > > Add support to advertise OS capabilities, and request OS control for CXL
+> > > > features using the ACPI _OSC mechanism. Advertise support for all
+> > > > possible CXL features, and attempt to request control too for all
+> > > > possible features.
+> > > >
+> > > > Based on a patch by Sean Kelley.
+> > > >
+> > > > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> > >
+> > > I guess unsurprisingly a lot of this is cut and paste from PCIe
+> > > so can we share some of the code?
+> > >
+> >
+> > I do not see a refactoring effort for these bit being all that
+> > fruitful.
+>
+> Well, that depends on how much code duplication could be avoided this way.
+>
+> > The backport pressure for this driver stack I expect will be
+> > higher than most, so I'm sensitive to avoiding unnecessary core
+> > entanglements.
+>
+> If two pieces of code are based on the same underlying common code, it
+> is immediately clear to the reader how similar to each other they are.
+> Otherwise, they need to be carefully compared with each other to find
+> out what the differences are and whether or not they are arbitrary or
+> vitally important.  That is essential both from the revirem
+> perspective today and to anyone wanting to understand the given code
+> in the future (possibly in order to modify it without breaking it).
+> It outweighs the convenience by far IMV, with all due respect.
+>
+> Recall how much effort it took to combine x86 with x86_64 and why it
+> turned out to be necessary to do that work, for one example.
 
-> On Nov 18, 2020, at 5:51 PM, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com> wrote:
-> 
-> On Tue, Nov 17, 2020 at 09:42:14PM +0800, Chen Baozi wrote:
->> Some PCIe designs require software to do extra acknowledgements for
->> legacy INTx interrupts. If the driver is written only for device tree,
->> things are simple. In that case, a new driver can be written under
->> driver/pci/controller/ with a DT node of PCIe host written like:
->> 
->>  pcie {
->>    ...
->>    interrupt-map = <0 0 0  1  &pcie_intc 0>,
->>                    <0 0 0  2  &pcie_intc 1>,
->>                    <0 0 0  3  &pcie_intc 2>,
->>                    <0 0 0  4  &pcie_intc 3>;
->> 
->>    pcie_intc: legacy-interrupt-controller {
->>      interrupt-controller;
->>      #interrupt-cells = <1>;
->>      interrupt-parent = <&gic>;
->>      interrupts = <0 226 4>;
->>    };
->>  };
->> 
->> Similar designs can be found on Aardvark, MediaTek Gen2 and Socionext
->> UniPhier PCIe controller at the moment. Essentially, those designs are
->> supported by inserting an extra interrupt controller between PCIe host
->> and GIC and parse the topology in a DT-based PCI controller driver.
->> As we turn to ACPI, All the PCIe hosts are described the same ID of
->> "PNP0A03" and share driver/acpi/pci_root.c. It comes to be a problem
->> to make this kind of PCI INTx work under ACPI.
-> 
-> In this respect this patch is a minor detail. The major detail is how
-> those host controllers are going to probe and initialize with ACPI and I
-> am against merging this patch stand alone with no user before
-> understanding what you really want to do with those host controller
-> drivers in the ACPI world.
-> 
-> Side note, there is ongoing work for a generic interrupt MUX:
-> 
-> https://bugzilla.tianocore.org/show_bug.cgi?id=2995
-> 
-> If we ever come to support those MUXes with ACPI that must be a
-> starting point, the binding above can be your first "user".
-> 
-> I still have reservations about bootstrapping the host controllers
-> you mentioned in platforms with no firmware support whatsoever for
-> PCI initialization (eg address decoders, link bring-up, etc. - the
-> ACPI host bridge model relies on FW to carry out that initialization)
-> with ACPI - I would like to see the whole picture first.
-
-Frankly, I’m also waiting for my first “user” to be announced at the moment,
-so that I can make the whole picture clearer. And it is why I mark this
-patch as an RFC. 
-
-Yes. I admit it is a little weird to add another interrupt controller
-between the GIC and INTx device. But if it is not only about
-initialization but also about hooking into the INTx processing (e.g.,
-introduce an extra ack operation...), it seems we cannot only rely
-on FW. I have looked for a FW solution without introducing a new
-driver later but failed... I’m happy to be fixed if there is a pure
-FW solution.
-
-Thanks.
-
-Baozi.
-
+I agree with above, but the degree of potential code sharing and
+refactoring for CXL is nowhere near approaching the x86_64 situation.
+There's also the counter example in ext3 and ext4 where a split is
+maintained for good reason. All I'm saying is that let's judge patches
+and not theory when it comes to refactoring CXL, my expectation is
+that those opportunities will be few and far between. CXL is a
+superset of PCIE functionality so it should not put much pressure on
+common core PCIE code to change vs incremental CXL extensions.
