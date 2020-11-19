@@ -3,28 +3,28 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 449D5C6379D
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Nov 2020 12:12:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D172CC63798
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Nov 2020 12:12:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E48B6246B0
+	by mail.kernel.org (Postfix) with ESMTP id 41DA8246B0
 	for <linux-acpi@archiver.kernel.org>; Thu, 19 Nov 2020 12:12:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727252AbgKSMMm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 19 Nov 2020 07:12:42 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8119 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726860AbgKSMMm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2020 07:12:42 -0500
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CcJTJ1kRJzLqQB;
-        Thu, 19 Nov 2020 20:12:20 +0800 (CST)
+        id S1727234AbgKSMMe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 19 Nov 2020 07:12:34 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:7937 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726860AbgKSMMe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2020 07:12:34 -0500
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CcJTC4TQMz709F;
+        Thu, 19 Nov 2020 20:12:15 +0800 (CST)
 Received: from S00345302A-PC.china.huawei.com (10.210.168.73) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 19 Nov 2020 20:12:32 +0800
+ 14.3.487.0; Thu, 19 Nov 2020 20:12:20 +0800
 From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 To:     <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>,
@@ -34,12 +34,10 @@ CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
         <wanghuiqiang@huawei.com>, <guohanjun@huawei.com>,
         <jonathan.cameron@huawei.com>, <steven.price@arm.com>,
         <Sami.Mujawar@arm.com>
-Subject: [RFC PATCH v2 2/8] ACPI/IORT: Add support for RMR node parsing
-Date:   Thu, 19 Nov 2020 12:11:44 +0000
-Message-ID: <20201119121150.3316-3-shameerali.kolothum.thodi@huawei.com>
+Subject: [RFC PATCH v2 0/8] ACPI/IORT: Support for IORT RMR node
+Date:   Thu, 19 Nov 2020 12:11:42 +0000
+Message-ID: <20201119121150.3316-1-shameerali.kolothum.thodi@huawei.com>
 X-Mailer: git-send-email 2.12.0.windows.1
-In-Reply-To: <20201119121150.3316-1-shameerali.kolothum.thodi@huawei.com>
-References: <20201119121150.3316-1-shameerali.kolothum.thodi@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
@@ -49,170 +47,136 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add support for parsing RMR node information from ACPI.
-Find associated stream ids and smmu node info from the
-RMR node and populate a linked list with RMR memory
-descriptors.
+RFC v1 --> v2:
+ - Added a generic interface for IOMMU drivers to retrieve all the 
+   RMR info associated with a given IOMMU.
+ - SMMUv3 driver gets the RMR list during probe() and installs
+   bypass STEs for all the SIDs in the RMR list. This is to keep
+   the ongoing traffic alive(if any) during SMMUv3 reset. This is
+   based on the suggestions received for v1 to take care of the
+   EFI framebuffer use case. Only sanity tested for now.
+ - During the probe/attach device, SMMUv3 driver reserves any
+   RMR region associated with the device such that there is a unity
+   mapping for them in SMMU.
+---    
 
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
----
- drivers/acpi/arm64/iort.c | 122 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 121 insertions(+), 1 deletion(-)
+The series adds support to IORT RMR nodes specified in IORT
+Revision E -ARM DEN 0049E[0]. RMR nodes are used to describe memory
+ranges that are used by endpoints and require a unity mapping
+in SMMU.
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 9929ff50c0c0..a9705aa35028 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -40,6 +40,25 @@ struct iort_fwnode {
- static LIST_HEAD(iort_fwnode_list);
- static DEFINE_SPINLOCK(iort_fwnode_lock);
- 
-+struct iort_rmr_id {
-+	u32  sid;
-+	struct acpi_iort_node *smmu;
-+};
-+
-+/*
-+ * One entry for IORT RMR.
-+ */
-+struct iort_rmr_entry {
-+	struct list_head list;
-+
-+	unsigned int rmr_ids_num;
-+	struct iort_rmr_id *rmr_ids;
-+
-+	struct acpi_iort_rmr_desc *rmr_desc;
-+};
-+
-+static LIST_HEAD(iort_rmr_list);         /* list of RMR regions from ACPI */
-+
- /**
-  * iort_set_fwnode() - Create iort_fwnode and use it to register
-  *		       iommu data in the iort_fwnode_list
-@@ -393,7 +412,8 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
- 		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
- 		    node->type == ACPI_IORT_NODE_SMMU_V3 ||
--		    node->type == ACPI_IORT_NODE_PMCG) {
-+		    node->type == ACPI_IORT_NODE_PMCG ||
-+		    node->type == ACPI_IORT_NODE_RMR) {
- 			*id_out = map->output_base;
- 			return parent;
- 		}
-@@ -1647,6 +1667,103 @@ static void __init iort_enable_acs(struct acpi_iort_node *iort_node)
- #else
- static inline void iort_enable_acs(struct acpi_iort_node *iort_node) { }
- #endif
-+static int iort_rmr_desc_valid(struct acpi_iort_rmr_desc *desc)
-+{
-+	struct iort_rmr_entry *e;
-+	u64 end, start = desc->base_address, length = desc->length;
-+
-+	if (!IS_ALIGNED(start, SZ_64K) || !IS_ALIGNED(length, SZ_64K))
-+		return -EINVAL;
-+
-+	end = start + length - 1;
-+
-+	/* Check for address overlap */
-+	list_for_each_entry(e, &iort_rmr_list, list) {
-+		u64 e_start = e->rmr_desc->base_address;
-+		u64 e_end = e_start + e->rmr_desc->length - 1;
-+
-+		if (start <= e_end && end >= e_start)
-+			return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init iort_parse_rmr(struct acpi_iort_node *iort_node)
-+{
-+	struct iort_rmr_id *rmr_ids, *ids;
-+	struct iort_rmr_entry *e;
-+	struct acpi_iort_rmr *rmr;
-+	struct acpi_iort_rmr_desc *rmr_desc;
-+	u32 map_count = iort_node->mapping_count;
-+	int i, ret = 0, desc_count = 0;
-+
-+	if (iort_node->type != ACPI_IORT_NODE_RMR)
-+		return 0;
-+
-+	if (!iort_node->mapping_offset || !map_count) {
-+		pr_err(FW_BUG "Invalid ID mapping, skipping RMR node %p\n",
-+		       iort_node);
-+		return -EINVAL;
-+	}
-+
-+	rmr_ids = kmalloc(sizeof(*rmr_ids) * map_count, GFP_KERNEL);
-+	if (!rmr_ids)
-+		return -ENOMEM;
-+
-+	/* Retrieve associated smmu and stream id */
-+	ids = rmr_ids;
-+	for (i = 0; i < map_count; i++, ids++) {
-+		ids->smmu = iort_node_get_id(iort_node, &ids->sid, i);
-+		if (!ids->smmu) {
-+			pr_err(FW_BUG "Invalid SMMU reference, skipping RMR node %p\n",
-+			       iort_node);
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+	}
-+
-+	/* Retrieve RMR data */
-+	rmr = (struct acpi_iort_rmr *)iort_node->node_data;
-+	if (!rmr->rmr_offset || !rmr->rmr_count) {
-+		pr_err(FW_BUG "Invalid RMR descriptor array, skipping RMR node %p\n",
-+		       iort_node);
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	rmr_desc = ACPI_ADD_PTR(struct acpi_iort_rmr_desc, iort_node,
-+				rmr->rmr_offset);
-+
-+	for (i = 0; i < rmr->rmr_count; i++, rmr_desc++) {
-+		ret = iort_rmr_desc_valid(rmr_desc);
-+		if (ret) {
-+			pr_err(FW_BUG "Invalid RMR descriptor[%d] for node %p, skipping...\n",
-+			       i, iort_node);
-+			goto out;
-+		}
-+
-+		e = kmalloc(sizeof(*e), GFP_KERNEL);
-+		if (!e) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+
-+		e->rmr_ids_num = map_count;
-+		e->rmr_ids = rmr_ids;
-+		e->rmr_desc = rmr_desc;
-+
-+		list_add_tail(&e->list, &iort_rmr_list);
-+		desc_count++;
-+	}
-+
-+	return 0;
-+
-+out:
-+	if (!desc_count)
-+		kfree(rmr_ids);
-+	return ret;
-+}
- 
- static void __init iort_init_platform_devices(void)
- {
-@@ -1676,6 +1793,9 @@ static void __init iort_init_platform_devices(void)
- 
- 		iort_enable_acs(iort_node);
- 
-+		if (iort_table->revision == 1)
-+			iort_parse_rmr(iort_node);
-+
- 		ops = iort_get_dev_cfg(iort_node);
- 		if (ops) {
- 			fwnode = acpi_alloc_fwnode_static();
+We have faced issues with 3408iMR RAID controller cards which
+fail to boot when SMMU is enabled. This is because these controllers
+make use of host memory for various caching related purposes and when
+SMMU is enabled the iMR firmware fails to access these memory regions
+as there is no mapping for them. IORT RMR provides a way for UEFI to
+describe and report these memory regions so that the kernel can make
+a unity mapping for these in SMMU.
+
+RFC because, Patch #1 is to update the actbl2.h and should be done
+through acpica update. I have send out a pull request[1] for that.
+
+Tests:
+
+With a UEFI, that reports the RMR for the dev,
+....
+[16F0h 5872   1]                         Type : 06
+[16F1h 5873   2]                       Length : 007C
+[16F3h 5875   1]                     Revision : 00
+[1038h 0056   2]                     Reserved : 00000000
+[1038h 0056   2]                   Identifier : 00000000
+[16F8h 5880   4]                Mapping Count : 00000001
+[16FCh 5884   4]               Mapping Offset : 00000040
+
+[1700h 5888   4]    Number of RMR Descriptors : 00000002
+[1704h 5892   4]        RMR Descriptor Offset : 00000018
+
+[1708h 5896   8]          Base Address of RMR : 0000E6400000
+[1710h 5904   8]                Length of RMR : 000000100000
+[1718h 5912   4]                     Reserved : 00000000
+
+[171Ch 5916   8]          Base Address of RMR : 0000000027B00000
+[1724h 5924   8]                Length of RMR : 0000000000C00000
+[172Ch 5932   4]                     Reserved : 00000000
+
+[1730h 5936   4]                   Input base : 00000000
+[1734h 5940   4]                     ID Count : 00000001
+[1738h 5944   4]                  Output Base : 00000003
+[173Ch 5948   4]             Output Reference : 00000064
+[1740h 5952   4]        Flags (decoded below) : 00000001
+                               Single Mapping : 1
+...
+
+Without the series the RAID controller initialization fails as
+below,
+
+...
+[   12.631117] megaraid_sas 0000:03:00.0: FW supports sync cache        : Yes   
+[   12.637360] megaraid_sas 0000:03:00.0: megasas_disable_intr_fusion is called outbound_intr_mask:0x40000009                                                   
+[   18.776377] megaraid_sas 0000:03:00.0: Init cmd return status FAILED for SCSI host 0                                                                         
+[   23.019383] megaraid_sas 0000:03:00.0: Waiting for FW to come to ready state 
+[  106.684281] megaraid_sas 0000:03:00.0: FW in FAULT state, Fault code:0x10000 subcode:0x0 func:megasas_transition_to_ready                                    
+[  106.695186] megaraid_sas 0000:03:00.0: System Register set:                  
+[  106.889787] megaraid_sas 0000:03:00.0: Failed to transition controller to ready for scsi0.                                                                   
+[  106.910475] megaraid_sas 0000:03:00.0: Failed from megasas_init_fw 6407      
+estuary:/$
+
+With the series, now the kernel has direct mapping for the dev as
+below,
+
+estuary:/$ cat /sys/kernel/iommu_groups/0/reserved_regions                      
+0x0000000008000000 0x00000000080fffff msi                                       
+0x0000000027b00000 0x00000000286fffff direct                                    
+0x00000000e6400000 0x00000000e64fffff direct                                    
+estuary:/$
+
+....
+[   12.254318] megaraid_sas 0000:03:00.0: megasas_disable_intr_fusion is called outbound_intr_mask:0x40000009                                                   
+[   12.739089] megaraid_sas 0000:03:00.0: FW provided supportMaxExtLDs: 0      max_lds: 32                                                                      
+[   12.746628] megaraid_sas 0000:03:00.0: controller type       : iMR(0MB)      
+[   12.752694] megaraid_sas 0000:03:00.0: Online Controller Reset(OCR)  : Enabled                                                                               
+[   12.759798] megaraid_sas 0000:03:00.0: Secure JBOD support   : Yes           
+[   12.765778] megaraid_sas 0000:03:00.0: NVMe passthru support : Yes           
+[   12.771931] megaraid_sas 0000:03:00.0: FW provided TM TaskAbort/Reset timeou: 6 secs/60 secs                                                                 
+[   12.780503] megaraid_sas 0000:03:00.0: JBOD sequence map support     : Yes   
+[   12.787000] megaraid_sas 0000:03:00.0: PCI Lane Margining support    : No    
+[   12.819179] megaraid_sas 0000:03:00.0: NVME page size        : (4096)        
+[   12.825672] megaraid_sas 0000:03:00.0: megasas_enable_intr_fusion is called outbound_intr_mask:0x40000000                                                    
+[   12.835199] megaraid_sas 0000:03:00.0: INIT adapter done                     
+[   12.873932] megaraid_sas 0000:03:00.0: pci id                : (0x1000)/(0x0017)/(0x19e5)/(0xd213)                                                           
+[   12.881644] megaraid_sas 0000:03:00.0: unevenspan support    : no            
+[   12.887451] megaraid_sas 0000:03:00.0: firmware crash dump   : no            
+[   12.893344] megaraid_sas 0000:03:00.0: JBOD sequence map     : enabled       
+
+RAID controller init is now success and can detect the drives
+attached as well.
+
+Thanks,
+Shameer
+
+[0]. https://developer.arm.com/documentation/den0049/latest/
+[1]. https://github.com/acpica/acpica/pull/638
+
+Shameer Kolothum (8):
+  ACPICA: IORT: Update for revision E
+  ACPI/IORT: Add support for RMR node parsing
+  iommu/dma: Introduce generic helper to retrieve RMR info
+  ACPI/IORT: Add RMR memory regions reservation helper
+  iommu/arm-smmu-v3: Introduce strtab init helper
+  iommu/arm-smmu-v3: Add bypass flag to arm_smmu_write_strtab_ent()
+  iommu/arm-smmu-v3: Get associated RMR info and install bypass STE
+  iommu/arm-smmu-v3: Reserve any RMR regions associated with a dev
+
+ drivers/acpi/arm64/iort.c                   | 182 +++++++++++++++++++-
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c | 112 ++++++++++--
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h |   2 +
+ drivers/iommu/dma-iommu.c                   |  39 +++++
+ include/acpi/actbl2.h                       |  25 ++-
+ include/linux/acpi_iort.h                   |   6 +
+ include/linux/dma-iommu.h                   |   7 +
+ include/linux/iommu.h                       |  16 ++
+ 8 files changed, 367 insertions(+), 22 deletions(-)
+
 -- 
 2.17.1
 
