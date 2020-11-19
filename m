@@ -2,145 +2,131 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53732C63798
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Nov 2020 12:07:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3634C6369E
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Nov 2020 12:12:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06FDF246F1
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Nov 2020 12:07:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 772D0246D3
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Nov 2020 12:12:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727114AbgKSMHK convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 19 Nov 2020 07:07:10 -0500
-Received: from frasgout.his.huawei.com ([185.176.79.56]:2131 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727108AbgKSMHK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2020 07:07:10 -0500
-Received: from fraeml711-chm.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4CcJJf3lMNz67F2M;
-        Thu, 19 Nov 2020 20:04:50 +0800 (CST)
-Received: from lhreml715-chm.china.huawei.com (10.201.108.66) by
- fraeml711-chm.china.huawei.com (10.206.15.60) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1913.5; Thu, 19 Nov 2020 13:07:08 +0100
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- lhreml715-chm.china.huawei.com (10.201.108.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1913.5; Thu, 19 Nov 2020 12:07:07 +0000
-Received: from lhreml710-chm.china.huawei.com ([169.254.81.184]) by
- lhreml710-chm.china.huawei.com ([169.254.81.184]) with mapi id
- 15.01.1913.007; Thu, 19 Nov 2020 12:07:07 +0000
-From:   Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-To:     Sami Mujawar <Sami.Mujawar@arm.com>,
-        "david.e.box@linux.intel.com" <david.e.box@linux.intel.com>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
-        "devel@acpica.org" <devel@acpica.org>
-CC:     Linuxarm <linuxarm@huawei.com>,
-        Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>,
-        "joro@8bytes.org" <joro@8bytes.org>,
-        "Robin Murphy" <Robin.Murphy@arm.com>,
-        wanghuiqiang <wanghuiqiang@huawei.com>,
-        Jonathan Cameron <jonathan.cameron@huawei.com>, nd <nd@arm.com>
-Subject: RE: [Devel] Re: [RFC PATCH 2/4] ACPI/IORT: Add support for RMR node
- parsing
-Thread-Topic: [Devel] Re: [RFC PATCH 2/4] ACPI/IORT: Add support for RMR node
- parsing
-Thread-Index: AQHWtpQY66bs/ZNapk2zvFyjgM+sLanPaxLw
-Date:   Thu, 19 Nov 2020 12:07:07 +0000
-Message-ID: <735edb5c4da842609c1d2a0eed73b06c@huawei.com>
-References: <20201027112646.44680-1-shameerali.kolothum.thodi@huawei.com>
-         <20201027112646.44680-3-shameerali.kolothum.thodi@huawei.com>
- <d414a22fbae9575e6c04f4a557ae49a2cd8eac57.camel@linux.intel.com>
- <DB7PR08MB3097062CEEDB4635BF3F694784EA0@DB7PR08MB3097.eurprd08.prod.outlook.com>
-In-Reply-To: <DB7PR08MB3097062CEEDB4635BF3F694784EA0@DB7PR08MB3097.eurprd08.prod.outlook.com>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.210.168.73]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1727118AbgKSMMh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 19 Nov 2020 07:12:37 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7563 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726860AbgKSMMh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2020 07:12:37 -0500
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CcJTJ31GlzhXkw;
+        Thu, 19 Nov 2020 20:12:20 +0800 (CST)
+Received: from S00345302A-PC.china.huawei.com (10.210.168.73) by
+ DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
+ 14.3.487.0; Thu, 19 Nov 2020 20:12:26 +0800
+From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+To:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>,
+        <devel@acpica.org>
+CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
+        <joro@8bytes.org>, <robin.murphy@arm.com>,
+        <wanghuiqiang@huawei.com>, <guohanjun@huawei.com>,
+        <jonathan.cameron@huawei.com>, <steven.price@arm.com>,
+        <Sami.Mujawar@arm.com>
+Subject: [RFC PATCH v2 1/8] ACPICA: IORT: Update for revision E
+Date:   Thu, 19 Nov 2020 12:11:43 +0000
+Message-ID: <20201119121150.3316-2-shameerali.kolothum.thodi@huawei.com>
+X-Mailer: git-send-email 2.12.0.windows.1
+In-Reply-To: <20201119121150.3316-1-shameerali.kolothum.thodi@huawei.com>
+References: <20201119121150.3316-1-shameerali.kolothum.thodi@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.210.168.73]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+IORT revision E contains a few additions like,
+    -Added an identifier field in the node descriptors to aid table
+     cross-referencing.
+    -Introduced the Reserved Memory Range(RMR) node. This is used
+     to describe memory ranges that are used by endpoints and requires
+     a unity mapping in SMMU.
+    -Introduced a flag in the RC node to express support for PRI.
 
+Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+---
+ include/acpi/actbl2.h | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-> -----Original Message-----
-> From: Sami Mujawar [mailto:Sami.Mujawar@arm.com]
-> Sent: 09 November 2020 12:30
-> To: david.e.box@linux.intel.com; Shameerali Kolothum Thodi
-> <shameerali.kolothum.thodi@huawei.com>;
-> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
-> iommu@lists.linux-foundation.org; devel@acpica.org
-> Cc: Linuxarm <linuxarm@huawei.com>; Lorenzo Pieralisi
-> <Lorenzo.Pieralisi@arm.com>; joro@8bytes.org; Robin Murphy
-> <Robin.Murphy@arm.com>; wanghuiqiang <wanghuiqiang@huawei.com>;
-> Jonathan Cameron <jonathan.cameron@huawei.com>; nd <nd@arm.com>
-> Subject: RE: [Devel] Re: [RFC PATCH 2/4] ACPI/IORT: Add support for RMR node
-> parsing
-> 
-> Hi,
-> 
-> -----Original Message-----
-> From: David E. Box <david.e.box@linux.intel.com>
-> Sent: 28 October 2020 06:44 PM
-> To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>;
-> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
-> iommu@lists.linux-foundation.org; devel@acpica.org
-> Cc: linuxarm@huawei.com; Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>;
-> joro@8bytes.org; Robin Murphy <Robin.Murphy@arm.com>;
-> wanghuiqiang@huawei.com; jonathan.cameron@huawei.com
-> Subject: [Devel] Re: [RFC PATCH 2/4] ACPI/IORT: Add support for RMR node
-> parsing
-> 
-> Hi,
-> 
-> On Tue, 2020-10-27 at 11:26 +0000, Shameer Kolothum wrote:
-> 
-> ...
-> 
-> > @@ -1647,6 +1667,100 @@ static void __init iort_enable_acs(struct
-> > acpi_iort_node *iort_node)
-> >  #else
-> >  static inline void iort_enable_acs(struct acpi_iort_node *iort_node)
-> > { }
-> >  #endif
-> > +static int iort_rmr_desc_valid(struct acpi_iort_rmr_desc *desc)
-> > +{
-> > +	struct iort_rmr_entry *e;
-> > +	u64 end, start = desc->base_address, length = desc->length;
-> > +
-> > +	if ((!IS_ALIGNED(start, SZ_64K)) || (length % SZ_64K != 0))
-> 
-> You could just do:
-> 
-> if ((!IS_ALIGNED(start, SZ_64K)) || (length % SZ_64K))
-> 
-> [SAMI] In my opinion, the following may be better:
-> 	if (!IS_ALIGNED(start, SZ_64K) || !IS_ALIGNED(length, SZ_64K))
-> [/SAMI]
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index ec66779cb193..274fce7b5c01 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -68,7 +68,7 @@
+  * IORT - IO Remapping Table
+  *
+  * Conforms to "IO Remapping Table System Software on ARM Platforms",
+- * Document number: ARM DEN 0049D, March 2018
++ * Document number: ARM DEN 0049E, June 2020
+  *
+  ******************************************************************************/
+ 
+@@ -86,7 +86,8 @@ struct acpi_iort_node {
+ 	u8 type;
+ 	u16 length;
+ 	u8 revision;
+-	u32 reserved;
++	u16 reserved;
++	u16 identifier;
+ 	u32 mapping_count;
+ 	u32 mapping_offset;
+ 	char node_data[1];
+@@ -100,7 +101,8 @@ enum acpi_iort_node_type {
+ 	ACPI_IORT_NODE_PCI_ROOT_COMPLEX = 0x02,
+ 	ACPI_IORT_NODE_SMMU = 0x03,
+ 	ACPI_IORT_NODE_SMMU_V3 = 0x04,
+-	ACPI_IORT_NODE_PMCG = 0x05
++	ACPI_IORT_NODE_PMCG = 0x05,
++	ACPI_IORT_NODE_RMR = 0x06,
+ };
+ 
+ struct acpi_iort_id_mapping {
+@@ -167,10 +169,10 @@ struct acpi_iort_root_complex {
+ 	u8 reserved[3];		/* Reserved, must be zero */
+ };
+ 
+-/* Values for ats_attribute field above */
++/* Masks for ats_attribute field above */
+ 
+-#define ACPI_IORT_ATS_SUPPORTED         0x00000001	/* The root complex supports ATS */
+-#define ACPI_IORT_ATS_UNSUPPORTED       0x00000000	/* The root complex doesn't support ATS */
++#define ACPI_IORT_ATS_SUPPORTED         (1)	/* The root complex supports ATS */
++#define ACPI_IORT_PRI_SUPPORTED         (1<<1)	/* The root complex supports PRI */
+ 
+ struct acpi_iort_smmu {
+ 	u64 base_address;	/* SMMU base address */
+@@ -241,6 +243,17 @@ struct acpi_iort_pmcg {
+ 	u64 page1_base_address;
+ };
+ 
++struct acpi_iort_rmr {
++	u32 rmr_count;
++	u32 rmr_offset;
++};
++
++struct acpi_iort_rmr_desc {
++	u64 base_address;
++	u64 length;
++	u32 reserved;
++};
++
+ /*******************************************************************************
+  *
+  * IVRS - I/O Virtualization Reporting Structure
+-- 
+2.17.1
 
-Thanks for your suggestions. I don't have a strong opinion on either
-of those, but will change it with the latter one for now.
-
-Thanks,
-Shameer
-
-> Regards,
-> 
-> Sami Mujawar
-> 
-> David
-> _______________________________________________
-> Devel mailing list -- devel@acpica.org
-> To unsubscribe send an email to devel-leave@acpica.org
-> %(web_page_url)slistinfo%(cgiext)s/%(_internal_name)s
