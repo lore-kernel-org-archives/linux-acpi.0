@@ -2,175 +2,155 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41B46C83018
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:04:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AB7CC56202
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 04:14:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01D5A2237B
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:03:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bB0A+R+G"
+	by mail.kernel.org (Postfix) with ESMTP id ED031223B0
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 04:14:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727316AbgKUCDQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 20 Nov 2020 21:03:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55462 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727312AbgKUCDP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2020 21:03:15 -0500
-Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE33CC061A48
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:03:13 -0800 (PST)
-Received: by mail-yb1-xb4a.google.com with SMTP id r4so13284569ybs.1
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:03:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=sender:date:in-reply-to:message-id:mime-version:references:subject
-         :from:to:cc;
-        bh=/LX9bJeHDDRylfNoVob87S2JlPxG5ImJS2h+ELTJVqI=;
-        b=bB0A+R+G6PXveAVwcws7Z6i0PtnRk1Y3WmrGqeK19Oc30MPDpg5PLW8RW/9lvTNJ7X
-         ZRTtvAXOk6zLLS0tWgmBiPMaXiHdzk5JqHUFBWNxyBSg0jQM1byyfIeB9eYkfVuzKhr1
-         X8ympijJHD7vExfoFyae6VvOI8Vx9VEFLgHHb0qBUNp2851U9GaspjHNdIxtBPBZYWWw
-         5ZgYR0vIK29DD9C+3cXe7HhXkzFBfkgliAr3qx4BD+Q87nz5OaTd9d2HZNawReGOZWFZ
-         4mRpulnPz5jPrf7xmdDNz/I/sOI1/6e8gnFM8roDKA1AsSml5IDh2Ec3EyYQQ94+kKeP
-         IerQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=/LX9bJeHDDRylfNoVob87S2JlPxG5ImJS2h+ELTJVqI=;
-        b=Y86DJ4kOYg+LX4Hm29Pcjr9cvox+JkN/MQLDb+HmE2Wkl/RFTyF0v0fFsnvCvy6siI
-         Jw+mBBMv9HWHGSCTKaBxtUxaEd98wiqGshvyCo5+Dbf63KX5MzwCTDxPrlgXZ3v2YNqf
-         aXhxiaDPsvbsXxWf0MWT9JItr9F3OZJdlJqlwu5IvHoMNeGA7rfpW7v/y1HvVeDTYPcn
-         dnzNl+/rFitcv/Oyp7AOvsMiEjIzCHPCZr1QmCmqaGNO6PgMvs3Garksf2/0WZwUK7Ff
-         FzBaGRWCY+M1Qw3hLXyVUam0bMztMq3Eeu/VW6a08ZL/QDBsLZwSHSDSp8vVJEO9WUxP
-         5oWQ==
-X-Gm-Message-State: AOAM531ME/PB5xuLjCjD1wGMMDz/Md+ToI+hGMWA6OFEYDE7mbNpZ2BD
-        0twn/jXBSXk3G5lQtONJwcD200b4RCuVvsg=
-X-Google-Smtp-Source: ABdhPJwpPqnlFJLkUZfisNfpE1+K8M+fKGEWW7MXjBtNcZY6hW80Mcdvb9sW2hFXXDlIpR63mRRi+3x532QOhRc=
-Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
-X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:7220:84ff:fe09:fedc])
- (user=saravanak job=sendgmr) by 2002:a25:4943:: with SMTP id
- w64mr21803030yba.178.1605924192912; Fri, 20 Nov 2020 18:03:12 -0800 (PST)
-Date:   Fri, 20 Nov 2020 18:02:26 -0800
-In-Reply-To: <20201121020232.908850-1-saravanak@google.com>
-Message-Id: <20201121020232.908850-12-saravanak@google.com>
-Mime-Version: 1.0
-References: <20201121020232.908850-1-saravanak@google.com>
-X-Mailer: git-send-email 2.29.2.454.gaff20da3a2-goog
-Subject: [PATCH v2 11/17] driver core: Redefine the meaning of fwnode_operations.add_links()
-From:   Saravana Kannan <saravanak@google.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>
-Cc:     Saravana Kannan <saravanak@google.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        kernel-team@android.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-efi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        id S1726324AbgKUEOR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 20 Nov 2020 23:14:17 -0500
+Received: from mail1.bemta24.messagelabs.com ([67.219.250.115]:47256 "EHLO
+        mail1.bemta24.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725944AbgKUEOR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 20 Nov 2020 23:14:17 -0500
+Received: from [100.112.133.178] (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256 bits))
+        by server-4.bemta.az-b.us-west-2.aws.symcld.net id 48/7A-49214-51498BF5; Sat, 21 Nov 2020 04:14:13 +0000
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrGKsWRWlGSWpSXmKPExsWS8eIhj67olB3
+  xBp/2i1jsvy5h0bXQwGLh/VOsFl+/3Wa3eHN8OpPF8n39jBZNnU1sFp87JrNYrN7zgtli7Zd5
+  bBZnTl9ideD2mDRzBrPHzll32T1+bVvD4rF5hZbHvJOBHj1tm5g83u+7yuax5Wo7i8fnTXIBn
+  FGsmXlJ+RUJrBmfJq1lKugTqHg+ez1TA+Mm3i5GLg4hgf+MEs9Xz2KFcF4yStw+18TcxcjJIS
+  wQI/Fj72SWLkYODhEBe4kXT4JAapgFmlkkmm89YIJouMooMXHNJUaQBjYBbYktW36xgdi8ArY
+  Sy2beYAexWQRUJX78aWICsUUFwiXWL1nJCFEjKHFy5hMWkEGcAl2MEpN3XmAFSTALWEjMnH+e
+  EcIWl7j1ZD4ThC0v0bx1Nth1EgKKEvvuX2SBsBMklr28wzyBUXAWkrmzkIyahWTULCSjFjCyr
+  GI0TyrKTM8oyU3MzNE1NDDQNTQ00jU0NtI1M9ZLrNJN0ist1i1PLS7RNdJLLC/WK67MTc5J0c
+  tLLdnECIzOlIIW+x2MM9580DvEKMnBpCTKW5G0I16ILyk/pTIjsTgjvqg0J7X4EKMMB4eSBK/
+  TZKCcYFFqempFWmYOMFHApCU4eJREeLVA0rzFBYm5xZnpEKlTjIpS4rzCIAkBkERGaR5cGyw5
+  XWKUlRLmZWRgYBDiKUgtys0sQZV/xSjOwagkzHtkEtAUnsy8Erjpr4AWMwEt3i4CtrgkESEl1
+  cCkEd/IvuXARtdT1/cW9V781bfv8IwvLqdbim/6H7O7vn65UIeQ2o/7nRvkLqo9+2z4a2JMnZ
+  vu7rPLbioU3feYxnm8Pvjp4khel4v/G5cZx15et//74mWi95zf83qGmv/L3pu2Mrg8k1u2h20
+  Ne7Oo+xXB0+suXXucdttMdhrLn9XBGYcjA8T+M/Mz/HYpeaQRUCTUW/BitY3Aif/Od+X1T0/b
+  uS1A93L8pbhSMweVnC3nZsxKUGk5vv7J0cVVrRq6vg9kJ13fKHPsaxdf3eMKpR97rc/1nru76
+  uE+u0XFbRdd5/zXKxflk0k76rTP/m9/yLF375IOXzFpMt7FE/X04k333G/JClFWSo486zaeUm
+  Ipzkg01GIuKk4EAJ4dIJbJAwAA
+X-Env-Sender: markpearson@lenovo.com
+X-Msg-Ref: server-22.tower-355.messagelabs.com!1605932052!35062!1
+X-Originating-IP: [104.232.225.12]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received: 
+X-StarScan-Version: 9.60.3; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 29451 invoked from network); 21 Nov 2020 04:14:13 -0000
+Received: from unknown (HELO lenovo.com) (104.232.225.12)
+  by server-22.tower-355.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 21 Nov 2020 04:14:13 -0000
+Received: from reswpmail04.lenovo.com (unknown [10.62.32.23])
+        (using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by Forcepoint Email with ESMTPS id B61C6492923CCD901C04;
+        Fri, 20 Nov 2020 23:14:11 -0500 (EST)
+Received: from localhost.localdomain (10.38.107.236) by reswpmail04.lenovo.com
+ (10.62.32.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2044.4; Fri, 20 Nov
+ 2020 20:14:10 -0800
+Subject: Re: [External] Re: [PATCH v3] ACPI: platform-profile: Add platform
+ profile support
+To:     =?UTF-8?Q?Barnab=c3=a1s_P=c5=91cze?= <pobrn@protonmail.com>
+CC:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "hdegoede@redhat.com" <hdegoede@redhat.com>,
+        "mgross@linux.intel.com" <mgross@linux.intel.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "mario.limonciello@dell.com" <mario.limonciello@dell.com>,
+        "eliadevito@gmail.com" <eliadevito@gmail.com>,
+        "hadess@hadess.net" <hadess@hadess.net>,
+        "bberg@redhat.com" <bberg@redhat.com>,
+        "platform-driver-x86@vger.kernel.org" 
+        <platform-driver-x86@vger.kernel.org>,
+        "dvhart@infradead.org" <dvhart@infradead.org>
+References: <markpearson@lenovo.com>
+ <20201115004402.342838-1-markpearson@lenovo.com>
+ <nRyY5CKaU6WrkbMiM25gTT_bJlrQjTY_UCcQkj8ty-2mPEMVZd4BB9KwrRp7z4GaE3TTOFCXuXnt0_7J_Tj50syusBxTmS5yNZAvYX02X74=@protonmail.com>
+From:   Mark Pearson <markpearson@lenovo.com>
+Message-ID: <7533ec90-9c8a-d7f8-8987-d0dc23826ade@lenovo.com>
+Date:   Fri, 20 Nov 2020 23:14:09 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
+MIME-Version: 1.0
+In-Reply-To: <nRyY5CKaU6WrkbMiM25gTT_bJlrQjTY_UCcQkj8ty-2mPEMVZd4BB9KwrRp7z4GaE3TTOFCXuXnt0_7J_Tj50syusBxTmS5yNZAvYX02X74=@protonmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.38.107.236]
+X-ClientProxiedBy: reswpmail04.lenovo.com (10.62.32.23) To
+ reswpmail04.lenovo.com (10.62.32.23)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Change the meaning of fwnode_operations.add_links() to just create
-fwnode links by parsing the properties of a given fwnode.
 
-This patch doesn't actually make any code changes. To keeps things more
-digestable, the actual functional changes come in later patches in this
-series.
 
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- drivers/firmware/efi/efi-init.c |  2 +-
- include/linux/fwnode.h          | 42 +++------------------------------
- 2 files changed, 4 insertions(+), 40 deletions(-)
+On 20/11/2020 14:50, Barnabás Pőcze wrote:
+> Hi
+> 
+> 
+> 2020. november 15., vasárnap 1:44 keltezéssel, Mark Pearson írta:
+> 
+>> [...]
+>> +int platform_profile_register(struct platform_profile_handler *pprof)
+>> +{
+>> +	mutex_lock(&profile_lock);
+>> +	/* We can only have one active profile */
+>> +	if (cur_profile) {
+>> +		mutex_unlock(&profile_lock);
+>> +		return -EEXIST;
+>> +	}
+>> +
+>> +	cur_profile = pprof;
+>> +	mutex_unlock(&profile_lock);
+>> +	return sysfs_create_group(acpi_kobj, &platform_profile_group);
+>> +}
+>> +EXPORT_SYMBOL_GPL(platform_profile_register);
+>> +
+>> +int platform_profile_unregister(void)
+>> +{
+>> +	mutex_lock(&profile_lock);
+>> +	sysfs_remove_group(acpi_kobj, &platform_profile_group);
+>> +	cur_profile = NULL;
+>> +	mutex_unlock(&profile_lock);
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(platform_profile_unregister);
+>> [...]
+> 
+> 
+> I just realized that the sysfs attributes are only created if a profile provider
+> is registered, and it is removed when the provide unregisters itself. I believe
+> it would be easier for system daemons if those attributes existed from module load
+> to module unload since they can just just open the file and watch it using poll,
+> select, etc. If it goes away when the provider unregisters itself, then I believe
+> a more complicated mechanism (like inotify) would need to be implemented in the
+> daemons to be notified when a new provider is registered. Thus my suggestion
+> for the next iteration is to create the sysfs attributes on module load,
+> and delete them on unload.
+> 
+> What do you think?
+> 
+> 
+> Regards,
+> Barnabás Pőcze
+> 
+Good point. I'd like to have input from user space as to their 
+preference - it seems like a simple enough change to make and I'm happy 
+to go with what their preferences are. Bastien - would this make life 
+easier for you?
 
-diff --git a/drivers/firmware/efi/efi-init.c b/drivers/firmware/efi/efi-init.c
-index b148f1459fb3..65bb97c391b0 100644
---- a/drivers/firmware/efi/efi-init.c
-+++ b/drivers/firmware/efi/efi-init.c
-@@ -316,7 +316,7 @@ static struct device_node *find_pci_overlap_node(void)
-  * resource reservation conflict on the memory window that the efifb
-  * framebuffer steals from the PCIe host bridge.
-  */
--static int efifb_add_links(const struct fwnode_handle *fwnode,
-+static int efifb_add_links(struct fwnode_handle *fwnode,
- 			   struct device *dev)
- {
- 	struct device_node *sup_np;
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index b88365187347..942a6bb18201 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -78,44 +78,8 @@ struct fwnode_reference_args {
-  *			       endpoint node.
-  * @graph_get_port_parent: Return the parent node of a port node.
-  * @graph_parse_endpoint: Parse endpoint for port and endpoint id.
-- * @add_links:	Called after the device corresponding to the fwnode is added
-- *		using device_add(). The function is expected to create device
-- *		links to all the suppliers of the device that are available at
-- *		the time this function is called.  The function must NOT stop
-- *		at the first failed device link if other unlinked supplier
-- *		devices are present in the system.  This is necessary for the
-- *		driver/bus sync_state() callbacks to work correctly.
-- *
-- *		For example, say Device-C depends on suppliers Device-S1 and
-- *		Device-S2 and the dependency is listed in that order in the
-- *		firmware.  Say, S1 gets populated from the firmware after
-- *		late_initcall_sync().  Say S2 is populated and probed way
-- *		before that in device_initcall(). When C is populated, if this
-- *		add_links() function doesn't continue past a "failed linking to
-- *		S1" and continue linking C to S2, then S2 will get a
-- *		sync_state() callback before C is probed. This is because from
-- *		the perspective of S2, C was never a consumer when its
-- *		sync_state() evaluation is done. To avoid this, the add_links()
-- *		function has to go through all available suppliers of the
-- *		device (that corresponds to this fwnode) and link to them
-- *		before returning.
-- *
-- *		If some suppliers are not yet available (indicated by an error
-- *		return value), this function will be called again when other
-- *		devices are added to allow creating device links to any newly
-- *		available suppliers.
-- *
-- *		Return 0 if device links have been successfully created to all
-- *		the known suppliers of this device or if the supplier
-- *		information is not known.
-- *
-- *		Return -ENODEV if the suppliers needed for probing this device
-- *		have not been registered yet (because device links can only be
-- *		created to devices registered with the driver core).
-- *
-- *		Return -EAGAIN if some of the suppliers of this device have not
-- *		been registered yet, but none of those suppliers are necessary
-- *		for probing the device.
-+ * @add_links:	Create fwnode links to all the suppliers of the fwnode. Return
-+ *		zero on success, a negative error code otherwise.
-  */
- struct fwnode_operations {
- 	struct fwnode_handle *(*get)(struct fwnode_handle *fwnode);
-@@ -155,7 +119,7 @@ struct fwnode_operations {
- 	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
- 	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
- 				    struct fwnode_endpoint *endpoint);
--	int (*add_links)(const struct fwnode_handle *fwnode,
-+	int (*add_links)(struct fwnode_handle *fwnode,
- 			 struct device *dev);
- };
- 
--- 
-2.29.2.454.gaff20da3a2-goog
+Perhaps when the provider unregisters it sends a sysfs_notify and user 
+space can look and detect/handle that condition (I think it will get 
+EOPNOTSUPP on the next read). Is there something cleverer it can do?
 
+Thanks
+Mark
