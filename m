@@ -8,62 +8,61 @@ X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3725CC8301E
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:04:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41B46C83018
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:04:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13EF6223B0
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:04:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01D5A2237B
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:03:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="fsbK5xxw"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bB0A+R+G"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726398AbgKUCD4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 20 Nov 2020 21:03:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55368 "EHLO
+        id S1727316AbgKUCDQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 20 Nov 2020 21:03:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727156AbgKUCC7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2020 21:02:59 -0500
-Received: from mail-pf1-x449.google.com (mail-pf1-x449.google.com [IPv6:2607:f8b0:4864:20::449])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91E6FC0613CF
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:02:57 -0800 (PST)
-Received: by mail-pf1-x449.google.com with SMTP id t10so8348928pfh.19
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:02:57 -0800 (PST)
+        with ESMTP id S1727312AbgKUCDP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2020 21:03:15 -0500
+Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE33CC061A48
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:03:13 -0800 (PST)
+Received: by mail-yb1-xb4a.google.com with SMTP id r4so13284569ybs.1
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:03:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=sender:date:in-reply-to:message-id:mime-version:references:subject
          :from:to:cc;
-        bh=u8gSY0xV7Hxd2w8NGW6IzppBe4J1ijRyucJg3LQF0Gk=;
-        b=fsbK5xxw4z7i23FSKugbrasJEIXN13Q4zN4isokluNuL4HjEO/jGHpCycjM7g9sfqR
-         +kbOqa7qcSGga0Lm/F27nYxTNhPX4fRgh4Mf9+oYz6aUhraA4s7J5QNNMCxQsLKJfiu6
-         hO9xCcF+bjceWP/4mkj62eK+d2GhPUnH8ipvjoF5lXH5cwi6X4Wyh+5rcJdkI2Y7Mg6U
-         iT6tK3+H9NRURvDqYLmMIA70OMrl2Yj+fQCQc8tKeIPW+uVGa3W2KjLifbeHcVbYlj5y
-         Q04w/t2ewdvVIWyUrX6OqLnatW7MndjTFeg7RNiUGjOroBN0Dv6izRyJdeVw3DlHXFza
-         a27g==
+        bh=/LX9bJeHDDRylfNoVob87S2JlPxG5ImJS2h+ELTJVqI=;
+        b=bB0A+R+G6PXveAVwcws7Z6i0PtnRk1Y3WmrGqeK19Oc30MPDpg5PLW8RW/9lvTNJ7X
+         ZRTtvAXOk6zLLS0tWgmBiPMaXiHdzk5JqHUFBWNxyBSg0jQM1byyfIeB9eYkfVuzKhr1
+         X8ympijJHD7vExfoFyae6VvOI8Vx9VEFLgHHb0qBUNp2851U9GaspjHNdIxtBPBZYWWw
+         5ZgYR0vIK29DD9C+3cXe7HhXkzFBfkgliAr3qx4BD+Q87nz5OaTd9d2HZNawReGOZWFZ
+         4mRpulnPz5jPrf7xmdDNz/I/sOI1/6e8gnFM8roDKA1AsSml5IDh2Ec3EyYQQ94+kKeP
+         IerQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=u8gSY0xV7Hxd2w8NGW6IzppBe4J1ijRyucJg3LQF0Gk=;
-        b=LO2Xnxjxh6cgHmHFE5SyhaIE16JyxwBKsxQxGySK+U4wnnADgW6YZtvcZuLWlYsJnS
-         /niegQMfySoJlhACKnXk9fRBVP2UV4g5B9yYjMdSfZW5oxcKiyBOKd1EDCM0wC0sqQNt
-         DHtDATmi/U5xAcLHN+ZxY50wKeFDjvvN7tBzLuoymuCKhw/eECVaFLV4faOnv2I9wQKr
-         4Y2L1CxsQ83PEVoZG/KTZNiMMznGLLZ8wwAyj0gcZwnEidlM5Rhq83rhTGUsb9zK2eW/
-         zyy6CBRyQZ+NxSBuqJ/4JS+tVYiK2jKRF6MgPS2JPIgzXTbLVIS3mAj93tbrFRKyolAM
-         z+RA==
-X-Gm-Message-State: AOAM532w3XrZoiz0o3eoc/ALQC57MrXynSMFL4tT/oHU7mngHAf3TX4i
-        Co/sSglL/QFyfRHzZYkhq1J4ofOXaFgW+JE=
-X-Google-Smtp-Source: ABdhPJzP83DwhORfMb+bJuQz5UmJs3XebCnI6uLqfDOyEgb2ymxIPPeS7NMxGqPYiMO5s4yUrfepUAr2i5NMiTs=
+        bh=/LX9bJeHDDRylfNoVob87S2JlPxG5ImJS2h+ELTJVqI=;
+        b=Y86DJ4kOYg+LX4Hm29Pcjr9cvox+JkN/MQLDb+HmE2Wkl/RFTyF0v0fFsnvCvy6siI
+         Jw+mBBMv9HWHGSCTKaBxtUxaEd98wiqGshvyCo5+Dbf63KX5MzwCTDxPrlgXZ3v2YNqf
+         aXhxiaDPsvbsXxWf0MWT9JItr9F3OZJdlJqlwu5IvHoMNeGA7rfpW7v/y1HvVeDTYPcn
+         dnzNl+/rFitcv/Oyp7AOvsMiEjIzCHPCZr1QmCmqaGNO6PgMvs3Garksf2/0WZwUK7Ff
+         FzBaGRWCY+M1Qw3hLXyVUam0bMztMq3Eeu/VW6a08ZL/QDBsLZwSHSDSp8vVJEO9WUxP
+         5oWQ==
+X-Gm-Message-State: AOAM531ME/PB5xuLjCjD1wGMMDz/Md+ToI+hGMWA6OFEYDE7mbNpZ2BD
+        0twn/jXBSXk3G5lQtONJwcD200b4RCuVvsg=
+X-Google-Smtp-Source: ABdhPJwpPqnlFJLkUZfisNfpE1+K8M+fKGEWW7MXjBtNcZY6hW80Mcdvb9sW2hFXXDlIpR63mRRi+3x532QOhRc=
 Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:7220:84ff:fe09:fedc])
- (user=saravanak job=sendgmr) by 2002:a17:90a:f28e:: with SMTP id
- fs14mr6235679pjb.91.1605924177080; Fri, 20 Nov 2020 18:02:57 -0800 (PST)
-Date:   Fri, 20 Nov 2020 18:02:20 -0800
+ (user=saravanak job=sendgmr) by 2002:a25:4943:: with SMTP id
+ w64mr21803030yba.178.1605924192912; Fri, 20 Nov 2020 18:03:12 -0800 (PST)
+Date:   Fri, 20 Nov 2020 18:02:26 -0800
 In-Reply-To: <20201121020232.908850-1-saravanak@google.com>
-Message-Id: <20201121020232.908850-6-saravanak@google.com>
+Message-Id: <20201121020232.908850-12-saravanak@google.com>
 Mime-Version: 1.0
 References: <20201121020232.908850-1-saravanak@google.com>
 X-Mailer: git-send-email 2.29.2.454.gaff20da3a2-goog
-Subject: [PATCH v2 05/17] Revert "of: platform: Batch fwnode parsing when
- adding all top level devices"
+Subject: [PATCH v2 11/17] driver core: Redefine the meaning of fwnode_operations.add_links()
 From:   Saravana Kannan <saravanak@google.com>
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -86,31 +85,92 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This reverts commit 93d2e4322aa74c1ad1e8c2160608eb9a960d69ff.
+Change the meaning of fwnode_operations.add_links() to just create
+fwnode links by parsing the properties of a given fwnode.
 
-The fw_devlink_pause/resume() optimization attempt is getting replaced
-with a much more robust optimization by the end of this series. So, stop
-using those APIs.
+This patch doesn't actually make any code changes. To keeps things more
+digestable, the actual functional changes come in later patches in this
+series.
 
 Signed-off-by: Saravana Kannan <saravanak@google.com>
 ---
- drivers/of/platform.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/firmware/efi/efi-init.c |  2 +-
+ include/linux/fwnode.h          | 42 +++------------------------------
+ 2 files changed, 4 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index b557a0fcd4ba..79bd5f5a1bf1 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -538,9 +538,7 @@ static int __init of_platform_default_populate_init(void)
- 	}
+diff --git a/drivers/firmware/efi/efi-init.c b/drivers/firmware/efi/efi-init.c
+index b148f1459fb3..65bb97c391b0 100644
+--- a/drivers/firmware/efi/efi-init.c
++++ b/drivers/firmware/efi/efi-init.c
+@@ -316,7 +316,7 @@ static struct device_node *find_pci_overlap_node(void)
+  * resource reservation conflict on the memory window that the efifb
+  * framebuffer steals from the PCIe host bridge.
+  */
+-static int efifb_add_links(const struct fwnode_handle *fwnode,
++static int efifb_add_links(struct fwnode_handle *fwnode,
+ 			   struct device *dev)
+ {
+ 	struct device_node *sup_np;
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index b88365187347..942a6bb18201 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -78,44 +78,8 @@ struct fwnode_reference_args {
+  *			       endpoint node.
+  * @graph_get_port_parent: Return the parent node of a port node.
+  * @graph_parse_endpoint: Parse endpoint for port and endpoint id.
+- * @add_links:	Called after the device corresponding to the fwnode is added
+- *		using device_add(). The function is expected to create device
+- *		links to all the suppliers of the device that are available at
+- *		the time this function is called.  The function must NOT stop
+- *		at the first failed device link if other unlinked supplier
+- *		devices are present in the system.  This is necessary for the
+- *		driver/bus sync_state() callbacks to work correctly.
+- *
+- *		For example, say Device-C depends on suppliers Device-S1 and
+- *		Device-S2 and the dependency is listed in that order in the
+- *		firmware.  Say, S1 gets populated from the firmware after
+- *		late_initcall_sync().  Say S2 is populated and probed way
+- *		before that in device_initcall(). When C is populated, if this
+- *		add_links() function doesn't continue past a "failed linking to
+- *		S1" and continue linking C to S2, then S2 will get a
+- *		sync_state() callback before C is probed. This is because from
+- *		the perspective of S2, C was never a consumer when its
+- *		sync_state() evaluation is done. To avoid this, the add_links()
+- *		function has to go through all available suppliers of the
+- *		device (that corresponds to this fwnode) and link to them
+- *		before returning.
+- *
+- *		If some suppliers are not yet available (indicated by an error
+- *		return value), this function will be called again when other
+- *		devices are added to allow creating device links to any newly
+- *		available suppliers.
+- *
+- *		Return 0 if device links have been successfully created to all
+- *		the known suppliers of this device or if the supplier
+- *		information is not known.
+- *
+- *		Return -ENODEV if the suppliers needed for probing this device
+- *		have not been registered yet (because device links can only be
+- *		created to devices registered with the driver core).
+- *
+- *		Return -EAGAIN if some of the suppliers of this device have not
+- *		been registered yet, but none of those suppliers are necessary
+- *		for probing the device.
++ * @add_links:	Create fwnode links to all the suppliers of the fwnode. Return
++ *		zero on success, a negative error code otherwise.
+  */
+ struct fwnode_operations {
+ 	struct fwnode_handle *(*get)(struct fwnode_handle *fwnode);
+@@ -155,7 +119,7 @@ struct fwnode_operations {
+ 	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
+ 	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
+ 				    struct fwnode_endpoint *endpoint);
+-	int (*add_links)(const struct fwnode_handle *fwnode,
++	int (*add_links)(struct fwnode_handle *fwnode,
+ 			 struct device *dev);
+ };
  
- 	/* Populate everything else. */
--	fw_devlink_pause();
- 	of_platform_default_populate(NULL, NULL, NULL);
--	fw_devlink_resume();
- 
- 	return 0;
- }
 -- 
 2.29.2.454.gaff20da3a2-goog
 
