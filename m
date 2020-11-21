@@ -5,63 +5,63 @@ X-Spam-Level:
 X-Spam-Status: No, score=-23.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
+	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54FC6C6379F
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3AB6C64E69
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22ED72240B
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFB7B223B0
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OWTrmrFh"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="kPJh46MI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726724AbgKUCBH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 20 Nov 2020 21:01:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55024 "EHLO
+        id S1726985AbgKUCBU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 20 Nov 2020 21:01:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726701AbgKUCBG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2020 21:01:06 -0500
-Received: from mail-yb1-xb44.google.com (mail-yb1-xb44.google.com [IPv6:2607:f8b0:4864:20::b44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FAFDC061A04
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:01:06 -0800 (PST)
-Received: by mail-yb1-xb44.google.com with SMTP id g15so10344911ybq.6
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:01:06 -0800 (PST)
+        with ESMTP id S1726913AbgKUCBU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2020 21:01:20 -0500
+Received: from mail-yb1-xb41.google.com (mail-yb1-xb41.google.com [IPv6:2607:f8b0:4864:20::b41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAB82C061A48
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:01:19 -0800 (PST)
+Received: by mail-yb1-xb41.google.com with SMTP id o71so10355002ybc.2
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:01:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=K1DTYgzh1PTbt5Dy4OfYWtoZOqwKhfMyLvJRd1nKZqU=;
-        b=OWTrmrFhgMKOD4nQ/pwBJ9g35AYS3uNk81qFnTGjAdORh6DQtZwbJDpzryS7hYSdfG
-         ZfclUmgvHq2KAyNE3vPPPnAdFiTPZD++Ay29kDZZVVcFXH3HFKUq3hpP96QhSC4f3WUP
-         tN7QyhbFxnOXMxQVXZJsWKrtjCr8QpsIfK4XUitTpDVkCCpLX8CmeKtE8uHLPzMzLzH8
-         nlcSAqn29YDGud9qmji88sgxJhdVQZIIHrFp5kaayrn+yLZmvJt0psTbeCzogFX50wth
-         +zljqvHjn1XdsaDxtg2fm1zMp+iGxB8cqhRS9nWTigDeSpF3bM8AZ/UyNIcXTNV4GIZF
-         cSNg==
+        bh=lptBBbGushlHJUmT2AIfJv9BrkLAXhn95EN3DEBkcQw=;
+        b=kPJh46MIin1X5MmomtGmy+IMegd1fnFrRN5XCBU0BDeFY/SPYlUaHWi2XwcDhT8zpH
+         llJb0JTUYtli9u94w48Nt/YENr3SUlo3KoMOOezh2njap0ClbfsHpIJZwSGYeY5lUegd
+         K/6UvEMs3rCivA+uscms3XDbhVJzYlUPLwXdky9RO/Q3oL/IbcDhdhNN7NrDxRf6C2Ar
+         t5f0tY/S4VosrrEn5PqrH/JLQntmambrJ1huRNGnAzroEDAf7rzsbyS65Pg5QH5AdaPX
+         HjLiChlxtcBtXIDF+rm14mSpZozeinDkEqIpzhD1viKtwqrTe0HDrNLe/9CHIcvjJiuE
+         2Osw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=K1DTYgzh1PTbt5Dy4OfYWtoZOqwKhfMyLvJRd1nKZqU=;
-        b=dLW5GBKhQV/7WodlG4XpMlKuCZBQ/vaJxqaW8X5/jk+qSTU0HaresHaK5OjS/wHoPg
-         mh2oyvWByn0VpV17f1gmveA4Rbu9y1U27hJKOQPp/HakuJ3TLeO9ySS1BQZLqFQ+HSDy
-         cDgNWPnOv0h5lpY7xY+BgBPcOo5Op8nTxlIvyfI2OFiIgdsUCL5XJf1pEiOo66Jqw7SN
-         Lnv1CMFL+9c8GKkqh4YkiL0ZllScgrULS9Aq88PZ7ytbtWLqPNldEQzhtBIoGI1A8lLI
-         YYsfmkBQPaLxz1ORNrdoyx1ZXYH4wt7YqojvOlQY1FjdxCz6zpaPuIH+bVjHyh3MSt8B
-         srIQ==
-X-Gm-Message-State: AOAM532ll001+5e2foiwH30UYeTOyHUDJcOVLCXsXdRFZ+BgRIdK42k7
-        wkPw5gtDbfN/B02Z0OV/e1Hdtq0bPIww+K3PXoUTrw==
-X-Google-Smtp-Source: ABdhPJyaUd7orwxD63L9YPrdxfBc6vqRk8ovK/YWzUfH+pt8qh68rGG+nqHyaKxR4F41T+ZWt5vk0rTg+/kfNtg6Qxc=
-X-Received: by 2002:a25:b090:: with SMTP id f16mr25884519ybj.466.1605924065704;
- Fri, 20 Nov 2020 18:01:05 -0800 (PST)
+        bh=lptBBbGushlHJUmT2AIfJv9BrkLAXhn95EN3DEBkcQw=;
+        b=Az2WywxG2SM/xGa5RQmDVvAuydoIECoCUFVfLUux2A+Mjql229qJtNDyhNZc27gYfZ
+         z2xu8yvKW2AMzLGZnIE5py1VzyJm2cn6brpaeqDIDDRK6HvaiYykiYqv8qHY/Z1TYC0Z
+         KM9lRJEkK3Q0pO18NfJXduylQz9jlmDSkPLuj0gF0/+VdNC5L6/k5bsfiMJOGTo9xzGB
+         eOC2rEk3CXdeApnQ2pREEbg++UnyAXLw3UWGGYCyaHbS2rztrYNqukUtlVsVFSvko8Z1
+         DAzB7rqF4bImGW8bv1ZVFd+NgCG1Z1afwHANrdGHmH5bNvOfFEAac7W0xvDnnHJ+6mIX
+         PokA==
+X-Gm-Message-State: AOAM533friPGtf1f9qG7Hq7hutVS/JQxXWPvBY7mJcCFRT1621xo1KIu
+        cXZVuwdIFR4IqHkb1lQyVKywx6M+bVcZKcpwYUrfGQ==
+X-Google-Smtp-Source: ABdhPJwL+RWOtK1NK29JcTWnyDUn955B8Vc2hZVf1e8KN5TtA1N4vftbkBqKUHcWaybv95OBkNNlmFjIuyCz4UCouZk=
+X-Received: by 2002:a25:c483:: with SMTP id u125mr23456504ybf.310.1605924079027;
+ Fri, 20 Nov 2020 18:01:19 -0800 (PST)
 MIME-Version: 1.0
 References: <20201104232356.4038506-1-saravanak@google.com>
- <20201104232356.4038506-15-saravanak@google.com> <CAJZ5v0hQFRo8DzA=RFV8_L7_feiZF=7XMT8vVXgG5VtbLPEJ5Q@mail.gmail.com>
-In-Reply-To: <CAJZ5v0hQFRo8DzA=RFV8_L7_feiZF=7XMT8vVXgG5VtbLPEJ5Q@mail.gmail.com>
+ <20201104232356.4038506-18-saravanak@google.com> <CAJZ5v0gALooTYTLr9JOynHTT=Bqvzp1iTdpQ+SfQn+2u__w-0w@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gALooTYTLr9JOynHTT=Bqvzp1iTdpQ+SfQn+2u__w-0w@mail.gmail.com>
 From:   Saravana Kannan <saravanak@google.com>
-Date:   Fri, 20 Nov 2020 18:00:30 -0800
-Message-ID: <CAGETcx8BZVfZo7Yd-gNCcRgYErsTPdUSSRwBPQN39vVCMFQCnA@mail.gmail.com>
-Subject: Re: [PATCH v1 14/18] driver core: Use device's fwnode to check if it
- is waiting for suppliers
+Date:   Fri, 20 Nov 2020 18:00:43 -0800
+Message-ID: <CAGETcx-nbUVm5LL9n0Ee=p6GV-b0r048S56zWJ6e_Fd421krjA@mail.gmail.com>
+Subject: Re: [PATCH v1 17/18] driver core: Add helper functions to convert
+ fwnode links to device links
 To:     "Rafael J. Wysocki" <rafael@kernel.org>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
@@ -84,98 +84,128 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 16, 2020 at 8:34 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+On Mon, Nov 16, 2020 at 8:57 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
 > On Thu, Nov 5, 2020 at 12:24 AM Saravana Kannan <saravanak@google.com> wrote:
 > >
-> > To check if a device is still waiting for its supplier devices to be
-> > added, we used to check if the devices is in a global
-> > waiting_for_suppliers list. Since the global list will be deleted in
-> > subsequent patches, this patch stops using this check.
->
-> My kind of educated guess is that you want to drop
-> waiting_for_suppliers and that's why you want to use supplier links
-> here.
-
-Yes, and a device would never be added waiting_for_suppliers list.
-
+> > Add helper functions __fw_devlink_link_to_consumers() and
+> > __fw_devlink_link_to_suppliers() that convert fwnode links to device
+> > links.
 > >
-> > Instead, this patch uses a more device specific check. It checks if the
-> > device's fwnode has any fwnode links that haven't been converted to
-> > device links yet.
+> > __fw_devlink_link_to_consumers() is for creating:
+> > - Device links between a newly added device and all its consumer devices
+> >   that have been added to driver core.
+> > - Proxy SYNC_STATE_ONLY device links between the newly added device and
+> >   the parent devices of all its consumers that have not been added to
+> >   driver core yet.
+> >
+> > __fw_devlink_link_to_suppliers() is for creating:
+> > - Device links between a newly added device and all its supplier devices
+> > - Proxy SYNC_STATE_ONLY device links between the newly added device and
+> >   all the supplier devices of its child device nodes.
 > >
 > > Signed-off-by: Saravana Kannan <saravanak@google.com>
 > > ---
-> >  drivers/base/core.c | 18 ++++++++----------
-> >  1 file changed, 8 insertions(+), 10 deletions(-)
+> >  drivers/base/core.c | 228 ++++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 228 insertions(+)
 > >
 > > diff --git a/drivers/base/core.c b/drivers/base/core.c
-> > index 4ae5f2885ac5..d51dd564add1 100644
+> > index d51dd564add1..0c87ff949d81 100644
 > > --- a/drivers/base/core.c
 > > +++ b/drivers/base/core.c
-> > @@ -51,6 +51,7 @@ static DEFINE_MUTEX(wfs_lock);
-> >  static LIST_HEAD(deferred_sync);
-> >  static unsigned int defer_sync_state_count = 1;
-> >  static DEFINE_MUTEX(fwnode_link_lock);
-> > +static bool fw_devlink_is_permissive(void);
-> >
-> >  /**
-> >   * fwnode_link_add - Create a link between two fwnode_handles.
-> > @@ -994,13 +995,13 @@ int device_links_check_suppliers(struct device *dev)
-> >          * Device waiting for supplier to become available is not allowed to
-> >          * probe.
-> >          */
-> > -       mutex_lock(&wfs_lock);
-> > -       if (!list_empty(&dev->links.needs_suppliers) &&
-> > -           dev->links.need_for_probe) {
-> > -               mutex_unlock(&wfs_lock);
-> > +       mutex_lock(&fwnode_link_lock);
-> > +       if (dev->fwnode && !list_empty(&dev->fwnode->suppliers) &&
-> > +           !fw_devlink_is_permissive()) {
-> > +               mutex_unlock(&fwnode_link_lock);
-> >                 return -EPROBE_DEFER;
-> >         }
-> > -       mutex_unlock(&wfs_lock);
-> > +       mutex_unlock(&fwnode_link_lock);
-> >
-> >         device_links_write_lock();
-> >
-> > @@ -1166,10 +1167,7 @@ static ssize_t waiting_for_supplier_show(struct device *dev,
-> >         bool val;
-> >
-> >         device_lock(dev);
-> > -       mutex_lock(&wfs_lock);
-> > -       val = !list_empty(&dev->links.needs_suppliers)
-> > -             && dev->links.need_for_probe;
-> > -       mutex_unlock(&wfs_lock);
->
-> Why isn't the lock needed any more?
->
-> Or maybe it wasn't needed previously too?
-
-Yeah, I sent a separate patch for dropping this lock [1]. But I didn't
-want to wait for that to land to write this series. The lock wasn't
-needed in the first place and it was causing a lockdep warning.
-
->
-> > +       val = !list_empty(&dev->fwnode->suppliers);
-> >         device_unlock(dev);
-> >         return sysfs_emit(buf, "%u\n", val);
+> > @@ -1585,6 +1585,234 @@ static struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode)
+> >         return dev;
 > >  }
-> > @@ -2226,7 +2224,7 @@ static int device_add_attrs(struct device *dev)
-> >                         goto err_remove_dev_groups;
-> >         }
 > >
-> > -       if (fw_devlink_flags && !fw_devlink_is_permissive()) {
-> > +       if (fw_devlink_flags && !fw_devlink_is_permissive() && dev->fwnode) {
+> > +/**
+> > + * fw_devlink_create_devlink - Create a device link from a consumer to fwnode
 >
-> And why is this change needed?
+> Have you considered renaming "fw_devlink" to "fwnode_link"?
 
-Because if a device doesn't have a fwnode, it can't ever be waiting on
-a supplier. Also, the "show" function dereferences
-dev->fwnode->suppliers.
+I avoided using fwnode_link prefix because it's not related to the
+fwnode link APIs. This is a fw_devlink feature related code and hence
+the fw_devlink prefix.
+
+I could just call it fw_devlink_create() or fw_devlink_create_links()
+or fwnode_to_dev_link() if that's less confusing. Any preferences?
+
+> That would be much less confusing IMO and the name of this function
+> would be clearer.
+>
+> > + * @con - Consumer device for the device link
+> > + * @sup - fwnode handle of supplier
+> > + *
+> > + * This function will try to create a device link between the consumer and the
+> > + * supplier devices.
+>
+> "... between consumer device @con and the supplier device represented
+> by @sup" (and see below).
+>
+> > + *
+> > + * The supplier has to be provided as a fwnode because incorrect cycles in
+> > + * fwnode links can sometimes cause the supplier device to never be created.
+> > + * This function detects such cases and returns an error if a device link being
+> > + * created in invalid.
+>
+> "... returns an error if it cannot create a device link from the
+> consumer to a missing supplier."
+>
+> > + *
+> > + * Returns,
+> > + * 0 on successfully creating a device link
+> > + * -EINVAL if the device link being attempted is invalid
+>
+> "if the device link cannot be created as expected"
+>
+> > + * -EAGAIN if the device link needs to be attempted again in the future
+>
+> "if the device link cannot be created right now, but it may be
+> possible to do that in the future."
+
+Ack to all the documentation comments above.
+
+>
+> > + */
+> > +static int fw_devlink_create_devlink(struct device *con,
+> > +                                    struct fwnode_handle *sup, u32 flags)
+>
+> I'd call the second arg sup_handle to indicate that it is not a struct device.
+
+Ack
+
+>
+> > +{
+> > +       struct device *sup_dev, *sup_par_dev;
+> > +       int ret = 0;
+> > +
+> > +       sup_dev = get_dev_from_fwnode(sup);
+> > +       /*
+> > +        * If we can't find the supplier device from its fwnode, it might be
+> > +        * due to a cyclic dependcy between fwnodes. Some of these cycles can
+>
+> dependency
+>
+
+Ack
+
+> > +        * be broken by applying logic. Check for these types of cycles and
+> > +        * break them so that devices in the cycle probe properly.
+> > +        */
+>
+> I would do
+>
+> if (sup_dev) {
+>         if (!device_link_add(con, sup_dev, flags))
+>                 ret = -EINVAL;
+>
+>         put_device(sup_dev);
+>         return ret;
+> }
+>
+> here and the cycle detection (error code path) below, possibly using
+> the same dev pointer.
+
+Nice suggestion, thanks!
+
 
 -Saravana
-
-[1] - https://lore.kernel.org/lkml/20201104205431.3795207-1-saravanak@google.com/
-Ignore the 1/2 thing. There's only 1 relevant patch.
