@@ -5,62 +5,63 @@ X-Spam-Level:
 X-Spam-Status: No, score=-23.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC11DC56202
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 011E7C64E7C
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CBFD2240B
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C019E223B0
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 02:01:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Hn9e9Va7"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ehTkqaGN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726644AbgKUCAs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 20 Nov 2020 21:00:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54970 "EHLO
+        id S1726808AbgKUCBO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 20 Nov 2020 21:01:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726636AbgKUCAs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2020 21:00:48 -0500
-Received: from mail-yb1-xb41.google.com (mail-yb1-xb41.google.com [IPv6:2607:f8b0:4864:20::b41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6865C061A48
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:00:47 -0800 (PST)
-Received: by mail-yb1-xb41.google.com with SMTP id v92so10358826ybi.4
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:00:47 -0800 (PST)
+        with ESMTP id S1726799AbgKUCBO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2020 21:01:14 -0500
+Received: from mail-yb1-xb42.google.com (mail-yb1-xb42.google.com [IPv6:2607:f8b0:4864:20::b42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAFE4C061A48
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:01:13 -0800 (PST)
+Received: by mail-yb1-xb42.google.com with SMTP id k65so10348999ybk.5
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2020 18:01:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=j2wWUWZqYKnQ8zyB+N3c82zv7RQJgeeS1mhMIBzqBbs=;
-        b=Hn9e9Va7VU3kQCVvYW94zaiI0ssP/bahrUDyg+we8Uf5fpBld+4Zb9pVNeSB94QuCR
-         ueyC+rhR/83c0G0FHJWCSQT6wubY/9Fh7mnt/yDEuOL1q7j+tq2SkU3q47D5DVsW8fbm
-         JIzgYzKyCbTSqr7PAsZWGOgFV52SY0BaoievmbUe0sVrZ+ESavXqBdhdyHx8PiTEA+tD
-         howQO/65LTMCkAS/v6MfIJSicSq4gOyzQHiox526RKrP4EYzjCDyB6bdGKZjhtQHYj05
-         d2/nO3fNjoDZLIy5qkrlRinpX3f097uRM5QxNVHRsRNdte/0ZGOYSOZvHmwPU3JaH/29
-         2iNg==
+        bh=UJxZ6w6/zaA+DRTyYeAyLLTmSLsD8m+KVMVBliZmrDI=;
+        b=ehTkqaGNM8Hrf8tS8vWKP2N8U2ALQooRcd2pt7kat6HeSs39ILQ9wkBFn17L1rjIQP
+         b9FchazIIvOB5MKggiFsjB6XWE6qDZKZyu8nYaY0Deaq/bGL9zixlz1PLA42WfDEShcH
+         D9lbaUbXb0ufmxNl0k8qkYaKA9+oXVmRTn5F8AbS4+NUJn2f/49VTOlBWRVO7By/x9Oo
+         GkHw5l7h/Pd6ztTPgAfQ6bPwQUbaBqBXiytO0qpcu4pTgq8lHwgjzdEOF3Jqr+YI5cs+
+         x946uWbFMYaCsG6z+KESnY6NdUbtI9qZu24vvItI2Ni3iqs9lTSeRBH9dAm0fW32/Qjb
+         QmVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=j2wWUWZqYKnQ8zyB+N3c82zv7RQJgeeS1mhMIBzqBbs=;
-        b=DpLlSBx28cT15jD+7odcVU5awAQ5nriRGny78s7KFxPwXUxmbhBwC9cPTNAE4BtcTI
-         DVwTC+3rhP20c6oGGbnA5zhI89zN/+LC17pzF4NU+jwVgQabymL9PsqQ8fuEuAinhs73
-         HYu9jvmjfvFes1cm35qpgV7iXFOfV1P0nApSDxcCn/lGRiH8Ls6Oh4tMfqkOea3AwC2g
-         bSgUZ5FqlXFL19T+xhk227O0LikTtjisSHeA74XNv+Ax6l5dkBUjlyMbKPh2d568uwQG
-         Bu7Lb9NcGZfTvhyRbJ/xPlVY2FBIAlNgnD8UPisFsTSL8t6rcO0NFpF8xFPyIYD6r2mb
-         c6kQ==
-X-Gm-Message-State: AOAM532nP/vYI99DdKCjxrN3v8hzFw740bmS8ZSizP0g212sl+Q5JWn8
-        gW0uVQJAM19u3mWsknecPfbaOXr2HFXjzpzaiAXzOQ==
-X-Google-Smtp-Source: ABdhPJyvwTxSbO8UktNx9w1dInoBL/DB/rklOZuS30YiPBNmF94x5zjdboDH7Drkq+bARi73mxzx9vI1xKTs/rMjwaQ=
-X-Received: by 2002:a25:df05:: with SMTP id w5mr36113642ybg.20.1605924046981;
- Fri, 20 Nov 2020 18:00:46 -0800 (PST)
+        bh=UJxZ6w6/zaA+DRTyYeAyLLTmSLsD8m+KVMVBliZmrDI=;
+        b=tfvTexzayxyXjJF70R7iCvqMhVtJhwntlf1qWnG8cv9W6QI7eVTFSlCL7dlD7D9pEF
+         +XMJousVaP2qxphx46tU8v6LreXTi6dKUx6v7X5h5AeyRjsGXi3PmEr4Ln5Qt2OOVqED
+         Wh3BuSW2a+9sybbZKQqCKMeRT7chL6F6l+T7e7em/lGUpf/4jBuAIYy5XO9Q4ZHafBIi
+         NDsbP3UAZYbntUlAFC6IYBG+fCA2jkvf4CrFqAPTMhkU3SaxThYmkQuxKruftHwpv4Ju
+         flJHwjFnz1tWnkiX/HR4M5hJOa5S4gVPdxKKFhtwV6GHHhCOIyCMSAvWJUV9ZosabInT
+         XHTg==
+X-Gm-Message-State: AOAM532b82+uB7sMQ7aayQyT7XQ5J7a/kkB807Ljk1okT2gPpXqJEpZH
+        t9T85K8reWTX0BkCBhS35dqtp3UchPXa5hekIdz4aw==
+X-Google-Smtp-Source: ABdhPJwfG2sGNnRS52EgcRLh4J/iiR6UL1aDWSNTYXBPHduW02ZJE+LxxwNTXdGAZ5bfoMFWlEWF+kOf5URorWjBbaY=
+X-Received: by 2002:a25:268e:: with SMTP id m136mr25207052ybm.346.1605924072908;
+ Fri, 20 Nov 2020 18:01:12 -0800 (PST)
 MIME-Version: 1.0
 References: <20201104232356.4038506-1-saravanak@google.com>
- <20201104232356.4038506-13-saravanak@google.com> <CAJZ5v0hM9cUeW58OMRRWfAfY+_GYuXy=Dt8bssU+TCufuhukmw@mail.gmail.com>
-In-Reply-To: <CAJZ5v0hM9cUeW58OMRRWfAfY+_GYuXy=Dt8bssU+TCufuhukmw@mail.gmail.com>
+ <20201104232356.4038506-14-saravanak@google.com> <CAJZ5v0hVRd2pYfGwpa4FLwhtrS2pj9Ng2a2gf61BO5F-94PPXQ@mail.gmail.com>
+In-Reply-To: <CAJZ5v0hVRd2pYfGwpa4FLwhtrS2pj9Ng2a2gf61BO5F-94PPXQ@mail.gmail.com>
 From:   Saravana Kannan <saravanak@google.com>
-Date:   Fri, 20 Nov 2020 18:00:11 -0800
-Message-ID: <CAGETcx_7b-mUumRTqT7R9zDWANtJnzkPWFyeU1Z6Tw4jK_gdmA@mail.gmail.com>
-Subject: Re: [PATCH v1 12/18] driver core: Add fw_devlink_parse_fwtree()
+Date:   Fri, 20 Nov 2020 18:00:37 -0800
+Message-ID: <CAGETcx-nHiYLJLW+oUBgH8dm5eoQkEjhQUQu5OKZi9=ym5LvHQ@mail.gmail.com>
+Subject: Re: [PATCH v1 13/18] driver core: Add fwnode_get_next_parent_dev()
+ helper function
 To:     "Rafael J. Wysocki" <rafael@kernel.org>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
@@ -83,116 +84,68 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 16, 2020 at 8:25 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+On Mon, Nov 16, 2020 at 8:27 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
 > On Thu, Nov 5, 2020 at 12:24 AM Saravana Kannan <saravanak@google.com> wrote:
 > >
-> > This function is a wrapper around fwnode_operations.add_links().
-> >
-> > This function parses each node in a fwnode tree and create fwnode links
-> > for each of those nodes. The information for creating the fwnode links
-> > (the supplier and consumer fwnode) is obtained by parsing the properties
-> > in each of the fwnodes.
-> >
-> > This function also ensures that no fwnode is parsed more than once by
-> > marking the fwnodes as parsed.
+> > Given a fwnode, this function finds the closest ancestor fwnode that has
+> > a corresponding struct device. The function returns this struct device.
+> > This function will be used in a subsequent patch in this series.
 > >
 > > Signed-off-by: Saravana Kannan <saravanak@google.com>
+>
+> I would combine this one with patch [10/18].
+
+Ack.
+
+-Saravana
+
+
+
+
+-Saravana
+
+>
 > > ---
-> >  drivers/base/core.c    | 19 +++++++++++++++++++
-> >  include/linux/fwnode.h |  3 +++
-> >  2 files changed, 22 insertions(+)
+> >  drivers/base/core.c | 25 +++++++++++++++++++++++++
+> >  1 file changed, 25 insertions(+)
 > >
 > > diff --git a/drivers/base/core.c b/drivers/base/core.c
-> > index 4a0907574646..ee28d8c7ee85 100644
+> > index ee28d8c7ee85..4ae5f2885ac5 100644
 > > --- a/drivers/base/core.c
 > > +++ b/drivers/base/core.c
-> > @@ -1543,6 +1543,25 @@ static bool fw_devlink_is_permissive(void)
-> >         return fw_devlink_flags == DL_FLAG_SYNC_STATE_ONLY;
+> > @@ -1562,6 +1562,31 @@ static void fw_devlink_parse_fwtree(struct fwnode_handle *fwnode)
+> >                 fw_devlink_parse_fwtree(child);
 > >  }
 > >
-> > +static void fw_devlink_parse_fwnode(struct fwnode_handle *fwnode)
+> > +/**
+> > + * fwnode_get_next_parent_dev - Find device of closest ancestor fwnode
+> > + * @fwnode: firmware node
+> > + *
+> > + * Given a firmware node (@fwnode), this function finds its closest ancestor
+> > + * firmware node that has a corresponding struct device and returns that struct
+> > + * device.
+> > + *
+> > + * The caller of this function is expected to call put_device() on the returned
+> > + * device when they are done.
+> > + */
+> > +static struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode)
 > > +{
-> > +       if (fwnode->flags & FWNODE_FLAG_LINKS_ADDED)
-> > +               return;
->
-> Why is the flag needed?
->
-> Duplicate links won't be created anyway and it doesn't cause the tree
-> walk to be terminated.
-
-To avoid parsing a fwnode more than once. The cumulative impact of the
-repeated parsing is actually quite high.
-
-And I intentionally didn't do this check at the tree walk level
-because DT overlay can add/remove/change individual fwnodes and I want
-to reparse those when they are added while avoiding parsing other
-nodes that have already been parsed and not changed by DT overlay.
-
->
+> > +       struct device *dev = NULL;
 > > +
-> > +       fwnode_call_int_op(fwnode, add_links, NULL);
-> > +       fwnode->flags |= FWNODE_FLAG_LINKS_ADDED;
-> > +}
-> > +
-> > +static void fw_devlink_parse_fwtree(struct fwnode_handle *fwnode)
-> > +{
-> > +       struct fwnode_handle *child = NULL;
-> > +
-> > +       fw_devlink_parse_fwnode(fwnode);
-> > +
-> > +       while ((child = fwnode_get_next_available_child_node(fwnode, child)))
->
-> I'd prefer
->
-> for (child = NULL; child; child =
-> fwnode_get_next_available_child_node(fwnode, child))
-
-I was about to change to this and then realized it won't work. It
-would have to be
-
-for (child = fwnode_get_next_available_child_node(fwnode, NULL));
-       child;
-       child = fwnode_get_next_available_child_node(fwnode, child))
-
-Is that really better? The while() seems a lot more readable to me. I
-don't have a strong opinion, so I'll go with whatever you say after
-reading this.
-
->
-> > +               fw_devlink_parse_fwtree(child);
+> > +       fwnode_handle_get(fwnode);
+> > +       do {
+> > +               fwnode = fwnode_get_next_parent(fwnode);
+> > +               if (fwnode)
+> > +                       dev = get_dev_from_fwnode(fwnode);
+> > +       } while (fwnode && !dev);
+> > +       fwnode_handle_put(fwnode);
+> > +       return dev;
 > > +}
 > > +
 > >  static void fw_devlink_link_device(struct device *dev)
 > >  {
 > >         int fw_ret;
-> > diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> > index ec02e1e939cc..9aaf9e4f3994 100644
-> > --- a/include/linux/fwnode.h
-> > +++ b/include/linux/fwnode.h
-> > @@ -15,12 +15,15 @@
-> >  struct fwnode_operations;
-> >  struct device;
+> > --
+> > 2.29.1.341.ge80a0c044ae-goog
 > >
->
-> Description here, please.
-
-Ack
-
->
-> > +#define FWNODE_FLAG_LINKS_ADDED                BIT(0)
-> > +
-> >  struct fwnode_handle {
-> >         struct fwnode_handle *secondary;
-> >         const struct fwnode_operations *ops;
-> >         struct device *dev;
-> >         struct list_head suppliers;
-> >         struct list_head consumers;
-> > +       u32 flags;
->
-> That's a bit wasteful.  Maybe u8 would suffice for the time being?
-
-Ack.
-
-
--Saravana
