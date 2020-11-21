@@ -2,57 +2,54 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EA29C64E75
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA668C63777
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59C2C21D7E
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8477022201
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ge+90bAE"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RDCfva5E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728514AbgKUUa6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Nov 2020 15:30:58 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:20214 "EHLO
+        id S1728505AbgKUUat (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 21 Nov 2020 15:30:49 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:59031 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728511AbgKUUa5 (ORCPT
+        by vger.kernel.org with ESMTP id S1728456AbgKUUas (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Nov 2020 15:30:57 -0500
+        Sat, 21 Nov 2020 15:30:48 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605990656;
+        s=mimecast20190719; t=1605990647;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Fep8DCqOArUWxlXgL6bYOBw/BAGxDrrFI4it7tfDd1Y=;
-        b=ge+90bAEOTKkCL1djAkAoJN2jn0yKqeGjC44v2tFwXZiDqhsF7szB/VxuFCIOQt2Wr2N7P
-        A2anuuw5RmD/uQ1ac0MvCpOiRGzCnXAov3wXmqRSdfz9CL6BDzrDatm6L7G1Ig2wv9soaQ
-        UutLQxFmNL+EtJgykMMJKBLRvIyjGMc=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=fWX9mK8WRjAqO5l47oYm4WtVGOQRHKQx9ggm3gl8hSY=;
+        b=RDCfva5EXVSGQSX2I6NsbdKw8jpS/Redje1c3nzXcmh1TV/rGjZ+gmgNeT9skoHBwd2wG2
+        EtcvBTF5UN2qNkNdd7sSff86HG8qmJJA+aB3e8ih5HRBYF9+06dGvWh0JjkyF698Js61oa
+        PrQXDjm5S5Y4CZxU58QKAPmCSPzyB/I=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-510-4MKHtsUOPU60XzWs0JKAyA-1; Sat, 21 Nov 2020 15:30:54 -0500
-X-MC-Unique: 4MKHtsUOPU60XzWs0JKAyA-1
+ us-mta-187-Jy674qESPt6xKUqv55dIeg-1; Sat, 21 Nov 2020 15:30:43 -0500
+X-MC-Unique: Jy674qESPt6xKUqv55dIeg-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 40B6B1005D65;
-        Sat, 21 Nov 2020 20:30:53 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 65713809DCC;
+        Sat, 21 Nov 2020 20:30:42 +0000 (UTC)
 Received: from x1.localdomain (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 4EFC01C959;
-        Sat, 21 Nov 2020 20:30:52 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 71D171C959;
+        Sat, 21 Nov 2020 20:30:41 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 7/7] ACPI: scan: Add some HIDs which are never bound on Cherry Trail devices to acpi_ignore_dep_hids
-Date:   Sat, 21 Nov 2020 21:30:40 +0100
-Message-Id: <20201121203040.146252-8-hdegoede@redhat.com>
-In-Reply-To: <20201121203040.146252-1-hdegoede@redhat.com>
-References: <20201121203040.146252-1-hdegoede@redhat.com>
+Subject: [PATCH 0/7] ACPI: scan: Split root scanning into 2 steps
+Date:   Sat, 21 Nov 2020 21:30:33 +0100
+Message-Id: <20201121203040.146252-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
@@ -60,32 +57,61 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add some HIDs which are found on Cherry Trail devices and which
-Linux never bounds to acpi_ignore_dep_hids. This allows all root
-level ACPI devices to be instantiated during step one of scanning
-the ACPI root.
+Hi Rafael,
 
-Note this is not strictly necessary, at least not on the one
-Cherry Trail device this has been tested on so far.
+A while ago (almost 2 years ago) I discussed an issue with you about
+some devices, where some of the methods used during device-addition
+(such as _HID) may rely on OpRegions of other devices:
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/scan.c | 2 ++
- 1 file changed, 2 insertions(+)
+https://www.spinics.net/lists/linux-acpi/msg86303.html
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 44001610f6a4..218a6e9e560e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -759,6 +759,8 @@ static bool acpi_info_matches_hids(struct acpi_device_info *info,
- /* List of HIDs for which we ignore matching ACPI devices, when checking _DEP lists. */
- static const char * const acpi_ignore_dep_hids[] = {
- 	"INT3396", /* Windows System Power Management Controller */
-+	"INT33A4", /* Windows System Power Management Controller */
-+	"INT33BD", /* Intel Baytrail Mailbox Device */
- 	NULL
- };
- 
--- 
-2.28.0
+An example of this is the Acer Switch 10E SW3-016 model. The _HID method
+of the ACPI node for the UART attached Bluetooth, reads GPIOs to detect
+the installed wifi chip and update the _HID for the Bluetooth's ACPI node
+accordingly. The current ACPI scan code calls _HID before the GPIO
+controller's OpRegions are available, leading to the wrong _HID being
+used and Bluetooth not working.
+
+Last week I bought a second hand Acer device, not knowing it was this
+exact model. Since I now have access to affected hardware I decided to
+take a shot at fixing this.
+
+In the discussion you suggested to split the acpi_bus_scan of the root
+into 2 steps, first scan devices with an empty _DEP, putting other
+acpi_handle-s on a list of deferred devices and then in step 2 scan the
+rest.
+
+I'm happy to report that, at least on the affected device, this works
+nicely. While working on this I came up with a less drastic way to
+deal with this. As you will see in patch 4 of this series, I decided
+to first add a more KISS method of deciding which devices to defer
+to the second scan step by matching by HID. This has the disadvantage
+of not being a generic solution. But it has the advantage of being a
+solution which does not potentially regress other devices.
+
+Then in patch 5 I actually do add the option to defer or not based on
+_DEP being empty. I've put this behind a kernel commandline option as
+I'm not sure we should do this everywhere by default. At least no without
+a lot more testing.
+
+Patch 6 fixes an issue with patch 5 which causes battery devices to stop
+working.
+
+And patch 7 adds some extra HIDs to the list of HIDs which should be
+ignored when checking if the _DEP list is empty from Linux' pov, iow
+some extra HIDs which Linux does not bind to.
+
+Please let me know what you think about this patch-set. I would be happy
+to see just patches 1-4 merged.
+
+If you dislike the HID match approach I can drop that and add a DMI-quirk
+list of devices which need the new 2-step process (for now), to fix those
+without regressing the OOTB experience on other devices.
+
+Or we could just entirely switch to the new scheme in one big step, but
+that seems a bit too adventurous.
+
+Regards,
+
+Hans
 
