@@ -2,135 +2,96 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6D17C64E69
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94FFEC56202
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 21:19:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CF5D22201
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2BE62168B
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 21:19:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="d/+14aWH"
+	dkim=pass (1024-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="HmRQT9Fm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728511AbgKUUa6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Nov 2020 15:30:58 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:29978 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728513AbgKUUa6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Nov 2020 15:30:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605990657;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=dyjf7FFerAvyZSPO4iKB95U5xXwVD361EL2BnSebQWM=;
-        b=d/+14aWHyBq2YdTSvFxfOuhuWLxrAvwPN0Xpbvyk01pdYbQmRLuVO+bGwZdMZTvjrbgOnn
-        ljU+1Q/CyFaSWLPFU+r743+hxTO3cY3ezYt0m3sck7f+Qzm5b8fkZVmiWocoNKYREgsmu4
-        SFJgHoTjyCqVm81AeWkQTPkmBVnM0lk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-21-ihjPTvcUNcyREoSM24Jdlg-1; Sat, 21 Nov 2020 15:30:53 -0500
-X-MC-Unique: ihjPTvcUNcyREoSM24Jdlg-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 094CF1005D6B;
-        Sat, 21 Nov 2020 20:30:52 +0000 (UTC)
-Received: from x1.localdomain (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 1734318E4F;
-        Sat, 21 Nov 2020 20:30:50 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 6/7] ACPI: scan: Fix battery devices not working with acpi.defer_scan_based_on_dep=1
-Date:   Sat, 21 Nov 2020 21:30:39 +0100
-Message-Id: <20201121203040.146252-7-hdegoede@redhat.com>
-In-Reply-To: <20201121203040.146252-1-hdegoede@redhat.com>
-References: <20201121203040.146252-1-hdegoede@redhat.com>
+        id S1728403AbgKUVTA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 21 Nov 2020 16:19:00 -0500
+Received: from mail-02.mail-europe.com ([51.89.119.103]:55792 "EHLO
+        mail-02.mail-europe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728402AbgKUVTA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Nov 2020 16:19:00 -0500
+Date:   Sat, 21 Nov 2020 21:18:49 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+        s=protonmail; t=1605993535;
+        bh=yC9/J00wsdt87zvT5U4ngG4KDAlRMwKTW87Bo/OMRzM=;
+        h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:From;
+        b=HmRQT9Fm0k769ReZnIqDDSw00xoQyB9QEW7zxfcQ5GKDvsBQ/LeEJCocNBkaXr4AV
+         /eAlxOVbKq88EPq0qVUINl7bLZcEG7GM8eemmGK0R66lxUFJQXTTXiyXAeDVRkWkO0
+         nlX++SVj9Vvza9VRAwEz5DVMJPZFrZis93n3Qw50=
+To:     Hans de Goede <hdegoede@redhat.com>
+From:   =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
+Cc:     Mark Pearson <markpearson@lenovo.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "mgross@linux.intel.com" <mgross@linux.intel.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "mario.limonciello@dell.com" <mario.limonciello@dell.com>,
+        "eliadevito@gmail.com" <eliadevito@gmail.com>,
+        "hadess@hadess.net" <hadess@hadess.net>,
+        "bberg@redhat.com" <bberg@redhat.com>,
+        "platform-driver-x86@vger.kernel.org" 
+        <platform-driver-x86@vger.kernel.org>,
+        "dvhart@infradead.org" <dvhart@infradead.org>
+Reply-To: =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
+Subject: Re: [PATCH v3] ACPI: platform-profile: Add platform profile support
+Message-ID: <8c3pjwAeJVjl5ZLmnajCVHjcyBjoQeQTupHqZZostKJt3YZ0seAAvD-UIcBYFAFUNjsi0iWrEBNfX1l0tqN-4x07TGQbsiOMEqCpPAxgqJQ=@protonmail.com>
+In-Reply-To: <761671b3-ad26-230b-e709-05ce3bd69498@redhat.com>
+References: <markpearson@lenovo.com> <20201115004402.342838-1-markpearson@lenovo.com> <nRyY5CKaU6WrkbMiM25gTT_bJlrQjTY_UCcQkj8ty-2mPEMVZd4BB9KwrRp7z4GaE3TTOFCXuXnt0_7J_Tj50syusBxTmS5yNZAvYX02X74=@protonmail.com> <761671b3-ad26-230b-e709-05ce3bd69498@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When battery devices get added during the second step of the now 2 step
-scan-process, then acpi_walk_dep_device_list() may have already been
-called for some deps during the first step.
+2020. november 21., szombat 15:27 keltez=C3=A9ssel, Hans de Goede =C3=ADrta=
+:
 
-In this case acpi_device_dep_initialize() should not add these deps to
-the acpi_dep_list; and it should not increase adev->dep_unmet.
+> [...]
+> > I just realized that the sysfs attributes are only created if a profile=
+ provider
+> > is registered, and it is removed when the provide unregisters itself. I=
+ believe
+> > it would be easier for system daemons if those attributes existed from =
+module load
+> > to module unload since they can just just open the file and watch it us=
+ing poll,
+> > select, etc. If it goes away when the provider unregisters itself, then=
+ I believe
+> > a more complicated mechanism (like inotify) would need to be implemente=
+d in the
+> > daemons to be notified when a new provider is registered. Thus my sugge=
+stion
+> > for the next iteration is to create the sysfs attributes on module load=
+,
+> > and delete them on unload.
+> >
+> > What do you think?
+>
+> Actually I asked Mark to move this to the register / unregister time sinc=
+e
+> having a non functioning files in sysfs is a bit weird.
+> [...]
 
-Add a check for already registered (and bound to a driver) devices to
-acpi_device_dep_initialize(). This fixes battery devices (which honor the
-dep_unmet value) not working with acpi.defer_scan_based_on_dep=1.
+Ahh, I didn't know that, sorry. If a non-functioning sysfs attribute is a p=
+roblem,
+then there is another option: `platform_profile_choices` is always present;
+if no provider is registered, it's empty. If a provider is (un)registered,
+then `platform_profile_choices` is sysfs_notify()-ed. `platform_profile`
+only exists while a provider is registered, so it is created on provider
+registration and unregistered on provider unregistration.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/scan.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 9927036bfe77..44001610f6a4 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -17,6 +17,8 @@
- #include <linux/platform_data/x86/apple.h>
- #include <linux/pgtable.h>
- 
-+#include "acpica/accommon.h"
-+#include "acpica/acnamesp.h"
- #include "internal.h"
- 
- #define _COMPONENT		ACPI_BUS_COMPONENT
-@@ -1935,7 +1937,10 @@ static void acpi_device_dep_initialize(struct acpi_device *adev)
- 	}
- 
- 	for (i = 0; i < dep_devices.count; i++) {
-+		struct acpi_device *dep_adev = NULL;
-+		struct acpi_namespace_node *node;
- 		struct acpi_device_info *info;
-+		struct device *dep_dev;
- 		int skip;
- 
- 		status = acpi_get_object_info(dep_devices.handles[i], &info);
-@@ -1950,6 +1955,30 @@ static void acpi_device_dep_initialize(struct acpi_device *adev)
- 		if (skip)
- 			continue;
- 
-+		/*
-+		 * Skip devices which already have a driver bound
-+		 * and thus are already available for use.
-+		 * We only need to do this during the second scan step,
-+		 * when acpi_check_defer_add == false.
-+		 */
-+		if (!acpi_check_defer_add) {
-+			/*
-+			 * Cannot call acpi_bus_get_device here as we are called
-+			 * with ACPI_MTX_NAMESPACE held.
-+			 */
-+			node = acpi_ns_validate_handle(dep_devices.handles[i]);
-+			if (!node)
-+				continue; /* Should never happen */
-+
-+			status = acpi_ns_get_attached_data(node, acpi_scan_drop_device,
-+							   (void **)&dep_adev);
-+			if (ACPI_SUCCESS(status) && dep_adev) {
-+				dep_dev = acpi_get_first_physical_node(dep_adev);
-+				if (dep_dev && dep_dev->driver)
-+					continue;
-+			}
-+		}
-+
- 		dep = kzalloc(sizeof(struct acpi_dep_data), GFP_KERNEL);
- 		if (!dep)
- 			return;
--- 
-2.28.0
+Regards,
+Barnab=C3=A1s P=C5=91cze
 
