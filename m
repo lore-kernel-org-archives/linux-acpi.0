@@ -2,118 +2,129 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7DCFC71155
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 18:02:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BD85C388F9
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A0E8F22202
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 18:02:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BF1821D7E
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HkrT/Ciu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727171AbgKUSC0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Nov 2020 13:02:26 -0500
-Received: from smtprelay0210.hostedemail.com ([216.40.44.210]:53086 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726556AbgKUSC0 (ORCPT
+        id S1728503AbgKUUar (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 21 Nov 2020 15:30:47 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:39138 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728402AbgKUUar (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Nov 2020 13:02:26 -0500
-Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay07.hostedemail.com (Postfix) with ESMTP id AF7D7181D3025;
-        Sat, 21 Nov 2020 18:02:23 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: uncle36_3402e8c27356
-X-Filterd-Recvd-Size: 3937
-Received: from XPS-9350.home (unknown [47.151.128.180])
-        (Authenticated sender: joe@perches.com)
-        by omf04.hostedemail.com (Postfix) with ESMTPA;
-        Sat, 21 Nov 2020 18:02:18 +0000 (UTC)
-Message-ID: <f7643c9cb0a896f3ead65e86084b7c143e21ef43.camel@perches.com>
-Subject: Re: [RFC] MAINTAINERS tag for cleanup robot
-From:   Joe Perches <joe@perches.com>
-To:     James Bottomley <James.Bottomley@HansenPartnership.com>,
-        trix@redhat.com, clang-built-linux@googlegroups.com
-Cc:     linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
-        xen-devel@lists.xenproject.org, tboot-devel@lists.sourceforge.net,
-        kvm@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@acpica.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, netdev@vger.kernel.org,
-        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        cluster-devel@redhat.com, linux-mtd@lists.infradead.org,
-        keyrings@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, alsa-devel@alsa-project.org,
-        bpf@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        linux-nfs@vger.kernel.org, patches@opensource.cirrus.com
-Date:   Sat, 21 Nov 2020 10:02:17 -0800
-In-Reply-To: <5843ef910b0e86c00d9c0143dec20f93823b016b.camel@HansenPartnership.com>
-References: <20201121165058.1644182-1-trix@redhat.com>
-         <5843ef910b0e86c00d9c0143dec20f93823b016b.camel@HansenPartnership.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.38.1-1 
+        Sat, 21 Nov 2020 15:30:47 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1605990646;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=/nTqVVP0uahNJ0Vi39exTUckgy0BekWuMmxre6Vsres=;
+        b=HkrT/Ciu5xzotOIaB61Mht6EEOJTM35499NDo0n1g/evJ1FEsy6/ifwKBB0hSrhkT6E3aJ
+        kPzqblMPDsdnTzGAfPuKFfgcp/JU06prSlADSJ+Bwx8v0AdH5FFUomthGT9c8HtrSJwqv1
+        EGA3McCG05L4xnAOFytViKJPrk8FmfU=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-299-kLbre_OuMU655pTZoK3Yww-1; Sat, 21 Nov 2020 15:30:44 -0500
+X-MC-Unique: kLbre_OuMU655pTZoK3Yww-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AEDFE51DE;
+        Sat, 21 Nov 2020 20:30:43 +0000 (UTC)
+Received: from x1.localdomain (ovpn-112-24.ams2.redhat.com [10.36.112.24])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id B733718E4F;
+        Sat, 21 Nov 2020 20:30:42 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+Subject: [PATCH 1/7] ACPI: scan: Add an acpi_info_matches_hids() helper
+Date:   Sat, 21 Nov 2020 21:30:34 +0100
+Message-Id: <20201121203040.146252-2-hdegoede@redhat.com>
+In-Reply-To: <20201121203040.146252-1-hdegoede@redhat.com>
+References: <20201121203040.146252-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, 2020-11-21 at 09:18 -0800, James Bottomley wrote:
-> On Sat, 2020-11-21 at 08:50 -0800, trix@redhat.com wrote:
-> > A difficult part of automating commits is composing the subsystem
-> > preamble in the commit log.  For the ongoing effort of a fixer
-> > producing one or two fixes a release the use of 'treewide:' does
-> > not seem appropriate.
-> > 
-> > It would be better if the normal prefix was used.  Unfortunately
-> > normal is not consistent across the tree.
-> > 
-> > 	D: Commit subsystem prefix
-> > 
-> > ex/ for FPGA DFL DRIVERS
-> > 
-> > 	D: fpga: dfl:
-> 
-> I've got to bet this is going to cause more issues than it solves. 
-> SCSI uses scsi: <driver>: for drivers but not every driver has a
-> MAINTAINERS entry.  We use either scsi: or scsi: core: for mid layer
-> things, but we're not consistent.  Block uses blk-<something>: for all
-> of it's stuff but almost no <somtehing>s have a MAINTAINERS entry.  So
-> the next thing you're going to cause is an explosion of suggested
-> MAINTAINERs entries.
+acpi_device_dep_initialize() skips _DEPS with a HID of "INT3396"
+and checks this using an acpi_device_info struct.
 
-As well as some changes require simultaneous changes across
-multiple subsystems.
+The upcoming changes splitting the scanning of the root into 2 steps,
+deferring the addition of some devices which need access to OpRegions of
+other devices during scanning to the second step, need to extend the
+HIDs to skip during _DEP checking to a list of HIDs; and need to check
+an acpi_device_info struct against a list of HIDs in more places.
 
-> Has anyone actually complained about treewide:?
+Add an acpi_info_matches_hids() helper which checks a list of HIDs
+for this and switch acpi_device_dep_initialize() over to this helper.
 
-It depends on what you mean by treewide:
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/scan.c | 30 +++++++++++++++++++++++-------
+ 1 file changed, 23 insertions(+), 7 deletions(-)
 
-If a treewide: patch is applied by some "higher level" maintainer,
-then generally, no.
-
-If the treewide patch is also cc'd to many individual maintainers,
-then yes, many many times.
-
-Mostly because patches cause what is in their view churn or that
-changes are not specific to their subsystem grounds.
-
-The treewide patch is sometimes dropped, sometimes broken up and
-generally not completely applied.
-
-What would be useful in many cases like this is for a pre and post
-application of the treewide patch to be compiled and the object
-code verified for lack of any logic change.
-
-Unfortunately, gcc does not guarantee deterministic compilation so
-this isn't feasible with at least gcc.  Does clang guarantee this?
-
-I'm not sure it's possible:
-https://blog.llvm.org/2019/11/deterministic-builds-with-clang-and-lld.html
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index bc6a79e33220..e949265d5667 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -719,6 +719,28 @@ int acpi_device_add(struct acpi_device *device,
+ /* --------------------------------------------------------------------------
+                                  Device Enumeration
+    -------------------------------------------------------------------------- */
++static bool acpi_info_matches_hids(struct acpi_device_info *info,
++				   const char * const hids[])
++{
++	int i;
++
++	if (!(info->valid & ACPI_VALID_HID))
++		return false;
++
++	for (i = 0; hids[i]; i++) {
++		if (!strcmp(info->hardware_id.string, hids[i]))
++			return true;
++	}
++
++	return false;
++}
++
++/* List of HIDs for which we ignore matching ACPI devices, when checking _DEP lists. */
++static const char * const acpi_ignore_dep_hids[] = {
++	"INT3396", /* Windows System Power Management Controller */
++	NULL
++};
++
+ static struct acpi_device *acpi_bus_get_parent(acpi_handle handle)
+ {
+ 	struct acpi_device *device = NULL;
+@@ -1833,13 +1855,7 @@ static void acpi_device_dep_initialize(struct acpi_device *adev)
+ 			continue;
+ 		}
+ 
+-		/*
+-		 * Skip the dependency of Windows System Power
+-		 * Management Controller
+-		 */
+-		skip = info->valid & ACPI_VALID_HID &&
+-			!strcmp(info->hardware_id.string, "INT3396");
+-
++		skip = acpi_info_matches_hids(info, acpi_ignore_dep_hids);
+ 		kfree(info);
+ 
+ 		if (skip)
+-- 
+2.28.0
 
