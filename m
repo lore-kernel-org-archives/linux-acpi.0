@@ -2,54 +2,57 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA668C63777
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6D17C64E69
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8477022201
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CF5D22201
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RDCfva5E"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="d/+14aWH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728505AbgKUUat (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Nov 2020 15:30:49 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:59031 "EHLO
+        id S1728511AbgKUUa6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 21 Nov 2020 15:30:58 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:29978 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728456AbgKUUas (ORCPT
+        by vger.kernel.org with ESMTP id S1728513AbgKUUa6 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Nov 2020 15:30:48 -0500
+        Sat, 21 Nov 2020 15:30:58 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605990647;
+        s=mimecast20190719; t=1605990657;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=fWX9mK8WRjAqO5l47oYm4WtVGOQRHKQx9ggm3gl8hSY=;
-        b=RDCfva5EXVSGQSX2I6NsbdKw8jpS/Redje1c3nzXcmh1TV/rGjZ+gmgNeT9skoHBwd2wG2
-        EtcvBTF5UN2qNkNdd7sSff86HG8qmJJA+aB3e8ih5HRBYF9+06dGvWh0JjkyF698Js61oa
-        PrQXDjm5S5Y4CZxU58QKAPmCSPzyB/I=
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=dyjf7FFerAvyZSPO4iKB95U5xXwVD361EL2BnSebQWM=;
+        b=d/+14aWHyBq2YdTSvFxfOuhuWLxrAvwPN0Xpbvyk01pdYbQmRLuVO+bGwZdMZTvjrbgOnn
+        ljU+1Q/CyFaSWLPFU+r743+hxTO3cY3ezYt0m3sck7f+Qzm5b8fkZVmiWocoNKYREgsmu4
+        SFJgHoTjyCqVm81AeWkQTPkmBVnM0lk=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-187-Jy674qESPt6xKUqv55dIeg-1; Sat, 21 Nov 2020 15:30:43 -0500
-X-MC-Unique: Jy674qESPt6xKUqv55dIeg-1
+ us-mta-21-ihjPTvcUNcyREoSM24Jdlg-1; Sat, 21 Nov 2020 15:30:53 -0500
+X-MC-Unique: ihjPTvcUNcyREoSM24Jdlg-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 65713809DCC;
-        Sat, 21 Nov 2020 20:30:42 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 094CF1005D6B;
+        Sat, 21 Nov 2020 20:30:52 +0000 (UTC)
 Received: from x1.localdomain (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 71D171C959;
-        Sat, 21 Nov 2020 20:30:41 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1734318E4F;
+        Sat, 21 Nov 2020 20:30:50 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 0/7] ACPI: scan: Split root scanning into 2 steps
-Date:   Sat, 21 Nov 2020 21:30:33 +0100
-Message-Id: <20201121203040.146252-1-hdegoede@redhat.com>
+Subject: [PATCH 6/7] ACPI: scan: Fix battery devices not working with acpi.defer_scan_based_on_dep=1
+Date:   Sat, 21 Nov 2020 21:30:39 +0100
+Message-Id: <20201121203040.146252-7-hdegoede@redhat.com>
+In-Reply-To: <20201121203040.146252-1-hdegoede@redhat.com>
+References: <20201121203040.146252-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
@@ -57,61 +60,77 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+When battery devices get added during the second step of the now 2 step
+scan-process, then acpi_walk_dep_device_list() may have already been
+called for some deps during the first step.
 
-A while ago (almost 2 years ago) I discussed an issue with you about
-some devices, where some of the methods used during device-addition
-(such as _HID) may rely on OpRegions of other devices:
+In this case acpi_device_dep_initialize() should not add these deps to
+the acpi_dep_list; and it should not increase adev->dep_unmet.
 
-https://www.spinics.net/lists/linux-acpi/msg86303.html
+Add a check for already registered (and bound to a driver) devices to
+acpi_device_dep_initialize(). This fixes battery devices (which honor the
+dep_unmet value) not working with acpi.defer_scan_based_on_dep=1.
 
-An example of this is the Acer Switch 10E SW3-016 model. The _HID method
-of the ACPI node for the UART attached Bluetooth, reads GPIOs to detect
-the installed wifi chip and update the _HID for the Bluetooth's ACPI node
-accordingly. The current ACPI scan code calls _HID before the GPIO
-controller's OpRegions are available, leading to the wrong _HID being
-used and Bluetooth not working.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/scan.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-Last week I bought a second hand Acer device, not knowing it was this
-exact model. Since I now have access to affected hardware I decided to
-take a shot at fixing this.
-
-In the discussion you suggested to split the acpi_bus_scan of the root
-into 2 steps, first scan devices with an empty _DEP, putting other
-acpi_handle-s on a list of deferred devices and then in step 2 scan the
-rest.
-
-I'm happy to report that, at least on the affected device, this works
-nicely. While working on this I came up with a less drastic way to
-deal with this. As you will see in patch 4 of this series, I decided
-to first add a more KISS method of deciding which devices to defer
-to the second scan step by matching by HID. This has the disadvantage
-of not being a generic solution. But it has the advantage of being a
-solution which does not potentially regress other devices.
-
-Then in patch 5 I actually do add the option to defer or not based on
-_DEP being empty. I've put this behind a kernel commandline option as
-I'm not sure we should do this everywhere by default. At least no without
-a lot more testing.
-
-Patch 6 fixes an issue with patch 5 which causes battery devices to stop
-working.
-
-And patch 7 adds some extra HIDs to the list of HIDs which should be
-ignored when checking if the _DEP list is empty from Linux' pov, iow
-some extra HIDs which Linux does not bind to.
-
-Please let me know what you think about this patch-set. I would be happy
-to see just patches 1-4 merged.
-
-If you dislike the HID match approach I can drop that and add a DMI-quirk
-list of devices which need the new 2-step process (for now), to fix those
-without regressing the OOTB experience on other devices.
-
-Or we could just entirely switch to the new scheme in one big step, but
-that seems a bit too adventurous.
-
-Regards,
-
-Hans
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 9927036bfe77..44001610f6a4 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -17,6 +17,8 @@
+ #include <linux/platform_data/x86/apple.h>
+ #include <linux/pgtable.h>
+ 
++#include "acpica/accommon.h"
++#include "acpica/acnamesp.h"
+ #include "internal.h"
+ 
+ #define _COMPONENT		ACPI_BUS_COMPONENT
+@@ -1935,7 +1937,10 @@ static void acpi_device_dep_initialize(struct acpi_device *adev)
+ 	}
+ 
+ 	for (i = 0; i < dep_devices.count; i++) {
++		struct acpi_device *dep_adev = NULL;
++		struct acpi_namespace_node *node;
+ 		struct acpi_device_info *info;
++		struct device *dep_dev;
+ 		int skip;
+ 
+ 		status = acpi_get_object_info(dep_devices.handles[i], &info);
+@@ -1950,6 +1955,30 @@ static void acpi_device_dep_initialize(struct acpi_device *adev)
+ 		if (skip)
+ 			continue;
+ 
++		/*
++		 * Skip devices which already have a driver bound
++		 * and thus are already available for use.
++		 * We only need to do this during the second scan step,
++		 * when acpi_check_defer_add == false.
++		 */
++		if (!acpi_check_defer_add) {
++			/*
++			 * Cannot call acpi_bus_get_device here as we are called
++			 * with ACPI_MTX_NAMESPACE held.
++			 */
++			node = acpi_ns_validate_handle(dep_devices.handles[i]);
++			if (!node)
++				continue; /* Should never happen */
++
++			status = acpi_ns_get_attached_data(node, acpi_scan_drop_device,
++							   (void **)&dep_adev);
++			if (ACPI_SUCCESS(status) && dep_adev) {
++				dep_dev = acpi_get_first_physical_node(dep_adev);
++				if (dep_dev && dep_dev->driver)
++					continue;
++			}
++		}
++
+ 		dep = kzalloc(sizeof(struct acpi_dep_data), GFP_KERNEL);
+ 		if (!dep)
+ 			return;
+-- 
+2.28.0
 
