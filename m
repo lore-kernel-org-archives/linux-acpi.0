@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BD85C388F9
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E29C63798
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BF1821D7E
+	by mail.kernel.org (Postfix) with ESMTP id D389D22202
 	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HkrT/Ciu"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ETQ3AGAO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728503AbgKUUar (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Nov 2020 15:30:47 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:39138 "EHLO
+        id S1728507AbgKUUav (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 21 Nov 2020 15:30:51 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:39600 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728402AbgKUUar (ORCPT
+        by vger.kernel.org with ESMTP id S1728402AbgKUUau (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Nov 2020 15:30:47 -0500
+        Sat, 21 Nov 2020 15:30:50 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605990646;
+        s=mimecast20190719; t=1605990649;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=/nTqVVP0uahNJ0Vi39exTUckgy0BekWuMmxre6Vsres=;
-        b=HkrT/Ciu5xzotOIaB61Mht6EEOJTM35499NDo0n1g/evJ1FEsy6/ifwKBB0hSrhkT6E3aJ
-        kPzqblMPDsdnTzGAfPuKFfgcp/JU06prSlADSJ+Bwx8v0AdH5FFUomthGT9c8HtrSJwqv1
-        EGA3McCG05L4xnAOFytViKJPrk8FmfU=
+        bh=GMA0+aUZIGfOOiA4v/mEkuZjI6/I2qCtVstIf9X8elo=;
+        b=ETQ3AGAOtyICnQk0BPopgYSVf2jd09G/8n43u2T+liYn43gjeG1qZxaNdXnplBfEG/Jh9P
+        Ks/uRbcKobW4MdiVWwG+qGwMCcJ+uZ2WfvErmJhwfdYwyY1cuyB+zWN6s2TMdgueQI7px1
+        07vmkeObLAStnmco461e5x0QWeeuQ/w=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-299-kLbre_OuMU655pTZoK3Yww-1; Sat, 21 Nov 2020 15:30:44 -0500
-X-MC-Unique: kLbre_OuMU655pTZoK3Yww-1
+ us-mta-382-cJpGY8PnMpq-l9QFVUxiYQ-1; Sat, 21 Nov 2020 15:30:47 -0500
+X-MC-Unique: cJpGY8PnMpq-l9QFVUxiYQ-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AEDFE51DE;
-        Sat, 21 Nov 2020 20:30:43 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 46B17803F48;
+        Sat, 21 Nov 2020 20:30:46 +0000 (UTC)
 Received: from x1.localdomain (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B733718E4F;
-        Sat, 21 Nov 2020 20:30:42 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3A2BA18E4F;
+        Sat, 21 Nov 2020 20:30:45 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 1/7] ACPI: scan: Add an acpi_info_matches_hids() helper
-Date:   Sat, 21 Nov 2020 21:30:34 +0100
-Message-Id: <20201121203040.146252-2-hdegoede@redhat.com>
+Subject: [PATCH 3/7] ACPI: scan: Add a separate cleanup exit-path to acpi_scan_init()
+Date:   Sat, 21 Nov 2020 21:30:36 +0100
+Message-Id: <20201121203040.146252-4-hdegoede@redhat.com>
 In-Reply-To: <20201121203040.146252-1-hdegoede@redhat.com>
 References: <20201121203040.146252-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -60,71 +60,62 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_device_dep_initialize() skips _DEPS with a HID of "INT3396"
-and checks this using an acpi_device_info struct.
-
-The upcoming changes splitting the scanning of the root into 2 steps,
-deferring the addition of some devices which need access to OpRegions of
-other devices during scanning to the second step, need to extend the
-HIDs to skip during _DEP checking to a list of HIDs; and need to check
-an acpi_device_info struct against a list of HIDs in more places.
-
-Add an acpi_info_matches_hids() helper which checks a list of HIDs
-for this and switch acpi_device_dep_initialize() over to this helper.
+Add a separate cleanup exit-path to acpi_scan_init().
+This is a preparation patch for splitting the scanning of the root
+into 2 steps, deferring the addition of some devices which need access
+to OpRegions of other devices during scanning to the second step.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/scan.c | 30 +++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
+ drivers/acpi/scan.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index bc6a79e33220..e949265d5667 100644
+index 25a46ae24229..7dde66222648 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -719,6 +719,28 @@ int acpi_device_add(struct acpi_device *device,
- /* --------------------------------------------------------------------------
-                                  Device Enumeration
-    -------------------------------------------------------------------------- */
-+static bool acpi_info_matches_hids(struct acpi_device_info *info,
-+				   const char * const hids[])
-+{
-+	int i;
+@@ -2250,27 +2250,31 @@ int __init acpi_scan_init(void)
+ 	 */
+ 	result = acpi_bus_scan(ACPI_ROOT_OBJECT);
+ 	if (result)
+-		goto out;
++		goto cleanup;
+ 
+ 	result = acpi_bus_get_device(ACPI_ROOT_OBJECT, &acpi_root);
+ 	if (result)
+-		goto out;
++		goto cleanup;
+ 
+ 	/* Fixed feature devices do not exist on HW-reduced platform */
+ 	if (!acpi_gbl_reduced_hardware) {
+ 		result = acpi_bus_scan_fixed();
+-		if (result) {
+-			acpi_detach_data(acpi_root->handle,
+-					 acpi_scan_drop_device);
+-			acpi_device_del(acpi_root);
+-			put_device(&acpi_root->dev);
+-			goto out;
+-		}
++		if (result)
++			goto cleanup;
+ 	}
+ 
+ 	acpi_scan_initialized = true;
+ 
+- out:
++	mutex_unlock(&acpi_scan_lock);
++	return 0;
 +
-+	if (!(info->valid & ACPI_VALID_HID))
-+		return false;
-+
-+	for (i = 0; hids[i]; i++) {
-+		if (!strcmp(info->hardware_id.string, hids[i]))
-+			return true;
++cleanup:
++	if (acpi_root) {
++		acpi_detach_data(acpi_root->handle, acpi_scan_drop_device);
++		acpi_device_del(acpi_root);
++		put_device(&acpi_root->dev);
 +	}
 +
-+	return false;
-+}
-+
-+/* List of HIDs for which we ignore matching ACPI devices, when checking _DEP lists. */
-+static const char * const acpi_ignore_dep_hids[] = {
-+	"INT3396", /* Windows System Power Management Controller */
-+	NULL
-+};
-+
- static struct acpi_device *acpi_bus_get_parent(acpi_handle handle)
- {
- 	struct acpi_device *device = NULL;
-@@ -1833,13 +1855,7 @@ static void acpi_device_dep_initialize(struct acpi_device *adev)
- 			continue;
- 		}
- 
--		/*
--		 * Skip the dependency of Windows System Power
--		 * Management Controller
--		 */
--		skip = info->valid & ACPI_VALID_HID &&
--			!strcmp(info->hardware_id.string, "INT3396");
--
-+		skip = acpi_info_matches_hids(info, acpi_ignore_dep_hids);
- 		kfree(info);
- 
- 		if (skip)
+ 	mutex_unlock(&acpi_scan_lock);
+ 	return result;
+ }
 -- 
 2.28.0
 
