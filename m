@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3076C5519F
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6625CC6379F
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB5EB21D7E
-	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FC2122201
+	for <linux-acpi@archiver.kernel.org>; Sat, 21 Nov 2020 20:31:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hIY4dXNG"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SWzVfoZ6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728456AbgKUUat (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 21 Nov 2020 15:30:49 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:27229 "EHLO
+        id S1728402AbgKUUaz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 21 Nov 2020 15:30:55 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:28787 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728402AbgKUUat (ORCPT
+        by vger.kernel.org with ESMTP id S1728511AbgKUUaz (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Nov 2020 15:30:49 -0500
+        Sat, 21 Nov 2020 15:30:55 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605990647;
+        s=mimecast20190719; t=1605990653;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=M8Me/ZKPPF3zHjqioJTPV/mhYjuAHDncmz5kt3IdLmo=;
-        b=hIY4dXNGpp0DRok1JGASwP4j0bm7eMwt148yRzrna3uv3NlRNK0bInlN8cL404qBNhazPF
-        cg9p97039NcStVzaIuBFP4rK38XLTQDnvclrdU9PzO/oyqZqKI5f9jYORIdGnbSHG5n0SN
-        XTTvMxycNt9pU7Zm69ijlyBAdwi20To=
+        bh=qIFpuxY58mNlSwyojr2EBGs0nBeW01lQD7+vcwPzDfk=;
+        b=SWzVfoZ6zNLlOkk9fJwK0aNxLZvRXbCRBDT6GO0Gs/49hx4LchCIIzu0+hEE6sYb+Rkjy0
+        k81cOs8bRfd+zeJ3TcGXGN6FJ8CsidKrXhWCw9s34JB2bI/BvckyEHQBONsajgNw9BprTZ
+        cHNulgCFbqpsrQR4QcktdoriAK00ZhM=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-20-kO15xLITPMGmTchSb3TNPA-1; Sat, 21 Nov 2020 15:30:46 -0500
-X-MC-Unique: kO15xLITPMGmTchSb3TNPA-1
+ us-mta-522-WQ4DSXzMN_2V04SP7tlOfA-1; Sat, 21 Nov 2020 15:30:51 -0500
+X-MC-Unique: WQ4DSXzMN_2V04SP7tlOfA-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E658E1005D70;
-        Sat, 21 Nov 2020 20:30:44 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C0CDD803F41;
+        Sat, 21 Nov 2020 20:30:50 +0000 (UTC)
 Received: from x1.localdomain (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 016841C936;
-        Sat, 21 Nov 2020 20:30:43 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D164818E4F;
+        Sat, 21 Nov 2020 20:30:49 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 2/7] ACPI: scan: Call acpi_get_object_info() from acpi_add_single_object()
-Date:   Sat, 21 Nov 2020 21:30:35 +0100
-Message-Id: <20201121203040.146252-3-hdegoede@redhat.com>
+Subject: [PATCH 5/7] ACPI: scan: Add support for deferring adding devices to the second scan phase based on the _DEP list
+Date:   Sat, 21 Nov 2020 21:30:38 +0100
+Message-Id: <20201121203040.146252-6-hdegoede@redhat.com>
 In-Reply-To: <20201121203040.146252-1-hdegoede@redhat.com>
 References: <20201121203040.146252-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -60,128 +60,97 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Call acpi_get_object_info() from acpi_add_single_object() instead of
-calling it from acpi_set_pnp_ids() and pass the result down to the
-acpi_set_pnp_ids() call.
+The current solution, of deferring adding of some devices because they
+need access during the OpRegions of other devices while they are added,
+is not very generic.
 
-This is a preparation patch for splitting the scanning of the root
-into 2 steps, deferring the addition of some devices which need access
-to OpRegions of other devices during scanning to the second step.
+And support for making the decision to defer adding a device based on
+its _DEP list, instead of the device's HID being in a fixed list of HIDs
+to defer, which should be a more generic way to deal with this.
 
-Having the acpi_device_info available earlier is useful for making
-the decision on whether to defer the device addition or not, without
-needing to make a second acpi_get_object_info() call.
+Since this is likely to cause issues on some hardware, this new method will
+only be used if the new acpi.defer_scan_based_on_dep kernel commandline
+option is set to 1.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/internal.h |  3 ++-
- drivers/acpi/power.c    |  2 +-
- drivers/acpi/scan.c     | 22 ++++++++++++----------
- 3 files changed, 15 insertions(+), 12 deletions(-)
+ drivers/acpi/scan.c | 45 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 44 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index e3638bafb941..cb229e24c563 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -105,7 +105,8 @@ struct acpi_device_bus_id {
- int acpi_device_add(struct acpi_device *device,
- 		    void (*release)(struct device *));
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
--			     int type, unsigned long long sta);
-+			     int type, unsigned long long sta,
-+			     struct acpi_device_info *info);
- int acpi_device_setup_files(struct acpi_device *dev);
- void acpi_device_remove_files(struct acpi_device *dev);
- void acpi_device_add_finalize(struct acpi_device *device);
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 8048da85b7e0..189a0d4c6d06 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -939,7 +939,7 @@ int acpi_add_power_resource(acpi_handle handle)
- 
- 	device = &resource->device;
- 	acpi_init_device_object(device, handle, ACPI_BUS_TYPE_POWER,
--				ACPI_STA_DEFAULT);
-+				ACPI_STA_DEFAULT, NULL);
- 	mutex_init(&resource->resource_lock);
- 	INIT_LIST_HEAD(&resource->list_node);
- 	INIT_LIST_HEAD(&resource->dependents);
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index e949265d5667..25a46ae24229 100644
+index 407c8536568b..9927036bfe77 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -1258,10 +1258,8 @@ static bool acpi_object_is_system_bus(acpi_handle handle)
- }
+@@ -31,6 +31,11 @@ extern struct acpi_device *acpi_root;
  
- static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
--				int device_type)
-+				int device_type, struct acpi_device_info *info)
- {
--	acpi_status status;
--	struct acpi_device_info *info;
- 	struct acpi_pnp_device_id_list *cid_list;
- 	int i;
+ #define INVALID_ACPI_HANDLE	((acpi_handle)empty_zero_page)
  
-@@ -1272,8 +1270,7 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
- 			break;
- 		}
- 
--		status = acpi_get_object_info(handle, &info);
--		if (ACPI_FAILURE(status)) {
-+		if (!info) {
- 			pr_err(PREFIX "%s: Error reading device info\n",
- 					__func__);
- 			return;
-@@ -1298,8 +1295,6 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
- 		if (info->valid & ACPI_VALID_CLS)
- 			acpi_add_id(pnp, info->class_code.string);
- 
--		kfree(info);
--
- 		/*
- 		 * Some devices don't reliably have _HIDs & _CIDs, so add
- 		 * synthetic HIDs to make sure drivers can find them.
-@@ -1605,7 +1600,8 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
- }
- 
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
--			     int type, unsigned long long sta)
-+			     int type, unsigned long long sta,
-+			     struct acpi_device_info *info)
- {
- 	INIT_LIST_HEAD(&device->pnp.ids);
- 	device->device_type = type;
-@@ -1614,7 +1610,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	device->fwnode.ops = &acpi_device_fwnode_ops;
- 	acpi_set_device_status(device, sta);
- 	acpi_device_get_busid(device);
--	acpi_set_pnp_ids(handle, &device->pnp, type);
-+	acpi_set_pnp_ids(handle, &device->pnp, type, info);
- 	acpi_init_properties(device);
- 	acpi_bus_get_flags(device);
- 	device->flags.match_driver = false;
-@@ -1642,14 +1638,20 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	int result;
- 	struct acpi_device *device;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_device_info *info = NULL;
++static int defer_scan_based_on_dep = -1;
++module_param(defer_scan_based_on_dep, int, 0444);
++MODULE_PARM_DESC(defer_scan_based_on_dep,
++	"Use new scan-scheme deferring addition of devices with non empty _DEP list (-1=auto, 0=no, 1=yes)");
 +
-+	if (handle != ACPI_ROOT_OBJECT && type == ACPI_BUS_TYPE_DEVICE)
-+		acpi_get_object_info(handle, &info);
+ static const char *dummy_hid = "device";
  
- 	device = kzalloc(sizeof(struct acpi_device), GFP_KERNEL);
- 	if (!device) {
- 		printk(KERN_ERR PREFIX "Memory allocation error\n");
-+		kfree(info);
- 		return -ENOMEM;
- 	}
+ static LIST_HEAD(acpi_dep_list);
+@@ -1657,11 +1662,45 @@ void acpi_device_add_finalize(struct acpi_device *device)
  
--	acpi_init_device_object(device, handle, type, sta);
-+	acpi_init_device_object(device, handle, type, sta, info);
-+	kfree(info);
- 	/*
- 	 * For ACPI_BUS_TYPE_DEVICE getting the status is delayed till here so
- 	 * that we can call acpi_bus_get_status() and use its quirk handling.
+ static bool acpi_should_defer_add(acpi_handle handle, struct acpi_device_info *info)
+ {
++	struct acpi_handle_list dep_devices;
++	acpi_status status;
++	int i;
++
+ 	if (!acpi_check_defer_add || !info)
+ 		return false;
+ 
+-	if (acpi_info_matches_hids(info, acpi_defer_add_hids))
++	if (!defer_scan_based_on_dep)
++		return acpi_info_matches_hids(info, acpi_defer_add_hids);
++
++	/*
++	 * We check for _ADR here to avoid deferring the adding of the following:
++	 * 1. PCI devices
++	 * 2. ACPI nodes describing USB ports
++	 * Note checking for _ADR catches more then just these cases...
++	 */
++	if (info->valid & ACPI_VALID_ADR)
++		return false;
++
++	status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_devices);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	for (i = 0; i < dep_devices.count; i++) {
++		struct acpi_device_info *dep_info;
++		bool ignore;
++
++		status = acpi_get_object_info(dep_devices.handles[i], &dep_info);
++		if (ACPI_FAILURE(status))
++			continue;
++
++		ignore = acpi_info_matches_hids(dep_info, acpi_ignore_dep_hids);
++		kfree(dep_info);
++
++		if (ignore)
++			continue;
++
+ 		return true;
++	}
+ 
+ 	return false;
+ }
+@@ -2251,6 +2290,10 @@ int __init acpi_scan_init(void)
+ 	struct acpi_table_stao *stao_ptr;
+ 	struct acpi_deferred_dev *deferred_dev, *tmp;
+ 
++	/* Currently no devices are known which need _dep based scan deferral */
++	if (defer_scan_based_on_dep == -1)
++		defer_scan_based_on_dep = 0;
++
+ 	acpi_pci_root_init();
+ 	acpi_pci_link_init();
+ 	acpi_processor_init();
 -- 
 2.28.0
 
