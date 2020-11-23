@@ -2,189 +2,249 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91F30C64E7D
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 16:33:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA75C2D0E4
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 16:45:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3874B2073C
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 16:33:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="taYTQdLW";
-	dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="taYTQdLW"
+	by mail.kernel.org (Postfix) with ESMTP id 7E82E208DB
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 16:45:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730093AbgKWQc1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 23 Nov 2020 11:32:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36836 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732928AbgKWQbg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2020 11:31:36 -0500
-Received: from bedivere.hansenpartnership.com (bedivere.hansenpartnership.com [IPv6:2607:fcd0:100:8a00::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FC97C061A4D;
-        Mon, 23 Nov 2020 08:31:36 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by bedivere.hansenpartnership.com (Postfix) with ESMTP id 7EDBD12808F6;
-        Mon, 23 Nov 2020 08:31:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-        d=hansenpartnership.com; s=20151216; t=1606149095;
-        bh=+IhPqZ/v6VfDyyXzj4lMu9axEsbedJZyqBpFfwsfG+g=;
-        h=Message-ID:Subject:From:To:Date:In-Reply-To:References:From;
-        b=taYTQdLWt1uKXwIt/3Ve/mEupTdq+Wcpdv+UXp5WQMTWxY34l98m0qHLcdAiwuo2t
-         gwBg46qri78QHRql74q8THMzP+7WPx9XqttvrPch20gBcYUMT4pLXQarcLhIoin1Gp
-         Z+ziweydBKwdaV8ZmrW12X55c5G6vUR8Kiznotik=
-Received: from bedivere.hansenpartnership.com ([127.0.0.1])
-        by localhost (bedivere.hansenpartnership.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id S05__PC1UR2d; Mon, 23 Nov 2020 08:31:35 -0800 (PST)
-Received: from jarvis.int.hansenpartnership.com (unknown [IPv6:2601:600:8280:66d1::527])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by bedivere.hansenpartnership.com (Postfix) with ESMTPSA id 9FAA112808A8;
-        Mon, 23 Nov 2020 08:31:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-        d=hansenpartnership.com; s=20151216; t=1606149095;
-        bh=+IhPqZ/v6VfDyyXzj4lMu9axEsbedJZyqBpFfwsfG+g=;
-        h=Message-ID:Subject:From:To:Date:In-Reply-To:References:From;
-        b=taYTQdLWt1uKXwIt/3Ve/mEupTdq+Wcpdv+UXp5WQMTWxY34l98m0qHLcdAiwuo2t
-         gwBg46qri78QHRql74q8THMzP+7WPx9XqttvrPch20gBcYUMT4pLXQarcLhIoin1Gp
-         Z+ziweydBKwdaV8ZmrW12X55c5G6vUR8Kiznotik=
-Message-ID: <8f5611bb015e044fa1c0a48147293923c2d904e4.camel@HansenPartnership.com>
-Subject: Re: [Intel-wired-lan] [PATCH 000/141] Fix fall-through warnings for
- Clang
-From:   James Bottomley <James.Bottomley@HansenPartnership.com>
-To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc:     Joe Perches <joe@perches.com>, Kees Cook <keescook@chromium.org>,
-        Jakub Kicinski <kuba@kernel.org>, alsa-devel@alsa-project.org,
-        linux-atm-general@lists.sourceforge.net,
-        reiserfs-devel@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        linux-ide@vger.kernel.org, dm-devel@redhat.com,
-        keyrings@vger.kernel.org, linux-mtd@lists.infradead.org,
-        GR-everest-linux-l2@marvell.com, wcn36xx@lists.infradead.org,
-        samba-technical@lists.samba.org, linux-i3c@lists.infradead.org,
-        linux1394-devel@lists.sourceforge.net,
-        linux-afs@lists.infradead.org,
-        usb-storage@lists.one-eyed-alien.net, drbd-dev@lists.linbit.com,
-        devel@driverdev.osuosl.org, linux-cifs@vger.kernel.org,
-        rds-devel@oss.oracle.com,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org,
-        oss-drivers@netronome.com, bridge@lists.linux-foundation.org,
-        linux-security-module@vger.kernel.org,
-        amd-gfx@lists.freedesktop.org,
-        linux-stm32@st-md-mailman.stormreply.com, cluster-devel@redhat.com,
-        linux-acpi@vger.kernel.org, coreteam@netfilter.org,
-        intel-wired-lan@lists.osuosl.org, linux-input@vger.kernel.org,
-        Miguel Ojeda <ojeda@kernel.org>,
-        tipc-discussion@lists.sourceforge.net, linux-ext4@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-watchdog@vger.kernel.org,
-        selinux@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-geode@lists.infradead.org,
-        linux-can@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-gpio@vger.kernel.org, op-tee@lists.trustedfirmware.org,
-        linux-mediatek@lists.infradead.org, xen-devel@lists.xenproject.org,
-        nouveau@lists.freedesktop.org, linux-hams@vger.kernel.org,
-        ceph-devel@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        linux-arm-kernel@lists.infradead.org, linux-hwmon@vger.kernel.org,
-        x86@kernel.org, linux-nfs@vger.kernel.org,
-        GR-Linux-NIC-Dev@marvell.com, linux-mm@kvack.org,
-        netdev@vger.kernel.org, linux-decnet-user@lists.sourceforge.net,
-        linux-mmc@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-sctp@vger.kernel.org, linux-usb@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        patches@opensource.cirrus.com, linux-integrity@vger.kernel.org,
-        target-devel@vger.kernel.org, linux-hardening@vger.kernel.org,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Greg KH <gregkh@linuxfoundation.org>
-Date:   Mon, 23 Nov 2020 08:31:30 -0800
-In-Reply-To: <20201123130348.GA3119@embeddedor>
-References: <cover.1605896059.git.gustavoars@kernel.org>
-         <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-         <202011201129.B13FDB3C@keescook>
-         <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-         <202011220816.8B6591A@keescook>
-         <9b57fd4914b46f38d54087d75e072d6e947cb56d.camel@HansenPartnership.com>
-         <ca071decb87cc7e905411423c05a48f9fd2f58d7.camel@perches.com>
-         <0147972a72bc13f3629de8a32dee6f1f308994b5.camel@HansenPartnership.com>
-         <d8d1e9add08cdd4158405e77762d4946037208f8.camel@perches.com>
-         <dbd2cb703ed9eefa7dde9281ea26ab0f7acc8afe.camel@HansenPartnership.com>
-         <20201123130348.GA3119@embeddedor>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.34.4 
+        id S2387879AbgKWQpN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Nov 2020 11:45:13 -0500
+Received: from mail-oo1-f65.google.com ([209.85.161.65]:47014 "EHLO
+        mail-oo1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732979AbgKWQpN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2020 11:45:13 -0500
+Received: by mail-oo1-f65.google.com with SMTP id s11so3253742oov.13
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2020 08:45:12 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=GkRNs8iuxJWIpoSGWBylXKcII9rd9UiaJ7g5QuMVLpk=;
+        b=uNP7MigCwP/biQLwy0nJHXJ7rW97pwDLJQOgxPZZpuxyWEh5BdBWrWpG6bWbSWqCdI
+         JA9J9X9jFPPcCvOmrxQsf1DmCq1wW9cwXafy1XB9tZshME3xVH0mprJbMukWL0gUBRRZ
+         WWvJbD2hp3z//AC6XJtYgh5ZzPW/FFLFKJDFb933L+0Xk33Vu0dCmMyreApNGtFXRasz
+         cGAPyMkSLuLPnuOWTZdE0XCX73F44WwrLIGjXCmmP73B4mOgyi1AquyPNF3SJ8D5tbpP
+         o2hMnfPlNIAhEbmGjuWO6vn4tGRHbWt5N+IebYXT1uAVYSOoj7gXPD9NwytXQxX27G+q
+         bM7Q==
+X-Gm-Message-State: AOAM533pkYg55Bl+y32h+OT2mcC+xmvdG2P7YDPZtKR8rG0topTpJfig
+        tuqdvB7ChKkz7KjZUW7cd4WbrxyHLH98pdjLat5tMGrmKxfGcA==
+X-Google-Smtp-Source: ABdhPJxBSsEb2fqDNeD2NopCluvwwx2vzpwYMSPjLn3N1Ruy1isNWtm0/Imzc+/a39xY+r/rIy7S6EPFMuXMGoegzeM=
+X-Received: by 2002:a4a:bb07:: with SMTP id f7mr157370oop.44.1606149912103;
+ Mon, 23 Nov 2020 08:45:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+References: <20201120060752.3146704-1-Shyam-sundar.S-k@amd.com>
+In-Reply-To: <20201120060752.3146704-1-Shyam-sundar.S-k@amd.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 23 Nov 2020 17:45:01 +0100
+Message-ID: <CAJZ5v0jeoiZdgzKupakPn+82iur-nMLH3wEC07cHO1qyvoysug@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: PM: s2idle: Add AMD support to handle _DSM
+ during S2Idle
+To:     Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, 2020-11-23 at 07:03 -0600, Gustavo A. R. Silva wrote:
-> On Sun, Nov 22, 2020 at 11:53:55AM -0800, James Bottomley wrote:
-> > On Sun, 2020-11-22 at 11:22 -0800, Joe Perches wrote:
-> > > On Sun, 2020-11-22 at 11:12 -0800, James Bottomley wrote:
-> > > > On Sun, 2020-11-22 at 10:25 -0800, Joe Perches wrote:
-> > > > > On Sun, 2020-11-22 at 10:21 -0800, James Bottomley wrote:
-> > > > > > Please tell me our reward for all this effort isn't a
-> > > > > > single missing error print.
-> > > > > 
-> > > > > There were quite literally dozens of logical defects found
-> > > > > by the fallthrough additions.  Very few were logging only.
-> > > > 
-> > > > So can you give us the best examples (or indeed all of them if
-> > > > someone is keeping score)?  hopefully this isn't a US election
-> > > > situation ...
-> > > 
-> > > Gustavo?  Are you running for congress now?
-> > > 
-> > > https://lwn.net/Articles/794944/
-> > 
-> > That's 21 reported fixes of which about 50% seem to produce no
-> > change in code behaviour at all, a quarter seem to have no user
-> > visible effect with the remaining quarter producing unexpected
-> > errors on obscure configuration parameters, which is why no-one
-> > really noticed them before.
-> 
-> The really important point here is the number of bugs this has
-> prevented and will prevent in the future. See an example of this,
-> below:
-> 
-> https://lore.kernel.org/linux-iio/20190813135802.GB27392@kroah.com/
+On Fri, Nov 20, 2020 at 7:10 AM Shyam Sundar S K
+<Shyam-sundar.S-k@amd.com> wrote:
+>
+> Initial support for S2Idle based on the Intel implementation [1] does not
+> work for AMD as the BIOS implementation for ACPI methods like the _DSM
+> are not standardized.
+>
+> So, the way in which the UUID's were parsed and the ACPI packages were
+> retrieved out of the ACPI objects are not the same between Intel and AMD.
+>
+> This patch adds AMD support for S2Idle to parse the UUID, evaluate the
+> _DSM methods, preparing the Idle constraint list etc.
+>
+> Link: https://uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf # [1]
+> Signed-off-by: Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
+> ---
+> v2:(https://www.spinics.net/lists/linux-acpi/msg97104.html)
+> - Remove default case in switch.
+> - Add a routine acpi_match_vendor_name() required when building on a
+>   non-x86 based environment.
+> - Fixed spelling mistakes.
+> ---
+>  drivers/acpi/sleep.c | 166 ++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 157 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index aff13bf4d947..b929fd0d2e04 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -710,6 +710,11 @@ static const struct acpi_device_id lps0_device_ids[] = {
+>  #define ACPI_LPS0_ENTRY                5
+>  #define ACPI_LPS0_EXIT         6
+>
+> +/* AMD */
+> +#define ACPI_LPS0_DSM_UUID_AMD      "e3f32452-febc-43ce-9039-932122d37721"
+> +#define ACPI_LPS0_SCREEN_OFF_AMD    4
+> +#define ACPI_LPS0_SCREEN_ON_AMD     5
+> +
+>  static acpi_handle lps0_device_handle;
+>  static guid_t lps0_dsm_guid;
+>  static char lps0_dsm_func_mask;
+> @@ -733,8 +738,124 @@ struct lpi_constraints {
+>         int min_dstate;
+>  };
+>
+> +/* AMD */
+> +/* Device constraint entry structure */
+> +struct lpi_device_info_amd {
+> +       int revision;
+> +       int count;
+> +       union acpi_object *package;
+> +};
+> +
+> +/* Constraint package structure */
+> +struct lpi_device_constraint_amd {
+> +       char *name;
+> +       int enabled;
+> +       int function_states;
+> +       int min_dstate;
+> +};
+> +
+>  static struct lpi_constraints *lpi_constraints_table;
+>  static int lpi_constraints_table_size;
+> +static int rev_id;
+> +
+> +static void lpi_device_get_constraints_amd(void)
+> +{
+> +       union acpi_object *out_obj;
+> +       int i, j, k;
+> +
+> +       out_obj = acpi_evaluate_dsm_typed(lps0_device_handle, &lps0_dsm_guid,
+> +                                         1, ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
+> +                                         NULL, ACPI_TYPE_PACKAGE);
+> +
+> +       if (!out_obj)
+> +               return;
+> +
+> +       acpi_handle_debug(lps0_device_handle, "_DSM function 1 eval %s\n",
+> +                         out_obj ? "successful" : "failed");
+> +
+> +       for (i = 0; i < out_obj->package.count; i++) {
+> +               union acpi_object *package = &out_obj->package.elements[i];
+> +               struct lpi_device_info_amd info = { };
+> +
+> +               if (package->type == ACPI_TYPE_INTEGER) {
+> +                       switch (i) {
+> +                       case 0:
+> +                               info.revision = package->integer.value;
+> +                               break;
+> +                       case 1:
+> +                               info.count = package->integer.value;
+> +                               break;
+> +                       }
+> +               } else if (package->type == ACPI_TYPE_PACKAGE) {
+> +                       lpi_constraints_table = kcalloc(package->package.count,
+> +                                                       sizeof(*lpi_constraints_table),
+> +                                                       GFP_KERNEL);
+> +
+> +                       if (!lpi_constraints_table)
+> +                               goto free_acpi_buffer;
+> +
+> +                       acpi_handle_info(lps0_device_handle,
+> +                                        "LPI: constraints list begin:\n");
+> +
+> +                       for (j = 0; j < package->package.count; ++j) {
+> +                               union acpi_object *info_obj = &package->package.elements[j];
+> +                               struct lpi_device_constraint_amd dev_info = {};
+> +                               struct lpi_constraints *list;
+> +                               acpi_status status;
+> +
+> +                               for (k = 0; k < info_obj->package.count; ++k) {
+> +                                       union acpi_object *obj = &info_obj->package.elements[k];
+> +                                       union acpi_object *obj_new;
+> +
+> +                                       list = &lpi_constraints_table[lpi_constraints_table_size];
+> +                                       list->min_dstate = -1;
+> +
+> +                                       obj_new = &obj[k];
+> +                                       switch (k) {
+> +                                       case 0:
+> +                                               dev_info.enabled = obj->integer.value;
+> +                                               break;
+> +                                       case 1:
+> +                                               dev_info.name = obj->string.pointer;
+> +                                               break;
+> +                                       case 2:
+> +                                               dev_info.function_states = obj->integer.value;
+> +                                               break;
+> +                                       case 3:
+> +                                               dev_info.min_dstate = obj->integer.value;
+> +                                               break;
+> +                                       }
+> +
+> +                                       if (!dev_info.enabled || !dev_info.name ||
+> +                                           !dev_info.min_dstate)
+> +                                               continue;
+> +
+> +                                       status = acpi_get_handle(NULL, dev_info.name,
+> +                                                                &list->handle);
+> +                                       if (ACPI_FAILURE(status))
+> +                                               continue;
+> +
+> +                                       acpi_handle_info(lps0_device_handle,
+> +                                                        "Name:%s\n", dev_info.name);
+> +
+> +                                       list->min_dstate = dev_info.min_dstate;
+> +
+> +                                       if (list->min_dstate < 0) {
+> +                                               acpi_handle_info(lps0_device_handle,
+> +                                                                "Incomplete constraint defined\n");
+> +                                               continue;
+> +                                       }
+> +                               }
+> +                               lpi_constraints_table_size++;
+> +                       }
+> +               }
+> +       }
+> +
+> +       acpi_handle_info(lps0_device_handle, "LPI: constraints list end\n");
+> +
+> +free_acpi_buffer:
+> +       ACPI_FREE(out_obj);
+> +}
+>
+>  static void lpi_device_get_constraints(void)
+>  {
+> @@ -883,13 +1004,22 @@ static void acpi_sleep_run_lps0_dsm(unsigned int func)
+>         if (!(lps0_dsm_func_mask & (1 << func)))
+>                 return;
+>
+> -       out_obj = acpi_evaluate_dsm(lps0_device_handle, &lps0_dsm_guid, 1, func, NULL);
+> +       out_obj = acpi_evaluate_dsm(lps0_device_handle, &lps0_dsm_guid, rev_id, func, NULL);
+>         ACPI_FREE(out_obj);
+>
+>         acpi_handle_debug(lps0_device_handle, "_DSM function %u evaluation %s\n",
+>                           func, out_obj ? "successful" : "failed");
+>  }
+>
+> +static bool acpi_match_vendor_name(void)
+> +{
+> +#ifdef CONFIG_X86
+> +       if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
+> +               return true;
+> +#endif
+> +       return false;
+> +}
 
-I think this falls into the same category as the other six bugs: it
-changes the output/input for parameters but no-one has really noticed,
-usually because the command is obscure or the bias effect is minor.
+Well, I still don't like this (explicit CONFIG_X86 dependencies are
+not welcome in this file), but arguably the damage was done before
+already and there is a bunch of X86-specific code in here anyway, so
+I'm going to take your patch provisionally and rearrange the code on
+top of it so as to relocate the x86-specific part of it into
+acpi/x86/.
 
-> This work is still relevant, even if the total number of issues/bugs
-> we find in the process is zero (which is not the case).
-
-Really, no ... something which produces no improvement has no value at
-all ... we really shouldn't be wasting maintainer time with it because
-it has a cost to merge.  I'm not sure we understand where the balance
-lies in value vs cost to merge but I am confident in the zero value
-case.
-
-> "The sucky thing about doing hard work to deploy hardening is that
-> the result is totally invisible by definition (things not happening)
-> [..]"
-> - Dmitry Vyukov
-
-Really, no.  Something that can't be measured at all doesn't exist.
-
-And actually hardening is one of those things you can measure (which I
-do have to admit isn't true for everything in the security space) ...
-it's number of exploitable bugs found before you did it vs number of
-exploitable bugs found after you did it.  Usually hardening eliminates
-a class of bug, so the way I've measured hardening before is to go
-through the CVE list for the last couple of years for product X, find
-all the bugs that are of the class we're looking to eliminate and say
-if we had hardened X against this class of bug we'd have eliminated Y%
-of the exploits.  It can be quite impressive if Y is a suitably big
-number.
-
-James
-
-
+Thanks!
