@@ -7,27 +7,27 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EA08C63697
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:47:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D217DC63777
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:47:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB7B820781
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:47:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B7DC20721
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:47:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730443AbgKWTrr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 23 Nov 2020 14:47:47 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:55956 "EHLO
+        id S1730473AbgKWTrt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Nov 2020 14:47:49 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:62098 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730305AbgKWTrr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2020 14:47:47 -0500
+        with ESMTP id S1729809AbgKWTrs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2020 14:47:48 -0500
 Received: from 89-64-88-191.dynamic.chello.pl (89.64.88.191) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.520)
- id fd3d7e39cee1b48e; Mon, 23 Nov 2020 20:41:05 +0100
+ id b6a2e1692c11dd0a; Mon, 23 Nov 2020 20:41:06 +0100
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH 3/5] ACPI: EC: Simplify error handling in advance_transaction()
-Date:   Mon, 23 Nov 2020 20:38:37 +0100
-Message-ID: <3207399.h1hCrb0iRi@kreacher>
+Subject: [PATCH 2/5] ACPI: EC: Rename acpi_ec_is_gpe_raised()
+Date:   Mon, 23 Nov 2020 20:37:46 +0100
+Message-ID: <2429516.i4tuDyKFJZ@kreacher>
 In-Reply-To: <3259005.CeRvrUlyd7@kreacher>
 References: <3259005.CeRvrUlyd7@kreacher>
 MIME-Version: 1.0
@@ -39,87 +39,54 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Notice that the value of t in advance_transaction() does not change
-after its initialization and:
-
- - Initialize t upfront (and rearrange the definitions of local
-   variables while at it).
-
- - Check it against NULL in a block executed when it is NULL.
-
- - Skip error handling for t == NULL, because a valid pointer value
-   of t is required for the error handling.
-
- - Drop the (now redundant) check of t against NULL from the error
-   handling block and reduce the indentation level in there.
+Rename acpi_ec_is_gpe_raised() into acpi_ec_gpe_status_set(),
+update its callers accordingly and drop the ternary operator
+(which isn't really necessary in there) from it.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/ec.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/acpi/ec.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index c4be16a495e1..23e7b2dec98e 100644
+index 97e595238a8c..c4be16a495e1 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -617,9 +617,9 @@ static inline void ec_transaction_transition(struct acpi_ec *ec, unsigned long f
+@@ -335,12 +335,12 @@ static const char *acpi_ec_cmd_string(u8 cmd)
+  *                           GPE Registers
+  * -------------------------------------------------------------------------- */
  
- static void advance_transaction(struct acpi_ec *ec, bool interrupt)
+-static inline bool acpi_ec_is_gpe_raised(struct acpi_ec *ec)
++static inline bool acpi_ec_gpe_status_set(struct acpi_ec *ec)
  {
--	struct transaction *t;
--	u8 status;
-+	struct transaction *t = ec->curr;
- 	bool wakeup = false;
-+	u8 status;
+ 	acpi_event_status gpe_status = 0;
  
- 	ec_dbg_stm("%s (%d)", interrupt ? "IRQ" : "TASK", smp_processor_id());
+ 	(void)acpi_get_gpe_status(NULL, ec->gpe, &gpe_status);
+-	return (gpe_status & ACPI_EVENT_FLAG_STATUS_SET) ? true : false;
++	return !!(gpe_status & ACPI_EVENT_FLAG_STATUS_SET);
+ }
  
-@@ -639,7 +639,7 @@ static void advance_transaction(struct acpi_ec *ec, bool interrupt)
+ static inline void acpi_ec_enable_gpe(struct acpi_ec *ec, bool open)
+@@ -351,7 +351,7 @@ static inline void acpi_ec_enable_gpe(struct acpi_ec *ec, bool open)
+ 		BUG_ON(ec->reference_count < 1);
+ 		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
+ 	}
+-	if (acpi_ec_is_gpe_raised(ec)) {
++	if (acpi_ec_gpe_status_set(ec)) {
+ 		/*
+ 		 * On some platforms, EN=1 writes cannot trigger GPE. So
+ 		 * software need to manually trigger a pseudo GPE event on
+@@ -635,7 +635,7 @@ static void advance_transaction(struct acpi_ec *ec, bool interrupt)
+ 	 * 2. As long as software can ensure only clearing it when it is set,
+ 	 *    hardware won't set it in parallel.
+ 	 */
+-	if (ec->gpe >= 0 && acpi_ec_is_gpe_raised(ec))
++	if (ec->gpe >= 0 && acpi_ec_gpe_status_set(ec))
  		acpi_clear_gpe(NULL, ec->gpe);
  
  	status = acpi_ec_read_status(ec);
--	t = ec->curr;
-+
- 	/*
- 	 * Another IRQ or a guarded polling mode advancement is detected,
- 	 * the next QR_EC submission is then allowed.
-@@ -651,9 +651,10 @@ static void advance_transaction(struct acpi_ec *ec, bool interrupt)
- 			clear_bit(EC_FLAGS_QUERY_GUARDING, &ec->flags);
- 			acpi_ec_complete_query(ec);
- 		}
-+		if (!t)
-+			goto out;
- 	}
--	if (!t)
--		goto err;
-+
- 	if (t->flags & ACPI_EC_COMMAND_POLL) {
- 		if (t->wlen > t->wi) {
- 			if ((status & ACPI_EC_FLAG_IBF) == 0)
-@@ -688,14 +689,13 @@ static void advance_transaction(struct acpi_ec *ec, bool interrupt)
- 	 * If SCI bit is set, then don't think it's a false IRQ
- 	 * otherwise will take a not handled IRQ as a false one.
- 	 */
--	if (!(status & ACPI_EC_FLAG_SCI)) {
--		if (interrupt && t) {
--			if (t->irq_count < ec_storm_threshold)
--				++t->irq_count;
--			/* Allow triggering on 0 threshold */
--			if (t->irq_count == ec_storm_threshold)
--				acpi_ec_mask_events(ec);
--		}
-+	if (!(status & ACPI_EC_FLAG_SCI) && interrupt) {
-+		if (t->irq_count < ec_storm_threshold)
-+			++t->irq_count;
-+
-+		/* Allow triggering on 0 threshold */
-+		if (t->irq_count == ec_storm_threshold)
-+			acpi_ec_mask_events(ec);
- 	}
- out:
- 	if (status & ACPI_EC_FLAG_SCI)
 -- 
 2.26.2
 
