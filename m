@@ -2,103 +2,101 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E408CC63777
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:32:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5903DC2D0E4
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:47:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C48B20727
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:32:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="Wdyrvrbq"
+	by mail.kernel.org (Postfix) with ESMTP id 13BFB20721
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Nov 2020 19:47:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729682AbgKWTcr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 23 Nov 2020 14:32:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36548 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729388AbgKWTcq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2020 14:32:46 -0500
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53BEDC0613CF
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2020 11:32:46 -0800 (PST)
-Received: by mail-ed1-x543.google.com with SMTP id v22so18321575edt.9
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2020 11:32:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=idsRRDFvrWEUfaaQ200ZYJgjiqOU5xE6TXnIcThRzMQ=;
-        b=Wdyrvrbq+IrLnf9+ZOGO2vv3x+WxFZt2TN+CQ7V+X/sc1SgfxFUTxMH2c873wyRSSg
-         59zThKnuOc8hD7N+HFZl1x3lslngFnEKOw+2Ao8MvCSvDxnldO9FFtQjtcsOUeB5C6b/
-         Xtj7n7HVpB+fPnessaIv7NA3MYqUNnTK0ZMTQROtRByevKOz5juT8oTyx+Nwtv4R1ewd
-         OOgDVqpnjp+08EdQjAxPR8VrfSkArZKscR3jRL5wQYVW00iVXEH1bb0LyfTnkHVBwWdZ
-         9m7G3zJ2pDqtCNgFiMw8eRldmF/zXyDcDcAlTy2/EP0GniOHMA5gCJBP2neKHA7KVkR9
-         ksQg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=idsRRDFvrWEUfaaQ200ZYJgjiqOU5xE6TXnIcThRzMQ=;
-        b=pwoVMYiedGxLgwJNRS0e4ETuPrRe797vPaFm2DzOr36cklvbv7sP6vrS6z21XURrVh
-         cF9GbIXXd9vxLpqvd+QSAVAYtAUyFnlwJv+c94udFARXK04fRNST994R28dJsDP85i/a
-         JtatGW6U2QVQ9SDICk9khHBvUvuY9rnKPp0uC1TJ8ocC9yyTH9Lw60u5jrR7W7Bo37ag
-         PwBWrzNjz1M2psf8yiKz7Aq/gyMDANskQUbo52SWuPsYDsqYLBS5ct8vUkJHnQ4YifQ8
-         9fPcqHwaCccJaBKWThBREybVEKPbnc9TJv7H3NMTk+l69pbZOqo6IKZUm0LNfcWh+vUO
-         HNsA==
-X-Gm-Message-State: AOAM530oQtfciP+QaINzskwKtm7B+T8p1PjiHP/7aFCPbQmNgF72uviN
-        Ms3PQ7lb53R41tZof33AAeWNTkm/um0uTCL+5t40Ug==
-X-Google-Smtp-Source: ABdhPJzG6sgIo04MhiGORxtweJtY7Ith2jiGAwGdEG1XvFP+atMBFpBYF8qTDnkKNX7f8mwgWSvRhCZrpVeQDso7ILQ=
-X-Received: by 2002:a50:fe02:: with SMTP id f2mr716870edt.97.1606159965112;
- Mon, 23 Nov 2020 11:32:45 -0800 (PST)
+        id S1729937AbgKWTrp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Nov 2020 14:47:45 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:61656 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729809AbgKWTrp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2020 14:47:45 -0500
+X-Greylist: delayed 400 seconds by postgrey-1.27 at vger.kernel.org; Mon, 23 Nov 2020 14:47:44 EST
+Received: from 89-64-88-191.dynamic.chello.pl (89.64.88.191) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.520)
+ id 62d924656228e836; Mon, 23 Nov 2020 20:41:03 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 5/5] ACPI: EC: Clean up status flags checks in advance_transaction()
+Date:   Mon, 23 Nov 2020 20:40:53 +0100
+Message-ID: <5941029.rKP6mmzaN7@kreacher>
+In-Reply-To: <3259005.CeRvrUlyd7@kreacher>
+References: <3259005.CeRvrUlyd7@kreacher>
 MIME-Version: 1.0
-References: <CAPcyv4j+zbns+WhnxWXCdoxa=QN40BFXUpmb=04q36H1sX-aBw@mail.gmail.com>
- <20201117002321.GA1344659@bjorn-Precision-5520> <20201123192029.pmmy6ygts5fclz7b@intel.com>
-In-Reply-To: <20201123192029.pmmy6ygts5fclz7b@intel.com>
-From:   Dan Williams <dan.j.williams@intel.com>
-Date:   Mon, 23 Nov 2020 11:32:33 -0800
-Message-ID: <CAPcyv4jJpvLErK8vBW-D2ZQASU0iJqFLRr7yDXB0kfGPrmi6xw@mail.gmail.com>
-Subject: Re: [RFC PATCH 4/9] cxl/mem: Map memory device registers
-To:     Ben Widawsky <ben.widawsky@intel.com>
-Cc:     Bjorn Helgaas <helgaas@kernel.org>, linux-cxl@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        "Kelley, Sean V" <sean.v.kelley@intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 23, 2020 at 11:20 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
-[..]
-> > -ENXIO is fine with me.  I just don't see it as often so I don't
-> > really know what it is.
-> >
-> > Bjorn
->
-> Dan, Bjorn, I did a fairly randomized look at various probe functions and ENODEV
-> seems to be more common. My sort of historical use has been
-> - ENODEV: General, couldn't establish device presence
-> - ENXIO: Device was there but something is totally misconfigured
-> - E*: A matching errno for exactly what went wrong
->
-> My question though is, would it be useful to propagate the error up through
-> probe?
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The error from probe becomes the modprobe exit code, or the write to
-the 'bind' attribute errno. So, it's a choice between "No such device
-or address", or "No such device". The "or address" mention makes a
-small bit more sense to me since the device is obviously present as it
-is visible in lspci, but either error code clearly indicates a driver
-problem so ENODEV is fine.
+Eliminate comparisons from the status flags checks in
+advance_transaction() (especially from the one that is only correct,
+because the value of the flag checked in there is 1) and rearrange
+the code for more clarity while at it.
 
-For the other error codes I think it would be confusing to return
-something like EINVAL from probe as that would be mistaken as an
-invalid argument to the modprobe without stracing to see that it came
-from the result of a sysfs write
+No intentional functional impact.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/ec.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 091f0e9f37a0..13565629ce0a 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -667,25 +667,24 @@ static void advance_transaction(struct acpi_ec *ec, bool interrupt)
+ 
+ 	if (t->flags & ACPI_EC_COMMAND_POLL) {
+ 		if (t->wlen > t->wi) {
+-			if ((status & ACPI_EC_FLAG_IBF) == 0)
++			if (!(status & ACPI_EC_FLAG_IBF))
+ 				acpi_ec_write_data(ec, t->wdata[t->wi++]);
+ 			else if (interrupt && !(status & ACPI_EC_FLAG_SCI))
+ 				acpi_ec_spurious_interrupt(ec, t);
+ 		} else if (t->rlen > t->ri) {
+-			if ((status & ACPI_EC_FLAG_OBF) == 1) {
++			if (status & ACPI_EC_FLAG_OBF) {
+ 				t->rdata[t->ri++] = acpi_ec_read_data(ec);
+ 				if (t->rlen == t->ri) {
+ 					ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
++					wakeup = true;
+ 					if (t->command == ACPI_EC_COMMAND_QUERY)
+ 						ec_dbg_evt("Command(%s) completed by hardware",
+ 							   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+-					wakeup = true;
+ 				}
+ 			} else if (interrupt && !(status & ACPI_EC_FLAG_SCI)) {
+ 				acpi_ec_spurious_interrupt(ec, t);
+ 			}
+-		} else if (t->wlen == t->wi &&
+-			   (status & ACPI_EC_FLAG_IBF) == 0) {
++		} else if (t->wlen == t->wi && !(status & ACPI_EC_FLAG_IBF)) {
+ 			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+ 			wakeup = true;
+ 		}
+@@ -697,6 +696,7 @@ static void advance_transaction(struct acpi_ec *ec, bool interrupt)
+ out:
+ 	if (status & ACPI_EC_FLAG_SCI)
+ 		acpi_ec_submit_query(ec);
++
+ 	if (wakeup && interrupt)
+ 		wake_up(&ec->wait);
+ }
+-- 
+2.26.2
+
+
+
+
