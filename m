@@ -5,76 +5,81 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 170AFC2D0E4
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 12:37:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDFC6C63798
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 12:51:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B044E206B5
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 12:37:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99AE42073C
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 12:51:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387601AbgKXMhE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:37:04 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:7673 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729172AbgKXMhE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2020 07:37:04 -0500
-Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CgNn5297Jz15PnZ;
-        Tue, 24 Nov 2020 20:36:41 +0800 (CST)
-Received: from localhost.localdomain (10.69.192.56) by
- DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 24 Nov 2020 20:36:59 +0800
-From:   Tian Tao <tiantao6@hisilicon.com>
-To:     <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-        <dave.jiang@intel.com>, <ira.weiny@intel.com>, <rjw@rjwysocki.net>,
-        <lenb@kernel.org>
-CC:     <linux-acpi@vger.kernel.org>
-Subject: [PATCH] acpi/nfit: fix application of sizeof to pointer
-Date:   Tue, 24 Nov 2020 20:37:21 +0800
-Message-ID: <1606221441-58002-1-git-send-email-tiantao6@hisilicon.com>
-X-Mailer: git-send-email 2.7.4
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.69.192.56]
-X-CFilter-Loop: Reflected
+        id S2387582AbgKXMv0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:51:26 -0500
+Received: from mail.loongson.cn ([114.242.206.163]:41634 "EHLO loongson.cn"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1733265AbgKXMv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 24 Nov 2020 07:51:26 -0500
+Received: from bogon.localdomain (unknown [113.200.148.30])
+        by mail.loongson.cn (Coremail) with SMTP id AQAAf9AxCtG6Ab1fG_wVAA--.37925S2;
+        Tue, 24 Nov 2020 20:51:07 +0800 (CST)
+From:   Youling Tang <tangyouling@loongson.cn>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] acpi: Fix use-after-free in acpi_ipmi.c
+Date:   Tue, 24 Nov 2020 20:51:06 +0800
+Message-Id: <1606222266-11685-1-git-send-email-tangyouling@loongson.cn>
+X-Mailer: git-send-email 2.1.0
+X-CM-TRANSID: AQAAf9AxCtG6Ab1fG_wVAA--.37925S2
+X-Coremail-Antispam: 1UD129KBjvdXoWrKw18JrWfuw1rGw13Xw13Jwb_yoWfAFc_uF
+        nFvr47WF1kAr10kr12vr15ZrWj9FsIqFZ3Wr18tFn2y3s3XrykXrW7Zry0qr13uw4UCFn0
+        g3Wjyr4UAr1agjkaLaAFLSUrUUUU1b8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUb38YjsxI4VW3JwAYFVCjjxCrM7AC8VAFwI0_Jr0_Gr1l1xkIjI8I
+        6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM2
+        8CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVW8JVW5JwA2z4x0Y4vE2Ix0
+        cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z2
+        80aVCY1x0267AKxVW0oVCq3wAaw2AFwI0_Jrv_JF1le2I262IYc4CY6c8Ij28IcVAaY2xG
+        8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jrv_JF1lYx0Ex4A2js
+        IE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwCY02Avz4vE
+        14v_Xr1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1l4IxYO2xFxVAFwI
+        0_Jrv_JF1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF
+        1VAY17CE14v26r126r1DMIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIx
+        AIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVW3JVWrJr1l
+        IxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVWUJVW8JbIYCTnIWI
+        evJa73UjIFyTuYvjxUshF4DUUUU
+X-CM-SenderInfo: 5wdqw5prxox03j6o00pqjv00gofq/
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-fixed the coccinelle:
-drivers/acpi/nfit/core.c:2271:3-10: WARNING use flexible-array member
-instead.
-drivers/acpi/nfit/core.c:2282:3-10: WARNING use flexible-array member
-instead.
+kfree() has been called inside put_device so anther kfree would cause a
+use-after-free bug.
 
-Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+Signed-off-by: Youling Tang <tangyouling@loongson.cn>
 ---
- drivers/acpi/nfit/core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_ipmi.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 4426082..c589371 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2268,7 +2268,7 @@ struct nfit_set_info {
- 		u64 region_offset;
- 		u32 serial_number;
- 		u32 pad;
--	} mapping[0];
-+	} mapping[];
- };
+diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+index 9d6c0fc..72902b6 100644
+--- a/drivers/acpi/acpi_ipmi.c
++++ b/drivers/acpi/acpi_ipmi.c
+@@ -130,7 +130,6 @@ ipmi_dev_alloc(int iface, struct device *dev, acpi_handle handle)
+ 			       ipmi_device, &user);
+ 	if (err) {
+ 		put_device(dev);
+-		kfree(ipmi_device);
+ 		return NULL;
+ 	}
+ 	ipmi_device->user_interface = user;
+@@ -142,7 +141,6 @@ static void ipmi_dev_release(struct acpi_ipmi_device *ipmi_device)
+ {
+ 	ipmi_destroy_user(ipmi_device->user_interface);
+ 	put_device(ipmi_device->dev);
+-	kfree(ipmi_device);
+ }
  
- struct nfit_set_info2 {
-@@ -2279,7 +2279,7 @@ struct nfit_set_info2 {
- 		u16 manufacturing_date;
- 		u8  manufacturing_location;
- 		u8  reserved[31];
--	} mapping[0];
-+	} mapping[];
- };
- 
- static size_t sizeof_nfit_set_info(int num_mappings)
+ static void ipmi_dev_release_kref(struct kref *kref)
 -- 
-2.7.4
+2.1.0
 
