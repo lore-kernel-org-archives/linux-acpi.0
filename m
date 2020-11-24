@@ -2,226 +2,153 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B76C3C64E7B
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 19:48:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 069D8C63777
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 21:26:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67A1B206CA
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 19:48:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8BEF208FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Nov 2020 21:26:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="oKmDT/E0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728077AbgKXTrY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 24 Nov 2020 14:47:24 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:62436 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728065AbgKXTq4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2020 14:46:56 -0500
-Received: from 89-64-86-188.dynamic.chello.pl (89.64.86.188) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.520)
- id c0ad5b8726861cc6; Tue, 24 Nov 2020 20:46:49 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH v1 1/2] PM: ACPI: PCI: Drop acpi_pm_set_bridge_wakeup()
-Date:   Tue, 24 Nov 2020 20:44:00 +0100
-Message-ID: <2261308.G18gbxz5ee@kreacher>
-In-Reply-To: <27714988.CF3CpBaniU@kreacher>
-References: <27714988.CF3CpBaniU@kreacher>
+        id S1731911AbgKXVZr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 24 Nov 2020 16:25:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51448 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731541AbgKXVZp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2020 16:25:45 -0500
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5227FC0613D6
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2020 13:25:44 -0800 (PST)
+Received: by mail-pf1-x442.google.com with SMTP id b63so255955pfg.12
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2020 13:25:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=Hc7xHQdcWqcI1RL6yWHK3qM7+D3PcB+9wJ1f+Y4kOZ8=;
+        b=oKmDT/E0BiqfYtxGd9S8VgvaixpTRLnYMRrsUV9kaRuJo3R/5oNlOHAboaJA72rvz5
+         cPy+dYNpKpp/tW1abpWiBH/rmtZxXE/MLGj7m5uMt/n+RU1YTE1Rw6QIxNLzAajuHLbW
+         OV/WWZm28UqOigi5ggHh0BMVZishCwQGNb1Ns=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=Hc7xHQdcWqcI1RL6yWHK3qM7+D3PcB+9wJ1f+Y4kOZ8=;
+        b=DohqBR73keocOjW6dbnv+XbR7akeoOP05KjUewWwy4qMlSa0SvUMKNCuyTZBKMYlMo
+         qVIWRN/9LUSc3vevlptUcwhtBszX8wO6HrsK8Xz4gwbUADuNpaVPaOOvr929Uq68Xx14
+         gEk+GB7cB362+0NXSlGBOry+37H04u9G8PHSzPrbo7sp4H5D906UOw4AOCPrVzovZJqE
+         J05hGA3WXnDtEI2PEUBz4XliSApFbBPsnCiS1US/6fsOlx58cw6mo5jbhUR64DZ/WPXU
+         1vMKROfUoBszC+wrNLxerJNMu3Mls3uKXdQFCP4bihhXaR27luFLf3LTrN0RNHn2+j16
+         USHA==
+X-Gm-Message-State: AOAM532jI02IVpoGuW4819Z8O5+GyAvSCl7lwznTM5r7+2BRtOHhfKvS
+        ruHqPMBB1v6gr/eCkVLTrvHKUQ==
+X-Google-Smtp-Source: ABdhPJwtm7ki1o3tlMghBzBMLVUzEcZQN+PDIoPgB8WI7uCPSXlOMvf7LiH3SXaewZBRcFltugq6wg==
+X-Received: by 2002:a17:90b:3505:: with SMTP id ls5mr176054pjb.55.1606253143764;
+        Tue, 24 Nov 2020 13:25:43 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id z68sm129381pgb.37.2020.11.24.13.25.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 24 Nov 2020 13:25:41 -0800 (PST)
+Date:   Tue, 24 Nov 2020 13:25:40 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     Nick Desaulniers <ndesaulniers@google.com>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, alsa-devel@alsa-project.org,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        bridge@lists.linux-foundation.org, ceph-devel@vger.kernel.org,
+        cluster-devel@redhat.com, coreteam@netfilter.org,
+        devel@driverdev.osuosl.org, dm-devel@redhat.com,
+        drbd-dev@lists.linbit.com,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
+        intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
+        keyrings@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-acpi@vger.kernel.org, linux-afs@lists.infradead.org,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        linux-atm-general@lists.sourceforge.net,
+        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
+        linux-cifs@vger.kernel.org,
+        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE" 
+        <linux-crypto@vger.kernel.org>,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-ext4@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-geode@lists.infradead.org, linux-gpio@vger.kernel.org,
+        linux-hams@vger.kernel.org, linux-hwmon@vger.kernel.org,
+        linux-i3c@lists.infradead.org, linux-ide@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-integrity@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
+        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
+        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
+        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
+        selinux@vger.kernel.org, target-devel@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net,
+        usb-storage@lists.one-eyed-alien.net,
+        virtualization@lists.linux-foundation.org,
+        wcn36xx@lists.infradead.org,
+        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
+        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
+Message-ID: <202011241324.B3439A2@keescook>
+References: <cover.1605896059.git.gustavoars@kernel.org>
+ <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <202011201129.B13FDB3C@keescook>
+ <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <202011220816.8B6591A@keescook>
+ <CAKwvOdntVfXj2WRR5n6Kw7BfG7FdKpTeHeh5nPu5AzwVMhOHTg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKwvOdntVfXj2WRR5n6Kw7BfG7FdKpTeHeh5nPu5AzwVMhOHTg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Nov 23, 2020 at 05:32:51PM -0800, Nick Desaulniers wrote:
+> On Sun, Nov 22, 2020 at 8:17 AM Kees Cook <keescook@chromium.org> wrote:
+> >
+> > On Fri, Nov 20, 2020 at 11:51:42AM -0800, Jakub Kicinski wrote:
+> > > If none of the 140 patches here fix a real bug, and there is no change
+> > > to machine code then it sounds to me like a W=2 kind of a warning.
+> >
+> > FWIW, this series has found at least one bug so far:
+> > https://lore.kernel.org/lkml/CAFCwf11izHF=g1mGry1fE5kvFFFrxzhPSM6qKAO8gxSp=Kr_CQ@mail.gmail.com/
+> 
+> So looks like the bulk of these are:
+> switch (x) {
+>   case 0:
+>     ++x;
+>   default:
+>     break;
+> }
+> 
+> I have a patch that fixes those up for clang:
+> https://reviews.llvm.org/D91895
 
-The idea behind acpi_pm_set_bridge_wakeup() was to allow bridges to
-be reference counted for wakeup enabling, because they may be enabled
-to signal wakeup on behalf of their subordinate devices and that
-may happen for multiple times in a row, whereas for the other devices
-it only makes sense to enable wakeup signaling once.
+I still think this isn't right -- it's a case statement that runs off
+the end without an explicit flow control determination. I think Clang is
+right to warn for these, and GCC should also warn.
 
-However, this becomes problematic if the bridge itself is suspended,
-because it is treated as a "regular" device in that case and the
-reference counting doesn't work.
-
-For instance, suppose that there are two devices below a bridge and
-they both can signal wakeup.  Every time one of them is suspended,
-wakeup signaling is enabled for the bridge, so when they both have
-been suspended, the bridge's wakeup reference counter value is 2.
-
-Say that the bridge is suspended subsequently and acpi_pci_wakeup()
-is called for it.  Because the bridge can signal wakeup, that
-function will invoke acpi_pm_set_device_wakeup() to configure it
-and __acpi_pm_set_device_wakeup() will be called with the last
-argument equal to 1.  This causes __acpi_device_wakeup_enable()
-invoked by it to omit the reference counting, because the reference
-counter of the target device (the bridge) is 2 at that time.
-
-Now say that the bridge resumes and one of the device below it
-resumes too, so the bridge's reference counter becomes 0 and
-wakeup signaling is disabled for it, but there is still the other
-suspended device which may need the bridge to signal wakeup on its
-behalf and that is not going to work.
-
-To address this scenario, use wakeup enable reference counting for
-all devices, not just for bridges, so drop the last argument from
-__acpi_device_wakeup_enable() and __acpi_pm_set_device_wakeup(),
-which causes acpi_pm_set_device_wakeup() and
-acpi_pm_set_bridge_wakeup() to become identical, so drop the latter
-and use the former instead of it everywhere.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/device_pm.c |   41 ++++++++++++-----------------------------
- drivers/pci/pci-acpi.c   |    4 ++--
- include/acpi/acpi_bus.h  |    5 -----
- 3 files changed, 14 insertions(+), 36 deletions(-)
-
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -620,7 +620,6 @@ acpi_status acpi_remove_pm_notifier(stru
- bool acpi_pm_device_can_wakeup(struct device *dev);
- int acpi_pm_device_sleep_state(struct device *, int *, int);
- int acpi_pm_set_device_wakeup(struct device *dev, bool enable);
--int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable);
- #else
- static inline void acpi_pm_wakeup_event(struct device *dev)
- {
-@@ -651,10 +650,6 @@ static inline int acpi_pm_set_device_wak
- {
- 	return -ENODEV;
- }
--static inline int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable)
--{
--	return -ENODEV;
--}
- #endif
- 
- #ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -749,7 +749,7 @@ static void acpi_pm_notify_work_func(str
- static DEFINE_MUTEX(acpi_wakeup_lock);
- 
- static int __acpi_device_wakeup_enable(struct acpi_device *adev,
--				       u32 target_state, int max_count)
-+				       u32 target_state)
- {
- 	struct acpi_device_wakeup *wakeup = &adev->wakeup;
- 	acpi_status status;
-@@ -757,9 +757,10 @@ static int __acpi_device_wakeup_enable(s
- 
- 	mutex_lock(&acpi_wakeup_lock);
- 
--	if (wakeup->enable_count >= max_count)
-+	if (wakeup->enable_count >= INT_MAX) {
-+		acpi_handle_info(adev->handle, "Wakeup enable count out of bounds!\n");
- 		goto out;
--
-+	}
- 	if (wakeup->enable_count > 0)
- 		goto inc;
- 
-@@ -799,7 +800,7 @@ out:
-  */
- static int acpi_device_wakeup_enable(struct acpi_device *adev, u32 target_state)
- {
--	return __acpi_device_wakeup_enable(adev, target_state, 1);
-+	return __acpi_device_wakeup_enable(adev, target_state);
- }
- 
- /**
-@@ -829,8 +830,12 @@ out:
- 	mutex_unlock(&acpi_wakeup_lock);
- }
- 
--static int __acpi_pm_set_device_wakeup(struct device *dev, bool enable,
--				       int max_count)
-+/**
-+ * acpi_pm_set_device_wakeup - Enable/disable remote wakeup for given device.
-+ * @dev: Device to enable/disable to generate wakeup events.
-+ * @enable: Whether to enable or disable the wakeup functionality.
-+ */
-+int acpi_pm_set_device_wakeup(struct device *dev, bool enable)
- {
- 	struct acpi_device *adev;
- 	int error;
-@@ -850,37 +855,15 @@ static int __acpi_pm_set_device_wakeup(s
- 		return 0;
- 	}
- 
--	error = __acpi_device_wakeup_enable(adev, acpi_target_system_state(),
--					    max_count);
-+	error = __acpi_device_wakeup_enable(adev, acpi_target_system_state());
- 	if (!error)
- 		dev_dbg(dev, "Wakeup enabled by ACPI\n");
- 
- 	return error;
- }
--
--/**
-- * acpi_pm_set_device_wakeup - Enable/disable remote wakeup for given device.
-- * @dev: Device to enable/disable to generate wakeup events.
-- * @enable: Whether to enable or disable the wakeup functionality.
-- */
--int acpi_pm_set_device_wakeup(struct device *dev, bool enable)
--{
--	return __acpi_pm_set_device_wakeup(dev, enable, 1);
--}
- EXPORT_SYMBOL_GPL(acpi_pm_set_device_wakeup);
- 
- /**
-- * acpi_pm_set_bridge_wakeup - Enable/disable remote wakeup for given bridge.
-- * @dev: Bridge device to enable/disable to generate wakeup events.
-- * @enable: Whether to enable or disable the wakeup functionality.
-- */
--int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable)
--{
--	return __acpi_pm_set_device_wakeup(dev, enable, INT_MAX);
--}
--EXPORT_SYMBOL_GPL(acpi_pm_set_bridge_wakeup);
--
--/**
-  * acpi_dev_pm_low_power - Put ACPI device into a low-power state.
-  * @dev: Device to put into a low-power state.
-  * @adev: ACPI device node corresponding to @dev.
-Index: linux-pm/drivers/pci/pci-acpi.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-acpi.c
-+++ linux-pm/drivers/pci/pci-acpi.c
-@@ -1060,7 +1060,7 @@ static int acpi_pci_propagate_wakeup(str
- {
- 	while (bus->parent) {
- 		if (acpi_pm_device_can_wakeup(&bus->self->dev))
--			return acpi_pm_set_bridge_wakeup(&bus->self->dev, enable);
-+			return acpi_pm_set_device_wakeup(&bus->self->dev, enable);
- 
- 		bus = bus->parent;
- 	}
-@@ -1068,7 +1068,7 @@ static int acpi_pci_propagate_wakeup(str
- 	/* We have reached the root bus. */
- 	if (bus->bridge) {
- 		if (acpi_pm_device_can_wakeup(bus->bridge))
--			return acpi_pm_set_bridge_wakeup(bus->bridge, enable);
-+			return acpi_pm_set_device_wakeup(bus->bridge, enable);
- 	}
- 	return 0;
- }
-
-
-
+-- 
+Kees Cook
