@@ -2,92 +2,206 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2607C56202
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 Nov 2020 18:11:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0047C63798
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 Nov 2020 18:30:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7EB06206F9
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 Nov 2020 18:11:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95134206CA
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 Nov 2020 18:30:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tCmj0Fi7"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="PAe1RcAO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731310AbgKYSKs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 25 Nov 2020 13:10:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46236 "EHLO
+        id S1731661AbgKYSaB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 25 Nov 2020 13:30:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49230 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730774AbgKYSKr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2020 13:10:47 -0500
-Received: from mail-qk1-x731.google.com (mail-qk1-x731.google.com [IPv6:2607:f8b0:4864:20::731])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EF00C0613D4
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2020 10:10:47 -0800 (PST)
-Received: by mail-qk1-x731.google.com with SMTP id x25so4256398qkj.3
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2020 10:10:47 -0800 (PST)
+        with ESMTP id S1731586AbgKYSaB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2020 13:30:01 -0500
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 252E8C061A51
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2020 10:30:01 -0800 (PST)
+Received: by mail-ot1-x344.google.com with SMTP id n12so3137552otk.0
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2020 10:30:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=l5xM0WWt/jkF9DKKLvJ1sR0pb3zOF+Q6gsRxfvSpR6g=;
-        b=tCmj0Fi7oSsbasDbtJtzqpFqRRNnW4wk7tvxDZpRTa2syKniCrjtQwiqNqKneYjCdh
-         YMiY0cmrUa5jZAkLfE+kTzEsi8suLEIzr+pRw+w7A15MQK3xH0urliWY5RW8F275mE6J
-         GamUBeD49OY4MQBFsrx+d4NdZlfqFybFi3cP4hh0W3QKSWxi2EMqR9ZUkITQdI1paeqf
-         tPy1kRQDKljMyLwF7158vtn1/KPhjIMqeq/69tg8bX+07m6t2Ame7csLSlELGCLh6R8c
-         przud8LrAgP/MHp91GjFjqE25hff5qWsVnjgAweQ/lU8ROeC+zttUcue9ns4+CRKFxpJ
-         ZyDQ==
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Veno44/33te6T5lrpYk+J6jOlOlNleQplyEwHwgUesQ=;
+        b=PAe1RcAOojRSiku7TXC7udY08ozLfLQ+F8nlRCWfCs5aULe+GEZwPKIK3tVNGTJ9iL
+         0wb1snSoRz5UbIu3Vdfc+65dBd1xvZMlqJ2aJKrBWmkoxmF9hfh6arfBU6P8fVXg3lAz
+         YKMt/4SFwqGqYNxsUJfHTmdwK7igdc1gCbSNAagNA/bOqtC39OaSqvL43OGxR5Ijarhl
+         oTLZArtE/qszhn0X02WZ+SaO23ZrIqRS+I/b7k6ds/gkxYZsSnllabg7MmIGCtPNigNY
+         E+UdiUa6NyYT6woJ/gQeV/EWsxifxD1TFQObkwPM7SfzgW8usx5QsLzaA9UfOCgxp4Q8
+         IwXg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=l5xM0WWt/jkF9DKKLvJ1sR0pb3zOF+Q6gsRxfvSpR6g=;
-        b=ffkHHe1gVFeTvp6dj0zA/Q/GP0nvMpoRmJrnsQOFzg0pehtHoU3+Yl14GWa/vDc1fN
-         YUsHZg6EuzzcP5ArViSX0WcG3okvcvhCnArJpOKNiI8BbwDUK6Q0HfAld2CVUF4dPkhq
-         YwNhzW6b0a87wpubSfYnjBmJc08P8Jvn4V9oAhFIBEjRoV0mxxqpEG7oKye56kW7qMgV
-         sRPxU3AJA/u5KsPoipIxPGY+1iB8Wx5igJjvfUb1AYo2BW9p6ByyoJ/rLu170vkNlmli
-         LbLeRclsfIkbWEZyLvn2mxhcE6GXqXVV+jvrpfnDoOOqZrTpcUA72ZnIBnWh5iDoiItJ
-         EuuQ==
-X-Gm-Message-State: AOAM532La5yXBgD/F8kib5Fg09feu+09I0LGA2KgnunrT1d1wpGlD69O
-        6wVFikRUQPyjPOQdUnT5I7+wpdPDzsiyJO2gm+xTrcQnxxOFYQ==
-X-Google-Smtp-Source: ABdhPJySfhbIxRlLjp5I/W7uj4g7eIHGIVFItOZXq9FgtRUwmcmmct7PX1S+0/TPJx2HqhPlkebBq4bMdMpM0NWdIOY=
-X-Received: by 2002:a37:5f42:: with SMTP id t63mr109619qkb.236.1606327846332;
- Wed, 25 Nov 2020 10:10:46 -0800 (PST)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Veno44/33te6T5lrpYk+J6jOlOlNleQplyEwHwgUesQ=;
+        b=XeCYdyJ6oYD/PPr89n1L+tQ9luFT29PYtD2EUU2jvwLM70y8x3bhmntZv8pHWnXMxS
+         SkJpEReeaTrumHPodFcCDZXRSYQ+GYBW4tuLWxW35AtUsyZQV9vl3pl5Imzic+VOKU5q
+         ni1kKqUOZkDQXnvwLxiaytFM16jCurcAwL1UGjBxNEQqPZWaCZRB5vgCiSwrrbPZi7KI
+         7dE3HKKO7cFzK9bPVBpHIu0O5z/oDKWGyUKOWvuYV//nCS0YJMPr4XBffU1DSJ9Jym1k
+         7+s8mYfDGQOa52S1GhF+bADJULSaVhPl0TcbH+x1Pw/lpRYIkDiWNiykNMIrxe7qVroz
+         aH6w==
+X-Gm-Message-State: AOAM532RXCwaUIBZCfOqEsr0zh9IEwGz0PNCk1t1p/cdn66E0L8qdPia
+        0NmuhoHok7dX6NSb/El98FTuXLsSisTKq873JZRvbQ==
+X-Google-Smtp-Source: ABdhPJx5TFaj9TYPhw4LnPzBAqsv3w+L5iV4Fafgkq9HeR5SAeqAOEXjVa/wPc0eaUlWZ4HSjfREwY1/iRwjoLnO3zM=
+X-Received: by 2002:a05:6830:1e7a:: with SMTP id m26mr3901039otr.104.1606328999288;
+ Wed, 25 Nov 2020 10:29:59 -0800 (PST)
 MIME-Version: 1.0
-From:   Pedro Ribeiro <pedrib@gmail.com>
-Date:   Thu, 26 Nov 2020 01:10:35 +0700
-Message-ID: <CAEDdjHdmyMSZo=A7gtnKTXqwzzH+ynUw_yFbXd8f9kxOUODkrQ@mail.gmail.com>
-Subject: Legion 5 backlight control not working
-To:     linux-acpi@vger.kernel.org
+References: <CAEGmHFFjV2UKm3L1G5JF6Ve47L1-aKBAGrCxN3pPX1HO9R-aUg@mail.gmail.com>
+ <CAJZ5v0hqU-qiM8ddYUT_u0Lm3RNM19gNcXye_s5v3DeCHr7mZQ@mail.gmail.com>
+ <CAEGmHFFxxOxNBjut68azQ5eMh71J+ysJeX9SOak6WwNetuJnwA@mail.gmail.com> <CAJZ5v0j_XWiJyd4zyyuUf41WDEcu5TEo5tT7cYXi8FFqXpBzfA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0j_XWiJyd4zyyuUf41WDEcu5TEo5tT7cYXi8FFqXpBzfA@mail.gmail.com>
+From:   Furquan Shaikh <furquan@google.com>
+Date:   Wed, 25 Nov 2020 10:29:43 -0800
+Message-ID: <CAEGmHFE6EfUQ-RE+sXEppOGKxPJ3i9hUSWUDPAGXDjxYm0P_kw@mail.gmail.com>
+Subject: Re: [RFC] ACPI PM during kernel poweroff/reboot
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Aaron Durbin <adurbin@google.com>,
+        Duncan Laurie <dlaurie@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-I have a Lenovo Legion 5 15ARH05H and I'm trying to get the backlight
-control working.
+On Wed, Nov 25, 2020 at 9:51 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Wed, Nov 25, 2020 at 6:43 PM Furquan Shaikh <furquan@google.com> wrote:
+> >
+> > On Wed, Nov 25, 2020 at 8:39 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > >
+> > > On Thu, Nov 12, 2020 at 8:19 PM Furquan Shaikh <furquan@google.com> wrote:
+> > > >
+> > > > On x86 Chromebooks, we have observed this issue for a long time now -
+> > > > when the system is powered off or rebooted, ACPI PM is not invoked and
+> > > > this results in PowerResource _OFF methods not being invoked for any
+> > > > of the devices. The _OFF methods are invoked correctly in case of
+> > > > suspend-to-idle (S0ix) and suspend-to-memory(S3). However, they do not
+> > > > get invoked when `poweroff` or `reboot` are triggered.
+> > > >
+> > > > One of the differences between suspend, hibernate and shutdown paths
+> > > > in Linux kernel is that the shutdown path does not use the typical
+> > > > device PM phases (prepare, freeze/suspend, poweroff) as used by
+> > > > suspend/hibernate. Instead the shutdown path makes use of
+> > > > .shutdown_pre() and .shutdown() callbacks.
+> > > >
+> > > > If I understand correctly, .shutdown() has been around for a long time
+> > > > and existed even before the PM callbacks were added. Thus,
+> > > > pm->poweroff() and .shutdown() are supposed to be analogous and
+> > > > consistent in the behavior.
+> > >
+> > > Well, not quite.
+> > >
+> > > ->shutdown() is expected to be a lightweight operation also suitable
+> > > for kexec() and similar situations where ->poweroff() may not work.
+> > >
+> > > > This is why runtime PM is disallowed by
+> > > > device_shutdown() before it calls .shutdown() (i.e. to keep behavior
+> > > > consistent for both paths). However, in practice, there are
+> > > > differences in behavior for the pm->poweroff() and .shutdown() paths
+> > > > since the shutdown path does not execute any PM domain operations.
+> > >
+> > > That's correct.
+> > >
+> > > > Because of this difference in behavior, shutdown path never invokes
+> > > > ACPI PM and thus the ACPI PowerResources are not turned off when the
+> > > > system is rebooted or powered off (sleep S5). On Chromebooks, it is
+> > > > critical to run the _OFF methods for poweroff/reboot in order to
+> > > > ensure that the device power off sequencing requirements are met.
+> > > > Currently, these requirements are violated which impact the
+> > > > reliability of devices over the lifetime of the platform.
+> > > >
+> > > > There are a few ways in which this can be addressed:
+> > > >
+> > > > 1. Similar to the case of hibernation, a new
+> > > > PMSG_POWEROFF/PM_EVENT_POWEROFF can be introduced to invoke device
+> > > > power management phases using `dpm_suspend_start(PMSG_POWEROFF)` and
+> > > > `dpm_suspend_end(PMSG_POWEROFF)`. However, as the shutdown path uses
+> > > > the class/bus/driver .shutdown() callbacks, adding dpm phases for
+> > > > poweroff complicates the order of operations. If the dpm phases are
+> > > > run before .shutdown() callbacks, then it will result in the callbacks
+> > > > accessing devices after they are powered off. If the .shutdown()
+> > > > callbacks are run before dpm phases, then the pm->poweroff() calls are
+> > > > made after the device shutdown is done. Since .shutdown() and
+> > > > pm->poweroff() are supposed to be analogous, having both calls in the
+> > > > shutdown path is not only redundant but also results in incorrect
+> > > > behavior.
+> > > >
+> > > > 2. Another option is to update device_shutdown() to make
+> > > > pm_domain.poweroff calls after the class/bus/driver .shutdown() is
+> > > > done. However, this suffers from the same problem as #1 above i.e. it
+> > > > is redundant and creates conflicting order of operations.
+> > > >
+> > > > 3. Third possible solution is to detach the device from the PM domain
+> > > > after it is shutdown. Currently, device drivers perform a detach
+> > > > operation only when the device is removed. However, in case of
+> > > > poweroff/reboot as the device is already shutdown, detaching PM domain
+> > > > will give it the opportunity to ensure that any power resources are
+> > > > correctly turned off before the system shuts down.
+> > >
+> > > 4. Make Chromebooks call something like hibernation_platform_enter()
+> > > on S5 entries (including reboot).
+> >
+> > Actually, Chromebooks do not support S4 and hence CONFIG_HIBERNATION.
+>
+> This doesn't matter.  The ->poweroff callbacks can still be used by
+> them (of course, that part of the current hibernation support code
+> needs to be put under a more general Kconfig option for that, but this
+> is a technical detail).
 
-This is a laptop with an AMD APU and NVIDIA GPU. It works in a Hybrid
-graphics mode with both GPU on, or a Discrete graphics mode where only
-the NVIDIA GPU is on and the AMD one is disabled. I always run the
-laptop in Discrete mode.
+Ah I see what you are saying. Just to be sure I understand this
+correctly. Is this what you are thinking:
+1. Extract hibernation_platform_enter() and any other helpers required
+to trigger the PM phases for shutdown into a separate unit controlled
+by a more general Kconfig.
+2. Add a new Kconfig that enables support for performing PM phases
+during the poweroff/reboot phases.
+3. Based on this new Kconfig selection, LINUX_REBOOT_CMD_RESTART,
+LINUX_REBOOT_CMD_HALT, LINUX_REBOOT_CMD_POWER_OFF will be updated to
+use the new paths instead of the current lightweight calls.
 
-I have tried various NVIDIA driver versions, and was able to get the
-backlight working on kernel 5.9.1, but I have no idea what I did to my
-system, a few weeks later it stopped working and now I can't get it
-back. Tried various kernel versions too, kernel configs, etc, nothing,
-the backlight just doesn't work.
+>
+> > This is done for a number of reasons including security. Hence, I
+> > don't think using hibernation_platform_enter() would be an option.
+>
+> Yes, it is an option.
+>
+> Having "hibernation" in the name need not mean that the given piece of
+> code is really hibernation-specific ...
 
-It doesn't work either via the /sys/class/backlight device nor via the
-hardware keys. On Windows everything works fine.
+Sorry, I had misunderstood the suggestion before. I have attempted to
+outline your proposal with some more details above.
 
-Every time I boot, I get this in dmesg:
-[    1.057696] ACPI BIOS Error (bug): Could not resolve symbol
-[\_SB.PCI0.GP17.VGA.LCD._BCM.AFN7], AE_NOT_FOUND (20200717/psargs-330)
-[    1.057753] ACPI Error: Aborting method \_SB.PCI0.GP17.VGA.LCD._BCM
-due to previous error (AE_NOT_FOUND) (20200717/psparse-529)
-[    1.057806] ACPI Error: Evaluating _BCM failed (20200717/video-357)
+>
+> > >
+> > > > Out of these, I think #3 makes the most sense as it does not introduce
+> > > > any conflicting operations. I verified that the following diff results
+> > > > in _OFF methods getting invoked in both poweroff and reboot cases:
+> > >
+> > > This won't work for PCI devices though, only for devices in the ACPI
+> > > PM domain, so it is not sufficient in general.
+> >
+> > That is true. The proposed solution only handles detaching of PM
+> > domains. I understand your point about this not working for any
+> > devices not part of the PM domain. The issues that we have observed in
+> > shutdown/reboot paths have been specific to ACPI power resources
+> > controlling the sequencing to external devices.
+>
+> PCI devices PM can use power resources too.  For instance, this has
+> been quite common for discrete GPUs in laptops IIRC.
 
-I believe this is related to the brightness control problem, can
-anyone shed a light on this?
-
-Regards,
-Pedro
+Sorry about my naive question: Is the power resource not described
+using ACPI in this case? (I haven't run into a situation with PCI
+devices using non-ACPI power resources, so curious to understand the
+scenario).
