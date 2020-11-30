@@ -8,56 +8,56 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F1D0C83023
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:32:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C52C64E90
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:33:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20DF920855
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:32:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82886207BC
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:33:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aCL28tM5"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ntKHJ05P"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726814AbgK3Nci (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Nov 2020 08:32:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38482 "EHLO
+        id S1726924AbgK3NdP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Nov 2020 08:33:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725939AbgK3Ncg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:32:36 -0500
-Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CD8CC0613D2;
-        Mon, 30 Nov 2020 05:31:55 -0800 (PST)
-Received: by mail-wm1-x341.google.com with SMTP id a3so25181444wmb.5;
-        Mon, 30 Nov 2020 05:31:55 -0800 (PST)
+        with ESMTP id S1726316AbgK3NdO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:33:14 -0500
+Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBB5BC0617A7;
+        Mon, 30 Nov 2020 05:32:02 -0800 (PST)
+Received: by mail-wm1-x344.google.com with SMTP id d3so15383938wmb.4;
+        Mon, 30 Nov 2020 05:32:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=RJsQiHGqEJvDI1A950rE2xj0EG8wzsrrAHbyxhByNz0=;
-        b=aCL28tM5Keans39iuF0yPmX8N2Zo6DPH4Ma7s7dw4MyY3eGABozdRLlf6DFDkUzn0k
-         HsURvPU0p1ZOQwfMSn1dPSl7KUl4VQsA+pBuvR2GZQWvLyLTETkYDpW4pB50dJGEDAVT
-         Gl6iinIuTEdutRdQFyoMROOJLR4pP0/11oJgm6QgsEmc0wK13XNqqHZKSO8HGXAOcBhP
-         4uCYVP6WetkhuOaHwSg9W0DMQni9jk5yjPGkx8IebTAGt+GcfUg9covZKsRMekzLILgF
-         3KA9ikRPV8GB3d3t7E+i3TsSm+P3yO8JCND8N8DtHxCJ8WPkOL/ZQN0kwVMVAMMUT/tV
-         tkIw==
+        bh=MQdwYeMzPseIpDXUiLIT9hkS7ClLsv/lm9CY7n8eprs=;
+        b=ntKHJ05P7kwwej7B3/bM8gpGvw9px5edstK9WYOoikfPuhXRzvnrEdIzSdLQ183++J
+         csaWbbzBeFIeE+Qu8pn/+Ja1p9NSv9A39w70AOC+XN9GTUx5ECILc+IexJH8Zr98HN71
+         8/0V/mO1noQAy2U80MBWRW6y2nVk4kq1Z9Ji3t2JVxmVptw66EXX2vy9UTSTzjYwfWoK
+         Ncy2pqphfNUeyALQRDmcFee39rETI6qGDiM6Ds2g+TfAQmb83QXh7AX9hfxRcCzfU0FU
+         oe0Yi6dfNEACMd+hVUVsUVfJzU/L0xXoTg91JVuVlNR05K0pbNMc1aWhTBfJ2SPgQoh4
+         vfXw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=RJsQiHGqEJvDI1A950rE2xj0EG8wzsrrAHbyxhByNz0=;
-        b=qkw/s5tU7x9ZX58R34bAXdSqcSsMcoCCbCx98ut4Kf3U7DUENYU/9oWNCyTP1WfwVG
-         K3qiC+0YOVwu81v4SfuJi9JHLu0yiq/NvyHeWKua2sTpuqoeZrwq2FEaFrSmWmOQ/in1
-         dTqRns3EOWr+9oD7r8JoccWTtIFKA14XwTs+XTeLuH/S53vw0eMB0m5AkT8bcHV4alAN
-         GBUWrFfNYpgIAoZPsETTyK+59mv8F1q2u27GAA6/ugV0RtpWaQvkaYUiVm5H+0ygrI48
-         22LYYyHe3Z8tJUMVJxHN8q8mLCKHWnR4are7A1c/MJQxFLpcC8StrNOQjCp52iKVhqYs
-         h9WQ==
-X-Gm-Message-State: AOAM532QGq0W4IKF71YQNxv3rMxukllk4Tl+nwAU6iICi5bAsghFmrKz
-        IPBNiRY0OVx9Wrr9WhXyX2UbvCWl89QW1hv4
-X-Google-Smtp-Source: ABdhPJwPbNSwrCgOQ0IMIpkzz/7n/VoBoBA1eGQ5Ii7+/pXicjg96dORtNIdGwUWRytKAvCDAttg9A==
-X-Received: by 2002:a1c:99d3:: with SMTP id b202mr23640950wme.0.1606743113991;
-        Mon, 30 Nov 2020 05:31:53 -0800 (PST)
+        bh=MQdwYeMzPseIpDXUiLIT9hkS7ClLsv/lm9CY7n8eprs=;
+        b=K5Hkei3wjLBXk/ZfP4Su8q4fwpqF4VU35XEyCPaPLxSbPfQALI3JM+vx0iBEpbjlpy
+         3r3zrtMRy8E5DwnTZbbSefvtHlXdKfPL5DS7gGpVgWbRaBKWbJlpioSp+hVci1duPH8y
+         8FoINJh0tzwXn4PWjX1gTDWd4Kc2SxoS2V97WkruzZdbUca6ry5/ewVwhsJhi5Esp6P7
+         XsAWHPi1UZ1F2AUmX7jn+hEABxk71mGmKoC/9v3G2VDFBVSalbF9YzX2r3KRfRHbFdKy
+         Yd6pmQVECuP3P2nBIrWUWZRA+lciostvnCl5aiWkPCjk+KeZBSz8rep2bBBU3i6X8sQQ
+         A9BA==
+X-Gm-Message-State: AOAM5321EOcUyXVkhT/NXK4xYUhvHc0k7R8NpZ0gW9JUdCd2TjBtl0zG
+        GxWtI7VI/1AHoGvW2daxcbp39ChtgGpcf/kf
+X-Google-Smtp-Source: ABdhPJxHqd9qSFpaMcuFblPNdct1nYlwJkSKoY66tmWoUlL/S+cakZ0YUKByMejlo1eGSNUdopCTkQ==
+X-Received: by 2002:a7b:c0d7:: with SMTP id s23mr23332580wmh.54.1606743121413;
+        Mon, 30 Nov 2020 05:32:01 -0800 (PST)
 Received: from valhalla.home ([2.31.224.80])
-        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.31.52
+        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.31.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Nov 2020 05:31:53 -0800 (PST)
+        Mon, 30 Nov 2020 05:32:00 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
@@ -73,11 +73,10 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
         jacopo+renesas@jmondi.org,
         laurent.pinchart+renesas@ideasonboard.com,
         jorhand@linux.microsoft.com, kitakar@gmail.com,
-        heikki.krogerus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 01/18] property: Return true in fwnode_device_is_available for node types that do not implement this operation
-Date:   Mon, 30 Nov 2020 13:31:12 +0000
-Message-Id: <20201130133129.1024662-2-djrscally@gmail.com>
+        heikki.krogerus@linux.intel.com
+Subject: [PATCH 06/18] software_node: amend software_node_unregister_node_group() to perform unregistration of array in reverse order to be consistent with software_node_unregister_nodes()
+Date:   Mon, 30 Nov 2020 13:31:17 +0000
+Message-Id: <20201130133129.1024662-7-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201130133129.1024662-1-djrscally@gmail.com>
 References: <20201130133129.1024662-1-djrscally@gmail.com>
@@ -87,41 +86,36 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some types of fwnode_handle do not implement the device_is_available()
-check, such as those created by software_nodes. There isn't really a
-meaningful way to check for the availability of a device that doesn't
-actually exist, so if the check isn't implemented just assume that the
-"device" is present.
+To maintain consistency with software_node_unregister_nodes(), reverse
+the order in which the software_node_unregister_node_group() function
+unregisters nodes.
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
-Changes since RFC v3:
+Changes since v3:
 
-	patch introduced
+	Patch introduced
 
- drivers/base/property.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/base/swnode.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 4c43d30145c6..a5ca2306796f 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -785,9 +785,14 @@ EXPORT_SYMBOL_GPL(fwnode_handle_put);
- /**
-  * fwnode_device_is_available - check if a device is available for use
-  * @fwnode: Pointer to the fwnode of the device.
-+ *
-+ * For fwnode node types that don't implement the .device_is_available()
-+ * operation, this function returns true.
-  */
- bool fwnode_device_is_available(const struct fwnode_handle *fwnode)
- {
-+	if (!fwnode_has_op(fwnode, device_is_available))
-+		return true;
- 	return fwnode_call_bool_op(fwnode, device_is_available);
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index d39e1c76d98d..9bd0bb77ad5b 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -782,7 +782,10 @@ void software_node_unregister_node_group(const struct software_node **node_group
+ 	if (!node_group)
+ 		return;
+ 
+-	for (i = 0; node_group[i]; i++)
++	while (node_group[i]->name)
++		i++;
++
++	while (i--)
+ 		software_node_unregister(node_group[i]);
  }
- EXPORT_SYMBOL_GPL(fwnode_device_is_available);
+ EXPORT_SYMBOL_GPL(software_node_unregister_node_group);
 -- 
 2.25.1
 
