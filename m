@@ -2,98 +2,78 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F5C6C83013
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 17:38:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4688CC63777
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 17:41:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 434012074A
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 17:38:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0702720855
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 17:40:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729192AbgK3RiG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Nov 2020 12:38:06 -0500
-Received: from mga11.intel.com ([192.55.52.93]:41459 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729024AbgK3RiG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 30 Nov 2020 12:38:06 -0500
-IronPort-SDR: 3N4Qei0+GVdttbD0qsAwD9sdqU8JUMD/lbpF7cPm5fkjtEIdpuICTJL2szpibwzrr5yGdhqBzn
- 0HsgFB7NBSig==
-X-IronPort-AV: E=McAfee;i="6000,8403,9821"; a="169178662"
-X-IronPort-AV: E=Sophos;i="5.78,382,1599548400"; 
-   d="scan'208";a="169178662"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2020 09:36:25 -0800
-IronPort-SDR: S5RgzSOMvj9lyrQk4xZKqFlumiDi74YvoddutW32Dw2orZsbyJH1/OwL7wgjxINs7HXrlfp5wL
- W5MJwW1Mw6EQ==
-X-IronPort-AV: E=Sophos;i="5.78,382,1599548400"; 
-   d="scan'208";a="334738822"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2020 09:36:18 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kjn70-00B63R-Bw; Mon, 30 Nov 2020 19:37:18 +0200
-Date:   Mon, 30 Nov 2020 19:37:18 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Daniel Scally <djrscally@gmail.com>
-Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@acpica.org, rjw@rjwysocki.net,
-        lenb@kernel.org, gregkh@linuxfoundation.org,
-        mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
-        bgolaszewski@baylibre.com, wsa@kernel.org, yong.zhi@intel.com,
-        sakari.ailus@linux.intel.com, bingbu.cao@intel.com,
-        tian.shu.qiu@intel.com, mchehab@kernel.org, robert.moore@intel.com,
-        erik.kaneda@intel.com, pmladek@suse.com, rostedt@goodmis.org,
-        sergey.senozhatsky@gmail.com, linux@rasmusvillemoes.dk,
-        kieran.bingham+renesas@ideasonboard.com, jacopo+renesas@jmondi.org,
-        laurent.pinchart+renesas@ideasonboard.com,
-        jorhand@linux.microsoft.com, kitakar@gmail.com,
-        heikki.krogerus@linux.intel.com
-Subject: Re: [PATCH 04/18] software_node: Enforce parent before child
- ordering of nodes array for software_node_register_nodes()
-Message-ID: <20201130173718.GP4077@smile.fi.intel.com>
-References: <20201130133129.1024662-1-djrscally@gmail.com>
- <20201130133129.1024662-5-djrscally@gmail.com>
- <20201130173530.GO4077@smile.fi.intel.com>
+        id S1729504AbgK3Rkn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Nov 2020 12:40:43 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:8887 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728451AbgK3Rkn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 12:40:43 -0500
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4ClCCp0s86z76N1;
+        Tue,  1 Dec 2020 01:39:34 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.58) by
+ DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
+ 14.3.487.0; Tue, 1 Dec 2020 01:39:49 +0800
+From:   John Garry <john.garry@huawei.com>
+To:     <jejb@linux.ibm.com>, <martin.petersen@oracle.com>,
+        <lenb@kernel.org>, <rjw@rjwysocki.net>,
+        <gregkh@linuxfoundation.org>, <tglx@linutronix.de>,
+        <maz@kernel.org>
+CC:     <linux-scsi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linuxarm@huawei.com>, <linux-acpi@vger.kernel.org>,
+        <dwagner@suse.de>, "John Garry" <john.garry@huawei.com>
+Subject: [PATCH v4 2/5] resource: Add irqresource_disabled()
+Date:   Tue, 1 Dec 2020 01:35:56 +0800
+Message-ID: <1606757759-6076-3-git-send-email-john.garry@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1606757759-6076-1-git-send-email-john.garry@huawei.com>
+References: <1606757759-6076-1-git-send-email-john.garry@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201130173530.GO4077@smile.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.58]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 30, 2020 at 07:35:30PM +0200, Andy Shevchenko wrote:
-> On Mon, Nov 30, 2020 at 01:31:15PM +0000, Daniel Scally wrote:
+Add a common function to set the fields for a irq resource to disabled,
+which mimics what is done in acpi_dev_irqresource_disabled(), with a view
+to replace that function.
 
-...
+Signed-off-by: John Garry <john.garry@huawei.com>
+---
+ include/linux/ioport.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-> >  	for (i = 0; nodes[i].name; i++) {
-> > +		if (nodes[i].parent)
-> > +			if (!software_node_to_swnode(nodes[i].parent)) {
-> > +				ret = -EINVAL;
-> > +				goto err_unregister_nodes;
-> > +			}
-> > +
-> 
-> Besides that can we pack these conditionals together?
-> 
-> 		if (nodes[i].parent && !software_node_to_swnode(nodes[i].parent)) {
-
-For being it shorter you may use temporary variable:
-
-		software_node *parent;
-
-		parent = nodes[i].parent;
-		if (parent && !software_node_to_swnode(parent)) {
-
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 5135d4b86cd6..f9bf374f9633 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -307,6 +307,13 @@ struct resource *devm_request_free_mem_region(struct device *dev,
+ struct resource *request_free_mem_region(struct resource *base,
+ 		unsigned long size, const char *name);
+ 
++static inline void irqresource_disabled(struct resource *res, u32 irq)
++{
++	res->start = irq;
++	res->end = irq;
++	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
++}
++
+ #ifdef CONFIG_IO_STRICT_DEVMEM
+ void revoke_devmem(struct resource *res);
+ #else
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.26.2
 
