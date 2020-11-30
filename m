@@ -2,61 +2,62 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CCB9C71156
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:32:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1F4DC64E8A
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:32:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38643207BC
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:32:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8CD1A207BC
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:32:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LEEf+aDf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PM/YOw7P"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726765AbgK3Nce (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Nov 2020 08:32:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38476 "EHLO
+        id S1726871AbgK3Ncl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Nov 2020 08:32:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725939AbgK3Nce (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:32:34 -0500
+        with ESMTP id S1726688AbgK3Nck (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:32:40 -0500
 Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9138C0613CF;
-        Mon, 30 Nov 2020 05:31:53 -0800 (PST)
-Received: by mail-wr1-x441.google.com with SMTP id s8so16206500wrw.10;
-        Mon, 30 Nov 2020 05:31:53 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2E71C0613D6;
+        Mon, 30 Nov 2020 05:31:59 -0800 (PST)
+Received: by mail-wr1-x441.google.com with SMTP id z7so16225563wrn.3;
+        Mon, 30 Nov 2020 05:31:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=OohUDjp6HEgwFCMO0olHO61AfJV21cETxnMeTMXANPE=;
-        b=LEEf+aDfTzgycqlcDqg7AO6TQ+daYocnGIKufN7HaBFo7no9n+QWHT7G6y6QpnbfFB
-         9tcr/5p+6N/pbAVl+ektMve/T6qZcluAPnXVoUG9vCEiZ0vFo6+seRUKdt0iHGoCRchc
-         VbvxYQd4r6ziLeS94h0hEi93aP9Ft2YO89nT0w3gnROBGSnF7CI9Dld1kdsUcGgXPbLl
-         zlvLjGKJ3J/Q6+A4NQwKJLeLFzXrYYGywCbFihnhfJDh3yAGIz58Dx3xpdVXUYoaQX8d
-         yb3RkB2l62Z9R8dpnfWc1qjcVpn69+5yT1Vbtm1LEedBsDXFBP/iDACXzQ1F//IgF3Xi
-         1QwA==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=FePnQn4sOjIUa7n1a1AkFBbevNR2+2SK//M9YhzxN2A=;
+        b=PM/YOw7P5R3RYA3romGtkjPAxx82J5/HMMsPKt6mYIJpu9Cj2e4A1oSI0gf7rQzEmL
+         EAvt7RDcCh9Yffz+57Ko1QRGhm4XwvBWdVNIE0aV6m0QIlZOidH7pTC+JlC9rw5krB60
+         mZr87CzJOLVm2pfldpJZhaCTvJwcpoaKLjIuRxzlB1oBuKJpLcPB8SALog27LXtuCaST
+         0/Y4lW/1Zy7pJ3BnuTOzNZwxmdaNUZAZKQ+/6I5qJ/wAZgMnqAX7wXQTQXGBgnlQ1h+2
+         BBxh8hDijrDng6sGFg5SKmPN8kDJvI24vfLUS2neisbfffKuC1Zsd/SDUrd4DmQlgldM
+         SldQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=OohUDjp6HEgwFCMO0olHO61AfJV21cETxnMeTMXANPE=;
-        b=HbQFhW++PQlKvyPHBAOKlN0y5u19lrhWgUO3wzlege5NiUmGBFjA3gbhsz32rVFddj
-         uLVTwTGnkgUdq7+S4Dr3tA+Xjkap/ZX8KsWX4V2hM0/lhzIlX0jzVCu+vxe2VJ0cItcX
-         Rox7c/ipadVmLOmm6g/EpJKE2y3zu4wzwuc7dtpECAMdKYpvM5FOXEEyZLV62JXrVQUK
-         AyLLJQpHkrES2Tnf63YegAVOlh+D2zA2eHXQZhisC5LyUMyEUuVda9sbmWbaZs57xUvp
-         2ZrWxNKrpKA5Rk72kLwPqkimHYSNEql7sgFCxXwIKCK8zI/Bl0Wt986YrQQBG1V5ELfx
-         Bm/A==
-X-Gm-Message-State: AOAM532t9tU2wtslHtXEY+BwQN7cZkUqRUvyY4T3e+tQ/ViZ8hbl6Vh5
-        hLIZlCXwR0G1SCP2Y9uCes9nvBXYZp0gVnQF
-X-Google-Smtp-Source: ABdhPJxvWyJlVNttaBLVyFzU+UG14IKAfTbd0MHaUPq0yLKidX3VHINPbTXhWrEbFVHnes7BVEFDMw==
-X-Received: by 2002:a05:6000:14b:: with SMTP id r11mr29006695wrx.53.1606743112313;
-        Mon, 30 Nov 2020 05:31:52 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=FePnQn4sOjIUa7n1a1AkFBbevNR2+2SK//M9YhzxN2A=;
+        b=NvrhkDYDtIF0AzCtdl7YbQARVAhp+4MbQkfthJbQ9EMenu7hMFO5K/E1YHsjEL7uGj
+         3ymTCvf5lwoyH/Q0Bb+utfWX4+kHgILatmnsqgObrvzZbEIVSgmjntdIl+sNVt9jpXsb
+         85dCbj+DwGYXVop9SsCViUd0Mq9y9m8y2XKfsHBE4l4mXAqg383VrzDInQfqy38LvdnW
+         TkCqjHhLxZ9RJzS+xnsldfgrFMGNxQOMyMWvNXcOyxt9QrxCUjA+m5xDo8HV3GTxQp4B
+         Gg492F4vGUyCGEkvGqRn84X7amqKdEVf5fxuRNBrJulkK2FYw2fdewZLFUXcWR2pIvgi
+         DJIg==
+X-Gm-Message-State: AOAM531Nff8guToaVTAzKxRTIwy5P3hzw71kgQYfH8MuBvkL+YQxX5RW
+        Zvv4xGeCEP0uEkHcjBv6ACwIsIeYqvXUFE2g
+X-Google-Smtp-Source: ABdhPJxcrjv1HcdEbv2OM0uY8wL3w4pWdRYFa2ZVlxXHKfJRC+d5brQXdT3aThuu9hFxcO1JjpV99g==
+X-Received: by 2002:adf:fd47:: with SMTP id h7mr29381616wrs.106.1606743118371;
+        Mon, 30 Nov 2020 05:31:58 -0800 (PST)
 Received: from valhalla.home ([2.31.224.80])
-        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.31.50
+        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.31.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Nov 2020 05:31:51 -0800 (PST)
+        Mon, 30 Nov 2020 05:31:57 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
@@ -73,121 +74,62 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
         laurent.pinchart+renesas@ideasonboard.com,
         jorhand@linux.microsoft.com, kitakar@gmail.com,
         heikki.krogerus@linux.intel.com
-Subject: [PATCH 00/18] Add functionality to ipu3-cio2 driver allowing software_node connections to sensors on platforms designed for Windows
-Date:   Mon, 30 Nov 2020 13:31:11 +0000
-Message-Id: <20201130133129.1024662-1-djrscally@gmail.com>
+Subject: [PATCH 04/18] software_node: Enforce parent before child ordering of nodes array for software_node_register_nodes()
+Date:   Mon, 30 Nov 2020 13:31:15 +0000
+Message-Id: <20201130133129.1024662-5-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20201130133129.1024662-1-djrscally@gmail.com>
+References: <20201130133129.1024662-1-djrscally@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hello all
+Registering software_nodes with the .parent member set to point to a
+currently unregistered software_node has the potential for problems,
+so enforce parent -> child ordering in arrays passed to this function.
 
-Previous version:
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Daniel Scally <djrscally@gmail.com>
+---
+Changes since RFC v3:
 
-https://lore.kernel.org/linux-media/20201019225903.14276-1-djrscally@gmail.com/
+	Patch introduced
 
-This series aims to add support for webcams on laptops with ACPI tables
-designed for use with CIO2 on Windows. There are two main parts; the
-first is extending the ipu3-cio2 driver to allow for patching the
-firmware via software_nodes if endpoints aren't defined by ACPI. Patch #13
-deals directly with that, all preceding patches are either supplemental
-changes or incidental fixes along the way.
+ drivers/base/swnode.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-The second main part is a way to handle the unusual definition of resource
-destined for the sensors in these ACPI tables; regulators and GPIO lines
-that are supposed to be consumed by the sensor are lumped in the _CRS of
-a dummy ACPI device upon which the sensor is dependent. Patch 18 defines a
-new driver to handle those dummy devices and map the resources to the
-sensor instead. 14-17 are supporting changes for that driver.
-
-Changelogs mostly in the individual patches, but a broad summary:
-
-	- Altered fwnode_device_is_available() to return true if the
-	fwnode_handle doesn't implement that operation.
-	- Altered fwnode_graph_get_endpoint_by_id() to parse secondary
-	if no endpoint found on primary.
-	- Enforce parent->child ordering of software_nodes on registration
-	- Added a function to get the next ACPI device with matching _HID,
-	plus an iterator macro
-	- Altered cio2-bridge.c to store the bridge struct (and basically
-	everything else) in heap, plus removed the requirement to delay
-	ipu3-cio2 probe until after the i2c devices were instantiated. 
-	Also now ensured we handle multiple sensors with the same _HID.
-	- Added a function to get devices _dependent_ on a given ACPI dev,
-	according to their _DEP entries.
-	- Added a function to explicitly construct the name of an I2C dev
-	created from an ACPI dev.
-	- Added a driver to handle the dummy ACPI devices discussed above.
-
-Comments very welcome!
-
-Dan Scally (1):
-  i2c: i2c-core-base: Use the new i2c_acpi_dev_name() in
-    i2c_set_dev_name()
-
-Daniel Scally (16):
-  property: Return true in fwnode_device_is_available for node types
-    that do not implement this operation
-  property: Add support for calling fwnode_graph_get_endpoint_by_id()
-    for fwnode->secondary
-  software_node: Fix failure to put() and get() references to children
-    in software_node_get_next_child()
-  software_node: Enforce parent before child ordering of nodes array for
-    software_node_register_nodes()
-  software_node: Alter software_node_unregister_nodes() to unregister
-    the array in reverse order
-  software_node: amend software_node_unregister_node_group() to perform
-    unregistration of array in reverse order to be consistent with
-    software_node_unregister_nodes()
-  lib/test_printf.c: Use helper function to unwind array of
-    software_nodes
-  ipu3-cio2: Add T: entry to MAINTAINERS
-  ipu3-cio2: Rename ipu3-cio2.c to allow module to be built from
-    multiple source files retaining ipu3-cio2 name
-  media: v4l2-core: v4l2-async: Check possible match in match_fwnode
-    based on sd->fwnode->secondary
-  acpi: Add acpi_dev_get_next_match_dev() and macro to iterate through
-    acpi_devices matching a given _HID
-  ipu3-cio2: Add functionality allowing software_node connections to
-    sensors on platforms designed for Windows
-  acpi: utils: Add function to fetch dependent acpi_devices
-  i2c: i2c-core-acpi: Add i2c_acpi_dev_name()
-  gpio: gpiolib-acpi: Export acpi_get_gpiod()
-  ipu3: Add driver for dummy INT3472 ACPI device
-
-Heikki Krogerus (1):
-  software_node: Add support for fwnode_graph*() family of functions
-
- MAINTAINERS                                   |   9 +
- drivers/acpi/utils.c                          |  98 ++++-
- drivers/base/property.c                       |   9 +
- drivers/base/swnode.c                         | 157 +++++++-
- drivers/gpio/gpiolib-acpi.c                   |   3 +-
- drivers/i2c/i2c-core-acpi.c                   |  14 +
- drivers/i2c/i2c-core-base.c                   |   2 +-
- drivers/media/pci/intel/ipu3/Kconfig          |  32 ++
- drivers/media/pci/intel/ipu3/Makefile         |   4 +
- drivers/media/pci/intel/ipu3/cio2-bridge.c    | 260 ++++++++++++
- drivers/media/pci/intel/ipu3/cio2-bridge.h    | 108 +++++
- drivers/media/pci/intel/ipu3/int3472.c        | 381 ++++++++++++++++++
- drivers/media/pci/intel/ipu3/int3472.h        |  96 +++++
- .../ipu3/{ipu3-cio2.c => ipu3-cio2-main.c}    |  27 ++
- drivers/media/pci/intel/ipu3/ipu3-cio2.h      |   6 +
- drivers/media/v4l2-core/v4l2-async.c          |   8 +
- include/acpi/acpi_bus.h                       |   9 +
- include/linux/acpi.h                          |   5 +
- include/linux/i2c.h                           |   5 +
- lib/test_printf.c                             |   4 +-
- 20 files changed, 1213 insertions(+), 24 deletions(-)
- create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.c
- create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.h
- create mode 100644 drivers/media/pci/intel/ipu3/int3472.c
- create mode 100644 drivers/media/pci/intel/ipu3/int3472.h
- rename drivers/media/pci/intel/ipu3/{ipu3-cio2.c => ipu3-cio2-main.c} (98%)
-
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 615a0c93e116..af7930b3679e 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -700,14 +700,21 @@ int software_node_register_nodes(const struct software_node *nodes)
+ 	int i;
+ 
+ 	for (i = 0; nodes[i].name; i++) {
++		if (nodes[i].parent)
++			if (!software_node_to_swnode(nodes[i].parent)) {
++				ret = -EINVAL;
++				goto err_unregister_nodes;
++			}
++
+ 		ret = software_node_register(&nodes[i]);
+-		if (ret) {
+-			software_node_unregister_nodes(nodes);
+-			return ret;
+-		}
++		if (ret)
++			goto err_unregister_nodes;
+ 	}
+ 
+ 	return 0;
++err_unregister_nodes:
++	software_node_unregister_nodes(nodes);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(software_node_register_nodes);
+ 
 -- 
 2.25.1
 
