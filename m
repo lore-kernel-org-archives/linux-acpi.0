@@ -7,43 +7,42 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28EDDC63777
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B47C71156
 	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 19:48:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1EF72063A
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 19:48:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A19BF20679
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 19:48:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729194AbgK3Tsf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Nov 2020 14:48:35 -0500
+        id S2388163AbgK3Tsu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Nov 2020 14:48:50 -0500
 Received: from mga12.intel.com ([192.55.52.136]:18529 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726769AbgK3Tse (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 30 Nov 2020 14:48:34 -0500
-IronPort-SDR: AasYzb2aURz8t85f/aY4pdnmNWeqDyeQ71OLlVYhc/zooD8Th0/DAuk92QanbvjTvyxy13rMrN
- WY3oZBlc8VaQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9821"; a="151954741"
+        id S2388096AbgK3Tst (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 30 Nov 2020 14:48:49 -0500
+IronPort-SDR: mYi3WqZy7MedbziwTrOI/I5s9JMOgIKoJlZ+px2eD/yz4SmAOftgm4ZxawnTKN7zSB/S8pFEbR
+ 35OFBNhL3Mpw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9821"; a="151954750"
 X-IronPort-AV: E=Sophos;i="5.78,382,1599548400"; 
-   d="scan'208";a="151954741"
+   d="scan'208";a="151954750"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2020 11:47:54 -0800
-IronPort-SDR: B6US28f6gWyR3edampRRKRGUCMpUDnvHMgLo2HZAatYUeXirgI2ozPhS51oz26ceoaT5gX+Bjt
- bhoZwPNHTMUQ==
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2020 11:47:59 -0800
+IronPort-SDR: ie7J4z8JAcoY4iuiglC5306yGMx6m5FNHSM41r0yy6fXmFlJEjForEt+xbNcsIQr5kZrqm3Xm9
+ yWNGnFirQZiw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.78,382,1599548400"; 
-   d="scan'208";a="404844874"
+   d="scan'208";a="404844937"
 Received: from sibelius.jf.intel.com ([10.54.75.172])
-  by orsmga001.jf.intel.com with ESMTP; 30 Nov 2020 11:47:54 -0800
+  by orsmga001.jf.intel.com with ESMTP; 30 Nov 2020 11:47:59 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Colin Ian King <colin.king@canonical.com>,
-        Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 2/6] ACPICA: Remove extreaneous "the" in comments
-Date:   Mon, 30 Nov 2020 11:20:44 -0800
-Message-Id: <20201130192048.3093726-3-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 5/6] ACPICA: Interpreter: fix memory leak by using existing buffer
+Date:   Mon, 30 Nov 2020 11:20:47 -0800
+Message-Id: <20201130192048.3093726-6-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201130192048.3093726-1-erik.kaneda@intel.com>
 References: <20201130192048.3093726-1-erik.kaneda@intel.com>
@@ -53,34 +52,84 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+ACPICA commit 52d1da5dcbd79a722b70f02a1a83f04088f51ff6
 
-ACPICA commit f6eae3961bf39ad8beda70c001d1815780600e39
+There was a memory leak that ocurred when a _CID object is defined as
+a package containing string objects. When _CID is checked for any
+possible repairs, it calls a helper function to repair _HID (because
+_CID basically contains multiple _HID entries).
 
-There are several ocurrances of "the the", remove the extraneous
-"the".
+The _HID repair function assumes that string objects are standalone
+objects that are not contained inside of any packages. The _HID
+repair function replaces the string object with a brand new object
+and attempts to delete the old object by decrementing the reference
+count of the old object. Strings inside of packages have a reference
+count of 2 so the _HID repair function leaves this object in a
+dangling state and causes a memory leak.
 
-Link: https://github.com/acpica/acpica/commit/f6eae396
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Instead of allocating a brand new object and removing the old object,
+use the existing object when repairing the _HID object.
+
+Link: https://github.com/acpica/acpica/commit/52d1da5d
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/accommon.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/nsrepair2.c | 17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/acpica/accommon.h b/drivers/acpi/acpica/accommon.h
-index 89101e53324b..94e18bb76556 100644
---- a/drivers/acpi/acpica/accommon.h
-+++ b/drivers/acpi/acpica/accommon.h
-@@ -13,7 +13,7 @@
- /*
-  * Common set of includes for all ACPICA source files.
-  * We put them here because we don't want to duplicate them
-- * in the the source code again and again.
-+ * in the source code again and again.
-  *
-  * Note: The order of these include files is important.
-  */
+diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
+index 24c197d91f29..d2c8d8279e7a 100644
+--- a/drivers/acpi/acpica/nsrepair2.c
++++ b/drivers/acpi/acpica/nsrepair2.c
+@@ -495,9 +495,8 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
+ 		   union acpi_operand_object **return_object_ptr)
+ {
+ 	union acpi_operand_object *return_object = *return_object_ptr;
+-	union acpi_operand_object *new_string;
+-	char *source;
+ 	char *dest;
++	char *source;
+ 
+ 	ACPI_FUNCTION_NAME(ns_repair_HID);
+ 
+@@ -518,13 +517,6 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
+ 
+-	/* It is simplest to always create a new string object */
+-
+-	new_string = acpi_ut_create_string_object(return_object->string.length);
+-	if (!new_string) {
+-		return_ACPI_STATUS(AE_NO_MEMORY);
+-	}
+-
+ 	/*
+ 	 * Remove a leading asterisk if present. For some unknown reason, there
+ 	 * are many machines in the field that contains IDs like this.
+@@ -534,7 +526,7 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
+ 	source = return_object->string.pointer;
+ 	if (*source == '*') {
+ 		source++;
+-		new_string->string.length--;
++		return_object->string.length--;
+ 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
+ 				  "%s: Removed invalid leading asterisk\n",
+@@ -549,12 +541,11 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
+ 	 * "NNNN####" where N is an uppercase letter or decimal digit, and
+ 	 * # is a hex digit.
+ 	 */
+-	for (dest = new_string->string.pointer; *source; dest++, source++) {
++	for (dest = return_object->string.pointer; *source; dest++, source++) {
+ 		*dest = (char)toupper((int)*source);
+ 	}
++	return_object->string.pointer[return_object->string.length] = 0;
+ 
+-	acpi_ut_remove_reference(return_object);
+-	*return_object_ptr = new_string;
+ 	return_ACPI_STATUS(AE_OK);
+ }
+ 
 -- 
 2.25.1
 
