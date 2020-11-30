@@ -8,56 +8,56 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F138BC64E7B
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A7FFC71156
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A095B207BC
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4ADC320855
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aZl6ANtB"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q4yKKY0b"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727123AbgK3Ndf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Nov 2020 08:33:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38604 "EHLO
+        id S1727177AbgK3Ndx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Nov 2020 08:33:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727107AbgK3Nde (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:33:34 -0500
-Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09DF6C061A55;
-        Mon, 30 Nov 2020 05:32:22 -0800 (PST)
-Received: by mail-wm1-x332.google.com with SMTP id g25so5676165wmh.1;
-        Mon, 30 Nov 2020 05:32:21 -0800 (PST)
+        with ESMTP id S1726992AbgK3NdV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:33:21 -0500
+Received: from mail-wm1-x334.google.com (mail-wm1-x334.google.com [IPv6:2a00:1450:4864:20::334])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C0EAC061A4F;
+        Mon, 30 Nov 2020 05:32:14 -0800 (PST)
+Received: by mail-wm1-x334.google.com with SMTP id x22so18477112wmc.5;
+        Mon, 30 Nov 2020 05:32:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=rV7CHkG5wAxwFl+AqTH2VVVjZLQmG8MfJPPhuV61gVM=;
-        b=aZl6ANtBKeuutB812ayQ+cysTTYPZgvfhP/d/ZuYsP7oS4xXjwSYx5C+fW8WUFD671
-         DYseBQlRDzFNB5/x0VGDN4OfgzU5ngnqhBn3JDBnRpRNxY4qpJT6J0dgNAnRpQW5JDoe
-         Ib3Cg4rYXr3CQIojR0hv7TGNPiWbyu07Ys6LnGc/CE3l7Z8apwmznuDZHPlhURBTCJv0
-         dLT3T4cWcs8cKwOc1hx39qd94pjpCnHzd2FoG6icedVkLUQGPn5yhLCWrk6DJr+r8/F9
-         CUgmA3bRGWc4TIOHCMVssjkHNBub7Ib6WFBj5yqGta0ZUirBVATaajlVsIkLUix7EgoN
-         BCjg==
+        bh=rkRq171/EbhRrWzA9o1up4NODhQMUK0ZntCVybIjLcA=;
+        b=Q4yKKY0bMW/qXTwUPcZS1H3nXE/o9694YGto0ZqiTaXFOHwzeyT+hly2Gslw6CGSG0
+         4XP5zn+SRkZXV4vVCFdZVv2q8g2XMj16Dlwo6mczblN67lrVrc/BUvxHGGS39KIPq13g
+         Rg6SSKJYgTdPImBHQfbtffIPzCqXpKYuRJSPmvWwyIQMn7Nz7yGuKZu5J4GNOpMw2+dm
+         7S0VMEOKxt+wwREw4maVruKt6/tm5NcRIVu02XWO6Tmt3zoQ7jUS8/qGjvUFT5nlwzyq
+         o6KMVy/9IKXXjiDhjGVtLzywKk8jYuOfq5AgKj27pBkPVj+QfNR7QTLTLko4wqd+fwTk
+         EG2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=rV7CHkG5wAxwFl+AqTH2VVVjZLQmG8MfJPPhuV61gVM=;
-        b=m4fRPvkTheDVjH+7zRNQHZumnuIeqyJDZDnrCeBi/DwZK18YueI7jNNPM+Irp7Lhm9
-         xvmX0KkwFdf2wYc2h7wk9YlvaFjS7PT9GHXkjiW+ySozA6Y6aalAp35krK7xkumtcjk+
-         z7pAVUGzUlHyq5nYiHCYUG6AHOhrfXDN3j1+svWLdpgiNbgdDUHoPBCsVjj7fOmgpdXq
-         SjUae2JystYle09w5hea5o8WWHxvFMfpYN6fJW8BgJblTeiZOdmugPBB2foeCluvy4o4
-         CboGe6lguWOENsUshIPN7lgfFxE13TUuMBXlJWlFQuKgwYLV0tDnDDuC9AcEcnSzj/Mt
-         DxMQ==
-X-Gm-Message-State: AOAM531tIt3M6i0YJnO+4Swtdjwoh7dG0FZ+G0aZS8pu6O/3vcFaUweX
-        nEUG1AF0W/KTKerRhBRURvgZQmUExBj1lwRX
-X-Google-Smtp-Source: ABdhPJxQyQwiR9uc69AxalIPdALusKCqQS9zU0BH7goMtWjVpybkXYmVbKnAo/XyZm6nkdguyJ5Mzw==
-X-Received: by 2002:a7b:c24b:: with SMTP id b11mr23247129wmj.109.1606743139970;
-        Mon, 30 Nov 2020 05:32:19 -0800 (PST)
+        bh=rkRq171/EbhRrWzA9o1up4NODhQMUK0ZntCVybIjLcA=;
+        b=TlOM2mNQ4SiWrURw035MnAW3hKLUnWaWtfaIP5gOjaxHERMK8ZsIq64Anlc3fVYc8G
+         joWt+Pw+X0Zuusgb2aczmRKmL/7asBEvA8T1b9dRcoXU02HaE3tnjHweSs7GKLrDxZFY
+         hfHCVEMJbrNQ1nIuRhFWmZfKmr8g81K5nycdbgn8Umz8zerLyybp5zn4/mkrk+qxO0FF
+         pn8FxUCdoDqZqbs1LHbURHFAn9nnBEd2cEw1/uyA0+KHcZ/ANmrLUh1Eo5k2BER2eC69
+         H6EzDyM7OHyGjw2+ypQIieDEX/hEQW5Px9NnfHaMd0RRgk5AV/GpbP+Jm3gX03+wbLU9
+         YLJw==
+X-Gm-Message-State: AOAM533v2ZLxv6ZJTOg9hqBK9cMVC2LEQSrY9VK6ADRdXgdT9u3cIdYL
+        vRVmnYedIC1CG90DzQO3KWd1QuKsz6CrbH5L
+X-Google-Smtp-Source: ABdhPJzPmRqy1SOVGB1510Z+u/UmLBQCc6UxCb0Na8Tvfr1paiJ2azTl1in4riIXMqk4aUYhk2k3QQ==
+X-Received: by 2002:a7b:cf08:: with SMTP id l8mr3361049wmg.189.1606743132058;
+        Mon, 30 Nov 2020 05:32:12 -0800 (PST)
 Received: from valhalla.home ([2.31.224.80])
-        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.32.18
+        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.32.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Nov 2020 05:32:19 -0800 (PST)
+        Mon, 30 Nov 2020 05:32:11 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
@@ -73,11 +73,10 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
         jacopo+renesas@jmondi.org,
         laurent.pinchart+renesas@ideasonboard.com,
         jorhand@linux.microsoft.com, kitakar@gmail.com,
-        heikki.krogerus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 18/18] ipu3: Add driver for dummy INT3472 ACPI device
-Date:   Mon, 30 Nov 2020 13:31:29 +0000
-Message-Id: <20201130133129.1024662-19-djrscally@gmail.com>
+        heikki.krogerus@linux.intel.com
+Subject: [PATCH 13/18] ipu3-cio2: Add functionality allowing software_node connections to sensors on platforms designed for Windows
+Date:   Mon, 30 Nov 2020 13:31:24 +0000
+Message-Id: <20201130133129.1024662-14-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201130133129.1024662-1-djrscally@gmail.com>
 References: <20201130133129.1024662-1-djrscally@gmail.com>
@@ -87,670 +86,537 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On platforms where ACPI is designed for use with Windows, resources
-that are intended to be consumed by sensor devices are sometimes in
-the _CRS of a dummy INT3472 device upon which the sensor depends. This
-driver binds to the dummy acpi device (which does not represent a
-physical PMIC) and maps them into GPIO lines and regulators for use by
-the sensor device instead.
+Currently on platforms designed for Windows, connections between CIO2 and
+sensors are not properly defined in DSDT. This patch extends the ipu3-cio2
+driver to compensate by building software_node connections, parsing the
+connection properties from the sensor's SSDB buffer.
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Suggested-by: Jordan Hand <jorhand@linux.microsoft.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
 Changes since RFC v3:
 
-	- Patch introduced
+	- Removed almost all global variables, dynamically allocated
+	the cio2_bridge structure, plus a bunch of associated changes
+	like 
+	- Added a new function to ipu3-cio2-main.c to check for an 
+	existing fwnode_graph before calling cio2_bridge_init()
+	- Prefixed cio2_bridge_ to any variables and functions that
+	lacked it
+	- Assigned the new fwnode directly to the sensor's ACPI device
+	fwnode as secondary. This removes the requirement to delay until
+	the I2C devices are instantiated before ipu3-cio2 can probe, but
+	it has a side effect, which is that those devices then grab a ref
+	to the new software_node. This effectively prevents us from
+	unloading the driver, because we can't free the memory that they
+	live in whilst the device holds a reference to them. The work
+	around at the moment is to _not_ unregister the software_nodes
+	when ipu3-cio2 is unloaded; this becomes a one-time 'patch', that
+	is simply skipped if the module is reloaded.
+	- Moved the sensor's SSDB struct to be a member of cio2_sensor
+	- Replaced ints with unsigned ints where appropriate
+	- Iterated over all ACPI devices of a matching _HID rather than
+	just the first to ensure we handle a device with multiple sensors
+	of the same model.
 
-This patch contains the bits of this process that we're least sure about.
-The sensors in scope for this work are called out as dependent (in their
-DSDT entry's _DEP) on a device with _HID INT3472. These come in at least
-2 kinds; those with an I2cSerialBusV2 entry (which we presume therefore
-are legitimate tps68470 PMICs that need handling by those drivers - work
-on that in the future). And those without an I2C device. For those without
-an I2C device they instead have an array of GPIO pins defined in _CRS. So
-for example, my Lenovo Miix 510's OVTI2680 sensor is dependent on one of
-the _latter_ kind of INT3472 devices, with this _CRS:
-
-Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
-{
-    Name (SBUF, ResourceTemplate ()
-    {
-        GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
-	    IoRestrictionOutputOnly, "\\_SB.PCI0.GPI0",
-	    0x00, ResourceConsumer, ,
-            )
-            {   // Pin list
-                0x0079
-            }
-        GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
-	    IoRestrictionOutputOnly, "\\_SB.PCI0.GPI0",
-	    0x00, ResourceConsumer, ,
-            )
-            {   // Pin list
-                0x007A
-            }
-        GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
-	    IoRestrictionOutputOnly, "\\_SB.PCI0.GPI0",
-	    0x00, ResourceConsumer, ,
-            )
-            {   // Pin list
-                0x008F
-            }
-    })
-    Return (SBUF) /* \_SB_.PCI0.PMI1._CRS.SBUF */
-}
-
-and the same device has a _DSM Method, which returns 32-bit ints where
-the second lowest byte we noticed to match the pin numbers of the GPIO
-lines:
-
-Method (_DSM, 4, NotSerialized)  // _DSM: Device-Specific Method
-{
-    If ((Arg0 == ToUUID ("79234640-9e10-4fea-a5c1-b5aa8b19756f")))
-    {
-        If ((Arg2 == One))
-        {
-            Return (0x03)
-        }
-
-        If ((Arg2 == 0x02))
-        {
-            Return (0x01007900)
-        }
-
-        If ((Arg2 == 0x03))
-        {
-            Return (0x01007A0C)
-        }
-
-        If ((Arg2 == 0x04))
-        {
-            Return (0x01008F01)
-        }
-    }
-
-    Return (Zero)
-}
-
-We know that at least some of those pins have to be toggled active for the
-sensor devices to be available in i2c, so the conclusion we came to was
-that those GPIO entries assigned to the INT3472 device actually represent
-GPIOs and regulators to be consumed by the sensors themselves. Tsuchiya
-noticed that the lowest byte in the return values of the _DSM method
-seemed to represent the type or function of the GPIO line, and we
-confirmed that by testing on each surface device that GPIO lines where the
-low byte in the _DSM entry for that pin was 0x0d controlled the privacy
-LED of the cameras.
-
-We're guessing as to the exact meaning of the function byte, but I
-conclude they're something like this:
-
-0x00 - probably a reset GPIO
-0x01 - regulator for the sensor
-0x0c - regulator for the sensor
-0x0b - regulator again, but for a VCM or EEPROM
-0x0d - privacy led (only one we're totally confident of since we can see
-       it happen!)
-
-After much internal debate I decided to write this as a standalone
-acpi_driver. Alternative options we considered:
-
-1. Squash all this into the cio2-bridge code, which I did originally write
-but decided I didn't like.
-2. Extend the existing tps68470 mfd driver...they share an ACPI ID so this
-kinda makes sense, but ultimately given there is no actual physical
-tps68470 in the scenario this patch handles I decided I didn't like this
-either.
-
- MAINTAINERS                            |   7 +
- drivers/media/pci/intel/ipu3/Kconfig   |  14 +
- drivers/media/pci/intel/ipu3/Makefile  |   1 +
- drivers/media/pci/intel/ipu3/int3472.c | 381 +++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/int3472.h |  96 +++++++
- 5 files changed, 499 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/int3472.c
- create mode 100644 drivers/media/pci/intel/ipu3/int3472.h
+ MAINTAINERS                                   |   1 +
+ drivers/media/pci/intel/ipu3/Kconfig          |  18 ++
+ drivers/media/pci/intel/ipu3/Makefile         |   1 +
+ drivers/media/pci/intel/ipu3/cio2-bridge.c    | 260 ++++++++++++++++++
+ drivers/media/pci/intel/ipu3/cio2-bridge.h    | 108 ++++++++
+ drivers/media/pci/intel/ipu3/ipu3-cio2-main.c |  27 ++
+ drivers/media/pci/intel/ipu3/ipu3-cio2.h      |   6 +
+ 7 files changed, 421 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.c
+ create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 188559a0a610..d73471f9c2a3 100644
+index 9702b886d6a4..188559a0a610 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -8753,6 +8753,13 @@ L:	linux-crypto@vger.kernel.org
+@@ -8927,6 +8927,7 @@ INTEL IPU3 CSI-2 CIO2 DRIVER
+ M:	Yong Zhi <yong.zhi@intel.com>
+ M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+ M:	Bingbu Cao <bingbu.cao@intel.com>
++M:	Dan Scally <djrscally@gmail.com>
+ R:	Tianshu Qiu <tian.shu.qiu@intel.com>
+ L:	linux-media@vger.kernel.org
  S:	Maintained
- F:	drivers/crypto/inside-secure/
- 
-+INT3472 ACPI DEVICE DRIVER
-+M:	Daniel Scally <djrscally@gmail.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/pci/intel/ipu3/int3472.c
-+F:	drivers/media/pci/intel/ipu3/int3472.h
-+
- INTEGRITY MEASUREMENT ARCHITECTURE (IMA)
- M:	Mimi Zohar <zohar@linux.ibm.com>
- M:	Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
 diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
-index 2b3350d042be..9dd3b280f821 100644
+index 82d7f17e6a02..2b3350d042be 100644
 --- a/drivers/media/pci/intel/ipu3/Kconfig
 +++ b/drivers/media/pci/intel/ipu3/Kconfig
-@@ -34,3 +34,17 @@ config CIO2_BRIDGE
- 		- Dell 7285
- 
- 	  If in doubt, say N here.
+@@ -16,3 +16,21 @@ config VIDEO_IPU3_CIO2
+ 	  Say Y or M here if you have a Skylake/Kaby Lake SoC with MIPI CSI-2
+ 	  connected camera.
+ 	  The module will be called ipu3-cio2.
 +
-+config INT3472
-+	tristate "INT3472 Dummy ACPI Device Driver"
++config CIO2_BRIDGE
++	bool "IPU3 CIO2 Sensors Bridge"
 +	depends on VIDEO_IPU3_CIO2
-+	depends on ACPI && REGULATOR && GPIOLIB
 +	help
-+	  This module provides an ACPI driver for INT3472 devices that do not
-+	  represent an actual physical tps68470 device.
++	  This extension provides an API for the ipu3-cio2 driver to create
++	  connections to cameras that are hidden in SSDB buffer in ACPI. It
++	  can be used to enable support for cameras in detachable / hybrid
++	  devices that ship with Windows.
 +
 +	  Say Y here if your device is a detachable / hybrid laptop that comes
-+	  with Windows installed by the OEM.
-+	  The module will be called int3472.
++	  with Windows installed by the OEM, for example:
++
++	  	- Microsoft Surface models (except Surface Pro 3)
++		- The Lenovo Miix line (for example the 510, 520, 710 and 720)
++		- Dell 7285
 +
 +	  If in doubt, say N here.
 diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
-index 933777e6ea8a..2285947b2bd2 100644
+index 429d516452e4..933777e6ea8a 100644
 --- a/drivers/media/pci/intel/ipu3/Makefile
 +++ b/drivers/media/pci/intel/ipu3/Makefile
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
+@@ -2,3 +2,4 @@
  obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
-+obj-$(CONFIG_INT3472) += int3472.o
  
  ipu3-cio2-y += ipu3-cio2-main.o
- ipu3-cio2-$(CONFIG_CIO2_BRIDGE) += cio2-bridge.o
-diff --git a/drivers/media/pci/intel/ipu3/int3472.c b/drivers/media/pci/intel/ipu3/int3472.c
++ipu3-cio2-$(CONFIG_CIO2_BRIDGE) += cio2-bridge.o
+diff --git a/drivers/media/pci/intel/ipu3/cio2-bridge.c b/drivers/media/pci/intel/ipu3/cio2-bridge.c
 new file mode 100644
-index 000000000000..6b0be75f7f35
+index 000000000000..fd3f8ba07274
 --- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/int3472.c
-@@ -0,0 +1,381 @@
++++ b/drivers/media/pci/intel/ipu3/cio2-bridge.c
+@@ -0,0 +1,260 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/* Author: Dan Scally <djrscally@gmail.com> */
 +#include <linux/acpi.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/gpio/machine.h>
++#include <linux/device.h>
 +#include <linux/i2c.h>
 +#include <linux/kernel.h>
-+#include <linux/list.h>
 +#include <linux/module.h>
-+#include <linux/regulator/driver.h>
++#include <linux/pci.h>
++#include <linux/property.h>
++#include <media/v4l2-subdev.h>
 +
-+#include "int3472.h"
++#include "cio2-bridge.h"
 +
 +/*
-+ * The regulators have to have .ops to be valid, but the only ops we actually
-+ * support are .enable and .disable which are handled via .ena_gpiod. Pass an
-+ * empty struct to clear the check without lying about capabilities.
++ * Extend this array with ACPI Hardware ID's of devices known to be working.
++ * Do not add a HID for a sensor that is not actually supported.
 + */
-+static const struct regulator_ops int3472_gpio_regulator_ops = { 0 };
++static const char * const cio2_supported_devices[] = {
++	"INT33BE",
++	"OVTI2680",
++};
 +
-+static int int3472_map_gpio_to_sensor(struct int3472_device *int3472,
-+				      struct acpi_resource *ares, char *func)
-+{
-+	char *path = ares->data.gpio.resource_source.string_ptr;
-+	struct gpiod_lookup table_entry;
-+	struct acpi_device *adev;
-+	acpi_handle handle;
-+	acpi_status status;
-+	int ret;
-+
-+	/* Make sure we don't overflow, and leave room for a terminator */
-+	if (int3472->n_sensor_gpios >= INT3472_MAX_SENSOR_GPIOS) {
-+		dev_warn(&int3472->sensor->dev, "Too many GPIOs mapped\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Fetch ACPI handle for the GPIO chip  */
-+	status = acpi_get_handle(NULL, path, &handle);
-+	if (ACPI_FAILURE(status))
-+		return -EINVAL;
-+
-+	ret = acpi_bus_get_device(handle, &adev);
-+	if (ret)
-+		return -ENODEV;
-+
-+	table_entry = (struct gpiod_lookup)GPIO_LOOKUP_IDX(acpi_dev_name(adev),
-+							   ares->data.gpio.pin_table[0],
-+							   func, 0, GPIO_ACTIVE_HIGH);
-+
-+	memcpy(&int3472->gpios.table[int3472->n_sensor_gpios], &table_entry,
-+	       sizeof(table_entry));
-+	int3472->n_sensor_gpios++;
-+
-+	return 0;
-+}
-+
-+static struct int3472_sensor_regulator_map *
-+int3472_get_sensor_supply_map(struct int3472_device *int3472)
-+{
-+	struct int3472_sensor_regulator_map *ret;
-+	union acpi_object *obj;
-+	unsigned int i;
-+
-+	/*
-+	 * Sensor modules seem to be identified by a unique string. We use that
-+	 * to make sure we pass the right device and supply names to the new
-+	 * regulator's consumer_supplies
-+	 */
-+	obj = acpi_evaluate_dsm_typed(int3472->sensor->handle,
-+				      &cio2_sensor_module_guid, 0x00,
-+				      0x01, NULL, ACPI_TYPE_STRING);
-+
-+	if (!obj) {
-+		dev_err(&int3472->sensor->dev,
-+			"Failed to get sensor module string from _DSM\n");
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	if (obj->string.type != ACPI_TYPE_STRING) {
-+		dev_err(&int3472->sensor->dev,
-+			"Sensor _DSM returned a non-string value\n");
-+		ret = ERR_PTR(-EINVAL);
-+		goto out_free_obj;
-+	}
-+
-+	ret = ERR_PTR(-ENODEV);
-+	for (i = 0; i < ARRAY_SIZE(int3472_sensor_regulator_maps); i++) {
-+		if (!strcmp(int3472_sensor_regulator_maps[i].sensor_module_name,
-+			    obj->string.pointer)) {
-+			ret = &int3472_sensor_regulator_maps[i];
-+			goto out_free_obj;
-+		}
-+	}
-+
-+out_free_obj:
-+	ACPI_FREE(obj);
-+	return ret;
-+}
-+
-+static int int3472_register_regulator(struct int3472_device *int3472,
-+				      struct acpi_resource *ares)
-+{
-+	char *path = ares->data.gpio.resource_source.string_ptr;
-+	struct int3472_sensor_regulator_map *regulator_map;
-+	struct regulator_init_data init_data = { };
-+	struct int3472_gpio_regulator *regulator;
-+	struct regulator_config cfg = { };
-+	int ret;
-+
-+	/*
-+	 * We lookup supply names from machine specific tables, based on a
-+	 * unique identifier in the sensor's _DSM
-+	 */
-+	regulator_map = int3472_get_sensor_supply_map(int3472);
-+	if (IS_ERR_OR_NULL(regulator_map)) {
-+		dev_err(&int3472->sensor->dev,
-+			"Found no supplies defined for this sensor\n");
-+		return PTR_ERR(regulator_map);
-+	}
-+
-+	if (int3472->n_regulators >= regulator_map->n_supplies) {
-+		dev_err(&int3472->sensor->dev,
-+			"All known supplies are already mapped\n");
-+		return -EINVAL;
-+	}
-+
-+	init_data.supply_regulator = NULL;
-+	init_data.constraints.valid_ops_mask = REGULATOR_CHANGE_STATUS;
-+	init_data.num_consumer_supplies = 1;
-+	init_data.consumer_supplies = &regulator_map->supplies[int3472->n_regulators];
-+
-+	regulator = kmalloc(sizeof(*regulator), GFP_KERNEL);
-+	if (!regulator)
-+		return -ENOMEM;
-+
-+	snprintf(regulator->regulator_name, GPIO_REGULATOR_NAME_LENGTH,
-+		 "gpio-regulator-%d", int3472->n_regulators);
-+	snprintf(regulator->supply_name, GPIO_REGULATOR_SUPPLY_NAME_LENGTH,
-+		 "supply-%d", int3472->n_regulators);
-+
-+	regulator->rdesc = INT3472_REGULATOR(regulator->regulator_name,
-+					     regulator->supply_name,
-+					     int3472->n_regulators,
-+					     &int3472_gpio_regulator_ops);
-+
-+	regulator->gpio = acpi_get_gpiod(path, ares->data.gpio.pin_table[0]);
-+	if (IS_ERR(regulator->gpio)) {
-+		ret = PTR_ERR(regulator->gpio);
-+		goto err_free_regulator;
-+	}
-+
-+	cfg.dev = &int3472->adev->dev;
-+	cfg.init_data = &init_data;
-+	cfg.ena_gpiod = regulator->gpio;
-+
-+	regulator->rdev = regulator_register(&regulator->rdesc, &cfg);
-+	if (IS_ERR(regulator->rdev)) {
-+		ret = PTR_ERR(regulator->rdev);
-+		goto err_free_gpio;
-+	}
-+
-+	list_add(&regulator->list, &int3472->regulators);
-+	int3472->n_regulators++;
-+
-+	return 0;
-+
-+err_free_gpio:
-+	gpiod_put(regulator->gpio);
-+err_free_regulator:
-+	kfree(regulator);
-+
-+	return ret;
-+}
-+
-+static int int3472_handle_gpio_resources(struct acpi_resource *ares,
-+					 void *data)
-+{
-+	struct int3472_device *int3472 = data;
-+	union acpi_object *obj;
-+	int ret = 0;
-+
-+	if (ares->type != ACPI_RESOURCE_TYPE_GPIO ||
-+	    ares->data.gpio.connection_type != ACPI_RESOURCE_GPIO_TYPE_IO)
-+		return EINVAL; /* Deliberately positive */
-+
-+	/*
-+	 * n_gpios + 2 because the index of this _DSM function is 1-based and
-+	 * the first function is just a count.
-+	 */
-+	obj = acpi_evaluate_dsm_typed(int3472->adev->handle,
-+				      &int3472_gpio_guid, 0x00,
-+				      int3472->n_gpios + 2,
-+				      NULL, ACPI_TYPE_INTEGER);
-+
-+	if (!obj) {
-+		dev_warn(&int3472->adev->dev,
-+			 "No _DSM entry for this GPIO pin\n");
-+		return ENODEV;
-+	}
-+
-+	switch (obj->integer.value & 0xff) { /* low byte holds type data */
-+	case 0x00: /* Purpose unclear, possibly a reset GPIO pin */
-+		ret = int3472_map_gpio_to_sensor(int3472, ares, "reset");
-+		if (ret)
-+			dev_warn(&int3472->adev->dev,
-+				 "Failed to map reset pin to sensor\n");
-+
-+		break;
-+	case 0x01: /* Power regulators (we think) */
-+	case 0x0c:
-+		ret = int3472_register_regulator(int3472, ares);
-+		if (ret)
-+			dev_warn(&int3472->adev->dev,
-+				 "Failed to map regulator to sensor\n");
-+
-+		break;
-+	case 0x0b: /* Power regulators, but to a device separate to sensor */
-+		ret = int3472_register_regulator(int3472, ares);
-+		if (ret)
-+			dev_warn(&int3472->adev->dev,
-+				 "Failed to map regulator to sensor\n");
-+
-+		break;
-+	case 0x0d: /* Indicator LEDs */
-+		ret = int3472_map_gpio_to_sensor(int3472, ares, "indicator-led");
-+		if (ret)
-+			dev_warn(&int3472->adev->dev,
-+				 "Failed to map indicator led to sensor\n");
-+
-+		break;
-+	default:
-+		/* if we've gotten here, we're not sure what they are yet */
-+		dev_warn(&int3472->adev->dev,
-+			 "GPIO type 0x%llx unknown; the sensor may not work\n",
-+			 (obj->integer.value & 0xff));
-+		ret = EINVAL;
-+	}
-+
-+	int3472->n_gpios++;
-+	ACPI_FREE(obj);
-+	return abs(ret);
-+}
-+
-+static void int3472_parse_crs(struct int3472_device *int3472)
-+{
-+	struct list_head resource_list;
-+
-+	INIT_LIST_HEAD(&resource_list);
-+
-+	acpi_dev_get_resources(int3472->adev, &resource_list,
-+			       int3472_handle_gpio_resources, int3472);
-+
-+	acpi_dev_free_resource_list(&resource_list);
-+	gpiod_add_lookup_table(&int3472->gpios);
-+}
-+
-+static int int3472_add(struct acpi_device *adev)
++static int cio2_bridge_read_acpi_buffer(struct acpi_device *adev, char *id,
++					void *data, u32 size)
 +{
 +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct int3472_device *int3472;
-+	struct int3472_cldb cldb;
 +	union acpi_object *obj;
 +	acpi_status status;
-+	int ret = 0;
++	int ret;
 +
-+	/*
-+	 * This driver is only intended to support "dummy" INT3472 devices
-+	 * which appear in ACPI designed for Windows. These are distinguishable
-+	 * from INT3472 entries representing an actual tps68470 PMIC through
-+	 * the presence of a CLDB buffer with a particular value set.
-+	 */
-+	status = acpi_evaluate_object(adev->handle, "CLDB", NULL, &buffer);
++	status = acpi_evaluate_object(adev->handle, id, NULL, &buffer);
 +	if (ACPI_FAILURE(status))
 +		return -ENODEV;
 +
 +	obj = buffer.pointer;
 +	if (!obj) {
-+		dev_err(&adev->dev, "ACPI device has no CLDB object\n");
++		dev_err(&adev->dev, "Couldn't locate ACPI buffer\n");
 +		return -ENODEV;
 +	}
 +
 +	if (obj->type != ACPI_TYPE_BUFFER) {
-+		dev_err(&adev->dev, "CLDB object is not an ACPI buffer\n");
-+		ret = -EINVAL;
-+		goto out_free_buff;
-+	}
-+
-+	if (obj->buffer.length > sizeof(cldb)) {
-+		dev_err(&adev->dev, "The CLDB buffer is too large\n");
-+		ret = -EINVAL;
-+		goto out_free_buff;
-+	}
-+
-+	memcpy(&cldb, obj->buffer.pointer, obj->buffer.length);
-+
-+	/*
-+	 * control_logic_type = 1 indicates this is a dummy INT3472 device of
-+	 * the kind we're looking for. If any other value then we shouldn't try
-+	 * to handle it
-+	 */
-+	if (cldb.control_logic_type != 1) {
-+		ret = -EINVAL;
-+		goto out_free_buff;
-+	}
-+
-+	/* Space for 4 GPIOs - one more than we've seen so far plus a null */
-+	int3472 = kzalloc(sizeof(*int3472) +
-+			 ((INT3472_MAX_SENSOR_GPIOS + 1) * sizeof(struct gpiod_lookup)),
-+			 GFP_KERNEL);
-+	if (!int3472) {
-+		ret = -ENOMEM;
-+		goto out_free_buff;
-+	}
-+
-+	int3472->adev = adev;
-+	adev->driver_data = int3472;
-+
-+	int3472->sensor = acpi_dev_get_next_dep_dev(adev, NULL);
-+	if (!int3472->sensor) {
-+		dev_err(&adev->dev,
-+			"This INT3472 entry seems to have no dependents.\n");
++		dev_err(&adev->dev, "Not an ACPI buffer\n");
 +		ret = -ENODEV;
-+		goto out_free_int3472;
++		goto out_free_buff;
 +	}
 +
-+	int3472->gpios.dev_id = i2c_acpi_dev_name(int3472->sensor);
++	if (obj->buffer.length > size) {
++		dev_err(&adev->dev, "Given buffer is too small\n");
++		ret = -EINVAL;
++		goto out_free_buff;
++	}
 +
-+	INIT_LIST_HEAD(&int3472->regulators);
++	memcpy(data, obj->buffer.pointer, obj->buffer.length);
++	ret = obj->buffer.length;
 +
-+	int3472_parse_crs(int3472);
-+
-+	goto out_free_buff;
-+
-+out_free_int3472:
-+	kfree(int3472);
 +out_free_buff:
 +	kfree(buffer.pointer);
 +	return ret;
 +}
 +
-+static int int3472_remove(struct acpi_device *adev)
++static void cio2_bridge_init_property_names(struct cio2_sensor *sensor)
 +{
-+	struct int3472_gpio_regulator *reg;
-+	struct int3472_device *int3472;
-+
-+	int3472 = acpi_driver_data(adev);
-+
-+	acpi_dev_put(int3472->sensor);
-+	gpiod_remove_lookup_table(&int3472->gpios);
-+
-+	list_for_each_entry(reg, &int3472->regulators, list) {
-+		gpiod_put(reg->gpio);
-+		regulator_unregister(reg->rdev);
-+	}
-+
-+	kfree(int3472);
-+
-+	return 0;
++	strcpy(sensor->prop_names.clock_frequency, "clock-frequency");
++	strcpy(sensor->prop_names.rotation, "rotation");
++	strcpy(sensor->prop_names.bus_type, "bus-type");
++	strcpy(sensor->prop_names.data_lanes, "data-lanes");
++	strcpy(sensor->prop_names.remote_endpoint, "remote-endpoint");
 +}
 +
-+static const struct acpi_device_id int3472_device_id[] = {
-+	{ "INT3472", 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, int3472_device_id);
++static void cio2_bridge_create_fwnode_properties(struct cio2_sensor *sensor)
++{
++	unsigned int i;
 +
-+static struct acpi_driver int3472_driver = {
-+	.name = "int3472",
-+	.ids = int3472_device_id,
-+	.ops = {
-+		.add = int3472_add,
-+		.remove = int3472_remove,
-+	},
-+	.owner = THIS_MODULE,
-+};
++	cio2_bridge_init_property_names(sensor);
 +
-+module_acpi_driver(int3472_driver);
++	for (i = 0; i < 4; i++)
++		sensor->data_lanes[i] = i + 1;
 +
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Dan Scally <djrscally@gmail.com>");
-+MODULE_DESCRIPTION("ACPI Driver for Discrete type INT3472 ACPI Devices");
-diff --git a/drivers/media/pci/intel/ipu3/int3472.h b/drivers/media/pci/intel/ipu3/int3472.h
++	/*
++	 * Can't use PROPERTY_ENTRY_REF because it creates a new variable to
++	 * point to, which doesn't survive the function.
++	 */
++	sensor->local_ref[0] = (struct software_node_ref_args){
++		.node = &sensor->swnodes[SWNODE_CIO2_ENDPOINT]
++		};
++	sensor->remote_ref[0] = (struct software_node_ref_args){
++		.node = &sensor->swnodes[SWNODE_SENSOR_ENDPOINT]
++		};
++
++	sensor->dev_properties[0] = PROPERTY_ENTRY_U32(sensor->prop_names.clock_frequency,
++						       sensor->ssdb.mclkspeed);
++	sensor->dev_properties[1] = PROPERTY_ENTRY_U8(sensor->prop_names.rotation,
++						      sensor->ssdb.degree);
++
++	sensor->ep_properties[0] = PROPERTY_ENTRY_U32(sensor->prop_names.bus_type, 5);
++	sensor->ep_properties[1] = PROPERTY_ENTRY_U32_ARRAY_LEN(sensor->prop_names.data_lanes,
++								sensor->data_lanes,
++								sensor->ssdb.lanes);
++	sensor->ep_properties[2] = PROPERTY_ENTRY_REF_ARRAY(sensor->prop_names.remote_endpoint,
++							    sensor->local_ref);
++
++	sensor->cio2_properties[0] = PROPERTY_ENTRY_U32_ARRAY_LEN(sensor->prop_names.data_lanes,
++								  sensor->data_lanes,
++								  sensor->ssdb.lanes);
++	sensor->cio2_properties[1] = PROPERTY_ENTRY_REF_ARRAY(sensor->prop_names.remote_endpoint,
++							      sensor->remote_ref);
++}
++
++static void cio2_bridge_init_swnode_names(struct cio2_sensor *sensor)
++{
++	snprintf(sensor->node_names.remote_port, 6, "port%u", sensor->ssdb.link);
++	strcpy(sensor->node_names.port, "port0");
++	strcpy(sensor->node_names.endpoint, "endpoint0");
++}
++
++static void cio2_bridge_create_connection_swnodes(struct cio2_bridge *bridge,
++						  struct cio2_sensor *sensor)
++{
++	struct software_node *nodes = sensor->swnodes;
++
++	cio2_bridge_init_swnode_names(sensor);
++
++	nodes[SWNODE_SENSOR_HID] = NODE_SENSOR(sensor->name,
++					       sensor->dev_properties);
++	nodes[SWNODE_SENSOR_PORT] = NODE_PORT(sensor->node_names.port,
++					      &nodes[SWNODE_SENSOR_HID]);
++	nodes[SWNODE_SENSOR_ENDPOINT] = NODE_ENDPOINT(sensor->node_names.endpoint,
++						      &nodes[SWNODE_SENSOR_PORT],
++						      sensor->ep_properties);
++	nodes[SWNODE_CIO2_PORT] = NODE_PORT(sensor->node_names.remote_port,
++					    &bridge->cio2_hid_node);
++	nodes[SWNODE_CIO2_ENDPOINT] = NODE_ENDPOINT(sensor->node_names.endpoint,
++						    &nodes[SWNODE_CIO2_PORT],
++						    sensor->cio2_properties);
++}
++
++static void cio2_bridge_unregister_sensors(struct cio2_bridge *bridge)
++{
++	struct cio2_sensor *sensor;
++	unsigned int i;
++
++	for (i = 0; i < bridge->n_sensors; i++) {
++		sensor = &bridge->sensors[i];
++		software_node_unregister_nodes(sensor->swnodes);
++		acpi_dev_put(sensor->adev);
++	}
++}
++
++static int cio2_bridge_connect_sensors(struct cio2_bridge *bridge)
++{
++	struct fwnode_handle *fwnode;
++	struct cio2_sensor *sensor;
++	struct acpi_device *adev;
++	unsigned int i;
++	int ret = 0;
++
++	for (i = 0; i < ARRAY_SIZE(cio2_supported_devices); i++) {
++		const char *this_device = cio2_supported_devices[i];
++
++		for_each_acpi_dev_match(adev, this_device, NULL, -1) {
++			if (!adev || !(adev->status.present && adev->status.enabled))
++				continue;
++
++			sensor = &bridge->sensors[bridge->n_sensors];
++			sensor->adev = adev;
++			strscpy(sensor->name, this_device, sizeof(sensor->name));
++
++			ret = cio2_bridge_read_acpi_buffer(adev, "SSDB",
++							   &sensor->ssdb,
++							   sizeof(sensor->ssdb));
++			if (ret < 0)
++				goto err_put_adev;
++
++			if (sensor->ssdb.lanes > 4) {
++				dev_err(&adev->dev,
++					"Number of lanes in SSDB is invalid\n");
++				goto err_put_adev;
++			}
++
++			cio2_bridge_create_fwnode_properties(sensor);
++			cio2_bridge_create_connection_swnodes(bridge, sensor);
++
++			ret = software_node_register_nodes(sensor->swnodes);
++			if (ret)
++				goto err_put_adev;
++
++			fwnode = software_node_fwnode(&sensor->swnodes[SWNODE_SENSOR_HID]);
++			if (!fwnode) {
++				ret = -ENODEV;
++				goto err_free_swnodes;
++			}
++
++			adev->fwnode.secondary = fwnode;
++
++			dev_info(&bridge->cio2->dev,
++				 "Found supported sensor %s\n",
++				 acpi_dev_name(adev));
++
++			bridge->n_sensors++;
++		}
++	}
++
++	return ret;
++
++err_free_swnodes:
++	software_node_unregister_nodes(sensor->swnodes);
++err_put_adev:
++	acpi_dev_put(sensor->adev);
++
++	return ret;
++}
++
++int cio2_bridge_init(struct pci_dev *cio2)
++{
++	struct device *dev = &cio2->dev;
++	struct fwnode_handle *fwnode;
++	struct cio2_bridge *bridge;
++	int ret;
++
++	bridge = kzalloc(sizeof(*bridge), GFP_KERNEL);
++	if (!bridge)
++		return -ENOMEM;
++
++	strscpy(bridge->cio2_node_name, CIO2_HID, sizeof(bridge->cio2_node_name));
++	bridge->cio2_hid_node = (const struct software_node){ bridge->cio2_node_name };
++	bridge->cio2 = pci_dev_get(cio2);
++
++	ret = software_node_register(&bridge->cio2_hid_node);
++	if (ret < 0) {
++		dev_err(dev, "Failed to register the CIO2 HID node\n");
++		goto err_put_cio2;
++	}
++
++	ret = cio2_bridge_connect_sensors(bridge);
++	if (ret || bridge->n_sensors == 0)
++		goto err_unregister_cio2;
++
++	dev_info(dev, "Connected %d cameras\n", bridge->n_sensors);
++
++	fwnode = software_node_fwnode(&bridge->cio2_hid_node);
++	if (!fwnode) {
++		dev_err(dev, "Error getting fwnode from cio2 software_node\n");
++		ret = -ENODEV;
++		goto err_unregister_sensors;
++	}
++
++	set_secondary_fwnode(dev, fwnode);
++
++	return 0;
++
++err_unregister_sensors:
++	cio2_bridge_unregister_sensors(bridge);
++err_unregister_cio2:
++	software_node_unregister(&bridge->cio2_hid_node);
++err_put_cio2:
++	pci_dev_put(bridge->cio2);
++
++	kfree(bridge);
++	return ret;
++}
+diff --git a/drivers/media/pci/intel/ipu3/cio2-bridge.h b/drivers/media/pci/intel/ipu3/cio2-bridge.h
 new file mode 100644
-index 000000000000..6964726e8e1f
+index 000000000000..96f5c8a12be0
 --- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/int3472.h
-@@ -0,0 +1,96 @@
++++ b/drivers/media/pci/intel/ipu3/cio2-bridge.h
+@@ -0,0 +1,108 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/* Author: Dan Scally <djrscally@gmail.com> */
-+#include <linux/regulator/machine.h>
++#ifndef __CIO2_BRIDGE_H
++#define __CIO2_BRIDGE_H
 +
-+#define INT3472_MAX_SENSOR_GPIOS			3
-+#define GPIO_REGULATOR_NAME_LENGTH			17
-+#define GPIO_REGULATOR_SUPPLY_NAME_LENGTH		9
++#include <linux/property.h>
 +
-+#define INT3472_REGULATOR(_NAME, _SUPPLY, _ID, _OPS)	\
-+	((const struct regulator_desc) {		\
-+		.name = _NAME,				\
-+		.supply_name = _SUPPLY,			\
-+		.id = _ID,				\
-+		.type = REGULATOR_VOLTAGE,		\
-+		.ops = _OPS,				\
-+		.owner = THIS_MODULE,			\
++#define CIO2_HID				"INT343E"
++#define CIO2_NUM_PORTS			  4
++
++#define NODE_SENSOR(_HID, _PROPS)		\
++	((const struct software_node) {		\
++		.name = _HID,			\
++		.properties = _PROPS,		\
 +	})
 +
-+const guid_t int3472_gpio_guid = GUID_INIT(0x79234640, 0x9e10, 0x4fea,
-+					     0xa5, 0xc1, 0xb5, 0xaa, 0x8b,
-+					     0x19, 0x75, 0x6f);
++#define NODE_PORT(_PORT, _SENSOR_NODE)		\
++	((const struct software_node) {		\
++		_PORT,				\
++		_SENSOR_NODE,			\
++	})
 +
-+const guid_t cio2_sensor_module_guid = GUID_INIT(0x822ace8f, 0x2814, 0x4174,
-+						 0xa5, 0x6b, 0x5f, 0x02, 0x9f,
-+						 0xe0, 0x79, 0xee);
++#define NODE_ENDPOINT(_EP, _PORT, _PROPS)	\
++	((const struct software_node) {		\
++		_EP,				\
++		_PORT,				\
++		_PROPS,				\
++	})
 +
-+struct int3472_cldb {
++enum cio2_sensor_swnodes {
++	SWNODE_SENSOR_HID,
++	SWNODE_SENSOR_PORT,
++	SWNODE_SENSOR_ENDPOINT,
++	SWNODE_CIO2_PORT,
++	SWNODE_CIO2_ENDPOINT,
++	NR_OF_SENSOR_SWNODES
++};
++
++/* Data representation as it is in ACPI SSDB buffer */
++struct cio2_sensor_ssdb {
 +	u8 version;
-+	/*
-+	 * control logic type
-+	 * 0: UNKNOWN
-+	 * 1: DISCRETE(CRD-D)
-+	 * 2: PMIC TPS68470
-+	 * 3: PMIC uP6641
-+	 */
-+	u8 control_logic_type;
-+	u8 control_logic_id;
-+	u8 sensor_card_sku;
-+	u8 reserved[28];
++	u8 sku;
++	u8 guid_csi2[16];
++	u8 devfunction;
++	u8 bus;
++	u32 dphylinkenfuses;
++	u32 clockdiv;
++	u8 link;
++	u8 lanes;
++	u32 csiparams[10];
++	u32 maxlanespeed;
++	u8 sensorcalibfileidx;
++	u8 sensorcalibfileidxInMBZ[3];
++	u8 romtype;
++	u8 vcmtype;
++	u8 platforminfo;
++	u8 platformsubinfo;
++	u8 flash;
++	u8 privacyled;
++	u8 degree;
++	u8 mipilinkdefined;
++	u32 mclkspeed;
++	u8 controllogicid;
++	u8 reserved1[3];
++	u8 mclkport;
++	u8 reserved2[13];
++} __packed__;
++
++struct cio2_property_names {
++	char clock_frequency[16];
++	char rotation[9];
++	char bus_type[9];
++	char data_lanes[11];
++	char remote_endpoint[16];
 +};
 +
-+struct int3472_device {
++struct cio2_node_names {
++	char port[6];
++	char endpoint[10];
++	char remote_port[6];
++};
++
++struct cio2_sensor {
++	char name[ACPI_ID_LEN];
 +	struct acpi_device *adev;
-+	struct acpi_device *sensor;
 +
-+	unsigned int n_gpios; /* how many GPIOs have we seen */
++	struct software_node swnodes[6];
++	struct cio2_node_names node_names;
 +
-+	unsigned int n_regulators;
-+	struct list_head regulators;
-+
-+	unsigned int n_sensor_gpios; /* how many have we mapped to sensor */
-+	struct gpiod_lookup_table gpios;
++	u32 data_lanes[4];
++	struct cio2_sensor_ssdb ssdb;
++	struct cio2_property_names prop_names;
++	struct property_entry ep_properties[4];
++	struct property_entry dev_properties[3];
++	struct property_entry cio2_properties[3];
++	struct software_node_ref_args local_ref[1];
++	struct software_node_ref_args remote_ref[1];
 +};
 +
-+struct int3472_gpio_regulator {
-+	char regulator_name[GPIO_REGULATOR_NAME_LENGTH];
-+	char supply_name[GPIO_REGULATOR_SUPPLY_NAME_LENGTH];
-+	struct gpio_desc *gpio;
-+	struct regulator_dev *rdev;
-+	struct regulator_desc rdesc;
-+	struct list_head list;
++struct cio2_bridge {
++	struct pci_dev *cio2;
++	char cio2_node_name[ACPI_ID_LEN];
++	struct software_node cio2_hid_node;
++	unsigned int n_sensors;
++	struct cio2_sensor sensors[CIO2_NUM_PORTS];
 +};
 +
-+struct int3472_sensor_regulator_map {
-+	char *sensor_module_name;
-+	unsigned int n_supplies;
-+	struct regulator_consumer_supply *supplies;
-+};
++#endif
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2-main.c b/drivers/media/pci/intel/ipu3/ipu3-cio2-main.c
+index 36e354ecf71e..0d69b593e9f0 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2-main.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2-main.c
+@@ -1702,6 +1702,22 @@ static void cio2_queues_exit(struct cio2_device *cio2)
+ 		cio2_queue_exit(cio2, &cio2->queue[i]);
+ }
+ 
++static bool cio2_check_fwnode_graph(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *endpoint;
 +
-+/*
-+ * Here follows platform specific mapping information that we can pass to
-+ * regulator_init_data when we register our regulators. They're just mapped
-+ * via index, I.E. the first regulator pin that the code finds for the
-+ * i2c-OVTI2680:00 device is avdd, the second is dovdd and so on.
-+ */
++	if (IS_ERR_OR_NULL(fwnode))
++		return false;
 +
-+static struct regulator_consumer_supply miix_510_ov2680[] = {
-+	{ "i2c-OVTI2680:00", "avdd" },
-+	{ "i2c-OVTI2680:00", "dovdd" },
-+};
++	endpoint = fwnode_graph_get_next_endpoint(fwnode, NULL);
++	if (endpoint) {
++		fwnode_handle_put(endpoint);
++		return true;
++	}
 +
-+static struct regulator_consumer_supply surface_go2_ov5693[] = {
-+	{ "i2c-INT33BE:00", "avdd" },
-+	{ "i2c-INT33BE:00", "dovdd" },
-+};
++	return cio2_check_fwnode_graph(fwnode->secondary);
++}
 +
-+static struct regulator_consumer_supply surface_book_ov5693[] = {
-+	{ "i2c-INT33BE:00", "avdd" },
-+	{ "i2c-INT33BE:00", "dovdd" },
-+};
+ /**************** PCI interface ****************/
+ 
+ static int cio2_pci_probe(struct pci_dev *pci_dev,
+@@ -1715,6 +1731,17 @@ static int cio2_pci_probe(struct pci_dev *pci_dev,
+ 		return -ENOMEM;
+ 	cio2->pci_dev = pci_dev;
+ 
++	/*
++	 * On some platforms no connections to sensors are defined in firmware,
++	 * if the device has no endpoints then we can try to build those as
++	 * software_nodes parsed from SSDB.
++	 */
++	if (!cio2_check_fwnode_graph(dev_fwnode(&pci_dev->dev))) {
++		r = cio2_bridge_init(pci_dev);
++		if (r)
++			return r;
++	}
 +
-+static struct int3472_sensor_regulator_map int3472_sensor_regulator_maps[] = {
-+	{ "GNDF140809R", 2, miix_510_ov2680 },
-+	{ "YHCU", 2, surface_go2_ov5693 },
-+	{ "MSHW0070", 2, surface_book_ov5693 },
-+};
+ 	r = pcim_enable_device(pci_dev);
+ 	if (r) {
+ 		dev_err(&pci_dev->dev, "failed to enable device (%d)\n", r);
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.h b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+index ccf0b85ae36f..520a27c9cdad 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.h
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+@@ -437,4 +437,10 @@ static inline struct cio2_queue *vb2q_to_cio2_queue(struct vb2_queue *vq)
+ 	return container_of(vq, struct cio2_queue, vbq);
+ }
+ 
++#if IS_ENABLED(CONFIG_CIO2_BRIDGE)
++int cio2_bridge_init(struct pci_dev *cio2);
++#else
++int cio2_bridge_init(struct pci_dev *cio2) { return 0; }
++#endif
++
+ #endif
 -- 
 2.25.1
 
