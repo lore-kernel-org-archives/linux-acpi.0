@@ -5,59 +5,59 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0656CC83021
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29FDBC64E8A
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9EF2720727
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3730207BC
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Nov 2020 13:34:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KrwSbRpk"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f0hTX38W"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727195AbgK3Nd4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Nov 2020 08:33:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38714 "EHLO
+        id S1726964AbgK3NdT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Nov 2020 08:33:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726992AbgK3Ndz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:33:55 -0500
-Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDABEC061A54;
-        Mon, 30 Nov 2020 05:32:19 -0800 (PST)
-Received: by mail-wr1-x441.google.com with SMTP id l1so16212740wrb.9;
-        Mon, 30 Nov 2020 05:32:19 -0800 (PST)
+        with ESMTP id S1726316AbgK3NdS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2020 08:33:18 -0500
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1539CC061A51;
+        Mon, 30 Nov 2020 05:32:16 -0800 (PST)
+Received: by mail-wr1-x443.google.com with SMTP id r3so16246791wrt.2;
+        Mon, 30 Nov 2020 05:32:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=89ez14xq7f3eSpkmNmdtRshRAe/5L4lRl0ct9tMiZwI=;
-        b=KrwSbRpkuu4BSm67PVspA3L973/nhfUNUj1LnrJbs+oClFQV1BrpYP88f3Tzyy/pWk
-         S5NBRj2mZaoNXTpLnnYfPH2CZwHqnzwC5dKJDBGXb4TU0KmS/aKJ77BBi60vVxoBkE4N
-         8RpohPYtH2vluyjhc+Czpsk+ut8KuwuqdbRQtvfHmgxhKGWlUoioGMDYIX25ylVdkchX
-         ujLCdCYhd56UKF876AjE7xWErdGerktBRLDrcIicF1Bp5afBX+CIRrMiJBLKbXLMr2vb
-         zkNdXUQzblbe0w7rYpZexs7Nn+MLgLASnrmLhDzDYmZYOHd0eRBoBtddZn0RuBZ627fr
-         hClw==
+        bh=g3BMXw9JzXtFm16YDoDU8hR3/fKFvazRWYpnvqcHgAY=;
+        b=f0hTX38WWoYFOqduIv8btPWQeeYXnpvQT0AKV2DDZ116iEm5JP+YpIbA3czDOvy1oI
+         obkFPRnUjDfiJaPS9g4M7+yHNIeMXc6tWNwgTi/ZCp/2wvvVoavHx5mJ3+T+YhlVDH4Y
+         UlWwoPadkMAF/1W74cggIXpoD8Rx6+r1IG0mm0NLiRssof/Oo2HjpJLpfJt36TLWGCkl
+         uvQcBwzlh794D+3V/6d4aOGSKMFglZbKF2hCdd8CJElgla5M2GilkvV6sSwXqpW/MAL8
+         F9sqikgb2+/DBlTINJ+Zpb0DiEHAecd+4i+A5U3QiFYX7LloHZYnR6VWHLpKkhasrEkY
+         yYSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=89ez14xq7f3eSpkmNmdtRshRAe/5L4lRl0ct9tMiZwI=;
-        b=P+KNA+iNxTOCERFUWXtkeiZknXY9xtituPGXlRhMA0OUsiw3ROmbQLCmsp/Mud8+ww
-         yOV8+YmL9/2QwEIOtZPA46c3IZcC+klhanUepZY6vIghneOcM+6dhgj9GTJ8yF3bfsi9
-         zrB6I6mLc8Q3uUAyjdgGbsErMuM1o/6iiF7MTdxFWSpVK9zRtGhHlGjXfnj6+zlmNDor
-         9CA+SzKmyzxCATYj75vNH2mNVdqXc08iUWX7sSGbGoncPC7K4MZM+KTB2hU/lQz5O1oB
-         Xbwif+FyOAJJSsafXmxpGEKms1TyICVkTwJnZn2xN15xoDKKfsSzLVbxZwf6oDwum04w
-         fuxw==
-X-Gm-Message-State: AOAM531lL9P8Hj8yVl4eNby1VYZIvAJDm2oQSJK2od5kRpWi2DRsACPj
-        efC+DhVgsoK53HEkKSVzhED/eUoqm8eij7ba
-X-Google-Smtp-Source: ABdhPJzBAM0ozhvZLf9maCK2gtBJuXaIs+4FGjkWJeME4XV8dzgsQK5BHE8ux3fhzPVaBH11vNi02Q==
-X-Received: by 2002:adf:c452:: with SMTP id a18mr28980463wrg.189.1606743138401;
-        Mon, 30 Nov 2020 05:32:18 -0800 (PST)
+        bh=g3BMXw9JzXtFm16YDoDU8hR3/fKFvazRWYpnvqcHgAY=;
+        b=T/fL5sa8bTL1QNUlynW360oRyFWrk2BBmksnygFm4Rqpi4khfZnDg5SeAU2xzma3RR
+         njkfpoSFmujQYz/f/5iOGwHuZkZzOUh/jXE0UNckdoqlTc7ZTFgC0Is1net1FYj+G/Iv
+         r59HEnIb+sTvuC6NsHJmcRJOX+bwfi9oZzx/puwvO4o4ohnlHSAHETCFi5tclvSk6+gu
+         6DAQ6HukHCWT9QC2/XzdfurmdHBEsQSyQ6onzCkgrTkgwSxTjov+Lc0SeLhahWUCjdYH
+         +UOA19D7ly09VKrv649VMuo6U7Y9dt/O9KABozPfef6h5fNrMX3XoQbCLFOeEA8VrXnh
+         9jDQ==
+X-Gm-Message-State: AOAM531c9/rs7WGkW1fuONtjh3Pc4BrdvlW5NED3/E0vWdGG6QH/vJw7
+        3CPS7qeGM/TVf1gDpnjDXGzctqmh9Ik9A/5G
+X-Google-Smtp-Source: ABdhPJzDCcxaoTO342dCdUscQv15sIxKHbckb9UWSMvt9SP2Hs4Rezs8wWCAwD8sNCiCr+Mm4eFlHA==
+X-Received: by 2002:adf:ecc9:: with SMTP id s9mr28663695wro.246.1606743133595;
+        Mon, 30 Nov 2020 05:32:13 -0800 (PST)
 Received: from valhalla.home ([2.31.224.80])
-        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.32.17
+        by smtp.gmail.com with ESMTPSA id g192sm7452333wme.48.2020.11.30.05.32.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Nov 2020 05:32:17 -0800 (PST)
+        Mon, 30 Nov 2020 05:32:12 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
@@ -74,9 +74,9 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
         laurent.pinchart+renesas@ideasonboard.com,
         jorhand@linux.microsoft.com, kitakar@gmail.com,
         heikki.krogerus@linux.intel.com
-Subject: [PATCH 17/18] gpio: gpiolib-acpi: Export acpi_get_gpiod()
-Date:   Mon, 30 Nov 2020 13:31:28 +0000
-Message-Id: <20201130133129.1024662-18-djrscally@gmail.com>
+Subject: [PATCH 14/18] acpi: utils: Add function to fetch dependent acpi_devices
+Date:   Mon, 30 Nov 2020 13:31:25 +0000
+Message-Id: <20201130133129.1024662-15-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201130133129.1024662-1-djrscally@gmail.com>
 References: <20201130133129.1024662-1-djrscally@gmail.com>
@@ -86,10 +86,11 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-I need to be able to translate GPIO resources in an acpi_device's _CRS
-into gpio_descs. Those are represented in _CRS as a pathname to a GPIO
-device plus the pin's index number: this function is perfect for that
-purpose.
+ACPI devices declare themselves dependent on other devices via the _DEP
+buffer. Fetching the dependee from dependent is a matter of parsing
+_DEP, but currently there's no method to fetch dependent from dependee.
+Add one, so we can parse sensors dependent on a PMIC from the PMIC's
+acpi_driver.
 
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
@@ -97,54 +98,109 @@ Changes since RFC v3:
 
 	- Patch introduced
 
- drivers/gpio/gpiolib-acpi.c | 3 ++-
- include/linux/acpi.h        | 5 +++++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/acpi/utils.c    | 68 +++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |  2 ++
+ 2 files changed, 70 insertions(+)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 834a12f3219e..cfadbc263475 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -111,7 +111,7 @@ static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
-  * controller does not have GPIO chip registered at the moment. This is to
-  * support probe deferral.
-  */
--static struct gpio_desc *acpi_get_gpiod(char *path, int pin)
-+struct gpio_desc *acpi_get_gpiod(char *path, int pin)
- {
- 	struct gpio_chip *chip;
- 	acpi_handle handle;
-@@ -127,6 +127,7 @@ static struct gpio_desc *acpi_get_gpiod(char *path, int pin)
- 
- 	return gpiochip_get_desc(chip, pin);
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index c177165c8db2..7099529121db 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -807,6 +807,52 @@ static int acpi_dev_match_cb(struct device *dev, const void *data)
+ 	return hrv == match->hrv;
  }
-+EXPORT_SYMBOL_GPL(acpi_get_gpiod);
  
- static irqreturn_t acpi_gpio_irq_handler(int irq, void *data)
- {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 39263c6b52e1..737115a93138 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1066,6 +1066,7 @@ void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const c
- bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
- 				struct acpi_resource_gpio **agpio);
- int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index);
-+struct gpio_desc *acpi_get_gpiod(char *path, int pin);
- #else
- static inline bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
- 					      struct acpi_resource_gpio **agpio)
-@@ -1076,6 +1077,10 @@ static inline int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
- {
- 	return -ENXIO;
- }
-+struct gpio_desc *acpi_get_gpiod(char *path, int pin)
++static int acpi_dev_match_by_dep(struct device *dev, const void *data)
 +{
-+	return NULL;
++	struct acpi_device *adev = to_acpi_device(dev);
++	const struct acpi_device *dependee = data;
++	struct acpi_handle_list dep_handles;
++	struct acpi_device *candidate;
++	acpi_handle handle;
++	acpi_status status;
++	unsigned int i;
++	int ret;
++
++	handle = adev->handle;
++
++	if (!acpi_has_method(handle, "_DEP"))
++		return 0;
++
++	status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_handles);
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	for (i = 0; i < dep_handles.count; i++) {
++		struct acpi_device_info *info;
++
++		status = acpi_get_object_info(dep_handles.handles[i], &info);
++		if (ACPI_FAILURE(status))
++			continue;
++
++		if (info->valid & ACPI_VALID_HID) {
++			ret = acpi_bus_get_device(dep_handles.handles[i], &candidate);
++			if (ret || !candidate) {
++				kfree(info);
++				continue;
++			}
++
++			if (candidate == dependee) {
++				acpi_dev_put(candidate);
++				kfree(info);
++				return 1;
++			}
++
++			kfree(info);
++		}
++	}
++	return 0;
 +}
- #endif
++
+ /**
+  * acpi_dev_present - Detect that a given ACPI device is present
+  * @hid: Hardware ID of the device.
+@@ -842,6 +888,28 @@ bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
+ }
+ EXPORT_SYMBOL(acpi_dev_present);
  
- /* Device properties */
++/**
++ * acpi_dev_get_next_dep_dev - Return next ACPI device dependent on input dev
++ * @adev: Pointer to the dependee device
++ * @prev: Pointer to the previous dependent device (or NULL for first match)
++ *
++ * Return the next ACPI device which declares itself dependent on @adev in
++ * the _DEP buffer.
++ *
++ * The caller is responsible to call put_device() on the returned device.
++ */
++struct acpi_device *acpi_dev_get_next_dep_dev(struct acpi_device *adev,
++					      struct acpi_device *prev)
++{
++	struct device *start = prev ? &prev->dev : NULL;
++	struct device *dev;
++
++	dev = bus_find_device(&acpi_bus_type, start, adev, acpi_dev_match_by_dep);
++
++	return dev ? to_acpi_device(dev) : NULL;
++}
++EXPORT_SYMBOL(acpi_dev_get_next_dep_dev);
++
+ /**
+  * acpi_dev_get_next_match_dev - Return the next match of ACPI device
+  * @adev: Pointer to the previous acpi_device matching this hid, uid and hrv
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 0a028ba967d3..f5dfeb030b9c 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -688,6 +688,8 @@ static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
+ 
+ bool acpi_dev_hid_uid_match(struct acpi_device *adev, const char *hid2, const char *uid2);
+ 
++struct acpi_device *
++acpi_dev_get_next_dep_dev(struct acpi_device *adev, struct acpi_device *prev);
+ struct acpi_device *
+ acpi_dev_get_next_match_dev(struct acpi_device *adev, const char *hid, const char *uid, s64 hrv);
+ struct acpi_device *
 -- 
 2.25.1
 
