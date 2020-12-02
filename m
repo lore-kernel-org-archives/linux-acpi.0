@@ -2,208 +2,420 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9036FC64E7C
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Dec 2020 15:53:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AB18C64E7C
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Dec 2020 17:16:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F0BD206D5
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Dec 2020 15:53:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E432217A0
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Dec 2020 17:16:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728406AbgLBPwn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Dec 2020 10:52:43 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:61188 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727889AbgLBPwn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2020 10:52:43 -0500
-Received: from 89-64-87-31.dynamic.chello.pl (89.64.87.31) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.530)
- id b44ba3b869077574; Wed, 2 Dec 2020 16:52:00 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH 0/7] ACPI: scan: Split root scanning into 2 steps
-Date:   Wed, 02 Dec 2020 16:51:59 +0100
-Message-ID: <3608964.tmAejbicsr@kreacher>
-In-Reply-To: <CAJZ5v0joWwOqaBkEXOsi3oT__j8JMJt68TPuRAY7f5WY6w=KrA@mail.gmail.com>
-References: <20201121203040.146252-1-hdegoede@redhat.com> <CAJZ5v0joWwOqaBkEXOsi3oT__j8JMJt68TPuRAY7f5WY6w=KrA@mail.gmail.com>
+        id S1728780AbgLBRQh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Dec 2020 12:16:37 -0500
+Received: from mail1.bemta24.messagelabs.com ([67.219.250.116]:47942 "EHLO
+        mail1.bemta24.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726221AbgLBRQg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2020 12:16:36 -0500
+Received: from [100.112.133.223] (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256 bits))
+        by server-5.bemta.az-b.us-west-2.aws.symcld.net id 29/62-25369-9DAC7CF5; Wed, 02 Dec 2020 17:11:53 +0000
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprDKsWRWlGSWpSXmKPExsWSLveKXffKqeP
+  xBr3/BS32X5ew6FpoYLHw/ilWi6/fbrNbvDk+ncli+b5+RoumziY2i88dk1ksVu95wWyx9ss8
+  Noszpy+xOnB7TJo5g9lj56y77B6/tq1h8di8Qstj3slAj562TUwe7/ddZfPYcrWdxePzJrkAz
+  ijWzLyk/IoE1oxrP1ayFJzxr9i7eD1rA+NEly5GLg4hgf+MEvNnf2SEcB4wSlx6uR/I4eRgE9
+  CW2LLlF1sXIweHiICMxIe1niA1zALzmSSuTbjKDlIjLOAj0bC0lw3EZhFQkdh8sQOsl1fAWmL
+  3pRvMILaEgLzE097lzCBzOAVsJGZvzwcJCwmESrxa9YcVolxQ4uTMJywgNjNQefPW2cwQtoTE
+  wRcvoMYoSMz7uogFwk6QWPbyDvMERoFZSNpnIWmfhaR9ASPzKkaLpKLM9IyS3MTMHF1DAwNdQ
+  0MjXUNjE11DMxO9xCrdJL3SYt3y1OISXSO9xPJiveLK3OScFL281JJNjMBISyloW7KDcdebD3
+  qHGCU5mJREeVfNPx4vxJeUn1KZkVicEV9UmpNafIhRhoNDSYJX/yRQTrAoNT21Ii0zBxj1MGk
+  JDh4lEV5JkDRvcUFibnFmOkTqFKOilDhvEUhCACSRUZoH1wZLNJcYZaWEeRkZGBiEeApSi3Iz
+  S1DlXzGKczAqCfNeOQE0hSczrwRu+iugxUxAi10+HwZZXJKIkJJqYFIpUmqaeyj6ztfUPrkCe
+  9urxsvKWyVDz/Xd2nhN6qK87hT/zfas054dMbk9Q4mbb+2yM0cECndzSi6onuHhqpbT/K7kaP
+  D1IyveL0lNjmYR9zpyof34AanOl0Jv8gxmfHlsEy36Rnsaz4Nn08//P+tkK/x3P9O1D9mTIlo
+  vxOV9ThLn2iRW8DTdJ0fiO+fTY/VP2G8e3R76+EfcFLm7L0QjtV2vvTKwapxQuFKiN2Ovj6j8
+  pqsNJ9Yp7X1zJVT78W2Hy8E7WAJTP+2uKNP/snuvQ4ml3lwWKbNIz9Ta3tVbX55pbP8kzHIz8
+  eoTP2E5q1l7o4oUHl+eUb196cuys8JsidzqUVNXckV26hysllFiKc5INNRiLipOBACcLjiFrw
+  MAAA==
+X-Env-Sender: markpearson@lenovo.com
+X-Msg-Ref: server-37.tower-355.messagelabs.com!1606929106!7440!1
+X-Originating-IP: [103.30.234.7]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received: 
+X-StarScan-Version: 9.60.3; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 4321 invoked from network); 2 Dec 2020 17:11:47 -0000
+Received: from unknown (HELO lenovo.com) (103.30.234.7)
+  by server-37.tower-355.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 2 Dec 2020 17:11:47 -0000
+Received: from reswpmail04.lenovo.com (unknown [10.62.32.23])
+        (using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by Forcepoint Email with ESMTPS id 44EACC56D39F85ECCF7B;
+        Thu,  3 Dec 2020 01:11:43 +0800 (CST)
+Received: from localhost.home (10.64.84.211) by reswpmail04.lenovo.com
+ (10.62.32.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2044.4; Wed, 2 Dec 2020
+ 09:11:38 -0800
+From:   Mark Pearson <markpearson@lenovo.com>
+To:     <markpearson@lenovo.com>
+CC:     <hdegoede@redhat.com>, <mgross@linux.intel.com>,
+        <rjw@rjwysocki.net>, <linux-acpi@vger.kernel.org>,
+        <platform-driver-x86@vger.kernel.org>, <hadess@hadess.net>,
+        <pobrn@protonmail.com>, <mario.limonciello@dell.com>,
+        <eliadevito@gmail.com>, <bberg@redhat.com>, <dvhart@infradead.org>
+Subject: [PATCH v5 2/3] ACPI: platform-profile: Add platform profile support
+Date:   Wed, 2 Dec 2020 12:11:19 -0500
+Message-ID: <20201202171120.65269-2-markpearson@lenovo.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201202171120.65269-1-markpearson@lenovo.com>
+References: <markpearson@lenovo.com>
+ <20201202171120.65269-1-markpearson@lenovo.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.64.84.211]
+X-ClientProxiedBy: reswpmail04.lenovo.com (10.62.32.23) To
+ reswpmail04.lenovo.com (10.62.32.23)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wednesday, December 2, 2020 2:49:17 PM CET Rafael J. Wysocki wrote:
-> On Sat, Nov 21, 2020 at 9:30 PM Hans de Goede <hdegoede@redhat.com> wrote:
-> >
-> > Hi Rafael,
-> >
-> > A while ago (almost 2 years ago) I discussed an issue with you about
-> > some devices, where some of the methods used during device-addition
-> > (such as _HID) may rely on OpRegions of other devices:
-> >
-> > https://www.spinics.net/lists/linux-acpi/msg86303.html
-> >
-> > An example of this is the Acer Switch 10E SW3-016 model. The _HID method
-> > of the ACPI node for the UART attached Bluetooth, reads GPIOs to detect
-> > the installed wifi chip and update the _HID for the Bluetooth's ACPI node
-> > accordingly. The current ACPI scan code calls _HID before the GPIO
-> > controller's OpRegions are available, leading to the wrong _HID being
-> > used and Bluetooth not working.
-> >
-> > Last week I bought a second hand Acer device, not knowing it was this
-> > exact model. Since I now have access to affected hardware I decided to
-> > take a shot at fixing this.
-> >
-> > In the discussion you suggested to split the acpi_bus_scan of the root
-> > into 2 steps, first scan devices with an empty _DEP, putting other
-> > acpi_handle-s on a list of deferred devices and then in step 2 scan the
-> > rest.
-> >
-> > I'm happy to report that, at least on the affected device, this works
-> > nicely. While working on this I came up with a less drastic way to
-> > deal with this. As you will see in patch 4 of this series, I decided
-> > to first add a more KISS method of deciding which devices to defer
-> > to the second scan step by matching by HID. This has the disadvantage
-> > of not being a generic solution. But it has the advantage of being a
-> > solution which does not potentially regress other devices.
-> >
-> > Then in patch 5 I actually do add the option to defer or not based on
-> > _DEP being empty. I've put this behind a kernel commandline option as
-> > I'm not sure we should do this everywhere by default. At least no without
-> > a lot more testing.
-> >
-> > Patch 6 fixes an issue with patch 5 which causes battery devices to stop
-> > working.
-> >
-> > And patch 7 adds some extra HIDs to the list of HIDs which should be
-> > ignored when checking if the _DEP list is empty from Linux' pov, iow
-> > some extra HIDs which Linux does not bind to.
-> >
-> > Please let me know what you think about this patch-set. I would be happy
-> > to see just patches 1-4 merged.
-> 
-> I took patches 1 and 2, because IMO they are generally useful (I
-> rewrote the changelogs to avoid mentioning the rest of the series
-> though), but I have some reservations regarding the rest.
-> 
-> First off, I'm not really sure if failing acpi_add_single_object() for
-> devices with missing dependencies is a good idea.  IIRC there is
-> nothing in there that should depend on any opregions supplied by the
-> other devices, so it should be safe to allow it to complete.  That, in
-> turn, will allow the flags in struct acpi_device to be used to mark
-> the "deferred" devices without allocating more memory.
-> 
-> Next, in theory, devices with dependencies may also appear during
-> hotplug, so it would be prudent to handle that on every invocation of
-> acpi_bus_scan() and not just when it runs for the root object.
-> 
-> So my approach would be to allow the first namespace walk in
-> acpi_bus_scan() to complete, change acpi_bus_attach() to optionally
-> skip the devices with missing dependencies and return a result
-> indicating whether or not it has set flags.visited for any devices and
-> run it in a loop on the "root" device object until it says that no new
-> devices have been "attached".
-> 
-> Let me cut a prototype patch for that and get back to you.
+This is the initial implementation of the platform-profile feature.
+It provides the details discussed and outlined in the
+sysfs-platform_profile document.
 
-Maybe something like the patch below (untested).  I borrowed a few items from
-your patches, hopefully not a problem.
+Many modern systems have the ability to modify the operating profile to
+control aspects like fan speed, temperature and power levels. This
+module provides a common sysfs interface that platform modules can register
+against to control their individual profile options.
 
-The multiple passes idea would require using a static variable which would
-be slightly inelegant, so this assumes that two passes should be sufficient.
-
+Signed-off-by: Mark Pearson <markpearson@lenovo.com>
 ---
- drivers/acpi/scan.c |   55 +++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 52 insertions(+), 3 deletions(-)
+Changes in v2:
+ Address (hopefully) all recommendations from review including:
+ - reorder includes list alphabetically
+ - make globals statics and use const as required
+ - change profile name scanning to use full string
+ - clean up profile name lists to remove unwanted additions
+ - use sysfs_emit and sysfs_emit_at appropriately (much nicer!)
+ - improve error handling. Return errors to user in all cases and use
+   better error codes where appropriate (ENOOPSUPP)
+ - clean up sysfs output for better readability
+ - formatting fixes where needed
+ - improve structure and enum names to be clearer
+ - remove cur_profile field from structure. It is now local to the
+   actual platform driver file (patch 3 in series)
+ - improve checking so if future profile options are added profile_names
+   will be updated as well.
+ - move CONFIG option next to ACPI_THERMAL as it seemed slightly related
+ - removed MAINTAINERS update as not appropriate (note warning message
+   is seen when running checkpatch)
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1961,12 +1961,50 @@ static int acpi_scan_attach_handler(stru
- 	return ret;
- }
+Changes in v3:
+ - Add missed platform_profile.h file
+
+Changes in v4:
+ - Clean up duplicate entry in Kconfig file
+ - Add linux/bits.h to include list
+ - Remove unnecessary items from include list
+ - Make cur_profile const
+ - Clean up comments
+ - formatting clean-ups
+ - add checking of profile return value to show function
+ - add checking to store to see if it's a supported profile
+ - revert ENOTSUPP change in store function
+ - improved error checking in profile registration
+ - improved profile naming (now platform_profile_*)
+
+Changes in v5:
+ - correct 'balance' to 'balanced' to be consistent with documentation
+ - add WARN_ON when checking profile index in show function
+ - switch mutex_lock_interruptible back to mutex_lock where appropriate
+ - add 'platform_profile_last' as final entry in profile entry. Update
+   implementation to use this appropriately
+ - Use BITS_TO_LONG and appropriate access functions for choices field
+ - Correct error handling as recommended
+ - Sanity check profile fields on registration
+ - Remove unnecessary init and exit functions
+
+ drivers/acpi/Kconfig             |  14 +++
+ drivers/acpi/Makefile            |   1 +
+ drivers/acpi/platform_profile.c  | 181 +++++++++++++++++++++++++++++++
+ include/linux/platform_profile.h |  39 +++++++
+ 4 files changed, 235 insertions(+)
+ create mode 100644 drivers/acpi/platform_profile.c
+ create mode 100644 include/linux/platform_profile.h
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index edf1558c1105..c1ca6255ff85 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -326,6 +326,20 @@ config ACPI_THERMAL
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called thermal.
  
--static void acpi_bus_attach(struct acpi_device *device)
-+/*
-+ * List of IDs for which we defer adding them to the second pass of the
-+ * scanning, because some of their methods used during addition depend on
-+ * OpRegions registered by the drivers for other ACPI devices.
-+ */
-+static const struct acpi_device_id acpi_defer_attach_ids[] = {
-+	{ "BCM2E5B", 0 }, /* Acer SW3-016 bluetooth vs GPIO OpRegs */
-+	{"", 0},
++config ACPI_PLATFORM_PROFILE
++	tristate "ACPI Platform Profile Driver"
++	default y
++	help
++	  This driver adds support for platform-profiles on platforms that
++	  support it.
++	  Platform-profiles can be used to control the platform behaviour. For
++	  example whether to operate in a lower power mode, in a higher
++	  power performance mode or between the two.
++	  This driver provides the sysfs interface and is used as the registration
++	  point for platform specific drivers.
++	  Which profiles are supported is determined on a per-platform basis and
++	  should be obtained from the platform specific driver.
++
+ config ACPI_CUSTOM_DSDT_FILE
+ 	string "Custom DSDT Table file to include"
+ 	default ""
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 44e412506317..c64a8af106c0 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -78,6 +78,7 @@ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
+ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+ obj-$(CONFIG_ACPI)		+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
++obj-$(CONFIG_ACPI_PLATFORM_PROFILE) 	+= platform_profile.o
+ obj-$(CONFIG_ACPI_NFIT)		+= nfit/
+ obj-$(CONFIG_ACPI_NUMA)		+= numa/
+ obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
+diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+new file mode 100644
+index 000000000000..1bc092359e35
+--- /dev/null
++++ b/drivers/acpi/platform_profile.c
+@@ -0,0 +1,181 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++/* Platform profile sysfs interface */
++
++#include <linux/acpi.h>
++#include <linux/bits.h>
++#include <linux/init.h>
++#include <linux/mutex.h>
++#include <linux/platform_profile.h>
++#include <linux/sysfs.h>
++
++static const struct platform_profile_handler *cur_profile;
++static DEFINE_MUTEX(profile_lock);
++
++static const char * const profile_names[] = {
++	[platform_profile_low] = "low-power",
++	[platform_profile_cool] = "cool",
++	[platform_profile_quiet] = "quiet",
++	[platform_profile_balanced] = "balanced",
++	[platform_profile_perform] = "performance",
 +};
++static_assert(ARRAY_SIZE(profile_names) == platform_profile_last);
 +
-+static bool acpi_scan_should_defer_attach(struct acpi_device *adev)
++static ssize_t platform_profile_choices_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
 +{
-+	if (acpi_match_device_ids(adev, acpi_defer_attach_ids))
-+		return true;
++	int len = 0;
++	int err, i;
 +
-+	/*
-+	 * We check for _ADR here to avoid deferring the adding of the following:
-+	 * 1. PCI devices
-+	 * 2. ACPI nodes describing USB ports
-+	 * Note checking for _ADR catches more then just these cases ...
-+	 */
-+	if (adev->pnp.type.bus_address)
-+		return false;
++	err = mutex_lock_interruptible(&profile_lock);
++	if (err)
++		return err;
 +
-+	return adev->dep_unmet > 0;
-+}
-+
-+static void __acpi_bus_attach(struct acpi_device *device, bool first_pass)
- {
- 	struct acpi_device *child;
- 	acpi_handle ejd;
- 	int ret;
- 
-+	if (first_pass) {
-+		if (acpi_scan_should_defer_attach(device))
-+			return;
-+	} else if (device->flags.visited) {
-+		/*
-+		 * This is not the first pass in the given scan and the device
-+		 * has been "attached" already, so get to the children right away.
-+		 */
-+		goto ok;
++	if (!cur_profile) {
++		mutex_unlock(&profile_lock);
++		return -ENODEV;
 +	}
 +
- 	if (ACPI_SUCCESS(acpi_bus_get_ejd(device->handle, &ejd)))
- 		register_dock_dependent_device(device, ejd);
- 
-@@ -2013,12 +2051,23 @@ static void acpi_bus_attach(struct acpi_
- 
-  ok:
- 	list_for_each_entry(child, &device->children, node)
--		acpi_bus_attach(child);
-+		__acpi_bus_attach(child, first_pass);
- 
--	if (device->handler && device->handler->hotplug.notify_online)
-+	if (first_pass && device->handler &&
-+	    device->handler->hotplug.notify_online)
- 		device->handler->hotplug.notify_online(device);
- }
- 
-+static void acpi_bus_attach(struct acpi_device *device)
-+{
-+	/*
-+	 * Assume two passes to be sufficient to satisfy all of the operation
-+	 * region dependencies.
-+	 */
-+	__acpi_bus_attach(device, true);
-+	__acpi_bus_attach(device, false);
++	for_each_set_bit(i, cur_profile->choices, platform_profile_last) {
++		if (len == 0)
++			len += sysfs_emit_at(buf, len, "%s", profile_names[i]);
++		else
++			len += sysfs_emit_at(buf, len, " %s", profile_names[i]);
++	}
++	len += sysfs_emit_at(buf, len, "\n");
++	mutex_unlock(&profile_lock);
++	return len;
 +}
 +
- void acpi_walk_dep_device_list(acpi_handle handle)
- {
- 	struct acpi_dep_data *dep, *tmp;
-
-
++static ssize_t platform_profile_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	enum platform_profile_option profile = platform_profile_balanced;
++	int err;
++
++	err = mutex_lock_interruptible(&profile_lock);
++	if (err)
++		return err;
++
++	if (!cur_profile) {
++		mutex_unlock(&profile_lock);
++		return -ENODEV;
++	}
++
++	err = cur_profile->profile_get(&profile);
++	mutex_unlock(&profile_lock);
++	if (err)
++		return err;
++
++	/* Check that profile is valid index */
++	if (WARN_ON((profile < 0) || (profile >= ARRAY_SIZE(profile_names))))
++		return -EIO;
++
++	return sysfs_emit(buf, "%s\n", profile_names[profile]);
++}
++
++static ssize_t platform_profile_store(struct device *dev,
++			    struct device_attribute *attr,
++			    const char *buf, size_t count)
++{
++	int err, i;
++
++	err = mutex_lock_interruptible(&profile_lock);
++	if (err)
++		return err;
++
++	if (!cur_profile) {
++		mutex_unlock(&profile_lock);
++		return -ENODEV;
++	}
++
++	/* Scan for a matching profile */
++	i = sysfs_match_string(profile_names, buf);
++	if (i < 0) {
++		mutex_unlock(&profile_lock);
++		return -EINVAL;
++	}
++
++	/* Check that platform supports this profile choice */
++	if (!test_bit(i, cur_profile->choices)) {
++		mutex_unlock(&profile_lock);
++		return -EOPNOTSUPP;
++	}
++
++	err = cur_profile->profile_set(i);
++	mutex_unlock(&profile_lock);
++	if (err)
++		return err;
++	return count;
++}
++
++static DEVICE_ATTR_RO(platform_profile_choices);
++static DEVICE_ATTR_RW(platform_profile);
++
++static struct attribute *platform_profile_attrs[] = {
++	&dev_attr_platform_profile_choices.attr,
++	&dev_attr_platform_profile.attr,
++	NULL
++};
++
++static const struct attribute_group platform_profile_group = {
++	.attrs = platform_profile_attrs
++};
++
++void platform_profile_notify(void)
++{
++	if (!cur_profile)
++		return;
++	sysfs_notify(acpi_kobj, NULL, "platform_profile");
++}
++EXPORT_SYMBOL_GPL(platform_profile_notify);
++
++int platform_profile_register(const struct platform_profile_handler *pprof)
++{
++	int err;
++
++	mutex_lock(&profile_lock);
++	/* We can only have one active profile */
++	if (cur_profile) {
++		mutex_unlock(&profile_lock);
++		return -EEXIST;
++	}
++
++	/* Sanity check the profile handler field are set */
++	if (!pprof || !pprof->choices || !pprof->profile_set ||
++			!pprof->profile_get) {
++		mutex_unlock(&profile_lock);
++		return -EINVAL;
++	}
++
++	err = sysfs_create_group(acpi_kobj, &platform_profile_group);
++	if (err) {
++		mutex_unlock(&profile_lock);
++		return err;
++	}
++
++	cur_profile = pprof;
++	mutex_unlock(&profile_lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(platform_profile_register);
++
++int platform_profile_unregister(void)
++{
++	mutex_lock(&profile_lock);
++	if (!cur_profile) {
++		mutex_unlock(&profile_lock);
++		return -ENODEV;
++	}
++
++	sysfs_remove_group(acpi_kobj, &platform_profile_group);
++	cur_profile = NULL;
++	mutex_unlock(&profile_lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(platform_profile_unregister);
++
++MODULE_AUTHOR("Mark Pearson <markpearson@lenovo.com>");
++MODULE_LICENSE("GPL");
+diff --git a/include/linux/platform_profile.h b/include/linux/platform_profile.h
+new file mode 100644
+index 000000000000..f2e1b1c90482
+--- /dev/null
++++ b/include/linux/platform_profile.h
+@@ -0,0 +1,39 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * Platform profile sysfs interface
++ *
++ * See Documentation/ABI/testing/sysfs-platform_profile.rst for more
++ * information.
++ */
++
++#ifndef _PLATFORM_PROFILE_H_
++#define _PLATFORM_PROFILE_H_
++
++#include <linux/bitops.h>
++
++/*
++ * If more options are added please update profile_names
++ * array in platform-profile.c and sysfs-platform-profile.rst
++ * documentation.
++ */
++
++enum platform_profile_option {
++	platform_profile_low,
++	platform_profile_cool,
++	platform_profile_quiet,
++	platform_profile_balanced,
++	platform_profile_perform,
++	platform_profile_last, /*must always be last */
++};
++
++struct platform_profile_handler {
++	unsigned long choices[BITS_TO_LONGS(platform_profile_last)];
++	int (*profile_get)(enum platform_profile_option *profile);
++	int (*profile_set)(enum platform_profile_option profile);
++};
++
++int platform_profile_register(const struct platform_profile_handler *pprof);
++int platform_profile_unregister(void);
++void platform_profile_notify(void);
++
++#endif  /*_PLATFORM_PROFILE_H_*/
+-- 
+2.28.0
 
