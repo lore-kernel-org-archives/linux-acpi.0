@@ -2,236 +2,120 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43B88C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Dec 2020 23:22:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB3B2C4361A
+	for <linux-acpi@archiver.kernel.org>; Sat,  5 Dec 2020 18:03:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14862224BE
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Dec 2020 23:22:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9ADD7230FF
+	for <linux-acpi@archiver.kernel.org>; Sat,  5 Dec 2020 18:03:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727375AbgLDXWI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Dec 2020 18:22:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35786 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726508AbgLDXWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Dec 2020 18:22:08 -0500
-Date:   Fri, 4 Dec 2020 17:21:25 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607124087;
-        bh=jcN9PbMgOLCkW/eP5nH6XSM0/5/dbV78dPtpbOxyH3w=;
-        h=From:To:Cc:Subject:In-Reply-To:From;
-        b=QqgauAw1WS/afGO36xcC6AzO0lwg2sUSG5XaJj47SNxVwB45+PaMKQyXPTE1uxA2D
-         2ADrk6Hd+aNpzENCvjKpuKfjWvTDaIcuyXqRKMZiZVn55JjPa6jIFG1rh2HP1R9aRs
-         kjyT1dcfh6WUCZkjSBb7yvMA6hLuvk+YBxh8tFx9P4PwZ+d4ww5QtWSXClEQLmFb7c
-         HVjZh/rfpG6uKfoYj8jn2+8Ah4HHR5iBBMP/j6vTUG+UsPcYK147BJBxb9g9LLJzSF
-         RfkSYJkNRPiPLQd1fztTn/GP+y1oDuj4qOAApBEQbQaXopbp5PQpBfRpzu7Ry/8BtQ
-         XC7S7TNYdcRUw==
-From:   Bjorn Helgaas <helgaas@kernel.org>
+        id S1728077AbgLER7L (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 5 Dec 2020 12:59:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37274 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728108AbgLER6W (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Dec 2020 12:58:22 -0500
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37586C061A54;
+        Sat,  5 Dec 2020 08:59:18 -0800 (PST)
+Received: by mail-wr1-x442.google.com with SMTP id 91so4440233wrj.7;
+        Sat, 05 Dec 2020 08:59:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=pSZy2MIM2IOcpuaCO21YRk9eLUrSbTWR9J9zRoW6BTQ=;
+        b=DpMQDu2t7TBEzkeYMsX+efAU3SxXevbCeoF/HYYK8ivNMoe3tvbAUaPheGZWrv0faI
+         RdRfGGiqCY8xOEsvotkkShAi95/qHhK9Q3jDQXBSIOQfYDyUsAzCRBsNNUEScmNnAX/B
+         cluQZbztVFYHIax8IS3VnFUAG2SCPkDvqDqivqGYirSixN1BlO4zfKHu1CK3b7GjwjtE
+         x0hCT/XtlGCg/PYckZjue34q7a21MFEkiBNOvwCQ55KUnRsT1pA9IABnGkJfe+/B1jD4
+         s96ViVn+DRwYkD6h5wMlKEIf0gThHWX/RsZCD2W1OZSNyzq3RXjCFMYbkoa2mnfhd5VU
+         Lv9A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=pSZy2MIM2IOcpuaCO21YRk9eLUrSbTWR9J9zRoW6BTQ=;
+        b=dVDJhHXTGW3oJMNrtgHUDIbisJZRoB+qCwmNMnyR7YO4EdqEx91oP2Lxm8ll3sVU6L
+         Ed6Y5osx8EltcOVyuW7FtAwhdIVfeOKIov5rEa5mKYbzCda3mlzl6URKlZsK2TIiCeyZ
+         yEiYGVBQErnuxuVSmXKkkDoOt4J6NXLQ7eqtw4bs2JUzf8SGuP8KO/HXHjTAkP8RFNaV
+         FwJj/+qlEeSgy8J2SHUemWUbqFzFEFipnM9EpfVIXTMMU82gOz01Q+6o+bBpewC51pez
+         TG/xf1v3FwPVvhUoqQXIgQ8dAKbCofSWFR5ER4yTSZwoZxRGao9ENzTk6mleDunKW4l2
+         /3RA==
+X-Gm-Message-State: AOAM532CbZB8mc7xSkexmjG+Zsl4eA19sAA45GjrZp50kP9RegNRLKh8
+        B5TMAuKyHt978XNe+jKYTJabBrsjjebSpg==
+X-Google-Smtp-Source: ABdhPJwJG10DzMqxYNZFzuj+sbY6HlI/cnAVjqZ7ICArvqAvt/Uan3BW/DBUCVIq4Fc94MpSILvyTA==
+X-Received: by 2002:a5d:668d:: with SMTP id l13mr10705249wru.279.1607187556867;
+        Sat, 05 Dec 2020 08:59:16 -0800 (PST)
+Received: from [192.168.1.211] ([2.31.225.57])
+        by smtp.gmail.com with ESMTPSA id q1sm8137536wrj.8.2020.12.05.08.59.15
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 05 Dec 2020 08:59:15 -0800 (PST)
+Subject: Re: [PATCH] acpi: resource: Use AE_ABORT_METHOD to terminate
+ acpi_dev_get_resources()
 To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: Re: [PATCH v1 1/2] PM: ACPI: PCI: Drop acpi_pm_set_bridge_wakeup()
-Message-ID: <20201204232125.GA1981160@bjorn-Precision-5520>
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        lenb@kernel.org, mika.westerberg@linux.intel.com
+References: <20201204002740.300109-1-djrscally@gmail.com>
+ <2246133.BJYN6MDhT9@kreacher>
+From:   Dan Scally <djrscally@gmail.com>
+Message-ID: <884a73ea-0bc3-6598-b440-3d7c6a8561b6@gmail.com>
+Date:   Sat, 5 Dec 2020 16:59:14 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2261308.G18gbxz5ee@kreacher>
+In-Reply-To: <2246133.BJYN6MDhT9@kreacher>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 24, 2020 at 08:44:00PM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The idea behind acpi_pm_set_bridge_wakeup() was to allow bridges to
-> be reference counted for wakeup enabling, because they may be enabled
-> to signal wakeup on behalf of their subordinate devices and that
-> may happen for multiple times in a row, whereas for the other devices
-> it only makes sense to enable wakeup signaling once.
-> 
-> However, this becomes problematic if the bridge itself is suspended,
-> because it is treated as a "regular" device in that case and the
-> reference counting doesn't work.
-> 
-> For instance, suppose that there are two devices below a bridge and
-> they both can signal wakeup.  Every time one of them is suspended,
-> wakeup signaling is enabled for the bridge, so when they both have
-> been suspended, the bridge's wakeup reference counter value is 2.
-> 
-> Say that the bridge is suspended subsequently and acpi_pci_wakeup()
-> is called for it.  Because the bridge can signal wakeup, that
-> function will invoke acpi_pm_set_device_wakeup() to configure it
-> and __acpi_pm_set_device_wakeup() will be called with the last
-> argument equal to 1.  This causes __acpi_device_wakeup_enable()
-> invoked by it to omit the reference counting, because the reference
-> counter of the target device (the bridge) is 2 at that time.
-> 
-> Now say that the bridge resumes and one of the device below it
-> resumes too, so the bridge's reference counter becomes 0 and
-> wakeup signaling is disabled for it, but there is still the other
-> suspended device which may need the bridge to signal wakeup on its
-> behalf and that is not going to work.
-> 
-> To address this scenario, use wakeup enable reference counting for
-> all devices, not just for bridges, so drop the last argument from
-> __acpi_device_wakeup_enable() and __acpi_pm_set_device_wakeup(),
-> which causes acpi_pm_set_device_wakeup() and
-> acpi_pm_set_bridge_wakeup() to become identical, so drop the latter
-> and use the former instead of it everywhere.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 05/12/2020 15:21, Rafael J. Wysocki wrote:
+> On Friday, December 4, 2020 1:27:40 AM CET Daniel Scally wrote:
+>> Switching this function to AE_CTRL_TERMINATE broke the documented
+>> behaviour of acpi_dev_get_resources() - AE_CTRL_TERMINATE does not, in
+>> fact, terminate the resource walk because acpi_walk_resource_buffer()
+>> ignores it (specifically converting it to AE_OK), referring to that
+>> value as "an OK termination by the user function". This means that
+>> acpi_dev_get_resources() does not abort processing when the preproc
+>> function returns a negative value.
+>>
+>> Revert to AE_ABORT_METHOD
+>>
+>> Fixes: 8a66790b7850 ("ACPI / resources: Use AE_CTRL_TERMINATE to terminate resources walks")
+>> Signed-off-by: Daniel Scally <djrscally@gmail.com>
+> This is simply a revert of the above commit, so it would be better to present
+> it as a revert explicitly.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Ah, of course. I'll resend as that, sorry for the noise
 
-> ---
->  drivers/acpi/device_pm.c |   41 ++++++++++++-----------------------------
->  drivers/pci/pci-acpi.c   |    4 ++--
->  include/acpi/acpi_bus.h  |    5 -----
->  3 files changed, 14 insertions(+), 36 deletions(-)
-> 
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -620,7 +620,6 @@ acpi_status acpi_remove_pm_notifier(stru
->  bool acpi_pm_device_can_wakeup(struct device *dev);
->  int acpi_pm_device_sleep_state(struct device *, int *, int);
->  int acpi_pm_set_device_wakeup(struct device *dev, bool enable);
-> -int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable);
->  #else
->  static inline void acpi_pm_wakeup_event(struct device *dev)
->  {
-> @@ -651,10 +650,6 @@ static inline int acpi_pm_set_device_wak
->  {
->  	return -ENODEV;
->  }
-> -static inline int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable)
-> -{
-> -	return -ENODEV;
-> -}
->  #endif
->  
->  #ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
-> Index: linux-pm/drivers/acpi/device_pm.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/device_pm.c
-> +++ linux-pm/drivers/acpi/device_pm.c
-> @@ -749,7 +749,7 @@ static void acpi_pm_notify_work_func(str
->  static DEFINE_MUTEX(acpi_wakeup_lock);
->  
->  static int __acpi_device_wakeup_enable(struct acpi_device *adev,
-> -				       u32 target_state, int max_count)
-> +				       u32 target_state)
->  {
->  	struct acpi_device_wakeup *wakeup = &adev->wakeup;
->  	acpi_status status;
-> @@ -757,9 +757,10 @@ static int __acpi_device_wakeup_enable(s
->  
->  	mutex_lock(&acpi_wakeup_lock);
->  
-> -	if (wakeup->enable_count >= max_count)
-> +	if (wakeup->enable_count >= INT_MAX) {
-> +		acpi_handle_info(adev->handle, "Wakeup enable count out of bounds!\n");
->  		goto out;
-> -
-> +	}
->  	if (wakeup->enable_count > 0)
->  		goto inc;
->  
-> @@ -799,7 +800,7 @@ out:
->   */
->  static int acpi_device_wakeup_enable(struct acpi_device *adev, u32 target_state)
->  {
-> -	return __acpi_device_wakeup_enable(adev, target_state, 1);
-> +	return __acpi_device_wakeup_enable(adev, target_state);
->  }
->  
->  /**
-> @@ -829,8 +830,12 @@ out:
->  	mutex_unlock(&acpi_wakeup_lock);
->  }
->  
-> -static int __acpi_pm_set_device_wakeup(struct device *dev, bool enable,
-> -				       int max_count)
-> +/**
-> + * acpi_pm_set_device_wakeup - Enable/disable remote wakeup for given device.
-> + * @dev: Device to enable/disable to generate wakeup events.
-> + * @enable: Whether to enable or disable the wakeup functionality.
-> + */
-> +int acpi_pm_set_device_wakeup(struct device *dev, bool enable)
->  {
->  	struct acpi_device *adev;
->  	int error;
-> @@ -850,37 +855,15 @@ static int __acpi_pm_set_device_wakeup(s
->  		return 0;
->  	}
->  
-> -	error = __acpi_device_wakeup_enable(adev, acpi_target_system_state(),
-> -					    max_count);
-> +	error = __acpi_device_wakeup_enable(adev, acpi_target_system_state());
->  	if (!error)
->  		dev_dbg(dev, "Wakeup enabled by ACPI\n");
->  
->  	return error;
->  }
-> -
-> -/**
-> - * acpi_pm_set_device_wakeup - Enable/disable remote wakeup for given device.
-> - * @dev: Device to enable/disable to generate wakeup events.
-> - * @enable: Whether to enable or disable the wakeup functionality.
-> - */
-> -int acpi_pm_set_device_wakeup(struct device *dev, bool enable)
-> -{
-> -	return __acpi_pm_set_device_wakeup(dev, enable, 1);
-> -}
->  EXPORT_SYMBOL_GPL(acpi_pm_set_device_wakeup);
->  
->  /**
-> - * acpi_pm_set_bridge_wakeup - Enable/disable remote wakeup for given bridge.
-> - * @dev: Bridge device to enable/disable to generate wakeup events.
-> - * @enable: Whether to enable or disable the wakeup functionality.
-> - */
-> -int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable)
-> -{
-> -	return __acpi_pm_set_device_wakeup(dev, enable, INT_MAX);
-> -}
-> -EXPORT_SYMBOL_GPL(acpi_pm_set_bridge_wakeup);
-> -
-> -/**
->   * acpi_dev_pm_low_power - Put ACPI device into a low-power state.
->   * @dev: Device to put into a low-power state.
->   * @adev: ACPI device node corresponding to @dev.
-> Index: linux-pm/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-acpi.c
-> +++ linux-pm/drivers/pci/pci-acpi.c
-> @@ -1060,7 +1060,7 @@ static int acpi_pci_propagate_wakeup(str
->  {
->  	while (bus->parent) {
->  		if (acpi_pm_device_can_wakeup(&bus->self->dev))
-> -			return acpi_pm_set_bridge_wakeup(&bus->self->dev, enable);
-> +			return acpi_pm_set_device_wakeup(&bus->self->dev, enable);
->  
->  		bus = bus->parent;
->  	}
-> @@ -1068,7 +1068,7 @@ static int acpi_pci_propagate_wakeup(str
->  	/* We have reached the root bus. */
->  	if (bus->bridge) {
->  		if (acpi_pm_device_can_wakeup(bus->bridge))
-> -			return acpi_pm_set_bridge_wakeup(bus->bridge, enable);
-> +			return acpi_pm_set_device_wakeup(bus->bridge, enable);
->  	}
->  	return 0;
->  }
-> 
-> 
-> 
+>
+>> ---
+>>  drivers/acpi/resource.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index ad04824ca3ba..f2f5f1dc7c61 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -541,7 +541,7 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
+>>  		ret = c->preproc(ares, c->preproc_data);
+>>  		if (ret < 0) {
+>>  			c->error = ret;
+>> -			return AE_CTRL_TERMINATE;
+>> +			return AE_ABORT_METHOD;
+>>  		} else if (ret > 0) {
+>>  			return AE_OK;
+>>  		}
+>>
+>
+>
+>
