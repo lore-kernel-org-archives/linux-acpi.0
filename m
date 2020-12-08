@@ -2,164 +2,148 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 316EDC4361B
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Dec 2020 07:37:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF563C1B0E3
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Dec 2020 09:12:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC28F23A1D
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Dec 2020 07:37:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AC7723A7F
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Dec 2020 09:12:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727677AbgLHHhx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Dec 2020 02:37:53 -0500
-Received: from mga06.intel.com ([134.134.136.31]:36898 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726996AbgLHHhx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 8 Dec 2020 02:37:53 -0500
-IronPort-SDR: UaaoYr+nC5ZgCm3HPXQSwhkehca940zLIRD5ZGQmIj0IRIO9PelrUdAIRjQwUwApgnp7xnTzff
- u+/wz7JIRPcA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9828"; a="235446452"
-X-IronPort-AV: E=Sophos;i="5.78,401,1599548400"; 
-   d="scan'208";a="235446452"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2020 23:37:07 -0800
-IronPort-SDR: L/nR/tDDohPpMVfC119rVjkX6W2x00Bn0mf4/IdYf7vN/tTlpH5eo53IykUc8KPGq9vEHHBGQg
- TFK5dtfQgzKw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.78,401,1599548400"; 
-   d="scan'208";a="552132877"
-Received: from lkp-server01.sh.intel.com (HELO c88bd47c8831) ([10.239.97.150])
-  by orsmga005.jf.intel.com with ESMTP; 07 Dec 2020 23:37:06 -0800
-Received: from kbuild by c88bd47c8831 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1kmXYX-00004M-K6; Tue, 08 Dec 2020 07:37:05 +0000
-Date:   Tue, 08 Dec 2020 15:36:32 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [pm:bleeding-edge] BUILD SUCCESS
- 88e3db954de0fa9f322c90c7a783680248950a9a
-Message-ID: <5fcf2d00.CPhaM2Fc7r9QPdAw%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1728669AbgLHJMw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Dec 2020 04:12:52 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:46297 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726418AbgLHJMv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2020 04:12:51 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1607418685;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=5Ad9dVIz2TEPmfPmKHjiScQxj4MpEXhAMwys+bMreiU=;
+        b=UePwd1DPULy8qHaIENqeuUxEK4HPLWWoRNqniAWfPSj8KSzm/FMNlH5MI+l10yhHVeC0kO
+        gbZ5gFLsq+em7OTa5am77hxoxPg4onLQ5NMNhLhJr40stEwmQB9p6EZZiKOG7tNTaM2nPO
+        CLCpqjOMoysTY+Yj5YVZE3MFuhymgkk=
+Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
+ [209.85.218.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-80-4kaxoUPDPuWKA3ohAvtdxQ-1; Tue, 08 Dec 2020 04:11:23 -0500
+X-MC-Unique: 4kaxoUPDPuWKA3ohAvtdxQ-1
+Received: by mail-ej1-f71.google.com with SMTP id m4so1867581ejc.14
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Dec 2020 01:11:23 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=5Ad9dVIz2TEPmfPmKHjiScQxj4MpEXhAMwys+bMreiU=;
+        b=Ns8TGPq727MBN9utYKH4NDVt5Y606d38Fp9cWigA/p8gdGj2xpRQfmDfLnJnsd6k5y
+         DwuGjZdFfNvVrqPLivhLKy+gnXFzwqZ/PBWkvD34NjE52aiurF6YLrwFvziSbKWFCXAf
+         w9a+kJFKRtiz0tBpWpWc3pT5t7zy+N+W1K+Fe92PUI0HxU6o3+9Ynf+aq1X3kQeIq/pi
+         PadfajaYfrK+6vd10kHtxtcEM8UVta2qaXxxP4J2gwpAa0+NBah8AbqIDiPH2rs5dgKC
+         mtn8gcJK/ppLx8MzCktlMBdhtBKyTRYyuzyDDAaXGW8DSsrZlWGsQJG8aiPkcvQqbrCn
+         sRyw==
+X-Gm-Message-State: AOAM532OIgJRxuw8Wu6loHzuhIZn1Li8r7Qq1J+B5s46TSbTXOFp9xqD
+        v0tvASR9c9XkDYlpnoKNTRnljriwMeM9I6lpLxKvl5FTui2QikUlVnAU5Vuhqo6E4PoXPkmjEFg
+        whd7fOskEyOuAf9vfPrFkhA==
+X-Received: by 2002:a17:906:1194:: with SMTP id n20mr22002836eja.269.1607418682098;
+        Tue, 08 Dec 2020 01:11:22 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJw790b+pkpX7nw4XPxUqBpja8l3M/T+KRTl5nj0rMBa8xD00oQ4kISlVGPU4VL//BKIPAAapw==
+X-Received: by 2002:a17:906:1194:: with SMTP id n20mr22002831eja.269.1607418681943;
+        Tue, 08 Dec 2020 01:11:21 -0800 (PST)
+Received: from x1.localdomain (2001-1c00-0c0c-fe00-d2ea-f29d-118b-24dc.cable.dynamic.v6.ziggo.nl. [2001:1c00:c0c:fe00:d2ea:f29d:118b:24dc])
+        by smtp.gmail.com with ESMTPSA id rl7sm13740822ejb.107.2020.12.08.01.11.20
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Dec 2020 01:11:21 -0800 (PST)
+Subject: Re: [PATCH v5 1/3] Documentation: Add documentation for new
+ platform_profile sysfs attribute
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Mark Pearson <markpearson@lenovo.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Mark Gross <mgross@linux.intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        Bastien Nocera <hadess@hadess.net>,
+        =?UTF-8?Q?Barnab=c3=a1s_P=c5=91cze?= <pobrn@protonmail.com>,
+        Mario Limonciello <mario.limonciello@dell.com>,
+        Elia Devito <eliadevito@gmail.com>,
+        Benjamin Berg <bberg@redhat.com>,
+        Darren Hart <dvhart@infradead.org>
+References: <markpearson@lenovo.com>
+ <20201202171120.65269-1-markpearson@lenovo.com>
+ <74b6ef2c-ac13-bffe-edda-478512950d22@redhat.com>
+ <CAJZ5v0iWD5Ej-1oCfMAskvQoovMRVc5TkpST1t9brsJirx+5zQ@mail.gmail.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <ecc70307-aca0-16f8-26b3-4360c61f752b@redhat.com>
+Date:   Tue, 8 Dec 2020 10:11:20 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <CAJZ5v0iWD5Ej-1oCfMAskvQoovMRVc5TkpST1t9brsJirx+5zQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git  bleeding-edge
-branch HEAD: 88e3db954de0fa9f322c90c7a783680248950a9a  Merge branch 'acpi-platform' into bleeding-edge
+Hi,
 
-elapsed time: 725m
+On 12/7/20 8:29 PM, Rafael J. Wysocki wrote:
+> On Thu, Dec 3, 2020 at 10:46 AM Hans de Goede <hdegoede@redhat.com> wrote:
+>>
+>> Hi,
+>>
+>> On 12/2/20 6:11 PM, Mark Pearson wrote:
+>>> On modern systems the platform performance, temperature, fan and other
+>>> hardware related characteristics are often dynamically configurable. The
+>>> profile is often automatically adjusted to the load by some
+>>> automatic-mechanism (which may very well live outside the kernel).
+>>>
+>>> These auto platform-adjustment mechanisms often can be configured with
+>>> one of several 'platform-profiles', with either a bias towards low-power
+>>> consumption or towards performance (and higher power consumption and
+>>> thermals).
+>>>
+>>> Introduce a new platform_profile sysfs API which offers a generic API for
+>>> selecting the performance-profile of these automatic-mechanisms.
+>>>
+>>> Co-developed-by: Mark Pearson <markpearson@lenovo.com>
+>>> Signed-off-by: Mark Pearson <markpearson@lenovo.com>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>
+>> Thank you, patches 1 and 2 look good to me now, you may add my:
+>>
+>> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+>>
+>> To patch 2 (since I'm co-author of patch 1 it would be a bit weird
+>> to add it there too).
+>>
+>> Rafael, it would be great if you pick up patches 1 and 2 for merging
+>> into 5.11 (assuming that you agree that they are ready) then I will merge
+>> patch 3 once 5.11-rc1 is out.
+> 
+> I've applied patch [1/2] (as 5.11-rc material) for now, but I still
+> needed to fix it up somewhat.  Please check the result in my
+> bleeding-edge branch.
 
-configs tested: 94
-configs skipped: 2
+Thank you.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+> I'll get to the other patch tomorrow.
 
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-powerpc                  mpc885_ads_defconfig
-mips                           ip28_defconfig
-powerpc                     pq2fads_defconfig
-powerpc                 mpc832x_rdb_defconfig
-c6x                         dsk6455_defconfig
-m68k                        m5272c3_defconfig
-arm                  colibri_pxa300_defconfig
-powerpc                     powernv_defconfig
-m68k                        mvme16x_defconfig
-arm                           tegra_defconfig
-powerpc                     tqm8540_defconfig
-powerpc                      chrp32_defconfig
-mips                         db1xxx_defconfig
-m68k                       m5249evb_defconfig
-arc                        nsim_700_defconfig
-arm                       omap2plus_defconfig
-arm                         lpc18xx_defconfig
-sh                          sdk7780_defconfig
-m68k                       m5275evb_defconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-parisc                           allyesconfig
-s390                                defconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                               tinyconfig
-i386                                defconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-c6x                              allyesconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-i386                 randconfig-a005-20201207
-i386                 randconfig-a004-20201207
-i386                 randconfig-a001-20201207
-i386                 randconfig-a002-20201207
-i386                 randconfig-a006-20201207
-i386                 randconfig-a003-20201207
-x86_64               randconfig-a016-20201207
-x86_64               randconfig-a012-20201207
-x86_64               randconfig-a014-20201207
-x86_64               randconfig-a013-20201207
-x86_64               randconfig-a015-20201207
-x86_64               randconfig-a011-20201207
-i386                 randconfig-a014-20201207
-i386                 randconfig-a013-20201207
-i386                 randconfig-a011-20201207
-i386                 randconfig-a015-20201207
-i386                 randconfig-a012-20201207
-i386                 randconfig-a016-20201207
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-x86_64                                   rhel
-x86_64                           allyesconfig
-x86_64                    rhel-7.6-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                                  kexec
+The other patch likely conflicts with a bunch of other thinkpad_acpi
+changes already in pdx86/for-next; and I still need to review v5 of
+it, so please do not apply it.
 
-clang tested configs:
-x86_64               randconfig-a004-20201207
-x86_64               randconfig-a006-20201207
-x86_64               randconfig-a002-20201207
-x86_64               randconfig-a001-20201207
-x86_64               randconfig-a005-20201207
-x86_64               randconfig-a003-20201207
+I will pick it up after 5.11-rc1 and send it out as part of a
+pull-req for rc2.
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+Regards,
+
+Hans
+
