@@ -2,269 +2,183 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40EA6C433FE
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Dec 2020 19:02:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D0ECC4167B
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Dec 2020 23:01:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D096123D9A
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Dec 2020 19:02:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E382C23BA7
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Dec 2020 23:01:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393237AbgLJS5u convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Dec 2020 13:57:50 -0500
-Received: from mail-oo1-f67.google.com ([209.85.161.67]:37613 "EHLO
-        mail-oo1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393188AbgLJS5n (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2020 13:57:43 -0500
-Received: by mail-oo1-f67.google.com with SMTP id t23so1517880oov.4
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Dec 2020 10:57:26 -0800 (PST)
+        id S2389079AbgLJW6k (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Dec 2020 17:58:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41840 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389170AbgLJWzP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2020 17:55:15 -0500
+Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA581C0619D9
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Dec 2020 14:46:34 -0800 (PST)
+Received: by mail-wm1-x332.google.com with SMTP id g25so3617606wmh.1
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Dec 2020 14:46:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=+MZ667GBhR16D6p2nOjMBUchu0pJ54NQx/e3qdCjZQ0=;
+        b=TxY8facWBaukogy+zBNiDa+n1buQ8OzEeTbyUlASACQgivOLqi9cMrkx5OUEXXl9iO
+         4YDGTznDREXNgseRrM9YgrmN6NiJoGG4dRNtRUSp7ZxYgIJFUCZCLsZdpzIny5tSAfJp
+         7Jcy2aypuwv6Y6AskLPB53YiijMimu+ErY1bptD+QMj+8dCj8Zw/stQ5WeZTSxp2Po+e
+         N+fnYt6eiLWeLN0MBZNFWsqSAM/5OjUG8EfmIbV+CLE1hMkdDJSHNf/+HWVdXffQ20ft
+         9KAi35KR4Fh/HUFmWRHt+u3c3kxHEoxWzWbFwl04r1ugs79ScjD9rNnlVUklQQhFTEBW
+         7UuA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=iWDqmnrOy6XAoiY09dM3x1lIqPzKRE8zOY9EpMW2dmU=;
-        b=J1lkmrI0eZqeUMY/z1pH7oh/XS78fvOf552+1dia1QbLeYfrlFie9VVCbvDV4Ziwus
-         rBvSoS2PBnKfA4KRL0xJLoGd2tuJHPi1ucnCmLkYtptLI2fa1DGN3XvJKn+Y2wtJZRnv
-         CEI/BMUVbj3u70hoguo/KdPfy/AX+4JdyA7DJl2UBrBENgvybtEwvA8NE2kLjF9ZOcte
-         6D+F6wZr52WqifjKgvPwWi8r+j986rjiq/KZvRHhDKBw7PCCXyBsTv2GSIDi1TThQlT5
-         JUZY1ec5Tl84F0+DqEhJ3uXyMUS90CbnJuy9b6p7gFw9BRe2fz+4pI2MqGZo9qGGx2CA
-         koIg==
-X-Gm-Message-State: AOAM533FhRDoOuW6ZjlO7ghG2p4jqCIOm+emziFFetbA3WdVnRx/cnvJ
-        sR2iYIog2Sp7wDMuIFLMF5TNYxC6nsVQNIKayic=
-X-Google-Smtp-Source: ABdhPJyuD4n0yKZ2AE3WBjYVdqekGOGkrZpEHQnt7MH4zpmXYeny0jb7gtNDj2Yqxpg1ekygBQGPOjw8H8jEKd/IfMc=
-X-Received: by 2002:a4a:9873:: with SMTP id z48mr7020471ooi.44.1607626621507;
- Thu, 10 Dec 2020 10:57:01 -0800 (PST)
-MIME-Version: 1.0
-References: <20201120060752.3146704-1-Shyam-sundar.S-k@amd.com>
- <CAJZ5v0jeoiZdgzKupakPn+82iur-nMLH3wEC07cHO1qyvoysug@mail.gmail.com> <e0cd4950-e19d-a158-c9c9-b6436854e663@amd.com>
-In-Reply-To: <e0cd4950-e19d-a158-c9c9-b6436854e663@amd.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 10 Dec 2020 19:56:50 +0100
-Message-ID: <CAJZ5v0jkcFjHzaJXmm9Z-VjxEO373k=g_iwt+8gOs2FcjEABEg@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: PM: s2idle: Add AMD support to handle _DSM
- during S2Idle
-To:     Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=+MZ667GBhR16D6p2nOjMBUchu0pJ54NQx/e3qdCjZQ0=;
+        b=OM33r6MEG9CPlSCu0dAlb4NxMinjRA5lHdDbwcSbDwh7LOfN8qojncOE+OH0Rxxnyy
+         ZF4bQ5P8QnN7tG2bjzKKaJJXa5IE1wPZ7DSk/pWjxnkje5g/NRZg0T2uACtwhevdORVe
+         MhT+tf46rzBRa8VFxGB7Pjcyu7/crptvEXcJLK70nUtThaL+s4xY8EoyPtpeBYMbqHay
+         zzUI2jMyJnPMrsw0ABOnwcsAW4wWicrSjNGfTmS8KW95jx4NU9Fkv8N0ig/n3mxEHH3L
+         eeoRab9mmiphjdckhm2Ybo4mBJAn6vdO8wG4jHUui0rXLGLyFFmdxvjV1HOmSbv3udGC
+         LM7g==
+X-Gm-Message-State: AOAM533DihON9vT6udYcgoNio0g8p1VO5T3NlXWVpY2IYy+nYXDSEsD9
+        8ZmkEdY87J5DgloBzswC+ZdpWUwEvIimJQ==
+X-Google-Smtp-Source: ABdhPJz5anVjOQQozbc/8qr83yVfO3F/pIWAtAGXCm6n085nPUc7i8uDfuhWc0qJSZK4odJkysHTlQ==
+X-Received: by 2002:a1c:2288:: with SMTP id i130mr10642433wmi.78.1607640393423;
+        Thu, 10 Dec 2020 14:46:33 -0800 (PST)
+Received: from [192.168.1.211] ([2.29.208.56])
+        by smtp.gmail.com with ESMTPSA id c9sm11835763wrn.65.2020.12.10.14.46.32
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 10 Dec 2020 14:46:32 -0800 (PST)
+Subject: Re: acpi_device_notify() binding devices that don't seem like they
+ should be bound
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <1409ba0c-1580-dc09-e6fe-a0c9bcda6462@gmail.com>
+ <CAJZ5v0inSq27Zpq=K4df=wypnSdyk5u1P-06wXiVG_vE2ZvDCQ@mail.gmail.com>
+ <d3758b6a-7661-03b7-5a67-1fcb82253fb7@gmail.com>
+ <1874841.VfOVrlA5c3@kreacher>
+From:   Daniel Scally <djrscally@gmail.com>
+Message-ID: <f2f4542d-9469-82f7-22ce-04d75f57453e@gmail.com>
+Date:   Thu, 10 Dec 2020 22:46:31 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
+MIME-Version: 1.0
+In-Reply-To: <1874841.VfOVrlA5c3@kreacher>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 25, 2020 at 7:45 AM Shyam Sundar S K
-<Shyam-sundar.S-k@amd.com> wrote:
->
->
->
-> On 11/23/2020 10:15 PM, Rafael J. Wysocki wrote:
-> > [CAUTION: External Email]
-> >
-> > On Fri, Nov 20, 2020 at 7:10 AM Shyam Sundar S K
-> > <Shyam-sundar.S-k@amd.com> wrote:
-> >>
-> >> Initial support for S2Idle based on the Intel implementation [1] does not
-> >> work for AMD as the BIOS implementation for ACPI methods like the _DSM
-> >> are not standardized.
-> >>
-> >> So, the way in which the UUID's were parsed and the ACPI packages were
-> >> retrieved out of the ACPI objects are not the same between Intel and AMD.
-> >>
-> >> This patch adds AMD support for S2Idle to parse the UUID, evaluate the
-> >> _DSM methods, preparing the Idle constraint list etc.
-> >>
-> >> Link: https://nam11.safelinks.protection.outlook.com/?url=https%3A%2F%2Fuefi.org%2Fsites%2Fdefault%2Ffiles%2Fresources%2FIntel_ACPI_Low_Power_S0_Idle.pdf&amp;data=04%7C01%7CShyam-sundar.S-k%40amd.com%7C640970e0f42a4fd53a1408d88fcf25d8%7C3dd8961fe4884e608e11a82d994e183d%7C0%7C1%7C637417467581911776%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C2000&amp;sdata=xPFj5OymQkr3xEaU8qQD1y8O95XCszUblRRuknNvD7I%3D&amp;reserved=0 # [1]
-> >> Signed-off-by: Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
-> >> ---
-> >> v2:(https://nam11.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.spinics.net%2Flists%2Flinux-acpi%2Fmsg97104.html&amp;data=04%7C01%7CShyam-sundar.S-k%40amd.com%7C640970e0f42a4fd53a1408d88fcf25d8%7C3dd8961fe4884e608e11a82d994e183d%7C0%7C1%7C637417467581911776%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C2000&amp;sdata=r5whv52ruKVbFgsV1qEuWKeePaUQhjXnxQwF7izFRf4%3D&amp;reserved=0)
-> >> - Remove default case in switch.
-> >> - Add a routine acpi_match_vendor_name() required when building on a
-> >>   non-x86 based environment.
-> >> - Fixed spelling mistakes.
-> >> ---
-> >>  drivers/acpi/sleep.c | 166 ++++++++++++++++++++++++++++++++++++++++---
-> >>  1 file changed, 157 insertions(+), 9 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> >> index aff13bf4d947..b929fd0d2e04 100644
-> >> --- a/drivers/acpi/sleep.c
-> >> +++ b/drivers/acpi/sleep.c
-> >> @@ -710,6 +710,11 @@ static const struct acpi_device_id lps0_device_ids[] = {
-> >>  #define ACPI_LPS0_ENTRY                5
-> >>  #define ACPI_LPS0_EXIT         6
-> >>
-> >> +/* AMD */
-> >> +#define ACPI_LPS0_DSM_UUID_AMD      "e3f32452-febc-43ce-9039-932122d37721"
-> >> +#define ACPI_LPS0_SCREEN_OFF_AMD    4
-> >> +#define ACPI_LPS0_SCREEN_ON_AMD     5
-> >> +
-> >>  static acpi_handle lps0_device_handle;
-> >>  static guid_t lps0_dsm_guid;
-> >>  static char lps0_dsm_func_mask;
-> >> @@ -733,8 +738,124 @@ struct lpi_constraints {
-> >>         int min_dstate;
-> >>  };
-> >>
-> >> +/* AMD */
-> >> +/* Device constraint entry structure */
-> >> +struct lpi_device_info_amd {
-> >> +       int revision;
-> >> +       int count;
-> >> +       union acpi_object *package;
-> >> +};
-> >> +
-> >> +/* Constraint package structure */
-> >> +struct lpi_device_constraint_amd {
-> >> +       char *name;
-> >> +       int enabled;
-> >> +       int function_states;
-> >> +       int min_dstate;
-> >> +};
-> >> +
-> >>  static struct lpi_constraints *lpi_constraints_table;
-> >>  static int lpi_constraints_table_size;
-> >> +static int rev_id;
-> >> +
-> >> +static void lpi_device_get_constraints_amd(void)
-> >> +{
-> >> +       union acpi_object *out_obj;
-> >> +       int i, j, k;
-> >> +
-> >> +       out_obj = acpi_evaluate_dsm_typed(lps0_device_handle, &lps0_dsm_guid,
-> >> +                                         1, ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
-> >> +                                         NULL, ACPI_TYPE_PACKAGE);
-> >> +
-> >> +       if (!out_obj)
-> >> +               return;
-> >> +
-> >> +       acpi_handle_debug(lps0_device_handle, "_DSM function 1 eval %s\n",
-> >> +                         out_obj ? "successful" : "failed");
-> >> +
-> >> +       for (i = 0; i < out_obj->package.count; i++) {
-> >> +               union acpi_object *package = &out_obj->package.elements[i];
-> >> +               struct lpi_device_info_amd info = { };
-> >> +
-> >> +               if (package->type == ACPI_TYPE_INTEGER) {
-> >> +                       switch (i) {
-> >> +                       case 0:
-> >> +                               info.revision = package->integer.value;
-> >> +                               break;
-> >> +                       case 1:
-> >> +                               info.count = package->integer.value;
-> >> +                               break;
-> >> +                       }
-> >> +               } else if (package->type == ACPI_TYPE_PACKAGE) {
-> >> +                       lpi_constraints_table = kcalloc(package->package.count,
-> >> +                                                       sizeof(*lpi_constraints_table),
-> >> +                                                       GFP_KERNEL);
-> >> +
-> >> +                       if (!lpi_constraints_table)
-> >> +                               goto free_acpi_buffer;
-> >> +
-> >> +                       acpi_handle_info(lps0_device_handle,
-> >> +                                        "LPI: constraints list begin:\n");
-> >> +
-> >> +                       for (j = 0; j < package->package.count; ++j) {
-> >> +                               union acpi_object *info_obj = &package->package.elements[j];
-> >> +                               struct lpi_device_constraint_amd dev_info = {};
-> >> +                               struct lpi_constraints *list;
-> >> +                               acpi_status status;
-> >> +
-> >> +                               for (k = 0; k < info_obj->package.count; ++k) {
-> >> +                                       union acpi_object *obj = &info_obj->package.elements[k];
-> >> +                                       union acpi_object *obj_new;
-> >> +
-> >> +                                       list = &lpi_constraints_table[lpi_constraints_table_size];
-> >> +                                       list->min_dstate = -1;
-> >> +
-> >> +                                       obj_new = &obj[k];
-> >> +                                       switch (k) {
-> >> +                                       case 0:
-> >> +                                               dev_info.enabled = obj->integer.value;
-> >> +                                               break;
-> >> +                                       case 1:
-> >> +                                               dev_info.name = obj->string.pointer;
-> >> +                                               break;
-> >> +                                       case 2:
-> >> +                                               dev_info.function_states = obj->integer.value;
-> >> +                                               break;
-> >> +                                       case 3:
-> >> +                                               dev_info.min_dstate = obj->integer.value;
-> >> +                                               break;
-> >> +                                       }
-> >> +
-> >> +                                       if (!dev_info.enabled || !dev_info.name ||
-> >> +                                           !dev_info.min_dstate)
-> >> +                                               continue;
-> >> +
-> >> +                                       status = acpi_get_handle(NULL, dev_info.name,
-> >> +                                                                &list->handle);
-> >> +                                       if (ACPI_FAILURE(status))
-> >> +                                               continue;
-> >> +
-> >> +                                       acpi_handle_info(lps0_device_handle,
-> >> +                                                        "Name:%s\n", dev_info.name);
-> >> +
-> >> +                                       list->min_dstate = dev_info.min_dstate;
-> >> +
-> >> +                                       if (list->min_dstate < 0) {
-> >> +                                               acpi_handle_info(lps0_device_handle,
-> >> +                                                                "Incomplete constraint defined\n");
-> >> +                                               continue;
-> >> +                                       }
-> >> +                               }
-> >> +                               lpi_constraints_table_size++;
-> >> +                       }
-> >> +               }
-> >> +       }
-> >> +
-> >> +       acpi_handle_info(lps0_device_handle, "LPI: constraints list end\n");
-> >> +
-> >> +free_acpi_buffer:
-> >> +       ACPI_FREE(out_obj);
-> >> +}
-> >>
-> >>  static void lpi_device_get_constraints(void)
-> >>  {
-> >> @@ -883,13 +1004,22 @@ static void acpi_sleep_run_lps0_dsm(unsigned int func)
-> >>         if (!(lps0_dsm_func_mask & (1 << func)))
-> >>                 return;
-> >>
-> >> -       out_obj = acpi_evaluate_dsm(lps0_device_handle, &lps0_dsm_guid, 1, func, NULL);
-> >> +       out_obj = acpi_evaluate_dsm(lps0_device_handle, &lps0_dsm_guid, rev_id, func, NULL);
-> >>         ACPI_FREE(out_obj);
-> >>
-> >>         acpi_handle_debug(lps0_device_handle, "_DSM function %u evaluation %s\n",
-> >>                           func, out_obj ? "successful" : "failed");
-> >>  }
-> >>
-> >> +static bool acpi_match_vendor_name(void)
-> >> +{
-> >> +#ifdef CONFIG_X86
-> >> +       if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
-> >> +               return true;
-> >> +#endif
-> >> +       return false;
-> >> +}
-> >
-> > Well, I still don't like this (explicit CONFIG_X86 dependencies are
-> > not welcome in this file), but arguably the damage was done before
-> > already and there is a bunch of X86-specific code in here anyway, so
-> > I'm going to take your patch provisionally and rearrange the code on
-> > top of it so as to relocate the x86-specific part of it into
-> > acpi/x86/.
-> >
-> > Thanks!
->
-> Thank you Rafael!
 
-I won't be able to take care of this before the start of the 5.11
-merge window, so I'll do my best to get to it during the merge window
-so as to be able to still get it into 5.11-rc1.
+On 10/12/2020 16:59, Rafael J. Wysocki wrote:
+> On Thursday, December 10, 2020 5:07:56 PM CET Daniel Scally wrote:
+>> On 10/12/2020 16:05, Rafael J. Wysocki wrote:
+>>> All the adevs with matching _ADR also have both _STA and _HID
+>>> unfortunately. Sorry; let me stop half-arsing this and show you
+>>> something useful:
+>>>
+>>> [    0.219953] acpi_find_child_device(PNP0A08:00, 0x00, false)
+>>> [    0.220818] INT3472:00: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> [    0.220821] INT3472:01: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> [    0.220870] INT3472:02: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> [    0.220892] INT3472:03: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> [    0.220916] INT3472:04: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> [    0.220941] INT3472:05: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> [    0.220965] INT3472:06: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> [    0.220990] INT3472:07: _STA 0x00, _ADR=0x00000000, _HID=INT3472
+>>> These will be ignored with -ENODEV.
+>>>
+>>>> [    0.221038] INT3472:08: _STA 0x0f, _ADR=0x00000000, _HID=INT3472
+>>> For this acpi_find_child_device() will return FIND_CHILD_MIN_SCORE if
+>>> I'm not mistaken.
+>> It does - this is the one that binds, being the first.
+>>>> [    0.221051] OVTI5648:00: _STA 0x0f, _ADR=0x00000000, _HID=OVTI5648
+>>>> [    0.221061] INT3472:09: _STA 0x0f, _ADR=0x00000000, _HID=INT3472
+>>>> [    0.221070] OVTI2680:00: _STA 0x0f, _ADR=0x00000000, _HID=OVTI2680
+>>> As well as for the three above.
+>>>
+>>>> [    0.221079] INT3471:00: _STA 0x00, _ADR=0x00000000, _HID=INT3471
+>>>> [    0.221105] INT33BE:00: _STA 0x00, _ADR=0x00000000, _HID=INT33BE
+>>>> [    0.221130] INT3471:01: _STA 0x00, _ADR=0x00000000, _HID=INT3471
+>>>> [    0.221156] INT33BE:01: _STA 0x00, _ADR=0x00000000, _HID=INT33BE
+>>> And the rest will be ignored.
+>>>
+>>>> That's the debug output I included for each adev that's assessed as a
+>>>> child of PNP0A08:00. _STA, _ADR and _HID present for all, _ADR 0x00 for
+>>>> all, _STA 0x0f for the 2 sensors and their PMIC's and 0x00 for the rest.
+>>>> The same situation holds on both of my devices.
+>>> So in fact we don't want to have an ACPI companion for (PNP0A08:00,
+>>> 0x00, false).
+>> Yeah, I think that's right
+>>> This is a hostbridge special case and let me think about this for a while.
+>> Sure - thanks very much for your help.
+> I've come up with the following patch.
+>
+> Please let me know if it works for you.
+>
+> ---
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -1162,14 +1162,32 @@ void acpi_pci_remove_bus(struct pci_bus
+>  static struct acpi_device *acpi_pci_find_companion(struct device *dev)
+>  {
+>  	struct pci_dev *pci_dev = to_pci_dev(dev);
+> +	struct acpi_device *adev;
+>  	bool check_children;
+>  	u64 addr;
+>  
+>  	check_children = pci_is_bridge(pci_dev);
+>  	/* Please ref to ACPI spec for the syntax of _ADR */
+>  	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
+> -	return acpi_find_child_device(ACPI_COMPANION(dev->parent), addr,
+> +	adev = acpi_find_child_device(ACPI_COMPANION(dev->parent), addr,
+>  				      check_children);
+> +	/*
+> +	 * There may be ACPI device objects in the ACPI namesoace that are
+> +	 * children of the device object representing the host bridge, but don't
+> +	 * represent PCI devices.  Both _HID and _ADR may be present for them,
+> +	 * even though that is against the specification (for example, see
+> +	 * Section 6.1 of ACPI 6.3), but in many cases the _ADR returns 0 which
+> +	 * appears to indicate that they should not be taken into consideration
+> +	 * as potential companions of PCI devices on the root bus.
+> +	 *
+> +	 * To catch this special case, disregard the returned device object if
+> +	 * it has a valid _HID, addr is 0 and the PCI device at hand is on the
+> +	 * root bus.
+> +	 */
+> +	if (adev->pnp.type.platform_id && !addr && !pci_dev->bus->parent)
+> +		return NULL;
+> +
+> +	return adev;
+>  }
+>  
+>  /**
+>
+Thanks - this needs to check adev for NULL too; acpi_find_child_device()
+does return that sometimes. When changed to:
 
-Thanks!
++	if (adev && adev->pnp.type.platform_id && !addr && !pci_dev->bus->parent)
++		return NULL;
+
+Then it boots properly, and fixes the original problem.  Also;
+s/namesoace/namespace in the comment.
+
+
+Really appreciate the help - thank you!
+
