@@ -2,149 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	FSL_HELO_FAKE,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55E47C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Dec 2020 08:34:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C91B0C4361B
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Dec 2020 15:39:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 015E223133
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Dec 2020 08:34:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83FE723332
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Dec 2020 15:39:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733071AbgLKIc3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Dec 2020 03:32:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45966 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387455AbgLKIcC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2020 03:32:02 -0500
-Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36BD0C0613D3;
-        Fri, 11 Dec 2020 00:31:22 -0800 (PST)
-Received: by mail-pj1-x1041.google.com with SMTP id m5so1972886pjv.5;
-        Fri, 11 Dec 2020 00:31:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=4zPFRNJq7ChgGn6x1xRHPz16KRlRzGnYElHimU2a+ik=;
-        b=mB3B90PTK0IhVY1R2bpq5cXTcrpAgnpH7bH9MG5eYBLl9ySVrfD34JwfyKv86oVOO2
-         cDIzStmOtmsKsvdG/iT4i6wekuMnWgB0ranqUq0eQRQorGNfi+etBI5781L0QT2XMr+E
-         QHUK6op8ediMKZPm1gkI8HweBBQgTulyamv0PeJIXE5L9/6n1b+OiSRoIaFDrfmpP/bT
-         DatGLglQJixZuub99A6SS+6aVNzm+GJNEd29b6D5D1qYuUxQKWj3kwtINrbvAmOSjRrf
-         weN9ctehM3LgNCf4J7Bd6hxMJWju4rk83bU7dSq62a9hPpBWlCfvVZF0aS/Fl1vYhjEB
-         PXag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=4zPFRNJq7ChgGn6x1xRHPz16KRlRzGnYElHimU2a+ik=;
-        b=SJTAm2h3M7qH5MF9OqS2BgnMS54p0YPOJIof+w6IqMsJ4caHZNYGnlJCA/M+xzJK94
-         MhD2Kw2PImBcE30OIQoSYgxCC9zltzMuZBaMMm5K9/rYj6QyfJLf8EzYIGdQrIi//D1K
-         Al61JspK9ks45G5/Jchiz98NPSBkiRK0O4kqJ0heqru2HP7xnHtvl0HWsPbb3YbQx5y+
-         y9IeMkXe/OcemoFjGoGsaX+IhSyr1gPxf7z4wjywSuMnW4/oLupCgDyUs8y2TOSXfMhG
-         0cD2O9uVKUBLs39cK8UBW+yZYcFglQZdvB3rk/5JuR53Xc5ZcAl4u4exne2rFokr2eHZ
-         rFHA==
-X-Gm-Message-State: AOAM531jNfNOwy2s4ifZC3KUzRZmk2gw/uQBIXWZ4kFNlNgCH6I/JJEC
-        ve+b1cFElBmwpbHpfNNJ3L0=
-X-Google-Smtp-Source: ABdhPJy5hbCygYTmShS5aFbZ1YVPeTgb8RVJaseat9jLQIAFHFQ+8RbQ/NYOYxQFRvRqk+3sJqx0Pg==
-X-Received: by 2002:a17:902:fe02:b029:db:c7fd:3c2c with SMTP id g2-20020a170902fe02b02900dbc7fd3c2cmr10050492plj.31.1607675481748;
-        Fri, 11 Dec 2020 00:31:21 -0800 (PST)
-Received: from google.com ([2620:15c:202:201:a6ae:11ff:fe11:fcc3])
-        by smtp.gmail.com with ESMTPSA id u4sm9029469pgg.48.2020.12.11.00.31.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Dec 2020 00:31:20 -0800 (PST)
-Date:   Fri, 11 Dec 2020 00:31:16 -0800
-From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To:     Marek Szyprowski <m.szyprowski@samsung.com>
-Cc:     Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
-        linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-tegra@vger.kernel.org, patches@opensource.cirrus.com,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Sylvain Lemieux <slemieux.tyco@gmail.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Barry Song <baohua@kernel.org>,
-        Michael Hennerich <michael.hennerich@analog.com>,
-        Nick Dyer <nick@shmanahar.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Ferruh Yigit <fery@cypress.com>,
-        Sangwon Jee <jeesw@melfas.com>,
-        Peter Hutterer <peter.hutterer@redhat.com>,
-        Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>,
-        kernel@collabora.com,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] Input: cyapa - do not call input_device_enabled from
- power mode handler
-Message-ID: <X9MuVAaRhv/D7vYU@google.com>
-References: <2336e15d-ff4b-bbb6-c701-dbf3aa110fcd@redhat.com>
- <20200608112211.12125-1-andrzej.p@collabora.com>
- <20200608112211.12125-3-andrzej.p@collabora.com>
- <CGME20201207133237eucas1p26f8484944760a14e51dc7353ed33cd28@eucas1p2.samsung.com>
- <27ce1176-6318-45aa-4e22-3dec9f3df15d@samsung.com>
- <9c784a23-eade-eacd-3e67-d344a5758b83@collabora.com>
- <ad093ba3-7b17-18f3-6bb5-d8133c3da89a@samsung.com>
- <X9BwtHs9XriwR8gL@google.com>
- <X9MbMja+TEfbKkmJ@google.com>
- <fa0e07b1-dee7-9b44-897d-66095f2eab90@samsung.com>
+        id S2388418AbgLKPDF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Dec 2020 10:03:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32928 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2437564AbgLKPCe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Dec 2020 10:02:34 -0500
+Received: from disco-boy.misterjones.org (disco-boy.misterjones.org [51.254.78.96])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id F2C7E21919;
+        Fri, 11 Dec 2020 15:01:52 +0000 (UTC)
+Received: from 78.163-31-62.static.virginmediabusiness.co.uk ([62.31.163.78] helo=wait-a-minute.lan)
+        by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94)
+        (envelope-from <maz@kernel.org>)
+        id 1knjvb-000TxV-7I; Fri, 11 Dec 2020 15:01:51 +0000
+From:   Marc Zyngier <maz@kernel.org>
+To:     shawnguo@kernel.org, linux@rasmusvillemoes.dk, leoyang.li@nxp.com,
+        mark.rutland@arm.com, zhiqiang.hou@nxp.com,
+        Biwen Li <biwen.li@oss.nxp.com>, robh+dt@kernel.org,
+        tglx@linutronix.de, lenb@kernel.org,
+        John Garry <john.garry@huawei.com>, martin.petersen@oracle.com,
+        jejb@linux.ibm.com, rjw@rjwysocki.net, gregkh@linuxfoundation.org
+Cc:     xiaobo.xie@nxp.com, Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Biwen Li <biwen.li@nxp.com>, linux-kernel@vger.kernel.org,
+        jiafei.pan@nxp.com, linuxarm@huawei.com,
+        linux-scsi@vger.kernel.org, dwagner@suse.de,
+        linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v5 0/5] Support managed interrupts for platform devices
+Date:   Fri, 11 Dec 2020 15:01:36 +0000
+Message-Id: <160769813659.482133.15424390769079423897.b4-ty@kernel.org>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <1606905417-183214-1-git-send-email-john.garry@huawei.com>
+References: <1606905417-183214-1-git-send-email-john.garry@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fa0e07b1-dee7-9b44-897d-66095f2eab90@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 62.31.163.78
+X-SA-Exim-Rcpt-To: shawnguo@kernel.org, linux@rasmusvillemoes.dk, leoyang.li@nxp.com, mark.rutland@arm.com, zhiqiang.hou@nxp.com, biwen.li@oss.nxp.com, robh+dt@kernel.org, tglx@linutronix.de, lenb@kernel.org, john.garry@huawei.com, martin.petersen@oracle.com, jejb@linux.ibm.com, rjw@rjwysocki.net, gregkh@linuxfoundation.org, xiaobo.xie@nxp.com, Zhiqiang.Hou@nxp.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, biwen.li@nxp.com, linux-kernel@vger.kernel.org, jiafei.pan@nxp.com, linuxarm@huawei.com, linux-scsi@vger.kernel.org, dwagner@suse.de, linux-acpi@vger.kernel.org
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Dec 11, 2020 at 09:22:44AM +0100, Marek Szyprowski wrote:
+On Wed, 2 Dec 2020 18:36:52 +0800, John Garry wrote:
+> So far, managed interrupts are only used for PCI MSIs. This series adds
+> platform device support for managed interrupts. Initially this topic was
+> discussed at [0].
 > 
-> On 11.12.2020 08:09, Dmitry Torokhov wrote:
-> > Input device's user counter is supposed to be accessed only while holding
-> > input->mutex.  Commit d69f0a43c677 ("Input: use input_device_enabled()")
-> > recently switched cyapa to using the dedicated API and it uncovered the
-> > fact that cyapa driver violated this constraint.
-> >
-> > This patch removes checks whether the input device is open when clearing
-> > device queues when changing device's power mode as there is no harm in
-> > sending input events through closed input device - the events will simply
-> > be dropped by the input core.
-> >
-> > Note that there are more places in cyapa driver that call
-> > input_device_enabled() without holding input->mutex, those are left
-> > unfixed for now.
-> >
-> > Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > ---
-> >
-> > Marek, could you please try this one?
+> The method to enable managed interrupts is to allocate a group of IRQs for
+> the device, and then switch the interrupts to managed - this is done
+> through new function irq_update_affinity_desc().
 > 
-> The warning is still there:
+> [...]
 
-Ah, yes, we are hitting another instance right after setting power mode.
-I need to think more how to handle that one.
+Applied to irq/irqchip-next, thanks!
 
-Thanks.
+[1/5] genirq/affinity: Add irq_update_affinity_desc()
+      commit: 1d3aec89286254487df7641c30f1b14ad1d127a5
+[2/5] resource: Add irqresource_disabled()
+      commit: 9806731db684a475ade1e95d166089b9edbd9da3
+[3/5] ACPI: Drop acpi_dev_irqresource_disabled()
+      commit: 1c3f69b4543af0aad514c127298e5ea40392575d
+[4/5] Driver core: platform: Add devm_platform_get_irqs_affinity()
+      commit: e15f2fa959f2cce8a05e8e3a596e75d068cd42c5
 
+Please route patch 5 via the SCSI tree when possible.
+
+Cheers,
+
+	M.
 -- 
-Dmitry
+Without deviation from the norm, progress is not possible.
+
+
