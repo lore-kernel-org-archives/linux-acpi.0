@@ -2,169 +2,129 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1004C4361B
-	for <linux-acpi@archiver.kernel.org>; Sat, 12 Dec 2020 20:47:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9CAAC2BB40
+	for <linux-acpi@archiver.kernel.org>; Sun, 13 Dec 2020 22:49:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A11F522509
-	for <linux-acpi@archiver.kernel.org>; Sat, 12 Dec 2020 20:47:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8C60238E4
+	for <linux-acpi@archiver.kernel.org>; Sun, 13 Dec 2020 22:49:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405289AbgLLUrQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 12 Dec 2020 15:47:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58244 "EHLO
+        id S1731603AbgLMWtZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 13 Dec 2020 17:49:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726348AbgLLUrQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2020 15:47:16 -0500
-Received: from mail-yb1-xb2f.google.com (mail-yb1-xb2f.google.com [IPv6:2607:f8b0:4864:20::b2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59942C0613CF
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Dec 2020 12:46:36 -0800 (PST)
-Received: by mail-yb1-xb2f.google.com with SMTP id o144so11068247ybc.0
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Dec 2020 12:46:36 -0800 (PST)
+        with ESMTP id S1728955AbgLMWtZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Dec 2020 17:49:25 -0500
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0202C0613CF;
+        Sun, 13 Dec 2020 14:48:44 -0800 (PST)
+Received: by mail-wr1-x443.google.com with SMTP id y17so14592074wrr.10;
+        Sun, 13 Dec 2020 14:48:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Ijt+NjD3TZPeXbC6i9nWnLN67OJPRDUiGF9H3UmXq2k=;
-        b=kr0FpmR3SbD0idhUyctf3dZ8T8xNboxEpAN8CcBOgmu3uJ0KrveJNqzsSoIwK/K7tq
-         XWIuZ66VOFxU0CFVjSZxoWPziLVT8Gr0QUyfivvUsLq6/iL2Mvtli3m1H9cULkPPMcgV
-         WobEunVyK0zts6FuPSDlgdpvD7SqZI6YbozEEcyvRn5ApLM96v7xdzaTvZInBRS+h8IL
-         GIc0soajEnaTT29Pc3+d6D3+8RH0TUJ3VV2iksHiGmwyRLDkHQqFZw4KDweNrCWdRdzE
-         j/6irrj1OldeCwh7lF0718FFFiCQjnmpJAmGSggtWnBonWmwwreMgrVW+wLXmVff3zfX
-         oZtQ==
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=/WorH3BnykMxRTvls0BDQbtEUswMG/rB3w2zpNBPDJ4=;
+        b=bVQjfb6v6Vmy52tG903p9j8aSsoKAVtCyvWNu6QxISsUzJkl3rhsxgTOdA91pbDdEx
+         6Dy5pGneJizXvZqR1n67PIm8/Gy4otg0Lp4y3oL7tO1lx18qLTgHD7guWfHNDrU3p+BQ
+         h/A1gd2+oQyR7UyZsEVXOzv/cXIIQKxq93wdcjYZqtx9haI3nFF4bQAiYKtEq8PLd/v5
+         KILnHmIp43IUhPSUno+kQgS6ppYOW3rO4t7E3PvQ6n4LkMSlu9MAh7yvd3UdnOrQIBsE
+         8yY7ZNMv8ZorlksHWrxJbWNep7u/dsMOTP47eDGrtClSdZJXhh6dUtFxxRM/pgFmo7DB
+         SdkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Ijt+NjD3TZPeXbC6i9nWnLN67OJPRDUiGF9H3UmXq2k=;
-        b=hvHvwwjywkPI3nfmZuro1BlNWpscX6/L8AhodU1CoGtUd4CFpEpRk+P0n4cTXIZEtW
-         tAx8U6YZ5bZGzlU2h60kGEQZwSUDxhRQiQVKq16N9BzEY8WsF1oaRASOdrIE09kxmfiK
-         ItvVcjVwf1/2FT+tfeqNmV8lL5uN4IjHXbfNAAHD3FyRc1kFIUHbrNH2kgrgAFDUJvw/
-         /4KLaC78vg+oByzzLKGyjmF2cJ97VAg2KVUhBa/dzbEM9iRK39DcwE7oauQm4q2+FPeO
-         6M2WReDlXEKMInMCrmJ8RzidWAK3Kw8Ii5WFp1Y4JMZbbPpuxvp/7Ix0urxosn4jo9oS
-         92AQ==
-X-Gm-Message-State: AOAM531HCVO9eygtDpakth16JOt8UAyzpFb+qi9f0kZf/kowvSzG7ANj
-        usSwtvifSf+nxiAt+m3F9Fa8VdtueUn+xKyPuSMr4g==
-X-Google-Smtp-Source: ABdhPJzX/62NBi5SxpI99IO3HFbbb1DCVEYLhUQDot3PsD2IncutxliNtdFRGLQBYffbDm1y+Wdg8pulfm93KiHN+ac=
-X-Received: by 2002:a25:8401:: with SMTP id u1mr28064525ybk.96.1607805995165;
- Sat, 12 Dec 2020 12:46:35 -0800 (PST)
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=/WorH3BnykMxRTvls0BDQbtEUswMG/rB3w2zpNBPDJ4=;
+        b=osPqUES/GP8FjKyj0Lr9M4oPDa+tO9FAfU/tXKY6TOUEQADsWckQUidp87PPMqlwHM
+         RcXQ4CnsNEbA5MIAY7/YSB7afGzYlWmliXEqVvczIBVezAL/3adyC8bB2ZnefQa5yQ0J
+         iqgqIt1FMJCQZ2hoMnq217YD3AdCm+yLTjeeOgLqPe7qYMHEVNsHpSq0+8JNpQDosUFS
+         1G8eok1aZXcq/iHfVtseR3Mjo3Ie0TNkRgzFvZ1hBqiiO2QcE7/rAYIAsUr+f8Kfi42o
+         E2L3PXtr7PHRlSA68d3VIPse1LfpdkTfT0CunwUbsBHpfb7F8vcULbin9ApJckFSyHu5
+         H3xw==
+X-Gm-Message-State: AOAM533ITu4vXEdPdgHZWja9QFspZKh1cG0KEGPif3oSgAopQ2IJ/FZR
+        Y/wwUd+z0XUOl9fWPs2kOqs=
+X-Google-Smtp-Source: ABdhPJxd/kl+xA0aHJWlDHhHlvpnfNUYRoSkXF/Sx8DbHXoI/4Gr9adJHVY9orF5gWFX9kmMvGczRQ==
+X-Received: by 2002:adf:f605:: with SMTP id t5mr25416354wrp.39.1607899723586;
+        Sun, 13 Dec 2020 14:48:43 -0800 (PST)
+Received: from [192.168.1.158] ([2.29.208.56])
+        by smtp.gmail.com with ESMTPSA id y130sm29246086wmc.22.2020.12.13.14.48.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 13 Dec 2020 14:48:42 -0800 (PST)
+Subject: Re: [PATCH 18/18] ipu3: Add driver for dummy INT3472 ACPI device
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@acpica.org, rjw@rjwysocki.net,
+        lenb@kernel.org, gregkh@linuxfoundation.org,
+        mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
+        bgolaszewski@baylibre.com, wsa@kernel.org, yong.zhi@intel.com,
+        sakari.ailus@linux.intel.com, bingbu.cao@intel.com,
+        tian.shu.qiu@intel.com, mchehab@kernel.org, robert.moore@intel.com,
+        erik.kaneda@intel.com, pmladek@suse.com, rostedt@goodmis.org,
+        sergey.senozhatsky@gmail.com, linux@rasmusvillemoes.dk,
+        kieran.bingham+renesas@ideasonboard.com, jacopo+renesas@jmondi.org,
+        laurent.pinchart+renesas@ideasonboard.com,
+        jorhand@linux.microsoft.com, kitakar@gmail.com,
+        heikki.krogerus@linux.intel.com
+References: <20201130133129.1024662-1-djrscally@gmail.com>
+ <20201130133129.1024662-19-djrscally@gmail.com>
+ <20201130200719.GB4077@smile.fi.intel.com>
+ <20201130233232.GD25713@pendragon.ideasonboard.com>
+ <20201201184925.GJ4077@smile.fi.intel.com>
+From:   Daniel Scally <djrscally@gmail.com>
+Message-ID: <6f3b0d7b-1ce7-aaf1-63c6-08a22dc77791@gmail.com>
+Date:   Sun, 13 Dec 2020 22:48:39 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-References: <CAGETcx8BmwWKAcH3vtLh=zrTEwJX_Y2nS1uB4Hq0priMQOnohQ@mail.gmail.com>
- <CAJZ5v0gyCmt66FKJU-ui8-ab6bedvpGU+cV7dKf25a_BOOKH4w@mail.gmail.com>
-In-Reply-To: <CAJZ5v0gyCmt66FKJU-ui8-ab6bedvpGU+cV7dKf25a_BOOKH4w@mail.gmail.com>
-From:   Saravana Kannan <saravanak@google.com>
-Date:   Sat, 12 Dec 2020 12:45:59 -0800
-Message-ID: <CAGETcx98vivT1oTPqCVO1vovvwVPeNfW3aFFzVHEUmRS8ya75g@mail.gmail.com>
-Subject: Re: fw_devlink for ACPI - need some pointers
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20201201184925.GJ4077@smile.fi.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Dec 12, 2020 at 12:19 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> On Sat, Dec 12, 2020 at 3:13 AM Saravana Kannan <saravanak@google.com> wrote:
-> >
-> > Hi ACPI devs,
-> >
-> > I want to take a stab at adding fw_devlink support for ACPI.
-> >
-> > fw_devlink adds device links between consumer and supplier devices. It
-> > finds the supplier-consumer dependencies by looking at the firmware
-> > nodes of devices as they are added to driver core.
-> >
-> > Main benefits of fw_devlink (because it creates device links):
-> > * Removes a lot of deferred probes or probe failures (due to poor
-> > error handling).
-> > * Makes module load order less important for things to probe successfully.
-> > * Makes suspend/resume a bit more robust.
-> >
-> > For DT (devicetree), I know how to interpret the common properties
-> > (Eg: clocks, -gpios, etc) to figure out what devices supply resources
-> > for a given device. In general, I'm familiar with DT and there's also
-> > Documentation/devicetree/bindings/ that I can grep for if I need to
-> > know what a property means. So, I've been able to implement fw_devlink
-> > for DT.
-> >
-> > Now, I want to add support for ACPI to get the ball rolling. However,
-> > I'm fairly clueless with it comes to ACPI. So, if I can get some
-> > pointers, that'd be great!
-> >
-> > Things I need help with:
-> > 1) I don't even know how to view the ACPI data on my PC. For example,
-> > in DT, /sys/firmware/devicetree/ has the entire DT represented as a
-> > tree of folders and files. How do I read ACPI info that lists all the
-> > devices, their properties, etc?
->
-> You can look at the directory structure under
-> /sys/devices/LNXSYSTM\:00/ which roughly corresponds to DT contents.
+On 01/12/2020 18:49, Andy Shevchenko wrote:
+>>>> +	table_entry = (struct gpiod_lookup)GPIO_LOOKUP_IDX(acpi_dev_name(adev),
+>>>> +							   ares->data.gpio.pin_table[0],
+>>>> +							   func, 0, GPIO_ACTIVE_HIGH);
+>>>
+>>> You won't need this if you have regular INT3472 platform driver.
+>>> Simple call there _DSM to map resources to the type and use devm_gpiod_get on
+>>> consumer behalf. Thus, previous patch is not needed.
+>>
+>> How does the consumer (the camera sensor) retrieve the GPIO though ? The
+>> _DSM is in the PMIC device object, while the real consumer is the camera
+>> sensor.
+> 
+> 1. A GPIO proxy
+> 2. A custom GPIO lookup tables
+> 3. An fwnode passing to the sensor (via swnodes graph)
+> 
+> First may issue deferred probe, while second needs some ordering tricks I guess.
+> Third one should also provide an ACPI GPIO mapping table or so to make the
+> consumer rely on names rather than custom numbers.
+> 
+> Perhaps someone may propose other solutions.
 
-Are these struct acpi_device (the fwnode) or are they actual devices
-that'll get probed?
+Hi Andy
 
->
-> > 2) Is there documentation to look up what each of those device properties mean?
->
-> Of course there is.  The docs in Documentation/firmware-guide/acpi/ to
-> start with, the ACPI spec and a number of assorted additional pieces.
->
-> > 3) How are some of the common device dependencies listed in ACPI? For
-> > example, if a device depends on power, clock, GPIO, interrupt, etc how
-> > does ACPI list the supplier devices for each of those resources?
->
-> That depends.
->
-> _DEP is one way to specify dependencies between devices in ACPI, but
-> there are others.
+Sorry; some more clarification here if you have time please:
 
-What is _DEP? Is it a property? Can I find it as a property in an ACPI fwnode?
-
-What are the other ways of specific dependencies?
-
-> > 4) Assuming there are a few common properties that list the device
-> > dependencies, how do I look up a firmware node that a property points
-> > to? If this is not how it works, how does it work?
->
-> The concept of "properties" as you know them from DT doesn't apply to
-> ACPI in general.
-
-Ok. What else could I look at from an ACPI fwnode that might give me
-dependency info?
-
-> While it is possible to define "properties" of a device in a way that
-> is kind of analogous to DT, it really isn't used in practice.
-
-Mmm... this is what I was wondering/suspecting. With what little I
-know about ACPI, it looks like a lot of the HW details is hidden from
-the OS. Are all of those details just handled by running
-instructions/code that's part of ACPI info that is provisioned?
-
-> Generally speaking, the spec defines the ways to represent various
-> types of information etc.
-
-In general, how much of it is actually used by Linux? And how much of
-it is Linux just executing code that ACPI provides?
-
-> > In general, any pointers to docs that'll answer the above questions
-> > would also be appreciated.
->
-> Well, you may find it less compelling than expected, but feel free to
-> ask if you have any more specific questions.
-
-So the real question is, is there enough info in ACPI to make
-meaningful device links before drivers for devices are loaded? If so,
-what part of the ACPI data do I need to look at?
-
-In general, I get the sense most (90%) ACPI devices appear standalone
-(no dependencies on other devices) to Linux because they hide all the
-clock, power control, IOMMU, and other dependencies in the firmware
-somehow. Is my intuition right? I guess TL;DR is, is fw_devlink likely
-to be useful for ACPI based machines? I wonder if ACPI provides more
-info in the ARM+ACPI world.
-
--Saravana
+1. Do you mean here, register a new gpio_chip providing GPIOs to the
+sensors, and just have the .set() callback for that function set the
+corresponding line against the INT3472 device?
+2. I thought custom GPIO lookup tables was what I was doing, are you
+referring to something else?
+3. I guess you mean something like of_find_gpio() and acpi_find_gpio()
+here? As far as I can see there isn't currently a swnodes
+equivalent...we could just pass it via reference of course but it would
+mean the sensor drivers would all need to account for that.
