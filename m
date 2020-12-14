@@ -2,76 +2,169 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCB2EC2BB40
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 17:31:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD191C2BB48
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 20:34:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95B7223341
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 17:31:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A082222BB
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 20:34:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439385AbgLNRa3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Dec 2020 12:30:29 -0500
-Received: from mga02.intel.com ([134.134.136.20]:10234 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2440371AbgLNRaW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 14 Dec 2020 12:30:22 -0500
-IronPort-SDR: PVLZGPFdq4PJf412lWWdnix0NxdteFphUlCx9TvlIcyqUgRSBP22vyHVzvvYyiu+2A7TrnJV7n
- /41niS17b8RA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9834"; a="161795988"
-X-IronPort-AV: E=Sophos;i="5.78,420,1599548400"; 
-   d="scan'208";a="161795988"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2020 09:29:37 -0800
-IronPort-SDR: D7pm080c5efPDR/a8PvPUF0giaJs4ugzNWCeyNqrCQ2Enl67OQUgyIgQ0AgmjwiZLYvrfprUlS
- r8BgWXEtOd/w==
-X-IronPort-AV: E=Sophos;i="5.78,420,1599548400"; 
-   d="scan'208";a="411343436"
-Received: from davidjor-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.136.237])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2020 09:29:36 -0800
-Date:   Mon, 14 Dec 2020 09:29:35 -0800
-From:   Ben Widawsky <ben.widawsky@intel.com>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Ira Weiny <ira.weiny@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        "Kelley, Sean V" <sean.v.kelley@intel.com>,
-        Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Jon Masters <jcm@jonmasters.org>,
-        Chris Browy <cbrowy@avery-design.com>,
-        Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC PATCH 09/14] cxl/mem: Add basic IOCTL interface
-Message-ID: <20201214172935.efknefvqthp7ohcz@intel.com>
-References: <20201209002418.1976362-1-ben.widawsky@intel.com>
- <20201209002418.1976362-10-ben.widawsky@intel.com>
- <8a252085-9dd9-6cf0-afad-a3ff63cf00d8@infradead.org>
+        id S2503394AbgLNUeo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Dec 2020 15:34:44 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:58924 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2503081AbgLNUeh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2020 15:34:37 -0500
+Received: from 89-77-60-66.dynamic.chello.pl (89.77.60.66) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.530)
+ id 7070c570a071b69d; Mon, 14 Dec 2020 21:33:41 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Hans De Goede <hdegoede@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [RFT][PATCH v1 1/3] ACPI: scan: Evaluate _DEP before adding the device
+Date:   Mon, 14 Dec 2020 21:25:23 +0100
+Message-ID: <1841307.UyYFXhZDfv@kreacher>
+In-Reply-To: <1646930.v2jOOB1UEN@kreacher>
+References: <1646930.v2jOOB1UEN@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8a252085-9dd9-6cf0-afad-a3ff63cf00d8@infradead.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 20-12-09 19:32:19, Randy Dunlap wrote:
-> On 12/8/20 4:24 PM, Ben Widawsky wrote:
-> > +
-> > +#define CXL_MEM_QUERY_COMMANDS _IOR('C', 1, struct cxl_mem_query_commands)
-> 
-> Hi,
-> I could have missed it, but IOCTL major "numbers" (like 'C') should be
-> listed in Documentation/userspace-api/ioctl/ioctl-number.rst.
-> 
-> 
-> thanks.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I was unaware of this. Fixing for v3 without conflict.
+Evaluate _DEP before calling acpi_add_single_object() from
+acpi_bus_check_add() and do that only for ACPI_BUS_TYPE_DEVICE
+objects.
 
-Thanks.
-Ben
+While at it, rename acpi_device_dep_initialize() to
+acpi_scan_check_dep(), fix up a memory allocation statement in
+that function, consistently treat memory allocation failures in
+there as intermittent errors and make some related janitorial
+changes in it.
+
+This change will help to avoid calling acpi_add_single_object() if
+there are unmet _DEP dependencies in the future, as that may cause
+some control methods, potentially depending on the presence of
+operation regions supplied by other devices, to be evaluated
+prematurely.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |   44 +++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1842,32 +1842,30 @@ static void acpi_scan_init_hotplug(struc
+ 	}
+ }
+ 
+-static void acpi_device_dep_initialize(struct acpi_device *adev)
++static u32 acpi_scan_check_dep(acpi_handle handle)
+ {
+-	struct acpi_dep_data *dep;
+ 	struct acpi_handle_list dep_devices;
+ 	acpi_status status;
++	u32 count;
+ 	int i;
+ 
+-	adev->dep_unmet = 0;
++	if (!acpi_has_method(handle, "_DEP"))
++		return 0;
+ 
+-	if (!acpi_has_method(adev->handle, "_DEP"))
+-		return;
+-
+-	status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
+-					&dep_devices);
++	status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_devices);
+ 	if (ACPI_FAILURE(status)) {
+-		dev_dbg(&adev->dev, "Failed to evaluate _DEP.\n");
+-		return;
++		acpi_handle_debug(handle, "Failed to evaluate _DEP.\n");
++		return 0;
+ 	}
+ 
+-	for (i = 0; i < dep_devices.count; i++) {
++	for (count = 0, i = 0; i < dep_devices.count; i++) {
+ 		struct acpi_device_info *info;
+-		int skip;
++		struct acpi_dep_data *dep;
++		bool skip;
+ 
+ 		status = acpi_get_object_info(dep_devices.handles[i], &info);
+ 		if (ACPI_FAILURE(status)) {
+-			dev_dbg(&adev->dev, "Error reading _DEP device info\n");
++			acpi_handle_debug(handle, "Error reading _DEP device info\n");
+ 			continue;
+ 		}
+ 
+@@ -1877,26 +1875,30 @@ static void acpi_device_dep_initialize(s
+ 		if (skip)
+ 			continue;
+ 
+-		dep = kzalloc(sizeof(struct acpi_dep_data), GFP_KERNEL);
++		dep = kzalloc(sizeof(*dep), GFP_KERNEL);
+ 		if (!dep)
+-			return;
++			continue;
++
++		count++;
+ 
+ 		dep->supplier = dep_devices.handles[i];
+-		dep->consumer  = adev->handle;
+-		adev->dep_unmet++;
++		dep->consumer = handle;
+ 
+ 		mutex_lock(&acpi_dep_list_lock);
+ 		list_add_tail(&dep->node , &acpi_dep_list);
+ 		mutex_unlock(&acpi_dep_list_lock);
+ 	}
++
++	return count;
+ }
+ 
+ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
+ 				      void *not_used, void **return_value)
+ {
+ 	struct acpi_device *device = NULL;
+-	int type;
++	u32 dep_count = 0;
+ 	unsigned long long sta;
++	int type;
+ 	int result;
+ 
+ 	acpi_bus_get_device(handle, &device);
+@@ -1912,12 +1914,16 @@ static acpi_status acpi_bus_check_add(ac
+ 		return AE_OK;
+ 	}
+ 
++	if (type == ACPI_BUS_TYPE_DEVICE)
++		dep_count = acpi_scan_check_dep(handle);
++
+ 	acpi_add_single_object(&device, handle, type, sta);
+ 	if (!device)
+ 		return AE_CTRL_DEPTH;
+ 
++	device->dep_unmet = dep_count;
++
+ 	acpi_scan_init_hotplug(device);
+-	acpi_device_dep_initialize(device);
+ 
+  out:
+ 	if (!*return_value)
+
+
+
