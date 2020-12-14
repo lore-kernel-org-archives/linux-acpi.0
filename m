@@ -2,93 +2,105 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8705BC4361B
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 12:39:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F091C4361B
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 12:40:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46026206FB
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 12:39:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B28F206FC
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Dec 2020 12:40:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393498AbgLNMjk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Dec 2020 07:39:40 -0500
-Received: from foss.arm.com ([217.140.110.172]:46712 "EHLO foss.arm.com"
+        id S2407316AbgLNMkI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Dec 2020 07:40:08 -0500
+Received: from foss.arm.com ([217.140.110.172]:46750 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391213AbgLNMjk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 14 Dec 2020 07:39:40 -0500
+        id S2407235AbgLNMkA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 14 Dec 2020 07:40:00 -0500
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9BD1DD6E;
-        Mon, 14 Dec 2020 04:38:54 -0800 (PST)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CC63C11FB;
+        Mon, 14 Dec 2020 04:39:14 -0800 (PST)
 Received: from e108754-lin.cambridge.arm.com (unknown [10.1.198.32])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 0726B3F66B;
-        Mon, 14 Dec 2020 04:38:52 -0800 (PST)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 3AACB3F66B;
+        Mon, 14 Dec 2020 04:39:13 -0800 (PST)
 From:   Ionela Voinescu <ionela.voinescu@arm.com>
 To:     rjw@rjwysocki.net, viresh.kumar@linaro.org, lenb@kernel.org
 Cc:     yousaf.kaukab@suse.com, jeremy.linton@arm.com, lukasz.luba@arm.com,
         valentin.schneider@arm.com, linux-acpi@vger.kernel.org,
         linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
         ionela.voinescu@arm.com
-Subject: [PATCH v2 0/4]  cppc_cpufreq: fix, clarify and improve support
-Date:   Mon, 14 Dec 2020 12:38:19 +0000
-Message-Id: <20201214123823.3949-1-ionela.voinescu@arm.com>
+Subject: [PATCH v2 3/4] cppc_cpufreq: expose information on frequency domains
+Date:   Mon, 14 Dec 2020 12:38:22 +0000
+Message-Id: <20201214123823.3949-4-ionela.voinescu@arm.com>
 X-Mailer: git-send-email 2.29.2.dirty
+In-Reply-To: <20201214123823.3949-1-ionela.voinescu@arm.com>
+References: <20201214123823.3949-1-ionela.voinescu@arm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi guys,
+Use the existing sysfs attribute "freqdomain_cpus" to expose
+information to userspace about CPUs in the same frequency domain.
 
-I'm sending v2 of some of the patches at [1] in light of the discussions
-at [2].
+Signed-off-by: Ionela Voinescu <ionela.voinescu@arm.com>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ Documentation/ABI/testing/sysfs-devices-system-cpu |  3 ++-
+ drivers/cpufreq/cppc_cpufreq.c                     | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-v2:
- - Patches 1-3 are trivial rebase on linux next 20201211, with conflicts
-   fixed after eliminating what previously was "[PATCH 4/8] cppc_cpufreq:
-   replace per-cpu structures with lists." Therefore, I have kept
-   Viresh's acks.
-
- - Patch 4 is a merge between:
-     - [PATCH 4/8] cppc_cpufreq: replace per-cpu structures with lists
-     - [PATCH] cppc_cpufreq: optimise memory allocation for HW and NONE
-       coordination
-   both found at [1].
-
-   This functionality was introducing the problem at [2] and it's fixed
-   in this version by bailing out of driver registration if a _CPC entry
-   is not found for a CPU.
-
-   Yousaf, it would be great if you can test this and make sure it
-   matches your expectations.
-
-   Rafael, Viresh if you think this last patch introduces too many
-   changes, you can skip it for 5.11 which is around the corner and
-   have more time for review for 5.12. I've added more eyes in the review
-   list.
-
-
-All patches are based on linux next 20201211 after patch at [3] is
-applied.
-
-[1] https://lore.kernel.org/linux-pm/20201105125524.4409-1-ionela.voinescu@arm.com/#t
-[2] https://lore.kernel.org/linux-pm/20201210142139.20490-1-yousaf.kaukab@suse.com/
-[3] https://lore.kernel.org/linux-pm/20201214120740.10948-1-ionela.voinescu@arm.com/
-
-Ionela Voinescu (4):
-  cppc_cpufreq: use policy->cpu as driver of frequency setting
-  cppc_cpufreq: clarify support for coordination types
-  cppc_cpufreq: expose information on frequency domains
-  cppc_cpufreq: replace per-cpu data array with a list
-
- .../ABI/testing/sysfs-devices-system-cpu      |   3 +-
- drivers/acpi/cppc_acpi.c                      | 141 ++++++------
- drivers/cpufreq/cppc_cpufreq.c                | 204 ++++++++++--------
- include/acpi/cppc_acpi.h                      |   6 +-
- 4 files changed, 181 insertions(+), 173 deletions(-)
-
+diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
+index 1a04ca8162ad..0eee30b27ab6 100644
+--- a/Documentation/ABI/testing/sysfs-devices-system-cpu
++++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
+@@ -264,7 +264,8 @@ Description:	Discover CPUs in the same CPU frequency coordination domain
+ 		attribute is useful for user space DVFS controllers to get better
+ 		power/performance results for platforms using acpi-cpufreq.
+ 
+-		This file is only present if the acpi-cpufreq driver is in use.
++		This file is only present if the acpi-cpufreq or the cppc-cpufreq
++		drivers are in use.
+ 
+ 
+ What:		/sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index f15a44c8b6b7..40b58d2dbbc6 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -402,6 +402,19 @@ static int cppc_cpufreq_set_boost(struct cpufreq_policy *policy, int state)
+ 	return 0;
+ }
+ 
++static ssize_t show_freqdomain_cpus(struct cpufreq_policy *policy, char *buf)
++{
++	unsigned int cpu = policy->cpu;
++
++	return cpufreq_show_cpus(all_cpu_data[cpu]->shared_cpu_map, buf);
++}
++cpufreq_freq_attr_ro(freqdomain_cpus);
++
++static struct freq_attr *cppc_cpufreq_attr[] = {
++	&freqdomain_cpus,
++	NULL,
++};
++
+ static struct cpufreq_driver cppc_cpufreq_driver = {
+ 	.flags = CPUFREQ_CONST_LOOPS,
+ 	.verify = cppc_verify_policy,
+@@ -410,6 +423,7 @@ static struct cpufreq_driver cppc_cpufreq_driver = {
+ 	.init = cppc_cpufreq_cpu_init,
+ 	.stop_cpu = cppc_cpufreq_stop_cpu,
+ 	.set_boost = cppc_cpufreq_set_boost,
++	.attr = cppc_cpufreq_attr,
+ 	.name = "cppc_cpufreq",
+ };
+ 
 -- 
 2.29.2.dirty
 
