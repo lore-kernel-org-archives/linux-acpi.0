@@ -2,50 +2,50 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A170AC4361B
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 16:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAC89C4361B
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 16:46:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C65422571
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 16:44:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAE5022571
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 16:46:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729196AbgLOQow (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 15 Dec 2020 11:44:52 -0500
+        id S1729895AbgLOQpu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Dec 2020 11:45:50 -0500
 Received: from mail-eopbgr20054.outbound.protection.outlook.com ([40.107.2.54]:56934
         "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728878AbgLOQol (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 15 Dec 2020 11:44:41 -0500
+        id S1729854AbgLOQpl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Dec 2020 11:45:41 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=UtVdrqS09qCpdjYHejQhsq73H24CBZvNS/WGKDUcN726VaNs++XfWhqKYrJ8yNUv1a2Z9L3u8aOfDneRCybzXZTz/v4ZjmdJg5sK00mkyCZ0i4HyReE/YpJs5+jPqcYJSiCk+g64uGYQQOpKMyYMUhfBlu9BHBwuZ5P3eAndZQ1ds1ga/Km/0Zpabd6+yyLh02EKnY4Ir9ifM/3vpd9299aKYDsSw6RZ+R4Hs36F2Av65erei0QXAkMV1MFQMuHPlNkjRunFpPmEI1ucNYANHBzNVwJ11KuNAE9PWkIBkqAtTFX9z1DMGeu8mkZDP36H7yxh9q4ifj4vNfJNrYje0Q==
+ b=dGgvtW1bpfJaXZN+0M9ICc4KeKYtVUVhuEIxjWg3MY0mU3BNuj0TIUr0LV4rqd2+z+EqTi7pRsAlhJ9THmF1zj3/GrcDpg1BlNzGKj2nr6/5BqMEFf+dZp6aEoWjzKX2BIg2hr65rQq65yzoM4p35XijfZ3x4HpbMSUQRS5COHyXq7n5js/ofz2bvwKli9E/w+XCGTos5Koje6p5H2ZAJd+4GjoIN4YNXEhXckfq0Km1oPAnqe4Cuuki8uybhxZdxiOT0RRhM3V4t+biFxvJv5Su22ev7ZFnkqYLbdRM6dlWPcBg0TS8w9r4Ec+XcqknfVN0Z/kImKG4njVXnt1L4w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GWRCq6M3KrxmufWmMapLvc1GitfMNkJNHmmDTh/89ec=;
- b=U0k19UiaEiHnfr7/hx+1wOiIBDZRCfcNXwVEE4O1COGyhbtNST1es7G58pfSg6LktIL+aRyJFfZpyCJrzyo2uqvXwXlR5QK+TYg1Cpzq5zPpxXOsfC9iigx0MAVaqQYSdkaWlGPpG7f3i6//TRxRDDThg/JQhh66w61ETyP1aa+kAMkNcR53Kkk2dWqvNtVp9OaMLDhG2n6aP4ZI2jjkvtGUgcbe/acA4qCLR5+4e4bufhp0LocA52KmXOnya0Zm+RFGUlsLwhcRL86mQ3UHR8dYfgmLIsL+lGb8WC6OwA38XwGF7bS4l2qFgvGWz3wtDk7K00jxXc7o+chUg9/OVw==
+ bh=iKVabve3Epmt/PcG9wmnhbYs48xlkriLAVvEOXJnIF0=;
+ b=S/XtUzevyzbNEF799Uco61GKspN8U9VJ3EsQjAJlPqKwY00+ZAKp7esh4Z1+CIpLhjCWD9VHliKnM4jstklEbFWwegW6/HwnLD4GCTdV+mpg1M7ZYAEGIPga3r4EfJ26W5hNojUfcqxXVN0X+bBfRvs7dHc3KH07y5psyvw18PLjEYDu4ePQEYF4Mbamji3yD0l/3KB+swVHHX4BCOnR43CgcpWJ+VmNxVpJAYJ1pO8f8aiKYY9M4q9GffULZWboswSONVIY9j49GlmIKy0awEfyAqmdVhNGQT8B7HSsCwGvk83vNBwAj91oHqeFQD/pOJaUEQEWFlvdStH3fArNKQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector2-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GWRCq6M3KrxmufWmMapLvc1GitfMNkJNHmmDTh/89ec=;
- b=grYlUFgjuNJNucsylAucktQYqmy1zOTE5CZ+iJ/unaOl6rxA4orAwHOatvU0jFTX96cMEj+K0W4gwNMonnoo6xzwMRB8b1nDE5v1AVGPfG4GQyE7tHXYCSjUwyQ+G0aHpoFIZRN/4v5iLQ3X83JX7QZon7naHHTCRC4Hr1SMWPY=
+ bh=iKVabve3Epmt/PcG9wmnhbYs48xlkriLAVvEOXJnIF0=;
+ b=JvTsi0xKvcoEvfVb3pHT3OQ2tdUmp+oxWoYvaHpP9ZESoYbTwaWtc9WMdqGy/QmrsnhBa10TvNGPQQpyHrrnMnVhuqzfbQPE2dU9PG23bZJLP2EVrthJWeKcQ0JnHEpTKrYPHvhC8SMMTJEO5S9M3gW9vWZ1zyaFIqMAgS5lnG4=
 Authentication-Results: arm.com; dkim=none (message not signed)
  header.d=none;arm.com; dmarc=none action=none header.from=oss.nxp.com;
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com (2603:10a6:208:130::22)
  by AM0PR04MB6963.eurprd04.prod.outlook.com (2603:10a6:208:18b::13) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.13; Tue, 15 Dec
- 2020 16:43:50 +0000
+ 2020 16:44:16 +0000
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::a891:518d:935c:30dd]) by AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::a891:518d:935c:30dd%6]) with mapi id 15.20.3654.020; Tue, 15 Dec 2020
- 16:43:50 +0000
+ 16:44:16 +0000
 From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
 To:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -67,24 +67,15 @@ Cc:     linux.cj@gmail.com, Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Heiner Kallweit <hkallweit1@gmail.com>,
-        Ioana Radulescu <ruxandra.radulescu@nxp.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jamie Iles <jamie@nuviainc.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [net-next PATCH v2 00/14] ACPI support for dpaa2 driver
-Date:   Tue, 15 Dec 2020 22:13:01 +0530
-Message-Id: <20201215164315.3666-1-calvin.johnson@oss.nxp.com>
+        Jakub Kicinski <kuba@kernel.org>
+Subject: [net-next PATCH v2 04/14] net: phy: Introduce fwnode_get_phy_id()
+Date:   Tue, 15 Dec 2020 22:13:05 +0530
+Message-Id: <20201215164315.3666-5-calvin.johnson@oss.nxp.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20201215164315.3666-1-calvin.johnson@oss.nxp.com>
+References: <20201215164315.3666-1-calvin.johnson@oss.nxp.com>
 Content-Type: text/plain
 X-Originating-IP: [14.142.151.118]
 X-ClientProxiedBy: SG2PR06CA0152.apcprd06.prod.outlook.com
@@ -92,115 +83,120 @@ X-ClientProxiedBy: SG2PR06CA0152.apcprd06.prod.outlook.com
  (2603:10a6:208:130::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR06CA0152.apcprd06.prod.outlook.com (2603:1096:1:1f::30) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.12 via Frontend Transport; Tue, 15 Dec 2020 16:43:41 +0000
+Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR06CA0152.apcprd06.prod.outlook.com (2603:1096:1:1f::30) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.12 via Frontend Transport; Tue, 15 Dec 2020 16:44:10 +0000
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 4e6f179e-f10d-4b53-3a94-08d8a11899be
+X-MS-Office365-Filtering-Correlation-Id: a5be8dd6-7e48-4e03-7b06-08d8a118a98d
 X-MS-TrafficTypeDiagnostic: AM0PR04MB6963:
 X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR04MB6963226AC9DE46A59C572935D2C60@AM0PR04MB6963.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:1265;
+X-Microsoft-Antispam-PRVS: <AM0PR04MB696366FBB6BAA1149D9B9BECD2C60@AM0PR04MB6963.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4125;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: T1cuzTDbAd6qFwsDXBx/BexAEJ+3x/K35+9O3oWXhjN1ZlM0qAi4MhSn4a/UX/AUbpoVzuinYEDDwfKVdac/JUvQjn4SqZsDy/NpYPQPvvECZ+PkOVFwz4ojtwuK5E4chrMOlgIuTk12X+0UscweAKyE9LWjkJVIIGlogSpblDvkDYEIZ55TVnVfdq/P6y4Tmk0TuDaSNLC8/7flYFkRiodFAgxJy1PqhOWWsm/cKBNdkkjHlJ67awZQfPWWL0FPXnOztuHBYZgUpDYxpttQBNf/NEtj2G/pVtdEJ52sNzTK1U8P+BeM9B3xu/UNDcS4Z8+ljFPDxifapDsxrTEhb7XeTrlYy/VFYUPy/S0EwdbeWrI7E/yU0aEODF9CWR7yKsmzJNfNNoJnrU0bjngvug==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(54906003)(8936002)(4326008)(6506007)(498600001)(83380400001)(66946007)(921005)(2616005)(956004)(86362001)(52116002)(16526019)(8676002)(2906002)(26005)(6512007)(7406005)(44832011)(7416002)(186003)(5660300002)(55236004)(1006002)(1076003)(66476007)(110136005)(6486002)(66556008)(6666004)(110426006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?//PO7ZPa7go/X3KYFRlRYOUnAUBXQJPqB84Fm3+qlG0GXNExhX9bnjbVv17M?=
- =?us-ascii?Q?opqj1EUwnHdt1wX3aVoBxuFyIrMBymFxZtOsmbWq6yWHJYPCyE1+IcqTqGrF?=
- =?us-ascii?Q?OuXDMoUdCBpnyRtPex93KvHaLnIa5hMbZhsLXPyupszw+Foycwc+lJSYp4dp?=
- =?us-ascii?Q?lC5cNON773DfQh8srCw0CGlaHHLhhjBQnk+n4CT5e/kk4gG1LSsOmYNeBRZV?=
- =?us-ascii?Q?AM1SjFpZ++klYTNBz10oo2COw5DuO4C8JWQYpdx1J6Ye1ScFHfPgCzHuxHAP?=
- =?us-ascii?Q?4PRGkddRx0cGJef6asqZKlp5uw3AY0JJtzYbRx/HJ+JXIOWUC5wL2sucmu/6?=
- =?us-ascii?Q?yXPtnc2uQAju71GQJQHHoxLYHhn3K1OqCm+Z2dSGKL/mT3d5567VxFb96+nM?=
- =?us-ascii?Q?pHl9fw4iNPc67kX52F4sq5a+59xtp80VAv+fKdZdQIbpaseRkVpB9hUB/ljP?=
- =?us-ascii?Q?z5Clb6GytuMBpEz4O6zHEnRzukHSVNqAR9oUEJ830Au+hdfsUGTJ/ib969TQ?=
- =?us-ascii?Q?+97fERRhXjegATqbw0pBrz+5QCzKMenU9euYJtonuL0ZNKlMfhQcIMIs3wFk?=
- =?us-ascii?Q?0XsJAfKzu9S6+xk7fZb+4+5jjLk/buToaFccTQo3eypwyb+KdNyOZEEUFpk7?=
- =?us-ascii?Q?5TmsaF3r4qW+b8NoNmMn+h6LqD2It58a6NuItr4Ea3pYox16IcNIRjNICG3X?=
- =?us-ascii?Q?99LKiBxdrnO3pGstjonKq/zoRJyJgHj21sMIeNAwafar/Dn47fe5R9hDKR5t?=
- =?us-ascii?Q?QKOorTEJCtcTUleGbvL4iHKpKAg/UvrdbuxOPysubN+usbjfK+ZFWEh008OQ?=
- =?us-ascii?Q?tXe/cvl7LECZEISR58vj36dvdC3l1DawcbdzhDc6hwFaTVUA/JeQSi32BmcA?=
- =?us-ascii?Q?UdXDHm6ytnplhxhIiTe+PmXu4IZJCnc19+RrCNqqsxZITVV3W3bO6u5EABsc?=
- =?us-ascii?Q?w2Hhta3hMYZlzw36swEM2k1VIATijRtQWCkAuU5DjtAnWJCYrQ29JyFaF/Rb?=
- =?us-ascii?Q?BP2u?=
+X-Microsoft-Antispam-Message-Info: n5ncozxHOtrJ0jfEw7V5s9n+2VcZk2soHGbWdOR8P9zaWbc2ljuUqMjqUzYj5EhxYavwkXSsGnF41SK1eL9s4barjLtHWA/Xqjbm4TwnRVPVx8PJ4qaZ2wOqIrLl7iuoPq1lYfeLRjIgiIT2ftL9BPVWZJemchThenJFObyL+M7B4FCoi4hFql6nlSPnWBoVPSdUOC+jDmc8IQ/ZSbl5aIcwTh1aCnPWOp+bQvwUM12MbACIQARCEriFQLToKTfoaje0z7AJZpDiBFtFzXvrb5Ml9Qo01RDF2XhA57AcV+Ey8kOtgEcUSm/s62YQpoVs2D5W5prg9Gh6C2eHQIIg5SiEsbeooPpCHTXG1cI3gyKo3JLuJP2cQzwc74shxH3jLejQNdgSCfCaI9tPajDqxg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(54906003)(8936002)(4326008)(6506007)(498600001)(66946007)(921005)(2616005)(956004)(86362001)(52116002)(16526019)(8676002)(2906002)(26005)(6512007)(44832011)(7416002)(186003)(5660300002)(55236004)(1006002)(1076003)(66476007)(110136005)(6486002)(66556008)(6666004)(110426006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?IPl2M5c7waTGfhdeYnyuCUK5w7xHoiZuSIAZgOqTBfaMnaJ4zpW4jj0sPP7s?=
+ =?us-ascii?Q?9Q2lY+008y5QHvNZzGWR3enXxonrQJHa5nmZKVYBNDfmHbDM3TMcmTSYjQn4?=
+ =?us-ascii?Q?bELJu+Scc7dmU5xetqZyas4zJEYEX839C/trxpAoDkJwxuwedyOCL6jctsN2?=
+ =?us-ascii?Q?9IOJHMAGnzBR0iTtY3zGZ9hz8tsk+voNbUgVoC7UhMiP9V2iuOm9Rrfs2CQO?=
+ =?us-ascii?Q?tLdvLvHlhXUrT1AmNg2z2DpfWfF95Zrg2CBoaYBQJk8V0PGY2qhLiMBwfzbQ?=
+ =?us-ascii?Q?wiqDXaIe/BLgJfPd1+hFm/bWCsNSYzsGRA2DkLWDA9zrBvynopZENkPunUVW?=
+ =?us-ascii?Q?ABWX6caaJ22pdnocD7rXq5mraol87cYnAHG2INMRPIQi8JSREtDkA8JT7u6T?=
+ =?us-ascii?Q?rufz6aVqxe0TEvsU0gNLLR6CSH6gxUiMWRA8T4/ISdGV1nW2bvF8lyrZBUfE?=
+ =?us-ascii?Q?aplu20OSUJ4KpqrDKncQCoeFgruz2H/EJknR286gZMI/h4P/G2YnZO8NJ799?=
+ =?us-ascii?Q?xJIQqic7ldre8lxZGtXER24CRZAWsasr1t7LiGH+dQ3n1QL0tqly6EVlT6Yp?=
+ =?us-ascii?Q?oCOoKmpu8o1FCvn2hD3yRrTSgqaVjU3gcHGXyXj3y+tjuq7GR/+T7dILwr2B?=
+ =?us-ascii?Q?/PdibbixJ5MjtpVFzKhZvpu6R2vO/Xd1PCEFMigswI1iE3/bjOTqr51HcIo/?=
+ =?us-ascii?Q?AxZcrfGgfP+nrslaJ1kC+YfGRGsx56MulHvPE6HssGVtDErBGsu0XVDj7bVF?=
+ =?us-ascii?Q?/nTI4S/YHvGXOVgxLZOhICwAWpBJxqc8PE4Qwx3sW9+rie1AmvbczIEfaUDO?=
+ =?us-ascii?Q?MfJsMQdvsTrFZDA0SZ82KKi2ok3dufMUj/1nSgkOrQPtxNJOK2hAzIpJOObN?=
+ =?us-ascii?Q?S4jiVFll2P9n+JldeJAxtEGWSAUjHtsTKzS78mdyn6f4v7M5uwRCKJ4Zxsi7?=
+ =?us-ascii?Q?6r4+frrgdec8lSeu3eFaASZAr1xjS03Kly6FR1EM2sVVozzyw86cuuqPjuPB?=
+ =?us-ascii?Q?8/D+?=
 X-OriginatorOrg: oss.nxp.com
 X-MS-Exchange-CrossTenant-AuthSource: AM0PR04MB5636.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Dec 2020 16:43:50.2183
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Dec 2020 16:44:16.7834
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4e6f179e-f10d-4b53-3a94-08d8a11899be
+X-MS-Exchange-CrossTenant-Network-Message-Id: a5be8dd6-7e48-4e03-7b06-08d8a118a98d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 67vdqMLt+qzeiXtS1zHnT0vsMC3aHWRHoTHUEnWnghIvKp9Jb6YlpBnad0wECgt+YG9rDApYUVz2mZXImNrYog==
+X-MS-Exchange-CrossTenant-UserPrincipalName: BFmeaO7UfsuiusTzzhELY/D+/VAz7T8/x8v70yPqzhPFLdpI+4qAGPkVafCD8PDalUMvIctae/1PUcUZNFgyZQ==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR04MB6963
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Extract phy_id from compatible string. This will be used by
+fwnode_mdiobus_register_phy() to create phy device using the
+phy_id.
 
-This patch set provides ACPI support to DPAA2 network drivers.
+Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
+---
 
-It also introduces new fwnode based APIs to support phylink and phy
-layers
-    Following functions are defined:
-      phylink_fwnode_phy_connect()
-      fwnode_mdiobus_register_phy()
-      fwnode_mdiobus_register()
-      fwnode_get_phy_id()
-      fwnode_phy_find_device()
-      device_phy_find_device()
-      fwnode_get_phy_node()
-      fwnode_mdio_find_device()
-      fwnode_get_id()
+Changes in v2: None
 
-    First one helps in connecting phy to phylink instance.
-    Next three helps in getting phy_id and registering phy to mdiobus
-    Next two help in finding a phy on a mdiobus.
-    Next one helps in getting phy_node from a fwnode.
-    Last one is used to get fwnode ID.
+ drivers/net/phy/phy_device.c | 21 +++++++++++++++++++++
+ include/linux/phy.h          |  5 +++++
+ 2 files changed, 26 insertions(+)
 
-    Corresponding OF functions are refactored.
-    END
-
-
-Changes in v2:
-- Updated with more description in document
-- use reverse christmas tree ordering for local variables
-- Refactor OF functions to use fwnode functions
-
-Calvin Johnson (14):
-  Documentation: ACPI: DSD: Document MDIO PHY
-  net: phy: Introduce phy related fwnode functions
-  of: mdio: Refactor of_phy_find_device()
-  net: phy: Introduce fwnode_get_phy_id()
-  of: mdio: Refactor of_get_phy_id()
-  net: mdiobus: Introduce fwnode_mdiobus_register_phy()
-  of: mdio: Refactor of_mdiobus_register_phy()
-  net: mdiobus: Introduce fwnode_mdiobus_register()
-  net/fsl: Use fwnode_mdiobus_register()
-  device property: Introduce fwnode_get_id()
-  phylink: introduce phylink_fwnode_phy_connect()
-  net: phylink: Refactor phylink_of_phy_connect()
-  net: phy: Introduce fwnode_mdio_find_device()
-  net: dpaa2-mac: Add ACPI support for DPAA2 MAC driver
-
- Documentation/firmware-guide/acpi/dsd/phy.rst | 129 ++++++++++++++++++
- drivers/base/property.c                       |  26 ++++
- .../net/ethernet/freescale/dpaa2/dpaa2-mac.c  |  86 +++++++-----
- drivers/net/ethernet/freescale/xgmac_mdio.c   |  14 +-
- drivers/net/mdio/of_mdio.c                    |  79 +----------
- drivers/net/phy/mdio_bus.c                    | 116 ++++++++++++++++
- drivers/net/phy/phy_device.c                  | 108 +++++++++++++++
- drivers/net/phy/phylink.c                     |  49 ++++---
- include/linux/mdio.h                          |   2 +
- include/linux/of_mdio.h                       |   6 +-
- include/linux/phy.h                           |  32 +++++
- include/linux/phylink.h                       |   3 +
- include/linux/property.h                      |   1 +
- 13 files changed, 519 insertions(+), 132 deletions(-)
- create mode 100644 Documentation/firmware-guide/acpi/dsd/phy.rst
-
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index c153273606c1..6fad89c02c5a 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -846,6 +846,27 @@ static int get_phy_c22_id(struct mii_bus *bus, int addr, u32 *phy_id)
+ 	return 0;
+ }
+ 
++/* Extract the phy ID from the compatible string of the form
++ * ethernet-phy-idAAAA.BBBB.
++ */
++int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
++{
++	unsigned int upper, lower;
++	const char *cp;
++	int ret;
++
++	ret = fwnode_property_read_string(fwnode, "compatible", &cp);
++	if (ret)
++		return ret;
++
++	if (sscanf(cp, "ethernet-phy-id%4x.%4x", &upper, &lower) == 2) {
++		*phy_id = ((upper & 0xFFFF) << 16) | (lower & 0xFFFF);
++		return 0;
++	}
++	return -EINVAL;
++}
++EXPORT_SYMBOL(fwnode_get_phy_id);
++
+ /**
+  * get_phy_device - reads the specified PHY device and returns its @phy_device
+  *		    struct
+diff --git a/include/linux/phy.h b/include/linux/phy.h
+index 7790a9a56d0f..10a66b65a008 100644
+--- a/include/linux/phy.h
++++ b/include/linux/phy.h
+@@ -1341,6 +1341,7 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+ 				     bool is_c45,
+ 				     struct phy_c45_device_ids *c45_ids);
+ #if IS_ENABLED(CONFIG_PHYLIB)
++int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id);
+ struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode);
+ struct phy_device *device_phy_find_device(struct device *dev);
+ struct fwnode_handle *fwnode_get_phy_node(struct fwnode_handle *fwnode);
+@@ -1348,6 +1349,10 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45);
+ int phy_device_register(struct phy_device *phy);
+ void phy_device_free(struct phy_device *phydev);
+ #else
++static inline int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
++{
++	return 0;
++}
+ static inline
+ struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode)
+ {
 -- 
 2.17.1
 
