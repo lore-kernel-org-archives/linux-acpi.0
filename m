@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31C32C2BBCA
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 17:36:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57874C2BBCA
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 17:45:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1D0D22ADC
-	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 17:36:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1761822B3B
+	for <linux-acpi@archiver.kernel.org>; Tue, 15 Dec 2020 17:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731183AbgLORdi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 15 Dec 2020 12:33:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42566 "EHLO
+        id S1731393AbgLORpQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 15 Dec 2020 12:45:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731168AbgLORdd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2020 12:33:33 -0500
-Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC316C06179C;
-        Tue, 15 Dec 2020 09:32:52 -0800 (PST)
-Received: by mail-pj1-x1041.google.com with SMTP id lb18so1606829pjb.5;
-        Tue, 15 Dec 2020 09:32:52 -0800 (PST)
+        with ESMTP id S1731231AbgLORpI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2020 12:45:08 -0500
+Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ADABC06179C;
+        Tue, 15 Dec 2020 09:44:28 -0800 (PST)
+Received: by mail-pj1-x1044.google.com with SMTP id iq13so11732pjb.3;
+        Tue, 15 Dec 2020 09:44:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=JmNn0//oaLoQtXbQqzmlMo9udtSlRUFo6HHy4TKL3+8=;
-        b=JntupVMH82oBE+fE8rEsYTLlRkEpnlGdWeHpkbiiZvaHVfsvnxXxqOqNrSrFg6sxGe
-         /s67n7ViJY3ypKM+yVvjf2hllczGAtQjvGtJKDCsUXcXzUt9Y+q0YZ8JdDERwQOvHEiT
-         326LhPVkJ866TMII+M1YjRVlL4fWAbI41T4+bg+lQhQKQjCFOEUilQo7c4iOBdt8ZfTW
-         LvhFfLAIILSO/bJ2u6qcfGCLNj4CbDn6N+FMTKZJp7gqGZARoocft5TR6QhXwcv9n2gq
-         ypT0CdZMvwtkkUDeFj+L/QK7klkTWjdyLm9ktlagOQ0XtQJTn7jR+YwxF37Cq/rai8LS
-         4Vrw==
+        bh=8ThQTZX/xY0rNYysmJ/qm+hVZ2miL/UxBMa/A766wd0=;
+        b=W9ukwTxhJN/hsc4JcxP4IpiUTw4T9UdUDs32QWwUYzNyit2T1akC7c4Rh3BWmUww8c
+         xBk0VPPh24NUJk65PPcBmckI7wSLSYSXyn9AHfP69veD0ECeHF5bGlWRs4vi/305Zgna
+         2mMfFoXPTwuRn0DsnYA04pwUU+EAOplP73lRXP8yhYqWJ9G2GT6JHD6XmCPxb5lysyfV
+         svpYyhwFziWOgo/BW9tNqymqMmXr6iYXhhA+nHX9m5xYEe8zFYTr+EjXtykqjxouZfF3
+         SLSpXzS7w931hFtmhy68S2Dfh9Sr+vnYv9sBVNZBzE7PklLknBplRKoHtZ/ZWqisVrBM
+         /JFQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=JmNn0//oaLoQtXbQqzmlMo9udtSlRUFo6HHy4TKL3+8=;
-        b=HgOB/D+4JDtey+NEySHpqtRgxc/VLvY7k1eQDzx7jRM5zHKq/RH9ua2H3qmjwF0dLm
-         9+zKnDD94k1EksvFVVh765ysGrh8n0sBaFsKl6x4rungUF5bqRjmi4ClK5Om8WZvFa8A
-         wteCvq/p5QYS2gfEs/xoZhq/bKdQmoJ5RfwA/Z8LqHW64AClpayrbj0XsE9+gveHHjYZ
-         Vbzc2GrIMGcJaYOPPL8BYV2q9602ylECj3VTpt4mXEsFrwi8Ndo6SFLr43H2IhJxW68A
-         aLSxu0Tg0j/LjEmXJgsE/kNbJXWUh1JJPKne92JkrrT0Mk+QB+jPg21v5lgl8NwWzpNn
-         A+8w==
-X-Gm-Message-State: AOAM532EAgRz2FZDLiIy7rXwq8Hjrf9rIrQXWp2WJ4alwdsZa4LjA8Yb
-        F+ugo6RJK+2aJG4THZ9segF4Ve6kIC2KHaW6KSE=
-X-Google-Smtp-Source: ABdhPJw/U+RUVN+i+bo86WULer/5hlu3yA0lLBg6tsySkVSqhulPLUiQFtJayzVeGmCr0YIAAX1Hl5/+qbjWZ7j++oQ=
-X-Received: by 2002:a17:90a:c592:: with SMTP id l18mr31179251pjt.228.1608053572361;
- Tue, 15 Dec 2020 09:32:52 -0800 (PST)
+        bh=8ThQTZX/xY0rNYysmJ/qm+hVZ2miL/UxBMa/A766wd0=;
+        b=IPA9tzDQpFvDG71fVzXppB1aoX9kZlO5BddPpQD6J90/Qi1oqCiw73MlYH2GMUU9Yq
+         9MhZHv06imxNYqpki0tfK7Eg2dibOV+jOKUi09ZrtPfCT6Ijbjp2x6mY/ATccbuMcxgE
+         uJDxtLG/1SNqiKbgZwhe12eEqIycag2BEF+ju0bsnJBjkgVnwTFL8OCum0S0Nct5zqE6
+         R6wvLwFmzW8Cut/JNRk7WbvoLbEhPtnln5dT5tT47AnGPA41Iv0fzVtUBb5vO1dhayFf
+         hf8AO+x4AqkNfWG+h+Esapy35TMn1DXGO3WsQR98gmUh+OGEAwrDdx3hGnDwR2i2D59k
+         qP3Q==
+X-Gm-Message-State: AOAM531C5TCwjoJ0es92WR2UMRGPIU2Hb/Z/z3wI7U8utRR9AappQHEM
+        AazhXUVTzxmMt8raUBS9AI0rNF/OuUfka7I2wz8=
+X-Google-Smtp-Source: ABdhPJzg6mG1hb7cImFHyOTzX+/H92tmvffCU6eocPWOz7hP6PWerYjgwdo2xcPnpHCEdyhUaemAp4ZLkBYJcbaWa2k=
+X-Received: by 2002:a17:90a:c592:: with SMTP id l18mr3019pjt.228.1608054267894;
+ Tue, 15 Dec 2020 09:44:27 -0800 (PST)
 MIME-Version: 1.0
-References: <20201215164315.3666-1-calvin.johnson@oss.nxp.com> <20201215164315.3666-7-calvin.johnson@oss.nxp.com>
-In-Reply-To: <20201215164315.3666-7-calvin.johnson@oss.nxp.com>
+References: <20201215164315.3666-1-calvin.johnson@oss.nxp.com> <20201215164315.3666-11-calvin.johnson@oss.nxp.com>
+In-Reply-To: <20201215164315.3666-11-calvin.johnson@oss.nxp.com>
 From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Tue, 15 Dec 2020 19:33:40 +0200
-Message-ID: <CAHp75VcY2uOirAXGv5kFvHbNfHcZ6-gPsUMTB-_5AuBkHdu-0A@mail.gmail.com>
-Subject: Re: [net-next PATCH v2 06/14] net: mdiobus: Introduce fwnode_mdiobus_register_phy()
+Date:   Tue, 15 Dec 2020 19:45:16 +0200
+Message-ID: <CAHp75Vef7Ln2hwx8BYao3SFxB8U2QTsfxPpxA_jxmujAMFpboA@mail.gmail.com>
+Subject: Re: [net-next PATCH v2 10/14] device property: Introduce fwnode_get_id()
 To:     Calvin Johnson <calvin.johnson@oss.nxp.com>
 Cc:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -79,9 +79,11 @@ Cc:     Grant Likely <grant.likely@arm.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
         netdev <netdev@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Randy Dunlap <rdunlap@infradead.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -90,98 +92,50 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 On Tue, Dec 15, 2020 at 6:44 PM Calvin Johnson
 <calvin.johnson@oss.nxp.com> wrote:
 >
-> Introduce fwnode_mdiobus_register_phy() to register PHYs on the
-> mdiobus. From the compatible string, identify whether the PHY is
-> c45 and based on this create a PHY device instance which is
-> registered on the mdiobus.
+> Using fwnode_get_id(), get the reg property value for DT node
+> and get the _ADR object value for ACPI node.
+
+and -> or
 
 ...
 
-> +int fwnode_mdiobus_register_phy(struct mii_bus *bus,
-> +                               struct fwnode_handle *child, u32 addr)
+> +/**
+> + * fwnode_get_id - Get the id of a fwnode.
+> + * @fwnode: firmware node
+> + * @id: id of the fwnode
+> + *
+> + * Returns 0 on success or a negative errno.
+> + */
+> +int fwnode_get_id(struct fwnode_handle *fwnode, u32 *id)
 > +{
-> +       struct mii_timestamper *mii_ts;
-> +       struct phy_device *phy;
-> +       const char *cp;
-> +       bool is_c45;
-> +       u32 phy_id;
-> +       int rc;
+> +       unsigned long long adr;
+> +       acpi_status status;
+> +
+> +       if (is_of_node(fwnode)) {
+> +               return of_property_read_u32(to_of_node(fwnode), "reg", id);
 
-> +       if (is_of_node(child)) {
-> +               mii_ts = of_find_mii_timestamper(to_of_node(child));
-> +               if (IS_ERR(mii_ts))
-> +                       return PTR_ERR(mii_ts);
+ACPI nodes can hold reg property as well. I would rather think about
+
+ret = fwnode_property_read_u32(fwnode, "reg", id)
+if (!(ret && is_acpi_node(fwnode)))
+  return ret;
+
+> +       } else if (is_acpi_node(fwnode)) {
+
+Redundant 'else'
+
+> +               status = acpi_evaluate_integer(ACPI_HANDLE_FWNODE(fwnode),
+> +                                              METHOD_NAME__ADR, NULL, &adr);
+> +               if (ACPI_FAILURE(status))
+> +                       return -ENODATA;
+
+I'm wondering if it compiles when CONFIG_ACPI=n.
+
+> +               *id = (u32)adr;
+> +               return 0;
 > +       }
 
-Perhaps
-
-               mii_ts = of_find_mii_timestamper(to_of_node(child));
-
-> +
-> +       rc = fwnode_property_read_string(child, "compatible", &cp);
-> +       is_c45 = !(rc || strcmp(cp, "ethernet-phy-ieee802.3-c45"));
-> +
-> +       if (is_c45 || fwnode_get_phy_id(child, &phy_id))
-> +               phy = get_phy_device(bus, addr, is_c45);
-> +       else
-> +               phy = phy_device_create(bus, addr, phy_id, 0, NULL);
-> +       if (IS_ERR(phy)) {
-
-> +               if (mii_ts && is_of_node(child))
-> +                       unregister_mii_timestamper(mii_ts);
-
-if (!IS_ERR_OR_NULL(mii_ts))
- ...
-
-However it points to the question why unregister() doesn't handle the
-above cases.
-I would expect unconditional call to unregister() here.
-
-> +               return PTR_ERR(phy);
-> +       }
-> +
-> +       if (is_acpi_node(child)) {
-> +               phy->irq = bus->irq[addr];
-> +
-> +               /* Associate the fwnode with the device structure so it
-> +                * can be looked up later.
-> +                */
-> +               phy->mdio.dev.fwnode = child;
-> +
-> +               /* All data is now stored in the phy struct, so register it */
-> +               rc = phy_device_register(phy);
-> +               if (rc) {
-> +                       phy_device_free(phy);
-> +                       fwnode_handle_put(phy->mdio.dev.fwnode);
-> +                       return rc;
-> +               }
-> +
-> +               dev_dbg(&bus->dev, "registered phy at address %i\n", addr);
-> +       } else if (is_of_node(child)) {
-> +               rc = of_mdiobus_phy_device_register(bus, phy, to_of_node(child), addr);
-> +               if (rc) {
-
-> +                       if (mii_ts)
-> +                               unregister_mii_timestamper(mii_ts);
-
-Ditto.
-
-> +                       phy_device_free(phy);
-> +                       return rc;
-> +               }
-> +
-> +               /* phy->mii_ts may already be defined by the PHY driver. A
-> +                * mii_timestamper probed via the device tree will still have
-> +                * precedence.
-> +                */
-
-> +               if (mii_ts)
-> +                       phy->mii_ts = mii_ts;
-
-How is that defined? Do you need to do something with an old pointer?
-
-> +       }
-> +       return 0;
+> +       return -EINVAL;
 > +}
 
 -- 
