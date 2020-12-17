@@ -2,59 +2,60 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 053EAC2BBCD
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Dec 2020 23:44:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EEF2C3526A
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Dec 2020 23:44:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADE8222511
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Dec 2020 23:44:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 384E522CA2
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Dec 2020 23:44:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732203AbgLQXoe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Dec 2020 18:44:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37312 "EHLO
+        id S1732348AbgLQXoj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Dec 2020 18:44:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732201AbgLQXoe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2020 18:44:34 -0500
-Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A7F9C061794;
-        Thu, 17 Dec 2020 15:43:53 -0800 (PST)
-Received: by mail-wr1-x432.google.com with SMTP id t16so246741wra.3;
-        Thu, 17 Dec 2020 15:43:53 -0800 (PST)
+        with ESMTP id S1732337AbgLQXoj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2020 18:44:39 -0500
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B17B1C061282;
+        Thu, 17 Dec 2020 15:43:58 -0800 (PST)
+Received: by mail-wr1-x42a.google.com with SMTP id w5so210717wrm.11;
+        Thu, 17 Dec 2020 15:43:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=UBqa0Lp+3ygWF6OGkOP1uHW2xoysiDViqe/7uQy1Q2c=;
-        b=cEYYIywkMDxTUX7cW4KSyTS2FP1Gm5u6zdbSRyz9XE5nFKnajH0cak8KW6FwfluVn4
-         qlZQw5PljRD+nMQIVe3vIx5UOxbVfNaV5oBef1CBnMWSj3YCutyw/hRY7p6Kq9l+ID+4
-         LI8X/TLt1ntdFeXyqmORSPBDFYr9c3nayM2xoUOfuqEaMWK+u+nFNfvP++rMGm6y+6FW
-         tTcF14+5gBOmMB8UmMqbDL82ob6pz/AwIH4JXdYzm6paYc3xSRDSCLLqa+lg571loPU6
-         ylQraO6B0PDL3azcn+VFc8iIR9Q3IdLhWiAIc5MkmTdchxXo5uc1ynkLy8LEjLH4HVcZ
-         6/oA==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=ZRG6Du2Q5gaJecr0crPPKYS4mZ7zwOVeReLwF06dy8c=;
+        b=R+U8hHBVOD1dvXrSoEvLCKxYu3++5n4YZ2k3P4lwKlX4SZ7F46ClpBb9F/YER/1WwL
+         4oRx7vRZYnNXfQMX17iB9DpJHjMKRI2rODDS5quQ/+umxqg69V5hJSQcCwpzCCzLwMhr
+         dx2UIHoiI2lNRhpsstpR0reE1k8dn3KFvj835qp+C8kJe2G72jcom+f/QIkpXdaBrUrp
+         DC94LUztpChvH/lDnHz6CgvK11muVctOTSin4ClAkp4H+YgyaK5Z20iD053EOC9Vdjt7
+         KQJUSmbRd7f7AYpNj9M1SjxndEbsp4ZKDHu2nM3ZEDZE+97/TARte/nS1oQy4FiQ5U9i
+         psdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=UBqa0Lp+3ygWF6OGkOP1uHW2xoysiDViqe/7uQy1Q2c=;
-        b=P5gNUgsL5DQMq/zhm57qhNMu4POti8OkOOX43MEcsctblnUKVbZ4hT1yk53QzIariE
-         CAlDB3ll6/9lquPOKhkatUbt8wu1W0Kf6L3dlgaXxkubm3r/yMZ4Axq+pXDk2MyVAFPa
-         rioyTESBK7fOYKqNFsboRqVvXGHJ1je7s3vcWKKh7KzBC0AhAq/tF1FWexg/gfnqjSDu
-         LayJONumkmBxVPMDXqPKger8hktssAbL08yBfLLGd1V3qD74FzWZ04XKsWKhpkARQI7S
-         L8iKCFPIUrkB8DHpLlAcIWk59yRJcA+NWJF650jX7g5JFNlNjicXU6b/kCIDXYrk1yde
-         D6DQ==
-X-Gm-Message-State: AOAM530o54+/7oUZpR5P7uhIbKGOBtuTxJz6CSyy6Ony8KkFELOMF1Q5
-        EJXK2lcfJqHoxMLrMWePePC5c3RCGAPG+ds6
-X-Google-Smtp-Source: ABdhPJyKudBgqFd03IKg8iG672BcNf9NNDeb5mtZkBsdWzUVc+LJ4BDY6PIukgM8KKWdQkM+Y48bWQ==
-X-Received: by 2002:a5d:4905:: with SMTP id x5mr1207091wrq.75.1608248632136;
-        Thu, 17 Dec 2020 15:43:52 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=ZRG6Du2Q5gaJecr0crPPKYS4mZ7zwOVeReLwF06dy8c=;
+        b=nC1nwKKARnX6tHJlkCE1MAgDJGYoHxFq4NY8GvW+A9RP4LNZYkYG7rFgseCMDlBygu
+         e8Xz3ctIOlPgfdNLsNJzZiu4yIGDKkRAqoqWWXCqiiuzooTQIJKRIqzaMFnlCK5x1Hsk
+         lHyXwas7iUwt3cVMWOuNVGFjX2uQQTEuwbMMGvLPHULi3pWFd0mJW1L4U7zM6+RXHWUV
+         StKbyJD6AQKFbQxHt82bpg68j+nzYXjIr1uZVQVaxXrbptUm0N83iQM9UlHw+Yv1Jg0G
+         RSUrlsM1CyktOukPoyfq7SO+4GjE0s7Wa4KPxc8h8lQzv6YRxULwh6CcqiDcPT/oX0QW
+         iyeA==
+X-Gm-Message-State: AOAM531Pg58q2AwXcYtYw8lM/5GJ1ADajHtL2piYtScggHzhvPTKRrql
+        eKLkXf0SEXl6blB6GKAGHKN4kVMH7ZKSI4XI
+X-Google-Smtp-Source: ABdhPJw7/NIJWKtof/Iqcc4Lel2jeNJDl8wRWMDmfXSr1kBk/rln+Zxy4omURinH+gaxl7UvniPhKw==
+X-Received: by 2002:a5d:42d0:: with SMTP id t16mr1255839wrr.230.1608248637431;
+        Thu, 17 Dec 2020 15:43:57 -0800 (PST)
 Received: from valhalla.home ([2.29.208.56])
-        by smtp.gmail.com with ESMTPSA id o3sm1873575wrc.93.2020.12.17.15.43.50
+        by smtp.gmail.com with ESMTPSA id o3sm1873575wrc.93.2020.12.17.15.43.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 15:43:51 -0800 (PST)
+        Thu, 17 Dec 2020 15:43:56 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org
@@ -68,115 +69,115 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
         jacopo+renesas@jmondi.org, kieran.bingham+renesas@ideasonboard.com,
         linus.walleij@linaro.org, heikki.krogerus@linux.intel.com,
         kitakar@gmail.com, jorhand@linux.microsoft.com
-Subject: [PATCH v2 00/12] Add functionality to ipu3-cio2 driver allowing software_node connections to sensors on platforms designed for Windows
-Date:   Thu, 17 Dec 2020 23:43:25 +0000
-Message-Id: <20201217234337.1983732-1-djrscally@gmail.com>
+Subject: [PATCH v2 04/12] software_node: Enforce parent before child ordering of nodes arrays
+Date:   Thu, 17 Dec 2020 23:43:29 +0000
+Message-Id: <20201217234337.1983732-5-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20201217234337.1983732-1-djrscally@gmail.com>
+References: <20201217234337.1983732-1-djrscally@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hello all
+Registering software_nodes with the .parent member set to point to a
+currently unregistered software_node has the potential for problems,
+so enforce parent -> child ordering in arrays passed in to
+software_node_register_nodes().
 
-Previous version:
-https://lore.kernel.org/linux-media/20201130133129.1024662-1-djrscally@gmail.com/T/#m91934e12e3d033da2e768e952ea3b4a125ee3e67
-The RFC version before that:
-https://lore.kernel.org/linux-media/20201019225903.14276-1-djrscally@gmail.com/
+Software nodes that are children of another software node should be
+unregistered before their parent. To allow easy unregistering of an array
+of software_nodes ordered parent to child, reverse the order in which
+software_node_unregister_nodes() unregisters software_nodes.
 
-This series is to start adding support for webcams on laptops with ACPI tables
-designed for use with CIO2 on Windows. This problem has two main parts; the
-first part, which is handled in this series, is extending the ipu3-cio2
-driver to allow for patching the firmware via software_nodes if endpoints
-aren't defined by ACPI. The second is adding a new driver to handle power,
-clocks and GPIO pins defined in DSDT tables in an awkward way. I decided to
-split that second part out from this series, and instead give it its own
-series (a v2 of which should land "soon"). The reasons for that are:
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Daniel Scally <djrscally@gmail.com>
+---
+Changes in v2:
 
-1. It's a logically separate change anyway
-2. The recipients list was getting really long and
-3. That probably meant that handling merge for all of this in one go was
-   going to be impractically awkward.
+	- Squashed the patches that originally touched these separately
+	- Updated documentation
 
-Given how few comments the remaining patches of this series received in the
-last posting, I'm hopeful that most or all of it could get picked up for 5.12.
-We touch a few different areas:
+ drivers/base/swnode.c | 43 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 30 insertions(+), 13 deletions(-)
 
-lib (with an ack already)
-  lib/test_printf.c: Use helper function to unwind array of
-    software_nodes
-
-drivers/base
-  software_node: Fix refcounts in software_node_get_next_child()
-  property: Return true in fwnode_device_is_available for NULL ops
-  property: Call fwnode_graph_get_endpoint_by_id() for fwnode->secondary
-  software_node: Enforce parent before child ordering of nodes arrays
-  software_node: unregister software_nodes in reverse order
-
-drivers/acpi
-  acpi: Add acpi_dev_get_next_match_dev() and helper macro
-
-drivers/media
-  media: v4l2-core: v4l2-async: Check sd->fwnode->secondary in
-    match_fwnode()
-  ipu3-cio2: Add T: entry to MAINTAINERS
-  ipu3-cio2: Rename ipu3-cio2.c
-  ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-
-Given that, it feels sensible to me to try and merge them all through a single
-tree; I was hoping the other maintainers would be amenable to having everything
-merged through the media tree. Mauro; if that plan is ok (and of course assuming
-that the rest of the patches are acked by their respective maintainers too),
-could we get a dedicated feature branch just in case the following series ends
-up being ready in time too? 
-
-Series-level changelog:
-	- Squashed the patches enforcing ordering in register/unregister_nodes()
-
-More details of changes on each patch.
-
-Comments as always very welcome - and thanks to everyone for all your help on
-this so far, hope I've addressed everything from last time.
-
-Dan
-
-Daniel Scally (11):
-  software_node: Fix refcounts in software_node_get_next_child()
-  property: Return true in fwnode_device_is_available for NULL ops
-  property: Call fwnode_graph_get_endpoint_by_id() for fwnode->secondary
-  software_node: Enforce parent before child ordering of nodes arrays
-  software_node: unregister software_nodes in reverse order
-  lib/test_printf.c: Use helper function to unwind array of
-    software_nodes
-  ipu3-cio2: Add T: entry to MAINTAINERS
-  ipu3-cio2: Rename ipu3-cio2.c
-  media: v4l2-core: v4l2-async: Check sd->fwnode->secondary in
-    match_fwnode()
-  acpi: Add acpi_dev_get_next_match_dev() and helper macro
-  ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-
-Heikki Krogerus (1):
-  software_node: Add support for fwnode_graph*() family of functions
-
- MAINTAINERS                                   |   2 +
- drivers/acpi/utils.c                          |  30 +-
- drivers/base/property.c                       |  15 +-
- drivers/base/swnode.c                         | 173 +++++++++--
- drivers/media/pci/intel/ipu3/Kconfig          |  18 ++
- drivers/media/pci/intel/ipu3/Makefile         |   3 +
- drivers/media/pci/intel/ipu3/cio2-bridge.c    | 274 ++++++++++++++++++
- drivers/media/pci/intel/ipu3/cio2-bridge.h    | 122 ++++++++
- .../ipu3/{ipu3-cio2.c => ipu3-cio2-main.c}    |  34 +++
- drivers/media/pci/intel/ipu3/ipu3-cio2.h      |   6 +
- drivers/media/v4l2-core/v4l2-async.c          |   8 +
- include/acpi/acpi_bus.h                       |   7 +
- lib/test_printf.c                             |   4 +-
- 13 files changed, 669 insertions(+), 27 deletions(-)
- create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.c
- create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.h
- rename drivers/media/pci/intel/ipu3/{ipu3-cio2.c => ipu3-cio2-main.c} (98%)
-
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 615a0c93e116..cfd1faea48a7 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -692,7 +692,10 @@ swnode_register(const struct software_node *node, struct swnode *parent,
+  * software_node_register_nodes - Register an array of software nodes
+  * @nodes: Zero terminated array of software nodes to be registered
+  *
+- * Register multiple software nodes at once.
++ * Register multiple software nodes at once. If any node in the array
++ * has it's .parent pointer set, then it's parent **must** have been
++ * registered before it is; either outside of this function or by
++ * ordering the array such that parent comes before child.
+  */
+ int software_node_register_nodes(const struct software_node *nodes)
+ {
+@@ -700,33 +703,47 @@ int software_node_register_nodes(const struct software_node *nodes)
+ 	int i;
+ 
+ 	for (i = 0; nodes[i].name; i++) {
+-		ret = software_node_register(&nodes[i]);
+-		if (ret) {
+-			software_node_unregister_nodes(nodes);
+-			return ret;
++		const struct software_node *parent = nodes[i].parent;
++
++		if (parent && !software_node_to_swnode(parent)) {
++			ret = -EINVAL;
++			goto err_unregister_nodes;
+ 		}
++
++		ret = software_node_register(&nodes[i]);
++		if (ret)
++			goto err_unregister_nodes;
+ 	}
+ 
+ 	return 0;
++
++err_unregister_nodes:
++	software_node_unregister_nodes(nodes);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(software_node_register_nodes);
+ 
+ /**
+  * software_node_unregister_nodes - Unregister an array of software nodes
+- * @nodes: Zero terminated array of software nodes to be unregistered
++ * @nodes: Zero terminated array of software nodes to be unregistered.
+  *
+- * Unregister multiple software nodes at once.
++ * Unregister multiple software nodes at once. If parent pointers are set up
++ * in any of the software nodes then the array MUST be ordered such that
++ * parents come before their children.
+  *
+- * NOTE: Be careful using this call if the nodes had parent pointers set up in
+- * them before registering.  If so, it is wiser to remove the nodes
+- * individually, in the correct order (child before parent) instead of relying
+- * on the sequential order of the list of nodes in the array.
++ * NOTE: If you are uncertain whether the array is ordered such that
++ * parents will be unregistered before their children, it is wiser to
++ * remove the nodes individually, in the correct order (child before
++ * parent).
+  */
+ void software_node_unregister_nodes(const struct software_node *nodes)
+ {
+-	int i;
++	unsigned int i = 0;
++
++	while (nodes[i].name)
++		i++;
+ 
+-	for (i = 0; nodes[i].name; i++)
++	while (i--)
+ 		software_node_unregister(&nodes[i]);
+ }
+ EXPORT_SYMBOL_GPL(software_node_unregister_nodes);
 -- 
 2.25.1
 
