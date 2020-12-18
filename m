@@ -2,244 +2,173 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7262EC2BBCD
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Dec 2020 23:46:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0346EC4361B
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Dec 2020 04:10:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D4B822B51
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Dec 2020 23:46:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFF3523A6C
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Dec 2020 04:09:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732388AbgLQXpO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Dec 2020 18:45:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37424 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732337AbgLQXpO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2020 18:45:14 -0500
-Received: from mail-wr1-x435.google.com (mail-wr1-x435.google.com [IPv6:2a00:1450:4864:20::435])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B0F3C061248;
-        Thu, 17 Dec 2020 15:44:01 -0800 (PST)
-Received: by mail-wr1-x435.google.com with SMTP id c5so232302wrp.6;
-        Thu, 17 Dec 2020 15:44:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=gU5HhP1TeKrMyBxy7gnZuPRoeb13x3wsqwC/lwANoFU=;
-        b=o0nqPDOoz78PdLm4/ZdIUMMVLu3XQvGP2Bp8YwXHCO9SWEIJ23FgNBp41yH5JZz8iJ
-         Z1Nfq38KXTats2hEXlLkjowypJr6nbfSjq+bQ3/wQ6G8Om/O8yz07CudjoZO5Yt24p/d
-         ep5Rv5Uxs7+9/eNzF8XPnZOTQVf0lKfQzkJSfjRmkqfNXRQJikHzAVbbpQfvoCV/JiZi
-         yo0JtKsP5rnBwwSz+A/KS4JsZuSG1Z/eUDh2gzj9bUaPuOaMfews1PvSvt2FXqFHOqtF
-         XK5U2K+m46yCq+LZrtyroRIFe1a+mbPhTkylwyTzJ/SB9PKozUu2H4uGZvTK8VV5+wVG
-         jIOg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=gU5HhP1TeKrMyBxy7gnZuPRoeb13x3wsqwC/lwANoFU=;
-        b=fcvW5S6zBiLXkn2Z3QcybwxhpXRzLDiJIG5a/hlWa+Wez7SYeuXfnUxwtei7+hTsRi
-         B2wN9gGvsZOQ6kWWIc6FqX3+cCOTmAOncg0Iuh70ZiAsQPVY/Kh48XUnSUwCdkpcsQwU
-         BNLBUDLNxQvD/PMediTPwy2BlNCfjO5vzc1elsjoJK16UkTdcp3WQ0aMBWazqBmE4dfb
-         7CxXKWq0E16jsg0J/1LabW0gbyQql7pQqcGxOB6skBdV7DbijNGpfzSGgiPcmN3ZLzvM
-         2+nn6amDa2MUD4EEslF2ouLPX10cp652un3BL3jq0SMWoOepjDIpzdf5hIIPJMVuojv/
-         2TEg==
-X-Gm-Message-State: AOAM5314HmVAHsePkOWS9HFHN20e7YjR6QDTAG40jo20nvPDNsc2Ep8e
-        WFcmJc2n2lnrXBr3437+Yr2YudENu22SmZVQ
-X-Google-Smtp-Source: ABdhPJy0Hiw1DqKEpVPX2hJdAPhEMPAAGgEu0x7pQTOCwMf1fsd4tWtZPbLEhnIPMlLHJ4ACfe5UuA==
-X-Received: by 2002:a5d:5401:: with SMTP id g1mr1221389wrv.93.1608248640141;
-        Thu, 17 Dec 2020 15:44:00 -0800 (PST)
-Received: from valhalla.home ([2.29.208.56])
-        by smtp.gmail.com with ESMTPSA id o3sm1873575wrc.93.2020.12.17.15.43.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 15:43:59 -0800 (PST)
-From:   Daniel Scally <djrscally@gmail.com>
-To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@acpica.org
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
-        yong.zhi@intel.com, sakari.ailus@linux.intel.com,
-        bingbu.cao@intel.com, tian.shu.qiu@intel.com, mchehab@kernel.org,
-        robert.moore@intel.com, erik.kaneda@intel.com, pmladek@suse.com,
-        rostedt@goodmis.org, sergey.senozhatsky@gmail.com,
-        andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk,
-        laurent.pinchart+renesas@ideasonboard.com,
-        jacopo+renesas@jmondi.org, kieran.bingham+renesas@ideasonboard.com,
-        linus.walleij@linaro.org, heikki.krogerus@linux.intel.com,
-        kitakar@gmail.com, jorhand@linux.microsoft.com
-Subject: [PATCH v2 06/12] software_node: Add support for fwnode_graph*() family of functions
-Date:   Thu, 17 Dec 2020 23:43:31 +0000
-Message-Id: <20201217234337.1983732-7-djrscally@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201217234337.1983732-1-djrscally@gmail.com>
-References: <20201217234337.1983732-1-djrscally@gmail.com>
+        id S1727079AbgLREJo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Dec 2020 23:09:44 -0500
+Received: from mail-dm6nam12on2106.outbound.protection.outlook.com ([40.107.243.106]:34177
+        "EHLO NAM12-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727018AbgLREJn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Dec 2020 23:09:43 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=F+G6BRGR0+qDn8w42D/B1PU4Z3x9k8gVqHOggtyV4IoXBGtYizRcgTcq+2eKTOOik99Y8eMRSLfYynsz3VDQnNqeRSZDEd+qavaQ11nFpUj4DaqrfNjSqcbEiYsF3l0A/bNa8nJax3Uk7yFK7C3glJrZiYyijJkLtpBGHC6bv9wvJS1+imMfrtSc+jhc6L8PVlOP+Lc90WaXNQtxSaoQeleJ22XJ7av6Qlt1tVRAJWORtqbhfqOj2Fa61IiAbrh7tExrJzdhZgRfJYVG09Dm7dz82fRKu9Nidh3FjO7wAIXr0Hl2H0qs+7lI7knyeBayEtrOVrl89g2LAQBGoMJsqw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=jHyGVToNyCceEqLuNYWC5gJT/9bTKhLAvVw0KH067rc=;
+ b=eGUUUr1g2q56eqj3MxQmdWYWyVpUqV7fqBNUbK1ZB4B3tg2a6EAQ957PaHv0LtcUubW7POmo7s+Vnd3MrRE77PC9Y+9d/GDN1Kid012ixmz6i/CzRC6TQhW+jxTK3Xfm5/tzCsmYDP4+VLTxGMsRBvqaInKtB8eAAEN8zrpX0VFpe7z3RaLjOerOeYPS9jvie/0dR6MTFNtt/jd0sxppOzTL+e/LaHBbg1QQGnP0exc7GMW+rhbowYtAbaXxU+RsZSuiO3ozjk4CYe/d0xZsnJoIiW8dlhj3gE/OoDxluBDfoXoyTF/5WPC1yJCY+JN7BSM8PcuYUsVVh/5wFHMc4A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=jHyGVToNyCceEqLuNYWC5gJT/9bTKhLAvVw0KH067rc=;
+ b=GnXlybknL9gJHrLvsjA0ljOEgQWc96czAftsoW3G0xIrRDMcn2lxmnZMOLuukMrwUsD0bEvWPDqWFV1L2oDB17kaXXKXnCv14Gcl9CbCFJpeq4CfLULDQJiLcJb50WKah+HpMCGoJsIvB88190C4+dzVgCeBVhrVoaAzSPZj/Io=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=microsoft.com;
+Received: from (2603:10b6:207:37::26) by
+ BL0PR2101MB1009.namprd21.prod.outlook.com (2603:10b6:207:36::31) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3700.5; Fri, 18 Dec
+ 2020 04:08:55 +0000
+Received: from BL0PR2101MB1092.namprd21.prod.outlook.com
+ ([fe80::adcd:42ae:1c83:369]) by BL0PR2101MB1092.namprd21.prod.outlook.com
+ ([fe80::adcd:42ae:1c83:369%7]) with mapi id 15.20.3700.007; Fri, 18 Dec 2020
+ 04:08:55 +0000
+From:   Dexuan Cui <decui@microsoft.com>
+To:     linux-acpi@vger.kernel.org, rjw@rjwysocki.net, len.brown@intel.com,
+        mikelley@microsoft.com
+Cc:     linux-kernel@vger.kernel.org, wei.liu@kernel.org,
+        sthemmin@microsoft.com, haiyangz@microsoft.com, kys@microsoft.com,
+        Dexuan Cui <decui@microsoft.com>
+Subject: [PATCH] ACPI: scan: Fix a Hyper-V Linux VM panic caused by buffer overflow
+Date:   Thu, 17 Dec 2020 20:08:26 -0800
+Message-Id: <20201218040826.57203-1-decui@microsoft.com>
+X-Mailer: git-send-email 2.17.1
+Reply-To: decui@microsoft.com
+Content-Type: text/plain
+X-Originating-IP: [2001:4898:80e8:0:3e21:8394:8c1a:bef2]
+X-ClientProxiedBy: MWHPR14CA0032.namprd14.prod.outlook.com
+ (2603:10b6:300:12b::18) To BL0PR2101MB1092.namprd21.prod.outlook.com
+ (2603:10b6:207:37::26)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from decui-u1804.corp.microsoft.com (2001:4898:80e8:0:3e21:8394:8c1a:bef2) by MWHPR14CA0032.namprd14.prod.outlook.com (2603:10b6:300:12b::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3676.28 via Frontend Transport; Fri, 18 Dec 2020 04:08:53 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 8b34b651-88e7-480c-5103-08d8a30aa2ed
+X-MS-TrafficTypeDiagnostic: BL0PR2101MB1009:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <BL0PR2101MB1009476972C93D7D40161E7EBFC39@BL0PR2101MB1009.namprd21.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:2657;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: a6PwMPVPTR44LJ6HBr2lAzavSy2TIYbf9FFECnGyDivUO9vNP0DfZqpsjTvimxbPBN/UJFR+qPMzaV1eq6G9/UcU0rbJgIEa7HAHjRfGqxXdJuvFZZSspnj43UzgV3fjkPQZWxW4Yw/od1cA1/3KFam8NBhNTveaNbQlMmUnM4k1IJyFbGCxFnWmlYyHsBnkLh481McqPmVNj2JdMeyXcmIkjCOt5z4k+I3Z7GhiJY2lxOtyZ+pX++nFiasYm7CzjV7UvJJbdC4k0FoQNvGx9/GRW0WoBg9B3zAcbB6+T5VSYHiFPKa3l5ex+rzom02gNNhiXyOIYEnAxBdkz/ZLnjrRx2+I2Trb5xpbortXvdt63uPri36CzalxQ2pENxmPrQ7cBylh+klxudBKdVNvwA==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR2101MB1092.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(396003)(366004)(39860400002)(346002)(376002)(82950400001)(3450700001)(107886003)(316002)(2616005)(82960400001)(2906002)(10290500003)(66946007)(83380400001)(5660300002)(6486002)(16526019)(4326008)(86362001)(8936002)(52116002)(6666004)(1076003)(66476007)(186003)(6636002)(7696005)(8676002)(478600001)(36756003)(66556008);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?YzZC5kwZKa5QbXJeRoObB6gRE4MhIfQ6UGkokDdriX65kiOJeP4HtwomTVhP?=
+ =?us-ascii?Q?VWCEsmf/idEGbGdjRN9Aw3T7qzUEVShNpCy9vaSLZq5n53JTExWXCOTUbn3t?=
+ =?us-ascii?Q?1l8RdA+MNKQmGvkIha7r22nkqc14Ah+ADbbnvfcbLtta32xRD8QMTpeKF084?=
+ =?us-ascii?Q?5mxyywnyYWZzZUzgpQY78A7+QWgx/emUqNwYE/+DM8vuHVELYDHqZetVlJJx?=
+ =?us-ascii?Q?XLJZeEaQYCj6RLk4ZQOK7U3qHx1XUF59wwzap3dZYke/bvBbDZtYQ7JCslnR?=
+ =?us-ascii?Q?Le66p4bRgWFdXHcjM5P0vAQlrVfNmq2af2BxAAaL5wTRpgsLm9yL6h5JlBrA?=
+ =?us-ascii?Q?4u/SQS4MDz+G7p5pZOVkx0HikRAtNQ3qK5hWmZHSr6aS/mLXbkc+2bMlV272?=
+ =?us-ascii?Q?Pm6FZjZOmKf77agXngqKM9XQxXE871qIi5T4nzplCpArtY9pzj7g4O4PcWWx?=
+ =?us-ascii?Q?P5cfgifGzWgqp4VtPORquywlavI/QRxB5ziJ3BCwI7UBWJWrbri+fqH1xNx3?=
+ =?us-ascii?Q?6RNGc1MfuAasNbT5REOzoqdIzNmFOMB07moIdK9a8wUxDyzbIxndmkBhR1/d?=
+ =?us-ascii?Q?Ml1PvS05nnkbKA2ti7KwqQaGr3jt2Ex2Mnst8raMf3XZWEsbNHedT0fk+lXY?=
+ =?us-ascii?Q?f4S3aJ2i3qxpwaR8uD+y4uATtbaXNrpIerWjtc4+Mhjz1ruSskX3t02dPsYb?=
+ =?us-ascii?Q?pJEAOvwe8di1qWs3/I05SxxF4ERfHDU6DVvEF38XAfXol1b0CNKOytkCZ5Yq?=
+ =?us-ascii?Q?H6+vzZZ8CAtAYgvYdtggCYpkHZHj6JBpal5vXLGI1l0kzTjO0owU4vNMKyeY?=
+ =?us-ascii?Q?Nb+0v0H2OFJhQ69jsAfncJlTroVukVyQk6279I6fL6YqmmUKYP5FtWqUk9i+?=
+ =?us-ascii?Q?yhcqk3GV37wDVCUwhstTmtIdamj/6O66g7TakU/0TFVXIl8aLT3un/lU8ZIO?=
+ =?us-ascii?Q?/QOjxjPBVxaqx8B2/WArW3uUhe2pMdJMaPnCLTrsXrpWPT1XdlmpHn7seALq?=
+ =?us-ascii?Q?BlcUo6WbuPAsVBiw1PwZWB/CsaoURlg0zvFqR1hMKI79yOo=3D?=
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR2101MB1092.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Dec 2020 04:08:54.9418
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8b34b651-88e7-480c-5103-08d8a30aa2ed
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: iB2DIlUAWWpW6c/QTIa2ZBaFNqhCCqZnEheiBtJFGIwqy3lwkTy0d3YmCdUJfBxDX/O8XKtX5JONTHJZuniD0g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR2101MB1009
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Linux VM on Hyper-V crashes with the latest mainline:
 
-This implements the remaining .graph_* callbacks in the
-fwnode operations structure for the software nodes. That makes
-the fwnode_graph*() functions available in the drivers also
-when software nodes are used.
+[    4.069624] detected buffer overflow in strcpy
+[    4.077733] kernel BUG at lib/string.c:1149!
+..
+[    4.085819] RIP: 0010:fortify_panic+0xf/0x11
+...
+[    4.085819] Call Trace:
+[    4.085819]  acpi_device_add.cold.15+0xf2/0xfb
+[    4.085819]  acpi_add_single_object+0x2a6/0x690
+[    4.085819]  acpi_bus_check_add+0xc6/0x280
+[    4.085819]  acpi_ns_walk_namespace+0xda/0x1aa
+[    4.085819]  acpi_walk_namespace+0x9a/0xc2
+[    4.085819]  acpi_bus_scan+0x78/0x90
+[    4.085819]  acpi_scan_init+0xfa/0x248
+[    4.085819]  acpi_init+0x2c1/0x321
+[    4.085819]  do_one_initcall+0x44/0x1d0
+[    4.085819]  kernel_init_freeable+0x1ab/0x1f4
 
-The implementation tries to mimic the "OF graph" as much as
-possible, but there is no support for the "reg" device
-property. The ports will need to have the index in their
-name which starts with "port@" (for example "port@0", "port@1",
-...) and endpoints will use the index of the software node
-that is given to them during creation. The port nodes can
-also be grouped under a specially named "ports" subnode,
-just like in DT, if necessary.
+This is because of the recent buffer overflow detection in the
+commit 6a39e62abbaf ("lib: string.h: detect intra-object overflow in fortified string functions")
 
-The remote-endpoints are reference properties under the
-endpoint nodes that are named "remote-endpoint".
+Here acpi_device_bus_id->bus_id can only hold 14 characters, while the
+the acpi_device_hid(device) returns a 22-char string
+"HYPER_V_GEN_COUNTER_V1".
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Co-developed-by: Daniel Scally <djrscally@gmail.com>
-Signed-off-by: Daniel Scally <djrscally@gmail.com>
+Per ACPI Spec v6.2, Section 6.1.5 _HID (Hardware ID), if the ID is a
+string, it must be of the form AAA#### or NNNN####, i.e. 7 chars or 8
+chars.
+
+The field bus_id in struct acpi_device_bus_id was originally defined as
+char bus_id[9], and later was enlarged to char bus_id[15] in 2007 in the
+commit bb0958544f3c ("ACPI: use more understandable bus_id for ACPI devices")
+
+It looks like so far an ID string of >=15 chars is only seen in the guest
+BIOS/firmware by Hyper-V, and AFAIK the ID string "HYPER_V_GEN_COUNTER_V1"
+is never used by Linux VM on Hyper-V, so let's just truncate the string to
+fix the panic.
+
+Signed-off-by: Dexuan Cui <decui@microsoft.com>
 ---
-Changes in v2:
+ drivers/acpi/scan.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-	- Changed commit to specify port name prefix as port@
-	- Accounted for that rename in *parse_endpoint()
-
- drivers/base/swnode.c | 110 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 109 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 2b90d380039b..0d14d5ebe441 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -540,6 +540,110 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
- 	return 0;
- }
- 
-+static struct fwnode_handle *
-+swnode_graph_find_next_port(const struct fwnode_handle *parent,
-+			    struct fwnode_handle *port)
-+{
-+	struct fwnode_handle *old = port;
-+
-+	while ((port = software_node_get_next_child(parent, old))) {
-+		if (!strncmp(to_swnode(port)->node->name, "port", 4))
-+			return port;
-+		old = port;
-+	}
-+
-+	return NULL;
-+}
-+
-+static struct fwnode_handle *
-+software_node_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
-+				      struct fwnode_handle *endpoint)
-+{
-+	struct swnode *swnode = to_swnode(fwnode);
-+	struct fwnode_handle *old = endpoint;
-+	struct fwnode_handle *parent;
-+	struct fwnode_handle *port;
-+
-+	if (!swnode)
-+		return NULL;
-+
-+	if (endpoint) {
-+		port = software_node_get_parent(endpoint);
-+		parent = software_node_get_parent(port);
-+	} else {
-+		parent = software_node_get_named_child_node(fwnode, "ports");
-+		if (!parent)
-+			parent = software_node_get(&swnode->fwnode);
-+
-+		port = swnode_graph_find_next_port(parent, NULL);
-+	}
-+
-+	for (; port; port = swnode_graph_find_next_port(parent, port)) {
-+		endpoint = software_node_get_next_child(port, old);
-+		if (endpoint) {
-+			fwnode_handle_put(port);
-+			break;
-+		}
-+
-+		/* No more endpoints for that port, so stop passing old */
-+		old = NULL;
-+	}
-+
-+	fwnode_handle_put(parent);
-+
-+	return endpoint;
-+}
-+
-+static struct fwnode_handle *
-+software_node_graph_get_remote_endpoint(const struct fwnode_handle *fwnode)
-+{
-+	struct swnode *swnode = to_swnode(fwnode);
-+	const struct software_node_ref_args *ref;
-+	const struct property_entry *prop;
-+
-+	if (!swnode)
-+		return NULL;
-+
-+	prop = property_entry_get(swnode->node->properties, "remote-endpoint");
-+	if (!prop || prop->type != DEV_PROP_REF || prop->is_inline)
-+		return NULL;
-+
-+	ref = prop->pointer;
-+
-+	return software_node_get(software_node_fwnode(ref[0].node));
-+}
-+
-+static struct fwnode_handle *
-+software_node_graph_get_port_parent(struct fwnode_handle *fwnode)
-+{
-+	struct swnode *swnode = to_swnode(fwnode);
-+	struct fwnode_handle *parent;
-+
-+	if (!strcmp(swnode->parent->node->name, "ports"))
-+		parent = &swnode->parent->parent->fwnode;
-+	else
-+		parent = &swnode->parent->fwnode;
-+
-+	return software_node_get(parent);
-+}
-+
-+static int
-+software_node_graph_parse_endpoint(const struct fwnode_handle *fwnode,
-+				   struct fwnode_endpoint *endpoint)
-+{
-+	struct swnode *swnode = to_swnode(fwnode);
-+	int ret;
-+
-+	ret = kstrtou32(swnode->parent->node->name + 5, 10, &endpoint->port);
-+	if (ret)
-+		return ret;
-+
-+	endpoint->id = swnode->id;
-+	endpoint->local_fwnode = fwnode;
-+
-+	return 0;
-+}
-+
- static const struct fwnode_operations software_node_ops = {
- 	.get = software_node_get,
- 	.put = software_node_put,
-@@ -551,7 +655,11 @@ static const struct fwnode_operations software_node_ops = {
- 	.get_parent = software_node_get_parent,
- 	.get_next_child_node = software_node_get_next_child,
- 	.get_named_child_node = software_node_get_named_child_node,
--	.get_reference_args = software_node_get_reference_args
-+	.get_reference_args = software_node_get_reference_args,
-+	.graph_get_next_endpoint = software_node_graph_get_next_endpoint,
-+	.graph_get_remote_endpoint = software_node_graph_get_remote_endpoint,
-+	.graph_get_port_parent = software_node_graph_get_port_parent,
-+	.graph_parse_endpoint = software_node_graph_parse_endpoint,
- };
- 
- /* -------------------------------------------------------------------------- */
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index a1b226eb2ce2..b801442b6b1b 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -674,7 +674,8 @@ int acpi_device_add(struct acpi_device *device,
+ 	}
+ 	if (!found) {
+ 		acpi_device_bus_id = new_bus_id;
+-		strcpy(acpi_device_bus_id->bus_id, acpi_device_hid(device));
++		strlcpy(acpi_device_bus_id->bus_id, acpi_device_hid(device),
++			sizeof(acpi_device_bus_id->bus_id));
+ 		acpi_device_bus_id->instance_no = 0;
+ 		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
+ 	}
 -- 
-2.25.1
+2.19.1
 
