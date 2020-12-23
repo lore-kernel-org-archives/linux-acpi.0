@@ -2,65 +2,95 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D841CC43332
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Dec 2020 22:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08F25C43332
+	for <linux-acpi@archiver.kernel.org>; Wed, 23 Dec 2020 02:59:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C380C239A4
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Dec 2020 22:25:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C991220706
+	for <linux-acpi@archiver.kernel.org>; Wed, 23 Dec 2020 02:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727857AbgLVWYu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 22 Dec 2020 17:24:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49824 "EHLO mail.kernel.org"
+        id S1729112AbgLWC6x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 22 Dec 2020 21:58:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727790AbgLVWYp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Dec 2020 17:24:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPS id 1F27022AAE;
-        Tue, 22 Dec 2020 22:24:05 +0000 (UTC)
+        id S1728964AbgLWCUZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 22 Dec 2020 21:20:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E9322256F;
+        Wed, 23 Dec 2020 02:20:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1608675845;
-        bh=4JIaH7feDKV4qJ6/KQ+B2hn1+RkXXS52z+Fgf/kNx3o=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=WxR08dpHjNIzjlhscfrFcdgLTeGmcmp/v8EwuZC7CEo8T09labkNXxXttaVsQIpfE
-         PMp3Imr2h9ShNXnHzIOx37BGhZhCiLNdwC42C0f3YGJcj4YQTQ+fS+llIN3BfLJvD+
-         hsf9uHWGetLpNiRkETf/KvEAX3OFFedQl6XkfGbf31D6c8QmcLtsFLuZoigW8BTZ+B
-         B4QR+xPekmKy4XOxwOY6eA9Sn9EZqZTYutaOGU292oTssfo2W/uH1hcotjKu+0xKmd
-         KkKdgSKl4Oqero/IQWAXaJ31Zb3JHklV9JKH9GTZ58ITax96gfa6U8iiyBTgPxWSz1
-         O0kvR0z1Sa04w==
-Subject: Re: [GIT PULL] More power management updates for v5.11-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0iS-Dv2iRkVGPhOLiP5-5D1vx+=9Nr7rtKtVbWmdrx=pg@mail.gmail.com>
-References: <CAJZ5v0iS-Dv2iRkVGPhOLiP5-5D1vx+=9Nr7rtKtVbWmdrx=pg@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-pm.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0iS-Dv2iRkVGPhOLiP5-5D1vx+=9Nr7rtKtVbWmdrx=pg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.11-rc1-2
-X-PR-Tracked-Commit-Id: c3a74f8e25e97166ca0f954414825ae98a3209f6
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 4960821a4d80781fd3e63cd71fb1b38c2dadb915
-Message-Id: <160867584509.8550.9502654949229299177.pr-tracker-bot@kernel.org>
-Date:   Tue, 22 Dec 2020 22:24:05 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        s=k20201202; t=1608690010;
+        bh=C1V8F8DQ0RPPzESWTdeKqnGzBe0X7hN6HCddQAmlQDc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=r0Lu3fhHL/wABqfp6KavItaLYkvzURTBS1wMnpzDRXuDWzYV29VduG4gMONGJAe3N
+         7Wi51F8MLCSHGveNpHmXntPXsAG2bDOiPLeBb4fUFj9E4vXCklcIsGS1FgAnbEHM0M
+         XQD4dU+R6tcfo2YI4h2T3Y4cB2wd8OAkrkw8w9Q4Jq4V2F8/jcjZ0RlxqEBhA/E8N3
+         yL9akp6S9+P02Ug5GlBWyD20mAOYduqGrK2vvxmUK4GT3LdB6ZqGT/L0/0bsVH8ZgZ
+         n5Vf7qW4MPk1dJNjW+8b+klK1Ppae+M8+UophaGPxQ2XyAJKboFw+dv4S3aBBRJ7oS
+         jHuLY0itnegfg==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     "Jasper St. Pierre" <jstpierre@mecheye.net>,
+        Chris Chiu <chiu@endlessos.org>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 090/130] ACPI: video: Add DMI quirk for GIGABYTE GB-BXBT-2807
+Date:   Tue, 22 Dec 2020 21:17:33 -0500
+Message-Id: <20201223021813.2791612-90-sashal@kernel.org>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20201223021813.2791612-1-sashal@kernel.org>
+References: <20201223021813.2791612-1-sashal@kernel.org>
+MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Tue, 22 Dec 2020 20:13:35 +0100:
+From: "Jasper St. Pierre" <jstpierre@mecheye.net>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.11-rc1-2
+[ Upstream commit 25417185e9b5ff90746d50769d2a3fcd1629e254 ]
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/4960821a4d80781fd3e63cd71fb1b38c2dadb915
+The GIGABYTE GB-BXBT-2807 is a mini-PC which uses off the shelf
+components, like an Intel GPU which is meant for mobile systems.
+As such, it, by default, has a backlight controller exposed.
 
-Thank you!
+Unfortunately, the backlight controller only confuses userspace, which
+sees the existence of a backlight device node and has the unrealistic
+belief that there is actually a backlight there!
 
+Add a DMI quirk to force the backlight off on this system.
+
+Signed-off-by: Jasper St. Pierre <jstpierre@mecheye.net>
+Reviewed-by: Chris Chiu <chiu@endlessos.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/video_detect.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 55af78b55c513..301ffe5b8feb0 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -143,6 +143,13 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 	},
+ 	{
+ 	.callback = video_detect_force_vendor,
++	.ident = "GIGABYTE GB-BXBT-2807",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "GIGABYTE"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "GB-BXBT-2807"),
++		},
++	},
++	{
+ 	.ident = "Sony VPCEH3U1E",
+ 	.matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.27.0
+
