@@ -2,136 +2,121 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09BA5C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 24 Dec 2020 01:12:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78810C433DB
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Dec 2020 12:14:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA2792251F
-	for <linux-acpi@archiver.kernel.org>; Thu, 24 Dec 2020 01:12:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D03622288
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Dec 2020 12:14:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728731AbgLXBKo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 23 Dec 2020 20:10:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48312 "EHLO
+        id S1727780AbgLXMOK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 24 Dec 2020 07:14:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728303AbgLXBKo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2020 20:10:44 -0500
-Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C40D9C061285;
-        Wed, 23 Dec 2020 17:09:29 -0800 (PST)
-Received: by mail-wr1-x429.google.com with SMTP id r3so854998wrt.2;
-        Wed, 23 Dec 2020 17:09:29 -0800 (PST)
+        with ESMTP id S1727759AbgLXMOK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2020 07:14:10 -0500
+Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D64CAC061794;
+        Thu, 24 Dec 2020 04:13:29 -0800 (PST)
+Received: by mail-pj1-x1032.google.com with SMTP id l23so1101023pjg.1;
+        Thu, 24 Dec 2020 04:13:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=V/1UKUJyr0qiUwLluVPA0tlSbSlnFJi05vFYlT35hz4=;
-        b=g+km3icySyD/RWdDXjNZc3Loy9M6goJpitJnbHTBEjhGtac7n4yhri+GDfMWTIl5KD
-         ezdbublcXNDYBcF0TcHHdnYtQfoed6WWeM0b1ZOWN7v48QvbjW6Fpv0mxOKhKHrXWJR2
-         6Arn+1Q0kbJLVfuO1mTXJZ8rUx2DjG17iqaFOeCaNLjKegwiEvyrpoUcGSiPY68YHOnP
-         v/bAHxJRun4m77pTkRhBIGIs7TcppEKNMLV/nk4LWpaDdrwtbxjIYe6NtueCWv4FS0A4
-         HJ6D0oh0vWSseLvG8ndh1N5kSIW7d5Llvb60uXE+Hj6xZfozw3v2SgjaQZo/+coPAoGY
-         MRmw==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=UALr9ym4hsAZyiPOgyH1YaE+cu2KjtwJLBwTVvlB5/k=;
+        b=Mg+X4meLskIl4Y4m1FU2Bpwk0/eLPjYsQ1bc2nFbH5sa/Fymch56YfhLwLr2zHgu6+
+         cHXDlkz0qPSrqikN8Kqss93Mb9vkwRYAKrpeV4/VhA5jIXmnM+r+mKthrMlJia4csbNU
+         GRDdpX/FxssQBT5uUJNC0sqPiujRKyronrpH5ErzdcNk3jPAHK54x+IRg0kaYgGnaNVy
+         qTTbaS8J8yo0mFvCaCaf05Nm5opZPixYbnD4EmO26MGunXN7ttnNV+X4MkiC9+PJ7RdU
+         EKMl7kCTVAMhsNNJhptfAavOs4Thf1sP50uNALVbuHt6x76qWZvvSKKA3Ltv+UiORG2x
+         9whw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=V/1UKUJyr0qiUwLluVPA0tlSbSlnFJi05vFYlT35hz4=;
-        b=pje/9SlhNq7csigvchkflw8HvCIXVKiHySiGWjuy9keiMxSqERCvAjCCWvRPjJCTM4
-         zaHNXrjufys95gCLIFbmUmaoJM/ctyVZIJNwDT31ERPW0Y/u1BnSjrAKv5TOfaF6Oc9c
-         8YX7yih/SeCA6b1QzGV7c4PD1970Qzt6I0fBoNsSzlw1Bhua4Hn7ysDKogx4guszT5ji
-         cYj58BrscHc0B/VwpD6wq9FhYWQge51h+6ic8aZtjIXRPLTwxoMr490Iv0x8nsOQfIED
-         aNGnKrtVzGr3H5zD+5tOTLX0HeGOq1E+o7BHqpRM7xGukxBQbMscEWR5u5sXtTNbREpd
-         BnMQ==
-X-Gm-Message-State: AOAM533CzUIHOgx+9/iSxDp0npylSOMUFGEw3TaBofh/aHveJPq7XlCA
-        7uuNFrwampqa/uuSylgR507Aony2q7J+dXZA
-X-Google-Smtp-Source: ABdhPJzMoFd7p+QiYEuqc5Pon1T5wPy9pHd4RsygkYw1VGKzelRl8YrfcH400px+thmA4ArsxkatHA==
-X-Received: by 2002:adf:d843:: with SMTP id k3mr32177295wrl.346.1608772168630;
-        Wed, 23 Dec 2020 17:09:28 -0800 (PST)
-Received: from valhalla.home ([2.31.224.116])
-        by smtp.gmail.com with ESMTPSA id b200sm1598653wmb.10.2020.12.23.17.09.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Dec 2020 17:09:28 -0800 (PST)
-From:   Daniel Scally <djrscally@gmail.com>
-To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@acpica.org
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
-        yong.zhi@intel.com, sakari.ailus@linux.intel.com,
-        bingbu.cao@intel.com, tian.shu.qiu@intel.com, mchehab@kernel.org,
-        robert.moore@intel.com, erik.kaneda@intel.com, pmladek@suse.com,
-        rostedt@goodmis.org, sergey.senozhatsky@gmail.com,
-        andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk,
-        laurent.pinchart+renesas@ideasonboard.com,
-        jacopo+renesas@jmondi.org, kieran.bingham+renesas@ideasonboard.com,
-        hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
-        niklas.soderlund+renesas@ragnatech.se, slongerbeam@gmail.com,
-        heikki.krogerus@linux.intel.com, linus.walleij@linaro.org,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=UALr9ym4hsAZyiPOgyH1YaE+cu2KjtwJLBwTVvlB5/k=;
+        b=DOewvRm9Y/J2OsO6wMhI56oBcWF2vLVpNt7+0kuTstgUPBYz+YZ3QzQgsicipL8liY
+         St7NGRW/f8qIeL+fDsmsxUdjMrXKjobTd1nLrPiU58Xxxwg+EnCJps3aMxfTAT20MI0I
+         klXwo1CiPLCYCC7K55NIr9EuIYebJzZeKVseZTEg8gEJZqBRhICvCVW0KLz988t845yg
+         amVNkBvhAU9QtXwS8iyn+V/3KDuIpeOsTb3VGCdYbnX3LQ75yWEC7s/UHhhUBWNYWrj/
+         fkFuw19ljJ9i44KqWEgiiAYi13psnharc8dVS1X4RAQQg79xq/kNaYdju2jLR5QKxkg9
+         Y8yw==
+X-Gm-Message-State: AOAM533+OMPivAPNV2jZ0Cg64UkOi3NfNn13xgpUbWs80hSNdm0i5WeG
+        it+HthvmytjSND5afaOsNmJjh3KhVb7n+Uiz0Dg=
+X-Google-Smtp-Source: ABdhPJzFIC1SAIBCVWCBrnBnewdPpuCRgYW7JPpjkgyIwp7BAN66+GZ8WvhceftHJu5SPnS3x8pknFhFVqKS3VtWvWc=
+X-Received: by 2002:a17:902:e98c:b029:da:cb88:f11d with SMTP id
+ f12-20020a170902e98cb02900dacb88f11dmr8616930plb.17.1608812009413; Thu, 24
+ Dec 2020 04:13:29 -0800 (PST)
+MIME-Version: 1.0
+References: <20201224010907.263125-1-djrscally@gmail.com> <20201224010907.263125-6-djrscally@gmail.com>
+In-Reply-To: <20201224010907.263125-6-djrscally@gmail.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Thu, 24 Dec 2020 14:13:13 +0200
+Message-ID: <CAHp75VdF5NdjrSxcOafh7KNNDteYEUDk9otA0HKX-iks7G0D4g@mail.gmail.com>
+Subject: Re: [PATCH v3 05/14] software_node: unregister software_nodes in
+ reverse order
+To:     Daniel Scally <djrscally@gmail.com>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@acpica.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Petr Mladek <pmladek@suse.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        kieran.bingham+renesas@ideasonboard.com,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        niklas.soderlund+renesas@ragnatech.se,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
         kernel test robot <lkp@intel.com>,
         Dan Carpenter <dan.carpenter@oracle.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v3 05/14] software_node: unregister software_nodes in reverse order
-Date:   Thu, 24 Dec 2020 01:08:58 +0000
-Message-Id: <20201224010907.263125-6-djrscally@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201224010907.263125-1-djrscally@gmail.com>
-References: <20201224010907.263125-1-djrscally@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-To maintain consistency with software_node_unregister_nodes(), reverse
-the order in which the software_node_unregister_node_group() function
-unregisters nodes.
+On Thu, Dec 24, 2020 at 3:12 AM Daniel Scally <djrscally@gmail.com> wrote:
+>
+> To maintain consistency with software_node_unregister_nodes(), reverse
+> the order in which the software_node_unregister_node_group() function
+> unregisters nodes.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Daniel Scally <djrscally@gmail.com>
----
-Changes in v3
-	- Fixed the dereference of the terminating NULL entry
-	- Comment cleanup
+...
 
- drivers/base/swnode.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+> - * Unregister multiple software nodes at once.
+> + * Unregister multiple software nodes at once. The array will be unwound in
+> + * reverse order (i.e. last entry first) and thus if any member of the array
+> + * has its .parent member set then they should appear later in the array such
+> + * that they are unregistered first.
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index ade49173ff8d..2d07eb04c6c8 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -779,16 +779,22 @@ EXPORT_SYMBOL_GPL(software_node_register_node_group);
-  * software_node_unregister_node_group - Unregister a group of software nodes
-  * @node_group: NULL terminated array of software node pointers to be unregistered
-  *
-- * Unregister multiple software nodes at once.
-+ * Unregister multiple software nodes at once. The array will be unwound in
-+ * reverse order (i.e. last entry first) and thus if any member of the array
-+ * has its .parent member set then they should appear later in the array such
-+ * that they are unregistered first.
-  */
- void software_node_unregister_node_group(const struct software_node **node_group)
- {
--	unsigned int i;
-+	unsigned int i = 0;
- 
- 	if (!node_group)
- 		return;
- 
--	for (i = 0; node_group[i]; i++)
-+	while (node_group[i])
-+		i++;
-+
-+	while (i--)
- 		software_node_unregister(node_group[i]);
- }
- EXPORT_SYMBOL_GPL(software_node_unregister_node_group);
+I'm, as being not a native speaker, a bit confused by this comment.
+The idea is that children are unregistered first. Can you try to make
+it more clear maybe?
+
+>   */
+
+
 -- 
-2.25.1
-
+With Best Regards,
+Andy Shevchenko
