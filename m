@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFDBDC433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00A57C4332B
 	for <linux-acpi@archiver.kernel.org>; Thu, 24 Dec 2020 01:11:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90EB92251F
+	by mail.kernel.org (Postfix) with ESMTP id AFA482253D
 	for <linux-acpi@archiver.kernel.org>; Thu, 24 Dec 2020 01:11:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728851AbgLXBKs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 23 Dec 2020 20:10:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48334 "EHLO
+        id S1728969AbgLXBKx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 23 Dec 2020 20:10:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728840AbgLXBKr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2020 20:10:47 -0500
-Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4C52C0611CC;
-        Wed, 23 Dec 2020 17:09:37 -0800 (PST)
-Received: by mail-wm1-x336.google.com with SMTP id k10so366314wmi.3;
-        Wed, 23 Dec 2020 17:09:37 -0800 (PST)
+        with ESMTP id S1728908AbgLXBKt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2020 20:10:49 -0500
+Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A2EAC0611CE;
+        Wed, 23 Dec 2020 17:09:40 -0800 (PST)
+Received: by mail-wm1-x32a.google.com with SMTP id k10so366365wmi.3;
+        Wed, 23 Dec 2020 17:09:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=G12t8SRflSBjWKMkUq7XNfkQwuwAoCsbQPoo07/audU=;
-        b=Z9ZRlGCagCA8BVIDRBDaxpm3J4OHx6tAQQEIbgkTiD52AUYY0Va+DHPtHvwXybxdpB
-         djTGOCyc9F7NZMksAgiPjrY/opPI8lP9lXnuhpDF8te7Hx+M2tjt7hf1wNTjVho3DPni
-         4Y4uz4UmFsx6a5l5htej72AUKZZlEJsSA4/3UezB6YsCECO468cMuaAIbwbcxV2ATh/v
-         hokCsXeCAKoMcDpwPKWdF04DLb7yrpOBLpS+SRrHjsvRyYiM2aqEBuv7d9qDDOn1OaYo
-         5T85UCyt2IMlbYGVQBmOEduJeRK+RdK2laTe1ydVEbMFZSyBNH8F5kvbITWWINXtEv6B
-         L4QA==
+        bh=RN4eZW0P5zJGQ+ExnLjE8F4o1z5DWe8tjmYcqAjmd8g=;
+        b=Z6KH8ThAa3j0w+iK1ZWRecYUgVX8cXs+S51zqeJ/CN878vHMwmwiEqMENCQ4xAG2eN
+         3Fbe72iHm8xFtQGOVWN6S+7i67QHptesp0QbE+X71pJgcbUHGeZQ4eC50Afixx1M2hle
+         EG842ywAsfa/K/W2nqMP2SwZaOCPi1sWTZVstX5GW5nWIkJm4/BpBT4mX/sUyLj3EgI7
+         a2cxNPJ3M+UzY74EEf10CLOTxP+Y4rhSRtHNgf7TrYyVce1solCdF8fqtC4hnKx/TVjy
+         1c2kchPO2KOFyiyD9erRtCixY9OSER3jbNmQr+Wl0ToOSWFSaJZuZfzvK19xTU8NooMW
+         ul5Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=G12t8SRflSBjWKMkUq7XNfkQwuwAoCsbQPoo07/audU=;
-        b=s5Qk20QL4gpQI8wp4nSlT4M8FepdUTAxQ40OzpwEKSegeB38U9kP276mMS8LQ1k+LM
-         GdywAgqgBfV9CJfNaJ5An41p9OmdG59AjYQGqNB2ojjgO6yGQKHf0spSYgQbt3BX7mUu
-         89vQAxTuIw4Jn6kgPNLIrV+AphkCtdPMonDRSzs4Qw2Rt69B6QWZ7zSClEYCvqP86+Hy
-         2V4jCEwrXQnR8XFywuqdC6/Qy2aLBW/wAN17L+oIcBMSY1cbzpJnpdC+hx5juijmjCss
-         PoVagF96G8ffNdDVXcl414cGABzTbUSg7YSRDd/UV904Nmqx+OaChKzMCA+LHwZRn20j
-         Hc0w==
-X-Gm-Message-State: AOAM533ejRyYKoTpUIO4oZB+ZtwRFkOiLdMWw4LHTzs9EIslwIu5n236
-        AaxupZYbwB3e9sN+nxojRLeUOUNXKw9lKUOw
-X-Google-Smtp-Source: ABdhPJzsO6LbpwKFGl/e+/23/iGpjR9gpH+ydXmdABuT09bXHOHBrXzayp6TnJwky0ybBmcM0RUe7w==
-X-Received: by 2002:a7b:cf30:: with SMTP id m16mr1916810wmg.145.1608772176560;
-        Wed, 23 Dec 2020 17:09:36 -0800 (PST)
+        bh=RN4eZW0P5zJGQ+ExnLjE8F4o1z5DWe8tjmYcqAjmd8g=;
+        b=Jt1zIPu7tQU3ryw+bUeJ0zhar2bJx+IhtXDE+evmjf1fbKez0aoZ0sGTOSR5MAdLMo
+         7KC0oCVM5TOKYAJaSPa6aEuUIGUNmnXjmVofiZQAfmmqfPKS9oTF4Hmx7oL1KydHnWyD
+         xy2B5DezhWmph5M5wyJJbk5vTZ/2k6Wf62SZKleCpBdniXq9p25WkFk7nA0CN1YCzvIk
+         LZhDRY17uvTR4YzOsHy5zmGyAU1+O9UbBQMEkB7Zt57zib5qBjWO7iTsTb2ja1ghgy6/
+         allfgb55Sl6/4a6etZRFdS99+jX/Jpdnd/qJyUOv4nLLf7Gj3B/+Qbr+1ZAYCYSOImoK
+         JDug==
+X-Gm-Message-State: AOAM5307gBn6qdcKs60AV5fab43nB9c+kbnItyTEHPGfUy5A6CalcU6y
+        jhvUnmsVnCFm1h7IWxpsXuA5vkTAMsGw7pUL
+X-Google-Smtp-Source: ABdhPJzJmNQdMwNpl7s31MtXZuCE6vhgnmsG9jR4VzJsq0ZYiSdT3Fafrgp5fgpG01d9QefPnL0fAg==
+X-Received: by 2002:a1c:dc87:: with SMTP id t129mr1977147wmg.52.1608772179190;
+        Wed, 23 Dec 2020 17:09:39 -0800 (PST)
 Received: from valhalla.home ([2.31.224.116])
-        by smtp.gmail.com with ESMTPSA id b200sm1598653wmb.10.2020.12.23.17.09.35
+        by smtp.gmail.com with ESMTPSA id b200sm1598653wmb.10.2020.12.23.17.09.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Dec 2020 17:09:36 -0800 (PST)
+        Wed, 23 Dec 2020 17:09:38 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org
@@ -69,11 +69,10 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org,
         jacopo+renesas@jmondi.org, kieran.bingham+renesas@ideasonboard.com,
         hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
         niklas.soderlund+renesas@ragnatech.se, slongerbeam@gmail.com,
-        heikki.krogerus@linux.intel.com, linus.walleij@linaro.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v3 11/14] media: v4l2-core: v4l2-async: Check sd->fwnode->secondary in match_fwnode()
-Date:   Thu, 24 Dec 2020 01:09:04 +0000
-Message-Id: <20201224010907.263125-12-djrscally@gmail.com>
+        heikki.krogerus@linux.intel.com, linus.walleij@linaro.org
+Subject: [PATCH v3 13/14] include: media: v4l2-fwnode: Include v4l2_fwnode_bus_type
+Date:   Thu, 24 Dec 2020 01:09:06 +0000
+Message-Id: <20201224010907.263125-14-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201224010907.263125-1-djrscally@gmail.com>
 References: <20201224010907.263125-1-djrscally@gmail.com>
@@ -83,40 +82,75 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Where the fwnode graph is comprised of software_nodes, these will be
-assigned as the secondary to dev->fwnode. Check the v4l2_subdev's fwnode
-for a secondary and attempt to match against it during match_fwnode() to
-accommodate that possibility.
+V4L2 fwnode bus types are enumerated in v4l2-fwnode.c, meaning they aren't
+available to the rest of the kernel. Move the enum to the corresponding
+header so that I can use the label to refer to those values.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
 Changes in v3
-	- None
+	- Patch introduced
 
- drivers/media/v4l2-core/v4l2-async.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 11 -----------
+ include/media/v4l2-fwnode.h           | 22 ++++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index e3ab003a6c85..9dd896d085ec 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -87,6 +87,14 @@ static bool match_fwnode(struct v4l2_async_notifier *notifier,
- 	if (sd->fwnode == asd->match.fwnode)
- 		return true;
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 5353e37eb950..c1c2b3060532 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -28,17 +28,6 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
  
-+	/*
-+	 * Check the same situation for any possible secondary assigned to the
-+	 * subdev's fwnode
-+	 */
-+	if (!IS_ERR_OR_NULL(sd->fwnode->secondary) &&
-+	    sd->fwnode->secondary == asd->match.fwnode)
-+		return true;
+-enum v4l2_fwnode_bus_type {
+-	V4L2_FWNODE_BUS_TYPE_GUESS = 0,
+-	V4L2_FWNODE_BUS_TYPE_CSI2_CPHY,
+-	V4L2_FWNODE_BUS_TYPE_CSI1,
+-	V4L2_FWNODE_BUS_TYPE_CCP2,
+-	V4L2_FWNODE_BUS_TYPE_CSI2_DPHY,
+-	V4L2_FWNODE_BUS_TYPE_PARALLEL,
+-	V4L2_FWNODE_BUS_TYPE_BT656,
+-	NR_OF_V4L2_FWNODE_BUS_TYPE,
+-};
+-
+ static const struct v4l2_fwnode_bus_conv {
+ 	enum v4l2_fwnode_bus_type fwnode_bus_type;
+ 	enum v4l2_mbus_type mbus_type;
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 4365430eea6f..d306a28bda96 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -213,6 +213,28 @@ struct v4l2_fwnode_connector {
+ 	} connector;
+ };
+ 
++/**
++ * enum v4l2_fwnode_bus_type - Video bus types defined by firmware properties
++ * @V4L2_FWNODE_BUS_TYPE_GUESS: Default value if no bus-type fwnode property
++ * @V4L2_FWNODE_BUS_TYPE_CSI2_CPHY: MIPI CSI-2 bus, C-PHY physical layer
++ * @V4L2_FWNODE_BUS_TYPE_CSI1: MIPI CSI-1 bus
++ * @V4L2_FWNODE_BUS_TYPE_CCP2: SMIA Compact Camera Port 2 bus
++ * @V4L2_FWNODE_BUS_TYPE_CSI2_DPHY: MIPI CSI-2 bus, D-PHY physical layer
++ * @V4L2_FWNODE_BUS_TYPE_PARALLEL: Camera Parallel Interface bus
++ * @V4L2_FWNODE_BUS_TYPE_BT656: BT656 video format bus-type
++ * @NR_OF_V4L2_FWNODE_BUS_TYPE: Number of bus-types
++ */
++enum v4l2_fwnode_bus_type {
++	V4L2_FWNODE_BUS_TYPE_GUESS = 0,
++	V4L2_FWNODE_BUS_TYPE_CSI2_CPHY,
++	V4L2_FWNODE_BUS_TYPE_CSI1,
++	V4L2_FWNODE_BUS_TYPE_CCP2,
++	V4L2_FWNODE_BUS_TYPE_CSI2_DPHY,
++	V4L2_FWNODE_BUS_TYPE_PARALLEL,
++	V4L2_FWNODE_BUS_TYPE_BT656,
++	NR_OF_V4L2_FWNODE_BUS_TYPE,
++};
 +
- 	/*
- 	 * Otherwise, check if the sd fwnode and the asd fwnode refer to an
- 	 * endpoint or a device. If they're of the same type, there's no match.
+ /**
+  * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
+  * @fwnode: pointer to the endpoint's fwnode handle
 -- 
 2.25.1
 
