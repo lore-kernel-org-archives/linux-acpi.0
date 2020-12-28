@@ -2,72 +2,73 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9797BC43332
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Dec 2020 23:23:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18BB5C43219
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Dec 2020 23:23:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6910A207A6
+	by mail.kernel.org (Postfix) with ESMTP id E45EF223E8
 	for <linux-acpi@archiver.kernel.org>; Mon, 28 Dec 2020 23:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729468AbgL1Wze (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Dec 2020 17:55:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53334 "EHLO
+        id S1728584AbgL1Wzd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Dec 2020 17:55:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729650AbgL1WiW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Dec 2020 17:38:22 -0500
-Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCF9EC061793;
-        Mon, 28 Dec 2020 14:37:41 -0800 (PST)
-Received: by mail-wr1-x436.google.com with SMTP id q18so12696370wrn.1;
-        Mon, 28 Dec 2020 14:37:41 -0800 (PST)
+        with ESMTP id S1729506AbgL1VST (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Dec 2020 16:18:19 -0500
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15244C0613D6;
+        Mon, 28 Dec 2020 13:17:39 -0800 (PST)
+Received: by mail-wr1-x42a.google.com with SMTP id t30so12570999wrb.0;
+        Mon, 28 Dec 2020 13:17:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:subject:to:cc:references:message-id:date:user-agent
+        h=subject:to:cc:references:from:message-id:date:user-agent
          :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=cAeYGJr64qM0J3cdUpSC1dxJIeDEv7wZv2g1KK2WMMg=;
-        b=dnGS/5FXPPzqgLVq8xXScoVyFGMeV8K6XsxEUPVluPEma6sUdvZKM80nVrAVFtnM/O
-         0rj2IMM+HP1RCIGgr582ATwDAp1s5zZ2v0fhZ8N0hZriQ7ZlYEa+K9Uc0Txtf5uu1/Eq
-         k6q2M7m6FLWIdJmrL53J1lOntfLv1hxCYrzwo5avwYscFKkq31WMB+3X0D11CvCdjTw5
-         Btrm9ljDANWofBjSansLml5CSAVnVRQwRIDTW49UJg2S9CNgmTK2VkQnUa/KgyHP6DqV
-         G+7YyCdqb62lBCF0aWbMzcl017zNTWqI9a9A6mfCj2rTNQeNCDOqF/LHAgeK5xVBQKcq
-         XFXQ==
+        bh=6/WVNRIgvoEIoBQB5jvPaHPOS3LUIEzkSJx65mcEOyg=;
+        b=FNJIWOejlt+bMS1zaJGqlv6ykzpCKkcKFXtVr2ubkzsSV1figJddONo7ITMEIUMRex
+         XT0eGBJVWSmhXrtxPE7MAgch7Qox3Mw2QM5IJpO0+z6GZKTJIHE4KWOoId3sEHw2EDuw
+         3nrUazxnPObf9MXUBLiEXi9x8AFtRt34mmlKaC4AwUL3PuIsPKnMPL4e4l2LzIk7CfHp
+         RSWvF9lOr3mdcOD3QG9/D53sIcs0S2Q0hyVV89Wp7zuqAkR0ZRpFWZu8tJCdvx2wD0lE
+         v7LMDvPy/a0y15SRXbQhwROrMRN8+3XIJsXS9c80+fB/rdV2/ZoZ/JqQRxqjI3kjgG0R
+         0EoA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:subject:to:cc:references:message-id:date
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=cAeYGJr64qM0J3cdUpSC1dxJIeDEv7wZv2g1KK2WMMg=;
-        b=MdKQ2UxQNwj45oTxfA+kuxuMM52z2jNMs/abP+6UMcpPbVjNdV5UwJcfugMLhiltHA
-         jH7E6g+OOcLI5/hObmbo6c5+Qev7nulKq21wYUvyRSrFme41gVImUGZrnSwXyUqyzKfL
-         4kM/WvkVjH+CQtTYELcIlb3KJ0SHWP7SDCnpny/xQsVVdTQU90q/n7QBTTXLKfaq/RnP
-         oTE8HFwHIaPMpYT/Gu9d08pSRHdneoMabDpSs/hQeD4VwL0k3ZAGI1qHM0c+v/RROsnJ
-         6UpMghMUN+cNqCrlgO0Pg/wROCP62/iYV3Bm6Og/risiHEj2LYkH6PJ0kd0SggImQM0z
-         ZoEQ==
-X-Gm-Message-State: AOAM5300e6o05og/QoTVpHjJh3pxMd/v4vDi76JsvDyr+DfSsvHfk3zD
-        5rWKemNdqJSaczIqM4SVEzw=
-X-Google-Smtp-Source: ABdhPJwYZOC20R+KxVh6WIxIwMGw6u/XrQTn7/CHjpU7BqRPjo6ICMdePCC5PQ/uQ8EQ/yVP0jag9g==
-X-Received: by 2002:a5d:528a:: with SMTP id c10mr45712570wrv.117.1609195060468;
-        Mon, 28 Dec 2020 14:37:40 -0800 (PST)
-Received: from [192.168.1.211] ([2.31.224.116])
-        by smtp.gmail.com with ESMTPSA id k10sm54929429wrq.38.2020.12.28.14.37.39
+        bh=6/WVNRIgvoEIoBQB5jvPaHPOS3LUIEzkSJx65mcEOyg=;
+        b=Nymle+BYp7YF0kPgOmVZo2AHF9GD0V2HK86YyiTUVETobB6FCun31cNxbJiuMrhLCo
+         Wckh3jVDQ4ke4IGLQVN4oN4v+VUSOIJXzxt7yhYXRG4EUMoCqM5fRgX3wqzJg1Rx6Yer
+         8GrLBX1QAIFMNbErg0H3P+ejoJyZc5iKmMeSU+UopuDjSyPRF6mg3JwDRuTCoFOwQGbM
+         wQCcQgsW4BvoM2dNvpqq8pKozoAtIR7FA+8U0wBFbzVzYcFlDU5vBJBfp7+4mpQqXq9w
+         11b+ANufl+N3ix7IRjyTuR/l7Ftofs0OmewqqUSvM5E9PTIbFNnf3tBgYb2GvnHfD57+
+         dT/A==
+X-Gm-Message-State: AOAM5316bbDmiia8PifPoM3c6i0hTsYaLm8h+/ifeWeKdlea9ezqhXHE
+        ZfVJiDufGCJCPhTadQHTooI=
+X-Google-Smtp-Source: ABdhPJys8O4OnUh7lIKC27LM7BkKt6guVRZ8oH2MlLfHAo+Jfm7B306edUtwKozJeH8G8NxJCjBpxw==
+X-Received: by 2002:a5d:6607:: with SMTP id n7mr50870402wru.206.1609190257824;
+        Mon, 28 Dec 2020 13:17:37 -0800 (PST)
+Received: from [192.168.1.158] ([2.31.224.116])
+        by smtp.gmail.com with ESMTPSA id s63sm736343wms.18.2020.12.28.13.17.35
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 28 Dec 2020 14:37:39 -0800 (PST)
-From:   Daniel Scally <djrscally@gmail.com>
-Subject: Re: [PATCH v3 14/14] ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>
+        Mon, 28 Dec 2020 13:17:37 -0800 (PST)
+Subject: Re: [PATCH v3 05/14] software_node: unregister software_nodes in
+ reverse order
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        David Laight <David.Laight@aculab.com>
 Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devel@acpica.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        "devel@acpica.org" <devel@acpica.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Bingbu Cao <bingbu.cao@intel.com>,
         Tian Shu Qiu <tian.shu.qiu@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -76,29 +77,36 @@ Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Petr Mladek <pmladek@suse.com>,
         Steven Rostedt <rostedt@goodmis.org>,
         Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        kieran.bingham+renesas@ideasonboard.com,
+        "kieran.bingham+renesas@ideasonboard.com" 
+        <kieran.bingham+renesas@ideasonboard.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>,
         Marco Felsch <m.felsch@pengutronix.de>,
-        niklas.soderlund+renesas@ragnatech.se,
+        "niklas.soderlund+renesas@ragnatech.se" 
+        <niklas.soderlund+renesas@ragnatech.se>,
         Steve Longerbeam <slongerbeam@gmail.com>,
         "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
-        Jordan Hand <jorhand@linux.microsoft.com>,
+        kernel test robot <lkp@intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 References: <20201224010907.263125-1-djrscally@gmail.com>
- <20201224010907.263125-15-djrscally@gmail.com>
- <CAHp75VeXN6PnV7Mzz6UMpD+m-yjPi6XK0kx1=+-M5mci=Vb=YQ@mail.gmail.com>
- <20201228170521.GZ26370@paasikivi.fi.intel.com>
-Message-ID: <2d37df3d-f04c-6679-6e27-6c7f82e9b158@gmail.com>
-Date:   Mon, 28 Dec 2020 22:37:38 +0000
+ <20201224010907.263125-6-djrscally@gmail.com>
+ <CAHp75VdF5NdjrSxcOafh7KNNDteYEUDk9otA0HKX-iks7G0D4g@mail.gmail.com>
+ <de478ef0-0b4d-df1d-2651-9cc35bf2f45b@gmail.com>
+ <CAHp75VdWuowLenNPQRNc+QXeyuvwKqh_bjw=1WvmFrzoygXFRw@mail.gmail.com>
+ <2b415312-fe30-c73b-0077-4ec2a07116df@gmail.com>
+ <fcb07dea193b4b99b11f2a8e684d8acf@AcuMS.aculab.com>
+ <20201228101526.GV4077@smile.fi.intel.com>
+From:   Daniel Scally <djrscally@gmail.com>
+Message-ID: <1a79347f-b4fe-5fe7-ccb3-a2d53ae93480@gmail.com>
+Date:   Mon, 28 Dec 2020 21:17:35 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.10.0
 MIME-Version: 1.0
-In-Reply-To: <20201228170521.GZ26370@paasikivi.fi.intel.com>
+In-Reply-To: <20201228101526.GV4077@smile.fi.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -106,107 +114,28 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Sakari, thanks for comments
 
-On 28/12/2020 17:05, Sakari Ailus wrote:
-> Hi Andy, Daniel,
-> 
-> On Thu, Dec 24, 2020 at 02:54:44PM +0200, Andy Shevchenko wrote:
->>> +static void cio2_bridge_init_swnode_names(struct cio2_sensor *sensor)
->>> +{
->>> +       snprintf(sensor->node_names.remote_port, sizeof(sensor->node_names.remote_port),
->>> +                FWNODE_GRAPH_PORT_NAME_FORMAT, sensor->ssdb.link);
->>> +       snprintf(sensor->node_names.port, sizeof(sensor->node_names.port),
->>> +                FWNODE_GRAPH_PORT_NAME_FORMAT, 0); /* Always port 0 */
->>> +       snprintf(sensor->node_names.endpoint, sizeof(sensor->node_names.endpoint),
->>> +                FWNODE_GRAPH_ENDPOINT_NAME_FORMAT, 0); /* And endpoint 0 */
-> 
-> Please wrap before 80, there's no need here to do otherwise. You could
-> argue about cio2_bridge_create_fwnode_properties() though. I might just
-> wrap that, too.
-> 
-> Applies to the rest of the patch.
 
-I shall wrap such cases then - I thought I read somewhere that the
-wrapped line needed to be shorter than the parent which is why I wrapped
-after 80...but I can't find the reference now so possibly I imagined that.
-
->>> +static int cio2_bridge_connect_sensors(struct cio2_bridge *bridge,
->>> +                                      struct pci_dev *cio2)
->>> +{
->>> +       struct fwnode_handle *fwnode;
->>> +       struct cio2_sensor *sensor;
->>> +       struct acpi_device *adev;
->>> +       unsigned int i;
->>> +       int ret = 0;
+On 28/12/2020 10:15, Andy Shevchenko wrote:
+> On Thu, Dec 24, 2020 at 06:36:10PM +0000, David Laight wrote:
+>> From: Daniel Scally 
+>>> Sent: 24 December 2020 14:14
+>> ...
+>>>>> The array will be unwound in reverse order (i.e. last entry first). If
+>>>>> any member of the array is a child of another member then the child must
+>>>> children ?
+>>>
+>>> Yes, you are right of course.
 >>
->> You may drop this assignment and...
+>> The second 'child' is a back-reference to 'any member' so is singular
+>> so 'child' is correct.
+>> 'the child' could be replaced by 'it'
 >>
->>> +       for (i = 0; i < ARRAY_SIZE(cio2_supported_sensors); i++) {
->>> +               const struct cio2_sensor_config *cfg = &cio2_supported_sensors[i];
+>> You could have:
+>>    If any members of the array are children of another member then the
+>>    children must appear later in the list.
 > 
-> You could move the inner loop into a new function called e.g.
-> cio2_bridge_connect_sensor.
+> Works for me!
+> Dan, can you consider David's proposal?
 
-Yeah good idea, I'll do that.
-
->>> diff --git a/drivers/media/pci/intel/ipu3/cio2-bridge.h b/drivers/media/pci/intel/ipu3/cio2-bridge.h
->>> new file mode 100644
->>> index 000000000000..004b608f322f
->>> --- /dev/null
->>> +++ b/drivers/media/pci/intel/ipu3/cio2-bridge.h
->>> @@ -0,0 +1,122 @@
->>> +/* SPDX-License-Identifier: GPL-2.0 */
->>> +/* Author: Dan Scally <djrscally@gmail.com> */
->>> +#ifndef __CIO2_BRIDGE_H
->>> +#define __CIO2_BRIDGE_H
->>> +
->>> +#include <linux/property.h>
->>> +
->>> +#define CIO2_HID                               "INT343E"
->>> +#define CIO2_NUM_PORTS                         4
-> 
-> This is already defined in ipu3-cio2.h. Could you include that instead?
-
-Yes; but I'd need to also include media/v4l2-device.h and
-media/videobuf2-dma-sg.h (they're included in ipu3-cio2-main.c at the
-moment). It didn't seem worth it; but I can move those two includes from
-the .c to the .h and then include ipu3-cio2.h in cio2-bridge.h
-
-Which do you prefer?
-
->>> +#define MAX_NUM_LINK_FREQS                     3
->>> +
->>> +#define CIO2_SENSOR_CONFIG(_HID, _NR, ...)     \
->>> +       {                                       \
->>> +               .hid = _HID,                    \
->>> +               .nr_link_freqs = _NR,           \
->>> +               .link_freqs = { __VA_ARGS__ }   \
->>> +       }
->>> +
->>> +#define NODE_SENSOR(_HID, _PROPS)              \
->>> +       ((const struct software_node) {         \
->>> +               .name = _HID,                   \
->>> +               .properties = _PROPS,           \
->>> +       })
->>> +
->>> +#define NODE_PORT(_PORT, _SENSOR_NODE)         \
->>> +       ((const struct software_node) {         \
->>> +               _PORT,                          \
->>> +               _SENSOR_NODE,                   \
-> 
-> Could you use explicit assignments to fields here, please?
-> 
->>> +       })
->>> +
->>> +#define NODE_ENDPOINT(_EP, _PORT, _PROPS)      \
->>> +       ((const struct software_node) {         \
->>> +               _EP,                            \
->>> +               _PORT,                          \
->>> +               _PROPS,                         \
-> 
-> Ditto.
-> 
-
-Will do
-
+Yep - done, thanks David
