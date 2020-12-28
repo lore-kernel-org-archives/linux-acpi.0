@@ -2,195 +2,115 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1023C43333
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Dec 2020 23:18:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54611C4332B
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Dec 2020 23:23:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B8C3207B3
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Dec 2020 23:18:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FE7D207A6
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Dec 2020 23:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729699AbgL1XRq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Dec 2020 18:17:46 -0500
-Received: from mail1.bemta23.messagelabs.com ([67.219.246.5]:50617 "EHLO
-        mail1.bemta23.messagelabs.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727043AbgL1XRo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 28 Dec 2020 18:17:44 -0500
-Received: from [100.112.1.102] (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256 bits))
-        by server-5.bemta.az-b.us-east-1.aws.symcld.net id DB/07-54546-0566AEF5; Mon, 28 Dec 2020 23:12:16 +0000
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrOKsWRWlGSWpSXmKPExsWSLveKXdc/7VW
-  8wfu9xhYP3sxms9g57TqTxZvj05ksznZfY7RYvq+f0eJz7xFGi1fNj9gszpy+xOrA4THx+yp2
-  jz0TT7J5LN7zksmje/Y/Fo/3+66yeWy52s7i8XmTXAB7FGtmXlJ+RQJrxsUl6xgLvklX3G5/y
-  tbAuE6si5GLQ0jgP6PE75ONrBDOM0aJTcf2sIM4wgJrGCXW995h6WLk5BAR8JJ42HIaLMEssI
-  dRovPWM7CEkECKRMO7B0wgNpuAtsSWLb/YQGxeAVuJe193gtWwCKhK9H6/xw5iiwqES6xfspI
-  RokZQ4uTMJ2A1nAJ2Es3T54L1MgsYSBxZNIcVwhaXuPVkPhOELS+x/e0cZhBbQkBO4vuKh+wQ
-  doLEspd3mCcwCs5CMnYWklGzkIyahWTUAkaWVYymSUWZ6RkluYmZObqGBga6hoZGusa6piZ6i
-  VW6SXqlxbqpicUluoZ6ieXFesWVuck5KXp5qSWbGIHxllLAbLaD8efrD3qHGCU5mJREeZMSX8
-  UL8SXlp1RmJBZnxBeV5qQWH2KU4eBQkuB9kwSUEyxKTU+tSMvMAcY+TFqCg0dJhLcgFSjNW1y
-  QmFucmQ6ROsWYyXH5+rxFzBzvfi4Gkm/WLgGSb8Hkzfcgsu3eXSDZDiZnLji4mpljFpi8334I
-  SD4AkUIsefl5qVLivIdTgBYIgCzIKM2DWw9Lf5cYZaWEeRkZGBiEeApSi3IzS1DlXzGKczAqC
-  fOmgkzhycwrgbvyFdADTEAPBJQ/B3mgJBEhJdXA5BDAP5t3c4uGuMrJJLHXMs9dph2zX3N/Hv
-  sjNy4OhlcnslyXhydNzj6RP9N35pN1tm9ErG4UyeqeimHkcTjO82wW6+cUV57Zqz9Zdpg4y03
-  NOqtce+/EomN2zHd8zY6++FIW2bo59W916/IfundedfwPCXf7fFCZh2fhnYnW9W2T2DUNntgt
-  47wiY/Wk4EcUk25g0///s6LCpQrn6HpKtzyzdmx9138hZ9f1ZeKvn3N2+AQGuy/9fnfqpec8h
-  t+muW3eoWj51Na3wWm1Tp627uU9fyQjJNgUD9sKeHNntfw9GbFpTsSuZPW0G6LLY9M9dVw23W
-  V9Vb2xfEvjnDlx/Ba/eFoL/ZIucP+1F7qsxFKckWioxVxUnAgA0ZFYV/oDAAA=
-X-Env-Sender: markpearson@lenovo.com
-X-Msg-Ref: server-9.tower-386.messagelabs.com!1609197133!604423!1
-X-Originating-IP: [103.30.234.7]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received: 
-X-StarScan-Version: 9.60.3; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 23068 invoked from network); 28 Dec 2020 23:12:15 -0000
-Received: from unknown (HELO lenovo.com) (103.30.234.7)
-  by server-9.tower-386.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 28 Dec 2020 23:12:15 -0000
-Received: from reswpmail04.lenovo.com (unknown [10.62.32.23])
-        (using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by Forcepoint Email with ESMTPS id B262F57C6C913E92313F;
-        Tue, 29 Dec 2020 07:12:11 +0800 (CST)
-Received: from localhost.localdomain (10.38.50.3) by reswpmail04.lenovo.com
- (10.62.32.23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2044.4; Mon, 28 Dec
- 2020 15:12:09 -0800
-Subject: Re: [External] Re: [pm:bleeding-edge 8612/8615]
- drivers/acpi/platform_profile.c:147:24: warning: address of array
- 'pprof->choices' will always evaluate to 'true'
-To:     Hans de Goede <hdegoede@redhat.com>,
-        kernel test robot <lkp@intel.com>
-CC:     <kbuild-all@lists.01.org>, <clang-built-linux@googlegroups.com>,
-        <linux-acpi@vger.kernel.org>, <devel@acpica.org>,
-        <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-References: <202012271352.JvNDF17O-lkp@intel.com>
- <34a43212-ff2b-cbc6-a670-975d39ac9f12@redhat.com>
-From:   Mark Pearson <markpearson@lenovo.com>
-Message-ID: <16284400-7c71-ee40-b694-614d6daf21f5@lenovo.com>
-Date:   Mon, 28 Dec 2020 18:12:08 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
+        id S1729524AbgL1Wze (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Dec 2020 17:55:34 -0500
+Received: from mga17.intel.com ([192.55.52.151]:18631 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727795AbgL1Wzc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 28 Dec 2020 17:55:32 -0500
+IronPort-SDR: +UegUQW+HNgdpnQbckhf3QEZKFkdFD2Z8FGfSoh+Z3lXVcpUoRwqznQY8AAC5XhfZqDC19X1W9
+ aIc75MvaiWnA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9848"; a="156219592"
+X-IronPort-AV: E=Sophos;i="5.78,456,1599548400"; 
+   d="scan'208";a="156219592"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Dec 2020 14:54:50 -0800
+IronPort-SDR: P8pRkp4r4hleaTdW98lANxtwRf91Y1VewUXny3A6f5SumEy48JGwSfyQyqMDBPQcqmziskMV8e
+ WeEiLzDvAsLQ==
+X-IronPort-AV: E=Sophos;i="5.78,456,1599548400"; 
+   d="scan'208";a="400097145"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Dec 2020 14:54:44 -0800
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andy.shevchenko@gmail.com>)
+        id 1ku1QX-000IqD-09; Tue, 29 Dec 2020 00:55:45 +0200
+Date:   Tue, 29 Dec 2020 00:55:44 +0200
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+To:     Daniel Scally <djrscally@gmail.com>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@acpica.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Petr Mladek <pmladek@suse.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        kieran.bingham+renesas@ideasonboard.com,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        niklas.soderlund+renesas@ragnatech.se,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jordan Hand <jorhand@linux.microsoft.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3 14/14] ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
+Message-ID: <20201228225544.GH4077@smile.fi.intel.com>
+References: <20201224010907.263125-1-djrscally@gmail.com>
+ <20201224010907.263125-15-djrscally@gmail.com>
+ <CAHp75VeXN6PnV7Mzz6UMpD+m-yjPi6XK0kx1=+-M5mci=Vb=YQ@mail.gmail.com>
+ <20201228170521.GZ26370@paasikivi.fi.intel.com>
+ <2d37df3d-f04c-6679-6e27-6c7f82e9b158@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <34a43212-ff2b-cbc6-a670-975d39ac9f12@redhat.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.38.50.3]
-X-ClientProxiedBy: reswpmail04.lenovo.com (10.62.32.23) To
- reswpmail04.lenovo.com (10.62.32.23)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2d37df3d-f04c-6679-6e27-6c7f82e9b158@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Hans
+On Mon, Dec 28, 2020 at 10:37:38PM +0000, Daniel Scally wrote:
+> On 28/12/2020 17:05, Sakari Ailus wrote:
+> > On Thu, Dec 24, 2020 at 02:54:44PM +0200, Andy Shevchenko wrote:
 
-On 27/12/2020 06:56, Hans de Goede wrote:
-> Hi,
-> 
-> On 12/27/20 6:11 AM, kernel test robot wrote:
->> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
->> head:   a33520709645543f108361fe21fa9434a351c4e9
->> commit: 8c9b909fb1282e43792433e6c1cba125ccfc6201 [8612/8615] ACPI: platform-profile: Add platform profile support
->> config: x86_64-randconfig-a015-20201221 (attached as .config)
->> compiler: clang version 12.0.0 (https://github.com/llvm/llvm-project cee1e7d14f4628d6174b33640d502bff3b54ae45)
->> reproduce (this is a W=1 build):
->>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->>         chmod +x ~/bin/make.cross
->>         # install x86_64 cross compiling tool for clang build
->>         # apt-get install binutils-x86-64-linux-gnu
->>         # https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?id=8c9b909fb1282e43792433e6c1cba125ccfc6201
->>         git remote add pm https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
->>         git fetch --no-tags pm bleeding-edge
->>         git checkout 8c9b909fb1282e43792433e6c1cba125ccfc6201
->>         # save the attached .config to linux build tree
->>         COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross ARCH=x86_64 
->>
->> If you fix the issue, kindly add following tag as appropriate
->> Reported-by: kernel test robot <lkp@intel.com>
->>
->> All warnings (new ones prefixed by >>):
->>
->>>> drivers/acpi/platform_profile.c:147:24: warning: address of array 'pprof->choices' will always evaluate to 'true' [-Wpointer-bool-conversion]
->>            if (!pprof || !pprof->choices || !pprof->profile_set ||
->>                          ~~~~~~~~^~~~~~~
->>    1 warning generated.
-> 
-> 
-> Ah, this is caused by changing choices from a single long to:
-> 
-> 	unsigned long choices[BITS_TO_LONGS(PLATFORM_PROFILE_LAST)];
-> 
-> So that we can use for_each_set_bit and are future proof for more then
-> 32 profiles.
-> 
-> To fix this the check should be changed into this (untested):
-> 
-> #include <linux/bitmap.h>
-> 
-> 	if (!pprof || bitmap_empty(pprof->choices, PLATFORM_PROFILE_LAST) ||
-> 	    !pprof->profile_set || !pprof->profile_get) {
-> 		mutex_unlock(&profile_lock);
-> 		return -EINVAL;
-> 	}
-> 
-> Mark can you provide a (tested) patch for this?
-> 
-> Regards,
-> 
-> Hans
-> 
-Will do!
+...
 
-Mark
+> >>> +#include <linux/property.h>
+> >>> +
+> >>> +#define CIO2_HID                               "INT343E"
+> >>> +#define CIO2_NUM_PORTS                         4
+> > 
+> > This is already defined in ipu3-cio2.h. Could you include that instead?
+> 
+> Yes; but I'd need to also include media/v4l2-device.h and
+> media/videobuf2-dma-sg.h (they're included in ipu3-cio2-main.c at the
+> moment). It didn't seem worth it; but I can move those two includes from
+> the .c to the .h and then include ipu3-cio2.h in cio2-bridge.h
+> 
+> Which do you prefer?
 
-> 
-> 
-> 
-> 
-> 
-> 
-> 
->>
->>
->> vim +147 drivers/acpi/platform_profile.c
->>
->>    134	
->>    135	int platform_profile_register(const struct platform_profile_handler *pprof)
->>    136	{
->>    137		int err;
->>    138	
->>    139		mutex_lock(&profile_lock);
->>    140		/* We can only have one active profile */
->>    141		if (cur_profile) {
->>    142			mutex_unlock(&profile_lock);
->>    143			return -EEXIST;
->>    144		}
->>    145	
->>    146		/* Sanity check the profile handler field are set */
->>  > 147		if (!pprof || !pprof->choices || !pprof->profile_set ||
->>    148				!pprof->profile_get) {
->>    149			mutex_unlock(&profile_lock);
->>    150			return -EINVAL;
->>    151		}
->>    152	
->>    153		err = sysfs_create_group(acpi_kobj, &platform_profile_group);
->>    154		if (err) {
->>    155			mutex_unlock(&profile_lock);
->>    156			return err;
->>    157		}
->>    158	
->>    159		cur_profile = pprof;
->>    160		mutex_unlock(&profile_lock);
->>    161		return 0;
->>    162	}
->>    163	EXPORT_SYMBOL_GPL(platform_profile_register);
->>    164	
->>
->> ---
->> 0-DAY CI Kernel Test Service, Intel Corporation
->> https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
->>
-> 
+Actually ipu3-cio2.h misses a lot of inclusions (like mutex.h which I
+immediately noticed when scrolled over data types). I think here should be a
+compromise variant, split out something like ipu3-cio2-defs.h which can be
+included in both ipu3-cio2.h and cio2-bridge.h.
+
+And cio2-bridge.h needs more inclusions like types.h.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
