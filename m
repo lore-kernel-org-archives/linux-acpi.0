@@ -2,136 +2,239 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F7BBC433E0
-	for <linux-acpi@archiver.kernel.org>; Wed, 30 Dec 2020 20:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5E68C433DB
+	for <linux-acpi@archiver.kernel.org>; Thu, 31 Dec 2020 06:13:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1E3720B1F
-	for <linux-acpi@archiver.kernel.org>; Wed, 30 Dec 2020 20:48:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 922B820799
+	for <linux-acpi@archiver.kernel.org>; Thu, 31 Dec 2020 06:13:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726261AbgL3Ust (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 30 Dec 2020 15:48:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55012 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726247AbgL3Ust (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2020 15:48:49 -0500
-Received: from mail-pf1-x435.google.com (mail-pf1-x435.google.com [IPv6:2607:f8b0:4864:20::435])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3F28C061573;
-        Wed, 30 Dec 2020 12:48:08 -0800 (PST)
-Received: by mail-pf1-x435.google.com with SMTP id h10so9295795pfo.9;
-        Wed, 30 Dec 2020 12:48:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=jRVdipqMo3SGkScdVCSY0NCVDydJxCZXUp0vL0ss0j8=;
-        b=Ex8hVNUWqY+rbyZwRHu0Z8ZFDWv3n6GCNQ6/oKC9ORvHkbkiVNGzdB91SjAk392fsg
-         s3ED8sOmsckgJOxTaNfYxosbDaaMTahyn8teOd4ojTAUMBd0JUPKX5HzCwG4Hhbis73B
-         uRuMcfr3NQT5ekO4VMFxihb+mdcnRnFki6aY9LJt3PYKLZkgwrGw4VeNdH9ioFHjsks1
-         vbOzj6pKww4PqUZL4f29Bi4HnqOfCxVzr4w0ISFjRmcq4dfx2pLhCVAB43Q8usle0KNN
-         XoU1DpgnpDL8QwmG6+owvGJ/TZUxTIGNNavC1HalaTQByK0CRPAB+fhq7VP0yAqWMm5L
-         wt4g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jRVdipqMo3SGkScdVCSY0NCVDydJxCZXUp0vL0ss0j8=;
-        b=EvKOt2D2oKqHTPO5ECfCGDcGPZ/Mbx08uNO1GIA/DrfNwAMXzjq1gjhaz7jsMzcrDb
-         WcOjDyFGLUj3FbBeEHViVCpxk32HKfZeoqVcJ7eAGlBDqfBFxh1Ee55QOyeTfJrrH79T
-         51ibimUaLZuv9ZtE6/AIIOT7kyXfr/iW1Tti6s8DTecrnbHjHiJP+rUL2axyGHbbL4xb
-         6ib/1VVZOcgq/eI6HmOhtOgS+pdi4HB0F6b5b+umvKghnxsnWYyeMyEuYa6cqsY3rcH5
-         A1ZNW/TwuLOkvwvRk1HNboy2XIyBcy0JwKFcKr6PZtM0A3Mq7Jo0eAdj2fsAKXswx66Y
-         ypxA==
-X-Gm-Message-State: AOAM531K/Ev6mIXZCkokCn4f4uqC4EiEjFgnlJNiq9kNNkx1sBUOrr0C
-        0fVAuJzt3YkLKoEwLhzJ62RQL9cXZsTi/XqjnroaXIlKC6/9wA==
-X-Google-Smtp-Source: ABdhPJxSMf4/TA4B3IeFbMjgSsLR1NtTgwkka1CnQ1qojXL0WNjbTMpocAhYi5Qhs2jjwKkiX06W8HtrgHf96sok07s=
-X-Received: by 2002:a63:c04b:: with SMTP id z11mr53914993pgi.74.1609361287808;
- Wed, 30 Dec 2020 12:48:07 -0800 (PST)
+        id S1726218AbgLaGNN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 31 Dec 2020 01:13:13 -0500
+Received: from mga02.intel.com ([134.134.136.20]:24485 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726037AbgLaGNN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 31 Dec 2020 01:13:13 -0500
+IronPort-SDR: ZqKxxa5U/moPHyi88jFJvNpx8XesGzDehLH+CLBN6leFIIAbZg85lU/Ixr6eXDFeYHGkgRNNmK
+ s3xq9dT4c2Sg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9850"; a="163737738"
+X-IronPort-AV: E=Sophos;i="5.78,463,1599548400"; 
+   d="scan'208";a="163737738"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Dec 2020 22:12:32 -0800
+IronPort-SDR: RKAqR6faMHtreLbdY0LPclLnNoc+94VuYVAhO3U19XlY99AdIMTCwe1v7gR6n+PYMU6SGuUr8d
+ HMLMNmXu/qzg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.78,463,1599548400"; 
+   d="scan'208";a="563689565"
+Received: from lkp-server02.sh.intel.com (HELO 4242b19f17ef) ([10.239.97.151])
+  by orsmga005.jf.intel.com with ESMTP; 30 Dec 2020 22:12:31 -0800
+Received: from kbuild by 4242b19f17ef with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1kurCI-0004kU-IS; Thu, 31 Dec 2020 06:12:30 +0000
+Date:   Thu, 31 Dec 2020 14:11:43 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [pm:bleeding-edge] BUILD SUCCESS WITH WARNING
+ 2e19c856a4614c113119f3f4d4795b190c5c828f
+Message-ID: <5fed6b9f.xlILK10i2fBDuwxj%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-References: <20201224010907.263125-1-djrscally@gmail.com> <20201224010907.263125-15-djrscally@gmail.com>
- <CAHp75VeXN6PnV7Mzz6UMpD+m-yjPi6XK0kx1=+-M5mci=Vb=YQ@mail.gmail.com>
- <20201228170521.GZ26370@paasikivi.fi.intel.com> <2d37df3d-f04c-6679-6e27-6c7f82e9b158@gmail.com>
- <20201228225544.GH4077@smile.fi.intel.com> <X+plTyUFhfHi7eIE@pendragon.ideasonboard.com>
- <CAHp75Vdzk7i+QzkTxLJUUkw3xZot9F7QT8pyu6b5yjkCVzMXEA@mail.gmail.com> <X+pzKDNWpiQWenHy@pendragon.ideasonboard.com>
-In-Reply-To: <X+pzKDNWpiQWenHy@pendragon.ideasonboard.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Wed, 30 Dec 2020 22:47:51 +0200
-Message-ID: <CAHp75Vf18sse_QQGSy+E2qK-N_B=ky83x36HiNfmUKmya_CS9Q@mail.gmail.com>
-Subject: Re: [PATCH v3 14/14] ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Daniel Scally <djrscally@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devel@acpica.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Tian Shu Qiu <tian.shu.qiu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Petr Mladek <pmladek@suse.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        kieran.bingham+renesas@ideasonboard.com,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Marco Felsch <m.felsch@pengutronix.de>,
-        niklas.soderlund+renesas@ragnatech.se,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jordan Hand <jorhand@linux.microsoft.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Dec 29, 2020 at 2:07 AM Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Tue, Dec 29, 2020 at 01:54:59AM +0200, Andy Shevchenko wrote:
-> > On Tue, Dec 29, 2020 at 1:08 AM Laurent Pinchart wrote:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git  bleeding-edge
+branch HEAD: 2e19c856a4614c113119f3f4d4795b190c5c828f  Merge branch 'acpi-platform' into bleeding-edge
 
-...
+Warning reports:
 
-> > +#include <linux/videodev2.h>
->
-> I think this can be dropped.
+https://lore.kernel.org/linux-acpi/202012180806.uUcdy2LC-lkp@intel.com
 
-I dropped above (I noticed it's included by a half of the headers listed below.
+Warning in current branch:
 
-> > +#include <media/media-device.h>
-> > +#include <media/media-entity.h>
-> > +#include <media/v4l2-async.h>
-> > +#include <media/v4l2-dev.h>
-> > +#include <media/v4l2-device.h>
-> > +#include <media/v4l2-subdev.h>
-> > +#include <media/videobuf2-core.h>
-> > +#include <media/videobuf2-v4l2.h>
+drivers/acpi/x86/s2idle.c:108:30: warning: variable 'info' set but not used [-Wunused-but-set-variable]
+drivers/acpi/x86/s2idle.c:138:25: warning: variable 'obj_new' set but not used [-Wunused-but-set-variable]
 
-...
+Warning ids grouped by kconfigs:
 
-> How about grouping all forward declarations at the top ?
+gcc_recent_errors
+|-- i386-allyesconfig
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-defconfig
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-randconfig-a011-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-randconfig-a012-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-randconfig-a013-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-randconfig-a015-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-randconfig-a016-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-randconfig-m021-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- i386-randconfig-p002-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-allyesconfig
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-defconfig
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-kexec
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-randconfig-a001-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-randconfig-a003-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-randconfig-a005-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-randconfig-a006-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-randconfig-s022-20201230
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-rhel
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-rhel-7.6-kselftests
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+|-- x86_64-rhel-8.3
+|   |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+|   `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
+`-- x86_64-rhel-8.3-kbuiltin
+    |-- drivers-acpi-x86-s2idle.c:warning:variable-info-set-but-not-used
+    `-- drivers-acpi-x86-s2idle.c:warning:variable-obj_new-set-but-not-used
 
-Done.
+elapsed time: 725m
 
-> Otherwise this looks good,
->
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+configs tested: 95
+configs skipped: 2
 
-Thanks!
-I just sent a formal patch with your tag included.
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+sh                      rts7751r2d1_defconfig
+m68k                             alldefconfig
+m68k                        m5407c3_defconfig
+sh                            shmin_defconfig
+arm                         s3c6400_defconfig
+mips                           rs90_defconfig
+h8300                    h8300h-sim_defconfig
+sh                             shx3_defconfig
+mips                   sb1250_swarm_defconfig
+powerpc                     akebono_defconfig
+powerpc                      obs600_defconfig
+powerpc                    klondike_defconfig
+arm                        mvebu_v5_defconfig
+s390                             alldefconfig
+sh                   rts7751r2dplus_defconfig
+powerpc                    sam440ep_defconfig
+arc                     haps_hs_smp_defconfig
+ia64                             alldefconfig
+sh                     sh7710voipgw_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                               tinyconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a005-20201230
+i386                 randconfig-a006-20201230
+i386                 randconfig-a004-20201230
+i386                 randconfig-a003-20201230
+i386                 randconfig-a002-20201230
+i386                 randconfig-a001-20201230
+i386                 randconfig-a016-20201230
+i386                 randconfig-a014-20201230
+i386                 randconfig-a012-20201230
+i386                 randconfig-a015-20201230
+i386                 randconfig-a011-20201230
+i386                 randconfig-a013-20201230
+x86_64               randconfig-a005-20201230
+x86_64               randconfig-a001-20201230
+x86_64               randconfig-a006-20201230
+x86_64               randconfig-a002-20201230
+x86_64               randconfig-a004-20201230
+x86_64               randconfig-a003-20201230
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                      rhel-8.3-kbuiltin
+x86_64                                  kexec
 
--- 
-With Best Regards,
-Andy Shevchenko
+clang tested configs:
+x86_64               randconfig-a015-20201230
+x86_64               randconfig-a014-20201230
+x86_64               randconfig-a016-20201230
+x86_64               randconfig-a011-20201230
+x86_64               randconfig-a013-20201230
+x86_64               randconfig-a012-20201230
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
