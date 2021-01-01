@@ -2,131 +2,137 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF2FC433DB
-	for <linux-acpi@archiver.kernel.org>; Thu, 31 Dec 2020 20:47:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 026F5C43381
+	for <linux-acpi@archiver.kernel.org>; Fri,  1 Jan 2021 12:57:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0AC182079A
-	for <linux-acpi@archiver.kernel.org>; Thu, 31 Dec 2020 20:47:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DEE922202
+	for <linux-acpi@archiver.kernel.org>; Fri,  1 Jan 2021 12:57:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726693AbgLaUqz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 31 Dec 2020 15:46:55 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:56294 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726210AbgLaUqz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Dec 2020 15:46:55 -0500
-Received: from 89-77-60-66.dynamic.chello.pl (89.77.60.66) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
- id adb218dee83d9126; Thu, 31 Dec 2020 21:46:12 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Stephen Berman <stephen.berman@gmx.net>
-Cc:     Zhang Rui <rui.zhang@intel.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
+        id S1726957AbhAAM5k (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 1 Jan 2021 07:57:40 -0500
+Received: from new3-smtp.messagingengine.com ([66.111.4.229]:36673 "EHLO
+        new3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726693AbhAAM5j (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jan 2021 07:57:39 -0500
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 25D7758041A;
+        Fri,  1 Jan 2021 07:56:53 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute6.internal (MEProxy); Fri, 01 Jan 2021 07:56:53 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=flygoat.com; h=
+        from:to:cc:subject:date:message-id:in-reply-to:references
+        :mime-version:content-transfer-encoding; s=fm1; bh=/ETWZ4/0vUN6q
+        k8OTyPL4Ov6POGsGEMJ3pj3b0rxw10=; b=TzeRUmDFW/zy7JbeS+HW2hWzgUy81
+        wfywMNo5H9l1dsQUENRD9qIm81s/RMFicByO7A6euV3ARAucYouC/C6Z1gPtrWVq
+        Mr2e0GzTAka4iVEtq+ptrtTACXb4vSDttkGUylVKPuC4A9DgyO3HmoJ8jej0ZNW7
+        6uPgFcLZtK26wKC4ARjT5T7w+LW7uFVRdRKojgUsVoSAtuwyFRgpsFdWDCE2cCVM
+        wEibcYqyLtZKt2/YhFFwiHq7TapdjfZ8/JYco+X18UJdv/+CEJbrOurjliewc+zn
+        Heo51y4fNEPXsaqccFW0LljVEXNVV4AglZGsR1eGYSme2RUvE/AcBH2dQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:date:from
+        :in-reply-to:message-id:mime-version:references:subject:to
+        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+        fm1; bh=/ETWZ4/0vUN6qk8OTyPL4Ov6POGsGEMJ3pj3b0rxw10=; b=bmGfekQ7
+        fH7/f/ZBCeXR+qyhbVLLcpzXOfiEtxeCDqTZjVklRTc0v1PwYQy4zd4TB9sQ/PEV
+        yBfNntLk7AV3taiP4IvIwy9Yd197sSI4fmvWEd2YtsbrlALtxhNumKZLJvWp4m0b
+        ybvs8C/t1ZcOd91qtyfaxAEnclntt+y9SwZ489hjeQViAAbeZybiNiPCE17rdoI9
+        ZFmtjNXP5EfTCgh2W1skwpIYTJwLcETFcOfCEEU/3jpZtD5Q6IAcUUd5ZRBhwjPx
+        SRA4puBwvZ9J9E9vvO0ZJ/G24uB9EaRFv8fmxnxnrRsG4Y8PysQAQI0UpZTa2l3H
+        zjbb0CXqh0Cl+A==
+X-ME-Sender: <xms:FBzvX3L3Oy5ejcgYwz88fVFAOgIF0TaTeNuECKi1Mp8NJ-kqKIjGfw>
+    <xme:FBzvX7Lj5tB4iuAmznZS_ddrg41jRalQfH5zXuAtQDUKFsNdHtM6ev7TSvLLnru0x
+    dwWDbtljnY7po2l4cc>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedujedrvddvjedggeejucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhephffvufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpeflihgrgihu
+    nhcujggrnhhguceojhhirgiguhhnrdihrghnghesfhhlhihgohgrthdrtghomheqnecugg
+    ftrfgrthhtvghrnhepjeeihffgteelkeelffdukedtheevudejvdegkeekjeefhffhhfet
+    udetgfdtffeunecukfhppeeitddrudejjedrudekledrudejudenucevlhhushhtvghruf
+    hiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehjihgrgihunhdrhigrnhhgsehf
+    lhihghhorghtrdgtohhm
+X-ME-Proxy: <xmx:FBzvX_s2WZ7I1pEoK55Oudq-8medDzzEy-ihlmk6UNvXSj-t8CwqNw>
+    <xmx:FBzvXwZXqTFvcAgedDZ9BPG_42_9BMvlAk7aaodFsin6ghIuZpi-yg>
+    <xmx:FBzvX-Y1FfO1QwNRPCy7cy43bFGq_fQ0DJLjkszh3Gz0bHrkZcjzuA>
+    <xmx:FBzvXzMdPsA5yEj6ik4EjIwah8v9GsEf1ae6gVXCz-LgkXsAbw0xYA>
+Received: from strike.202.net.flygoat.com (unknown [60.177.189.171])
+        by mail.messagingengine.com (Postfix) with ESMTPA id 457CC240057;
+        Fri,  1 Jan 2021 07:56:46 -0500 (EST)
+From:   Jiaxun Yang <jiaxun.yang@flygoat.com>
+To:     platform-driver-x86@vger.kernel.org
+Cc:     Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: power-off delay/hang due to commit 6d25be57 (mainline)
-Date:   Thu, 31 Dec 2020 21:46:11 +0100
-Message-ID: <9709109.MH8tSaV5v9@kreacher>
-In-Reply-To: <CAJZ5v0j7i86twMS+csYMaetUkvqjof4FD2GRNoZ_AN=SBF7F1w@mail.gmail.com>
-References: <87blkbx1gt.fsf@gmx.net> <CAJZ5v0j86pX_a4bSLP=sobLoYhfQYV9dWL8HHf2941kXgND79g@mail.gmail.com> <CAJZ5v0j7i86twMS+csYMaetUkvqjof4FD2GRNoZ_AN=SBF7F1w@mail.gmail.com>
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <mgross@linux.intel.com>,
+        Ike Panhc <ike.pan@canonical.com>,
+        Mark Pearson <markpearson@lenovo.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] ACPI: platform-profile: Introduce data parameter to handler
+Date:   Fri,  1 Jan 2021 20:56:25 +0800
+Message-Id: <20210101125629.20974-2-jiaxun.yang@flygoat.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210101125629.20974-1-jiaxun.yang@flygoat.com>
+References: <20210101125629.20974-1-jiaxun.yang@flygoat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wednesday, December 2, 2020 8:13:38 PM CET Rafael J. Wysocki wrote:
-> On Wed, Dec 2, 2020 at 7:31 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > On Wed, Dec 2, 2020 at 7:03 PM Sebastian Andrzej Siewior
-> > <bigeasy@linutronix.de> wrote:
-> > >
-> > > On 2020-10-26 18:20:59 [+0100], To Rafael J. Wysocki wrote:
-> > > > > > > > Done as Bug 208877.
-> > > > > > Rafael, do you have any suggestions?
-> > > > >
-> > > > > I've lost track of this sorry.
-> > > > >
-> > > > > I have ideas, let me get back to this next week.
-> > > >
-> > > > :)
-> > >
-> > > Rafael, any update? If you outline an idea or so then I may be able to
-> > > form a patch out of it. Otherwise I have no idea how to fix this - other
-> > > than telling the driver to not poll in smaller intervals than
-> > > 30secs.
-> >
-> > The idea, roughly speaking, is to limit the number of outstanding work
-> > items in the queue (basically, if there's a notification occurring
-> > before the previous one can be handled, there is no need to queue up
-> > another work item for it).
-> 
-> That's easier said than done, though, because of the way the work item
-> queue-up is hooked up into the ACPICA code.
+Add a data parameter to handler callbacks to avoid having
+global variables everywhere.
 
-So scratch this and it wouldn't work in general anyway AFAICS.
-
-ATM, I'm tempted to do something like the patch below (with the rationale
-that it shouldn't be necessary to read the temperature right after updating
-the trip points if polling is in use, because the next update through polling
-will cause it to be read anyway and it will trigger trip point actions as
-needed).
-
-Stephen, can you give it a go, please?
-
+Signed-off-by: Jiaxun Yang <jiaxun.yang@flygoat.com>
 ---
- drivers/acpi/thermal.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/acpi/platform_profile.c  | 4 ++--
+ include/linux/platform_profile.h | 5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-Index: linux-pm/drivers/acpi/thermal.c
-===================================================================
---- linux-pm.orig/drivers/acpi/thermal.c
-+++ linux-pm/drivers/acpi/thermal.c
-@@ -911,24 +911,25 @@ static void acpi_thermal_notify(struct a
- 	switch (event) {
- 	case ACPI_THERMAL_NOTIFY_TEMPERATURE:
- 		acpi_thermal_check(tz);
--		break;
-+		return;
- 	case ACPI_THERMAL_NOTIFY_THRESHOLDS:
- 		acpi_thermal_trips_update(tz, ACPI_TRIPS_REFRESH_THRESHOLDS);
--		acpi_thermal_check(tz);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event, 0);
- 		break;
- 	case ACPI_THERMAL_NOTIFY_DEVICES:
- 		acpi_thermal_trips_update(tz, ACPI_TRIPS_REFRESH_DEVICES);
--		acpi_thermal_check(tz);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event, 0);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Unsupported event [0x%x]\n", event));
--		break;
-+		return;
+diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+index 91be50a32cc8..60072f6e032d 100644
+--- a/drivers/acpi/platform_profile.c
++++ b/drivers/acpi/platform_profile.c
+@@ -64,7 +64,7 @@ static ssize_t platform_profile_show(struct device *dev,
+ 		return -ENODEV;
  	}
-+
-+	/* Trigger an update of the thermal zone unless polling is in use. */
-+	if (!tz->polling_frequency)
-+		acpi_thermal_check(tz);
-+
-+	acpi_bus_generate_netlink_event(device->pnp.device_class,
-+					dev_name(&device->dev), event, 0);
- }
  
- /*
-
-
+-	err = cur_profile->profile_get(&profile);
++	err = cur_profile->profile_get(cur_profile->data, &profile);
+ 	mutex_unlock(&profile_lock);
+ 	if (err)
+ 		return err;
+@@ -104,7 +104,7 @@ static ssize_t platform_profile_store(struct device *dev,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	err = cur_profile->profile_set(i);
++	err = cur_profile->profile_set(cur_profile->data, i);
+ 	mutex_unlock(&profile_lock);
+ 	if (err)
+ 		return err;
+diff --git a/include/linux/platform_profile.h b/include/linux/platform_profile.h
+index 3623d7108421..272faf55875d 100644
+--- a/include/linux/platform_profile.h
++++ b/include/linux/platform_profile.h
+@@ -27,9 +27,10 @@ enum platform_profile_option {
+ };
+ 
+ struct platform_profile_handler {
++	void *data;
+ 	unsigned long choices[BITS_TO_LONGS(PLATFORM_PROFILE_LAST)];
+-	int (*profile_get)(enum platform_profile_option *profile);
+-	int (*profile_set)(enum platform_profile_option profile);
++	int (*profile_get)(void *data, enum platform_profile_option *profile);
++	int (*profile_set)(void *data, enum platform_profile_option profile);
+ };
+ 
+ int platform_profile_register(const struct platform_profile_handler *pprof);
+-- 
+2.30.0
 
