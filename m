@@ -6,34 +6,34 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E541C43381
-	for <linux-acpi@archiver.kernel.org>; Sat,  2 Jan 2021 17:23:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B0D3C433E6
+	for <linux-acpi@archiver.kernel.org>; Sat,  2 Jan 2021 17:26:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00BF420791
-	for <linux-acpi@archiver.kernel.org>; Sat,  2 Jan 2021 17:23:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B36D20796
+	for <linux-acpi@archiver.kernel.org>; Sat,  2 Jan 2021 17:26:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726678AbhABRXh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 2 Jan 2021 12:23:37 -0500
-Received: from mga02.intel.com ([134.134.136.20]:22783 "EHLO mga02.intel.com"
+        id S1726617AbhABR0I (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 2 Jan 2021 12:26:08 -0500
+Received: from mga11.intel.com ([192.55.52.93]:5677 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726598AbhABRXg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 2 Jan 2021 12:23:36 -0500
-IronPort-SDR: pRH8RLejw1rxv/mbPUkEHO4PH0BW62zrNW5hAvHR/bWf0qxXNakReJ3h7TYdJadyUADvL9EdL1
- ZXMexGvhiAPQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9852"; a="163895332"
+        id S1726598AbhABR0I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 2 Jan 2021 12:26:08 -0500
+IronPort-SDR: GK0Jqj3QvB0CQruuc9H6cV3nJj2Kiq27yIVn3MJxMwK2X6CW7kUayGHsEqso/PoEZzejoxu3TA
+ vV59oiqIeJOg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9852"; a="173321806"
 X-IronPort-AV: E=Sophos;i="5.78,470,1599548400"; 
-   d="scan'208";a="163895332"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jan 2021 09:21:50 -0800
-IronPort-SDR: EPjvPP5vEZ0hdOwXHXakBXOGtZvsyYJQmeVfzjNQ0xP3EGcDuZWRN8g8RDov7eybLzsjb9Y1Sx
- nd2j+N6LAosg==
+   d="scan'208";a="173321806"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jan 2021 09:24:22 -0800
+IronPort-SDR: lkUcFnVWv/Nz/+rXOt9WvvEz/PpPROoXwzwjMrRu7vcJ2Ad7V8evwW/arZcYE5ZtO7cdp3iuXe
+ bhHbnsYeiQWw==
 X-IronPort-AV: E=Sophos;i="5.78,470,1599548400"; 
-   d="scan'208";a="401492940"
+   d="scan'208";a="349268993"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jan 2021 09:21:43 -0800
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jan 2021 09:24:16 -0800
 Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id CF8CB207BF; Sat,  2 Jan 2021 19:21:41 +0200 (EET)
-Date:   Sat, 2 Jan 2021 19:21:41 +0200
+        id A7BE8207BF; Sat,  2 Jan 2021 19:24:14 +0200 (EET)
+Date:   Sat, 2 Jan 2021 19:24:14 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     Daniel Scally <djrscally@gmail.com>
 Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
@@ -66,7 +66,7 @@ Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
         Jordan Hand <jorhand@linux.microsoft.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [PATCH v3 14/14] ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-Message-ID: <20210102172141.GE11878@paasikivi.fi.intel.com>
+Message-ID: <20210102172414.GF11878@paasikivi.fi.intel.com>
 References: <20201224010907.263125-1-djrscally@gmail.com>
  <20201224010907.263125-15-djrscally@gmail.com>
  <CAHp75VeXN6PnV7Mzz6UMpD+m-yjPi6XK0kx1=+-M5mci=Vb=YQ@mail.gmail.com>
@@ -105,7 +105,11 @@ On Sat, Jan 02, 2021 at 05:12:47PM +0000, Daniel Scally wrote:
 > set though, how would you want me to deal with the double definition of
 > CIO2_NUM_PORTS
 
-How about prepending Andy's patch to the set and including the header?
+The patch is here:
+
+<URL:https://patchwork.linuxtv.org/project/linux-media/patch/20201230204405.62892-1-andriy.shevchenko@linux.intel.com/>
+
+I guess Andy forgot to cc you.
 
 -- 
 Sakari Ailus
