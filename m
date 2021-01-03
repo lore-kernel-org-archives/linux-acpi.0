@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8EBBC433E9
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:14:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50F46C4332D
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:14:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFB7A207D1
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:14:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 227AB20DD4
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:14:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727842AbhACXNh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 3 Jan 2021 18:13:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59368 "EHLO
+        id S1727902AbhACXNm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 3 Jan 2021 18:13:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726019AbhACXNg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:13:36 -0500
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B525C0613C1;
-        Sun,  3 Jan 2021 15:12:56 -0800 (PST)
-Received: by mail-wr1-x434.google.com with SMTP id t16so30019144wra.3;
-        Sun, 03 Jan 2021 15:12:56 -0800 (PST)
+        with ESMTP id S1727880AbhACXNj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:13:39 -0500
+Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00113C0613D3;
+        Sun,  3 Jan 2021 15:12:58 -0800 (PST)
+Received: by mail-wm1-x333.google.com with SMTP id e25so17227486wme.0;
+        Sun, 03 Jan 2021 15:12:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=lj8Kk41KDbEvFLR6VVSK7iwBFdicxvK1tQNgP1oE8J8=;
-        b=LOqr2nPjnGwuOf6I0blQ6EE2xh+NavKW8DbropEelg4A/lD4K7NDpbL1mH7X+fpS9T
-         vsVUlFtwiEQztq1lH7G2h97l6XsS+Fd3L9/sdwx2LqByoA7fBK+cGzM+rMOjEcDV7ls4
-         30V+44nZB7C3nfj0tX+QvsYRTd67lRq72IxAvHMI3PJPiuHCfAqNrAhtM7O1O/Bgku5Z
-         2BoD+sy63Rr6xBpxzhGnQ0H/J6+aYCN+6ZFBY93n2L6K4F2qTgl+UqBsgm0V606+cB0a
-         XCdk6jqT0xX+CXXBU5P/P8Q3pa8YF2sDhTzfcuVh9jSyQbTICEKbcJYCoBrAvHHAtHwq
-         +aUA==
+        bh=n5CmQK7n7fIa42/kxgVjPB5vSMpy+eK0UJ45bTDYT3w=;
+        b=L68Dtu99GZSzyEUw97+BvjStiRh0VnG5AazWm3i+B4D4LxYzNK/LWAqd+jWNDZQjop
+         lvLQv2WsYhD6ZyPaYy3BqKEGSimKlgjQtXyvmSf5E3r1g/oOGHSRZp5JzP12CV6i1lZ5
+         UnPL0VTzOm0cu9z+tqw6TmzuSV78yIXokLBum1EdGUltOAmkMeLLTogV5HeO99h5zfN4
+         KUbIt4JRYh4ll1YvZ1TBMgDOU4qVjYEruj1MOK7po+QnzMPT2YRBjtXbrx+BIcj+pgZk
+         qR8rCXIc0IOIJ5yC9UpsmCpqDggFCRU/xy9JTW2YjAn+qHrMSmaqicFbFa2DlfOsseeN
+         HXdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=lj8Kk41KDbEvFLR6VVSK7iwBFdicxvK1tQNgP1oE8J8=;
-        b=bJgkAB9umsj2v6EyzX0S1y8xCWGRaN6v0jAC3ZXR8bXHxlEjFcqWjJn/R7wb4CpGja
-         zUQ+yKAiJuDbQIyxd/ukbm9FBDEB8nH/UDVKCeykjiXUAm0z5z5nyur2KLNB7xeeNUXs
-         sQ5RsNcAwKwGJwDXl3mBwUTemaJlrii2e1UZDGDty3MhEuQLdl7LbRajRAr0VqjbP5YQ
-         11yZ7nf6wCakw3TVGVObAyVjMrKLgAqXmwR8fseiSLtpgo6VsZ8aICqy+RO1GFeaM9gO
-         bQTFbmjfXpYyOdURPvQd8K3RYK9pkjRolKsHMnJy8reVFael75cFMVgUY/0GkwOPvdGA
-         vTxA==
-X-Gm-Message-State: AOAM532+d2bkMUbKfgF/I99rvI6oQNUTG5/lR2Znh9Le4naGAntkTRan
-        70WAqmHEfwltu55lB6hpmIof4J1sFhu2ihEf
-X-Google-Smtp-Source: ABdhPJxyoycOlujBIr+fRlhxn+S2GEHyrNdgui7hSt2Zg5gWSbLuUvqNH9J/w1b2BMP95YTNSj8fEA==
-X-Received: by 2002:adf:e704:: with SMTP id c4mr77855006wrm.355.1609715575108;
-        Sun, 03 Jan 2021 15:12:55 -0800 (PST)
+        bh=n5CmQK7n7fIa42/kxgVjPB5vSMpy+eK0UJ45bTDYT3w=;
+        b=oruUrCXl3nQYnUw0/xDGlGEY7/CgZnnbG/W8yNQU3lD2WAvpFFys2dAcMRyGeWkw30
+         mOHIZwF7kp5tjH5tTk9e2sjSKWuEZQU1yxKhFOLsPmEu/uti73dlx3JXfYr28GMCRG0R
+         rYjALXrYifv71val/2ppai5KcC8+l80+xVkPlZ7UZ8iSMPdZM7vSA4X98tTWa/DS9Jhn
+         RQ8qUAIyEh2Wanc+UK1YN7nkzG8smBIMhvzZpaj7vzZ9SXphX8HR2tI04k0PTJNkshZk
+         1QDJU4TZaS153ZzcGxDWM6GD50r0LoY27tafPB/XE9RWSPwOjdObQ5vgvXnqxuegJAqg
+         fmyA==
+X-Gm-Message-State: AOAM533vevDjyfhsCfhs1bWu5EwMkwh+eEBgwLucRlnmYKhfRW/CAYhl
+        7FOkXO10dMm04CCZ36MnEoGmazRLj9xFfClP
+X-Google-Smtp-Source: ABdhPJzMmr87aF+mgPwWYM2mr1hOkGlX8oX3wVGQ3Nyk3zFOaqgTTFIoReozHyKaZ3JhNvIIWkh2MQ==
+X-Received: by 2002:a1c:7909:: with SMTP id l9mr24607043wme.120.1609715577782;
+        Sun, 03 Jan 2021 15:12:57 -0800 (PST)
 Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.12.53
+        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.12.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 03 Jan 2021 15:12:54 -0800 (PST)
+        Sun, 03 Jan 2021 15:12:57 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org,
@@ -72,9 +72,9 @@ Cc:     lenb@kernel.org, yong.zhi@intel.com, sakari.ailus@linux.intel.com,
         niklas.soderlund+renesas@ragnatech.se, slongerbeam@gmail.com,
         heikki.krogerus@linux.intel.com, linus.walleij@linaro.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v4 01/15] software_node: Fix refcounts in software_node_get_next_child()
-Date:   Sun,  3 Jan 2021 23:12:21 +0000
-Message-Id: <20210103231235.792999-2-djrscally@gmail.com>
+Subject: [PATCH v4 03/15] property: Return true in fwnode_device_is_available for NULL ops
+Date:   Sun,  3 Jan 2021 23:12:23 +0000
+Message-Id: <20210103231235.792999-4-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210103231235.792999-1-djrscally@gmail.com>
 References: <20210103231235.792999-1-djrscally@gmail.com>
@@ -84,48 +84,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The software_node_get_next_child() function currently does not hold
-references to the child software_node that it finds or put the ref that
-is held against the old child - fix that.
+Some types of fwnode_handle do not implement the device_is_available()
+check, such as those created by software_nodes. There isn't really a
+meaningful way to check for the availability of a device that doesn't
+actually exist, so if the check isn't implemented just assume that the
+"device" is present.
 
-Fixes: 59abd83672f7 ("drivers: base: Introducing software nodes to the firmware node framework")
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
 Changes in v4:
 
 	- None
 
- drivers/base/swnode.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/base/property.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 010828fc785b..615a0c93e116 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -443,14 +443,18 @@ software_node_get_next_child(const struct fwnode_handle *fwnode,
- 	struct swnode *c = to_swnode(child);
- 
- 	if (!p || list_empty(&p->children) ||
--	    (c && list_is_last(&c->entry, &p->children)))
-+	    (c && list_is_last(&c->entry, &p->children))) {
-+		fwnode_handle_put(child);
- 		return NULL;
-+	}
- 
- 	if (c)
- 		c = list_next_entry(c, entry);
- 	else
- 		c = list_first_entry(&p->children, struct swnode, entry);
--	return &c->fwnode;
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 4c43d30145c6..bc9c634df6df 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -785,9 +785,15 @@ EXPORT_SYMBOL_GPL(fwnode_handle_put);
+ /**
+  * fwnode_device_is_available - check if a device is available for use
+  * @fwnode: Pointer to the fwnode of the device.
++ *
++ * For fwnode node types that don't implement the .device_is_available()
++ * operation, this function returns true.
+  */
+ bool fwnode_device_is_available(const struct fwnode_handle *fwnode)
+ {
++	if (!fwnode_has_op(fwnode, device_is_available))
++		return true;
 +
-+	fwnode_handle_put(child);
-+	return fwnode_handle_get(&c->fwnode);
+ 	return fwnode_call_bool_op(fwnode, device_is_available);
  }
- 
- static struct fwnode_handle *
+ EXPORT_SYMBOL_GPL(fwnode_device_is_available);
 -- 
 2.25.1
 
