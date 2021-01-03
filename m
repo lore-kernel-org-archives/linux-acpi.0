@@ -2,60 +2,60 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 851D9C4321A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7E6BC43142
 	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:15:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62D12207FB
+	by mail.kernel.org (Postfix) with ESMTP id A639B207D1
 	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:15:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727983AbhACXOT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 3 Jan 2021 18:14:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59490 "EHLO
+        id S1728101AbhACXPB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 3 Jan 2021 18:15:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727982AbhACXOS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:14:18 -0500
-Received: from mail-wm1-x32f.google.com (mail-wm1-x32f.google.com [IPv6:2a00:1450:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F620C0617A1;
-        Sun,  3 Jan 2021 15:13:08 -0800 (PST)
-Received: by mail-wm1-x32f.google.com with SMTP id c133so16486379wme.4;
-        Sun, 03 Jan 2021 15:13:08 -0800 (PST)
+        with ESMTP id S1727971AbhACXOR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:14:17 -0500
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDF8DC06179F;
+        Sun,  3 Jan 2021 15:13:05 -0800 (PST)
+Received: by mail-wr1-x42f.google.com with SMTP id t16so30020222wra.3;
+        Sun, 03 Jan 2021 15:13:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=R0GAqmMhWCpJ1h+yyfP0dUQgaIKJOiN6SmCAxCwFEKI=;
-        b=nGIufHNC+J2K6NafexTPvNG7L2Mfidg/YDxQoTHoZ4HFOYtOXTmFjP2mJBTdRwpChk
-         G1DWlVC7d9qd4QUGocCfiX6Vu3XEW1xzGodLAQ5nGxtwq+wPLN2dc0UAQcsju+OoPuyM
-         qvjip6TG+arkB144KvaP1PbL0RDA7ELcAB1/VmgQcgaR6pN0O3Aa+rWWGMNQNRIQnTVl
-         GBKJdbSrp7YxEwdG9WWoAB7fU+vUSTSL48nEmhrX4hzASXCjBCwhMLOCdGqaG75wWuAz
-         lI6GTGmLIhp0QhN8ru8JSr73VjLsEwD7EEKr+WrXUkE4P9E9NmWZymiCjD6NhQaZkIpi
-         TPlA==
+        bh=RMBjHrDajRxhZCxkXr9vhrFFi4tMzpNdjaV8TI7S6Ak=;
+        b=UPkolQeptJMKA21+5Cs+zd++s6U9W82+sYYcioUfXzRaaxsL6WSDmM11lrkcheOPFA
+         nVIQoKDSWKIntaVfusvkwGBTveMi6I8r9QAkP7w6Chmc33tDNSi/IbbNp1QvE/bgizJe
+         s8zW9evx0Ws/XpDOYZBCd1ZzskGFgfmQ/eUzDhe3tXQbIo9P4WipJT1Rt78ZeXGp82UZ
+         62arTiw/6t1KmjtS1TaFEJalHZ9SQOLltLKoomn7o9Y5vkIlI5PxcDeuS9Gcqxry2RKA
+         WCu6VnzsKTaksGXzpKnAye8MHou/kUJB7BN2f8OXO8DURrupxQz/ceo/dKnYFvJbnga0
+         OB/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=R0GAqmMhWCpJ1h+yyfP0dUQgaIKJOiN6SmCAxCwFEKI=;
-        b=rldXdMgVXMHWupN0QetEV/im4KV6b0ggozeLdy0BxftZPjAA0ui1qxAcx4Y4Sv6W68
-         Th32/t5r+d4CkOc48rg9t6lJ0KmdITJGq2ZhZFChtCZEL+ImwPCVSiC/0jdBOxepFLxz
-         W7qqWShGDrHfibmX5bSLeOCcKxdrmFdmn1Z508deF/GcMoeIOAFDN1CaYrlh6gIwVuJw
-         481t7SOUcyDbvrWYTqkcCf+Ni0CvQYVbf276G46ojUs7vFkxsjZIwilyyDkQodtGSMjg
-         aIUpQ23uU+KsQXUsPGs9PwxK5E2Kv2bVoCgRoVbmuPqc4HgYD9ZBTJr58rB/UZfAhORc
-         Dakg==
-X-Gm-Message-State: AOAM530N5CfbAqC4p1XflG/zScZceumtR44h2znvDvWqfeq6czJToUOp
-        CoFn+mEAvnQvJzMXqVuwhiKZ3UszdmbY8fra
-X-Google-Smtp-Source: ABdhPJy9XdA7GbO81Nb7fgLNPrp6CJ5xQunVhwOh5UmO5Abry4Qw4SYT0hnooPHj34IqfJPdktiDvw==
-X-Received: by 2002:a1c:4384:: with SMTP id q126mr24898530wma.84.1609715587155;
-        Sun, 03 Jan 2021 15:13:07 -0800 (PST)
+        bh=RMBjHrDajRxhZCxkXr9vhrFFi4tMzpNdjaV8TI7S6Ak=;
+        b=YnPzfOiDoc4fuMx5N9BisaWX0KX+CVW498eZW9j8Qg5Da4a2jzs1Q3s9HMw6iA0w/b
+         mu0XKPzIREpfX7hAml6O6dJalmhQkb0B/piUYREwrnyzuj54KXAZsVn2c2RU9ldhn8yf
+         MVZsdGbfaTy7w93JsS/CNM2b0h8UgZtgeblIsZjyz24BStDHntbPj1WHoZEqU8eYm6p1
+         kq1QnEYItq6iWcVbyyFSE0QS+v//sw7zmkGOxv7AYpv9oa/GMAJtcA9z27N+/5LwW+Ms
+         /542JiUYre+zwe9VkGh4qwgtbkRDbYGV4EjwlZXig41rFS56byfuavqFB3+peLYybTKy
+         1ZkQ==
+X-Gm-Message-State: AOAM533Lnw41CxXX6D0tjoEvC74GvWJgGgo/F47bQ8LWMS9zaeAnY5Pr
+        bVFnGtwf9TU4pcrWFcXxMONeIhLYk4hQ9p4X
+X-Google-Smtp-Source: ABdhPJyTSbiIytS7HH+5Qdkwc2HBnomxoC5XL6m5CTdupO+adpTYvQaWIDqEA0cJIcmYeVrTCI+Ihg==
+X-Received: by 2002:adf:e9d0:: with SMTP id l16mr54457867wrn.376.1609715584526;
+        Sun, 03 Jan 2021 15:13:04 -0800 (PST)
 Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.13.05
+        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.13.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 03 Jan 2021 15:13:06 -0800 (PST)
+        Sun, 03 Jan 2021 15:13:04 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org,
@@ -71,10 +71,11 @@ Cc:     lenb@kernel.org, yong.zhi@intel.com, sakari.ailus@linux.intel.com,
         hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
         niklas.soderlund+renesas@ragnatech.se, slongerbeam@gmail.com,
         heikki.krogerus@linux.intel.com, linus.walleij@linaro.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v4 10/15] ipu3-cio2: Add T: entry to MAINTAINERS
-Date:   Sun,  3 Jan 2021 23:12:30 +0000
-Message-Id: <20210103231235.792999-11-djrscally@gmail.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH v4 08/15] software_node: Add support for fwnode_graph*() family of functions
+Date:   Sun,  3 Jan 2021 23:12:28 +0000
+Message-Id: <20210103231235.792999-9-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210103231235.792999-1-djrscally@gmail.com>
 References: <20210103231235.792999-1-djrscally@gmail.com>
@@ -84,32 +85,175 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Development for the ipu3-cio2 driver is taking place in media_tree, but
-there's no T: entry in MAINTAINERS to denote that - rectify that oversight
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+
+This implements the remaining .graph_*() callbacks in the fwnode
+operations structure for the software nodes. That makes the
+fwnode_graph_*() functions available in the drivers also when software
+nodes are used.
+
+The implementation tries to mimic the "OF graph" as much as possible, but
+there is no support for the "reg" device property. The ports will need to
+have the index in their  name which starts with "port@" (for example
+"port@0", "port@1", ...) and endpoints will use the index of the software
+node that is given to them during creation. The port nodes can also be
+grouped under a specially named "ports" subnode, just like in DT, if
+necessary.
+
+The remote-endpoints are reference properties under the endpoint nodes
+that are named "remote-endpoint".
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Co-developed-by: Daniel Scally <djrscally@gmail.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
 Changes in v4:
 
-	- None
+	- Replaced the FWNODE_GRAPH_PORT_NAME_PREFIX_LEN macro with
+	  strlen("port@") throughout
+	- Added a check to software_node_graph_parse_endpoint() to ensure
+	  the name of the endpoint's parent matches the expected port@n
+	  format
 
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/swnode.c | 116 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 115 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 80881fb36404..16b544624577 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8946,6 +8946,7 @@ M:	Bingbu Cao <bingbu.cao@intel.com>
- R:	Tianshu Qiu <tian.shu.qiu@intel.com>
- L:	linux-media@vger.kernel.org
- S:	Maintained
-+T:	git git://linuxtv.org/media_tree.git
- F:	Documentation/userspace-api/media/v4l/pixfmt-srggb10-ipu3.rst
- F:	drivers/media/pci/intel/ipu3/
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 1f43c51b431e..82f9d6326110 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -540,6 +540,116 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
+ 	return 0;
+ }
  
++static struct fwnode_handle *
++swnode_graph_find_next_port(const struct fwnode_handle *parent,
++			    struct fwnode_handle *port)
++{
++	struct fwnode_handle *old = port;
++
++	while ((port = software_node_get_next_child(parent, old))) {
++		/*
++		 * fwnode ports have naming style "port@", so we search for any
++		 * children that follow that convention.
++		 */
++		if (!strncmp(to_swnode(port)->node->name, "port@",
++			     strlen("port@")))
++			return port;
++		old = port;
++	}
++
++	return NULL;
++}
++
++static struct fwnode_handle *
++software_node_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
++				      struct fwnode_handle *endpoint)
++{
++	struct swnode *swnode = to_swnode(fwnode);
++	struct fwnode_handle *parent;
++	struct fwnode_handle *port;
++
++	if (!swnode)
++		return NULL;
++
++	if (endpoint) {
++		port = software_node_get_parent(endpoint);
++		parent = software_node_get_parent(port);
++	} else {
++		parent = software_node_get_named_child_node(fwnode, "ports");
++		if (!parent)
++			parent = software_node_get(&swnode->fwnode);
++
++		port = swnode_graph_find_next_port(parent, NULL);
++	}
++
++	for (; port; port = swnode_graph_find_next_port(parent, port)) {
++		endpoint = software_node_get_next_child(port, endpoint);
++		if (endpoint) {
++			fwnode_handle_put(port);
++			break;
++		}
++	}
++
++	fwnode_handle_put(parent);
++
++	return endpoint;
++}
++
++static struct fwnode_handle *
++software_node_graph_get_remote_endpoint(const struct fwnode_handle *fwnode)
++{
++	struct swnode *swnode = to_swnode(fwnode);
++	const struct software_node_ref_args *ref;
++	const struct property_entry *prop;
++
++	if (!swnode)
++		return NULL;
++
++	prop = property_entry_get(swnode->node->properties, "remote-endpoint");
++	if (!prop || prop->type != DEV_PROP_REF || prop->is_inline)
++		return NULL;
++
++	ref = prop->pointer;
++
++	return software_node_get(software_node_fwnode(ref[0].node));
++}
++
++static struct fwnode_handle *
++software_node_graph_get_port_parent(struct fwnode_handle *fwnode)
++{
++	struct swnode *swnode = to_swnode(fwnode);
++
++	swnode = swnode->parent;
++	if (swnode && !strcmp(swnode->node->name, "ports"))
++		swnode = swnode->parent;
++
++	return swnode ? software_node_get(&swnode->fwnode) : NULL;
++}
++
++static int
++software_node_graph_parse_endpoint(const struct fwnode_handle *fwnode,
++				   struct fwnode_endpoint *endpoint)
++{
++	struct swnode *swnode = to_swnode(fwnode);
++	const char *parent_name = swnode->parent->node->name;
++	int ret;
++
++	if (!(strlen(parent_name) > strlen("port@")) ||
++	    strncmp(parent_name, "port@", strlen("port@")))
++		return -EINVAL;
++
++	/* Ports have naming style "port@n", we need to select the n */
++	ret = kstrtou32(parent_name + strlen("port@"),
++			10, &endpoint->port);
++	if (ret)
++		return ret;
++
++	endpoint->id = swnode->id;
++	endpoint->local_fwnode = fwnode;
++
++	return 0;
++}
++
+ static const struct fwnode_operations software_node_ops = {
+ 	.get = software_node_get,
+ 	.put = software_node_put,
+@@ -551,7 +661,11 @@ static const struct fwnode_operations software_node_ops = {
+ 	.get_parent = software_node_get_parent,
+ 	.get_next_child_node = software_node_get_next_child,
+ 	.get_named_child_node = software_node_get_named_child_node,
+-	.get_reference_args = software_node_get_reference_args
++	.get_reference_args = software_node_get_reference_args,
++	.graph_get_next_endpoint = software_node_graph_get_next_endpoint,
++	.graph_get_remote_endpoint = software_node_graph_get_remote_endpoint,
++	.graph_get_port_parent = software_node_graph_get_port_parent,
++	.graph_parse_endpoint = software_node_graph_parse_endpoint,
+ };
+ 
+ /* -------------------------------------------------------------------------- */
 -- 
 2.25.1
 
