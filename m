@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3612DC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 788FEC43381
 	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:15:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F34A22078D
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:15:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4009E2078D
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:15:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728008AbhACXOU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 3 Jan 2021 18:14:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59496 "EHLO
+        id S1728035AbhACXOZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 3 Jan 2021 18:14:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728001AbhACXOU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:14:20 -0500
-Received: from mail-wm1-x331.google.com (mail-wm1-x331.google.com [IPv6:2a00:1450:4864:20::331])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BFB3C0617A2;
-        Sun,  3 Jan 2021 15:13:09 -0800 (PST)
-Received: by mail-wm1-x331.google.com with SMTP id q75so17220952wme.2;
-        Sun, 03 Jan 2021 15:13:09 -0800 (PST)
+        with ESMTP id S1728020AbhACXOV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:14:21 -0500
+Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F34CC0617A5;
+        Sun,  3 Jan 2021 15:13:13 -0800 (PST)
+Received: by mail-wm1-x32a.google.com with SMTP id e25so17229581wme.0;
+        Sun, 03 Jan 2021 15:13:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=uCgaWXYct1zZj5+VJRp/wgRdsX3awmEzLkDpQnTAYRQ=;
-        b=MOW6SXLBBtOntBNRc+8R3TMNFI2rDRB3iVZivyeY8ed76rvUe+EAUI90hws1MdzEnP
-         iBmhYkuy1q3vk5Y22kah+7Z6j+SOBnkzepAYXLUvSdrEnrKQn0EwA9FXFro4cSarVl4E
-         S0QzZsWQtRNMfIWFBXCnvzJDRN7Zi/wbZEQpJUiCT0dgGHLt1KAB2pc4HzbCWY6KiNrG
-         2/imoa63U1yQxshjGzrfZIK0rgqGCaIEisXIt5q53/DSnHjkwMZKXY/bYjhYOSBLOcOx
-         RUtTArqgUvKAA4mOzdM3i0ZfUhjdJxyYVBxcVPJkPcTJpLV+tvQ+jHJyq1kmarBg/Ttm
-         63lA==
+        bh=yuYF72cpGLsFt6xkx6NosOoUfo6Q9qWMJHO4jAGYAWk=;
+        b=CUrYzqSBjQEGZc/bE5Gx2KNYd3uFasbyA1/bcXXBaZV6ByJNyoAnt4XJDgNg9f2DjQ
+         W66kCZgAa3mVJyOISElc0N5VYmJCDC0Arq90VAx+K4wvDhxp/VU2MRRkD7Yn4c7mzIVT
+         nFT8+Reuh8cshVzwuRiZfYqLGMAYtOEIDnU13DvtlXs9egosOl83suORs4V8Iqsp1kHs
+         JpJqu822a8lZ9Zy7piMv+yuMy9xbafp1MgTuiw0d7q7C35MOFOuNwCsjHGB1W59C3ZoT
+         VdspvfPxwAqbxrVvPltzg1gbZzSHAAbOp0MU9pPor/PlC80pv6A8ZverwpsoiYSVIdQc
+         LO0g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=uCgaWXYct1zZj5+VJRp/wgRdsX3awmEzLkDpQnTAYRQ=;
-        b=LcO/aSxRZesiCxYsL/QROgk39ECEM4QEnShhVudWqm8Q8e+ecRxYlCEqvkouUpsj+8
-         5Z1zCqSaAixeWm9QdFsQT04qR5kzQuWgAHfPBuB1lxWAvkb2EiiAs/cmqnLY53HwdaLR
-         nw7erpdtLfvlkTCJoBGcGmcp/X9s6SElaasuXUSt0btGPg4YKstIN+m18cICLJaiOWL2
-         AcTFa6GtcJUT1kEG6UIYr9pClImqijWhN19lfQM1GIJhBxr2mNJehH/xb0gl7yAhddBU
-         M0RcSBRp5Yhsc/78rI6UOrPNNTt2zGSiC7+DB790TSH5wJX1oStElUZrZx1l7/TR57Sf
-         dxUw==
-X-Gm-Message-State: AOAM531VF1gGUHVFmop8YAmCNz7fzL1b6Vbft8FFzkBXEQaJVn9dFyG4
-        +556j6AegmuyghHY7amzKyK/Zr5ccF2c2fhC
-X-Google-Smtp-Source: ABdhPJz4Zcze076CzshZwlY0nQWytYM149vLcUc3eCNq26WFkE6SOtEK/nzoL7YAhdZTIwBrarVIRA==
-X-Received: by 2002:a1c:5459:: with SMTP id p25mr23449731wmi.19.1609715588425;
-        Sun, 03 Jan 2021 15:13:08 -0800 (PST)
+        bh=yuYF72cpGLsFt6xkx6NosOoUfo6Q9qWMJHO4jAGYAWk=;
+        b=jxyVJ4HfDOeOIpm7DXGlAZJlNlD9ds4fr6PbGpbCokgvfZoCkkUWNFF8AzMW5K6xhY
+         DlanF5r38obKi+9iVdmorRprxIuadLJwAWfJUJv357t286x2iZy4Mlgw+qX00XfnL6xt
+         ochVN5ImSrkavelHqufGDXHNupX8jkMEFlab4Pg2t4los43DQ1C6fDK0HqQoX+/Ubwye
+         Sf6KxbPNAa0/eQbKAtBcv4zhiKDi268kzHnFSgcyb/nU+8xt7tWj4OcQdrt32Vx5TRvl
+         QCAQhY5hHphTNYu74OdUtGvZps5q8Ga2c74bDwdQQNLvNmS/xYMMc7t99S90cMGw8P4W
+         pVug==
+X-Gm-Message-State: AOAM5312y2uQXyQdIgQPr/dgrO0QgySk29YkAimUYTAaMS5IL/jo/H2L
+        XIIkcdhDZLw8PSvnOrxImi3FhxJamaXYBame
+X-Google-Smtp-Source: ABdhPJym1qNaECX9uwk7A3d3UimQMmo74WVgO+zzOTj3KJrCOFCk1fk0/j6k4rCbN6baWYww0IpovQ==
+X-Received: by 2002:a1c:3d55:: with SMTP id k82mr23982928wma.57.1609715592283;
+        Sun, 03 Jan 2021 15:13:12 -0800 (PST)
 Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.13.07
+        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.13.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 03 Jan 2021 15:13:07 -0800 (PST)
+        Sun, 03 Jan 2021 15:13:11 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org,
@@ -71,10 +71,11 @@ Cc:     lenb@kernel.org, yong.zhi@intel.com, sakari.ailus@linux.intel.com,
         hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
         niklas.soderlund+renesas@ragnatech.se, slongerbeam@gmail.com,
         heikki.krogerus@linux.intel.com, linus.walleij@linaro.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v4 11/15] ipu3-cio2: Rename ipu3-cio2.c
-Date:   Sun,  3 Jan 2021 23:12:31 +0000
-Message-Id: <20210103231235.792999-12-djrscally@gmail.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH v4 14/15] include: media: v4l2-fwnode: Include v4l2_fwnode_bus_type
+Date:   Sun,  3 Jan 2021 23:12:34 +0000
+Message-Id: <20210103231235.792999-15-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210103231235.792999-1-djrscally@gmail.com>
 References: <20210103231235.792999-1-djrscally@gmail.com>
@@ -84,36 +85,78 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ipu3-cio2 driver needs extending with multiple files; rename the main
-source file and specify the renamed file in Makefile to accommodate that.
+V4L2 fwnode bus types are enumerated in v4l2-fwnode.c, meaning they aren't
+available to the rest of the kernel. Move the enum to the corresponding
+header so that I can use the label to refer to those values.
 
 Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
 Changes in v4:
 
-	- None
+	- Dropped the trailing comma from NR_OF_V4L2_FWNODE_BUS_TYPE
 
- drivers/media/pci/intel/ipu3/Makefile                          | 2 ++
- drivers/media/pci/intel/ipu3/{ipu3-cio2.c => ipu3-cio2-main.c} | 0
- 2 files changed, 2 insertions(+)
- rename drivers/media/pci/intel/ipu3/{ipu3-cio2.c => ipu3-cio2-main.c} (100%)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 11 -----------
+ include/media/v4l2-fwnode.h           | 22 ++++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
-index 98ddd5beafe0..429d516452e4 100644
---- a/drivers/media/pci/intel/ipu3/Makefile
-+++ b/drivers/media/pci/intel/ipu3/Makefile
-@@ -1,2 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
- obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 5353e37eb950..c1c2b3060532 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -28,17 +28,6 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
+-enum v4l2_fwnode_bus_type {
+-	V4L2_FWNODE_BUS_TYPE_GUESS = 0,
+-	V4L2_FWNODE_BUS_TYPE_CSI2_CPHY,
+-	V4L2_FWNODE_BUS_TYPE_CSI1,
+-	V4L2_FWNODE_BUS_TYPE_CCP2,
+-	V4L2_FWNODE_BUS_TYPE_CSI2_DPHY,
+-	V4L2_FWNODE_BUS_TYPE_PARALLEL,
+-	V4L2_FWNODE_BUS_TYPE_BT656,
+-	NR_OF_V4L2_FWNODE_BUS_TYPE,
+-};
+-
+ static const struct v4l2_fwnode_bus_conv {
+ 	enum v4l2_fwnode_bus_type fwnode_bus_type;
+ 	enum v4l2_mbus_type mbus_type;
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 4365430eea6f..77fd6a3ec308 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -213,6 +213,28 @@ struct v4l2_fwnode_connector {
+ 	} connector;
+ };
+ 
++/**
++ * enum v4l2_fwnode_bus_type - Video bus types defined by firmware properties
++ * @V4L2_FWNODE_BUS_TYPE_GUESS: Default value if no bus-type fwnode property
++ * @V4L2_FWNODE_BUS_TYPE_CSI2_CPHY: MIPI CSI-2 bus, C-PHY physical layer
++ * @V4L2_FWNODE_BUS_TYPE_CSI1: MIPI CSI-1 bus
++ * @V4L2_FWNODE_BUS_TYPE_CCP2: SMIA Compact Camera Port 2 bus
++ * @V4L2_FWNODE_BUS_TYPE_CSI2_DPHY: MIPI CSI-2 bus, D-PHY physical layer
++ * @V4L2_FWNODE_BUS_TYPE_PARALLEL: Camera Parallel Interface bus
++ * @V4L2_FWNODE_BUS_TYPE_BT656: BT.656 video format bus-type
++ * @NR_OF_V4L2_FWNODE_BUS_TYPE: Number of bus-types
++ */
++enum v4l2_fwnode_bus_type {
++	V4L2_FWNODE_BUS_TYPE_GUESS = 0,
++	V4L2_FWNODE_BUS_TYPE_CSI2_CPHY,
++	V4L2_FWNODE_BUS_TYPE_CSI1,
++	V4L2_FWNODE_BUS_TYPE_CCP2,
++	V4L2_FWNODE_BUS_TYPE_CSI2_DPHY,
++	V4L2_FWNODE_BUS_TYPE_PARALLEL,
++	V4L2_FWNODE_BUS_TYPE_BT656,
++	NR_OF_V4L2_FWNODE_BUS_TYPE
++};
 +
-+ipu3-cio2-y += ipu3-cio2-main.o
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2-main.c
-similarity index 100%
-rename from drivers/media/pci/intel/ipu3/ipu3-cio2.c
-rename to drivers/media/pci/intel/ipu3/ipu3-cio2-main.c
+ /**
+  * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
+  * @fwnode: pointer to the endpoint's fwnode handle
 -- 
 2.25.1
 
