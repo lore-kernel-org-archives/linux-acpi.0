@@ -2,59 +2,60 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED33CC433DB
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:13:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3714BC43381
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:14:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF13E2078D
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:13:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0093D207D1
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:14:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727815AbhACXNf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 3 Jan 2021 18:13:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59364 "EHLO
+        id S1726019AbhACXNj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 3 Jan 2021 18:13:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726019AbhACXNf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:13:35 -0500
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0C0EC061573;
-        Sun,  3 Jan 2021 15:12:54 -0800 (PST)
-Received: by mail-wr1-x42f.google.com with SMTP id w5so29981742wrm.11;
-        Sun, 03 Jan 2021 15:12:54 -0800 (PST)
+        with ESMTP id S1727857AbhACXNi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:13:38 -0500
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6E49C0613CF;
+        Sun,  3 Jan 2021 15:12:57 -0800 (PST)
+Received: by mail-wr1-x42a.google.com with SMTP id t16so30019256wra.3;
+        Sun, 03 Jan 2021 15:12:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=fLb4fKNSG4SMrjIYJ+fA2rrhLatLlO6tz5eQrj9mj/Y=;
-        b=Oxsft3URx40Eeicl5HxJl48+EJe7BCG0SkRJ3EZ8d+hrg+NrzDpdvjy1iJk7/78fd+
-         eea3z7zTWVoFUWIwxW5layFdWG4SOmj50N0t5VLAYI/FPURU8mhtonoAgKFKnuC2m6d1
-         EijPX1Z1vZWuHIKAVZM3QK/vMM2W3ZhqIfVIBXOsjPvAi9Q79hQbpQ43H9kJ7MCKkxTp
-         Gf+JseEH5Si231GoewoXxxiKINfJOmX8BrtYygWz1Tw4MAA0aI5FFDl/b5h73M3oN/96
-         pKK1A2zqXjmRRQZwgCgCx8x5YJkCtexelPVflQalnR9+h5tbeGW9nse2G6b91QmLCjhE
-         erbQ==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=Tj4Vv1U/qJ+vwgqOcBhuEivdNVXX0IsLutn8hXTWDbY=;
+        b=p3rjX7HmnF65UhEdD56od5UHLtxBRibFTZIWUCJrAL+dBk+7mBkjgd20fvuhlZkI9F
+         TiSLMhoCGey/BNXa+039H9LjFh3+gznRnDLe+deWiyJy1ZrX86Sq45vuyg4xyEj9SEVR
+         J3qAYzEt6bUgKA3ppXo1fEF7Pp+GolmTQ4FS+FyYBWjT5nOA38cJsEQhuiBnee2SVAw6
+         pSD2wJmLJKYZAvV9NrhypriWPJ/YgsXTY14fapHHFO4EkmGcrDSIghxtGZmOAQbKMZel
+         lL2JvbUhvXWvUiLu34EMr9dmMLeUEAjTYZXmRlBbMx11UJXcI5Mk3MlXz9AsfrZ3lE0a
+         cZbg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=fLb4fKNSG4SMrjIYJ+fA2rrhLatLlO6tz5eQrj9mj/Y=;
-        b=S3qoVJhMutV6MbJtuxR+L4RWR9LEgMdT0mNffVlNJKHefJvVItTliVpKAXaJswqVQ+
-         HMUSJ4hR3U/pG4c0Ej1/VfAl4Ai4vV4BFSL28uvwnyfgx04EOi8LaphYeeteikO4i0UR
-         4UXwe/TzBgzi3PC3rEHACTAXPMzDldTW0RaerrZYtnBbaTZcQaYS69koDwPrHQXFMG88
-         Qz63iQcYSrF3xyHLXd8ozzi1x6cQu9vKLlg8UP8LMpw/IgJDYL0yg9i1AUGTlI2Cre6i
-         m+BGtmd7XeiFC2ygOfc8xbQEtGWtmgs1ewFu9VDTtEs+qvNEMYw8ydQMlwHQvR8IVMqd
-         YsDg==
-X-Gm-Message-State: AOAM530LavwyRAKKneCpCTf7vQoHvp1JGxLJUbuWZPUn5Z872QzVJ+7E
-        9reSdWwGrZbq9WRPoYEg+pakiDkvZ8hm4VMv
-X-Google-Smtp-Source: ABdhPJz3aFWlRA2eMStLumhKX3ObBEUO2LzYkUFC5o+EReoSvoKVx/+7pulhNKyaZs89AhRKny6fVw==
-X-Received: by 2002:adf:82c8:: with SMTP id 66mr76691586wrc.420.1609715573686;
-        Sun, 03 Jan 2021 15:12:53 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=Tj4Vv1U/qJ+vwgqOcBhuEivdNVXX0IsLutn8hXTWDbY=;
+        b=LRH1df/I8gFQfKlrddA0tJC7MrvggT3VSxHkKGFPvy3QDevGfk+ZWQpQWampB+cd/u
+         uKkM0el+Wit2Yy/9NxvtyaKh2rwfr3U5X9Z1HezgeIm7/wPYPtI2PGG/uyUIw03MGLuN
+         26TtJ2h/KZHBOjo0+vmnW588uxC7HHTCiNIDbOF2qDbMOJC3tY7foEpJOOO9NWQJ1zip
+         7hF8U9MCO6WGyNPiSy39YUjUPZNjh3jMs1yK1oZ6xZ8hetdrIkGwHVvpMRQ1opvmQFnY
+         K3n2PmKpWBS14ffRYT3gH+S8JRKa1wGaiE1DKj1Pg8iWK3CFYoCrihXSd7Q9QQ+3+WdL
+         1fLw==
+X-Gm-Message-State: AOAM532dcfhbKYN/pRyi86lBB93Ll2cA1u49Ky9hxHZAwNHIUOCyj1fY
+        sYO2Y86LMSnV0DSLOJYJ+Z/k+A0PecEmkrKn
+X-Google-Smtp-Source: ABdhPJxTB559nKKcXdsTL/70LIjZpgm3qPEjtdwtBTp81FlH78B9cBOEvpqfFjWekttiRYLrjfECcg==
+X-Received: by 2002:adf:fb05:: with SMTP id c5mr76331149wrr.69.1609715576468;
+        Sun, 03 Jan 2021 15:12:56 -0800 (PST)
 Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.12.52
+        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.12.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 03 Jan 2021 15:12:52 -0800 (PST)
+        Sun, 03 Jan 2021 15:12:55 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org,
@@ -69,126 +70,70 @@ Cc:     lenb@kernel.org, yong.zhi@intel.com, sakari.ailus@linux.intel.com,
         jacopo+renesas@jmondi.org, kieran.bingham+renesas@ideasonboard.com,
         hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
         niklas.soderlund+renesas@ragnatech.se, slongerbeam@gmail.com,
-        heikki.krogerus@linux.intel.com, linus.walleij@linaro.org
-Subject: [PATCH v4 00/15] Add functionality to ipu3-cio2 driver allowing software_node connections to sensors on platforms designed for Windows
-Date:   Sun,  3 Jan 2021 23:12:20 +0000
-Message-Id: <20210103231235.792999-1-djrscally@gmail.com>
+        heikki.krogerus@linux.intel.com, linus.walleij@linaro.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v4 02/15] media: ipu3-cio2: Add headers that ipu3-cio2.h is direct user of
+Date:   Sun,  3 Jan 2021 23:12:22 +0000
+Message-Id: <20210103231235.792999-3-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210103231235.792999-1-djrscally@gmail.com>
+References: <20210103231235.792999-1-djrscally@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hello all
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-v3:
-https://lore.kernel.org/linux-media/20201224010907.263125-1-djrscally@gmail.com/T/#m37b831bb2b406917d6db5da9acf9ed35df65d72d
-v2:
-https://lore.kernel.org/linux-media/20201217234337.1983732-1-djrscally@gmail.com/T/#md93fd090009b42a6a98aed892aff0d38cf07e0cd
-v1:
-https://lore.kernel.org/linux-media/20201130133129.1024662-1-djrscally@gmail.com/T/#m91934e12e3d033da2e768e952ea3b4a125ee3e67
-The RFC version before that:
-https://lore.kernel.org/linux-media/20201019225903.14276-1-djrscally@gmail.com/
+Add headers that ipu3-cio2.h is direct user of.
 
-This series is to start adding support for webcams on laptops with ACPI tables
-designed for use with CIO2 on Windows. This problem has two main parts; the
-first part, which is handled in this series, is extending the ipu3-cio2
-driver to allow for patching the firmware via software_nodes if endpoints
-aren't defined by ACPI. The second is adding a new driver to handle power,
-clocks and GPIO pins defined in DSDT tables in an awkward way. I decided to
-split that second part out from this series, and instead give it its own
-series (a v2 of which should land "soon"). The reasons for that are:
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Daniel Scally <djrscally@gmail.com>
+Tested-by: Daniel Scally <djrscally@gmail.com>
+---
+Changes in v4:
 
-1. It's a logically separate change anyway
-2. The recipients list was getting really long and
-3. That probably meant that handling merge for all of this in one go was
-   going to be impractically awkward.
+	- Incorporated so it can be used in a later patch - thanks Andy.
+	  Not sure if this needs my Signed-off-by since I didn't write
+	  any part of it. checkpatch.pl --strict doesn't complain at its
+	  absence so I'm going with no; but let me know if I'm wrong.
 
-I'm hopeful that most or all of this series could get picked up for 5.12.
-We touch a few different areas (listed below), but I think the easiest
-approach would be to merge everything through media tree. Rafael, Greg,
-Mauro and Sergey; are you ok with that plan, or would you prefer a
-different approach? Mauro; if that plan is ok (and of course assuming that
-the rest of the patches are acked by their respective maintainers) could
-we get a dedicated feature branch just in case the following series ends
-up being ready in time too?
+ drivers/media/pci/intel/ipu3/ipu3-cio2.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-lib
-  lib/test_printf.c: Use helper function to unwind array of
-    software_nodes
-
-base
-  software_node: Fix refcounts in software_node_get_next_child()
-  property: Return true in fwnode_device_is_available for NULL ops
-  property: Call fwnode_graph_get_endpoint_by_id() for fwnode->secondary
-  software_node: Enforce parent before child ordering of nodes arrays
-  software_node: unregister software_nodes in reverse order
-  include: fwnode.h: Define format macros for ports and endpoints
-
-acpi
-  acpi: Add acpi_dev_get_next_match_dev() and helper macro
-
-media
-  media: v4l2-core: v4l2-async: Check sd->fwnode->secondary in
-    match_fwnode()
-  ipu3-cio2: Add T: entry to MAINTAINERS
-  ipu3-cio2: Rename ipu3-cio2.c
-  ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-  include: media: v4l2-fwnode: Include v4l2_fwnode_bus_type
-
-Series-level changelog:
-	- Incorporated Andy's patch fixing the ipu3-cio2 header
-
-More details of changes on each patch.
-
-Thanks
-Dan
-
-Andy Shevchenko (1):
-  media: ipu3-cio2: Add headers that ipu3-cio2.h is direct user of
-
-Daniel Scally (13):
-  software_node: Fix refcounts in software_node_get_next_child()
-  property: Return true in fwnode_device_is_available for NULL ops
-  property: Call fwnode_graph_get_endpoint_by_id() for fwnode->secondary
-  software_node: Enforce parent before child ordering of nodes arrays
-  software_node: unregister software_nodes in reverse order
-  include: fwnode.h: Define format macros for ports and endpoints
-  lib/test_printf.c: Use helper function to unwind array of
-    software_nodes
-  ipu3-cio2: Add T: entry to MAINTAINERS
-  ipu3-cio2: Rename ipu3-cio2.c
-  media: v4l2-core: v4l2-async: Check sd->fwnode->secondary in
-    match_fwnode()
-  acpi: Add acpi_dev_get_next_match_dev() and helper macro
-  include: media: v4l2-fwnode: Include v4l2_fwnode_bus_type
-  ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-
-Heikki Krogerus (1):
-  software_node: Add support for fwnode_graph*() family of functions
-
- MAINTAINERS                                   |   2 +
- drivers/acpi/utils.c                          |  30 +-
- drivers/base/property.c                       |  15 +-
- drivers/base/swnode.c                         | 181 +++++++++--
- drivers/media/pci/intel/ipu3/Kconfig          |  18 ++
- drivers/media/pci/intel/ipu3/Makefile         |   3 +
- drivers/media/pci/intel/ipu3/cio2-bridge.c    | 302 ++++++++++++++++++
- drivers/media/pci/intel/ipu3/cio2-bridge.h    | 125 ++++++++
- .../ipu3/{ipu3-cio2.c => ipu3-cio2-main.c}    |  33 ++
- drivers/media/pci/intel/ipu3/ipu3-cio2.h      |  24 ++
- drivers/media/v4l2-core/v4l2-async.c          |   8 +
- drivers/media/v4l2-core/v4l2-fwnode.c         |  11 -
- include/acpi/acpi_bus.h                       |   7 +
- include/linux/fwnode.h                        |   7 +
- include/media/v4l2-fwnode.h                   |  22 ++
- lib/test_printf.c                             |   4 +-
- 16 files changed, 754 insertions(+), 38 deletions(-)
- create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.c
- create mode 100644 drivers/media/pci/intel/ipu3/cio2-bridge.h
- rename drivers/media/pci/intel/ipu3/{ipu3-cio2.c => ipu3-cio2-main.c} (98%)
-
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.h b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+index ccf0b85ae36f..62187ab5ae43 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.h
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+@@ -4,8 +4,26 @@
+ #ifndef __IPU3_CIO2_H
+ #define __IPU3_CIO2_H
+ 
++#include <linux/bits.h>
++#include <linux/dma-mapping.h>
++#include <linux/kernel.h>
++#include <linux/mutex.h>
+ #include <linux/types.h>
+ 
++#include <asm/page.h>
++
++#include <media/media-device.h>
++#include <media/media-entity.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
++
++struct cio2_fbpt_entry;		/* defined here, after the first usage */
++struct pci_dev;
++
+ #define CIO2_NAME					"ipu3-cio2"
+ #define CIO2_DEVICE_NAME				"Intel IPU3 CIO2"
+ #define CIO2_ENTITY_NAME				"ipu3-csi2"
 -- 
 2.25.1
 
