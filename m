@@ -2,185 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF01C433E0
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:15:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74CADC433E0
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Jan 2021 08:19:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EF0B207C9
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Jan 2021 23:15:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F3BB20784
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Jan 2021 08:19:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727880AbhACXOQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 3 Jan 2021 18:14:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59474 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727807AbhACXOP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2021 18:14:15 -0500
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAEDAC061794;
-        Sun,  3 Jan 2021 15:13:01 -0800 (PST)
-Received: by mail-wm1-x329.google.com with SMTP id v14so16482219wml.1;
-        Sun, 03 Jan 2021 15:13:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=t0IksVC5+HqVFsvTagMFtY4dHxSpSETaaDeLny9BEfw=;
-        b=Y9aPVluz7ZiRNBE0VAq/PA+USLmHzlynN076j5LcQRt5Lmd950T4iLSq8q7RGOb0WQ
-         SGtMCrav5wg2DuBdX8vozpqDfu9GRUuPw5o+n9xc6M+bveKCXWkllqcmupfAqzoUXJF+
-         yOWqz+6I5qVfAwCWO3yyQjiGVwmJnxjD5nuCBZHUiM+XkjDnMUq7TNmqOH4fa/pvmLaj
-         QelOUZ7Fnw9vkjWuxOIMiyucsXqmw0MP22MCPPSmjG3hBZBcQTZrWTEqHjSKMuQ11KV9
-         RzJvZxTT4v7QP6S619vzTh3HCB2ZNPbpMFhj9q916VTc/J9SxV4THDgT1C2XLsyUmfPm
-         veAQ==
+        id S1726323AbhADITg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Jan 2021 03:19:36 -0500
+Received: from mail-oi1-f178.google.com ([209.85.167.178]:38121 "EHLO
+        mail-oi1-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725468AbhADITf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2021 03:19:35 -0500
+Received: by mail-oi1-f178.google.com with SMTP id x13so31352566oic.5;
+        Mon, 04 Jan 2021 00:19:20 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=t0IksVC5+HqVFsvTagMFtY4dHxSpSETaaDeLny9BEfw=;
-        b=J8vRNCpF4+hmlV5EgxUAGdSy89+ag1SjFHbxTGrAaMYoJOev278PO+WePnyYB8xs7J
-         wywdGd4Le63xO8cqUHhvhTz+vg7XVyw0sa6AsG3deBob0+q5D8jBNc6tXoBwD5aFg6US
-         xdL2R6IlL9OWag0RuPH7eOPbUIQlfioe9KHjX0t5/qT2KZ5QcttVHgtpjXEcEbUZfZex
-         XEKVLLQTBzApQigCn5WD+GsCM8XVAawiRk0TgW8/WynlPI1TC4h0AFxFmLpi4fg2TuBY
-         Wnag6IZIb2qtMP9AwwBotmF/2YzluEh9fTHMZdEZfEIoetZ+ADYdwEAiZnza8PO8s36T
-         OpMw==
-X-Gm-Message-State: AOAM531nNVFaY1EVDN+HvmIkK4J5FMVCzkUCreuiqGQKMS4bRC/3Mbo+
-        UMTiuFH/NvS2qWGlpFT2Gedsb3bUUdftr/Mm
-X-Google-Smtp-Source: ABdhPJyoQNwu5kDmlT2r51ee7jBxl5CzLzgqmIhb+UFbCKBPhrz74lukUIkXZ3OIv3ESgytELY0CUw==
-X-Received: by 2002:a1c:e084:: with SMTP id x126mr24298282wmg.109.1609715580503;
-        Sun, 03 Jan 2021 15:13:00 -0800 (PST)
-Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id h9sm32571018wme.11.2021.01.03.15.12.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 03 Jan 2021 15:13:00 -0800 (PST)
-From:   Daniel Scally <djrscally@gmail.com>
-To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@acpica.org,
-        gregkh@linuxfoundation.org, rjw@rjwysocki.net,
-        sergey.senozhatsky@gmail.com, mchehab@kernel.org
-Cc:     lenb@kernel.org, yong.zhi@intel.com, sakari.ailus@linux.intel.com,
-        bingbu.cao@intel.com, tian.shu.qiu@intel.com,
-        robert.moore@intel.com, erik.kaneda@intel.com, pmladek@suse.com,
-        rostedt@goodmis.org, andriy.shevchenko@linux.intel.com,
-        linux@rasmusvillemoes.dk,
-        laurent.pinchart+renesas@ideasonboard.com,
-        jacopo+renesas@jmondi.org, kieran.bingham+renesas@ideasonboard.com,
-        hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
-        niklas.soderlund+renesas@ragnatech.se, slongerbeam@gmail.com,
-        heikki.krogerus@linux.intel.com, linus.walleij@linaro.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v4 05/15] software_node: Enforce parent before child ordering of nodes arrays
-Date:   Sun,  3 Jan 2021 23:12:25 +0000
-Message-Id: <20210103231235.792999-6-djrscally@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210103231235.792999-1-djrscally@gmail.com>
-References: <20210103231235.792999-1-djrscally@gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=YMBiuedOOMmuXN5p23LzuCrx9oYV8zreF8EiRpvTu20=;
+        b=CmPU8/tK9WaGzSp7WZfijGuD/L4y/b5JLjISEA2+j8S2w+TKc0lxYZOhMun4B+0kxL
+         uwsyz4U4ku/ba889kW+eTXAlagFHA48Q7oxTgUtkbhtpivyAHKXyO2QjwRxWwqWMv0y0
+         +JZrIPAlN1zVzNV9pjen/xNgj6Cesh4Ylr+5sI7np33oDsrpvdgjyUwQ88Wnn+Dq6G1c
+         FRSCcVVTdpb9cMUDHOk4URAZxINpX4XCMl2bwUiTH6e3kYxE/ef2v/kp3p6FGZVjIAxd
+         kmsBM+M+dn3383RTmPPuf/MOQS2rPMCeJDscCDXtogdCoqK83bhhwUP7n+EfgB7qvwP4
+         PS8Q==
+X-Gm-Message-State: AOAM532iMf1a44Cx/6VMsDcsS1CYDsFxZOBtphLWoFSCNgb1yrbAmzSh
+        OTsHKSertPCPlGSrUSbkB7XNZdkI9zwU0kmIlaE=
+X-Google-Smtp-Source: ABdhPJw1ZOaTYVHBloO8Pcssm2LM7Af99V6DZ54pWqVH/AwulrzQyS7V6fcrgUwHfui2oKcs/Xug060l9zJMQ/biQbw=
+X-Received: by 2002:aca:4b16:: with SMTP id y22mr17093210oia.148.1609748334576;
+ Mon, 04 Jan 2021 00:18:54 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CAJZ5v0gN3NfWyAHA7At=1ZG90vCJbDoUzF5ts2_t3GmunSbrMQ@mail.gmail.com>
+ <20201230153744.15612-1-daniel.lezcano@linaro.org>
+In-Reply-To: <20201230153744.15612-1-daniel.lezcano@linaro.org>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 4 Jan 2021 09:18:43 +0100
+Message-ID: <CAMuHMdXCn-tKcaeAHTgdJu0Lg=YrF7cFnW8-tD4ZBfVPUb53NA@mail.gmail.com>
+Subject: Re: [PATCH] powercap/drivers/dtpm: Fix __udivdi3 and __aeabi_uldivmod
+ unresolved symbols
+To:     Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Linux PM list <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        kernel test robot <lkp@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Registering software_nodes with the .parent member set to point to a
-currently unregistered software_node has the potential for problems,
-so enforce parent -> child ordering in arrays passed in to
-software_node_register_nodes().
+Hi Daniel,
 
-Software nodes that are children of another software node should be
-unregistered before their parent. To allow easy unregistering of an array
-of software_nodes ordered parent to child, reverse the order in which
-software_node_unregister_nodes() unregisters software_nodes.
+On Wed, Dec 30, 2020 at 4:39 PM Daniel Lezcano
+<daniel.lezcano@linaro.org> wrote:
+> 32 bits architectures do not support u64 division, so the macro
+> DIV_ROUND_CLOSEST is not adequate as the compiler will replace the
+> call to an unexisting function for the platform, leading to an
+> unresolved symbols.
+>
+> Fix this by using the compatible macros:
+>
+> DIV64_U64_ROUND_CLOSEST and DIV_ROUND_CLOSEST_ULL.
+>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Daniel Scally <djrscally@gmail.com>
----
-Changes in v4:
+Thanks for your patch!
 
-	- None
+> --- a/drivers/powercap/dtpm.c
+> +++ b/drivers/powercap/dtpm.c
+> @@ -99,8 +99,8 @@ static void __dtpm_rebalance_weight(struct dtpm *dtpm)
+>                 pr_debug("Setting weight '%d' for '%s'\n",
+>                          child->weight, child->zone.name);
+>
+> -               child->weight = DIV_ROUND_CLOSEST(child->power_max * 1024,
+> -                                                 dtpm->power_max);
+> +               child->weight = DIV64_U64_ROUND_CLOSEST(
+> +                       child->power_max * 1024, dtpm->power_max);
 
- drivers/base/swnode.c | 42 ++++++++++++++++++++++++++++++------------
- 1 file changed, 30 insertions(+), 12 deletions(-)
+Note that 64-by-64 divisions are expensive on 32-bit platforms.
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 615a0c93e116..ade49173ff8d 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -692,7 +692,11 @@ swnode_register(const struct software_node *node, struct swnode *parent,
-  * software_node_register_nodes - Register an array of software nodes
-  * @nodes: Zero terminated array of software nodes to be registered
-  *
-- * Register multiple software nodes at once.
-+ * Register multiple software nodes at once. If any node in the array
-+ * has its .parent pointer set (which can only be to another software_node),
-+ * then its parent **must** have been registered before it is; either outside
-+ * of this function or by ordering the array such that parent comes before
-+ * child.
-  */
- int software_node_register_nodes(const struct software_node *nodes)
- {
-@@ -700,14 +704,23 @@ int software_node_register_nodes(const struct software_node *nodes)
- 	int i;
- 
- 	for (i = 0; nodes[i].name; i++) {
--		ret = software_node_register(&nodes[i]);
--		if (ret) {
--			software_node_unregister_nodes(nodes);
--			return ret;
-+		const struct software_node *parent = nodes[i].parent;
-+
-+		if (parent && !software_node_to_swnode(parent)) {
-+			ret = -EINVAL;
-+			goto err_unregister_nodes;
- 		}
-+
-+		ret = software_node_register(&nodes[i]);
-+		if (ret)
-+			goto err_unregister_nodes;
- 	}
- 
- 	return 0;
-+
-+err_unregister_nodes:
-+	software_node_unregister_nodes(nodes);
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(software_node_register_nodes);
- 
-@@ -715,18 +728,23 @@ EXPORT_SYMBOL_GPL(software_node_register_nodes);
-  * software_node_unregister_nodes - Unregister an array of software nodes
-  * @nodes: Zero terminated array of software nodes to be unregistered
-  *
-- * Unregister multiple software nodes at once.
-+ * Unregister multiple software nodes at once. If parent pointers are set up
-+ * in any of the software nodes then the array **must** be ordered such that
-+ * parents come before their children.
-  *
-- * NOTE: Be careful using this call if the nodes had parent pointers set up in
-- * them before registering.  If so, it is wiser to remove the nodes
-- * individually, in the correct order (child before parent) instead of relying
-- * on the sequential order of the list of nodes in the array.
-+ * NOTE: If you are uncertain whether the array is ordered such that
-+ * parents will be unregistered before their children, it is wiser to
-+ * remove the nodes individually, in the correct order (child before
-+ * parent).
-  */
- void software_node_unregister_nodes(const struct software_node *nodes)
- {
--	int i;
-+	unsigned int i = 0;
-+
-+	while (nodes[i].name)
-+		i++;
- 
--	for (i = 0; nodes[i].name; i++)
-+	while (i--)
- 		software_node_unregister(&nodes[i]);
- }
- EXPORT_SYMBOL_GPL(software_node_unregister_nodes);
+Does dtpm.power_max need to be u64?
+The (lack of) documentation for the dtpm structure does not say what is
+being stored there.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 -- 
-2.25.1
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
