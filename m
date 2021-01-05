@@ -2,78 +2,86 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E70ACC4332D
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Jan 2021 09:13:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16B35C433DB
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Jan 2021 10:00:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC47C229CA
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Jan 2021 09:13:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAC6B22288
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Jan 2021 10:00:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727709AbhAEJNf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Jan 2021 04:13:35 -0500
-Received: from mga17.intel.com ([192.55.52.151]:50270 "EHLO mga17.intel.com"
+        id S1726681AbhAEKAp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Jan 2021 05:00:45 -0500
+Received: from sauhun.de ([88.99.104.3]:40936 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726602AbhAEJNe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 5 Jan 2021 04:13:34 -0500
-IronPort-SDR: 0UPKj7s3m7zymyBdS34bu8tvu8o6ytEKJOAtlOWkBgvA5rEZpvlCtCzIKuBzN/i6pUl8xSfazk
- +Ltt8XYlbV5Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9854"; a="156862072"
-X-IronPort-AV: E=Sophos;i="5.78,476,1599548400"; 
-   d="scan'208";a="156862072"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jan 2021 01:11:49 -0800
-IronPort-SDR: rd5cUvd4ZnqdyMmHos4rkmJ1zUzJYRrc9eAo6Y2alNpRklkOWV6NInOt9mn3BeaG1XdzylEciZ
- yasHxqpMCU+g==
-X-IronPort-AV: E=Sophos;i="5.78,476,1599548400"; 
-   d="scan'208";a="378794963"
-Received: from bard-ubuntu.sh.intel.com ([10.239.13.33])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jan 2021 01:11:47 -0800
-From:   Bard Liao <yung-chuan.liao@linux.intel.com>
-To:     gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-        andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org,
-        heikki.krogerus@linux.intel.com, rafael@kernel.org
-Cc:     bard.liao@intel.com
-Subject: [PATCH 1/2] Revert "device property: Keep secondary firmware node secondary by type"
-Date:   Tue,  5 Jan 2021 17:11:45 +0800
-Message-Id: <20210105091146.25422-2-yung-chuan.liao@linux.intel.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210105091146.25422-1-yung-chuan.liao@linux.intel.com>
-References: <20210105091146.25422-1-yung-chuan.liao@linux.intel.com>
+        id S1725831AbhAEKAp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 5 Jan 2021 05:00:45 -0500
+Received: from localhost (p5486cfc1.dip0.t-ipconnect.de [84.134.207.193])
+        by pokefinder.org (Postfix) with ESMTPSA id E38C72C03EF;
+        Tue,  5 Jan 2021 11:00:02 +0100 (CET)
+Date:   Tue, 5 Jan 2021 11:00:01 +0100
+From:   Wolfram Sang <wsa@the-dreams.de>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Andy Shevchenko <andy@infradead.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] i2c: core: Do not print duplicate error when failing to
+ register an i2c-client from ACPI
+Message-ID: <20210105100001.GB2000@ninjato>
+References: <20201221191300.244648-1-hdegoede@redhat.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
+Content-Disposition: inline
+In-Reply-To: <20201221191300.244648-1-hdegoede@redhat.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-While the commit d5dcce0c414f ("device property: Keep secondary firmware
-node secondary by type")
-describes everything correct in its commit message the change it made does
-the opposite and original commit c15e1bdda436 ("device property: Fix the
-secondary firmware node handling in set_primary_fwnode()") was fully
-correct. Thus, revert the former one here and improve documentation in
-the next patch.
 
-Fixes: d5dcce0c414f ("device property: Keep secondary firmware node secondary by type")
-Signed-off-by: Bard Liao <yung-chuan.liao@linux.intel.com>
----
- drivers/base/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--gatW/ieO32f1wygP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 25e08e5f40bd..51b9545a050b 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -4433,7 +4433,7 @@ void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode)
- 		if (fwnode_is_primary(fn)) {
- 			dev->fwnode = fn->secondary;
- 			if (!(parent && fn == parent->fwnode))
--				fn->secondary = ERR_PTR(-ENODEV);
-+				fn->secondary = NULL;
- 		} else {
- 			dev->fwnode = NULL;
- 		}
--- 
-2.17.1
+On Mon, Dec 21, 2020 at 08:13:00PM +0100, Hans de Goede wrote:
+> i2c_new_client_device() already prints an error when it fails. Some
+> ACPI tables contain 2 ACPI devices describing the same i2c-client,
+> leading to errors like this:
+>=20
+> [    1.620847] i2c i2c-4: Failed to register i2c client MAGN0001:00 at 0x=
+1d (-16)
+> [    1.620870] i2c i2c-4: failed to add I2C device MAGN0001:00 from ACPI
+>=20
+> There is nothing we can do about the first -EBUSY error being logged,
+> but the second error does not really add any new information, so lets
+> drop it.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
+Applied to for-next, thanks!
+
+
+--gatW/ieO32f1wygP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAl/0OKEACgkQFA3kzBSg
+KbZw6w//fNjx9Xc9pJHZp7Rhl6FfYMrELZpsPb/rZ6603Y3BhTD8+aStoOWYCW6C
+DIZ4IQwqB6Y6/wU29clnMI3DvEx27yX+VwbECmqzixxQjihoDo8Y4PVUd05WTTOp
+qSnaL1CqY0N7X7VbBG/jx+oqsrUHJmvoaqSlYu1uPnwydLMAIebBg2WLQ9IF2sp1
+AJXhyxAvekjGw8OzKqFklSrH73omNZ8Aj/FhTBvkosPU/JMoZfacwxxzJrkfzfe/
+9Gl9qwzXdfR3XfZnWz6985D82yGMM1NyoiqJlqZtezebTnt4cdFQMWsd0L4Bi/ub
+4DdxL7N1+ex6aHdfnDRfi1c/j4WxcB/j/QXn3VRt6UfCa+M9IxVA1sij8CI3zRR4
+Sf2ftB+nDRMSmdSsMVTYrhGpXmHnedXawdPcMK+GIuc0OBExSuwPkFKyETxdugDr
+Gn492BvoWr6MkrrihRyP+t4wcnnkBuK23WkarJA3vSqeYN7b3hX+BtsvycbpY8wg
+8gXjLgXEZcfkgZxwshA/nt328G4LBKDxzTeCxADIPKVJRSEJk072MClJ0Lhq7787
+gAY3jx/therbs/7nLUbD66UDlnvilJkydMIK/yhGjWFZ6sJ9kMwh41iGwpKprv5C
+9XkNl0/nEsfetGIz/l9gRFBKAu9uSe+/LT7MpWqFEBSqHnLSkVY=
+=imiC
+-----END PGP SIGNATURE-----
+
+--gatW/ieO32f1wygP--
