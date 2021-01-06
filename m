@@ -2,497 +2,118 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4EF9C433DB
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jan 2021 08:37:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28C63C433E0
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jan 2021 09:19:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A6F92310A
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jan 2021 08:37:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C88592310B
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jan 2021 09:19:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726433AbhAFIge (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Jan 2021 03:36:34 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:9717 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725788AbhAFIgd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2021 03:36:33 -0500
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4D9jN01szrzl10Q;
-        Wed,  6 Jan 2021 16:34:40 +0800 (CST)
-Received: from SWX921481.china.huawei.com (10.126.203.68) by
- DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
- 14.3.498.0; Wed, 6 Jan 2021 16:35:40 +0800
-From:   Barry Song <song.bao.hua@hisilicon.com>
-To:     <valentin.schneider@arm.com>, <catalin.marinas@arm.com>,
-        <will@kernel.org>, <rjw@rjwysocki.net>,
-        <vincent.guittot@linaro.org>, <lenb@kernel.org>,
-        <gregkh@linuxfoundation.org>, <jonathan.cameron@huawei.com>,
-        <mingo@redhat.com>, <peterz@infradead.org>,
-        <juri.lelli@redhat.com>, <dietmar.eggemann@arm.com>,
-        <rostedt@goodmis.org>, <bsegall@google.com>, <mgorman@suse.de>,
-        <mark.rutland@arm.com>, <sudeep.holla@arm.com>,
-        <aubrey.li@linux.intel.com>
-CC:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linuxarm@openeuler.org>, <xuwei5@huawei.com>,
-        <prime.zeng@hisilicon.com>, <tiantao6@hisilicon.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Barry Song <song.bao.hua@hisilicon.com>
-Subject: [RFC PATCH v3 1/2] topology: Represent clusters of CPUs within a die.
-Date:   Wed, 6 Jan 2021 21:30:25 +1300
-Message-ID: <20210106083026.40444-2-song.bao.hua@hisilicon.com>
-X-Mailer: git-send-email 2.21.0.windows.1
-In-Reply-To: <20210106083026.40444-1-song.bao.hua@hisilicon.com>
-References: <20210106083026.40444-1-song.bao.hua@hisilicon.com>
+        id S1726308AbhAFJSz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Jan 2021 04:18:55 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:55762 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726295AbhAFJSy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2021 04:18:54 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1609924648;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=74reAFMP9bENCEIgFbfQOXKA/PsWi2wcOMNMUHX6jRs=;
+        b=NncPIcfMenZN+GlJydfVWrMld/lrhzHQHBmSoMdt9BAVrc98/miKmT9CZfD71AH9I4EDor
+        OG5dlzqln/LgNIKh8S9GBG9FkqbFroffq24LyCc0MpUWK+eKDAl9LMI4eik2RDaRE+gOlZ
+        N0nTZf5G460yhn3MV6GzAFch0WLdemY=
+Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
+ [209.85.208.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-170-m-6rdBCDMTC02NjtrIhNZQ-1; Wed, 06 Jan 2021 04:17:26 -0500
+X-MC-Unique: m-6rdBCDMTC02NjtrIhNZQ-1
+Received: by mail-ed1-f69.google.com with SMTP id g6so1695006edw.13
+        for <linux-acpi@vger.kernel.org>; Wed, 06 Jan 2021 01:17:26 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=74reAFMP9bENCEIgFbfQOXKA/PsWi2wcOMNMUHX6jRs=;
+        b=M1fF6+tAVnL6z/xocC+pIHxaeKhhC5prQfYwYZmFZoDUW1DEAmqFCJ555c+V9mQVz/
+         YSmffr/erd5Hn52htLcbYzOiPIYfREZPTTO0qHn47ET5R0KnHZLSWcnOqc8uPFEsjG+6
+         PvOW3EMQbdeZHFgTBbjmgRbH0g0kQvuraMMKpVVRnV7YNJ7Cgt3q++Zc1wei7lVGmeun
+         EVTlgT4Io10aSzxlPMmDce9buTJklqRGCZZJY96sWYGaz/fUpM7OWz9aiRTWSX3pAcwQ
+         1LCgRcWgTUdPAqXsRuTo1KHO00ShnCSMWCs3EgjxuNNqiNpLM4htYnBAkI+Dim5SeVb2
+         kmWg==
+X-Gm-Message-State: AOAM531/xlAA1EhLOZkUpNJiQzsecHEFTgEeveQFgU6QZz1Ogtqppjgh
+        5xnwc7XeNWXeckeggtwTC6UMOrAInfLApECsEcowK7C8xLvvDcXX1ZIVMWCnQtKr/67b4Gyrs7z
+        lnnV04BpUOeGhCXGXsEBHkg==
+X-Received: by 2002:a05:6402:746:: with SMTP id p6mr3354039edy.313.1609924645421;
+        Wed, 06 Jan 2021 01:17:25 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJySWOSAgxnffC8LBV3wDGbija0UW5bX4NCm1gy26Oam0C1xmlbog1r2rFQq7ZWJYvqHt58O5w==
+X-Received: by 2002:a05:6402:746:: with SMTP id p6mr3354035edy.313.1609924645315;
+        Wed, 06 Jan 2021 01:17:25 -0800 (PST)
+Received: from x1.localdomain (2001-1c00-0c1e-bf00-37a3-353b-be90-1238.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:37a3:353b:be90:1238])
+        by smtp.gmail.com with ESMTPSA id z24sm1187871edr.9.2021.01.06.01.17.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 06 Jan 2021 01:17:24 -0800 (PST)
+Subject: Re: [PATCH 0/2] IdeaPad platform profile support
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Mark Gross <mgross@linux.intel.com>,
+        Ike Panhc <ike.pan@canonical.com>,
+        Mark Pearson <markpearson@lenovo.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <20210101125629.20974-1-jiaxun.yang@flygoat.com>
+ <35ac853a-266c-6944-6e5e-6286456865e3@redhat.com>
+ <CAJZ5v0jcCD3qWUJQcS+nFVJWSCQEbq2eN3i07mN8yFr3WZD9dg@mail.gmail.com>
+ <6a29f338-d9e4-150c-81dd-2ffb54f5bc35@redhat.com>
+ <CAJZ5v0je41iXQnr3m-RY9fD_C-qnqbLdqYMvUzp0qgBwEvVoJA@mail.gmail.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <9e745724-d704-6250-9bfb-e347f3611ec4@redhat.com>
+Date:   Wed, 6 Jan 2021 10:17:23 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.126.203.68]
-X-CFilter-Loop: Reflected
+In-Reply-To: <CAJZ5v0je41iXQnr3m-RY9fD_C-qnqbLdqYMvUzp0qgBwEvVoJA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Hi,
 
-Both ACPI and DT provide the ability to describe additional layers of
-topology between that of individual cores and higher level constructs
-such as the level at which the last level cache is shared.
-In ACPI this can be represented in PPTT as a Processor Hierarchy
-Node Structure [1] that is the parent of the CPU cores and in turn
-has a parent Processor Hierarchy Nodes Structure representing
-a higher level of topology.
+On 1/5/21 6:18 PM, Rafael J. Wysocki wrote:
+> On Mon, Jan 4, 2021 at 9:58 PM Hans de Goede <hdegoede@redhat.com> wrote:
 
-For example Kunpeng 920 has 6 clusters in each NUMA node, and each
-cluster has 4 cpus. All clusters share L3 cache data, but each cluster
-has local L3 tag. On the other hand, each clusters will share some
-internal system bus.
+<snip>
 
-+-----------------------------------+                          +---------+
-|  +------+    +------+            +---------------------------+         |
-|  | CPU0 |    | cpu1 |             |    +-----------+         |         |
-|  +------+    +------+             |    |           |         |         |
-|                                   +----+    L3     |         |         |
-|  +------+    +------+   cluster   |    |    tag    |         |         |
-|  | CPU2 |    | CPU3 |             |    |           |         |         |
-|  +------+    +------+             |    +-----------+         |         |
-|                                   |                          |         |
-+-----------------------------------+                          |         |
-+-----------------------------------+                          |         |
-|  +------+    +------+             +--------------------------+         |
-|  |      |    |      |             |    +-----------+         |         |
-|  +------+    +------+             |    |           |         |         |
-|                                   |    |    L3     |         |         |
-|  +------+    +------+             +----+    tag    |         |         |
-|  |      |    |      |             |    |           |         |         |
-|  +------+    +------+             |    +-----------+         |         |
-|                                   |                          |         |
-+-----------------------------------+                          |   L3    |
-                                                               |   data  |
-+-----------------------------------+                          |         |
-|  +------+    +------+             |    +-----------+         |         |
-|  |      |    |      |             |    |           |         |         |
-|  +------+    +------+             +----+    L3     |         |         |
-|                                   |    |    tag    |         |         |
-|  +------+    +------+             |    |           |         |         |
-|  |      |    |      |            ++    +-----------+         |         |
-|  +------+    +------+            |---------------------------+         |
-+-----------------------------------|                          |         |
-+-----------------------------------|                          |         |
-|  +------+    +------+            +---------------------------+         |
-|  |      |    |      |             |    +-----------+         |         |
-|  +------+    +------+             |    |           |         |         |
-|                                   +----+    L3     |         |         |
-|  +------+    +------+             |    |    tag    |         |         |
-|  |      |    |      |             |    |           |         |         |
-|  +------+    +------+             |    +-----------+         |         |
-|                                   |                          |         |
-+-----------------------------------+                          |         |
-+-----------------------------------+                          |         |
-|  +------+    +------+             +--------------------------+         |
-|  |      |    |      |             |   +-----------+          |         |
-|  +------+    +------+             |   |           |          |         |
-|                                   |   |    L3     |          |         |
-|  +------+    +------+             +---+    tag    |          |         |
-|  |      |    |      |             |   |           |          |         |
-|  +------+    +------+             |   +-----------+          |         |
-|                                   |                          |         |
-+-----------------------------------+                          |         |
-+-----------------------------------+                         ++         |
-|  +------+    +------+             +--------------------------+         |
-|  |      |    |      |             |  +-----------+           |         |
-|  +------+    +------+             |  |           |           |         |
-|                                   |  |    L3     |           |         |
-|  +------+    +------+             +--+    tag    |           |         |
-|  |      |    |      |             |  |           |           |         |
-|  +------+    +------+             |  +-----------+           |         |
-|                                   |                          +---------+
-+-----------------------------------+
+>> Patch 1/2 does use a slightly different approach then I suggest above,
+>> thinking more about this it would be cleaner IMHO to just pass the
+>> cur_profile pointer to the callbacks as the pseudo-code patch which I
+>> wrote above does. Drivers which use globals can then just ignore
+>> the extra argument (and keep the platform_profile_handler struct const)
+>> where as drivers which use dynamic allocation can embed the struct in
+>> their driver's data-struct.
+> 
+> Agreed.
 
-That means the cost to transfer ownership of a cacheline between CPUs
-within a cluster is lower than between CPUs in different clusters on
-the same die. Hence, it can make sense to tell the scheduler to use
-the cache affinity of the cluster to make better decision on thread
-migration.
+Note that Jiaxun has provided a v2 of this patch-set with patch 1/2 implementing
+the new approach.
 
-This patch simply exposes this information to userspace libraries
-like hwloc by providing cluster_cpus and related sysfs attributes.
-PoC of HWLOC support at [2].
+Can you merge merge that patch please and then once you're happy that this
+has seen enough exposure in -next, provide me with an immutable branch with
+the 3 platform-profile patches in it ?
 
-Note this patch only handle the ACPI case.
+Regards,
 
-Special consideration is needed for SMT processors, where it is
-necessary to move 2 levels up the hierarchy from the leaf nodes
-(thus skipping the processor core level).
-
-Currently the ID provided is the offset of the Processor
-Hierarchy Nodes Structure within PPTT.  Whilst this is unique
-it is not terribly elegant so alternative suggestions welcome.
-
-Note that arm64 / ACPI does not provide any means of identifying
-a die level in the topology but that may be unrelate to the cluster
-level.
-
-[1] ACPI Specification 6.3 - section 5.2.29.1 processor hierarchy node
-    structure (Type 0)
-[2] https://github.com/hisilicon/hwloc/tree/linux-cluster
-
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
----
- -v3:
- * no real change(v2 comments not addressed);
- * rebased againest 5.11-rc2;
-
- Documentation/admin-guide/cputopology.rst | 26 +++++++++++---
- arch/arm64/kernel/topology.c              |  2 ++
- drivers/acpi/pptt.c                       | 60 +++++++++++++++++++++++++++++++
- drivers/base/arch_topology.c              | 14 ++++++++
- drivers/base/topology.c                   | 10 ++++++
- include/linux/acpi.h                      |  5 +++
- include/linux/arch_topology.h             |  5 +++
- include/linux/topology.h                  |  6 ++++
- 8 files changed, 124 insertions(+), 4 deletions(-)
-
-diff --git a/Documentation/admin-guide/cputopology.rst b/Documentation/admin-guide/cputopology.rst
-index b90dafc..f9d3745 100644
---- a/Documentation/admin-guide/cputopology.rst
-+++ b/Documentation/admin-guide/cputopology.rst
-@@ -24,6 +24,12 @@ core_id:
- 	identifier (rather than the kernel's).  The actual value is
- 	architecture and platform dependent.
- 
-+cluster_id:
-+
-+	the Cluster ID of cpuX.  Typically it is the hardware platform's
-+	identifier (rather than the kernel's).  The actual value is
-+	architecture and platform dependent.
-+
- book_id:
- 
- 	the book ID of cpuX. Typically it is the hardware platform's
-@@ -56,6 +62,14 @@ package_cpus_list:
- 	human-readable list of CPUs sharing the same physical_package_id.
- 	(deprecated name: "core_siblings_list")
- 
-+cluster_cpus:
-+
-+	internal kernel map of CPUs within the same cluster.
-+
-+cluster_cpus_list:
-+
-+	human-readable list of CPUs within the same cluster.
-+
- die_cpus:
- 
- 	internal kernel map of CPUs within the same die.
-@@ -96,11 +110,13 @@ these macros in include/asm-XXX/topology.h::
- 
- 	#define topology_physical_package_id(cpu)
- 	#define topology_die_id(cpu)
-+	#define topology_cluster_id(cpu)
- 	#define topology_core_id(cpu)
- 	#define topology_book_id(cpu)
- 	#define topology_drawer_id(cpu)
- 	#define topology_sibling_cpumask(cpu)
- 	#define topology_core_cpumask(cpu)
-+	#define topology_cluster_cpumask(cpu)
- 	#define topology_die_cpumask(cpu)
- 	#define topology_book_cpumask(cpu)
- 	#define topology_drawer_cpumask(cpu)
-@@ -116,10 +132,12 @@ not defined by include/asm-XXX/topology.h:
- 
- 1) topology_physical_package_id: -1
- 2) topology_die_id: -1
--3) topology_core_id: 0
--4) topology_sibling_cpumask: just the given CPU
--5) topology_core_cpumask: just the given CPU
--6) topology_die_cpumask: just the given CPU
-+3) topology_cluster_id: -1
-+4) topology_core_id: 0
-+5) topology_sibling_cpumask: just the given CPU
-+6) topology_core_cpumask: just the given CPU
-+7) topology_cluster_cpumask: just the given CPU
-+8) topology_die_cpumask: just the given CPU
- 
- For architectures that don't support books (CONFIG_SCHED_BOOK) there are no
- default definitions for topology_book_id() and topology_book_cpumask().
-diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-index f6faa69..fe076b3 100644
---- a/arch/arm64/kernel/topology.c
-+++ b/arch/arm64/kernel/topology.c
-@@ -103,6 +103,8 @@ int __init parse_acpi_topology(void)
- 			cpu_topology[cpu].thread_id  = -1;
- 			cpu_topology[cpu].core_id    = topology_id;
- 		}
-+		topology_id = find_acpi_cpu_topology_cluster(cpu);
-+		cpu_topology[cpu].cluster_id = topology_id;
- 		topology_id = find_acpi_cpu_topology_package(cpu);
- 		cpu_topology[cpu].package_id = topology_id;
- 
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index 4ae9335..8646a93 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -737,6 +737,66 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
- }
- 
- /**
-+ * find_acpi_cpu_topology_cluster() - Determine a unique CPU cluster value
-+ * @cpu: Kernel logical CPU number
-+ *
-+ * Determine a topology unique cluster ID for the given CPU/thread.
-+ * This ID can then be used to group peers, which will have matching ids.
-+ *
-+ * The cluster, if present is the level of topology above CPUs. In a
-+ * multi-thread CPU, it will be the level above the CPU, not the thread.
-+ * It may not exist in single CPU systems. In simple multi-CPU systems,
-+ * it may be equal to the package topology level.
-+ *
-+ * Return: -ENOENT if the PPTT doesn't exist, the CPU cannot be found
-+ * or there is no toplogy level above the CPU..
-+ * Otherwise returns a value which represents the package for this CPU.
-+ */
-+
-+int find_acpi_cpu_topology_cluster(unsigned int cpu)
-+{
-+	struct acpi_table_header *table;
-+	acpi_status status;
-+	struct acpi_pptt_processor *cpu_node, *cluster_node;
-+	int retval;
-+	int is_thread;
-+
-+	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_pptt_warn_missing();
-+		return -ENOENT;
-+	}
-+	cpu_node = acpi_find_processor_node(table, cpu);
-+	if (cpu_node == NULL || !cpu_node->parent) {
-+		retval = -ENOENT;
-+		goto put_table;
-+	}
-+
-+	is_thread = cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_IS_THREAD;
-+	cluster_node = fetch_pptt_node(table, cpu_node->parent);
-+	if (cluster_node == NULL) {
-+		retval = -ENOENT;
-+		goto put_table;
-+	}
-+	if (is_thread) {
-+		if (!cluster_node->parent) {
-+			retval = -ENOENT;
-+			goto put_table;
-+		}
-+		cluster_node = fetch_pptt_node(table, cluster_node->parent);
-+		if (cluster_node == NULL) {
-+			retval = -ENOENT;
-+			goto put_table;
-+		}
-+	}
-+	retval = ACPI_PTR_DIFF(cluster_node, table);
-+put_table:
-+	acpi_put_table(table);
-+
-+	return retval;
-+}
-+
-+/**
-  * find_acpi_cpu_topology_hetero_id() - Get a core architecture tag
-  * @cpu: Kernel logical CPU number
-  *
-diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-index de8587c..3079232 100644
---- a/drivers/base/arch_topology.c
-+++ b/drivers/base/arch_topology.c
-@@ -506,6 +506,11 @@ const struct cpumask *cpu_coregroup_mask(int cpu)
- 	return core_mask;
- }
- 
-+const struct cpumask *cpu_clustergroup_mask(int cpu)
-+{
-+	return &cpu_topology[cpu].cluster_sibling;
-+}
-+
- void update_siblings_masks(unsigned int cpuid)
- {
- 	struct cpu_topology *cpu_topo, *cpuid_topo = &cpu_topology[cpuid];
-@@ -523,6 +528,11 @@ void update_siblings_masks(unsigned int cpuid)
- 		if (cpuid_topo->package_id != cpu_topo->package_id)
- 			continue;
- 
-+		if (cpuid_topo->cluster_id == cpu_topo->cluster_id) {
-+			cpumask_set_cpu(cpu, &cpuid_topo->cluster_sibling);
-+			cpumask_set_cpu(cpuid, &cpu_topo->cluster_sibling);
-+		}
-+
- 		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
- 		cpumask_set_cpu(cpu, &cpuid_topo->core_sibling);
- 
-@@ -541,6 +551,9 @@ static void clear_cpu_topology(int cpu)
- 	cpumask_clear(&cpu_topo->llc_sibling);
- 	cpumask_set_cpu(cpu, &cpu_topo->llc_sibling);
- 
-+	cpumask_clear(&cpu_topo->cluster_sibling);
-+	cpumask_set_cpu(cpu, &cpu_topo->cluster_sibling);
-+
- 	cpumask_clear(&cpu_topo->core_sibling);
- 	cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
- 	cpumask_clear(&cpu_topo->thread_sibling);
-@@ -571,6 +584,7 @@ void remove_cpu_topology(unsigned int cpu)
- 		cpumask_clear_cpu(cpu, topology_core_cpumask(sibling));
- 	for_each_cpu(sibling, topology_sibling_cpumask(cpu))
- 		cpumask_clear_cpu(cpu, topology_sibling_cpumask(sibling));
-+
- 	for_each_cpu(sibling, topology_llc_cpumask(cpu))
- 		cpumask_clear_cpu(cpu, topology_llc_cpumask(sibling));
- 
-diff --git a/drivers/base/topology.c b/drivers/base/topology.c
-index 4d254fc..7157ac0 100644
---- a/drivers/base/topology.c
-+++ b/drivers/base/topology.c
-@@ -46,6 +46,9 @@ static DEVICE_ATTR_RO(physical_package_id);
- define_id_show_func(die_id);
- static DEVICE_ATTR_RO(die_id);
- 
-+define_id_show_func(cluster_id);
-+static DEVICE_ATTR_RO(cluster_id);
-+
- define_id_show_func(core_id);
- static DEVICE_ATTR_RO(core_id);
- 
-@@ -61,6 +64,10 @@ define_siblings_show_func(core_siblings, core_cpumask);
- static DEVICE_ATTR_RO(core_siblings);
- static DEVICE_ATTR_RO(core_siblings_list);
- 
-+define_siblings_show_func(cluster_cpus, cluster_cpumask);
-+static DEVICE_ATTR_RO(cluster_cpus);
-+static DEVICE_ATTR_RO(cluster_cpus_list);
-+
- define_siblings_show_func(die_cpus, die_cpumask);
- static DEVICE_ATTR_RO(die_cpus);
- static DEVICE_ATTR_RO(die_cpus_list);
-@@ -88,6 +95,7 @@ static DEVICE_ATTR_RO(drawer_siblings_list);
- static struct attribute *default_attrs[] = {
- 	&dev_attr_physical_package_id.attr,
- 	&dev_attr_die_id.attr,
-+	&dev_attr_cluster_id.attr,
- 	&dev_attr_core_id.attr,
- 	&dev_attr_thread_siblings.attr,
- 	&dev_attr_thread_siblings_list.attr,
-@@ -95,6 +103,8 @@ static struct attribute *default_attrs[] = {
- 	&dev_attr_core_cpus_list.attr,
- 	&dev_attr_core_siblings.attr,
- 	&dev_attr_core_siblings_list.attr,
-+	&dev_attr_cluster_cpus.attr,
-+	&dev_attr_cluster_cpus_list.attr,
- 	&dev_attr_die_cpus.attr,
- 	&dev_attr_die_cpus_list.attr,
- 	&dev_attr_package_cpus.attr,
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 2630c2e..8f603cd 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1325,6 +1325,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
- #ifdef CONFIG_ACPI_PPTT
- int acpi_pptt_cpu_is_thread(unsigned int cpu);
- int find_acpi_cpu_topology(unsigned int cpu, int level);
-+int find_acpi_cpu_topology_cluster(unsigned int cpu);
- int find_acpi_cpu_topology_package(unsigned int cpu);
- int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
- int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
-@@ -1337,6 +1338,10 @@ static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
- {
- 	return -EINVAL;
- }
-+static inline int find_acpi_cpu_topology_cluster(unsigned int cpu)
-+{
-+	return -EINVAL;
-+}
- static inline int find_acpi_cpu_topology_package(unsigned int cpu)
- {
- 	return -EINVAL;
-diff --git a/include/linux/arch_topology.h b/include/linux/arch_topology.h
-index 0f6cd6b..987c7ea 100644
---- a/include/linux/arch_topology.h
-+++ b/include/linux/arch_topology.h
-@@ -49,10 +49,12 @@ void topology_set_thermal_pressure(const struct cpumask *cpus,
- struct cpu_topology {
- 	int thread_id;
- 	int core_id;
-+	int cluster_id;
- 	int package_id;
- 	int llc_id;
- 	cpumask_t thread_sibling;
- 	cpumask_t core_sibling;
-+	cpumask_t cluster_sibling;
- 	cpumask_t llc_sibling;
- };
- 
-@@ -60,13 +62,16 @@ struct cpu_topology {
- extern struct cpu_topology cpu_topology[NR_CPUS];
- 
- #define topology_physical_package_id(cpu)	(cpu_topology[cpu].package_id)
-+#define topology_cluster_id(cpu)	(cpu_topology[cpu].cluster_id)
- #define topology_core_id(cpu)		(cpu_topology[cpu].core_id)
- #define topology_core_cpumask(cpu)	(&cpu_topology[cpu].core_sibling)
- #define topology_sibling_cpumask(cpu)	(&cpu_topology[cpu].thread_sibling)
-+#define topology_cluster_cpumask(cpu)	(&cpu_topology[cpu].cluster_sibling)
- #define topology_llc_cpumask(cpu)	(&cpu_topology[cpu].llc_sibling)
- void init_cpu_topology(void);
- void store_cpu_topology(unsigned int cpuid);
- const struct cpumask *cpu_coregroup_mask(int cpu);
-+const struct cpumask *cpu_clustergroup_mask(int cpu);
- void update_siblings_masks(unsigned int cpu);
- void remove_cpu_topology(unsigned int cpuid);
- void reset_cpu_topology(void);
-diff --git a/include/linux/topology.h b/include/linux/topology.h
-index ad03df1..bf2cc3c 100644
---- a/include/linux/topology.h
-+++ b/include/linux/topology.h
-@@ -185,6 +185,9 @@ static inline int cpu_to_mem(int cpu)
- #ifndef topology_die_id
- #define topology_die_id(cpu)			((void)(cpu), -1)
- #endif
-+#ifndef topology_cluster_id
-+#define topology_cluster_id(cpu)		((void)(cpu), -1)
-+#endif
- #ifndef topology_core_id
- #define topology_core_id(cpu)			((void)(cpu), 0)
- #endif
-@@ -194,6 +197,9 @@ static inline int cpu_to_mem(int cpu)
- #ifndef topology_core_cpumask
- #define topology_core_cpumask(cpu)		cpumask_of(cpu)
- #endif
-+#ifndef topology_cluster_cpumask
-+#define topology_cluster_cpumask(cpu)		cpumask_of(cpu)
-+#endif
- #ifndef topology_die_cpumask
- #define topology_die_cpumask(cpu)		cpumask_of(cpu)
- #endif
--- 
-2.7.4
+Hans
 
