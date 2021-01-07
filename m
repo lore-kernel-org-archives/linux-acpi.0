@@ -2,60 +2,60 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B7C3C4332E
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:31:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87270C433DB
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:31:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D065922B4B
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:31:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62B4722BE8
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:31:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728649AbhAGNaV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Jan 2021 08:30:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47196 "EHLO
+        id S1728748AbhAGNay (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Jan 2021 08:30:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728635AbhAGNaT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2021 08:30:19 -0500
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E239C061285;
-        Thu,  7 Jan 2021 05:29:11 -0800 (PST)
-Received: by mail-wm1-x32d.google.com with SMTP id 3so5539204wmg.4;
-        Thu, 07 Jan 2021 05:29:11 -0800 (PST)
+        with ESMTP id S1728628AbhAGNaS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2021 08:30:18 -0500
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEB43C0612FF;
+        Thu,  7 Jan 2021 05:29:08 -0800 (PST)
+Received: by mail-wm1-x32e.google.com with SMTP id r4so5518340wmh.5;
+        Thu, 07 Jan 2021 05:29:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=UbXPmlsNfj3rZdgW4jkqaOrVVChzq9tlyKQWVU1cs38=;
-        b=cFwM/aEFWhr0cvn50i/tgxcNEwYlItPIYysJ85JkIZXRS08YXC0luAFW0ptZim0bB/
-         Bc7P9Z51Cps76okxUydaMOAn5HeCNPgdZOE1ReAe6qyRnzw1LNRI+iv/oL17yv3y0k74
-         9PieMotLzK5Act48skwSutwkHRrx+eEBneeSwvo1zwcNxwWapO00beYD2snAAOmgjP2d
-         oALQ1pcEKNPacGPwOmmXFQp+3rwpzxp/Z9NaG9qZ1EA0+BawCt1xN1v60UhjTsMxZxzd
-         un5IzFMyFEsD4zDqWB0Q1//DDNHExaB2x2Xzzlgh9IAtnt9FWgcA61qFyrrFkLG+AVg1
-         o0Bw==
+        bh=5JGyD3hkdJmnqfda58CfnRRt8A27y2P17+ogpq3Ke0k=;
+        b=d/DQ9wOXKQ+qi4Ft4lpUYczdF56IZocYPZ1DC5JNHHIJexOrr6kxvoZU0NW/hPrQDy
+         2K54DMUlIGxR4i0A12dGic8KVpLCAG7o1SiWrfzqMZv96AbXGXcbPrjs+khYRN/Vgrv5
+         WyKRLX9TtnHMhSodsp47tdRRI/Pv1LN0wp2yQQqpOFaE2zvrXabQ09pq/l4yDEFaEJH/
+         BzcOmJUJtL3ySIsY7qUOm1vhEFDUgIARUUnwdLuGUPl8ji8UctzDQN+tSySTRbzPNpi+
+         AzgYzLQwIWaUwhLjLBOMGH7hpv8Rb9gq+WwNgSYRXC5vz8Prwi6RJfyjBZArWBFgYpZq
+         NWXA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=UbXPmlsNfj3rZdgW4jkqaOrVVChzq9tlyKQWVU1cs38=;
-        b=Eh2k8drjGJwTDGcPhMYPQnNHImUrWSWJtNM6ISDeurId+qWEcCRyoaZYCmUT9leC0C
-         094WQpA1GbL/pe8ebt5q1G1MjY7LfwBR3/iHzeduCXMGo8UsL8rgBskItFeu3cClrSj2
-         IyNSOhQxeIlnPTr/7e2VAsy8xd1Iw6e6sU3KQXiutGxTo/9VnlZiMk2+Y2BptmlVWMe3
-         WYhHHXT6/PBjLjigTlP9X6Oep0c2JVl+D8x3g9O0OjufIbLW2AeklIel88PHbqCBQSLu
-         hQgy5m20OeUk/pFgj3yy+UqYQmjHJ1fwxffW8q7Sr4d6RkDnOZcCmvwoSv7nK+AtAU+g
-         RebA==
-X-Gm-Message-State: AOAM533peGI5tQkSJqz9dH8xKCJhhLoPcnqi/69QKZnh5UpX/Myk4/oC
-        7tAKogeoIDKNaILDourkRFAmIL92TgFCGCk5
-X-Google-Smtp-Source: ABdhPJyvu1Z/3WmwtfBkIcQLLlj03xuAxmWGX9Qk5zQFUFieIuMaQLzdC+14Z77Q95nEnWmoO364Sw==
-X-Received: by 2002:a7b:c8c5:: with SMTP id f5mr8066051wml.106.1610026150302;
-        Thu, 07 Jan 2021 05:29:10 -0800 (PST)
+        bh=5JGyD3hkdJmnqfda58CfnRRt8A27y2P17+ogpq3Ke0k=;
+        b=NPoJNJcVsuJ4j3l6NIG1Sm5HhaosxNcyF7Xwwe9KLIL1vnXYdbfw01Ho7TLIBgDyou
+         32rrymPZ9GO4FiqoMLmT8+CIHNdGdnD0ZKo/vDDpAwVX3ozgb8Bo9+y/VQPUl114RHGg
+         f74HtgsGLnJqTk3kSCYB3w3pLq19qOLCbEga5X+3fMZWkP+wRHrufSsZK4j0S+ITqNz9
+         K042zuJTSw1VaCv8fMgIHe+wUSKb7w4ks/GGzOPSdR9uAWlKMOcfrpgwVppALNhYjxdU
+         wlp2esKedPRUp9FydmHqoMjsoO9PzmkxwzLnHoYnmlFVex+6M4N1WrTHzsxv6r0SojDW
+         iBdg==
+X-Gm-Message-State: AOAM530Cva1QwMhzt3XhLnwh4Xo2eY4jCumXZmdYmHj+vG1I4J93dEVT
+        bwkXZAbRbrCuC0cB3AskuDMNlSLkd8aNtGPv
+X-Google-Smtp-Source: ABdhPJwqziNHSBuuiilYRk59tWjXNnZELM2SRFY3MWLfDTUKakbrUnC1FeE2G6OcXLO8ZDBXK9WI0Q==
+X-Received: by 2002:a1c:6287:: with SMTP id w129mr7904442wmb.71.1610026147499;
+        Thu, 07 Jan 2021 05:29:07 -0800 (PST)
 Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id o83sm7660125wme.21.2021.01.07.05.29.08
+        by smtp.gmail.com with ESMTPSA id o83sm7660125wme.21.2021.01.07.05.29.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 Jan 2021 05:29:09 -0800 (PST)
+        Thu, 07 Jan 2021 05:29:06 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org, rjw@rjwysocki.net,
@@ -73,9 +73,9 @@ Cc:     yong.zhi@intel.com, sakari.ailus@linux.intel.com,
         prabhakar.mahadev-lad.rj@bp.renesas.com, slongerbeam@gmail.com,
         heikki.krogerus@linux.intel.com,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v5 12/15] media: v4l2-core: v4l2-async: Check sd->fwnode->secondary in match_fwnode()
-Date:   Thu,  7 Jan 2021 13:28:35 +0000
-Message-Id: <20210107132838.396641-13-djrscally@gmail.com>
+Subject: [PATCH v5 10/15] ipu3-cio2: Add T: entry to MAINTAINERS
+Date:   Thu,  7 Jan 2021 13:28:33 +0000
+Message-Id: <20210107132838.396641-11-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210107132838.396641-1-djrscally@gmail.com>
 References: <20210107132838.396641-1-djrscally@gmail.com>
@@ -85,41 +85,32 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Where the fwnode graph is comprised of software_nodes, these will be
-assigned as the secondary to dev->fwnode. Check the v4l2_subdev's fwnode
-for a secondary and attempt to match against it during match_fwnode() to
-accommodate that possibility.
+Development for the ipu3-cio2 driver is taking place in media_tree, but
+there's no T: entry in MAINTAINERS to denote that - rectify that oversight
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
 Changes in v5:
 
 	- None
 
- drivers/media/v4l2-core/v4l2-async.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index e3ab003a6c85..9dd896d085ec 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -87,6 +87,14 @@ static bool match_fwnode(struct v4l2_async_notifier *notifier,
- 	if (sd->fwnode == asd->match.fwnode)
- 		return true;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 471561d9d55f..92228e8dd868 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9017,6 +9017,7 @@ M:	Bingbu Cao <bingbu.cao@intel.com>
+ R:	Tianshu Qiu <tian.shu.qiu@intel.com>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
++T:	git git://linuxtv.org/media_tree.git
+ F:	Documentation/userspace-api/media/v4l/pixfmt-srggb10-ipu3.rst
+ F:	drivers/media/pci/intel/ipu3/
  
-+	/*
-+	 * Check the same situation for any possible secondary assigned to the
-+	 * subdev's fwnode
-+	 */
-+	if (!IS_ERR_OR_NULL(sd->fwnode->secondary) &&
-+	    sd->fwnode->secondary == asd->match.fwnode)
-+		return true;
-+
- 	/*
- 	 * Otherwise, check if the sd fwnode and the asd fwnode refer to an
- 	 * endpoint or a device. If they're of the same type, there's no match.
 -- 
 2.25.1
 
