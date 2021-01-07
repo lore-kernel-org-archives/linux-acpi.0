@@ -2,39 +2,39 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3CD5C433E6
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 14:06:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4B67C433DB
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 14:07:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CA1622D75
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 14:06:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 880F422D6F
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 14:07:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728473AbhAGOGU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Jan 2021 09:06:20 -0500
-Received: from mga12.intel.com ([192.55.52.136]:14693 "EHLO mga12.intel.com"
+        id S1727885AbhAGOGc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Jan 2021 09:06:32 -0500
+Received: from mga02.intel.com ([134.134.136.20]:34935 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727590AbhAGOGQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 7 Jan 2021 09:06:16 -0500
-IronPort-SDR: CgBUEftWvDuvD62nuVBB5NutdUcZAho4/rLoGErL0NRv5s5du0YsfYlZhlNNChN0htGo6p6hAx
- /o0r2jg3Q38Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9856"; a="156612661"
+        id S1727711AbhAGOGc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 Jan 2021 09:06:32 -0500
+IronPort-SDR: d6Tf+Ib61/uoN9iwqhHoDdjkwUBa0Xc48ydcwwkh1//eQjnloCmhFI9MPPJfzhJ38cRltjCp8f
+ /aFuhERSOWUA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9856"; a="164496875"
 X-IronPort-AV: E=Sophos;i="5.79,329,1602572400"; 
-   d="scan'208";a="156612661"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2021 06:04:16 -0800
-IronPort-SDR: 6IFC7pLNHryHu2dUEq/kCDQUKcUhUL4+biduoTx0ZWruOFw5Ljq/sYwnAnCAmJZGmxAATjtyFI
- MapknFAQeFyw==
+   d="scan'208";a="164496875"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2021 06:04:45 -0800
+IronPort-SDR: z+6k2atxnFNgkMXTm375fLKHEBt2Qq7N2XeP2WseLO21euHdixYWyyJ6OQL9x6fgYMi+FqGmJJ
+ PKUVOvqv9p7w==
 X-IronPort-AV: E=Sophos;i="5.79,329,1602572400"; 
-   d="scan'208";a="398627735"
+   d="scan'208";a="463044704"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2021 06:04:04 -0800
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2021 06:04:36 -0800
 Received: from andy by smile with local (Exim 4.94)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1kxVuT-004mYA-Dk; Thu, 07 Jan 2021 16:05:05 +0200
-Date:   Thu, 7 Jan 2021 16:05:05 +0200
+        id 1kxVuz-004maB-3C; Thu, 07 Jan 2021 16:05:37 +0200
+Date:   Thu, 7 Jan 2021 16:05:37 +0200
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Daniel Scally <djrscally@gmail.com>
 Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
@@ -55,32 +55,25 @@ Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>
 Subject: Re: [PATCH v5 15/15] ipu3-cio2: Add cio2-bridge to ipu3-cio2 driver
-Message-ID: <20210107140505.GW4077@smile.fi.intel.com>
+Message-ID: <20210107140537.GX4077@smile.fi.intel.com>
 References: <20210107132838.396641-1-djrscally@gmail.com>
  <20210107132838.396641-16-djrscally@gmail.com>
+ <20210107140505.GW4077@smile.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210107132838.396641-16-djrscally@gmail.com>
+In-Reply-To: <20210107140505.GW4077@smile.fi.intel.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 07, 2021 at 01:28:38PM +0000, Daniel Scally wrote:
-> Currently on platforms designed for Windows, connections between CIO2 and
-> sensors are not properly defined in DSDT. This patch extends the ipu3-cio2
-> driver to compensate by building software_node connections, parsing the
-> connection properties from the sensor's SSDB buffer.
-> 
-> Suggested-by: Jordan Hand <jorhand@linux.microsoft.com>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Reviewed-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> Signed-off-by: Daniel Scally <djrscally@gmail.com>
-> ---
+On Thu, Jan 07, 2021 at 04:05:05PM +0200, Andy Shevchenko wrote:
+> On Thu, Jan 07, 2021 at 01:28:38PM +0000, Daniel Scally wrote:
 
-Seems like missed changelog (no need to resend, just send a follow up).
+> Seems like missed changelog (no need to resend, just send a follow up).
+
+I meant the follow up with only changelog text, thanks!
 
 -- 
 With Best Regards,
