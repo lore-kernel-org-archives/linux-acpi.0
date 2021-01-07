@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72016C43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAC6DC432C3
 	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:30:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4840122B4B
+	by mail.kernel.org (Postfix) with ESMTP id AD63D22BE8
 	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:30:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728594AbhAGNaQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Jan 2021 08:30:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47172 "EHLO
+        id S1728638AbhAGNaU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Jan 2021 08:30:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728585AbhAGNaP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2021 08:30:15 -0500
-Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFA5BC0612FA;
-        Thu,  7 Jan 2021 05:29:01 -0800 (PST)
-Received: by mail-wr1-x42a.google.com with SMTP id r3so5660982wrt.2;
-        Thu, 07 Jan 2021 05:29:01 -0800 (PST)
+        with ESMTP id S1728585AbhAGNaT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2021 08:30:19 -0500
+Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 209FAC061282;
+        Thu,  7 Jan 2021 05:29:10 -0800 (PST)
+Received: by mail-wm1-x32a.google.com with SMTP id c124so5149435wma.5;
+        Thu, 07 Jan 2021 05:29:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=SoQRyLJn4HZP02GVt4BbpkjI446/7MndnoeDuXQdaLY=;
-        b=B/r6+OoleWGiyRkTVXU3BM4qFszVckAJZAhgfWRBaYALy5OJCfd9udz79qvn7zrd+Q
-         mkNfX1wep/YJfubivi/Z+H1c92yvJkXiIvlROPk5Bii4NiWMtw2M3wrQOYimnnlKunsW
-         ha8sFmpcC8YWVWvaDCF4MwCUxhsgDbRF22/ruzKL+zsidW16K0W9J/zw4b0ASddQHy7c
-         V35J71/YsTl/rgFgvUNk27jMjZPchT33eInnkefK+vJ9+IqUUdTCvwwJiRnHTR9SuT5c
-         3oWhzO3+Wm9h+hbKBZyRA+dmNFXBwxRisFS0xTmcF2KWrSvBF0N3YiEhp1RIegewtOej
-         gr9A==
+        bh=iUMxq9sm/N1IcgtSTNHft9W//qV2OwXPT/djjfo6B80=;
+        b=NZC1gCGiJNPa4E4p4wziv2RxukmwdGPNYUnn6yA35t3Gs9qxLVA/8Ru+z40RDQZk+w
+         hPkpnr3uDzEzoRm9K2/cff7ZRBZI2gw1dPebmesNm81DZJH0zUbvUtjS/8p3ONw625/N
+         42tAFBhHREu/eP5RyGch+sb8W4vlGlgWztF+FkTCsEswbAdb/ZxPLBqo4VPvoNhHYICG
+         AuaMSfut/eVK11z5TPjMVRqf+XikMjnof0NIxbsgE3vLg9IEiC7unruu/bfyrgOBcgA8
+         rQCwhUs5Wice36aaEMQgBKXqoox7ifMfMkYcEdTyOz/o5CGrRFNJw1vR+e9H/R0Anq+I
+         uiRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=SoQRyLJn4HZP02GVt4BbpkjI446/7MndnoeDuXQdaLY=;
-        b=N+DUIh0X/r2cI0fb5MU35BsF/4G6afp16AevFOQVs+9Ub77mYPbLqkd3uANw11I/ql
-         AOYAN6m+0Sf75ZtxmKfdZC2Ai8TA7u3Q3FnrUtn4YAfo2V5Y4HP8lg3Zn1Gx3Z5MN9QW
-         pwNkeGgKXDVq2vS4Rb/Ja8G6Gw3m1XL+3IbNcS0tXc593J1p91CVOLyry4OtaxdEB+wC
-         4qFWxqZMjw1YhpRcu1g+mR+w/tV4+kUAm9ed9slNIodKDTI7lvOFpI6M85+qrc5nZAtr
-         CROco/XjUbH6EcgRz/k5Znv+KSdZ4ttcQdmffi0rgeY0PTXh6ZIEu460BR0ghRaz/Nve
-         K6vA==
-X-Gm-Message-State: AOAM530TOWO33rA5PcVQWC65luMs+f+wmWLPoFhrFsCnxu57TSZAVGLp
-        rJ79cAFXdjCYFsV2dVWI8+2u8vOS+7rRuova
-X-Google-Smtp-Source: ABdhPJxDJek+JC0RYDWgMEwdVAKNskeIQx7EzhapycQhzKkZJ8UzWky8izjrk8B5LCq/s+LfbB/j6Q==
-X-Received: by 2002:a5d:54cc:: with SMTP id x12mr9132835wrv.132.1610026140455;
-        Thu, 07 Jan 2021 05:29:00 -0800 (PST)
+        bh=iUMxq9sm/N1IcgtSTNHft9W//qV2OwXPT/djjfo6B80=;
+        b=nxBWS+OojR4XJltaeMaYaBFBGyHDrDRBfJk+ZbxDA9tb0Pv674W+nCmtW0ZfB6GGdD
+         0tHmU3oETpmitJsIkQEMWj+Akb5ywnopo2g5we9WkkK05gZYPFHNdEq/Q1M69cnqdxcw
+         Wl6U1HbH6qFF6HH1lW/k4KhvNWdH0aCG9DR2Ww+J+cWYryIiYKq75OGN5QxEwRncB3d1
+         AaNaRqxwStQRWe6W/SDKPvmu7yRdVl+QVOe76u12flbvKmOyMfChPatWc3uIfY86Bnb+
+         R+YDF2SmrqEilt+SXepPkqQHnEYamlYR0PQfMxwqLw1atrvaAGcMH/CIjFkBuVUG/tf0
+         c8/Q==
+X-Gm-Message-State: AOAM5323qOBN55l2cUeQ99qkB6IE19LvSN65rBi4Xw+fpxKtoQ2QDVZD
+        A0m364XTUDdXJ6aAMZ8HFdZWZx73Q0IeLD78
+X-Google-Smtp-Source: ABdhPJy03paiRqbUzQYJ5PSzdk/e1RvBo+kKcumvn2amiBu/QxZBgMAuB6RU+F4Prb5UJhVb3H7JRQ==
+X-Received: by 2002:a05:600c:20f:: with SMTP id 15mr8119112wmi.36.1610026148856;
+        Thu, 07 Jan 2021 05:29:08 -0800 (PST)
 Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id o83sm7660125wme.21.2021.01.07.05.28.59
+        by smtp.gmail.com with ESMTPSA id o83sm7660125wme.21.2021.01.07.05.29.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 Jan 2021 05:28:59 -0800 (PST)
+        Thu, 07 Jan 2021 05:29:08 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-media@vger.kernel.org, devel@acpica.org, rjw@rjwysocki.net,
@@ -73,9 +73,9 @@ Cc:     yong.zhi@intel.com, sakari.ailus@linux.intel.com,
         prabhakar.mahadev-lad.rj@bp.renesas.com, slongerbeam@gmail.com,
         heikki.krogerus@linux.intel.com,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v5 05/15] software_node: Enforce parent before child ordering of nodes arrays
-Date:   Thu,  7 Jan 2021 13:28:28 +0000
-Message-Id: <20210107132838.396641-6-djrscally@gmail.com>
+Subject: [PATCH v5 11/15] ipu3-cio2: Rename ipu3-cio2.c
+Date:   Thu,  7 Jan 2021 13:28:34 +0000
+Message-Id: <20210107132838.396641-12-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210107132838.396641-1-djrscally@gmail.com>
 References: <20210107132838.396641-1-djrscally@gmail.com>
@@ -85,103 +85,36 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Registering software_nodes with the .parent member set to point to a
-currently unregistered software_node has the potential for problems,
-so enforce parent -> child ordering in arrays passed in to
-software_node_register_nodes().
-
-Software nodes that are children of another software node should be
-unregistered before their parent. To allow easy unregistering of an array
-of software_nodes ordered parent to child, reverse the order in which
-software_node_unregister_nodes() unregisters software_nodes.
+ipu3-cio2 driver needs extending with multiple files; rename the main
+source file and specify the renamed file in Makefile to accommodate that.
 
 Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
 Changes in v5:
 
 	- None
 
- drivers/base/swnode.c | 42 ++++++++++++++++++++++++++++++------------
- 1 file changed, 30 insertions(+), 12 deletions(-)
+ drivers/media/pci/intel/ipu3/Makefile                          | 2 ++
+ drivers/media/pci/intel/ipu3/{ipu3-cio2.c => ipu3-cio2-main.c} | 0
+ 2 files changed, 2 insertions(+)
+ rename drivers/media/pci/intel/ipu3/{ipu3-cio2.c => ipu3-cio2-main.c} (100%)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 4fcc1a6fb724..166c5cc73f39 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -692,7 +692,11 @@ swnode_register(const struct software_node *node, struct swnode *parent,
-  * software_node_register_nodes - Register an array of software nodes
-  * @nodes: Zero terminated array of software nodes to be registered
-  *
-- * Register multiple software nodes at once.
-+ * Register multiple software nodes at once. If any node in the array
-+ * has its .parent pointer set (which can only be to another software_node),
-+ * then its parent **must** have been registered before it is; either outside
-+ * of this function or by ordering the array such that parent comes before
-+ * child.
-  */
- int software_node_register_nodes(const struct software_node *nodes)
- {
-@@ -700,14 +704,23 @@ int software_node_register_nodes(const struct software_node *nodes)
- 	int i;
- 
- 	for (i = 0; nodes[i].name; i++) {
--		ret = software_node_register(&nodes[i]);
--		if (ret) {
--			software_node_unregister_nodes(nodes);
--			return ret;
-+		const struct software_node *parent = nodes[i].parent;
+diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
+index 98ddd5beafe0..429d516452e4 100644
+--- a/drivers/media/pci/intel/ipu3/Makefile
++++ b/drivers/media/pci/intel/ipu3/Makefile
+@@ -1,2 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
 +
-+		if (parent && !software_node_to_swnode(parent)) {
-+			ret = -EINVAL;
-+			goto err_unregister_nodes;
- 		}
-+
-+		ret = software_node_register(&nodes[i]);
-+		if (ret)
-+			goto err_unregister_nodes;
- 	}
- 
- 	return 0;
-+
-+err_unregister_nodes:
-+	software_node_unregister_nodes(nodes);
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(software_node_register_nodes);
- 
-@@ -715,18 +728,23 @@ EXPORT_SYMBOL_GPL(software_node_register_nodes);
-  * software_node_unregister_nodes - Unregister an array of software nodes
-  * @nodes: Zero terminated array of software nodes to be unregistered
-  *
-- * Unregister multiple software nodes at once.
-+ * Unregister multiple software nodes at once. If parent pointers are set up
-+ * in any of the software nodes then the array **must** be ordered such that
-+ * parents come before their children.
-  *
-- * NOTE: Be careful using this call if the nodes had parent pointers set up in
-- * them before registering.  If so, it is wiser to remove the nodes
-- * individually, in the correct order (child before parent) instead of relying
-- * on the sequential order of the list of nodes in the array.
-+ * NOTE: If you are uncertain whether the array is ordered such that
-+ * parents will be unregistered before their children, it is wiser to
-+ * remove the nodes individually, in the correct order (child before
-+ * parent).
-  */
- void software_node_unregister_nodes(const struct software_node *nodes)
- {
--	int i;
-+	unsigned int i = 0;
-+
-+	while (nodes[i].name)
-+		i++;
- 
--	for (i = 0; nodes[i].name; i++)
-+	while (i--)
- 		software_node_unregister(&nodes[i]);
- }
- EXPORT_SYMBOL_GPL(software_node_unregister_nodes);
++ipu3-cio2-y += ipu3-cio2-main.o
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2-main.c
+similarity index 100%
+rename from drivers/media/pci/intel/ipu3/ipu3-cio2.c
+rename to drivers/media/pci/intel/ipu3/ipu3-cio2-main.c
 -- 
 2.25.1
 
