@@ -4,35 +4,35 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A33C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 11:20:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FB76C433E6
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 11:20:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADFB1221E9
+	by mail.kernel.org (Postfix) with ESMTP id E3451221E9
 	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 11:20:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727843AbhAGLTE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Jan 2021 06:19:04 -0500
-Received: from foss.arm.com ([217.140.110.172]:58076 "EHLO foss.arm.com"
+        id S1726326AbhAGLTi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Jan 2021 06:19:38 -0500
+Received: from foss.arm.com ([217.140.110.172]:58090 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726326AbhAGLTD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 7 Jan 2021 06:19:03 -0500
+        id S1727850AbhAGLTF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 Jan 2021 06:19:05 -0500
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8F39711B3;
-        Thu,  7 Jan 2021 03:18:17 -0800 (PST)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 81D0B11D4;
+        Thu,  7 Jan 2021 03:18:19 -0800 (PST)
 Received: from e108754-lin.cambridge.arm.com (unknown [10.1.198.32])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 752223F719;
-        Thu,  7 Jan 2021 03:18:16 -0800 (PST)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 67BC13F719;
+        Thu,  7 Jan 2021 03:18:18 -0800 (PST)
 From:   Ionela Voinescu <ionela.voinescu@arm.com>
 To:     rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com
 Cc:     viro@zeniv.linux.org.uk, catalin.marinas@arm.com,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         ionela.voinescu@arm.com
-Subject: [PATCH 2/3] acpi: cppc_acpi: add __iomem annotation to generic_comm_base pointer
-Date:   Thu,  7 Jan 2021 11:17:16 +0000
-Message-Id: <20210107111717.5571-3-ionela.voinescu@arm.com>
+Subject: [PATCH 3/3] acpi: cppc_acpi: initialise vaddr pointers to NULL
+Date:   Thu,  7 Jan 2021 11:17:17 +0000
+Message-Id: <20210107111717.5571-4-ionela.voinescu@arm.com>
 X-Mailer: git-send-email 2.29.2.dirty
 In-Reply-To: <20210107111717.5571-1-ionela.voinescu@arm.com>
 References: <20210107111717.5571-1-ionela.voinescu@arm.com>
@@ -42,20 +42,12 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ppc_comm_addr is a virtual address to the PCC space and it's annotated
-with __iomem. Therefore, generic_comm_base which gets assigned the value of
-pcc_comm_address should be annotated as well.
+Properly initialise vaddr pointers in cpc_read() and cpc_write() to
+NULL instead of 0.
 
-This already happens in check_pcc_chan(), but not in send_pcc_cmd(), which
-results in the following sparse warnings:
-
-drivers/acpi/cppc_acpi.c:237:18: warning: cast removes address space '__iomem' of expression
-drivers/acpi/cppc_acpi.c:299:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/acpi/cppc_acpi.c:299:9:    expected void volatile [noderef] __iomem *addr
-drivers/acpi/cppc_acpi.c:299:9:    got unsigned short *
-drivers/acpi/cppc_acpi.c:302:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/acpi/cppc_acpi.c:302:9:    expected void volatile [noderef] __iomem *addr
-drivers/acpi/cppc_acpi.c:302:9:    got unsigned short *
+This fixes the following sparse warnings:
+drivers/acpi/cppc_acpi.c:937:31: warning: Using plain integer as NULL pointer
+drivers/acpi/cppc_acpi.c:982:31: warning: Using plain integer as NULL pointer
 
 Signed-off-by: Ionela Voinescu <ionela.voinescu@arm.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
@@ -65,20 +57,27 @@ Cc: Len Brown <lenb@kernel.org>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 75aaf94ae0a9..fd71020f5d5f 100644
+index fd71020f5d5f..69057fcd2c04 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -233,8 +233,8 @@ static int send_pcc_cmd(int pcc_ss_id, u16 cmd)
+@@ -934,7 +934,7 @@ int __weak cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val)
+ static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
  {
- 	int ret = -EIO, i;
- 	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
--	struct acpi_pcct_shared_memory *generic_comm_base =
--		(struct acpi_pcct_shared_memory *)pcc_ss_data->pcc_comm_addr;
-+	struct acpi_pcct_shared_memory __iomem *generic_comm_base =
-+		pcc_ss_data->pcc_comm_addr;
- 	unsigned int time_delta;
+ 	int ret_val = 0;
+-	void __iomem *vaddr = 0;
++	void __iomem *vaddr = NULL;
+ 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
+ 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
  
- 	/*
+@@ -979,7 +979,7 @@ static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
+ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+ {
+ 	int ret_val = 0;
+-	void __iomem *vaddr = 0;
++	void __iomem *vaddr = NULL;
+ 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
+ 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
+ 
 -- 
 2.29.2.dirty
 
