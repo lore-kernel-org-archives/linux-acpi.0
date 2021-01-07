@@ -2,140 +2,92 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAD21C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA5F7C4321A
 	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:31:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8BAA122BE8
+	by mail.kernel.org (Postfix) with ESMTP id A9FFF22CA0
 	for <linux-acpi@archiver.kernel.org>; Thu,  7 Jan 2021 13:31:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728588AbhAGNaQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Jan 2021 08:30:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47174 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728277AbhAGNaP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2021 08:30:15 -0500
-Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32AA8C0612FB;
-        Thu,  7 Jan 2021 05:29:03 -0800 (PST)
-Received: by mail-wr1-x42e.google.com with SMTP id q18so5674136wrn.1;
-        Thu, 07 Jan 2021 05:29:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=q35SKEhUngO2dvKOfSrhZ/DM/hFpMmcFqtJ+mEN4BGI=;
-        b=ndhqm8M61RIfCAsPSYD7AISOXvrSOUA3WIdr+dM1k5PTYAm55MN3hvFU3WWDWlPVkY
-         932AENhVAyhCL+5XflBKuSsxqLKG06G/eFED3/cdwf3cIeFK/k13qaA2u4RZo+rYr46d
-         8lzVgFqoshpd20lxvPlcofVCsCRe7knHTA2ymz1iyKfQMM6BX5TnWoQNgYinVxDehwu7
-         Y4qhY5c3LPPPQzVT47WmhbG9snPdR8m+Iuf2QkYCNtRhIJRyQZUVjFE8VadhtvX37gQk
-         RlKzLS+W8n1dHMs9qZH+wpN7HxbPl5lrv0Sr2iINHIO26mldoIAIlipy8aRWayQ4oSYH
-         /BOA==
+        id S1728283AbhAGNaM convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Jan 2021 08:30:12 -0500
+Received: from mail-ot1-f46.google.com ([209.85.210.46]:45616 "EHLO
+        mail-ot1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728277AbhAGNaM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2021 08:30:12 -0500
+Received: by mail-ot1-f46.google.com with SMTP id n42so6198919ota.12;
+        Thu, 07 Jan 2021 05:29:56 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=q35SKEhUngO2dvKOfSrhZ/DM/hFpMmcFqtJ+mEN4BGI=;
-        b=CwOQvRXtdC0maXnZdPA1CGpoAoNUaW00y/txrkqMgYFItgvIJhdPnO4Ja1uk+T2vt6
-         VCM7qEwjKuTHUFvwjRAYNlbsE4Lrw2QgglTIDRijoVAS/5OuzcpK9dJS+2IYjfCc4SCQ
-         Afrs5dpRevxbs1tIgU3qeV6o18iLJ+mh2pscWIXEZ1hPCdAvr9I12ZxEZau7NKhi20X0
-         05miRLNn8uFQNujDmlFo9O57TCeLlysM1Rk5epYkOYy1YxEEBC//AjDJfun1BKcHmDGu
-         8OlDM6hHwsBZPBSn5T3Y+zptkdCnOA6/Ge5mvCOHfaYlE6Fe0JTlkEsENfWJg81C+Dz6
-         1Oyg==
-X-Gm-Message-State: AOAM5338I10SDsKrVFL8qMTYDTWetYfxJFzfxOsk8NWfxCmRJVM0Rr9R
-        MhPFU+0g8NtxBzQV3DI73UvgWoGke9qVUZjq
-X-Google-Smtp-Source: ABdhPJy7HnqQWMd1WTCWgoR8XrxcIXCcyUNUYXkzZTFW9qT79mLG9hrG+DE28kxd3DPnyi4gxydXIA==
-X-Received: by 2002:a5d:4cd1:: with SMTP id c17mr9086921wrt.49.1610026141885;
-        Thu, 07 Jan 2021 05:29:01 -0800 (PST)
-Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id o83sm7660125wme.21.2021.01.07.05.29.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 Jan 2021 05:29:01 -0800 (PST)
-From:   Daniel Scally <djrscally@gmail.com>
-To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@acpica.org, rjw@rjwysocki.net,
-        lenb@kernel.org, gregkh@linuxfoundation.org, mchehab@kernel.org,
-        sergey.senozhatsky@gmail.com
-Cc:     yong.zhi@intel.com, sakari.ailus@linux.intel.com,
-        bingbu.cao@intel.com, tian.shu.qiu@intel.com,
-        robert.moore@intel.com, erik.kaneda@intel.com, pmladek@suse.com,
-        rostedt@goodmis.org, andriy.shevchenko@linux.intel.com,
-        linux@rasmusvillemoes.dk,
-        laurent.pinchart+renesas@ideasonboard.com,
-        jacopo+renesas@jmondi.org, kieran.bingham+renesas@ideasonboard.com,
-        hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
-        niklas.soderlund+renesas@ragnatech.se,
-        prabhakar.mahadev-lad.rj@bp.renesas.com, slongerbeam@gmail.com,
-        heikki.krogerus@linux.intel.com, kernel test robot <lkp@intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v5 06/15] software_node: unregister software_nodes in reverse order
-Date:   Thu,  7 Jan 2021 13:28:29 +0000
-Message-Id: <20210107132838.396641-7-djrscally@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210107132838.396641-1-djrscally@gmail.com>
-References: <20210107132838.396641-1-djrscally@gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=O0IFt919wBzbG3JSlTkTtKHQ7HuQSNcqkdNzTODBuQU=;
+        b=V7cCo6tvs607iniT8FqCtvsy66+08G++gxzneWodoDJL34aZ4zjquh5A9TbKchJWff
+         R5yiqqAPVH/S2Lj8cJf4N7BOFjoaKr9UDhXyhKvyiWruEDOvPcrWwkZP74c+kpftwVn4
+         ERrDaf4PSqyiJ9bRjCSCD9cCwEg9TypfTXKM65ITCW7qHT9BCK7dSOHH3S5XAxQWxPfy
+         Sc3X6TBt9uiV0MpIihzUXUEmDOEv9Un2ZslyOJtNDRR3Z7WgbTvHQZT7090xGz1Sod+w
+         IKH4hy337iXggPL2W5nMhCyTdX1kmrhqL+OVFKPFueCPC+N/q20C9Q67UgQIW2Vz5N8n
+         fzpA==
+X-Gm-Message-State: AOAM530p36QsgjXow5CzM/2nNcEcee4c2ZHQ4HjP/l/5JWE8/W/mOoyL
+        k6HbqzDm4YluI/DI6BA2cE5FS0mj0u/Ummxf8FjNFbAvwQk=
+X-Google-Smtp-Source: ABdhPJwjLHRp5Xjg+XRGcx0yCh9G0neQuVmsfB8533sqwYQp9rQ1Sr5FOoiZVuOIyZP6/7JsiE8Wbf1HtQ1371q5nlE=
+X-Received: by 2002:a9d:67da:: with SMTP id c26mr6641913otn.321.1610026171229;
+ Thu, 07 Jan 2021 05:29:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210106012301.71260-1-yebin10@huawei.com>
+In-Reply-To: <20210106012301.71260-1-yebin10@huawei.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 7 Jan 2021 14:28:55 +0100
+Message-ID: <CAJZ5v0jhXFOW3DsM2xsSq2fZmeGOz=ARTH3VkcTNZ7m9cyYVgA@mail.gmail.com>
+Subject: =?UTF-8?Q?Re=3A_=5BPATCH=5D_ACPI=3A_PM=3A_s2idle=3A_Remove_useless_variabl?=
+        =?UTF-8?Q?e_=E2=80=98obj=5Fnew=E2=80=99_in_lpi=5Fdevice=5Fget=5Fconstraints=5Famd?=
+To:     Ye Bin <yebin10@huawei.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-To maintain consistency with software_node_unregister_nodes(), reverse
-the order in which the software_node_unregister_node_group() function
-unregisters nodes.
+On Wed, Jan 6, 2021 at 2:13 AM Ye Bin <yebin10@huawei.com> wrote:
+>
+> Fix warning:
+> drivers/acpi/x86/s2idle.c:138:25: warning: variable ‘obj_new’ set but
+> not used [-Wunused-but-set-variable]
+>       union acpi_object *obj_new;
+>                                ^~~~~~~
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Signed-off-by: Ye Bin <yebin10@huawei.com>
+> ---
+>  drivers/acpi/x86/s2idle.c | 2 --
+>  1 file changed, 2 deletions(-)
+>
+> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+> index 25fea34b544c..e5fb17fd1020 100644
+> --- a/drivers/acpi/x86/s2idle.c
+> +++ b/drivers/acpi/x86/s2idle.c
+> @@ -135,12 +135,10 @@ static void lpi_device_get_constraints_amd(void)
+>
+>                                 for (k = 0; k < info_obj->package.count; ++k) {
+>                                         union acpi_object *obj = &info_obj->package.elements[k];
+> -                                       union acpi_object *obj_new;
+>
+>                                         list = &lpi_constraints_table[lpi_constraints_table_size];
+>                                         list->min_dstate = -1;
+>
+> -                                       obj_new = &obj[k];
+>                                         switch (k) {
+>                                         case 0:
+>                                                 dev_info.enabled = obj->integer.value;
+> --
 
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Daniel Scally <djrscally@gmail.com>
----
-Changes in v5:
+I posted an alternative fix for this issue on Tue, sorry:
 
-	- None
-
- drivers/base/swnode.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 166c5cc73f39..6f7443c6d3b5 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -779,16 +779,23 @@ EXPORT_SYMBOL_GPL(software_node_register_node_group);
-  * software_node_unregister_node_group - Unregister a group of software nodes
-  * @node_group: NULL terminated array of software node pointers to be unregistered
-  *
-- * Unregister multiple software nodes at once.
-+ * Unregister multiple software nodes at once. The array will be unwound in
-+ * reverse order (i.e. last entry first) and thus if any members of the array are
-+ * children of another member then the children must appear later in the list such
-+ * that they are unregistered first.
-  */
--void software_node_unregister_node_group(const struct software_node **node_group)
-+void software_node_unregister_node_group(
-+		const struct software_node **node_group)
- {
--	unsigned int i;
-+	unsigned int i = 0;
- 
- 	if (!node_group)
- 		return;
- 
--	for (i = 0; node_group[i]; i++)
-+	while (node_group[i])
-+		i++;
-+
-+	while (i--)
- 		software_node_unregister(node_group[i]);
- }
- EXPORT_SYMBOL_GPL(software_node_unregister_node_group);
--- 
-2.25.1
-
+https://patchwork.kernel.org/project/linux-pm/patch/3607102.xkEKTzvHZR@kreacher/
