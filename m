@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82384C433E0
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Jan 2021 15:03:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E05E7C43381
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Jan 2021 15:03:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 360C2239FE
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Jan 2021 15:03:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B63B0239FE
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Jan 2021 15:03:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727172AbhAHPDu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Jan 2021 10:03:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60198 "EHLO
+        id S1727453AbhAHPDw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Jan 2021 10:03:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725793AbhAHPDt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jan 2021 10:03:49 -0500
-Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EFAAC06129D
-        for <linux-acpi@vger.kernel.org>; Fri,  8 Jan 2021 07:02:33 -0800 (PST)
-Received: by mail-wm1-x32b.google.com with SMTP id 190so8073896wmz.0
-        for <linux-acpi@vger.kernel.org>; Fri, 08 Jan 2021 07:02:33 -0800 (PST)
+        with ESMTP id S1726735AbhAHPDv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jan 2021 10:03:51 -0500
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA817C0612A8
+        for <linux-acpi@vger.kernel.org>; Fri,  8 Jan 2021 07:02:41 -0800 (PST)
+Received: by mail-wr1-x42f.google.com with SMTP id a12so9282972wrv.8
+        for <linux-acpi@vger.kernel.org>; Fri, 08 Jan 2021 07:02:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=uvwNHFhdLkaGBie88gzRCcyxfKIG/LYZ2PnvLPGSu2c=;
-        b=ISNeho54rmu9ZyTuqnuYWjhj+2mILy1TMBGrvs7XzZBRVbUOjGi1bOIxR1vq9L5T/8
-         hACv21cvz6C71l/cwPP5kPHWLxhGTpq32HVVUmyFMxuPuq5CR8U0R0Wo/te2LrbO7RBs
-         W144EpMmuqZtpFpBJDVA0rFb+nydLeQLKFNQUvZxLKMfgAeaaBn73IPU+bdDMdLLrLmM
-         ESlBzKA0NUJUQ5ZRZ814zmJdf0mjDHRnUXHD22TVzxEIFrd0rvhS3y02u9CyXLaLQ/kD
-         AoZFQoQi8qql0RIgbg4vTAOQSj97X/8XrSet3WM6HG0qznl4idxYu7ZZyjBhX5oxfAhK
-         kmtw==
+        bh=M6xu+NZsefpfo8WqjQL32PlY8NL0QuBVkGqSt5snD+A=;
+        b=kxuUCMV1WAqpwwvoibNUsWYrlPgddFb1B3XDtYKriSKJqhZ7YxBdz7idYeFiPEusdj
+         oSxwzMXDVtdAhRbiUIPtiWxDXm3EOdY0B1oZ4RFYK1eN63WYymsf6s1QMgxe1Fp+XJLm
+         7MYSyOGWzgv+FVOhkD8wVISPR0VlGxk9zmYIDuW8ATAmQ8SghsBmSoZJE31MhRs/IXU7
+         jcMsXHSkhBXTuv9sJLCqbDDqfbxZnhaRfmDInXFrql1M/HVbnCpK9DeM9XJWQDFfFBiX
+         CVAh4zvNMBGGzxZ42Xa9GLW4zEO7yuaspaFGL8sBAQLWZMjutowtPglRsb0G7rH8euGW
+         4JKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=uvwNHFhdLkaGBie88gzRCcyxfKIG/LYZ2PnvLPGSu2c=;
-        b=nMkFPubt0v4gRFyxQYhO4k+8YhA8Y+cdV5DinAsIxbFxL0FMmDLjpMf7nQDJ6cO5jq
-         XcleqD5m4HvsVP8fBnjTdGXKfKEsdhvmtg9piMxkzAXcUpXeFlScRbigQRc5nc37RBog
-         obAog0HS4V+imwwZNWuBTMUNU0oFzyzuzQEtZfxsg69Ib7U0+C5CBa+AFfZl5THSqVT5
-         iAcfNfM8Rh0Z+QnYPOZRsYZ7vmCNcY8IjrDTA7MBWCflbj2dVKEcy6v77xM0nJDgRv5M
-         A0Z9gsJtah8NJWBDJKN1nMzBL88og9A5qfb43zkl0RLK7gWk5ZgDgNjkHRpwVg61n1L9
-         VeGw==
-X-Gm-Message-State: AOAM533b4sl5Fg0Qnn4vfyOqQsvjCDKkJcy9IckvdHWjDcN94pOVC//q
-        Gpt5ok8+huXTCTjojEmpMRGe6Q==
-X-Google-Smtp-Source: ABdhPJymvMLKfx6JMwWQypvMx10zrT/uAgWw60V8JEcHGqofEYBbCwP/8ch5rpewZaM7KRA+nDGSgA==
-X-Received: by 2002:a05:600c:2042:: with SMTP id p2mr3504371wmg.152.1610118152176;
-        Fri, 08 Jan 2021 07:02:32 -0800 (PST)
+        bh=M6xu+NZsefpfo8WqjQL32PlY8NL0QuBVkGqSt5snD+A=;
+        b=bLku92v8u1nT2nkU6DdFWQ9iEdSHaZW7ynEgcY3DJ0AjWUiYKVx1+xVvJnAnJJPGPQ
+         aEymF0rULIWxTltS4ZQ/MybHNEeSZkdVlaH/WCu012ELwVP8mI6B2a2IiyBLz5IosSxV
+         F/jxbcrk3FbVqsPRoY2Of7DZD+ONtJQHdKNilobpCJ633rI8WcTZSGpHmvn/sSOuqkOJ
+         PM7HHs6kziHPfC3RwPC1wBrKp/QjJSHBMTbbP9X58xX2VB9ZiA1CKG9i4mXn/hoAa583
+         jwTwbVj9ZbrqDEpjBLlKLCXO996ryKyJIfcujGA40+xAAY4VSw91hBXqey4vYGN1SFnB
+         kwhg==
+X-Gm-Message-State: AOAM530vcJhzbS9BqkeBf5DSCZGu+Sb8JlhoQSy8wkgD28+7o8IKjUMW
+        O78VWTBn0kaGKZATVmlD/5dSpA==
+X-Google-Smtp-Source: ABdhPJxXGloEPafSPINGJsoqaUcfHJIL8u06StaksnduujJItHcYtBuA/olK4ECauRMs3Zhmv7TwtA==
+X-Received: by 2002:a05:6000:c9:: with SMTP id q9mr3946567wrx.259.1610118160590;
+        Fri, 08 Jan 2021 07:02:40 -0800 (PST)
 Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id s13sm14258464wra.53.2021.01.08.07.02.30
+        by smtp.gmail.com with ESMTPSA id s13sm14258464wra.53.2021.01.08.07.02.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 Jan 2021 07:02:31 -0800 (PST)
+        Fri, 08 Jan 2021 07:02:39 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     joro@8bytes.org, will@kernel.org
 Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
@@ -66,14 +66,10 @@ Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
         linux-accelerators@lists.ozlabs.org, baolu.lu@linux.intel.com,
         vdumpa@nvidia.com, zhangfei.gao@linaro.org,
         shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Zhou Wang <wangzhou1@hisilicon.com>
-Subject: [PATCH v9 03/10] iommu: Separate IOMMU_DEV_FEAT_IOPF from IOMMU_DEV_FEAT_SVA
-Date:   Fri,  8 Jan 2021 15:52:11 +0100
-Message-Id: <20210108145217.2254447-4-jean-philippe@linaro.org>
+        Jean-Philippe Brucker <jean-philippe@linaro.org>
+Subject: [PATCH v9 09/10] ACPI/IORT: Enable stall support for platform devices
+Date:   Fri,  8 Jan 2021 15:52:17 +0100
+Message-Id: <20210108145217.2254447-10-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210108145217.2254447-1-jean-philippe@linaro.org>
 References: <20210108145217.2254447-1-jean-philippe@linaro.org>
@@ -83,57 +79,37 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some devices manage I/O Page Faults (IOPF) themselves instead of relying
-on PCIe PRI or Arm SMMU stall. Allow their drivers to enable SVA without
-mandating IOMMU-managed IOPF. The other device drivers now need to first
-enable IOMMU_DEV_FEAT_IOPF before enabling IOMMU_DEV_FEAT_SVA.
+Copy the "Stall supported" bit, that tells whether a named component
+supports stall, into the dma-can-stall device property.
 
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Lu Baolu <baolu.lu@linux.intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
-Cc: Zhou Wang <wangzhou1@hisilicon.com>
+v9: dropped fwspec member in favor of device properties
 ---
- include/linux/iommu.h | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ drivers/acpi/arm64/iort.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-index 583c734b2e87..701b2eeb0dc5 100644
---- a/include/linux/iommu.h
-+++ b/include/linux/iommu.h
-@@ -156,10 +156,24 @@ struct iommu_resv_region {
- 	enum iommu_resv_type	type;
- };
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index c9a8bbb74b09..42820d7eb869 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -968,13 +968,15 @@ static int iort_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
+ static void iort_named_component_init(struct device *dev,
+ 				      struct acpi_iort_node *node)
+ {
+-	struct property_entry props[2] = {};
++	struct property_entry props[3] = {};
+ 	struct acpi_iort_named_component *nc;
  
--/* Per device IOMMU features */
-+/**
-+ * enum iommu_dev_features - Per device IOMMU features
-+ * @IOMMU_DEV_FEAT_AUX: Auxiliary domain feature
-+ * @IOMMU_DEV_FEAT_SVA: Shared Virtual Addresses
-+ * @IOMMU_DEV_FEAT_IOPF: I/O Page Faults such as PRI or Stall. Generally using
-+ *			 %IOMMU_DEV_FEAT_SVA requires %IOMMU_DEV_FEAT_IOPF, but
-+ *			 some devices manage I/O Page Faults themselves instead
-+ *			 of relying on the IOMMU. When supported, this feature
-+ *			 must be enabled before and disabled after
-+ *			 %IOMMU_DEV_FEAT_SVA.
-+ *
-+ * Device drivers query whether a feature is supported using
-+ * iommu_dev_has_feature(), and enable it using iommu_dev_enable_feature().
-+ */
- enum iommu_dev_features {
--	IOMMU_DEV_FEAT_AUX,	/* Aux-domain feature */
--	IOMMU_DEV_FEAT_SVA,	/* Shared Virtual Addresses */
-+	IOMMU_DEV_FEAT_AUX,
-+	IOMMU_DEV_FEAT_SVA,
-+	IOMMU_DEV_FEAT_IOPF,
- };
+ 	nc = (struct acpi_iort_named_component *)node->node_data;
+ 	props[0] = PROPERTY_ENTRY_U32("pasid-num-bits",
+ 				      FIELD_GET(ACPI_IORT_NC_PASID_BITS,
+ 						nc->node_flags));
++	if (nc->node_flags & ACPI_IORT_NC_STALL_SUPPORTED)
++		props[1] = PROPERTY_ENTRY_BOOL("dma-can-stall");
  
- #define IOMMU_PASID_INVALID	(-1U)
+ 	if (device_add_properties(dev, props))
+ 		dev_warn(dev, "Could not add device properties\n");
 -- 
 2.29.2
 
