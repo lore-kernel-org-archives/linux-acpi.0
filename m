@@ -2,38 +2,38 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E932C433E0
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:08:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEC1EC43381
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E245422AAF
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:08:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F3432389B
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726636AbhAJPIK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 10 Jan 2021 10:08:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37898 "EHLO mail.kernel.org"
+        id S1726822AbhAJPIu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 10 Jan 2021 10:08:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38276 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726612AbhAJPIJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 10 Jan 2021 10:08:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5D64722AAC;
-        Sun, 10 Jan 2021 15:07:28 +0000 (UTC)
+        id S1726228AbhAJPIu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 10 Jan 2021 10:08:50 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 59C1523719;
+        Sun, 10 Jan 2021 15:07:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1610291248;
-        bh=YpXCb/78xod6ifexMeMvd7SKbfuF1hbywxqJERn3hTU=;
+        s=korg; t=1610291268;
+        bh=bCoT+YC8imLT2HAQJHyTTrBGySz+HBiv3aSwzELycoM=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=w8E3PcY6ehgLUjNngENYtk8id0ZHh+91aemaJ/qpU6s780l0u5zBaaVu49REldo7o
-         p/8k43SXbKbp1RPJaX+jALRUAfr4KqIrQAZwx1M1G3X7ZjXJw2oHPxYpwD0LySgOdr
-         q2geBU0VdJOBetVJObeyovJ2cMzve4FrlSeIH18M=
-Date:   Sun, 10 Jan 2021 16:08:42 +0100
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Daniel Scally <djrscally@gmail.com>, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@acpica.org, rjw@rjwysocki.net, lenb@kernel.org,
-        mchehab@kernel.org, sergey.senozhatsky@gmail.com,
+        b=OhUPFLdO29F8HOoRwt/e0iVSgi3zlrrPU+nggNDAgbxI9t+qQPBuMbQsJkfOpWXun
+         RPvshY4syPPPoHE93oRwvdeLIFG0g6V3bqZ7TRASLlz3fJbr2FPFdHUXPlQPJbPiQu
+         ZWNz7iS5zPNhWehA2wumkgSZqyp6dgaitFm/4EE0=
+Date:   Sun, 10 Jan 2021 16:09:02 +0100
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Daniel Scally <djrscally@gmail.com>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@acpica.org, rjw@rjwysocki.net,
+        lenb@kernel.org, mchehab@kernel.org, sergey.senozhatsky@gmail.com,
         yong.zhi@intel.com, sakari.ailus@linux.intel.com,
         bingbu.cao@intel.com, tian.shu.qiu@intel.com,
         robert.moore@intel.com, erik.kaneda@intel.com, pmladek@suse.com,
@@ -44,66 +44,32 @@ Cc:     Daniel Scally <djrscally@gmail.com>, linux-kernel@vger.kernel.org,
         hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
         niklas.soderlund+renesas@ragnatech.se,
         prabhakar.mahadev-lad.rj@bp.renesas.com, slongerbeam@gmail.com,
-        heikki.krogerus@linux.intel.com
-Subject: Re: [PATCH v5 00/15] Add functionality to ipu3-cio2 driver allowing
- software_node connections to sensors on platforms designed for Windows
-Message-ID: <X/sYeuTbDOPk65OX@kroah.com>
+        heikki.krogerus@linux.intel.com, kernel test robot <lkp@intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v5 06/15] software_node: unregister software_nodes in
+ reverse order
+Message-ID: <X/sYjqjcWKlOoaQ0@kroah.com>
 References: <20210107132838.396641-1-djrscally@gmail.com>
- <X/kQBAQZi3l5/WI7@pendragon.ideasonboard.com>
+ <20210107132838.396641-7-djrscally@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <X/kQBAQZi3l5/WI7@pendragon.ideasonboard.com>
+In-Reply-To: <20210107132838.396641-7-djrscally@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Jan 09, 2021 at 04:08:04AM +0200, Laurent Pinchart wrote:
-> Hi Greg,
+On Thu, Jan 07, 2021 at 01:28:29PM +0000, Daniel Scally wrote:
+> To maintain consistency with software_node_unregister_nodes(), reverse
+> the order in which the software_node_unregister_node_group() function
+> unregisters nodes.
 > 
-> On Thu, Jan 07, 2021 at 01:28:23PM +0000, Daniel Scally wrote:
-> > 
-> > Hello all
-> > 
-> > v4:
-> > https://lore.kernel.org/linux-media/20210103231235.792999-1-djrscally@gmail.com/T/#m11b7cb977e1b73fba1e625c3d6a189e2943a7783
-> > v3:
-> > https://lore.kernel.org/linux-media/20201224010907.263125-1-djrscally@gmail.com/T/#m37b831bb2b406917d6db5da9acf9ed35df65d72d
-> > v2:
-> > https://lore.kernel.org/linux-media/20201217234337.1983732-1-djrscally@gmail.com/T/#md93fd090009b42a6a98aed892aff0d38cf07e0cd
-> > v1:
-> > https://lore.kernel.org/linux-media/20201130133129.1024662-1-djrscally@gmail.com/T/#m91934e12e3d033da2e768e952ea3b4a125ee3e67
-> > 
-> > This series is to start adding support for webcams on laptops with ACPI tables
-> > designed for use with CIO2 on Windows. This series extends the ipu3-cio2
-> > driver to allow for patching the firmware via software_nodes if endpoints
-> > aren't defined by ACPI.
-> > 
-> > I'm hopeful that most or all of this series could get picked up for 5.12.
-> > We touch a few different areas (listed below), but I think the easiest
-> > approach would be to merge everything through media tree. Rafael, Greg,
-> > Mauro and Sergey; are you ok with that plan, or would you prefer a
-> > different approach? Mauro; if that plan is ok (and of course assuming that
-> > the rest of the patches are acked by their respective maintainers) could
-> > we get a dedicated feature branch just in case the following series ends
-> > up being ready in time too?
-> > 
-> > lib
-> >   lib/test_printf.c: Use helper function to unwind array of
-> >     software_nodes
-> > 
-> > base
-> >   software_node: Fix refcounts in software_node_get_next_child()
-> >   property: Return true in fwnode_device_is_available for NULL ops
-> >   property: Call fwnode_graph_get_endpoint_by_id() for fwnode->secondary
-> >   software_node: Enforce parent before child ordering of nodes arrays
-> >   software_node: unregister software_nodes in reverse order
-> 
-> Could you please let us know with an Acked-by if these patches can be
-> merged through the linux-media tree for v5.12 ? This is a cross-tree
-> series and we would like to avoid topic branches if possible.
+> Reported-by: kernel test robot <lkp@intel.com>
+> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Daniel Scally <djrscally@gmail.com>
 
-Yes, they are all fine with me, will go provide my ack, sorry for the
-delay.
-
-greg k-h
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
