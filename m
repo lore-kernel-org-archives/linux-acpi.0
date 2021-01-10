@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEC1EC43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B26F3C433E6
 	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F3432389B
+	by mail.kernel.org (Postfix) with ESMTP id 7DA0F2388C
 	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726822AbhAJPIu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 10 Jan 2021 10:08:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38276 "EHLO mail.kernel.org"
+        id S1726741AbhAJPIU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 10 Jan 2021 10:08:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726228AbhAJPIu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 10 Jan 2021 10:08:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 59C1523719;
-        Sun, 10 Jan 2021 15:07:48 +0000 (UTC)
+        id S1726723AbhAJPIU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 10 Jan 2021 10:08:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 41E8F22AB0;
+        Sun, 10 Jan 2021 15:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1610291268;
-        bh=bCoT+YC8imLT2HAQJHyTTrBGySz+HBiv3aSwzELycoM=;
+        s=korg; t=1610291259;
+        bh=xttBw4mUlK1lvEwL0uPYIYpq4RDu7OXwOwOhhm+UpCA=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=OhUPFLdO29F8HOoRwt/e0iVSgi3zlrrPU+nggNDAgbxI9t+qQPBuMbQsJkfOpWXun
-         RPvshY4syPPPoHE93oRwvdeLIFG0g6V3bqZ7TRASLlz3fJbr2FPFdHUXPlQPJbPiQu
-         ZWNz7iS5zPNhWehA2wumkgSZqyp6dgaitFm/4EE0=
-Date:   Sun, 10 Jan 2021 16:09:02 +0100
+        b=lRiM+GaaUFQ+LhFPUCk3QjbQ7JoVT3l65GcWseQbqIwLM2f3ml0O9Og8d/mCbj/l/
+         GUXa0rNJB87JromcSyKKlukafIf2t85TwFCu+7c4iMndiQmC/Nk0FmNfjbGLj8kSHe
+         qEfXU412cUAb8HdVfZ+eHmRDhqrxLDcUriiW379M=
+Date:   Sun, 10 Jan 2021 16:08:53 +0100
 From:   Greg KH <gregkh@linuxfoundation.org>
 To:     Daniel Scally <djrscally@gmail.com>
 Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
@@ -44,32 +44,49 @@ Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         hverkuil-cisco@xs4all.nl, m.felsch@pengutronix.de,
         niklas.soderlund+renesas@ragnatech.se,
         prabhakar.mahadev-lad.rj@bp.renesas.com, slongerbeam@gmail.com,
-        heikki.krogerus@linux.intel.com, kernel test robot <lkp@intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v5 06/15] software_node: unregister software_nodes in
- reverse order
-Message-ID: <X/sYjqjcWKlOoaQ0@kroah.com>
+        heikki.krogerus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v5 08/15] software_node: Add support for fwnode_graph*()
+ family of functions
+Message-ID: <X/sYhat7AJLmfc78@kroah.com>
 References: <20210107132838.396641-1-djrscally@gmail.com>
- <20210107132838.396641-7-djrscally@gmail.com>
+ <20210107132838.396641-9-djrscally@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210107132838.396641-7-djrscally@gmail.com>
+In-Reply-To: <20210107132838.396641-9-djrscally@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 07, 2021 at 01:28:29PM +0000, Daniel Scally wrote:
-> To maintain consistency with software_node_unregister_nodes(), reverse
-> the order in which the software_node_unregister_node_group() function
-> unregisters nodes.
+On Thu, Jan 07, 2021 at 01:28:31PM +0000, Daniel Scally wrote:
+> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 > 
-> Reported-by: kernel test robot <lkp@intel.com>
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> This implements the remaining .graph_*() callbacks in the fwnode
+> operations structure for the software nodes. That makes the
+> fwnode_graph_*() functions available in the drivers also when software
+> nodes are used.
+> 
+> The implementation tries to mimic the "OF graph" as much as possible, but
+> there is no support for the "reg" device property. The ports will need to
+> have the index in their  name which starts with "port@" (for example
+> "port@0", "port@1", ...) and endpoints will use the index of the software
+> node that is given to them during creation. The port nodes can also be
+> grouped under a specially named "ports" subnode, just like in DT, if
+> necessary.
+> 
+> The remote-endpoints are reference properties under the endpoint nodes
+> that are named "remote-endpoint".
+> 
 > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Co-developed-by: Daniel Scally <djrscally@gmail.com>
 > Signed-off-by: Daniel Scally <djrscally@gmail.com>
+> ---
+> Changes in v5:
+> 
+> 	- Cosmetic changes only
 
 Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
