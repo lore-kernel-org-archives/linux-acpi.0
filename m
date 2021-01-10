@@ -2,33 +2,33 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1BCBC43381
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8581CC43332
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD35A238E1
-	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55CBB22AB0
+	for <linux-acpi@archiver.kernel.org>; Sun, 10 Jan 2021 15:09:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726949AbhAJPJB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 10 Jan 2021 10:09:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38338 "EHLO mail.kernel.org"
+        id S1727035AbhAJPJ0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 10 Jan 2021 10:09:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726929AbhAJPJB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 10 Jan 2021 10:09:01 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 06CCB22AAC;
-        Sun, 10 Jan 2021 15:08:11 +0000 (UTC)
+        id S1727025AbhAJPJ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 10 Jan 2021 10:09:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1120022AAF;
+        Sun, 10 Jan 2021 15:08:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1610291291;
-        bh=F3EeeseoQ50cEe+lhsHfw5cqy1qVtLLWQEchAr4nMxY=;
+        s=korg; t=1610291325;
+        bh=/glk8U1bakNGNVL370JWrT5oii7OE5yQ+brBSwUU9QA=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=P/YOFwuACcFFkW1sbvVMAq2oXxhTWyrkCFCQU6Vm6LXJkpNP0yG2JnJvGPq76Y6Eb
-         S/d/OcVJyfbQDsHAbC/kpZmhkuDp5R0TGrAgNOhompGy9Nq1elfuUENu/pcjmX9r5N
-         fV411KolbF3CROc/HFVsf4MIBnnK6j6pNggslI+Q=
-Date:   Sun, 10 Jan 2021 16:09:25 +0100
+        b=2jYjHUuyW/S4CACnfpGW+b3pEsKVitsZcQ5Ll939xYmOAZWYICcPvg+tFjfKRCvwl
+         VnYkPiI22QDKCRU3xV1gUbDvKCyorl8mWWin9z2fCnVkrIevUUzKuQYxXSO1xC+XlY
+         y5/0JQGMGK/2L79KuxnOxgaOB0VqUVMEgDeERaXU=
+Date:   Sun, 10 Jan 2021 16:09:58 +0100
 From:   Greg KH <gregkh@linuxfoundation.org>
 To:     Daniel Scally <djrscally@gmail.com>
 Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
@@ -46,36 +46,30 @@ Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         prabhakar.mahadev-lad.rj@bp.renesas.com, slongerbeam@gmail.com,
         heikki.krogerus@linux.intel.com,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v5 04/15] device property: Call
- fwnode_graph_get_endpoint_by_id() for fwnode->secondary
-Message-ID: <X/sYpT+RFV7iPops@kroah.com>
+Subject: Re: [PATCH v5 01/15] software_node: Fix refcounts in
+ software_node_get_next_child()
+Message-ID: <X/sYxq9AhQbF4j74@kroah.com>
 References: <20210107132838.396641-1-djrscally@gmail.com>
- <20210107132838.396641-5-djrscally@gmail.com>
+ <20210107132838.396641-2-djrscally@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210107132838.396641-5-djrscally@gmail.com>
+In-Reply-To: <20210107132838.396641-2-djrscally@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 07, 2021 at 01:28:27PM +0000, Daniel Scally wrote:
-> This function is used to find fwnode endpoints against a device. In
-> some instances those endpoints are software nodes which are children of
-> fwnode->secondary. Add support to fwnode_graph_get_endpoint_by_id() to
-> find those endpoints by recursively calling itself passing the ptr to
-> fwnode->secondary in the event no endpoint is found for the primary.
+On Thu, Jan 07, 2021 at 01:28:24PM +0000, Daniel Scally wrote:
+> The software_node_get_next_child() function currently does not hold
+> references to the child software_node that it finds or put the ref that
+> is held against the old child - fix that.
 > 
+> Fixes: 59abd83672f7 ("drivers: base: Introducing software nodes to the firmware node framework")
 > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > Signed-off-by: Daniel Scally <djrscally@gmail.com>
 > ---
 > Changes in v5:
-> 
-> 	- Changed the commit subject
-> 
->  drivers/base/property.c | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
 
 Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
