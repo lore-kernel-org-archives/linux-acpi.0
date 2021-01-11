@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15E1AC43603
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27871C4360C
 	for <linux-acpi@archiver.kernel.org>; Tue, 12 Jan 2021 00:28:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D76AE22D49
+	by mail.kernel.org (Postfix) with ESMTP id 027FF22D57
 	for <linux-acpi@archiver.kernel.org>; Tue, 12 Jan 2021 00:28:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390900AbhALA0B (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S2390901AbhALA0B (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 11 Jan 2021 19:26:01 -0500
-Received: from mga01.intel.com ([192.55.52.88]:57931 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:57927 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390903AbhAKXCp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 11 Jan 2021 18:02:45 -0500
-IronPort-SDR: S/M48+TKmN+BdBJOdmFZkGRIrPI+H1Eb8zEFEludaFZKvbeCGbBbTcPnE+ecNDPMieX4emj9l2
- LFgMxOFQQfhQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9861"; a="196564946"
+        id S2390900AbhAKXCl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Jan 2021 18:02:41 -0500
+IronPort-SDR: 3QaXHcBEf4InqdtQizsyfNIR6UlX+r7FRvYNX6IlJPy0i0Fsd0ou8ZNdgx9RgbMAnYJqhMZe40
+ 0Jx57/bboqTg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9861"; a="196564930"
 X-IronPort-AV: E=Sophos;i="5.79,339,1602572400"; 
-   d="scan'208";a="196564946"
+   d="scan'208";a="196564930"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:25 -0800
-IronPort-SDR: kGubCYlCfSM/8WYR0sgxK/WSFaTh72jgzicklg+hvHwn0UbBxmJCl/v1z/bLr6ovfOGdv2zin3
- nzi64MGvnZGA==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:23 -0800
+IronPort-SDR: qyVDk4DFLTNnLV6JLKkXqwVG4u8lpZd9erO4814Fg7NHajcUhozocEPt3HBkQzefYg6Shf6ZYZ
+ lOW9PAr8+YDg==
 X-IronPort-AV: E=Sophos;i="5.79,339,1602572400"; 
-   d="scan'208";a="381181278"
+   d="scan'208";a="381181254"
 Received: from yyang31-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.142.71])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:25 -0800
-Received: from orsmsx612.amr.corp.intel.com (10.22.229.25) by
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:22 -0800
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
  fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
- via Mailbox Transport; Mon, 11 Jan 2021 14:51:43 -0800
-Received: from orsmsx609.amr.corp.intel.com (10.22.229.22) by
- ORSMSX612.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ via Mailbox Transport; Mon, 11 Jan 2021 14:51:41 -0800
+Received: from fmsmsx605.amr.corp.intel.com (10.18.126.85) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Mon, 11 Jan 2021 14:51:42 -0800
+ 15.1.1713.5; Mon, 11 Jan 2021 14:51:41 -0800
 Received: from fmsmga008.fm.intel.com (10.253.24.58) by
- orsmsx609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
+ fmsmsx605.amr.corp.intel.com (10.18.126.85) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
- via Frontend Transport; Mon, 11 Jan 2021 14:51:42 -0800
-IronPort-SDR: kEPmQlJck7soFNnY4OmysN+yLBgksCzipRRYR833FRvRqvLuayPCtT4wcxhZVJmwBZx29pJo7T
- ejSBIM8E7wwQ==
+ via Frontend Transport; Mon, 11 Jan 2021 14:51:41 -0800
+IronPort-SDR: 9PYDaynC84qHiDcYIXTzxEDZhwLhHXYKepGyVuK0JyApij/fpGPrkVh/ApSmsyfnfXcI462S3/
+ wJyGPxxlk7+A==
 X-IronPort-AV: E=Sophos;i="5.79,339,1602572400"; 
-   d="scan'208";a="352778034"
+   d="scan'208";a="352778011"
 Received: from yyang31-mobl.amr.corp.intel.com (HELO bwidawsk-mobl5.local) ([10.252.142.71])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 14:51:39 -0800
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 14:51:36 -0800
 From:   Ben Widawsky <ben.widawsky@intel.com>
 To:     <linux-cxl@vger.kernel.org>
 CC:     Ben Widawsky <ben.widawsky@intel.com>,
@@ -66,117 +66,426 @@ CC:     Ben Widawsky <ben.widawsky@intel.com>,
         "Randy Dunlap" <rdunlap@infradead.org>,
         Christoph Hellwig <hch@infradead.org>,
         <daniel.lll@alibaba-inc.com>
-Subject: [RFC PATCH v3 11/16] taint: add taint for direct hardware access
-Date:   Mon, 11 Jan 2021 14:51:15 -0800
-Message-ID: <20210111225121.820014-12-ben.widawsky@intel.com>
+Subject: [RFC PATCH v3 09/16] cxl/mem: Add basic IOCTL interface
+Date:   Mon, 11 Jan 2021 14:51:13 -0800
+Message-ID: <20210111225121.820014-10-ben.widawsky@intel.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210111225121.820014-1-ben.widawsky@intel.com>
 References: <20210111225121.820014-1-ben.widawsky@intel.com>
 Content-Transfer-Encoding: 7BIT
-X-MS-Exchange-Organization-Network-Message-Id: 17b4e2db-9911-417e-d3c8-08d8b6837716
+X-MS-Exchange-Organization-Network-Message-Id: 4c7b4f8c-eb91-4b6b-3af0-08d8b6837643
 Content-Type:   text/plain; charset=US-ASCII
 X-MS-Exchange-Organization-AVStamp-Enterprise: 1.0
 X-MS-Exchange-Organization-SCL: -1
-X-MS-Exchange-Organization-AuthSource: ORSMSX609.amr.corp.intel.com
+X-MS-Exchange-Organization-AuthSource: fmsmsx605.amr.corp.intel.com
 X-MS-Exchange-Organization-AuthAs: Anonymous
-X-MS-Exchange-Transport-EndToEndLatency: 00:00:01.1930372
+X-MS-Exchange-Transport-EndToEndLatency: 00:00:00.6083091
 X-MS-Exchange-Processed-By-BccFoldering: 15.01.1713.001
 MIME-Version: 1.0
-X-TUID: WLsKeG+bl5Oe
+X-TUID: g134XNzxkusO
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-For drivers that moderate access to the underlying hardware it is
-sometimes desirable to allow userspace to bypass restrictions. Once
-userspace has done this, the driver can no longer guarantee the sanctity
-of either the OS or the hardware. When in this state, it is helpful for
-kernel developers to be made aware (via this taint flag) of this fact
-for subsequent bug reports.
+Add a straightforward IOCTL that provides a mechanism for userspace to
+query the supported memory device commands. CXL commands as they appear
+to userspace are described as part of the UAPI kerneldoc. The command
+list returned via this IOCTL will contain the full set of commands that
+the driver supports, however, some of those commands may not be
+available for use by userspace.
 
-Example usage:
-- Hardware xyzzy accepts 2 commands, waldo and fred.
-- The xyzzy driver provides an interface for using waldo, but not fred.
-- quux is convinced they really need the fred command.
-- xyzzy driver allows quux to frob hardware to initiate fred.
-  - kernel gets tainted.
-- turns out fred command is borked, and scribbles over memory.
-- developers laugh while closing quux's subsequent bug report.
+Memory device commands are specified in 8.2.9 of the CXL 2.0
+specification. They are submitted through a mailbox mechanism specified
+in 8.2.8.4.
 
 Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
 ---
- Documentation/admin-guide/sysctl/kernel.rst   | 1 +
- Documentation/admin-guide/tainted-kernels.rst | 6 +++++-
- include/linux/kernel.h                        | 3 ++-
- kernel/panic.c                                | 1 +
- 4 files changed, 9 insertions(+), 2 deletions(-)
+ .clang-format                                 |   1 +
+ Documentation/cxl/memory-devices.rst          |   9 +
+ .../userspace-api/ioctl/ioctl-number.rst      |   1 +
+ drivers/cxl/mem.c                             | 156 ++++++++++++++++++
+ include/uapi/linux/cxl_mem.h                  | 117 +++++++++++++
+ 5 files changed, 284 insertions(+)
+ create mode 100644 include/uapi/linux/cxl_mem.h
 
-diff --git a/Documentation/admin-guide/sysctl/kernel.rst b/Documentation/admin-guide/sysctl/kernel.rst
-index 1d56a6b73a4e..3e1eada53504 100644
---- a/Documentation/admin-guide/sysctl/kernel.rst
-+++ b/Documentation/admin-guide/sysctl/kernel.rst
-@@ -1352,6 +1352,7 @@ ORed together. The letters are seen in "Tainted" line of Oops reports.
-  32768  `(K)`  kernel has been live patched
-  65536  `(X)`  Auxiliary taint, defined and used by for distros
- 131072  `(T)`  The kernel was built with the struct randomization plugin
-+262144  `(H)`  The kernel has allowed vendor shenanigans
- ======  =====  ==============================================================
+diff --git a/.clang-format b/.clang-format
+index 10dc5a9a61b3..3f11c8901b43 100644
+--- a/.clang-format
++++ b/.clang-format
+@@ -109,6 +109,7 @@ ForEachMacros:
+   - 'css_for_each_child'
+   - 'css_for_each_descendant_post'
+   - 'css_for_each_descendant_pre'
++  - 'cxl_for_each_cmd'
+   - 'device_for_each_child_node'
+   - 'dma_fence_chain_for_each'
+   - 'do_for_each_ftrace_op'
+diff --git a/Documentation/cxl/memory-devices.rst b/Documentation/cxl/memory-devices.rst
+index 5f723c25382b..ec54674b3822 100644
+--- a/Documentation/cxl/memory-devices.rst
++++ b/Documentation/cxl/memory-devices.rst
+@@ -32,6 +32,15 @@ CXL Memory Device
+ .. kernel-doc:: drivers/cxl/mem.c
+    :internal:
  
- See :doc:`/admin-guide/tainted-kernels` for more information.
-diff --git a/Documentation/admin-guide/tainted-kernels.rst b/Documentation/admin-guide/tainted-kernels.rst
-index ceeed7b0798d..ee2913316344 100644
---- a/Documentation/admin-guide/tainted-kernels.rst
-+++ b/Documentation/admin-guide/tainted-kernels.rst
-@@ -74,7 +74,7 @@ a particular type of taint. It's best to leave that to the aforementioned
- script, but if you need something quick you can use this shell command to check
- which bits are set::
- 
--	$ for i in $(seq 18); do echo $(($i-1)) $(($(cat /proc/sys/kernel/tainted)>>($i-1)&1));done
-+	$ for i in $(seq 19); do echo $(($i-1)) $(($(cat /proc/sys/kernel/tainted)>>($i-1)&1));done
- 
- Table for decoding tainted state
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -100,6 +100,7 @@ Bit  Log  Number  Reason that got the kernel tainted
-  15  _/K   32768  kernel has been live patched
-  16  _/X   65536  auxiliary taint, defined for and used by distros
-  17  _/T  131072  kernel was built with the struct randomization plugin
-+ 18  _/H  262144  kernel has allowed vendor shenanigans
- ===  ===  ======  ========================================================
- 
- Note: The character ``_`` is representing a blank in this table to make reading
-@@ -175,3 +176,6 @@ More detailed explanation for tainting
-      produce extremely unusual kernel structure layouts (even performance
-      pathological ones), which is important to know when debugging. Set at
-      build time.
++CXL IOCTL Interface
++-------------------
 +
-+ 18) ``H`` Kernel has allowed direct access to hardware and can no longer make
-+     any guarantees about the stability of the device or driver.
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index f7902d8c1048..bc95486f817e 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -443,7 +443,8 @@ extern enum system_states {
- #define TAINT_LIVEPATCH			15
- #define TAINT_AUX			16
- #define TAINT_RANDSTRUCT		17
--#define TAINT_FLAGS_COUNT		18
-+#define TAINT_RAW_PASSTHROUGH		18
-+#define TAINT_FLAGS_COUNT		19
- #define TAINT_FLAGS_MAX			((1UL << TAINT_FLAGS_COUNT) - 1)
++.. kernel-doc:: include/uapi/linux/cxl_mem.h
++   :doc: UAPI
++
++.. kernel-doc:: include/uapi/linux/cxl_mem.h
++   :internal:
++
+ External Interfaces
+ ===================
  
- struct taint_flag {
-diff --git a/kernel/panic.c b/kernel/panic.c
-index 332736a72a58..dff22bd80eaf 100644
---- a/kernel/panic.c
-+++ b/kernel/panic.c
-@@ -386,6 +386,7 @@ const struct taint_flag taint_flags[TAINT_FLAGS_COUNT] = {
- 	[ TAINT_LIVEPATCH ]		= { 'K', ' ', true },
- 	[ TAINT_AUX ]			= { 'X', ' ', true },
- 	[ TAINT_RANDSTRUCT ]		= { 'T', ' ', true },
-+	[ TAINT_RAW_PASSTHROUGH ]	= { 'H', ' ', true },
+diff --git a/Documentation/userspace-api/ioctl/ioctl-number.rst b/Documentation/userspace-api/ioctl/ioctl-number.rst
+index a4c75a28c839..6eb8e634664d 100644
+--- a/Documentation/userspace-api/ioctl/ioctl-number.rst
++++ b/Documentation/userspace-api/ioctl/ioctl-number.rst
+@@ -352,6 +352,7 @@ Code  Seq#    Include File                                           Comments
+                                                                      <mailto:michael.klein@puffin.lb.shuttle.de>
+ 0xCC  00-0F  drivers/misc/ibmvmc.h                                   pseries VMC driver
+ 0xCD  01     linux/reiserfs_fs.h
++0xCE  01-02  uapi/linux/cxl_mem.h                                    Compute Express Link Memory Devices
+ 0xCF  02     fs/cifs/ioctl.c
+ 0xDB  00-0F  drivers/char/mwave/mwavepub.h
+ 0xDD  00-3F                                                          ZFCP device driver see drivers/s390/scsi/
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index da2bf941fe92..d4eb3f5b9469 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -7,6 +7,7 @@
+ #include <linux/idr.h>
+ #include <linux/pci.h>
+ #include <linux/io.h>
++#include <uapi/linux/cxl_mem.h>
+ #include "acpi.h"
+ #include "pci.h"
+ #include "cxl.h"
+@@ -41,6 +42,7 @@
+ #define CXL_MAILBOX_TIMEOUT_US 2000
+ 
+ enum opcode {
++	CXL_MBOX_OP_INVALID	= 0x0000,
+ 	CXL_MBOX_OP_IDENTIFY    = 0x4000,
+ 	CXL_MBOX_OP_MAX         = 0x10000
  };
+@@ -82,6 +84,90 @@ static DEFINE_IDR(cxl_mem_idr);
+ /* protect cxl_mem_idr allocations */
+ static DEFINE_MUTEX(cxl_memdev_lock);
  
- /**
++#define CXL_CMD(_id, _flags, sin, sout, f)                                     \
++	[CXL_MEM_COMMAND_ID_##_id] = {                                         \
++		{                                                              \
++			.id = CXL_MEM_COMMAND_ID_##_id,                        \
++			.flags = CXL_MEM_COMMAND_FLAG_##_flags,                \
++			.size_in = sin,                                        \
++			.size_out = sout,                                      \
++		},                                                             \
++			.flags = CXL_CMD_INTERNAL_FLAG_##f,                    \
++			.opcode = CXL_MBOX_OP_##_id,                           \
++	}
++
++/**
++ * struct cxl_mem_command - Driver representation of a memory device command
++ * @info: Command information as it exists for the UAPI
++ * @opcode: The actual bits used for the mailbox protocol
++ * @flags: Set of flags reflecting the state of the command.
++ *
++ *  * %CXL_CMD_INTERNAL_FLAG_HIDDEN: Command is hidden from userspace. This
++ *    would typically be used for deprecated commands.
++ *  * %CXL_CMD_FLAG_MANDATORY: Hardware must support this command. This flag is
++ *    only used internally by the driver for sanity checking.
++ *
++ * The cxl_mem_command is the driver's internal representation of commands that
++ * are supported by the driver. Some of these commands may not be supported by
++ * the hardware. The driver will use @info to validate the fields passed in by
++ * the user then submit the @opcode to the hardware.
++ *
++ * See struct cxl_command_info.
++ */
++struct cxl_mem_command {
++	const struct cxl_command_info info;
++	enum opcode opcode;
++	u32 flags;
++#define CXL_CMD_INTERNAL_FLAG_NONE 0
++#define CXL_CMD_INTERNAL_FLAG_HIDDEN BIT(0)
++#define CXL_CMD_INTERNAL_FLAG_MANDATORY BIT(1)
++};
++
++/*
++ * This table defines the supported mailbox commands for the driver. This table
++ * is made up of a UAPI structure. Non-negative values as parameters in the
++ * table will be validated against the user's input. For example, if size_in is
++ * 0, and the user passed in 1, it is an error.
++ */
++static struct cxl_mem_command mem_commands[] = {
++	CXL_CMD(INVALID, KERNEL, 0, 0, HIDDEN),
++	CXL_CMD(IDENTIFY, NONE, 0, 0x43, MANDATORY),
++};
++
++#define cxl_for_each_cmd(cmd)                                                  \
++	for ((cmd) = &mem_commands[0];                                         \
++	     ((cmd) - mem_commands) < ARRAY_SIZE(mem_commands); (cmd)++)
++
++static inline int cxl_cmd_index(const struct cxl_mem_command *c)
++{
++	if (unlikely(c >= mem_commands &&
++		     c < (mem_commands + sizeof(mem_commands)))) {
++		struct cxl_mem_command *p;
++
++		cxl_for_each_cmd(p)
++			if (p->opcode == c->opcode &&
++			    p->flags == c->flags)
++				return p - mem_commands;
++	} else {
++		return c - mem_commands;
++	}
++
++	WARN_ON_ONCE(1);
++	return 0;
++}
++
++static inline struct cxl_mem_command *cxl_mem_find_command(u16 opcode)
++{
++	struct cxl_mem_command *c;
++
++	cxl_for_each_cmd(c) {
++		if (c->opcode == opcode)
++			return c;
++	}
++
++	return NULL;
++}
++
+ static int cxl_mem_wait_for_doorbell(struct cxl_mem *cxlm)
+ {
+ 	const int timeout = msecs_to_jiffies(CXL_MAILBOX_TIMEOUT_US);
+@@ -140,6 +226,7 @@ static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
+ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
+ 				 struct mbox_cmd *mbox_cmd)
+ {
++	const struct cxl_mem_command *cmd;
+ 	u64 cmd_reg, status_reg;
+ 	size_t out_len;
+ 	int rc;
+@@ -158,6 +245,13 @@ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
+ 	 *   8. If output payload is non-empty, host reads Command Payload Registers
+ 	 */
+ 
++	cmd = cxl_mem_find_command(mbox_cmd->opcode);
++	if (!cmd) {
++		dev_info(&cxlm->pdev->dev,
++			 "Unknown opcode 0x%04x being sent to hardware\n",
++			 mbox_cmd->opcode);
++	}
++
+ 	/* #1 */
+ 	WARN_ON(cxl_doorbell_busy(cxlm));
+ 
+@@ -200,6 +294,20 @@ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
+ 	out_len = CXL_GET_FIELD(cmd_reg, CXLDEV_MB_CMD_PAYLOAD_LENGTH);
+ 	mbox_cmd->size_out = out_len;
+ 
++	/*
++	 * If the command had a fixed size output, but the hardware did
++	 * something unexpected, just print an error and move on. It would be
++	 * worth sending a bug report.
++	 */
++	if (cmd && cmd->info.size_out >= 0 &&
++	    mbox_cmd->size_out != cmd->info.size_out) {
++		bool too_big = mbox_cmd->size_out > cmd->info.size_out;
++
++		dev_err(&cxlm->pdev->dev,
++			"payload was %s than driver expectations\n",
++			too_big ? "larger" : "smaller");
++	}
++
+ 	/* #8 */
+ 	if (out_len && mbox_cmd->payload)
+ 		memcpy_fromio(mbox_cmd->payload, cxl_payload_regs(cxlm),
+@@ -323,8 +431,56 @@ static int cxl_mem_release(struct inode *inode, struct file *file)
+ 	return 0;
+ }
+ 
++static int cxl_mem_count_commands(void)
++{
++	struct cxl_mem_command *c;
++	int n = 0;
++
++	cxl_for_each_cmd(c) {
++		if (c->flags & CXL_CMD_INTERNAL_FLAG_HIDDEN)
++			continue;
++		n++;
++	}
++
++	return n;
++}
++
+ static long cxl_mem_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
++	struct cxl_memdev *cxlmd = file->private_data;
++	struct device *dev = &cxlmd->dev;
++
++	if (cmd == CXL_MEM_QUERY_COMMANDS) {
++		struct cxl_mem_query_commands __user *q = (void __user *)arg;
++		struct cxl_mem_command *cmd;
++		u32 n_commands;
++		int j = 0;
++
++		dev_dbg(dev, "Query IOCTL\n");
++
++		if (get_user(n_commands, (u32 __user *)arg))
++			return -EFAULT;
++
++		/* returns the total number if 0 elements are requested. */
++		if (n_commands == 0)
++			return put_user(cxl_mem_count_commands(),
++					(u32 __user *)arg);
++
++		/* otherwise, return max(n_commands, total commands) */
++		cxl_for_each_cmd(cmd) {
++			const struct cxl_command_info *info = &cmd->info;
++
++			if (cmd->flags & CXL_CMD_INTERNAL_FLAG_HIDDEN)
++				continue;
++
++			if (copy_to_user(&q->commands[j++], info, sizeof(*info)))
++				return -EFAULT;
++
++			if (j == n_commands)
++				break;
++		}
++	}
++
+ 	return -ENOTTY;
+ }
+ 
+diff --git a/include/uapi/linux/cxl_mem.h b/include/uapi/linux/cxl_mem.h
+new file mode 100644
+index 000000000000..847f825bbe18
+--- /dev/null
++++ b/include/uapi/linux/cxl_mem.h
+@@ -0,0 +1,117 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ * CXL IOCTLs for Memory Devices
++ */
++
++#ifndef _UAPI_CXL_MEM_H_
++#define _UAPI_CXL_MEM_H_
++
++#if defined(__cplusplus)
++extern "C" {
++#endif
++
++/**
++ * DOC: UAPI
++ *
++ * CXL memory devices expose UAPI to have a standard user interface.
++ * Userspace can refer to these structure definitions and UAPI formats
++ * to communicate to driver. The commands themselves are somewhat obfuscated
++ * with macro magic. They have the form CXL_MEM_COMMAND_ID_<name>.
++ *
++ * For example "CXL_MEM_COMMAND_ID_INVALID"
++ *
++ * Not all of all commands that the driver supports are always available for use
++ * by userspace. Userspace must check the results from the QUERY command in
++ * order to determine the live set of commands.
++ */
++
++#define CXL_MEM_QUERY_COMMANDS _IOR(0xCE, 1, struct cxl_mem_query_commands)
++
++#undef CMDS
++#define CMDS                                                                   \
++	C(INVALID,	"Invalid Command"),                                    \
++	C(IDENTIFY,	"Identify Command"),                                   \
++	C(MAX,		"Last command")
++#undef C
++#define C(a, b) CXL_MEM_COMMAND_ID_##a
++
++enum { CMDS };
++
++/**
++ * struct cxl_command_info - Command information returned from a query.
++ * @id: ID number for the command.
++ * @flags: Flags that specify command behavior.
++ *
++ *  * %CXL_MEM_COMMAND_FLAG_KERNEL: This command is reserved for exclusive
++ *    kernel use.
++ *  * %CXL_MEM_COMMAND_FLAG_MUTEX: This command may require coordination with
++ *    the kernel in order to complete successfully.
++ *
++ * @size_in: Expected input size, or -1 if variable length.
++ * @size_out: Expected output size, or -1 if variable length.
++ *
++ * Represents a single command that is supported by both the driver and the
++ * hardware. The is returned as part of an array from the query ioctl. The
++ * following would be a command named "foobar" that takes a variable length
++ * input and returns 0 bytes of output.
++ *
++ *  - @id = 10
++ *  - @flags = CXL_MEM_COMMAND_FLAG_MUTEX
++ *  - @size_in = -1
++ *  - @size_out = 0
++ *
++ * See struct cxl_mem_query_commands.
++ */
++struct cxl_command_info {
++	__u32 id;
++
++	__u32 flags;
++#define CXL_MEM_COMMAND_FLAG_NONE 0
++#define CXL_MEM_COMMAND_FLAG_KERNEL BIT(0)
++#define CXL_MEM_COMMAND_FLAG_MUTEX BIT(1)
++
++	__s32 size_in;
++	__s32 size_out;
++};
++
++/**
++ * struct cxl_mem_query_commands - Query supported commands.
++ * @n_commands: In/out parameter. When @n_commands is > 0, the driver will
++ *		return min(num_support_commands, n_commands). When @n_commands
++ *		is 0, driver will return the number of total supported commands.
++ * @rsvd: Reserved for future use.
++ * @commands: Output array of supported commands. This array must be allocated
++ *            by userspace to be at least min(num_support_commands, @n_commands)
++ *
++ * Allow userspace to query the available commands supported by both the driver,
++ * and the hardware. Commands that aren't supported by either the driver, or the
++ * hardware are not returned in the query.
++ *
++ * Examples:
++ *
++ *  - { .n_commands = 0 } // Get number of supported commands
++ *  - { .n_commands = 15, .commands = buf } // Return first 15 (or less)
++ *    supported commands
++ *
++ *  See struct cxl_command_info.
++ */
++struct cxl_mem_query_commands {
++	/*
++	 * Input: Number of commands to return (space allocated by user)
++	 * Output: Number of commands supported by the driver/hardware
++	 *
++	 * If n_commands is 0, kernel will only return number of commands and
++	 * not try to populate commands[], thus allowing userspace to know how
++	 * much space to allocate
++	 */
++	__u32 n_commands;
++	__u32 rsvd;
++
++	struct cxl_command_info __user commands[]; /* out: supported commands */
++};
++
++#if defined(__cplusplus)
++}
++#endif
++
++#endif
 -- 
 2.30.0
 
