@@ -7,545 +7,441 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FB76C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99779C43381
 	for <linux-acpi@archiver.kernel.org>; Tue, 12 Jan 2021 00:29:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D8FD22C7E
+	by mail.kernel.org (Postfix) with ESMTP id 68A7F22CF7
 	for <linux-acpi@archiver.kernel.org>; Tue, 12 Jan 2021 00:29:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390826AbhALA0A (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Jan 2021 19:26:00 -0500
+        id S2390823AbhALAZ7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Jan 2021 19:25:59 -0500
 Received: from mga01.intel.com ([192.55.52.88]:57916 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390891AbhAKXCZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 11 Jan 2021 18:02:25 -0500
-IronPort-SDR: jtRgAD8lIS+YNJ0fdFD/E34P4Z4UyrYGNnJAJNsWQWkSFd/kVuzMltNuzTtlqauLuBhG9QHx3X
- LJOuNChnZZcQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9861"; a="196564907"
+        id S2390883AbhAKXCK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Jan 2021 18:02:10 -0500
+IronPort-SDR: H9+bV2Ox71MrXBKMPEH9Juy3WpVPIzJHrs4o4JdN6Enr/zZG7rUnVeSGoLSt7ZfTSOw3t8nbEy
+ aHGkHX5+nmqg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9861"; a="196564886"
 X-IronPort-AV: E=Sophos;i="5.79,339,1602572400"; 
-   d="scan'208";a="196564907"
+   d="scan'208";a="196564886"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:19 -0800
-IronPort-SDR: DnRWIZXqk0qHcFjmpLAsQrn0P6m3kPrfX6B6Arenkw/5wuc3tQq6kFO1QnG0MBvkZ7/BEwGyX6
- aRpg/LVzGcCg==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:14 -0800
+IronPort-SDR: jWMWYKKdr2mAfaN4kto5xLXhnRHFeqlpYtExJVwjo2BbCx0UV+DKZrgVYxcWTX5zrmvzDp+1hv
+ HioBPbwgcZ8w==
 X-IronPort-AV: E=Sophos;i="5.79,339,1602572400"; 
-   d="scan'208";a="381181236"
+   d="scan'208";a="381181185"
 Received: from yyang31-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.142.71])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:19 -0800
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 15:01:14 -0800
+Received: from orsmsx612.amr.corp.intel.com (10.22.229.25) by
  fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
- via Mailbox Transport; Mon, 11 Jan 2021 14:51:41 -0800
-Received: from fmsmsx606.amr.corp.intel.com (10.18.126.86) by
- fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ via Mailbox Transport; Mon, 11 Jan 2021 14:51:32 -0800
+Received: from orsmsx608.amr.corp.intel.com (10.22.229.21) by
+ ORSMSX612.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Mon, 11 Jan 2021 14:51:41 -0800
+ 15.1.1713.5; Mon, 11 Jan 2021 14:51:32 -0800
 Received: from fmsmga008.fm.intel.com (10.253.24.58) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
+ orsmsx608.amr.corp.intel.com (10.22.229.21) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
- via Frontend Transport; Mon, 11 Jan 2021 14:51:41 -0800
-IronPort-SDR: +OEbsl77qcnIxDP/iRyVb4ULpMIMWTdUILl03E98fLyR/iTCwNitHIYkLEQLFK6NoLNsOqsklF
- 0WVK96ZxPkrQ==
+ via Frontend Transport; Mon, 11 Jan 2021 14:51:31 -0800
+IronPort-SDR: t7Ycay7vGglJDba2P/49q7vxpm3h/0RQiQLIx/PukJxhRCp9sZWhmZKhnUkqhcj0k3roLNBI5k
+ a4ZP9PKevETg==
 X-IronPort-AV: E=Sophos;i="5.79,339,1602572400"; 
-   d="scan'208";a="352777993"
+   d="scan'208";a="352777936"
 Received: from yyang31-mobl.amr.corp.intel.com (HELO bwidawsk-mobl5.local) ([10.252.142.71])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 14:51:34 -0800
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 14:51:30 -0800
 From:   Ben Widawsky <ben.widawsky@intel.com>
 To:     <linux-cxl@vger.kernel.org>
-CC:     Ben Widawsky <ben.widawsky@intel.com>,
+CC:     Vishal Verma <vishal.l.verma@intel.com>,
+        Ben Widawsky <ben.widawsky@intel.com>,
         <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
         "linux-acpi@vger.kernel.org, Ira Weiny" <ira.weiny@intel.com>,
         Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
         "Kelley, Sean V" <sean.v.kelley@intel.com>,
         Rafael Wysocki <rafael.j.wysocki@intel.com>,
         Bjorn Helgaas <helgaas@kernel.org>,
         Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
-        "Jon Masters" <jcm@jonmasters.org>,
+        Jon Masters <jcm@jonmasters.org>,
         Chris Browy <cbrowy@avery-design.com>,
-        "Randy Dunlap" <rdunlap@infradead.org>,
-        Christoph Hellwig <hch@infradead.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        "Christoph Hellwig" <hch@infradead.org>,
         <daniel.lll@alibaba-inc.com>
-Subject: [RFC PATCH v3 07/16] cxl/mem: Implement polled mode mailbox
-Date:   Mon, 11 Jan 2021 14:51:11 -0800
-Message-ID: <20210111225121.820014-8-ben.widawsky@intel.com>
+Subject: [RFC PATCH v3 03/16] cxl/acpi: add OSC support
+Date:   Mon, 11 Jan 2021 14:51:07 -0800
+Message-ID: <20210111225121.820014-4-ben.widawsky@intel.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210111225121.820014-1-ben.widawsky@intel.com>
 References: <20210111225121.820014-1-ben.widawsky@intel.com>
 Content-Transfer-Encoding: 7BIT
-X-MS-Exchange-Organization-Network-Message-Id: 44a6f6b8-143c-4a7c-e080-08d8b683760c
+X-MS-Exchange-Organization-Network-Message-Id: f22a9275-0c9d-4d47-41d1-08d8b68370ac
 Content-Type:   text/plain; charset=US-ASCII
 X-MS-Exchange-Organization-AVStamp-Enterprise: 1.0
 X-MS-Exchange-Organization-SCL: -1
-X-MS-Exchange-Organization-AuthSource: fmsmsx606.amr.corp.intel.com
+X-MS-Exchange-Organization-AuthSource: ORSMSX608.amr.corp.intel.com
 X-MS-Exchange-Organization-AuthAs: Anonymous
-X-MS-Exchange-Transport-EndToEndLatency: 00:00:00.4831463
+X-MS-Exchange-Transport-EndToEndLatency: 00:00:00.9583818
 X-MS-Exchange-Processed-By-BccFoldering: 15.01.1713.001
 MIME-Version: 1.0
-X-TUID: j8isVj4tClbl
+X-TUID: VQtsObOc1PeL
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Provide enough functionality to utilize the mailbox of a memory device.
-The mailbox is used to interact with the firmware running on the memory
-device.
+From: Vishal Verma <vishal.l.verma@intel.com>
 
-The CXL specification defines separate capabilities for the mailbox and
-the memory device. While we can confirm the mailbox is ready, in order
-to actually interact with the memory device, you must also confirm the
-device's firmware is ready.
+Add support to advertise OS capabilities, and request OS control for CXL
+features using the ACPI _OSC mechanism. Advertise support for all
+possible CXL features, and attempt to request control for all possible
+features.
 
-Create a function to handle sending a command, optionally with a
-payload, to the memory device, polling on a result, and then optionally
-copying out the payload. The algorithm for doing this comes straight out
-of the CXL 2.0 specification.
+Based on a patch by Sean Kelley.
 
-Primary mailboxes are capable of generating an interrupt when submitting
-a command in the background. That implementation is saved for a later
-time.
-
-Secondary mailboxes aren't implemented at this time.
-
-The flow is proven with one implemented command, "identify". Because the
-class code has already told the driver this is a memory device and the
-identify command is mandatory, it's safe to assume for sane devices that
-everything here will work.
-
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
 ---
- drivers/cxl/cxl.h |  43 +++++++
- drivers/cxl/mem.c | 312 ++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 355 insertions(+)
+ Documentation/cxl/memory-devices.rst |  15 ++
+ drivers/cxl/acpi.c                   | 260 ++++++++++++++++++++++++++-
+ drivers/cxl/acpi.h                   |  20 +++
+ 3 files changed, 292 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index a77286d04ce4..ca3fa496e21c 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -32,9 +32,40 @@
- #define   CXLDEV_MB_CAP_PAYLOAD_SIZE_MASK GENMASK(4, 0)
- #define   CXLDEV_MB_CAP_PAYLOAD_SIZE_SHIFT 0
- #define CXLDEV_MB_CTRL_OFFSET 0x04
-+#define   CXLDEV_MB_CTRL_DOORBELL BIT(0)
- #define CXLDEV_MB_CMD_OFFSET 0x08
-+#define   CXLDEV_MB_CMD_COMMAND_OPCODE_SHIFT 0
-+#define   CXLDEV_MB_CMD_COMMAND_OPCODE_MASK GENMASK(15, 0)
-+#define   CXLDEV_MB_CMD_PAYLOAD_LENGTH_SHIFT 16
-+#define   CXLDEV_MB_CMD_PAYLOAD_LENGTH_MASK GENMASK(36, 16)
- #define CXLDEV_MB_STATUS_OFFSET 0x10
-+#define   CXLDEV_MB_STATUS_RET_CODE_SHIFT 32
-+#define   CXLDEV_MB_STATUS_RET_CODE_MASK GENMASK(47, 32)
- #define CXLDEV_MB_BG_CMD_STATUS_OFFSET 0x18
-+#define CXLDEV_MB_PAYLOAD_OFFSET 0x20
+diff --git a/Documentation/cxl/memory-devices.rst b/Documentation/cxl/memory-devices.rst
+index aa4262280c67..6ce88f9d5f4f 100644
+--- a/Documentation/cxl/memory-devices.rst
++++ b/Documentation/cxl/memory-devices.rst
+@@ -13,3 +13,18 @@ Driver Infrastructure
+ =====================
+ 
+ This sections covers the driver infrastructure for a CXL memory device.
 +
-+/* Memory Device (CXL 2.0 - 8.2.8.5.1.1) */
-+#define CXLMDEV_STATUS_OFFSET 0x0
-+#define   CXLMDEV_DEV_FATAL BIT(0)
-+#define   CXLMDEV_FW_HALT BIT(1)
-+#define   CXLMDEV_STATUS_MEDIA_STATUS_SHIFT 2
-+#define   CXLMDEV_STATUS_MEDIA_STATUS_MASK GENMASK(3, 2)
-+#define     CXLMDEV_MS_NOT_READY 0
-+#define     CXLMDEV_MS_READY 1
-+#define     CXLMDEV_MS_ERROR 2
-+#define     CXLMDEV_MS_DISABLED 3
-+#define   CXLMDEV_READY(status) \
-+		(CXL_GET_FIELD(status, CXLMDEV_STATUS_MEDIA_STATUS) == CXLMDEV_MS_READY)
-+#define   CXLMDEV_MBOX_IF_READY BIT(4)
-+#define   CXLMDEV_RESET_NEEDED_SHIFT 5
-+#define   CXLMDEV_RESET_NEEDED_MASK GENMASK(7, 5)
-+#define     CXLMDEV_RESET_NEEDED_NOT 0
-+#define     CXLMDEV_RESET_NEEDED_COLD 1
-+#define     CXLMDEV_RESET_NEEDED_WARM 2
-+#define     CXLMDEV_RESET_NEEDED_HOT 3
-+#define     CXLMDEV_RESET_NEEDED_CXL 4
-+#define   CXLMDEV_RESET_NEEDED(status) \
-+		(CXL_GET_FIELD(status, CXLMDEV_RESET_NEEDED) != CXLMDEV_RESET_NEEDED_NOT)
- 
- /**
-  * struct cxl_mem - A CXL memory device
-@@ -45,6 +76,16 @@ struct cxl_mem {
- 	struct pci_dev *pdev;
- 	void __iomem *regs;
- 
-+	struct {
-+		struct range range;
-+	} pmem;
++ACPI CXL
++--------
 +
-+	struct {
-+		struct range range;
-+	} ram;
++.. kernel-doc:: drivers/cxl/acpi.c
++   :doc: cxl acpi
 +
-+	char firmware_version[0x10];
++.. kernel-doc:: drivers/cxl/acpi.c
++   :internal:
 +
- 	/* Cap 0001h - CXL_CAP_CAP_ID_DEVICE_STATUS */
- 	struct {
- 		void __iomem *regs;
-@@ -52,6 +93,7 @@ struct cxl_mem {
- 
- 	/* Cap 0002h - CXL_CAP_CAP_ID_PRIMARY_MAILBOX */
- 	struct {
-+		struct mutex mutex; /* Protects device mailbox and firmware */
- 		void __iomem *regs;
- 		size_t payload_size;
- 	} mbox;
-@@ -90,6 +132,7 @@ struct cxl_mem {
- 
- cxl_reg(status);
- cxl_reg(mbox);
-+cxl_reg(mem);
- 
- #define cxl_payload_regs(cxlm)                                                 \
- 	((void __iomem *)(cxlm)->mbox.regs + CXLDEV_MB_PAYLOAD_OFFSET)
-diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-index 8da9f4a861ea..e9ba97bbd7b9 100644
---- a/drivers/cxl/mem.c
-+++ b/drivers/cxl/mem.c
-@@ -1,5 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
-+#include <linux/sched/clock.h>
- #include <linux/module.h>
++External Interfaces
++===================
++
++.. kernel-doc:: drivers/cxl/acpi.c
++   :export:
+diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+index 0f1ba9b3f1ed..af9c0dfdee20 100644
+--- a/drivers/cxl/acpi.c
++++ b/drivers/cxl/acpi.c
+@@ -11,7 +11,258 @@
  #include <linux/pci.h>
- #include <linux/io.h>
-@@ -7,6 +8,248 @@
- #include "pci.h"
- #include "cxl.h"
+ #include "acpi.h"
  
-+#define cxl_doorbell_busy(cxlm)                                                \
-+	(cxl_read_mbox_reg32(cxlm, CXLDEV_MB_CTRL_OFFSET) &                    \
-+	 CXLDEV_MB_CTRL_DOORBELL)
+-/*
++/**
++ * DOC: cxl acpi
++ *
++ * ACPI _OSC setup: The exported function cxl_bus_acquire() sets up ACPI
++ * Operating System Capabilities (_OSC) for the CXL bus. It declares support
++ * for all CXL capabilities, and attempts to request control for all possible
++ * capabilities. The resulting support and control sets are saved in global
++ * variables cxl_osc_support_set and cxl_osc_control_set. The internal
++ * functions cxl_osc_declare_support(), and cxl_osc_request_control() can be
++ * used to update the support and control sets in accordance with the ACPI
++ * rules for _OSC evaluation - most importantly, capabilities already granted
++ * should not be rescinded by either the OS or firmware.
++ */
 +
-+#define CXL_MAILBOX_TIMEOUT_US 2000
++static u32 cxl_osc_support_set;
++static u32 cxl_osc_control_set;
++static DEFINE_MUTEX(acpi_desc_lock);
 +
-+enum opcode {
-+	CXL_MBOX_OP_IDENTIFY    = 0x4000,
-+	CXL_MBOX_OP_MAX         = 0x10000
++struct pci_osc_bit_struct {
++	u32 bit;
++	char *desc;
 +};
 +
-+/**
-+ * struct mbox_cmd - A command to be submitted to hardware.
-+ * @opcode: (input) The command set and command submitted to hardware.
-+ * @payload: (input/output) Pointer to the input and output payload.
-+ *           Payload can be NULL if the caller wants to populate the payload
-+ *           registers themselves (potentially avoiding a copy).
-+ * @size_in: (input) Number of bytes to load from @payload.
-+ * @size_out:
-+ *  - (input) Number of bytes allocated to load into @payload.
-+ *  - (output) Number of bytes loaded into @payload.
-+ * @return_code: (output) Error code returned from hardware.
-+ *
-+ * This is the primary mechanism used to send commands to the hardware.
-+ * All the fields except @payload correspond exactly to the fields described in
-+ * Command Register section of the CXL 2.0 spec (8.2.8.4.5). @payload
-+ * corresponds to the Command Payload Registers (8.2.8.4.8).
-+ */
-+struct mbox_cmd {
-+	u16 opcode;
-+	void *payload;
-+	size_t size_in;
-+	size_t size_out;
-+	u16 return_code;
++static struct pci_osc_bit_struct cxl_osc_support_bit[] = {
++	{ CXL_OSC_PORT_REG_ACCESS_SUPPORT, "CXLPortRegAccess" },
++	{ CXL_OSC_PORT_DEV_REG_ACCESS_SUPPORT, "CXLPortDevRegAccess" },
++	{ CXL_OSC_PER_SUPPORT, "CXLProtocolErrorReporting" },
++	{ CXL_OSC_NATIVE_HP_SUPPORT, "CXLNativeHotPlug" },
 +};
 +
-+static int cxl_mem_wait_for_doorbell(struct cxl_mem *cxlm)
++static struct pci_osc_bit_struct cxl_osc_control_bit[] = {
++	{ CXL_OSC_MEM_ERROR_CONTROL, "CXLMemErrorReporting" },
++};
++
++static u8 cxl_osc_uuid_str[] = "68F2D50B-C469-4d8A-BD3D-941A103FD3FC";
++
++static void decode_osc_bits(struct device *dev, char *msg, u32 word,
++			    struct pci_osc_bit_struct *table, int size)
 +{
-+	const int timeout = msecs_to_jiffies(CXL_MAILBOX_TIMEOUT_US);
-+	const unsigned long start = jiffies;
-+	unsigned long end = start;
++	char buf[80];
++	int i, len = 0;
++	struct pci_osc_bit_struct *entry;
 +
-+	while (cxl_doorbell_busy(cxlm)) {
-+		end = jiffies;
++	buf[0] = '\0';
++	for (i = 0, entry = table; i < size; i++, entry++)
++		if (word & entry->bit)
++			len += scnprintf(buf + len, sizeof(buf) - len, "%s%s",
++					 len ? " " : "", entry->desc);
 +
-+		if (time_after(end, start + timeout)) {
-+			/* Check again in case preempted before timeout test */
-+			if (!cxl_doorbell_busy(cxlm))
-+				break;
-+			return -ETIMEDOUT;
-+		}
-+		cpu_relax();
-+	}
-+
-+	dev_dbg(&cxlm->pdev->dev, "Doorbell wait took %dms",
-+		jiffies_to_msecs(end) - jiffies_to_msecs(start));
-+	return 0;
++	dev_info(dev, "_OSC: %s [%s]\n", msg, buf);
 +}
 +
-+static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
-+				 struct mbox_cmd *mbox_cmd)
++static void decode_cxl_osc_support(struct device *dev, char *msg, u32 word)
 +{
-+	dev_warn(&cxlm->pdev->dev, "Mailbox command timed out\n");
-+	dev_info(&cxlm->pdev->dev,
-+		 "\topcode: 0x%04x\n"
-+		 "\tpayload size: %zub\n",
-+		 mbox_cmd->opcode, mbox_cmd->size_in);
-+	print_hex_dump_debug("Payload ", DUMP_PREFIX_OFFSET, 16, 1,
-+			     mbox_cmd->payload, mbox_cmd->size_in, true);
-+
-+	/* Here's a good place to figure out if a device reset is needed */
++	decode_osc_bits(dev, msg, word, cxl_osc_support_bit,
++			ARRAY_SIZE(cxl_osc_support_bit));
 +}
 +
-+/**
-+ * cxl_mem_mbox_send_cmd() - Send a mailbox command to a memory device.
-+ * @cxlm: The CXL memory device to communicate with.
-+ * @mbox_cmd: Command to send to the memory device.
-+ *
-+ * Context: Any context. Expects mbox_lock to be held.
-+ * Return: -ETIMEDOUT if timeout occurred waiting for completion. 0 on success.
-+ *         Caller should check the return code in @mbox_cmd to make sure it
-+ *         succeeded.
-+ *
-+ * This is a generic form of the CXL mailbox send command, thus the only I/O
-+ * operations used are cxl_read_mbox_reg(). Memory devices, and perhaps other
-+ * types of CXL devices may have further information available upon error
-+ * conditions.
-+ *
-+ * FIXME: As stated above, references to &struct cxl_mem should be changed to a
-+ * more generic cxl structure when needed.
-+ */
-+static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
-+				 struct mbox_cmd *mbox_cmd)
++static void decode_cxl_osc_control(struct device *dev, char *msg, u32 word)
 +{
-+	u64 cmd_reg, status_reg;
-+	size_t out_len;
-+	int rc;
++	decode_osc_bits(dev, msg, word, cxl_osc_control_bit,
++			ARRAY_SIZE(cxl_osc_control_bit));
++}
 +
-+	lockdep_assert_held(&cxlm->mbox.mutex);
++static acpi_status acpi_cap_run_osc(acpi_handle handle, const u32 *capbuf,
++				    u8 *uuid_str, u32 *retval)
++{
++	struct acpi_osc_context context = {
++		.uuid_str = uuid_str,
++		.rev = 1,
++		.cap.length = 20,
++		.cap.pointer = (void *)capbuf,
++	};
++	acpi_status status;
 +
-+	/*
-+	 * Here are the steps from 8.2.8.4 of the CXL 2.0 spec.
-+	 *   1. Caller reads MB Control Register to verify doorbell is clear
-+	 *   2. Caller writes Command Register
-+	 *   3. Caller writes Command Payload Registers if input payload is non-empty
-+	 *   4. Caller writes MB Control Register to set doorbell
-+	 *   5. Caller either polls for doorbell to be clear or waits for interrupt if configured
-+	 *   6. Caller reads MB Status Register to fetch Return code
-+	 *   7. If command successful, Caller reads Command Register to get Payload Length
-+	 *   8. If output payload is non-empty, host reads Command Payload Registers
-+	 */
++	status = acpi_run_osc(handle, &context);
++	if (ACPI_SUCCESS(status)) {
++		/* pointer + offset to DWORD 5 */
++		*retval = *((u32 *)(context.ret.pointer + 16));
++		kfree(context.ret.pointer);
++	}
++	return status;
++}
 +
-+	/* #1 */
-+	WARN_ON(cxl_doorbell_busy(cxlm));
++static acpi_status cxl_query_osc(acpi_handle handle, u32 support, u32 *control)
++{
++	struct acpi_pci_root *root;
++	acpi_status status;
++	u32 result, capbuf[5];
 +
-+	cmd_reg = CXL_SET_FIELD(mbox_cmd->opcode, CXLDEV_MB_CMD_COMMAND_OPCODE);
-+	if (mbox_cmd->size_in) {
-+		cmd_reg |= CXL_SET_FIELD(mbox_cmd->size_in,
-+					 CXLDEV_MB_CMD_PAYLOAD_LENGTH);
-+		if (mbox_cmd->payload)
-+			memcpy_toio(cxl_payload_regs(cxlm), mbox_cmd->payload,
-+				    mbox_cmd->size_in);
++	root = acpi_pci_find_root(handle);
++	if (!root)
++		return -ENXIO;
++
++	support &= CXL_OSC_SUPPORT_VALID_MASK;
++	support |= cxl_osc_support_set;
++
++	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
++	capbuf[PCI_OSC_SUPPORT_DWORD] = root->osc_support_set;
++	capbuf[PCI_OSC_CONTROL_DWORD] = root->osc_control_set;
++	capbuf[CXL_OSC_SUPPORT_DWORD] = support;
++	if (control) {
++		*control &= CXL_OSC_CONTROL_VALID_MASK;
++		capbuf[CXL_OSC_CONTROL_DWORD] = *control | cxl_osc_control_set;
++	} else {
++		/* Run _OSC query only with existing controls. */
++		capbuf[CXL_OSC_CONTROL_DWORD] = cxl_osc_control_set;
 +	}
 +
-+	/* #2, #3 */
-+	cxl_write_mbox_reg64(cxlm, CXLDEV_MB_CMD_OFFSET, cmd_reg);
-+
-+	/* #4 */
-+	dev_dbg(&cxlm->pdev->dev, "Sending command\n");
-+	cxl_write_mbox_reg32(cxlm, CXLDEV_MB_CTRL_OFFSET,
-+			     CXLDEV_MB_CTRL_DOORBELL);
-+
-+	/* #5 */
-+	rc = cxl_mem_wait_for_doorbell(cxlm);
-+	if (rc == -ETIMEDOUT) {
-+		cxl_mem_mbox_timeout(cxlm, mbox_cmd);
-+		return rc;
++	status = acpi_cap_run_osc(handle, capbuf, cxl_osc_uuid_str, &result);
++	if (ACPI_SUCCESS(status)) {
++		cxl_osc_support_set = support;
++		if (control)
++			*control = result;
 +	}
-+
-+	/* #6 */
-+	status_reg = cxl_read_mbox_reg64(cxlm, CXLDEV_MB_STATUS_OFFSET);
-+	mbox_cmd->return_code =
-+		CXL_GET_FIELD(status_reg, CXLDEV_MB_STATUS_RET_CODE);
-+
-+	if (mbox_cmd->return_code != 0) {
-+		dev_dbg(&cxlm->pdev->dev, "Mailbox operation had an error\n");
-+		return 0;
-+	}
-+
-+	/* #7 */
-+	cmd_reg = cxl_read_mbox_reg64(cxlm, CXLDEV_MB_CMD_OFFSET);
-+	out_len = CXL_GET_FIELD(cmd_reg, CXLDEV_MB_CMD_PAYLOAD_LENGTH);
-+	mbox_cmd->size_out = out_len;
-+
-+	/* #8 */
-+	if (out_len && mbox_cmd->payload)
-+		memcpy_fromio(mbox_cmd->payload, cxl_payload_regs(cxlm),
-+			      mbox_cmd->size_out);
-+
-+	return 0;
++	return status;
 +}
 +
 +/**
-+ * cxl_mem_mbox_get() - Acquire exclusive access to the mailbox.
-+ * @cxlm: The memory device to gain access to.
++ * cxl_osc_declare_support - Declare support for CXL root _OSC features.
++ * @handle: ACPI device handle for the PCI root bridge (or PCIe Root Complex).
++ * @flags: The _OSC bits to declare support for.
 + *
-+ * Context: Any context. Takes the mbox_lock.
-+ * Return: 0 if exclusive access was acquired.
++ * The PCI specific DWORDS are obtained from the pci root port device, and
++ * used as-is. The resulting CXL support set is saved in cxl_osc_support_set.
++ * Any future calls to this are forced to be strictly incremental from the
++ * existing cxl_osc_support_set.
 + */
-+static int cxl_mem_mbox_get(struct cxl_mem *cxlm)
++static acpi_status cxl_osc_declare_support(acpi_handle handle, u32 flags)
 +{
-+	u64 md_status;
-+	int rc = -EBUSY;
++	acpi_status status;
 +
-+	mutex_lock_io(&cxlm->mbox.mutex);
++	mutex_lock(&acpi_desc_lock);
++	status = cxl_query_osc(handle, flags, NULL);
++	mutex_unlock(&acpi_desc_lock);
++	return status;
++}
 +
-+	/*
-+	 * XXX: There is some amount of ambiguity in the 2.0 version of the spec
-+	 * around the mailbox interface ready (8.2.8.5.1.1). The purpose of the
-+	 * bit is to allow firmware running on the device to notify us that it's
-+	 * ready to receive commands. It is unclear if the bit needs to be read
-+	 * every time one tries to use the mailbox, ie. the firmware can switch
-+	 * it on and off as needed. Second, there is no defined timeout for
-+	 * mailbox ready, like there is for the doorbell interface.
-+	 *
-+	 * As such, we make the following assumptions:
-+	 * 1. The firmware might toggle the Mailbox Interface Ready bit, and so
-+	 *    we check it for every command.
-+	 * 2. If the doorbell is clear, the firmware should have first set the
-+	 *    Mailbox Interface Ready bit. Therefore, waiting for the doorbell
-+	 *    to be ready is a sufficient amount of time.
-+	 */
-+	rc = cxl_mem_wait_for_doorbell(cxlm);
-+	if (rc) {
-+		dev_warn(&cxlm->pdev->dev, "Mailbox interface not ready\n");
++/**
++ * cxl_osc_request_control - Request control of CXL root _OSC features.
++ * @adev: ACPI device for the PCI root bridge (or PCIe Root Complex).
++ * @mask: Mask of _OSC bits to request control of, place to store control mask.
++ * @req: Mask of _OSC bits the control of is essential to the caller.
++ *
++ * The PCI specific DWORDS are obtained from the pci root port device, and
++ * used as-is. The resulting CXL control set is saved in cxl_osc_control_set.
++ * Any future calls to this are forced to be strictly incremental from the
++ * existing cxl_osc_control_set.
++ */
++static acpi_status cxl_osc_request_control(struct acpi_device *adev, u32 *mask,
++					   u32 req)
++{
++	acpi_handle handle = adev->handle;
++	struct device *dev = &adev->dev;
++	struct acpi_pci_root *root;
++	acpi_status status = AE_OK;
++	u32 ctrl, capbuf[5];
++
++	if (!mask)
++		return AE_BAD_PARAMETER;
++
++	ctrl = *mask & CXL_OSC_MEM_ERROR_CONTROL;
++	if ((ctrl & req) != req)
++		return AE_TYPE;
++
++	root = acpi_pci_find_root(handle);
++	if (!root)
++		return -ENXIO;
++
++	mutex_lock(&acpi_desc_lock);
++
++	*mask = ctrl | cxl_osc_control_set;
++	/* No need to evaluate _OSC if the control was already granted. */
++	if ((cxl_osc_control_set & ctrl) == ctrl)
++		goto out;
++
++	/* Need to check the available controls bits before requesting them. */
++	while (*mask) {
++		status = cxl_query_osc(handle, cxl_osc_support_set, mask);
++		if (ACPI_FAILURE(status))
++			goto out;
++		if (ctrl == *mask)
++			break;
++		decode_cxl_osc_control(dev, "platform does not support",
++				       ctrl & ~(*mask));
++		ctrl = *mask;
++	}
++
++	if ((ctrl & req) != req) {
++		decode_cxl_osc_control(dev,
++				       "not requesting control; platform does not support",
++				       req & ~(ctrl));
++		status = AE_SUPPORT;
 +		goto out;
 +	}
 +
-+	md_status = cxl_read_mem_reg64(cxlm, CXLMDEV_STATUS_OFFSET);
-+	if (md_status & CXLMDEV_MBOX_IF_READY && CXLMDEV_READY(md_status)) {
-+		/*
-+		 * Hardware shouldn't allow a ready status but also have failure
-+		 * bits set. Spit out an error, this should be a bug report
-+		 */
-+		if (md_status & CXLMDEV_DEV_FATAL) {
-+			dev_err(&cxlm->pdev->dev,
-+				"CXL device reporting ready and fatal\n");
-+			rc = -EFAULT;
-+			goto out;
-+		}
-+		if (md_status & CXLMDEV_FW_HALT) {
-+			dev_err(&cxlm->pdev->dev,
-+				"CXL device reporting ready and halted\n");
-+			rc = -EFAULT;
-+			goto out;
-+		}
-+		if (CXLMDEV_RESET_NEEDED(md_status)) {
-+			dev_err(&cxlm->pdev->dev,
-+				"CXL device reporting ready and reset needed\n");
-+			rc = -EFAULT;
-+			goto out;
-+		}
++	capbuf[OSC_QUERY_DWORD] = 0;
++	capbuf[PCI_OSC_SUPPORT_DWORD] = root->osc_support_set;
++	capbuf[PCI_OSC_CONTROL_DWORD] = root->osc_control_set;
++	capbuf[CXL_OSC_SUPPORT_DWORD] = cxl_osc_support_set;
++	capbuf[CXL_OSC_CONTROL_DWORD] = ctrl;
++	status = acpi_cap_run_osc(handle, capbuf, cxl_osc_uuid_str, mask);
++	if (ACPI_SUCCESS(status))
++		cxl_osc_control_set = *mask;
++out:
++	mutex_unlock(&acpi_desc_lock);
++	return status;
++}
 +
-+		return 0;
++static int cxl_negotiate_osc(struct acpi_device *adev)
++{
++	u32 cxl_support, cxl_control, requested;
++	acpi_handle handle = adev->handle;
++	struct device *dev = &adev->dev;
++	acpi_status status;
++
++	/* Declare support for everything */
++	cxl_support = CXL_OSC_SUPPORT_VALID_MASK;
++	decode_cxl_osc_support(dev, "OS supports", cxl_support);
++	status = cxl_osc_declare_support(handle, cxl_support);
++	if (ACPI_FAILURE(status)) {
++		dev_info(dev, "CXL_OSC failed (%s)\n",
++			 acpi_format_exception(status));
++		return -ENXIO;
 +	}
 +
-+out:
-+	mutex_unlock(&cxlm->mbox.mutex);
-+	return rc;
++	/* Request control for everything */
++	cxl_control = CXL_OSC_CONTROL_VALID_MASK;
++	requested = cxl_control;
++	status = cxl_osc_request_control(adev, &cxl_control,
++					 CXL_OSC_MEM_ERROR_CONTROL);
++	if (ACPI_SUCCESS(status)) {
++		decode_cxl_osc_control(dev, "OS now controls", cxl_control);
++	} else {
++		decode_cxl_osc_control(dev, "OS requested", requested);
++		decode_cxl_osc_control(dev, "platform willing to grant",
++				       cxl_control);
++		dev_info(dev, "_OSC failed (%s)\n",
++			 acpi_format_exception(status));
++	}
++	return 0;
 +}
 +
 +/**
-+ * cxl_mem_mbox_put() - Release exclusive access to the mailbox.
-+ * @cxlm: The CXL memory device to communicate with.
++ * cxl_bus_acquire - Perform platform-specific bus operations
++ * @pdev: pci_dev associated with the CXL device
 + *
-+ * Context: Any context. Expects mbox_lock to be held.
-+ */
-+static void cxl_mem_mbox_put(struct cxl_mem *cxlm)
-+{
-+	mutex_unlock(&cxlm->mbox.mutex);
-+}
-+
- /**
-  * cxl_mem_setup_regs() - Setup necessary MMIO.
-  * @cxlm: The CXL memory device to communicate with.
-@@ -135,6 +378,8 @@ static struct cxl_mem *cxl_mem_create(struct pci_dev *pdev, u32 reg_lo,
- 		return NULL;
- 	}
- 
-+	mutex_init(&cxlm->mbox.mutex);
-+
- 	regs = pcim_iomap_table(pdev)[bar];
- 	cxlm->pdev = pdev;
- 	cxlm->regs = regs + offset;
-@@ -167,6 +412,69 @@ static int cxl_mem_dvsec(struct pci_dev *pdev, int dvsec)
- 	return 0;
- }
- 
-+/**
-+ * cxl_mem_identify() - Send the IDENTIFY command to the device.
-+ * @cxlm: The device to identify.
++ * This performs bus-specific operations such as ACPI _OSC to ensure that
++ * the bus is 'prepared'. Since the CXL definition of _OSC depends on the
++ * existing PCI _OSC DWORDS in 'Arg3', pull those in from the pci root port
++ * device, and merge those into the new CXL-augmented _OSC calls.
 + *
-+ * Return: 0 if identify was executed successfully.
-+ *
-+ * This will dispatch the identify command to the device and on success populate
-+ * structures to be exported to sysfs.
-+ */
-+static int cxl_mem_identify(struct cxl_mem *cxlm)
-+{
-+	struct cxl_mbox_identify {
-+		char fw_revision[0x10];
-+		__le64 total_capacity;
-+		__le64 volatile_capacity;
-+		__le64 persistent_capacity;
-+		__le64 partition_align;
-+		__le16 info_event_log_size;
-+		__le16 warning_event_log_size;
-+		__le16 failure_event_log_size;
-+		__le16 fatal_event_log_size;
-+		__le32 lsa_size;
-+		u8 poison_list_max_mer[3];
-+		__le16 inject_poison_limit;
-+		u8 poison_caps;
-+		u8 qos_telemetry_caps;
-+	} __packed id;
-+	struct mbox_cmd mbox_cmd;
+  * If/when CXL support is defined by other platform firmware the kernel
+  * will need a mechanism to select between the platform specific version
+  * of this routine, until then, hard-code ACPI assumptions
+@@ -21,6 +272,7 @@ int cxl_bus_acquire(struct pci_dev *pdev)
+ 	struct acpi_device *adev;
+ 	struct pci_dev *root_port;
+ 	struct device *root;
 +	int rc;
-+
-+	/* Retrieve initial device memory map */
-+	rc = cxl_mem_mbox_get(cxlm);
+ 
+ 	root_port = pcie_find_root_port(pdev);
+ 	if (!root_port)
+@@ -34,9 +286,11 @@ int cxl_bus_acquire(struct pci_dev *pdev)
+ 	if (!adev)
+ 		return -ENXIO;
+ 
+-	/* TODO: OSC enabling */
++	rc = cxl_negotiate_osc(adev);
 +	if (rc)
-+		return rc;
-+
-+	mbox_cmd = (struct mbox_cmd){
-+		.opcode = CXL_MBOX_OP_IDENTIFY,
-+		.payload = &id,
-+		.size_in = 0,
-+	};
-+	rc = cxl_mem_mbox_send_cmd(cxlm, &mbox_cmd);
-+	cxl_mem_mbox_put(cxlm);
-+	if (rc)
-+		return rc;
-+
-+	if (mbox_cmd.size_out != sizeof(id))
-+		return -ENXIO;
-+
-+	/*
-+	 * TODO: enumerate DPA map, as 'ram' and 'pmem' do not alias.
-+	 * For now, only the capacity is exported in sysfs
-+	 */
-+	cxlm->ram.range.start = 0;
-+	cxlm->ram.range.end = le64_to_cpu(id.volatile_capacity) - 1;
-+
-+	cxlm->pmem.range.start = 0;
-+	cxlm->pmem.range.end = le64_to_cpu(id.persistent_capacity) - 1;
-+
-+	memcpy(cxlm->firmware_version, id.fw_revision, sizeof(id.fw_revision));
-+
++		dev_err(&pdev->dev, "Failed to negotiate OSC\n");
+ 
+-	return 0;
 +	return rc;
-+}
-+
- static int cxl_mem_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- {
- 	struct device *dev = &pdev->dev;
-@@ -222,6 +530,10 @@ static int cxl_mem_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	if (rc)
- 		goto err;
+ }
+ EXPORT_SYMBOL_GPL(cxl_bus_acquire);
  
-+	rc = cxl_mem_identify(cxlm);
-+	if (rc)
-+		goto err;
-+
- 	pci_set_drvdata(pdev, cxlm);
- 	return 0;
+diff --git a/drivers/cxl/acpi.h b/drivers/cxl/acpi.h
+index d638f8886ab7..6ef154021745 100644
+--- a/drivers/cxl/acpi.h
++++ b/drivers/cxl/acpi.h
+@@ -12,4 +12,24 @@ struct cxl_acpi_desc {
  
+ int cxl_bus_acquire(struct pci_dev *pci_dev);
+ 
++/* Indexes into _OSC Capabilities Buffer */
++#define PCI_OSC_SUPPORT_DWORD			1	/* DWORD 2 */
++#define PCI_OSC_CONTROL_DWORD			2	/* DWORD 3 */
++#define CXL_OSC_SUPPORT_DWORD			3	/* DWORD 4 */
++#define CXL_OSC_CONTROL_DWORD			4	/* DWORD 5 */
++
++/* CXL Host Bridge _OSC: Capabilities DWORD 4: Support Field */
++#define CXL_OSC_PORT_REG_ACCESS_SUPPORT		0x00000001
++#define CXL_OSC_PORT_DEV_REG_ACCESS_SUPPORT	0x00000002
++#define CXL_OSC_PER_SUPPORT			0x00000004
++#define CXL_OSC_NATIVE_HP_SUPPORT		0x00000008
++#define CXL_OSC_SUPPORT_VALID_MASK		(CXL_OSC_PORT_REG_ACCESS_SUPPORT |	\
++						 CXL_OSC_PORT_DEV_REG_ACCESS_SUPPORT |	\
++						 CXL_OSC_PER_SUPPORT |			\
++						 CXL_OSC_NATIVE_HP_SUPPORT)
++
++/* CXL Host Bridge _OSC: Capabilities DWORD 5: Control Field */
++#define CXL_OSC_MEM_ERROR_CONTROL		0x00000001
++#define CXL_OSC_CONTROL_VALID_MASK		(CXL_OSC_MEM_ERROR_CONTROL)
++
+ #endif	/* __CXL_ACPI_H__ */
 -- 
 2.30.0
 
