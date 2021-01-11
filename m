@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 574E7C433E6
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Jan 2021 14:15:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C8DEC433E6
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Jan 2021 14:16:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25E5422473
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Jan 2021 14:15:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0D3C22473
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Jan 2021 14:16:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730875AbhAKOOz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Jan 2021 09:14:55 -0500
-Received: from mga17.intel.com ([192.55.52.151]:16979 "EHLO mga17.intel.com"
+        id S1729686AbhAKOPv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Jan 2021 09:15:51 -0500
+Received: from mga17.intel.com ([192.55.52.151]:16819 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728752AbhAKOOz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 11 Jan 2021 09:14:55 -0500
-IronPort-SDR: XUqVRtq8E4OidGC9iBV5IccVChw3E66g+m7uLeo+LXkg0FwcfweqzHyLvmGxkJmjKXJDemMm2n
- zpue7ve4ZOpw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9860"; a="157645644"
+        id S1727901AbhAKOPu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Jan 2021 09:15:50 -0500
+IronPort-SDR: 33Lji3lI5WhBwd9SZKlASCbz2XQJAUBkjlHFasLyhgnSj7cbzc37lVFECPC5o5Y7wP7Yvdlfqy
+ SYdZXZdSFEDQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9860"; a="157645656"
 X-IronPort-AV: E=Sophos;i="5.79,338,1602572400"; 
-   d="scan'208";a="157645644"
+   d="scan'208";a="157645656"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 06:10:52 -0800
-IronPort-SDR: /R0Opl2sjnfUIkbiEdpOwEfz36xjSdG4dZmFxncfwC03snkbvWjWKAhOiOIIB0EnoWWf9HGxi8
- 5+v4LHMRnuvQ==
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 06:10:56 -0800
+IronPort-SDR: 80nKZa5+vzdWdub2518utsZrmhx4RamZ6dnQTww03pLys3O8rRQnG8fFqiXFEZ0EuWSa0S4QD8
+ Qmk152lNN33w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,338,1602572400"; 
-   d="scan'208";a="464171597"
+   d="scan'208";a="464171628"
 Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 11 Jan 2021 06:10:49 -0800
+  by fmsmga001.fm.intel.com with ESMTP; 11 Jan 2021 06:10:54 -0800
 From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
 To:     Felipe Balbi <balbi@kernel.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v2 1/3] software node: Introduce device_add_software_node()
-Date:   Mon, 11 Jan 2021 17:10:43 +0300
-Message-Id: <20210111141045.14027-2-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 3/3] usb: dwc3: pci: ID for Tiger Lake CPU
+Date:   Mon, 11 Jan 2021 17:10:45 +0300
+Message-Id: <20210111141045.14027-4-heikki.krogerus@linux.intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210111141045.14027-1-heikki.krogerus@linux.intel.com>
 References: <20210111141045.14027-1-heikki.krogerus@linux.intel.com>
@@ -51,123 +51,46 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This helper will register a software node and then assign
-it to device at the same time. The function will also make
-sure that the device can't have more than one software node.
+Tiger Lake SOC (the versions of it that have integrated USB4
+controller) may have two DWC3 controllers. One is part of
+the PCH (Platform Controller Hub, i.e. the chipset) as
+usual, and the other is inside the actual CPU block.
 
-Tested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On all Intel platforms that have the two separate DWC3
+controllers, the one inside the CPU handles USB3 and only
+USB3 traffic, while the PCH version handles USB2 and USB2
+alone. The reason for splitting the two busses like this is
+to allow easy USB3 tunneling over USB4 connections. As USB2
+is not tunneled over USB4, it has dedicated USB controllers
+(both xHCI and DWC3).
+
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/base/swnode.c    | 69 ++++++++++++++++++++++++++++++++++------
- include/linux/property.h |  3 ++
- 2 files changed, 63 insertions(+), 9 deletions(-)
+ drivers/usb/dwc3/dwc3-pci.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 4a4b2008fbc26..60a8501a4976c 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -48,6 +48,19 @@ EXPORT_SYMBOL_GPL(is_software_node);
- 				     struct swnode, fwnode) : NULL;	\
- 	})
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 037bc21bffa66..51029cec119ed 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -41,6 +41,7 @@
+ #define PCI_DEVICE_ID_INTEL_TGPH		0x43ee
+ #define PCI_DEVICE_ID_INTEL_JSP			0x4dee
+ #define PCI_DEVICE_ID_INTEL_ADLS		0x7ae1
++#define PCI_DEVICE_ID_INTEL_TGL			0x9a15
  
-+static inline struct swnode *dev_to_swnode(struct device *dev)
-+{
-+	struct fwnode_handle *fwnode = dev_fwnode(dev);
-+
-+	if (!fwnode)
-+		return NULL;
-+
-+	if (!is_software_node(fwnode))
-+		fwnode = fwnode->secondary;
-+
-+	return to_swnode(fwnode);
-+}
-+
- static struct swnode *
- software_node_to_swnode(const struct software_node *node)
- {
-@@ -843,22 +856,60 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
- }
- EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
+ #define PCI_INTEL_BXT_DSM_GUID		"732b85d5-b7a7-4a1b-9ba0-4bbd00ffd511"
+ #define PCI_INTEL_BXT_FUNC_PMU_PWR	4
+@@ -384,6 +385,9 @@ static const struct pci_device_id dwc3_pci_id_table[] = {
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_ADLS),
+ 	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
  
-+/**
-+ * device_add_software_node - Assign software node to a device
-+ * @dev: The device the software node is meant for.
-+ * @swnode: The software node.
-+ *
-+ * This function will register @swnode and make it the secondary firmware node
-+ * pointer of @dev. If @dev has no primary node, then @swnode will become the primary
-+ * node.
-+ */
-+int device_add_software_node(struct device *dev, const struct software_node *swnode)
-+{
-+	int ret;
++	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_TGL),
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
 +
-+	/* Only one software node per device. */
-+	if (dev_to_swnode(dev))
-+		return -EBUSY;
-+
-+	ret = software_node_register(swnode);
-+	if (ret)
-+		return ret;
-+
-+	set_secondary_fwnode(dev, software_node_fwnode(swnode));
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(device_add_software_node);
-+
-+/**
-+ * device_remove_software_node - Remove device's software node
-+ * @dev: The device with the software node.
-+ *
-+ * This function will unregister the software node of @dev.
-+ */
-+void device_remove_software_node(struct device *dev)
-+{
-+	struct swnode *swnode;
-+
-+	swnode = dev_to_swnode(dev);
-+	if (!swnode)
-+		return;
-+
-+	kobject_put(&swnode->kobj);
-+}
-+EXPORT_SYMBOL_GPL(device_remove_software_node);
-+
- int software_node_notify(struct device *dev, unsigned long action)
- {
--	struct fwnode_handle *fwnode = dev_fwnode(dev);
- 	struct swnode *swnode;
- 	int ret;
- 
--	if (!fwnode)
--		return 0;
--
--	if (!is_software_node(fwnode))
--		fwnode = fwnode->secondary;
--	if (!is_software_node(fwnode))
-+	swnode = dev_to_swnode(dev);
-+	if (!swnode)
- 		return 0;
- 
--	swnode = to_swnode(fwnode);
--
- 	switch (action) {
- 	case KOBJ_ADD:
- 		ret = sysfs_create_link(&dev->kobj, &swnode->kobj,
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 0a9001fe7aeab..b0e413dc59271 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -488,4 +488,7 @@ fwnode_create_software_node(const struct property_entry *properties,
- 			    const struct fwnode_handle *parent);
- void fwnode_remove_software_node(struct fwnode_handle *fwnode);
- 
-+int device_add_software_node(struct device *dev, const struct software_node *swnode);
-+void device_remove_software_node(struct device *dev);
-+
- #endif /* _LINUX_PROPERTY_H_ */
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_NL_USB),
+ 	  (kernel_ulong_t) &dwc3_pci_amd_swnode, },
+ 	{  }	/* Terminating Entry */
 -- 
 2.29.2
 
