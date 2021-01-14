@@ -2,158 +2,129 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EA32C433DB
-	for <linux-acpi@archiver.kernel.org>; Thu, 14 Jan 2021 18:49:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D0ADC433E6
+	for <linux-acpi@archiver.kernel.org>; Thu, 14 Jan 2021 19:05:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F115D23B28
-	for <linux-acpi@archiver.kernel.org>; Thu, 14 Jan 2021 18:49:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3656723A05
+	for <linux-acpi@archiver.kernel.org>; Thu, 14 Jan 2021 19:05:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729454AbhANSss (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 14 Jan 2021 13:48:48 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:58580 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726778AbhANSsr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jan 2021 13:48:47 -0500
-Received: from 89-64-81-33.dynamic.chello.pl (89.64.81.33) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
- id 4b0a89bcdcba0787; Thu, 14 Jan 2021 19:48:04 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Hans De Goede <hdegoede@redhat.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 1/2] ACPI: scan: Rearrange memory allocation in acpi_device_add()
-Date:   Thu, 14 Jan 2021 19:46:47 +0100
-Message-ID: <2999734.9HhbEeWEHR@kreacher>
-In-Reply-To: <3494203.VBaj39JGmp@kreacher>
-References: <3494203.VBaj39JGmp@kreacher>
+        id S1729701AbhANTFL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 14 Jan 2021 14:05:11 -0500
+Received: from mga17.intel.com ([192.55.52.151]:49586 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728813AbhANTFL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Jan 2021 14:05:11 -0500
+IronPort-SDR: kksxgN36eAdwWvLlFYCwNIUyxyr0epWQLZlM+M5PWJNkch3InjVq8qFJKBC+xMJxgMpc0zHuHp
+ DsX/YQrx588w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9864"; a="158199869"
+X-IronPort-AV: E=Sophos;i="5.79,347,1602572400"; 
+   d="scan'208";a="158199869"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2021 11:04:28 -0800
+IronPort-SDR: RVMlgzAllMO97D6rxUMR104YFghec33pshXFLgKHCzfbi7LgAPPWxpq54DcbkDu9g8DmaCYp/K
+ OMhtqo8LV1cw==
+X-IronPort-AV: E=Sophos;i="5.79,347,1602572400"; 
+   d="scan'208";a="382373646"
+Received: from jdquesad-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.128.180])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2021 11:04:27 -0800
+Date:   Thu, 14 Jan 2021 11:04:25 -0800
+From:   Ben Widawsky <ben.widawsky@intel.com>
+To:     Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc:     linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Ira Weiny <ira.weiny@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Kelley, Sean V" <sean.v.kelley@intel.com>,
+        Rafael Wysocki <rafael.j.wysocki@intel.com>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Jon Masters <jcm@jonmasters.org>,
+        Chris Browy <cbrowy@avery-design.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        daniel.lll@alibaba-inc.com
+Subject: Re: [RFC PATCH v3 14/16] cxl/mem: Use CEL for enabling commands
+Message-ID: <20210114190425.rxupmrjm3jfjorj4@intel.com>
+References: <20210111225121.820014-1-ben.widawsky@intel.com>
+ <20210111225121.820014-16-ben.widawsky@intel.com>
+ <20210114180211.00007852@Huawei.com>
+ <20210114181340.fgybdchzfxiiqwhr@intel.com>
+ <20210114183217.0000154c@Huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210114183217.0000154c@Huawei.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 21-01-14 18:32:17, Jonathan Cameron wrote:
+> On Thu, 14 Jan 2021 10:13:40 -0800
+> Ben Widawsky <ben.widawsky@intel.com> wrote:
+> 
+> > On 21-01-14 18:02:11, Jonathan Cameron wrote:
+> > > On Mon, 11 Jan 2021 14:51:19 -0800
+> > > Ben Widawsky <ben.widawsky@intel.com> wrote:
+> > >   
+> > > > The Command Effects Log (CEL) is specified in the CXL 2.0 specification.
+> > > > The CEL is one of two types of logs, the other being vendor specific.
+> > > > They are distinguished in hardware/spec via UUID. The CEL is immediately
+> > > > useful for 2 things:
+> > > > 1. Determine which optional commands are supported by the CXL device.
+> > > > 2. Enumerate any vendor specific commands
+> > > > 
+> > > > The CEL can be used by the driver to determine which commands are
+> > > > available in the hardware (though it isn't, yet). That set of commands
+> > > > might itself be a subset of commands which are available to be used via
+> > > > CXL_MEM_SEND_COMMAND IOCTL.
+> > > > 
+> > > > Prior to this, all commands that the driver exposed were explicitly
+> > > > enabled. After this, only those commands that are found in the CEL are
+> > > > enabled.
+> > > > 
+> > > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>  
+> > > 
+> > > This patch made me wonder if the model for the command in quite right.
+> > > I think it would end up simpler with a pair of payload pointers for send
+> > > and receive (that can be equal when it makes sense).
+> > > 
+> > > A few other things inline.
+> > > 
+> > > Jonathan  
+> > 
+> > I'll address the others separately, but could you elaborate on this? I'm not
+> > sure I follow your meaning.
+> 
+> Further down in the review..
+> "
+> The fact that you end up bypassing the payload transfer stuff in mbox_cmd
+> rather suggests it's not a particularly good model.  + it keeps confusing
+> me.
+> 
+> While the hardware uses a single region for the payload, there is nothing
+> saying the code has to work that way.   Why not have separate payload_in and
+> payload_out pointers?  Occasionally you might set them to the same buffer, but
+> elsewhere you could avoid the direct memcpy()s you are doing around the
+> send_cmd(). 
+> 
+> "
+> 
+> Jonathan
+> 
+> 
 
-The upfront allocation of new_bus_id is done to avoid allocating
-memory under acpi_device_lock, but it doesn't really help,
-because (1) it leads to many unnecessary memory allocations for
-_ADR devices, (2) kstrdup_const() is run under that lock anyway and
-(3) it complicates the code.
+Ah I was confused if that was a separate statement.
 
-Rearrange acpi_device_add() to allocate memory for a new struct
-acpi_device_bus_id instance only when necessary, eliminate a redundant
-local variable from it and reduce the number of labels in there.
+Can you specify the function prototype you're hoping for (or modification to the
+structure)?
 
-No intentional functional impact.
+I really like the lowest level function to simply model the hardware. I get to
+write the 8 steps out and clearly implement them.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |   57 +++++++++++++++++++++++-----------------------------
- 1 file changed, 26 insertions(+), 31 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -621,12 +621,23 @@ void acpi_bus_put_acpi_device(struct acp
- 	put_device(&adev->dev);
- }
- 
-+static struct acpi_device_bus_id *acpi_device_bus_id_match(const char *dev_id)
-+{
-+	struct acpi_device_bus_id *acpi_device_bus_id;
-+
-+	/* Find suitable bus_id and instance number in acpi_bus_id_list. */
-+	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
-+		if (!strcmp(acpi_device_bus_id->bus_id, dev_id))
-+			return acpi_device_bus_id;
-+	}
-+	return NULL;
-+}
-+
- int acpi_device_add(struct acpi_device *device,
- 		    void (*release)(struct device *))
- {
-+	struct acpi_device_bus_id *acpi_device_bus_id;
- 	int result;
--	struct acpi_device_bus_id *acpi_device_bus_id, *new_bus_id;
--	int found = 0;
- 
- 	if (device->handle) {
- 		acpi_status status;
-@@ -652,38 +663,26 @@ int acpi_device_add(struct acpi_device *
- 	INIT_LIST_HEAD(&device->del_list);
- 	mutex_init(&device->physical_node_lock);
- 
--	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
--	if (!new_bus_id) {
--		pr_err(PREFIX "Memory allocation error\n");
--		result = -ENOMEM;
--		goto err_detach;
--	}
--
- 	mutex_lock(&acpi_device_lock);
--	/*
--	 * Find suitable bus_id and instance number in acpi_bus_id_list
--	 * If failed, create one and link it into acpi_bus_id_list
--	 */
--	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
--		if (!strcmp(acpi_device_bus_id->bus_id,
--			    acpi_device_hid(device))) {
--			acpi_device_bus_id->instance_no++;
--			found = 1;
--			kfree(new_bus_id);
--			break;
-+
-+	acpi_device_bus_id = acpi_device_bus_id_match(acpi_device_hid(device));
-+	if (acpi_device_bus_id) {
-+		acpi_device_bus_id->instance_no++;
-+	} else {
-+		acpi_device_bus_id = kzalloc(sizeof(*acpi_device_bus_id),
-+					     GFP_KERNEL);
-+		if (!acpi_device_bus_id) {
-+			result = -ENOMEM;
-+			goto err_unlock;
- 		}
--	}
--	if (!found) {
--		acpi_device_bus_id = new_bus_id;
- 		acpi_device_bus_id->bus_id =
- 			kstrdup_const(acpi_device_hid(device), GFP_KERNEL);
- 		if (!acpi_device_bus_id->bus_id) {
--			pr_err(PREFIX "Memory allocation error for bus id\n");
-+			kfree(acpi_device_bus_id);
- 			result = -ENOMEM;
--			goto err_free_new_bus_id;
-+			goto err_unlock;
- 		}
- 
--		acpi_device_bus_id->instance_no = 0;
- 		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
- 	}
- 	dev_set_name(&device->dev, "%s:%02x", acpi_device_bus_id->bus_id, acpi_device_bus_id->instance_no);
-@@ -718,13 +717,9 @@ int acpi_device_add(struct acpi_device *
- 		list_del(&device->node);
- 	list_del(&device->wakeup_list);
- 
-- err_free_new_bus_id:
--	if (!found)
--		kfree(new_bus_id);
--
-+ err_unlock:
- 	mutex_unlock(&acpi_device_lock);
- 
-- err_detach:
- 	acpi_detach_data(device->handle, acpi_scan_drop_device);
- 	return result;
- }
-
-
-
+I personally don't think it's so awkward, but again, give me something more
+specific and I'll consider it.
