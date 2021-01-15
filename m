@@ -2,208 +2,106 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B2CC433E6
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:07:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07F77C433DB
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:21:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F46B221E2
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:07:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B080123A5E
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725946AbhAOTGz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Jan 2021 14:06:55 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:41744 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726434AbhAOTGy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jan 2021 14:06:54 -0500
-Received: from 89-64-81-100.dynamic.chello.pl (89.64.81.100) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
- id 870af6bb503e1fa2; Fri, 15 Jan 2021 20:06:12 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        ACPI Devel Mailing List <linux-acpi@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "Bossart, Pierre-louis" <pierre-louis.bossart@intel.com>
-Subject: Re: ACPI scan regression -> Boot fail on Cherrytrail w/ 5.11-rc3
-Date:   Fri, 15 Jan 2021 20:06:11 +0100
-Message-ID: <36614779.07VY3v5rFR@kreacher>
-In-Reply-To: <2803525.PQFCXvBIof@kreacher>
-References: <792c89fd-88f2-b243-50df-21f3be1cc20c@linux.intel.com> <8b316bf8-6a5c-c6d4-c0db-304ec529c805@linux.intel.com> <2803525.PQFCXvBIof@kreacher>
+        id S1727639AbhAOTVg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Jan 2021 14:21:36 -0500
+Received: from mga06.intel.com ([134.134.136.31]:59259 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726541AbhAOTVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Jan 2021 14:21:36 -0500
+IronPort-SDR: 7wEJ4DP/TWFUDYlHNqD/oUpfkeKTEZV+nPQMkewPZeXqzIK+9NjvyHpPOtO8qK3Dwp5ffrbTd0
+ OevXQvHgUpCw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9865"; a="240139532"
+X-IronPort-AV: E=Sophos;i="5.79,350,1602572400"; 
+   d="scan'208";a="240139532"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2021 11:20:55 -0800
+IronPort-SDR: pKREMrDYdpooBhvWG2Po70A+1MmWROkIH5ynaNXunAMJgyDiaUTPAidbMw/sIMGiudGkMbWbL0
+ Bi1qPfTNBBoA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.79,350,1602572400"; 
+   d="scan'208";a="425417881"
+Received: from sibelius.jf.intel.com ([10.54.75.166])
+  by orsmga001.jf.intel.com with ESMTP; 15 Jan 2021 11:20:55 -0800
+From:   Erik Kaneda <erik.kaneda@intel.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc:     Maximilian Luz <luzmaximilian@gmail.com>,
+        Bob Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH 1/9] ACPICA: Fix exception code class checks
+Date:   Fri, 15 Jan 2021 10:48:18 -0800
+Message-Id: <20210115184826.2250-2-erik.kaneda@intel.com>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210115184826.2250-1-erik.kaneda@intel.com>
+References: <20210115184826.2250-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Friday, January 15, 2021 8:01:19 PM CET Rafael J. Wysocki wrote:
-> On Friday, January 15, 2021 5:41:57 PM CET Pierre-Louis Bossart wrote:
-> > 
-> > >>> [    0.516336] ACPI: \_SB_.PCI0.BRCM: Dependencies found
-> > >>
-> > >> Ah, that is enlightening, that is not supposed to happen, that device
-> > >> has both an _ADR and an _HID method which is not allowed according
-> > >> to the spec.
-> > 
-> > it's not an uncommon issue for audio codecs, here's three examples:
-> > 
-> >              Device (RTK1)
-> >              {
-> >                  Name (_ADR, Zero)  // _ADR: Address
-> >                  Name (_HID, "10EC5670")  // _HID: Hardware ID
-> >                  Name (_CID, "10EC5670")  // _CID: Compatible ID
-> >                  Name (_DDN, "ALC5642")  // _DDN: DOS Device Name
-> > 
-> >          Device (MAXM)
-> >          {
-> >              Name (_ADR, Zero)  // _ADR: Address
-> >              Name (_HID, "193C9890")  // _HID: Hardware ID
-> >              Name (_CID, "193C9890")  // _CID: Compatible ID
-> >              Name (_DDN, "Maxim 98090 Codec  ")  // _DDN: DOS Device Name
-> > 
-> >          Device (TISW)
-> >          {
-> >              Name (_ADR, Zero)  // _ADR: Address
-> >              Name (_HID, "104C227E")  // _HID: Hardware ID
-> >              Name (_CID, "104C227E")  // _CID: Compatible ID
-> > 
-> > It's been that way for years...
-> > 
-> > >> Can you try a clean 5.11 kernel (so none of the previous
-> > >> debug patches) with the following change added:
-> > >>
-> > >> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > >> index 1f27f74cc83c..93954ac3bfcc 100644
-> > >> --- a/drivers/acpi/scan.c
-> > >> +++ b/drivers/acpi/scan.c
-> > >> @@ -1854,7 +1854,8 @@ static u32 acpi_scan_check_dep(acpi_handle handle)
-> > >>           * 2. ACPI nodes describing USB ports.
-> > >>           * Still, checking for _HID catches more then just these cases ...
-> > >>           */
-> > >> -       if (!acpi_has_method(handle, "_DEP") || !acpi_has_method(handle, "_HID"))
-> > >> +       if (!acpi_has_method(handle, "_DEP") || !acpi_has_method(handle, "_HID") ||
-> > >> +           acpi_has_method(handle, "_ADR"))
-> > >>                  return 0;
-> > >>
-> > >>          status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_devices);
-> > >>
-> > >>
-> > >>> [    0.517490] ACPI: \_SB_.PCI0.LNPW: Dependencies found
-> > >>
-> > >> And idem. for this one.
-> > >>
-> > >> That might very well fix this.
-> > 
-> > Nope, no luck with this patch. boot still stuck.
-> 
-> OK, thanks!
-> 
-> Now, there is a theory to test and some more debug work to do.
-> 
-> First, the kernel should not crash outright if some ACPI device objects are
-> missing which evidently happens here.  There may be some problems resulting
-> from that, but the crash indicates a code bug in the kernel.
-> 
-> Apparently, something expects the device objects to be there so badly, that it
-> crashes right away when they aren't there.  One of the issues that may cause
-> that to happen are mistakes around the acpi_bus_get_device() usage and I found
-> two of them, so below is a patch to test.
-> 
-> Please apply to plain 5.11-rc3 (or -rc4 when it is out) and see if that makes
-> any difference.
-> 
-> ---
->  drivers/acpi/scan.c         |    3 +--
->  drivers/usb/core/usb-acpi.c |    3 +--
->  2 files changed, 2 insertions(+), 4 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -2120,8 +2120,7 @@ void acpi_walk_dep_device_list(acpi_hand
->  	mutex_lock(&acpi_dep_list_lock);
->  	list_for_each_entry_safe(dep, tmp, &acpi_dep_list, node) {
->  		if (dep->supplier == handle) {
-> -			acpi_bus_get_device(dep->consumer, &adev);
-> -			if (!adev)
-> +			if (acpi_bus_get_device(dep->consumer, &adev))
->  				continue;
->  
->  			adev->dep_unmet--;
-> Index: linux-pm/drivers/usb/core/usb-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/usb/core/usb-acpi.c
-> +++ linux-pm/drivers/usb/core/usb-acpi.c
-> @@ -163,10 +163,9 @@ usb_acpi_get_companion_for_port(struct u
->  	} else {
->  		parent_handle = usb_get_hub_port_acpi_handle(udev->parent,
->  							     udev->portnum);
-> -		if (!parent_handle)
-> +		if (!parent_handle || acpi_bus_get_device(parent_handle, &adev))
->  			return NULL;
->  
-> -		acpi_bus_get_device(parent_handle, &adev);
->  		port1 = port_dev->portnum;
->  	}
->  
+From: Maximilian Luz <luzmaximilian@gmail.com>
 
-The above need to be fixed even if they don't make any difference in your case.
+ACPICA commit 1a3a549286ea9db07d7ec700e7a70dd8bcc4354e
 
-Anyway, if they don't make any difference for you, please boot plain 5.11-rc[34]
-with the debug patch below applied and grep the dmesg output for "Dependencies"
-again.
+The macros to classify different AML exception codes are broken. For
+instance,
 
-The check added to acpi_scan_check_dep() reduces the number of devices that may
-be affected quite a bit.
+  ACPI_ENV_EXCEPTION(Status)
 
+will always evaluate to zero due to
+
+  #define AE_CODE_ENVIRONMENTAL      0x0000
+  #define ACPI_ENV_EXCEPTION(Status) (Status & AE_CODE_ENVIRONMENTAL)
+
+Similarly, ACPI_AML_EXCEPTION(Status) will evaluate to a non-zero value
+for error codes of type AE_CODE_PROGRAMMER, AE_CODE_ACPI_TABLES, as well
+as AE_CODE_AML, and not just AE_CODE_AML as the name suggests.
+
+This commit fixes those checks.
+
+Fixes: d46b6537f0ce ("ACPICA: AML Parser: ignore all exceptions resulting from incorrect AML during table load")
+
+Link: https://github.com/acpica/acpica/commit/1a3a5492
+Signed-off-by: Maximilian Luz <luzmaximilian@gmail.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- drivers/acpi/scan.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ include/acpi/acexcep.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1867,7 +1867,8 @@ static u32 acpi_scan_check_dep(acpi_hand
- 	 * 2. ACPI nodes describing USB ports.
- 	 * Still, checking for _HID catches more then just these cases ...
- 	 */
--	if (!acpi_has_method(handle, "_DEP") || !acpi_has_method(handle, "_HID"))
-+	if (!acpi_has_method(handle, "_DEP") || acpi_has_method(handle, "_ADR")
-+	    || !acpi_has_method(handle, "_HID"))
- 		return 0;
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 2fc624a61769..f8a4afb0279a 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -59,11 +59,11 @@ struct acpi_exception_info {
  
- 	status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_devices);
-@@ -1950,10 +1951,8 @@ static acpi_status acpi_bus_check_add(ac
- 	if (type == ACPI_BUS_TYPE_DEVICE && check_dep) {
- 		u32 count = acpi_scan_check_dep(handle);
- 		/* Bail out if the number of recorded dependencies is not 0. */
--		if (count > 0) {
--			acpi_bus_scan_second_pass = true;
--			return AE_CTRL_DEPTH;
--		}
-+		if (count > 0)
-+			acpi_handle_info(handle, "Dependencies found\n");
- 	}
+ #define AE_OK                           (acpi_status) 0x0000
  
- 	acpi_add_single_object(&device, handle, type, sta);
-@@ -1961,8 +1960,7 @@ static acpi_status acpi_bus_check_add(ac
- 		return AE_CTRL_DEPTH;
+-#define ACPI_ENV_EXCEPTION(status)      (status & AE_CODE_ENVIRONMENTAL)
+-#define ACPI_AML_EXCEPTION(status)      (status & AE_CODE_AML)
+-#define ACPI_PROG_EXCEPTION(status)     (status & AE_CODE_PROGRAMMER)
+-#define ACPI_TABLE_EXCEPTION(status)    (status & AE_CODE_ACPI_TABLES)
+-#define ACPI_CNTL_EXCEPTION(status)     (status & AE_CODE_CONTROL)
++#define ACPI_ENV_EXCEPTION(status)      (((status) & AE_CODE_MASK) == AE_CODE_ENVIRONMENTAL)
++#define ACPI_AML_EXCEPTION(status)      (((status) & AE_CODE_MASK) == AE_CODE_AML)
++#define ACPI_PROG_EXCEPTION(status)     (((status) & AE_CODE_MASK) == AE_CODE_PROGRAMMER)
++#define ACPI_TABLE_EXCEPTION(status)    (((status) & AE_CODE_MASK) == AE_CODE_ACPI_TABLES)
++#define ACPI_CNTL_EXCEPTION(status)     (((status) & AE_CODE_MASK) == AE_CODE_CONTROL)
  
- 	acpi_scan_init_hotplug(device);
--	if (!check_dep)
--		acpi_scan_dep_init(device);
-+	acpi_scan_dep_init(device);
- 
- out:
- 	if (!*adev_p)
-
-
+ /*
+  * Environmental exceptions
+-- 
+2.29.2
 
