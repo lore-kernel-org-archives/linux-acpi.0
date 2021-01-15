@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52869C4332B
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 264B1C433DB
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 235A723AFC
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED1B323A5E
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387988AbhAOTWd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Jan 2021 14:22:33 -0500
-Received: from mga06.intel.com ([134.134.136.31]:59297 "EHLO mga06.intel.com"
+        id S1726151AbhAOTWr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Jan 2021 14:22:47 -0500
+Received: from mga06.intel.com ([134.134.136.31]:59317 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726065AbhAOTWc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Jan 2021 14:22:32 -0500
-IronPort-SDR: WyjCPt8hNtIoulRxocWJVH7MB1ULOhc0UqRQVgaGbdhSc+ZfvtMZiebKwWNKELqIEVA8ztiZ3F
- hOEwzg5BZQpQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9865"; a="240139537"
+        id S1726065AbhAOTWr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Jan 2021 14:22:47 -0500
+IronPort-SDR: 4lYGHYROuQWE8I/gitaBfA/tis+5P1Lu5rQONqe0wXYPrMVUBNKKUk8L7eTcqE0GTCbY+iJfLC
+ m+TRaquGD18A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9865"; a="240139541"
 X-IronPort-AV: E=Sophos;i="5.79,350,1602572400"; 
-   d="scan'208";a="240139537"
+   d="scan'208";a="240139541"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
   by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2021 11:20:55 -0800
-IronPort-SDR: IVMuUKZ1r2hzzugoY0wl+MTvYtlIcjwFkrauizVlZpzpjlHv0SQjSZ/LD39jL7e0TnVm1/8vRW
- yRgjA6FgUQ7A==
+IronPort-SDR: p0A+VUPToWvOkFY5/uBSieoiOOT76+La+CXUYoS7ngOW/Rut//tojFmMLfCCEtqUYerf14U0FJ
+ WBiMnf0Li8xA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,350,1602572400"; 
-   d="scan'208";a="425417899"
+   d="scan'208";a="425417909"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga001.jf.intel.com with ESMTP; 15 Jan 2021 11:20:55 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Al Stone <ahs3@ahs3.net>, Bob Moore <robert.moore@intel.com>,
+Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 6/9] ACPICA: Remove the MTMR (Mid-Timer) table
-Date:   Fri, 15 Jan 2021 10:48:23 -0800
-Message-Id: <20210115184826.2250-7-erik.kaneda@intel.com>
+Subject: [PATCH 9/9] ACPICA: Update version to 20210105
+Date:   Fri, 15 Jan 2021 10:48:26 -0800
+Message-Id: <20210115184826.2250-10-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210115184826.2250-1-erik.kaneda@intel.com>
 References: <20210115184826.2250-1-erik.kaneda@intel.com>
@@ -50,63 +50,32 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Al Stone <ahs3@ahs3.net>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 2c39dcccda4dc250a44379ae086b8b1a3fdad115
+ACPICA commit 28cb42013541950cf378582a5a5a5587061498ca
 
-This table is no longer in use, and is not officially defined
-in the ACPI specification.
+Version 20210105.
 
-Link: https://github.com/acpica/acpica/commit/2c39dccc
-Signed-off-by: Al Stone <ahs3@ahs3.net>
+Link: https://github.com/acpica/acpica/commit/28cb4201
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl2.h | 24 ------------------------
- 1 file changed, 24 deletions(-)
+ include/acpi/acpixf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index ec66779cb193..94bfc0c2a893 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -33,7 +33,6 @@
- #define ACPI_SIG_MPST           "MPST"	/* Memory Power State Table */
- #define ACPI_SIG_MSCT           "MSCT"	/* Maximum System Characteristics Table */
- #define ACPI_SIG_MSDM           "MSDM"	/* Microsoft Data Management Table */
--#define ACPI_SIG_MTMR           "MTMR"	/* MID Timer table */
- #define ACPI_SIG_NFIT           "NFIT"	/* NVDIMM Firmware Interface Table */
- #define ACPI_SIG_PCCT           "PCCT"	/* Platform Communications Channel Table */
- #define ACPI_SIG_PDTT           "PDTT"	/* Platform Debug Trigger Table */
-@@ -935,29 +934,6 @@ struct acpi_table_msdm {
- 	struct acpi_table_header header;	/* Common ACPI table header */
- };
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index be76ba3166cf..370293ee8399 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -12,7 +12,7 @@
  
--/*******************************************************************************
-- *
-- * MTMR - MID Timer Table
-- *        Version 1
-- *
-- * Conforms to "Simple Firmware Interface Specification",
-- * Draft 0.8.2, Oct 19, 2010
-- * NOTE: The ACPI MTMR is equivalent to the SFI MTMR table.
-- *
-- ******************************************************************************/
--
--struct acpi_table_mtmr {
--	struct acpi_table_header header;	/* Common ACPI table header */
--};
--
--/* MTMR entry */
--
--struct acpi_mtmr_entry {
--	struct acpi_generic_address physical_address;
--	u32 frequency;
--	u32 irq;
--};
--
- /*******************************************************************************
-  *
-  * NFIT - NVDIMM Interface Table (ACPI 6.0+)
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20201217
++#define ACPI_CA_VERSION                 0x20210105
+ 
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 2.29.2
 
