@@ -2,256 +2,265 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10163C433DB
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCA3EC433E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD7FB23A5E
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98E4623AA9
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 19:22:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725946AbhAOTWR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Jan 2021 14:22:17 -0500
-Received: from mga06.intel.com ([134.134.136.31]:59297 "EHLO mga06.intel.com"
+        id S2387536AbhAOTWW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Jan 2021 14:22:22 -0500
+Received: from mga06.intel.com ([134.134.136.31]:59259 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726065AbhAOTWR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Jan 2021 14:22:17 -0500
-IronPort-SDR: 4RejmKTYXI8Q37se0ZE6DdOTshhgHrW6fEedpFzYD5CshABlpjOET7z4KjQX5yXBt4Uogq4d3d
- qrc+9v1F+frg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9865"; a="240139531"
+        id S1726065AbhAOTWW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Jan 2021 14:22:22 -0500
+IronPort-SDR: p1U+A+IR6wbTfpbLzWiyMJ/b339eOYn7WFyL2nto99b8LMZMxwr6ilPOmsylRk33QZwLTqfX0U
+ G8qXrNDIyjng==
+X-IronPort-AV: E=McAfee;i="6000,8403,9865"; a="240139534"
 X-IronPort-AV: E=Sophos;i="5.79,350,1602572400"; 
-   d="scan'208";a="240139531"
+   d="scan'208";a="240139534"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
   by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2021 11:20:55 -0800
-IronPort-SDR: lB9+xodU6bMWVkZPkXW4Gq+vTsbpktYbXL3PXHx4j/Buf4ECJgqAQmlEIBQuqCSCCFEM2GM08g
- 2ZxciYn5MxwQ==
+IronPort-SDR: 2OszXPhV0LdE0cLNUErkT8/XWyyqCSj/JSLhsuJGyrHOWcLULue2/UyOwlnSmyV79cujhrrs8H
+ OXPlZj8iIu8g==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,350,1602572400"; 
-   d="scan'208";a="425417877"
+   d="scan'208";a="425417888"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
-  by orsmga001.jf.intel.com with ESMTP; 15 Jan 2021 11:20:54 -0800
+  by orsmga001.jf.intel.com with ESMTP; 15 Jan 2021 11:20:55 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 0/9] ACPICA release 20201217 and 20210105
-Date:   Fri, 15 Jan 2021 10:48:17 -0800
-Message-Id: <20210115184826.2250-1-erik.kaneda@intel.com>
+Cc:     Nick Desaulniers <ndesaulniers@google.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH 3/9] ACPICA: ACPICA: fix -Wfallthrough
+Date:   Fri, 15 Jan 2021 10:48:20 -0800
+Message-Id: <20210115184826.2250-4-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210115184826.2250-1-erik.kaneda@intel.com>
+References: <20210115184826.2250-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This series contains ACPICA versions 20201217 and 20210105. These
-releases are quite small and contain trivial or stylistic fixes as well
-as deprecating MTMR and VRTC tables. The copyright update patch is large
-in size so it might not come through the mailing list. As an
-alternative, this patch set is hosted at the following link on github:
+From: Nick Desaulniers <ndesaulniers@google.com>
 
-https://github.com/SchmErik/linux/tree/20210105
+ACPICA commit 4b9135f5774caa796ddf826448811e8e7f08ef2f
 
-Al Stone (2):
-  ACPICA: Remove the MTMR (Mid-Timer) table
-  ACPICA: Remove the VRTC table
+GCC 7.1 gained -Wimplicit-fallthrough to warn on implicit fallthrough,
+as well as __attribute__((__fallthrough__)) and comments to explicitly
+denote that cases of fallthrough were intentional. Clang also supports
+this warning and statement attribute, but not the comment form.
 
-Bob Moore (4):
-  ACPICA: add type casts for string functions
-  ACPICA: Update version to 20201217 Version 20201217.
-  ACPICA: Updated all copyrights to 2021
-  ACPICA: Update version to 20210105
+Robert Moore provides additional context about the lint comments being
+removed. They were for "an old version of PC-Lint, which we don't use
+anymore." Drop those.
 
-Maximilian Luz (2):
-  ACPICA: Fix exception code class checks
-  ACPICA: Clean up exception code class checks
+This will help us enable -Wimplicit-fallthrough throughout the Linux
+kernel.
 
-Nick Desaulniers (1):
-  ACPICA: ACPICA: fix -Wfallthrough
+Suggested-by: Robert Moore <robert.moore@intel.com>
 
- drivers/acpi/acpica/acapps.h                  |  4 +--
- drivers/acpi/acpica/accommon.h                |  2 +-
- drivers/acpi/acpica/acconvert.h               |  2 +-
- drivers/acpi/acpica/acdebug.h                 |  2 +-
- drivers/acpi/acpica/acdispat.h                |  2 +-
- drivers/acpi/acpica/acevents.h                |  2 +-
- drivers/acpi/acpica/acglobal.h                |  2 +-
- drivers/acpi/acpica/achware.h                 |  2 +-
- drivers/acpi/acpica/acinterp.h                |  2 +-
- drivers/acpi/acpica/aclocal.h                 |  2 +-
- drivers/acpi/acpica/acmacros.h                |  2 +-
- drivers/acpi/acpica/acnamesp.h                |  2 +-
- drivers/acpi/acpica/acobject.h                |  2 +-
- drivers/acpi/acpica/acopcode.h                |  2 +-
- drivers/acpi/acpica/acparser.h                |  2 +-
- drivers/acpi/acpica/acpredef.h                |  2 +-
- drivers/acpi/acpica/acresrc.h                 |  2 +-
- drivers/acpi/acpica/acstruct.h                |  2 +-
- drivers/acpi/acpica/actables.h                |  2 +-
- drivers/acpi/acpica/acutils.h                 |  2 +-
- drivers/acpi/acpica/amlcode.h                 |  2 +-
- drivers/acpi/acpica/amlresrc.h                |  2 +-
- drivers/acpi/acpica/dbhistry.c                |  2 +-
- drivers/acpi/acpica/dbinput.c                 |  4 +--
- drivers/acpi/acpica/dbobject.c                |  2 +-
- drivers/acpi/acpica/dsargs.c                  |  2 +-
- drivers/acpi/acpica/dscontrol.c               |  4 +--
- drivers/acpi/acpica/dsdebug.c                 |  4 +--
- drivers/acpi/acpica/dsfield.c                 |  2 +-
- drivers/acpi/acpica/dsinit.c                  |  2 +-
- drivers/acpi/acpica/dsmethod.c                |  2 +-
- drivers/acpi/acpica/dsobject.c                |  2 +-
- drivers/acpi/acpica/dsopcode.c                |  2 +-
- drivers/acpi/acpica/dspkginit.c               |  2 +-
- drivers/acpi/acpica/dswexec.c                 |  5 ++--
- drivers/acpi/acpica/dswload.c                 |  4 +--
- drivers/acpi/acpica/dswload2.c                |  4 +--
- drivers/acpi/acpica/dswscope.c                |  2 +-
- drivers/acpi/acpica/dswstate.c                |  2 +-
- drivers/acpi/acpica/evevent.c                 |  2 +-
- drivers/acpi/acpica/evglock.c                 |  2 +-
- drivers/acpi/acpica/evgpe.c                   |  2 +-
- drivers/acpi/acpica/evgpeblk.c                |  2 +-
- drivers/acpi/acpica/evgpeinit.c               |  2 +-
- drivers/acpi/acpica/evgpeutil.c               |  2 +-
- drivers/acpi/acpica/evhandler.c               |  2 +-
- drivers/acpi/acpica/evmisc.c                  |  2 +-
- drivers/acpi/acpica/evregion.c                |  2 +-
- drivers/acpi/acpica/evrgnini.c                |  2 +-
- drivers/acpi/acpica/evxface.c                 |  2 +-
- drivers/acpi/acpica/evxfevnt.c                |  2 +-
- drivers/acpi/acpica/evxfgpe.c                 |  2 +-
- drivers/acpi/acpica/evxfregn.c                |  2 +-
- drivers/acpi/acpica/exconcat.c                |  2 +-
- drivers/acpi/acpica/exconfig.c                |  2 +-
- drivers/acpi/acpica/exconvrt.c                |  2 +-
- drivers/acpi/acpica/excreate.c                |  2 +-
- drivers/acpi/acpica/exdebug.c                 |  2 +-
- drivers/acpi/acpica/exdump.c                  |  2 +-
- drivers/acpi/acpica/exfield.c                 |  2 +-
- drivers/acpi/acpica/exfldio.c                 |  4 +--
- drivers/acpi/acpica/exmisc.c                  |  2 +-
- drivers/acpi/acpica/exmutex.c                 |  2 +-
- drivers/acpi/acpica/exnames.c                 |  2 +-
- drivers/acpi/acpica/exoparg1.c                |  2 +-
- drivers/acpi/acpica/exoparg2.c                |  2 +-
- drivers/acpi/acpica/exoparg3.c                |  2 +-
- drivers/acpi/acpica/exoparg6.c                |  2 +-
- drivers/acpi/acpica/exprep.c                  |  2 +-
- drivers/acpi/acpica/exregion.c                |  2 +-
- drivers/acpi/acpica/exresnte.c                |  2 +-
- drivers/acpi/acpica/exresolv.c                |  2 +-
- drivers/acpi/acpica/exresop.c                 |  6 ++---
- drivers/acpi/acpica/exserial.c                |  2 +-
- drivers/acpi/acpica/exstore.c                 |  6 ++---
- drivers/acpi/acpica/exstoren.c                |  2 +-
- drivers/acpi/acpica/exstorob.c                |  2 +-
- drivers/acpi/acpica/exsystem.c                |  2 +-
- drivers/acpi/acpica/extrace.c                 |  2 +-
- drivers/acpi/acpica/exutils.c                 |  2 +-
- drivers/acpi/acpica/hwacpi.c                  |  2 +-
- drivers/acpi/acpica/hwesleep.c                |  2 +-
- drivers/acpi/acpica/hwgpe.c                   |  4 +--
- drivers/acpi/acpica/hwsleep.c                 |  2 +-
- drivers/acpi/acpica/hwtimer.c                 |  2 +-
- drivers/acpi/acpica/hwvalid.c                 |  2 +-
- drivers/acpi/acpica/hwxface.c                 |  2 +-
- drivers/acpi/acpica/hwxfsleep.c               |  2 +-
- drivers/acpi/acpica/nsarguments.c             |  2 +-
- drivers/acpi/acpica/nsconvert.c               |  2 +-
- drivers/acpi/acpica/nsdump.c                  |  2 +-
- drivers/acpi/acpica/nsdumpdv.c                |  2 +-
- drivers/acpi/acpica/nsinit.c                  |  2 +-
- drivers/acpi/acpica/nsload.c                  |  2 +-
- drivers/acpi/acpica/nsparse.c                 |  2 +-
- drivers/acpi/acpica/nspredef.c                |  2 +-
- drivers/acpi/acpica/nsprepkg.c                |  2 +-
- drivers/acpi/acpica/nsrepair.c                |  2 +-
- drivers/acpi/acpica/nsrepair2.c               |  2 +-
- drivers/acpi/acpica/nsutils.c                 |  2 +-
- drivers/acpi/acpica/nswalk.c                  |  2 +-
- drivers/acpi/acpica/nsxfname.c                |  2 +-
- drivers/acpi/acpica/psargs.c                  |  2 +-
- drivers/acpi/acpica/psloop.c                  |  5 ++--
- drivers/acpi/acpica/psobject.c                |  2 +-
- drivers/acpi/acpica/psopcode.c                |  2 +-
- drivers/acpi/acpica/psopinfo.c                |  2 +-
- drivers/acpi/acpica/psparse.c                 |  4 +--
- drivers/acpi/acpica/psscope.c                 |  2 +-
- drivers/acpi/acpica/pstree.c                  |  2 +-
- drivers/acpi/acpica/psutils.c                 |  2 +-
- drivers/acpi/acpica/pswalk.c                  |  2 +-
- drivers/acpi/acpica/psxface.c                 |  2 +-
- drivers/acpi/acpica/tbdata.c                  |  2 +-
- drivers/acpi/acpica/tbfadt.c                  |  2 +-
- drivers/acpi/acpica/tbfind.c                  |  2 +-
- drivers/acpi/acpica/tbinstal.c                |  2 +-
- drivers/acpi/acpica/tbprint.c                 |  2 +-
- drivers/acpi/acpica/tbutils.c                 |  2 +-
- drivers/acpi/acpica/tbxface.c                 |  2 +-
- drivers/acpi/acpica/tbxfload.c                |  2 +-
- drivers/acpi/acpica/tbxfroot.c                |  2 +-
- drivers/acpi/acpica/utaddress.c               |  2 +-
- drivers/acpi/acpica/utalloc.c                 |  2 +-
- drivers/acpi/acpica/utascii.c                 |  2 +-
- drivers/acpi/acpica/utbuffer.c                |  2 +-
- drivers/acpi/acpica/utcache.c                 |  2 +-
- drivers/acpi/acpica/utcopy.c                  |  2 +-
- drivers/acpi/acpica/utdebug.c                 |  2 +-
- drivers/acpi/acpica/utdecode.c                |  2 +-
- drivers/acpi/acpica/utdelete.c                |  2 +-
- drivers/acpi/acpica/uteval.c                  |  2 +-
- drivers/acpi/acpica/utglobal.c                |  2 +-
- drivers/acpi/acpica/uthex.c                   |  2 +-
- drivers/acpi/acpica/utids.c                   |  2 +-
- drivers/acpi/acpica/utinit.c                  |  2 +-
- drivers/acpi/acpica/utlock.c                  |  2 +-
- drivers/acpi/acpica/utobject.c                |  2 +-
- drivers/acpi/acpica/utosi.c                   |  2 +-
- drivers/acpi/acpica/utpredef.c                |  2 +-
- drivers/acpi/acpica/utprint.c                 |  2 +-
- drivers/acpi/acpica/utstrsuppt.c              |  4 +--
- drivers/acpi/acpica/uttrack.c                 |  2 +-
- drivers/acpi/acpica/utuuid.c                  |  2 +-
- drivers/acpi/acpica/utxface.c                 |  2 +-
- drivers/acpi/acpica/utxfinit.c                |  2 +-
- include/acpi/acbuffer.h                       |  2 +-
- include/acpi/acconfig.h                       |  2 +-
- include/acpi/acexcep.h                        | 12 ++++-----
- include/acpi/acnames.h                        |  2 +-
- include/acpi/acoutput.h                       |  2 +-
- include/acpi/acpi.h                           |  2 +-
- include/acpi/acpiosxf.h                       |  2 +-
- include/acpi/acpixf.h                         |  4 +--
- include/acpi/acrestyp.h                       |  2 +-
- include/acpi/actbl.h                          |  2 +-
- include/acpi/actbl1.h                         |  2 +-
- include/acpi/actbl2.h                         | 26 +------------------
- include/acpi/actbl3.h                         | 25 +-----------------
- include/acpi/actypes.h                        |  7 ++++-
- include/acpi/acuuid.h                         |  2 +-
- include/acpi/platform/acenv.h                 |  2 +-
- include/acpi/platform/acenvex.h               |  2 +-
- include/acpi/platform/acgcc.h                 | 17 +++++++++++-
- include/acpi/platform/acgccex.h               |  2 +-
- include/acpi/platform/acintel.h               |  2 +-
- include/acpi/platform/aclinux.h               |  2 +-
- include/acpi/platform/aclinuxex.h             |  2 +-
- tools/power/acpi/common/cmfsize.c             |  2 +-
- tools/power/acpi/common/getopt.c              |  2 +-
- .../os_specific/service_layers/oslinuxtbl.c   |  2 +-
- .../os_specific/service_layers/osunixdir.c    |  2 +-
- .../os_specific/service_layers/osunixmap.c    |  2 +-
- .../os_specific/service_layers/osunixxf.c     |  2 +-
- tools/power/acpi/tools/acpidump/acpidump.h    |  2 +-
- tools/power/acpi/tools/acpidump/apdump.c      |  2 +-
- tools/power/acpi/tools/acpidump/apfiles.c     |  2 +-
- tools/power/acpi/tools/acpidump/apmain.c      |  2 +-
- 178 files changed, 220 insertions(+), 249 deletions(-)
+Link: https://github.com/acpica/acpica/commit/4b9135f5
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+---
+ drivers/acpi/acpica/dscontrol.c |  2 +-
+ drivers/acpi/acpica/dswexec.c   |  3 +--
+ drivers/acpi/acpica/dswload.c   |  2 +-
+ drivers/acpi/acpica/dswload2.c  |  2 +-
+ drivers/acpi/acpica/exfldio.c   |  2 +-
+ drivers/acpi/acpica/exresop.c   |  4 ++--
+ drivers/acpi/acpica/exstore.c   |  4 ++--
+ drivers/acpi/acpica/hwgpe.c     |  2 +-
+ drivers/acpi/acpica/utdelete.c  |  2 +-
+ include/acpi/actypes.h          |  5 +++++
+ include/acpi/platform/acgcc.h   | 15 +++++++++++++++
+ 11 files changed, 31 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/acpi/acpica/dscontrol.c b/drivers/acpi/acpica/dscontrol.c
+index 4b5b6e859f62..b58ffc7acdb9 100644
+--- a/drivers/acpi/acpica/dscontrol.c
++++ b/drivers/acpi/acpica/dscontrol.c
+@@ -62,7 +62,7 @@ acpi_ds_exec_begin_control_op(struct acpi_walk_state *walk_state,
+ 			}
+ 		}
+ 
+-		/*lint -fallthrough */
++		ACPI_FALLTHROUGH;
+ 
+ 	case AML_IF_OP:
+ 		/*
+diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
+index 1d4f8c81028c..4a9799246fae 100644
+--- a/drivers/acpi/acpica/dswexec.c
++++ b/drivers/acpi/acpica/dswexec.c
+@@ -598,8 +598,7 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
+ 					break;
+ 				}
+ 
+-				/* Fall through */
+-				/*lint -fallthrough */
++				ACPI_FALLTHROUGH;
+ 
+ 			case AML_INT_EVAL_SUBTREE_OP:
+ 
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index 27069325b6de..dd97c86f8e41 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -224,7 +224,7 @@ acpi_ds_load1_begin_op(struct acpi_walk_state *walk_state,
+ 				break;
+ 			}
+ 
+-			/*lint -fallthrough */
++			ACPI_FALLTHROUGH;
+ 
+ 		default:
+ 
+diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
+index edadbe146506..d9a3dfca7555 100644
+--- a/drivers/acpi/acpica/dswload2.c
++++ b/drivers/acpi/acpica/dswload2.c
+@@ -214,7 +214,7 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
+ 				break;
+ 			}
+ 
+-			/*lint -fallthrough */
++			ACPI_FALLTHROUGH;
+ 
+ 		default:
+ 
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index ade35ff1c7ba..cde24e0fa6a8 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -434,7 +434,7 @@ acpi_ex_field_datum_io(union acpi_operand_object *obj_desc,
+ 		 * region_field case and write the datum to the Operation Region
+ 		 */
+ 
+-		/*lint -fallthrough */
++		ACPI_FALLTHROUGH;
+ 
+ 	case ACPI_TYPE_LOCAL_REGION_FIELD:
+ 		/*
+diff --git a/drivers/acpi/acpica/exresop.c b/drivers/acpi/acpica/exresop.c
+index 4d1b22971d58..4a0f8b8bfe62 100644
+--- a/drivers/acpi/acpica/exresop.c
++++ b/drivers/acpi/acpica/exresop.c
+@@ -198,7 +198,7 @@ acpi_ex_resolve_operands(u16 opcode,
+ 
+ 					target_op = AML_DEBUG_OP;
+ 
+-					/*lint -fallthrough */
++					ACPI_FALLTHROUGH;
+ 
+ 				case ACPI_REFCLASS_ARG:
+ 				case ACPI_REFCLASS_LOCAL:
+@@ -264,7 +264,7 @@ acpi_ex_resolve_operands(u16 opcode,
+ 			 * Else not a string - fall through to the normal Reference
+ 			 * case below
+ 			 */
+-			/*lint -fallthrough */
++			ACPI_FALLTHROUGH;
+ 
+ 		case ARGI_REFERENCE:	/* References: */
+ 		case ARGI_INTEGER_REF:
+diff --git a/drivers/acpi/acpica/exstore.c b/drivers/acpi/acpica/exstore.c
+index 3adc0a29d890..8fe33051275d 100644
+--- a/drivers/acpi/acpica/exstore.c
++++ b/drivers/acpi/acpica/exstore.c
+@@ -96,7 +96,7 @@ acpi_ex_store(union acpi_operand_object *source_desc,
+ 			return_ACPI_STATUS(AE_OK);
+ 		}
+ 
+-		/*lint -fallthrough */
++		ACPI_FALLTHROUGH;
+ 
+ 	default:
+ 
+@@ -422,7 +422,7 @@ acpi_ex_store_object_to_node(union acpi_operand_object *source_desc,
+ 				break;
+ 			}
+ 
+-			/* Fallthrough */
++			ACPI_FALLTHROUGH;
+ 
+ 		case ACPI_TYPE_DEVICE:
+ 		case ACPI_TYPE_EVENT:
+diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
+index b13a4ed5bc63..0c84300e915c 100644
+--- a/drivers/acpi/acpica/hwgpe.c
++++ b/drivers/acpi/acpica/hwgpe.c
+@@ -167,7 +167,7 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
+ 			return (AE_BAD_PARAMETER);
+ 		}
+ 
+-		/*lint -fallthrough */
++		ACPI_FALLTHROUGH;
+ 
+ 	case ACPI_GPE_ENABLE:
+ 
+diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+index 4c0d4e434196..624a26794d55 100644
+--- a/drivers/acpi/acpica/utdelete.c
++++ b/drivers/acpi/acpica/utdelete.c
+@@ -112,7 +112,7 @@ static void acpi_ut_delete_internal_obj(union acpi_operand_object *object)
+ 						       gpe_block);
+ 		}
+ 
+-		/*lint -fallthrough */
++		ACPI_FALLTHROUGH;
+ 
+ 	case ACPI_TYPE_PROCESSOR:
+ 	case ACPI_TYPE_THERMAL:
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 647cb11d0a0a..9082628ee3ed 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1286,4 +1286,9 @@ typedef enum {
+ 
+ #define ACPI_OPT_END                    -1
+ 
++/* Definitions for explicit fallthrough */
++
++#ifndef ACPI_FALLTHROUGH
++#endif
++
+ #endif				/* __ACTYPES_H__ */
+diff --git a/include/acpi/platform/acgcc.h b/include/acpi/platform/acgcc.h
+index 7d63d03cf507..91f7a02c798a 100644
+--- a/include/acpi/platform/acgcc.h
++++ b/include/acpi/platform/acgcc.h
+@@ -54,4 +54,19 @@ typedef __builtin_va_list va_list;
+ 
+ #define ACPI_USE_NATIVE_MATH64
+ 
++/* GCC did not support __has_attribute until 5.1. */
++
++#ifndef __has_attribute
++#define __has_attribute(x) 0
++#endif
++
++/*
++ * Explictly mark intentional explicit fallthrough to silence
++ * -Wimplicit-fallthrough in GCC 7.1+.
++ */
++
++#if __has_attribute(__fallthrough__)
++#define ACPI_FALLTHROUGH __attribute__((__fallthrough__))
++#endif
++
+ #endif				/* __ACGCC_H__ */
 -- 
 2.29.2
 
