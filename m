@@ -2,36 +2,37 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD33C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5F2CC433E9
 	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 09:51:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE99A23403
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 09:51:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7392E235F9
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jan 2021 09:51:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729116AbhAOJuz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Jan 2021 04:50:55 -0500
-Received: from mga18.intel.com ([134.134.136.126]:51113 "EHLO mga18.intel.com"
+        id S1726849AbhAOJvB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Jan 2021 04:51:01 -0500
+Received: from mga18.intel.com ([134.134.136.126]:51123 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726829AbhAOJuz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Jan 2021 04:50:55 -0500
-IronPort-SDR: WcKDESq7H4ynFERcAiuFJDutXHrOgSR8bdXsDVoPCUJQpMhFsa8h4ZzzVe6XbSTsE9zaba2fE0
- 9DHx4/LDSPng==
-X-IronPort-AV: E=McAfee;i="6000,8403,9864"; a="166195715"
+        id S1729700AbhAOJvA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Jan 2021 04:51:00 -0500
+IronPort-SDR: XBeCFAqkdIgkZsHnKlwHLyqo9yzfIsto+vnWMF9WcHVNyIjJAhWtAoZfzLc2LCglmvbvZyJOIV
+ jj80elk6g2hQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9864"; a="166195730"
 X-IronPort-AV: E=Sophos;i="5.79,349,1602572400"; 
-   d="scan'208";a="166195715"
+   d="scan'208";a="166195730"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2021 01:49:17 -0800
-IronPort-SDR: ogNTLClcTE7XycGsagNh8CZ8d+3nIpa8dtTrJhgV+fBOcf75Yt0rJ05O8A2nv8KbMmNHmn3h0S
- J/oi4N1lmU/Q==
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2021 01:49:23 -0800
+IronPort-SDR: aj425wfM4VxnSMsWiLxAg7df9d1n+O2e8r8pzDl3tcED1bEMPdT+ltqM+s9ebAwzL2afqbmQBP
+ KIdVTVkM6f2w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,349,1602572400"; 
-   d="scan'208";a="465538723"
+   d="scan'208";a="465538736"
 Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 15 Jan 2021 01:49:15 -0800
+  by fmsmga001.fm.intel.com with ESMTP; 15 Jan 2021 01:49:20 -0800
 From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
 To:     Greg KH <greg@kroah.com>
 Cc:     Felipe Balbi <balbi@kernel.org>,
@@ -40,63 +41,175 @@ Cc:     Felipe Balbi <balbi@kernel.org>,
         Daniel Scally <djrscally@gmail.com>,
         linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v3 0/4] Remove one more platform_device_add_properties() call
-Date:   Fri, 15 Jan 2021 12:49:10 +0300
-Message-Id: <20210115094914.88401-1-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v3 2/4] usb: dwc3: pci: Register a software node for the dwc3 platform device
+Date:   Fri, 15 Jan 2021 12:49:12 +0300
+Message-Id: <20210115094914.88401-3-heikki.krogerus@linux.intel.com>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210115094914.88401-1-heikki.krogerus@linux.intel.com>
+References: <20210115094914.88401-1-heikki.krogerus@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+By registering the software node directly instead of just
+the properties in it, the driver can take advantage of also
+the other features the software nodes have.
 
-I'm now clearing the dev_fwnode(dev)->secondary pointer in
-device_remove_software_node() as requested by Daniel and Andy. Thanks
-guys, it's much better now. I also took the liberty of including one
-more PCI ID patch where I add PCI ID for the Alder Lake-P variant. I
-hope that is OK.
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Acked-by: Felipe Balbi <balbi@kernel.org>
+---
+ drivers/usb/dwc3/dwc3-pci.c | 61 ++++++++++++++++++++++---------------
+ 1 file changed, 37 insertions(+), 24 deletions(-)
 
-Andy, I dropped your Tested-by tag because of the change I made to the
-first patch. If you have time to retest these, I would much appreciate.
-
-
-v2 cover letter:
-
-Hi Felipe, Rafael,
-
-This is the second version of this series. There are no real changes,
-but I added the Tiger Lake ID patch to this series in hope that it
-will make your life a bit easier, assuming that Rafael will still pick
-these.
-
-
-The original over letter:
-
-I originally introduced these as part of my series where I was
-proposing PM ops for software nodes [1], but since that still needs
-work, I'm sending these two separately.
-
-So basically I'm only modifying dwc3-pci.c so it registers a software
-node directly at this point. That will remove one more user of
-platform_device_add_properties().
-
-[1] https://lore.kernel.org/lkml/20201029105941.63410-1-heikki.krogerus@linux.intel.com/
-
-thanks,
-
-Heikki Krogerus (4):
-  software node: Introduce device_add_software_node()
-  usb: dwc3: pci: Register a software node for the dwc3 platform device
-  usb: dwc3: pci: ID for Tiger Lake CPU
-  usb: dwc3: pci: add support for the Intel Alder Lake-P
-
- drivers/base/swnode.c       | 71 ++++++++++++++++++++++++++++++++-----
- drivers/usb/dwc3/dwc3-pci.c | 69 ++++++++++++++++++++++-------------
- include/linux/property.h    |  3 ++
- 3 files changed, 110 insertions(+), 33 deletions(-)
-
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index bae6a70664c80..037bc21bffa66 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -142,6 +142,18 @@ static const struct property_entry dwc3_pci_amd_properties[] = {
+ 	{}
+ };
+ 
++static const struct software_node dwc3_pci_intel_swnode = {
++	.properties = dwc3_pci_intel_properties,
++};
++
++static const struct software_node dwc3_pci_intel_mrfld_swnode = {
++	.properties = dwc3_pci_mrfld_properties,
++};
++
++static const struct software_node dwc3_pci_amd_swnode = {
++	.properties = dwc3_pci_amd_properties,
++};
++
+ static int dwc3_pci_quirks(struct dwc3_pci *dwc)
+ {
+ 	struct pci_dev			*pdev = dwc->pci;
+@@ -222,7 +234,6 @@ static void dwc3_pci_resume_work(struct work_struct *work)
+ 
+ static int dwc3_pci_probe(struct pci_dev *pci, const struct pci_device_id *id)
+ {
+-	struct property_entry *p = (struct property_entry *)id->driver_data;
+ 	struct dwc3_pci		*dwc;
+ 	struct resource		res[2];
+ 	int			ret;
+@@ -265,7 +276,7 @@ static int dwc3_pci_probe(struct pci_dev *pci, const struct pci_device_id *id)
+ 	dwc->dwc3->dev.parent = dev;
+ 	ACPI_COMPANION_SET(&dwc->dwc3->dev, ACPI_COMPANION(dev));
+ 
+-	ret = platform_device_add_properties(dwc->dwc3, p);
++	ret = device_add_software_node(&dwc->dwc3->dev, (void *)id->driver_data);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -288,6 +299,7 @@ static int dwc3_pci_probe(struct pci_dev *pci, const struct pci_device_id *id)
+ 
+ 	return 0;
+ err:
++	device_remove_software_node(&dwc->dwc3->dev);
+ 	platform_device_put(dwc->dwc3);
+ 	return ret;
+ }
+@@ -304,75 +316,76 @@ static void dwc3_pci_remove(struct pci_dev *pci)
+ #endif
+ 	device_init_wakeup(&pci->dev, false);
+ 	pm_runtime_get(&pci->dev);
++	device_remove_software_node(&dwc->dwc3->dev);
+ 	platform_device_unregister(dwc->dwc3);
+ }
+ 
+ static const struct pci_device_id dwc3_pci_id_table[] = {
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_BSW),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_BYT),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_MRFLD),
+-	  (kernel_ulong_t) &dwc3_pci_mrfld_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_mrfld_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_CMLLP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_CMLH),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_SPTLP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_SPTH),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_BXT),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_BXT_M),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_APL),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_KBP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_GLK),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_CNPLP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_CNPH),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_CNPV),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_ICLLP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_EHLLP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_TGPLP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_TGPH),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_JSP),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_ADLS),
+-	  (kernel_ulong_t) &dwc3_pci_intel_properties, },
++	  (kernel_ulong_t) &dwc3_pci_intel_swnode, },
+ 
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_NL_USB),
+-	  (kernel_ulong_t) &dwc3_pci_amd_properties, },
++	  (kernel_ulong_t) &dwc3_pci_amd_swnode, },
+ 	{  }	/* Terminating Entry */
+ };
+ MODULE_DEVICE_TABLE(pci, dwc3_pci_id_table);
 -- 
 2.29.2
 
