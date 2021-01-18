@@ -2,93 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 383EDC43381
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 14:52:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 387C5C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 14:54:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B56F22C7E
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 14:52:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFE9722C9C
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 14:54:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405045AbhAROw1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 09:52:27 -0500
-Received: from mail-40131.protonmail.ch ([185.70.40.131]:38174 "EHLO
-        mail-40131.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393075AbhAROwW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2021 09:52:22 -0500
-Date:   Mon, 18 Jan 2021 14:51:30 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-        s=protonmail; t=1610981499;
-        bh=qt2x5rgrpJue2xHPYqaQ4C7ABTsoce3bhOjz1FhicmU=;
-        h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:From;
-        b=pZBYgsbrcbcAlwRreIIzd7K09ne/a30fnt1I38L3S7wWkVfApM+oshWHpvErqPg1/
-         sL5OS3Y0TndIU3J3PtbU8x4FDmtwqkbU4uGotikqUVAdjhxSO82csOil4HEdw3zE4h
-         d0JRD++/HF2CL+FmFYsPSOVDR0TDwMCMXIlrJCLQ=
-To:     "andriy.shevchenko@linux.intel.com" 
-        <andriy.shevchenko@linux.intel.com>
-From:   =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
-Cc:     Daniel Scally <djrscally@gmail.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "andy@kernel.org" <andy@kernel.org>,
-        "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>,
-        "linus.walleij@linaro.org" <linus.walleij@linaro.org>,
-        "bgolaszewski@baylibre.com" <bgolaszewski@baylibre.com>,
-        "wsa@kernel.org" <wsa@kernel.org>,
-        "lee.jones@linaro.org" <lee.jones@linaro.org>,
-        "hdegoede@redhat.com" <hdegoede@redhat.com>,
-        "mgross@linux.intel.com" <mgross@linux.intel.com>,
-        "robert.moore@intel.com" <robert.moore@intel.com>,
-        "erik.kaneda@intel.com" <erik.kaneda@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "laurent.pinchart@ideasonboard.com" 
-        <laurent.pinchart@ideasonboard.com>,
-        "kieran.bingham@ideasonboard.com" <kieran.bingham@ideasonboard.com>
-Reply-To: =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
-Subject: Re: [PATCH v2 6/7] platform: x86: Add intel_skl_int3472 driver
-Message-ID: <w3qrFtorGLZ_wMnr_Mi7cltli9g8jsMtiQ7Z1Usnj2IKfJ1MJz6-wxlIAEQ-ErgU1x6IBxdAIHBHtQ3OOT_FJOuUYheILlUc20ysNL_zroo=@protonmail.com>
-In-Reply-To: <20210118135121.GM4077@smile.fi.intel.com>
-References: <20210118003428.568892-1-djrscally@gmail.com> <20210118003428.568892-7-djrscally@gmail.com> <-GKrxu8GJvGe-PlKkLpblw9N-DtVtS7i87BOCLgJR72yf4hUFpUgiOlGcFero_gqgUxJrX2gxtLOnz_31hJugfam0SXXmXxIzGIhS162mhI=@protonmail.com> <20210118135121.GM4077@smile.fi.intel.com>
+        id S2405310AbhAROy1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 09:54:27 -0500
+Received: from mga05.intel.com ([192.55.52.43]:63035 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2405329AbhAROyV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Jan 2021 09:54:21 -0500
+IronPort-SDR: VwLhlAf/wDXYBwMnD0joSGwxZfI6ilp/O9m15u1yvaNZ/Pcz3LrfQQOyZr2vVDjfJbklixtt1g
+ jVbLzqesiCFw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9867"; a="263618343"
+X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
+   d="scan'208";a="263618343"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 06:52:31 -0800
+IronPort-SDR: tQpW+ICRhUjvTwac5yfP/dlT/LDaIQFD1xCbR+J8p4bfn25VwRYObz5l73ohlmss30r3kqql3v
+ cgHlXzKQV5nw==
+X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
+   d="scan'208";a="402069336"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 06:52:28 -0800
+Received: by lahna (sSMTP sendmail emulation); Mon, 18 Jan 2021 16:52:26 +0200
+Date:   Mon, 18 Jan 2021 16:52:26 +0200
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        lennart@poettering.net,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: Multiple MODALIAS= in uevent file confuses userspace
+Message-ID: <20210118145226.GR968855@lahna.fi.intel.com>
+References: <CAAd53p6aURhfFp1RFQxEPtGfzSdUfe4=N=P2rP27ULxp-D4GCg@mail.gmail.com>
+ <CAAd53p45q+Jigje0FcWAERiBUGfJhR8nTYNh7SFxBpajAe4=oA@mail.gmail.com>
+ <CAJZ5v0iyEq6+OemJNXQv46h0pW=LHxiR2HeFe4+us59_x6Nymg@mail.gmail.com>
+ <20210118141238.GQ968855@lahna.fi.intel.com>
+ <YAWalPeMPt44lBgI@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YAWalPeMPt44lBgI@kroah.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-2021. janu=C3=A1r 18., h=C3=A9tf=C5=91 14:51 keltez=C3=A9ssel, Andy Shevche=
-nko =C3=ADrta:
+On Mon, Jan 18, 2021 at 03:26:28PM +0100, Greg Kroah-Hartman wrote:
+> On Mon, Jan 18, 2021 at 04:12:38PM +0200, Mika Westerberg wrote:
+> > Hi,
+> > 
+> > On Mon, Jan 18, 2021 at 02:50:33PM +0100, Rafael J. Wysocki wrote:
+> > > CC Mika and Andy.
+> > > 
+> > > On Mon, Jan 18, 2021 at 8:27 AM Kai-Heng Feng
+> > > <kai.heng.feng@canonical.com> wrote:
+> > > >
+> > > > On Sat, Jan 9, 2021 at 12:25 AM Kai-Heng Feng
+> > > > <kai.heng.feng@canonical.com> wrote:
+> > > > >
+> > > > > Commit 8765c5ba19490 ("ACPI / scan: Rework modalias creation when
+> > > > > "compatible" is present") creates two modaliases for certain ACPI
+> > > > > devices. However userspace (systemd-udevd in this case) assumes uevent
+> > > > > file doesn't have duplicated keys, so two "MODALIAS=" breaks the
+> > > > > assumption.
+> > > > >
+> > > > > Based on the assumption, systemd-udevd internally uses hashmap to
+> > > > > store each line of uevent file, so the second modalias always replaces
+> > > > > the first modalias.
+> > > > >
+> > > > > My attempt [1] is to add a new key, "MODALIAS1" for the second
+> > > > > modalias. This brings up the question of whether each key in uevent
+> > > > > file is unique. If it's no unique, this may break may userspace.
+> > > >
+> > > > Does anyone know if there's any user of the second modalias?
+> > > > If there's no user of the second one, can we change it to OF_MODALIAS
+> > > > or COMPAT_MODALIAS?
+> > 
+> > The only users I'm aware are udev and the busybox equivalent (udev,
+> > mdev) but I'm not sure if they use the second second modalias at all so
+> > OF_MODALIAS for the DT compatible string sounds like a good way to solve
+> > this.
+> 
+> As udev seems to "break" with this (which is where we got the original
+> report from), I don't think you need to worry about that user :)
 
-> On Mon, Jan 18, 2021 at 11:12:34AM +0000, Barnab=C3=A1s P=C5=91cze wrote:
-> > 2021. janu=C3=A1r 18., h=C3=A9tf=C5=91 1:34 keltez=C3=A9ssel, Daniel Sc=
-ally =C3=ADrta:
->
-> > Have you considered putting the source (and header) files into a dedica=
-ted
-> > folder? I think it'd help manageability in the long run, and it'd be im=
-mediately
-> > obvious that these source files form a single "unit".
->
-> What would be the folder name? Because, for example, intel_cht_int33fe* h=
-ave no
-> folder (yet?) and here it's kinda similar case when HID describes somethi=
-ng
-> else than just one IP.
+Ah right - it is the same udev used in busybox too :)
 
-I think "intel_skl_int3472" would not be a bad name for the folder. And I b=
-elieve
-"intel_cht_int33fe" could be given its own folder as well.
+> Does anyone use mdev anymore, and in any ACPI-supported systems?
 
-
-Regards,
-Barnab=C3=A1s P=C5=91cze
+My guess is that some "embedded" distros such as Yocto and Buildroot
+(Gentoo perhaps) may still use it, and at least Yocto is being used in
+ACPI enabled systems.
