@@ -2,36 +2,64 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.4 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7443C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 20:55:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2287C43381
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 21:20:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B77FE22C9E
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 20:55:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B659F22D6D
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 21:20:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388359AbhARK04 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 05:26:56 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55760 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388571AbhARJTz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2021 04:19:55 -0500
-Received: from pendragon.ideasonboard.com (62-78-145-57.bb.dnainternet.fi [62.78.145.57])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id BB0AF2BB;
-        Mon, 18 Jan 2021 10:19:11 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1610961551;
-        bh=gjnQsqFgxtpSq29xrtqXIVq4Xvc9Ow3B2rHgXQ+GU3o=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=lYwoQ3Lh7ouSl1TmFTMKG2c4wx3waTDRv8f10AxBqjGIpJ796ly2IOzm2fvAnYDmO
-         hHwEVuJD5DngMdlfvi6mFvMcWOxI85BE53JDlzDfMPsMeAxt5r/1BoGo+k1qmj3jIP
-         DPG34Im8q/Jek+X88TtBRdYDlavT/vy9MRdiHNjE=
-Date:   Mon, 18 Jan 2021 11:18:55 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Daniel Scally <djrscally@gmail.com>
+        id S2394586AbhARVUj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 16:20:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57994 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394581AbhARVUg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2021 16:20:36 -0500
+Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F228C0613C1;
+        Mon, 18 Jan 2021 13:19:56 -0800 (PST)
+Received: by mail-wm1-x32a.google.com with SMTP id i63so14775839wma.4;
+        Mon, 18 Jan 2021 13:19:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:subject:to:cc:references:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=QeTGjTOjovKjwl3obfQQbrmZun7B3WQGrzr0gIWDHE4=;
+        b=D/dXT5h0UbpIkNvnAPEIoLqZvcKvZrdFQCUpqlZ73sksgcXetxd2IkJXgikBc0QSzV
+         i1VPRYfpWyJK5qhnIfi9HlSYUnFR3K99kJ1oYBUmG8dUMPN4F01kOF1Yr1uj8XoOeDhO
+         GYbMTRFnTVremA+ZyuWuu4XZC1n0MTwL71vn7+fb3zlJ0Z2RupYQ2tu4Bwia8pLECmKG
+         o/unD9A8yZTD3FyEVD/nlt5LhSep1HeeNfyY17Netlh1Xwt7+y9Kzpmi10gwfkLGXNDC
+         fpu35+agLRAXJCHyGNt8NF0GY5ocqTXvMtKu98f72NJSVcU25dl6Z0tzA6gqzt47fBgl
+         k1+Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:subject:to:cc:references:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=QeTGjTOjovKjwl3obfQQbrmZun7B3WQGrzr0gIWDHE4=;
+        b=H7vi7rcRNugp24yLdGWF2nTfkNNzFYbF/cMJKlk2wp4yBvPRaLEF8MIC0xND8tT9DJ
+         1JB/9St3D8gF/D1DP51KWR+Hx/Kt6XqGriOpmX9OpBko3UPYfKH9VMfqD1u0xgU75xMl
+         z4mB3B3cIaXOT2zyGpC48pssohLCciQgva50hq8cMXnszbNHx/eaJarX4Dy0ZecCvfMA
+         Bt2704RCW97BR20wy6Ss0fNMK075arMtc1usjVgJib6sTyqeiEzWp0zSpyYOu9bX5Zsk
+         Q4Ma/+AyH2m4nZvEDnta5F33C3dQ+Kkyg3XMriDk9bpvYQ4b4jRsBE3PMw9qota5hnzc
+         yH3A==
+X-Gm-Message-State: AOAM531tulwtDwYcD0iDKIhV9GQVW4q3Zw7QqyIZ9x+fJa2Gsbuj4hBr
+        dBaC8Qjd9R9JDcwbYK80jo0=
+X-Google-Smtp-Source: ABdhPJxLmvZG+vXqjOu+Bjm1wWXUvDoxzDi4PKRTqpskAfgFHzzy4MXdi/LoyUa8nB7QdU1Wq2iS5A==
+X-Received: by 2002:a1c:7fcf:: with SMTP id a198mr1073794wmd.121.1611004794792;
+        Mon, 18 Jan 2021 13:19:54 -0800 (PST)
+Received: from [192.168.1.158] ([2.29.208.120])
+        by smtp.gmail.com with ESMTPSA id y6sm30894095wrp.6.2021.01.18.13.19.53
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 18 Jan 2021 13:19:54 -0800 (PST)
+From:   Daniel Scally <djrscally@gmail.com>
+Subject: Re: [PATCH v2 6/7] platform: x86: Add intel_skl_int3472 driver
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
         platform-driver-x86@vger.kernel.org, devel@acpica.org,
@@ -40,102 +68,266 @@ Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         bgolaszewski@baylibre.com, wsa@kernel.org, lee.jones@linaro.org,
         hdegoede@redhat.com, mgross@linux.intel.com,
         robert.moore@intel.com, erik.kaneda@intel.com,
-        sakari.ailus@linux.intel.com, andriy.shevchenko@linux.intel.com,
-        kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 4/7] i2c: i2c-core-acpi: Add i2c_acpi_dev_name()
-Message-ID: <YAVSf7+iTPNYf5XS@pendragon.ideasonboard.com>
+        sakari.ailus@linux.intel.com, kieran.bingham@ideasonboard.com
 References: <20210118003428.568892-1-djrscally@gmail.com>
- <20210118003428.568892-5-djrscally@gmail.com>
+ <20210118003428.568892-7-djrscally@gmail.com>
+ <YAVRqWeUsLjvU62P@pendragon.ideasonboard.com>
+ <20210118144606.GO4077@smile.fi.intel.com>
+Message-ID: <75e99a06-4579-44ee-5f20-8f2ee3309a68@gmail.com>
+Date:   Mon, 18 Jan 2021 21:19:52 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
+In-Reply-To: <20210118144606.GO4077@smile.fi.intel.com>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210118003428.568892-5-djrscally@gmail.com>
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Daniel,
+Hi Andy - thanks as always for the comments
 
-Thank you for the patch.
 
-On Mon, Jan 18, 2021 at 12:34:25AM +0000, Daniel Scally wrote:
-> We want to refer to an i2c device by name before it has been
+Some responses below, but if not mentioned I'll follow your suggestion
+of course
 
-s/i2c device/acpi i2c device/ ?
+On 18/01/2021 14:46, Andy Shevchenko wrote:
+> On Mon, Jan 18, 2021 at 11:15:21AM +0200, Laurent Pinchart wrote:
+>> On Mon, Jan 18, 2021 at 12:34:27AM +0000, Daniel Scally wrote:
+> My comments on top of Laurent's to avoid dups.
+>
+> First of all, PDx86 has its own prefix pattern: "platform/x86: ..."
 
-> created by the kernel; add a function that constructs the name
-> from the acpi device instead.
-> 
-> Signed-off-by: Daniel Scally <djrscally@gmail.com>
-> ---
-> Changes in v2:
-> 
-> 	- Stopped using devm_kasprintf()
-> 
->  drivers/i2c/i2c-core-acpi.c | 16 ++++++++++++++++
->  include/linux/i2c.h         |  5 +++++
->  2 files changed, 21 insertions(+)
-> 
-> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> index 37c510d9347a..98c3ba9a2350 100644
-> --- a/drivers/i2c/i2c-core-acpi.c
-> +++ b/drivers/i2c/i2c-core-acpi.c
-> @@ -497,6 +497,22 @@ struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
->  }
->  EXPORT_SYMBOL_GPL(i2c_acpi_new_device);
->  
-> +/**
-> + * i2c_acpi_dev_name - Construct i2c device name for devs sourced from ACPI
-> + * @adev:     ACPI device to construct the name for
-> + *
-> + * Constructs the name of an i2c device matching the format used by
-> + * i2c_dev_set_name() to allow users to refer to an i2c device by name even
-> + * before they have been instantiated.
-> + *
-> + * The caller is responsible for freeing the returned pointer.
-> + */
-> +char *i2c_acpi_dev_name(struct acpi_device *adev)
-> +{
-> +	return kasprintf(GFP_KERNEL, I2C_DEV_NAME_FORMAT, acpi_dev_name(adev));
 
-There's a real danger of a memory leak, as the function name sounds very
-similar to dev_name() or acpi_dev_name() and those don't allocate
-memory. I'm not sure what a better name would be, but given that this
-function is only used in patch 6/7 and not in the I2C subsystem itself,
-I wonder if we should inline this kasprintf() call in the caller and
-drop this patch.
+Sorry, I probably should have put more effort into figuring out the
+right pattern for those
 
-> +}
-> +EXPORT_SYMBOL_GPL(i2c_acpi_dev_name);
-> +
->  #ifdef CONFIG_ACPI_I2C_OPREGION
->  static int acpi_gsb_i2c_read_bytes(struct i2c_client *client,
->  		u8 cmd, u8 *data, u8 data_len)
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index 4d40a4b46810..b82aac05b17f 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -998,6 +998,7 @@ bool i2c_acpi_get_i2c_resource(struct acpi_resource *ares,
->  u32 i2c_acpi_find_bus_speed(struct device *dev);
->  struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
->  				       struct i2c_board_info *info);
-> +char *i2c_acpi_dev_name(struct acpi_device *adev);
->  struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle);
->  #else
->  static inline bool i2c_acpi_get_i2c_resource(struct acpi_resource *ares,
-> @@ -1014,6 +1015,10 @@ static inline struct i2c_client *i2c_acpi_new_device(struct device *dev,
->  {
->  	return ERR_PTR(-ENODEV);
->  }
-> +static inline char *i2c_acpi_dev_name(struct acpi_device *adev)
-> +{
-> +	return NULL;
-> +}
->  static inline struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
->  {
->  	return NULL;
 
--- 
-Regards,
+>>> +config INTEL_SKL_INT3472
+>>> +	tristate "Intel SkyLake ACPI INT3472 Driver"
+>>> +	depends on X86 && ACPI
+> X86 is a dup. Entire lot of PDx86 is a priory dependent on it (find "if X86"
+> line in Kconfig).
 
-Laurent Pinchart
+
+Ah, oh yeah - thanks. I'll watch for that in future
+
+
+>>> +static struct i2c_driver int3472_tps68470 = {
+>>> +	.driver = {
+>>> +		.name = "int3472-tps68470",
+>>> +		.acpi_match_table = int3472_device_id,
+>>> +	},
+>>> +	.probe_new = skl_int3472_tps68470_probe,
+>>> +};
+> I'm not sure we want to have like this. If I'm not mistaken the I²C driver can
+> be separated without ACPI IDs (just having I²C IDs) and you may instantiate it
+> via i2c_new_client_device() or i2c_acpi_new_device() whichever suits better...
+
+
+Sorry, I'm a bit confused by this. The i2c device is already
+present...we just want the driver to bind to them, so what role do those
+functions have there?
+
+
+>>> +struct int3472_gpio_clock {
+>>> +	struct clk *clk;
+>>> +	struct clk_hw clk_hw;
+>>> +	struct clk_lookup *cl;
+>>> +	struct gpio_desc *gpio;
+>>> +};
+> Wondering if this has some similarities with and actually can utilize clk-gpio
+> driver.
+>
+>
+>
+>>> +static const struct clk_ops skl_int3472_clock_ops = {
+>>> +	.prepare = skl_int3472_clk_prepare,
+>>> +	.unprepare = skl_int3472_clk_unprepare,
+>>> +	.enable = skl_int3472_clk_enable,
+>>> +	.disable = skl_int3472_clk_disable,
+>>> +};
+> Yeah, sounds like reinventing clk-gpio.c.
+>
+> static const struct clk_ops clk_gpio_gate_ops = {
+> 	.enable = clk_gpio_gate_enable,
+> 	.disable = clk_gpio_gate_disable,
+> 	.is_enabled = clk_gpio_gate_is_enabled,
+> };
+>
+> (Or is it mux? It has support there as well.
+>
+Hmm, yeah, this looks like it would work actually. So I think I'd need to:
+
+
+1. Make enabling INTEL_SKL_INT3472 also enable the clk-gpio driver
+
+2. Register a platform device to bind to the clk-gpio driver
+
+3. Register a gpio lookup table so that the clk-gpio driver can find the
+gpio in question using gpiod_get()
+
+
+And that looks like it will work; I'll try it.
+
+
+>>> +	/* Lenovo Miix 510-12ISK - OV5648, Rear */
+>>> +	{ "GEFF150023R", REGULATOR_SUPPLY("avdd", "i2c-OVTI5648:00"), NULL},
+>>> +	/* Surface Go 1&2 - OV5693, Front */
+>>> +	{ "YHCU", REGULATOR_SUPPLY("avdd", "i2c-INT33BE:00"), NULL},
+> I'm wondering if you should use same I2C format macro and create this
+> dynamically? Or rather find a corresponding ACPI device instance and
+> copy it's name? ... 
+
+
+The supply name needs hard-coding really, but the device name I suppose
+can come from int3472->sensor_name.
+
+
+>>> +static struct int3472_sensor_config *
+>>> +skl_int3472_get_sensor_module_config(struct int3472_device *int3472)
+>>> +{
+>>> +	unsigned int i = ARRAY_SIZE(int3472_sensor_configs);
+>>> +	struct int3472_sensor_config *ret;
+>>> +	union acpi_object *obj;
+>>> +
+>>> +	obj = acpi_evaluate_dsm_typed(int3472->sensor->handle,
+>>> +				      &cio2_sensor_module_guid, 0x00,
+>>> +				      0x01, NULL, ACPI_TYPE_STRING);
+>>> +
+>>> +	if (!obj) {
+>>> +		dev_err(&int3472->pdev->dev,
+>>> +			"Failed to get sensor module string from _DSM\n");
+>>> +		return ERR_PTR(-ENODEV);
+>>> +	}
+>>> +
+>>> +	if (obj->string.type != ACPI_TYPE_STRING) {
+>>> +		dev_err(&int3472->pdev->dev,
+>>> +			"Sensor _DSM returned a non-string value\n");
+>>> +		ret = ERR_PTR(-EINVAL);
+>>> +		goto out_free_obj;
+> And after below change you can turn this to
+>
+> 	ACPI_FREE(obj);
+> 	return ERR_PTR(-EINVAL);
+>
+> and remove label completely, but it's up to you.
+>
+>>> +	}
+>>> +	ret = ERR_PTR(-ENODEV);
+> This seems redundant. Or are you expecting ARRAY_SIZE() to be 0?
+> If no, you may add static_assert() near to the array definition.
+
+
+It **could** become 0, if the entries I've added are removed in future
+because the sensors are no longer supported or something. There might be
+no sensor_module_config for a given device. We only need to supply one if
+
+
+a) The platform has a 0x0b type GPIO, which means we need to define a
+supply name the driver is expecting
+
+b) The GPIO functions deviate from documented purpose, which means we
+need to supply a remapping struct
+
+
+Otherwise, there's no need for it.
+
+
+>>> +
+>>> +	int3472->regulator.rdev = regulator_register(&int3472->regulator.rdesc,
+>>> +						     &cfg);
+>>> +	if (IS_ERR(int3472->regulator.rdev)) {
+>>> +		ret = PTR_ERR(int3472->regulator.rdev);
+>>> +		goto err_free_gpio;
+>>> +	}
+> Similar here, can we utilize gpio-regulator.c?
+>
+
+Also yes probably, with the same steps as for the clocks. Again, I'll
+try that out, thanks very much.
+
+
+>>> +		dev_warn(&int3472->pdev->dev,
+>>> +			 "GPIO type 0x%llx unknown; the sensor may not work\n",
+>>> +			 (obj->integer.value & 0xff));
+>> No need for parentheses.
+> And instead of "%llx" with " & 0xff" you may use "%x" with "(u8)" cast.
+> However, I don't think we need to show only last byte, because it may give
+> wrong impression on values like "0x100".
+
+
+But in this case only the last byte holds the type information, second
+lowest byte is the pin number. So as we understand it, 0x100 would be
+invalid anyway.
+
+
+>>> +	int3472 = kzalloc(sizeof(*int3472) +
+>>> +			 ((INT3472_MAX_SENSOR_GPIOS + 1) * sizeof(struct gpiod_lookup)),
+>> One more space for the indentation, and the outer parentheses are not
+>> needed.
+> And use struct_size() from overflow.h.
+
+TIL! Thank you
+
+
+>>> +	if (int3472->gpios_mapped)
+>>> +		gpiod_remove_lookup_table(&int3472->gpios);
+>> You could avoid the need for the gpios_mapped field by checking for
+>>
+>> 	if (int3472->gpios.list.next)
+> I think this is an intrusion to GPIO realm.
+> Instead would you consider to drop the check completely and use ->gpios to be
+> NULL / not-NULL (and yes, you won't need gpios_mapped flag)?
+>
+> d321ad1286d2 ("gpiolib: Follow usual pattern for gpiod_remove_lookup_table() call")
+>
+> in I²C tree makes it possible.
+
+That's also fine by me; or I guess also check int3472->gpiods.dev_id,
+and only set the pointer the first time a GPIO is mapped.
+
+
+I'll rework it, thanks.
+
+
+>>> +		return -EINVAL;
+>>> +
+>>> +	if (ret)
+>>> +		cldb_present = false;
+>>> +
+>>> +	gpio_dev = skl_int3472_register_pdev("tps68470-gpio", &client->dev);
+>>> +	if (IS_ERR(gpio_dev))
+>>> +		return PTR_ERR(gpio_dev);
+>>> +
+>>> +	if (cldb_present) {
+>>> +		clk_dev = skl_int3472_register_pdev("tps68470-clk",
+>>> +						    &client->dev);
+>>> +		if (IS_ERR(clk_dev)) {
+>>> +			ret = PTR_ERR(clk_dev);
+>>> +			goto err_free_gpio;
+>>> +		}
+>>> +
+>>> +		regulator_dev = skl_int3472_register_pdev("tps68470-regulator",
+>>> +							  &client->dev);
+>>> +		if (IS_ERR(regulator_dev)) {
+>>> +			ret = PTR_ERR(regulator_dev);
+>>> +			goto err_free_clk;
+>>> +		}
+>>> +	} else {
+>>> +		opregion_dev = skl_int3472_register_pdev("tps68470_pmic_opregion",
+>>> +							 &client->dev);
+>>> +		if (IS_ERR(opregion_dev)) {
+>>> +			ret = PTR_ERR(opregion_dev);
+>>> +			goto err_free_gpio;
+>>> +		}
+>>> +	}
+>> I wonder if this could be simplified by using devm_mfd_add_devices. You
+>> could have two arrays of mfd_cell, one for each case.
+> Yeah, which effectively means that we should have some kind of mfd/tps68470 in
+> place.
+
+
+Can you expand on what you mean by that a little, please?
+
