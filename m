@@ -2,107 +2,81 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-17.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E1EFC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9BFBC43381
 	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:11:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41662222F9
+	by mail.kernel.org (Postfix) with ESMTP id 8A17122C9C
 	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:11:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406392AbhARQKj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 11:10:39 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:48110 "EHLO
+        id S2406434AbhARQKk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 11:10:40 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:24442 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2406350AbhARQEm (ORCPT
+        by vger.kernel.org with ESMTP id S2406344AbhARQKd (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Jan 2021 11:04:42 -0500
+        Mon, 18 Jan 2021 11:10:33 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1610985794;
+        s=mimecast20190719; t=1610986145;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=FpH2fvvNBiSH7+LZf4kqHTix8ou/f0zVOc4swnogC40=;
-        b=GIsewwpTIr8WHsnPmFp1Rrp2vdZyt5PMnGMZGXuPqbyebCwqitZDkyQPtdc4bzl8immTn+
-        EVqty+32XUh7tTDkKlb4UMR3c7zNorF0gmFC7RLJGnSkmK9w6a7z0agBwwbIzHMKlVp7nO
-        pTM0gOVXSS3pBC07ZOUNb7orrwwVWHk=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-365-K56P-bcFM7iMfM2hHlftCQ-1; Mon, 18 Jan 2021 11:03:12 -0500
-X-MC-Unique: K56P-bcFM7iMfM2hHlftCQ-1
-Received: by mail-ej1-f70.google.com with SMTP id by20so667868ejc.1
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2021 08:03:12 -0800 (PST)
+        bh=7MNZ/9b0H5mb1+bqSi5FpUvJFA2keS1nNwamitM6HMs=;
+        b=ECBGnp6GbEcMYJncCymTxE3HGCiElTqZBS08GBdtnYCwkH9PACX+N9MZqbTZXxauo+KQjx
+        hGLbcSKiyi99cTS39f+YQpv2Lo2lFcN/izbEakGV6kPmdBYl/d4GojsTglKMpRH9x1YY2y
+        ILyxaIhlr7uMwCbol+j0BFDeleVeLDI=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-269-L6HNFmo-MzCzrIwKN1Q9sQ-1; Mon, 18 Jan 2021 11:08:21 -0500
+X-MC-Unique: L6HNFmo-MzCzrIwKN1Q9sQ-1
+Received: by mail-ej1-f69.google.com with SMTP id b18so3331350ejz.6
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2021 08:08:20 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=FpH2fvvNBiSH7+LZf4kqHTix8ou/f0zVOc4swnogC40=;
-        b=AbNy3N+Qx+sGZCeYsvHOoYWTMviDhNCPHQnVZuv+tbh5D9Hv9pAtPYXVTGZ3CPYUkT
-         OHIKvHvyXCs00GCAflpNzAeIC46aLUZ9IYiop7C6vX3mwxt0sB6fBjZzxANPbrqRVEPL
-         QvFB9QrBPJgPqPEFqYN7weaqCjWKK+bxIYlftH7KJHVnr5NGHBiRvARnZZMlUvn8jS9w
-         DrffI4ctE1h24EiI066KpgbVmz2X5YvIlPCWrX+OkP5w1aHEMsxVReowaMALcfWj1mpB
-         rWk+fhsEPidM4pjTJg0sbKh1FmzZhR/U/rDSW635pyfedbKh/zzbt7R2Y7a0aq6nCOxH
-         NuMw==
-X-Gm-Message-State: AOAM5312bnckOagpNCFPjmSkyTWumoJJ5EBFb+VmK9CNXh4iFDcVV9Nb
-        5YKZqBYR7lby0Tg9E+xv29164yjJl2WQAFzHo883rIMdSxD8rLAGudoOE24Czll3GV9PxeP75oh
-        Ysm9N5/Spnud+oir735kM5A==
-X-Received: by 2002:aa7:c84c:: with SMTP id g12mr104599edt.193.1610985791064;
-        Mon, 18 Jan 2021 08:03:11 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxxoBeWNVgS6qD7oqsR8mLDfnlxDvBu2ufUD/XP0BQo1iXg2+222x2MegLm1INYXknOJLnSSg==
-X-Received: by 2002:aa7:c84c:: with SMTP id g12mr104590edt.193.1610985790944;
-        Mon, 18 Jan 2021 08:03:10 -0800 (PST)
+        bh=7MNZ/9b0H5mb1+bqSi5FpUvJFA2keS1nNwamitM6HMs=;
+        b=gQozp8ykH++ke09msdpsuRFJ+jPXA7c3NaZ9blUs6YGQdC7nVwE+Lz2qwnSDwZ4fDg
+         WzJ6N7yAPTl8S2yDSfiwnWA/MDiX8wL97h08f7CLB5z/Uzeu1gLu0SU69M+BiZ2wbKxh
+         26C6MMCpTk8Pq1DtP98A6vogvoblBFosJ3antI6zzqX6AVFlHQptr3MDXeX7XRZYfAlf
+         +LsBvYjV14L8w50lXaiw0RVEsciw+T9nFlcWIyX3IvdfDeB0WUfClIGKuFPUsM6MukNv
+         t/biEKU6B8qnbFYgsFAe+2Sa1yWjeGzvsKcfoI4hfZBoVlnY5Nowut21Ka47v9TwuZBe
+         Dnaw==
+X-Gm-Message-State: AOAM531Pldcd5A5SZygQz7/kngrp9T8HVfvXeFcOjR5xVPBRl9tKsQQx
+        7ncvNfM1zIVcn9AJZu+cYtgiJIajnBJ9yV+Y+aF3CyDhM3DARgRpNrO6ou1/xwIuQ4uRgLdsVKg
+        0ftF7+EVlweaDfqEGmPpx0e+GYYAvlQ0b+GUjdyX/GmcTRZXvidgPuYql/vV1Mfua73+5qWEZ7g
+        ==
+X-Received: by 2002:a05:6402:1452:: with SMTP id d18mr142353edx.11.1610986099697;
+        Mon, 18 Jan 2021 08:08:19 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJzAVXz+Suxjhgg7mubf2Hp3o0Kq8voO/aVOoK3HclEMlLPXP+Vt7liSkbbrqKkdYJBXeinmyw==
+X-Received: by 2002:a05:6402:1452:: with SMTP id d18mr142331edx.11.1610986099450;
+        Mon, 18 Jan 2021 08:08:19 -0800 (PST)
 Received: from x1.localdomain (2001-1c00-0c1e-bf00-37a3-353b-be90-1238.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:37a3:353b:be90:1238])
-        by smtp.gmail.com with ESMTPSA id hr31sm9312503ejc.125.2021.01.18.08.03.08
+        by smtp.gmail.com with ESMTPSA id j5sm11130992edl.42.2021.01.18.08.08.18
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 18 Jan 2021 08:03:09 -0800 (PST)
-Subject: Re: [PATCH v2 6/7] platform: x86: Add intel_skl_int3472 driver
-To:     Daniel Scally <djrscally@gmail.com>,
-        "andriy.shevchenko@linux.intel.com" 
-        <andriy.shevchenko@linux.intel.com>
-Cc:     =?UTF-8?Q?Barnab=c3=a1s_P=c5=91cze?= <pobrn@protonmail.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "andy@kernel.org" <andy@kernel.org>,
-        "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>,
-        "linus.walleij@linaro.org" <linus.walleij@linaro.org>,
-        "bgolaszewski@baylibre.com" <bgolaszewski@baylibre.com>,
-        "wsa@kernel.org" <wsa@kernel.org>,
-        "lee.jones@linaro.org" <lee.jones@linaro.org>,
-        "mgross@linux.intel.com" <mgross@linux.intel.com>,
-        "robert.moore@intel.com" <robert.moore@intel.com>,
-        "erik.kaneda@intel.com" <erik.kaneda@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "laurent.pinchart@ideasonboard.com" 
-        <laurent.pinchart@ideasonboard.com>,
-        "kieran.bingham@ideasonboard.com" <kieran.bingham@ideasonboard.com>
-References: <20210118003428.568892-1-djrscally@gmail.com>
- <20210118003428.568892-7-djrscally@gmail.com>
- <-GKrxu8GJvGe-PlKkLpblw9N-DtVtS7i87BOCLgJR72yf4hUFpUgiOlGcFero_gqgUxJrX2gxtLOnz_31hJugfam0SXXmXxIzGIhS162mhI=@protonmail.com>
- <20210118135121.GM4077@smile.fi.intel.com>
- <w3qrFtorGLZ_wMnr_Mi7cltli9g8jsMtiQ7Z1Usnj2IKfJ1MJz6-wxlIAEQ-ErgU1x6IBxdAIHBHtQ3OOT_FJOuUYheILlUc20ysNL_zroo=@protonmail.com>
- <20210118152323.GV4077@smile.fi.intel.com>
- <e1032328-c5e8-0bfa-4b87-64207d283d17@redhat.com>
- <20210118154852.GY4077@smile.fi.intel.com>
- <b152aca4-5870-d64b-c709-afb3e940d107@gmail.com>
+        Mon, 18 Jan 2021 08:08:18 -0800 (PST)
+Subject: Re: [PATCH] ACPI: scan: Make acpi_bus_get_device() clear the adev ptr
+ on error
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+References: <20210115215752.389656-1-hdegoede@redhat.com>
+ <CAJZ5v0gk0ninRntm508SAgzSrRe5gjZ+-e5ac1h-Cx2reVOSfg@mail.gmail.com>
 From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <bc7c49cf-fb72-99f8-402a-a9fd5a5f9a7f@redhat.com>
-Date:   Mon, 18 Jan 2021 17:03:08 +0100
+Message-ID: <9e548c41-fdb0-4b4b-ccc3-81dba39d4904@redhat.com>
+Date:   Mon, 18 Jan 2021 17:08:18 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.4.0
 MIME-Version: 1.0
-In-Reply-To: <b152aca4-5870-d64b-c709-afb3e940d107@gmail.com>
+In-Reply-To: <CAJZ5v0gk0ninRntm508SAgzSrRe5gjZ+-e5ac1h-Cx2reVOSfg@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -112,28 +86,81 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 Hi,
 
-On 1/18/21 5:00 PM, Daniel Scally wrote:
+On 1/18/21 2:58 PM, Rafael J. Wysocki wrote:
+> On Fri, Jan 15, 2021 at 10:59 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>>
+>> Set the acpi_device pointer which acpi_bus_get_device()
+>> returns-by-reference to NULL on error.
+>>
+>> We've recently had 2 cases where callers of acpi_bus_get_device()
+>> did not properly error check the return value, using the
+>> returned-by-reference acpi_device pointer blindly, set it to NULL
+>> so that this will lead to an immediate oops, rather then following
+>> a pointer to who knows what.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 > 
-> On 18/01/2021 15:48, andriy.shevchenko@linux.intel.com wrote:
->> On Mon, Jan 18, 2021 at 04:32:54PM +0100, Hans de Goede wrote:
->>> On 1/18/21 4:23 PM, andriy.shevchenko@linux.intel.com wrote:
->> ...
->>
->>> 1. Using a folder is fine, desirable even
->>> 2. I've some concerns about the name, but I'm not really objecting,
->>> just giving my 2 cents.
->> Let's get into compromised summary:
->>  - create a folder for these driver files
->>  - name it without _skl_ while leaving this in the file / driver names
->>
->> Does everybody agree on this approach?
->>
-> 
-> Works for me!
+> This should fix the crash reported by Pierre-Louis,
 
-Also works for me.
+Ack, sounds good.
+
+> so let me apply it
+> instead of the two debug changes posted by me
+> (https://lore.kernel.org/linux-acpi/98e6ed8e-884e-adb4-a146-a66daefa94a7@redhat.com/T/#md5add2fe554a30e3a929d87a66b435f4cc8bf628).
+
+Note we should still fix the USB case, my patch will make failure
+there more obvious, but the code can theoretically still dereference
+a NULL pointer in drivers/usb/core/usb-acpi.c.
+
+And we probably also want this change:
+
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1867,7 +1867,8 @@ static u32 acpi_scan_check_dep(acpi_hand
+ 	 * 2. ACPI nodes describing USB ports.
+ 	 * Still, checking for _HID catches more then just these cases ...
+ 	 */
+-	if (!acpi_has_method(handle, "_DEP") || !acpi_has_method(handle, "_HID"))
++	if (!acpi_has_method(handle, "_DEP") || acpi_has_method(handle, "_ADR")
++	    || !acpi_has_method(handle, "_HID"))
+ 		return 0;
+ 
+ 	status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_devices);
+
+To reduce the amount of work we do checking _DEP-s.
+
+If you want I can submit patches for both ?
 
 Regards,
 
 Hans
+
+
+
+
+> 
+> Pierre-Louis, can you please double check that the issue goes away
+> with this patch applied?
+> 
+>> ---
+>>  drivers/acpi/scan.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index c575c9b67f76..c53e88deee1d 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -585,6 +585,8 @@ static int acpi_get_device_data(acpi_handle handle, struct acpi_device **device,
+>>         if (!device)
+>>                 return -EINVAL;
+>>
+>> +       *device = NULL;
+>> +
+>>         status = acpi_get_data_full(handle, acpi_scan_drop_device,
+>>                                     (void **)device, callback);
+>>         if (ACPI_FAILURE(status) || !*device) {
+>> --
+>> 2.28.0
+>>
+> 
 
