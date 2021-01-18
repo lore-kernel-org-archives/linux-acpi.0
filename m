@@ -2,60 +2,59 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46A97C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 00:37:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEA19C433DB
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 00:38:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1404622460
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 00:37:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4C2A22460
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 00:38:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730736AbhARAh1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 17 Jan 2021 19:37:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44432 "EHLO
+        id S1730478AbhARAfX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 17 Jan 2021 19:35:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730507AbhARAfY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jan 2021 19:35:24 -0500
-Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54217C061575;
-        Sun, 17 Jan 2021 16:34:44 -0800 (PST)
-Received: by mail-wr1-x42d.google.com with SMTP id c5so14846553wrp.6;
-        Sun, 17 Jan 2021 16:34:44 -0800 (PST)
+        with ESMTP id S1730468AbhARAfW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jan 2021 19:35:22 -0500
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E826FC061573;
+        Sun, 17 Jan 2021 16:34:41 -0800 (PST)
+Received: by mail-wm1-x330.google.com with SMTP id r4so12385274wmh.5;
+        Sun, 17 Jan 2021 16:34:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=oxyOObT1sg5s9bWkUVceIGz0KKXfziZMqNtmhxIBUsg=;
-        b=QzL/Nu1C+vMnHFaRThEDIZe5Ncq5Of2W3gkYCJnm8AmU7SESXNgasBnk8UNZDddGaQ
-         NY2UFS1U4m8+RsHxWIsXCuHC55DliW48CVdjoyr/Hcn1plYmlhE+l47VbBxLoz8itTu2
-         aZo45y9QldNIOq5Rzwd+s1ivBqcKHiGqlxioGfubLKYAdjh4m37/fcMJWFQus9zOugXS
-         c2PKC6sAQ6Am6/ejcfKwnxansf6BufsA8GzXsQYwjgJtbZ4C5jlb8HNHBXaD+lJ3jQiN
-         ZY1wZFnmzKWrxFBPslIqd9GIVPEHI3y+LjYJCjN6WD5tpfhV22TIdQt7X/v833C874MM
-         pfbg==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=hv3QULuAw3daEtPKtW/GfZxtyLAjRCNrwbUyjJ0z7Xs=;
+        b=iab6/rtv8fV2t/9tKiUZM6JzYtYY5t2jiLWWaSJwuY4UQBwFm9+jBWNQ7plLcMo4yv
+         Ew0u3XTUYFIes11V2xwarfu+yyqrmpJhps5NW8NU0GNSSaAm3mJ7uvOqOL1+RkHGzr6m
+         AXeXBkXDUe3OqWEcONBJEtzhC4f1kP3x3rAntdvkvCIFQt5FfmxIfVFRaTAlA6F4rRj/
+         p+h9CYL6A2JH8yF1B6Sn8jm6eeZ6CNHF0HnDMyj+iCp2wSXj70pjrPQcs2F/OVF1FAEK
+         UONkTBn3oPbgabnAfnEbWYEueALZzKbthyc5W7LXOI38rJEfnfjVvbIvGLgZ56YWAv/O
+         CcSA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=oxyOObT1sg5s9bWkUVceIGz0KKXfziZMqNtmhxIBUsg=;
-        b=NyUYXtlmW9rx/aHp6K/xozCJP1rNchifLWx8LL2ebFjUiWvoVSLsk1RbIDOvTeQ24j
-         j10xNCp0SgDwk49PNcAHhCB4fw2fGb9cw3FaTOGpA8qyTcDO/6FY3GxVj7tiayEApjzA
-         S+e6qmLaINLFsTsEBgKVFvYBtG79IFxlTd0bHCsCCmKko13TKEssjxzDWrQ55oG1wiKo
-         Rld9R4CZwZ33/2j8tk4TPi1b+SFyulvutqvwuL1TiHMXeB1UptDCe3fJBeGH+R7raLSt
-         uklrwOV/GOc18nJmXmaBcqOYr7yw8TNYOAiFWQkZgzE4wcio3kkU5hfQ6xNU2Lt/jDwU
-         2gGA==
-X-Gm-Message-State: AOAM530nHKW984q5KIRC22FxPYRyxBzOE9tmt8LOu364uVfUnYKkXtbx
-        Gvlk/LFBsz5Gwrztb6GyYckTT3dA2ylOwA==
-X-Google-Smtp-Source: ABdhPJwP8X4dWttjUj1Bb2v8rxhV65TD73lpEEX+TkikPku+vK0TaGlSy9mss5ow/8gIZF3SXV9r4Q==
-X-Received: by 2002:adf:cc81:: with SMTP id p1mr23185951wrj.339.1610930083018;
-        Sun, 17 Jan 2021 16:34:43 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=hv3QULuAw3daEtPKtW/GfZxtyLAjRCNrwbUyjJ0z7Xs=;
+        b=pOVyc+hEhXCvnB9KpAj8DjaNczycBidmZi8qbsgJZ9c3nhUIB6blz18jUenXm8BVLC
+         7epdXB2fgSSjzi/9NRwUo4FOQ+obuof3/2+4hZJvZ/ur4MXJGh65Epi1rmfczbC5FURt
+         aBK7Ga86dVPRvSENOqSRYWGZAgvazrAAwWS5jWtm/fcGN29yzW9dHz7KMQ42i/DNM3pE
+         UnyaoEBgy5EtMz9ExaJxMJAVUj2KbX3ag3FRwBlSdvuyOuYTieTKfdiOfq//cAc4gSSc
+         EKJKGUBY9A4sLFQHhg7DpaAIcCvUNJ6ycFU3zF/K1Iz4XlUnpTunb591HGOckO48xibF
+         kSrw==
+X-Gm-Message-State: AOAM5333qTqvngQZz7Ql6ebXRofpY3vC8xL3ygKJJS9yNAmS14YZt6WS
+        ETpmBFAyIAdmp1tpMfCtzzgEAVqsaoA8eQ==
+X-Google-Smtp-Source: ABdhPJx2d8jb8IceRsmC0SWY66dY7dVMCHYr1ggXjUpDi/gyQV3E+EAl3VTbJ8wyyNCBSbuwmUlSqA==
+X-Received: by 2002:a1c:6383:: with SMTP id x125mr18434747wmb.46.1610930080551;
+        Sun, 17 Jan 2021 16:34:40 -0800 (PST)
 Received: from valhalla.home ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id o124sm23642040wmb.5.2021.01.17.16.34.41
+        by smtp.gmail.com with ESMTPSA id o124sm23642040wmb.5.2021.01.17.16.34.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 17 Jan 2021 16:34:42 -0800 (PST)
+        Sun, 17 Jan 2021 16:34:39 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
@@ -67,98 +66,97 @@ Cc:     rjw@rjwysocki.net, lenb@kernel.org, andy@kernel.org,
         robert.moore@intel.com, erik.kaneda@intel.com,
         sakari.ailus@linux.intel.com, andriy.shevchenko@linux.intel.com,
         laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Subject: [PATCH v2 2/7] acpi: utils: Add function to fetch dependent acpi_devices
-Date:   Mon, 18 Jan 2021 00:34:23 +0000
-Message-Id: <20210118003428.568892-3-djrscally@gmail.com>
+Subject: [PATCH v2 0/7] Introduce intel_skl_int3472 driver 
+Date:   Mon, 18 Jan 2021 00:34:21 +0000
+Message-Id: <20210118003428.568892-1-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210118003428.568892-1-djrscally@gmail.com>
-References: <20210118003428.568892-1-djrscally@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In some ACPI tables we encounter, devices use the _DEP method to assert
-a dependence on other ACPI devices as opposed to the OpRegions that the
-specification intends. We need to be able to find those devices "from"
-the dependee, so add a function to parse all ACPI Devices and check if
-the include the handle of the dependee device in their _DEP buffer.
+Hello all
 
-Signed-off-by: Daniel Scally <djrscally@gmail.com>
----
-Changes in v2:
-	- Used acpi_lpss_dep() as Andy suggested.
+v1 for this series was originally 14-18 of this series:
+https://lore.kernel.org/linux-media/20201130133129.1024662-1-djrscally@gmail.com/T/#m91934e12e3d033da2e768e952ea3b4a125ee3e67
 
- drivers/acpi/utils.c    | 34 ++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |  2 ++
- 2 files changed, 36 insertions(+)
+At the moment in the kernel the ACPI _HID INT3472 is taken by the tps68470
+MFD driver, but that driver can only handle some of the cases of that _HID
+that we see. There are at least these three possibilities:
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 78b38775f18b..ec6a2406a886 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -831,6 +831,18 @@ bool acpi_lpss_dep(struct acpi_device *adev, acpi_handle handle)
- 	return false;
- }
- 
-+static int acpi_dev_match_by_dep(struct device *dev, const void *data)
-+{
-+	struct acpi_device *adev = to_acpi_device(dev);
-+	const struct acpi_device *dependee = data;
-+	acpi_handle handle = dependee->handle;
-+
-+	if (acpi_lpss_dep(adev, handle))
-+		return 1;
-+
-+	return 0;
-+}
-+
- /**
-  * acpi_dev_present - Detect that a given ACPI device is present
-  * @hid: Hardware ID of the device.
-@@ -866,6 +878,28 @@ bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
- }
- EXPORT_SYMBOL(acpi_dev_present);
- 
-+/**
-+ * acpi_dev_get_next_dep_dev - Return next ACPI device dependent on input dev
-+ * @adev: Pointer to the dependee device
-+ * @prev: Pointer to the previous dependent device (or NULL for first match)
-+ *
-+ * Return the next ACPI device which declares itself dependent on @adev in
-+ * the _DEP buffer.
-+ *
-+ * The caller is responsible to call put_device() on the returned device.
-+ */
-+struct acpi_device *acpi_dev_get_next_dep_dev(struct acpi_device *adev,
-+					      struct acpi_device *prev)
-+{
-+	struct device *start = prev ? &prev->dev : NULL;
-+	struct device *dev;
-+
-+	dev = bus_find_device(&acpi_bus_type, start, adev, acpi_dev_match_by_dep);
-+
-+	return dev ? to_acpi_device(dev) : NULL;
-+}
-+EXPORT_SYMBOL(acpi_dev_get_next_dep_dev);
-+
- /**
-  * acpi_dev_get_next_match_dev - Return the next match of ACPI device
-  * @adev: Pointer to the previous acpi_device matching this @hid, @uid and @hrv
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 02a716a0af5d..33deb22294f2 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -683,6 +683,8 @@ static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
- 
- bool acpi_dev_hid_uid_match(struct acpi_device *adev, const char *hid2, const char *uid2);
- 
-+struct acpi_device *
-+acpi_dev_get_next_dep_dev(struct acpi_device *adev, struct acpi_device *prev);
- struct acpi_device *
- acpi_dev_get_next_match_dev(struct acpi_device *adev, const char *hid, const char *uid, s64 hrv);
- struct acpi_device *
+1. INT3472 devices that provide GPIOs through the usual framework and run
+   power and clocks through an operation region; this is the situation that
+   the current module handles and is seen on ChromeOS devices
+2. INT3472 devices that provide GPIOs, plus clocks and regulators that are
+   meant to be driven through the usual frameworks, usually seen on devices
+   designed to run Windows
+3. INT3472 devices that don't actually represent a physical tps68470, but
+   are being used as a convenient way of grouping a bunch of system GPIO
+   lines that are intended to enable power and clocks for sensors which
+   are called out as dependent on them. Also seen on devices designed to
+   run Windows.
+
+This series introduces a new module which registers:
+
+1. An i2c driver that determines which scenario (#1 or #2) applies to the
+   machine and registers platform devices to be bound to GPIO, OpRegion,
+   clock and regulator drivers as appropriate.
+2. A platform driver that binds to the dummy INT3472 devices described in
+   #3
+
+The platform driver for the dummy device registers the GPIO lines that
+enable the clocks and regulators to the sensors via those frameworks so
+that sensor drivers can consume them in the usual fashion. The existing
+GPIO and OpRegion tps68470 drivers will work with the i2c driver that's
+registered. Clock and regulator drivers are currently in the works.
+
+The existing mfd/tps68470.c driver being thus superseded, it is removed.
+
+This has been tested on a number of devices; but currently **not** on a
+ChromeOS, which we ideally need to do to ensure no regression caused by
+replacing the tps68470 MFD driver.
+
+Thanks
+Dan
+
+Daniel Scally (7):
+  acpi: utils: move acpi_lpss_dep() to utils
+  acpi: utils: Add function to fetch dependent acpi_devices
+  i2c: i2c-core-base: Use format macro in i2c_dev_set_name()
+  i2c: i2c-core-acpi: Add i2c_acpi_dev_name()
+  gpio: gpiolib-acpi: Export acpi_get_gpiod()
+  platform: x86: Add intel_skl_int3472 driver
+  mfd: Remove tps68470 MFD driver
+
+ MAINTAINERS                                   |   5 +
+ drivers/acpi/acpi_lpss.c                      |  24 -
+ drivers/acpi/internal.h                       |   1 +
+ drivers/acpi/pmic/Kconfig                     |   1 -
+ drivers/acpi/utils.c                          |  58 ++
+ drivers/gpio/Kconfig                          |   1 -
+ drivers/gpio/gpiolib-acpi.c                   |   3 +-
+ drivers/i2c/i2c-core-acpi.c                   |  16 +
+ drivers/i2c/i2c-core-base.c                   |   4 +-
+ drivers/mfd/Kconfig                           |  18 -
+ drivers/mfd/Makefile                          |   1 -
+ drivers/mfd/tps68470.c                        |  97 ----
+ drivers/platform/x86/Kconfig                  |  25 +
+ drivers/platform/x86/Makefile                 |   4 +
+ .../platform/x86/intel_skl_int3472_common.c   | 100 ++++
+ .../platform/x86/intel_skl_int3472_common.h   | 100 ++++
+ .../platform/x86/intel_skl_int3472_discrete.c | 496 ++++++++++++++++++
+ .../platform/x86/intel_skl_int3472_tps68470.c | 145 +++++
+ include/acpi/acpi_bus.h                       |   2 +
+ include/linux/acpi.h                          |   5 +
+ include/linux/i2c.h                           |   8 +
+ 21 files changed, 969 insertions(+), 145 deletions(-)
+ delete mode 100644 drivers/mfd/tps68470.c
+ create mode 100644 drivers/platform/x86/intel_skl_int3472_common.c
+ create mode 100644 drivers/platform/x86/intel_skl_int3472_common.h
+ create mode 100644 drivers/platform/x86/intel_skl_int3472_discrete.c
+ create mode 100644 drivers/platform/x86/intel_skl_int3472_tps68470.c
+
 -- 
 2.25.1
 
