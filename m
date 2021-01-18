@@ -2,156 +2,110 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE78AC433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:24:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD1BAC433E6
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:41:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E9F022BE9
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:24:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85FBB22C9D
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:41:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406467AbhARQYh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 11:24:37 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:59536 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2406637AbhARQYc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Jan 2021 11:24:32 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1610986985;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=KAafjWwP/FMvIs69/XHRDZQCwkkhgX8SYvl2MAL1ZpE=;
-        b=IHfIljVBgNa39XOSmLosfns/7rnyydnck3BGPy5EDvv/jHywEIdzLSyD1xSdLw6BDVMzcX
-        lmG/CbX4LOz9lbeU1IeYzUUhIDYAdXTa/w6tXf8jjdCtb/ZW+koYg62s7PIBwN1BOmW8PB
-        mt3HyaRfM/R5lWj5HvPeXd+jmuqa/Iw=
-Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
- [209.85.218.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-449-N324X2z4Otms5RvwhLR8Bg-1; Mon, 18 Jan 2021 11:23:03 -0500
-X-MC-Unique: N324X2z4Otms5RvwhLR8Bg-1
-Received: by mail-ej1-f71.google.com with SMTP id b18so3344244ejz.6
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2021 08:23:02 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=KAafjWwP/FMvIs69/XHRDZQCwkkhgX8SYvl2MAL1ZpE=;
-        b=hJFkwFgaDzLY+D2Plnfwz2XGo9RbPJWzIuFPrAY+V2i0vkXd/swmIjbjp1Sg1d16W5
-         CNXtZeMk1jwBgeEQATsQCfHpKZZ19yETq/wgfDXnM6ZU18DXRdfhHcOg/iiYozT1qnxF
-         jAuNcrNZ67cA/C4sQAePBFKOamOZUx9P0kW784hrQ7zEFYURvmtsEyZit4Gut9LVkz/2
-         /F0O5g4lzUXFwVcyxEEhcxWs48jIFShGWAtQZU5pMCEUg5Vc2QeTUUxR6FzLNF7ffZI4
-         fNC2DOSrCAZUsdvh39jssbbQpa4VFu/oZFd6vjDLHUHjGKXqekyHvYlzHGXVJMrFIrpQ
-         xPZQ==
-X-Gm-Message-State: AOAM5331nshcUOekFAyIKiM4jXJ8mX2KeJyVSJNTPmRHyGqPc4+/UWkq
-        JdGp1H0oLiix1klGCpdt2XWVLw8KipjY0NKm0ZQT+kGKI77DwWBM4d7usWsgSxoHydJsy2+bwBX
-        N03gOndObMwyq5xVL4PvT3445G8RBX0w955+itjRKo8aF+BZFtkEa4Gm6QGfnDbvgHUWPM7aFVg
-        ==
-X-Received: by 2002:a17:906:ce5b:: with SMTP id se27mr306662ejb.57.1610986981461;
-        Mon, 18 Jan 2021 08:23:01 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJwF4hJUaeHKJN1NyYbefVZJvtlbseNmxyDfPzG7VRbV9araYEJK+yeTqZN4pQjq3P6P5Es/uQ==
-X-Received: by 2002:a17:906:ce5b:: with SMTP id se27mr306645ejb.57.1610986981253;
-        Mon, 18 Jan 2021 08:23:01 -0800 (PST)
-Received: from x1.localdomain (2001-1c00-0c1e-bf00-37a3-353b-be90-1238.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:37a3:353b:be90:1238])
-        by smtp.gmail.com with ESMTPSA id p21sm4231882edx.90.2021.01.18.08.23.00
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 18 Jan 2021 08:23:00 -0800 (PST)
-Subject: Re: [PATCH] ACPI: scan: Make acpi_bus_get_device() clear the adev ptr
- on error
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-References: <20210115215752.389656-1-hdegoede@redhat.com>
- <CAJZ5v0gk0ninRntm508SAgzSrRe5gjZ+-e5ac1h-Cx2reVOSfg@mail.gmail.com>
- <9e548c41-fdb0-4b4b-ccc3-81dba39d4904@redhat.com>
- <CAJZ5v0jHpTHRdneq2+bYa69bpJduzH8nomQM9VbytYaE4t7Ymw@mail.gmail.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <3aab1b8f-1a36-eece-6962-d8d95e8b0126@redhat.com>
-Date:   Mon, 18 Jan 2021 17:23:00 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
+        id S2393321AbhARQlo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 11:41:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52038 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2390380AbhARQlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Jan 2021 11:41:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3B0DE22BF3;
+        Mon, 18 Jan 2021 16:40:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1610988038;
+        bh=vwCki1f6YIWIWNcCAyhuitSK8rQJU8G6+bsi8qQ/MdU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=pEWe309kIfgkz1Eu1f+wPHYVHxOtbzsVNujPC1GJa6MsOa/BJy2t4/qijjlzLxdCo
+         bfK8l/+BBd/F1Uk/pCenFp9kyjj1M5B/b/q7LTiehNbyvsZdvDd3iqUAW4GgmXwf3Q
+         N9HEwIHKuAZLd3BmTeP/ZdUIbALOSIWhBNTdFrPo=
+Date:   Mon, 18 Jan 2021 17:40:36 +0100
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        lennart@poettering.net,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: Re: Multiple MODALIAS= in uevent file confuses userspace
+Message-ID: <YAW6BI00Kr615kFk@kroah.com>
+References: <CAAd53p6aURhfFp1RFQxEPtGfzSdUfe4=N=P2rP27ULxp-D4GCg@mail.gmail.com>
+ <CAAd53p45q+Jigje0FcWAERiBUGfJhR8nTYNh7SFxBpajAe4=oA@mail.gmail.com>
+ <CAJZ5v0iyEq6+OemJNXQv46h0pW=LHxiR2HeFe4+us59_x6Nymg@mail.gmail.com>
+ <20210118141238.GQ968855@lahna.fi.intel.com>
+ <YAWalPeMPt44lBgI@kroah.com>
+ <20210118144853.GP4077@smile.fi.intel.com>
+ <YAWiCkJwiOS8i50c@kroah.com>
+ <20210118152744.GW4077@smile.fi.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJZ5v0jHpTHRdneq2+bYa69bpJduzH8nomQM9VbytYaE4t7Ymw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210118152744.GW4077@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 1/18/21 5:21 PM, Rafael J. Wysocki wrote:
-> On Mon, Jan 18, 2021 at 5:09 PM Hans de Goede <hdegoede@redhat.com> wrote:
->>
->> Hi,
->>
->> On 1/18/21 2:58 PM, Rafael J. Wysocki wrote:
->>> On Fri, Jan 15, 2021 at 10:59 PM Hans de Goede <hdegoede@redhat.com> wrote:
->>>>
->>>> Set the acpi_device pointer which acpi_bus_get_device()
->>>> returns-by-reference to NULL on error.
->>>>
->>>> We've recently had 2 cases where callers of acpi_bus_get_device()
->>>> did not properly error check the return value, using the
->>>> returned-by-reference acpi_device pointer blindly, set it to NULL
->>>> so that this will lead to an immediate oops, rather then following
->>>> a pointer to who knows what.
->>>>
->>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>>
->>> This should fix the crash reported by Pierre-Louis,
->>
->> Ack, sounds good.
->>
->>> so let me apply it
->>> instead of the two debug changes posted by me
->>> (https://lore.kernel.org/linux-acpi/98e6ed8e-884e-adb4-a146-a66daefa94a7@redhat.com/T/#md5add2fe554a30e3a929d87a66b435f4cc8bf628).
->>
->> Note we should still fix the USB case, my patch will make failure
->> there more obvious, but the code can theoretically still dereference
->> a NULL pointer in drivers/usb/core/usb-acpi.c.
+On Mon, Jan 18, 2021 at 05:27:44PM +0200, Andy Shevchenko wrote:
+> On Mon, Jan 18, 2021 at 03:58:18PM +0100, Greg Kroah-Hartman wrote:
+> > On Mon, Jan 18, 2021 at 04:48:53PM +0200, Andy Shevchenko wrote:
+> > > On Mon, Jan 18, 2021 at 03:26:28PM +0100, Greg Kroah-Hartman wrote:
+> > > > On Mon, Jan 18, 2021 at 04:12:38PM +0200, Mika Westerberg wrote:
+> > > > > On Mon, Jan 18, 2021 at 02:50:33PM +0100, Rafael J. Wysocki wrote:
+> > > > > > On Mon, Jan 18, 2021 at 8:27 AM Kai-Heng Feng
+> > > > > > <kai.heng.feng@canonical.com> wrote:
+> > > > > > > On Sat, Jan 9, 2021 at 12:25 AM Kai-Heng Feng
+> > > > > > > <kai.heng.feng@canonical.com> wrote:
+> > > > > > > >
+> > > > > > > > Commit 8765c5ba19490 ("ACPI / scan: Rework modalias creation when
+> > > > > > > > "compatible" is present") creates two modaliases for certain ACPI
+> > > > > > > > devices. However userspace (systemd-udevd in this case) assumes uevent
+> > > > > > > > file doesn't have duplicated keys, so two "MODALIAS=" breaks the
+> > > > > > > > assumption.
+> > > > > > > >
+> > > > > > > > Based on the assumption, systemd-udevd internally uses hashmap to
+> > > > > > > > store each line of uevent file, so the second modalias always replaces
+> > > > > > > > the first modalias.
+> > > > > > > >
+> > > > > > > > My attempt [1] is to add a new key, "MODALIAS1" for the second
+> > > > > > > > modalias. This brings up the question of whether each key in uevent
+> > > > > > > > file is unique. If it's no unique, this may break may userspace.
+> > > > > > >
+> > > > > > > Does anyone know if there's any user of the second modalias?
+> > > > > > > If there's no user of the second one, can we change it to OF_MODALIAS
+> > > > > > > or COMPAT_MODALIAS?
+> > > > > 
+> > > > > The only users I'm aware are udev and the busybox equivalent (udev,
+> > > > > mdev) but I'm not sure if they use the second second modalias at all so
+> > > > > OF_MODALIAS for the DT compatible string sounds like a good way to solve
+> > > > > this.
+> > > > 
+> > > > As udev seems to "break" with this (which is where we got the original
+> > > > report from), I don't think you need to worry about that user :)
+> > > 
+> > > > Does anyone use mdev anymore, and in any ACPI-supported systems?
+> > > 
+> > > Yes, regularly.
+> > 
+> > Ok, and how badly does it break when MODALIAS is multiple lines like
+> > this?  Or can it handle it?
 > 
-> Because usb_acpi_find_port() checks the acpi_device pointer passed to
-> it against NULL, we're safe here as well.
+> Since the mentioned change landed into v4.1 I never had a problem with my
+> setup. From my point of view it doesn't affect anyhow mdev setup.
 
-Ah, good :)
+Do you actually have a device with multiple entries and try to do a rule
+based on it?  That's how this was triggered in udev, "normal" operations
+work just fine.
 
->> And we probably also want this change:
->>
->> --- linux-pm.orig/drivers/acpi/scan.c
->> +++ linux-pm/drivers/acpi/scan.c
->> @@ -1867,7 +1867,8 @@ static u32 acpi_scan_check_dep(acpi_hand
->>          * 2. ACPI nodes describing USB ports.
->>          * Still, checking for _HID catches more then just these cases ...
->>          */
->> -       if (!acpi_has_method(handle, "_DEP") || !acpi_has_method(handle, "_HID"))
->> +       if (!acpi_has_method(handle, "_DEP") || acpi_has_method(handle, "_ADR")
->> +           || !acpi_has_method(handle, "_HID"))
->>                 return 0;
->>
->>         status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_devices);
->>
->> To reduce the amount of work we do checking _DEP-s.
-> 
-> So I was thinking about that, but I'd leave it as is unless we have a
-> use case in which looking for _ADR is really necessary.
-> 
-> In the majority of cases the device objects with both _ADR and _HID
-> really are _HID devices and _ADR returns 0.  Of course, that could be
-> treated as a special case, but unless it is necessary to add a check
-> for this special case, I'd rather avoid doing that.
+thanks,
 
-Ok, that works for me.
-
-Regards,
-
-Hans
-
+greg k-h
