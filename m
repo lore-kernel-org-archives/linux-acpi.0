@@ -2,115 +2,133 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D8BFC433DB
-	for <linux-acpi@archiver.kernel.org>; Sun, 17 Jan 2021 21:16:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41797C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 00:36:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1BD44224B1
-	for <linux-acpi@archiver.kernel.org>; Sun, 17 Jan 2021 21:16:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BE542245C
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 00:36:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728875AbhAQVPz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 17 Jan 2021 16:15:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58376 "EHLO
+        id S1730542AbhARAfe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 17 Jan 2021 19:35:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726785AbhAQVPz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jan 2021 16:15:55 -0500
-Received: from mail-wr1-x431.google.com (mail-wr1-x431.google.com [IPv6:2a00:1450:4864:20::431])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B26E7C061573;
-        Sun, 17 Jan 2021 13:15:14 -0800 (PST)
-Received: by mail-wr1-x431.google.com with SMTP id 6so7321165wri.3;
-        Sun, 17 Jan 2021 13:15:14 -0800 (PST)
+        with ESMTP id S1730523AbhARAfZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jan 2021 19:35:25 -0500
+Received: from mail-wm1-x32c.google.com (mail-wm1-x32c.google.com [IPv6:2a00:1450:4864:20::32c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69DC5C061757;
+        Sun, 17 Jan 2021 16:34:45 -0800 (PST)
+Received: by mail-wm1-x32c.google.com with SMTP id u14so8206655wmq.4;
+        Sun, 17 Jan 2021 16:34:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=jU5xZt4ZGGg5V25qXIr6WdPMU0NBUDnBFNWZBAT6X+0=;
-        b=Tz9UVGWXaGHqzyAQCbw3J/kzNbeG0QwiRtDaiv3Tfx+tT+9OZ8P/xv0D6SBiPGSkAD
-         7JufDrDEyqlzV5eXk4pIJB7LuX40V6tVTlYC4H6SYOq+h6Aioucms3ODro/SSW7twhYg
-         51uuk2qi0ttMbQOOIvCi+lvAgOJJfqroDqXSpmTTrOfA623PZ6h/e0K1q6H9BwShTe41
-         snbenmG+SYePulp56f8DVe8QJ7dn788mMPlZkg4mD6Ey8uunixsHQZ+YlYhVn57Scuq4
-         DCU//k8R1zAAGhK1ONpTIJm9uaTruZRRFZ92qoGrfKrNON2tcXRxyVDdZkn+0A62QrhJ
-         T9vQ==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=uWwlR2JD3sOpBYSIkzbMOHTkmK2E7HCQ52xgimQRdfg=;
+        b=rsflLZaEbKqnXrB4MxHq/6ALeOIvbtVotESsfAL8Quyuk/od9smrl6iVXp1IWaUVHX
+         jUDc02ydCwfsG6f0AbYuIK6i8atPZ5y1I2KvW0fj2hN85afmKU+4kSXcVsIoA2ZuGEHD
+         zSr0V9b9TyYFSOdN9nEHQ9d6qDaI3oy0Z4mPQWys2nhdN9SelkoKbD5zKnK8c5JzmFfd
+         4AlPyXhFMxqK3lGUXdFjMj2ilM061a+5FhN/J4t2kUvTamvB7+KvIkKLef9oyxPiQjQY
+         Cw1g34ACjN0mVyAguZ9caUZ/0cHF4EO+lk5K8NVdBOGZFDmAFdEEBZ+7aeF3wPHRo2Fi
+         VBEw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=jU5xZt4ZGGg5V25qXIr6WdPMU0NBUDnBFNWZBAT6X+0=;
-        b=RvvfU2ZyyDGKeFEC/kxu6FIsClBuSVGHG9imY9YnCCSXPk6hNhLab8smPnWlrJ4n3a
-         pBQlNKlqI1bryv8L8A54m0U30hIPhxZbt3ArEMcX0LqlPNPZzXqhh3qocYRnlSDlsaB5
-         VfTuiyb0GAP9YLyItyFzXIf36XT7KUsV2evVVV8jpuIRhniqFuOnkrpWZzf+lInY0UMv
-         Qg5h4JKPL6bGRFe3cZoMLyLy9JZytUw2i8xGM6u5XVsIhOdgFTgS8j7ulpjiwaqf0j6X
-         qeFI7ZwpmqfpsKIg9knIdEFG9Z2EtNr6GGmtCb7oV8rZbPDDgg87kI6/infSrjK68OD0
-         sxyw==
-X-Gm-Message-State: AOAM531dV1abRyq6CLh5x8Tsi2ga0ttURk8F0MRzigbGZpkQU0I4q6J6
-        O2ur6RcYCq+9M6VWxRJZTA/tHylfBIA=
-X-Google-Smtp-Source: ABdhPJzeZMKzgf7s2G+Fjc7CxiN7nf8qJ818bKfHiQ3vOEyJ4dwhfkGs/dDeLV9G68Z1GHr9f4My8Q==
-X-Received: by 2002:adf:f6c9:: with SMTP id y9mr23315026wrp.121.1610918113281;
-        Sun, 17 Jan 2021 13:15:13 -0800 (PST)
-Received: from [192.168.1.211] ([2.29.208.120])
-        by smtp.gmail.com with ESMTPSA id o18sm4270956wmh.20.2021.01.17.13.15.12
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 17 Jan 2021 13:15:12 -0800 (PST)
-Subject: Re: [PATCH v3 0/4] Remove one more platform_device_add_properties()
- call
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Greg KH <greg@kroah.com>, Felipe Balbi <balbi@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        USB <linux-usb@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-References: <20210115094914.88401-1-heikki.krogerus@linux.intel.com>
- <CAHp75Vc3xjaOugX3d8bohz12OEP=n4BAonNyQJQ=UgBfVZorOg@mail.gmail.com>
- <c644e72c-bb46-56c2-931e-7cb98b024cc3@gmail.com>
- <CAHp75VfMOcPyXELoD4S+oQjAaVg6H0Hn2hs2UAbYEKhnFZp36A@mail.gmail.com>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=uWwlR2JD3sOpBYSIkzbMOHTkmK2E7HCQ52xgimQRdfg=;
+        b=L+kXO46+KAsoTW4puWIGBk4ZTeF2PXheGn2PVKIhKu/frTGpGV6YtYfhPYg5b0lFAq
+         BeLpbltK5D/meYAiNcNr2uiTo/3PHYwAbSmhIMAibreqP+9ryj/yNaxBHeTk7+F9WbmW
+         X1joeiTU3T8fg0p+YoyHzcLwA637hRC2/Amgwiw+q7BBob1wiqHCUJHh2i5FUiBrXy//
+         zDl3w/o71BERV0vf46XYX75zUM0kzfWAV3bGA6TBs7R59JwtSR4EHm0zDN/JxITXpiLj
+         lk6KdCfgzPAGdkVFGG5/KBnfviVJtQoVzrVUe/DKaOb2ArpQY1TG/vK34S/8iOgjmWhg
+         6jHw==
+X-Gm-Message-State: AOAM533nHfVSN31AR+DayGVAamSkNCBSagqiLxDvm7e+3ECrTuW1d9kt
+        /6b8zC12J9zOFodYCFkQfX6vaVWStKbhnA==
+X-Google-Smtp-Source: ABdhPJzzh1BsCeWgvlBnbQCml4lrvnEv9WKpVfMy088N7PBSItV0kmvjQmp/Q0r+cm5G47ymrl7pUA==
+X-Received: by 2002:a05:600c:258:: with SMTP id 24mr18752269wmj.16.1610930084256;
+        Sun, 17 Jan 2021 16:34:44 -0800 (PST)
+Received: from valhalla.home ([2.29.208.120])
+        by smtp.gmail.com with ESMTPSA id o124sm23642040wmb.5.2021.01.17.16.34.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 17 Jan 2021 16:34:43 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
-Message-ID: <073ee5a2-65e1-f5b3-c1be-6a1b37475563@gmail.com>
-Date:   Sun, 17 Jan 2021 21:15:11 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, devel@acpica.org
+Cc:     rjw@rjwysocki.net, lenb@kernel.org, andy@kernel.org,
+        mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
+        bgolaszewski@baylibre.com, wsa@kernel.org, lee.jones@linaro.org,
+        hdegoede@redhat.com, mgross@linux.intel.com,
+        robert.moore@intel.com, erik.kaneda@intel.com,
+        sakari.ailus@linux.intel.com, andriy.shevchenko@linux.intel.com,
+        laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Subject: [PATCH v2 3/7] i2c: i2c-core-base: Use format macro in i2c_dev_set_name()
+Date:   Mon, 18 Jan 2021 00:34:24 +0000
+Message-Id: <20210118003428.568892-4-djrscally@gmail.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210118003428.568892-1-djrscally@gmail.com>
+References: <20210118003428.568892-1-djrscally@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHp75VfMOcPyXELoD4S+oQjAaVg6H0Hn2hs2UAbYEKhnFZp36A@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Some places in the kernel allow users to map resources to a device
+using device name (for example, gpiod_lookup_table). Currently
+this involves waiting for the i2c_client to have been registered so we
+can use dev_name(&client->dev). We want to add a function to allow users
+to refer to an i2c device by name before it has been instantiated, so
+create a macro for the format that's accessible outside the i2c layer
+and use it in i2c_dev_set_name()
 
-On 17/01/2021 21:05, Andy Shevchenko wrote:
-> On Sat, Jan 16, 2021 at 11:29 PM Daniel Scally <djrscally@gmail.com> wrote:
->> On 16/01/2021 20:23, Andy Shevchenko wrote:
->>> On Fri, Jan 15, 2021 at 11:52 AM Heikki Krogerus
->>> <heikki.krogerus@linux.intel.com> wrote:
->>>> Hi,
->>>>
->>>> I'm now clearing the dev_fwnode(dev)->secondary pointer in
->>>> device_remove_software_node() as requested by Daniel and Andy. Thanks
->>>> guys, it's much better now. I also took the liberty of including one
->>>> more PCI ID patch where I add PCI ID for the Alder Lake-P variant. I
->>>> hope that is OK.
->>>>
->>>> Andy, I dropped your Tested-by tag because of the change I made to the
->>>> first patch. If you have time to retest these, I would much appreciate.
->>> Since Greg already grabbed a v3 I will test it when it appears in linux-next.
->>>
->> It seems the grabbed one is the v2 one though actually
-> In his last message he wrote that he noticed the v3 *as I understand that*.
-> Greg, is it right? I mean you took v3 eventually?
->
-You're right:
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Daniel Scally <djrscally@gmail.com>
+---
+	- Used format macro in i2c_dev_set_name() instead of sub func
 
-https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git/commit/?h=usb-testing&id=e68d0119e3284334de5650a1ac42ef4e179f895e
+ drivers/i2c/i2c-core-base.c | 4 ++--
+ include/linux/i2c.h         | 3 +++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-My bad; I went off the automated message but didn't check the tree.
-
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index 63ebf722a424..547b8926cac8 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -811,12 +811,12 @@ static void i2c_dev_set_name(struct i2c_adapter *adap,
+ 	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
+ 
+ 	if (info && info->dev_name) {
+-		dev_set_name(&client->dev, "i2c-%s", info->dev_name);
++		dev_set_name(&client->dev, I2C_DEV_NAME_FORMAT, info->dev_name);
+ 		return;
+ 	}
+ 
+ 	if (adev) {
+-		dev_set_name(&client->dev, "i2c-%s", acpi_dev_name(adev));
++		dev_set_name(&client->dev, I2C_DEV_NAME_FORMAT, acpi_dev_name(adev));
+ 		return;
+ 	}
+ 
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 56622658b215..4d40a4b46810 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -39,6 +39,9 @@ enum i2c_slave_event;
+ typedef int (*i2c_slave_cb_t)(struct i2c_client *client,
+ 			      enum i2c_slave_event event, u8 *val);
+ 
++/* I2C Device Name Format - to maintain consistency outside the i2c layer */
++#define I2C_DEV_NAME_FORMAT		"i2c-%s"
++
+ /* I2C Frequency Modes */
+ #define I2C_MAX_STANDARD_MODE_FREQ	100000
+ #define I2C_MAX_FAST_MODE_FREQ		400000
+-- 
+2.25.1
 
