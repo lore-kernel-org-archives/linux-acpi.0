@@ -2,93 +2,189 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89F94C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:44:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDD60C433DB
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:47:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47BD72075B
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:44:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7BF7222BB
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 16:47:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405803AbhARQoH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 11:44:07 -0500
-Received: from mga06.intel.com ([134.134.136.31]:8760 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405681AbhARQno (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Jan 2021 11:43:44 -0500
-IronPort-SDR: LKD/3STSXLgcOm/e5wTO2Oj+jPwcgmSnPuvK1eo6/1niucmpoZaay+I3vDLw2FYhE57yUcHVC4
- Lcvo/6gjHyHQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9868"; a="240366370"
-X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
-   d="scan'208";a="240366370"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 08:41:51 -0800
-IronPort-SDR: Op/kjjsZzHuGZ5jUoKNrngn2tFcngTUBJX+xDyw0XNbwjGUJ8h45cHOatY4wKk2Vvbo+l+e9t4
- U1qjLoNC5d1w==
-X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
-   d="scan'208";a="500695133"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 08:41:43 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1l1Xc4-002MIe-SA; Mon, 18 Jan 2021 18:42:44 +0200
-Date:   Mon, 18 Jan 2021 18:42:44 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Daniel Scally <djrscally@gmail.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-gpio@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, andy@kernel.org,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Wolfram Sang <wsa@kernel.org>,
-        Lee Jones <lee.jones@linaro.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <mgross@linux.intel.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v2 1/7] acpi: utils: move acpi_lpss_dep() to utils
-Message-ID: <20210118164244.GD4077@smile.fi.intel.com>
-References: <20210118003428.568892-1-djrscally@gmail.com>
- <20210118003428.568892-2-djrscally@gmail.com>
- <20210118122852.GD4077@smile.fi.intel.com>
- <CAJZ5v0hihFa=M658GE2LtoKCnPkMQznXBtq9_+g0_4gFnw6qAg@mail.gmail.com>
+        id S2393262AbhARQrT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 11:47:19 -0500
+Received: from mail-oo1-f43.google.com ([209.85.161.43]:39064 "EHLO
+        mail-oo1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2405630AbhARPRO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2021 10:17:14 -0500
+Received: by mail-oo1-f43.google.com with SMTP id k9so4167751oop.6;
+        Mon, 18 Jan 2021 07:16:58 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=O9KoYS9I3JZhQXoL3Y7lBSI29uwk71QCwYJQjM0zds4=;
+        b=Gv+dZAQCtfqscYkbSfIT1D5WiQeiFcJV7zOxJkUQkG2skN0hhjDq9wZd6sC9UsPeC5
+         Brh8F2O9hsH2Pc7Y+QA5JHD2gu6kjQYO6Xp8+p+HT9e++lunIGqeS7bpT/JIxmHVIj5L
+         4bwaigxSYOEeXrreFL+nLf6fLihy2pesExpAohbAs5mIJ453comnXjmWbbLghoB/A+s8
+         3ewd/e4SAZXc1Nx4ufMRPmg8FYcfcJSs3V8zcV1TjpCmF4xlziY0ltHP7iZdF8a3r0GT
+         C7wl2L5N6+N5YMaDm1iWnz7c10rQdvQ/KktLYNCPaS3W6DI4WzvjoHJSrlNrCCnTGiCx
+         2jtQ==
+X-Gm-Message-State: AOAM530wODb+Z/vN9iGyn4E378x4uVvAojYmsHqgPPZLNGPECIwIlBnY
+        aSG/6omz4R/0N5wbT7cby0F3VKqGcdLQ0Vm0q3g=
+X-Google-Smtp-Source: ABdhPJzSs9pAdM6RXdyMlqWV7jr1YoxXgEPZ922fBgS4HB4AXfAUUwiehZl04ZR5WmKL4oyxP4CKNdu2O2tIzepNQhc=
+X-Received: by 2002:a4a:bf14:: with SMTP id r20mr17407117oop.2.1610982992723;
+ Mon, 18 Jan 2021 07:16:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hihFa=M658GE2LtoKCnPkMQznXBtq9_+g0_4gFnw6qAg@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <3494203.VBaj39JGmp@kreacher> <2999734.9HhbEeWEHR@kreacher> <8218eff4-6629-ac20-ec3f-a66aad445bb6@redhat.com>
+In-Reply-To: <8218eff4-6629-ac20-ec3f-a66aad445bb6@redhat.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 18 Jan 2021 16:16:16 +0100
+Message-ID: <CAJZ5v0hv2FX2wtuwu9Jd1zZiGut9kUzQvCH5vXLMyFpqvvYOkA@mail.gmail.com>
+Subject: Re: [PATCH v1 1/2] ACPI: scan: Rearrange memory allocation in acpi_device_add()
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jan 18, 2021 at 05:06:30PM +0100, Rafael J. Wysocki wrote:
-> On Mon, Jan 18, 2021 at 1:30 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
+On Sat, Jan 16, 2021 at 1:37 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>
+> Hi,
+>
+> On 1/14/21 7:46 PM, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > >
-> > On Mon, Jan 18, 2021 at 12:34:22AM +0000, Daniel Scally wrote:
-> > > I need to be able to identify devices which declare themselves to be
-> > > dependent on other devices through _DEP; add this function to utils.c
-> > > and export it to the rest of the ACPI layer.
+> > The upfront allocation of new_bus_id is done to avoid allocating
+> > memory under acpi_device_lock, but it doesn't really help,
+> > because (1) it leads to many unnecessary memory allocations for
+> > _ADR devices, (2) kstrdup_const() is run under that lock anyway and
+> > (3) it complicates the code.
 > >
-> > Prefix -> "ACPI / utils: "
-> 
-> Preferably "ACPI: utils: " for that matter
+> > Rearrange acpi_device_add() to allocate memory for a new struct
+> > acpi_device_bus_id instance only when necessary, eliminate a redundant
+> > local variable from it and reduce the number of labels in there.
+> >
+> > No intentional functional impact.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/scan.c |   57 +++++++++++++++++++++++-----------------------------
+> >  1 file changed, 26 insertions(+), 31 deletions(-)
+> >
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -621,12 +621,23 @@ void acpi_bus_put_acpi_device(struct acp
+> >       put_device(&adev->dev);
+> >  }
+> >
+> > +static struct acpi_device_bus_id *acpi_device_bus_id_match(const char *dev_id)
+> > +{
+> > +     struct acpi_device_bus_id *acpi_device_bus_id;
+> > +
+> > +     /* Find suitable bus_id and instance number in acpi_bus_id_list. */
+> > +     list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
+> > +             if (!strcmp(acpi_device_bus_id->bus_id, dev_id))
+> > +                     return acpi_device_bus_id;
+> > +     }
+> > +     return NULL;
+> > +}
+> > +
+> >  int acpi_device_add(struct acpi_device *device,
+> >                   void (*release)(struct device *))
+> >  {
+> > +     struct acpi_device_bus_id *acpi_device_bus_id;
+> >       int result;
+> > -     struct acpi_device_bus_id *acpi_device_bus_id, *new_bus_id;
+> > -     int found = 0;
+> >
+> >       if (device->handle) {
+> >               acpi_status status;
+> > @@ -652,38 +663,26 @@ int acpi_device_add(struct acpi_device *
+> >       INIT_LIST_HEAD(&device->del_list);
+> >       mutex_init(&device->physical_node_lock);
+> >
+> > -     new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+> > -     if (!new_bus_id) {
+> > -             pr_err(PREFIX "Memory allocation error\n");
+> > -             result = -ENOMEM;
+> > -             goto err_detach;
+> > -     }
+> > -
+> >       mutex_lock(&acpi_device_lock);
+> > -     /*
+> > -      * Find suitable bus_id and instance number in acpi_bus_id_list
+> > -      * If failed, create one and link it into acpi_bus_id_list
+> > -      */
+> > -     list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
+> > -             if (!strcmp(acpi_device_bus_id->bus_id,
+> > -                         acpi_device_hid(device))) {
+> > -                     acpi_device_bus_id->instance_no++;
+> > -                     found = 1;
+> > -                     kfree(new_bus_id);
+> > -                     break;
+> > +
+> > +     acpi_device_bus_id = acpi_device_bus_id_match(acpi_device_hid(device));
+> > +     if (acpi_device_bus_id) {
+> > +             acpi_device_bus_id->instance_no++;
+> > +     } else {
+> > +             acpi_device_bus_id = kzalloc(sizeof(*acpi_device_bus_id),
+> > +                                          GFP_KERNEL);
+> > +             if (!acpi_device_bus_id) {
+> > +                     result = -ENOMEM;
+> > +                     goto err_unlock;
+> >               }
+> > -     }
+> > -     if (!found) {
+> > -             acpi_device_bus_id = new_bus_id;
+> >               acpi_device_bus_id->bus_id =
+> >                       kstrdup_const(acpi_device_hid(device), GFP_KERNEL);
+> >               if (!acpi_device_bus_id->bus_id) {
+> > -                     pr_err(PREFIX "Memory allocation error for bus id\n");
+> > +                     kfree(acpi_device_bus_id);
+> >                       result = -ENOMEM;
+> > -                     goto err_free_new_bus_id;
+> > +                     goto err_unlock;
+> >               }
+>
+> When I have cases like this, where 2 mallocs are necessary I typically do it like this:
+>
+>         const char *bus_id;
+>
+>         ...
+>
+>         } else {
+>                 acpi_device_bus_id = kzalloc(sizeof(*acpi_device_bus_id),
+>                                              GFP_KERNEL);
+>                 bus_id = kstrdup_const(acpi_device_hid(device), GFP_KERNEL);
+>                 if (!acpi_device_bus_id || !bus_id) {
+>                         kfree(acpi_device_bus_id);
+>                         kfree(bus_id);
+>                         result = -ENOMEM;
+>                         goto err_unlock;
+>                 }
+>                 acpi_device_bus_id->bus_id = bus_id;
+>                 list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
+>         }
+>
+>         ...
+>
+> So that there is only one if / 1 error-handling path for both mallocs.
+> I personally find this a bit cleaner.
 
-Ah, good to know! I was always bending between / and : there.
+Yes, that looks better.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Let me do it this way, but I won't resend the patch if you don't mind.
 
+> Either way, with or without this change, the patch looks good to me:
+>
+> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 
+Thanks!
