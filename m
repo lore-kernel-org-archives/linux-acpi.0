@@ -2,129 +2,93 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9430C433DB
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 19:53:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A399AC433DB
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 20:09:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A236922257
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 19:53:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FBA322D73
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 20:09:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437417AbhARTxF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 14:53:05 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:47536 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393965AbhART0e (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2021 14:26:34 -0500
-Received: from 89-64-82-41.dynamic.chello.pl (89.64.82.41) (HELO kreacher.localnet)
- by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
- id 29d09316bb40c20e; Mon, 18 Jan 2021 20:25:37 +0100
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] ACPI: scan: Rearrange code related to acpi_get_device_data()
-Date:   Mon, 18 Jan 2021 20:25:37 +0100
-Message-ID: <3445520.6OZ3MRzmT7@kreacher>
+        id S2388186AbhARUIk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 15:08:40 -0500
+Received: from smtprelay0021.hostedemail.com ([216.40.44.21]:49188 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2387977AbhARUIe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Jan 2021 15:08:34 -0500
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay04.hostedemail.com (Postfix) with ESMTP id 715CD180A7FDE;
+        Mon, 18 Jan 2021 20:07:27 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: box36_1c182e92754c
+X-Filterd-Recvd-Size: 3497
+Received: from [192.168.1.159] (unknown [47.151.137.21])
+        (Authenticated sender: joe@perches.com)
+        by omf04.hostedemail.com (Postfix) with ESMTPA;
+        Mon, 18 Jan 2021 20:07:23 +0000 (UTC)
+Message-ID: <dcc9fbef12ec58dfd3a2a98d9d3986fc5fa15f73.camel@perches.com>
+Subject: Re: [PATCH v2 7/7] mfd: Remove tps68470 MFD driver
+From:   Joe Perches <joe@perches.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, devel@acpica.org,
+        rjw@rjwysocki.net, lenb@kernel.org, andy@kernel.org,
+        mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
+        bgolaszewski@baylibre.com, wsa@kernel.org, lee.jones@linaro.org,
+        hdegoede@redhat.com, mgross@linux.intel.com,
+        robert.moore@intel.com, erik.kaneda@intel.com,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com
+Date:   Mon, 18 Jan 2021 12:07:22 -0800
+In-Reply-To: <20210118135310.GN4077@smile.fi.intel.com>
+References: <20210118003428.568892-1-djrscally@gmail.com>
+         <20210118003428.568892-8-djrscally@gmail.com>
+         <20210118135310.GN4077@smile.fi.intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.38.1-1 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, 2021-01-18 at 15:53 +0200, Andy Shevchenko wrote:
+> On Mon, Jan 18, 2021 at 12:34:28AM +0000, Daniel Scally wrote:
+> > This driver only covered one scenario in which ACPI devices with _HID
+> > INT3472 are found, and its functionality has been taken over by the
+> > intel-skl-int3472 module, so remove it.
+> 
+> Prefix: "mfd: tps68470: ". Rationale: easier to look for specific commits, by,
+> for example, running `git log --grep tps68470`.
 
-There are two callers of acpi_get_device_data(), acpi_bus_get_device()
-and acpi_bus_get_acpi_device(), but only one of them takes the int
-return value into account.  Moreover, the latter knows that it passes
-a valid return pointer to acpi_get_device_data() and it properly
-clears that pointer upfront, so it doesn't need acpi_get_device_data()
-to do that.
+It's also reasonable to grep by path instead
 
-For this reason, rearrange acpi_get_device_data() to return a strct
-acpi_device pointer instead of an int and adapt its callers to that.
+$ git log --pretty=oneline --grep 'tps68470'
+cf2e8c544cd3b33e9e403b7b72404c221bf888d1 Merge tag 'mfd-next-5.1' of git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd
+66265e719b4603ef9a1b8a6c876bcb542c021496 mfd: tps68470: Drop unused MODULE_DEVICE_TABLE
+883cad5ba8cc2d9b740b4ad0a8a91063c99c75a3 Merge tag 'mfd-next-4.18' of git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd
+ca34b4f0bed802e1c8612ef08456b20992aeb02a gpio: tps68470: Update to SPDX license identifier
 
-While at it, rename acpi_get_device_data() to handle_to_device(),
-because the old name does not really reflect the functionality
-provided by that function.
+vs
 
-No intentional functional impact.
+$ git log --pretty=oneline -- '*tps68470*'
+e42615ec233b30dfaf117b108d4cb49455b4df1d gpio: Use new GPIO_LINE_DIRECTION
+66265e719b4603ef9a1b8a6c876bcb542c021496 mfd: tps68470: Drop unused MODULE_DEVICE_TABLE
+36b835176fe014197639f335d9d35424b7805027 ACPI / PMIC: Sort headers alphabetically
+37c089d1facaf03969f66a5469c169a2c73429f6 mfd: Update to SPDX license identifier
+1b2951dd99af3970c1c1a8385a12b90236b837de Merge tag 'gpio-v4.17-1' of git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio
+ca34b4f0bed802e1c8612ef08456b20992aeb02a gpio: tps68470: Update to SPDX license identifier
+66444f460e68d641a63f0787627bac6c1ee340b5 ACPI / PMIC: Replace license boilerplate with SPDX license identifier
+e13452ac379070f038c264618e35559434252175 ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
+968c61f7da3cf6d58a49587cfe00d899ca72c1ad Merge tag 'mfd-next-4.14' of git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd
+9bbf6a15ce19dd947b7fa6ad4095931ab3682da8 mfd: Add support for TPS68470 device
+275b13a65547e2dc39c75d660d2e0f0fddde90f6 gpio: Add support for TPS68470 GPIOs
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-On top of https://patchwork.kernel.org/project/linux-acpi/patch/20210115215752.389656-1-hdegoede@redhat.com/
-
----
- drivers/acpi/scan.c |   35 +++++++++++++++++------------------
- 1 file changed, 17 insertions(+), 18 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -578,29 +578,31 @@ static void acpi_scan_drop_device(acpi_h
- 	mutex_unlock(&acpi_device_del_lock);
- }
- 
--static int acpi_get_device_data(acpi_handle handle, struct acpi_device **device,
--				void (*callback)(void *))
-+static struct acpi_device *handle_to_device(acpi_handle handle,
-+					    void (*callback)(void *))
- {
-+	struct acpi_device *adev = NULL;
- 	acpi_status status;
- 
--	if (!device)
--		return -EINVAL;
--
--	*device = NULL;
--
- 	status = acpi_get_data_full(handle, acpi_scan_drop_device,
--				    (void **)device, callback);
--	if (ACPI_FAILURE(status) || !*device) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No context for object [%p]\n",
--				  handle));
--		return -ENODEV;
-+				    (void **)&adev, callback);
-+	if (ACPI_FAILURE(status) || !adev) {
-+		acpi_handle_debug(handle, "No context!\n");
-+		return NULL;
- 	}
--	return 0;
-+	return adev;
- }
- 
- int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
- {
--	return acpi_get_device_data(handle, device, NULL);
-+	if (!device)
-+		return -EINVAL;
-+
-+	*device = handle_to_device(handle, NULL);
-+	if (!*device)
-+		return -ENODEV;
-+
-+	return 0;
- }
- EXPORT_SYMBOL(acpi_bus_get_device);
- 
-@@ -612,10 +614,7 @@ static void get_acpi_device(void *dev)
- 
- struct acpi_device *acpi_bus_get_acpi_device(acpi_handle handle)
- {
--	struct acpi_device *adev = NULL;
--
--	acpi_get_device_data(handle, &adev, get_acpi_device);
--	return adev;
-+	return handle_to_device(handle, get_acpi_device);
- }
- 
- void acpi_bus_put_acpi_device(struct acpi_device *adev)
 
 
 
