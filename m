@@ -2,94 +2,94 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17967C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 13:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B53BC433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 14:00:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B73BB22B47
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 13:56:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33FE6221FC
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 14:00:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726463AbhARN4E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 08:56:04 -0500
-Received: from mga05.intel.com ([192.55.52.43]:59073 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392453AbhARNwL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Jan 2021 08:52:11 -0500
-IronPort-SDR: mo2AHIpup04DPB7PpJYgnSobKyRwYb7Cm0Q3oh6gm787AV+AF+RJbZ9TV5brNuZ6LwVzSAehFe
- Y9cudTga50aA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9867"; a="263610121"
-X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
-   d="scan'208";a="263610121"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 05:50:25 -0800
-IronPort-SDR: MLmKRq3b4QoZpayrs4ITgd0IkDJ1ntZLWQYao3iSPt0or6j5wbSRJoI87d0U/VhaAOXE+V9RVD
- HNDuV8xa3WMw==
-X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
-   d="scan'208";a="402053339"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 05:50:20 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1l1UwE-002CGB-0I; Mon, 18 Jan 2021 15:51:22 +0200
-Date:   Mon, 18 Jan 2021 15:51:21 +0200
-From:   "andriy.shevchenko@linux.intel.com" 
-        <andriy.shevchenko@linux.intel.com>
-To:     =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
-Cc:     Daniel Scally <djrscally@gmail.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "andy@kernel.org" <andy@kernel.org>,
-        "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>,
-        "linus.walleij@linaro.org" <linus.walleij@linaro.org>,
-        "bgolaszewski@baylibre.com" <bgolaszewski@baylibre.com>,
-        "wsa@kernel.org" <wsa@kernel.org>,
-        "lee.jones@linaro.org" <lee.jones@linaro.org>,
-        "hdegoede@redhat.com" <hdegoede@redhat.com>,
-        "mgross@linux.intel.com" <mgross@linux.intel.com>,
-        "robert.moore@intel.com" <robert.moore@intel.com>,
-        "erik.kaneda@intel.com" <erik.kaneda@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "laurent.pinchart@ideasonboard.com" 
-        <laurent.pinchart@ideasonboard.com>,
-        "kieran.bingham@ideasonboard.com" <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v2 6/7] platform: x86: Add intel_skl_int3472 driver
-Message-ID: <20210118135121.GM4077@smile.fi.intel.com>
-References: <20210118003428.568892-1-djrscally@gmail.com>
- <20210118003428.568892-7-djrscally@gmail.com>
- <-GKrxu8GJvGe-PlKkLpblw9N-DtVtS7i87BOCLgJR72yf4hUFpUgiOlGcFero_gqgUxJrX2gxtLOnz_31hJugfam0SXXmXxIzGIhS162mhI=@protonmail.com>
+        id S1726463AbhAROAg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 09:00:36 -0500
+Received: from mail-oo1-f46.google.com ([209.85.161.46]:33808 "EHLO
+        mail-oo1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404720AbhARN7v (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2021 08:59:51 -0500
+Received: by mail-oo1-f46.google.com with SMTP id x23so4115891oop.1
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2021 05:59:35 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=k0bTAOQfEQNUgaA8Wuth/48iPFWLJksYYz/1CLDCgHI=;
+        b=nv7Up+gOzEpTL4DjVmyjESVkpO1dtUtaWsxuDBIkXWjopg6wMYkv2TQGOIQZJAO2Ag
+         mzQTVOevhE7AkQwNSCbiHeC9cmQrUOnbd4h21UjSffrSUMMe/PtK3kAR9iXQSM+D5JWh
+         dRjLb2DhYDRr6h3QcF/IvwyT/cXYE4Cd0ZNbGXs0LFx8/TmEGE+sfG6UNxgqa6OI0OBq
+         24rggCsAlS3dFKydKeU7WYVQFnG50snnP/A0wFJ1zw9HNkRFCaAqFqN5BURsMOINrboW
+         s8PZY7f4JXwyFiplshAPWAAcz1MfDJSm40mnzg8pqEIo4i/HCAHSrxNr1ktD0bg6j/81
+         h7Xg==
+X-Gm-Message-State: AOAM533fnYDwjtZ/HBklrItIQ7l6KGm9lCex7zKxPQRwfVzs0x3H5ey3
+        2Zv+srowTnfff8bS7QU663M+bih+0UELfywG/FU=
+X-Google-Smtp-Source: ABdhPJxOBWR6EMPLT8QwNE5tfOL3KF4HMA2ebV6WCeWnIOmotY8KskdiayFEHCABsVNaNlj/NOQcXvI/QXPTIYmsVZM=
+X-Received: by 2002:a4a:9873:: with SMTP id z48mr17224307ooi.44.1610978350534;
+ Mon, 18 Jan 2021 05:59:10 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <-GKrxu8GJvGe-PlKkLpblw9N-DtVtS7i87BOCLgJR72yf4hUFpUgiOlGcFero_gqgUxJrX2gxtLOnz_31hJugfam0SXXmXxIzGIhS162mhI=@protonmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20210115215752.389656-1-hdegoede@redhat.com>
+In-Reply-To: <20210115215752.389656-1-hdegoede@redhat.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 18 Jan 2021 14:58:54 +0100
+Message-ID: <CAJZ5v0gk0ninRntm508SAgzSrRe5gjZ+-e5ac1h-Cx2reVOSfg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: scan: Make acpi_bus_get_device() clear the adev ptr
+ on error
+To:     Hans de Goede <hdegoede@redhat.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jan 18, 2021 at 11:12:34AM +0000, Barnabás Pőcze wrote:
-> 2021. január 18., hétfő 1:34 keltezéssel, Daniel Scally írta:
+On Fri, Jan 15, 2021 at 10:59 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>
+> Set the acpi_device pointer which acpi_bus_get_device()
+> returns-by-reference to NULL on error.
+>
+> We've recently had 2 cases where callers of acpi_bus_get_device()
+> did not properly error check the return value, using the
+> returned-by-reference acpi_device pointer blindly, set it to NULL
+> so that this will lead to an immediate oops, rather then following
+> a pointer to who knows what.
+>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-> Have you considered putting the source (and header) files into a dedicated
-> folder? I think it'd help manageability in the long run, and it'd be immediately
-> obvious that these source files form a single "unit".
+This should fix the crash reported by Pierre-Louis, so let me apply it
+instead of the two debug changes posted by me
+(https://lore.kernel.org/linux-acpi/98e6ed8e-884e-adb4-a146-a66daefa94a7@redhat.com/T/#md5add2fe554a30e3a929d87a66b435f4cc8bf628).
 
-What would be the folder name? Because, for example, intel_cht_int33fe* have no
-folder (yet?) and here it's kinda similar case when HID describes something
-else than just one IP.
+Pierre-Louis, can you please double check that the issue goes away
+with this patch applied?
 
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+> ---
+>  drivers/acpi/scan.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index c575c9b67f76..c53e88deee1d 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -585,6 +585,8 @@ static int acpi_get_device_data(acpi_handle handle, struct acpi_device **device,
+>         if (!device)
+>                 return -EINVAL;
+>
+> +       *device = NULL;
+> +
+>         status = acpi_get_data_full(handle, acpi_scan_drop_device,
+>                                     (void **)device, callback);
+>         if (ACPI_FAILURE(status) || !*device) {
+> --
+> 2.28.0
+>
