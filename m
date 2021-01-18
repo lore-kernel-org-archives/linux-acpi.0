@@ -2,90 +2,74 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DCB6C433DB
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 13:52:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20D2CC433DB
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 13:54:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5928A2225C
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 13:52:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3185221F8
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Jan 2021 13:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392483AbhARNvp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Jan 2021 08:51:45 -0500
-Received: from mail-ot1-f48.google.com ([209.85.210.48]:39901 "EHLO
-        mail-ot1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392477AbhARNvh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2021 08:51:37 -0500
-Received: by mail-ot1-f48.google.com with SMTP id i30so3345692ota.6;
-        Mon, 18 Jan 2021 05:51:16 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=QWMUyKQASjDR6+Q35MwW6JXNWk2Dq2HJlpeAoaLS16g=;
-        b=U8sKd9QezsIbNnfB0oHFc7/KZ9xz9f/jfQJ7QOqFjKFWUiK5TfKm+HXRaA9a8EuZJB
-         7dPAdsWEJ9rfWVBQxSo/E0x/yU9fgRn3uG7CCyuF+YroQK+oCS2BgUwsksUARYxzW6co
-         ehtaXdSN2seJM8y/lpvZYB+RomJmeynh9fo4hnJveNDqO7JfkMThXb2W12Pcm6WVp2rw
-         JevgVFNH5CO+yjJX4oi8Oteh/0xOlrEYSrC6vUapuFcmm5CSr+wuMLGHZ3xvlmnGqLWN
-         re+72ISwMbt34CkkcHWps1hL2qh6c9ocgp0h9+aXX45S3lPJp/m+QNyPnnIkINam4vxt
-         SRxA==
-X-Gm-Message-State: AOAM532biXHJ24Eq+1IPNbtRan3ohmEGBlB1zlJ3/DP2V3xMFZ9XD6Rg
-        xlfl/35sv9+rf38vIpAOhtHon4e7N2rS+Fe8LY5P9itw
-X-Google-Smtp-Source: ABdhPJzBwdU2RfzvFay30BhhzoDzprQ5FOfN1Lp3un+sHaj3r3ln2oPa4ry4/c4f1bHAhHTK2Ko4P8KaA5BYwJtDmAM=
-X-Received: by 2002:a9d:745a:: with SMTP id p26mr18059642otk.206.1610977851304;
- Mon, 18 Jan 2021 05:50:51 -0800 (PST)
+        id S2392538AbhARNyN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 18 Jan 2021 08:54:13 -0500
+Received: from mga07.intel.com ([134.134.136.100]:11188 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2392537AbhARNx7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Jan 2021 08:53:59 -0500
+IronPort-SDR: FsBN1LPfwfzTVEIgYpAQt/EZ1ViDGCbzsXosAwvz7TcR9qU79MlXRGhnzh8qOX1T47HWtswDsG
+ rdlpOD0lIyVA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9867"; a="242874244"
+X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
+   d="scan'208";a="242874244"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 05:52:14 -0800
+IronPort-SDR: idZMKSyigO8avX5+ct25yJP/03K3E41bU/vlGs1poIWmGYv6fl7ALo5+1+MgRDu334yxHdubuJ
+ HotjxZQgYHBw==
+X-IronPort-AV: E=Sophos;i="5.79,356,1602572400"; 
+   d="scan'208";a="353515615"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2021 05:52:08 -0800
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1l1Uxy-002CMg-95; Mon, 18 Jan 2021 15:53:10 +0200
+Date:   Mon, 18 Jan 2021 15:53:10 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Daniel Scally <djrscally@gmail.com>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, devel@acpica.org,
+        rjw@rjwysocki.net, lenb@kernel.org, andy@kernel.org,
+        mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
+        bgolaszewski@baylibre.com, wsa@kernel.org, lee.jones@linaro.org,
+        hdegoede@redhat.com, mgross@linux.intel.com,
+        robert.moore@intel.com, erik.kaneda@intel.com,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v2 7/7] mfd: Remove tps68470 MFD driver
+Message-ID: <20210118135310.GN4077@smile.fi.intel.com>
+References: <20210118003428.568892-1-djrscally@gmail.com>
+ <20210118003428.568892-8-djrscally@gmail.com>
 MIME-Version: 1.0
-References: <CAAd53p6aURhfFp1RFQxEPtGfzSdUfe4=N=P2rP27ULxp-D4GCg@mail.gmail.com>
- <CAAd53p45q+Jigje0FcWAERiBUGfJhR8nTYNh7SFxBpajAe4=oA@mail.gmail.com>
-In-Reply-To: <CAAd53p45q+Jigje0FcWAERiBUGfJhR8nTYNh7SFxBpajAe4=oA@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 18 Jan 2021 14:50:33 +0100
-Message-ID: <CAJZ5v0iyEq6+OemJNXQv46h0pW=LHxiR2HeFe4+us59_x6Nymg@mail.gmail.com>
-Subject: Re: Multiple MODALIAS= in uevent file confuses userspace
-To:     Kai-Heng Feng <kai.heng.feng@canonical.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        lennart@poettering.net,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210118003428.568892-8-djrscally@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-CC Mika and Andy.
+On Mon, Jan 18, 2021 at 12:34:28AM +0000, Daniel Scally wrote:
+> This driver only covered one scenario in which ACPI devices with _HID
+> INT3472 are found, and its functionality has been taken over by the
+> intel-skl-int3472 module, so remove it.
 
-On Mon, Jan 18, 2021 at 8:27 AM Kai-Heng Feng
-<kai.heng.feng@canonical.com> wrote:
->
-> On Sat, Jan 9, 2021 at 12:25 AM Kai-Heng Feng
-> <kai.heng.feng@canonical.com> wrote:
-> >
-> > Commit 8765c5ba19490 ("ACPI / scan: Rework modalias creation when
-> > "compatible" is present") creates two modaliases for certain ACPI
-> > devices. However userspace (systemd-udevd in this case) assumes uevent
-> > file doesn't have duplicated keys, so two "MODALIAS=" breaks the
-> > assumption.
-> >
-> > Based on the assumption, systemd-udevd internally uses hashmap to
-> > store each line of uevent file, so the second modalias always replaces
-> > the first modalias.
-> >
-> > My attempt [1] is to add a new key, "MODALIAS1" for the second
-> > modalias. This brings up the question of whether each key in uevent
-> > file is unique. If it's no unique, this may break may userspace.
->
-> Does anyone know if there's any user of the second modalias?
-> If there's no user of the second one, can we change it to OF_MODALIAS
-> or COMPAT_MODALIAS?
->
-> Kai-Heng
->
-> >
-> > [1] https://github.com/systemd/systemd/pull/18163
-> >
-> > Kai-Heng
+Prefix: "mfd: tps68470: ". Rationale: easier to look for specific commits, by,
+for example, running `git log --grep tps68470`.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
