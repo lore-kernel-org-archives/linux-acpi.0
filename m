@@ -2,90 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A037C433E6
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 14:26:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29193C433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 16:00:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38660207FB
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 14:26:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E007B216FD
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 16:00:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2395407AbhASOSY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Jan 2021 09:18:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54986 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389840AbhASKRk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2021 05:17:40 -0500
-Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44D86C061573;
-        Tue, 19 Jan 2021 02:16:57 -0800 (PST)
-Received: from zn.tnic (p200300ec2f0bca00c2aa0e949335efb7.dip0.t-ipconnect.de [IPv6:2003:ec:2f0b:ca00:c2aa:e94:9335:efb7])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 90EF01EC05C4;
-        Tue, 19 Jan 2021 11:16:55 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1611051415;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=4CqezFVMKH36MJrRgW74iAw00guuFWAyVYHxCYgTsAo=;
-        b=Gh928GzQ6JGqQd2EW/IdX6MUCu5eog1EnJbJ0axAHdcj9ENc7N/VVzoc4FtcQm05sF5ZwP
-        2/wg3n5xOEbbdNsvS9nLyb0maPeMkPBArRD7oUCCZRXjk/9sqB5ZKp1SwL1beqC6G/V8ku
-        7fJUgJBNNv9kQz7g5639id4DLBTHtwQ=
-Date:   Tue, 19 Jan 2021 11:16:55 +0100
-From:   Borislav Petkov <bp@alien8.de>
-To:     Shiju Jose <shiju.jose@huawei.com>
-Cc:     "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "james.morse@arm.com" <james.morse@arm.com>,
-        "mchehab+huawei@kernel.org" <mchehab+huawei@kernel.org>,
-        "tony.luck@intel.com" <tony.luck@intel.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "rrichter@marvell.com" <rrichter@marvell.com>,
-        Jonathan Cameron <jonathan.cameron@huawei.com>,
-        tanxiaofei <tanxiaofei@huawei.com>,
-        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
-Subject: Re: [RFC PATCH 1/2] EDAC/ghes: Add EDAC device for the CPU caches
-Message-ID: <20210119101655.GD27433@zn.tnic>
-References: <20201208172959.1249-1-shiju.jose@huawei.com>
- <20201208172959.1249-2-shiju.jose@huawei.com>
- <20201231164409.GC4504@zn.tnic>
- <a5745b56831c461bbb2cde4afc7ee295@huawei.com>
- <20210118183637.GD30090@zn.tnic>
- <51d4ecaf997043718d3066e0a45518d2@huawei.com>
+        id S2391411AbhASQAH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Jan 2021 11:00:07 -0500
+Received: from mga03.intel.com ([134.134.136.65]:45397 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2391250AbhASP6a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 19 Jan 2021 10:58:30 -0500
+IronPort-SDR: kETkxxOfwU6NumB5wTzdTxyV8RvVv69fVoNZOTIWTSg/9WVOmJQRpD2Z9QR08UGAb8dCdY6amJ
+ 9hTerus4fFbw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9869"; a="179034593"
+X-IronPort-AV: E=Sophos;i="5.79,359,1602572400"; 
+   d="scan'208";a="179034593"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 07:56:28 -0800
+IronPort-SDR: s7GAsS7n8NRpZRDihC3Atq1gRwOLrFrqGf0XS4gOY2MoXPF743yfLct4y1xllTYIQjDG7Ahyib
+ MH0fzXLH83eA==
+X-IronPort-AV: E=Sophos;i="5.79,359,1602572400"; 
+   d="scan'208";a="500975803"
+Received: from kxu2-mobl.amr.corp.intel.com (HELO [10.212.225.199]) ([10.212.225.199])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 07:56:27 -0800
+Subject: Re: [PATCH] ACPI: scan: Make acpi_bus_get_device() clear the adev ptr
+ on error
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+References: <20210115215752.389656-1-hdegoede@redhat.com>
+ <CAJZ5v0gk0ninRntm508SAgzSrRe5gjZ+-e5ac1h-Cx2reVOSfg@mail.gmail.com>
+From:   Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Message-ID: <e825c859-e885-c02c-43b4-3e6f2277e120@linux.intel.com>
+Date:   Tue, 19 Jan 2021 09:41:55 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <51d4ecaf997043718d3066e0a45518d2@huawei.com>
+In-Reply-To: <CAJZ5v0gk0ninRntm508SAgzSrRe5gjZ+-e5ac1h-Cx2reVOSfg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 19, 2021 at 10:04:23AM +0000, Shiju Jose wrote:
-> This EDAC code for the cache errors is  architecture independent for the
-> firmware-first error reporting and  could be used for other architectures,
 
-I'm not so sure about that because you're lumping all the cache
-hierarchies together and there might be L3 slices on some x86
-incarnations, for example, which do not belong to the core you're
-reporting the error for... It would need to be tested though.
 
-Also, if this is a firmware-first mode, then I would expect the firmware
-to also report which cache triggered the error and thus not need any OS
-glue at all.
+On 1/18/21 7:58 AM, Rafael J. Wysocki wrote:
+> On Fri, Jan 15, 2021 at 10:59 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>>
+>> Set the acpi_device pointer which acpi_bus_get_device()
+>> returns-by-reference to NULL on error.
+>>
+>> We've recently had 2 cases where callers of acpi_bus_get_device()
+>> did not properly error check the return value, using the
+>> returned-by-reference acpi_device pointer blindly, set it to NULL
+>> so that this will lead to an immediate oops, rather then following
+>> a pointer to who knows what.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> This should fix the crash reported by Pierre-Louis, so let me apply it
+> instead of the two debug changes posted by me
+> (https://lore.kernel.org/linux-acpi/98e6ed8e-884e-adb4-a146-a66daefa94a7@redhat.com/T/#md5add2fe554a30e3a929d87a66b435f4cc8bf628).
+> 
+> Pierre-Louis, can you please double check that the issue goes away
+> with this patch applied?
 
-Therefore ARM only and I'd need an ACK from ARM folks whether they want
-it this way.
+yep, tested twice
 
-Thx.
+Tested-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 
--- 
-Regards/Gruss,
-    Boris.
+Thanks Hans and Rafael for your work, much appreciated.
 
-https://people.kernel.org/tglx/notes-about-netiquette
+>> ---
+>>   drivers/acpi/scan.c | 2 ++
+>>   1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index c575c9b67f76..c53e88deee1d 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -585,6 +585,8 @@ static int acpi_get_device_data(acpi_handle handle, struct acpi_device **device,
+>>          if (!device)
+>>                  return -EINVAL;
+>>
+>> +       *device = NULL;
+>> +
+>>          status = acpi_get_data_full(handle, acpi_scan_drop_device,
+>>                                      (void **)device, callback);
+>>          if (ACPI_FAILURE(status) || !*device) {
+>> --
+>> 2.28.0
+>>
