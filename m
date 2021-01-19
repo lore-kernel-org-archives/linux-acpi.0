@@ -2,166 +2,126 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F07ECC4332D
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 14:26:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3821DC43333
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 14:26:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D750E205ED
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 14:26:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11CF4205ED
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 14:26:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403837AbhASOTM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Jan 2021 09:19:12 -0500
-Received: from frasgout.his.huawei.com ([185.176.79.56]:2374 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391271AbhASLYL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2021 06:24:11 -0500
-Received: from fraeml735-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4DKmQ14h6wz67dHr;
-        Tue, 19 Jan 2021 19:19:21 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml735-chm.china.huawei.com (10.206.15.216) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Tue, 19 Jan 2021 12:23:28 +0100
-Received: from localhost (10.47.77.36) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Tue, 19 Jan
- 2021 11:23:27 +0000
-Date:   Tue, 19 Jan 2021 11:22:47 +0000
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
-CC:     <joro@8bytes.org>, <will@kernel.org>, <lorenzo.pieralisi@arm.com>,
-        <robh+dt@kernel.org>, <guohanjun@huawei.com>,
-        <sudeep.holla@arm.com>, <rjw@rjwysocki.net>, <lenb@kernel.org>,
-        <robin.murphy@arm.com>, <eric.auger@redhat.com>,
-        <iommu@lists.linux-foundation.org>, <devicetree@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-accelerators@lists.ozlabs.org>, <baolu.lu@linux.intel.com>,
-        <vdumpa@nvidia.com>, <zhangfei.gao@linaro.org>,
-        <shameerali.kolothum.thodi@huawei.com>, <vivek.gautam@arm.com>
-Subject: Re: [PATCH v9 02/10] iommu/arm-smmu-v3: Use device properties for
- pasid-num-bits
-Message-ID: <20210119112247.00003846@Huawei.com>
-In-Reply-To: <20210108145217.2254447-3-jean-philippe@linaro.org>
-References: <20210108145217.2254447-1-jean-philippe@linaro.org>
-        <20210108145217.2254447-3-jean-philippe@linaro.org>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
+        id S2403994AbhASOTT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Jan 2021 09:19:19 -0500
+Received: from mail-oi1-f179.google.com ([209.85.167.179]:43398 "EHLO
+        mail-oi1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404399AbhASNUn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2021 08:20:43 -0500
+Received: by mail-oi1-f179.google.com with SMTP id q25so21077411oij.10;
+        Tue, 19 Jan 2021 05:19:53 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kUDdGSpowK1CEbj8McVC+bBtkLq63WQr+Zql2YLqG5U=;
+        b=APR2QqebwLBhixWfzvKPO1J2toMMxc5wGp2eyDUTVTgDdeiNhXK9t6GdizLJ1xkZqO
+         9FUJcPELlC8JsKvZHgBtP/Ouyr8wWl7/QC6N2kqS0Li/vWGRmut2IRxVbXPhlkaNolc+
+         YXtBkshomBq06Z92/3M3YA3v32X5IuS3Fjcs2T+j7H8yNeRu/EH+gKLfKCGJPh9Buv2w
+         PH0oMcgsVw9Y6E7Bp34L49D7RMsDRVlVulxSNBXLwVyuZf1n6mqf1hlwIDnkodjDxUv5
+         TSBMz7CAVNaWyjyCpMwPiJ6OEpyBpr+lxLlu9AucA+mGHM9ffrkAt1B/xb2zhDj9eT2T
+         EnZg==
+X-Gm-Message-State: AOAM5320PfM7sBJ4mg7+Ikxwfq1IGR98LK0HQaVUFF7cmGuDrycn1e5q
+        +seTqS7UdaDCLlahsDcTmZN/4kOlHfyFAY4r+II=
+X-Google-Smtp-Source: ABdhPJx6gcAwtwXRqp5/IJOsji1kIJ+Z/62NGRk7TKZOMu+nRuZ+LcTh4icQ0/TaVor6jnR3+WE/obLzf1Lcm6Gy7n8=
+X-Received: by 2002:aca:5c05:: with SMTP id q5mr2555018oib.157.1611062368209;
+ Tue, 19 Jan 2021 05:19:28 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.47.77.36]
-X-ClientProxiedBy: lhreml735-chm.china.huawei.com (10.201.108.86) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+References: <20210118003428.568892-1-djrscally@gmail.com> <20210118003428.568892-5-djrscally@gmail.com>
+ <YAVSf7+iTPNYf5XS@pendragon.ideasonboard.com>
+In-Reply-To: <YAVSf7+iTPNYf5XS@pendragon.ideasonboard.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 19 Jan 2021 14:19:16 +0100
+Message-ID: <CAJZ5v0hUELtKc9CK=z47XQvSAAx=wTWvoVwP-PaMqugaXaCgZQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/7] i2c: i2c-core-acpi: Add i2c_acpi_dev_name()
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Daniel Scally <djrscally@gmail.com>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-gpio@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, andy@kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Wolfram Sang <wsa@kernel.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <mgross@linux.intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 8 Jan 2021 15:52:10 +0100
-Jean-Philippe Brucker <jean-philippe@linaro.org> wrote:
+On Mon, Jan 18, 2021 at 9:55 PM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Daniel,
+>
+> Thank you for the patch.
+>
+> On Mon, Jan 18, 2021 at 12:34:25AM +0000, Daniel Scally wrote:
+> > We want to refer to an i2c device by name before it has been
+>
+> s/i2c device/acpi i2c device/ ?
+>
+> > created by the kernel; add a function that constructs the name
+> > from the acpi device instead.
+> >
+> > Signed-off-by: Daniel Scally <djrscally@gmail.com>
+> > ---
+> > Changes in v2:
+> >
+> >       - Stopped using devm_kasprintf()
+> >
+> >  drivers/i2c/i2c-core-acpi.c | 16 ++++++++++++++++
+> >  include/linux/i2c.h         |  5 +++++
+> >  2 files changed, 21 insertions(+)
+> >
+> > diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> > index 37c510d9347a..98c3ba9a2350 100644
+> > --- a/drivers/i2c/i2c-core-acpi.c
+> > +++ b/drivers/i2c/i2c-core-acpi.c
+> > @@ -497,6 +497,22 @@ struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
+> >  }
+> >  EXPORT_SYMBOL_GPL(i2c_acpi_new_device);
+> >
+> > +/**
+> > + * i2c_acpi_dev_name - Construct i2c device name for devs sourced from ACPI
+> > + * @adev:     ACPI device to construct the name for
+> > + *
+> > + * Constructs the name of an i2c device matching the format used by
+> > + * i2c_dev_set_name() to allow users to refer to an i2c device by name even
+> > + * before they have been instantiated.
+> > + *
+> > + * The caller is responsible for freeing the returned pointer.
+> > + */
+> > +char *i2c_acpi_dev_name(struct acpi_device *adev)
+> > +{
+> > +     return kasprintf(GFP_KERNEL, I2C_DEV_NAME_FORMAT, acpi_dev_name(adev));
+>
+> There's a real danger of a memory leak, as the function name sounds very
+> similar to dev_name() or acpi_dev_name() and those don't allocate
+> memory. I'm not sure what a better name would be, but given that this
+> function is only used in patch 6/7 and not in the I2C subsystem itself,
+> I wonder if we should inline this kasprintf() call in the caller and
+> drop this patch.
 
-> The pasid-num-bits property shouldn't need a dedicated fwspec field,
-> it's a job for device properties. Add properties for IORT, and access
-> the number of PASID bits using device_property_read_u32().
-> 
-> Suggested-by: Robin Murphy <robin.murphy@arm.com>
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
-
-Nice
-
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-Looks like we are fine not checking for missing properties because
-ssid_bits == 0 corresponds to pasid off anyway.
-
-
-> ---
->  include/linux/iommu.h                       |  2 --
->  drivers/acpi/arm64/iort.c                   | 13 +++++++------
->  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c |  3 ++-
->  drivers/iommu/of_iommu.c                    |  5 -----
->  4 files changed, 9 insertions(+), 14 deletions(-)
-> 
-> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index 26bcde5e7746..583c734b2e87 100644
-> --- a/include/linux/iommu.h
-> +++ b/include/linux/iommu.h
-> @@ -570,7 +570,6 @@ struct iommu_group *fsl_mc_device_group(struct device *dev);
->   * struct iommu_fwspec - per-device IOMMU instance data
->   * @ops: ops for this device's IOMMU
->   * @iommu_fwnode: firmware handle for this device's IOMMU
-> - * @num_pasid_bits: number of PASID bits supported by this device
->   * @num_ids: number of associated device IDs
->   * @ids: IDs which this device may present to the IOMMU
->   */
-> @@ -578,7 +577,6 @@ struct iommu_fwspec {
->  	const struct iommu_ops	*ops;
->  	struct fwnode_handle	*iommu_fwnode;
->  	u32			flags;
-> -	u32			num_pasid_bits;
->  	unsigned int		num_ids;
->  	u32			ids[];
->  };
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index d4eac6d7e9fb..c9a8bbb74b09 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -968,15 +968,16 @@ static int iort_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
->  static void iort_named_component_init(struct device *dev,
->  				      struct acpi_iort_node *node)
->  {
-> +	struct property_entry props[2] = {};
->  	struct acpi_iort_named_component *nc;
-> -	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-> -
-> -	if (!fwspec)
-> -		return;
->  
->  	nc = (struct acpi_iort_named_component *)node->node_data;
-> -	fwspec->num_pasid_bits = FIELD_GET(ACPI_IORT_NC_PASID_BITS,
-> -					   nc->node_flags);
-> +	props[0] = PROPERTY_ENTRY_U32("pasid-num-bits",
-> +				      FIELD_GET(ACPI_IORT_NC_PASID_BITS,
-> +						nc->node_flags));
-> +
-> +	if (device_add_properties(dev, props))
-> +		dev_warn(dev, "Could not add device properties\n");
->  }
->  
->  static int iort_nc_iommu_map(struct device *dev, struct acpi_iort_node *node)
-> diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
-> index 8ca7415d785d..6a53b4edf054 100644
-> --- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
-> +++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
-> @@ -2366,7 +2366,8 @@ static struct iommu_device *arm_smmu_probe_device(struct device *dev)
->  		}
->  	}
->  
-> -	master->ssid_bits = min(smmu->ssid_bits, fwspec->num_pasid_bits);
-> +	device_property_read_u32(dev, "pasid-num-bits", &master->ssid_bits);
-> +	master->ssid_bits = min(smmu->ssid_bits, master->ssid_bits);
->  
->  	/*
->  	 * Note that PASID must be enabled before, and disabled after ATS:
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index e505b9130a1c..a9d2df001149 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -210,11 +210,6 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
->  					     of_pci_iommu_init, &info);
->  	} else {
->  		err = of_iommu_configure_device(master_np, dev, id);
-> -
-> -		fwspec = dev_iommu_fwspec_get(dev);
-> -		if (!err && fwspec)
-> -			of_property_read_u32(master_np, "pasid-num-bits",
-> -					     &fwspec->num_pasid_bits);
->  	}
->  
->  	/*
-
+IMO if this is a one-off usage, it's better to open-code it.
